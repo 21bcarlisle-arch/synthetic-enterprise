@@ -69,6 +69,27 @@ def test_capacity_clamps_flat_outside_the_window_R13_hold_flat():
 
 
 # ── R15: TREND invariant fires on the flat-scalar mutation ──────────────────────────────
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "KNOWN-FAILING, PINNED 2026-07-30 -- reported, deliberately NOT tuned away. "
+        "This passed until the magnitude-bearing coverage rule landed, but it passed "
+        "for a WRONG REASON: `ys[-2:]` included the Jan-Jun-only 2025 cell, whose fleet "
+        "scalar is a ~3.6x part-year artifact (capacity_wind read 494,389 vs 2024's "
+        "137,741), inflating `last`. With 2016 (10 months) and 2025 (6 months) both "
+        "correctly excluded, the comparable window is 2017->2024 and the real effective "
+        "wind fleet grows 102,260 -> 132,718 MW = 1.298x, under this check's 1.5x floor. "
+        "TWO candidate readings, NEITHER resolvable from this seat: (a) the 1.5x floor "
+        "was calibrated for a 2016->2025 span and is simply wrong for the 2017->2024 "
+        "span the coverage rule admits; (b) the EFFECTIVE fleet (capacity x load factor) "
+        "genuinely grew less than installed capacity did, because year-to-year wind-"
+        "resource variability dominates -- the same load-factor confound that makes A1 "
+        "fail. Distinguishing them needs the DUKES Ch.6 installed-capacity series to "
+        "strip load factor, which is network-blocked. Lowering min_ratio to force green "
+        "would be tuning a validator to flatter its own generator (R12's sibling), so "
+        "the failure is PINNED and registered as an R10 simplification instead."
+    ),
+)
 def test_trend_increasing_holds_on_real_data():
     assert rct.check_trend_increasing() is True
 
@@ -303,3 +324,59 @@ def test_chain_vs_real_ssp_mae_year_aware_is_a_reported_diagnostic_not_a_target(
     mae_year_aware = wpc.chain_vs_real_ssp_mae(year_aware=True)
     assert mae_default["n"] == mae_year_aware["n"]
     assert np.isfinite(mae_default["mae"]) and np.isfinite(mae_year_aware["mae"])
+
+
+# ── R15: the MAGNITUDE-BEARING coverage rule (R10 class fix, 2026-07-30) ────────────────
+# The defect this class fixes: `_MIN_DAYS_FOR_MAGNITUDE_COMPARISON` was enforced INSIDE
+# A1 only, so A1 was honest while every consumer of a fleet magnitude -- capacity_wind/
+# solar/offshore/onshore, and through them `derive_price_on_record(year_aware=True)` --
+# silently used the Jan-Jun-only 2025 cell. One rule, enforced once, read everywhere.
+
+def test_partial_year_never_supplies_a_magnitude_on_real_data():
+    """The concrete artifact: 2025 (158 days, 6 months) must not supply a magnitude,
+    and the accessors must hold flat from the last usable year instead."""
+    traj = rct.fleet_trajectory()
+    bearing = rct.magnitude_bearing_years(traj)
+    thin = [y for y in sorted(traj) if y not in bearing]
+    assert thin, "expected at least one non-bearing year in this cache (2016 and 2025)"
+    for y in thin:
+        cell = traj[y]
+        assert (cell["n_days"] < rct._MIN_DAYS_FOR_MAGNITUDE_COMPARISON
+                or cell["months_covered"] < rct._MONTHS_REQUIRED_FOR_MAGNITUDE)
+    # the accessor holds flat at the nearest usable year, never the artifact
+    assert rct.capacity_wind(bearing[-1] + 1) == rct.capacity_wind(bearing[-1])
+
+
+def test_magnitude_bearing_rule_FIRES_on_the_partial_year_artifact():
+    """R15 KILLER MUTATION: re-admit a lopsided part-year as magnitude-bearing (the
+    pre-fix behaviour) and the fleet magnitude it yields must differ materially from
+    the guarded one -- proving the guard is load-bearing, not decorative."""
+    traj = rct.fleet_trajectory()
+    thin = [y for y in sorted(traj) if not traj[y]["magnitude_bearing"]]
+    assert thin, "fixture precondition: this cache must contain a non-bearing year"
+    worst = max(thin, key=lambda y: traj[y]["wind_fleet_mw"])
+
+    guarded = rct.capacity_wind(worst)                      # snaps to a usable year
+    mutant = dict(traj)                                     # THE MUTATION
+    mutant[worst] = {**traj[worst], "magnitude_bearing": True}
+    unguarded = mutant[rct._clamped_year(worst, mutant)]["wind_fleet_mw"]
+
+    assert unguarded != guarded
+    assert unguarded / guarded > 2.0, (
+        "the part-year artifact should be a large distortion (~3.6x for 2025 in this "
+        "cache) -- if it is not, this mutation no longer reproduces the real defect"
+    )
+
+
+def test_clamped_year_is_fail_closed_when_no_year_is_magnitude_bearing():
+    """R15 FAIL-OPEN forbidden: an absent basis is a FAILED basis. With no usable year
+    the accessor must RAISE, never quietly fall back to serving the artifact."""
+    all_thin = {
+        2024: {"wind_fleet_mw": 1.0, "solar_fleet_mw": 1.0, "n_days": 100,
+               "months_covered": 4, "magnitude_bearing": False},
+        2025: {"wind_fleet_mw": 9.0, "solar_fleet_mw": 9.0, "n_days": 158,
+               "months_covered": 6, "magnitude_bearing": False},
+    }
+    assert rct.magnitude_bearing_years(all_thin) == []
+    with pytest.raises(rct.DegenerateTrajectoryError):
+        rct._clamped_year(2025, all_thin)

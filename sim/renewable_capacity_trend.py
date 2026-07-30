@@ -70,12 +70,26 @@ _CACHE = Path(__file__).resolve().parent / "cache"
 # degenerate scalar built from a handful of days.
 _MIN_DAYS_PER_YEAR = 60
 
-# A1 (offshore monotonicity, below) needs YEAR-OVER-YEAR MAGNITUDE comparisons, not just
-# presence — a year covered by a lopsided subset of months (e.g. 2025's Jan-Jun-only
-# data in this cache) is not comparable to a full year on the same basis (see the
-# 2025 finding in check_offshore_non_decreasing's docstring). Stricter than
-# _MIN_DAYS_PER_YEAR; used only by A1.
+# A MAGNITUDE-BEARING year is one whose coverage can honestly support a fleet
+# MAGNITUDE (not merely presence). A year covered by a lopsided subset of months
+# (e.g. 2025's Jan-Jun-only data in this cache) cannot: the fleet scalar is a
+# mean-match of real generation against a SEASONAL physical shape, so half a year
+# divides a part-year generation mean by a part-year shape mean and the result is
+# not on the same basis as a full year's. Concretely, in this cache 2025 (158 days,
+# Jan-Jun) yields capacity_wind ~= 494,000 against 2024's ~137,700 -- a 3.6x
+# artifact, not a real buildout.
+#
+# 2026-07-30 (R10 CLASS FIX): this threshold previously lived INSIDE A1 alone, so
+# A1 was honest while every consumer of the magnitude -- capacity_wind/solar/
+# offshore/onshore, and through them the year-aware price chain -- silently used
+# the artifact. "Can this year supply a magnitude?" is now ONE definition,
+# computed once in fleet_trajectory() and enforced everywhere a magnitude is read,
+# rather than a guard re-applied per call site (the instance fix R10 forbids).
 _MIN_DAYS_FOR_MAGNITUDE_COMPARISON = 300
+
+# ...and coverage must be SEASONALLY complete, not merely numerous: 300 days drawn
+# from Jan-Oct is still a biased sample of a seasonal shape. Both conditions bind.
+_MONTHS_REQUIRED_FOR_MAGNITUDE = 12
 
 
 class DegenerateTrajectoryError(ValueError):
@@ -159,12 +173,20 @@ def fleet_trajectory() -> dict:
                 f"year {y}: physical shape has non-positive mean "
                 f"(wind_frac={wf_mean}, solar_env={env_mean})"
             )
+        dates_in_year = [rec["dates"][i] for i in range(len(rec["dates"])) if m[i]]
+        months_covered = len({str(d)[5:7] for d in dates_in_year})
         cell = {
             "wind_fleet_mw": float(rec["wind_gen_mw"][m].mean() / wf_mean),
             "solar_fleet_mw": float(rec["solar_gen_mw"][m].mean() / env_mean),
             "n_days": n,
+            "months_covered": months_covered,
+            # The single definition of "this year may supply a MAGNITUDE" (see the
+            # constants above). Computed here so no consumer can forget to apply it.
+            "magnitude_bearing": bool(
+                n >= _MIN_DAYS_FOR_MAGNITUDE_COMPARISON
+                and months_covered >= _MONTHS_REQUIRED_FOR_MAGNITUDE
+            ),
         }
-        dates_in_year = [rec["dates"][i] for i in range(len(rec["dates"])) if m[i]]
         off_vals = [off_daily[d] for d in dates_in_year if d in off_daily]
         on_vals = [on_daily[d] for d in dates_in_year if d in on_daily]
         if off_vals:
@@ -181,17 +203,61 @@ def fleet_trajectory() -> dict:
     return out
 
 
-def _clamped_year(year: int, traj: dict | None = None) -> int:
-    """Map an arbitrary year onto the nearest year the trajectory covers. Interior thin
-    years (excluded) snap to the nearest covered year; years outside the historical
-    window CLAMP to the first/last covered year — the R13 hold-flat default (never an
-    agent-authored forward extrapolation)."""
+def magnitude_bearing_years(traj: dict | None = None) -> list:
+    """The years whose coverage can honestly supply a fleet MAGNITUDE, in order.
+
+    The ONE place that question is answered (R10 class fix, 2026-07-30). A1 and every
+    capacity_* accessor read this rather than re-deriving a coverage rule locally —
+    the previous split (A1 strict, accessors unguarded) is exactly how the 2025
+    partial-year artifact reached the year-aware price chain.
+
+    `fleet_trajectory()` always stamps `magnitude_bearing`, so on real data the full
+    rule (day count AND seasonal completeness) always applies. A hand-built trajectory
+    (tests, callers constructing fixtures) may omit it; the flag is then DERIVED from
+    whatever coverage that caller did declare — `months_covered` is applied when
+    present and skipped when not, so a fixture is judged on what it actually states
+    rather than silently reading as non-bearing.
+    """
     traj = traj if traj is not None else fleet_trajectory()
-    ys = sorted(traj)
-    y = min(max(int(year), ys[0]), ys[-1])  # clamp into [first, last] covered year
-    if y in traj:
+    out = []
+    for y in sorted(traj):
+        cell = traj[y]
+        if "magnitude_bearing" in cell:
+            if cell["magnitude_bearing"]:
+                out.append(y)
+            continue
+        if cell.get("n_days", 0) < _MIN_DAYS_FOR_MAGNITUDE_COMPARISON:
+            continue
+        months = cell.get("months_covered")
+        if months is not None and months < _MONTHS_REQUIRED_FOR_MAGNITUDE:
+            continue
+        out.append(y)
+    return out
+
+
+def _clamped_year(year: int, traj: dict | None = None) -> int:
+    """Map an arbitrary year onto the nearest MAGNITUDE-BEARING year. Thin or
+    seasonally-lopsided years (and years outside the historical window) snap/CLAMP to
+    the nearest year that can honestly supply a magnitude — the R13 hold-flat default
+    (never an agent-authored forward extrapolation, and never a part-year artifact).
+
+    Fail-closed: if NO year is magnitude-bearing, this raises rather than quietly
+    falling back to the unguarded set — an unavailable basis is a FAILED basis (R15),
+    not a licence to serve the artifact anyway.
+    """
+    traj = traj if traj is not None else fleet_trajectory()
+    ys = magnitude_bearing_years(traj)
+    if not ys:
+        raise DegenerateTrajectoryError(
+            "no calendar year is magnitude-bearing (needs >= "
+            f"{_MIN_DAYS_FOR_MAGNITUDE_COMPARISON} aligned days AND >= "
+            f"{_MONTHS_REQUIRED_FOR_MAGNITUDE} months covered) — refusing to serve a "
+            "fleet magnitude from part-year data"
+        )
+    y = min(max(int(year), ys[0]), ys[-1])  # clamp into [first, last] usable year
+    if y in ys:
         return y
-    return min(ys, key=lambda k: abs(k - y))  # nearest covered interior year
+    return min(ys, key=lambda k: abs(k - y))  # nearest usable interior year
 
 
 def capacity_wind(year: int) -> float:
@@ -244,9 +310,18 @@ def check_trend_increasing(traj: dict | None = None, min_ratio: float = 1.5) -> 
     (Real GB wind fleet roughly doubled 2016->2025; 1.5x is a conservative floor.)
     A whole-window flat scalar collapses per-year variance -> ratio ~ 1 -> FAILS. The
     stronger year-over-year monotone form needs DUKES capacity to strip load-factor
-    (network-blocked) — not asserted here."""
+    (network-blocked) — not asserted here.
+
+    2026-07-30 (sibling-half audit): restricted to MAGNITUDE-BEARING years. This
+    previously read `sorted(traj)`, so `ys[-2:]` included the Jan-Jun-only 2025 cell
+    whose fleet scalar is a ~3.6x part-year artifact — the check still passed, but
+    partly for a wrong reason (an inflated `last`). A control that passes for a wrong
+    reason is not evidence.
+    """
     traj = traj if traj is not None else fleet_trajectory()
-    ys = sorted(traj)
+    ys = magnitude_bearing_years(traj)
+    if len(ys) < 2:
+        return False  # not enough comparable years — never a vacuous pass (R15)
     first = float(np.mean([traj[y]["wind_fleet_mw"] for y in ys[:2]]))
     last = float(np.mean([traj[y]["wind_fleet_mw"] for y in ys[-2:]]))
     if first <= 0:
@@ -259,9 +334,18 @@ def check_time_varying(traj: dict | None = None, min_cv: float = 0.05) -> bool:
     coefficient of variation across covered years exceeds min_cv, i.e. a given weather
     draw prices differently in 2016 than in 2025. Reverting to a single whole-window
     scalar -> CV = 0 -> FAILS. This is the invariant that proves the mechanism does
-    something."""
+    something.
+
+    2026-07-30 (sibling-half audit): restricted to MAGNITUDE-BEARING years, same
+    reason as `check_trend_increasing` — a part-year outlier inflates the CV, so the
+    non-degeneracy this invariant certifies would have been partly manufactured by a
+    data artifact rather than by the mechanism it exists to prove.
+    """
     traj = traj if traj is not None else fleet_trajectory()
-    vals = np.array([traj[y]["wind_fleet_mw"] for y in sorted(traj)], float)
+    ys = magnitude_bearing_years(traj)
+    if len(ys) < 2:
+        return False  # not enough comparable years — never a vacuous pass (R15)
+    vals = np.array([traj[y]["wind_fleet_mw"] for y in ys], float)
     if vals.mean() <= 0:
         return False
     return float(vals.std() / vals.mean()) > min_cv
@@ -295,9 +379,8 @@ def check_offshore_non_decreasing(traj: dict | None = None, tol_frac: float = 0.
     load-factor from the true capacity signal — an L2 step, not built here.
     """
     traj = traj if traj is not None else fleet_trajectory()
-    ys = [y for y in sorted(traj)
-          if "wind_offshore_fleet_mw" in traj[y]
-          and traj[y]["n_days"] >= _MIN_DAYS_FOR_MAGNITUDE_COMPARISON]
+    ys = [y for y in magnitude_bearing_years(traj)
+          if "wind_offshore_fleet_mw" in traj[y]]
     if len(ys) < 2:
         return False  # can't assert monotonicity on <2 comparable years
     vals = [traj[y]["wind_offshore_fleet_mw"] for y in ys]
