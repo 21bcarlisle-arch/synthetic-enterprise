@@ -242,3 +242,60 @@ expansion requested** of the sole-map-writer (committed scope `[docs/design]`; c
 load-factor and enable non-tautological A1-strict/A2/A3; (b) flip `derive_price` default to
 year-aware after re-running the SSP calibration gate (task 7); (c) coupled-triad L3 gate — register
 `W1_7 ↔ <company mix-belief>` once that company capability exists (§7, unchanged).
+
+## 12. Come-home, second pass (2026-07-30, BUILD fork, level PROPOSED not self-recorded)
+
+**Built on top of §11** (baseline: 10 tests green, unchanged mechanism):
+- **Onshore/offshore split** (`sim/renewable_capacity_trend.py::_load_offshore_onshore_daily`,
+  new): a local psrType filter on the already-cached raw AGWS records gives a genuine
+  `wind_offshore_fleet_mw` / `wind_onshore_fleet_mw` per year (previously only the *combined*
+  `wind_fleet_mw` existed — the two psrTypes were summed together by
+  `generation_demand_history.aggregate_wind_generation`, which stays untouched, out of scope).
+  New accessors `capacity_wind_offshore(year)` / `capacity_wind_onshore(year)`.
+- **A1 implemented** (`check_offshore_non_decreasing`) — GB offshore wind was only ever ADDED
+  2016-2025. R15 mutation-proven both directions (a hand-crafted decommissioning fixture fires;
+  a compliant one passes; <2 comparable years fails rather than vacuously passing). **Honest
+  finding, not tuned away:** at the FRAME's literal strict tolerance, the check **fails on real
+  data today** — the year-over-year *effective* offshore fleet is not strictly monotone (real
+  wind-resource/load-factor noise dominates several year-pairs in the 2016-2024 record), and a
+  genuinely lopsided partial year (this cache's 2025 covers Jan-Jun only, and its inflated
+  effective-fleet value is a national-wind-speed artifact, not a capacity signal — both traced
+  and logged in the function's own docstring) is excluded from the comparison via a new,
+  stricter `_MIN_DAYS_FOR_MAGNITUDE_COMPARISON` gate rather than being allowed to distort it in
+  either direction. True strict A1 needs DUKES installed-capacity to strip load-factor — still
+  network-blocked, still an L2 step.
+- **A3/A4 implemented as FAIL-LOUD stubs** (`check_mix_share_against_independent_source`,
+  `check_no_coal_after_retirement`) per the explicit instruction that an unavailable independent
+  source must never be silently skipped. Both raise a dedicated `*UnavailableError` when their
+  source (DESNZ Table 6; a coal capacity series — neither ingested, no network this fork) is
+  absent. R15-proven via a killer-mutation contrast: a hand-written fail-open mutant that
+  returns True/False on the missing source is shown side-by-side against the real guard, which
+  raises. A4's violation-detection half is separately proven on a clearly-synthetic,
+  test-only fixture (compliant vs. coal-surviving-past-retirement), since no real coal series
+  exists in this sim to exercise it on.
+- **The mechanism actually LAYERED onto the ground-truth series**, not just reachable via an
+  isolated `year=` kwarg: `derive_price_on_record(year_aware=True)` /
+  `chain_vs_real_ssp_mae(year_aware=True)` thread each row's own calendar year through the chain
+  across the WHOLE real record (the series `background/weather_price_triad.py` measures the
+  company against). `year_aware=False` (untouched default) stays byte-identical — 76
+  `weather_price_chain`/`price_engine`/`renewable_capacity`/`weather_tail` tests green, plus the
+  9 `weather_price_triad` coupled-triad tests green, plus `tools.epistemic_verifier` PASS — the
+  SSP calibration gate is not re-opened (R12/S8). The year-aware MAE is exposed as a diagnostic,
+  never asserted better/worse (R12) — flipping the *default* remains the FRAME §9 task-7 step,
+  gated on a deliberate SSP-recalibration re-run, not done here.
+
+**Test count:** 22 in `tests/sim/test_renewable_capacity_trend.py` (was 10).
+
+**L3 still walled** (§7, unchanged): no company mix-belief capability exists yet to register
+`W1_7 ↔ <company mix-belief>` in `background/coupled_triad.py` and measure the gap — this pass
+is WORLD-side only, per this atom's file_scope (`company/**` out of scope).
+
+**Level:** proposed L1 (mechanism built, runs, tested) — **not** L2, honestly: the FRAME's own
+L2 bar (§4) is commissioning-date smoothing + coal→gas→wind re-stacking of the *marginal plant*
+in the merit order, neither of which is touched here (S8: the merit-order calibration itself is
+deliberately not re-opened). What *did* move since §11: a real technology-level split (onshore
+vs offshore, not just combined wind), two of the four FRAME invariants now have live,
+mutation-tested implementations (one FAIL-LOUD, one substantively checked with an honest
+real-data result), and the mechanism is demonstrably layered onto the full ground-truth series,
+not just a single-draw kwarg. Recorded as evidence for the orchestrator's ledger, not
+self-certified here.
