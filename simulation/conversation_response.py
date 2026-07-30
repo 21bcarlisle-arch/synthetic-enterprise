@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import math
 import random
 from dataclasses import dataclass
 from typing import Optional
@@ -278,6 +279,19 @@ def positive_action_probability(
             # Budget stress caps ability-to-pay: up to a ~40% haircut at maximal
             # stress. A hidden real constraint the tone lever cannot overcome.
             prob *= 1.0 - 0.4 * _budget_stress(customer_id)
+    if not math.isfinite(prob):
+        # R15 NaN-blindness guard: a non-finite probability must be REJECTED
+        # here, before it ever reaches a `<` comparison against a random
+        # draw -- comparisons against NaN are silently False in Python, so an
+        # un-guarded caller would misroute every customer to the adverse/
+        # silent branch without ever raising (fail-silent). Reject loudly
+        # instead, before the min() clamp below (which is itself NaN-blind:
+        # ``min(nan, 1.0)`` returns ``nan``, not ``1.0``).
+        raise ValueError(
+            f"positive_action_probability produced a non-finite value "
+            f"({prob!r}) for customer {customer_id!r}, situation "
+            f"{message.situation!r} -- rejected before any comparison"
+        )
     return min(prob, 1.0)
 
 
@@ -293,6 +307,17 @@ def _adverse_share(customer_id: str, message: ConversationMessage) -> float:
     if profile.adverse_action == ResponseAction.SWITCH:
         # A latent intent to leave raises the switch share directly.
         share += 0.3 * _considering_switch(customer_id)
+    if not math.isfinite(share):
+        # R15 NaN-blindness guard (same pattern as positive_action_probability
+        # above): reject a non-finite adverse share BEFORE the clamp/
+        # comparison, rather than letting it silently propagate as NaN
+        # (``max(0.0, min(nan, 1.0))`` is itself NaN, and a NaN compared with
+        # ``<`` is silently False everywhere it is used).
+        raise ValueError(
+            f"_adverse_share produced a non-finite value ({share!r}) for "
+            f"customer {customer_id!r}, situation {message.situation!r} -- "
+            f"rejected before any comparison"
+        )
     return max(0.0, min(share, 1.0))
 
 
