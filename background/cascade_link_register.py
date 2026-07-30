@@ -21,14 +21,29 @@ WHAT IS ESTIMATED NOW (in-repo data available):
     SELF-dependence (not a pair-lift), the axis that turns a joint tail into a
     sustained multi-day drawdown.
 
-WHAT IS ASSERTED (series not assembled in-repo, honestly registered, R10): D2
-(residual-demand<->price), D3 (short-volume<->cash-out, the £ covariance), D4
-(demand<->temp), D5 (wind-output<->wind-speed, deterministic power curve), D6
-(cross-seam compounding — derived, multiplicative), D7 (interconnector relief
-withdrawn in the tail, an ANTI dependence). Each carries its sign + reason + the
-exact grounding path, so a later rung can estimate it without re-deriving what it
-needs. The assumed magnitudes are registered ASSUMPTIONS pending that estimation,
-never presented as measured (R12 — no fabricated number reads as a result).
+WHAT IS ASSERTED (series not assembled in-repo, or genuinely not observable
+without a company run, honestly registered, R10): D3 (short-volume<->cash-out,
+the £ covariance — needs an actual book Delta_vol, which is a COMPANY output,
+not a market observable; estimating it from the company's own simulated run
+would breach anti-marking-own-homework), D7 (interconnector relief withdrawn in
+the tail, an ANTI dependence — the real IC net-import + EU-tightness series are
+not assembled in-repo). Each carries its sign + reason + the exact grounding
+path, so a later rung can estimate it without re-deriving what it needs. The
+assumed magnitudes are registered ASSUMPTIONS pending that estimation, never
+presented as measured (R12 — no fabricated number reads as a result).
+
+D6 (cross-seam compounding) MOVED asserted->ESTIMATED: the end-to-end
+cold-winter TEMPERATURE -> daily SSP PRICE joint-tail lift, using the real
+independent daily-mean SSP fixture (`sim/scenario/data/real_ssp_daily_mean.json`,
+itself extracted from the published Elexon SSP cache) against Open-Meteo temp,
+winter-conditioned (same anti-pooling as D1/D4). This reproduces the same
+magnitude previously only NOTED in the maturity-map log (~1.77) but not
+committed as re-runnable code — it is now a real, reproducible estimate, not an
+assumed placeholder. Its CI [see detail] straddles the independence null (unlike
+D1/D2/D4/D5, whose CIs all exclude it) — an honest finding that the cascade
+PARTIALLY DECOUPLES end-to-end (the daily SSP mean smooths the half-hourly price
+spike D2 finds at finer resolution; different resolutions, both real, not a
+contradiction).
 
 C-S2: deterministic (fixed bootstrap seed). This module reads sim/harness data to
 compute a diagnostic; it is HARNESS code (background/), never company-facing.
@@ -48,7 +63,9 @@ from background.cascade_correlation_estimation import (
     LiftEstimate,
     asserted_dependence,
     block_bootstrap_lift_ci,
+    compounding_holds,
     condition,
+    end_to_end_lift,
     joint_tail_lift,
 )
 
@@ -248,22 +265,78 @@ def estimate_d5_windoutput_windspeed(*, u: float = _DECILE_U, seed: int = 0) -> 
     )
 
 
+_SSP_DAILY_CACHE = Path(__file__).resolve().parent.parent / "sim" / "scenario" / "data" / "real_ssp_daily_mean.json"
+
+
+def _load_daily_ssp_mean(path: Path | None = None) -> Dict[str, float]:
+    """Real GB national daily-mean SSP (Elexon System Sell Price), keyed by ISO
+    settlement date -- the independent published series (real 2016-2025 Elexon
+    data, not a sim output; anti-marking-own-homework). Reads the compact
+    fixture `real_ssp_daily_mean.json` (a contiguous daily series from
+    `start_date`, itself extracted from the 128MB half-hourly SSP cache -- see
+    its own `_provenance` field) rather than re-parsing the half-hourly cache
+    D2 already reads. FAIL-OPEN guard: `n_days` must match the value count, or
+    the fixture is corrupt and raising beats silently mis-aligning every date."""
+    import json
+    from datetime import date, timedelta
+    p = path or _SSP_DAILY_CACHE
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    values = raw["daily_mean_ssp"]
+    if len(values) != raw["n_days"]:
+        raise ValueError(
+            f"real_ssp_daily_mean.json corrupt: n_days={raw['n_days']} but {len(values)} values present"
+        )
+    start = date.fromisoformat(raw["start_date"])
+    return {(start + timedelta(days=i)).isoformat(): float(v) for i, v in enumerate(values)}
+
+
+def estimate_d6_end_to_end(*, u: float = _DECILE_U, seed: int = 0) -> EstimatedLink:
+    """D6: cross-seam compounding -- the END-TO-END cold-winter TEMPERATURE ->
+    daily SSP PRICE joint-tail lift (`end_to_end_lift`), winter-conditioned
+    (same anti-pooling as D1/D4), cold aligned to the dear corner via `-temp`
+    (D4's convention) so both sides point the same way. Real independent
+    sources on both ends: Open-Meteo temp, Elexon SSP (anti-marking-own-
+    homework). Declared BEFORE looking at the result (the method mirrors D1/D4
+    exactly -- winter DJF, decile u, same corner-alignment convention -- to
+    avoid picking a driver definition that flatters a target number, R12): this
+    is `L_end`, the terminal-vs-root lift the compounding inequality
+    (`compounding_holds`) compares against the product of the per-link lifts.
+    The CI is reported AS MEASURED even where (as here) it straddles the
+    independence null -- an honest partial-decoupling finding, not smoothed
+    over to look like a clean confirmation."""
+    national, _doy, dates = load_national_daily()
+    winter = _winter_mask(dates)
+    price_by_date = _load_daily_ssp_mean()
+    temp_by_date = {dates[i].strftime("%Y-%m-%d"): float(national["temperature_mean_c"][i])
+                    for i in range(len(dates)) if winter[i]}
+    common = sorted(set(temp_by_date) & set(price_by_date))
+    if len(common) < 100:
+        raise ValueError(f"too few common winter weather/price days to estimate D6: {len(common)}")
+    temp = np.array([temp_by_date[d] for d in common])
+    price = np.array([price_by_date[d] for d in common])
+    est: LiftEstimate = end_to_end_lift(price, -temp, u=u, upper=True)  # cold & dear corner
+    lo, hi = block_bootstrap_lift_ci(price, -temp, u=u, upper=True, seed=seed)
+    return EstimatedLink(
+        link_id="D6_cross_seam_compounding",
+        statistic="end_to_end_lift",
+        value=est.lift,
+        detail={"u": u, "sign_cold_dear": 1.0, "ci_low": float(lo), "ci_high": float(hi),
+                "n_winter_days": float(len(common)), "ci_excludes_null": float(lo > 1.0)},
+    )
+
+
 def asserted_links() -> List[AssertedDependence]:
-    """D3/D6/D7 — registered as asserted-not-estimated (R10). Signs come from
-    the DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending
+    """D3/D7 — registered as asserted-not-estimated (R10). Signs come from the
+    DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending
     estimation (never presented as measured). Each names the exact real series +
     statistic that would ground it, so the next rung can estimate without
-    re-deriving."""
+    re-deriving. D6 (formerly asserted here) is now ESTIMATED
+    (`estimate_d6_end_to_end`) -- see the module docstring for what changed."""
     return [
         asserted_dependence(
             "D3_shortvol_cashout", assumed_lift=1.8, assumed_sign="upper",
             reason="book imbalance Delta_vol = demand - hedged is not observable without a run",
             grounding="Delta_vol vs SSP/SBP cash-out, upper-upper lift; the money is the covariance E[Delta_vol*spot]",
-        ),
-        asserted_dependence(
-            "D6_cross_seam_compounding", assumed_lift=2.0, assumed_sign="upper",
-            reason="the seam compounding is DERIVED (multiplicative across links), not a directly-observed pair",
-            grounding="end_to_end_lift vs product(per-link lifts) — compounding_holds check once the links are estimated",
         ),
         asserted_dependence(
             "D7_interconnector_relief", assumed_lift=0.5, assumed_sign="anti",
@@ -276,20 +349,33 @@ def asserted_links() -> List[AssertedDependence]:
 def build_register(*, seed: int = 0) -> Dict[str, object]:
     """The full D1..D8 register: estimated links (real series) + asserted links
     (R10, grounded). Every one of the eight is present in exactly one state —
-    the inventory is never silently incomplete."""
+    the inventory is never silently incomplete. Also reports the compounding
+    inequality (`compounding_holds`, S4/D6) on the estimated links: whether the
+    end-to-end D6 lift is at least the product of D1/D2/D4/D5 — a genuine
+    finding (it does NOT hold on the real record: the cascade partially
+    decouples end-to-end), reported as a diagnostic, never adjusted to hold."""
     estimated = [estimate_d1_temp_wind(seed=seed), estimate_d2_residual_price(seed=seed),
                  estimate_d4_demand_temp(seed=seed), estimate_d5_windoutput_windspeed(seed=seed),
-                 estimate_d8_persistence()]
+                 estimate_d6_end_to_end(seed=seed), estimate_d8_persistence()]
     asserted = asserted_links()
     covered = {e.link_id.split("_")[0] for e in estimated} | {a.link_id.split("_")[0] for a in asserted}
     expected = {f"D{i}" for i in range(1, 9)}
     missing = expected - covered
     if missing:
         raise AssertionError(f"cascade link register INCOMPLETE — D-links not registered: {sorted(missing)}")
+    d6 = next(e for e in estimated if e.link_id == "D6_cross_seam_compounding")
+    chain_lifts = [e.value for e in estimated if e.link_id.split("_")[0] in ("D1", "D2", "D4", "D5")]
+    compounding = {
+        "l_end": d6.value,
+        "product_of_links": float(np.prod(chain_lifts)),
+        "link_lifts": {e.link_id: e.value for e in estimated if e.link_id.split("_")[0] in ("D1", "D2", "D4", "D5")},
+        "holds": compounding_holds(d6.value, chain_lifts),
+    }
     return {
         "estimated": [asdict(e) for e in estimated],
         "asserted": [asdict(a) for a in asserted],
         "covered_links": sorted(covered),
+        "compounding": compounding,
     }
 
 

@@ -122,6 +122,24 @@ class LiftEstimate:
     p_a: float
     p_b: float
 
+    def __post_init__(self) -> None:
+        """FAIL-OPEN guard on the class boundary itself (R15): `.coupled` /
+        `.anti_coupled` are bare float comparisons, and a NaN silently reads as
+        `False` on BOTH sides (neither coupled nor anti-coupled -- a check that
+        can never fire). `joint_tail_lift` cannot produce a non-finite `lift`
+        (denom is checked > 0 and p_a/p_b/p_joint are bounded corner-count
+        means), but that is an internal invariant, not a wall -- a directly
+        constructed or future-refactored `LiftEstimate` must not be able to
+        smuggle a NaN/inf past it. Validated HERE so no construction path,
+        current or future, can produce a `LiftEstimate` whose `.coupled`
+        silently lies."""
+        if not np.isfinite(self.lift) or self.lift < 0.0:
+            raise DegenerateSeriesError(f"LiftEstimate.lift must be finite and >= 0, got {self.lift!r}")
+        if not (0.0 < self.u < 1.0):
+            raise ValueError(f"LiftEstimate.u must be in (0,1), got {self.u!r}")
+        if not np.isfinite(self.lam):
+            raise DegenerateSeriesError(f"LiftEstimate.lam must be finite, got {self.lam!r}")
+
     @property
     def coupled(self) -> bool:
         """Tail-coupled == lift meaningfully above the independence null."""
@@ -250,10 +268,22 @@ def end_to_end_lift(
 def compounding_holds(l_end: float, link_lifts: Sequence[float], *, tol: float = 1e-9) -> bool:
     """The compounding inequality `L_end >= prod(L_link)` (S4). A cascade whose
     end-to-end tail is THINNER than the product of its links violates the
-    physics claim -- a finding, returned as False (not silently accepted)."""
+    physics claim -- a finding, returned as False (not silently accepted).
+    FAIL-OPEN guard: `l_end + tol >= product` is a bare float comparison, and
+    is NaN-BLIND -- if `l_end` or any `link_lifts` entry is non-finite the
+    comparison is simply False, which reads identically to a genuine physics
+    violation. A non-finite input is a DATA-PIPELINE defect, not a compounding
+    finding, so it is rejected loud, BEFORE the comparison, never folded into
+    the same False the real inequality-broken case returns."""
     if not link_lifts:
         raise DegenerateSeriesError("no link lifts -- compounding inequality undefined")
-    product = float(np.prod([float(x) for x in link_lifts]))
+    lifts = [float(x) for x in link_lifts]
+    if not np.isfinite(l_end):
+        raise DegenerateSeriesError(f"l_end must be finite, got {l_end!r}")
+    non_finite = [x for x in lifts if not np.isfinite(x)]
+    if non_finite:
+        raise DegenerateSeriesError(f"link_lifts must all be finite, got {non_finite!r} among {lifts!r}")
+    product = float(np.prod(lifts))
     return l_end + tol >= product
 
 
@@ -318,7 +348,17 @@ def assert_coupling_present(
     never returns present=True. FAIL-OPEN inherited from joint_tail_lift."""
     if a is None or b is None:
         raise SeriesUnavailableError("a series is unavailable -- an unavailable check is a FAILED check")
-    floor = INDEPENDENCE_NULL + _COUPLING_COLLAPSE_BAND if min_lift is None else float(min_lift)
+    if min_lift is None:
+        floor = INDEPENDENCE_NULL + _COUPLING_COLLAPSE_BAND
+    else:
+        floor = float(min_lift)
+        if not np.isfinite(floor):
+            # FAIL-OPEN guard: `est.lift >= floor` is NaN-blind -- a NaN floor
+            # makes the comparison silently False (COLLAPSED) regardless of the
+            # true lift, misreporting a genuinely-coupled link as broken. Reject
+            # the bad configuration loud instead of letting it masquerade as a
+            # verdict.
+            raise ValueError(f"min_lift must be finite, got {min_lift!r}")
     est = joint_tail_lift(a, b, u, upper=upper)
     present = est.lift >= floor
     return CouplingVerdict(
