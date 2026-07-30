@@ -8,13 +8,6 @@
       "reason": "book imbalance Delta_vol = demand - hedged is not observable without a run"
     },
     {
-      "assumed_lift": 2.0,
-      "assumed_sign": "upper",
-      "grounding": "end_to_end_lift vs product(per-link lifts) \u2014 compounding_holds check once the links are estimated",
-      "link_id": "D6_cross_seam_compounding",
-      "reason": "the seam compounding is DERIVED (multiplicative across links), not a directly-observed pair"
-    },
-    {
       "assumed_lift": 0.5,
       "assumed_sign": "anti",
       "grounding": "IC net import vs GB residual demand, conditional relief | (GB tight AND EU tight) \u2014 near zero",
@@ -22,6 +15,17 @@
       "reason": "IC net-import + EU-tightness series not assembled; a cold-and-still event is often EU-wide"
     }
   ],
+  "compounding": {
+    "holds": false,
+    "l_end": 1.8016528925619835,
+    "link_lifts": {
+      "D1_temp_wind": 2.364669421487603,
+      "D2_residual_demand_price": 1.316937815518368,
+      "D4_demand_temp": 5.163225172074729,
+      "D5_windoutput_windspeed": 4.920949146483153
+    },
+    "product_of_links": 79.12352848894217
+  },
   "covered_links": [
     "D1",
     "D2",
@@ -84,6 +88,19 @@
       "link_id": "D5_windoutput_windspeed",
       "statistic": "joint_tail_lift",
       "value": 4.920949146483153
+    },
+    {
+      "detail": {
+        "ci_excludes_null": 0.0,
+        "ci_high": 2.8658792470156076,
+        "ci_low": 0.7789288542539395,
+        "n_winter_days": 872.0,
+        "sign_cold_dear": 1.0,
+        "u": 0.1
+      },
+      "link_id": "D6_cross_seam_compounding",
+      "statistic": "end_to_end_lift",
+      "value": 1.8016528925619835
     },
     {
       "detail": {
