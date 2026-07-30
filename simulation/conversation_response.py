@@ -309,10 +309,13 @@ def _adverse_share(customer_id: str, message: ConversationMessage) -> float:
         share += 0.3 * _considering_switch(customer_id)
     if not math.isfinite(share):
         # R15 NaN-blindness guard (same pattern as positive_action_probability
-        # above): reject a non-finite adverse share BEFORE the clamp/
-        # comparison, rather than letting it silently propagate as NaN
-        # (``max(0.0, min(nan, 1.0))`` is itself NaN, and a NaN compared with
-        # ``<`` is silently False everywhere it is used).
+        # above), but the failure mode here is the WORSE one: the clamp below
+        # does not propagate the NaN, it LAUNDERS it. ``min(nan, 1.0)`` is
+        # ``nan``, but ``max(0.0, nan)`` returns ``0.0`` -- so an un-guarded
+        # non-finite share silently becomes a perfectly plausible "no adverse
+        # action" instead of an obviously-broken value, and nothing downstream
+        # can ever tell the difference. Reject it here, loudly, before the
+        # clamp can disguise it.
         raise ValueError(
             f"_adverse_share produced a non-finite value ({share!r}) for "
             f"customer {customer_id!r}, situation {message.situation!r} -- "
