@@ -266,3 +266,33 @@ line, a genuine Expert Hour across all doors. Closing a fail-open in its control
 
 **Still open, unchanged:** the 11 remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25 callers);
 the auto-processor broad-`add` finding (queued, not blocking).
+
+---
+## PROCESS FINDING 2 (2026-08-03 worker tick) — the run_complete queue cannot drain, and the doorbell will say "unprocessed staging" forever
+
+**Observed with evidence, not inferred.** 13 `run_complete_*.md` markers sat unprocessed in
+`docs/staging/` spanning `093145Z` → `122143Z`. Measured at 12:37 UTC:
+
+- Last successful auto-process commit: `c0eee24e9`, **09:30 UTC — 3h07m earlier**.
+- `background/background_worker.py` logged the whole backlog twice (12:06, 12:36) as
+  *"Lock-skipped … (another instance holds the run lock) — still pending, will retry next cycle"*.
+- `ps` showed `process_run_complete.py` **alive and working** (PID 1376812, 8m06s elapsed, 35% CPU,
+  2m52s CPU time) — and running against the **newest** marker `122143Z`, not the oldest.
+- `docs/observability/.publish_gate_state.json` is `{"failures": [], "wedge_since": null}` — **no wedge**.
+
+**The machine is not blocked, so this is QUEUED not fixed on sight (SELF_INTERRUPT_DISCIPLINE).** The
+mechanism is a throughput inequality, not a fault: a publish takes ~8-16 min (its gate runs the suite),
+markers arrive every ~10-15 min, and the worker's leftover-sweep can never take the run lock. Processing
+the newest marker is *correct* — the latest sim state is what should publish — but the superseded markers
+are never archived, so the queue only grows. Every future tick's doorbell will therefore report
+"unprocessed staging" from a queue that is working as designed, which is exactly how a real stall would
+be camouflaged next time (cf. the `in_progress/` doorbell finding at the top of this file — same class:
+a recurring doorbell read as noise instead of as state).
+
+**Recommended fix, not yet built:** when `process_run_complete.py` successfully publishes marker N, it
+should archive every *older* marker to `done/` as SUPERSEDED-BY-N in the same commit — they describe runs
+whose output the newer publish already contains. That converts an unbounded queue into a bounded one and
+restores the doorbell's signal value. Registered here as a finding; it is the second recorded defect in
+`process_run_complete.py`'s staging handling, alongside the broad-`add` sweep above. **Two findings on
+one component is an R3 two-strike trigger** — the next touch should redesign its staging discipline
+(stage own named paths; archive superseded markers) rather than patch a third time.
