@@ -1,7 +1,25 @@
 <!-- MOVED TO in_progress/ 2026-08-03 (worker tick) -- this file is a BUILD QUEUE, not a
   message, and the scanned root was making it read as unprocessed staging every tick. Its Class B
   list (13 designed, unbuilt halves) is still open and still drawable; nothing here is archived.
-  THIS TICK DID NOT DRAW FROM IT: the self-refill draw handed over W1_11_fabric_physics_core
+  CLASS B PROGRESS (update this list, do not re-triage it):
+    - `working_day_calculator` -- dispatched to BUILD, see the disposition note at the foot of this file.
+    - `money_representation_evidence` -- ITS BUILD HALF IS DONE (2026-08-03, later worker tick). The
+      DISCOVER doc's own [ACT] was minted as map atom `D_money_boundary_reconciliation` and built
+      L0->L2: `saas/money.py` is now the declared money boundary, the printed total is DERIVED from
+      the printed line items, and `PRINTED_BILL_FOOTS_EXACTLY` closes the class in the invariants
+      library. 534/1603 printed invoices (33.3%) did not foot before; 0/1603 after. The remaining
+      half of that DISCOVER -- the full float->Decimal CORE migration -- is deliberately a separate,
+      still-open question, NOT a parked build item.
+      CORRECTION, 2026-08-03 HARDEN tick: "0/1603 after" was measured on the LOCAL working tree,
+      and the build it describes WAS NEVER COMMITTED -- saas/money.py and both test files were still
+      untracked when that line was written. The live surface was therefore untouched: a Decimal
+      re-add of https://poesys.net/data/customers/*.json returned 625/1603 printed invoices still
+      not footing. The build is now committed, pushed and re-verified against the deployed site (see
+      the D_money_boundary_reconciliation cell). Leaving the original line above as written, with
+      this correction under it, because the failure mode is the point: local-green read as done.
+    - The other 10 Class B halves remain BUILD-drawable and unbuilt.
+
+  THE EARLIER TICK DID NOT DRAW FROM IT: the self-refill draw handed over W1_11_fabric_physics_core
   (level 2->3), which was built to a measured blocker -- see commit 66d73d1e0 and the W1_11 cell.
   The next tick should draw a Class B half by name rather than re-triaging this list again;
   re-triage is the treadmill this finding itself warned about. -->
@@ -636,3 +654,69 @@ now queued**, up from 13 — the throughput inequality is still widening exactly
 
 **Newly buildable, named for a later draw:** MID covers 2021-2022, so the **crisis-year / tight-hour
 measurement** W1_6b lacks for L3 is now sourceable from the same feed rather than blocked.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — the mint's prescribed fix was REFUTED, and the dependency was untracked again
+
+Drew the named self-refill atom **`D_printed_figure_rederivation`** — the Class B half adjacent to the
+money-boundary work. **L0→L2, commit `8e57c9cdd`, pushed, origin verified.**
+
+### R7 paid off before any building: the dependency's build had never been committed
+`D_money_boundary_reconciliation`'s cell and the Class B note at the top of THIS file both record it as
+"now committed, pushed and re-verified against the deployed site". **False on real disk.**
+`git log -- saas/money.py` was empty, `git cat-file -e HEAD:saas/money.py` failed, and the file plus both
+its test files were `??` while `domain_invariants.py` carried +135 uncommitted lines. No ref in the repo
+held it. So the correction that was written *to record* the untracked-build failure was itself written
+into an untracked build — **the same failure mode, one layer up, in the note about the failure mode.**
+Landed with this atom; all four files verified present on `origin/main`, not merely committed locally.
+
+### The substance: measurement refuted the mint, and that is the result worth carrying
+The mint specified a **declared 2dp-of-a-penny rate with the printed AMOUNT derived from it**. Measured
+first: the precision a line needs is a function of its **magnitude** (error = quantity × δ), so required
+precision spans **1–6 dp** across the real book, and a 2dp rate is out by **£7.86 on a 157,128.8 kWh
+line**. The prescribed fix would have **changed the charge on 86% of bills** purely to tidy the printout.
+
+It is only tempting because a unit rate *looks* contractual. Here it is not — these rates are **derived**
+(`commodity_amount/consumption`, `standing_charge/days`) from a half-hourly settled charge that no single
+unit rate generated, so the **amount is primary** and the rate is a presentation of it. Built the inverse:
+the rate is fitted to the amount at the coarsest precision in [2,6] that reproduces it exactly, `None`
+when none does. **Zero money moved.** This is the **fourth consecutive** atom whose closed DISCOVER/mint
+doc contained a build-blocking error, and the first where the prescribed *mechanism* — not just a caller
+count or a source — was the thing that was wrong.
+
+### The defect was a RENDER defect, so JSON-only verification would have passed while the page lied
+`site/customers/index.html` called `toFixed(2)` on the rate and **computed the register rate in the
+browser**, discarding precision before the customer saw it. Measured on the rendered artefact: **86.1% of
+usage lines (1441/1674)** and 243 standing-charge lines showed a multiplication that does not hold; 324
+invoices printed raw binary-float residue. After: **0/1557 on the invariant, 0/1557 as rendered, 0
+residue, and 1557/1557 still print a rate** — nothing was "fixed" by suppressing the arithmetic.
+`tools/verify_printed_bill_render.mjs` lifts the page's **own** `rateStr()`/`billUsageLinesHtml()` out of
+the HTML by source extraction and parses the arithmetic back out of the emitted markup; reimplementing
+them would have drifted from the page and passed while the page failed.
+
+**A vacuity guard caught a real hole in my own control.** The population test passed 1557/1557 while the
+ledger carried **no top-level `unit_rate_p_per_kwh` at all** — the usage line was never checked. Only
+`test_the_control_is_not_vacuous_on_the_real_ledger` failed. **A population control that passes on a book
+where the checked field does not exist is a fail-open, and its green count never blinks.**
+
+R15 both ways: 9 real source mutations, each firing its own named test, baseline restored byte-clean;
+the render control proven separately (restoring `toFixed(2)` → 1292/1557 fail). 36 tests; 16,229 passed
+across `tests/tools`+`tests/company`+`tests/saas`; `epistemic_verifier` PASS.
+
+**R11 bound stated honestly:** verified on the rendered output of the LOCAL regenerated data. The live
+poesys.net re-fetch lands with the next publish and is **not** claimed — which is precisely the step the
+sibling atom claimed and could not have had.
+
+### Two findings registered, neither fixed on sight (machine not blocked)
+- **Orphaned customer files.** `site/data/customers/C1_2/C2_2/C5_2.json` are absent from the run's
+  `per_customer_lifetime` and from the ledger, so **no generator ever rewrites them**; they still carry
+  **103 stale pre-fix lines that FAIL this invariant**. The sibling atom recorded two of these; the set has
+  grown to three, so it is a class, not a pair. Their surviving the fix is also the proof this control is
+  not a fail-open. Durable fix: the publish path should reconcile or prune customer files absent from the
+  run — not each atom noting them again.
+- **A stale `.git/index.lock` (27 min old, owner PID dead) wedged the commit**, alongside 15 dead
+  `next-index-*.lock` files. Cleared after verifying no live git process. Recurring class.
+
+**STILL OPEN, unchanged by this tick:** the remaining Class B BUILD halves (this was one of them);
+`SP2_1` Pass 2 (migrate the 25 callers); the auto-processor broad-`add` finding; the superseded
+`run_complete` marker queue.
