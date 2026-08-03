@@ -628,3 +628,129 @@ def test_coverage_control_raises_rather_than_reporting_clean_on_an_unjudged_book
     'the archive covers everyone', on a book that was never judged at all."""
     with pytest.raises(ValueError, match="never judged"):
         fdp.coverage_refusals([])
+
+
+# ---------------------------------------------------------------------------
+# The THIRD control: the shape that actually reaches settlement.
+#
+# The two controls above judge the provider LABEL and the DECLARATION. Neither
+# reads a single kWh, so both stay green on a book where every fabric premise is
+# handed the rescaled national shape -- the defect the switch exists to remove.
+# These tests pin that hole shut and prove the new control fires in it.
+# ---------------------------------------------------------------------------
+
+
+def _settled_shape_for_c1():
+    """The shape_fn `run_phase2b` hands to term pricing, built exactly as the
+    settlement branch builds it -- not a value recomputed beside it."""
+    series_by_customer, _ = fdp.fabric_providers_for_book(**_book())
+    series = series_by_customer["C1"]
+    return series, fdp.fabric_shape_fn(series, "electricity")
+
+
+def test_the_settled_shape_is_physically_textured_on_the_real_seam():
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    assert fdp.settled_shape_is_physically_textured(shape_fn, dates) is True
+
+
+def test_the_control_FIRES_when_settlement_receives_a_rescaled_national_shape():
+    """THE MUTATION, and it is the exact defect: a `shape_fn` that carries the
+    fabric provider's name while returning one stored base shape rescaled per day.
+    Nothing about the provider label, the eligibility verdict or the coverage
+    refusal list changes -- which is why this control had to exist."""
+    series, real_shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    base = real_shape_fn(dates[0])
+
+    def rescaled_national_shape_fn(date_str: str) -> list[float]:
+        scale = 1.0 + 0.01 * (dates.index(date_str) % 7)
+        return [v * scale for v in base]
+
+    assert fdp.settled_shape_is_physically_textured(
+        rescaled_national_shape_fn, dates
+    ) is False
+
+
+def test_the_two_shipped_controls_stay_GREEN_on_that_very_mutation():
+    """INDEPENDENCE, asserted rather than argued. On the rescaled-shape book the
+    label control and the coverage control both report a perfectly switched
+    settlement, because a label assigned by the branch that builds the callable
+    cannot disagree with itself. If this ever goes red the three controls have
+    merged and one has stopped being an independent check."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    providers = {
+        "C1": fdp.FABRIC_PROVIDER,
+        "HH1": fdp.METERED_PROVIDER,
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(providers, verdicts) is True
+    assert fdp.coverage_refusals(verdicts) == []
+
+
+def test_the_control_REJECTS_a_non_finite_settled_period_before_testing_texture():
+    """NaN-blind guard: `abs(nan) <= tol` is False by luck, not by design, and a
+    NaN compares False against every threshold -- so a non-finite value must be
+    rejected FIRST rather than silently deciding the texture verdict."""
+    series, real_shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+
+    def nan_shape_fn(date_str: str) -> list[float]:
+        day = list(real_shape_fn(date_str))
+        day[0] = float("nan")
+        return day
+
+    with pytest.raises(ValueError, match="non-finite"):
+        fdp.settled_shape_is_physically_textured(nan_shape_fn, dates)
+
+
+def test_the_control_REJECTS_an_all_zero_book_rather_than_passing_it():
+    """FAIL-OPEN guard, and it is reachable rather than theoretical: the zero
+    floor in `fabric_shape_fn` (`max(0.0, ...)`) means a premise whose generation
+    swamps its load settles at zero every period. Zero everywhere has no repeating
+    fraction, so the texture test would PASS it -- a premise settling at nothing is
+    not a textured premise."""
+    series, _ = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    with pytest.raises(ValueError, match="zero"):
+        fdp.settled_shape_is_physically_textured(lambda _d: [0.0] * 48, dates)
+
+
+def test_the_control_REFUSES_a_window_too_short_to_detect_reuse():
+    """A single day cannot show a shape being reused, and returning True for one
+    would report a clean switch on evidence that cannot contain the defect."""
+    series, shape_fn = _settled_shape_for_c1()
+    with pytest.raises(ValueError, match="two days"):
+        fdp.settled_shape_is_physically_textured(
+            shape_fn, sorted(series.gross_electricity_kwh)[:1]
+        )
+
+
+def test_the_control_REJECTS_a_shape_that_is_not_48_periods():
+    """A settlement shape is 48 half-hours. Judging a 24-vector for texture would
+    report a verdict on something that is not a settlement shape at all."""
+    series, _ = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    with pytest.raises(ValueError, match="not 48"):
+        fdp.settled_shape_is_physically_textured(lambda _d: [1.0] * 24, dates)
+
+
+def test_the_settled_shape_control_is_NOT_AN_ORPHAN():
+    """R11, and this atom's own repeat offence. `write_fabric_gap_entries`,
+    `generate_evidence_data.generate` and `tools/fabric_settlement_gap` each landed
+    green-tested and uninvoked; `reconstruction_reconciles` shipped with no caller
+    outside its unit test. A control the run never calls is decoration, and nothing
+    about a green test says anyone runs it -- so the wiring is asserted here rather
+    than trusted. Reads the real source of the settlement path, not a docstring."""
+    import inspect
+
+    from simulation import run_phase2b
+
+    source = inspect.getsource(run_phase2b)
+    assert "settled_shape_is_physically_textured(" in source, (
+        "run_phase2b no longer calls the settled-shape control: the switch can be "
+        "labelled without being thrown again"
+    )
+    assert run_phase2b.settled_shape_is_physically_textured is (
+        fdp.settled_shape_is_physically_textured
+    ), "run_phase2b imported a different symbol than the one tested here"

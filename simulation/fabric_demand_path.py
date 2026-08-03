@@ -68,10 +68,15 @@ parameters, the away-day calendar and the comfort constraint never cross the wal
 from __future__ import annotations
 
 import datetime as dt
+import math
 from dataclasses import dataclass
 from typing import Callable, Mapping, Sequence
 
-from simulation.fabric_physics import PERIODS_PER_DAY, ThermalState
+from simulation.fabric_physics import (
+    PERIODS_PER_DAY,
+    ThermalState,
+    texture_is_not_a_rescaled_shape,
+)
 from simulation.household import Household
 from simulation.premise_trace import (
     REFERENCE_UNIT_PRICE_P_PER_KWH,
@@ -622,6 +627,69 @@ def coverage_refusals(eligibility: Sequence[FabricEligibility]) -> list[str]:
         for v in eligibility
         if not v.is_eligible and v.reason.startswith(COVERAGE_REFUSAL)
     )
+
+
+def settled_shape_is_physically_textured(
+    shape_fn: Callable[[str], list[float]],
+    dates: Sequence[str],
+    *,
+    max_day_multiplicity: int | None = None,
+) -> bool:
+    """THE CONTROL ON THE SHAPE SETTLEMENT ACTUALLY RECEIVES, and the one the other
+    two cannot be: they judge the LABEL and the DECLARATION, this judges the NUMBERS.
+
+    `settlement_providers_match_eligibility` asks whether the customers declared
+    fabric-driven carry the fabric provider name, and `coverage_refusals` asks
+    whether that declaration was quietly emptied. BOTH PASS UNCHANGED on a book
+    where `fabric_shape_fn` returns the rescaled national shape for every premise —
+    the provider string is assigned by the same branch that builds the callable, so
+    a label can never disagree with itself. That is the fail-open this closes: a
+    switch is only thrown if the series arriving at settlement is texturally
+    different from the artefact it replaces, and nothing on the shipped path
+    checked that.
+
+    WHY IT IS NOT ENOUGH THAT `fabric_physics` ALREADY CHECKS TEXTURE. The L1.5
+    control `texture_is_not_a_rescaled_shape` runs inside the physics module on the
+    RAW trace. Between that point and settlement the series passes through PV
+    netting, battery dispatch and a zero floor (`fabric_shape_fn`), each of which
+    can flatten or degenerate a day, and none of which is covered upstream. L3 for
+    this atom is the claim that the company SETTLES on physics, so the control has
+    to stand at the settlement seam and consume the same callable
+    `run_phase2b` hands to term pricing — not a value computed beside it.
+
+    Reuses the physics module's own measured threshold rather than inventing a
+    second one, so there is exactly one definition of "this is a rescaled shape".
+
+    Raises rather than passing on: fewer than two days (nothing to compare), a
+    non-finite value, or an all-zero book (a premise settling at zero demand every
+    day is not a textured premise, and `max(0.0, ...)` in `fabric_shape_fn` makes
+    that reachable rather than theoretical).
+    """
+    if len(dates) < 2:
+        raise ValueError(
+            "a settled shape cannot be judged for texture on fewer than two days"
+        )
+    days: list[list[float]] = []
+    for date_str in dates:
+        day = list(shape_fn(date_str))
+        if len(day) != 48:
+            raise ValueError(
+                f"settled shape for {date_str} has {len(day)} periods, not 48: "
+                "this is not a settlement shape"
+            )
+        if any(not math.isfinite(v) for v in day):
+            raise ValueError(
+                f"settled shape for {date_str} contains a non-finite value: "
+                "a NaN compares False against every threshold, so it must be "
+                "rejected before the texture test, not by it"
+            )
+        days.append(day)
+    if not any(v > 0.0 for day in days for v in day):
+        raise ValueError(
+            "every settled period is zero across the sampled window: a premise that "
+            "settles at zero demand has no texture to judge and is not fabric-driven"
+        )
+    return texture_is_not_a_rescaled_shape(days, max_day_multiplicity=max_day_multiplicity)
 
 
 def prebound_channel_is_fed(series: FabricDemandSeries) -> bool:

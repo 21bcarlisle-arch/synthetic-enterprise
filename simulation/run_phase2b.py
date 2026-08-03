@@ -138,6 +138,7 @@ from simulation.fabric_demand_path import (
     coverage_refusals,
     fabric_providers_for_book,
     fabric_shape_fn,
+    settled_shape_is_physically_textured,
     settlement_providers_match_eligibility,
 )
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
@@ -933,6 +934,34 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 return [g - p for g, p in zip(gross, generation)]
             return _battery_daily_dispatch(gross, generation, battery_kwh)
         return dispatch
+
+    # W1_11: the THIRD control, and the only one that reads the numbers. The two
+    # controls at the end of this function judge the provider LABEL and the
+    # DECLARATION -- both pass unchanged on a book where every fabric premise is
+    # handed the rescaled national shape, because the label is assigned by the same
+    # branch that builds the callable and so can never disagree with itself. This
+    # one consumes the SAME shape_fn term pricing is about to receive, downstream of
+    # PV netting, battery dispatch and the zero floor, and fires if what arrives at
+    # settlement is texturally the artefact the switch exists to replace. Sampled
+    # rather than exhaustive: a fortnight from each end of the window costs nothing
+    # and a rescaled shape recurs on 100% of days by construction, so it cannot hide
+    # in the unsampled middle.
+    for _fab_cid, _fab_series in sorted(fabric_series_by_customer.items()):
+        _sample_dates = sorted(_fab_series.gross_electricity_kwh)
+        _sample_dates = _sample_dates[:14] + _sample_dates[-14:]
+        if not settled_shape_is_physically_textured(
+            fabric_shape_fn(
+                _fab_series,
+                "electricity",
+                battery_dispatch=_fabric_battery_dispatch_for(_fab_cid),
+            ),
+            _sample_dates,
+        ):
+            raise AssertionError(
+                f"{_fab_cid} settles on the fabric provider but the shape reaching "
+                "settlement is a rescaled base shape, not physics: the switch is "
+                "labelled but not thrown"
+            )
 
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]
