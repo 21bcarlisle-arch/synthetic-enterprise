@@ -1,5 +1,30 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T18:43:48Z
+Last updated: 2026-08-03T18:58:35Z
+
+**DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
+mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
+at all** while all six sub-parts (DD1, DD1-sizes-collection, DD2, DD3, DD4a, DD5 SITE, DD-H) were built,
+committed and live — the stale-cell class again, so it was re-verified against artefacts rather than
+re-stamped: `run_output_latest.json` carries every DD block and `dd_h_solvency_gap.measure_from_run_output()`
+now returns **measurable=True** (belief £4,118,110.43 / truth £4,116,298.23 / gap £1,812.20 / tell False,
+as at 2020-10) where on 2026-07-29 it honestly reported NOT-MEASURABLE. **DD2's parked opening balance was
+wrong in BOTH halves.** Not the prior occupant's debt — SLC 27/12.2, and `change_of_tenancy_register.py`'s
+own opening lines, put debt on the **person**; and W2_12 hitting its target is not an unblock, because
+`TenancyChangeCoupler` has **no production caller** (grep-verified) and `simulation/life_events.py` emits
+**no move event at all**. Wiring it would be a live mechanism with a permanently dead input — the **fourth**
+orphan-transition instance, and the first where the orphan was holding another atom's work in a queue by
+proxy. **A C-S5 fail-open, found by testing the claim rather than reading the code:** the docstring said
+monthly/quarterly billing "all carry the same way" while the loop collected one standing DD **per BILL** —
+a quarterly customer paying 4 direct debits a year against 12 months of energy, a 3× under-collection
+feeding straight into DD3's booked liability and DD-H's gap. Fixed; byte-identical on the real
+(monthly, zero-gap) book. **The measured defect is PINNED, not fabricated shut:** the opening DD is the
+first bill — one seasonal month annualised flat — so it is a function of **the month the customer walked
+in**: **+33.2%** (gas, April join) and **−46.3%** (gas, July join) against +2.1%/−1.0%/+2.6% on the
+weakly-seasonal electricity accounts, with C2g alone carrying **£293.49 of spurious held credit** against
+a £1,812.20 portfolio peak. Strict xfail (XPASSes when the source is mutated to annual/12), minted as
+atom `D_opening_dd_seasonal_sizing` — fixing it needs a **published** monthly-shape source, and no
+coefficient here may be fabricated. **Held at L2:** expert_hour not_attempted, DD4b unbuilt, sizing defect
+open. 1835 passed + 1 strict xfail; `epistemic_verifier` PASS (532 files).
 
 **D_printed_figure_rederivation (2026-08-03, `8e57c9cdd`) — the mint's prescribed fix would have changed
 the CHARGE to tidy the printout. L0→L2, recorded.** The footing fix closed "the column adds up"; this
@@ -611,7 +636,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
 - Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
 - Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
@@ -722,6 +747,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1366.8h across 54 sized atom(s) (9 of 63 below-target atoms still unsized).
+- Remaining effort: ~1355.2h across 53 sized atom(s) (9 of 62 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
