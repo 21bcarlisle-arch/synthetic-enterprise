@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T18:58:35Z
+Last updated: 2026-08-03T19:22:43Z
 
 **DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
 mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
@@ -636,7 +636,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (503s / 8 min):
 - Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
 - Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
@@ -743,10 +743,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) When "the fabric physics now has a seam into the path the company settles on," does that seam let the physics constrain the company's chosen path (a modelling fix), or does it let the chosen path feed back and alter the physics — i.e. can the optimiser now move the simulated world's ground truth to make its own enterprise value or survival numbers look better?
 - (T3_inherence) In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
 - (T3_inherence) What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
+- (T3_inherence) What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1355.2h across 53 sized atom(s) (9 of 62 below-target atoms still unsized).
+- Remaining effort: ~1366.8h across 54 sized atom(s) (9 of 63 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

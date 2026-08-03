@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1246
+      "stall_consecutive_unchanged": 1291
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -2898,7 +2898,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2919,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 251
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 22
+      "stall_consecutive_unchanged": 26
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -2978,7 +2978,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 30
+      "stall_consecutive_unchanged": 33
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3359,7 +3359,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3447,7 +3447,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 42
+      "stall_consecutive_unchanged": 48
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3466,7 +3466,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stall_consecutive_unchanged": 57
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3485,7 +3485,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50
+      "stall_consecutive_unchanged": 54
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3504,7 +3504,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 51
+      "stall_consecutive_unchanged": 56
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3542,11 +3542,30 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 39
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
       "name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 31
+    },
+    {
+      "id": "W2_non_dd_miss_vocabulary",
+      "name": "Give the behavioural/analytics surface a non-DD missed-payment label, so a standard-credit or corporate customer's miss stops being recorded as a returned Direct Debit",
       "lane": "W2_customer_generator",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
@@ -3556,12 +3575,33 @@
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_payment_channel_dd_consistency_invariant"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "W2_sme_segment_case_normalisation",
+      "name": "SME customers are routed through the RESIDENTIAL payment-channel model because the segment test is case-sensitive -- and the naive fix silently deletes all SME bad debt",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 29
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3580,7 +3620,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 47
+      "stall_consecutive_unchanged": 50
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3599,7 +3639,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "D_printed_figure_rederivation",
@@ -3677,7 +3717,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34
+      "stall_consecutive_unchanged": 38
     }
   ],
   "lanes": {
@@ -3760,7 +3800,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 182,
+  "total_atoms": 184,
   "epoch2_movements": [
     {
       "id": "M1",

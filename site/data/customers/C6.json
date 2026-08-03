@@ -4248,16 +4248,6 @@
         "running_balance_gbp": 425.27
       },
       {
-        "date": "2016-10-15",
-        "type": "payment_failed",
-        "invoice_number": 720,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 425.27
-      },
-      {
         "date": "2016-10-22",
         "type": "notice",
         "invoice_number": 720,
@@ -6448,12 +6438,12 @@
     {
       "customer_id": "C6",
       "date": "2016-10-15",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 425.26,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {

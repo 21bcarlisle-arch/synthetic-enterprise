@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T18:46:53.399142+00:00",
+  "generated_at": "2026-08-03T19:10:15.131935+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,7 +9,7 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 213,
+    "transition_count": 214,
     "median_cycle_days": 0.103,
     "min_cycle_days": 0.003,
     "max_cycle_days": 12.769,
@@ -56,14 +56,14 @@
         "cycle_days": 8.544
       },
       {
-        "atom_id": "SITE_evidence_pages_behind_nodes",
-        "lane": "H_harness",
+        "atom_id": "DD_seasonal_cashflow_physics",
+        "lane": "D_billing_metering",
         "epoch": 3,
         "from_level": 0,
         "to_level": 2,
         "loop_stage_to": "build",
-        "date": "2026-08-03T13:21:19+01:00",
-        "cycle_days": 6.789
+        "date": "2026-08-03T19:57:24+01:00",
+        "cycle_days": 7.064
       }
     ]
   },
@@ -108,13 +108,20 @@
         "H8_harness_bootstrap_dr"
       ],
       "critical_chain_length": 1
+    },
+    "None": {
+      "open_atoms": 1,
+      "critical_chain": [
+        "D_opening_dd_seasonal_sizing"
+      ],
+      "critical_chain_length": 1
     }
   },
   "concurrency": {
-    "total_open_atoms": 62,
+    "total_open_atoms": 63,
     "code_free_discover_frame_atoms": 11,
-    "atoms_with_real_file_scope": 51,
-    "max_concurrent_width_overall": 39,
+    "atoms_with_real_file_scope": 52,
+    "max_concurrent_width_overall": 38,
     "per_epoch": {
       "2": {
         "open_atoms": 30,
@@ -135,17 +142,21 @@
       "5": {
         "open_atoms": 2,
         "max_concurrent_width": 2
+      },
+      "None": {
+        "open_atoms": 1,
+        "max_concurrent_width": 1
       }
     },
     "note": "Most open atoms today are DISCOVER/FRAME-stage with empty file_scope (code-free research/design work), which is why the arithmetic max width looks close to the full open-atom count -- this measures 'no file collision', not 'safe to run N engineers building code at once'. Real BUILD-stage file contention only shows up once these atoms declare non-empty file_scope on entering BUILD."
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 50,
+    "from_rich_touches": 46,
     "substantive_staged_doc_touches": 213,
-    "routine_daemon_markers_excluded": 2524,
+    "routine_daemon_markers_excluded": 2533,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 31.81,
+    "estimated_director_hours_per_day": 31.63,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },

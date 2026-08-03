@@ -5309,16 +5309,6 @@
         "running_balance_gbp": 64.43
       },
       {
-        "date": "2018-08-16",
-        "type": "payment_failed",
-        "invoice_number": 952,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 64.43
-      },
-      {
         "date": "2018-08-23",
         "type": "notice",
         "invoice_number": 952,
@@ -6386,16 +6376,6 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1005 raised",
-        "running_balance_gbp": 754.15
-      },
-      {
-        "date": "2023-01-14",
-        "type": "payment_failed",
-        "invoice_number": 1005,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
         "running_balance_gbp": 754.15
       },
       {
@@ -11234,12 +11214,12 @@
     {
       "customer_id": "C8",
       "date": "2018-08-16",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 66.41,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
@@ -11355,12 +11335,12 @@
     {
       "customer_id": "C8",
       "date": "2023-01-14",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 782.12,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {

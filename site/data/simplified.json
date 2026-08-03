@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T18:59:47Z",
+  "generated_at": "2026-08-03T19:22:25Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -3739,17 +3739,32 @@
           "superseded": []
         },
         {
-          "atom_id": "W2_payment_channel_dd_consistency_invariant",
-          "atom_name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
+          "atom_id": "W2_non_dd_miss_vocabulary",
+          "atom_name": "Give the behavioural/analytics surface a non-DD missed-payment label, so a standard-credit or corporate customer's miss stops being recorded as a returned Direct Debit",
           "level_current": 0,
           "level_target": 3,
           "notes": [
+            "2026-08-03 MINTED by the W2_payment_channel_dd_consistency_invariant build as its NAMED L3 residual, not as a discovered aside. That atom closed the BILLING LEDGER surface (12 violating arrears cases -> 0). The BEHAVIOURAL/SAMPLE surface still carries 8 violating customers, MEASURED with the shipped control: C1g, C4, C8 (resi standard_credit), C5, C6 (SME) and C_IC1, C_IC2, C_IC3g (I&C). Root cause is NOT the one the DISCOVER predicted: background/live_payment_triad.py maps BOTH \"failed\" AND \"dispute\" onto the literal string DD_FAILED under its own explicitly NAMED SIMPLIFICATION (\"the legacy analytics vocabulary has only ON_TIME/LATE/DD_FAILED\"), so every corporate invoice dispute is recorded as a returned Direct Debit for a customer who pays by CHAPS.",
+            "2026-08-03 THE TRAP, measured before minting so the next tick does not walk into it: the fix is NOT a rename. company/crm/payment_behaviour_analytics.py derives dd_fail_rate by counting result == \"DD_FAILED\", and company/crm/life_event_detector.py, company/crm/affordability_inference.py and saas/sme_credit_risk.py all read late_rate + dd_fail_rate as their distress signal. Emitting a new label without teaching those four consumers about it would make a non-DD customer's missed payments STOP REGISTERING AS DISTRESS -- a silent loss of real signal, strictly worse than the mislabel it fixes. simulation/payment_seam_adapter.py additionally maps dd_failure_reason onto Bacs reason categories and must not receive a reason for a payment that was never a Direct Debit. R15 both ways: (a) a corporate dispute must stop reading as DD_FAILED; (b) each of the four distress consumers must still score a non-DD miss as distress -- mutate the consumer to ignore the new label and its test FIRES."
+          ],
+          "superseded": []
+        },
+        {
+          "atom_id": "W2_payment_channel_dd_consistency_invariant",
+          "atom_name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
+          "level_current": 2,
+          "level_target": 3,
+          "notes": [
+            "2026-08-03 BUILT L0->L2 (worker tick). file_scope EXTENDED to tools/generate_billing_ledger.py + its test: that is the sole named production caller of arrears_stages(), so the remediation could not land inside the originally-scoped set. Recorded rather than silently widened. WHAT LANDED: (1) PAYMENT_CHANNEL_DD_CONSISTENCY registered in the invariant library (R10 class closure) with check_/scan_/record_asserts_/dd_artefact_fields_present in company/compliance/domain_invariants.py, symmetric across the ledger and behavioural/sample record shapes; (2) simulation/arrears_engine.opening_arrears_stage() makes the ONE method-specific arrears stage method-aware -- direct_debit keeps DD_FAILED/\"Direct debit returned\", every non-DD method opens PAYMENT_MISSED; the collections cascade after it is method-independent and asserted so. MEASURED: billing ledger 12 violating arrears cases (C1g,C4,C5,C6,C8) -> 0 after regeneration, with all 25 genuine direct_debit failures UNTOUCHED (no over-block, so no real bad-debt signal was deleted to shrink the count -- R12).",
+            "2026-08-03 R15 BOTH WAYS, 9 real source mutations, each firing its OWN named test with the rest green, byte-clean restore, baseline green: opening-stage always-DD; method given a DD default; missing-method-reads-as-DD; NaN counter passing a blind > 0; note-check dropped; trajectory scan dropped; two-directional over-block; unregistered from ALL_INVARIANTS; dd_failure_reason check dropped. HONEST BOUND ON THE POPULATION CONTROL: the ledger test judges a BUILD ARTEFACT on disk, so a source mutation does not move it until regeneration -- which is exactly why the generator-side tests in tests/simulation/test_arrears_engine.py exist; the artefact test alone would have sat green through M1. Vacuity guarded: test_the_population_control_is_not_vacuous_on_the_real_ledger asserts the checked fields exist AND that both a DD and a non-DD case are present, so \"0 violations\" can never be clean-for-the-wrong-reason.",
+            "2026-08-03 THE CLOSED DISCOVER DOC WAS WRONG IN TWO PLACES, both found by measuring rather than reading (fifth consecutive atom with build-blocking errors in its DISCOVER). (a) Its sample-surface count of 3 customers is an UNDERCOUNT -- the real number is 8 (C1g,C4,C8 + C5,C6 + C_IC1,C_IC2,C_IC3g) -- and its stated reason is false: it claimed SME/I&C customers \"carry no resi behavioural trajectory\", and they all do. (b) It mapped TWO generators; there are THREE. background/live_payment_triad.py maps BOTH \"failed\" AND \"dispute\" to the literal string DD_FAILED, under its own NAMED SIMPLIFICATION, which is where every I&C customer's dd_failed count comes from -- a surface the DISCOVER never looked at. A grep for arrears_stages( also missed a production call site: simulation/arrears_engine.py dispatches it as (arrears_stages if outcome == \"failed\" else ic_arrears_stages)(...), found ONLY because method was made a required keyword rather than a defaulted one.",
+            "2026-08-03 L3 RESIDUAL, stated not hidden: the BEHAVIOURAL/SAMPLE surface still carries 8 violating customers and is deliberately NOT fixed here. Closing it means giving the analytics vocabulary a non-DD miss label, which ripples through company/crm/payment_behaviour_analytics.py (dd_fail_rate), company/crm/life_event_detector.py, company/crm/affordability_inference.py and saas/sme_credit_risk.py -- all of which read late_rate + dd_fail_rate as a distress signal, so a naive rename would make a non-DD customer's misses stop registering as distress entirely -- plus simulation/payment_seam_adapter.py, which maps dd_failure_reason onto Bacs reason categories. All are outside this atom's file_scope and it is a genuinely separate build: minted as W2_non_dd_miss_vocabulary. L3 also needs the coupled-triad population measure, which a bounded tick does not run.",
             "2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md. Parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17. THE DEFECT IS AN ABSURDITY-CLASS ONE: two generators independently emit a customer's payment_channel and its arrears-engine payment events, and nothing reconciles them, so a standard-credit customer can carry a direct-debit FAILURE. A COO reading that book would stop reading. R10 therefore forbids closing it with the C1g instance fix: the closure is the INVARIANT, enforced where the ledger/sample is generated, so the entire class fails automatically.",
             "2026-08-03 MINT -- R15 BOTH WAYS, and the second direction is the one that matters: (a) inject a standard-credit customer carrying a dd_failed event => the invariant FIRES; (b) a genuinely DD customer with a genuine DD failure PASSES -- no fail-open, and equally no OVER-BLOCK of legitimate DD arrears, which would quietly delete real bad-debt signal from the book. R12: the count of inconsistent customers is a DIAGNOSTIC, never a target -- no customer may be reclassified to shrink it. DISCOVER half first: map the two generators' outputs and BOUND THE CLASS SIZE (how many customers, not just that C1g exists), because an invariant landed without knowing the blast radius will either be switched off on first run or will silently rewrite the book."
           ],
           "superseded": [
             {
-              "note_index": 0,
+              "note_index": 4,
               "superseded_blocks": [
                 {
                   "name": "director_build_open",
@@ -3763,6 +3778,17 @@
               ]
             }
           ]
+        },
+        {
+          "atom_id": "W2_sme_segment_case_normalisation",
+          "atom_name": "SME customers are routed through the RESIDENTIAL payment-channel model because the segment test is case-sensitive -- and the naive fix silently deletes all SME bad debt",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-08-03 MINTED by the W2_payment_channel_dd_consistency_invariant build. VERIFIED LIVE, not inferred: simulation/arrears_engine.payment_method tests `segment == \"sme\"` while bills store the segment as \"SME\", so payment_method(\"SME\", 500, \"C5\") returns standard_credit where payment_method(\"sme\", ...) returns bacs. simulation/payment_behaviour_source.generate_payment_event repeats the same lowercase-only test (`segment in (\"ic\", \"I&C\", \"sme\")`), so the defect exists independently on both surfaces. Consequence today: C5 and C6 are billed as if they were households.",
+            "2026-08-03 THE REASON THIS IS NOT A ONE-LINE FIX, measured: `payment_outcome(\"bacs\", stress, rng, segment=\"SME\")` returns (\"success\", 0) UNCONDITIONALLY, because the dispute branch is gated on _IC_SEGMENTS = (\"ic\", \"I&C\") and SME is not in it. So normalising the case alone moves C5/C6 onto a path where they can NEVER fail a payment -- deleting 3 failed payments and 3 arrears cases of real SME bad debt outright. The case-sensitivity bug has been MASKING the fact that there is no SME payment-outcome model at all. Closing this therefore requires an ANCHORED SME outcome model (real SME/microbusiness payment-default behaviour), not a coefficient invented to fill the gap. Until that source exists, fixing the case test alone is a regression and must not be done."
+          ],
+          "superseded": []
         }
       ]
     },
@@ -3941,8 +3967,8 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 177,
-  "total_notes": 848,
+  "total_atoms_with_notes": 179,
+  "total_notes": 856,
   "total_notes_superseded": 95,
   "abolished_block_classes": [
     {

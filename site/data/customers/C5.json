@@ -3376,16 +3376,6 @@
         "running_balance_gbp": -571.88
       },
       {
-        "date": "2019-03-21",
-        "type": "payment_failed",
-        "invoice_number": 692,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": -571.88
-      },
-      {
         "date": "2019-03-28",
         "type": "notice",
         "invoice_number": 692,
@@ -3613,16 +3603,6 @@
         "info_amount_gbp": 67.88,
         "method": "dca",
         "description": "DCA recovered GBP67.88 net of commission (20% recovery rate, 15% commission)",
-        "running_balance_gbp": -567.47
-      },
-      {
-        "date": "2020-01-20",
-        "type": "payment_failed",
-        "invoice_number": 702,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
         "running_balance_gbp": -567.47
       },
       {
@@ -4219,12 +4199,12 @@
     {
       "customer_id": "C5",
       "date": "2019-03-21",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 399.32,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
@@ -4307,12 +4287,12 @@
     {
       "customer_id": "C5",
       "date": "2020-01-20",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 403.72,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {

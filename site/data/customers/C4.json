@@ -4494,16 +4494,6 @@
         "running_balance_gbp": 41.63
       },
       {
-        "date": "2018-04-16",
-        "type": "payment_failed",
-        "invoice_number": 480,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 41.63
-      },
-      {
         "date": "2018-04-23",
         "type": "notice",
         "invoice_number": 480,
@@ -5234,16 +5224,6 @@
         "running_balance_gbp": 48.54
       },
       {
-        "date": "2021-03-18",
-        "type": "payment_failed",
-        "invoice_number": 515,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 48.54
-      },
-      {
         "date": "2021-03-25",
         "type": "notice",
         "invoice_number": 515,
@@ -5344,16 +5324,6 @@
         "running_balance_gbp": 39.78
       },
       {
-        "date": "2021-07-15",
-        "type": "payment_failed",
-        "invoice_number": 519,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 39.78
-      },
-      {
         "date": "2021-07-22",
         "type": "notice",
         "invoice_number": 519,
@@ -5381,16 +5351,6 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 81.96
-      },
-      {
-        "date": "2021-08-17",
-        "type": "payment_failed",
-        "invoice_number": 520,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Direct debit returned",
         "running_balance_gbp": 81.96
       },
       {
@@ -6635,12 +6595,12 @@
     {
       "customer_id": "C4",
       "date": "2018-04-16",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 41.63,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
@@ -6745,12 +6705,12 @@
     {
       "customer_id": "C4",
       "date": "2021-03-18",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 48.54,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
@@ -6789,12 +6749,12 @@
     {
       "customer_id": "C4",
       "date": "2021-07-15",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 39.79,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
@@ -6833,12 +6793,12 @@
     {
       "customer_id": "C4",
       "date": "2021-08-17",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
+      "event_type": "arrears_payment_missed",
+      "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 42.18,
-      "outcome": "DD_FAILED",
+      "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
