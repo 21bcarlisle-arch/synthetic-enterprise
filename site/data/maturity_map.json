@@ -1779,9 +1779,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 3,
+      "level_current": 1,
       "level_target": 3,
-      "loop_stage": "harden",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1791,9 +1791,9 @@
         "C13_weather_normalisation"
       ],
       "chain": "weather_cascade",
-      "at_target": true,
+      "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "W1_6_physics_price_signal",
@@ -1860,7 +1860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 86
+      "stall_consecutive_unchanged": 87
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2879,7 +2879,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3581
+      "stall_consecutive_unchanged": 3585
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 187
+      "stall_consecutive_unchanged": 189
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2919,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2484
+      "stall_consecutive_unchanged": 2648
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3662
+      "stall_consecutive_unchanged": 3663
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3274,7 +3274,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15292
+      "stall_consecutive_unchanged": 15370
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3304,9 +3304,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3316,7 +3316,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 41
+      "stall_consecutive_unchanged": 57
     },
     {
       "id": "W1_12_premise_trace_generator",
@@ -3327,7 +3327,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3340,7 +3340,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 44
+      "stall_consecutive_unchanged": 87
     },
     {
       "id": "C14_thermal_parameter_inference",
@@ -3351,7 +3351,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3363,7 +3363,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 48
+      "stall_consecutive_unchanged": 50
     },
     {
       "id": "H_GAP_fabric_belief_truth_gap",
@@ -3374,7 +3374,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
