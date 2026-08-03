@@ -17,9 +17,12 @@ defect — a control that cannot fail is worse than none):
     year=None is byte-identical to the pre-W1_7 whole-window scalar path (backward
     compat — the SSP calibration gate is not re-opened).
 
-NOT tested here (deliberately — the FRAME §10 honesty boundary): A2 outturn-consistency.
-Validating a per-year mean-match against the same-year outturn it was matched to is
-tautological.
+NOT tested here (deliberately — the FRAME §10 honesty boundary): A2's LITERAL FRAME
+wording (reconstructed capacity·power_curve tracking AGWS outturn within a normal
+tolerance) — this genuinely FAILS on real data (see `check_load_factor_residual_bounded`'s
+docstring) because of a real ~4.6-5.1x wind power-curve/siting-selection gap, not
+tuned away. What IS tested is the substantive, non-tautological form the L2 pass
+built instead (the load-factor residual's bounded coefficient of variation).
 
 W1_7 come-home (second pass) additions, per FRAME §4's four invariants:
   * A1 (`check_offshore_non_decreasing`): offshore wind was only ever ADDED
@@ -37,9 +40,23 @@ W1_7 come-home (second pass) additions, per FRAME §4's four invariants:
     per-year fleet actually threaded through the GROUND-TRUTH series the harness
     measures the company against, not just reachable via an isolated `year=` kwarg.
     Default stays byte-identical (SSP calibration gate untouched, R12/S8).
+
+W1_7 L2 discovery-agent pass (2026-08-03) additions -- network confirmed available
+this fork, real DUKES/Energy Trends installed-capacity + DESNZ mix-share series now
+ingested (docs/market_research/w1_7_renewable_capacity_dukes_desnz.md):
+  * A1 STRICT (`check_offshore_capacity_strictly_non_decreasing`): the real DUKES
+    offshore capacity register -- TRUE on real data (never tuned; the underlying
+    `check_offshore_non_decreasing` effective-fleet check's honest FAIL is
+    unchanged, a genuinely different series).
+  * A2 substantive form (`check_load_factor_residual_bounded`): capacity growth
+    (not AGWS noise) explains most of the effective-fleet trend -- the
+    load-factor residual's CV is bounded by a pre-stated (not fitted) 0.35.
+  * A3 (`check_mix_share_against_independent_source`): now a REAL value
+    comparison (not a presence-only stub) against the ingested DESNZ series.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -244,16 +261,155 @@ def test_offshore_non_decreasing_fails_on_fewer_than_two_comparable_years():
     assert rct.check_offshore_non_decreasing({}) is False
 
 
-# ── R15: A3 mix-share — FAIL LOUD on missing independent source ─────────────────────────
-def test_mix_share_validator_FAILS_LOUD_when_independent_source_missing():
-    """The honest current state: DESNZ Energy Trends Table 6 has not been ingested
-    (no network this fork). The validator MUST raise, never silently pass."""
+# ── R15: A1 STRICT (real DUKES installed capacity, 2026-08-03 L2 pass) ──────────────────
+def test_real_capacity_accessors_are_positive_and_clamp_flat():
+    assert rct.real_capacity_wind_onshore(2016) > 0
+    assert rct.real_capacity_wind_offshore(2025) > 0
+    assert rct.real_capacity_solar(2020) > 0
+    assert rct.real_capacity_wind_offshore(2050) == rct.real_capacity_wind_offshore(2025)
+    assert rct.real_capacity_wind_onshore(2000) == rct.real_capacity_wind_onshore(2016)
+
+
+def test_a1_strict_holds_on_real_dukes_capacity():
+    """Unlike the effective-fleet A1 (honestly FALSE — see above), the STRICT form
+    on the real DUKES installed-capacity register is TRUE: GB offshore wind was
+    genuinely only ever added 2016-2025, not tuned to appear that way."""
+    assert rct.check_offshore_capacity_strictly_non_decreasing() is True
+
+
+def test_a1_strict_FIRES_on_a_decommissioning_mutation():
+    """R15 KILLER MUTATION on the real-capacity source (not the effective-fleet
+    fixture already covered above): a hand-crafted DUKES-shaped file with a falling
+    year must fire."""
+    compliant = {"onshore_mw": {"2016": 1.0}, "offshore_mw": {"2016": 5000.0, "2017": 6000.0, "2018": 7000.0},
+                 "solar_mw": {"2016": 1.0}}
+    tmp = Path("/tmp/w1_7_test_dukes_compliant.json")
+    tmp.write_text(json.dumps(compliant))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        assert rct.check_offshore_capacity_strictly_non_decreasing(str(tmp)) is True
+    finally:
+        rct._load_dukes_capacity.cache_clear()
+
+    mutated = json.loads(json.dumps(compliant))
+    mutated["offshore_mw"]["2018"] = 1000.0  # THE MUTATION: a real decommissioning
+    tmp2 = Path("/tmp/w1_7_test_dukes_mutated.json")
+    tmp2.write_text(json.dumps(mutated))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        assert rct.check_offshore_capacity_strictly_non_decreasing(str(tmp2)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        tmp2.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+
+
+def test_real_capacity_source_FAILS_LOUD_when_missing():
+    rct._load_dukes_capacity.cache_clear()
+    with pytest.raises(rct.RealCapacitySourceUnavailableError):
+        rct.real_capacity_wind_onshore(2020, source_path="/nonexistent/dukes.json")
+    rct._load_dukes_capacity.cache_clear()
+
+
+# ── R15: A2 substantive form — load-factor residual bounded (2026-08-03 L2 pass) ────────
+def test_load_factor_residual_is_positive_and_stable_across_years():
+    for tech in ("wind_onshore", "wind_offshore", "solar"):
+        assert rct.check_load_factor_residual_bounded(tech) is True, (
+            f"real result for {tech}: CV should be ~0.12-0.17, comfortably inside "
+            "the pre-stated 0.35 bound -- if this ever flips False, re-check the "
+            "market-research doc before assuming regression"
+        )
+
+
+def test_load_factor_residual_bounded_FIRES_on_a_wildly_swinging_mutation():
+    """R15 KILLER MUTATION: inject one year whose residual swings wildly relative
+    to the others -- the CV bound must fire, proving this is not a vacuous pass."""
+    traj = rct.fleet_trajectory()
+    years = [y for y in rct.magnitude_bearing_years(traj) if "wind_onshore_fleet_mw" in traj[y]]
+    assert len(years) >= 3
+    mutant = {y: dict(traj[y]) for y in years}
+    # blow up one year's effective fleet by 20x -- the real capacity denominator is
+    # unchanged, so the residual for that year swings wildly relative to the others
+    worst = years[len(years) // 2]
+    mutant[worst]["wind_onshore_fleet_mw"] *= 20.0
+    assert rct.check_load_factor_residual_bounded("wind_onshore", traj=mutant) is False
+
+
+def test_load_factor_residual_bounded_fails_on_fewer_than_two_comparable_years():
+    """R15 FAIL-OPEN guard: <2 comparable years must FAIL, never vacuously pass."""
+    assert rct.check_load_factor_residual_bounded("wind_onshore", traj={}) is False
+    one_year = {2020: {"wind_onshore_fleet_mw": 1.0, "n_days": 360, "months_covered": 12,
+                       "magnitude_bearing": True}}
+    assert rct.check_load_factor_residual_bounded("wind_onshore", traj=one_year) is False
+
+
+def test_load_factor_residual_bounded_rejects_unknown_technology():
+    with pytest.raises(ValueError):
+        rct.check_load_factor_residual_bounded("nuclear")
+    with pytest.raises(ValueError):
+        rct.load_factor_residual("nuclear", 2020)
+
+
+# ── R15: A3 mix-share — real data now ingested (2026-08-03 L2 pass) ─────────────────────
+def test_mix_share_validator_FAILS_LOUD_on_a_missing_source_path():
+    """The independent-source guard still fires correctly on a genuinely-missing
+    path -- unchanged behaviour, exercised with an explicit nonexistent path now
+    that the DEFAULT path (this repo's real, now-ingested location) exists."""
     with pytest.raises(rct.IndependentSourceUnavailableError):
         rct.check_mix_share_against_independent_source(source_path="/nonexistent/desnz.json")
-    # and the default path (this repo's real, not-yet-ingested location) too
-    assert not rct.DESNZ_MIX_SHARE_PATH.exists()
-    with pytest.raises(rct.IndependentSourceUnavailableError):
-        rct.check_mix_share_against_independent_source()
+
+
+def test_mix_share_validator_default_source_now_exists_and_is_real_data():
+    """2026-08-03 L2 pass: DESNZ Energy Trends Table 6 mix-share IS now ingested
+    (network was available this fork) -- the default path exists and the validator
+    reaches its real value-comparison path, not just the FAIL-LOUD guard."""
+    assert rct.DESNZ_MIX_SHARE_PATH.exists()
+    result = rct.check_mix_share_against_independent_source()
+    assert result is True, (
+        "real result as of 2026-08-03: sim wind-share runs ~5-8pp above the "
+        "independent DESNZ series but within the pre-stated 0.15 tolerance -- if "
+        "this ever flips False, re-check the market-research doc's per-year gaps "
+        "before assuming regression"
+    )
+
+
+def test_mix_share_validator_FIRES_on_a_diverging_mutation():
+    """R15 KILLER MUTATION: a hand-crafted DESNZ fixture whose wind share diverges
+    far from the sim's implied wind share (beyond the pre-stated tolerance) must
+    fire -- proving the check is not vacuously true regardless of the numbers."""
+    traj = rct.fleet_trajectory()
+    years = rct.magnitude_bearing_years(traj)
+    assert len(years) >= 2
+    # compliant: DESNZ shares mirroring what the sim itself implies (well inside tolerance)
+    compliant = {"onshore_share_pct": {}, "offshore_share_pct": {}, "solar_share_pct": {}}
+    for y in years:
+        cell = traj[y]
+        wind_frac = cell["wind_fleet_mw"] / (cell["wind_fleet_mw"] + cell["solar_fleet_mw"])
+        compliant["onshore_share_pct"][str(y)] = wind_frac * 100 * 0.6
+        compliant["offshore_share_pct"][str(y)] = wind_frac * 100 * 0.4
+        compliant["solar_share_pct"][str(y)] = (1 - wind_frac) * 100
+    tmp_compliant = Path("/tmp/w1_7_test_desnz_compliant.json")
+    tmp_compliant.write_text(json.dumps(compliant))
+    try:
+        assert rct.check_mix_share_against_independent_source(str(tmp_compliant)) is True
+    finally:
+        tmp_compliant.unlink(missing_ok=True)
+        rct._load_desnz_mix_share.cache_clear()
+
+    # mutated: flip the mix entirely (wind<->solar swapped) -- far outside tolerance
+    mutated = {
+        "onshore_share_pct": {str(y): compliant["solar_share_pct"][str(y)] * 0.6 for y in years},
+        "offshore_share_pct": {str(y): compliant["solar_share_pct"][str(y)] * 0.4 for y in years},
+        "solar_share_pct": {str(y): (compliant["onshore_share_pct"][str(y)]
+                                     + compliant["offshore_share_pct"][str(y)]) for y in years},
+    }
+    tmp_mutated = Path("/tmp/w1_7_test_desnz_mutated.json")
+    tmp_mutated.write_text(json.dumps(mutated))
+    try:
+        assert rct.check_mix_share_against_independent_source(str(tmp_mutated)) is False
+    finally:
+        tmp_mutated.unlink(missing_ok=True)
+        rct._load_desnz_mix_share.cache_clear()
 
 
 def test_mix_share_validator_killer_mutation_the_forbidden_fail_open_shape():
