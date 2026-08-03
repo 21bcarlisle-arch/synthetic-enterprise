@@ -26,6 +26,7 @@ from sim.cache_store import get_cached_prices
 from sim.gas_prices_history import load_nbp_history
 from sim.merit_order_reconstruction import (
     gas_floor_alone_price_gbp_per_mwh,
+    is_finite_number,
     reconstruct_price_gbp_per_mwh,
 )
 from sim.price_engine import DISPATCHABLE_CAPACITY_MW, X_TIGHT
@@ -122,13 +123,19 @@ def per_cell_reconstructibility(rows: list[dict]) -> dict[str, dict]:
             continue
         mae_floor = float(np.mean(np.abs(ssp[mask] - floor[mask])))
         mae_recon = float(np.mean(np.abs(ssp[mask] - recon[mask])))
+        # VACUITY GUARD (R10 class fix): reject non-finite evidence BEFORE comparing.
+        # `nan < nan` is False, so an unguarded `mae_recon < mae_floor` would score a
+        # cell built from NaN/inf inputs as "lost" — the right answer for the WRONG
+        # reason, and it would hide the fact that the cell was never measured at all.
+        evidence_finite = is_finite_number(mae_floor) and is_finite_number(mae_recon)
         out[str(year)] = {
             "n_ordinary": n,
             "ssp_mean": float(ssp[mask].mean()),
             "mae_gas_floor_alone": mae_floor,
             "mae_reconstruction": mae_recon,
             "mae_lift": mae_floor - mae_recon,   # positive = reconstruction wins
-            "reconstruction_wins": mae_recon < mae_floor,
+            "reconstruction_wins": bool(evidence_finite and mae_recon < mae_floor),
+            "evidence_finite": evidence_finite,
         }
     return out
 
@@ -140,7 +147,41 @@ def reconstructibility_verdict(cells: dict[str, dict]) -> dict:
     EVERY calm cell — NOT on aggregate. Grading on aggregate lift would FAIL-OPEN
     against exactly the defect this atom repairs (a crisis/one-cell win hiding
     renewables-heavy-cell losses), so this returns MET only when the losing-cell set
-    is empty. `losing_cells` names the shortfall for the diagnostic."""
+    is empty. `losing_cells` names the shortfall for the diagnostic.
+
+    VACUITY GUARD (R10 class fix, 2026-08-03 — this function's OWN named defect):
+    the unguarded form returned **met=True on empty input**, because `losing_cells` is
+    vacuously empty when there are no cells at all. A caller handed empty or malformed
+    data (a silent cache-load failure, a bad join) would have read "exit criterion 3a:
+    MET" with ZERO measured evidence behind it — R15 killer pattern #2. A verdict with
+    no evidence is NOT MET, never MET. The same guard rejects malformed cells (missing
+    keys, non-finite `mae_lift`) so a NaN can never be summed into a passing verdict."""
+    if not isinstance(cells, dict) or not cells:
+        return {
+            "met": False, "n_cells": 0, "n_won": 0, "losing_cells": [],
+            "aggregate_lift": 0.0, "vacuous": True,
+            "not_met_reason": (
+                "no measured cells — a verdict with zero evidence is NOT MET "
+                "(R15 fail-open guard; empty/malformed input is not a pass)"
+            ),
+        }
+
+    malformed = sorted(
+        y for y, c in cells.items()
+        if not isinstance(c, dict)
+        or "reconstruction_wins" not in c
+        or not is_finite_number(c.get("mae_lift"))
+    )
+    if malformed:
+        return {
+            "met": False, "n_cells": len(cells), "n_won": 0,
+            "losing_cells": sorted(cells), "aggregate_lift": 0.0, "vacuous": True,
+            "not_met_reason": (
+                "malformed or non-finite evidence in cells "
+                f"{malformed} — unmeasurable is NOT MET, never MET"
+            ),
+        }
+
     losing = sorted(y for y, c in cells.items() if not c["reconstruction_wins"])
     aggregate_lift = sum(c["mae_lift"] for c in cells.values())
     return {
@@ -149,6 +190,8 @@ def reconstructibility_verdict(cells: dict[str, dict]) -> dict:
         "n_won": len(cells) - len(losing),
         "losing_cells": losing,
         "aggregate_lift": aggregate_lift,  # reported but NOT the pass condition (anti-fail-open)
+        "vacuous": False,
+        "not_met_reason": None if not losing else f"cells {losing} did not beat gas_floor_alone",
     }
 
 
@@ -169,7 +212,7 @@ def main() -> dict:
     print(f"\nExit criterion 3a (beat gas_floor_alone in EVERY calm cell): "
           f"{verdict['n_won']}/{verdict['n_cells']} cells won -> "
           f"{'MET' if verdict['met'] else 'NOT MET'}"
-          f"{'' if verdict['met'] else '  (losing: ' + ', '.join(verdict['losing_cells']) + ')'}")
+          f"{'' if verdict['met'] else '  (' + str(verdict['not_met_reason']) + ')'}")
     return cells
 
 

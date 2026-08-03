@@ -230,6 +230,11 @@ def wind_power_output_fraction(wind_speed_ms: float, rated_power_mw: float = 1.0
     return rated_power_mw
 
 
+ENGINE_REDUCED_FORM = "reduced_form"
+ENGINE_MERIT_ORDER = "merit_order"
+PRICE_ENGINES = (ENGINE_REDUCED_FORM, ENGINE_MERIT_ORDER)
+
+
 def synthetic_price(
     gas_price_gbp_per_mwh: float,
     demand_mw: float,
@@ -238,13 +243,69 @@ def synthetic_price(
     carbon_price_gbp_per_tonne: float = 0.0,
     dispatchable_capacity_mw: float = DISPATCHABLE_CAPACITY_MW,
     year: int | None = None,
+    engine: str = ENGINE_REDUCED_FORM,
+    ets_price_gbp_per_tonne: float | None = None,
 ) -> float:
     """Convenience wrapper chaining gas_floor_price -> system_margin_price —
     the full merit-order price for one settlement period.
 
     `year` (W1_7 L2): passthrough to `system_margin_price` — real time-varying
     coal+gas+nuclear dispatchable capacity for that year instead of the flat
-    constant. Default `None` is unchanged behaviour (R12/R13)."""
+    constant. Default `None` is unchanged behaviour (R12/R13).
+
+    --- `engine` (W1_6b, 2026-08-03): which price FORM sets the price ---
+    `"reduced_form"` (DEFAULT, unchanged, byte-identical to every prior caller):
+      the calibrated `gas_floor * (A0 + A1*x + A2*max(0,x-X_TIGHT)^p)` multiplier.
+    `"merit_order"`: `sim/merit_order_reconstruction.py` — a typed SRMC dispatch
+      stack returning the marginal (last-dispatched) plant's SRMC, which is how a
+      real GB power price actually forms. Structurally the more faithful mechanism,
+      and it reaches regimes the reduced form cannot (oversupply collapse below
+      zero, the £6,000/MWh cash-out ceiling).
+
+    WHY THE MERIT-ORDER ENGINE IS NOT YET THE DEFAULT (R13, decided on fidelity
+    alone, blind to company P&L): the measured exit criterion 3a
+    (`simulation/run_merit_order_reconstructibility.py`, 82,760 real calm-window
+    settlement periods) has it beating the frozen `gas_floor_alone` ruler in 3 of 5
+    calm cells — it WINS the renewables-heavy 2019/2020 but LOSES 2016 (-0.72) and
+    2017 (-1.76) on MAE. The named cause is a MISSING INPUT, not a mis-shaped model:
+    the EU/UK-ETS market carbon price series is absent, so a flat CPS-only carbon
+    (~£18/tCO2) overshoots the genuinely low-carbon early years. Defaulting to it
+    today would knowingly import that overshoot into the live path. The engine is
+    therefore wired, live and callable HERE — not left as an offline module — and
+    the default flips when the ETS series closes 2016/2017 (R12: that measurement
+    is the trigger and a diagnostic; it is never a target to tune toward).
+
+    `ets_price_gbp_per_tonne=None` (default) means "use the GROUNDED EU/UK-ETS series"
+    in `merit_order_reconstruction` (EEX auction VWAP x ECB reference rate, 2016-2021).
+    An explicit float overrides it. It is ignored by the reduced form, which has no
+    carbon term of its own.
+    """
+    if engine not in PRICE_ENGINES:
+        raise ValueError(
+            f"unknown price engine {engine!r}; expected one of {PRICE_ENGINES}"
+        )
+
+    if engine == ENGINE_MERIT_ORDER:
+        if year is None:
+            # FAIL CLOSED, never fail open: the SRMC stack is time-indexed (per-year
+            # DUKES efficiencies and emission factors). Silently defaulting the year
+            # would price every period off one arbitrary vintage and look like it
+            # worked. An unusable input is an ERROR, not a quiet fallback.
+            raise ValueError(
+                "engine='merit_order' requires an explicit `year` — the SRMC stack is "
+                "time-indexed (per-year DUKES efficiency + emission factors)"
+            )
+        # Lazy import: merit_order_reconstruction imports THERMAL_EFFICIENCY from this
+        # module, so a module-level import here would be a cycle.
+        from sim.merit_order_reconstruction import reconstruct_price_gbp_per_mwh
+        return reconstruct_price_gbp_per_mwh(
+            gas_price_gbp_per_mwh,
+            demand_mw,
+            renewable_generation_mw,
+            int(year),
+            ets_price_gbp_per_tonne=ets_price_gbp_per_tonne,
+        )
+
     floor = gas_floor_price(gas_price_gbp_per_mwh, thermal_efficiency, carbon_price_gbp_per_tonne)
     return system_margin_price(floor, demand_mw, renewable_generation_mw,
                                dispatchable_capacity_mw, year=year)
