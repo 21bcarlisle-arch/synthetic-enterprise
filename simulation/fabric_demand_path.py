@@ -692,6 +692,76 @@ def settled_shape_is_physically_textured(
     return texture_is_not_a_rescaled_shape(days, max_day_multiplicity=max_day_multiplicity)
 
 
+def the_switch_moves_the_settled_volume(
+    fabric_shape_fn_: Callable[[str], list[float]],
+    legacy_shape_fn: Callable[[str], list[float]],
+    dates: Sequence[str],
+    *,
+    min_relative_change: float = 0.02,
+) -> bool:
+    """THE CONTROL ON WHETHER THE SWITCH IS INERT, and the one no sibling can be.
+
+    Its three siblings judge the LABEL (`settlement_providers_match_eligibility`),
+    the DECLARATION (`coverage_refusals`) and the TEXTURE
+    (`settled_shape_is_physically_textured`). ALL THREE STAY GREEN on a book whose
+    fabric premises settle exactly the volume the legacy provider would have given
+    them: a textured shape that happens to integrate to the same annual kWh is
+    texturally perfect and economically invisible. A demand-generator switch that
+    moves no volume has not reached the book, whatever the provider string says.
+
+    WHY THIS EXISTS, and it is not hypothetical. On 2026-08-03 a tick concluded from
+    two published run artefacts that this switch "moves no premise volume, no
+    imbalance cost and no margin", and held the level on that. The conclusion was
+    wrong -- both artefacts were on the SAME side of the switch -- but nothing in the
+    control set could say so, because no control compared the two providers against
+    each other. The measurement was left to whoever happened to diff two run outputs
+    by hand, and the hand was wrong. That is a CONTROL SET hole, not a control
+    defect, and it is the second one this atom has had of exactly that shape.
+
+    Compares ANNUAL-SCALE TOTALS, not shapes: the question is whether the settled
+    volume moves, and a relative change is the only form of it that carries no
+    pinned figure (R12 -- this asserts a relationship, never a target, and is
+    deliberately indifferent to the SIGN and SIZE of the move beyond a floor that
+    separates a real change from float noise).
+
+    Raises rather than passing on: an empty window, a non-finite value on either
+    provider, or a legacy total of zero (no denominator, so no relative change is
+    definable -- the fail-open a bare `!=` would walk straight into).
+    """
+    if not dates:
+        raise ValueError(
+            "an empty window cannot show whether the switch moved the settled volume"
+        )
+    if min_relative_change <= 0.0:
+        raise ValueError(
+            "a non-positive threshold makes this control unfailable: any float "
+            "difference would pass it"
+        )
+
+    def _total(shape_fn: Callable[[str], list[float]], which: str) -> float:
+        total = 0.0
+        for date_str in dates:
+            day = list(shape_fn(date_str))
+            if any(not math.isfinite(v) for v in day):
+                raise ValueError(
+                    f"the {which} provider returned a non-finite value for "
+                    f"{date_str}: a NaN total compares False against every "
+                    "threshold, so it must be rejected before the test, not by it"
+                )
+            total += sum(day)
+        return total
+
+    fabric_total = _total(fabric_shape_fn_, "fabric")
+    legacy_total = _total(legacy_shape_fn, "legacy")
+    if legacy_total <= 0.0:
+        raise ValueError(
+            "the legacy provider settles zero volume across the sampled window: "
+            "there is no baseline to measure the switch against, and dividing by it "
+            "would pass every book"
+        )
+    return abs(fabric_total - legacy_total) / legacy_total >= min_relative_change
+
+
 def prebound_channel_is_fed(series: FabricDemandSeries) -> bool:
     """GUARANTEE: the prebound response is a LIVE input on the shipped path, not a
     mechanism with a dead argument.

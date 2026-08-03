@@ -140,6 +140,7 @@ from simulation.fabric_demand_path import (
     fabric_shape_fn,
     settled_shape_is_physically_textured,
     settlement_providers_match_eligibility,
+    the_switch_moves_the_settled_volume,
 )
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
@@ -961,6 +962,37 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 f"{_fab_cid} settles on the fabric provider but the shape reaching "
                 "settlement is a rescaled base shape, not physics: the switch is "
                 "labelled but not thrown"
+            )
+        # W1_11 L2->L3: the FOURTH control, and the only one that asks whether the
+        # switch is INERT. Its three siblings judge the label, the declaration and
+        # the texture -- all three stay green on a book whose fabric premises settle
+        # exactly the volume the legacy provider would have given them. A textured
+        # shape integrating to the same annual kWh is economically invisible, and a
+        # demand-generator switch that moves no volume has not reached the book.
+        # Built against the same legacy provider the else-branch below constructs,
+        # so this is the real counterfactual, not a reconstruction of one.
+        _legacy_customer = get_customer(_fab_cid)
+        if not the_switch_moves_the_settled_volume(
+            fabric_shape_fn(
+                _fab_series,
+                "electricity",
+                battery_dispatch=_fabric_battery_dispatch_for(_fab_cid),
+            ),
+            _weather_adjusted_shape_fn(
+                SHAPE_LOADERS[_legacy_customer.get("profile_class", 1)],
+                weather_by_customer[_fab_cid],
+                properties.get(_fab_cid, DEFAULT_PROPERTY),
+                cloud_cover_means=cloud_cover_by_customer.get(_fab_cid),
+                latitude_deg=_legacy_customer.get("location", {}).get("lat"),
+                household_register=household_demand_register,
+                customer_id=_fab_cid,
+            ),
+            _sample_dates,
+        ):
+            raise AssertionError(
+                f"{_fab_cid} settles on the fabric provider but its settled volume "
+                "is indistinguishable from the legacy provider's: the switch is "
+                "labelled and textured but INERT"
             )
 
     def _lookback_temps_fn(cid):

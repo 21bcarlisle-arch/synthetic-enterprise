@@ -512,3 +512,80 @@ Expect published financial figures to move; that is the R13 baseline correction 
 
 **Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
 callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — W1_11 reaches L3, and the block on it was a TIMEZONE
+
+This tick drew the named next atom (`W1_11_fabric_physics_core`, level 2→3). The previous tick had held it
+at 2 on what it recorded as a measured blocker: *"a demand-generator switch that moves no premise volume,
+no imbalance cost and no margin has not reached the book."* **That finding was wrong, and the cause is
+worth carrying further than this atom.**
+
+### The error: git prints BST, run markers are UTC
+
+`git log` in this repo prints `+0100`. The run markers are `Z`. The switch commit `10e257f83` reads
+**17:57** in git log and landed at **16:57 UTC**. The run the previous tick used as its *pre-switch
+baseline* — marker `164752Z` — is 16:47 **UTC**, which the one-hour skew placed on the wrong side of the
+change. It compared **two post-switch runs**, correctly found them identical, and inverted the verdict.
+
+**The generalisable rule: you cannot A/B two artefacts by inferring which side of a change each was on
+from a timestamp in a different clock.** The durable fix already exists and landed the same day —
+`demand_provider_by_customer` in the run output — but it landed *after* the runs that needed it, which is
+exactly why the inference had to be made by hand at all. Provenance in the artefact beats provenance
+reconstructed from wall-clocks, and the two runs that settle the question here are only distinguishable
+because one of them carries it.
+
+### The real A/B — same commit, nine minutes apart, the switch entering the tree between them
+
+`adb07ea8d` marker `161815Z` is the **last legacy run**; marker `162706Z` is the **first fabric run**.
+Settled electricity, like-for-like on 2017–2019 (whole years in both):
+
+| premise | legacy kWh/yr | fabric kWh/yr | change |
+|---|---|---|---|
+| C1 | 3,140.4 | 1,741.5 | −44.5% |
+| C2 | 7,153.2 | 3,422.1 | −52.2% |
+| C3 | 6,318.5 | 2,353.6 | −62.8% |
+| C4 | 4,722.6 | 2,387.2 | −49.5% |
+
+Run level: revenue −£61,547, net margin **1,558,778.65 → 1,523,089.20 (−£35,689.45)**, enterprise value
+**−£814,540.40**, portfolio electricity −121,244.7 kWh, **72 of 87 top-level keys differ**. The company
+settles on physics and it costs it real money.
+
+**Confirmed independently, because one artefact pair is what produced the wrong answer last time.** A
+controlled in-process A/B on the real settlement path (`run_phase2b.main(report_end='2016-12-31')` with
+`fabric_providers_for_book` patched to return no series) reproduces the legacy numbers exactly: C1 2016
+settles **1,731.0** fabric against **3,179.8** legacy, matching the published pair to the decimal.
+
+**The fidelity gain is externally anchored, not merely a change.** Against this repo's own registered
+Ofgem TDCV bands (`company/compliance/domain_invariants.py`, electricity High = 3,600–4,000 kWh/yr),
+**three of the four premises were settling ABOVE the High band** under the legacy provider (C2 7,153,
+C3 6,318, C4 4,723). All four now sit inside the TDCV spread. R12/R13 held: direction pre-committed on
+the cell before any number was read, margin fall reported not tuned.
+
+### The control-set hole that let the wrong finding stand — closed, not registered
+
+The three shipped controls judge the **label**, the **declaration** and the **texture**. All three stay
+green on a book whose fabric premises settle exactly the volume the legacy provider would have given
+them — a textured shape integrating to the same annual kWh is texturally perfect and economically
+invisible. So *"did the switch move the book"* was left to whoever diffed two run outputs by hand.
+
+`the_switch_moves_the_settled_volume` compares the fabric provider against the **same** legacy provider
+`run_phase2b`'s else-branch constructs, on annual-scale totals, asserting a **relative** change so no
+figure is pinned (R12). Wired in and raising. **R15 both ways: 4 real source mutations, each firing its
+own named test with the rest green, byte-clean restore** — including a wiring mutation, because this atom
+has now hit the orphan class **five** times. Siblings pinned green on the same mutation (independence
+asserted, not argued). False-positive risk measured before wiring: passes on the real book in a full
+in-process run. 66 green on the seam suite, 249 across the fabric suites + 2 strict xfail;
+`epistemic_verifier` PASS (530 files). `level_current 2 → 3`, recorded in `gate_authorizations.jsonl`.
+
+### What L3 does NOT claim
+
+The coupled-triad gap rows were measured at **15:28 UTC at commit `381b0f2c0` — before the switch went
+live**, and `tools/couple_fabric.py` builds its own panel from the fabric module rather than reading the
+settled book, so re-running it would **re-stamp** the rows, not re-measure them. Deliberately not done.
+The gap that exists is a panel gap standing *beside* the book: it satisfies the coupled-triad rule (the
+company has faced this world, the gap is measured) but is **not** a population-scale gap on the settled
+population. That is H_GAP's own L3 residual, which is why H_GAP is honestly at 2.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
+callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue.

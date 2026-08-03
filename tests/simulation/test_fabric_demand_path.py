@@ -754,3 +754,128 @@ def test_the_settled_shape_control_is_NOT_AN_ORPHAN():
     assert run_phase2b.settled_shape_is_physically_textured is (
         fdp.settled_shape_is_physically_textured
     ), "run_phase2b imported a different symbol than the one tested here"
+
+
+# ---------------------------------------------------------------------------
+# THE INERT-SWITCH CONTROL — `the_switch_moves_the_settled_volume`
+#
+# The hole its three siblings shared: all of them stay green on a book whose
+# fabric premises settle exactly the volume the legacy provider would have given
+# them. On 2026-08-03 a tick concluded from two published run artefacts that this
+# switch moved no volume and held the level on it; both artefacts turned out to be
+# on the SAME side of the switch, and no control in the set could have said so.
+# ---------------------------------------------------------------------------
+
+
+def _legacy_shape_fn_for_c1(series):
+    """The rescaled-national-shape provider the switch REPLACES, standing in for
+    `run_phase2b`'s else-branch: one stored base shape scaled per day."""
+    dates = sorted(series.gross_electricity_kwh)
+    base = [0.12] * 48
+
+    def legacy_shape_fn(date_str: str) -> list[float]:
+        scale = 1.0 + 0.02 * (dates.index(date_str) % 5)
+        return [v * scale for v in base]
+
+    return legacy_shape_fn
+
+
+def test_the_switch_moves_the_settled_volume_on_the_real_seam():
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    assert fdp.the_switch_moves_the_settled_volume(
+        shape_fn, _legacy_shape_fn_for_c1(series), dates
+    ) is True
+
+
+def test_MUTATION_the_control_FIRES_when_the_switch_is_INERT():
+    """THE MUTATION, and it is the exact defect the published artefacts appeared to
+    show: a fabric provider whose settled volume is indistinguishable from the
+    legacy provider's. The label is right, the texture is right, and the book has
+    not moved a kWh."""
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    assert fdp.the_switch_moves_the_settled_volume(
+        shape_fn, shape_fn, dates
+    ) is False
+
+
+def test_the_three_sibling_controls_stay_GREEN_on_that_very_mutation():
+    """INDEPENDENCE, asserted not argued: on an INERT switch the label, coverage
+    and texture controls all report a perfectly switched settlement. If this ever
+    goes red the controls have merged and one has stopped being independent."""
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    providers = {
+        "C1": fdp.FABRIC_PROVIDER,
+        "HH1": fdp.METERED_PROVIDER,
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(providers, verdicts) is True
+    assert fdp.coverage_refusals(verdicts) == []
+    assert fdp.settled_shape_is_physically_textured(shape_fn, dates) is True
+
+
+def test_the_control_REJECTS_a_non_finite_volume_before_comparing():
+    """NaN-blind guard: `abs(nan) >= tol` is False, so a non-finite total would
+    report an INERT switch — the fail-open reads as the defect it exists to find."""
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+
+    def nan_shape_fn(date_str: str) -> list[float]:
+        day = list(shape_fn(date_str))
+        day[0] = float("nan")
+        return day
+
+    with pytest.raises(ValueError, match="non-finite"):
+        fdp.the_switch_moves_the_settled_volume(
+            nan_shape_fn, _legacy_shape_fn_for_c1(series), dates
+        )
+
+
+def test_the_control_REJECTS_a_legacy_baseline_of_zero():
+    """No denominator, no relative change. A bare `!=` would pass every book here."""
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    with pytest.raises(ValueError, match="no baseline"):
+        fdp.the_switch_moves_the_settled_volume(
+            shape_fn, lambda _d: [0.0] * 48, dates
+        )
+
+
+def test_the_control_REFUSES_an_empty_window():
+    series, shape_fn = _settled_shape_for_c1()
+    with pytest.raises(ValueError, match="empty window"):
+        fdp.the_switch_moves_the_settled_volume(
+            shape_fn, _legacy_shape_fn_for_c1(series), []
+        )
+
+
+def test_the_control_REFUSES_an_unfailable_threshold():
+    """A zero threshold makes it pass on any float difference — unfailable by
+    construction is the R15 defect, not a lenient setting."""
+    series, shape_fn = _settled_shape_for_c1()
+    dates = sorted(series.gross_electricity_kwh)
+    with pytest.raises(ValueError, match="unfailable"):
+        fdp.the_switch_moves_the_settled_volume(
+            shape_fn, _legacy_shape_fn_for_c1(series), dates,
+            min_relative_change=0.0,
+        )
+
+
+def test_the_inert_switch_control_is_NOT_AN_ORPHAN():
+    """R11 again, and this atom's fifth encounter with the class. The control is
+    only worth anything if the run calls it."""
+    import inspect
+
+    from simulation import run_phase2b
+
+    source = inspect.getsource(run_phase2b)
+    assert "the_switch_moves_the_settled_volume(" in source, (
+        "run_phase2b no longer calls the inert-switch control: the switch can be "
+        "labelled, textured and economically invisible again"
+    )
+    assert run_phase2b.the_switch_moves_the_settled_volume is (
+        fdp.the_switch_moves_the_settled_volume
+    ), "run_phase2b imported a different symbol than the one tested here"
