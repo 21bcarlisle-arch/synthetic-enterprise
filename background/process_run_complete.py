@@ -78,6 +78,20 @@ FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish
 # per PUSH_THROTTLE_SECONDS; the next successful push carries every commit
 # accumulated since the last one.
 PUSH_THROTTLE_SECONDS = 30 * 60
+# The publish commit runs the FULL pre-commit hook chain (tools/git-hooks/pre-commit:
+# status-honesty, pre_commit_test_gate, level_promotion_gate, site_lane_gate,
+# moap_coherence_gate, ruling_archive_question_gate). Because a publish stages
+# site/data/**, site_lane_gate takes its BROAD branch and runs the whole site suite --
+# 27.3s measured on its own, 2026-08-03, against the 30s cap this call used to carry.
+# The old cap was chosen when the hooks were trivial; it silently became a function of
+# how many tests exist rather than of whether the commit is healthy, and a timeout there
+# was UNCAUGHT (see git_commit_push) so it took the whole publish down as rc=1.
+# Sized to BOTH constraints: ~10x the measured hook-chain cost (so growth in the suite
+# does not silently re-create the wedge), while still fitting inside the 900s cap
+# background_worker.py::process_leftover_run_markers puts on this whole process -- the
+# fast-test gate already spends ~420s of that. A cap larger than the caller's budget
+# would just move the kill one level up and lose the log line that explains it.
+GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 5 * 60
 # H15_publish_gate_failure_alert (2026-07-14): the publish gate (fast-test
 # suite + the processor's return code) can fail SILENTLY and repeatedly. The
 # real worked example was pytest OOM-killed (rc=-9 -> "Tests FAILED - not
@@ -1266,14 +1280,39 @@ def git_commit_push(git_hash, net_margin):
     # (observed directly: a manually-staged code change landed inside an
     # unrelated auto-process commit message).
     with tree_lock():
-        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
-        # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
-        # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
-        # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
-        # was folded this cycle.
-        subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
-                        "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=30)
-        result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
+        try:
+            subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=120)
+            # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
+            # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
+            # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
+            # was folded this cycle.
+            subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
+                            "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=120)
+            # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
+            # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
+            # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
+            # moap_coherence_gate, ruling_archive_question_gate). A publish commit stages
+            # site/data/**, which fires site_lane_gate's BROAD trigger -- the WHOLE site
+            # suite, measured at 27.3s on its own, against the 30s cap this used to carry.
+            # The cap was set when the hooks were trivial and quietly became a
+            # publish-blocker as the suite grew: the deadline is now a property of how many
+            # tests exist, not of whether the commit is healthy.
+            result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR),
+                                    timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired as exc:
+            # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:
+            # "sim_runner TimeoutExpired must be caught -- uncaught exception kills the
+            # loop"). It propagated out of _process(), so process_run_complete exited
+            # rc=1 having logged NEITHER "Nothing to commit or commit failed" NOR "Done"
+            # -- the wedge detector recorded it as a test_regression, which it was not,
+            # and the diagnosis pointed at the test suite for hours. A slow hook chain
+            # must degrade to "retry next cycle", never take the pipeline down, and must
+            # say SO in the log.
+            log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
+                "deadline. Nothing committed; retrying next cycle. If this repeats, the "
+                "hook chain (not the run) is the cause.".format(
+                    GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__))
+            return False
         if result.returncode != 0:
             log("Nothing to commit or commit failed")
             return False
