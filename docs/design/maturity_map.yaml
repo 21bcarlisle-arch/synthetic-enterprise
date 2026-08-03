@@ -2509,7 +2509,7 @@
   value_stream: close_to_learn
   couples_with: [F1a_sim_customer_response, F1b_company_comms]
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
@@ -2518,7 +2518,7 @@
   file_scope: [tests/harness/test_conversation_gap.py, background/conversation_gap_ledger.py]
   depends_on: [F1a_sim_customer_response, F1b_company_comms]
   blocked_on: null
-  simplifications: ['2026-07-23 REGISTERED (director BUILD waiver, commit 5143ed41f). Lands LAST of the triad (needs F1a emitting a truth scalar and F1b emitting a belief) but its spec is written test-first. Reports THREE things: (1) belief-vs-truth susceptibility gap per customer (company posterior mean vs SIM true scalar) -- the coupled-triad GAP, per digest + Proof door; (2) did the conversation improve the outcome vs a no-message/neutral control, scored on the Citizens-Advice weighting 55/35/10 (CS-heavy, NOT equal-weighted); (3) MANDATORY R15 intent-leak control -- a company whose action correlates with the true hidden trait BEYOND what its observed replies justify is an intent-leak the harness must CATCH. EXIT (R15 doctrine, the wall is theatre without it): inject a peeking F1b variant that reads the true scalar -> the intent-leak control FIRES. Anti-goal-seek (R12): the gap is a diagnostic to MEASURE, never to minimise by tuning -- success is catching the leak, not a small gap. Coupled-triad binding A6: no F1a world part reaches L3 until F1b has faced it and the gap is measured. level_current 0 -- director ratify moves the cell (R16).', '2026-08-03 FRAME DISCHARGED + organ BUILT (worker tick, commit d06455a3e; sole-map-writer). loop_stage frame -> build; level_current HELD at 0, no move claimed. Real FRAME file authored at docs/design/frame/F1c_harness_conversation_gap_FRAME.md -- an inline map note does NOT saturate a FRAME, so without that file this atom re-draws forever. PREMISE CORRECTION, AND IT MADE THE WORK STRONGER: the dispatch brief asserted F1a was unbuilt and instructed the fork to degrade against a SYNTHETIC truth fixture. That was STALE -- F1a_sim_customer_response and F1b_company_comms are BOTH at L2/harden with real code on disk (verified: simulation/conversation_response.py, company/comms/conversation_generator.py, company/comms/susceptibility_estimator.py, interface/contracts/conversation_seam.py). So F1c''s exit test was proven against the REAL SHIPPED F1a/F1b, not a fixture. The genuinely-open gap, named in the FRAME doc rather than papered over: neither is wired into any run_phase driver, so there is no live population history yet -- F1c is self-contained and drives real F1a/F1b calls over its own synthetic population. ALL THREE MANDATED MEASUREMENTS LIVE in background/conversation_gap_ledger.py: (1) per-customer belief-vs-truth susceptibility gap (company posterior vs the true category from simulation.nudge_physics), (2) CA-weighted 55/35/10 outcome uplift vs a no-message control, using common random numbers for variance reduction, (3) the mandatory intent-leak control. Follows the background/dd_h_solvency_gap.py precedent (measure/record_gap/retro_gap_line). R15 EXIT TEST RUN FOR REAL AND BOTH WAYS -- this is the whole point of the atom: an honest company (fresh generator + estimator, zero prior observations) gives framing/tone leak rates of EXACTLY 0.0 and detect_intent_leak False, while a peeking variant reading the true scalar and sending the matching lever gives a framing leak rate of 1.0 and detect_intent_leak True, BOTH ARMS over the IDENTICAL population and situation (test_R15_both_ways_same_population_same_situation). Proven non-tautological twice more: a correctly-trained belief scores framing_category_match_rate 1.0 against a deliberately-wrong-trained belief''s 0.0; a matched lever earns real positive CA-weighted uplift (+0.028 measured) where a mismatched non-neutral lever earns BIT-EXACTLY 0.0. R12 HOLDS: the gap is a diagnostic to MEASURE, never to minimise -- success is CATCHING THE LEAK, not a small gap; the doc states plainly and untuned that belief convergence against the real F1a model is slow given modest effect sizes. Evidence: 21/21 new tests pass; epistemic verifier PASS (528 files); 117/117 relevant existing F1a/F1b/DD-H/seam tests still green; full-suite collection clean. WHY loop_stage build AND NOT harden/L2: it has not faced a HARDEN-stage Expert Hour, and it is NOT live-wired -- retro_gap_line/record_gap still need wiring into daily_self_note.py + the Proof door to satisfy the atom''s own "per digest + Proof door" spec. TWO FINDINGS NAMED NOT FIXED: F1b ships no self-directed exploration policy (a real product gap, against F1b''s own file_scope), and live-population wiring awaits a run_phase driver invoking F1a/F1b.']
+  simplifications: ['2026-08-03 LEVEL 0 -> 2 SELF-CERTIFIED (worker tick, sole-map-writer; recorded in gate_authorizations.jsonl per R16). A follow-on fork independently RE-VERIFIED the organ rather than trusting the prior tick''s claim, and found a REAL R15 FAIL-OPEN in the very control the atom exists for: intent_leak_rate returned a fabricated 0.0 -- indistinguishable from a genuinely-tested clean result -- for any axis with zero non-neutral-truth customers scored. CONFIRMED REACHABLE, NOT HYPOTHETICAL: 5 of 200 deterministic synthetic customers are all-neutral-truth on both axes, and feeding that subset silently reported "no leak detected" while checking nothing. That is the canonical fail-open pattern (passes on empty) sitting inside an R15 control, i.e. the wall''s own guard was itself theatre on that path. FIXED: an unscored axis now reports None and never a number; detect_intent_leak treats None as NO VERDICT, never as cleanliness; a population starved on BOTH axes raises ConversationGapUnmeasurable and FAILS CLOSED. Evidence: 25/25 tests pass (21 original + 4 new fail-closed tests); R15 both ways over the IDENTICAL population/situation (Situation.MISSED_PAYMENT/Product.GAS, n=50) -- honest arm framing_leak_rate 0.0 -> detect_intent_leak False, peeking arm reading nudge_physics.susceptibility_for directly gives framing_leak_rate 1.0 -> detect_intent_leak True; FAIL-SILENT executed not asserted (a raising generate_fn propagates; measure() raises ConversationGapUnmeasurable on a mocked RuntimeError); TAUTOLOGY excluded (the oracle simulation.nudge_physics is read independently of either generator''s mechanism). Epistemic verifier PASS, 528 files. LOOP_STAGE DELIBERATELY HELD AT build, NOT harden, and the level is 2 NOT 3: the FRAME''s own two residuals are still open -- retro_gap_line/record_gap are not wired into daily_self_note.py or the Proof door (so the atom''s own "per digest + Proof door" spec is unmet), and there is still no live population because no run_phase driver invokes F1a/F1b. Both are outside this atom''s file_scope. Under-claimed on the fork''s own recommendation.', '2026-07-23 REGISTERED (director BUILD waiver, commit 5143ed41f). Lands LAST of the triad (needs F1a emitting a truth scalar and F1b emitting a belief) but its spec is written test-first. Reports THREE things: (1) belief-vs-truth susceptibility gap per customer (company posterior mean vs SIM true scalar) -- the coupled-triad GAP, per digest + Proof door; (2) did the conversation improve the outcome vs a no-message/neutral control, scored on the Citizens-Advice weighting 55/35/10 (CS-heavy, NOT equal-weighted); (3) MANDATORY R15 intent-leak control -- a company whose action correlates with the true hidden trait BEYOND what its observed replies justify is an intent-leak the harness must CATCH. EXIT (R15 doctrine, the wall is theatre without it): inject a peeking F1b variant that reads the true scalar -> the intent-leak control FIRES. Anti-goal-seek (R12): the gap is a diagnostic to MEASURE, never to minimise by tuning -- success is catching the leak, not a small gap. Coupled-triad binding A6: no F1a world part reaches L3 until F1b has faced it and the gap is measured. level_current 0 -- director ratify moves the cell (R16).', '2026-08-03 FRAME DISCHARGED + organ BUILT (worker tick, commit d06455a3e; sole-map-writer). loop_stage frame -> build; level_current HELD at 0, no move claimed. Real FRAME file authored at docs/design/frame/F1c_harness_conversation_gap_FRAME.md -- an inline map note does NOT saturate a FRAME, so without that file this atom re-draws forever. PREMISE CORRECTION, AND IT MADE THE WORK STRONGER: the dispatch brief asserted F1a was unbuilt and instructed the fork to degrade against a SYNTHETIC truth fixture. That was STALE -- F1a_sim_customer_response and F1b_company_comms are BOTH at L2/harden with real code on disk (verified: simulation/conversation_response.py, company/comms/conversation_generator.py, company/comms/susceptibility_estimator.py, interface/contracts/conversation_seam.py). So F1c''s exit test was proven against the REAL SHIPPED F1a/F1b, not a fixture. The genuinely-open gap, named in the FRAME doc rather than papered over: neither is wired into any run_phase driver, so there is no live population history yet -- F1c is self-contained and drives real F1a/F1b calls over its own synthetic population. ALL THREE MANDATED MEASUREMENTS LIVE in background/conversation_gap_ledger.py: (1) per-customer belief-vs-truth susceptibility gap (company posterior vs the true category from simulation.nudge_physics), (2) CA-weighted 55/35/10 outcome uplift vs a no-message control, using common random numbers for variance reduction, (3) the mandatory intent-leak control. Follows the background/dd_h_solvency_gap.py precedent (measure/record_gap/retro_gap_line). R15 EXIT TEST RUN FOR REAL AND BOTH WAYS -- this is the whole point of the atom: an honest company (fresh generator + estimator, zero prior observations) gives framing/tone leak rates of EXACTLY 0.0 and detect_intent_leak False, while a peeking variant reading the true scalar and sending the matching lever gives a framing leak rate of 1.0 and detect_intent_leak True, BOTH ARMS over the IDENTICAL population and situation (test_R15_both_ways_same_population_same_situation). Proven non-tautological twice more: a correctly-trained belief scores framing_category_match_rate 1.0 against a deliberately-wrong-trained belief''s 0.0; a matched lever earns real positive CA-weighted uplift (+0.028 measured) where a mismatched non-neutral lever earns BIT-EXACTLY 0.0. R12 HOLDS: the gap is a diagnostic to MEASURE, never to minimise -- success is CATCHING THE LEAK, not a small gap; the doc states plainly and untuned that belief convergence against the real F1a model is slow given modest effect sizes. Evidence: 21/21 new tests pass; epistemic verifier PASS (528 files); 117/117 relevant existing F1a/F1b/DD-H/seam tests still green; full-suite collection clean. WHY loop_stage build AND NOT harden/L2: it has not faced a HARDEN-stage Expert Hour, and it is NOT live-wired -- retro_gap_line/record_gap still need wiring into daily_self_note.py + the Proof door to satisfy the atom''s own "per digest + Proof door" spec. TWO FINDINGS NAMED NOT FIXED: F1b ships no self-directed exploration policy (a real product gap, against F1b''s own file_scope), and live-population wiring awaits a run_phase driver invoking F1a/F1b.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an independent regulator/ombudsman measuring whether a supplier's messaging actually helped customers (Citizens-Advice-weighted) and whether the supplier is covertly exploiting private knowledge of customer vulnerability it should not be acting on"
 - id: W1_6b_merit_order_reconstruction
@@ -3014,3 +3014,190 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   evidence: [docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md, docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md, docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md]
+- id: SP2_1_working_day_calculator
+  name: "Canonical working-day calculator + dated England-&-Wales bank-holiday calendar, all ~17 independent callers migrated, with a guard that reds on a second definition (R10 class fix)"
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/compliance, simulation/bacs_rails.py, sim/profile_class_1.py, sim/profile_class_3.py, tests/company/compliance, tests/simulation]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_working_day_calculator_2026-07-28.md, source DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28 section 2.1. WHY IT WAS INVISIBLE: its DISCOVER half closed 2026-07-28 (docs/design/WORKING_DAY_CALCULATOR_DISCOVER.md, 22 callers found vs ~17 estimated) and its BUILD half was parked behind blocked_on director_build_open -- an act ABOLISHED 2026-07-29 and swept 2026-08-03. It therefore sat as staging noise, re-flagged every supervisor tick and dispositioned as "archive me", never as drawable work. That is the R17 consumed-not-absorbed stall class, and registering it here is the fix. FIDELITY GAINED: regulatory deadline arithmetic (GSOP, SLC obligations, complaint clocks, Bacs) is specified in WORKING days, so the SIM currently cannot produce a deadline breach a real supplier would be fined for; closing this makes that whole breach class reachable.'
+  - '2026-08-03 MINT -- TWO-PASS BUILD SHAPE IS MANDATORY (ruling section 8 mitigation): pass (1) lands the calculator + the dated calendar + its second-definition guard with ALL CALL SITES UNCHANGED, verified in isolation; pass (2) migrates the ~17 callers separately verified. R15 BOTH WAYS: inject a second working-day definition => the guard REDS; remove it => passes. NEVER FABRICATE A BANK-HOLIDAY DATE -- the DISCOVER doc recommends the gov.uk/alphagov calendar source and marks 2016-18 TO-BE-SOURCED rather than invented; an invented date is a Historical Ground Truth breach, not a convenience. R14: any published financial or compliance figure that MOVES as a result is published as an explicit before/after WITH its basis clock -- baseline diffs here are EXPECTED and must not be read as regressions. The four-nations split is a materiality judgement to make and RECORD, not to skip silently.'
+  evidence: [docs/design/WORKING_DAY_CALCULATOR_DISCOVER.md, docs/staging/in_progress/PLANNER_MINTED_working_day_calculator_2026-07-28.md]
+- id: SP2_2_rng_substream_primitive
+  name: "Canonical namespaced RNG substream primitive replacing the 16 independent derivations (5 distinct formulas) so a new draw can never shift another subsystem's outputs (C-S2)"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [simulation, tests/simulation]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_rng_substream_primitive_2026-07-28.md, source DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28 section 2.2. DISCOVER half CLOSED 2026-07-28 (docs/design/RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md): 16 derivations found against an estimate of ~8, in 5 DISTINCT formulas, with a CONCRETE Formula-A namespace-collision risk identified -- i.e. two subsystems can currently be handed the same substream. BUILD half was parked behind director_build_open, an act abolished 2026-07-29 and swept 2026-08-03; registering it here converts it from staging noise into drawable work (R17 consumed-not-absorbed). DISJOINT from SP2_1 (date arithmetic) -- the ruling states they may run concurrently.'
+  - '2026-08-03 MINT -- THIS IS THE C-S2 SCALE CONSTRAINT MADE REAL, not tidiness: "each subsystem draws from its own named seeded substream, so a new draw never shifts another subsystem''s outputs" is the property that makes deterministic replay hold as the sim grows. R15 BOTH WAYS: construct two subsystems whose names collide under the old Formula A => the collision control FIRES; under the canonical namespaced primitive => it passes. FAIL-OPEN GUARD: an unnamed or empty namespace must NOT silently fall back to the global stream -- that is the exact fail-open that makes the whole primitive theatre. R12/R13: replacing the derivation WILL move generated series; those moves are a mechanical consequence of re-seeding and must be reported as such, never tuned toward any company outcome, and the BASELINE world may only change for fidelity reasons decided blind to P&L.'
+  evidence: [docs/design/RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md, docs/staging/in_progress/PLANNER_MINTED_rng_substream_primitive_2026-07-28.md]
+- id: SP3_size_and_clone_ratchet
+  name: "Size + clone ratchet: a monotonic ceiling on module size and duplicated blocks so structural debt drains as a side-effect of ordinary work, never by a remediation sprint"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [tools, tests/tools]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md, source DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28 section 3. BUILD half was parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03) -- registered here so it competes as build work rather than re-presenting as staging noise every tick (R17).'
+  - '2026-08-03 MINT -- THE RATCHET SHAPE IS THE POINT (and it is the anti-treadmill design): a ceiling that can only ever go DOWN means the debt drains as a SIDE-EFFECT of touching code, which is why it does not become the "infinite supply" treadmill SELF_INTERRUPT_DISCIPLINE warns about. R15 BOTH WAYS: add a clone above the current ceiling => the ratchet REDS; remove it => passes. FAIL-OPEN GUARD: an unparseable or missing census must FAIL the ratchet, not pass it -- an unavailable check is a FAILED check. ANTI-GOODHART (ruling section 7): the clone count is a REPORTED FACT, never a score to maximise or a target to hit; a ceiling lowered by deleting tests rather than duplication is the defect this must not reward. DEPENDS on the clone census supplying the 223 ceiling number -- if that census is not re-runnable, the ratchet has no defensible starting ceiling and that is a blocker to state, not to assume away.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md]
+- id: SP4_owned_quantity_registry_gate
+  name: "Owned-quantity registry + default-closed gate making a second source of truth for a published quantity structurally impossible (net margin, treasury, EV, bad debt, cost-to-serve, carbon)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [tools, background/owned_quantity_registry.py, tests/tools]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md. DISCOVER half CLOSED 2026-07-28 (docs/design/OWNED_QUANTITY_REGISTRY_DISCOVER.md) and it found REAL divergence, not a hypothetical: net margin CONTESTED across 4 second-sources including a LIVE ~4.2x dashboard divergence; treasury overloaded (needs 2 entries, 3 sources); bad debt 2 sources; carbon UNDECLARED and worst of all with 5 disagreeing emission-factor tables; EV and cost-to-serve CLEAN, which makes them the gate''s NEGATIVE CONTROLS. BUILD half parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17.'
+  - '2026-08-03 MINT -- R15 BOTH WAYS: plant a second computation of an owned quantity in a non-owner module => the gate REDS; remove it => passes. FAIL-OPEN CHECK NAMED EXPLICITLY: an unrecognised or uncovered quantity must NOT silently pass as "owned by nobody" -- the gate is DEFAULT-CLOSED on the covered set, because a gate that only catches what it already knows about is the fail-open pattern this atom exists to kill. ANTI-GOODHART (ruling section 7): registry COVERAGE COUNT is a reported fact, never a score to maximise. Complements, does not duplicate, SP3_size_and_clone_ratchet -- SP3 caps duplicated CODE, this one caps duplicated AUTHORITY over a published number.'
+  evidence: [docs/design/OWNED_QUANTITY_REGISTRY_DISCOVER.md, docs/staging/in_progress/PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md]
+- id: SP5_shared_primitive_ensuring_activity
+  name: "Standing ensuring activity for shared primitives: census-as-gap-register + a phase-close question + a standing structural review, so re-duplication is caught by mechanism rather than by noticing"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [.claude/skills/phase-close, background/shared_primitive_census.py, tests/background]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_shared_primitive_ensuring_activity_2026-07-28.md, source ruling section 4. BUILD half parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17 consumed-not-absorbed.'
+  - '2026-08-03 MINT -- THIS IS THE MAKE_IT_STICK TEST APPLIED TO THE OTHER FOUR SP ATOMS: SP2_1/SP2_2/SP3/SP4 each fix a duplication that ALREADY happened; without a standing ensuring activity the class simply re-grows and the fixes decay into the "prose-only rule" failure mode. The mechanism must therefore be the census wired as a GAP REGISTER (so an open duplication makes a rest/saturation claim impossible, the same shape as GAP1_gap_registers_as_mint_sources) plus a phase-close question, NOT an exhortation. Level target deliberately 2, not 3: this is ensuring/harness wiring whose L3 bar would require the census to have actually CAUGHT a real re-duplication in the wild, which cannot be claimed at build time. SOFT DEP: the AST clone-detection census must be re-runnable; if it is not, say so rather than wiring a register to a stale artefact.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_shared_primitive_ensuring_activity_2026-07-28.md]
+- id: W3_1b_intra_year_price_cap_granularity
+  name: "Sub-annual Ofgem price-cap granularity: cap lookup keyed by the settlement period's effective cap window (6-monthly pre-2022, quarterly from Oct-2022) instead of current_date.year"
+  lane: W3_industry_systems
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/pricing/ofgem_price_cap.py, simulation/hedged_settlement.py, tests/company/pricing, docs/market_research]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_intra_year_price_cap_granularity_2026-07-28.md. Sibling of W3_1_price_cap_binding, which is SATURATED at the ANNUAL grain -- this is the intra-year half that was left open. Parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17. FIDELITY GAINED: deemed/SVT customers inside a cap-STEP quarter are currently clamped against an annual blend, so the sharpest edge of the 2021-22 crisis -- the quarter in which the cap moved and the supplier was underwater against it -- is smoothed away. This atom exists to model the crisis, and the crisis happened at the step.'
+  - '2026-08-03 MINT -- R13 WALL: the cap SCHEDULE is real published Ofgem history, so sourcing it is a BASELINE fidelity act decided blind to company P&L; NEVER fabricate a cap date or level. R15: a Jan-Mar 2022 deemed period must clamp against the PRE-Apr-2022 cap and a May-2022 period against the POST-step cap -- mutate the lookup back to the annual blend and the test must FIRE. PORTABILITY: keyed by a cap-window SCHEDULE, never hardcoded to 2022, per the standing portability constraint that obligations are keyed by regime rather than by a baked-in date. LEGITIMATE ALTERNATIVE OUTCOME, explicitly credited (ruling section 3): if the builder judges period-granularity not worth the complexity, that is a DECLARED + MEASURED-BOUND simplification registered in W3_1''s simplifications with the DISCOVER-sized pound impact as the bound -- an argued outcome, NOT a silent closure. The DISCOVER half (source the real schedule, size the annual-blend-vs-period-cap impact on crisis-window deemed customers) is the first pass either way.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_intra_year_price_cap_granularity_2026-07-28.md]
+- id: W2_payment_channel_dd_consistency_invariant
+  name: "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [simulation, company/compliance/domain_invariants.py, tests/simulation, tests/company/compliance]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md. Parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17. THE DEFECT IS AN ABSURDITY-CLASS ONE: two generators independently emit a customer''s payment_channel and its arrears-engine payment events, and nothing reconciles them, so a standard-credit customer can carry a direct-debit FAILURE. A COO reading that book would stop reading. R10 therefore forbids closing it with the C1g instance fix: the closure is the INVARIANT, enforced where the ledger/sample is generated, so the entire class fails automatically.'
+  - '2026-08-03 MINT -- R15 BOTH WAYS, and the second direction is the one that matters: (a) inject a standard-credit customer carrying a dd_failed event => the invariant FIRES; (b) a genuinely DD customer with a genuine DD failure PASSES -- no fail-open, and equally no OVER-BLOCK of legitimate DD arrears, which would quietly delete real bad-debt signal from the book. R12: the count of inconsistent customers is a DIAGNOSTIC, never a target -- no customer may be reclassified to shrink it. DISCOVER half first: map the two generators'' outputs and BOUND THE CLASS SIZE (how many customers, not just that C1g exists), because an invariant landed without knowing the blast radius will either be switched off on first run or will silently rewrite the book.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md]
+- id: C_supply_start_semantic_separation
+  name: "Separate supply_start (the real relationship start) from the term-schedule anchor in the CRM, so a re-contracted customer's tenure stops resetting"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/crm, tests/company/crm]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md. Parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17. FIDELITY GAINED: one field is currently doing two jobs -- when the customer''s relationship with the supplier began, and when the current contract term is anchored. Overloading them means a renewal RESETS apparent tenure, which corrupts every tenure-derived number downstream (churn hazard, CLV, loyalty eligibility, vulnerability duration). A real supplier''s CRM distinguishes these because its retention economics depend on the difference.'
+  - '2026-08-03 MINT -- THE MIGRATION IS THE RISK, NOT THE SPLIT: existing records carry ONE date, so back-filling the second field requires a stated, recorded rule for what the historical relationship start was, and where that is genuinely unknowable it must be recorded as UNKNOWN rather than back-dated to the term anchor (a fabricated tenure is worse than an absent one, and it is the exact shape of a Historical Ground Truth breach). R15: a re-contracted customer''s supply_start must NOT move when the term anchor moves -- mutate the code to keep them coupled and the test FIRES. R14: any published tenure-derived figure that moves is republished as an explicit before/after with its basis clock, because these diffs are expected and are not regressions.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md]
+- id: D_money_boundary_reconciliation
+  name: "Bill boundary-reconciliation fix: make rounded line items sum to the printed total (37.0% of bills currently do not), the [ACT] recommendation returned by the money-representation DISCOVER"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/billing, tests/company/billing]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_money_representation_evidence_2026-07-28.md. THAT ATOM WAS DISCOVER-ONLY AND ITS DISCOVER IS CLOSED (docs/design/MONEY_REPRESENTATION_EVIDENCE.md) -- what is registered here is the BUILD half its own recommendation named, which is why it is a differently-named atom rather than a re-mint. EVIDENCE MEASURED, with its basis clock (R14): 0 Decimal usage, money is float end-to-end including SQLite REAL at rest; worst single-bill drift 0.02 pounds and aggregate -0.22 pounds over 1,441 bills (shadow-Decimal cross-check against 1,588 real bills, basis 2026-07-28T08:30:04Z billed). THE MATERIAL FINDING IS NOT THE DRIFT: 37.0% of bills have rounded line items that do not sum to the printed total. A customer can add up their own bill; a supplier whose bill does not add up gets a complaint, and under the standing "bills accurate above all" rule that is the defect to close.'
+  - '2026-08-03 MINT -- SCOPE IS DELIBERATELY THE BOUNDARY, NOT THE CORE: the recommendation returned as [ACT] was boundary-reconciliation FIRST (narrow blast radius, closes the 37%), with the full float-to-Decimal core migration kept as a SEPARATE and much larger decision. That separation is preserved here on its merits -- a core money-type migration touching bill_generator, reporting, dashboard and settlement is a different atom with a different risk profile, and doing it as a side-effect of a rounding fix would be exactly the accretion OPERATIONAL_COHERENCE forbids. R15: construct a bill whose rounded line items do not sum to its total => the reconciliation control FIRES; a correctly-reconciled bill passes. NON-FINITE FIRST: reject NaN/Inf amounts BEFORE any comparison -- comparison guards are NaN-blind in this codebase and that is a known repeat class.'
+  evidence: [docs/design/MONEY_REPRESENTATION_EVIDENCE.md, docs/staging/in_progress/PLANNER_MINTED_money_representation_evidence_2026-07-28.md]
+- id: H_stop_control_gap_characterisation
+  name: "Stop-control gap characterisation (SPEC_005 section 7.13 material-safety): what can actually be stopped, by whom, how fast, and what a stop does NOT stop"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: discover
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [docs/design, background/stop_control_audit.py, tests/background]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md. Parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17. loop_stage is DISCOVER, not build, and that is not a park: the deliverable IS the characterisation -- an enumeration of every stop affordance (Stop hook, TaskStop, run/hold flags, tree_lock, systemd units, the publish gate) against what it actually halts and what keeps running behind it. NO MODEL CHANGE; this is operational-safety LEGIBILITY.'
+  - '2026-08-03 MINT -- WHY IT IS REAL WORK AND NOT PAPERWORK: this machine has already demonstrated that stopping is harder than it looks -- pkill -f patterns that killed the worker''s own gate, bounded workers holding a lock for their lifetime, a wedge alert that clears only on a successful publish. Each of those is a stop affordance whose actual reach was discovered by accident, in production, at cost. R15 APPLIES EVEN TO A DISCOVER ARTEFACT (this is the OUTCOME-test form): a characterisation that lists only the stops that WORK has demonstrated nothing -- the artefact must name at least the known gaps above and be checkable against the live process set, so a later reader can falsify it by finding a stop it claims exists that does not. The moment it becomes a mechanism rather than a document, it must be able to FAIL.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md]
+- id: SITE_director_window_delta_view
+  name: "Director-window delta view (SPEC_005 section 7.10): what CHANGED since the director last looked, rather than a full-state page he has to diff by eye"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [site/director, tools/generate_director_data.py, site/director/test_director_door.py]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_director_window_delta_view_2026-07-28.md. RECLASSIFICATION, RECORDED PLAINLY: an earlier tick filed this as "BUILD DONE, only the abolished level move remained" and it was NOT -- artifact verification on real disk this tick found "window_delta" appearing ONLY in docs/design/*.md, with no code and no test anywhere. It was reclassified from archivable to genuinely-unbuilt on that evidence. This is the stale-cell class in miniature: a claim of doneness that no artifact supported, which is exactly why the disposition was artifact verification rather than a bulk archive.'
+  - '2026-08-03 MINT -- L2 TARGET, NOT L3, AND THE REASON IS THE ACCEPTANCE TEST: the only real acceptance for an operator-legibility surface is the director finding it useful, which cannot be self-certified. Build to a working delta (what moved since a recorded last-look stamp) and let use decide the rest. R11 BINDS HARD HERE: done means fetching the LIVE deployed page and asserting the rendered delta changed as intended -- not the code, not the JSON on origin. The last-look stamp is state that must survive a publish; a delta view that silently resets to "everything is new" on every regeneration is the fail-open form of this feature and must be tested against. SITE lane, so it runs parallel to any BUILD per THREE_LANES.'
+  evidence: [docs/staging/in_progress/PLANNER_MINTED_director_window_delta_view_2026-07-28.md]

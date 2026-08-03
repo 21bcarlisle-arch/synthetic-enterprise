@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3460
+      "stall_consecutive_unchanged": 3485
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1860,7 +1860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 88
+      "stall_consecutive_unchanged": 94
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2842,7 +2842,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2856,9 +2856,9 @@
         "F1b_company_comms"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 115
+      "stall_consecutive_unchanged": 122
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2879,7 +2879,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3594
+      "stall_consecutive_unchanged": 3598
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 203
+      "stall_consecutive_unchanged": 216
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2919,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2692
+      "stall_consecutive_unchanged": 2721
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3669
+      "stall_consecutive_unchanged": 3673
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3340,7 +3340,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 100
+      "stall_consecutive_unchanged": 106
     },
     {
       "id": "C14_thermal_parameter_inference",
@@ -3389,6 +3389,215 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 49
+    },
+    {
+      "id": "SP2_1_working_day_calculator",
+      "name": "Canonical working-day calculator + dated England-&-Wales bank-holiday calendar, all ~17 independent callers migrated, with a guard that reds on a second definition (R10 class fix)",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SP2_2_rng_substream_primitive",
+      "name": "Canonical namespaced RNG substream primitive replacing the 16 independent derivations (5 distinct formulas) so a new draw can never shift another subsystem's outputs (C-S2)",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SP3_size_and_clone_ratchet",
+      "name": "Size + clone ratchet: a monotonic ceiling on module size and duplicated blocks so structural debt drains as a side-effect of ordinary work, never by a remediation sprint",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SP4_owned_quantity_registry_gate",
+      "name": "Owned-quantity registry + default-closed gate making a second source of truth for a published quantity structurally impossible (net margin, treasury, EV, bad debt, cost-to-serve, carbon)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SP5_shared_primitive_ensuring_activity",
+      "name": "Standing ensuring activity for shared primitives: census-as-gap-register + a phase-close question + a standing structural review, so re-duplication is caught by mechanism rather than by noticing",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "W3_1b_intra_year_price_cap_granularity",
+      "name": "Sub-annual Ofgem price-cap granularity: cap lookup keyed by the settlement period's effective cap window (6-monthly pre-2022, quarterly from Oct-2022) instead of current_date.year",
+      "lane": "W3_industry_systems",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "W2_payment_channel_dd_consistency_invariant",
+      "name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "C_supply_start_semantic_separation",
+      "name": "Separate supply_start (the real relationship start) from the term-schedule anchor in the CRM, so a re-contracted customer's tenure stops resetting",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D_money_boundary_reconciliation",
+      "name": "Bill boundary-reconciliation fix: make rounded line items sum to the printed total (37.0% of bills currently do not), the [ACT] recommendation returned by the money-representation DISCOVER",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H_stop_control_gap_characterisation",
+      "name": "Stop-control gap characterisation (SPEC_005 section 7.13 material-safety): what can actually be stopped, by whom, how fast, and what a stop does NOT stop",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "discover",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SITE_director_window_delta_view",
+      "name": "Director-window delta view (SPEC_005 section 7.10): what CHANGED since the director last looked, rather than a full-state page he has to diff by eye",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -3471,7 +3680,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 167,
+  "total_atoms": 178,
   "epoch2_movements": [
     {
       "id": "M1",
