@@ -1,5 +1,24 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T17:52:42Z
+Last updated: 2026-08-03T18:43:48Z
+
+**D_printed_figure_rederivation (2026-08-03, `8e57c9cdd`) — the mint's prescribed fix would have changed
+the CHARGE to tidy the printout. L0→L2, recorded.** The footing fix closed "the column adds up"; this
+closes "each line can be re-derived". Measured on the RENDERED artefact first: **86.1% of usage lines
+(1441/1674)** and 243 standing-charge lines showed a multiplication that does not hold — `317.9 kWh ×
+11.90p = £37.82` when the product is £37.83 — plus 324 invoices printing raw binary-float residue
+(`0.23983870967741938`/day). The mint specified a declared 2dp rate with the **amount derived from it**;
+measuring refuted it, because the precision a line needs scales with its magnitude (1–6 dp across the
+book; a 2dp rate is out by **£7.86 on a 157,128.8 kWh line**). These rates are *derived*, not
+contractual, so the amount is primary: the **rate is fitted to the amount** at the coarsest precision
+that reproduces it, `None` when none does. **Zero money moved.** After: **0/1557** on the invariant,
+0/1557 as rendered, 0 residue, and 1557/1557 still printing a rate. `PRINTED_LINE_REDERIVES` closes the
+class (summary line, standing-charge line, per-register rows); the checker re-implements the arithmetic
+and does **not** import `saas.money` (tautology guard, asserted by AST). R15 both ways: 9 real source
+mutations each firing its own named test; the render control proven separately (restoring `toFixed(2)` →
+1292/1557 fail). This commit also lands `D_money_boundary_reconciliation`, whose build had **never been
+committed** despite its cell claiming it was. **R11 bound, stated honestly: verified on the rendered
+output of LOCAL regenerated data — the live poesys.net re-fetch lands with the next publish and is not
+claimed here.**
 
 **W1_13 (2026-08-03, `89103080d`) — the external anchor landed, and the ENVELOPE was the side that was
 wrong. L0→L2, recorded.** The blocker below asked whether a 43,338 kWh/yr domestic gas premise is a real
@@ -592,11 +611,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
-- Net margin: £1,558,778.65 | Gross: £6,515,977.28 | Capital: £51,822
-- Treasury: £2,466,636 → £3,935,517 | 38 committee interventions | 1606 bills issued
-- Enterprise value: £8,092,479.25 | Net after CTS: £1,535,410
-- Retention: 12 offers, 12/12 retained | 4 no-offer churns | 4 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+- Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
+- Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
+- Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -703,6 +722,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1355.2h across 53 sized atom(s) (9 of 62 below-target atoms still unsized).
+- Remaining effort: ~1366.8h across 54 sized atom(s) (9 of 63 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
