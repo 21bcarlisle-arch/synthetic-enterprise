@@ -289,6 +289,54 @@ are never archived, so the queue only grows. Every future tick's doorbell will t
 be camouflaged next time (cf. the `in_progress/` doorbell finding at the top of this file — same class:
 a recurring doorbell read as noise instead of as state).
 
+---
+## PROGRESS 2026-08-03 (worker tick) — Class B: `intra_year_price_cap_granularity` BUILT, and its DISCOVER was wrong in three places
+
+Drew the named self-refill atom `W3_1b_intra_year_price_cap_granularity` (Class B, the second of the 12
+to be built). **L0→L2**, recorded in `gate_authorizations.jsonl`. Sourcing artefact
+`docs/market_research/ofgem_cap_windows.md`; 15 new tests + 3 rewritten; **8 mutations, each firing its
+own named test**, baseline restored green.
+
+**What was built:** `get_cap_unit_rate_for_date()` + a 21-window schedule keyed on Ofgem's real cap
+cadence (six-monthly Apr/Oct to 30 Sep 2022, quarterly after), with the Energy Price Guarantee as a
+separate `min(cap, EPG)` overlay for Oct-2022→Jun-2023 so the two instruments stay individually legible.
+The annual lookup is deliberately unchanged for callers whose own grain is a year.
+
+**R10 class, not an instance.** The DISCOVER named one binding site; there are **two** —
+`run_phase2b.py:1115` also clamps resi *fixed* terms on `int(term_start_str[:4])`. Both re-threaded, and
+a source-scan control now fails if either regresses to the annual lookup or loses its clamp entirely
+(mutations 7 and 8).
+
+**The measurement found a second defect nobody had predicted.** The named finding is confirmed and is
+the largest deviation in the table — Jan–Mar 2022 was clamped at 305.0/95.0 £/MWh against a real
+208.0/40.7, i.e. **47% (elec) and 133% (gas) too loose in exactly the quarter the crisis bit**. But
+comparing *every* window against the old blend showed the annual table is not merely mis-*timed*: it is
+systematically mis-*levelled*, sitting **10–80 £/MWh below the published cap in almost every non-crisis
+period** (2025 elec 190.0 against a real 248.6–270.3). The hand-built ballpark had drifted low. So the
+correction moves the ceiling **down** in the crisis window and **up** nearly everywhere else — both
+toward the published source, both R13 baseline corrections measured blind to P&L. **Published financial
+figures will move on the next full run; that is the correction landing, not a regression.**
+
+**Worth carrying: "two sources agreeing" is not corroboration.** The DISCOVER cited
+`pricecaprates.co.uk` for the cap schedule, and a second aggregator agrees with it — but *both* carry
+wrong effective dates (1 Jul 2019 / 1 Feb 2021 for changes Ofgem dates to 1 Apr 2019 / 1 Apr 2021) and
+both omit two whole cap levels. They agree because they share a lineage, not because they are
+independent. The build sourced the window boundaries from **Ofgem's own enumeration** instead. This is
+the same shape as the TAUTOLOGY pattern R15 names, one level up: independence has to be checked, not
+inferred from the count of sources.
+
+**Second consecutive atom whose closed DISCOVER doc contained build-blocking errors** (`SP2_1` had a
+caller undercount and a backwards interval; this one had a missing binding site, a bad primary source,
+and an understated impact). Three errors, three kinds. **A closed DISCOVER doc is a hypothesis, not a
+specification** — the remaining 10 Class B items have had no more scrutiny than these two had.
+
+**Still open, unchanged by this tick:** the **10** remaining Class B BUILD halves; `SP2_1` Pass 2
+(migrate the 25 callers); `W3_1b`'s own L3 residual (the coupled-triad population-level gap needs a full
+sim run, which a bounded tick does not take); the `_PRICE_CAP_QUARTERLY` calendar-quarter offset
+(registered as debt on `W3_1`, out of this atom's scope); the auto-processor broad-`add` finding.
+
+---
+
 **Recommended fix, not yet built:** when `process_run_complete.py` successfully publishes marker N, it
 should archive every *older* marker to `done/` as SUPERSEDED-BY-N in the same commit — they describe runs
 whose output the newer publish already contains. That converts an unbounded queue into a bounded one and

@@ -70,7 +70,7 @@ from sim.forward_curve import (
 )
 from sim.gas_prices_history import load_nbp_history
 from company.pricing.margin_feedback import compute_margin_surcharge
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
 from company.risk.hedge_policy import (
     COMPANY_MIN_HEDGE_FLOOR as MIN_HEDGE_FLOOR,
     company_evolve_hedge_fraction as evolve_hedge_fraction,
@@ -1108,11 +1108,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 })
 
         # Phase 47a: Ofgem domestic price cap — final ceiling for resi fixed-term customers.
-        # Cap applies post-2019; sourced from company.pricing.ofgem_price_cap annual lookup.
+        # W3_1b (2026-08-03): keyed on the cap WINDOW containing the term start,
+        # not the term-start calendar year. A term starting 15 Feb 2022 was struck
+        # under the Oct-2021 cap that ran to 31 Mar 2022, not under a full-year
+        # 2022 blend that averages in the +54% April step it predates.
         if (unit_rate is not None
                 and cid in _RESI_CUSTOMER_IDS
                 and term_tariff_type == "fixed"):
-            _cap = get_cap_unit_rate_gbp_per_mwh(commodity, int(term_start_str[:4]))
+            _cap = get_cap_unit_rate_for_date(
+                commodity, date.fromisoformat(term_start_str[:10])
+            )
             if _cap is not None:
                 unit_rate = min(unit_rate, _cap)
 

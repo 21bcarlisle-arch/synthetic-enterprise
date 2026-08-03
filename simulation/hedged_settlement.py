@@ -41,7 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
 from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
@@ -304,7 +304,11 @@ def run_deemed_term(
             uncapped_rate_gbp_per_mwh = spot_price * (1.0 + deemed_premium)
             billed_rate_gbp_per_mwh = uncapped_rate_gbp_per_mwh
             if segment == "resi":
-                _cap = get_cap_unit_rate_gbp_per_mwh(commodity, current_date.year)
+                # W3_1b: clamp against the cap window that contained THIS
+                # settlement date, not the calendar-year blend. The real cap
+                # stepped +54% on 1 Apr 2022 mid-year; a year-keyed lookup
+                # smooths that step away.
+                _cap = get_cap_unit_rate_for_date(commodity, current_date)
                 if _cap is not None:
                     billed_rate_gbp_per_mwh = min(uncapped_rate_gbp_per_mwh, _cap)
 

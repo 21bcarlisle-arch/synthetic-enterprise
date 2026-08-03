@@ -242,7 +242,9 @@ def test_deemed_tariff_type_field():
 # BINDING constraint on deemed/SVT pricing, not just a lookup ---
 
 def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
-    """2022 electricity cap is 305.0 GBP/MWh (company/pricing/ofgem_price_cap.py).
+    """The cap in force on 1 Jan 2022 is 208.0 GBP/MWh -- the Oct-2021 cap, which
+    ran through 31 Mar 2022 (W3_1b; previously this asserted the 305.0 full-year
+    2022 blend, which is not a cap that ever applied on this date).
     A spot price high enough that spot*(1+premium) exceeds it must be clamped --
     real UK deemed/SVT customers cannot legally be charged above the cap."""
     result = run_deemed_term(
@@ -256,7 +258,7 @@ def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
         commodity="electricity",
     )
     r = result[0]
-    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(305.0)
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0)
     assert r["cap_bound"] is True
     # Wholesale cost is unaffected by the cap -- the company still buys at spot.
     assert r["wholesale_cost_gbp"] == pytest.approx(1000.0 * (2.0 / 1000.0))
@@ -317,10 +319,10 @@ def test_deemed_cap_not_applied_to_non_resi_segment():
 
 
 def test_deemed_gas_commodity_uses_gas_cap_not_electricity_cap():
-    """2022 gas cap (95.0 GBP/MWh) is materially different from the 2022
-    electricity cap (305.0 GBP/MWh) -- a gas deemed period must clamp against
-    the gas table, proving commodity is actually threaded through, not
-    defaulted to electricity regardless of the real fuel."""
+    """The gas cap in force on 1 Jan 2022 (40.7 GBP/MWh) is materially different
+    from the electricity cap on the same date (208.0 GBP/MWh) -- a gas deemed
+    period must clamp against the gas column, proving commodity is actually
+    threaded through, not defaulted to electricity regardless of the real fuel."""
     result = run_deemed_term(
         customer_id="C1g",
         term_start_date="2022-01-01",
@@ -332,37 +334,60 @@ def test_deemed_gas_commodity_uses_gas_cap_not_electricity_cap():
         commodity="gas",
     )
     r = result[0]
-    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(95.0)
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(40.7)
     assert r["cap_bound"] is True
 
 
 def test_deemed_cap_year_tracks_settlement_date_not_term_start_across_year_boundary():
-    """A deemed term spanning a calendar-year boundary must clamp each period
-    against the cap for THAT settlement date's year, not the term-start year.
-    2021 elec cap = 183.0, 2022 elec cap = 305.0 (company/pricing/ofgem_price_cap.py).
-    Guards the Expert-Hour-claimed per-day `current_date.year` lookup against a
-    silent regression to `start.year` (R15: the control must fire on its own
-    named defect -- every other cap test is single-day/single-year, so this
-    cross-year case is the only one that would catch that mutation)."""
-    result = run_deemed_term(
+    """W3_1b rewrite. The original form of this test asserted that the cap
+    CHANGES across 31 Dec 2021 -> 1 Jan 2022 (183.0 -> 305.0). That premise was
+    false: Ofgem's Oct-2021 cap ran through 31 Mar 2022, so nothing happened at
+    the calendar-year boundary. The real step was +54% on 1 Apr 2022.
+
+    So this now guards BOTH directions, which is strictly stronger than the
+    original and keeps its purpose (catch a regression to a coarser key):
+      (a) crossing 31 Dec must NOT move the cap -- fires if the lookup regresses
+          to any year-keyed form;
+      (b) crossing 31 Mar MUST move it -- fires if the window schedule is
+          flattened back to an annual blend or re-keyed to calendar quarters.
+    """
+    # (a) the calendar-year boundary is NOT a cap boundary
+    across_new_year = run_deemed_term(
         customer_id="C_xyear",
         term_start_date="2021-12-31",
         term_end_date="2022-01-02",
         deemed_premium=0.10,
         consumption_shape=_shape_fn(1.0),
-        # spot high enough that the uncapped rate (1000*1.10=1100) exceeds BOTH
-        # years' caps, so the cap binds on every period and the only variable is
-        # WHICH year's cap is selected.
+        # spot high enough that the uncapped rate (1000*1.10=1100) exceeds every
+        # candidate cap, so the clamp binds on every period and the only variable
+        # is WHICH cap is selected.
         system_price_records=_prices(["2021-12-31", "2022-01-01"], price=1000.0),
         segment="resi",
         commodity="electricity",
     )
-    dec_2021 = [r for r in result if r["settlement_date"] == "2021-12-31"]
-    jan_2022 = [r for r in result if r["settlement_date"] == "2022-01-01"]
+    dec_2021 = [r for r in across_new_year if r["settlement_date"] == "2021-12-31"]
+    jan_2022 = [r for r in across_new_year if r["settlement_date"] == "2022-01-01"]
     assert dec_2021 and jan_2022
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(183.0) for r in dec_2021)
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(305.0) for r in jan_2022)
-    assert all(r["cap_bound"] is True for r in result)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in dec_2021)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in jan_2022)
+
+    # (b) the real cap-window boundary IS
+    across_the_step = run_deemed_term(
+        customer_id="C_xstep",
+        term_start_date="2022-03-31",
+        term_end_date="2022-04-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-03-31", "2022-04-01"], price=1000.0),
+        segment="resi",
+        commodity="electricity",
+    )
+    mar = [r for r in across_the_step if r["settlement_date"] == "2022-03-31"]
+    apr = [r for r in across_the_step if r["settlement_date"] == "2022-04-01"]
+    assert mar and apr
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in mar)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(283.4) for r in apr)
+    assert all(r["cap_bound"] is True for r in across_new_year + across_the_step)
 
 
 def test_deemed_default_commodity_is_electricity_backward_compatible():

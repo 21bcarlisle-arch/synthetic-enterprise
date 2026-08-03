@@ -1,5 +1,37 @@
 # DISCOVER — Intra-year Ofgem price-cap granularity (`expert_hour:W3_1_price_cap_binding`)
 
+> ## STATUS 2026-08-03 — BUILT (`W3_1b_intra_year_price_cap_granularity`, L0→L2)
+>
+> The recommendation in §0/§5 was taken: the cap-window table is built and both clamps are re-threaded.
+> Sourcing artefact: `docs/market_research/ofgem_cap_windows.md`. Tests:
+> `tests/company/pricing/test_intra_year_cap_window.py` (15) + 3 rewritten in
+> `tests/simulation/test_hedged_settlement.py`; 8 mutations each fire their own named test.
+>
+> **THREE ERRORS IN THIS DOC WERE FOUND BY BUILDING IT.** They are corrected inline below and recorded
+> here because the pattern is now recurring (cf. `SP2_1_working_day_calculator`, whose closed DISCOVER
+> undercounted its callers and specified its interval backwards): **a closed DISCOVER doc is a
+> hypothesis, not a specification.**
+>
+> 1. **§1b named ONE binding site; there are TWO.** `simulation/run_phase2b.py:1115` also clamps resi
+>    *fixed* terms, on `int(term_start_str[:4])` — the same year-keyed defect. Building to this doc alone
+>    would have left half the class open, which is precisely what R10 forbids. Both are now re-threaded
+>    and a source-scan control forbids either regressing.
+> 2. **§2/§Sources cited `pricecaprates.co.uk` as the schedule source. Its effective dates are wrong.**
+>    It dates cap changes to 1 Jul 2019 and 1 Feb 2021 that Ofgem dates to 1 Apr 2019 and 1 Apr 2021, and
+>    it omits the Oct-2019 (£1,179) and Oct-2020 (£1,042) levels entirely. `utilitymatchmaker.co.uk`
+>    reproduces the same wrong dates, so their agreement is *not* independence. The build sourced the
+>    window boundaries from Ofgem's own default-tariff-levels enumeration instead.
+> 3. **§3a's impact table understated the problem by scoping it to timing.** Measuring every window
+>    against the old annual blend showed the annual table is *also systematically mis-levelled* — 10 to
+>    80 £/MWh BELOW the published cap in nearly every non-crisis period (2025 elec 190.0 vs a real
+>    248.6–270.3). The re-thread therefore moves the ceiling **down** in the crisis window (as §3
+>    predicted) and **up** almost everywhere else (which §3 did not predict). Both toward the source.
+>
+> §2b's finding — that `_PRICE_CAP_QUARTERLY` puts the Apr-2022 step at calendar Q1 — is **confirmed**,
+> and is broader than stated: the offset is systematic across the whole 2019–Sep-2022 six-monthly era
+> (`2022-Q3` likewise carries the Oct-2022 level). That table serves `PriceCapBook` compliance
+> reporting, not the clamp, so it is left as registered debt on `W3_1` rather than edited here.
+
 **Type:** self-drawable DISCOVER half of RUNG-7 planner mint
 `PLANNER_MINTED_intra_year_price_cap_granularity_2026-07-28.md`. Design/enumeration only — **no
 production code changed, no git run**. Walls honoured: **R13** (cap values are external Ofgem reality,
