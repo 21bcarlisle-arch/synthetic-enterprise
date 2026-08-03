@@ -1,3 +1,10 @@
+<!-- MOVED TO in_progress/ 2026-08-03 (worker tick) -- this file is a BUILD QUEUE, not a
+  message, and the scanned root was making it read as unprocessed staging every tick. Its Class B
+  list (13 designed, unbuilt halves) is still open and still drawable; nothing here is archived.
+  THIS TICK DID NOT DRAW FROM IT: the self-refill draw handed over W1_11_fabric_physics_core
+  (level 2->3), which was built to a measured blocker -- see commit 66d73d1e0 and the W1_11 cell.
+  The next tick should draw a Class B half by name rather than re-triaging this list again;
+  re-triage is the treadmill this finding itself warned about. -->
 <!-- SUPERVISOR_DRAW: self-drawable -->
 # [WORKER FINDING] — The `in_progress/` doorbell is a BUILD queue, not a staging backlog (2026-08-03)
 
