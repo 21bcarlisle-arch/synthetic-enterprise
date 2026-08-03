@@ -48,6 +48,7 @@ vm.runInContext(code, sandbox);
 sandbox.renderCapabilities(caps);
 sandbox.renderCoverage(cov);
 sandbox.renderDecisions(decs);
+sandbox.renderBookMix(d);
 sandbox.renderState(d);
 sandbox.renderFinance(d);
 sandbox.renderTrading(d);
@@ -57,6 +58,7 @@ sandbox.renderCompliance(d);
 sandbox.renderBuild(d);
 
 const ids = [
+  "mix-intro", "mix-kpis", "mix-note",
   "cap-grid", "cap-passport",
   "cov-intro", "cov-kpis", "cov-body", "cov-passport",
   "state-kpis", "state-decisions",

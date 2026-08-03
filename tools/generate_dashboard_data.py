@@ -1611,7 +1611,8 @@ def generate(run_json_path=None):
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
     bridge_ok = _check_bridge_reconciles()
-    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok
+    mix_claim_ok = _check_front_door_segment_claim(dashboard)
+    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok and mix_claim_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1739,6 +1740,86 @@ def _check_basis_labels_present(portfolio):
             file=sys.stderr,
         )
         return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# FRONT-DOOR SEGMENT-CLAIM COHERENCE GATE
+# (SITE_EH1_segment_disclosure, 2026-07-30, scope item 2 + R10 class fix)
+#
+# The front door states the book's revenue mix in words BEFORE the mission claim,
+# because a household-carbon mission read over a ~99%-non-domestic book misleads by
+# ordering alone. That surface renders no live figure and carries no inline script
+# (the documented post-condition of DIRECTOR_RULING_FRONT_MISSION_BLOCK), so the
+# sentence is hand-authored -- which means it can ROT into a false public claim the
+# moment the drawn book changes shape. Irretractable public claims are a one-way
+# door (CLAUDE.md door 3), so a false one must BLOCK the publish, not be noticed
+# later by a human.
+#
+# The claim is machine-readable: site/index.html carries
+#   data-mix-claim="non_domestic_revenue_share_gt_<NN>"
+# and this gate recomputes the real share from the run's OWN segment split and
+# fails if the claim no longer holds.
+#
+# INDEPENDENCE (R15 anti-tautology): the CLAIM is parsed from the hand-authored HTML;
+# the VALUE is computed from dashboard.financial.segment_annual. Two different
+# sources, so they can genuinely disagree -- which is the entire point.
+# FAIL-CLOSED: a missing/malformed claim attribute, an unparseable threshold, an
+# unreadable front door, or an unavailable mix all FAIL. An unavailable check is a
+# FAILED check (R15 fail-silent), and "no claim found" must never mean "claim fine".
+# ---------------------------------------------------------------------------
+FRONT_DOOR_PATH = PROJECT / "site" / "index.html"
+_MIX_CLAIM_RE = re.compile(r'data-mix-claim="non_domestic_revenue_share_gt_(\d{1,3})"')
+
+
+def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
+    from tools.generate_company_data import segment_revenue_mix
+
+    try:
+        html = front_door_path.read_text()
+    except OSError as exc:
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: front door unreadable ({}) -- an "
+            "unavailable check is a FAILED check, not a pass".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    matches = _MIX_CLAIM_RE.findall(html)
+    if not matches:
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: no data-mix-claim="
+            '"non_domestic_revenue_share_gt_<NN>" on the front door. The segment '
+            "disclosure that must precede the mission claim is missing or was edited "
+            "into an unverifiable form (SITE_EH1_segment_disclosure).",
+            file=sys.stderr,
+        )
+        return False
+
+    mix = segment_revenue_mix((dashboard.get("financial") or {}).get("segment_annual"))
+    if not mix.get("available"):
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: the book's segment mix is unavailable "
+            "({}), so the front door's published mix claim cannot be verified".format(
+                mix.get("reason")
+            ),
+            file=sys.stderr,
+        )
+        return False
+
+    actual = mix["non_domestic_revenue_share_pct"]
+    for raw in matches:
+        threshold = float(raw)
+        if not actual > threshold:
+            print(
+                "FRONT-DOOR MIX-CLAIM GATE FAILED: the front door claims non-domestic "
+                "revenue share > {:.0f}%, but this run's book is {:.2f}% non-domestic "
+                "({} composition). The published sentence is now FALSE -- fix the "
+                "sentence (it is a disclosure, not a target: never reweight the book to "
+                "make it true, R12/R13).".format(threshold, actual, mix["composition_class"]),
+                file=sys.stderr,
+            )
+            return False
     return True
 
 

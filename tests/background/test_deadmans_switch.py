@@ -16,6 +16,16 @@ def _reset_state():
     pass
 
 
+# register_item() REFUSES an ask that is not one of the four things THE_STANDARD §2 still
+# reserves for the director (background/action_needed.py::_reserved_for_director, delegating to
+# one_way_door.classify_action -- the SOLE enumeration). These tests are about the RE-PING CLOCK,
+# not about what may be asked, so they need a `what` that genuinely is the director's: a real-money
+# ask. The placeholder "w" they used before predates that guard and now raises NotReservedForDirector
+# at registration, which is a correct refusal, not a regression to suppress.
+RESERVED_WHAT = "spend real money to pay a supplier invoice"
+RESERVED_WHAT2 = "spend real money to pay a second supplier invoice"
+
+
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(dms, "LOG_FILE", tmp_path / "log.md")
@@ -29,15 +39,24 @@ def _isolate(tmp_path, monkeypatch):
     # Isolated from the real, committed action_needed_register.json --
     # every test starts with a genuinely empty register (2026-07-11).
     monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "action_needed_register.json")
-    # These tests exercise the commit-clock / staging escalation via run_cycle. Isolate the two
-    # OTHER run_cycle checks (which read real repo state): the pull-loop transport health and the
-    # gate-wall detection -- otherwise a real, unrelated LOOP_BROKEN / GATE_VIOLATION pollutes
-    # every send_ntfy assertion here. Each has its own dedicated test file.
+    # These tests exercise the commit-clock / staging escalation via run_cycle. Isolate the
+    # OTHER run_cycle checks (which read real repo state) -- the pull-loop transport health --
+    # otherwise a real, unrelated LOOP_BROKEN pollutes every send_ntfy assertion here. Each has
+    # its own dedicated test file.
+    #
     monkeypatch.setattr("background.process_reconciler.evaluate_pull_loop",
                         lambda: {"status": "UNKNOWN", "alarm": False, "detail": "(isolated)"})
+    # raising=False, deliberately (2026-08-03): deadmans_switch._check_gate_wall() and
+    # gate_authorization.evaluate_gate_wall() are being deleted with the rest of the per-atom
+    # permission surface (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY). A hard setattr on a
+    # name that no longer exists is a SETUP AttributeError -- it errored all 48 tests in this
+    # file, and because the pre-commit gate selects impacted tests across the whole dirty tree,
+    # it refused EVERY writer's commit, not just this module's. raising=False keeps the
+    # isolation while the check exists and no-ops once it is gone, so this fixture is correct
+    # on both sides of that deletion instead of pinning one of them.
     monkeypatch.setattr("background.gate_authorization.evaluate_gate_wall",
                         lambda: {"status": "GATE_CLEAN", "alarm": False, "detail": "(isolated)",
-                                 "unauthorized": []})
+                                 "unauthorized": []}, raising=False)
     monkeypatch.setattr("background.fork_reconciler.evaluate_fork_lifecycle",
                         lambda: {"status": "FORK_CLEAN", "alarm": False, "detail": "(isolated)",
                                  "orphans": [], "in_flight": [], "merged_eligible": [], "reaped": [],
@@ -442,8 +461,8 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
     action_needed.register_item(
-        "routines-env-id", "send the environment_id", "via claude.ai/code",
-        "RemoteTrigger needs it", now=asked_at.isoformat(),
+        "routines-env-id", RESERVED_WHAT, "via claude.ai/code",
+        "the invoice is real money", now=asked_at.isoformat(),
     )
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
@@ -451,11 +470,11 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
     dms.run_cycle()
     assert len(calls) == 1
     assert calls[0].startswith("[ACTION NEEDED] routines-env-id")
-    assert "send the environment_id" in calls[0]
+    assert RESERVED_WHAT in calls[0]
 
 
 def test_run_cycle_does_not_reping_within_24h(monkeypatch):
-    action_needed.register_item("a", "w", "h", "y")  # just registered, now
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y")  # just registered, now
     action_needed.mark_sent("a")  # ...and CONFIRMED sent just now (the real gate)
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
@@ -472,7 +491,7 @@ def test_run_cycle_repings_a_registered_but_never_sent_item_immediately(monkeypa
     silent for 24h. This is the direct regression test for the real incident:
     register_item() no longer stamps the clock should_notify()/due_for_reping()
     read."""
-    action_needed.register_item("a", "w", "h", "y")  # registered, but never sent
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y")  # registered, but never sent
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
@@ -483,7 +502,7 @@ def test_run_cycle_repings_a_registered_but_never_sent_item_immediately(monkeypa
 def test_run_cycle_does_not_reping_resolved_items(monkeypatch):
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
-    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", now=asked_at.isoformat())
     action_needed.resolve_item("a", "answered")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
@@ -498,7 +517,7 @@ def test_run_cycle_reping_is_independent_of_staging_activity_check(monkeypatch):
     at all (a genuinely different alert class, see the module docstring)."""
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
-    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", now=asked_at.isoformat())
     assert dms._unprocessed_staging_files() == []  # staging genuinely clean
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
@@ -511,7 +530,7 @@ def test_run_cycle_reping_is_independent_of_staging_activity_check(monkeypatch):
 def test_run_cycle_repings_resets_the_daily_clock(monkeypatch):
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
-    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", now=asked_at.isoformat())
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     # A CONFIRMED successful send returns a truthy id (real send_ntfy returns the
@@ -537,7 +556,7 @@ def test_run_cycle_failed_send_leaves_item_due_then_real_send_settles_it(monkeyp
     (fire-once-then-daily resumes)."""
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
-    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", now=asked_at.isoformat())
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
 
     # Cycle 1: the send FAILS (real send_ntfy returns None on a parse/network failure).
@@ -568,8 +587,8 @@ def test_run_cycle_text_reregister_does_not_suppress_a_pending_never_sent_page(m
     """A caller re-registering an item's text (e.g. a refreshed `what`/`how`) must NOT
     suppress a page that has never actually been confirmed sent -- register_item() is
     bookkeeping only and must never roll the send-clock forward."""
-    action_needed.register_item("a", "w", "h", "y")
-    action_needed.register_item("a", "w2", "h2", "y2")  # a text-only re-register, no send yet
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y")
+    action_needed.register_item("a", RESERVED_WHAT2, "h2", "y2")  # a text-only re-register, no send yet
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr("background.ntfy_utils.send_ntfy",
@@ -583,7 +602,7 @@ def test_run_cycle_resolved_item_never_pages_even_with_failed_send_history(monke
     history (should_notify's resolved check is checked BEFORE the sent-clock)."""
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
-    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", now=asked_at.isoformat())
     action_needed.resolve_item("a", "answered")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
