@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-03T12:00:37.287727+00:00",
+  "last_updated": "2026-08-03T12:45:24.647662+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T10:33:20.514009+00:00",
+      "last_heartbeat": "2026-08-03T12:45:24.647662+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-08-03T10:33:20.514009+00:00",
+      "last_action_ts": "2026-08-03T12:45:24.647662+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T07:33:44.031318+00:00",
-      "last_action": "K-PILOT scope_independence_evidence: wrote docs/market_research/wholesale_scope_independence_evidence_2026-07-29.md \u2014 EFA blocks/peak-only-WD3-5, GB excluded from SDAC implicit coupling, NBP no-penalty cash-out, Grain/South Hook LNG capacity shares, UK ETS \u00a322/t reserve + Dec-2021 CCM trigger \u00a352.88, CPS \u00a30.00331/kWh frozen to 2028 \u2014 all H/M confidence, cited. Appended corroborating row to ASSUMPTIONS.md line ~506.",
-      "last_action_ts": "2026-07-29T07:33:44.031318+00:00",
+      "last_heartbeat": "2026-08-03T12:39:31.538515+00:00",
+      "last_action": "Sourced EU-ETS (EEX primary auction VWAP 2016-2024) + UK-ETS (gov.uk statutory determinations 2021-2025) + ECB EUR/GBP FX -- H/M confidence, docs/market_research/eu_uk_ets_carbon_price_series_2026-08-03.md",
+      "last_action_ts": "2026-08-03T12:39:31.538515+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"

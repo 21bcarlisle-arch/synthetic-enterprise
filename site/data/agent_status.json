@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-03T09:29:56.900736+00:00",
+  "last_updated": "2026-08-03T12:45:24.647662+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:29:56.900736+00:00",
+      "last_heartbeat": "2026-08-03T12:00:22.532590+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-07-31T21:01:32.579272+00:00",
       "anomaly": null,
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:27:11.102859+00:00",
+      "last_heartbeat": "2026-08-03T11:57:11.147064+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-08-03T09:17:11.101674+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:18:34.288470+00:00",
-      "last_action": "Run complete in 470s \u2014 3901 KB (run_output_1f4cda668_20260803T091043Z.json)",
-      "last_action_ts": "2026-08-03T09:18:34.288470+00:00",
+      "last_heartbeat": "2026-08-03T11:53:31.795837+00:00",
+      "last_action": "Run complete in 492s \u2014 3901 KB (run_output_094bbc007_20260803T114519Z.json)",
+      "last_action_ts": "2026-08-03T11:53:31.795837+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T08:30:04.789755+00:00",
+      "last_heartbeat": "2026-08-03T11:44:34.855935+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-08-03T08:30:04.789755+00:00",
+      "last_action_ts": "2026-08-03T11:44:34.855935+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T08:30:17.299575+00:00",
+      "last_heartbeat": "2026-08-03T11:44:48.666253+00:00",
       "last_action": "Acked message: 'Your backlog is in a document but the thing that picks your next job reads the m'",
-      "last_action_ts": "2026-08-03T08:30:17.299575+00:00",
+      "last_action_ts": "2026-08-03T11:44:48.666253+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:15:00.631132+00:00",
+      "last_heartbeat": "2026-08-03T11:36:50.323750+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-08-03T09:15:00.631132+00:00",
+      "last_action_ts": "2026-08-03T11:36:50.323750+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T05:41:07.561243+00:00",
+      "last_heartbeat": "2026-08-03T12:45:24.647662+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-08-03T05:41:07.561243+00:00",
+      "last_action_ts": "2026-08-03T12:45:24.647662+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T07:33:44.031318+00:00",
-      "last_action": "K-PILOT scope_independence_evidence: wrote docs/market_research/wholesale_scope_independence_evidence_2026-07-29.md \u2014 EFA blocks/peak-only-WD3-5, GB excluded from SDAC implicit coupling, NBP no-penalty cash-out, Grain/South Hook LNG capacity shares, UK ETS \u00a322/t reserve + Dec-2021 CCM trigger \u00a352.88, CPS \u00a30.00331/kWh frozen to 2028 \u2014 all H/M confidence, cited. Appended corroborating row to ASSUMPTIONS.md line ~506.",
-      "last_action_ts": "2026-07-29T07:33:44.031318+00:00",
+      "last_heartbeat": "2026-08-03T12:39:31.538515+00:00",
+      "last_action": "Sourced EU-ETS (EEX primary auction VWAP 2016-2024) + UK-ETS (gov.uk statutory determinations 2021-2025) + ECB EUR/GBP FX -- H/M confidence, docs/market_research/eu_uk_ets_carbon_price_series_2026-08-03.md",
+      "last_action_ts": "2026-08-03T12:39:31.538515+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:29:53.229480+00:00",
+      "last_heartbeat": "2026-08-03T12:00:04.272285+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-31T21:01:33.438860+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:18:19.492447+00:00",
+      "last_heartbeat": "2026-08-03T11:49:30.635815+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-08-03T09:18:19.492447+00:00",
+      "last_action_ts": "2026-08-03T11:49:30.635815+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
