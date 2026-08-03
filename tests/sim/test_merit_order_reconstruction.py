@@ -449,6 +449,7 @@ def test_R10_every_control_in_the_family_is_not_met_on_empty_evidence():
     answer when handed empty evidence. Each entry is the control's own null case."""
     from simulation.run_merit_order_reconstructibility import (
         per_cell_reconstructibility,
+        per_cell_reconstructibility_vs_target,
         reconstructibility_verdict,
     )
 
@@ -459,6 +460,13 @@ def test_R10_every_control_in_the_family_is_not_met_on_empty_evidence():
             lambda: is_merit_order_monotone([]),
         "simulation.run_merit_order_reconstructibility.per_cell_reconstructibility":
             lambda: per_cell_reconstructibility([]),
+        # The MID-target form has TWO null cases, not one: no rows at all, and rows
+        # that exist but carry no value for the requested target (every calm row
+        # before MID coverage begins). Both must be unmeasured, never a pass.
+        "simulation.run_merit_order_reconstructibility.per_cell_reconstructibility_vs_target":
+            lambda: per_cell_reconstructibility_vs_target(
+                [{"year": 2016, "gas_price": 30.0, "demand_mw": 30000.0,
+                  "renewable_mw": 5000.0, "ssp": 40.0}], "mid"),
         "simulation.run_merit_order_reconstructibility.reconstructibility_verdict":
             lambda: reconstructibility_verdict({}),
     }

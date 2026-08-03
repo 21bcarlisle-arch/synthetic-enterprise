@@ -343,3 +343,182 @@ Evidence **AGAINST L3** — the level is not proposed and should not be granted:
 3. **Flipping the default engine** — gated on criterion 1 clearing honestly, per (c) above.
 4. **Crisis-year / tight-hour measurement** — not in this atom's calm-window scope; named as the L3
    blocker above.
+
+---
+
+# Addendum, 2026-08-03 (later worker tick) — the validity question, settled by an ORACLE rather than by an argument
+
+The section above left item 2 open and said why it had to be left open:
+
+> **The +£4.7/MWh level offset** — the prime suspect (SSP vs wholesale basis) would change what
+> criterion 3a *measures*, and changing an exit criterion while holding the atom that it grades is
+> exactly the conflict of interest R15/exit-test integrity forbids. It belongs to a separate FRAME.
+
+That reasoning still holds, so **criterion 3a is NOT changed here.** What this tick adds is the thing
+that resolves the question without touching the criterion: an **independent measurement**, and then an
+**oracle test** that puts the criterion itself on trial using data the engine had no part in producing.
+
+## What was built
+
+`sim/market_index_history.py` — Elexon **MID** (Market Index Data): the volume-weighted price of actual
+short-term wholesale trades, per settlement period, from the same Insights API as SSP. This is the price
+a merit-order SRMC stack is a model *of*. **147,290 raw records → 73,272 volume-weighted periods**,
+2016-09-12 → 2020-12-31, cached to `sim/cache/elexon_mid_full.json` (gitignored, like the demand/AGWS
+caches; rebuild with `python3 -m sim.market_index_history`).
+
+The harness now reports **both targets, side by side, always**. The SSP path is untouched:
+`per_cell_reconstructibility()` returns exactly what it always did, keeping the shipped control's
+contract and its mutation proofs intact.
+
+### R12 pre-commitment, recorded before the MID numbers were read
+
+Adding a second target right after scoring 2/5 is what goal-seeking looks like from outside. So the
+pre-commitment was written into the module docstring first: the SSP verdict remains the ratified
+criterion and is never overwritten; both are always printed; **and if MID made the reconstruction look
+worse, that would be the finding and it would stand.** The target is justified by what MID *is*, not by
+what it clears.
+
+## The measurement
+
+| cell | n_ord | mean | MAE_floor | MAE_recon | lift | wins? | span |
+|---|---|---|---|---|---|---|---|
+| **SSP — ratified criterion 3a** ||||||||
+| 2016 | 6,454 | 28.96 | 12.01 | 13.44 | −1.43 | no | full year |
+| 2017 | 8,946 | 36.55 | 12.95 | 15.48 | −2.53 | no | full year |
+| 2018 | 9,495 | 51.36 | 15.48 | 16.74 | −1.26 | no | full year |
+| 2019 | 10,653 | 36.03 | 18.66 | 16.01 | +2.65 | YES | full year |
+| 2020 | 12,544 | 29.36 | 20.58 | 16.53 | +4.05 | YES | full year |
+| | | | | | | **2/5** | |
+| **MID — traded wholesale price** ||||||||
+| 2016 | 1,722 | 34.21 | 11.76 | 4.82 | +6.94 | YES | **part year** 09-12.. |
+| 2017 | 8,858 | 38.12 | 9.68 | 5.97 | +3.71 | YES | full year |
+| 2018 | 9,443 | 51.85 | 11.14 | 8.35 | +2.79 | YES | full year |
+| 2019 | 10,543 | 36.48 | 15.67 | 7.53 | +8.14 | YES | full year |
+| 2020 | 12,477 | 28.76 | 16.18 | 8.87 | +7.31 | YES | full year |
+| | | | | | | **5/5** | |
+
+Same engine, same frozen naive ruler, same ordinary-hour mask. **Only the target differs.** Against the
+price it actually models, the reconstruction's error roughly **halves** (2017: 15.48 → 5.97) and it beats
+the naive floor in every cell.
+
+## The oracle test — and it REFUTED the hypothesis that motivated the work
+
+The tempting conclusion from that table is "criterion 3a is measuring the wrong thing." The two
+instruments are genuinely far apart on ordinary hours — **MAE(SSP, MID) = 12.30 £/MWh**, correlation
+**0.655**, with SSP carrying roughly twice MID's dispersion (sd 18–22 vs 7.5–13). That gap is *larger
+than the lift the criterion grades*, which makes it very easy to argue the criterion is unpassable.
+
+**That argument is wrong, and a measurement says so.** Score the **real traded price** as if it were the
+predictor — the best any wholesale model could possibly do — against SSP, under criterion 3a unchanged:
+
+| cell | MAE_floor | MAE of the REAL traded price | lift | beats the naive floor? |
+|---|---|---|---|---|
+| 2016 | 13.47 | 11.25 | +2.22 | YES |
+| 2017 | 12.93 | 12.66 | +0.28 | YES |
+| 2018 | 15.39 | 13.19 | +2.20 | YES |
+| 2019 | 18.54 | 12.08 | +6.46 | YES |
+| 2020 | 20.57 | 11.71 | +8.86 | YES |
+
+**5/5.** A perfect wholesale model passes criterion 3a. So the criterion is **passable**, it is **valid**
+as a test of reconstruction, and it **stands unchanged**. The 2/5 shortfall is the **engine's**, not the
+target's. The suspicion recorded in item 2 above is hereby **refuted by measurement**, not argued away —
+and this is the outcome that cost the atom something, which is the point: had the oracle failed, the
+criterion would have been the thing that was wrong.
+
+`test_criterion_3a_is_VALID_because_the_real_traded_price_passes_it` keeps the refutation standing: if a
+later change to the naive ruler or the ordinary-hour mask ever makes the true price fail its own
+criterion, the criterion has become invalid and the suite says so loudly.
+
+### What the residual actually is, now that it is decomposed
+
+- reconstruction → MID error (the model's own wholesale error): **4.8 – 8.9 £/MWh**
+- MID → SSP spread (the instrument gap, irreducible for *any* wholesale model): **11.3 – 13.2 £/MWh**
+
+2017's oracle margin is **+0.28** — the true price barely clears the naive floor. In the low-price early
+years a flatter predictor scores well against a noisy cash-out target, which is why the naive floor is
+hard to beat there and why the engine's remaining ~3 £/MWh of wholesale error is enough to lose the cell.
+That is a **quantified, falsifiable** account of the shortfall, replacing "SSP might be the wrong target."
+
+## Honest bounds, stated rather than buried
+
+- **MID coverage begins 2016-09-12** (bisected against the live API: 09-10 returns 0 records, 09-12 a
+  partial 40, 09-13 a full 96). The calm window opens 2016-03-01, so the **2016 MID cell is a PART YEAR
+  (~30%)** and is *not* like-for-like with the full-year SSP 2016 cell. 2017 and 2018 are full years and
+  both flip from loss to win, so the finding does not rest on 2016.
+- Rows outside MID coverage carry **no `mid` key at all** — never a carry-back, an interpolation or a
+  zero. `test_rows_outside_mid_coverage_carry_no_substitute_value` enforces it.
+- The measured tests **SKIP** without the caches. A skip is not a pass.
+
+## Two live-API fail-opens found and guarded (R15)
+
+Both were **observed**, not hypothesised:
+
+1. **A too-wide range returns HTTP 200 with an empty `data` list.** A 31-day window returned `{"data":
+   []}` with a 200, while the same window in 7-day chunks returned ~1,490 records/week. Silently reading
+   that as "no trading occurred" would punch undeclared holes in the series. An empty in-coverage window
+   now raises.
+2. **A reporting provider publishes price 0.00 on volume 0.00.** `N2EXMIDP` does this in every period
+   sampled across 2016-2020 while `APXMIDP` carries the real trades. A naive mean across providers would
+   **halve every wholesale price in the series**.
+
+### A tautology in my own test, caught only by mutating
+
+The chunk-width control originally asserted the issued window width against `MAX_RANGE_DAYS` — **the same
+constant that produced it**. Mutating `MAX_RANGE_DAYS` 7 → 31 made the fetcher issue 31-day windows and
+the test **still passed**, because it re-derived its own expectation from the mutated value. It now
+asserts against the **literal 7**, the width measured against the live API, as an independent oracle.
+
+This is the R15 TAUTOLOGY pattern (*checked value derived from the same source it checks*) appearing in a
+test written by someone who had just read the rule — and, as with the `min(x) == min(x)` case in
+`H_GAP`, **reading the test did not find it and mutating the source did.**
+
+Also worth recording honestly: the zero-volume test does **not** prove the `volume <= 0` guard. Volume-
+weighting already neutralises a 0/0 provider (it contributes 0 to both numerator and weight), so that
+test passes with or without the line — it proves the *weighting*. What the line uniquely guards is
+**negative** volume, which subtracts from the denominator (unguarded: £290.0 from a £50 trade). That is
+now its own test, and it is the one that fires when the guard is removed.
+
+## R15 mutation ledger — 7 mutations, each firing its own named test
+
+| # | mutation | test that fired |
+|---|---|---|
+| 1 | volume-weighting → flat mean across providers | `..._is_volume_weighted_across_genuinely_reporting_providers` |
+| 2 | empty in-coverage chunk → silent hole instead of raise | `..._empty_response_inside_coverage_raises...` |
+| 3 | coverage-start guard removed | `..._before_coverage_start_raises_as_a_named_gap` |
+| 4 | `MAX_RANGE_DAYS` 7 → 31 | `..._range_is_chunked_no_wider...` (**only after the tautology was fixed**) |
+| 5 | missing MID filled with SSP | `..._rows_outside_mid_coverage_carry_no_substitute_value` + part-year test |
+| 6 | non-200 response → `[]` instead of raise | `..._non_200_raises_rather_than_returning_empty` |
+| 7 | `volume <= 0` guard removed | `..._negative_volume_is_rejected...` |
+
+Baseline restored **byte-identical** after every mutation (`diff` against pre-mutation copies).
+
+The R10 class registry did its job unprompted: adding `per_cell_reconstructibility_vs_target` **broke
+the suite immediately**, because the introspection-driven family guard saw a new judgement function with
+no vacuity guard and no registration. It was registered and given its own empty-evidence case — which
+has **two** null forms, not one: no rows at all, and rows that exist but carry no value for the requested
+target. The guard was honoured, not weakened.
+
+## Level verdict: **L1 → L2**, still explicitly NOT L3
+
+The prior section proposed L1 → L2 and it was never recorded in the map. That proposal is now recorded,
+with this tick's evidence added to it.
+
+One of the four reasons that section gave AGAINST L3 is **discharged**: *"criterion 3a's own validity is
+now in question"* — it was put on trial and it passed. The other three stand, unchanged:
+
+- **Criterion 1 is 2/5 against SSP.** The atom's headline claim, "ordinary-day SSP substantially
+  reconstructible", is still not demonstrated on its own ratified target. This remains the dominant
+  reason and it is **not** softened by the MID result: winning 5/5 against wholesale is a different claim
+  from the one the atom makes.
+- **The merit-order engine is not the default price path** — reachable, not in force.
+- **No crisis-year or tight-hour measurement**, so the coupled-triad rule is unsatisfied.
+
+## Left undone (updated)
+
+1. **UK-ETS 2022-2024 same-year carbon** — still refused rather than fabricated.
+2. **The remaining wholesale error (4.8–8.9 £/MWh)** — now the real target, and now measurable directly
+   against MID rather than through 12.30 £/MWh of cash-out noise. This is what a further engine
+   improvement should be graded on.
+3. **Flipping the default engine** — still gated on criterion 1 clearing honestly.
+4. **Crisis-year / tight-hour measurement** — MID covers 2021-2022 too, so the crisis-cell measurement
+   this atom lacks is now buildable from the same source.

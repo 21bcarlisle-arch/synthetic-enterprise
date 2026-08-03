@@ -15,6 +15,27 @@ latest-publish dedup that removes the physically-impossible revision outliers.
 
 Reused by `tests/sim/test_merit_order_reconstruction.py`, which SKIPS if the caches
 are absent (so the collected suite never depends on the 100MB+ caches being present).
+
+TWO TARGETS, REPORTED SIDE BY SIDE (2026-08-03, the criterion-3a VALIDITY question)
+-----------------------------------------------------------------------------------
+Criterion 3a as ratified grades the reconstruction against **SSP**, and that grading
+is UNCHANGED here — `per_cell_reconstructibility()` returns exactly what it always
+did. What is added is a SECOND, independent target: Elexon **MID**, the
+volume-weighted price of actual short-term wholesale trades
+(`sim/market_index_history.py`).
+
+The reason is a validity question raised by the 2026-08-03 ETS pass and deliberately
+NOT resolved in this atom's own favour at the time: SSP is the imbalance **cash-out**
+price, while a merit-order SRMC stack is a model of the price the marginal generator
+was willing to **sell** at. Those are different instruments. Grading a wholesale-price
+model against a cash-out price may be measuring the target, not the model.
+
+R12 PRE-COMMITMENT, recorded before the MID numbers were read: adding a target that
+the engine scores better against, right after it scored 2/5, is exactly what
+goal-seeking looks like. So — the SSP verdict REMAINS the ratified criterion and is
+never overwritten; BOTH are always printed; and if MID makes the reconstruction look
+WORSE, that is the finding and it stands. The target is justified by what MID **is**
+(the traded wholesale price), not by what it clears.
 """
 
 import json
@@ -24,6 +45,12 @@ import numpy as np
 
 from sim.cache_store import get_cached_prices
 from sim.gas_prices_history import load_nbp_history
+from sim.market_index_history import (
+    MID_COVERAGE_START,
+    cache_present as mid_cache_present,
+    load_cached_market_index,
+    volume_weighted_mid,
+)
 from sim.merit_order_reconstruction import (
     gas_floor_alone_price_gbp_per_mwh,
     is_finite_number,
@@ -63,8 +90,15 @@ def _dedup_latest_renewable_generation(agws_records: list[dict]) -> dict[tuple[s
     return totals
 
 
-def build_calm_dataset() -> list[dict]:
-    """Join real SSP + gas + demand + renewables over the calm window (2016-2020)."""
+def build_calm_dataset(with_mid: bool = False) -> list[dict]:
+    """Join real SSP + gas + demand + renewables over the calm window (2016-2020).
+
+    `with_mid=True` additionally attaches the volume-weighted wholesale price under
+    the `mid` key, for the subset of periods Elexon covers. Rows outside MID coverage
+    simply carry NO `mid` key — they are never filled with a substitute, a carry-back
+    or a zero, because the measurement's whole purpose is defeated by an invented
+    target value.
+    """
     ssp_records = get_cached_prices(CALM_START, CALM_END)
     ssp_lookup = {
         (r["settlementDate"], r["settlementPeriod"]): r["systemSellPrice"] for r in ssp_records
@@ -78,6 +112,10 @@ def build_calm_dataset() -> list[dict]:
     renewable_lookup = _dedup_latest_renewable_generation(agws_records)
     gas_lookup = {r["settlementDate"]: r["systemSellPrice"] for r in load_nbp_history()}
 
+    mid_lookup: dict[tuple[str, int], float] = {}
+    if with_mid:
+        mid_lookup = volume_weighted_mid(load_cached_market_index())
+
     rows = []
     for (date_str, period), ssp in ssp_lookup.items():
         if date_str[:4] not in CALM_YEARS:
@@ -85,24 +123,45 @@ def build_calm_dataset() -> list[dict]:
         key = (date_str, period)
         if key not in demand_lookup or key not in renewable_lookup or date_str not in gas_lookup:
             continue
-        rows.append({
+        row = {
             "date": date_str,
             "year": int(date_str[:4]),
             "gas_price": gas_lookup[date_str],
             "demand_mw": demand_lookup[key],
             "renewable_mw": renewable_lookup[key],
             "ssp": ssp,
-        })
+        }
+        if key in mid_lookup:
+            row["mid"] = mid_lookup[key]
+        rows.append(row)
     return rows
 
 
-def per_cell_reconstructibility(rows: list[dict]) -> dict[str, dict]:
+def per_cell_reconstructibility_vs_target(
+    rows: list[dict], target_key: str = "ssp"
+) -> dict[str, dict]:
     """Per calm year-cell, ORDINARY hours only: MAE of the reconstruction vs the frozen
-    gas-floor baseline, and whether the reconstruction wins (exit criterion 3a)."""
+    gas-floor baseline, measured against `target_key` (`"ssp"` = the ratified criterion
+    3a target; `"mid"` = the traded wholesale price).
+
+    Rows lacking `target_key` are EXCLUDED, and the exclusion is reported per cell as
+    `n_ordinary` alongside `first_date`/`last_date`. That is deliberate: MID begins
+    2016-09-12, so the 2016 cell is a PART YEAR. Reporting its MAE without its span
+    would invite a like-for-like comparison against a full-year SSP cell that is not
+    like-for-like at all.
+    """
+    rows = [r for r in rows if target_key in r]
+    if not rows:
+        return {}
+
     gas = np.array([r["gas_price"] for r in rows])
     dem = np.array([r["demand_mw"] for r in rows])
     ren = np.array([r["renewable_mw"] for r in rows])
-    ssp = np.array([r["ssp"] for r in rows])
+    target = np.array([r[target_key] for r in rows])
+    # `date` is optional: synthetic rows in the control tests carry only the fields a
+    # verdict is computed from. Span is reported when the real joined dataset supplies
+    # it and is None otherwise — never fabricated from the year.
+    dates = [r.get("date") for r in rows]
     yr = np.array([r["year"] for r in rows])
 
     residual = dem - ren
@@ -121,23 +180,44 @@ def per_cell_reconstructibility(rows: list[dict]) -> dict[str, dict]:
         n = int(mask.sum())
         if n == 0:
             continue
-        mae_floor = float(np.mean(np.abs(ssp[mask] - floor[mask])))
-        mae_recon = float(np.mean(np.abs(ssp[mask] - recon[mask])))
+        mae_floor = float(np.mean(np.abs(target[mask] - floor[mask])))
+        mae_recon = float(np.mean(np.abs(target[mask] - recon[mask])))
         # VACUITY GUARD (R10 class fix): reject non-finite evidence BEFORE comparing.
         # `nan < nan` is False, so an unguarded `mae_recon < mae_floor` would score a
         # cell built from NaN/inf inputs as "lost" — the right answer for the WRONG
         # reason, and it would hide the fact that the cell was never measured at all.
         evidence_finite = is_finite_number(mae_floor) and is_finite_number(mae_recon)
+        span_dates = [d for d, keep in zip(dates, mask.tolist()) if keep and d is not None]
         out[str(year)] = {
             "n_ordinary": n,
-            "ssp_mean": float(ssp[mask].mean()),
+            "target_mean": float(target[mask].mean()),
             "mae_gas_floor_alone": mae_floor,
             "mae_reconstruction": mae_recon,
             "mae_lift": mae_floor - mae_recon,   # positive = reconstruction wins
             "reconstruction_wins": bool(evidence_finite and mae_recon < mae_floor),
             "evidence_finite": evidence_finite,
+            # Signed bias, NOT part of the pass condition — a diagnostic that
+            # distinguishes "wrong shape" from "right shape, wrong level".
+            "signed_bias": float(np.mean(recon[mask] - target[mask])),
+            # Plain Python ordering (ISO dates sort lexicographically); numpy has no
+            # min/max loop for '<U10'.
+            "first_date": min(span_dates) if span_dates else None,
+            "last_date": max(span_dates) if span_dates else None,
         }
     return out
+
+
+def per_cell_reconstructibility(rows: list[dict]) -> dict[str, dict]:
+    """Exit criterion 3a exactly as ratified: graded against SSP.
+
+    Output shape is UNCHANGED (`ssp_mean` retained) — this is the shipped control that
+    carries the R15 mutation proofs, so it keeps its contract while the generic form
+    above serves the second target.
+    """
+    cells = per_cell_reconstructibility_vs_target(rows, "ssp")
+    for cell in cells.values():
+        cell["ssp_mean"] = cell["target_mean"]
+    return cells
 
 
 def reconstructibility_verdict(cells: dict[str, dict]) -> dict:
@@ -195,24 +275,46 @@ def reconstructibility_verdict(cells: dict[str, dict]) -> dict:
     }
 
 
+def _print_table(label: str, cells: dict[str, dict]) -> dict:
+    verdict = reconstructibility_verdict(cells)
+    print(f"\n=== TARGET: {label} ===")
+    print(f"{'cell':>6} {'n_ord':>8} {'mean':>8} {'MAE_floor':>10} {'MAE_recon':>10} "
+          f"{'lift':>7} {'bias':>7} {'wins?':>6}  span")
+    for year, c in cells.items():
+        print(f"{year:>6} {c['n_ordinary']:>8,} {c['target_mean']:>8.2f} "
+              f"{c['mae_gas_floor_alone']:>10.2f} {c['mae_reconstruction']:>10.2f} "
+              f"{c['mae_lift']:>7.2f} {c['signed_bias']:>7.2f} "
+              f"{'YES' if c['reconstruction_wins'] else 'no':>6}  "
+              f"{c['first_date']}..{c['last_date']}")
+    print(f"beat gas_floor_alone in EVERY calm cell: "
+          f"{verdict['n_won']}/{verdict['n_cells']} cells won -> "
+          f"{'MET' if verdict['met'] else 'NOT MET'}"
+          f"{'' if verdict['met'] else '  (' + str(verdict['not_met_reason']) + ')'}")
+    return verdict
+
+
 def main() -> dict:
     if not caches_present():
         print("SKIP: elexon demand/agws caches absent — cannot measure on real data.")
         return {}
-    rows = build_calm_dataset()
-    print(f"{len(rows):,} calm-window settlement periods with full data\n")
+    have_mid = mid_cache_present()
+    rows = build_calm_dataset(with_mid=have_mid)
+    print(f"{len(rows):,} calm-window settlement periods with full data")
+
     cells = per_cell_reconstructibility(rows)
-    verdict = reconstructibility_verdict(cells)
-    print(f"{'cell':>6} {'n_ord':>8} {'ssp_mean':>9} {'MAE_floor':>10} {'MAE_recon':>10} "
-          f"{'lift':>7} {'wins?':>6}")
-    for year, c in cells.items():
-        print(f"{year:>6} {c['n_ordinary']:>8,} {c['ssp_mean']:>9.2f} "
-              f"{c['mae_gas_floor_alone']:>10.2f} {c['mae_reconstruction']:>10.2f} "
-              f"{c['mae_lift']:>7.2f} {'YES' if c['reconstruction_wins'] else 'no':>6}")
-    print(f"\nExit criterion 3a (beat gas_floor_alone in EVERY calm cell): "
-          f"{verdict['n_won']}/{verdict['n_cells']} cells won -> "
-          f"{'MET' if verdict['met'] else 'NOT MET'}"
-          f"{'' if verdict['met'] else '  (' + str(verdict['not_met_reason']) + ')'}")
+    _print_table("SSP (imbalance cash-out) — the RATIFIED criterion 3a", cells)
+
+    if not have_mid:
+        print("\nMID target SKIPPED: sim/cache/elexon_mid_full.json absent. This is a "
+              "SKIP, not a pass — build it with `python3 -m sim.market_index_history`.")
+        return cells
+
+    mid_cells = per_cell_reconstructibility_vs_target(rows, "mid")
+    _print_table("MID (traded wholesale price) — the VALIDITY cross-check", mid_cells)
+    print(f"\nMID coverage begins {MID_COVERAGE_START}: the 2016 cell above is a PART "
+          "YEAR and is NOT like-for-like with the full-year SSP 2016 cell.")
+    print("The SSP verdict remains the ratified criterion 3a. MID is reported as an "
+          "independent target, never as a replacement.")
     return cells
 
 

@@ -99,6 +99,7 @@ CONTROL_NAME_MARKERS = ("verdict", "monotone", "reconstructibility")
 VACUITY_GUARDED_CONTROLS = (
     "sim.merit_order_reconstruction.is_merit_order_monotone",
     "simulation.run_merit_order_reconstructibility.per_cell_reconstructibility",
+    "simulation.run_merit_order_reconstructibility.per_cell_reconstructibility_vs_target",
     "simulation.run_merit_order_reconstructibility.reconstructibility_verdict",
 )
 
