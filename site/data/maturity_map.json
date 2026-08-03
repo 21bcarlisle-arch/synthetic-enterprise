@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3166
+      "stall_consecutive_unchanged": 3460
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1241,17 +1241,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 3230
+      "stall_consecutive_unchanged": 3401
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1279,7 +1279,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1287,9 +1287,9 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 3116
+      "stall_consecutive_unchanged": 3396
     },
     {
       "id": "OPS_run_marker_sweep_livelock",
@@ -1298,7 +1298,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1306,9 +1306,9 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 83
     },
     {
       "id": "H10_worktree_isolation",
@@ -1860,7 +1860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 86
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2858,7 +2858,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 33
+      "stall_consecutive_unchanged": 115
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2879,7 +2879,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3506
+      "stall_consecutive_unchanged": 3581
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 105
+      "stall_consecutive_unchanged": 187
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2919,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2290
+      "stall_consecutive_unchanged": 2484
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3594
+      "stall_consecutive_unchanged": 3662
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3274,7 +3274,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14791
+      "stall_consecutive_unchanged": 15292
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3292,6 +3292,99 @@
         "OPS1_operational_layer_rebuild"
       ],
       "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 49
+    },
+    {
+      "id": "W1_11_fabric_physics_core",
+      "name": "Fabric physics core: a 2R2C grey-box thermal model (indoor-air node + building-mass node) with a DEADBAND thermostat and a finite-modulation heat source, parameterised from EPC-class structural fields, driven by half-hourly local weather. Layer 1 of the two-layer premise demand engine -- fabric sets both the annual LEVEL and the intra-day CHARACTER.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_4_regional_weather_field"
+      ],
+      "couples_with": [],
+      "chain": "weather_cascade",
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 41
+    },
+    {
+      "id": "W1_12_premise_trace_generator",
+      "name": "Premise trace generator: per-premise half-hourly gas + electricity traces for the whole book -- Layer 2 behaviour (setpoint schedules, occupancy gains, appliance events, away-days, the prebound under-heating response) on top of W1_11 fabric physics, plus LCT rewiring (temperature-dependent heat-pump COP, event-driven EV charging, PV by orientation). COUPLED world leg: must pass the two-level test.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_11_fabric_physics_core",
+        "W1_5_premise_demand_shape"
+      ],
+      "couples_with": [
+        "C14_thermal_parameter_inference"
+      ],
+      "chain": "weather_cascade",
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 44
+    },
+    {
+      "id": "C14_thermal_parameter_inference",
+      "name": "Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficient and thermal response from meter reads + published weather + EPC-class data ONLY, never from SIM internals. COUPLED company twin of W1_12 -- the EPC-vs-actual gap is an estimate of an estimate, exactly as a real supplier faces it.",
+      "lane": "C_customer_ops",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_12_premise_trace_generator"
+      ],
+      "couples_with": [
+        "W1_12_premise_trace_generator"
+      ],
+      "chain": "weather_cascade",
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 48
+    },
+    {
+      "id": "H_GAP_fabric_belief_truth_gap",
+      "name": "The fabric harness leg: the two-level test (spiky homes, smooth crowds) as a STANDING failable control, landed RED against the current generator, plus the EPC-vs-actual and inferred-vs-actual fabric gap metrics and their money consequence. Measures the coupled fabric triad; helps neither side.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_12_premise_trace_generator",
+        "C14_thermal_parameter_inference"
+      ],
+      "couples_with": [
+        "W1_12_premise_trace_generator",
+        "C14_thermal_parameter_inference"
+      ],
       "chain": null,
       "at_target": false,
       "stalled": true,
@@ -3378,7 +3471,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 163,
+  "total_atoms": 167,
   "epoch2_movements": [
     {
       "id": "M1",
