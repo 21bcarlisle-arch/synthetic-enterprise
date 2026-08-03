@@ -131,8 +131,11 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     only. The decision battery and the stop control remain deliberately deferred
     (Spec-005 §3) &mdash; an ops pane that cannot act is honest, one that fakes a
     write control would not be. A third, read-only job is live below: a
-    <b>delta view</b> &mdash; what changed since your last visit, using a marker
-    saved in your own browser only, no server-side read receipt.
+    <b>delta view</b> &mdash; what changed since you last looked. It has two
+    halves: a <b>durable last-look stamp</b> committed to the repo (it survives
+    a publish, a new device and a cleared browser) which leads the page, and a
+    per-device marker saved in your own browser only, kept further down. Neither
+    is a server-side read receipt of your browsing.
   </p>
 
   <div class="banner" id="access-banner">
@@ -152,6 +155,16 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   </div>
 
   <div id="ops">
+
+  <!-- 0. WHAT CHANGED SINCE YOU LAST LOOKED (durable stamp, leads the page) -->
+  <div class="sec sec-1">What changed since you last looked</div>
+  <div class="hyp" id="lastlook-hyp"></div>
+  <div class="card">
+    <p class="muted" id="lastlook-intro">Loading...</p>
+    <div class="kpis" id="lastlook-kpis"></div>
+    <div id="lastlook-body"><div class="muted">Loading...</div></div>
+    <div class="muted" id="lastlook-passport"></div>
+  </div>
 
   <!-- 1. RESERVED QUEUE (the single job, first) -->
   <div class="sec sec-1">Reserved queue &mdash; what only you can action</div>
@@ -173,19 +186,19 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="muted" id="health-passport"></div>
   </div>
 
-  <!-- 3. DELTA VIEW (what changed since your last visit) -->
-  <div class="sec sec-1">Since you last looked</div>
-  <div class="hyp" id="delta-hyp"></div>
-  <div class="card">
-    <p class="muted" id="delta-intro">Loading...</p>
-    <div class="kpis" id="delta-kpis"></div>
-    <div id="delta-body"><div class="muted">Loading...</div></div>
-    <div class="muted" id="delta-passport"></div>
-  </div>
-
   <!-- DEEPER GOVERNANCE CONTEXT (read-only, below the MVP) -->
   <div class="deeper">
     <div class="deeper-h">Deeper context &mdash; read-only governance rendering</div>
+
+    <!-- 3. PER-BROWSER DELTA (the per-device half of the delta view) -->
+    <div class="sec">This browser's last visit &mdash; a per-device marker</div>
+    <div class="hyp" id="delta-hyp"></div>
+    <div class="card">
+      <p class="muted" id="delta-intro">Loading...</p>
+      <div class="kpis" id="delta-kpis"></div>
+      <div id="delta-body"><div class="muted">Loading...</div></div>
+      <div class="muted" id="delta-passport"></div>
+    </div>
 
     <div class="sec">Director-Twin fidelity &mdash; the voice, measured</div>
     <div class="card">
@@ -237,6 +250,123 @@ function ageStr(sec){
 // Freshness window for machine health: a non-retired daemon whose last heartbeat
 // is older than this renders STALE. Stated on-surface so the claim is falsifiable.
 var HEALTH_STALE_HOURS = 6;
+
+/* 0. WHAT CHANGED SINCE YOU LAST LOOKED ------------------------------------
+   The DURABLE half of the delta view. Its baseline is a stamp committed to the
+   repo (site/data/director_last_look.json), computed by
+   tools/generate_director_data.py into site/data/director_delta.json. The stamp
+   advances ONLY on an explicit recorded look, never on a regeneration -- a
+   re-basing baseline would make this panel permanently say "nothing changed".
+   Three states are rendered DISTINGUISHABLY, which is the whole point:
+     ok + no changes  -> a plain, muted "nothing has changed since <stamp>"
+     ok + changes     -> the change lines + diagnostic KPIs
+     stamp lost/feed  -> a RED failure block, no KPIs, no fabricated delta
+   R12: these counts are a diagnostic, never a target. */
+function kpiHTML(kpis){
+  return kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+}
+
+// Independent staleness check (the generator cannot mark its own output fresh):
+// compare the source stamps the delta says it used against the stamps of the
+// feeds THIS PAGE fetched. Divergence means the delta feed has frozen.
+function lastLookDrift(ll, d){
+  var src=(ll&&ll.source_stamps)||{};
+  var live={
+    reserved_generated_at:((d&&d.reserved)||{}).generated_at||null,
+    health_last_updated:((d&&d.health)||{}).last_updated||null,
+    decisions_generated_at:((d&&d.decisions)||{}).generated_at||null
+  };
+  var drift=[];
+  for(var k in live){
+    if(String(src[k]==null?"":src[k])!==String(live[k]==null?"":live[k])) drift.push(k);
+  }
+  return drift;
+}
+
+function renderLastLook(d, now){
+  var ll=(d&&d.lastLook)||null;
+  document.getElementById("lastlook-hyp").innerHTML=
+    "<b>Diagnostic, never a target (R12).</b> This panel compares the window above "+
+    "against a <b>recorded last look</b> &mdash; a stamp committed to the repo, so it "+
+    "survives a publish, a new device and a cleared browser. The stamp advances ONLY "+
+    "when a look is explicitly recorded, never on a regeneration. It can fail honestly: "+
+    "a lost or unreadable stamp renders a visible red failure, NOT &quot;nothing has "+
+    "changed&quot; and NOT &quot;everything is new&quot;.";
+  document.getElementById("lastlook-intro").innerHTML=
+    "Derived from the same feeds rendered below &mdash; decisions.json, "+
+    "director_reserved.json, agent_status.json, director_twin.json and "+
+    "provisional_plan.json &mdash; so you do not have to diff a full-state page by eye.";
+
+  var passportBase="<b>Passport.</b> Baseline: <a class=\"evlink\" href=\"../data/director_last_look.json\">director_last_look.json</a>; "+
+    "delta: <a class=\"evlink\" href=\"../data/director_delta.json\">director_delta.json</a>. ";
+
+  if(!ll){
+    document.getElementById("lastlook-kpis").innerHTML="";
+    document.getElementById("lastlook-body").innerHTML=
+      '<div class="fail" data-state="feed-absent"><b>The delta feed did not load.</b> The delta is UNKNOWN, and '+
+      'is shown as unknown: an unavailable check is a FAILED check (R15), never a quiet '+
+      '&quot;nothing has changed&quot;.</div>';
+    document.getElementById("lastlook-passport").innerHTML=
+      passportBase+"Feed absent at render time.";
+    return;
+  }
+
+  var status=String(ll.stamp_status||"");
+  if(status!=="ok"){
+    // No KPIs at all: a fabricated 0/0/0 (or a full "everything is new") from a
+    // lost baseline is exactly the fail-open this feature exists to prevent.
+    document.getElementById("lastlook-kpis").innerHTML="";
+    document.getElementById("lastlook-body").innerHTML=
+      '<div class="fail" data-state="stamp-lost"><b>Last-look stamp LOST &mdash; status '+esc(status)+'.</b> '+
+      esc(ll.stamp_problem||"")+' No delta is shown, because none can be computed. '+
+      'This is <b>not</b> &quot;nothing has changed&quot; and <b>not</b> &quot;everything '+
+      'is new&quot;. Restore the baseline by recording a look: '+
+      '<code>python3 tools/generate_director_data.py --mark-seen</code>.</div>';
+    document.getElementById("lastlook-passport").innerHTML=
+      passportBase+esc(ll.how_the_stamp_advances||"");
+    return;
+  }
+
+  var c=ll.counts||{};
+  var nd=Number(c.new_decisions||0), rc=Number(c.reserved_changed||0),
+      df=Number(c.daemons_flipped||0), hm=Number(c.headline_moves||0);
+  document.getElementById("lastlook-kpis").innerHTML=kpiHTML([
+    {l:"New decisions",v:num(nd),cls:(nd>0?"warn":"good"),s:"logged since "+shortTime(ll.last_look_at)},
+    {l:"Reserved queue changed",v:num(rc),cls:(rc>0?"warn":"good"),s:num(c.reserved_added||0)+" added, "+num(c.reserved_cleared||0)+" cleared"},
+    {l:"Daemons flipped",v:num(df),cls:(Number(c.daemons_newly_stale||0)>0?"alarm":"good"),s:num(c.daemons_newly_stale||0)+" newly stale, "+num(c.daemons_recovered||0)+" recovered"},
+    {l:"Headline figures moved",v:num(hm),cls:(hm>0?"warn":"good"),s:"twin counters, open atoms"}
+  ]);
+
+  var drift=lastLookDrift(ll, d);
+  var driftHTML=drift.length?
+    ('<div class="fail"><b>This delta is out of date with the feeds on this page</b> ('+
+     esc(drift.join(", "))+'). It was computed against older source data, so it may be '+
+     'missing the most recent movement. Regenerate: '+
+     '<code>python3 tools/generate_director_data.py</code>.</div>'):"";
+
+  // data-state makes the three outcomes machine-distinguishable, not merely
+  // distinguishable by prose: "quiet" is asserted only when the baseline was
+  // genuinely readable and genuinely unmoved.
+  var body;
+  if(ll.changed){
+    body='<div class="muted" data-state="changed">Since your last recorded look ('+esc(shortTime(ll.last_look_at))+'):</div>'+
+      '<div style="margin-top:8px">'+(ll.changes||[]).map(function(line){
+        return '<div class="rq-line">&bull; '+esc(line)+'</div>';
+      }).join("")+'</div>';
+  } else {
+    body='<div class="muted" data-state="quiet">Nothing has changed since '+esc(shortTime(ll.last_look_at))+
+      ' &mdash; stated plainly, not left blank, and not to be confused with a lost stamp '+
+      '(which renders red above the fold).</div>';
+  }
+  document.getElementById("lastlook-body").innerHTML=driftHTML+body;
+  document.getElementById("lastlook-passport").innerHTML=
+    passportBase+"Look recorded "+esc(shortTime(ll.last_look_at))+" by "+
+    esc(ll.last_look_recorded_by||"unknown")+"; delta computed "+esc(shortTime(ll.generated_at))+". "+
+    esc(ll.how_the_stamp_advances||"");
+}
 
 /* 1. RESERVED QUEUE ------------------------------------------------------- */
 function renderReserved(d, now){
@@ -525,6 +655,7 @@ function renderCurriculum(d){
 
 function renderAll(d, nowMs){
   var now = nowMs || (d && d.now ? new Date(d.now).getTime() : Date.now());
+  renderLastLook(d, now);
   renderReserved(d, now);
   renderHealth(d, now);
   renderDelta(d, now);
@@ -540,9 +671,12 @@ Promise.all([
   fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();}),
   fetch("../data/director_reserved.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {items:[]};}),
   fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {agents:[]};}),
-  fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {decisions:[]};})
+  fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {decisions:[]};}),
+  // A missing/broken delta feed resolves to NULL, never to an empty-but-plausible
+  // object: the panel must render "unknown", not a fabricated quiet interval (R15).
+  fetch("../data/director_delta.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
 ]).then(function(res){
-  renderAll({twin:res[0],plan:res[1],sys:res[2],reserved:res[3],health:res[4],decisions:res[5]});
+  renderAll({twin:res[0],plan:res[1],sys:res[2],reserved:res[3],health:res[4],decisions:res[5],lastLook:res[6]});
 }).catch(function(e){
   console.error("director window load error:",e);
   document.getElementById("reserved-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';
