@@ -720,3 +720,60 @@ sibling atom claimed and could not have had.
 **STILL OPEN, unchanged by this tick:** the remaining Class B BUILD halves (this was one of them);
 `SP2_1` Pass 2 (migrate the 25 callers); the auto-processor broad-`add` finding; the superseded
 `run_complete` marker queue.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — DD drawn, and the "unblocked" residual turned out to be permanently dead
+
+The doorbell handed over `DD_seasonal_cashflow_physics` (level 0→3) — not a Class B item. It drew
+because its `depends_on: [W2_12_change_of_tenancy_debt_physics]` is now MET: W2_12 reached its
+level_target (1, `loop_stage: verify`) earlier. So the draw was legitimate, and the parked residual it
+was re-attached to wait for — DD2's non-zero opening balance — looked unblocked.
+
+**It is not, and the reason is worth carrying.** `level_current 0 → 2` SELF-CERTIFIED
+(`gate_authorizations.jsonl`), the cell having read 0 with **no ledger entry at all** while every one
+of its six sub-parts was built, committed and live. Re-verified against artefacts, not re-stamped.
+
+### The residual was wrong in BOTH halves
+1. **Wrong physics.** The DD2 docstring called the opening balance "the prior tenancy's debt this
+   customer inherits". SLC 27 / SLC 12.2 — and `change_of_tenancy_register.py`'s **own opening lines** —
+   put debt on the PERSON, not the property. An incoming occupant inherits nothing. A real non-zero
+   opening is the occupant's OWN deemed-supply arrears between day 1 of possession and their DD mandate
+   starting. The module was parked waiting to import a physics that does not exist.
+2. **Wrong unblock.** W2_12 hitting its target is not an unblock: `TenancyChangeCoupler` has **no
+   production caller anywhere in the repo** (grep-verified — only its own tests and stale worktree
+   copies), and `simulation/life_events.py` emits **no move event of any kind**. There is no
+   tenancy-change stream to couple. Wiring an `opening_balances` argument would have been a live
+   mechanism with a permanently dead input. **Fourth recorded instance of the orphan-transition class**
+   (after `generate_evidence_data.generate()`, `write_fabric_gap_entries`, `fabric_settlement_gap.py`),
+   and the first where the orphan was *load-bearing for another atom's park reason* — a dead mechanism
+   was holding real work in a queue by proxy. Registered on W2_12's own cell as its wiring work.
+
+### A C-S5 fail-open, found by reading the claim rather than the code
+`dd_balance_book.py`'s docstring asserted time-scale invariance — "monthly, quarterly, or accelerated
+billing all carry the same way". **False.** The carry loop collected exactly ONE standing DD per BILL.
+A level DD is collected MONTHLY however often you bill, so a quarterly-billed customer was modelled as
+paying 4 direct debits a year against 12 months of energy: a 3× under-collection manufacturing a debit
+balance out of the billing cadence alone, feeding DD3's booked liability and DD-H's gap. Fixed
+(`n_collections`), with `collected_gbp` deliberately left as the PER-COLLECTION amount because DD1's
+`dd_level_collection_book` sizes its fixed collections from that field — folding the multiple in would
+make DD1 emit one treble-sized collection a quarter and silently flip its own `all_schedules_level_fixed`
+guard. R15 both ways, 3 source mutations each firing a named test, baseline restored green.
+**No published figure moves** — the real book bills monthly with zero month-gaps, so the correction is
+byte-identical today. *Honest bound: that gap check ran on the 6 serialised sample trajectories, not all 8.*
+
+### The measured defect, pinned rather than fabricated shut
+The opening standing DD is the customer's **first bill** — one seasonal month annualised flat — so the
+DD they are put on is a function of **the month they walked in**. Measured against each customer's own
+realised year-0 average: **+33.2%** (C2g, gas, April join), **−46.3%** (C3g, gas, July join), −6.6%
+(C4g, October), against +2.1% / −1.0% / +2.6% on the weakly-seasonal electricity accounts. C2g's
+mis-sizing alone builds **£293.49 of spurious year-0 held credit** persisting to a £411.77 later peak,
+against a portfolio peak of £1,812.20 — the very figure DD3 books and DD-H scores. Pinned as a **strict
+xfail** (proven live: mutating the source to annual/12 XPASSes it) and minted as atom
+`D_opening_dd_seasonal_sizing`, because fixing it needs a published monthly-shape source and no
+coefficient in this codebase may be fabricated. Its mint carries the collateral warning that two
+`dd_level_collection_book` tests PIN the first-bill sizing and go red on the fix, plus the R10 sibling
+site (`eac_calibration.calibrate_eac` annualises on days covered — the same seasonality-blind
+annualisation one layer up), flagged for remediation-on-touch, not fixed speculatively.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the
+25 callers); the auto-processor broad-`add` finding; the superseded `run_complete` marker queue.

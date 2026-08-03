@@ -4,6 +4,8 @@ credit/debit balance and the portfolio held-credit LIABILITY it aggregates to.
 """
 from __future__ import annotations
 
+import pytest
+
 from simulation.dd_balance_book import (
     build_dd_balance_book,
     BalancePoint,
@@ -200,3 +202,112 @@ def test_held_credit_liability_is_actually_measured_not_fail_open():
         "a sustained-credit customer must register real held credit"
     )
     assert s["n_ever_in_credit"] == 1
+
+
+# ---- C-S5: a level DD is collected MONTHLY whatever the billing cadence -----
+
+def _quarterly_bills(cid, quarterly_amounts, start_year=2016, segment="resi"):
+    """N quarterly bills for one customer, period_end every 3rd month."""
+    out = []
+    y, m = start_year, 3
+    for amt in quarterly_amounts:
+        out.append(_bill(cid, f"{y:04d}-{m:02d}-28", amt, segment=segment))
+        m += 3
+        if m > 12:
+            m -= 12
+            y += 1
+    return out
+
+
+def test_quarterly_billing_still_collects_twelve_direct_debits_a_year():
+    """C-S5, and a real fail-open until 2026-08-03.
+
+    A level DD is collected every month regardless of how often the customer is
+    BILLED. The loop used to collect exactly one standing DD per BILL, so a
+    quarterly-billed customer was modelled as paying 4 DDs a year against 12
+    months of energy -- under-collecting by 3x and manufacturing a debit
+    balance out of the billing cadence alone.
+
+    Non-tautological: the expected figure is built from the standing amount and
+    the CALENDAR (3 months per quarter), never from the module's own arithmetic.
+    """
+    # Standing DD = the first bill = 300 (one quarter's energy). Each later
+    # quarter also costs 300, so a correctly-collected customer must end FLAT
+    # after 12 monthly collections of 300 against... no: 300/quarter of energy
+    # is 100/month, and the standing DD is sized off the first BILL (300), so
+    # the customer massively overpays. Assert only the collection COUNT physics.
+    bills = _quarterly_bills(_DD_ID, [300.0] * 4)
+    pts = build_dd_balance_book(bills).trajectories[_DD_ID]
+
+    assert [p.n_collections for p in pts] == [1, 3, 3, 3], (
+        "quarterly bills must span 1 then 3 monthly DD collections each"
+    )
+    # The standing amount itself must stay the PER-COLLECTION figure, because
+    # DD1's dd_level_collection_book sizes its fixed collections from it.
+    assert all(p.collected_gbp == 300.0 for p in pts)
+    # Total collected over the year = 10 monthly DDs (1 + 3 + 3 + 3), against
+    # 1200 of energy. Balance is arithmetic on the calendar, not on the module.
+    assert pts[-1].balance_gbp == round(10 * 300.0 - 4 * 300.0, 2)
+
+
+def test_monthly_billing_is_byte_identical_under_the_cs5_fix():
+    """The C-S5 correction must not move the monthly-billed book this repo
+    actually runs: every bill spans exactly one collection."""
+    bills = _monthly_bills(_DD_ID, [90.0, 40.0, 40.0, 160.0, 90.0, 90.0])
+    pts = build_dd_balance_book(bills).trajectories[_DD_ID]
+    assert all(p.n_collections == 1 for p in pts)
+    running = 0.0
+    for p in pts:
+        running += p.collected_gbp - p.consumed_gbp
+        assert p.balance_gbp == round(running, 2)
+
+
+# ---- the OPENING DD is sized off one seasonal month (measured defect) -------
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "MEASURED DEFECT, pinned not fixed (2026-08-03). The opening standing "
+        "level DD is the customer's FIRST BILL, i.e. one seasonal month "
+        "annualised flat, so the DD a customer is put on is a function of the "
+        "month they joined. On the real book the year-0 standing DD misses "
+        "that customer's own realised year-0 average by +33.2% (gas, April "
+        "join) and -46.3% (gas, July join). A real supplier sizes the opening "
+        "DD from the industry EAC/AQ handed over at registration or from a "
+        "published seasonal profile -- precisely so it does NOT depend on the "
+        "join month. Fixing it needs a published monthly-shape source; no "
+        "coefficient in this codebase may be fabricated, so it is registered "
+        "as its own atom. Remove this xfail when that atom lands."
+    ),
+)
+def test_opening_dd_size_must_not_depend_on_the_join_month():
+    """Two customers, identical seasonal cycle, identical first-year annual
+    spend -- one joins in January, one in July. Their opening standing DD must
+    be the same, because their annual consumption is the same.
+
+    Non-tautological: the cycle is hand-built here and the two customers' first
+    twelve bills are the SAME twelve numbers in a different rotation, so the
+    annual totals are equal by construction and any difference in the standing
+    DD comes purely from which month the customer walked in.
+    """
+    # A strongly seasonal gas year: cold Jan-Mar / Nov-Dec, mild Jun-Aug.
+    cycle = [120.0, 110.0, 95.0, 60.0, 40.0, 25.0,
+             20.0, 22.0, 38.0, 65.0, 100.0, 115.0]
+    jan_id, jul_id = _pick_ids(2, want_dd=True)
+
+    jan_bills = _monthly_bills(jan_id, cycle, segment="resi")
+    # Same twelve numbers, rotated so the July joiner's first year covers
+    # July->June: identical annual total, different first month.
+    jul_bills = _monthly_bills(jul_id, cycle[6:] + cycle[:6], segment="resi")
+
+    jan_pts = build_dd_balance_book(jan_bills).trajectories[jan_id]
+    jul_pts = build_dd_balance_book(jul_bills).trajectories[jul_id]
+
+    assert sum(p.consumed_gbp for p in jan_pts) == sum(p.consumed_gbp for p in jul_pts)
+
+    jan_dd = jan_pts[0].collected_gbp
+    jul_dd = jul_pts[0].collected_gbp
+    assert abs(jan_dd - jul_dd) / jan_dd < 0.10, (
+        f"opening DD depends on join month: January joiner {jan_dd}, "
+        f"July joiner {jul_dd}"
+    )

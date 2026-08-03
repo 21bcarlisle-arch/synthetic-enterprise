@@ -30,7 +30,14 @@ artefact where none existed before, with NO existing number changed:
   list (C-S2: replaying the same bills reproduces an identical book). It is
   time-scale invariant (C-S5): it operates on bill *periods* in issue order,
   not on any wall clock or fixed cadence -- monthly, quarterly, or accelerated
-  billing all carry the same way.
+  billing all carry the same way. That claim was FALSE until 2026-08-03 and is
+  now true by construction: the loop collected exactly ONE standing DD per
+  BILL, so a quarterly-billed customer was modelled as paying four direct
+  debits a year instead of twelve, under-collecting by 3x and manufacturing a
+  debit balance out of the billing cadence alone. A level DD is collected
+  MONTHLY regardless of how often the customer is billed, so the collection is
+  now ``months_elapsed_since_previous_bill * standing`` (>=1). Byte-identical
+  for the monthly-billed book this repo runs; correct for every other cadence.
 * The DD-customer population and the standing level-DD chain are IDENTICAL to
   the two sibling artefacts so the three stay mutually consistent: the DD
   population is ``payment_method(...) == "direct_debit"`` (same gate as
@@ -48,10 +55,40 @@ Deferred / NOT built here (registered, not silently dropped):
 * DD-H -- the belief-vs-truth solvency gap organ -- consumes this module's
   held-credit series (the TRUTH of what is owed back) against the company's
   believed cash-on-hand. Not built here; this is its input.
-* The non-zero OPENING balance a customer inherits from a prior tenancy's debt
-  belongs to ``W2_12_change_of_tenancy_debt_physics`` (currently gated). This
-  module opens every customer at ZERO and must NOT duplicate that physics; when
-  W2_12 lands, its opening balances feed in here rather than being reinvented.
+* The OPENING level-DD balance is ZERO for every customer. The note that used
+  to stand here said a non-zero opening was "the prior tenancy's debt this
+  customer inherits", parked behind ``W2_12_change_of_tenancy_debt_physics``.
+  BOTH halves of that were wrong, corrected 2026-08-03:
+
+  1. **It is not the prior occupant's debt.** SLC 27 / SLC 12.2 -- and
+     ``company/crm/change_of_tenancy_register.py``'s own opening lines -- put
+     the debt on the PERSON, not the property; an incoming occupant inherits
+     nothing and cannot be refused supply over it. A real non-zero opening is
+     the occupant's OWN deemed-supply arrears: energy they burned between day 1
+     of possession (``DeemedLeg.NEW_OCCUPANT``) and the day their own DD mandate
+     started, billed in arrears once they registered.
+  2. **W2_12 landing does not unblock it.** W2_12 reached its level target, but
+     ``TenancyChangeCoupler`` has no production caller anywhere in the repo
+     (only its own tests), and ``simulation/life_events.py`` emits no move
+     event of any kind -- the SIM has no tenancy-change stream to couple. So
+     there is no live source of deemed-supply windows to open a balance from,
+     and wiring an ``opening_balances`` argument now would be a live mechanism
+     with a permanently dead input. Registered as work on W2_12's own wiring,
+     not silently carried here as a DD residual that looks drawable and is not.
+
+* The OPENING STANDING DD is sized from the customer's first issued bill, and
+  that is a measured fidelity defect, pinned as a strict xfail in this module's
+  suite (``test_opening_dd_size_must_not_depend_on_the_join_month``). One
+  month's bill annualised flat is a seasonal number: on the real book the
+  year-0 standing DD misses the customer's own realised year-0 average by
+  +33.2% (gas, April join) and -46.3% (gas, July join), against 2.1% / -1.0% /
+  2.6% for the weakly-seasonal electricity accounts. The error is a function of
+  WHICH MONTH the customer joined, which is exactly what a real supplier's
+  opening estimate is built to be independent of (it sizes from the industry
+  EAC/AQ handed over at registration, or from a published seasonal profile,
+  never from one month grossed up). Fixing it needs a published monthly-shape
+  source, so it is registered as its own atom rather than fabricated here --
+  no coefficient in this codebase may be invented.
 """
 from __future__ import annotations
 
@@ -78,9 +115,17 @@ class BalancePoint:
     """One customer's level-DD position after a single billed period."""
 
     month: str            # 'YYYY-MM' of the bill's period_end
-    collected_gbp: float  # the fixed level DD collected that month
-    consumed_gbp: float   # the actual cost of that month's energy (the bill)
-    balance_gbp: float    # running (collected - consumed); +ve = held credit
+    collected_gbp: float  # the fixed STANDING monthly level DD (per collection)
+    consumed_gbp: float   # the actual cost of that period's energy (the bill)
+    balance_gbp: float    # running (collected*n - consumed); +ve = held credit
+    # How many monthly DD collections this bill period spans (C-S5). 1 under
+    # monthly billing, 3 under quarterly. Kept SEPARATE from collected_gbp so
+    # that field stays the single source of the standing amount DD1's
+    # ``dd_level_collection_book`` sizes its fixed collections from -- folding
+    # the multiple into it would make DD1 emit one treble-sized collection a
+    # quarter instead of three monthly ones, and silently flip its own
+    # ``all_schedules_level_fixed`` guard.
+    n_collections: int = 1
 
 
 @dataclass
@@ -213,16 +258,26 @@ def build_dd_balance_book(bills: list[dict]) -> DDBalanceBook:
         balance = 0.0
         points: list[BalancePoint] = []
         month_balance: dict[str, float] = {}
+        prev_d: date | None = None
         for d, amt in seq:
             wi = _months_between(anchor, d) // 12
-            collected = standing_dd_by_window[wi]
-            balance += collected - amt
+            # A level DD is collected MONTHLY however often the customer is
+            # billed (C-S5). Collect one standing DD per month the bill period
+            # spans -- 1 under monthly billing (byte-identical to the original),
+            # 3 under quarterly. The first bill collects the single DD that
+            # funds it; anything less would open every customer in debt by
+            # construction.
+            n_collections = 1 if prev_d is None else max(1, _months_between(prev_d, d))
+            standing = standing_dd_by_window[wi]
+            balance += standing * n_collections - amt
+            prev_d = d
             month = f"{d.year:04d}-{d.month:02d}"
             points.append(BalancePoint(
                 month=month,
-                collected_gbp=round(collected, 2),
+                collected_gbp=round(standing, 2),
                 consumed_gbp=round(amt, 2),
                 balance_gbp=round(balance, 2),
+                n_collections=n_collections,
             ))
             # If a customer has >1 bill in a calendar month, the LAST wins (the
             # end-of-month position) -- deterministic under the sorted seq.

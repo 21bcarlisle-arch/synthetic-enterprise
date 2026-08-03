@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1025
+      "stall_consecutive_unchanged": 1245
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -2867,7 +2867,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2879,7 +2879,26 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3627
+      "stall_consecutive_unchanged": 3632
+    },
+    {
+      "id": "D_opening_dd_seasonal_sizing",
+      "name": "Size the OPENING level direct debit from an annual estimate, not from one seasonal month's bill",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": null,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2888,7 +2907,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2900,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 242
+      "stall_consecutive_unchanged": 251
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2940,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 22
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -2959,7 +2978,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3340,7 +3359,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 126
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3428,7 +3447,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 30
+      "stall_consecutive_unchanged": 42
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3447,7 +3466,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39
+      "stall_consecutive_unchanged": 55
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3466,7 +3485,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 49
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3485,7 +3504,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39
+      "stall_consecutive_unchanged": 51
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3523,7 +3542,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 22
+      "stall_consecutive_unchanged": 36
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3542,7 +3561,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stall_consecutive_unchanged": 29
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3561,7 +3580,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stall_consecutive_unchanged": 46
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3570,9 +3589,9 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -3580,7 +3599,28 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39
+      "stall_consecutive_unchanged": 5
+    },
+    {
+      "id": "D_printed_figure_rederivation",
+      "name": "Printed-figure re-derivation: every figure on the face of a bill must be reproducible by the customer holding it -- the adjacent half of the money-boundary class the footing fix did not close",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D_money_boundary_reconciliation"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 55
     },
     {
       "id": "H_stop_control_gap_characterisation",
@@ -3599,7 +3639,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 35
+      "stall_consecutive_unchanged": 47
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3637,7 +3677,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 19
+      "stall_consecutive_unchanged": 34
     }
   ],
   "lanes": {
@@ -3720,7 +3760,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 180,
+  "total_atoms": 182,
   "epoch2_movements": [
     {
       "id": "M1",
