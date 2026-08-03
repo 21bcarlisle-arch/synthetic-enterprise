@@ -28,22 +28,12 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import add_working_days
 
 _CSS_GO_LIVE = dt.date(2023, 6, 22)
 _CSS_SLA_WORKING_DAYS = 5
 
 _WORKING_DAY_OFFSETS = (0, 1, 2, 3, 4)  # Mon-Fri pattern used in add-working-days
-
-
-def _add_working_days(start: dt.date, n: int) -> dt.date:
-    """Return the date n working days after start (skips weekends only)."""
-    current = start
-    remaining = n
-    while remaining > 0:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:  # Mon-Fri
-            remaining -= 1
-    return current
 
 
 class SwitchOutcome(str, Enum):
@@ -65,7 +55,7 @@ class CSSPerformanceRecord:
 
     @property
     def sla_deadline(self) -> dt.date:
-        return _add_working_days(self.request_date, _CSS_SLA_WORKING_DAYS)
+        return add_working_days(self.request_date, _CSS_SLA_WORKING_DAYS)
 
     @property
     def is_completed(self) -> bool:

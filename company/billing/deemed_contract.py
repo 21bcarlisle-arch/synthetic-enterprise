@@ -5,6 +5,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import working_days_elapsed
 
 
 class DeemedSupplyReason(str, Enum):
@@ -25,16 +26,6 @@ _NOTIFICATION_DEADLINE_WORKING_DAYS = 5
 _EXTENDED_DEEMED_MONTHS = 12  # after 12m on deemed: additional Ofgem obligations
 
 
-def _working_days_between(start: dt.date, end: dt.date) -> int:
-    days = 0
-    current = start
-    while current < end:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            days += 1
-    return days
-
-
 @dataclass(frozen=True)
 class DeemedContractRecord:
     account_id: str
@@ -50,7 +41,7 @@ class DeemedContractRecord:
             return False
         if self.status in (DeemedContractStatus.CONVERTED, DeemedContractStatus.VACATED):
             return False
-        return _working_days_between(self.start_date, as_of) > _NOTIFICATION_DEADLINE_WORKING_DAYS
+        return working_days_elapsed(self.start_date, as_of) > _NOTIFICATION_DEADLINE_WORKING_DAYS
 
     def months_on_deemed(self, as_of: dt.date) -> float:
         end = self.converted_date or as_of

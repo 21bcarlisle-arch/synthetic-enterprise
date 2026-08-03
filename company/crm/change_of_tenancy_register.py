@@ -56,21 +56,12 @@ import datetime as dt
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Set
+from regulation_commons.working_days import add_working_days
 
 _COT_READ_DAYS = 10
 _MPAS_NOTIFY_DAYS = 2
 _ABANDON_ATTEMPTS = 3
 _ABANDON_DAYS = 28
-
-
-def _add_working_days(start: dt.date, n: int) -> dt.date:
-    current = start
-    added = 0
-    while added < n:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
 
 
 class CoTType(str, Enum):
@@ -116,11 +107,11 @@ class CoTRecord:
 
     @property
     def mpas_notification_due(self) -> dt.date:
-        return _add_working_days(self.entry_date, _MPAS_NOTIFY_DAYS)
+        return add_working_days(self.entry_date, _MPAS_NOTIFY_DAYS)
 
     @property
     def read_submission_due(self) -> dt.date:
-        return _add_working_days(self.entry_date, _COT_READ_DAYS)
+        return add_working_days(self.entry_date, _COT_READ_DAYS)
 
     def is_abandon_candidate(self, as_of: dt.date) -> bool:
         return (

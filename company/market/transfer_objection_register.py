@@ -32,18 +32,9 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import add_working_days
 
 _OBJECTION_WINDOW_WD = 5
-
-
-def _add_wd(start: dt.date, n: int) -> dt.date:
-    cur = start
-    added = 0
-    while added < n:
-        cur += dt.timedelta(days=1)
-        if cur.weekday() < 5:
-            added += 1
-    return cur
 
 
 class ObjectionGround(str, Enum):
@@ -82,7 +73,7 @@ class TransferObjectionRecord:
 
     @property
     def objection_deadline(self) -> dt.date:
-        return _add_wd(self.objection_date, _OBJECTION_WINDOW_WD)
+        return add_working_days(self.objection_date, _OBJECTION_WINDOW_WD)
 
     def resolution_days(self, as_of: dt.date) -> int:
         end = self.resolution_date if self.resolution_date is not None else as_of

@@ -38,6 +38,7 @@ from company.billing.credit_refund import (
     RefundTrigger,
 )
 from simulation.arrears_engine import payment_method
+from regulation_commons.working_days import add_working_days
 
 # Probability the refund is paid within the SLC 14 10-working-day deadline.
 # A small tail breaches it -- the real pattern Ofgem issued multiple 2022
@@ -64,16 +65,6 @@ def dd_smoothing_balance_at_closure(bills_for_customer: list[dict]) -> float:
         balance += dd_amount - actual
         seen_totals.append(actual)
     return balance
-
-
-def _add_working_days(start: dt.date, n: int) -> dt.date:
-    current = start
-    added = 0
-    while added < n:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
 
 
 def generate_credit_refund_log(
@@ -118,7 +109,7 @@ def generate_credit_refund_log(
         on_time = rng.random() < ON_TIME_PROBABILITY
         lo, hi = ON_TIME_WORKING_DAYS if on_time else LATE_WORKING_DAYS
         working_days = rng.randint(lo, hi)
-        paid_date = _add_working_days(request_date, working_days)
+        paid_date = add_working_days(request_date, working_days)
 
         record = book.pay(cid, paid_date)
         log.append({

@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
+from regulation_commons.working_days import add_working_days
+
 
 class CounterpartyType(str, Enum):
     FINANCIAL_COUNTERPARTY = "fc"
@@ -46,14 +48,20 @@ class ProductType(str, Enum):
 _FCA_EMIR_MAX_FINE_GBP = 7_200_000.0
 
 
-def _add_working_days(from_dt: dt.datetime, days: int) -> dt.datetime:
-    d = from_dt.date()
-    added = 0
-    while added < days:
-        d += dt.timedelta(days=1)
-        if d.weekday() < 5:
-            added += 1
-    return dt.datetime(d.year, d.month, d.day, 17, 0, 0, tzinfo=from_dt.tzinfo)
+#: EMIR reporting closes at 17:00 on the deadline day. That cut-off time is
+#: THIS register's reading of the obligation, so it lives here -- the shared
+#: calendar answers only "which day", never "by what time".
+_EMIR_REPORTING_CUTOFF = dt.time(17, 0)
+
+
+def _reporting_deadline(from_dt: dt.datetime, working_days: int) -> dt.datetime:
+    """T+`working_days` working days from `from_dt`, at the 17:00 cut-off.
+
+    The working-day arithmetic is the canonical one; only the date part is
+    passed across, because a working day has no sub-day resolution.
+    """
+    deadline_date = add_working_days(from_dt.date(), working_days)
+    return dt.datetime.combine(deadline_date, _EMIR_REPORTING_CUTOFF, tzinfo=from_dt.tzinfo)
 
 
 @dataclass(frozen=True)
@@ -122,7 +130,7 @@ class EMIRReportingRegister:
         tid = self._next_id()
         uti = self._make_uti(tid, execution_date)
         exec_dt = dt.datetime.combine(execution_date, dt.time(9, 0), tzinfo=dt.timezone.utc)
-        deadline = _add_working_days(exec_dt, 1)
+        deadline = _reporting_deadline(exec_dt, 1)
         rec = EMIRTradeRecord(
             trade_id=tid, uti=uti, product_type=product_type,
             counterparty_id=counterparty_id, counterparty_type=counterparty_type,

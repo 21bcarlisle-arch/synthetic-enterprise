@@ -10,19 +10,10 @@ import datetime as dt
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import add_working_days
 
 
 # Working-day helper (Monday–Friday, no bank-holiday awareness)
-def _add_working_days(date: dt.date, days: int) -> dt.date:
-    current = date
-    added = 0
-    while added < days:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
-
-
 class Fuel(str, Enum):
     ELECTRICITY = "electricity"
     GAS = "gas"
@@ -90,7 +81,7 @@ class MTIRecord:
 
     @property
     def outcome_due_date(self) -> dt.date:
-        return _add_working_days(self.commissioned_date, _SLA_WORKING_DAYS)
+        return add_working_days(self.commissioned_date, _SLA_WORKING_DAYS)
 
     def is_overdue(self, as_of: dt.date) -> bool:
         """COMMISSIONED and past the 20-WD outcome SLA."""

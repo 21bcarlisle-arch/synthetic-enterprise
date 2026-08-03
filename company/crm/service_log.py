@@ -12,6 +12,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
+from regulation_commons.working_days import add_working_days
 
 DEFAULT_DB_PATH = Path("company/data/service_log.db")
 
@@ -86,17 +87,6 @@ def _row_to_vuln(row) -> VulnerabilityFlag:
         flag_type=row["flag_type"], active=bool(row["active"]),
         resolved_date=row["resolved_date"],
     )
-
-
-def _add_working_days(start: date, n: int) -> date:
-    """Add n working days (Mon-Fri) to start date."""
-    d = start
-    added = 0
-    while added < n:
-        d += timedelta(days=1)
-        if d.weekday() < 5:  # 0=Mon, 4=Fri
-            added += 1
-    return d
 
 
 class ServiceLog:
@@ -209,7 +199,7 @@ class ServiceLog:
         results = []
         for ev in self.complaints():
             contact = date.fromisoformat(ev.event_date)
-            ack_by = _add_working_days(contact, 2)
+            ack_by = add_working_days(contact, 2)
             resolve_by = contact + timedelta(weeks=8)
             resolved = ev.outcome in ("resolved", "closed")
             today = date.today()

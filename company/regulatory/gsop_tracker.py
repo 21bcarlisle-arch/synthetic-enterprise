@@ -5,6 +5,8 @@ from datetime import date
 from enum import Enum
 from typing import Dict, List, Optional
 
+from regulation_commons.working_days import working_days_between
+
 
 class GSoPStandard(Enum):
     BILLING_DELAY = "billing_delay"
@@ -47,14 +49,10 @@ class GSoPBreach:
 
     @property
     def working_days_open(self) -> int:
+        """Working days this breach has been open, counting the breach date
+        itself and not the resolution date -- ``[breach_date, end)``."""
         end = self.resolution_date or date.today()
-        count = 0
-        current = self.breach_date
-        while current < end:
-            if current.weekday() < 5:
-                count += 1
-            current = date.fromordinal(current.toordinal() + 1)
-        return count
+        return working_days_between(self.breach_date, end)
 
 
 class GSoPTracker:

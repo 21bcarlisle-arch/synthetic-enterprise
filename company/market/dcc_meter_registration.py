@@ -28,21 +28,11 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import add_working_days
 
 _DCC_REGISTRATION_DEADLINE_DAYS = 10   # working days
 _DCC_ORPHAN_THRESHOLD_DAYS = 90        # calendar days
 _DCC_RETRY_DEADLINE_WORKING_DAYS = 5   # after a failed registration
-
-
-def _add_working_days(start: dt.date, n: int) -> dt.date:
-    """Return the date n working days after start (skips weekends only)."""
-    current = start
-    remaining = n
-    while remaining > 0:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            remaining -= 1
-    return current
 
 
 class DCCRegistrationStatus(str, Enum):
@@ -66,7 +56,7 @@ class DCCRegistrationRecord:
 
     @property
     def registration_deadline(self) -> dt.date:
-        return _add_working_days(self.install_date, _DCC_REGISTRATION_DEADLINE_DAYS)
+        return add_working_days(self.install_date, _DCC_REGISTRATION_DEADLINE_DAYS)
 
     @property
     def is_registered(self) -> bool:

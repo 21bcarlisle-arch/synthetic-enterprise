@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from enum import Enum
 from typing import Dict, List, Optional
+from regulation_commons.working_days import add_working_days
 
 
 class GSOPType(str, Enum):
@@ -31,17 +32,6 @@ _GSOP_PAYMENT_DAYS: Dict[GSOPType, int] = {
     GSOPType.FINAL_BILL_DELAY: 10,
     GSOPType.REFUND_DELAY: 10,
 }
-
-
-def _add_working_days(start: date, n: int) -> date:
-    """Advance n working days (Mon-Fri) from start."""
-    current = start
-    added = 0
-    while added < n:
-        current += timedelta(days=1)
-        if current.weekday() < 5:   # Mon-Fri
-            added += 1
-    return current
 
 
 @dataclass
@@ -75,7 +65,7 @@ class GSOPBook:
         gsop_type: GSOPType,
         trigger_date: date,
     ) -> GSOPPayment:
-        due_date = _add_working_days(trigger_date, _GSOP_PAYMENT_DAYS[gsop_type])
+        due_date = add_working_days(trigger_date, _GSOP_PAYMENT_DAYS[gsop_type])
         payment = GSOPPayment(
             payment_id=self._next_id,
             customer_id=customer_id,

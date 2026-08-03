@@ -1,0 +1,441 @@
+"""Tests for the canonical working-day calculator.
+
+The interesting question for a calendar module is not "does the loop count" but
+"can this thing be wrong without anyone noticing". So the shape here is:
+
+* an INDEPENDENT ORACLE over the table (§1) -- structural rules about UK bank
+  holidays that hold in reality and were not used to build the file, so the
+  test would fail on a corrupted or fabricated table rather than agreeing with
+  whatever the file happens to say;
+* FAIL-CLOSED proofs (§2) -- missing, empty, malformed and out-of-range all
+  RAISE; none of them quietly degrades to weekends-only;
+* the arithmetic itself (§3), including the deadline class that was
+  structurally unreachable before this module existed;
+* the wall (§4).
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import importlib
+import json
+from pathlib import Path
+
+import pytest
+
+from regulation_commons import working_days as wd
+from regulation_commons.working_days import (
+    CalendarCoverageError,
+    CalendarDataError,
+    Nation,
+    add_working_days,
+    bank_holidays,
+    coverage,
+    is_bank_holiday,
+    is_working_day,
+    working_days_between,
+    working_days_elapsed,
+)
+
+FIRST_YEAR, LAST_YEAR = coverage()
+COVERED_YEARS = range(FIRST_YEAR, LAST_YEAR + 1)
+
+
+def _easter_sunday(year: int) -> dt.date:
+    """Anonymous Gregorian computus -- an oracle written from the algorithm,
+    with no reference to the committed table."""
+    a = year % 19
+    b, c = divmod(year, 100)
+    d, e = divmod(b, 4)
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    m = (32 + 2 * e + 2 * i - h - k) % 7
+    n = (a + 11 * h + 22 * m) // 451
+    month, day = divmod(h + m - 7 * n + 114, 31)
+    return dt.date(year, month, day + 1)
+
+
+def _last_monday_of_august(year: int) -> dt.date:
+    last = dt.date(year, 8, 31)
+    return last - dt.timedelta(days=last.weekday())
+
+
+# ---------------------------------------------------------------------------
+# 1. Independent oracle over the sourced table
+# ---------------------------------------------------------------------------
+
+
+class TestCalendarAgreesWithIndependentRules:
+    """Rules that real E&W bank holidays obey, checked against the table.
+
+    None of these rules was used to BUILD the table (it came from two GDS
+    feeds), so agreement is evidence, not tautology. A table that had been
+    hand-typed from memory, truncated, or corrupted would fail here.
+    """
+
+    def test_every_covered_year_has_good_friday_and_easter_monday(self):
+        holidays = bank_holidays()
+        for year in COVERED_YEARS:
+            easter = _easter_sunday(year)
+            assert easter - dt.timedelta(days=2) in holidays, f"Good Friday {year}"
+            assert easter + dt.timedelta(days=1) in holidays, f"Easter Monday {year}"
+
+    def test_every_covered_year_has_the_last_monday_of_august(self):
+        holidays = bank_holidays()
+        for year in COVERED_YEARS:
+            assert _last_monday_of_august(year) in holidays, f"summer BH {year}"
+
+    def test_every_covered_year_has_a_christmas_and_new_year_holiday(self):
+        """Christmas Day and New Year's Day are holidays, or a substitute day
+        falls within the following two days when they land on a weekend."""
+        holidays = bank_holidays()
+        for year in COVERED_YEARS:
+            for anchor in (dt.date(year, 12, 25), dt.date(year, 1, 1)):
+                window = {anchor + dt.timedelta(days=n) for n in range(3)}
+                assert window & holidays, f"no holiday near {anchor}"
+
+    def test_substitute_days_only_ever_fall_on_a_weekday(self):
+        """A substitute exists precisely because the real date hit a weekend,
+        so it must itself be Mon-Fri or it would be pointless."""
+        payload = json.loads(
+            (Path(wd.__file__).parent / "data" / "bank_holidays_england_wales.json").read_text()
+        )
+        subs = [e for e in payload["events"] if e["substitute_day"]]
+        assert subs, "table records no substitute days at all -- suspicious"
+        for event in subs:
+            assert dt.date.fromisoformat(event["date"]).weekday() < 5, event
+
+    def test_each_covered_year_has_a_plausible_number_of_holidays(self):
+        """E&W has 8 permanent bank holidays. Years may exceed that (one-off
+        royal/national days) but never fall short -- a year short of 8 means a
+        truncated table."""
+        holidays = bank_holidays()
+        for year in COVERED_YEARS:
+            count = len([d for d in holidays if d.year == year])
+            assert count >= 8, f"{year} has only {count} holidays"
+            assert count <= 12, f"{year} has {count} holidays -- implausibly many"
+
+    def test_one_off_holidays_are_date_indexed_not_rule_generated(self):
+        """Law is time-indexed. The 2022 Platinum Jubilee, the 2022 State
+        Funeral and the 2023 Coronation happened once. If the calendar were
+        generated by recurrence rules rather than sourced dates, these would
+        either be missing or would wrongly repeat in neighbouring years."""
+        holidays = bank_holidays()
+
+        # All three must be present, or the table is not really sourced.
+        for day in (dt.date(2022, 6, 3), dt.date(2022, 9, 19), dt.date(2023, 5, 8)):
+            assert day in holidays, f"{day} missing -- one-off holidays not sourced"
+
+        # ...and must not recur. 2023-05-08 (Coronation) is deliberately NOT in
+        # this set: 2020-05-08 is independently a real bank holiday, because the
+        # Early May holiday was moved that year for the VE Day 75th anniversary.
+        # Two unrelated one-offs landing on the same calendar day is exactly the
+        # kind of fact a recurrence rule cannot represent and a sourced table can.
+        for day in (dt.date(2022, 6, 3), dt.date(2022, 9, 19)):
+            for other_year in COVERED_YEARS:
+                if other_year == day.year:
+                    continue
+                assert day.replace(year=other_year) not in holidays, (
+                    f"a one-off from {day.year} is leaking into {other_year} -- "
+                    "the calendar is being generated by rules, not sourced by date"
+                )
+
+        # The Early May holiday moved in 2020 rather than an extra day being
+        # added: no holiday on the first Monday of May that year.
+        assert dt.date(2020, 5, 8) in holidays
+        assert dt.date(2020, 5, 4) not in holidays, (
+            "2020's Early May holiday was MOVED to VE Day, not duplicated"
+        )
+
+    def test_the_profile_class_season_anchor_assumption_holds(self):
+        """sim/profile_class_{1,3}.py derive BSC load-profile seasons from
+        `last_monday_of_month(year, 8)` rather than this calendar, on the
+        stated ground that August Bank Holiday is always the last Monday of
+        August with no substitute-day exception. That is a real assumption
+        about the world, so it gets checked against the sourced table instead
+        of being taken on trust. If this ever fails, those two modules are
+        wrong and must migrate."""
+        holidays = bank_holidays()
+        for year in COVERED_YEARS:
+            august = sorted(d for d in holidays if d.year == year and d.month == 8)
+            assert august == [_last_monday_of_august(year)], (
+                f"{year}: August holidays {august} -- profile_class_1/3's "
+                "last-Monday-of-August assumption no longer holds"
+            )
+
+
+# ---------------------------------------------------------------------------
+# 2. Fail-closed (R15: fail-open / fail-silent)
+# ---------------------------------------------------------------------------
+
+
+class TestTheCalendarFailsClosed:
+    """A calendar that cannot answer must SAY so. Every one of these would, if
+    it returned a weekends-only answer instead, hand the caller a deadline that
+    is confidently wrong -- the exact defect this module exists to end."""
+
+    @pytest.mark.parametrize(
+        "bad_date",
+        [dt.date(FIRST_YEAR - 1, 6, 15), dt.date(LAST_YEAR + 1, 6, 15), dt.date(1999, 1, 4)],
+    )
+    def test_out_of_coverage_dates_raise_rather_than_guess(self, bad_date):
+        with pytest.raises(CalendarCoverageError):
+            is_working_day(bad_date)
+        with pytest.raises(CalendarCoverageError):
+            add_working_days(bad_date, 3)
+        with pytest.raises(CalendarCoverageError):
+            working_days_between(bad_date, bad_date + dt.timedelta(days=5))
+
+    def test_walking_off_the_end_of_coverage_raises(self):
+        """add_working_days must not silently walk past the last sourced year."""
+        with pytest.raises(CalendarCoverageError):
+            add_working_days(dt.date(LAST_YEAR, 12, 29), 10)
+
+    def test_coverage_error_is_not_a_valueerror(self):
+        """A caller's broad `except ValueError` must not be able to swallow a
+        coverage failure into a fallback."""
+        assert not issubclass(CalendarCoverageError, (ValueError, LookupError))
+        assert not issubclass(CalendarDataError, (ValueError, LookupError))
+
+    def _reload_with_data(self, tmp_path, monkeypatch, content):
+        """Point the module at a mutated data dir and reload its cache."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        if content is not None:
+            (data_dir / "bank_holidays_england_wales.json").write_text(content)
+        monkeypatch.setattr(wd, "_DATA_DIR", data_dir)
+        wd._load.cache_clear()
+        return wd
+
+    def test_missing_table_raises(self, tmp_path, monkeypatch):
+        mod = self._reload_with_data(tmp_path, monkeypatch, None)
+        try:
+            with pytest.raises(CalendarDataError):
+                mod.is_working_day(dt.date(2025, 6, 2))
+        finally:
+            mod._load.cache_clear()
+
+    def test_empty_table_raises(self, tmp_path, monkeypatch):
+        mod = self._reload_with_data(tmp_path, monkeypatch, "")
+        try:
+            with pytest.raises(CalendarDataError):
+                mod.is_working_day(dt.date(2025, 6, 2))
+        finally:
+            mod._load.cache_clear()
+
+    def test_table_with_no_events_raises(self, tmp_path, monkeypatch):
+        payload = json.dumps({"coverage": {"first_year": 2015, "last_year": 2028}, "events": []})
+        mod = self._reload_with_data(tmp_path, monkeypatch, payload)
+        try:
+            with pytest.raises(CalendarDataError):
+                mod.is_working_day(dt.date(2025, 6, 2))
+        finally:
+            mod._load.cache_clear()
+
+    def test_malformed_table_raises(self, tmp_path, monkeypatch):
+        mod = self._reload_with_data(tmp_path, monkeypatch, "{not json at all")
+        try:
+            with pytest.raises(CalendarDataError):
+                mod.is_working_day(dt.date(2025, 6, 2))
+        finally:
+            mod._load.cache_clear()
+
+    def test_table_claiming_coverage_it_does_not_have_raises(self, tmp_path, monkeypatch):
+        """The killer fail-open: a table declaring 2015-2028 but holding only
+        2025 events would answer 'not a holiday' for every date in 13 years,
+        confidently and silently."""
+        payload = json.dumps(
+            {
+                "coverage": {"first_year": 2015, "last_year": 2028},
+                "events": [{"date": "2025-12-25", "title": "Christmas Day"}],
+            }
+        )
+        mod = self._reload_with_data(tmp_path, monkeypatch, payload)
+        try:
+            with pytest.raises(CalendarDataError):
+                mod.is_working_day(dt.date(2025, 6, 2))
+        finally:
+            mod._load.cache_clear()
+
+    def test_datetime_is_rejected_rather_than_silently_accepted(self):
+        """datetime subclasses date, so a datetime would otherwise sail
+        through and compare unequal to every date in the holiday set --
+        answering 'never a bank holiday' for every input."""
+        with pytest.raises(TypeError):
+            is_working_day(dt.datetime(2025, 12, 25, 9, 0))
+        with pytest.raises(TypeError):
+            add_working_days(dt.datetime(2025, 12, 24, 9, 0), 1)
+
+    def test_negative_working_days_raises(self):
+        with pytest.raises(ValueError):
+            add_working_days(dt.date(2025, 6, 2), -1)
+
+
+# ---------------------------------------------------------------------------
+# 3. The arithmetic
+# ---------------------------------------------------------------------------
+
+
+class TestWorkingDayArithmetic:
+    def test_weekends_are_not_working_days(self):
+        assert not is_working_day(dt.date(2025, 6, 7))   # Saturday
+        assert not is_working_day(dt.date(2025, 6, 8))   # Sunday
+        assert is_working_day(dt.date(2025, 6, 9))       # Monday
+
+    def test_a_bank_holiday_is_not_a_working_day_even_on_a_weekday(self):
+        christmas = dt.date(2025, 12, 25)
+        assert christmas.weekday() < 5, "2025-12-25 is a Thursday"
+        assert is_bank_holiday(christmas)
+        assert not is_working_day(christmas)
+
+    def test_zero_working_days_returns_the_start_unchanged(self):
+        for day in (dt.date(2025, 6, 9), dt.date(2025, 6, 7), dt.date(2025, 12, 25)):
+            assert add_working_days(day, 0) == day
+
+    def test_result_is_always_a_working_day_for_positive_n(self):
+        start = dt.date(2025, 1, 1)
+        for offset in range(0, 400, 7):
+            for n in (1, 3, 10):
+                result = add_working_days(start + dt.timedelta(days=offset), n)
+                assert is_working_day(result)
+
+    def test_adding_working_days_is_monotonic_and_additive(self):
+        """Properties, not pinned outputs: n steps then m steps must equal
+        n+m steps, and more days can never mean an earlier date."""
+        start = dt.date(2024, 3, 4)
+        for n in range(0, 12):
+            assert add_working_days(start, n) <= add_working_days(start, n + 1)
+            for m in range(0, 5):
+                assert add_working_days(add_working_days(start, n), m) == add_working_days(
+                    start, n + m
+                )
+
+    def test_between_and_elapsed_are_different_conventions(self):
+        """They are NOT interchangeable -- they diverge exactly when an
+        endpoint is a non-working day, which is when deadlines get argued
+        about. Migrating a caller to the wrong one would be a silent bug."""
+        saturday, wednesday = dt.date(2025, 6, 7), dt.date(2025, 6, 11)
+        assert working_days_between(saturday, wednesday) == 2   # Mon, Tue
+        assert working_days_elapsed(saturday, wednesday) == 3   # Mon, Tue, Wed
+
+    def test_the_two_conventions_agree_between_working_days(self):
+        """Relationship, not a pinned number: for working-day endpoints the
+        two conventions must return the same count."""
+        start, end = dt.date(2025, 6, 9), dt.date(2025, 6, 20)
+        assert is_working_day(start) and is_working_day(end)
+        assert working_days_between(start, end) == working_days_elapsed(start, end)
+
+    def test_counting_functions_return_zero_on_a_reversed_or_empty_range(self):
+        day = dt.date(2025, 6, 9)
+        assert working_days_between(day, day) == 0
+        assert working_days_elapsed(day, day) == 0
+        assert working_days_between(day, day - dt.timedelta(days=5)) == 0
+        assert working_days_elapsed(day, day - dt.timedelta(days=5)) == 0
+
+    def test_counting_agrees_with_stepping(self):
+        """Cross-check the two independent code paths against each other."""
+        start = dt.date(2025, 11, 3)
+        for n in range(0, 30):
+            end = add_working_days(start, n)
+            assert working_days_elapsed(start, end) == n
+
+
+class TestTheDeadlineClassThatWasPreviouslyUnreachable:
+    """The point of the whole atom. Before this module, deadline arithmetic
+    skipped weekends only, so a deadline spanning a bank holiday landed a day
+    (or four) early and a breach a real supplier would be fined for could not
+    occur. These assert the MOVED figures explicitly rather than letting them
+    look like drift."""
+
+    @staticmethod
+    def _weekend_only_add(start: dt.date, n: int) -> dt.date:
+        """The arithmetic every one of the 24 callers used before migration."""
+        current, remaining = start, n
+        while remaining > 0:
+            current += dt.timedelta(days=1)
+            if current.weekday() < 5:
+                remaining -= 1
+        return current
+
+    def test_a_deadline_spanning_christmas_now_moves(self):
+        # Tue 2025-12-23 + 3 working days. Christmas Day (Thu 25th) and Boxing
+        # Day (Fri 26th) are both bank holidays, so the count runs
+        # Wed 24th, Mon 29th, Tue 30th.
+        start = dt.date(2025, 12, 23)
+        old = self._weekend_only_add(start, 3)
+        new = add_working_days(start, 3)
+        assert old == dt.date(2025, 12, 26), "old weekend-only behaviour"
+        assert new == dt.date(2025, 12, 30), "bank-holiday-aware behaviour"
+        assert (new - old).days == 4, "a 3-working-day deadline slips 4 calendar days"
+
+    def test_a_deadline_spanning_easter_now_moves(self):
+        # Thu 2026-04-02 + 2 working days; Good Friday 3rd, Easter Monday 6th.
+        start = dt.date(2026, 4, 2)
+        assert self._weekend_only_add(start, 2) == dt.date(2026, 4, 6)
+        assert add_working_days(start, 2) == dt.date(2026, 4, 8)
+
+    def test_bank_holidays_only_ever_delay_a_deadline(self):
+        """Property across the whole covered range: the corrected calculator
+        can never produce an EARLIER date than the old weekend-only one. A
+        migration that pulled a deadline forward would be a regression; one
+        that pushes it back is the correction."""
+        start = dt.date(FIRST_YEAR, 1, 1)
+        while start < dt.date(LAST_YEAR, 11, 1):
+            for n in (1, 5, 10, 20):
+                assert add_working_days(start, n) >= self._weekend_only_add(start, n)
+            start += dt.timedelta(days=11)
+
+    def test_counting_a_holiday_week_reports_fewer_working_days(self):
+        """The mirror image: elapsed-working-day counts SHRINK across a
+        holiday, which is what makes a 10-working-day refund deadline land
+        later in December than in June."""
+        dec = working_days_elapsed(dt.date(2025, 12, 19), dt.date(2026, 1, 2))
+        jun = working_days_elapsed(dt.date(2025, 6, 19), dt.date(2025, 7, 3))
+        assert dec < jun
+
+
+# ---------------------------------------------------------------------------
+# 4. The wall
+# ---------------------------------------------------------------------------
+
+
+class TestTheCommonsStaysNeutral:
+    def test_the_commons_imports_no_lane(self):
+        """If this package ever imported company/sim/saas it would stop being
+        neutral ground and become one lane's opinion that the others depend
+        on."""
+        import ast
+
+        package_root = Path(wd.__file__).parent
+        banned = {"company", "saas", "sim", "simulation", "interface"}
+        for path in package_root.rglob("*.py"):
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    names = [alias.name for alias in node.names]
+                elif isinstance(node, ast.ImportFrom):
+                    names = [node.module or ""]
+                else:
+                    continue
+                for name in names:
+                    assert name.split(".")[0] not in banned, (
+                        f"{path.name} imports {name} -- the commons must not depend on a lane"
+                    )
+
+    def test_the_commons_exposes_facts_not_judgements(self):
+        """A deadline LENGTH ("3 working days to acknowledge") is a lane's
+        reading of the law and must not leak in here. Guard by name: nothing
+        exported may look like an obligation constant."""
+        suspicious = [
+            name
+            for name in dir(wd)
+            if not name.startswith("_")
+            and any(token in name.upper() for token in ("DEADLINE", "SLC", "GSOP", "SLA", "OBLIGATION"))
+        ]
+        assert not suspicious, f"judgement-shaped names in the commons: {suspicious}"
+
+    def test_nation_is_a_seam_not_a_hardcoded_assumption(self):
+        assert Nation.ENGLAND_AND_WALES in list(Nation)
+        assert is_working_day(dt.date(2025, 6, 9), nation=Nation.ENGLAND_AND_WALES)

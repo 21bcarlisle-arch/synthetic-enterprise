@@ -21,16 +21,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
-
-
-def _add_working_days(date: dt.date, days: int) -> dt.date:
-    current = date
-    added = 0
-    while added < days:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
+from regulation_commons.working_days import add_working_days
 
 
 class DisputeGround(str, Enum):
@@ -92,13 +83,13 @@ class SettlementDisputeRecord:
 
     @property
     def raise_deadline(self) -> dt.date:
-        return _add_working_days(self.raised_date - dt.timedelta(days=1), _SQ_RAISE_WD)
+        return add_working_days(self.raised_date - dt.timedelta(days=1), _SQ_RAISE_WD)
 
     @property
     def saa_response_due(self) -> Optional[dt.date]:
         if self.investigation_start_date is None:
             return None
-        return _add_working_days(self.investigation_start_date, _SAA_INVESTIGATE_WD)
+        return add_working_days(self.investigation_start_date, _SAA_INVESTIGATE_WD)
 
     def is_saa_response_overdue(self, as_of: dt.date) -> bool:
         due = self.saa_response_due

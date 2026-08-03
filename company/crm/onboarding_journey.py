@@ -25,6 +25,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import add_working_days
 
 
 class OnboardingStage(str, Enum):
@@ -45,16 +46,6 @@ _OBJECTION_WINDOW_WORKING_DAYS = 20
 _WELCOME_PACK_WORKING_DAYS = 15
 _FIRST_BILL_DAYS = 92           # 3 months approx
 _SMART_METER_OFFER_DAYS = 365   # 12 months
-
-
-def _add_working_days(date: dt.date, n: int) -> dt.date:
-    d = date
-    added = 0
-    while added < n:
-        d += dt.timedelta(days=1)
-        if d.weekday() < 5:
-            added += 1
-    return d
 
 
 @dataclass(frozen=True)
@@ -86,7 +77,7 @@ class OnboardingJourney:
     def welcome_pack_deadline(self) -> Optional[dt.date]:
         if self.supply_start_date is None:
             return None
-        return _add_working_days(self.supply_start_date, _WELCOME_PACK_WORKING_DAYS)
+        return add_working_days(self.supply_start_date, _WELCOME_PACK_WORKING_DAYS)
 
     def first_bill_deadline(self) -> Optional[dt.date]:
         if self.supply_start_date is None:

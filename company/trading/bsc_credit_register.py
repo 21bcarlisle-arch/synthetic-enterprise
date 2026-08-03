@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+from regulation_commons.working_days import add_working_days
+
 
 class CreditInstrumentType(str, Enum):
     BANK_GUARANTEE = "bank_guarantee"
@@ -112,12 +114,7 @@ class BSCCreditRegister:
 
     def is_cdn_overdue(self, as_of: dt.date) -> bool:
         for cdn_date in self._cdn_dates:
-            cure_deadline = cdn_date
-            days_added = 0
-            while days_added < _CURE_PERIOD_WORKING_DAYS:
-                cure_deadline += dt.timedelta(days=1)
-                if cure_deadline.weekday() < 5:
-                    days_added += 1
+            cure_deadline = add_working_days(cdn_date, _CURE_PERIOD_WORKING_DAYS)
             latest = self.latest()
             if as_of > cure_deadline and (
                 latest is None

@@ -5,6 +5,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import working_days_elapsed
 
 
 class RefundTrigger(str, Enum):
@@ -25,16 +26,6 @@ class RefundStatus(str, Enum):
 _REFUND_DEADLINE_WORKING_DAYS = 10
 
 
-def _working_days_between(start: dt.date, end: dt.date) -> int:
-    days = 0
-    current = start
-    while current < end:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            days += 1
-    return days
-
-
 @dataclass(frozen=True)
 class CreditRefundRecord:
     account_id: str
@@ -48,14 +39,14 @@ class CreditRefundRecord:
     def working_days_to_pay(self) -> Optional[int]:
         if self.paid_date is None:
             return None
-        return _working_days_between(self.request_date, self.paid_date)
+        return working_days_elapsed(self.request_date, self.paid_date)
 
     def is_overdue(self, as_of: dt.date) -> bool:
         if self.status == RefundStatus.PAID:
             return False
         if self.status in (RefundStatus.REJECTED, RefundStatus.HELD):
             return False
-        return _working_days_between(self.request_date, as_of) > _REFUND_DEADLINE_WORKING_DAYS
+        return working_days_elapsed(self.request_date, as_of) > _REFUND_DEADLINE_WORKING_DAYS
 
     def breached_deadline(self) -> bool:
         wd = self.working_days_to_pay()

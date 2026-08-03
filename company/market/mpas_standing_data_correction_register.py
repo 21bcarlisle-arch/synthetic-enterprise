@@ -15,16 +15,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
-
-
-def _add_working_days(date: dt.date, days: int) -> dt.date:
-    current = date
-    added = 0
-    while added < days:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
+from regulation_commons.working_days import add_working_days
 
 
 class StandingDataField(str, Enum):
@@ -85,13 +76,13 @@ class MPASCorrectionRecord:
 
     @property
     def acknowledgement_due(self) -> dt.date:
-        return _add_working_days(self.raised_date, _ACK_WORKING_DAYS)
+        return add_working_days(self.raised_date, _ACK_WORKING_DAYS)
 
     @property
     def resolution_due(self) -> Optional[dt.date]:
         if self.acknowledgement_date is None:
             return None
-        return _add_working_days(self.acknowledgement_date, _RESOLUTION_WORKING_DAYS)
+        return add_working_days(self.acknowledgement_date, _RESOLUTION_WORKING_DAYS)
 
     def is_acknowledgement_overdue(self, as_of: dt.date) -> bool:
         return self.status == CorrectionStatus.RAISED and as_of > self.acknowledgement_due

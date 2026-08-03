@@ -22,16 +22,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
-
-
-def _add_working_days(date: dt.date, days: int) -> dt.date:
-    current = date
-    added = 0
-    while added < days:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            added += 1
-    return current
+from regulation_commons.working_days import add_working_days
 
 
 _MOP_CHANGE_NOTICE_WD = 5  # D0147: 5 working days notice required
@@ -169,7 +160,7 @@ class MOPAppointmentRegister:
             raise ValueError(
                 f"Can only initiate change on ACTIVE appointment, not {rec.status.value}"
             )
-        change_effective = _add_working_days(notice_date, _MOP_CHANGE_NOTICE_WD)
+        change_effective = add_working_days(notice_date, _MOP_CHANGE_NOTICE_WD)
         updated = self._update(appointment_id, status=MOPAppointmentStatus.PENDING_CHANGE)
         return updated, change_effective
 

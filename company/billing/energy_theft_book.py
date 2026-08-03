@@ -5,6 +5,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
+from regulation_commons.working_days import working_days_elapsed
 
 
 class TheftCaseStatus(str, Enum):
@@ -28,16 +29,6 @@ _DNO_NOTIFICATION_DEADLINE_WORKING_DAYS = 2  # GS(SS)5: 2 working days from conf
 _BACKBILL_LIMIT_YEARS = 3                    # theft: 3-year estimated back-bill
 
 
-def _working_days_between(start: dt.date, end: dt.date) -> int:
-    days = 0
-    current = start
-    while current < end:
-        current += dt.timedelta(days=1)
-        if current.weekday() < 5:
-            days += 1
-    return days
-
-
 @dataclass(frozen=True)
 class TheftCase:
     case_id: str
@@ -58,7 +49,7 @@ class TheftCase:
             return False
         if self.status not in (TheftCaseStatus.CONFIRMED,):
             return False
-        return _working_days_between(self.confirmed_date, as_of) > _DNO_NOTIFICATION_DEADLINE_WORKING_DAYS
+        return working_days_elapsed(self.confirmed_date, as_of) > _DNO_NOTIFICATION_DEADLINE_WORKING_DAYS
 
     def is_active(self) -> bool:
         return self.status not in (

@@ -5,6 +5,8 @@ import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
+from regulation_commons.working_days import working_days_between
+
 
 class ETStatus(str, Enum):
     OPEN = "open"
@@ -38,13 +40,9 @@ class ETClaim:
     resolution_type: Optional[ETResolutionType] = None
 
     def working_days_open(self, as_of: datetime.date) -> int:
-        current = self.claim_date
-        count = 0
-        while current < as_of:
-            if current.weekday() < 5:
-                count += 1
-            current += datetime.timedelta(days=1)
-        return count
+        """Working days this claim has been open, counting the claim date
+        itself and not ``as_of`` -- ``[claim_date, as_of)``."""
+        return working_days_between(self.claim_date, as_of)
 
     def is_overdue(self, as_of: datetime.date) -> bool:
         return self.working_days_open(as_of) > 20

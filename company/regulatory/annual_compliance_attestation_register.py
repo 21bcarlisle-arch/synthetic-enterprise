@@ -10,6 +10,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
+from regulation_commons.working_days import add_working_days
 
 _QUERY_RESPONSE_WD = 20
 
@@ -30,16 +31,6 @@ class AttestationOutcome(str, Enum):
 
 
 _BREACH = frozenset({AttestationOutcome.MINOR_BREACH, AttestationOutcome.MATERIAL_BREACH})
-
-
-def _add_wd(start: dt.date, n: int) -> dt.date:
-    cur = start
-    added = 0
-    while added < n:
-        cur += dt.timedelta(days=1)
-        if cur.weekday() < 5:
-            added += 1
-    return cur
 
 
 @dataclass(frozen=True)
@@ -139,7 +130,7 @@ class AnnualComplianceAttestationRegister:
     def mark_queried(self, record_id: str, query_date: dt.date) -> SLCAttestationRecord:
         return self._update(record_id, status=AttestationStatus.QUERIED,
                            query_date=query_date,
-                           query_response_due=_add_wd(query_date, _QUERY_RESPONSE_WD))
+                           query_response_due=add_working_days(query_date, _QUERY_RESPONSE_WD))
 
     def supersede(self, record_id: str) -> SLCAttestationRecord:
         return self._update(record_id, status=AttestationStatus.SUPERSEDED)
