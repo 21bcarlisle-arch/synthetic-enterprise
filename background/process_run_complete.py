@@ -899,6 +899,20 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/provisional_plan.json")
     except Exception as exc:
         log("Provisional plan data generation failed: {}".format(exc))
+    # Same no-orphan-transition rule, applied at the point the defect would be created
+    # rather than after it froze (SITE_director_window_delta_view, 2026-08-03). The
+    # delta feed is derived from the OTHER director feeds, so leaving it unwired would
+    # freeze it against feeds that keep moving -- the exact 2026-07-14 failure above,
+    # one layer up. Note this regenerates the DELTA only; the last-look STAMP is
+    # deliberately never advanced here (it moves only on an explicit --mark-seen), or
+    # the baseline would re-base every run and the panel would read "nothing changed"
+    # forever.
+    try:
+        from tools.generate_director_data import main as gen_director_delta
+        gen_director_delta()
+        log("Generated site/data/director_delta.json")
+    except Exception as exc:
+        log("Director delta data generation failed: {}".format(exc))
     try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
