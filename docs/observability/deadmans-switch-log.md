@@ -115,3 +115,7 @@
 - [2026-07-17 06:25 UTC] Dead-man's switch started -- independent of tmux/supervisor stack
 - [2026-07-17 06:25 UTC] BLOCKED NTFY sent -- 463min since commit, 3 file(s) queued
 - [2026-07-17 06:30 UTC] STALL (still) -- 468min since commit, 4 file(s) queued -- suppressed (re-alerts hourly)
+- [2026-07-30 00:34 UTC] GATE VIOLATION checked (notify-gated): 1 BUILD promotion with no director-console authorization: X
+- [2026-07-30 00:34 UTC] GATE VIOLATION checked (notify-gated): 1 BUILD promotion with no director-console authorization: X
+- [2026-07-30 00:34 UTC] LOOP BROKEN checked (notify-gated): cannot draw: import failed
+- [2026-07-30 00:34 UTC] LOOP BROKEN checked (notify-gated): cannot draw: import failed
