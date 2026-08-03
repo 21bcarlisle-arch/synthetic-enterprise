@@ -45,6 +45,7 @@ whole point of the wall -- never a target to tune away; the "band" is magnitude,
 not a pass/fail verdict on the company.
 """
 import json
+import math
 import re
 import sys
 from datetime import datetime, timezone
@@ -391,6 +392,21 @@ _ANCHOR_POPULATIONS = {
         measured_scope=_POP_NON_DOMESTIC,
         measured_label="the company's I&C accounts only (ic_aggregate_rate_pct)",
     ),
+    # SITE_EH3_figure_reconciliation_and_periods MAJOR-5: margin was the one
+    # metric with NO band, which is precisely the metric where R12's band matters
+    # most. The benchmark is a real, published NON-DOMESTIC supply EBIT range
+    # taken from this project's own registered assumption library, so it can
+    # grade this book (99%+ non-domestic revenue) without benchmark-shopping.
+    "net_margin": dict(
+        benchmark_class=_POP_NON_DOMESTIC,
+        benchmark_label=(
+            "GB NON-DOMESTIC (business/I&C) electricity supply EBIT margin -- real "
+            "Consolidated Segmental Statements: EDF 4.5% (2023) / 1.7% (2024), "
+            "British Gas 3.8% (2023)"
+        ),
+        measured_scope="whole_book",
+        measured_label="the company's whole book (published net margin, % of revenue)",
+    ),
 }
 
 
@@ -517,6 +533,219 @@ def _anchor_card(metric_key, metric, sim_value, benchmark_value, ratio, rag, not
 
 
 # ---------------------------------------------------------------------------
+# MARGIN PLAUSIBILITY ANCHOR
+# (SITE_EH3_figure_reconciliation_and_periods, MAJOR-5, 2026-07-29 cold-eyes)
+#
+# The register benchmarked churn, bad debt, complaints and arrears -- but NOT
+# margin. So the one metric where R12's plausibility band matters most was the
+# one metric published with no band at all, while the doors carried 17.0% (2018)
+# and 14.2% (2019) net margins against a real non-domestic supply EBIT range of
+# roughly 1.7-4.5% and an Ofgem price-cap EBIT allowance of ~1.9%.
+#
+# R12 IS BINDING AND THIS IS THE WHOLE POINT. The anchor is a DIAGNOSTIC FLAG
+# that triggers R4 (diagnose the mechanism). It is NEVER a target, and nothing
+# in the model may be adjusted to bring margin into this band. The band exists
+# so an implausible figure READS RED on the page -- an implausible figure that
+# is flagged is credible; an unflagged one is not. The mechanism behind the
+# excess is already named and unfixed (see _MARGIN_DIAGNOSIS below); this row
+# publishes it rather than quietly leaving the number to stand alone.
+#
+# INDEPENDENCE (R15 anti-tautology): the BAND is an external, published figure
+# recorded in docs/market_research/ASSUMPTIONS.md with its own sources; the
+# MEASURED value is computed at run time from dashboard.financial, a different
+# file produced by a different generator. Neither derives from the other, so
+# they can genuinely disagree -- and today they do.
+# ---------------------------------------------------------------------------
+
+# Real published non-domestic supply EBIT margins (Consolidated Segmental
+# Statements). Recorded verbatim in docs/market_research/ASSUMPTIONS.md
+# "Supplier Margin & Profitability": EDF 4.5% (2023), EDF 1.7% (2024), British
+# Gas 3.8% (2023). Chosen ONCE, from the published range, and never moved to
+# accommodate an outcome (R12/R13).
+_MARGIN_BAND_LOW_PCT = 1.7
+_MARGIN_BAND_HIGH_PCT = 4.5
+_RAG_SEVERITY = {"GREEN": 0, "AMBER": 1, "RED": 2}
+_MARGIN_BAND_SOURCE = (
+    "EDF Energy / British Gas Consolidated Segmental Statements 2023-2024 "
+    "(non-domestic electricity EBIT%), as recorded in "
+    "docs/market_research/ASSUMPTIONS.md 'Supplier Margin & Profitability'. "
+    "Cross-reference: Ofgem's own price-cap EBIT allowance is ~1.9%, and the "
+    "whole-market Ofgem/Cornwall Insight retail net-margin range is 2-5%."
+)
+_MARGIN_DIAGNOSIS = (
+    "R4 pointer, already diagnosed and still open: opex/cost-to-serve is never "
+    "deducted from portfolio-wide annual net_gbp (saas/cost_to_serve.py's "
+    "FIXED_OVERHEAD_GBP_PER_YEAR is an unanchored placeholder that no annual "
+    "total subtracts) -- named in ASSUMPTIONS.md as the single largest missing "
+    "cost line behind the elevated margin, and traced in "
+    "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md. The published "
+    "net_margin_pct also mixes clocks (settled net_gbp over billed "
+    "management-accounts revenue), which is a second, smaller reason the ratio "
+    "is not directly comparable to a real supplier's EBIT%."
+)
+
+
+def _margin_plausibility_anchor(dashboard):
+    """Compute the margin anchor's measured value + band verdict, or an
+    unavailable-with-reason dict.
+
+    FAIL-CLOSED (R15): a missing/empty/malformed/non-finite financial block or a
+    non-positive revenue denominator yields available=False with a stated reason
+    and NO grade. An unavailable anchor is a FAILED anchor, never a silent pass
+    and never a fabricated 0%.
+    """
+    financial = (dashboard or {}).get("financial")
+    if not isinstance(financial, dict):
+        return dict(available=False, reason="dashboard.financial is unavailable")
+    rows = [r for r in (financial.get("annual") or []) if isinstance(r, dict)]
+    if not rows:
+        return dict(available=False, reason="dashboard.financial.annual is missing or empty")
+
+    net_total = 0.0
+    revenue_total = 0.0
+    years_used = []
+    for row in rows:
+        net = row.get("net_gbp")
+        revenue = row.get("total_revenue_gbp")
+        if not isinstance(net, (int, float)) or isinstance(net, bool):
+            continue
+        if not isinstance(revenue, (int, float)) or isinstance(revenue, bool):
+            continue
+        if not (math.isfinite(net) and math.isfinite(revenue)) or revenue <= 0:
+            continue
+        net_total += float(net)
+        revenue_total += float(revenue)
+        years_used.append(row.get("year"))
+    if not years_used or revenue_total <= 0:
+        return dict(
+            available=False,
+            reason="no annual row carries a finite net_gbp with positive total_revenue_gbp",
+        )
+
+    margin_pct = round(100.0 * net_total / revenue_total, 2)
+
+    # The doors publish PER-YEAR margins as well as the window aggregate, so the
+    # anchor must grade the worst thing actually published, not an average that
+    # hides it -- 2018's 17.0% is the figure a reader sees. Partial years are
+    # excluded from the per-year reading (a part-year margin is not comparable to
+    # a full-year benchmark -- MAJOR-6 coupling), which is exactly why the period
+    # flag has to exist before this row can be honest.
+    worst_year, worst_year_pct, worst_dev = None, None, float("-inf")
+    for row in rows:
+        if row.get("period_partial") is True:
+            continue
+        pct = row.get("net_margin_pct")
+        if isinstance(pct, bool) or not isinstance(pct, (int, float)) or not math.isfinite(pct):
+            continue
+        dev = _MARGIN_BAND_LOW_PCT - pct if pct < _MARGIN_BAND_LOW_PCT else pct - _MARGIN_BAND_HIGH_PCT
+        if dev > worst_dev:
+            worst_dev, worst_year, worst_year_pct = dev, row.get("year"), round(float(pct), 2)
+
+    def _verdict(pct):
+        if pct < _MARGIN_BAND_LOW_PCT:
+            return "BELOW", "RED"
+        if pct <= _MARGIN_BAND_HIGH_PCT:
+            return "IN BAND", "GREEN"
+        if pct <= 2 * _MARGIN_BAND_HIGH_PCT:
+            return "ABOVE", "AMBER"
+        return "FAR ABOVE", "RED"
+
+    verdict, rag = _verdict(margin_pct)
+    driver = "whole-window aggregate"
+    if worst_year_pct is not None:
+        year_verdict, year_rag = _verdict(worst_year_pct)
+        # Worst published reading wins: a page that shows a RED year may not be
+        # graded by the gentler average of the years around it.
+        if _RAG_SEVERITY[year_rag] > _RAG_SEVERITY[rag]:
+            verdict, rag = year_verdict, year_rag
+            driver = "worst full year ({})".format(worst_year)
+
+    # Partial years are DISCLOSED, not dropped from the aggregate: a ratio is
+    # coverage-invariant, so excluding the stub would discard real data for no
+    # gain -- but a reader must be told the window is not ten whole years.
+    partial_years = [r.get("year") for r in rows if r.get("period_partial") is True]
+    return dict(
+        available=True,
+        margin_pct=margin_pct,
+        rag=rag,
+        verdict=verdict,
+        graded_on=driver,
+        worst_full_year=worst_year,
+        worst_full_year_margin_pct=worst_year_pct,
+        years=years_used,
+        partial_years=partial_years,
+        sim_window=financial.get("sim_window"),
+        net_gbp=round(net_total, 2),
+        revenue_gbp=round(revenue_total, 2),
+        band_low_pct=_MARGIN_BAND_LOW_PCT,
+        band_high_pct=_MARGIN_BAND_HIGH_PCT,
+        band_source=_MARGIN_BAND_SOURCE,
+        diagnosis=_MARGIN_DIAGNOSIS,
+    )
+
+
+def _margin_anchor_card(dashboard):
+    """The register row. Returns None only when the anchor is unavailable AND the
+    reason has been folded into a visible not-available card -- never silently."""
+    anchor = _margin_plausibility_anchor(dashboard)
+    if not anchor.get("available"):
+        return _anchor_card(
+            "net_margin",
+            "Net margin (% of revenue, whole window)",
+            None,
+            "{}-{}% (non-dom supply EBIT, CSS)".format(_MARGIN_BAND_LOW_PCT, _MARGIN_BAND_HIGH_PCT),
+            None,
+            None,
+            "NOT MEASURED: " + str(anchor.get("reason"))
+            + ". An unavailable anchor is a FAILED anchor, not a pass (R15). "
+            + _MARGIN_BAND_SOURCE,
+            dashboard,
+        )
+    note_parts = [
+        "{} the {}-{}% band, graded on the {}.".format(
+            anchor["verdict"], anchor["band_low_pct"], anchor["band_high_pct"],
+            anchor["graded_on"],
+        ),
+        "Whole-window aggregate {}%: settled net GBP {:,.0f} over billed revenue "
+        "GBP {:,.0f}, {} year(s) {}.".format(
+            anchor["margin_pct"], anchor["net_gbp"], anchor["revenue_gbp"],
+            len(anchor["years"]), anchor.get("sim_window") or "(window unstated)",
+        ),
+    ]
+    if anchor.get("worst_full_year") is not None:
+        note_parts.append(
+            "Worst published full year: {} at {}% -- the per-year figure a reader "
+            "actually sees, so it, not the average, sets the grade.".format(
+                anchor["worst_full_year"], anchor["worst_full_year_margin_pct"]
+            )
+        )
+    if anchor["partial_years"]:
+        note_parts.append(
+            "Includes PART YEAR(S) {} -- see the period-coverage flags on "
+            "dashboard.financial.annual.".format(
+                ", ".join(str(y) for y in anchor["partial_years"])
+            )
+        )
+    note_parts.append(
+        "R12: this band is a SANITY FLAG, never a target -- no model parameter may be "
+        "moved to bring the figure into it. " + anchor["diagnosis"]
+    )
+    note_parts.append("Band source: " + anchor["band_source"])
+    return _anchor_card(
+        "net_margin",
+        "Net margin (% of revenue, whole window)",
+        "{}%".format(anchor["margin_pct"]),
+        "{}-{}% (non-dom supply EBIT, CSS)".format(
+            anchor["band_low_pct"], anchor["band_high_pct"]
+        ),
+        round(anchor["margin_pct"] / anchor["band_high_pct"], 2),
+        anchor["rag"],
+        " ".join(note_parts),
+        dashboard,
+    )
+
+
+# ---------------------------------------------------------------------------
 # The anchors register.
 # ---------------------------------------------------------------------------
 def _anchors_runtime(anchoring, dashboard=None):
@@ -535,6 +764,12 @@ def _anchors_runtime(anchoring, dashboard=None):
             (str(lrc.get("ofgem_avg_pct")) + "% (Ofgem)" if lrc.get("ofgem_avg_pct") is not None else None),
             lrc.get("ratio"), lrc.get("rag"), lrc.get("note"), dashboard,
         ))
+
+    # SITE_EH3 MAJOR-5: margin gets a band like every other metric. Added
+    # UNCONDITIONALLY -- if it cannot be measured it publishes a NOT MEASURED
+    # card rather than vanishing, because a missing row is indistinguishable
+    # from a passing one (R15 fail-silent).
+    cards.append(_margin_anchor_card(dashboard))
 
     def _latest(lst, val_key, lo_key=None, hi_key=None, unit="%"):
         rows = [r for r in (lst or []) if isinstance(r, dict)]

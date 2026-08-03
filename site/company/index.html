@@ -176,6 +176,9 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="passport" id="arrears-dist"></div>
     <div class="passport" id="credit-cycle"></div>
   </div>
+  <!-- SITE_EH3 MAJOR-4/MAJOR-6: the period every annual figure above covers, and
+       the one bad-debt bridge. Rendered from dashboard.financial, never authored. -->
+  <div id="period-coverage"><div class="card"><div class="muted">Loading period coverage&hellip;</div></div></div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
     <p class="muted" style="margin-bottom:12px" id="bridge-intro">Loading...</p>
@@ -553,7 +556,11 @@ function renderFinance(d){
     kpiTile("Treasury (end)", gbp(f.treasury_end_gbp), "banked clock · from "+gbp(f.treasury_start_gbp)),
     // DD5: held customer credit as a LIABILITY, beside treasury -- part of that cash is owed back.
     kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
-    kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
+    // SITE_EH3 MAJOR-6: a year-labelled figure carries its PERIOD as well as its
+    // clock. "Corp. tax 2025" on 5.2 months of trading read as a full year until
+    // this suffix existed; the flag is derived from the sim window in
+    // dashboard.financial, never hardcoded to a particular year.
+    kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts"+periodBasisSuffix(f.latest_year), "neg"),
     kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
   ]);
   el("finance-kpis").innerHTML=kpis.join("");
@@ -892,9 +899,46 @@ jget("../data/saas_coverage.json").then(renderCoverage).catch(function(){
 jget("../data/decisions.json").then(renderDecisions).catch(function(){
   el("state-decisions").innerHTML='<div class="muted">decisions.json unavailable at generation time</div>';
 });
-jget("../data/company.json").then(function(d){
+// SITE_EH3_figure_reconciliation_and_periods (MAJOR-6). The period-coverage
+// flags live on dashboard.financial (derived there from the sim's real window),
+// so this door reads them rather than re-deriving a second, driftable copy.
+// FAIL-CLOSED: if dashboard.json cannot be read, PERIODS stays null and every
+// year-labelled figure below says so -- an unknown period is disclosed as
+// unknown, never silently rendered as a full year.
+var PERIODS = null;
+function periodOf(year){
+  if(!PERIODS) return null;
+  return PERIODS.byYear[String(year)] || null;
+}
+function periodBasisSuffix(year){
+  var p = periodOf(year);
+  if(PERIODS === null) return " · period coverage unknown (dashboard.json unavailable)";
+  if(!p) return " · period coverage unknown for "+year;
+  if(p.period_partial) return " · PART YEAR ("+Math.round((p.period_coverage_fraction||0)*100)+"% of "+year+")";
+  return " · full year "+year;
+}
+function buildPeriods(dash){
+  var fin = (dash && dash.financial) || null;
+  if(!fin || !Array.isArray(fin.annual) || !fin.annual.length) return null;
+  var byYear = {};
+  fin.annual.forEach(function(r){ byYear[String(r.year)] = r; });
+  return {
+    byYear: byYear,
+    simWindow: fin.sim_window || null,
+    source: fin.period_coverage_source || null,
+    partialYears: fin.annual.filter(function(r){return r.period_partial===true;})
+                            .map(function(r){return r.year;}),
+    badDebt: fin.bad_debt_reconciliation || null
+  };
+}
+jget("../data/dashboard.json").then(function(dash){
+  PERIODS = buildPeriods(dash);
+}).catch(function(){ PERIODS = null; }).then(function(){
+  return jget("../data/company.json");
+}).then(function(d){
   renderState(d);
   renderFinance(d);
+  renderPeriodCoverage();
   renderTrading(d);
   renderWholesale(d);
   renderHousehold(d);
@@ -904,6 +948,49 @@ jget("../data/company.json").then(function(d){
   console.error("company.json load error:",e);
   el("finance-intro").innerHTML='<span style="color:var(--red)">Could not load company.json</span>';
 });
+
+// The period disclosure itself: the window every annual figure on this page is
+// drawn from, which years are NOT whole, and the one bad-debt bridge. Rendered
+// after the finance panel so it reads as a caveat on the numbers above it.
+function renderPeriodCoverage(){
+  var host = el("period-coverage");
+  if(!host) return;
+  if(PERIODS === null){
+    host.innerHTML = '<div class="card"><div class="muted"><b>Period coverage unknown.</b> '+
+      'dashboard.json could not be read, so no figure on this page is certified as covering a '+
+      'whole year. An unavailable check is a failed check, not a pass.</div></div>';
+    return;
+  }
+  var parts = [];
+  parts.push('<div class="muted"><b>Period.</b> Every annual figure on this page is drawn from the '+
+    'simulated settlement window <b>'+esc(PERIODS.simWindow||"(unstated)")+'</b> (source: '+
+    esc(PERIODS.source||"unavailable")+'). ');
+  if(PERIODS.partialYears.length){
+    var notes = PERIODS.partialYears.map(function(y){
+      var p = periodOf(y) || {};
+      return '<li><b>'+esc(y)+' is a PART YEAR</b> &mdash; '+esc(p.period_note||"")+'</li>';
+    }).join("");
+    parts.push('The following year(s) are <b>not whole years</b> and are not comparable with the '+
+      'years around them:</div><ul style="font-size:12px;color:var(--muted);margin:8px 0 0 18px">'+notes+'</ul>');
+  } else {
+    parts.push('Every year shown is a whole calendar year.</div>');
+  }
+  var bd = PERIODS.badDebt;
+  if(bd){
+    parts.push('<div class="muted" style="margin-top:14px"><b>Bad debt &mdash; one series, bridged.</b> '+
+      'This company publishes bad debt on two bases and they do not agree. The authoritative figure is '+
+      'the <b>'+esc(bd.authoritative)+'</b> accrual: <b>'+gbp(bd.ledger_total_gbp)+'</b> ('+
+      esc(bd.ledger_clock)+' clock, '+esc(bd.ledger_rate_pct)+'% of revenue). The headline settled '+
+      'series totals <b>'+gbp(bd.annual_series_total_gbp)+'</b> ('+esc(bd.annual_series_rate_pct)+
+      '% of revenue) &mdash; <b>'+esc(bd.ratio_x)+'x</b> apart, graded <b>'+esc(bd.annual_series_rag)+
+      '</b>. '+esc(bd.annual_series_rag_cause||bd.note)+'</div>');
+  } else {
+    parts.push('<div class="muted" style="margin-top:14px"><b>Bad-debt reconciliation unavailable</b> '+
+      '&mdash; the bridge between the two published bad-debt bases could not be read. Treat any '+
+      'bad-debt figure on this site as unreconciled until it returns.</div>');
+  }
+  host.innerHTML = '<div class="card">'+parts.join("")+'</div>';
+}
 </script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>

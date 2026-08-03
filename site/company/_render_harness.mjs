@@ -24,6 +24,11 @@ function loadDisk(name) { try { return JSON.parse(fs.readFileSync(path.join(data
 const caps = raw && raw.company && "capabilities" in raw ? raw.capabilities : loadDisk("capabilities.json");
 const cov = raw && raw.company && "coverage" in raw ? raw.coverage : loadDisk("saas_coverage.json");
 const decs = raw && raw.company && "decisions" in raw ? raw.decisions : loadDisk("decisions.json");
+// SITE_EH3: the period-coverage + bad-debt-bridge disclosure is driven by
+// dashboard.json. Injectable (wrapper key "dashboard") so a test can feed a
+// MUTATED dashboard and prove the rendered pixel moves with the data; a
+// wrapper carrying "dashboard": null exercises the fail-closed path.
+const dash = raw && raw.company && "dashboard" in raw ? raw.dashboard : loadDisk("dashboard.json");
 
 const elements = {};
 function stub(id) {
@@ -50,7 +55,11 @@ sandbox.renderCoverage(cov);
 sandbox.renderDecisions(decs);
 sandbox.renderBookMix(d);
 sandbox.renderState(d);
+// PERIODS is built by the PAGE's own buildPeriods(), never re-derived here --
+// a harness that recomputed it would only prove the harness agrees with itself.
+sandbox.PERIODS = sandbox.buildPeriods(dash);
 sandbox.renderFinance(d);
+sandbox.renderPeriodCoverage();
 sandbox.renderTrading(d);
 sandbox.renderWholesale(d);
 sandbox.renderHousehold(d);
@@ -67,7 +76,7 @@ const ids = [
   "wholesale-intro", "wholesale-kpis", "wholesale-cp-body", "wholesale-passport",
   "hh-intro", "hh-attrs", "hh-kpis", "hh-detail", "hh-passport",
   "oblig-intro", "oblig-kpis", "oblig-body", "tiered-block", "oblig-passport",
-  "build-note",
+  "period-coverage", "build-note",
 ];
 const out = {};
 for (const id of ids) {

@@ -5,12 +5,13 @@ Called by process_run_complete.py after every full sim run, or manually:
   python3 tools/generate_dashboard_data.py [path/to/run_output.json]
 """
 import json
+import math
 import re
 import statistics
 import subprocess
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from company.analytics.retention_deferral_economics import (
@@ -21,6 +22,11 @@ from company.trading.hedge_decision import VAR_REVENUE_LIMIT
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
+# SITE_EH3_figure_reconciliation_and_periods (MAJOR-6): the sim's REAL settlement
+# window, read so a year's period COVERAGE is DERIVED from the data, never
+# hardcoded ("2025 is partial"). Same file tools/generate_world_data.py already
+# reads, so the two doors cannot disagree about when the world starts and stops.
+SIM_DATA_PATH = PROJECT / "site" / "data" / "sim_data.json"
 
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
@@ -299,6 +305,213 @@ def extract_portfolio(data):
     }
 
 
+# ---------------------------------------------------------------------------
+# SITE_EH3_figure_reconciliation_and_periods (2026-07-29 cold-eyes Expert Hour,
+# MAJOR-4 / MAJOR-6). Two defects of ONE class -- a published figure whose own
+# basis is not defensible:
+#   (a) BAD DEBT published TWICE with no bridge between the two figures;
+#   (b) a PART-YEAR stub rendered as an undifferentiated annual row.
+# The R10 class-closing invariants, not three instance fixes:
+#   * every published bad-debt figure names its basis AND its clock, and the
+#     two bases are reconciled in one block that says which is authoritative;
+#   * every published annual row states its own period coverage, COMPUTED from
+#     the real sim window -- never a hardcoded "this year is partial".
+# ---------------------------------------------------------------------------
+
+def _load_sim_window():
+    """The sim's real settlement window as ``(date, date)``, or ``(None, None)``.
+
+    Callers MUST treat ``(None, None)`` as COVERAGE UNKNOWN and never as "the
+    year is complete" -- silently assuming full coverage when the window is
+    unreadable is the exact fail-open this atom exists to close (R15).
+    """
+    try:
+        raw = json.loads(Path(SIM_DATA_PATH).read_text())
+    except (OSError, json.JSONDecodeError, ValueError):
+        return None, None
+    if not isinstance(raw, dict):
+        return None, None
+    meta = raw.get("metadata") or {}
+    if not isinstance(meta, dict):
+        return None, None
+    period_from, period_to = meta.get("period_from"), meta.get("period_to")
+    try:
+        d_from = datetime.strptime(period_from, "%Y-%m-%d").date() if period_from else None
+        d_to = datetime.strptime(period_to, "%Y-%m-%d").date() if period_to else None
+    except (ValueError, TypeError):
+        return None, None
+    if d_from is None or d_to is None or d_from > d_to:
+        return None, None
+    return d_from, d_to
+
+
+# Below this share of the calendar year a row is PARTIAL. Not "near enough to
+# full": a leap-day's worth of slack only, so the flag can never be argued away.
+_PERIOD_PARTIAL_THRESHOLD = 0.999
+
+
+def _year_coverage_fraction(year, period_from, period_to):
+    """Fraction (0..1) of calendar ``year`` covered by the real, inclusive sim
+    window -- COMPUTED from the two dates, never a per-year constant. ``None``
+    means coverage is UNKNOWN (window unavailable); never silently 1.0."""
+    if period_from is None or period_to is None:
+        return None
+    year_start, year_end = date(year, 1, 1), date(year, 12, 31)
+    win_start, win_end = max(year_start, period_from), min(year_end, period_to)
+    if win_start > win_end:
+        return 0.0
+    covered_days = (win_end - win_start).days + 1
+    total_days = (year_end - year_start).days + 1
+    return round(covered_days / total_days, 4)
+
+
+def _period_note(year, coverage, period_from, period_to):
+    """The human-legible caveat a partial annual row must carry, or ``None`` for
+    a genuinely full year (whose fraction of 1.0 already says everything)."""
+    if coverage is None:
+        return (
+            "Period coverage UNKNOWN -- the sim window "
+            "(site/data/sim_data.json metadata.period_from/period_to) was "
+            "unavailable or malformed at generation time. This row is NOT "
+            "certified as a full year."
+        )
+    if coverage >= _PERIOD_PARTIAL_THRESHOLD:
+        return None
+    year_start, year_end = date(year, 1, 1), date(year, 12, 31)
+    win_start = max(year_start, period_from) if period_from else year_start
+    win_end = min(year_end, period_to) if period_to else year_end
+    return (
+        "PART YEAR -- covers {} to {} ({:.1f} of 12 months, {:.0f}% of the "
+        "calendar year). Not comparable with a full year; excluded from "
+        "year-over-year trend readings.".format(
+            win_start.isoformat(), win_end.isoformat(), coverage * 12, coverage * 100
+        )
+    )
+
+
+def _build_bad_debt_reconciliation(annual_rows, ledger_bad_debt_gbp, ledger_revenue_gbp):
+    """MAJOR-4: ONE bad-debt series, bridged.
+
+    Bad debt was published TWICE with no code path between the two figures --
+    the annual/headline series (which can go NEGATIVE) and the double-entry
+    ledger accrual, ~130x apart on the run that was cold-eyed. Both fed the same
+    doors. This mirrors the existing settled<->billed ``margin_bridge`` pattern:
+    name BOTH bases, give each its CLOCK (R14), quantify the gap, and say which
+    figure is authoritative -- rather than publishing either number bare.
+
+    R12 binds: nothing here tunes either series toward the other. The divergence
+    is preserved and stated; only the *presentation* is reconciled. The named
+    mechanism behind it (payment behaviour is propensity-shaped, so arrears do
+    not EMERGE from a household budget meeting a price shock) is documented in
+    company/compliance/crisis_bad_debt_validator.py and is a modelling gap that
+    stays open, not a calibration knob.
+    """
+    annual_total = round(sum(r.get("bad_debt_gbp", 0.0) or 0.0 for r in annual_rows), 2)
+    negative_years = sorted(
+        int(r["year"]) for r in annual_rows
+        if isinstance(r.get("bad_debt_gbp"), (int, float)) and r["bad_debt_gbp"] < 0
+    )
+    ratio_x = None
+    if math.isfinite(annual_total) and annual_total != 0:
+        ratio_x = round(ledger_bad_debt_gbp / annual_total, 2)
+
+    def _rate_pct(amount):
+        if not ledger_revenue_gbp or not math.isfinite(ledger_revenue_gbp):
+            return None
+        return round(100.0 * amount / ledger_revenue_gbp, 3)
+
+    annual_rate_pct = _rate_pct(annual_total)
+    ledger_rate_pct = _rate_pct(ledger_bad_debt_gbp)
+
+    # The band is an external ANCHOR (R12: a sanity flag that triggers R4
+    # diagnosis, never a target). Source is this project's own registered
+    # benchmark, not a fresh invention: docs/market_research/ASSUMPTIONS.md
+    # "Bad debt rate -- residential 1-3%, SME 0.5-2% (Ofgem Annual Report;
+    # Cornwall Insight)", reused verbatim by company/compliance/
+    # domain_invariants.BAD_DEBT_RATE_RESI.
+    band_low_pct, band_high_pct = 0.5, 3.0
+    if negative_years or (annual_rate_pct is not None and annual_rate_pct <= 0):
+        annual_rag = "RED"
+        annual_rag_cause = (
+            "A non-positive bad-debt rate is a HARD RED with a named cause, never a "
+            "calibration nudge: bad debt is the number that kills real suppliers, and a "
+            "supplier that books NEGATIVE write-offs across a year "
+            + ("(" + ", ".join(str(y) for y in negative_years) + ") " if negative_years else "")
+            + "is reporting recoveries/reversals outrunning new write-offs -- arithmetically "
+            "possible for one account, not for a whole book through the 2021-22 crisis. "
+            "Cause: the behavioural arrears engine writes off per settlement record and nets "
+            "reversals into the same annual bucket, so the series measures NET MOVEMENT, not "
+            "the period charge. Diagnosis, not a fix: company/compliance/"
+            "crisis_bad_debt_validator.py."
+        )
+    elif annual_rate_pct is None:
+        annual_rag = "RED"
+        annual_rag_cause = (
+            "Bad-debt rate could not be computed (revenue unavailable or non-finite). "
+            "An unavailable check is a FAILED check (R15), never a pass."
+        )
+    elif band_low_pct <= annual_rate_pct <= band_high_pct:
+        annual_rag, annual_rag_cause = "GREEN", None
+    else:
+        annual_rag = "RED"
+        annual_rag_cause = (
+            "The headline series rates {:.3f}% of revenue against a {}-{}% external band "
+            "(Ofgem/Cornwall Insight, docs/market_research/ASSUMPTIONS.md) -- an order of "
+            "magnitude adrift. R12: this flags the MECHANISM for diagnosis "
+            "(company/compliance/crisis_bad_debt_validator.py); nothing here may be tuned "
+            "to bring the figure into band.".format(annual_rate_pct, band_low_pct, band_high_pct)
+        )
+
+    return {
+        # --- side A: the headline/annual series -----------------------------
+        "annual_series_total_gbp": annual_total,
+        "annual_series_clock": "settled",
+        "annual_series_rate_pct": annual_rate_pct,
+        "annual_series_rag": annual_rag,
+        "annual_series_rag_cause": annual_rag_cause,
+        "annual_series_negative_years": negative_years,
+        "annual_series_basis": (
+            "Per-settlement-record behavioural arrears-engine write-off, netted per year "
+            "(run_output years[*].bad_debt_gbp -> total_bad_debt_gbp). Because reversals "
+            "and recoveries net into the same bucket this is a NET MOVEMENT, not a period "
+            "charge, which is why it can go negative. company/compliance/"
+            "crisis_bad_debt_validator.py documents it as the 'HEADLINE arrears figure': "
+            "implausibly low, with no crisis step-up. Kept for its per-year SHAPE only -- "
+            "never read as a reconciled total."
+        ),
+        # --- side B: the ledger accrual (authoritative) ----------------------
+        "ledger_total_gbp": ledger_bad_debt_gbp,
+        "ledger_clock": "billed",
+        "ledger_rate_pct": ledger_rate_pct,
+        "ledger_basis": (
+            "Double-entry P&L accrual: sum over management_accounts[*].income_statement."
+            "bad_debt_gbp, which is exactly what ledger_pnl.bad_debt_gbp reports. "
+            "company/compliance/crisis_bad_debt_validator.py's 'PnL ACCRUAL figure' -- "
+            "tracks ~2-3% of revenue, inside the 0.5-3% Ofgem/EUA band recorded in "
+            "docs/market_research/ASSUMPTIONS.md."
+        ),
+        # --- the bridge -----------------------------------------------------
+        "ratio_x": ratio_x,
+        "authoritative": "ledger",
+        "note": (
+            "TWO measurements of one thing, previously published side by side with no "
+            "bridge. The LEDGER figure is authoritative: it is a period charge on the "
+            "billed clock, always non-negative, and sits in the external band. The annual "
+            "series is a net-movement diagnostic on the settled clock and is not a total. "
+            "R12: the gap between them is a DIAGNOSTIC of a known modelling gap (arrears "
+            "are propensity-shaped rather than emerging from a household budget meeting a "
+            "price shock) -- it is measured and kept, never tuned away."
+        ),
+        "band_low_pct": band_low_pct,
+        "band_high_pct": band_high_pct,
+        "band_source": (
+            "docs/market_research/ASSUMPTIONS.md 'Customer & Portfolio' -- bad debt rate "
+            "resi 1-3% / SME 0.5-2% of revenue (Ofgem Annual Report; Cornwall Insight)"
+        ),
+        "evidence": "company/compliance/crisis_bad_debt_validator.py",
+    }
+
+
 def extract_financial(data):
     # MARGIN_REALISM.md Step 1 (2026-07-10, director-decided programme, gauge
     # fix): `years[yr].revenue_gbp` is commodity/energy revenue ONLY
@@ -320,6 +533,7 @@ def extract_financial(data):
     # MARGIN_REALISM_STEP1_DIAGNOSIS.md -- NOT yet reconciled across every
     # surface or added to the consistency gate; this is the first surface.
     mgmt_accounts = data.get("management_accounts", {})
+    period_from, period_to = _load_sim_window()
     annual = []
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
@@ -328,8 +542,10 @@ def extract_financial(data):
         gas = csplit.get("gas", {})
         net = ydata.get("net_gbp", 0)
         total_revenue = mgmt_accounts.get(yr, {}).get("income_statement", {}).get("revenue_gbp")
+        year_int = int(yr)
+        coverage = _year_coverage_fraction(year_int, period_from, period_to)
         annual.append({
-            "year": int(yr),
+            "year": year_int,
             "revenue_gbp": _fmt(ydata.get("revenue_gbp", 0)),
             "total_revenue_gbp": _fmt(total_revenue) if total_revenue is not None else None,
             "net_margin_pct": (
@@ -347,6 +563,15 @@ def extract_financial(data):
             "gas_net_gbp": _fmt(gas.get("net_gbp", 0)),
             "bills_count": int(ydata.get("bills_count", 0)),
             "avg_bill_shock_pct": _fmt(ydata.get("avg_bill_shock_pct", 0)),
+            # SITE_EH3 MAJOR-6: every published annual row states its own period
+            # coverage, DERIVED from the real sim window. period_partial and
+            # period_coverage_fraction are stored INDEPENDENTLY so the gate below
+            # can cross-check one against the other (R15 anti-tautology).
+            "period_coverage_fraction": coverage,
+            "period_partial": bool(
+                coverage is not None and coverage < _PERIOD_PARTIAL_THRESHOLD
+            ),
+            "period_note": _period_note(year_int, coverage, period_from, period_to),
         })
 
     # Segment annual
@@ -358,7 +583,18 @@ def extract_financial(data):
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
         ssplit = ydata.get("segment_split", {})
-        row = {"year": int(yr)}
+        year_int = int(yr)
+        seg_coverage = _year_coverage_fraction(year_int, period_from, period_to)
+        # Scalar keys only -- tools/generate_company_data.py::segment_revenue_mix
+        # walks this row's values and skips anything that is not a dict, so the
+        # segment taxonomy is unaffected by these two fields.
+        row = {
+            "year": year_int,
+            "period_coverage_fraction": seg_coverage,
+            "period_partial": bool(
+                seg_coverage is not None and seg_coverage < _PERIOD_PARTIAL_THRESHOLD
+            ),
+        }
         for seg, sdata in ssplit.items():
             key = seg.lower().replace(" ", "_")
             rev = sdata.get("revenue_gbp", 0)
@@ -372,23 +608,41 @@ def extract_financial(data):
         segment_annual.append(row)
 
     ledger = data.get("ledger_pnl", {})
+    ledger_bad_debt_gbp = _fmt(ledger.get("bad_debt_gbp", 0))
+    ledger_revenue_gbp = _fmt(ledger.get("revenue_gbp", 0))
     return {
         "annual": annual,
         "segment_annual": segment_annual,
         "segments": sorted(segments_seen),
         "ledger": {
-            "revenue_gbp": _fmt(ledger.get("revenue_gbp", 0)),
+            "revenue_gbp": ledger_revenue_gbp,
             "wholesale_cost_gbp": _fmt(ledger.get("wholesale_cost_gbp", 0)),
             "gross_margin_gbp": _fmt(ledger.get("gross_margin_gbp", 0)),
             "capital_cost_gbp": _fmt(ledger.get("capital_cost_gbp", 0)),
             "net_margin_gbp": _fmt(ledger.get("net_margin_gbp", 0)),
-            "bad_debt_gbp": _fmt(ledger.get("bad_debt_gbp", 0)),
+            "bad_debt_gbp": ledger_bad_debt_gbp,
             "vat_remittance_gbp": _fmt(ledger.get("vat_remittance_gbp", 0)),
             "non_commodity_cost_gbp": _fmt(ledger.get("non_commodity_cost_gbp", 0)),
             "acquisition_spend_gbp": _fmt(ledger.get("acquisition_spend_gbp", 0)),
             "fixed_cost_gbp": _fmt(ledger.get("fixed_cost_gbp", 0)),
             "operating_net_margin_gbp": _fmt(ledger.get("operating_net_margin_gbp", 0)),
         },
+        # SITE_EH3 MAJOR-4: the one place the two bad-debt figures meet.
+        "bad_debt_reconciliation": _build_bad_debt_reconciliation(
+            annual, ledger_bad_debt_gbp, ledger_revenue_gbp
+        ),
+        # SITE_EH3 MAJOR-6: the window every period_* field above is derived FROM,
+        # published so a reader can re-derive any row's coverage independently.
+        "sim_window": (
+            "{} to {}".format(period_from.isoformat(), period_to.isoformat())
+            if period_from and period_to else None
+        ),
+        "sim_window_from": period_from.isoformat() if period_from else None,
+        "sim_window_to": period_to.isoformat() if period_to else None,
+        "period_coverage_source": (
+            "site/data/sim_data.json metadata.period_from/period_to"
+            if period_from and period_to else "unavailable"
+        ),
     }
 
 
@@ -1612,7 +1866,13 @@ def generate(run_json_path=None):
     basis_ok = _check_basis_labels_present(portfolio)
     bridge_ok = _check_bridge_reconciles()
     mix_claim_ok = _check_front_door_segment_claim(dashboard)
-    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok and mix_claim_ok
+    # SITE_EH3_figure_reconciliation_and_periods (MAJOR-4 / MAJOR-6).
+    bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard.get("financial"))
+    period_ok = _check_period_coverage_present(dashboard.get("financial"))
+    consistency_ok = (
+        consistency_ok and population_ok and basis_ok and bridge_ok and mix_claim_ok
+        and bad_debt_ok and period_ok
+    )
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1858,6 +2118,274 @@ def _check_bridge_reconciles():
             file=sys.stderr,
         )
         return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# SITE_EH3 gates. Both are R15-shaped: they FAIL CLOSED on missing/zero/empty/
+# malformed/non-finite input, they treat their own unavailability as a FAILURE
+# (never a skip), and neither derives the value it checks from the artefact it
+# is checking it against.
+# ---------------------------------------------------------------------------
+
+def _check_bad_debt_reconciliation_present(financial):
+    """MAJOR-4 class gate: bad debt may never again be published as two bare,
+    unbridged figures.
+
+    ANTI-TAUTOLOGY (R15). Two independent cross-checks, so this gate can
+    genuinely disagree with what it is checking:
+      1. the stored ``annual_series_total_gbp`` is re-derived from the RAW
+         per-year ``financial['annual']`` rows, not trusted back at itself;
+      2. the stored ``ledger_total_gbp`` is cross-checked against
+         ``financial['ledger']['bad_debt_gbp']`` -- a separately-stored field
+         written by a different line of the generator.
+    FAIL-OPEN closed: a missing block, an empty required field, a non-finite
+    total, or a rate that cannot be computed all FAIL.
+    FAIL-SILENT closed: ``financial`` not being a dict is a FAILED check.
+    """
+    if not isinstance(financial, dict):
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: financial block unavailable -- an "
+            "unavailable check is a FAILED check, not a pass (R15)",
+            file=sys.stderr,
+        )
+        return False
+    recon = financial.get("bad_debt_reconciliation")
+    if not isinstance(recon, dict):
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: financial.bad_debt_reconciliation is "
+            "missing. Bad debt is published on more than one basis; publishing either "
+            "figure without the bridge is the MAJOR-4 defect.",
+            file=sys.stderr,
+        )
+        return False
+
+    required = (
+        "annual_series_total_gbp", "annual_series_basis", "annual_series_clock",
+        "annual_series_rag", "ledger_total_gbp", "ledger_basis", "ledger_clock",
+        "authoritative", "note", "band_source", "evidence",
+    )
+    missing = [k for k in required if recon.get(k) in (None, "")]
+    if missing:
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: missing/empty field(s) {}".format(missing),
+            file=sys.stderr,
+        )
+        return False
+
+    annual_total = recon["annual_series_total_gbp"]
+    ledger_total = recon["ledger_total_gbp"]
+    # Reject non-finite FIRST, before any comparison (comparison guards are NaN-blind).
+    for label, value in (("annual_series_total_gbp", annual_total),
+                         ("ledger_total_gbp", ledger_total)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            print(
+                "BAD-DEBT RECONCILIATION GATE FAILED: {} is not a finite number "
+                "({!r})".format(label, value),
+                file=sys.stderr,
+            )
+            return False
+
+    rows = financial.get("annual")
+    if not isinstance(rows, list) or not rows:
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: financial.annual is missing or empty, so "
+            "the stored annual bad-debt total cannot be independently re-derived",
+            file=sys.stderr,
+        )
+        return False
+    resum = 0.0
+    for row in rows:
+        value = (row or {}).get("bad_debt_gbp")
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            print(
+                "BAD-DEBT RECONCILIATION GATE FAILED: annual row {} carries a non-finite "
+                "bad_debt_gbp ({!r})".format((row or {}).get("year"), value),
+                file=sys.stderr,
+            )
+            return False
+        resum += float(value)
+    resum = round(resum, 2)
+    if abs(resum - annual_total) > 1.0:
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: stored annual_series_total_gbp="
+            "{} disagrees with an independent re-sum of financial['annual']={}".format(
+                annual_total, resum
+            ),
+            file=sys.stderr,
+        )
+        return False
+
+    ledger_field = ((financial.get("ledger") or {}).get("bad_debt_gbp"))
+    if isinstance(ledger_field, bool) or not isinstance(ledger_field, (int, float)) \
+            or not math.isfinite(ledger_field):
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: financial.ledger.bad_debt_gbp is missing "
+            "or non-finite, so the bridge's ledger side cannot be cross-checked",
+            file=sys.stderr,
+        )
+        return False
+    if abs(float(ledger_field) - ledger_total) > 1.0:
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: the bridge's ledger_total_gbp={} does not "
+            "match the separately-published financial.ledger.bad_debt_gbp={} -- the two "
+            "bad-debt figures on this page have drifted apart again".format(
+                ledger_total, ledger_field
+            ),
+            file=sys.stderr,
+        )
+        return False
+
+    if recon["authoritative"] != "ledger":
+        print(
+            "BAD-DEBT RECONCILIATION GATE FAILED: authoritative={!r}. The authoritative "
+            "bad-debt figure is the LEDGER accrual (a period charge on the billed clock, "
+            "non-negative, in the external band). Switching it silently re-opens "
+            "MAJOR-4.".format(recon["authoritative"]),
+            file=sys.stderr,
+        )
+        return False
+
+    # "Bad debt is the number that kills real suppliers": a non-positive or
+    # negative-year headline series must be a HARD RED with a named cause, never
+    # graded AMBER as though it were a calibration nudge (the original defect).
+    negative_years = recon.get("annual_series_negative_years") or []
+    rate_pct = recon.get("annual_series_rate_pct")
+    non_positive = (
+        bool(negative_years)
+        or rate_pct is None
+        or not isinstance(rate_pct, (int, float))
+        or not math.isfinite(rate_pct)
+        or rate_pct <= 0
+    )
+    if non_positive:
+        if recon["annual_series_rag"] != "RED":
+            print(
+                "BAD-DEBT RECONCILIATION GATE FAILED: the headline bad-debt series is "
+                "non-positive (rate={!r}, negative years={}) but is graded {!r}. A "
+                "non-positive bad-debt rate is a HARD RED with a named cause.".format(
+                    rate_pct, negative_years, recon["annual_series_rag"]
+                ),
+                file=sys.stderr,
+            )
+            return False
+        if not recon.get("annual_series_rag_cause"):
+            print(
+                "BAD-DEBT RECONCILIATION GATE FAILED: RED with no named cause. A RED "
+                "without a stated mechanism is a colour, not a diagnosis.",
+                file=sys.stderr,
+            )
+            return False
+    return True
+
+
+def _check_period_coverage_present(financial):
+    """MAJOR-6 class gate: a part-year stub may never again render as an
+    undifferentiated annual row.
+
+    ANTI-TAUTOLOGY (R15): this does NOT recompute coverage from the same window
+    the generator used (that would only prove the generator agrees with itself).
+    It cross-checks two INDEPENDENTLY-STORED fields against each other --
+    ``period_partial`` (a bool) against ``period_coverage_fraction`` (a float) --
+    plus a third, ``period_note``, which a partial row must carry. An edit that
+    updates one without the others fails here.
+    FAIL-OPEN closed: a row missing the fields, a non-finite or out-of-[0,1]
+    fraction, or an empty/absent annual series all FAIL -- "no rows" cannot mean
+    "no problem", because a published financial block with no annual rows is
+    itself broken.
+    """
+    if not isinstance(financial, dict):
+        print(
+            "PERIOD-COVERAGE GATE FAILED: financial block unavailable -- an unavailable "
+            "check is a FAILED check, not a pass (R15)",
+            file=sys.stderr,
+        )
+        return False
+    rows = financial.get("annual")
+    if not isinstance(rows, list) or not rows:
+        print(
+            "PERIOD-COVERAGE GATE FAILED: financial.annual is missing or empty",
+            file=sys.stderr,
+        )
+        return False
+    if "period_coverage_source" not in financial:
+        print(
+            "PERIOD-COVERAGE GATE FAILED: financial.period_coverage_source is absent, so a "
+            "reader cannot tell where any row's coverage was derived from",
+            file=sys.stderr,
+        )
+        return False
+
+    for row in rows:
+        row = row or {}
+        year = row.get("year")
+        if "period_coverage_fraction" not in row:
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} is missing "
+                "period_coverage_fraction".format(year),
+                file=sys.stderr,
+            )
+            return False
+        if "period_partial" not in row or not isinstance(row.get("period_partial"), bool):
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} is missing a boolean "
+                "period_partial".format(year),
+                file=sys.stderr,
+            )
+            return False
+        frac = row["period_coverage_fraction"]
+        partial = row["period_partial"]
+        if frac is None:
+            # Coverage genuinely unknown. Unknown is NOT "asserted partial", but it
+            # must still be disclosed -- an undisclosed unknown is the fail-open.
+            if partial:
+                print(
+                    "PERIOD-COVERAGE GATE FAILED: annual row {} claims period_partial=True "
+                    "with an UNKNOWN coverage fraction -- an unknown may not masquerade as "
+                    "a measured partial".format(year),
+                    file=sys.stderr,
+                )
+                return False
+            if not row.get("period_note"):
+                print(
+                    "PERIOD-COVERAGE GATE FAILED: annual row {} has unknown coverage and no "
+                    "period_note saying so".format(year),
+                    file=sys.stderr,
+                )
+                return False
+            continue
+        if isinstance(frac, bool) or not isinstance(frac, (int, float)) or not math.isfinite(frac):
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} period_coverage_fraction is not "
+                "a finite number ({!r})".format(year, frac),
+                file=sys.stderr,
+            )
+            return False
+        if not (0.0 <= frac <= 1.0):
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} period_coverage_fraction={} is "
+                "out of [0,1] range".format(year, frac),
+                file=sys.stderr,
+            )
+            return False
+        expected_partial = frac < _PERIOD_PARTIAL_THRESHOLD
+        if partial != expected_partial:
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} period_partial={} disagrees with "
+                "its own period_coverage_fraction={} (threshold {})".format(
+                    year, partial, frac, _PERIOD_PARTIAL_THRESHOLD
+                ),
+                file=sys.stderr,
+            )
+            return False
+        if partial and not row.get("period_note"):
+            print(
+                "PERIOD-COVERAGE GATE FAILED: annual row {} is a PART YEAR with no "
+                "period_note -- a partial row that does not say so on the page is the "
+                "MAJOR-6 defect".format(year),
+                file=sys.stderr,
+            )
+            return False
     return True
 
 
