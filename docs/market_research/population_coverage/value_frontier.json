@@ -1,0 +1,1380 @@
+{
+  "_meta": {
+    "artefact": "value_frontier",
+    "created": "2026-07-20",
+    "determinism": "No RNG; sorted iteration; analytic/enumerated -> hash-independent. Verify identical output under PYTHONHASHSEED=0 and =1.",
+    "fuel_region_joint_source": "asserted_pinning",
+    "parse_log": {
+      "EV": "asserted (crossed dim, no open joint)",
+      "accommodation": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)",
+      "cars": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)",
+      "channel_pref": "asserted (crossed dim, no open joint)",
+      "green_stance": "asserted (crossed dim, no open joint)",
+      "heating_fuel": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)",
+      "home_battery": "asserted (crossed dim, no open joint)",
+      "nssec": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)",
+      "price_sensitivity": "asserted (crossed dim, no open joint)",
+      "region": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)",
+      "solar_PV": "asserted (crossed dim, no open joint)",
+      "tenure": "ASSERTED_FALLBACK (marginals.json blob not matched/banded)"
+    },
+    "question": "Stage 3 answered COVERAGE (coverage knee N=200). Stage 4 answers VALUE -- the value knee.",
+    "simplifications": [
+      "Variance decomposition treats axes as independent EXCEPT the load-bearing fuel x region coupling (enumerated joint). Observed-block couplings are NOT modelled in the variance (independence approx) -- they slightly overstate block variance; the frontier SHAPE and knee are second-order to this (logged, R10).",
+      "Behavioural model is ADDITIVE with no axis-interaction terms (asserted v1 simplification).",
+      "Segment counts reuse banked Stage-3 realistic-cell counts (block=201, fuel x region enumerated) so outer rings hold no phantom households (tail-aware, per the steer)."
+    ],
+    "status": "DESIGN + committed structure only -- NO generator change (director-reserved). No network, no microdata; derives from banked Stage-3 committed numbers.",
+    "track": "DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20 (stage 4, DISCOVER/FRAME)",
+    "two_metrics_kept_separate": "valuable_variance and critical_group_coverage are reported separately; a blended combined_value curve is provided only as a tie-breaker for the knee."
+  },
+  "behavioural_response_model": {
+    "claim_status": "asserted",
+    "description": "Additive per-axis deltas on 4 outcomes. NOT ground truth -- a transparent, changeable modelling choice so the value question can be posed at all. Every entry is inspectable and editable.",
+    "fuel_region_joint_variance": 0.019219006199277418,
+    "outcome_signs": {
+      "baddebt": -1.0,
+      "carbon": 1.0,
+      "churn": -1.0,
+      "margin": 1.0
+    },
+    "per_axis_blended_variance": {
+      "EV": 0.011838835859468119,
+      "accommodation": 0.07199239014182102,
+      "cars": 0.016880106716512064,
+      "channel_pref": 0.002337571457839218,
+      "green_stance": 0.0032547235958470776,
+      "heating_fuel": 0.011227405200923121,
+      "home_battery": 0.00025351194675323803,
+      "nssec": 0.12083266485398036,
+      "price_sensitivity": 0.11813502479038487,
+      "region": 0.006797569649721899,
+      "solar_PV": 0.0006571977222093761,
+      "tenure": 0.12518640661902755
+    },
+    "per_outcome_per_axis_effects": {
+      "baddebt": {
+        "cars": {
+          "0": 0.03,
+          "1": 0.0,
+          "2plus": -0.01
+        },
+        "heating_fuel": {
+          "electric": 0.03,
+          "heat_network": 0.01,
+          "lpg_bottled": 0.02,
+          "mains_gas": 0.0,
+          "mixed": 0.0,
+          "oil": 0.02,
+          "other_offgas": 0.02
+        },
+        "nssec": {
+          "higher": -0.03,
+          "intermediate": 0.0,
+          "routine_semi": 0.04,
+          "unemployed_student": 0.12
+        },
+        "price_sensitivity": {
+          "high": 0.02,
+          "low": -0.01,
+          "medium": 0.0
+        },
+        "region": {
+          "East": -0.01,
+          "East Midlands": 0.0,
+          "London": 0.01,
+          "North East": 0.02,
+          "North West": 0.0,
+          "South East": -0.01,
+          "South West": 0.0,
+          "Wales": 0.02,
+          "West Midlands": 0.0,
+          "Yorkshire and The Humber": 0.0
+        },
+        "tenure": {
+          "own_mortgage": -0.02,
+          "own_outright": -0.03,
+          "private_rent": 0.03,
+          "social_rent": 0.06
+        }
+      },
+      "carbon": {
+        "EV": {
+          "no": 0,
+          "yes": 800
+        },
+        "accommodation": {
+          "caravan": 80,
+          "detached": 150,
+          "flat": -40,
+          "semi": 60,
+          "terraced": 30
+        },
+        "green_stance": {
+          "disengaged": -100,
+          "engaged": 300,
+          "neutral": 0
+        },
+        "heating_fuel": {
+          "electric": 200,
+          "heat_network": 100,
+          "lpg_bottled": 300,
+          "mains_gas": 0,
+          "mixed": 100,
+          "oil": 400,
+          "other_offgas": 250
+        },
+        "home_battery": {
+          "no": 0,
+          "yes": 300
+        },
+        "solar_PV": {
+          "no": 0,
+          "yes": 600
+        },
+        "tenure": {
+          "own_mortgage": 80,
+          "own_outright": 60,
+          "private_rent": -40,
+          "social_rent": -40
+        }
+      },
+      "churn": {
+        "EV": {
+          "no": 0.0,
+          "yes": 0.04
+        },
+        "channel_pref": {
+          "assisted": -0.03,
+          "digital": 0.05,
+          "phone": -0.02
+        },
+        "green_stance": {
+          "disengaged": -0.02,
+          "engaged": 0.03,
+          "neutral": 0.0
+        },
+        "nssec": {
+          "higher": 0.0,
+          "intermediate": 0.0,
+          "routine_semi": 0.01,
+          "unemployed_student": 0.03
+        },
+        "price_sensitivity": {
+          "high": 0.12,
+          "low": -0.08,
+          "medium": 0.0
+        },
+        "region": {
+          "East": 0.0,
+          "East Midlands": 0.0,
+          "London": 0.0,
+          "North East": 0.0,
+          "North West": 0.0,
+          "South East": 0.0,
+          "South West": 0.0,
+          "Wales": 0.0,
+          "West Midlands": 0.0,
+          "Yorkshire and The Humber": 0.0
+        },
+        "solar_PV": {
+          "no": 0.0,
+          "yes": 0.03
+        },
+        "tenure": {
+          "own_mortgage": -0.02,
+          "own_outright": -0.03,
+          "private_rent": 0.08,
+          "social_rent": 0.02
+        }
+      },
+      "margin": {
+        "EV": {
+          "no": 0,
+          "yes": 30
+        },
+        "accommodation": {
+          "caravan": -60,
+          "detached": 60,
+          "flat": -40,
+          "semi": 20,
+          "terraced": 0
+        },
+        "cars": {
+          "0": -15,
+          "1": 5,
+          "2plus": 15
+        },
+        "channel_pref": {
+          "assisted": -30,
+          "digital": 20,
+          "phone": -10
+        },
+        "green_stance": {
+          "disengaged": -5,
+          "engaged": 5,
+          "neutral": 0
+        },
+        "heating_fuel": {
+          "electric": -10,
+          "heat_network": -20,
+          "lpg_bottled": 10,
+          "mains_gas": 40,
+          "mixed": 30,
+          "oil": 20,
+          "other_offgas": 0
+        },
+        "home_battery": {
+          "no": 0,
+          "yes": -5
+        },
+        "nssec": {
+          "higher": 50,
+          "intermediate": 15,
+          "routine_semi": -15,
+          "unemployed_student": -50
+        },
+        "price_sensitivity": {
+          "high": -20,
+          "low": 20,
+          "medium": 0
+        },
+        "region": {
+          "East": 5,
+          "East Midlands": 0,
+          "London": -15,
+          "North East": -5,
+          "North West": 0,
+          "South East": 15,
+          "South West": 5,
+          "Wales": 5,
+          "West Midlands": 0,
+          "Yorkshire and The Humber": -5
+        },
+        "solar_PV": {
+          "no": 0,
+          "yes": -15
+        },
+        "tenure": {
+          "own_mortgage": 15,
+          "own_outright": 20,
+          "private_rent": -15,
+          "social_rent": -20
+        }
+      }
+    },
+    "per_outcome_population_sd": {
+      "baddebt": 0.057824500257243894,
+      "carbon": 304.1169206653915,
+      "churn": 0.09921667346771912,
+      "margin": 58.41050461817634
+    },
+    "total_value_variance": 0.4905874399031203
+  },
+  "constructors": {
+    "centre_out": {
+      "axis_order": [
+        "tenure",
+        "nssec",
+        "price_sensitivity",
+        "accommodation",
+        "cars",
+        "EV",
+        "heating_fuel",
+        "region",
+        "green_stance",
+        "channel_pref",
+        "solar_PV",
+        "home_battery"
+      ],
+      "critical_complete_at_k": 12,
+      "description": "Greedy variance capture from the modal customer outward; adds the axis giving the largest incremental captured variance.",
+      "frontier": [
+        {
+          "axis_added": null,
+          "combined_value": 0.0,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 0,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.0,
+          "segment_count": 1,
+          "selected": [],
+          "variance_captured": 0.0
+        },
+        {
+          "axis_added": "tenure",
+          "combined_value": 0.127588,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 1,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.255177,
+          "segment_count": 4,
+          "selected": [
+            "tenure"
+          ],
+          "variance_captured": 0.255177
+        },
+        {
+          "axis_added": "nssec",
+          "combined_value": 0.250739,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 2,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.246302,
+          "segment_count": 16,
+          "selected": [
+            "tenure",
+            "nssec"
+          ],
+          "variance_captured": 0.501479
+        },
+        {
+          "axis_added": "price_sensitivity",
+          "combined_value": 0.371141,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 3,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.240803,
+          "segment_count": 48,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity"
+          ],
+          "variance_captured": 0.742282
+        },
+        {
+          "axis_added": "accommodation",
+          "combined_value": 0.444515,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 4,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.146747,
+          "segment_count": 240,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation"
+          ],
+          "variance_captured": 0.889029
+        },
+        {
+          "axis_added": "cars",
+          "combined_value": 0.461718,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 5,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.034408,
+          "segment_count": 603,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars"
+          ],
+          "variance_captured": 0.923437
+        },
+        {
+          "axis_added": "EV",
+          "combined_value": 0.473784,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 6,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.024132,
+          "segment_count": 1206,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV"
+          ],
+          "variance_captured": 0.947569
+        },
+        {
+          "axis_added": "heating_fuel",
+          "combined_value": 0.744843,
+          "critical_coverage": 0.519231,
+          "critical_groups_covered": [
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "vulnerable_all_electric"
+          ],
+          "k": 7,
+          "marginal_critical": 0.519231,
+          "marginal_variance": 0.022886,
+          "segment_count": 8442,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel"
+          ],
+          "variance_captured": 0.970455
+        },
+        {
+          "axis_added": "region",
+          "combined_value": 0.945295,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 8,
+          "marginal_critical": 0.384615,
+          "marginal_variance": 0.01629,
+          "segment_count": 84420,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel",
+            "region"
+          ],
+          "variance_captured": 0.986744
+        },
+        {
+          "axis_added": "green_stance",
+          "combined_value": 0.948612,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 9,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.006634,
+          "segment_count": 253260,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel",
+            "region",
+            "green_stance"
+          ],
+          "variance_captured": 0.993379
+        },
+        {
+          "axis_added": "channel_pref",
+          "combined_value": 0.950995,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 10,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.004765,
+          "segment_count": 759780,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel",
+            "region",
+            "green_stance",
+            "channel_pref"
+          ],
+          "variance_captured": 0.998144
+        },
+        {
+          "axis_added": "solar_PV",
+          "combined_value": 0.951665,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 11,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.00134,
+          "segment_count": 1519560,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel",
+            "region",
+            "green_stance",
+            "channel_pref",
+            "solar_PV"
+          ],
+          "variance_captured": 0.999483
+        },
+        {
+          "axis_added": "home_battery",
+          "combined_value": 1.0,
+          "critical_coverage": 1.0,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "solar_ev_battery_owner",
+            "vulnerable_all_electric"
+          ],
+          "k": 12,
+          "marginal_critical": 0.096154,
+          "marginal_variance": 0.000517,
+          "segment_count": 3039120,
+          "selected": [
+            "tenure",
+            "nssec",
+            "price_sensitivity",
+            "accommodation",
+            "cars",
+            "EV",
+            "heating_fuel",
+            "region",
+            "green_stance",
+            "channel_pref",
+            "solar_PV",
+            "home_battery"
+          ],
+          "variance_captured": 1.0
+        }
+      ],
+      "knee_combined": 12,
+      "knee_variance": 7
+    },
+    "worst_cell_greedy": {
+      "axis_order": [
+        "heating_fuel",
+        "nssec",
+        "tenure",
+        "price_sensitivity",
+        "accommodation",
+        "region",
+        "cars",
+        "EV",
+        "green_stance",
+        "channel_pref",
+        "solar_PV",
+        "home_battery"
+      ],
+      "critical_complete_at_k": 12,
+      "description": "Greedy critical-group coverage first (ties by incremental variance); front-loads the protected small groups.",
+      "frontier": [
+        {
+          "axis_added": null,
+          "combined_value": 0.0,
+          "critical_coverage": 0.0,
+          "critical_groups_covered": [],
+          "k": 0,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.0,
+          "segment_count": 1,
+          "selected": [],
+          "variance_captured": 0.0
+        },
+        {
+          "axis_added": "heating_fuel",
+          "combined_value": 0.078751,
+          "critical_coverage": 0.134615,
+          "critical_groups_covered": [
+            "heat_network_captive"
+          ],
+          "k": 1,
+          "marginal_critical": 0.134615,
+          "marginal_variance": 0.022886,
+          "segment_count": 7,
+          "selected": [
+            "heating_fuel"
+          ],
+          "variance_captured": 0.022886
+        },
+        {
+          "axis_added": "nssec",
+          "combined_value": 0.298055,
+          "critical_coverage": 0.326923,
+          "critical_groups_covered": [
+            "fuel_poor_offgas",
+            "heat_network_captive"
+          ],
+          "k": 2,
+          "marginal_critical": 0.192308,
+          "marginal_variance": 0.246302,
+          "segment_count": 28,
+          "selected": [
+            "heating_fuel",
+            "nssec"
+          ],
+          "variance_captured": 0.269188
+        },
+        {
+          "axis_added": "tenure",
+          "combined_value": 0.521797,
+          "critical_coverage": 0.519231,
+          "critical_groups_covered": [
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "vulnerable_all_electric"
+          ],
+          "k": 3,
+          "marginal_critical": 0.192308,
+          "marginal_variance": 0.255177,
+          "segment_count": 112,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure"
+          ],
+          "variance_captured": 0.524364
+        },
+        {
+          "axis_added": "price_sensitivity",
+          "combined_value": 0.642199,
+          "critical_coverage": 0.519231,
+          "critical_groups_covered": [
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "vulnerable_all_electric"
+          ],
+          "k": 4,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.240803,
+          "segment_count": 336,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity"
+          ],
+          "variance_captured": 0.765167
+        },
+        {
+          "axis_added": "accommodation",
+          "combined_value": 0.715573,
+          "critical_coverage": 0.519231,
+          "critical_groups_covered": [
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "vulnerable_all_electric"
+          ],
+          "k": 5,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.146747,
+          "segment_count": 1680,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation"
+          ],
+          "variance_captured": 0.911915
+        },
+        {
+          "axis_added": "region",
+          "combined_value": 0.916025,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 6,
+          "marginal_critical": 0.384615,
+          "marginal_variance": 0.01629,
+          "segment_count": 16800,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region"
+          ],
+          "variance_captured": 0.928205
+        },
+        {
+          "axis_added": "cars",
+          "combined_value": 0.933229,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 7,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.034408,
+          "segment_count": 42210,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars"
+          ],
+          "variance_captured": 0.962612
+        },
+        {
+          "axis_added": "EV",
+          "combined_value": 0.945295,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 8,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.024132,
+          "segment_count": 84420,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars",
+            "EV"
+          ],
+          "variance_captured": 0.986744
+        },
+        {
+          "axis_added": "green_stance",
+          "combined_value": 0.948612,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 9,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.006634,
+          "segment_count": 253260,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars",
+            "EV",
+            "green_stance"
+          ],
+          "variance_captured": 0.993379
+        },
+        {
+          "axis_added": "channel_pref",
+          "combined_value": 0.950995,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 10,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.004765,
+          "segment_count": 759780,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars",
+            "EV",
+            "green_stance",
+            "channel_pref"
+          ],
+          "variance_captured": 0.998144
+        },
+        {
+          "axis_added": "solar_PV",
+          "combined_value": 0.951665,
+          "critical_coverage": 0.903846,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "vulnerable_all_electric"
+          ],
+          "k": 11,
+          "marginal_critical": 0.0,
+          "marginal_variance": 0.00134,
+          "segment_count": 1519560,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars",
+            "EV",
+            "green_stance",
+            "channel_pref",
+            "solar_PV"
+          ],
+          "variance_captured": 0.999483
+        },
+        {
+          "axis_added": "home_battery",
+          "combined_value": 1.0,
+          "critical_coverage": 1.0,
+          "critical_groups_covered": [
+            "all_electric_flat_london",
+            "fuel_poor_offgas",
+            "heat_network_captive",
+            "oil_fuel_poor_rural",
+            "solar_ev_battery_owner",
+            "vulnerable_all_electric"
+          ],
+          "k": 12,
+          "marginal_critical": 0.096154,
+          "marginal_variance": 0.000517,
+          "segment_count": 3039120,
+          "selected": [
+            "heating_fuel",
+            "nssec",
+            "tenure",
+            "price_sensitivity",
+            "accommodation",
+            "region",
+            "cars",
+            "EV",
+            "green_stance",
+            "channel_pref",
+            "solar_PV",
+            "home_battery"
+          ],
+          "variance_captured": 1.0
+        }
+      ],
+      "knee_combined": 12,
+      "knee_variance": 8
+    }
+  },
+  "convergence": {
+    "centre_out_knee_axis_set": [
+      "EV",
+      "accommodation",
+      "cars",
+      "channel_pref",
+      "green_stance",
+      "heating_fuel",
+      "home_battery",
+      "nssec",
+      "price_sensitivity",
+      "region",
+      "solar_PV",
+      "tenure"
+    ],
+    "centre_out_only": [],
+    "converged_on_knee_axis_set": true,
+    "note": "Both constructors are expected to agree on the high-value early axes and diverge only in the low-value tail ordering. Variance rises faster under centre-out; critical coverage completes earlier under worst-cell -- the two halves the steer keeps separate.",
+    "shared_axes": [
+      "EV",
+      "accommodation",
+      "cars",
+      "channel_pref",
+      "green_stance",
+      "heating_fuel",
+      "home_battery",
+      "nssec",
+      "price_sensitivity",
+      "region",
+      "solar_PV",
+      "tenure"
+    ],
+    "worst_cell_knee_axis_set": [
+      "EV",
+      "accommodation",
+      "cars",
+      "channel_pref",
+      "green_stance",
+      "heating_fuel",
+      "home_battery",
+      "nssec",
+      "price_sensitivity",
+      "region",
+      "solar_PV",
+      "tenure"
+    ],
+    "worst_cell_only": []
+  },
+  "population": {
+    "axes": {
+      "EV": {
+        "cardinality": 2,
+        "group": "tech",
+        "levels": [
+          "yes",
+          "no"
+        ],
+        "provenance": "assumed"
+      },
+      "accommodation": {
+        "cardinality": 5,
+        "group": "block",
+        "levels": [
+          "detached",
+          "semi",
+          "terraced",
+          "flat",
+          "caravan"
+        ],
+        "provenance": "observed"
+      },
+      "cars": {
+        "cardinality": 3,
+        "group": "block",
+        "levels": [
+          "0",
+          "1",
+          "2plus"
+        ],
+        "provenance": "observed"
+      },
+      "channel_pref": {
+        "cardinality": 3,
+        "group": "engagement",
+        "levels": [
+          "digital",
+          "phone",
+          "assisted"
+        ],
+        "provenance": "assumed"
+      },
+      "green_stance": {
+        "cardinality": 3,
+        "group": "attitude",
+        "levels": [
+          "engaged",
+          "neutral",
+          "disengaged"
+        ],
+        "provenance": "assumed"
+      },
+      "heating_fuel": {
+        "cardinality": 7,
+        "group": "fuel",
+        "levels": [
+          "mains_gas",
+          "mixed",
+          "electric",
+          "oil",
+          "lpg_bottled",
+          "heat_network",
+          "other_offgas"
+        ],
+        "provenance": "observed"
+      },
+      "home_battery": {
+        "cardinality": 2,
+        "group": "tech",
+        "levels": [
+          "yes",
+          "no"
+        ],
+        "provenance": "assumed"
+      },
+      "nssec": {
+        "cardinality": 4,
+        "group": "block",
+        "levels": [
+          "higher",
+          "intermediate",
+          "routine_semi",
+          "unemployed_student"
+        ],
+        "provenance": "observed"
+      },
+      "price_sensitivity": {
+        "cardinality": 3,
+        "group": "attitude",
+        "levels": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "provenance": "assumed"
+      },
+      "region": {
+        "cardinality": 10,
+        "group": "geo",
+        "levels": [
+          "South East",
+          "London",
+          "North West",
+          "East",
+          "South West",
+          "West Midlands",
+          "Yorkshire and The Humber",
+          "East Midlands",
+          "Wales",
+          "North East"
+        ],
+        "provenance": "observed"
+      },
+      "solar_PV": {
+        "cardinality": 2,
+        "group": "tech",
+        "levels": [
+          "yes",
+          "no"
+        ],
+        "provenance": "assumed"
+      },
+      "tenure": {
+        "cardinality": 4,
+        "group": "block",
+        "levels": [
+          "own_outright",
+          "own_mortgage",
+          "private_rent",
+          "social_rent"
+        ],
+        "provenance": "observed"
+      }
+    },
+    "block_realistic_cells": 201,
+    "fuel_region_realistic_cells": 70,
+    "marginals": {
+      "EV": {
+        "no": 0.95,
+        "yes": 0.05
+      },
+      "accommodation": {
+        "caravan": 0.0042,
+        "detached": 0.2321,
+        "flat": 0.2169,
+        "semi": 0.3151,
+        "terraced": 0.2316
+      },
+      "cars": {
+        "0": 0.2331,
+        "1": 0.4131,
+        "2plus": 0.3538
+      },
+      "channel_pref": {
+        "assisted": 0.15,
+        "digital": 0.55,
+        "phone": 0.3
+      },
+      "green_stance": {
+        "disengaged": 0.3,
+        "engaged": 0.3,
+        "neutral": 0.4
+      },
+      "heating_fuel": {
+        "electric": 0.0866,
+        "heat_network": 0.009,
+        "lpg_bottled": 0.0107,
+        "mains_gas": 0.7494,
+        "mixed": 0.0921,
+        "oil": 0.0354,
+        "other_offgas": 0.0168
+      },
+      "home_battery": {
+        "no": 0.98,
+        "yes": 0.02
+      },
+      "nssec": {
+        "higher": 0.1614,
+        "intermediate": 0.3185,
+        "routine_semi": 0.4309,
+        "unemployed_student": 0.0892
+      },
+      "price_sensitivity": {
+        "high": 0.35,
+        "low": 0.25,
+        "medium": 0.4
+      },
+      "region": {
+        "East": 0.1061,
+        "East Midlands": 0.0822,
+        "London": 0.1382,
+        "North East": 0.0474,
+        "North West": 0.1272,
+        "South East": 0.1537,
+        "South West": 0.0988,
+        "Wales": 0.0544,
+        "West Midlands": 0.098,
+        "Yorkshire and The Humber": 0.094
+      },
+      "solar_PV": {
+        "no": 0.95,
+        "yes": 0.05
+      },
+      "tenure": {
+        "own_mortgage": 0.2971,
+        "own_outright": 0.3283,
+        "private_rent": 0.204,
+        "social_rent": 0.1706
+      }
+    }
+  },
+  "value_knee": {
+    "centre_out": {
+      "axis_set": [
+        "tenure",
+        "nssec",
+        "price_sensitivity",
+        "accommodation",
+        "cars",
+        "EV",
+        "heating_fuel",
+        "region",
+        "green_stance",
+        "channel_pref",
+        "solar_PV",
+        "home_battery"
+      ],
+      "critical_coverage": 1.0,
+      "k": 12,
+      "segment_count": 3039120,
+      "variance_captured": 1.0
+    },
+    "claim_status": "derived",
+    "comparison_to_coverage_knee": "Stage-3 COVERAGE knee was N=200 cohorts. The VALUE knee is a segment count at which the next segment adds < 2% combined value.",
+    "eps_marginal": 0.02,
+    "variance_only_knee": {
+      "centre_out_k": 7,
+      "centre_out_segment_count": 8442,
+      "worst_cell_k": 8
+    },
+    "worst_cell": {
+      "axis_set": [
+        "heating_fuel",
+        "nssec",
+        "tenure",
+        "price_sensitivity",
+        "accommodation",
+        "region",
+        "cars",
+        "EV",
+        "green_stance",
+        "channel_pref",
+        "solar_PV",
+        "home_battery"
+      ],
+      "critical_coverage": 1.0,
+      "k": 12,
+      "segment_count": 3039120,
+      "variance_captured": 1.0
+    }
+  },
+  "values_call_1_what_makes_variance_valuable": {
+    "claim_status": "asserted",
+    "description": "The business outcome(s) the segmentation optimises toward, and their weighting. DIRECTOR'S to set; proposed default below. Recomputable under any other weighting by re-running this script with a different weights dict.",
+    "outcomes": {
+      "baddebt": "annual bad-debt probability, bad",
+      "carbon": "annual CO2 abatable (kg), + good",
+      "churn": "annual churn probability, bad (retention value = -churn)",
+      "margin": "annual gross-margin contribution (GBP/yr), + good"
+    },
+    "proposed_default_weighting": {
+      "baddebt": 0.2,
+      "carbon": 0.15,
+      "churn": 0.25,
+      "margin": 0.4
+    },
+    "recompute": "re-run build_population_value_frontier.py after editing DEFAULT_WEIGHTS; deterministic."
+  },
+  "values_call_2_what_makes_a_group_critical": {
+    "claim_status": "asserted",
+    "criteria_classes": [
+      "welfare (fuel poverty / mortality / self-disconnection)",
+      "regulatory (captive / newly-regulated)",
+      "strategic_lowcarbon (flexibility value, NOT welfare)"
+    ],
+    "description": "The protected set surviving regardless of size. DIRECTOR'S to set; proposed criteria below. A group is 'covered' once the segmentation splits on all its defining axes so it can be distinguished and protected.",
+    "proposed_groups": [
+      {
+        "defining_axes": [
+          "heating_fuel",
+          "nssec"
+        ],
+        "id": "fuel_poor_offgas",
+        "klass": "welfare",
+        "predicate": {
+          "heating_fuel": [
+            "oil",
+            "lpg_bottled",
+            "other_offgas"
+          ],
+          "nssec": [
+            "unemployed_student"
+          ]
+        },
+        "rationale": "off-gas fuel-poor: winter mortality / fuel-poverty; protected regardless of size",
+        "weight": 1.0
+      },
+      {
+        "defining_axes": [
+          "heating_fuel",
+          "nssec",
+          "tenure"
+        ],
+        "id": "vulnerable_all_electric",
+        "klass": "welfare",
+        "predicate": {
+          "heating_fuel": [
+            "electric"
+          ],
+          "nssec": [
+            "unemployed_student"
+          ],
+          "tenure": [
+            "social_rent",
+            "private_rent"
+          ]
+        },
+        "rationale": "all-electric low-income renters: prepay self-disconnection / cold-home risk",
+        "weight": 1.0
+      },
+      {
+        "defining_axes": [
+          "accommodation",
+          "heating_fuel",
+          "nssec",
+          "region",
+          "tenure"
+        ],
+        "id": "oil_fuel_poor_rural",
+        "klass": "welfare",
+        "predicate": {
+          "accommodation": [
+            "detached"
+          ],
+          "heating_fuel": [
+            "oil"
+          ],
+          "nssec": [
+            "unemployed_student"
+          ],
+          "region": [
+            "Wales"
+          ],
+          "tenure": [
+            "social_rent"
+          ]
+        },
+        "rationale": "Stage-3 named worst cell: oil rural social-rented never-worked HRP",
+        "weight": 1.0
+      },
+      {
+        "defining_axes": [
+          "accommodation",
+          "heating_fuel",
+          "region",
+          "tenure"
+        ],
+        "id": "all_electric_flat_london",
+        "klass": "welfare",
+        "predicate": {
+          "accommodation": [
+            "flat"
+          ],
+          "heating_fuel": [
+            "electric"
+          ],
+          "region": [
+            "London"
+          ],
+          "tenure": [
+            "private_rent"
+          ]
+        },
+        "rationale": "Stage-3 named worst cell: electric-only flat London private-rent",
+        "weight": 1.0
+      },
+      {
+        "defining_axes": [
+          "heating_fuel"
+        ],
+        "id": "heat_network_captive",
+        "klass": "regulatory",
+        "predicate": {
+          "heating_fuel": [
+            "heat_network"
+          ]
+        },
+        "rationale": "heat-network households: no supplier switch, new Ofgem heat-network regulation exposure",
+        "weight": 0.7
+      },
+      {
+        "defining_axes": [
+          "EV",
+          "home_battery",
+          "solar_PV"
+        ],
+        "id": "solar_ev_battery_owner",
+        "klass": "strategic_lowcarbon",
+        "predicate": {
+          "EV": [
+            "yes"
+          ],
+          "home_battery": [
+            "yes"
+          ],
+          "solar_PV": [
+            "yes"
+          ]
+        },
+        "rationale": "Stage-3 named cell: PV+EV+battery co-owner; flexibility/low-carbon strategic value, not welfare",
+        "weight": 0.5
+      }
+    ]
+  }
+}
