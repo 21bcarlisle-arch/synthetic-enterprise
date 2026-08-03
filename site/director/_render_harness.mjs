@@ -4,7 +4,10 @@
 // JSON so a test can assert on the RENDERED pixels (R11), not the source string.
 //
 // Usage: node _render_harness.mjs <index.html>   (combined data JSON on stdin,
-//        shape {twin, plan, sys, reserved, health, decisions, now, lastSeenSnapshot}).
+//        shape {twin, plan, sys, reserved, health, decisions, lastLook, now,
+//        lastSeenSnapshot}). `lastLook` is the durable delta feed
+//        (site/data/director_delta.json); omit it (or pass null) to exercise the
+//        feed-absent failure render.
 //        `now` (ISO string) is optional -- it pins the clock so time-relative renders
 //        (reserved item age, daemon-heartbeat staleness, delta-view marker) are
 //        deterministic under test. `lastSeenSnapshot` (object or omitted) seeds the
@@ -62,6 +65,7 @@ const nowMs = data.now ? new Date(data.now).getTime() : undefined;
 sandbox.renderAll(data, nowMs);
 
 const ids = [
+  "lastlook-hyp", "lastlook-intro", "lastlook-kpis", "lastlook-body", "lastlook-passport",
   "reserved-hyp", "reserved-intro", "reserved-kpis", "reserved-body", "reserved-passport",
   "health-hyp", "health-intro", "health-kpis", "health-body", "health-passport",
   "delta-hyp", "delta-intro", "delta-kpis", "delta-body", "delta-passport",

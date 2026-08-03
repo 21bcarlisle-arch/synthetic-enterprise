@@ -1,0 +1,34 @@
+{
+  "stamp_version": 1,
+  "recorded_at": "2026-08-03T10:53:18.358476+00:00",
+  "recorded_by": "bootstrap-at-build-time (not a director read receipt)",
+  "note": "The last-look stamp advances ONLY on an explicit `--mark-seen` run (tools/generate_director_data.py --mark-seen). Regenerating this feed never moves it -- a baseline that re-bases on every regeneration would make the panel permanently say 'nothing changed'.",
+  "state": {
+    "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
+    "decision_count": 20,
+    "reserved_ids": [],
+    "daemon_status": {
+      "session-watchdog": "stale",
+      "staging-watcher": "live",
+      "discovery-daemon": "live",
+      "sim-runner": "live",
+      "dispatcher": "live",
+      "ntfy-responder": "live",
+      "autonomous-runner": "retired",
+      "background-worker": "live",
+      "epistemic-verifier": "live",
+      "discovery-agent": "stale",
+      "supervisor": "live",
+      "sanity-daemon": "live",
+      "director-comments": "stale",
+      "build-executor": "stale"
+    },
+    "twin_fidelity": {
+      "answered": 5,
+      "routed_to_director": 3,
+      "overturned": 0,
+      "canon_version": 3
+    },
+    "open_atoms": 55
+  }
+}

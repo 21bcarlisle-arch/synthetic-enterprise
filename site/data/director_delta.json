@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-08-03T10:59:24.086231+00:00",
+  "stamp_version": 1,
+  "stamp_file": "director_last_look.json",
+  "stamp_status": "ok",
+  "stamp_problem": null,
+  "how_the_stamp_advances": "The last-look stamp advances ONLY on an explicit `--mark-seen` run (tools/generate_director_data.py --mark-seen). Regenerating this feed never moves it -- a baseline that re-bases on every regeneration would make the panel permanently say 'nothing changed'.",
+  "last_look_at": "2026-08-03T10:53:18.358476+00:00",
+  "last_look_recorded_by": "bootstrap-at-build-time (not a director read receipt)",
+  "changed": false,
+  "counts": {
+    "new_decisions": 0,
+    "reserved_changed": 0,
+    "reserved_added": 0,
+    "reserved_cleared": 0,
+    "daemons_flipped": 0,
+    "daemons_newly_stale": 0,
+    "daemons_recovered": 0,
+    "daemons_appeared": 0,
+    "daemons_disappeared": 0,
+    "headline_moves": 0
+  },
+  "changes": [],
+  "detail": {
+    "new_decisions": [],
+    "reserved_added": [],
+    "reserved_cleared": [],
+    "daemons_newly_stale": [],
+    "daemons_recovered": [],
+    "daemons_appeared": [],
+    "daemons_disappeared": [],
+    "fidelity_moves": [],
+    "headline_moves": []
+  },
+  "current_state": {
+    "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
+    "decision_count": 20,
+    "reserved_ids": [],
+    "daemon_status": {
+      "session-watchdog": "stale",
+      "staging-watcher": "live",
+      "discovery-daemon": "live",
+      "sim-runner": "live",
+      "dispatcher": "live",
+      "ntfy-responder": "live",
+      "autonomous-runner": "retired",
+      "background-worker": "live",
+      "epistemic-verifier": "live",
+      "discovery-agent": "stale",
+      "supervisor": "live",
+      "sanity-daemon": "live",
+      "director-comments": "stale",
+      "build-executor": "stale"
+    },
+    "twin_fidelity": {
+      "answered": 5,
+      "routed_to_director": 3,
+      "overturned": 0,
+      "canon_version": 3
+    },
+    "open_atoms": 55
+  },
+  "source_stamps": {
+    "reserved_generated_at": "2026-08-03T09:25:35.784915+00:00",
+    "health_last_updated": "2026-08-03T09:29:56.900736+00:00",
+    "decisions_generated_at": "2026-07-19T06:25:33Z"
+  }
+}
