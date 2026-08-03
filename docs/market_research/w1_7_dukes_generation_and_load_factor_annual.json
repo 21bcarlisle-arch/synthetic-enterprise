@@ -1,0 +1,89 @@
+{
+  "_provenance": {
+    "source": "DESNZ Energy Trends Table ET 6.1, 'Annual' worksheet: rows 25-40 'ELECTRICITY GENERATED (GWh)' and rows 42-54 'LOAD FACTORS (%)'. Same workbook already cited for installed capacity (w1_7_dukes_installed_capacity_annual.json) and mix share (w1_7_desnz_mix_share_annual.json) -- one source, three different tables within it.",
+    "url": "https://assets.publishing.service.gov.uk/media/6a6a0cabb0205b954abca5a8/ET_6.1_JUL_26.xlsx",
+    "landing_page": "https://www.gov.uk/government/statistics/energy-trends-section-6-renewables",
+    "fetched": "2026-08-03",
+    "http_status": 200,
+    "units": "generation_gwh: GWh (annual electricity generated); load_factor_pct: percent (annual average load factor, note 12)",
+    "measurement_basis": "Per Notes 6/8/12: generation is actual output where metered (mostly larger RO/FiT-accredited sites), load factor = actual generation / (installed capacity x hours in year), DESNZ own calculation -- same independent collection pipeline as the mix-share table (row 56-64), NOT the Elexon AGWS settlement feed sim/weather_price_chain.py ingests.",
+    "used_by": "sim/renewable_capacity_trend.py -- real_generation_*_gwh(), real_load_factor(), implied_generation_gwh() (capacity x load factor -> energy), check_capacity_load_factor_reconciles_to_generation, check_onshore_offshore_generation_split_vs_real",
+    "note_offshore": "offshore = 'Offshore wind' generation row 27, already combined (unlike the capacity table which splits seabed/floating -- the generation/load-factor tables report offshore as one series)."
+  },
+  "generation_gwh": {
+    "onshore_wind": {
+      "2016": 20753.68,
+      "2017": 28725.23,
+      "2018": 30382.410000000003,
+      "2019": 31859.739999999998,
+      "2020": 34872.9,
+      "2021": 29326.62,
+      "2022": 35101.71000000001,
+      "2023": 33332.44,
+      "2024": 34813.27,
+      "2025": 34419.45
+    },
+    "offshore_wind": {
+      "2016": 16405.74,
+      "2017": 20915.92,
+      "2018": 26525.199999999997,
+      "2019": 31975.15,
+      "2020": 40750.26,
+      "2021": 35597.29,
+      "2022": 45112.69,
+      "2023": 49434.979999999996,
+      "2024": 48804.71000000001,
+      "2025": 52020.69
+    },
+    "solar": {
+      "2016": 10395.13,
+      "2017": 11457.240000000002,
+      "2018": 12668.4,
+      "2019": 12418.050000000001,
+      "2020": 12547.1,
+      "2021": 12128.360000000002,
+      "2022": 13983.25,
+      "2023": 14891.53,
+      "2024": 14991.71,
+      "2025": 20124.56
+    }
+  },
+  "load_factor_pct": {
+    "onshore_wind": {
+      "2016": 23.57,
+      "2017": 27.99,
+      "2018": 26.66,
+      "2019": 26.52,
+      "2020": 28.28,
+      "2021": 23.44,
+      "2022": 27.32,
+      "2023": 25.06,
+      "2024": 24.98,
+      "2025": 24.08
+    },
+    "offshore_wind": {
+      "2016": 35.96,
+      "2017": 38.98,
+      "2018": 40.08,
+      "2019": 40.54,
+      "2020": 45.92,
+      "2021": 37.75,
+      "2022": 41.29,
+      "2023": 39.71,
+      "2024": 36.18,
+      "2025": 36.4
+    },
+    "solar": {
+      "2016": 11,
+      "2017": 10.6,
+      "2018": 11.2,
+      "2019": 10.74,
+      "2020": 10.54,
+      "2021": 9.88,
+      "2022": 10.98,
+      "2023": 10.5,
+      "2024": 9.22,
+      "2025": 11.11
+    }
+  }
+}

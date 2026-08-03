@@ -60,6 +60,29 @@ HONESTY BOUNDARIES (R15 + FRAME §10, load-bearing — do NOT overclaim):
     both forms (effective-fleet: honest FAIL; real-capacity: honest PASS), A2 (load-factor
     residual bounded: PASS) and A3 (mix-share vs independent DESNZ series: PASS) with
     real ingested data, and A4 FAIL-LOUD-on-missing-source.
+  * 2026-08-03 GENERATION-MIX-EVOLUTION PASS (same-day follow-on fork): the atom's own
+    namesake artifact — energy by technology by year — was still missing; A1-A4 only ever
+    compared capacity/share LEVELS, never built "capacity × load factor → energy". Two
+    further tables from the SAME already-cited ET 6.1 workbook (`ELECTRICITY GENERATED
+    (GWh)`, `LOAD FACTORS (%)`, both DESNZ's own published figures, independent of AGWS)
+    are now ingested (`docs/market_research/w1_7_dukes_generation_and_load_factor_annual.json`).
+    Two new mutation-tested invariants:
+    - **A5** (`check_capacity_load_factor_reconciles_to_generation`): real capacity ×
+      real load factor × real calendar hours reconstructs real published generation
+      within a pre-stated 25% tolerance, for all 30 technology-year cells 2016-2025 —
+      PASSES (observed max gap 14.1%, offshore 2017; the gap is a genuine, reported
+      artifact of DUKES's year-END capacity convention vs a growing fleet's
+      year-AVERAGE capacity, i.e. exactly the commissioning-date-smoothing FRAME §4
+      names as the remaining L2 item — NOT fixed here, still needs sub-annual
+      commissioning dates this sim does not ingest).
+    - **A6** (`check_onshore_offshore_generation_split_vs_real`): the sim's AGWS-fitted
+      onshore-share-of-wind vs the REAL DUKES/DESNZ onshore-share-of-wind-generation —
+      a genuinely different comparison from A3 (wind vs solar): checks the balance
+      *within* wind. PASSES within a pre-stated 0.20 tolerance (observed max gap 0.100,
+      2022; sim runs consistently a few points high on onshore).
+    Still NOT touched (out of this atom's file_scope, `sim/price_engine.py`): the FRAME
+    §4 coal→gas→wind marginal-plant re-stacking. See "What remains genuinely open" in
+    the market-research doc for the full honest accounting.
 
 R13 wall: historical capacity is BASELINE (this module — fidelity-only, blind to P&L).
 The forward window is CURRICULUM (a director-authored buildout scenario); the plain
@@ -723,3 +746,204 @@ def check_no_coal_after_retirement(coal_capacity_by_year: dict | None) -> bool:
         )
     return all(v == 0 for y, v in coal_capacity_by_year.items()
                if y > LAST_COAL_GENERATION_YEAR)
+
+
+# ── L2: GENERATION-MIX EVOLUTION — capacity x load-factor -> energy by technology by ────
+# year, reconciled against real published generation (2026-08-03, this fork). The prior
+# passes separated CAPACITY (DUKES) from the AGWS-fitted EFFECTIVE FLEET (load_factor_
+# residual, above) but never built the atom's own namesake artifact: "generation-mix
+# EVOLUTION over time" as an actual energy quantity per technology per year. The SAME ET
+# 6.1 workbook already cited (docs/market_research/w1_7_renewable_capacity_dukes_desnz.md)
+# carries two further tables not yet ingested: "ELECTRICITY GENERATED (GWh)" (rows 25-40)
+# and "LOAD FACTORS (%)" (rows 42-54) — DESNZ's OWN published generation-by-technology and
+# DESNZ's OWN published load factor, from the SAME independent (non-AGWS) collection
+# pipeline as the mix-share table already ingested (accreditation-register capacity x
+# actual-metered-or-typical-load-factor generation — see that JSON's own provenance note).
+# Full sourcing + the observed reconciliation gaps: docs/market_research/
+# w1_7_dukes_generation_and_load_factor_annual.md (this fork's addendum).
+
+GENERATION_LOAD_FACTOR_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "market_research" / "w1_7_dukes_generation_and_load_factor_annual.json"
+)
+
+# Calendar hours per real year 2016-2025 (leap-year correct: 2016/2020/2024 are leap).
+_HOURS_PER_YEAR = {
+    2016: 8784, 2017: 8760, 2018: 8760, 2019: 8760, 2020: 8784,
+    2021: 8760, 2022: 8760, 2023: 8760, 2024: 8784, 2025: 8760,
+}
+
+_GENERATION_TECH_KEYS = ("onshore_wind", "offshore_wind", "solar")
+
+
+class RealGenerationSourceUnavailableError(RuntimeError):
+    """Same R15 FAIL-SILENT discipline as `RealCapacitySourceUnavailableError`: the real
+    DUKES/Energy Trends generation+load-factor table is not on disk — every accessor below
+    fails LOUD rather than silently falling back to a derived/estimated figure."""
+
+
+@lru_cache(maxsize=1)
+def _load_dukes_generation(source_path=None) -> dict:
+    path = Path(source_path) if source_path else GENERATION_LOAD_FACTOR_PATH
+    if not path.exists():
+        raise RealGenerationSourceUnavailableError(
+            f"real DUKES/Energy Trends generation+load-factor series not found at {path} "
+            "— refusing to silently fall back to a derived estimate."
+        )
+    data = json.loads(path.read_text())
+    for section in ("generation_gwh", "load_factor_pct"):
+        for key in _GENERATION_TECH_KEYS:
+            if not data.get(section, {}).get(key):
+                raise RealGenerationSourceUnavailableError(
+                    f"real DUKES generation file at {path} is missing/empty '{section}.{key}'"
+                )
+    return data
+
+
+def _hours_in_year(year: int) -> int:
+    y = min(max(int(year), 2016), 2025)  # same R13 hold-flat clamp as the capacity series
+    return _HOURS_PER_YEAR[y]
+
+
+def real_generation_gwh(technology: str, year: int, source_path=None) -> float:
+    """Real published annual generation (GWh) for `technology` in
+    {"onshore_wind", "offshore_wind", "solar"} — DESNZ ET 6.1 rows 25-40, independent of
+    the AGWS settlement feed the sim's effective fleet (above) is fitted to."""
+    if technology not in _GENERATION_TECH_KEYS:
+        raise ValueError(f"unknown technology {technology!r}; expected one of {_GENERATION_TECH_KEYS}")
+    data = _load_dukes_generation(source_path)
+    series = data["generation_gwh"][technology]
+    y = _clamped_dukes_year(year, series)
+    return float(series[str(y)])
+
+
+def real_load_factor(technology: str, year: int, source_path=None) -> float:
+    """Real published annual average load factor (fraction, 0-1) for `technology` —
+    DESNZ ET 6.1 rows 42-54, DESNZ's own actual-generation/(capacity x hours) figure."""
+    if technology not in _GENERATION_TECH_KEYS:
+        raise ValueError(f"unknown technology {technology!r}; expected one of {_GENERATION_TECH_KEYS}")
+    data = _load_dukes_generation(source_path)
+    series = data["load_factor_pct"][technology]
+    y = _clamped_dukes_year(year, series)
+    return float(series[str(y)]) / 100.0
+
+
+_REAL_CAPACITY_FOR_GENERATION_TECH = {
+    "onshore_wind": real_capacity_wind_onshore,
+    "offshore_wind": real_capacity_wind_offshore,
+    "solar": real_capacity_solar,
+}
+
+
+def implied_generation_gwh(technology: str, year: int, source_path=None,
+                           capacity_source_path=None) -> float:
+    """THE generation-mix-evolution mechanism this atom's own name promises: capacity x
+    load factor -> energy, by technology, by year. `capacity` = real installed capacity
+    (MW, DUKES, `capacity_source_path` — a DIFFERENT file from the generation/load-factor
+    one); `load_factor` = real published annual load factor (DESNZ, `source_path`);
+    `hours` = actual calendar hours in that year (leap-year correct, R13 hold-flat clamp
+    outside 2016-2025). Returns GWh."""
+    if technology not in _REAL_CAPACITY_FOR_GENERATION_TECH:
+        raise ValueError(f"unknown technology {technology!r}; expected one of "
+                         f"{sorted(_REAL_CAPACITY_FOR_GENERATION_TECH)}")
+    capacity_mw = _REAL_CAPACITY_FOR_GENERATION_TECH[technology](year, capacity_source_path)
+    lf = real_load_factor(technology, year, source_path)
+    hours = _hours_in_year(year)
+    return capacity_mw * lf * hours / 1000.0
+
+
+# Pre-stated (not fitted) tolerance for the capacity x load-factor -> energy
+# reconciliation. The real observed gap (docs/market_research/
+# w1_7_dukes_generation_and_load_factor_annual.md) spans 0.3%-14.1% across all 30
+# technology-year cells 2016-2025, driven by year-END installed capacity (the DUKES
+# convention) vs the year's AVERAGE capacity during a fast-growth year (a real, named,
+# NOT-fixed simplification — capacity is not commissioning-date-smoothed within the year,
+# exactly the FRAME §4 L2 item this pass does not touch, out of file_scope: it would need
+# sub-annual commissioning dates this sim does not ingest). 0.25 leaves real headroom
+# above the observed max 14.1% (R12's anti-goal-seek sibling — set before re-deriving the
+# exact per-cell errors below, not narrowed to fit them).
+_GENERATION_RECONCILIATION_TOLERANCE = 0.25
+
+
+def check_capacity_load_factor_reconciles_to_generation(
+    technology: str | None = None, source_path=None, capacity_source_path=None,
+    tol_frac: float = _GENERATION_RECONCILIATION_TOLERANCE,
+) -> bool:
+    """A5: capacity x load_factor (both real DUKES/DESNZ) reconstructs real published
+    generation within a pre-stated tolerance, for every year 2016-2025 and every
+    technology (or one named technology if given). This is the literal mechanism the
+    atom's generation-mix-evolution exit criterion names, and it doubles as a genuine
+    data-integrity guard: a transcription error in either the capacity or load-factor
+    JSON (or an arithmetic bug in `implied_generation_gwh`) throws the two apart far more
+    than 25% and fires (R15 mutation-proven in tests/sim). Never a vacuous pass — it
+    iterates every real year for the requested technology(ies), returning False if fewer
+    than 2 years are available."""
+    data = _load_dukes_generation(source_path)
+    techs = [technology] if technology else list(_GENERATION_TECH_KEYS)
+    for t in techs:
+        if t not in _GENERATION_TECH_KEYS:
+            raise ValueError(f"unknown technology {t!r}; expected one of {_GENERATION_TECH_KEYS}")
+        years = sorted(int(y) for y in data["generation_gwh"][t])
+        if len(years) < 2:
+            return False  # never a vacuous pass (R15)
+        for y in years:
+            real = real_generation_gwh(t, y, source_path)
+            implied = implied_generation_gwh(t, y, source_path, capacity_source_path)
+            if real <= 0:
+                return False
+            if abs(implied - real) / real > tol_frac:
+                return False
+    return True
+
+
+def real_onshore_offshore_generation_share(year: int, source_path=None) -> float:
+    """Real onshore wind's share of (onshore + offshore) generation, DESNZ ET 6.1 rows
+    26/27 — independent of AGWS, and a DIFFERENT comparison from A3 (which nets wind
+    against solar): this checks the split WITHIN wind."""
+    onshore = real_generation_gwh("onshore_wind", year, source_path)
+    offshore = real_generation_gwh("offshore_wind", year, source_path)
+    denom = onshore + offshore
+    if denom <= 0:
+        raise RealGenerationSourceUnavailableError(
+            f"non-positive real onshore+offshore generation for year {year}"
+        )
+    return onshore / denom
+
+
+# Pre-stated (not fitted) tolerance for A6 — set with real headroom above the observed
+# per-year gap (docs/market_research/w1_7_dukes_generation_and_load_factor_annual.md),
+# which sits ~0.028-0.100 across 2017-2024 (the sim over-weights ONSHORE relative to the
+# real generation split, consistent with load_factor_residual's finding that the wind
+# power-curve fit is offshore/onshore-non-differentiating — both use the same national
+# wind-speed fraction, see `fleet_trajectory`'s R10 SIMPLIFICATION note above).
+_ONSHORE_OFFSHORE_SPLIT_TOLERANCE = 0.20
+
+
+def check_onshore_offshore_generation_split_vs_real(
+    traj: dict | None = None, source_path=None, tolerance: float = _ONSHORE_OFFSHORE_SPLIT_TOLERANCE,
+) -> bool:
+    """A6: the sim's AGWS-fitted onshore:offshore wind SPLIT
+    (`wind_onshore_fleet_mw` / (`wind_onshore_fleet_mw` + `wind_offshore_fleet_mw`)) vs
+    the REAL DUKES/DESNZ onshore:offshore GENERATION split — a genuinely different
+    comparison from A3 (wind vs solar) and from A1/A2/load_factor_residual (capacity vs
+    load-factor level): this checks whether the sim's psrType-level fit tracks the real
+    BALANCE *within* wind, not just wind's overall level or trend. Real result (this
+    pass): both series track (onshore's share of wind falls steadily 2017-2024 as
+    offshore is built out faster) but the sim's onshore share runs consistently a few
+    points ABOVE the real one (max gap ~0.100, 2022) — within the pre-stated 0.20
+    tolerance. Never a vacuous pass — fewer than 2 comparable years fails (R15)."""
+    traj = traj if traj is not None else fleet_trajectory()
+    years = [y for y in magnitude_bearing_years(traj)
+             if "wind_onshore_fleet_mw" in traj[y] and "wind_offshore_fleet_mw" in traj[y]]
+    if len(years) < 2:
+        return False  # never a vacuous pass (R15)
+    for y in years:
+        real_onshore_share = real_onshore_offshore_generation_share(y, source_path)
+        cell = traj[y]
+        sim_denom = cell["wind_onshore_fleet_mw"] + cell["wind_offshore_fleet_mw"]
+        if sim_denom <= 0:
+            return False
+        sim_onshore_share = cell["wind_onshore_fleet_mw"] / sim_denom
+        if abs(real_onshore_share - sim_onshore_share) > tolerance:
+            return False
+    return True

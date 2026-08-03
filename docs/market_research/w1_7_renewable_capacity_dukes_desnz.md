@@ -163,3 +163,80 @@ wild-swinging residual.
   `company/pricing/` has `weather_price_belief.py` and `weather_normalisation_belief.py`, neither
   of which models the shifting generation *mix* — a belief about capacity/mix-share specifically.
   L3 remains correctly walled (COUPLED_TRIAD rule 1).
+
+## 2026-08-03 follow-on pass: GENERATION-MIX EVOLUTION (capacity × load factor → energy)
+
+The atom's own name promises "generation-mix evolution over time" — but nothing built so far
+computed an actual **energy** quantity by technology by year; A1-A4 only ever compared
+capacity/share **levels**. This pass ingests two further tables from the **same already-cited**
+ET 6.1 workbook (`w1_7_dukes_generation_and_load_factor_annual.json`, fetched 2026-08-03, HTTP
+200, same URL as the capacity/mix-share tables above): "ELECTRICITY GENERATED (GWh)" (Annual
+sheet rows 25-40) and "LOAD FACTORS (%)" (rows 42-54) — DESNZ's own published generation-by-
+technology and load-factor figures, same independent (non-AGWS) collection pipeline as the
+mix-share table.
+
+### Real generation (GWh) and load factor (%), 2016 & 2025 (full 2016-2025 series in the JSON)
+
+| Technology | 2016 generation | 2016 LF | 2025 generation | 2025 LF |
+|---|---|---|---|---|
+| Onshore wind | 20,753.7 GWh | 23.57% | 34,419.5 GWh | 24.08% |
+| Offshore wind | 16,405.7 GWh | 35.96% | 52,020.7 GWh | 36.40% |
+| Solar PV | 10,395.1 GWh | 11.00% | 20,124.6 GWh | 11.11% |
+
+### A5 — capacity × load factor → energy, reconciled against real published generation
+
+`implied_generation_gwh(tech, year) = real_capacity_mw(tech, year) × real_load_factor(tech, year)
+× hours_in_year(year) / 1000` (leap-year-correct hours) vs `real_generation_gwh(tech, year)`
+(same source, direct). Error across all 30 technology-year cells 2016-2025:
+
+| Technology | Min error | Max error | Typical driver of the gap |
+|---|---|---|---|
+| Onshore wind | 0.3% (2020) | 8.1% (2016) | year-end vs year-average capacity |
+| Offshore wind | 1.9% (2016) | **14.1% (2017)** | fastest-growth years show the largest gap |
+| Solar PV | 1.1% (2018/2019) | 10.7% (2016) | year-end vs year-average capacity |
+
+`check_capacity_load_factor_reconciles_to_generation` (A5) uses a **pre-stated** 25% tolerance
+(set with real headroom above the observed 14.1% max, before re-deriving these numbers) — PASSES
+on every technology-year cell. The gap's mechanism (R4): DUKES publishes **cumulative capacity at
+calendar year END**, not the year's time-weighted average — in a fast-growth year (2017 offshore:
++1,725MW, +33% in one year) the year-end figure overstates the capacity that was actually online
+for most of the year, so `capacity × LF` overstates generation. This is precisely the FRAME §4
+"commissioning-date smoothing" item, confirmed here as a real, measured, unfixed gap — fixing it
+needs sub-annual commissioning dates this sim does not ingest (out of this atom's file_scope,
+`sim/price_engine.py`).
+
+### A6 — the split WITHIN wind (onshore vs offshore), a genuinely different check from A3
+
+A3 (existing) compares wind's share of (wind+solar). A6 (new) compares onshore's share of
+(onshore+offshore) — i.e. the split *within* wind, using the real DESNZ generation series
+directly (`real_onshore_offshore_generation_share`) against the sim's AGWS-fitted
+`wind_onshore_fleet_mw / (wind_onshore_fleet_mw + wind_offshore_fleet_mw)`:
+
+| Year | Real onshore share | Sim onshore share | Gap |
+|---|---|---|---|
+| 2017 | 0.5787 | 0.6065 | 0.028 |
+| 2018 | 0.5339 | 0.6302 | 0.096 |
+| 2019 | 0.4991 | 0.5553 | 0.056 |
+| 2020 | 0.4611 | 0.4910 | 0.030 |
+| 2021 | 0.4517 | 0.4940 | 0.042 |
+| 2022 | 0.4376 | 0.5379 | **0.100** |
+| 2023 | 0.4027 | 0.5021 | 0.099 |
+| 2024 | 0.4163 | 0.5079 | 0.092 |
+
+Both series show the same real trend (offshore's real-world build-out overtakes onshore's share
+of wind generation across the window — matches the DUKES Ch.6 narrative finding above, "offshore
+wind capacity overtook onshore wind capacity for the first time in 2025"), but the sim runs a
+few points high on onshore throughout — consistent with `load_factor_residual`'s existing finding
+that the power curve does not differentiate onshore from offshore siting (both use the same
+national wind-speed fraction). `check_onshore_offshore_generation_split_vs_real` (A6) PASSES at a
+pre-stated 0.20 tolerance (real headroom above the observed 0.100 max).
+
+### What this pass buys, honestly
+
+- A genuine `implied_generation_gwh()` — capacity × load factor → energy, the literal mechanism
+  the atom's own name promises — now exists, is real (DUKES capacity × DESNZ load factor), and
+  is mutation-tested (transcription-error fixture proven to fire A5).
+- The commissioning-date-smoothing gap (FRAME §4) is now **measured** (0.3%-14.1%), not merely
+  named — a concrete, sourced target for whichever fork later builds the smoothing.
+- Does **NOT** close the FRAME's own named L2 bar (`sim/price_engine.py` re-stacking, out of
+  file_scope this pass) — see the module docstring for the honest level assessment.

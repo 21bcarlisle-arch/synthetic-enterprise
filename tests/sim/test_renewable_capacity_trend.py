@@ -536,3 +536,190 @@ def test_clamped_year_is_fail_closed_when_no_year_is_magnitude_bearing():
     assert rct.magnitude_bearing_years(all_thin) == []
     with pytest.raises(rct.DegenerateTrajectoryError):
         rct._clamped_year(2025, all_thin)
+
+
+# ── L2: GENERATION-MIX EVOLUTION -- capacity x load-factor -> energy (2026-08-03) ───────
+# Cites real published figures directly (DESNZ Energy Trends Table ET 6.1, Annual sheet,
+# rows 25-40 "ELECTRICITY GENERATED (GWh)" and rows 42-54 "LOAD FACTORS (%)" -- fetched
+# 2026-08-03, https://assets.publishing.service.gov.uk/media/6a6a0cabb0205b954abca5a8/
+# ET_6.1_JUL_26.xlsx, HTTP 200 -- see docs/market_research/
+# w1_7_dukes_generation_and_load_factor_annual.json for the full extracted series).
+
+def test_real_generation_and_load_factor_match_the_published_figures():
+    """Cites the real published 2016 and 2025 figures directly (not re-derived from
+    the JSON under test -- an independent literal check against the source table)."""
+    # DESNZ ET 6.1 Annual sheet, row 26 (onshore generation) and row 43 (onshore LF).
+    assert rct.real_generation_gwh("onshore_wind", 2016) == pytest.approx(20753.68, abs=0.5)
+    assert rct.real_load_factor("onshore_wind", 2016) == pytest.approx(0.2357, abs=1e-3)
+    # row 27 (offshore generation) and row 44 (offshore LF), 2025.
+    assert rct.real_generation_gwh("offshore_wind", 2025) == pytest.approx(52020.69, abs=0.5)
+    assert rct.real_load_factor("offshore_wind", 2025) == pytest.approx(0.364, abs=1e-3)
+    # row 29 (solar generation) and row 45 (solar LF), 2020.
+    assert rct.real_generation_gwh("solar", 2020) == pytest.approx(12547.1, abs=0.5)
+    assert rct.real_load_factor("solar", 2020) == pytest.approx(0.1054, abs=1e-3)
+
+
+def test_real_generation_and_load_factor_clamp_flat_outside_window_R13():
+    assert rct.real_generation_gwh("solar", 2050) == rct.real_generation_gwh("solar", 2025)
+    assert rct.real_load_factor("offshore_wind", 2000) == rct.real_load_factor("offshore_wind", 2016)
+
+
+def test_real_generation_rejects_unknown_technology():
+    with pytest.raises(ValueError):
+        rct.real_generation_gwh("nuclear", 2020)
+    with pytest.raises(ValueError):
+        rct.real_load_factor("nuclear", 2020)
+    with pytest.raises(ValueError):
+        rct.implied_generation_gwh("nuclear", 2020)
+
+
+def test_generation_source_FAILS_LOUD_when_missing():
+    rct._load_dukes_generation.cache_clear()
+    with pytest.raises(rct.RealGenerationSourceUnavailableError):
+        rct.real_generation_gwh("solar", 2020, source_path="/nonexistent/dukes_gen.json")
+    rct._load_dukes_generation.cache_clear()
+
+
+def test_implied_generation_uses_leap_year_hours_correctly():
+    """2016/2020/2024 are leap years (8784h); 2017/2018/... are 8760h. A pure
+    arithmetic check independent of the real data files."""
+    cap = rct.real_capacity_solar(2020)
+    lf = rct.real_load_factor("solar", 2020)
+    expected = cap * lf * 8784 / 1000.0
+    assert rct.implied_generation_gwh("solar", 2020) == pytest.approx(expected, rel=1e-9)
+
+
+def test_a5_capacity_load_factor_reconciles_to_generation_on_real_data():
+    """Real result (this pass): every technology-year cell 2016-2025 reconstructs real
+    published generation within the pre-stated 25% tolerance (observed max 14.08%,
+    offshore 2017) -- if this ever flips False, re-check the market-research doc's
+    per-cell table before assuming regression."""
+    assert rct.check_capacity_load_factor_reconciles_to_generation() is True
+    for tech in ("onshore_wind", "offshore_wind", "solar"):
+        assert rct.check_capacity_load_factor_reconciles_to_generation(tech) is True
+
+
+def test_a5_FIRES_on_a_transcription_error_mutation():
+    """R15 KILLER MUTATION: a hand-crafted fixture where the load-factor JSON has a
+    transcription error (10x too high) for one year must fire -- proving A5 is a real
+    data-integrity guard, not vacuously true."""
+    real_gen = {"2016": 1000.0, "2017": 1100.0, "2018": 1200.0}
+    compliant_lf = {"2016": 25.0, "2017": 25.0, "2018": 25.0}  # roughly matches gen/cap*8760
+    cap_fixture = {"onshore_mw": {"2016": 456.6, "2017": 502.3, "2018": 547.9},
+                   "offshore_mw": {"2016": 1.0, "2017": 1.0, "2018": 1.0},
+                   "solar_mw": {"2016": 1.0, "2017": 1.0, "2018": 1.0}}
+    gen_fixture = {"generation_gwh": {"onshore_wind": real_gen,
+                                      "offshore_wind": {"2016": 1.0, "2017": 1.0, "2018": 1.0},
+                                      "solar": {"2016": 1.0, "2017": 1.0, "2018": 1.0}},
+                   "load_factor_pct": {"onshore_wind": dict(compliant_lf),
+                                       "offshore_wind": {"2016": 25.0, "2017": 25.0, "2018": 25.0},
+                                       "solar": {"2016": 25.0, "2017": 25.0, "2018": 25.0}}}
+    cap_path = Path("/tmp/w1_7_test_a5_cap.json")
+    gen_path = Path("/tmp/w1_7_test_a5_gen.json")
+    cap_path.write_text(json.dumps(cap_fixture))
+    gen_path.write_text(json.dumps(gen_fixture))
+    # The reconciliation reads BOTH the capacity JSON (`capacity_source_path`) and the
+    # generation/load-factor JSON (`source_path`) -- two independent files by design.
+    try:
+        assert rct.check_capacity_load_factor_reconciles_to_generation(
+            "onshore_wind", source_path=str(gen_path),
+            capacity_source_path=str(cap_path)) is True
+
+        mutant = json.loads(json.dumps(gen_fixture))
+        mutant["load_factor_pct"]["onshore_wind"]["2017"] = 250.0  # THE MUTATION: 10x error
+        mutant_path = Path("/tmp/w1_7_test_a5_gen_mutant.json")
+        mutant_path.write_text(json.dumps(mutant))
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_capacity_load_factor_reconciles_to_generation(
+            "onshore_wind", source_path=str(mutant_path),
+            capacity_source_path=str(cap_path)) is False
+    finally:
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+        cap_path.unlink(missing_ok=True)
+        gen_path.unlink(missing_ok=True)
+        Path("/tmp/w1_7_test_a5_gen_mutant.json").unlink(missing_ok=True)
+
+
+def test_a5_fails_on_fewer_than_two_years():
+    fixture = {"generation_gwh": {"onshore_wind": {"2020": 100.0},
+                                  "offshore_wind": {"2020": 100.0}, "solar": {"2020": 100.0}},
+               "load_factor_pct": {"onshore_wind": {"2020": 25.0},
+                                   "offshore_wind": {"2020": 25.0}, "solar": {"2020": 25.0}}}
+    tmp = Path("/tmp/w1_7_test_a5_thin.json")
+    tmp.write_text(json.dumps(fixture))
+    try:
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_capacity_load_factor_reconciles_to_generation(
+            "onshore_wind", source_path=str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dukes_generation.cache_clear()
+
+
+def test_a5_rejects_unknown_technology():
+    with pytest.raises(ValueError):
+        rct.check_capacity_load_factor_reconciles_to_generation("nuclear")
+
+
+def test_a6_onshore_offshore_generation_split_holds_on_real_data():
+    """Real result (this pass): the sim's AGWS-fitted onshore share of wind runs
+    consistently a few points above the real DUKES/DESNZ generation split (max gap
+    ~0.100, 2022) -- within the pre-stated 0.20 tolerance. If this ever flips False,
+    re-check the market-research doc's per-year table before assuming regression."""
+    assert rct.check_onshore_offshore_generation_split_vs_real() is True
+
+
+def test_a6_FIRES_on_a_diverging_mutation():
+    """R15 KILLER MUTATION: a fixture where the real onshore/offshore generation split
+    is inverted relative to the sim's fitted split must fire."""
+    traj = rct.fleet_trajectory()
+    years = [y for y in rct.magnitude_bearing_years(traj)
+             if "wind_onshore_fleet_mw" in traj[y] and "wind_offshore_fleet_mw" in traj[y]]
+    assert len(years) >= 2
+    mutant = {"generation_gwh": {"onshore_wind": {}, "offshore_wind": {}, "solar": {}},
+              "load_factor_pct": {"onshore_wind": {}, "offshore_wind": {}, "solar": {}}}
+    for y in years:
+        cell = traj[y]
+        sim_onshore_share = cell["wind_onshore_fleet_mw"] / (
+            cell["wind_onshore_fleet_mw"] + cell["wind_offshore_fleet_mw"])
+        # THE MUTATION: invert the split (1 - sim_share) so it diverges maximally
+        # from what the sim itself implies, rather than tracking it.
+        inverted_share = 1.0 - sim_onshore_share
+        mutant["generation_gwh"]["onshore_wind"][str(y)] = inverted_share * 1000.0
+        mutant["generation_gwh"]["offshore_wind"][str(y)] = (1 - inverted_share) * 1000.0
+        mutant["generation_gwh"]["solar"][str(y)] = 1.0
+        mutant["load_factor_pct"]["onshore_wind"][str(y)] = 25.0
+        mutant["load_factor_pct"]["offshore_wind"][str(y)] = 25.0
+        mutant["load_factor_pct"]["solar"][str(y)] = 10.0
+    tmp = Path("/tmp/w1_7_test_a6_mutant.json")
+    tmp.write_text(json.dumps(mutant))
+    try:
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_onshore_offshore_generation_split_vs_real(traj, source_path=str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dukes_generation.cache_clear()
+
+
+def test_a6_fails_on_fewer_than_two_comparable_years():
+    assert rct.check_onshore_offshore_generation_split_vs_real(traj={}) is False
+    one_year = {2020: {"wind_onshore_fleet_mw": 1.0, "wind_offshore_fleet_mw": 1.0,
+                       "n_days": 360, "months_covered": 12, "magnitude_bearing": True}}
+    assert rct.check_onshore_offshore_generation_split_vs_real(traj=one_year) is False
+
+
+def test_real_onshore_offshore_generation_share_rejects_non_positive_denominator():
+    fixture = {"generation_gwh": {"onshore_wind": {"2020": 0.0}, "offshore_wind": {"2020": 0.0},
+                                  "solar": {"2020": 1.0}},
+              "load_factor_pct": {"onshore_wind": {"2020": 25.0}, "offshore_wind": {"2020": 25.0},
+                                  "solar": {"2020": 10.0}}}
+    tmp = Path("/tmp/w1_7_test_a6_zero_denom.json")
+    tmp.write_text(json.dumps(fixture))
+    try:
+        rct._load_dukes_generation.cache_clear()
+        with pytest.raises(rct.RealGenerationSourceUnavailableError):
+            rct.real_onshore_offshore_generation_share(2020, source_path=str(tmp))
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dukes_generation.cache_clear()
