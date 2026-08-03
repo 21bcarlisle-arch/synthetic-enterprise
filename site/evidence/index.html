@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Evidence behind the model</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+  font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 36px 20px 64px; }
+.crumb { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.crumb a { color: var(--blue); text-decoration: none; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 36px 0 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.stage-badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); }
+.ev-live { color: var(--green); }
+.ev-building { color: var(--amber); }
+.ev-planned { color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.ev-atom-id { color: var(--blue); }
+.ok { color: var(--green); font-weight: 700; }
+.no { color: var(--red); font-weight: 700; }
+.gap { color: var(--amber); font-weight: 700; }
+details { margin-top: 8px; }
+summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.prov { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 6px;
+  border-left: 2px solid var(--border); padding-left: 10px; }
+.nodelist { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.nodecard { display: block; text-decoration: none; color: inherit; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.nodecard:hover { border-color: var(--blue); }
+.nodecard h3 { font-size: 15px; margin-bottom: 6px; }
+footer { margin-top: 48px; padding: 20px 0; border-top: 1px solid var(--border);
+  text-align: center; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo wordmark">poesys.</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+</nav>
+<div class="wrap">
+
+<div class="crumb"><a href="../">Home</a> &rsaquo; Evidence</div>
+<h1 class="hero-h">The evidence behind the model</h1>
+<p class="hero-p">The front-door diagram makes six present-tense claims. Each one rests on a
+named set of maturity-map atoms, and each atom is at a level that something moved it to. These
+pages show that primary state directly &mdash; the levels, the recorded moves, the tests, the
+measured fidelity rows, the documents &mdash; so a claim on the diagram can be checked rather
+than taken on trust.</p>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-l">Nodes</div><div class="kpi-v">6</div></div>
+  <div class="kpi"><div class="kpi-l">Atom claims behind them</div><div class="kpi-v">46</div></div>
+  <div class="kpi"><div class="kpi-l">At target</div><div class="kpi-v">42</div></div>
+  <div class="kpi"><div class="kpi-l">Atoms in the whole map</div>
+    <div class="kpi-v">167</div></div>
+</div>
+
+<div class="sec">One page per node</div>
+<div class="nodelist">
+<a class="nodecard" href="./governance_method/">
+  <h3>Governance &amp; method</h3>
+  <div><span class="stage-badge ev-live">
+    <span class="ev-stage-word">Live</span></span></div>
+  <p class="muted" style="margin-top:8px;">11 of 11
+  atoms at target &middot; 543 test functions &middot;
+  3 recorded level moves</p>
+</a><a class="nodecard" href="./the_world/">
+  <h3>The world</h3>
+  <div><span class="stage-badge ev-live">
+    <span class="ev-stage-word">Live</span></span></div>
+  <p class="muted" style="margin-top:8px;">7 of 7
+  atoms at target &middot; 353 test functions &middot;
+  17 recorded level moves</p>
+</a><a class="nodecard" href="./the_households/">
+  <h3>The households</h3>
+  <div><span class="stage-badge ev-live">
+    <span class="ev-stage-word">Live</span></span></div>
+  <p class="muted" style="margin-top:8px;">7 of 7
+  atoms at target &middot; 611 test functions &middot;
+  0 recorded level moves</p>
+</a><a class="nodecard" href="./the_wall/">
+  <h3>The wall</h3>
+  <div><span class="stage-badge ev-live">
+    <span class="ev-stage-word">Live</span></span></div>
+  <p class="muted" style="margin-top:8px;">4 of 4
+  atoms at target &middot; 60 test functions &middot;
+  3 recorded level moves</p>
+</a><a class="nodecard" href="./the_company/">
+  <h3>The company</h3>
+  <div><span class="stage-badge ev-building">
+    <span class="ev-stage-word">Building</span></span></div>
+  <p class="muted" style="margin-top:8px;">11 of 12
+  atoms at target &middot; 1208 test functions &middot;
+  0 recorded level moves</p>
+</a><a class="nodecard" href="./the_score/">
+  <h3>The score</h3>
+  <div><span class="stage-badge ev-building">
+    <span class="ev-stage-word">Building</span></span></div>
+  <p class="muted" style="margin-top:8px;">2 of 5
+  atoms at target &middot; 105 test functions &middot;
+  4 recorded level moves</p>
+</a>
+</div>
+
+<div class="sec">What would make these pages fail</div>
+<div class="card">
+  <p class="muted">A node claiming a stage its atoms do not support, a node that walks to no
+  page, a page rendering a level the maturity map no longer holds, or a page with no primary
+  state on it at all &mdash; each of those blocks publication
+  (<code>tools/moap_evidence_gate.py</code>, proven to fire on every one of those defects in
+  <code>tests/tools/test_site_evidence_pages.py</code>). A control that cannot fail is worth
+  nothing, so this one is tested by breaking it on purpose.</p>
+</div>
+
+<div class="sec">Where these figures come from</div>
+<div class="card">
+  <p class="muted">Every figure on this page is DERIVED at build time from the files below and
+  nothing else. No number here is typed in by hand; if a source moves and this page is not
+  regenerated, the publish gate
+  (<code>tools/moap_evidence_gate.py</code>) refuses to publish rather than let the page drift.</p>
+  <ul class="muted" style="margin-top:10px;padding-left:18px;"><li><code>docs/design/maturity_map.yaml</code> &mdash; sha256 <code>18df8aa61eea88f5</code></li><li><code>site/data/moap_node_atoms.json</code> &mdash; sha256 <code>2fa4c6f9927138ea</code></li><li><code>docs/observability/gate_authorizations.jsonl</code> &mdash; sha256 <code>8ea22ad144875072</code></li><li><code>docs/observability/fidelity_evidence_ledger.json</code> &mdash; sha256 <code>beebe41635d9f2f1</code></li></ul>
+  <p class="muted" style="margin-top:10px;">Derived at <strong>2026-08-03T07:41:01Z</strong>
+  from commit <code>f0ca05cf0</code>.</p>
+</div>
+<footer>&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</div>
+</body>
+</html>

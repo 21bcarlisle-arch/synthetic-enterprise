@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Evidence: Governance &amp; method</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="stylesheet" href="../../brand/brand.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+  font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 36px 20px 64px; }
+.crumb { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.crumb a { color: var(--blue); text-decoration: none; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 36px 0 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.stage-badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); }
+.ev-live { color: var(--green); }
+.ev-building { color: var(--amber); }
+.ev-planned { color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.ev-atom-id { color: var(--blue); }
+.ok { color: var(--green); font-weight: 700; }
+.no { color: var(--red); font-weight: 700; }
+.gap { color: var(--amber); font-weight: 700; }
+details { margin-top: 8px; }
+summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.prov { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 6px;
+  border-left: 2px solid var(--border); padding-left: 10px; }
+.nodelist { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.nodecard { display: block; text-decoration: none; color: inherit; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.nodecard:hover { border-color: var(--blue); }
+.nodecard h3 { font-size: 15px; margin-bottom: 6px; }
+footer { margin-top: 48px; padding: 20px 0; border-top: 1px solid var(--border);
+  text-align: center; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../../" class="nav-logo wordmark">poesys.</a>
+  <a href="../../" class="nav-link">Home</a>
+  <a href="../../world/" class="nav-link">The World</a>
+  <a href="../../company/" class="nav-link">The Company</a>
+  <a href="../../proof/" class="nav-link">Proof</a>
+</nav>
+<div class="wrap">
+
+<div class="crumb"><a href="../">Evidence</a> &rsaquo; Governance &amp; method</div>
+<h1 class="hero-h">Governance &amp; method &mdash; the evidence behind the claim</h1>
+<p class="hero-p">This is the primary state standing behind one node of the model-on-a-page
+diagram. Node <code class="ev-node-id">governance_method</code>. Nothing below is restated
+from a summary: every level, count and record is read from the files listed at the foot of
+this page each time it is built.</p>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-l">Derived stage</div><div class="kpi-v"><span class="stage-badge ev-live"><span class="ev-stage-word">Live</span></span></div></div>
+  <div class="kpi"><div class="kpi-l">Atoms at target</div>
+    <div class="kpi-v">11 / 11</div></div>
+  <div class="kpi"><div class="kpi-l">Test functions naming these atoms</div>
+    <div class="kpi-v">543</div></div>
+  <div class="kpi"><div class="kpi-l">Recorded level moves</div>
+    <div class="kpi-v">3</div></div>
+  <div class="kpi"><div class="kpi-l">Measured fidelity rows</div>
+    <div class="kpi-v">0</div></div>
+  <div class="kpi"><div class="kpi-l">Declared evidence docs resolving</div>
+    <div class="kpi-v">34 / 45</div></div>
+</div>
+
+<div class="card">
+  <div class="muted"><strong>How the stage word is derived.</strong> A node&#x27;s stage is a pure function of its mapped atoms&#x27; levels (docs/design/maturity_map.yaml level_current vs level_target): LIVE = every mapped atom at target; BUILDING = at least one below target; PLANNED = none started (all at level 0). Phase A does NOT compute stage -- it fixes the mapping and proves it coheres (every node has atoms, every atom ref is live, diagram and mapping agree on the node set). &#x27;declared_stage&#x27; records the stage the live site currently HAND-SETS, so Phase D can flag drift between it and the computed stage.</div>
+  <p class='muted'>Every atom behind this claim is at its target level, which is what makes the stage word &ldquo;Live&rdquo;. It is not a judgement; it is the rule below applied to the levels in the table.</p>
+  <p class='muted'>The diagram declares <strong>Live</strong>; the derivation computes <strong>Live</strong>. They agree.</p>
+  <p class="muted" style="margin-top:8px;">Walk to the figures themselves:
+  <a href="./proof/#method-anchor" style="color:var(--blue);">Governance &amp; method on the site</a>.</p>
+</div>
+
+<div class="sec">The atoms this claim rests on</div>
+<div class="card" style="overflow-x:auto;">
+<table>
+<thead><tr>
+  <th>Atom</th><th>Level now / target</th><th>State</th><th>Tests naming it</th>
+  <th>Level-move record</th><th>Fidelity rows</th><th>Declared evidence</th><th>Last commit in scope</th>
+</tr></thead>
+<tbody>
+<tr class="ev-atom" id="atom-A1_learn_loop_chair">
+<td><code class="ev-atom-id">A1_learn_loop_chair</code>
+  <div class="muted">Formalised learn-loop / retrospective cadence</div>
+  <div class="muted">lane A_strategy_governance &middot; loop stage idle
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td>91 in 4 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/background/test_daily_self_note.py</code> (28)</div><div><code>tests/background/test_deadmans_switch.py</code> (48)</div><div><code>tests/background/test_health_check.py</code> (15)</div><div><code>tests/background/test_retro_cadence_check.py</code> (0)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>docs/retrospectives/</code> <span class="ok">resolves</span><br><code>.claude/skills/incident-retro/SKILL.md</code> <span class="ok">resolves</span><br><code>background/retro_cadence_check.py</code> <span class="ok">resolves</span><br><code>tests/background/test_retro_cadence_check.py</code> <span class="ok">resolves</span><br><code>background/retro_cadence_check.py::last_retro(as_of=) (R15 fail-open guard)</code> <span class="gap">MISSING</span></td>
+<td><span class="muted">no file scope declared</span></td>
+</tr>
+<tr class="ev-atom" id="atom-A2_decision_rights_register">
+<td><code class="ev-atom-id">A2_decision_rights_register</code>
+  <div class="muted">Decision-rights register + bitemporal decision-event logging</div>
+  <div class="muted">lane A_strategy_governance &middot; loop stage idle
+  &middot; expert hour passed_execute_after_fix</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td>75 in 1 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/saas/test_ledger.py</code> (75)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>company/governance/decision_rights.py</code> <span class="ok">resolves</span><br><code>tests/company/governance/test_decision_rights.py</code> <span class="ok">resolves</span><br><code>simulation/renewals.py (real call site: pricing_move + L2 live approval caller _route_pricing_move)</code> <span class="gap">MISSING</span><br><code>tests/simulation/test_renewals.py (integration tests proving real decision-events land)</code> <span class="gap">MISSING</span><br><code>saas/ledger.py::build_ledger() (real call site: credit_collections_policy, every real bad-debt write-off)</code> <span class="gap">MISSING</span><br><code>tests/saas/test_ledger.py (integration tests proving real decision-events land for the second wired class)</code> <span class="gap">MISSING</span><br><code>company/interfaces/bitemporal_event_log.py (L3 immutability fix, commit e6198a77)</code> <span class="gap">MISSING</span><br><code>tests/company/interfaces/test_bitemporal_event_log.py (immutability regression)</code> <span class="gap">MISSING</span></td>
+<td><code>e6198a771</code><br><span class="muted">2026-07-13</span></td>
+</tr>
+<tr class="ev-atom" id="atom-A3_approval_interface">
+<td><code class="ev-atom-id">A3_approval_interface</code>
+  <div class="muted">Approval interface (requests-awaiting-decision surface, human-operable)</div>
+  <div class="muted">lane A_strategy_governance &middot; loop stage idle
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">2 / 2</td>
+<td><span class="ok">at target</span></td>
+<td>94 in 4 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/background/test_deadmans_switch.py</code> (48)</div><div><code>tests/company/governance/test_approval_interface.py</code> (14)</div><div><code>tests/company/governance/test_decision_rights.py</code> (24)</div><div><code>tests/simulation/test_renewals_approval_routing.py</code> (8)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md</code> <span class="ok">resolves</span><br><code>company/governance/approval_interface.py</code> <span class="ok">resolves</span><br><code>simulation/renewals.py::_route_pricing_move (L2 live caller)</code> <span class="gap">MISSING</span><br><code>tests/simulation/test_renewals_approval_routing.py (7 tests: outcome-neutrality + live caller)</code> <span class="gap">MISSING</span></td>
+<td><code>7e219b863</code><br><span class="muted">2026-07-27</span></td>
+</tr>
+<tr class="ev-atom" id="atom-F1_epistemic_verifier">
+<td><code class="ev-atom-id">F1_epistemic_verifier</code>
+  <div class="muted">SIM/company epistemic barrier verifier (static + timing)</div>
+  <div class="muted">lane F_risk_compliance &middot; loop stage harden
+  &middot; expert hour passed</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td><span class="gap">no module names this atom</span><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>tools/epistemic_verifier.py</code> <span class="ok">resolves</span></td>
+<td><code>c3c886e05</code><br><span class="muted">2026-07-29</span></td>
+</tr>
+<tr class="ev-atom" id="atom-F2_sanity_daemon">
+<td><code class="ev-atom-id">F2_sanity_daemon</code>
+  <div class="muted">Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting</div>
+  <div class="muted">lane F_risk_compliance &middot; loop stage harden
+  &middot; expert hour passed</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td><span class="gap">no module names this atom</span><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>background/sanity_daemon.py</code> <span class="ok">resolves</span></td>
+<td><code>08dc07e64</code><br><span class="muted">2026-07-17</span></td>
+</tr>
+<tr class="ev-atom" id="atom-F3_obligations_register">
+<td><code class="ev-atom-id">F3_obligations_register</code>
+  <div class="muted">Obligations register + domain invariants (risk-tiered compliance checks)</div>
+  <div class="muted">lane F_risk_compliance &middot; loop stage harden
+  &middot; expert hour passed</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td><span class="gap">no module names this atom</span><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>company/compliance/domain_invariants.py</code> <span class="ok">resolves</span><br><code>company/compliance/population_sanity.py</code> <span class="ok">resolves</span></td>
+<td><code>f75aa4603</code><br><span class="muted">2026-07-27</span></td>
+</tr>
+<tr class="ev-atom" id="atom-H1_supervisor_turn_granting">
+<td><code class="ev-atom-id">H1_supervisor_turn_granting</code>
+  <div class="muted">Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)</div>
+  <div class="muted">lane H_harness &middot; loop stage harden
+  &middot; expert hour passed</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td>152 in 1 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/background/test_supervisor.py</code> (152)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>background/supervisor.py</code> <span class="ok">resolves</span><br><code>docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md</code> <span class="ok">resolves</span><br><code>tests/background/test_supervisor.py</code> <span class="ok">resolves</span></td>
+<td><code>50666c8fd</code><br><span class="muted">2026-08-03</span></td>
+</tr>
+<tr class="ev-atom" id="atom-H5_security_profiles">
+<td><code class="ev-atom-id">H5_security_profiles</code>
+  <div class="muted">Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model</div>
+  <div class="muted">lane H_harness &middot; loop stage harden
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td><span class="gap">no module names this atom</span><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>background/secrets_location.py</code> <span class="ok">resolves</span><br><code>background/egress_allowlist.py</code> <span class="ok">resolves</span><br><code>docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md</code> <span class="ok">resolves</span><br><code>docs/observability/session-watchdog-log.md:4354 (2026-07-11 05:59 UTC director binding constraint)</code> <span class="gap">MISSING</span><br><code>docs/review_gates/done/POESYS_ROUTINE_SCOPE_TIER1.md</code> <span class="ok">resolves</span><br><code>docs/staging/done/ADVISOR_STEER_ROUTINE_SCOPE.md</code> <span class="ok">resolves</span><br><code>CLAUDE.md &#x27;Routine creation, standing rule&#x27;</code> <span class="gap">MISSING</span></td>
+<td><code>6d81a7b08</code><br><span class="muted">2026-07-23</span></td>
+</tr>
+<tr class="ev-atom" id="atom-H7_skills_and_rules">
+<td><code class="ev-atom-id">H7_skills_and_rules</code>
+  <div class="muted">Harness skills/ and path-scoped rules/ -- procedure moved out of CLAUDE.md into decay-resistant mechanism</div>
+  <div class="muted">lane H_harness &middot; loop stage idle
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td>54 in 2 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/tools/test_claude_md_integrity.py</code> (49)</div><div><code>tests/tools/test_log_instructions_loaded_hook.py</code> (5)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>.claude/skills/phase-close/SKILL.md</code> <span class="ok">resolves</span><br><code>.claude/skills/staging-protocol/SKILL.md</code> <span class="ok">resolves</span><br><code>.claude/skills/cold-eyes-walk/SKILL.md</code> <span class="ok">resolves</span><br><code>.claude/skills/incident-retro/SKILL.md</code> <span class="ok">resolves</span><br><code>.claude/rules/epistemic-wall-company.md</code> <span class="ok">resolves</span><br><code>.claude/rules/epistemic-wall-sim.md</code> <span class="ok">resolves</span><br><code>.claude/hooks/log_instructions_loaded.py</code> <span class="ok">resolves</span><br><code>docs/design/HARNESS_SKILLS_AND_RULES_ADOPTION.md</code> <span class="ok">resolves</span><br><code>background/claude_md_integrity.py</code> <span class="ok">resolves</span><br><code>tests/tools/test_claude_md_integrity.py</code> <span class="ok">resolves</span></td>
+<td><code>102c29790</code><br><span class="muted">2026-08-03</span></td>
+</tr>
+<tr class="ev-atom" id="atom-H12_mutation_test_controls">
+<td><code class="ev-atom-id">H12_mutation_test_controls</code>
+  <div class="muted">Mutation-test the entire control apparatus: every control must fire on its own named defect (kill list + the 3 killer patterns)</div>
+  <div class="muted">lane H_harness &middot; loop stage build
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td>77 in 2 module(s)<details><summary>modules</summary><div class='prov'><div><code>tests/background/test_deadmans_switch.py</code> (48)</div><div><code>tests/background/test_naive_organ.py</code> (29)</div></div></details><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td><span class="muted">no recorded move</span></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md</code> <span class="ok">resolves</span><br><code>docs/design/INVARIANT_LIBRARY_REDTEAM.md</code> <span class="ok">resolves</span></td>
+<td><code>ae0f67079</code><br><span class="muted">2026-07-29</span></td>
+</tr>
+<tr class="ev-atom" id="atom-G2_fidelity_evidence_ledger">
+<td><code class="ev-atom-id">G2_fidelity_evidence_ledger</code>
+  <div class="muted">Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions</div>
+  <div class="muted">lane G_data_learning &middot; loop stage harden
+  &middot; expert hour not_attempted</div></td>
+<td class="ev-atom-level">3 / 3</td>
+<td><span class="ok">at target</span></td>
+<td><span class="gap">no module names this atom</span><div class="muted">+1 map-wide registry module(s), not counted above</div></td>
+<td>3 recorded<details><summary>record</summary><div class='prov'><strong>LEVEL_UP_PROPOSED</strong> to level 1 &middot; 2026-07-19 11:59Z &middot; director<br>director console 2026-07-19 (verbatim): &#x27;FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -&gt; L1. ... Console provenance: this message.&#x27;&hellip;</div><div class='prov'><strong>LEVEL_UP_PROPOSED</strong> to level 2 &middot; 2026-07-19 12:52Z &middot; director<br>director console 2026-07-19 (verbatim): &#x27;RATIFIED: G1, G2, G3 -&gt; L2. ... Console provenance: this message.&#x27;&hellip;</div><div class='prov'><strong>LEVEL_UP_PROPOSED</strong> to level 3 &middot; 2026-07-20 08:15Z &middot; director<br>director console 2026-07-20 (verbatim): &#x27;RATIFIED: SITE1 -&gt; L2, BRAND1 -&gt; L3. I&#x27;ll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.&#x27;&hellip;</div></details></td>
+<td><span class="muted">no measured row</span></td>
+<td><code>docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md</code> <span class="ok">resolves</span><br><code>docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md</code> <span class="ok">resolves</span></td>
+<td><code>02e1b884a</code><br><span class="muted">2026-07-24</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="muted">&ldquo;Tests naming it&rdquo; counts test functions in modules under
+<code>tests/</code> whose source names the atom id; map-wide registry modules (which name ten
+or more atoms) are reported separately so one shared module cannot inflate every atom's count.
+The counts are collected at build time from the test tree &mdash; the run that proves them
+green is the publish gate itself (<code>pytest tests/</code>), which this page's own gate is
+part of. &ldquo;Level-move record&rdquo; is the append-only gate-authorizations ledger (R16):
+an atom with no row has had no recorded move, and the page says so rather than implying one.</p>
+
+<div class="sec">Where these figures come from</div>
+<div class="card">
+  <p class="muted">Every figure on this page is DERIVED at build time from the files below and
+  nothing else. No number here is typed in by hand; if a source moves and this page is not
+  regenerated, the publish gate
+  (<code>tools/moap_evidence_gate.py</code>) refuses to publish rather than let the page drift.</p>
+  <ul class="muted" style="margin-top:10px;padding-left:18px;"><li><code>docs/design/maturity_map.yaml</code> &mdash; sha256 <code>18df8aa61eea88f5</code></li><li><code>site/data/moap_node_atoms.json</code> &mdash; sha256 <code>2fa4c6f9927138ea</code></li><li><code>docs/observability/gate_authorizations.jsonl</code> &mdash; sha256 <code>8ea22ad144875072</code></li><li><code>docs/observability/fidelity_evidence_ledger.json</code> &mdash; sha256 <code>beebe41635d9f2f1</code></li></ul>
+  <p class="muted" style="margin-top:10px;">Derived at <strong>2026-08-03T07:41:01Z</strong>
+  from commit <code>f0ca05cf0</code>.</p>
+</div>
+<footer>&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</div>
+</body>
+</html>
