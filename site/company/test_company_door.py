@@ -438,15 +438,25 @@ def test_credit_held_liability_renders_beside_treasury_r11():
         html = out[key]["innerHTML"]
         assert "Treasury" in html, f"{key}: treasury tile missing"
         assert "Customer credit held" in html, f"{key}: held-credit companion missing -- treasury stands alone"
-    # the expected floor = sum of in-credit (negative) balances in the drawn sample
+    # The floor = sum of in-credit (negative) balances in the drawn sample.
+    # Asserted STRUCTURALLY, never as a literal (2026-08-03): this figure is
+    # derived from live generated data, so a legitimate world change moves it.
+    # Its literal twin in tests/ (a pinned churn date) wedged the publish gate for
+    # ~4 days -- see tests/tools/test_no_live_data_literal_pins.py for the class
+    # guard. R12: a generated value is a DIAGNOSTIC, never a target.
     held = sum(-v for v in d["arrears"]["values_gbp"] if v < 0)
-    assert round(held, 2) == 2975.67, f"live floor changed: {held}"
+    assert held > 0, "no in-credit balances in the live sample -- the held-credit floor is not instrumented"
     # R14: the liability carries its clock/basis (banked/liability), and the panel
     # states the mechanism + the cash-rich-but-insolvent tell.
     panel = out["credit-cycle"]["innerHTML"]
     assert "liability" in panel.lower(), panel
     assert "cash-rich" in panel.lower() and "insolvent" in panel.lower(), panel
-    assert "2,975.67" in panel, panel  # the real instrumented floor
+    # R11 claim-equals-pixel, and STRONGER than the literal was: the literal could
+    # not tell a rendered figure that tracks the source from one that merely
+    # happened to match. This asserts the pixel IS the live-derived floor.
+    assert "{:,.2f}".format(round(held, 2)) in panel, (
+        "rendered held-credit floor is not the live-derived figure "
+        "{:,.2f}: {}".format(held, panel))
 
 
 def test_credit_held_follows_source_r15():
