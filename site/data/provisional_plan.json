@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T09:18:50.237801+00:00",
+  "generated_at": "2026-08-03T16:25:57.029049+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,8 +9,8 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 196,
-    "median_cycle_days": 0.093,
+    "transition_count": 210,
+    "median_cycle_days": 0.101,
     "min_cycle_days": 0.003,
     "max_cycle_days": 12.769,
     "note": "Sub-1-day median across every observed level transition -- reflects dense agent-turn cadence (many turns/day), NOT literal human-scale build difficulty per level. The slowest transitions (up to ~0.9 days) correspond to atoms needing multiple Expert Hour passes (e.g. W5_1_banking_payment_rails' final L2->L3), which is the real signal in this data -- REVIEW ITERATIONS, not raw elapsed time, drive the slow tail.",
@@ -56,20 +56,20 @@
         "cycle_days": 8.544
       },
       {
-        "atom_id": "F1b_company_comms",
-        "lane": "W2_customer_generator",
+        "atom_id": "SITE_evidence_pages_behind_nodes",
+        "lane": "H_harness",
         "epoch": 3,
         "from_level": 0,
         "to_level": 2,
-        "loop_stage_to": "harden",
-        "date": "2026-07-30T01:37:14+01:00",
-        "cycle_days": 6.713
+        "loop_stage_to": "build",
+        "date": "2026-08-03T13:21:19+01:00",
+        "cycle_days": 6.789
       }
     ]
   },
   "critical_path_by_epoch": {
     "2": {
-      "open_atoms": 20,
+      "open_atoms": 30,
       "critical_chain": [
         "HX2_stall_set_coverage_verdict",
         "HX1_exit_criterion_counter_mechanise",
@@ -85,7 +85,7 @@
       "critical_chain_length": 1
     },
     "3": {
-      "open_atoms": 25,
+      "open_atoms": 23,
       "critical_chain": [
         "W1_11_fabric_physics_core",
         "W1_12_premise_trace_generator",
@@ -111,22 +111,22 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 55,
+    "total_open_atoms": 63,
     "code_free_discover_frame_atoms": 11,
-    "atoms_with_real_file_scope": 44,
-    "max_concurrent_width_overall": 35,
+    "atoms_with_real_file_scope": 52,
+    "max_concurrent_width_overall": 39,
     "per_epoch": {
       "2": {
-        "open_atoms": 20,
-        "max_concurrent_width": 11
+        "open_atoms": 30,
+        "max_concurrent_width": 16
       },
       "4": {
         "open_atoms": 7,
         "max_concurrent_width": 7
       },
       "3": {
-        "open_atoms": 25,
-        "max_concurrent_width": 16
+        "open_atoms": 23,
+        "max_concurrent_width": 14
       },
       "1": {
         "open_atoms": 1,
@@ -141,11 +141,11 @@
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 56,
-    "substantive_staged_doc_touches": 196,
-    "routine_daemon_markers_excluded": 2497,
+    "from_rich_touches": 54,
+    "substantive_staged_doc_touches": 213,
+    "routine_daemon_markers_excluded": 2498,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 29.71,
+    "estimated_director_hours_per_day": 31.98,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },

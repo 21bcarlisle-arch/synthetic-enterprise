@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 35
+      "stall_consecutive_unchanged": 847
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -2879,7 +2879,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3598
+      "stall_consecutive_unchanged": 3623
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 216
+      "stall_consecutive_unchanged": 237
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2939,8 +2939,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -2949,9 +2949,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3673
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3306,9 +3306,9 @@
       "epoch": 3,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "harden",
+      "loop_stage": "build",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "passed",
       "depends_on": [
         "W1_4_regional_weather_field"
       ],
@@ -3316,7 +3316,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 57
+      "stall_consecutive_unchanged": 75
     },
     {
       "id": "W1_12_premise_trace_generator",
@@ -3325,7 +3325,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3340,7 +3340,28 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 106
+      "stall_consecutive_unchanged": 126
+    },
+    {
+      "id": "W1_13_high_tail_gas_anchor",
+      "name": "External anchor for the HIGH TAIL of domestic gas consumption: what a genuinely uninsulated pre-1919 detached home actually meters, from the NEED/EHS distribution rather than from either side of a disagreement the sim created.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_11_fabric_physics_core"
+      ],
+      "couples_with": [],
+      "chain": "weather_cascade",
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "C14_thermal_parameter_inference",
@@ -3349,7 +3370,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3363,7 +3384,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50
+      "stall_consecutive_unchanged": 81
     },
     {
       "id": "H_GAP_fabric_belief_truth_gap",
@@ -3372,7 +3393,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3388,7 +3409,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 49
+      "stall_consecutive_unchanged": 171
     },
     {
       "id": "SP2_1_working_day_calculator",
@@ -3407,7 +3428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3426,7 +3447,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 33
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3445,7 +3466,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3464,7 +3485,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 32
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3473,17 +3494,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "W3_1b_intra_year_price_cap_granularity",
@@ -3492,9 +3513,9 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -3502,7 +3523,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 18
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3521,7 +3542,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3539,8 +3560,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 35
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3559,7 +3580,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 34
     },
     {
       "id": "H_stop_control_gap_characterisation",
@@ -3578,7 +3599,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 32
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3606,9 +3627,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -3616,7 +3637,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 13
     }
   ],
   "lanes": {
@@ -3699,7 +3720,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 179,
+  "total_atoms": 180,
   "epoch2_movements": [
     {
       "id": "M1",

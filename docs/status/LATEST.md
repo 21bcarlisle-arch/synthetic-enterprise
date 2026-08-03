@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T16:14:46Z
+Last updated: 2026-08-03T16:38:31Z
 
 **W1_13 (2026-08-03, `89103080d`) — the external anchor landed, and the ENVELOPE was the side that was
 wrong. L0→L2, recorded.** The blocker below asked whether a 43,338 kWh/yr domestic gas premise is a real
@@ -592,7 +592,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £1,558,778.65 | Gross: £6,515,977.28 | Capital: £51,822
 - Treasury: £2,466,636 → £3,935,517 | 38 committee interventions | 1606 bills issued
 - Enterprise value: £8,092,479.25 | Net after CTS: £1,535,410
@@ -696,10 +696,13 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
 - (T3_inherence) [unanswered >24h] If `SE_NTFY_TOPIC` was never set, then paging was never configured in the first place — so on what basis is this being reported as NTFY "going down" (an outage) rather than a feature that was simply never enabled, and what does either state have to do with the company entering administration?
 - (T3_inherence) [unanswered >24h] If the run_complete wedge is marked RESOLVED only because its markers were cleared, but the RED publish gate causing it stems from the two site wedges (ntfy sends failing and staging_watcher DOWN) that you list as still unfixed, what stops the same 31-marker saturation from re-accumulating the moment the next run completes?
+- (T3_inherence) When "the fabric physics now has a seam into the path the company settles on," does that seam let the physics constrain the company's chosen path (a modelling fix), or does it let the chosen path feed back and alter the physics — i.e. can the optimiser now move the simulated world's ground truth to make its own enterprise value or survival numbers look better?
+- (T3_inherence) In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
+- (T3_inherence) What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1406.9h across 55 sized atom(s) (9 of 64 below-target atoms still unsized).
+- Remaining effort: ~1388.7h across 54 sized atom(s) (9 of 63 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
