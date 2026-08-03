@@ -70,6 +70,19 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .simp-lane:last-child { border-bottom: none; }
 .simp-lane-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; font-weight: 600; }
 .simp-lane-count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* SUPERSEDED NOTES. A register note stating a hold behind a permission act that has since
+   been ABOLISHED stays VERBATIM (SITE_CONSTITUTION rule 5 -- the site renders, never
+   authors: the note WAS true on the day it was written). The supersession is derived
+   metadata rendered ALONGSIDE the untouched string, so the register cannot silently
+   publish a dead permission regime as live policy (rule 7, time-sensitive honesty). */
+.simp-sup { border-left: 3px solid var(--amber); padding: 10px 0 10px 14px; margin-bottom: 16px; }
+.simp-sup-atom { font-size: 11px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+.simp-sup-note { font-size: 12px; line-height: 1.65; color: var(--muted); white-space: pre-wrap; }
+.simp-sup-mark { font-size: 11px; line-height: 1.6; color: var(--amber); margin-top: 8px; }
+.simp-sup-repl { font-size: 11px; line-height: 1.6; color: var(--muted); margin-top: 3px; }
+.simp-class { border-bottom: 1px solid var(--border); padding: 9px 0; font-size: 12px; }
+.simp-class:last-child { border-bottom: none; }
+.simp-class-n { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 /* Corrections rendered IN PLACE -- the surface's single job made mechanical. */
 .cor { border-left: 3px solid var(--red); padding: 12px 0 12px 14px; margin-bottom: 14px; }
 .cor:last-child { margin-bottom: 0; }
@@ -491,6 +504,14 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     <details>
       <summary>Show the per-lane register &rarr;</summary>
       <div id="simplified-body" style="margin-top:10px"><div class="muted">Loading...</div></div>
+    </details>
+    <!-- SUPERSEDED NOTES. Notes are never rewritten (rule 5). Where a note describes a
+         hold behind a permission act that has since been abolished, the supersession is
+         rendered beside the verbatim note, naming what replaced it -- so a reader cannot
+         mistake a dead permission regime for live policy (rule 7). -->
+    <details>
+      <summary id="simplified-superseded-summary">Show the notes whose block no longer exists &rarr;</summary>
+      <div id="simplified-superseded" style="margin-top:10px"><div class="muted">Loading...</div></div>
     </details>
   </div>
 
@@ -1102,29 +1123,102 @@ function renderMethod(m){
   }).join(""):'<div class="muted">No rules recorded.</div>';
 }
 
+// How many of an atom's notes carry a supersession marker. Defensive: `superseded` is
+// an OPTIONAL field (a register generated before the abolished-block registry existed
+// simply has none), so a missing/malformed value counts as zero rather than throwing.
+function supCount(a){
+  var sup=(a && a.superseded);
+  return (sup && sup.length) ? sup.length : 0;
+}
+
 function renderSimplified(s){
   var intro=document.getElementById("simplified-intro");
   var kp=document.getElementById("simplified-kpis");
   var body=document.getElementById("simplified-body");
   if(!s || !(s.lanes && s.lanes.length)){
     intro.textContent="Simplifications register not available at generation time.";
-    kp.innerHTML=""; body.innerHTML=""; return;
+    kp.innerHTML=""; body.innerHTML=""; renderSuperseded(null); return;
   }
+  // OPTIONAL FIELD (R11 defensive): a register generated before tools/abolished_block_classes.py
+  // landed carries no supersession data at all. Absent => the honesty figure is simply not
+  // claimed, rather than rendered as a misleading zero.
+  var supTotal=(typeof s.total_notes_superseded==="number")?s.total_notes_superseded:null;
   intro.innerHTML="Every simplification the model makes is written down against the atom that makes it. "+
     "This is the raw register, re-homed here as an appendix (it is a <strong>source, not a headline</strong>): "+
     esc(num(s.total_notes))+" notes across "+esc(num(s.total_atoms_with_notes))+" atoms in "+esc(num(s.lanes.length))+" lanes. "+
-    "The forensic reader drills in; the front of the page stays plain-English.";
-  kp.innerHTML=[
+    "The forensic reader drills in; the front of the page stays plain-English."+
+    (supTotal!==null?" <strong>"+esc(num(supTotal))+"</strong> of those notes describe a hold behind a "+
+      "permission act that has since been <strong>abolished</strong>; the notes are left exactly as written and "+
+      "the supersession is marked beside them.":"");
+  var tiles=[
     {l:"Simplification notes",v:num(s.total_notes)},
     {l:"Atoms with notes",v:num(s.total_atoms_with_notes)},
     {l:"Lanes",v:num(s.lanes.length)}
-  ].map(function(k){ return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>'; }).join("");
+  ];
+  if(supTotal!==null) tiles.push({l:"Notes superseded",v:num(supTotal)});
+  kp.innerHTML=tiles.map(function(k){ return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>'; }).join("");
   body.innerHTML=s.lanes.map(function(ln){
     var atoms=ln.atoms||[];
     var noteCount=atoms.reduce(function(a,x){return a+((x.notes||[]).length);},0);
+    var supN=atoms.reduce(function(a,x){return a+supCount(x);},0);
     return '<div class="simp-lane"><div class="simp-lane-h"><span>'+esc(ln.lane_name||ln.lane)+'</span>'+
-      '<span class="simp-lane-count">'+esc(atoms.length)+' atom(s) &middot; '+esc(noteCount)+' note(s)</span></div></div>';
+      '<span class="simp-lane-count">'+esc(atoms.length)+' atom(s) &middot; '+esc(noteCount)+' note(s)'+
+      (supN?' &middot; '+esc(supN)+' superseded':'')+'</span></div></div>';
   }).join("")||'<div class="muted">No lanes.</div>';
+  renderSuperseded(s);
+}
+
+// R11, no orphan transitions: the generator marks which notes describe an ABOLISHED
+// permission act, and that marker must RENDER -- a supersession whose visible effect is
+// nothing is exactly the defect R11 names. Each affected note is shown VERBATIM with the
+// abolished act, the date it died, the ruling that killed it, and what replaced it. The
+// replacement prose comes from the registry's own `replaced_by`; this surface authors none
+// of it (SITE_CONSTITUTION rule 5).
+function renderSuperseded(s){
+  var el=document.getElementById("simplified-superseded");
+  var sm=document.getElementById("simplified-superseded-summary");
+  if(!el) return;
+  var rows=[];
+  ((s&&s.lanes)||[]).forEach(function(ln){
+    (ln.atoms||[]).forEach(function(a){
+      ((a&&a.superseded)||[]).forEach(function(sup){
+        var notes=a.notes||[];
+        var idx=sup.note_index;
+        var text=(typeof idx==="number"&&idx>=0&&idx<notes.length)?notes[idx]:null;
+        rows.push({atom:a.atom_id||a.atom_name||"(unnamed atom)",lane:ln.lane_name||ln.lane,
+                   text:text,blocks:sup.superseded_blocks||[]});
+      });
+    });
+  });
+  if(sm) sm.innerHTML=rows.length?("Show the "+esc(num(rows.length))+" notes whose block no longer exists &rarr;")
+                               :"No superseded notes recorded &rarr;";
+  if(!rows.length){
+    el.innerHTML='<div class="muted">No note in this register describes an abolished block.</div>';
+    return;
+  }
+  // The registry itself, rendered first: what was abolished, when, and by which ruling.
+  var classes=(s&&s.abolished_block_classes)||[];
+  var reg=classes.length?('<div class="muted" style="margin-bottom:6px">The abolished acts, as registered:</div>'+
+    classes.map(function(c){
+      return '<div class="simp-class"><span class="simp-class-n">'+esc(c.name)+'</span> &middot; abolished '+
+        esc(c.abolished_on||"date not recorded")+
+        (c.ruling?'<div class="muted">Ruling: '+esc(c.ruling)+'</div>':"")+
+        (c.replaced_by?'<div class="muted">Replaced by: '+esc(c.replaced_by)+'</div>':"")+
+      '</div>';
+    }).join("")+'<div style="height:14px"></div>'):"";
+  el.innerHTML=reg+rows.map(function(r){
+    return '<div class="simp-sup">'+
+      '<div class="simp-sup-atom">'+esc(r.atom)+(r.lane?' <span class="muted">&middot; '+esc(r.lane)+'</span>':"")+'</div>'+
+      (r.text!==null?'<div class="simp-sup-note">'+esc(r.text)+'</div>'
+                   :'<div class="muted">Note text unavailable at this index.</div>')+
+      r.blocks.map(function(b){
+        return '<div class="simp-sup-mark">SUPERSEDED &mdash; <strong>'+esc(b.name)+'</strong> was abolished on '+
+            esc(b.abolished_on||"a date not recorded")+'. This note describes an act that no longer exists.'+
+            (b.ruling?' Ruling: '+esc(b.ruling):"")+'</div>'+
+          (b.replaced_by?'<div class="simp-sup-repl">Replaced by: '+esc(b.replaced_by)+'</div>':"");
+      }).join("")+
+    '</div>';
+  }).join("");
 }
 
 function renderNotProven(d){

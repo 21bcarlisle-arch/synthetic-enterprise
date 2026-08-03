@@ -225,6 +225,153 @@ def test_simplified_appendix_is_independent_of_render_r15():
     assert ">987,654<" in out["simplified-kpis"]["innerHTML"], "mutated note total did not reach the pixel"
 
 
+# ---------------------------------------------------------------------------
+# SUPERSEDED NOTES (R11 "no orphan transitions"; SITE_CONSTITUTION rules 5 + 7)
+#
+# The register publishes 94 notes that describe a hold behind a permission act
+# ABOLISHED on 2026-07-29 / swept 2026-08-03. tools/abolished_block_classes.py
+# marks them; without a renderer that marker is INVISIBLE, and the public honesty
+# register goes on telling an expert reader that this company still asks the
+# director's permission to move a maturity level. It does not (R16 was rescoped to
+# RECORD, never AUTHORISE).
+#
+# A marker whose visible effect is nothing is precisely the defect R11 names, so
+# these assert the marker AT THE PIXEL. The note text itself is never rewritten --
+# a note that said "held behind director_build_open" on 2026-07-27 WAS true then --
+# so the tests also pin that the verbatim string survives beside the marker.
+# ---------------------------------------------------------------------------
+def _esc(s: str) -> str:
+    """Mirror the page's esc(): & < > only."""
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _simplified() -> dict:
+    return json.loads((DATA.parent / "simplified.json").read_text())
+
+
+def _superseded_rows(s: dict) -> list:
+    return [
+        (atom, sup)
+        for lane in s.get("lanes", [])
+        for atom in lane.get("atoms", [])
+        for sup in (atom.get("superseded") or [])
+    ]
+
+
+def test_superseded_total_renders_as_an_honesty_figure_r11():
+    s = _simplified()
+    total = s.get("total_notes_superseded")
+    assert isinstance(total, int) and total > 0, (
+        "site/data/simplified.json carries no total_notes_superseded -- regenerate with "
+        "python3 tools/generate_simplified_data.py"
+    )
+    out = _render(_live())
+    # The count is a KPI tile in its own right, not a quiet correction buried in prose.
+    kpis = out["simplified-kpis"]["innerHTML"]
+    assert "Notes superseded" in kpis, kpis
+    assert f'>{_num(total)}<' in kpis, kpis
+    # ...and it is stated in the intro, so a reader who never opens the details sees it.
+    assert _num(total) in out["simplified-intro"]["innerHTML"]
+    # ...and it drives the disclosure summary.
+    assert _num(total) in out["simplified-superseded-summary"]["innerHTML"]
+
+
+def test_every_superseded_note_renders_verbatim_with_its_marker_r11():
+    s = _simplified()
+    rows = _superseded_rows(s)
+    assert rows, "no superseded notes in the register -- nothing to render"
+    body = out_body = _render(_live())["simplified-superseded"]["innerHTML"]
+    assert len(rows) == body.count('class="simp-sup"'), (
+        f"{len(rows)} superseded notes in the data, "
+        f"{body.count('class=\"simp-sup\"')} rendered blocks"
+    )
+    for atom, sup in rows:
+        # SITE_CONSTITUTION rule 5: the note is rendered, never rewritten.
+        note = atom["notes"][sup["note_index"]]
+        assert _esc(note) in out_body, f"note text for {atom['atom_id']} not rendered verbatim"
+        for blk in sup["superseded_blocks"]:
+            assert _esc(blk["name"]) in out_body, f"{blk['name']} not named at the pixel"
+            # ...and WHAT REPLACED IT, taken from the registry -- the page authors none of it.
+            assert _esc(blk["replaced_by"]) in out_body, f"replaced_by for {blk['name']} not rendered"
+
+
+def test_abolished_block_registry_renders_with_dates_and_rulings_r11():
+    s = _simplified()
+    classes = s.get("abolished_block_classes") or []
+    assert classes, "no abolished_block_classes in the register"
+    body = _render(_live())["simplified-superseded"]["innerHTML"]
+    for c in classes:
+        assert _esc(c["name"]) in body, f"{c['name']} missing from the rendered registry"
+        assert _esc(c["abolished_on"]) in body, f"{c['name']} rendered without its abolition date"
+        assert _esc(c["ruling"]) in body, f"{c['name']} rendered without the ruling that killed it"
+
+
+def test_superseded_marker_is_independent_of_the_render_r15():
+    """R15 (independence): the marker must come from the DATA, not from page prose.
+
+    Feed a register whose block name, date, ruling and replacement are sentinels that
+    appear nowhere in index.html. If the page were authoring its own supersession text
+    (a tautology -- the control checking a value it supplies itself), these never reach
+    the pixel and this fails.
+    """
+    payload = {"proof": _live(), "simplified": {
+        "total_notes": 3, "total_atoms_with_notes": 1, "total_notes_superseded": 1,
+        "abolished_block_classes": [{
+            "name": "ZZ_sentinel_block", "abolished_on": "1999-12-31",
+            "ruling": "SENTINEL_RULING_DOC.md", "replaced_by": "SENTINEL_REPLACEMENT_PATH"}],
+        "lanes": [{"lane": "x", "lane_name": "X Lane", "atoms": [{
+            "atom_id": "ZZ_sentinel_atom", "atom_name": "n", "level_current": 0, "level_target": 1,
+            "notes": ["note zero", "SENTINEL_NOTE_TEXT held behind ZZ_sentinel_block", "note two"],
+            "superseded": [{"note_index": 1, "superseded_blocks": [{
+                "name": "ZZ_sentinel_block", "abolished_on": "1999-12-31",
+                "ruling": "SENTINEL_RULING_DOC.md",
+                "replaced_by": "SENTINEL_REPLACEMENT_PATH", "aliases": []}]}]}]}]}}
+    out = _render(payload)
+    body = out["simplified-superseded"]["innerHTML"]
+    for sentinel in ("ZZ_sentinel_block", "1999-12-31", "SENTINEL_RULING_DOC.md",
+                     "SENTINEL_REPLACEMENT_PATH", "SENTINEL_NOTE_TEXT", "ZZ_sentinel_atom"):
+        assert sentinel in body, f"{sentinel} did not reach the pixel"
+    assert ">1<" in out["simplified-kpis"]["innerHTML"], "sentinel superseded total did not render"
+    # The marker must point at note_index 1, NOT blindly at the first note.
+    assert "note zero" not in body and "note two" not in body, (
+        "renderer marked the wrong note -- note_index is not being honoured"
+    )
+
+
+def test_superseded_render_is_defensive_when_the_fields_are_absent():
+    """The three fields are OPTIONAL (a register generated before the registry landed
+    has none). Absent must render as 'nothing claimed', never as a false zero and never
+    as a broken panel -- and must not fabricate a 'Notes superseded' KPI."""
+    payload = {"proof": _live(), "simplified": {
+        "total_notes": 5, "total_atoms_with_notes": 2,
+        "lanes": [{"lane": "x", "lane_name": "X Lane", "atoms": [
+            {"atom_id": "A", "atom_name": "a", "notes": ["n1", "n2"]}]}]}}
+    out = _render(payload)
+    assert "Notes superseded" not in out["simplified-kpis"]["innerHTML"], (
+        "absent supersession data was rendered as a claimed figure"
+    )
+    assert "No note in this register describes an abolished block." in \
+        out["simplified-superseded"]["innerHTML"]
+    # The rest of the appendix still renders -- one optional field must not break the door.
+    assert ">5<" in out["simplified-kpis"]["innerHTML"]
+
+
+def test_superseded_render_survives_a_malformed_note_index():
+    """FAIL-OPEN guard (R15): an out-of-range note_index must render an explicit
+    'unavailable' string, not silently drop the marker or throw and blank the panel."""
+    payload = {"proof": _live(), "simplified": {
+        "total_notes": 1, "total_atoms_with_notes": 1, "total_notes_superseded": 1,
+        "lanes": [{"lane": "x", "lane_name": "X", "atoms": [{
+            "atom_id": "B", "atom_name": "b", "notes": ["only note"],
+            "superseded": [{"note_index": 99, "superseded_blocks": [
+                {"name": "gone_block", "abolished_on": "2026-07-29",
+                 "ruling": "R.md", "replaced_by": "nothing"}]}]}]}]}}
+    body = _render(payload)["simplified-superseded"]["innerHTML"]
+    assert "Note text unavailable at this index." in body, body
+    # The marker itself still renders -- the supersession is not lost with the text.
+    assert "gone_block" in body, body
+
+
 def test_corrections_rendered_in_place_from_live_data_r11():
     # The single job made mechanical: a real withdrawn claim renders IN PLACE --
     # the old value struck through (cor-was), the corrected value beside it, a

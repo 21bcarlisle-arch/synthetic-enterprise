@@ -75,6 +75,9 @@ const ids = [
   "pred-intro", "pred-kpis", "pred-body", "build-note",
   "method-framing", "method-roles", "method-rules",
   "simplified-intro", "simplified-kpis", "simplified-body",
+  // The supersession marker must be assertable at the PIXEL (R11, no orphan transitions):
+  // the generator flagging a note is worthless if the door renders the flag as nothing.
+  "simplified-superseded", "simplified-superseded-summary",
   "corrections-intro", "corrections",
   "cts-sentence", "cts-caveat", "cts-evidence",
 ];
