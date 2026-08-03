@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- shared-primitive ensuring-activity gate; level move director-reserved (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: shared-primitive ensuring-activity gate; level move director-reserved (R16) -->
 <!-- DESIGN half CLOSED 2026-07-28: docs/design/SHARED_PRIMITIVE_ENSURING_ACTIVITY_DISCOVER.md (5.1 plugs in as register #9 of the GAP1 mint-source contract, ranked by GAP2 method not special-cased; 5.2 exact phase-close item 0d specified; 5.3/5.4 ride existing retro cadence + phase-close-evaluator; R15 fail-closed). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Shared-primitive ensuring activity: census-as-gap-register + phase-close question + standing structural review (2026-07-28)
 

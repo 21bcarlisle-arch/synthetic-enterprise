@@ -30,7 +30,6 @@ import random
 
 import pytest
 
-from background import fronts_reconciler
 from background import supervisor
 
 
@@ -48,7 +47,6 @@ def _isolate_map_and_root(tmp_path, monkeypatch):
     # since 2026-07-18): this file tests FRAME-saturation draw re-entry, not
     # front membership, so the global fronts filter must be OFF or the synthetic
     # BUILD atom (in no real open front) is zeroed. See test_fronts_draw_filter.py.
-    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     (tmp_path / "docs" / "design" / "frame").mkdir(parents=True)
     return tmp_path
 

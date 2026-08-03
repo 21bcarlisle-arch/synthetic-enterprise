@@ -123,7 +123,6 @@ _OPEN_MINT_KEY = "deadman_open_mint"          # EIGHTH CLASS: blocked mints open
 _HARD_REST_CAP_KEY = "deadman_hard_rest_cap"  # EIGHTH CLASS: rest > 6h in any circumstance
 _DRAWABLE_UNDRAWN_KEY = "deadman_drawable_undrawn"  # LAW C: self-drawable mint undrawn while resting
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
-_GATE_VIOLATION_KEY = "deadman_gate_violation"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
 _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
 _STATUS_STALE_KEY = "deadman_status_stale"
@@ -481,31 +480,12 @@ def _check_pull_loop_transport() -> None:
     log(f"LOOP BROKEN checked (notify-gated): {st['detail']}")
 
 
-def _check_gate_wall() -> None:
-    """Fire a transition-only, LOUD GATE_VIOLATION alarm when an atom was promoted across a gate
-    (loop_stage idle->build) with NO director-console authorization (OPS1 gate-wall, director P0).
-    Report-only detection: the loop may self-SUSTAIN through open queued work, but must never
-    self-PROMOTE across a gate without the director's authenticated act. This is the RUNNING home
-    for the alarm (the deadman is the only periodic safety-net daemon). Distinct transition state
-    so it is transition-only (R5) and independent of the LOOP_BROKEN / commit-clock alarms."""
-    try:
-        from background.gate_authorization import evaluate_gate_wall
-        st = evaluate_gate_wall()
-    except Exception as e:  # a check that cannot run must not crash the deadman cycle
-        log(f"gate-wall check error: {e}")
-        return
-    if not st["alarm"]:
-        clear_transition(_GATE_VIOLATION_KEY)
-        return
-    notify(
-        f"[GATE VIOLATION] {st['detail']}. An atom was promoted idle->build with NO director-console "
-        f"authorization -- self-PROMOTION across a gate (allowed: self-sustain through OPEN work; "
-        f"forbidden: crossing a gate without your act). Check the commit that flipped loop_stage and "
-        f"docs/observability/gate_authorizations.jsonl.",
-        kind="real_alarm", transition_key=_GATE_VIOLATION_KEY, state="VIOLATION",
-        re_escalate_after=RE_ESCALATE_SECONDS,
-    )
-    log(f"GATE VIOLATION checked (notify-gated): {st['detail']}")
+# _check_gate_wall() DELETED 2026-08-03 (director console, finishing
+# DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY). It paged a LOUD [GATE VIOLATION] whenever an atom
+# went loop_stage idle->build "with NO director-console authorization" -- i.e. it alarmed on the
+# machine doing exactly what THE_STANDARD now requires it to do. An alarm is not a gate, but this
+# one existed solely to report the absence of director authorisation, which is the class the ruling
+# deletes; leaving it would have kept paging the director about non-events.
 
 
 def _check_fork_lifecycle() -> None:
@@ -649,7 +629,6 @@ def _rest_is_proven_legitimate() -> bool:
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
-    _check_gate_wall()
     _check_fork_lifecycle()
     _check_worktree_reconcile()
     _check_status_honesty()

@@ -7,6 +7,13 @@ import pytest
 from background import action_needed
 
 
+# Every ask registered here must be one of the four RESERVED real-world classes -- since 2026-08-03
+# `register_item` refuses anything else (THE_STANDARD §2). These tests are about the register's
+# BOOKKEEPING (fire-once, send-clock, re-ping), so they use a genuinely reserved ask throughout;
+# the guard itself is tested separately at the bottom of this file.
+RESERVED_WHAT = "authorise spending real money on the paid data feed"
+
+
 @pytest.fixture
 def path(tmp_path):
     return tmp_path / "register.json"
@@ -25,24 +32,25 @@ def test_format_action_needed_shape():
 
 
 def test_register_item_persists_and_starts_open(path):
-    entry = action_needed.register_item("a", "what", "how", "why", path=path)
+    entry = action_needed.register_item("a", RESERVED_WHAT, "how", "why", path=path)
     assert entry["resolved"] is False
     assert entry["item_id"] == "a"
     reloaded = action_needed.load_register(path)
-    assert reloaded["a"]["what"] == "what"
+    assert reloaded["a"]["what"] == RESERVED_WHAT
 
 
 def test_register_item_preserves_first_asked_at_on_reregister(path):
-    first = action_needed.register_item("a", "what", "how", "why", path=path, now="2026-07-11T05:00:00+00:00")
-    second = action_needed.register_item("a", "what2", "how2", "why2", path=path, now="2026-07-12T05:00:00+00:00")
+    first = action_needed.register_item("a", RESERVED_WHAT, "how", "why", path=path, now="2026-07-11T05:00:00+00:00")
+    revised = RESERVED_WHAT + " -- revised amount"
+    second = action_needed.register_item("a", revised, "how2", "why2", path=path, now="2026-07-12T05:00:00+00:00")
     assert first["first_asked_at"] == "2026-07-11T05:00:00+00:00"
     assert second["first_asked_at"] == "2026-07-11T05:00:00+00:00"  # unchanged
     assert second["last_pinged_at"] == "2026-07-12T05:00:00+00:00"  # updated
-    assert second["what"] == "what2"  # details can be refreshed
+    assert second["what"] == revised  # details can be refreshed
 
 
 def test_resolve_item_marks_resolved_not_deleted(path):
-    action_needed.register_item("a", "what", "how", "why", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "how", "why", path=path)
     action_needed.resolve_item("a", "answered", path=path)
     entry = action_needed.load_register(path)["a"]
     assert entry["resolved"] is True
@@ -52,7 +60,7 @@ def test_resolve_item_marks_resolved_not_deleted(path):
 def test_resolve_item_rejects_empty_answer_and_leaves_item_open(path):
     """The evaporation defect closed: you cannot resolve without recording the
     decision content. A rejected resolve must leave the item OPEN (still nagging)."""
-    action_needed.register_item("a", "w", "h", "y", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path)
     for bad in ("", "   ", None):
         with pytest.raises(ValueError):
             action_needed.resolve_item("a", bad, path=path)
@@ -61,7 +69,7 @@ def test_resolve_item_rejects_empty_answer_and_leaves_item_open(path):
 
 
 def test_resolve_item_stores_answer_and_timestamp(path):
-    action_needed.register_item("a", "w", "h", "y", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path)
     action_needed.resolve_item("a", "Profile B", path=path, now="2026-07-14T00:00:00+00:00")
     entry = action_needed.load_register(path)["a"]
     assert entry["resolved"] is True
@@ -70,7 +78,7 @@ def test_resolve_item_stores_answer_and_timestamp(path):
 
 
 def test_confirm_and_resolve_sends_confirmation_and_resolves(path):
-    action_needed.register_item("a", "w", "h", "y", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path)
     sent = []
     ok = action_needed.confirm_and_resolve(
         "a", "Profile B", path=path,
@@ -85,7 +93,7 @@ def test_confirm_and_resolve_sends_confirmation_and_resolves(path):
 def test_confirm_and_resolve_keeps_durable_record_even_if_send_fails(path):
     """A confirmation send failure must NOT roll back the recorded decision --
     the answer is stored first, the receipt is best-effort."""
-    action_needed.register_item("a", "w", "h", "y", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path)
     def boom(msg, headers=None):
         raise RuntimeError("ntfy unreachable")
     ok = action_needed.confirm_and_resolve("a", "Profile B", path=path, send_ntfy_fn=boom)
@@ -95,8 +103,8 @@ def test_confirm_and_resolve_keeps_durable_record_even_if_send_fails(path):
 
 
 def test_open_items_excludes_resolved(path):
-    action_needed.register_item("a", "w", "h", "y", path=path)
-    action_needed.register_item("b", "w", "h", "y", path=path)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path)
+    action_needed.register_item("b", RESERVED_WHAT, "h", "y", path=path)
     action_needed.resolve_item("b", "answered", path=path)
     open_ids = {e["item_id"] for e in action_needed.open_items(path=path)}
     assert open_ids == {"a"}
@@ -108,21 +116,21 @@ def test_due_for_reping_immediately_due_when_registered_but_never_sent(path):
     real incident (a caller with no SE_NTFY_TOPIC registered/re-registered several
     times, every send failing, and never actually paged)."""
     now = datetime.now(timezone.utc).isoformat()
-    action_needed.register_item("a", "w", "h", "y", path=path, now=now)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=now)
     due = action_needed.due_for_reping(path=path, now=now)
     assert len(due) == 1 and due[0]["item_id"] == "a"
 
 
 def test_due_for_reping_empty_when_recently_sent(path):
     now = datetime.now(timezone.utc).isoformat()
-    action_needed.register_item("a", "w", "h", "y", path=path, now=now)
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=now)
     action_needed.mark_sent("a", path=path, now=now)  # CONFIRMED send just now
     assert action_needed.due_for_reping(path=path, now=now) == []
 
 
 def test_due_for_reping_returns_item_after_24h_since_last_sent(path):
     asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
-    action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=asked_at.isoformat())
     action_needed.mark_sent("a", path=path, now=asked_at.isoformat())
     just_under = (asked_at + timedelta(hours=23, minutes=59)).isoformat()
     just_over = (asked_at + timedelta(hours=24, minutes=1)).isoformat()
@@ -137,17 +145,17 @@ def test_due_for_reping_text_reregister_does_not_suppress_a_never_sent_item(path
     roll a pending never-sent page's clock forward -- register_item() never touches
     last_sent_at, even on re-register."""
     asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
-    action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=asked_at.isoformat())
     later = (asked_at + timedelta(hours=1)).isoformat()
-    action_needed.register_item("a", "w2", "h2", "y2", path=path, now=later)  # text-only re-register
-    assert action_needed.load_register(path)["a"]["what"] == "w2"  # content did refresh
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=later)  # text-only re-register
+    assert action_needed.load_register(path)["a"]["what"] == RESERVED_WHAT  # content did refresh
     due = action_needed.due_for_reping(path=path, now=later)
     assert len(due) == 1 and due[0]["item_id"] == "a"  # still due -- re-register never marked it sent
 
 
 def test_due_for_reping_excludes_resolved(path):
     asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
-    action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y", path=path, now=asked_at.isoformat())
     action_needed.resolve_item("a", "answered", path=path)
     later = (asked_at + timedelta(days=5)).isoformat()
     assert action_needed.due_for_reping(path=path, now=later) == []
@@ -156,7 +164,7 @@ def test_due_for_reping_excludes_resolved(path):
 def test_default_path_honours_module_level_monkeypatch(tmp_path, monkeypatch):
     fake_path = tmp_path / "monkeypatched_register.json"
     monkeypatch.setattr(action_needed, "REGISTER_PATH", fake_path)
-    action_needed.register_item("a", "w", "h", "y")  # no path= argument
+    action_needed.register_item("a", RESERVED_WHAT, "h", "y")  # no path= argument
     assert fake_path.exists()
     assert action_needed.open_items() != []
 
@@ -290,7 +298,7 @@ def test_should_notify_fires_once_then_suppresses_until_due(path):
     t0 = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
     # New item -> fire.
     assert action_needed.should_notify("x", path=path, now=t0.isoformat()) is True
-    action_needed.register_item("x", "w", "h", "y", path=path, now=t0.isoformat())
+    action_needed.register_item("x", RESERVED_WHAT, "h", "y", path=path, now=t0.isoformat())
     action_needed.mark_sent("x", path=path, now=t0.isoformat())  # CONFIRMED send at t0
     # Open but not due (1 min later) -> SILENT (the per-cycle spam this kills).
     t1 = t0 + timedelta(minutes=1)
@@ -305,15 +313,15 @@ def test_should_notify_true_when_registered_but_never_confirmed_sent(path):
     must NEVER suppress should_notify -- only a CONFIRMED send (mark_sent) does.
     A registered-but-never-sent item (a send that failed/raised/was skipped) stays
     due on every subsequent check, not silenced for a day."""
-    action_needed.register_item("x", "w", "h", "y", path=path)
+    action_needed.register_item("x", RESERVED_WHAT, "h", "y", path=path)
     assert action_needed.should_notify("x", path=path) is True
     # A text-only re-register (no send in between) still must not suppress it.
-    action_needed.register_item("x", "w2", "h2", "y2", path=path)
+    action_needed.register_item("x", RESERVED_WHAT, "h", "y", path=path)
     assert action_needed.should_notify("x", path=path) is True
 
 
 def test_should_notify_silent_when_resolved(path):
-    action_needed.register_item("x", "w", "h", "y", path=path)
+    action_needed.register_item("x", RESERVED_WHAT, "h", "y", path=path)
     action_needed.mark_sent("x", path=path)
     action_needed.resolve_item("x", "PROCEED", path=path)
     # A resolved (answered) item is NEVER re-notified — no matter how much later.
@@ -326,7 +334,7 @@ def test_mark_sent_is_noop_on_unregistered_item(path):
 
 
 def test_clear_item_lets_a_fresh_occurrence_fire_again(path):
-    action_needed.register_item("staged:DOC.md", "w", "h", "y", path=path)
+    action_needed.register_item("staged:DOC.md", RESERVED_WHAT, "h", "y", path=path)
     action_needed.mark_sent("staged:DOC.md", path=path)
     assert action_needed.should_notify("staged:DOC.md", path=path) is False  # open, confirmed sent
     action_needed.clear_item("staged:DOC.md", path=path)                     # archived
@@ -342,7 +350,7 @@ def test_pin_is_deterministic_and_short():
 
 def test_resolve_by_pin_closes_the_matching_open_escalation(path):
     sent = []
-    action_needed.register_item("executor-wall_escalated", "w", "h", "y", path=path)
+    action_needed.register_item("executor-wall_escalated", RESERVED_WHAT, "h", "y", path=path)
     pin = action_needed.pin_for("executor-wall_escalated")
     closed = action_needed.resolve_by_pin(pin, "PROCEED", path=path, send_ntfy_fn=lambda *a, **k: sent.append(a))
     assert closed == "executor-wall_escalated"
@@ -376,9 +384,9 @@ def test_reconcile_clears_items_archived_by_any_route(path, tmp_path):
     root.mkdir()
     # Four staged items, each consumed by a DIFFERENT route (the whole class):
     for nm in ("DONE.md", "PARKED.md", "ROOT.md"):
-        action_needed.register_item(f"staged:{nm}", "read it", "action", "director", path=path)
-    action_needed.register_item("staged:GONE.md", "read it", "action", "director", path=path)
-    action_needed.register_item("not-a-staged-item", "x", "y", "z", path=path)  # untouched
+        action_needed.register_item(f"staged:{nm}", RESERVED_WHAT, "action", "director", path=path)
+    action_needed.register_item("staged:GONE.md", RESERVED_WHAT, "action", "director", path=path)
+    action_needed.register_item("not-a-staged-item", RESERVED_WHAT, "y", "z", path=path)  # untouched
     _mk(root, "done", "DONE.md")            # archived to done/
     _mk(root, "in_progress", "PARKED.md")   # parked to in_progress/
     _mk(root, "", "ROOT.md")                # STILL in root -> genuinely open
@@ -400,7 +408,7 @@ def test_reconcile_stops_the_reping_of_a_consumed_item(path, tmp_path):
     root = tmp_path / "staging"
     root.mkdir()
     old = "2026-07-19T05:00:00+00:00"  # last confirmed send well over 24h ago
-    action_needed.register_item("staged:CONSUMED.md", "read it", "act", "director",
+    action_needed.register_item("staged:CONSUMED.md", RESERVED_WHAT, "act", "director",
                                 path=path, now=old)
     action_needed.mark_sent("staged:CONSUMED.md", path=path, now=old)
     _mk(root, "done", "CONSUMED.md")  # it has since been archived
@@ -418,7 +426,7 @@ def test_reconcile_fails_safe_on_missing_root(path, tmp_path):
     """R15 fail-safe: an unobservable staging root (dir missing) must clear NOTHING
     -- clearing every director-paging item because we cannot see the root is the
     fail-open defect this register exists to prevent."""
-    action_needed.register_item("staged:X.md", "w", "h", "y", path=path)
+    action_needed.register_item("staged:X.md", RESERVED_WHAT, "h", "y", path=path)
     assert action_needed.reconcile_staged_items(tmp_path / "nope", path=path) == []
     assert "staged:X.md" in action_needed.load_register(path)  # NOT dropped
 
@@ -477,3 +485,56 @@ def test_save_register_to_tmp_does_not_touch_site_feed(path, monkeypatch):
                         lambda reg: called.__setitem__("n", called["n"] + 1))
     an.save_register({"a": {"item_id": "a", "resolved": False}}, path=path)
     assert called["n"] == 0, "a tmp-path save must not mirror to site/data"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# RESERVED-CLASS GUARD (2026-08-03, director console, finishing
+# DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY). R15 BOTH WAYS: the guard must REFUSE a permission
+# ask and must still ADMIT a genuinely reserved one -- a guard that only ever says no is as useless
+# as one that only ever says yes.
+#
+# The three "what" strings below are VERBATIM from the live register on the morning of 2026-08-03.
+# All three were void the moment the permission machinery was ripped out on 2026-07-29, and all
+# three were re-pinged to the director's phone daily for the five days after that, the last on
+# 2026-08-02. They are the regression this guard exists to prevent.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+_VOID_ASKS_FROM_2026_08_03 = [
+    "Ratify cohort-activation level moves (ONE dense batch): CA1/CA2/CA3 -> L3, CA4 -> L1.",
+    "Ratify the authority seam by which consuming a director ruling RELEASES a blocked atom, "
+    "so ruled BUILDs stop sitting blocked",
+    "Two BUILD-blocked mints were NOT auto-released by the authority-seam signoff because this "
+    "ruling does not name or open them.",
+]
+
+_GENUINELY_RESERVED = [
+    "Authorise a real card payment for the paid Elexon data feed subscription",
+    "Publish the annual report under Poesys's name to the public site",
+    "Email a real customer about their account",
+]
+
+
+@pytest.mark.parametrize("what", _VOID_ASKS_FROM_2026_08_03)
+def test_R15_permission_asks_are_REFUSED_and_never_reach_the_register(what, path):
+    with pytest.raises(action_needed.NotReservedForDirector):
+        action_needed.register_item("void", what, "reply with the ratifications", "R16", path=path)
+    assert action_needed.load_register(path) == {}   # nothing to re-ping tomorrow
+
+
+@pytest.mark.parametrize("what", _GENUINELY_RESERVED)
+def test_R15_genuinely_reserved_asks_still_register(what, path):
+    entry = action_needed.register_item("real", what, "confirm", "real-world consequence", path=path)
+    assert entry["resolved"] is False
+    assert action_needed.load_register(path)["real"]["what"] == what
+
+
+def test_the_guard_reads_the_ask_not_its_rationale(path):
+    """A keyword classifier run over the long how/why prose false-fires on incidental vocabulary --
+    on the first live run a level-ratification batch scored as a public claim because its rationale
+    said "publish-wiring", and an authority-seam sign-off scored as credential exposure because it
+    described an "HMAC key". Reserved-ness is a property of WHAT IS BEING DECIDED."""
+    with pytest.raises(action_needed.NotReservedForDirector):
+        action_needed.register_item(
+            "ratify", "Ratify the CA promotion batch to L3",
+            how="the publish-wiring is a named follow-on; the HMAC key stays provisioned",
+            why="R16 reserves L3; rotate the key if you disagree", path=path)

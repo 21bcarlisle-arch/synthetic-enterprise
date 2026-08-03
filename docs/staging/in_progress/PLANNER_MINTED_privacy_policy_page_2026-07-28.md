@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- privacy-policy page; agent proposes the level, the director moves the cell (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: privacy-policy page; agent proposes the level, the director moves the cell (R16) -->
 > **BUILT + R11-VERIFIED LIVE 2026-07-28** (worker tick, commit `a094c87b8`). `site/privacy/index.html`
 > is live at **https://poesys.net/privacy/** (HTTP 200; rendered content asserted on the deployed page:
 > simulation banner "no real customers and processes no real personal data", UK GDPR, Data Protection

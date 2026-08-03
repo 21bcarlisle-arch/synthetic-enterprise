@@ -94,7 +94,7 @@ def _mint(d: Path, name: str, body: str) -> Path:
 def test_mint_hygiene_passes_wellformed_block(tmp_path):
     d = tmp_path / "in_progress"; d.mkdir()
     _mint(d, "PLANNER_MINTED_ok_2026-07-28.md",
-          f"{BLOCKED_MARKER}\n<!-- BLOCK_RELEASE: director_level_up -- lands at build-quality, level is director's -->\n# body")
+          f"{BLOCKED_MARKER}\n<!-- BLOCK_RELEASE: director_live_run -- built; L3 needs the director-watched live run -->\n# body")
     assert mint_block_hygiene_violations(d, known_atom_ids=_ATOMS) == []
 
 
@@ -124,7 +124,7 @@ def test_mint_hygiene_fires_on_unresolvable_releaser(tmp_path):
 def test_mint_hygiene_fires_on_empty_reason(tmp_path):
     d = tmp_path / "in_progress"; d.mkdir()
     _mint(d, "PLANNER_MINTED_noreason_2026-07-28.md",
-          f"{BLOCKED_MARKER}\n<!-- BLOCK_RELEASE: director_level_up -->\n# releaser but no reason")
+          f"{BLOCKED_MARKER}\n<!-- BLOCK_RELEASE: coupled_triad_measured -->\n# releaser but no reason")
     v = mint_block_hygiene_violations(d, known_atom_ids=_ATOMS)
     assert v and "no reason after the dash" in v[0]
 
@@ -185,3 +185,17 @@ def test_live_in_progress_mints_are_block_hygienic():
     ip = Path(__file__).resolve().parents[2] / "docs" / "staging" / "in_progress"
     v = mint_block_hygiene_violations(ip)
     assert not v, "live mint block hygiene:\n  " + "\n  ".join(v)
+
+
+def test_an_abolished_permission_releaser_is_NOT_a_wellformed_block(tmp_path):
+    """2026-08-03: `director_level_up` / `director_build_open` / `director_ratification` were removed
+    from MINT_RELEASER_TOKENS with the machinery they name. A mint declaring one is now a HYGIENE
+    VIOLATION, not a well-formed hold -- which is the point: this tuple is the vocabulary of
+    legitimate blocks, and while it listed those acts the machine treated "waiting for the director
+    to ratify" as a valid, judgeable state instead of a defect. 14 live mints were parked that way."""
+    d = tmp_path / "in_progress"; d.mkdir()
+    for tok in ("director_level_up", "director_build_open", "build_open", "director_ratification"):
+        _mint(d, f"PLANNER_MINTED_{tok}_2026-07-28.md",
+              f"{BLOCKED_MARKER}\n<!-- BLOCK_RELEASE: {tok} -- built, awaiting the act -->\n# body")
+    v = mint_block_hygiene_violations(d, known_atom_ids=_ATOMS)
+    assert len(v) == 4 and all("resolves to no known releaser" in x for x in v)

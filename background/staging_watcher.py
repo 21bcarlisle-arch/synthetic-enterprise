@@ -513,12 +513,19 @@ def check_once(seen: set[str]) -> set[str]:
             from background import action_needed
             item_id = f"staged:{name}"
             if action_needed.should_notify(item_id):
-                action_needed.register_item(
-                    item_id,
-                    what=f"New staged instruction: {name}",
-                    how="Action it (staging = approval), then archive to done/.",
-                    why="A staged director/advisor instruction is awaiting processing.",
-                )
+                try:
+                    action_needed.register_item(
+                        item_id,
+                        what=f"New staged instruction: {name}",
+                        how="Action it (staging = approval), then archive to done/.",
+                        why="A staged director/advisor instruction is awaiting processing.",
+                    )
+                except action_needed.NotReservedForDirector:
+                    # 2026-08-03: correct and expected. "A doc arrived" is INFORMATION, not a
+                    # decision the director owes an answer to -- staging is already approval. The
+                    # announcement below still fires; it just no longer creates a durable
+                    # waiting-on-Rich item that would re-ping him daily until someone cleared it.
+                    pass
                 # CLASS FIX (2026-07-18): register_item() above never advances the
                 # send-clock -- only a CONFIRMED successful send (a truthy id) does,
                 # via mark_sent(). Without this, a failed send here would still let

@@ -1,7 +1,7 @@
 # [PLANNER-MINTED] — GAP3: the first ranked gap list, marking which are deliberate-and-staying (2026-07-28)
 
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_ratification -- GAP3 first ranked list awaits director ratification of the deliberate-and-staying set plus front/epoch opens -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_ratification', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: GAP3 first ranked list awaits director ratification of the deliberate-and-staying set plus front/epoch opens -->
 > **EXECUTED 2026-07-28** (planner tick) → `docs/design/FIRST_RANKED_GAP_LIST.md`. The ratified GAP2
 > method was applied to the live 8-register enumeration. Marker flipped self-drawable→blocked: the
 > `mint` classifications were autonomous (§2) — this tick minted the two net-new non-duplicate top rows

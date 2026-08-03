@@ -243,7 +243,15 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         # re-ingested as a fresh urgent command (answer-correlation, path 2).
         pin = action_needed.pin_for(item_id)
         how_pinned = f"{how}\nReply to CLOSE: start your NTFY with PIN {pin} (e.g. 'PIN {pin} PROCEED')."
-        action_needed.register_item(item_id, what, how_pinned, why)
+        try:
+            action_needed.register_item(item_id, what, how_pinned, why)
+        except action_needed.NotReservedForDirector as refused:
+            # 2026-08-03: the wall is NOT the director's to answer -> do not page, do not queue.
+            # THE_STANDARD §3: recommend, act on the recommendation, say what was decided. The
+            # caller's own decompose/act path continues; an escalation that nobody needs to answer
+            # is precisely the defect NEVER_ASK_WITHOUT_RECOMMENDING names.
+            build_executor.log(f"_alert_wall: {refused}")
+            return
         # CLASS FIX (2026-07-18): register_item() above never advances the send-clock
         # any more -- only a CONFIRMED successful send (a truthy id) does, via
         # mark_sent(). A failed/falsy send leaves this item due, so the NEXT wall

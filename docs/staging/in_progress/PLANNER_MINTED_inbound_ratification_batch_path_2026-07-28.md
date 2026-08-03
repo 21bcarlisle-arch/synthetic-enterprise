@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- BUILD half (b)/(c) is DONE and committed (background/inbound_ratification.py + 23-test R15-both-ways suite); the ONLY remaining work is the director's LEVEL move 0->3 (R16: the agent cannot self-bump; it lands at build-quality with blocked_on director_level_up). RELEASE CONDITION: a director/console LEVEL_UP for this atom, at which point it closes and archives to done/. -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: BUILD half (b)/(c) is DONE and committed (background/inbound_ratification.py + 23-test R15-both-ways suite); the ONLY remaining work is the director's LEVEL move 0->3 (R16: the agent cannot self-bump; it lands at build-quality with blocked_on director_level_up). RELEASE CONDITION: a director/console LEVEL_UP for this atom, at which point it closes and archives to done/. -->
 <!-- BUILD HALF (b)/(c) DONE 2026-07-28 (worker tick, commit pending) — background/inbound_ratification.py
      + tests/background/test_inbound_ratification.py (23 tests, R15 both-ways PROVEN: MUTATION neuters the
      hold → into-move silently lands as deliberate-and-staying (test_held_into_move_does_not_silently_land

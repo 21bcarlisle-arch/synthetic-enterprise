@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- RNG substream primitive; BUILD lands at build-quality, level move director-reserved (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: RNG substream primitive; BUILD lands at build-quality, level move director-reserved (R16) -->
 <!-- DISCOVER half CLOSED 2026-07-28: docs/design/RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md (16 derivations found vs ~8 est, 5 distinct formulas, concrete Formula-A namespace-collision risk; canonical namespaced primitive + R15 both-ways designed; W1_6 sequencing citation corrected). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Canonical RNG substream primitive (unify 8 copies of `_substream`) (2026-07-28)
 

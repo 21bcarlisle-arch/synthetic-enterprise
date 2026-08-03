@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- owned-quantity registry gate; BUILD lands at build-quality, level move director-reserved (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: owned-quantity registry gate; BUILD lands at build-quality, level move director-reserved (R16) -->
 <!-- DISCOVER half CLOSED 2026-07-28: docs/design/OWNED_QUANTITY_REGISTRY_DISCOVER.md. Owners+second-sources found for all 6: net margin CONTESTED (4 second-sources incl the live ~4.2x dashboard divergence); treasury overloaded (needs 2 entries, 3 sources); bad debt 2 sources; carbon UNDECLARED/worst (5 disagreeing emission-factor tables); EV + cost-to-serve CLEAN (gate negative controls). Registry schema + default-closed gate + R15 both-ways designed. BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Owned-quantity registry + gate (make a second source of truth structurally impossible) (2026-07-28)
 

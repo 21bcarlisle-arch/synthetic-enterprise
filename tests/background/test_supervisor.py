@@ -18,7 +18,6 @@ import pytest
 
 from background import action_needed as action_needed_module
 from background import agenda as agenda_module
-from background import fronts_reconciler
 from background import supervisor
 
 
@@ -119,7 +118,6 @@ def _isolate(tmp_path, monkeypatch):
     # atoms -- lane L, id X1, not in any real open front -- would be filtered
     # to zero and every draw test would fail on a concern it does not test).
     # The fronts filter itself is covered independently in test_fronts_draw_filter.py.
-    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     # §4 missing-WORK-THIS-CREATES-block surface (2026-07-27): run_cycle now calls
     # surface_missing_work_block_defects(), which reads/writes the action_needed register. Isolate

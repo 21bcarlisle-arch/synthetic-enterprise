@@ -1,23 +1,30 @@
-"""§0 LEVEL-PROMOTION PREVENTION gate (2026-07-18): an UNAUTHORIZED level_current increase in
-docs/design/maturity_map.yaml is STRUCTURALLY IMPOSSIBLE to commit -- not merely detected.
+"""§0 LEVEL-PROMOTION RECORDING gate (2026-07-18; RESCOPED 2026-07-29): an UNRECORDED level_current
+increase in docs/design/maturity_map.yaml is STRUCTURALLY IMPOSSIBLE to commit -- not merely detected.
 
 WHY (real incident 2026-07-18): the autonomous worker self-moved `E4 level_current 2->3` in a
 commit. `background/fronts_reconciler.py` DETECTED it (SCOPE_VIOLATION / LEVEL_SELF_PROMOTION) after
-the fact, but nothing PREVENTED the commit landing -- and a recurring unauthorized level move
-renders on the director's site as a FALSE level until someone notices the alarm. This gate is the
-PREVENTION layer: the reconciler is detection (report-only, after the commit), this refuses the
-commit at write time. Same principle as the pre-commit TEST GATE: structural impossibility over a
-remembered "don't move the cell" discipline (the discipline already failed once).
+the fact -- that reconciler was itself deleted on 2026-08-03 with the rest of the permission
+machinery, leaving THIS gate as the sole level control -- but nothing PREVENTED the commit landing -- and a recurring unrecorded level move renders
+on the director's site as a FALSE level until someone notices the alarm. This gate is the PREVENTION
+layer: the reconciler is detection (report-only, after the commit), this refuses the commit at write
+time. Same principle as the pre-commit TEST GATE: structural impossibility over a remembered "record
+the move" discipline (the discipline already failed once).
 
-THE RULE (MATURITY_MAP.md §0): the director+advisor own levels; the agent PROPOSES a level-up with
-evidence (docs/observability/level_up_proposals.jsonl), it NEVER moves a cell. The ONLY thing that
-authorizes a level_current increase is a valid director-console LEVEL_UP_PROPOSED in
-docs/observability/gate_authorizations.jsonl covering that atom at >= the new level.
+THE RULE, RESCOPED (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2): "director_level_up
+is abolished as a block. Levels are proposed and recorded (ledger-backed per R16), never gated --
+recording satisfies R16's real requirement, self-certification does not need a separate permission gate
+on top." A level_current increase requires a RECORD in docs/observability/gate_authorizations.jsonl
+covering that atom at >= the new level. Since 2026-08-03 that record is ALWAYS a SELF-CERTIFIED entry
+(`background.gate_authorization.record_level_up_self_certified`, evidence-bearing, honestly stamped
+channel=='self'); the director-console / twin / phone acts it used to also accept no longer exist. What this gate refuses is an UNRECORDED
+increase (R16: the ledger is authority, not a commit message) -- it no longer requires that the record be
+director-authored.
 
 INDEPENDENCE / REUSE (R15 anti-tautology): the validity predicate is REUSED verbatim from
-`background.gate_authorization.is_valid_level_up` -- the SAME check the reconciler uses -- so a
-worker-forged ledger entry (channel != console, or no provenance) authorizes NOTHING here exactly
-as it authorizes nothing there. This module does NOT reimplement the four console checks.
+`background.gate_authorization.is_valid_level_up` -- the SAME check the ledger reader uses -- so a
+worker-forged entry that self-declares channel==console (impersonating a director act) still authorizes
+NOTHING here exactly as it authorizes nothing there; only an HONEST self-certified/twin/console/phone
+record clears it. This module does NOT reimplement those checks.
 
 SCOPE (what this gate does and does NOT block):
   * level_current INCREASE (old->new, new>old, both ints) with no valid authorization -> REJECT.
@@ -95,8 +102,8 @@ def level_increases(old_levels: dict, new_levels: dict) -> list:
 
 
 def _level_authorized(atom_id: str, to_level, ledger: list) -> bool:
-    """Is a level move to `to_level` authorized by a valid director-console LEVEL_UP_PROPOSED for this
-    atom? Mirrors fronts_reconciler._level_cleared exactly, reusing is_valid_level_up: an entry with a
+    """Is a level move to `to_level` covered by a valid RECORD for this atom? Reuses
+    is_valid_level_up (the sole predicate since fronts_reconciler was deleted): an entry with a
     `level` bounds clearance to that target (to_level <= level); without one it clears any increase
     for the atom. A forged (non-console / no-provenance) entry fails is_valid_level_up -> clears nothing."""
     for e in ledger:
@@ -109,8 +116,8 @@ def _level_authorized(atom_id: str, to_level, ledger: list) -> bool:
 
 
 def unauthorized_level_increases(increases: list, ledger: list) -> list:
-    """THE predicate: level increases with NO valid director-console LEVEL_UP_PROPOSED covering them.
-    Pure -> mutation-testable. An empty list means every staged increase is director-authorized."""
+    """THE predicate: level increases with NO valid RECORD covering them. Pure -> mutation-testable.
+    An empty list means every staged increase left an evidence-bearing trace in the ledger."""
     return [inc for inc in increases if not _level_authorized(inc["atom"], inc["to"], ledger)]
 
 
@@ -138,14 +145,17 @@ def evaluate(old_text: str | None, new_text: str, ledger: list) -> dict:
         lines = []
         for u in unauth:
             lines.append(
-                f"§0: level_current {u['from']}->{u['to']} on {u['atom']} has no director LEVEL_UP "
-                f"authorization. The agent PROPOSES level-ups (docs/observability/level_up_proposals.jsonl), "
-                f"it never moves the cell. Remove the level_current change from this commit; the "
-                f"orchestrator moves it on director+advisor ratification."
+                f"§0: level_current {u['from']}->{u['to']} on {u['atom']} has no recorded LEVEL_UP in "
+                f"docs/observability/gate_authorizations.jsonl. Record one before committing -- a "
+                f"director/twin act still works, or self-certify with evidence: "
+                f"background.gate_authorization.record_level_up_self_certified('{u['atom']}', {u['to']}, "
+                f"'<evidence -- tests green / R15 proof / fetched artifact>'). Recording is required "
+                f"(R16: the ledger is authority, not a commit message); director permission on top of it "
+                f"is not (2026-07-29 ruling item 2)."
             )
         return {"status": "REJECT", "unauthorized": unauth, "message": "\n".join(lines)}
     return {"status": "CLEAN", "unauthorized": [],
-            "message": f"all {len(increases)} staged level increase(s) are director-authorized"}
+            "message": f"all {len(increases)} staged level increase(s) are recorded"}
 
 
 # ── git-env-safe read-only helpers ──────────────────────────────────────────────────────────
@@ -184,8 +194,9 @@ def main() -> int:
     old_text = _git_show(f"HEAD:{MAP_REL}")  # None => new file, allowed
     result = evaluate(old_text, new_text, read_ledger())
     if result["status"] in ("REJECT", "REJECT_UNPARSEABLE"):
-        sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (MATURITY_MAP.md §0 -- levels are the "
-                         "director+advisor's, not the agent's):\n" + result["message"] + "\n")
+        sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (MATURITY_MAP.md §0 -- a level move must be "
+                         "RECORDED, self-certified or director's, R16/2026-07-29 ruling item 2):\n"
+                         + result["message"] + "\n")
         return 1
     return 0
 

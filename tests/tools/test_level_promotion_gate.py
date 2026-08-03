@@ -35,10 +35,15 @@ def _map(level: int) -> str:
 """
 
 
+# 2026-08-03: the valid RECORD is now a self-certification, not a director-console act. The gate's
+# question changed from "did the director permit this?" to "was this move RECORDED, honestly and
+# with evidence?" -- so the fixture that stands for a valid entry changed with it. A legacy
+# LEVEL_UP_PROPOSED console entry is history, and authorizes nothing (see
+# tests/background/test_gate_authorization.py::test_legacy_director_and_twin_entries_are_history).
 VALID_LEVEL_UP = {
-    "atom": "E4_supplier_reporting_standard", "action": "LEVEL_UP_PROPOSED", "level": 3,
-    "authorized_by": "director", "channel": "console",
-    "provenance": "director console message 2026-07-18: 'E4 -> L3 approved -- move the cell.'",
+    "atom": "E4_supplier_reporting_standard", "action": "LEVEL_UP_SELF_CERTIFIED", "level": 3,
+    "authorized_by": "agent_self_certified", "channel": "self",
+    "provenance": "E4 -> L3: 41 tests green, R15 mutation proof both ways, live surface fetched.",
 }
 # Same intent, but FORGED: written by the worker, self-declaring a non-console channel / no
 # provenance -- is_valid_level_up must reject it, so it authorizes nothing.

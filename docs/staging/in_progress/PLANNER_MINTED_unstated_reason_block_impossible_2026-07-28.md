@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- both surfaces (map-atom facets gate + sibling mint-marker hygiene gate) BUILT + R15-proven + wired; the atom lands at build-quality, the level move is the director's (R16, no self-bump) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: both surfaces (map-atom facets gate + sibling mint-marker hygiene gate) BUILT + R15-proven + wired; the atom lands at build-quality, the level move is the director's (R16, no self-bump) -->
 # [PLANNER-MINTED] — An unstated-reason block cannot be written: every `blocked_on` carries its reason + release condition (§3 + WORK-THIS-CREATES deliverable 4b) (2026-07-28)
 
 > **[IN-PROGRESS DISPOSITION 2026-07-28 (UPDATED-3) — BOTH SURFACES NOW BUILT. SIBLING (mint-marker) hygiene gate BUILT this tick → marker FLIPPED self-drawable→blocked; only the director level move remains (R16).**

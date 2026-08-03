@@ -30,6 +30,7 @@ import re
 import os
 import subprocess
 import time
+import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -263,7 +264,27 @@ def route_blocking_decision(
                 "The twin's own canon-based answer reserves this decision to the director "
                 f"(director-authored per canon, not agent-buildable). Twin's answer: {ans.answer}"
             )
-        action_needed.register_item(item_id, question, how, why)
+        try:
+            action_needed.register_item(item_id, question, how, why)
+        except action_needed.NotReservedForDirector as refused:
+            # 2026-08-03: the twin routed this to the director, but it is not one of the four
+            # real-world reserved consequences -- so there is nobody to route it TO. Law B still
+            # holds (the twin never acts); the BUILDER proceeds on its own recommendation and
+            # records the undo, per THE_STANDARD §3.
+            _append_jsonl(TWIN_LOG_PATH, {
+                "ts": datetime.now(timezone.utc).isoformat(), "item_id": item_id,
+                "event": "route_refused_not_reserved", "detail": str(refused),
+            })
+            # Return an answer that does NOT make the builder wait: `needs_director()` reads these
+            # two flags, and with no reserved consequence there is nothing to wait for. The twin's
+            # own answer text is preserved so the builder still acts on its reasoning.
+            return dataclasses.replace(
+                ans, routed_to_director=False, defers_to_director=False,
+                reason=(f"{ans.reason} -- NOT a reserved real-world consequence (real money / real "
+                        "people / a public claim in the company's name / a real person's safety), so "
+                        "the builder decides on its own recommendation and records the undo "
+                        "(THE_STANDARD §3). No director wait."),
+            )
         try:
             from background.notify import notify
             # CLASS FIX (2026-07-18): register_item() above never advances the
@@ -316,79 +337,19 @@ def overturn(entry_id: str, corrected_answer: str, reason: str) -> int:
     return new_version
 
 
-DIRECTOR_RESERVED_LEVEL = 3  # L3+ is the director's "this is real" ruling; the twin never ratifies it.
-
-
-@dataclass(frozen=True)
-class LevelRatificationDecision:
-    atom_id: str
-    level: int
-    approved: bool
-    routed_to_director: bool = False  # L3+ refused, or a one-way-door / canon deferral -> the director rules
-    reason: str = ""
-    twin_answer: str | None = None
-    recorded: bool = False            # whether a director_twin LEVEL_UP_TWIN ledger entry was written
-
-
-def ratify_routine_level(atom_id: str, level: int, evidence: str, *,
-                         invoke_fn: InvokeFn | None = None,
-                         record: bool = True) -> LevelRatificationDecision:
-    """Standing-approver path for ROUTINE L1/L2 level ratifications, so routine levels stop queuing
-    on the director (director console 2026-07-21: "run its live L1/L2 proof on the next eligible
-    promotion ... L3 stays mine, R15 refusal test included").
-
-    Two INDEPENDENT L3 refusal layers (defense in depth, R15):
-      1. HERE — L3+ is refused before the twin is even consulted (returns routed_to_director).
-      2. background.gate_authorization.is_valid_twin_level_up — a director_twin entry at L3+ is an
-         INVALID authorization, so even if this guard were removed a twin L3 entry could not clear
-         the LEVEL gate. record_twin_level_up also raises on L3+.
-
-    For L1/L2 the twin adjudicates from canon; it also DEFERS (routes to the director) on any
-    director-reserved dimension (values / R13 curriculum / one-way door). On an APPROVE verdict the
-    ORCHESTRATOR records a director_twin ratification — the twin process itself stays a voice, not a
-    hand (it answers via ask_twin's --tools= sandbox; THIS function writes the ledger on its answer).
-    Fail-safe: an unparseable / non-APPROVE verdict is a REFUSAL — the twin never auto-approves on
-    ambiguity."""
-    if not isinstance(level, int) or level < 1:
-        raise ValueError("level must be an integer >= 1")
-    # Refusal layer 1: L3+ is director-reserved. The twin is not even asked.
-    if level >= DIRECTOR_RESERVED_LEVEL:
-        return LevelRatificationDecision(
-            atom_id=atom_id, level=level, approved=False, routed_to_director=True,
-            reason=(f"L{level} is director-reserved: the twin ratifies routine L1-"
-                    f"L{gate_authorization.TWIN_LEVEL_CAP} only; L3+ is the director's "
-                    "'this is real' ruling (canon)."))
-    question = (
-        f"ROUTINE LEVEL RATIFICATION request. Atom: {atom_id}. Requested level_current move to "
-        f"L{level}. Evidence offered:\n{evidence}\n\n"
-        "You are the standing approver for ROUTINE L1/L2 level moves ONLY. APPROVE iff BOTH hold: "
-        "(a) the objective maturity bar for the requested level is met by the evidence (L1 = built in "
-        "some real form; L2 = mechanically real AND its belief-vs-truth gap measured / its invariant "
-        "mutation-tested), AND (b) the move carries NO director-reserved dimension -- no values "
-        "decision, no curriculum/difficulty change (R13), no one-way door, nothing the canon marks "
-        "his. If any director-reserved dimension is present, DEFER; if the evidence does not clearly "
-        "meet the bar, REFUSE. End your answer with one extra line exactly in this form:\n"
-        "'RATIFY_VERDICT: APPROVE' or 'RATIFY_VERDICT: REFUSE'.")
-    ans = ask_twin(question, invoke_fn=invoke_fn)
-    # A one-way-door route or a canon deferral means the director rules, not the twin.
-    if ans.routed_to_director or ans.defers_to_director:
-        return LevelRatificationDecision(
-            atom_id=atom_id, level=level, approved=False, routed_to_director=True,
-            reason=f"Twin routes to director (reserved dimension): {ans.reason or ans.answer}",
-            twin_answer=ans.answer)
-    vm = re.search(r"RATIFY_VERDICT:\s*(APPROVE|REFUSE)", ans.answer or "", re.IGNORECASE)
-    approved = bool(vm) and vm.group(1).upper() == "APPROVE"  # fail-safe: ambiguous => refuse
-    recorded = False
-    if approved and record:
-        gate_authorization.record_twin_level_up(
-            atom_id, level,
-            provenance=(f"DIRECTOR_TWIN routine L{level} ratification (standing approver per director "
-                        f"console 2026-07-21; canon v{current_canon_version()}). Twin verdict: {ans.answer}"))
-        recorded = True
-    return LevelRatificationDecision(
-        atom_id=atom_id, level=level, approved=approved, routed_to_director=False,
-        reason=("twin approved from canon" if approved else "twin refused: routine bar not met"),
-        twin_answer=ans.answer, recorded=recorded)
+# ratify_routine_level() + LevelRatificationDecision + DIRECTOR_RESERVED_LEVEL: DELETED 2026-08-03
+# (director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2).
+#
+# This was the "standing approver" path: the twin adjudicated ROUTINE L1/L2 level moves from canon so
+# that routine levels stopped queuing on the director, with L3+ refused and routed to him. It was a
+# clever answer to a question that has since been abolished -- levels are no longer ratified by
+# ANYONE. They are proposed, recorded with their evidence
+# (`gate_authorization.record_level_up_self_certified`), and acted on. A standing approver for a
+# permission nobody needs is still permission machinery, and keeping it would have preserved the
+# L3-is-director-reserved distinction the ruling explicitly removed.
+#
+# The twin itself STAYS, unchanged in its real role: a VOICE, not a hand -- it answers questions
+# about the director's canon (`ask_twin`), and it never acts. What is gone is its power to say yes.
 
 
 def fidelity_metric() -> dict:

@@ -40,7 +40,8 @@ the gate, and the R15 both-ways proof. The gate is importable and its contract
 is proven, but it is NOT yet wired into the publish pipeline (deliberately — an
 un-wired entry into a live consumer has wedged publishing before). Wiring the
 gate into a publish/claim-status check, and any level move, are the named
-follow-on; the atom stays `blocked_on: director_level_up` (R16).
+follow-on. (The `blocked_on: director_level_up` this once described was abolished 2026-07-29
+and swept 2026-08-03: levels are self-certified with evidence and recorded, never ratified.)
 """
 
 from __future__ import annotations

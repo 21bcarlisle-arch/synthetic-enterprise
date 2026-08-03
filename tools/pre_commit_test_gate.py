@@ -60,7 +60,8 @@ LEVEL_SURFACE_FILES = (
     "docs/observability/gate_authorizations.jsonl",
 )
 LEVEL_SENSITIVE_TESTS = [
-    "tests/background/test_fronts_reconciler.py",
+    # tests/background/test_fronts_reconciler.py removed 2026-08-03 with the module itself (the
+    # fronts/BUILD-open scope-permission machinery -- see the deletion note in supervisor.py).
     "tests/background/test_gate_authorization.py",
     "tests/tools/test_level_promotion_gate.py",
     "tests/tools/test_generate_proof_coupled_gaps.py",
