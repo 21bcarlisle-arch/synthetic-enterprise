@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T16:38:31Z
+Last updated: 2026-08-03T16:53:27Z
 
 **W1_13 (2026-08-03, `89103080d`) — the external anchor landed, and the ENVELOPE was the side that was
 wrong. L0→L2, recorded.** The blocker below asked whether a 43,338 kWh/yr domestic gas premise is a real
@@ -592,7 +592,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £1,558,778.65 | Gross: £6,515,977.28 | Capital: £51,822
 - Treasury: £2,466,636 → £3,935,517 | 38 committee interventions | 1606 bills issued
 - Enterprise value: £8,092,479.25 | Net after CTS: £1,535,410

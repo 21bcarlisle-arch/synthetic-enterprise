@@ -1529,15 +1529,15 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 5.91% | 6% | OK | 23.1% | 8% | ! |
-| 2017 | 5.75% | 6% | OK | 0.0% | 8% | OK |
-| 2018 | 6.43% | 6% | ~ | 20.0% | 8% | ! |
-| 2019 | 5.65% | 6% | OK | 41.2% | 8% | ! |
-| 2020 | 5.46% | 6% | OK | 21.1% | 8% | ! |
-| 2021 | 5.19% | 8% | OK | 7.1% | 12% | OK |
-| 2022 | 6.37% | 8% | OK | 21.4% | 12% | ! |
-| 2023 | 6.30% | 8% | OK | 14.3% | 12% | ~ |
-| 2024 | 5.51% | 6% | OK | 14.3% | 8% | ~ |
+| 2016 | 5.91% | 6% | OK | 15.4% | 8% | ! |
+| 2017 | 5.75% | 6% | OK | 35.7% | 8% | ! |
+| 2018 | 6.43% | 6% | ~ | 6.7% | 8% | OK |
+| 2019 | 5.65% | 6% | OK | 17.6% | 8% | ! |
+| 2020 | 5.46% | 6% | OK | 5.3% | 8% | OK |
+| 2021 | 5.19% | 8% | OK | 21.4% | 12% | ! |
+| 2022 | 6.37% | 8% | OK | 35.7% | 12% | ! |
+| 2023 | 6.30% | 8% | OK | 35.7% | 12% | ! |
+| 2024 | 5.51% | 6% | OK | 21.4% | 8% | ! |
 | 2025 | 6.11% | 6% | ~ | 15.4% | 8% | ! |
 
 **Complaints:** 8 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
@@ -1703,7 +1703,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-08-03T13:11:17Z
+Generated: 2026-08-03T13:21:44Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
