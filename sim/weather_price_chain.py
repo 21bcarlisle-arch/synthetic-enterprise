@@ -80,7 +80,7 @@ from typing import Dict
 
 import numpy as np
 
-from sim.price_engine import synthetic_price, wind_power_output_fraction
+from sim.price_engine import merit_order_price, synthetic_price, wind_power_output_fraction
 from sim.weather_tail_demonstration import load_national_daily
 
 _CACHE = Path(__file__).resolve().parent / "cache"
@@ -295,7 +295,8 @@ def solar_output_from_weather(day_of_year, cloud_pct, params: ChainParams | None
 
 
 def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
-                 params: ChainParams | None = None, year: int | None = None):
+                 params: ChainParams | None = None, year: int | None = None,
+                 merit_order_year: int | None = None):
     """THE CHAIN, closed (W1_6 L4). One coherent weather draw -> demand +
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
     it is never an independent draw. Vectorised over arrays or scalar.
@@ -303,7 +304,24 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     `year` (W1_7): when given, renewable output uses the time-varying per-year fleet,
     so a 2016 cold-still spell prices differently from a 2025 one. Default (None) keeps
     the whole-window scalar — unchanged behaviour, so the SSP calibration gate is not
-    re-opened (R12; the year-aware default flip is the L2 step after recalibration)."""
+    re-opened (R12; the year-aware default flip is the L2 step after recalibration).
+
+    `merit_order_year` (W1_6b, 2026-08-03): selects the LAST link's price former.
+
+      * None (default) -> `price_engine.synthetic_price`, the reduced-form fitted
+        multiplier. BYTE-IDENTICAL to the pre-W1_6b series; the baseline does not move.
+      * an int calendar year -> `price_engine.merit_order_price`, which dispatches the
+        typed SRMC stack (`sim/merit_order_reconstruction.py`, DUKES per-year
+        efficiencies + emission factors + HMRC Carbon Price Support + DESNZ VOM) and
+        adds a scarcity rent that is exactly zero outside tight hours.
+
+    It is a YEAR, not a boolean, precisely because the stack's constants are published
+    per year: a caller with no real calendar year has no honest way to price through the
+    stack, and inventing a window-average year would be fabricating a grounded input
+    (R10). The baseline was NOT flipped to the merit-order former because it measures as
+    a WASH over the full real record — see `sim/price_engine.py`'s docstring and
+    docs/fidelity/W1_6b_merit_order_price_wiring_evidence.md.
+    """
     p = params or fit_chain()
     demand = np.atleast_1d(demand_from_weather(temp_c, p))
     wind = np.atleast_1d(_wind_fleet_mw(p, year) * np.array(
@@ -311,8 +329,15 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year))
     gas = np.atleast_1d(np.asarray(gas_price, float))
     renewable = wind + solar
-    price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
-                      for i in range(len(demand))])
+    if merit_order_year is None:
+        price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
+                          for i in range(len(demand))])
+    else:
+        price = np.array([
+            merit_order_price(float(gas[i]), float(demand[i]), float(renewable[i]),
+                              int(merit_order_year))
+            for i in range(len(demand))
+        ])
     return price if np.ndim(temp_c) else float(price[0])
 
 
@@ -330,8 +355,19 @@ def residual_demand(temp_c, wind_speed_ms, cloud_pct, day_of_year,
     return np.asarray(demand) - np.asarray(wind) - np.asarray(solar)
 
 
+def _price_one_row(gas: float, demand: float, renewable: float,
+                   merit_order_year: int | None) -> float:
+    """The LAST link for one row: reduced form when no merit-order year is supplied,
+    the typed SRMC stack when one is. Single point of choice so the two record paths
+    (year_aware and not) can never silently disagree about which former ran."""
+    if merit_order_year is None:
+        return synthetic_price(gas, demand, renewable)
+    return merit_order_price(gas, demand, renewable, int(merit_order_year))
+
+
 def derive_price_on_record(params: ChainParams | None = None,
-                           year_aware: bool = False) -> Dict[str, np.ndarray]:
+                           year_aware: bool = False,
+                           merit_order: bool = False) -> Dict[str, np.ndarray]:
     """The chain evaluated on every real weather day -- the ground-truth derived
     price series the coupled-triad measures the company against, plus the
     intermediate demand/renewable/residual for inspection.
@@ -345,9 +381,22 @@ def derive_price_on_record(params: ChainParams | None = None,
     series BYTE-IDENTICAL (the SSP calibration gate is not re-opened, R12/S8) --
     flipping the default is the L2 step gated on re-running that gate (FRAME §9
     task 7) and is deliberately NOT done here.
+
+    `merit_order` (W1_6b, 2026-08-03): when True the LAST link is
+    `price_engine.merit_order_price` — the typed SRMC dispatch stack plus a scarcity
+    rent that is zero outside tight hours — with EACH ROW priced at its OWN real
+    calendar year (parsed from `rec["dates"]`, never invented). Default False keeps the
+    reduced-form series BYTE-IDENTICAL; the baseline does not move (R13 — the full-real-
+    record measurement is a wash, which is not a fidelity-to-reality reason to flip it).
+
+    Note `merit_order` and `year_aware` are INDEPENDENT knobs on two different "year"
+    uses: `year_aware` re-scales the RENEWABLE FLEET per year (W1_7's gated flip),
+    `merit_order` indexes the PRICE ENGINE's published per-year efficiencies/emission
+    factors. They compose; neither implies the other.
     """
     rec = load_daily_record()
     p = params or fit_chain()
+    row_years = [int(str(d)[:4]) for d in rec["dates"]] if merit_order else None
     if year_aware:
         from sim.renewable_capacity_trend import _year_of
         years = [_year_of(d) for d in rec["dates"]]
@@ -358,7 +407,8 @@ def derive_price_on_record(params: ChainParams | None = None,
         demand = demand_from_weather(rec["temperature_c"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
         price = np.array([
-            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]))
+            _price_one_row(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]),
+                           None if row_years is None else row_years[i])
             for i in range(len(demand))
         ])
     else:
@@ -366,8 +416,15 @@ def derive_price_on_record(params: ChainParams | None = None,
         wind = wind_output_from_speed(rec["wind_speed_ms"], p)
         solar = solar_output_from_weather(rec["day_of_year"], rec["cloud_pct"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
-        price = derive_price(rec["temperature_c"], rec["wind_speed_ms"], rec["cloud_pct"],
-                             rec["day_of_year"], rec["gas_price"], p)
+        if row_years is None:
+            price = derive_price(rec["temperature_c"], rec["wind_speed_ms"], rec["cloud_pct"],
+                                 rec["day_of_year"], rec["gas_price"], p)
+        else:
+            price = np.array([
+                _price_one_row(float(rec["gas_price"][i]), float(demand[i]),
+                               float(renewable[i]), row_years[i])
+                for i in range(len(demand))
+            ])
     return {
         "dates": rec["dates"], "month": rec["month"],
         "temperature_c": rec["temperature_c"], "wind_speed_ms": rec["wind_speed_ms"],
@@ -382,15 +439,21 @@ def derive_price_on_record(params: ChainParams | None = None,
 # ---------------------------------------------------------------------------
 
 def chain_vs_real_ssp_mae(params: ChainParams | None = None,
-                          year_aware: bool = False) -> Dict[str, float]:
+                          year_aware: bool = False,
+                          merit_order: bool = False) -> Dict[str, float]:
     """MAE of the composed chain's derived price vs real published SSP. A
     DIAGNOSTIC (R12) -- the number the chain happens to hit, never optimised.
 
     `year_aware` (W1_7): passthrough to `derive_price_on_record` -- reports the MAE
     of the time-varying-fleet series as a diagnostic ALONGSIDE the default, never as
     a target to beat (R12; FRAME §9 task 7: a worse MAE here is a finding about the
-    inputs, surfaced, never a cue to retune the merit-order calibration)."""
-    out = derive_price_on_record(params, year_aware=year_aware)
+    inputs, surfaced, never a cue to retune the merit-order calibration).
+
+    `merit_order` (W1_6b): passthrough — reports the MAE of the merit-order-formed
+    series ALONGSIDE the default. This is the diagnostic that decided NOT to flip the
+    baseline (a wash on the full real record); a better number here would still never
+    be a cue to retune a constant (R12)."""
+    out = derive_price_on_record(params, year_aware=year_aware, merit_order=merit_order)
     err = out["derived_price"] - out["real_ssp"]
     return {
         "mae": float(np.mean(np.abs(err))),

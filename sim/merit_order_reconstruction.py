@@ -295,6 +295,56 @@ def reconstruct_price_gbp_per_mwh(
     return srmc_high + (CASH_OUT_CEILING_GBP_PER_MWH - srmc_high) * (f2 ** 2)
 
 
+def marginal_srmc_gbp_per_mwh(
+    gas_price_gbp_per_mwh: float,
+    demand_mw: float,
+    renewable_generation_mw: float,
+    year: int,
+    ets_price_gbp_per_tonne: float = 0.0,
+    must_run_floor_mw: float = MUST_RUN_FLOOR_MW,
+    ccgt_capacity_mw: float = CCGT_CAPACITY_MW,
+) -> float:
+    """The SRMC of the MARGINAL (last-dispatched) plant — marginal COST only, with no
+    scarcity component whatsoever (2026-08-03, W1_6b wiring).
+
+    This is `reconstruct_price_gbp_per_mwh` minus its tight-regime convex climb toward
+    the cash-out ceiling. The split exists because marginal COST and scarcity RENT are
+    two different economic objects: above the CCGT band the marginal plant is an OCGT
+    peaker whose SRMC is a flat, grounded fuel+carbon+VOM number — everything real GB
+    cash-out pays ABOVE that is rent for scarcity, not the cost of the next MWh. Keeping
+    them separate is what lets `price_engine.merit_order_price` state, and TEST, that
+    the scarcity term is identically zero in ordinary hours.
+
+      1. OVERSUPPLY (RD < must_run_floor): identical to `reconstruct_price_gbp_per_mwh` —
+         linear collapse from the cheapest CCGT SRMC toward the curtailment floor.
+      2. ORDINARY (must_run_floor <= RD <= must_run_floor + ccgt_capacity): identical —
+         a CCGT is marginal, its efficiency sliding best-build -> worst-vintage.
+      3. TIGHT (RD above the CCGT band): the OCGT peaker's SRMC, FLAT. No ceiling ramp.
+
+    `reconstruct_price_gbp_per_mwh` is deliberately NOT re-expressed in terms of this
+    function: it is the frozen subject of the exit-criterion-1 reconstructibility
+    measurement, and its per-cell lift table must stay bit-identical (exit criterion 2).
+    """
+    y = _year_of(year)
+    residual_demand_mw = demand_mw - renewable_generation_mw
+    worst_eff, best_eff = _ccgt_efficiency_band(y)
+
+    if residual_demand_mw <= must_run_floor_mw:
+        srmc_low = ccgt_srmc_gbp_per_mwh(gas_price_gbp_per_mwh, y, best_eff, ets_price_gbp_per_tonne)
+        span = must_run_floor_mw if must_run_floor_mw > 0 else 1.0
+        frac_below = min(max((must_run_floor_mw - residual_demand_mw) / span, 0.0), 1.0)
+        return srmc_low + (CURTAILMENT_FLOOR_GBP_PER_MWH - srmc_low) * frac_below
+
+    if residual_demand_mw <= must_run_floor_mw + ccgt_capacity_mw:
+        f = (residual_demand_mw - must_run_floor_mw) / ccgt_capacity_mw
+        marginal_eff = best_eff - (best_eff - worst_eff) * f
+        return ccgt_srmc_gbp_per_mwh(gas_price_gbp_per_mwh, y, marginal_eff, ets_price_gbp_per_tonne)
+
+    return ccgt_srmc_gbp_per_mwh(
+        gas_price_gbp_per_mwh, y, OCGT_REFERENCE_EFFICIENCY, ets_price_gbp_per_tonne
+    )
+
+
 def gas_floor_alone_price_gbp_per_mwh(gas_price_gbp_per_mwh: float) -> float:
     """The FROZEN naive baseline (`gas_floor_alone` in the fidelity naive family):
     gas over the pre-existing THERMAL_EFFICIENCY (0.50), zero carbon. Reproduced here
