@@ -13,3 +13,24 @@ EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
 # (the next trigger starts fresh), never a wedge. This is the bounded-invocation guarantee in IaC.
 TimeoutStartSec=1800
 ExecStart=/usr/bin/python3 -m background.worker_tick
+
+# ── FORK SALVAGE (director console, 2026-08-03: "mechanise the merge-or-reap so this can't recur") ──
+# CORRECTION to the comment above: the 30-min SIGTERM was NOT costless. Because systemd tears down
+# the WHOLE cgroup, the kill also killed every Agent fork the invocation had dispatched — and their
+# work was still UNCOMMITTED in their worktrees. On 2026-08-03 this unit was timeout-killed 10 times
+# (~37% of the invocations carrying real work), which is why the repo accumulated 8 branches of
+# hand-written "RESCUE: preserve this dead fork's uncommitted build" commits and a 10:37 audit
+# recording 2,566 lines stranded in dying worktrees. A killed tick cost BUILT WORK, not just time.
+#
+# The doorbell's "each fork MUST come home" was only ever PROSE in a prompt (supervisor.py:3492),
+# executed LAST, inside a process under a hard wall-clock kill — so the step that would have saved
+# the work was precisely the step the axe fell on. MAKE_IT_STICK predicted this: an exhortation
+# decays, a mechanism holds. THIS is the mechanism.
+#
+# ExecStopPost runs AFTER the main process is gone, on EVERY exit path — clean exit, crash, and the
+# SIGTERM timeout alike — so it fires exactly where the loss happened. It commits each dirty fork
+# worktree to THAT FORK'S OWN branch: never merges to main, never deletes, never touches the shared
+# main tree. After it runs, "built but uncommitted" is not a reachable state, so a kill costs
+# wall-clock and never built work. `-` prefix: a failing salvage must not fail the unit.
+TimeoutStopSec=120
+ExecStopPost=-/usr/bin/python3 -m background.fork_salvage
