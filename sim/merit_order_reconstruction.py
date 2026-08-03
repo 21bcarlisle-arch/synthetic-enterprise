@@ -34,18 +34,26 @@ GROUNDED (cited):
     the between-years path is a stated simplification, not evidenced — see below).
   - GB cash-out / scarcity ceiling GBP 6,000/MWh: 2026-07-24 external benchmark pass.
 
+GROUNDED (cited, added 2026-08-03):
+  - EU-ETS (2016-2020) / UK-ETS (2021-2025) annual-average MARKET carbon price:
+    `docs/market_research/eu_uk_ets_carbon_price_civil_penalty_determinations_2026-08-03.md`.
+    Sourced from the primary UK government "carbon price determination" documents
+    (Regulation 49 of the Greenhouse Gas Emissions Trading Scheme Regulations 2012,
+    then Article 46 of the Greenhouse Gas Emission Trading Scheme Order 2020) — a
+    real, auditable average of traded EUA/UKA December-futures prices (or, for the
+    2021 launch year, actual auction clearing prices) over a stated ~12-month window,
+    converted at the real Bank-of-England average FX rate for that window. Published
+    under a "civil penalty" heading, but the VALUE is a genuine market-price average,
+    not an arbitrary default — see that document §0 for why the 2026-07-25 pass
+    missed it. **Caveat, not smoothed over**: the reference window ends ~13-14 months
+    before the scheme year it is labelled for, so each figure is best read as a
+    LAGGED proxy for market conditions roughly one calendar year earlier — the
+    government's own year-label is used as the model's `year` key regardless (see
+    the source doc §1/§4 for the cross-check that this labelling is directionally
+    sound). `ets_price_gbp_per_tonne` now DEFAULTS to this sourced series (previously
+    hard-defaulted to 0.0); an explicit float still overrides it for testing.
+
 NAMED GAPS (R10, carried forward, NOT fabricated):
-  - EU-ETS (2016-2020) / UK-ETS (2021-2024) annual-average MARKET carbon price:
-    no citable published series was found (DISCOVER §4b). `ets_price_gbp_per_tonne`
-    therefore DEFAULTS TO 0.0, and the total carbon price seen by the stack is CPS
-    ALONE (~GBP 18/tCO2). This is the single most consequential gap: the probe in
-    `simulation/run_merit_order_reconstructibility.py` shows the ordinary-hour markup
-    over the bare gas floor GROWS from ~+GBP 6.6/MWh (2016) to ~+GBP 14.2/MWh (2020),
-    tracking the real ETS carbon surge — so a CPS-only (flat-carbon) reconstruction
-    beats the naive gas floor in the high-carbon renewables-heavy cells (2019/2020)
-    but OVERSHOOTS the low-carbon early cells. The `ets_price_gbp_per_tonne` parameter
-    is wired through every function so that, when a citable ETS series is later found
-    (the next DISCOVER), the engine reconstructs all cells WITHOUT any curve-fitting.
   - OCGT fleet-average efficiency (only new-build reference exists): peaker tier uses
     the DESNZ new-build reference 35% HHV as a stated proxy.
   - Coal variable O&M: not found; coal VOM approximated by the CCGT VOM bookends
@@ -101,6 +109,15 @@ EF_GAS_TCO2_PER_MWH_TH = 0.1829      # DESNZ GHG conversion factors 2024, gross 
 # Carbon Price Support: time-INVARIANT ~GBP 18/tCO2 across the whole window. §4a.
 CPS_CARBON_GBP_PER_TONNE = 18.0
 
+# EU-ETS (2016-2020) / UK-ETS (2021-2025) annual-average MARKET carbon price, GBP/tCO2.
+# docs/market_research/eu_uk_ets_carbon_price_civil_penalty_determinations_2026-08-03.md §2.
+# Government's own "scheme year" label used as the calendar-year key (the reference
+# window ends ~13-14mo before the label year — a stated lag, see that doc §1/§4).
+ETS_MARKET_CARBON_GBP_PER_TONNE_BY_YEAR = {
+    2016: 5.61, 2017: 4.67, 2018: 4.86, 2019: 12.61, 2020: 21.93,
+    2021: 47.96, 2022: 52.56, 2023: 83.03, 2024: 64.90,
+}
+
 # GB cash-out / scarcity ceiling (DDM design). 2026-07-24 external benchmark pass.
 CASH_OUT_CEILING_GBP_PER_MWH = 6000.0
 
@@ -126,11 +143,18 @@ def _year_of(year: int) -> int:
     return year
 
 
-def carbon_price_total_gbp_per_tonne(year: int, ets_price_gbp_per_tonne: float = 0.0) -> float:
+def carbon_price_total_gbp_per_tonne(
+    year: int, ets_price_gbp_per_tonne: float | None = None
+) -> float:
     """Total effective GB carbon price = Carbon Price Support (grounded, flat ~£18)
-    + the ETS market price. `ets_price_gbp_per_tonne` DEFAULTS TO 0.0 — the EU/UK-ETS
-    2016-2024 market-price series is a NAMED GAP (R10, DISCOVER §4b). Pass a citable
-    value here once that series is sourced; the reconstruction then needs no re-fit."""
+    + the ETS market price. `ets_price_gbp_per_tonne` DEFAULTS TO the sourced
+    per-year series (`ETS_MARKET_CARBON_GBP_PER_TONNE_BY_YEAR`,
+    docs/market_research/eu_uk_ets_carbon_price_civil_penalty_determinations_2026-08-03.md);
+    pass an explicit float (including 0.0) to override it, e.g. for a CPS-only
+    counterfactual or a test fixture."""
+    y = _year_of(year)
+    if ets_price_gbp_per_tonne is None:
+        ets_price_gbp_per_tonne = ETS_MARKET_CARBON_GBP_PER_TONNE_BY_YEAR.get(y, 0.0)
     return CPS_CARBON_GBP_PER_TONNE + ets_price_gbp_per_tonne
 
 
@@ -163,7 +187,7 @@ def ccgt_srmc_gbp_per_mwh(
     gas_price_gbp_per_mwh: float,
     year: int,
     thermal_efficiency: float | None = None,
-    ets_price_gbp_per_tonne: float = 0.0,
+    ets_price_gbp_per_tonne: float | None = None,
 ) -> float:
     """SRMC (£/MWh electrical) of a gas CCGT: fuel-over-efficiency + carbon + VOM.
 
@@ -182,7 +206,7 @@ def ccgt_srmc_gbp_per_mwh(
 def coal_srmc_gbp_per_mwh(
     coal_price_gbp_per_mwh: float,
     year: int,
-    ets_price_gbp_per_tonne: float = 0.0,
+    ets_price_gbp_per_tonne: float | None = None,
 ) -> float:
     """SRMC (£/MWh electrical) of a coal unit — for merit-order ORDERING against gas.
     Coal VOM is a NAMED GAP (§2); approximated by the CCGT VOM bookend."""
@@ -203,7 +227,7 @@ def build_merit_stack(
     gas_price_gbp_per_mwh: float,
     year: int,
     coal_price_gbp_per_mwh: float | None = None,
-    ets_price_gbp_per_tonne: float = 0.0,
+    ets_price_gbp_per_tonne: float | None = None,
 ) -> list[MeritPlant]:
     """The typed SRMC dispatch stack, cheapest-first (must-run renewables/nuclear at
     the bottom, then the CCGT band, then peakers). The returned list is ALWAYS SRMC-
@@ -247,7 +271,7 @@ def reconstruct_price_gbp_per_mwh(
     demand_mw: float,
     renewable_generation_mw: float,
     year: int,
-    ets_price_gbp_per_tonne: float = 0.0,
+    ets_price_gbp_per_tonne: float | None = None,
     must_run_floor_mw: float = MUST_RUN_FLOOR_MW,
     ccgt_capacity_mw: float = CCGT_CAPACITY_MW,
     total_dispatchable_mw: float = TOTAL_DISPATCHABLE_MW,

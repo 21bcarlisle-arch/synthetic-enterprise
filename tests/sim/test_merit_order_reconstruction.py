@@ -38,11 +38,24 @@ def test_ccgt_srmc_exceeds_bare_gas_floor_because_carbon_and_vom_are_present():
 
 def test_carbon_term_is_active_not_the_live_engines_zero_default():
     """The live price_engine held carbon at 0.0 at runtime; here the CPS carbon
-    (~£18/tCO2) is always live and MOVES the price. Nonzero, monotone in carbon."""
-    assert carbon_price_total_gbp_per_tonne(2019) == pytest.approx(CPS_CARBON_GBP_PER_TONNE)
+    (~£18/tCO2) is always live and MOVES the price. Nonzero, monotone in carbon.
+
+    Updated 2026-08-03: the EU/UK-ETS market-price series (previously a NAMED GAP
+    defaulting to 0.0) is now sourced and wired as the DEFAULT
+    (`ETS_MARKET_CARBON_GBP_PER_TONNE_BY_YEAR`,
+    docs/market_research/eu_uk_ets_carbon_price_civil_penalty_determinations_2026-08-03.md).
+    The omit-the-argument default therefore now returns CPS + the real 2019 ETS
+    price (£12.61), not CPS alone — CPS-only is still reachable via an explicit
+    `ets_price_gbp_per_tonne=0.0` override, asserted below."""
+    assert carbon_price_total_gbp_per_tonne(2019, ets_price_gbp_per_tonne=0.0) == pytest.approx(
+        CPS_CARBON_GBP_PER_TONNE
+    )
+    assert carbon_price_total_gbp_per_tonne(2019) == pytest.approx(
+        CPS_CARBON_GBP_PER_TONNE + 12.61
+    )  # default now pulls the sourced 2019 ETS price, not 0.0
     with_ets = carbon_price_total_gbp_per_tonne(2019, ets_price_gbp_per_tonne=40.0)
     assert with_ets == pytest.approx(CPS_CARBON_GBP_PER_TONNE + 40.0)
-    srmc_cps = ccgt_srmc_gbp_per_mwh(GAS, 2019)
+    srmc_cps = ccgt_srmc_gbp_per_mwh(GAS, 2019, ets_price_gbp_per_tonne=0.0)
     srmc_cps_plus_ets = ccgt_srmc_gbp_per_mwh(GAS, 2019, ets_price_gbp_per_tonne=40.0)
     assert srmc_cps_plus_ets > srmc_cps  # carbon genuinely load-bearing
 
@@ -161,19 +174,33 @@ def test_reconstruction_wins_in_the_renewables_heavy_calm_cells_2019_2020():
     assert cells["2020"]["reconstruction_wins"], cells["2020"]
 
 
-def test_exit_criterion_3a_partial_pending_ets_series_no_tuning():
-    """HONEST recorded state (R12: the measurement is a diagnostic, never a target):
-    exit criterion 3a is NOT YET fully met — the reconstruction wins a MAJORITY of calm
-    cells but not the LOW-carbon early cells, because the flat CPS-only carbon (~£18)
-    overshoots them while the real EU-ETS market price was very low. The binding missing
-    input is the EU/UK-ETS carbon time-series (DISCOVER §4b NAMED R10 GAP, not fabricated).
-    This guards the regression floor (>=3/5 cells) without breaking when a future
-    ETS-series build legitimately closes the remaining cells."""
+def test_exit_criterion_3a_worsens_with_the_real_ets_series_honest_r12_finding():
+    """HONEST recorded state (R12: the measurement is a diagnostic, never a target),
+    UPDATED 2026-08-03 when the real EU/UK-ETS series was sourced and wired in.
+
+    The PRIOR hypothesis (recorded 2026-07-28/30, CPS-only carbon) was that the
+    flat £18 CPS-only carbon OVERSHOT the low-carbon early cells (2016/2017) and
+    that sourcing the real ETS series would let those cells win too, closing exit
+    criterion 3a to 5/5 without any tuning. **That hypothesis was WRONG.** The real
+    ETS price was never zero, even in the low-carbon years (£5.61 in 2016, £4.67 in
+    2017, £4.86 in 2018 — see the sourced series) — it ADDS to CPS rather than
+    replacing/lowering it, so total carbon is HIGHER in every year once ETS is
+    wired in, not lower in the early years as hypothesised. Measured result:
+    n_won dropped from 3/5 (2016, 2017 losing) to **2/5 (2016, 2017, 2018 losing)**
+    — 2018 flipped from a narrow win (+0.11 lift) to a loss (-0.35). Only 2019/2020
+    (where the real ETS price is large, £12.61/£21.93) still win. This is a MORE
+    valuable finding than a clean close would have been: it shows the reconstruction's
+    ordinary-hour carbon markup is systematically too steep relative to what
+    `gas_floor_alone` needs across MOST of the window, not just the early years —
+    a genuine model-shape finding, not a missing-input finding. Per R12, this is
+    reported as measured; NO constant in `merit_order_reconstruction.py` was
+    adjusted in response to this number."""
     from simulation.run_merit_order_reconstructibility import reconstructibility_verdict
 
     cells = _measured_cells()
     verdict = reconstructibility_verdict(cells)
-    assert verdict["n_won"] >= 3, verdict                 # regression floor
+    assert verdict["n_won"] == 2, verdict                 # honest measured state, real ETS wired
+    assert verdict["losing_cells"] == ["2016", "2017", "2018"], verdict
     assert verdict["aggregate_lift"] == pytest.approx(
         sum(c["mae_lift"] for c in cells.values())
     )
