@@ -375,3 +375,67 @@ restores the doorbell's signal value. Registered here as a finding; it is the se
 `process_run_complete.py`'s staging handling, alongside the broad-`add` sweep above. **Two findings on
 one component is an R3 two-strike trigger** — the next touch should redesign its staging discipline
 (stage own named paths; archive superseded markers) rather than patch a third time.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — H_GAP drawn, and the build already on disk was measuring nothing
+
+This tick's draw was the self-refill atom **`H_GAP_fabric_belief_truth_gap`** (the HARNESS leg of the
+fabric triad), not a Class B item. Commit `8cfe10997`, pushed, origin verified. **L0→L2**, recorded in
+`gate_authorizations.jsonl`.
+
+**R7 paid off immediately: the build was already on disk, uncommitted.** `background/fabric_gap_ledger.py`
+(1,600 lines) and `tests/harness/test_premise_two_level.py` (1,072 lines) were untracked in the working
+tree from a prior tick — 77 pass + 2 strict xfail, landed RED against the shipped demand path exactly as
+the spec's birth condition requires. Rebuilding it would have been the waste; the job was to verify it,
+find what it was missing, and land it. **Three defects, every one found by RUNNING it rather than reading
+it:**
+
+1. **THE ORPHAN TRANSITION.** `write_fabric_gap_entries` had **no production caller** — grep-verified, the
+   only references were its own definition and its unit test. The fabric gap existed as a *function* and
+   never as a *number*. This is the **second** recorded instance of that exact shape
+   (`generate_evidence_data.generate()` before it), so it is a **class, not an accident**: a measurement
+   function reads as "done" to a reviewer the moment its test is green, and nothing about a green test says
+   anyone runs it. `tools/couple_fabric.py` (+ 14 tests) is the caller it never had.
+2. **A WRONG ATOM ID.** `FABRIC_WORLD_ATOM` was `"W1_11_premise_fabric_physics"` — which has **never been
+   an atom**; the real id is `W1_11_fabric_physics_core`. Nothing would have failed: `write_gap_entry`
+   writes any key it is given, and the Proof door derives its *rows* from the map. The write would have
+   "succeeded" every run and rendered **nowhere, forever**. Now pinned by a test.
+3. **A FAIL-OPEN IN THE COUPLED-TRIAD GATE ITSELF.** `build_coupling()` **derives** `W1_12->C14` from
+   C14's own `depends_on`, but assembles the final coupling from `_AUTHORITATIVE_COUPLING` **alone** — so a
+   derived-but-unregistered pair is **silently dropped**. `W1_12` sat at L2 as a coupled world atom with no
+   measured gap while the Proof panel's own D1 detector ("depth nobody copes with") stayed blind to it and
+   `world_l3_blocked` never fired. **The table reads like a cross-check and behaves like a whitelist.**
+   Both fabric pairs registered; Proof door `pair_count` 10 → 12, measured 12, unmeasured 0.
+
+### The measured result, recorded and deliberately not tuned (R12)
+
+EPC-vs-actual gap **0.2049**, inferred-vs-actual **0.2397** — C14's posterior is a **worse point estimate**
+than the register prior it started from. On the *same panel* the money consequence runs the other way:
+deciding a fabric measure on the EPC belief misranks **10%** of premises (£162, 2.3 t CO2e/yr), on the
+inferred belief it misranks **none**. They disagree because `prediction_gap` is a **level** statistic and
+the decision is an **ordering** one: the register understates heat loss on every premise, C14 corrects
+every one upward and overshoots on some, costing level accuracy and buying rank accuracy. **A
+level-and-sum gap metric read alone would have called the company's own inference a regression while
+hiding that it strictly improved every decision anyone would take on it.** That is this atom's founding
+lesson — the control SET had a hole shaped like the defect — recurring one level up, in the gap metric
+itself.
+
+### The R15 finding worth carrying: a test that was itself a tautology
+
+Five real **source** mutations, each firing its own named test with the others green. The fifth —
+replacing the WORST-CELL selection with an average — initially fired **nothing**, because
+`test_the_verdict_is_WORST_CELL_not_an_average` ended
+`assert generated_worst(textures) == approx(min(textures))` with `generated_worst = min` defined three
+lines below. `min(x) == min(x)`: it cannot fail, and it never called `evaluate_two_level` at all. **The
+R15 TAUTOLOGY pattern, inside the test named for the rule, in a suite whose own docstring defends against
+tautology** — and only mutating the source found it. Reading the file did not, twice. **A test that
+asserts a helper against the same helper passes forever and the green count never blinks.**
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
+callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue. **New
+residual on H_GAP:** it is L2 not L3 — panel-scale not population-scale, two cells unanchored (NEED:
+SERL diversity, EPC-linked metered annual consumption), Expert Hour not attempted, and
+`tools/couple_fabric.py` is **manual like all ten of its `couple_*.py` siblings**, so its ledger rows go
+stale unless a tick re-runs it — *the same orphan-transition class this atom just closed one level up*,
+registered rather than declared solved. R11 bound stated honestly: the Proof rows were verified in the
+**generated** panel data, not on the live poesys.net pixel; that lands with the next publish.
