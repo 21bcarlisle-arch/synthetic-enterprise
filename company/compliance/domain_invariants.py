@@ -661,6 +661,51 @@ def correct_debt_terms_for_segment(segment, as_of):
     return _select_debt_terms(segment, as_of)
 
 
+# --- Cross-surface payment-channel consistency (atom
+# W2_payment_channel_dd_consistency_invariant) ---
+#
+# The absurdity: a customer recorded as paying by STANDARD CREDIT carries a
+# "Direct debit returned" arrears stage. A COO reading that book stops reading.
+#
+# R10 forbids closing this with the C1g instance fix. The closure is the CLASS
+# rule below, so any record pairing a non-DD method with a DD-only artefact
+# fails automatically, on every surface, forever.
+#
+# MEASURED before landing (2026-08-03, the mint's own "bound the class size"
+# requirement, real artefacts not fixtures):
+#   * docs/state/billing_ledger.json -- 5 customers / 12 arrears cases
+#     (C1g, C4, C5, C6, C8) carry a DD_FAILED stage on a standard_credit method.
+#   * site/data/customer_sample.json -- 8 customers carry dd_failed > 0 on a
+#     non-DD channel. The DISCOVER doc predicted 3, reasoning that SME/I&C
+#     customers "carry no resi behavioural trajectory". They all do; see the
+#     residual note on the atom.
+PAYMENT_CHANNEL_DD_CONSISTENCY = StructuralInvariant(
+    id="payment_channel_dd_consistency",
+    description=(
+        "A payment/arrears record whose method is not Direct Debit must carry "
+        "ZERO Direct-Debit-only artefacts: no DD_FAILED arrears stage, no "
+        "'Direct debit returned' note, no dd_failure_reason, no dd_failed "
+        "count and no non-zero dd_fail_rate. Symmetric across the billing "
+        "ledger and the behavioural/sample surface, because the absurdity is "
+        "the pairing itself and does not care which generator emitted it. "
+        "One-directional by design: it never asserts that a DD customer MUST "
+        "fail, so a genuine Direct Debit failure passes untouched and real "
+        "bad-debt signal is not deleted to make the count look better (R12)."
+    ),
+    # The mechanism, not a clause number invented to look authoritative: an
+    # unpaid-Direct-Debit return is raised through the Bacs Direct Debit
+    # Scheme against an active Direct Debit Instruction. A customer with no
+    # DDI has nothing that can be returned -- the event is not merely unlikely
+    # for them, it has no way to exist.
+    source=(
+        "Bacs Direct Debit Scheme -- an unpaid-DD return can only be raised "
+        "against an active Direct Debit Instruction, so a customer with no DDI "
+        "cannot generate one (R10 class closure for the C1g standard-credit "
+        "'Direct debit returned' defect)"
+    ),
+)
+
+
 ALL_INVARIANTS: list = [
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
@@ -686,6 +731,7 @@ ALL_INVARIANTS: list = [
     DEBT_INTEREST_BUSINESS_ONLY,
     DEBT_NO_DOMESTIC_LATE_CHARGES,
     DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED,
+    PAYMENT_CHANNEL_DD_CONSISTENCY,
 ]
 
 
@@ -1222,6 +1268,185 @@ def check_printed_line_rederives(inv: dict) -> bool:
             ):
                 return False
     return True
+
+
+
+# --- PAYMENT_CHANNEL_DD_CONSISTENCY enforcement ---
+
+#: The ONLY method for which a Direct-Debit return can physically exist.
+DD_METHOD = "direct_debit"
+
+#: Every method label reaching either surface that is NOT a Direct Debit.
+#: `standard_credit` is `simulation.household_segments.PaymentChannel`'s other
+#: value; `standing_order`/`card`/`prepayment` are
+#: `simulation.payment_behaviour_source`'s finer non-DD split; `bacs`/`chaps`
+#: are the corporate methods `simulation.arrears_engine.payment_method` emits.
+NON_DD_METHODS = frozenset({
+    "standard_credit", "prepayment", "standing_order", "card", "bacs", "chaps",
+})
+
+#: Artefacts that can only arise from a Direct Debit. `DD_FAILED` is the
+#: arrears stage `simulation.arrears_engine.arrears_stages` opens a residential
+#: case with; the note is the string it stamps beside it.
+_DD_ONLY_STAGES = frozenset({"DD_FAILED"})
+_DD_ONLY_NOTE_FRAGMENT = "direct debit returned"
+
+
+def _dd_counter_is_positive_or_unreadable(value) -> bool:
+    """True if a DD-failure COUNTER asserts a DD failure happened, OR cannot be
+    read as a number at all.
+
+    The second half is the point. `value > 0` is NaN-blind -- `float('nan') > 0`
+    is False -- so a corrupt counter would sail through as "no DD failures
+    here" and the control would report a clean pass on a record it could not
+    actually read. An unverifiable value is a FAILED check (R15 fail-open
+    pattern), so it counts as an artefact present.
+    """
+    if value is None or isinstance(value, bool):
+        return False
+    try:
+        fval = float(value)
+    except (TypeError, ValueError):
+        return True  # unreadable: fail closed
+    if not isfinite(fval):
+        return True  # NaN/Inf: fail closed
+    return fval > 0
+
+
+def dd_artefact_fields_present(record: dict) -> bool:
+    """Whether this record carries ANY of the fields the invariant inspects.
+
+    Exists so a population test can prove the control is NOT VACUOUS. A
+    per-record predicate that finds no fields to check returns True, and a
+    whole population of such records reports 100% clean while checking
+    literally nothing -- the exact fail-open that let a printed-bill control
+    pass 1557/1557 on a book with the checked field absent. A population scan
+    must assert this is True somewhere before believing a green result.
+    """
+    if not isinstance(record, dict):
+        return False
+    for field in ("dd_failure_reason", "dd_failed", "dd_fail_rate", "result"):
+        if field in record:
+            return True
+    for field in ("stages", "arrears_stages", "payment_miss_trajectory"):
+        value = record.get(field)
+        if isinstance(value, list) and value:
+            return True
+    return False
+
+
+def record_asserts_dd_failure(record: dict) -> bool:
+    """Whether a record carries a Direct-Debit-ONLY artefact.
+
+    Symmetric across both surfaces by inspecting every shape either emits: an
+    arrears `stages` list (billing ledger), a `result` label and
+    `dd_failure_reason` (payment event), and `dd_failed` / `dd_fail_rate` /
+    `payment_miss_trajectory` counters (behavioural sample surface).
+    """
+    if not isinstance(record, dict):
+        return True  # fail closed: an unreadable record is not a clean one
+
+    if record.get("dd_failure_reason") is not None:
+        return True
+    if record.get("result") in _DD_ONLY_STAGES:
+        return True
+    if _dd_counter_is_positive_or_unreadable(record.get("dd_failed")):
+        return True
+    if _dd_counter_is_positive_or_unreadable(record.get("dd_fail_rate")):
+        return True
+
+    for field in ("stages", "arrears_stages"):
+        stages = record.get(field)
+        if not isinstance(stages, list):
+            continue
+        for stage in stages:
+            if isinstance(stage, str):
+                if stage in _DD_ONLY_STAGES:
+                    return True
+                continue
+            if not isinstance(stage, dict):
+                return True  # fail closed: an unreadable stage
+            if stage.get("stage") in _DD_ONLY_STAGES:
+                return True
+            note = stage.get("note")
+            if isinstance(note, str) and _DD_ONLY_NOTE_FRAGMENT in note.lower():
+                return True
+
+    trajectory = record.get("payment_miss_trajectory")
+    if isinstance(trajectory, list):
+        for year_bucket in trajectory:
+            if not isinstance(year_bucket, dict):
+                return True  # fail closed: an unreadable trajectory bucket
+            if _dd_counter_is_positive_or_unreadable(year_bucket.get("dd_failed")):
+                return True
+    return False
+
+
+def record_is_direct_debit(record: dict) -> bool:
+    """Whether this record's payment method is established as Direct Debit.
+
+    Deliberately NOT tri-state at the call site: anything that is not
+    positively identifiable as `direct_debit` is treated as non-DD, so a
+    missing, null, malformed or unrecognised method can never silently license
+    a DD-only artefact. `payment_channel` is legitimately None for I&C/SME
+    customers (the residential channel model does not apply to them) -- and
+    those customers pay by bacs/chaps, so non-DD is also the CORRECT answer for
+    them, not merely the safe one.
+    """
+    if not isinstance(record, dict):
+        return False
+    for field in ("method", "payment_channel", "payment_method"):
+        value = record.get(field)
+        if isinstance(value, str) and value:
+            return value == DD_METHOD
+    return False
+
+
+def check_payment_channel_dd_consistency(record: dict) -> bool:
+    """PAYMENT_CHANNEL_DD_CONSISTENCY enforcement: a non-Direct-Debit record
+    must carry no Direct-Debit-only artefact.
+
+    One-directional. A Direct Debit customer passes unconditionally -- with a
+    real DD failure or without one -- because the invariant's job is to catch
+    an IMPOSSIBLE event, not to require a possible one. Making it two-
+    directional would over-block legitimate DD arrears and quietly delete real
+    bad-debt signal from the book, which is the failure mode the atom's own
+    R15 obligation names.
+    """
+    if record_is_direct_debit(record):
+        return True
+    return not record_asserts_dd_failure(record)
+
+
+def scan_payment_channel_dd_consistency(records: list) -> list[dict]:
+    """Population scan: every record violating PAYMENT_CHANNEL_DD_CONSISTENCY.
+
+    Returns a finding per violating record naming the resolved method, so the
+    output is diagnostic rather than a bare count (R12 -- the count is a
+    diagnostic, never a target; no customer may be reclassified to shrink it).
+    """
+    findings: list[dict] = []
+    for index, record in enumerate(records or []):
+        if check_payment_channel_dd_consistency(record):
+            continue
+        method = None
+        if isinstance(record, dict):
+            for field in ("method", "payment_channel", "payment_method"):
+                if record.get(field) is not None:
+                    method = record.get(field)
+                    break
+        findings.append({
+            "check": PAYMENT_CHANNEL_DD_CONSISTENCY.id,
+            "index": index,
+            "customer_id": record.get("customer_id") if isinstance(record, dict) else None,
+            "case_id": record.get("case_id") if isinstance(record, dict) else None,
+            "method": method,
+            "detail": (
+                "non-Direct-Debit record (method=%r) carries a Direct-Debit-only "
+                "artefact" % (method,)
+            ),
+        })
+    return findings
 
 
 def invariant_count() -> int:

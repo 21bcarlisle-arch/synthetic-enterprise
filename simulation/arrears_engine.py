@@ -293,10 +293,53 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     return ("success", rng.randint(lo, hi))
 
 
+#: The only method whose failure is a returned Direct Debit. Anything else
+#: fails as a payment that did not arrive -- there is no mandate to return.
+DD_METHOD = "direct_debit"
+
+#: How a non-DD method's missed payment opens an arrears case. The cascade
+#: after this first stage (notices, write-off, DCA) is method-independent: the
+#: collections process is the same once the money is late, only the way the
+#: money failed to arrive differs.
+_NON_DD_OPENING_NOTE = {
+    "standard_credit": "Standard credit payment not received",
+    "standing_order": "Standing order payment not received",
+    "card": "Card payment not received",
+    "prepayment": "Prepayment meter -- no vend recorded",
+}
+_NON_DD_OPENING_NOTE_DEFAULT = "Payment not received"
+
+
+def opening_arrears_stage(method: str, due_date: date) -> dict:
+    """The first arrears stage for `method` -- the ONE stage that is
+    method-specific.
+
+    A `DD_FAILED` / "Direct debit returned" stage can only be raised against an
+    active Direct Debit Instruction. Emitting it for a standard-credit customer
+    is the absurdity atom W2_payment_channel_dd_consistency_invariant closes:
+    the customer has no mandate, so nothing exists that could be returned.
+    Enforced as a class rule by
+    `company.compliance.domain_invariants.check_payment_channel_dd_consistency`.
+    """
+    if method == DD_METHOD:
+        return {"stage": "DD_FAILED", "date": due_date.isoformat(),
+                "note": "Direct debit returned"}
+    return {"stage": "PAYMENT_MISSED", "date": due_date.isoformat(),
+            "note": _NON_DD_OPENING_NOTE.get(method, _NON_DD_OPENING_NOTE_DEFAULT)}
+
+
 def arrears_stages(arrears_gbp: float, due_date: date, eventually_resolved: bool,
-                    archetype: str = "NEUTRAL") -> list[dict]:
+                    archetype: str = "NEUTRAL", *, method: str) -> list[dict]:
+    """`method` is REQUIRED and keyword-only, deliberately.
+
+    A default of `"direct_debit"` would have preserved the exact defect this
+    parameter exists to remove: every caller not updated would keep silently
+    stamping "Direct debit returned" onto non-DD customers, and the build would
+    read as done while the book stayed wrong. Making it required means a caller
+    that has not decided fails loudly at the call, not quietly in the data.
+    """
     stages = [
-        {"stage": "DD_FAILED", "date": due_date.isoformat(), "note": "Direct debit returned"},
+        opening_arrears_stage(method, due_date),
         {"stage": "FIRST_NOTICE", "date": (due_date + timedelta(days=7)).isoformat(),
          "note": "First overdue notice -- GBP%.2f outstanding" % arrears_gbp},
         {"stage": "SECOND_NOTICE", "date": (due_date + timedelta(days=21)).isoformat(),
@@ -366,9 +409,13 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
         will_be_written_off = cid in churned_ids
         if not will_be_written_off:
             continue
-        stages = (arrears_stages if outcome == "failed" else ic_arrears_stages)(
-            amount, due_date, False
-        )
+        # Dispatched, not name-called -- which is why a grep for
+        # `arrears_stages(` did NOT find this call site. Only making `method`
+        # required surfaced it.
+        if outcome == "failed":
+            stages = arrears_stages(amount, due_date, False, method=method)
+        else:
+            stages = ic_arrears_stages(amount, due_date, False)
         write_off_date = next(s["date"] for s in stages if s["stage"] == "WRITTEN_OFF")
         key = (cid, int(write_off_date[:4]))
         result[key] = round(result.get(key, 0.0) + amount, 2)
@@ -459,9 +506,10 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
         trajectory = beh.get("income_stress_trajectory") or []
         archetype = debt_archetype(trajectory, write_off_date.year)
 
-        stages = (arrears_stages if outcome == "failed" else ic_arrears_stages)(
-            amount, due_date, False, archetype
-        )
+        if outcome == "failed":
+            stages = arrears_stages(amount, due_date, False, archetype, method=method)
+        else:
+            stages = ic_arrears_stages(amount, due_date, False, archetype)
         terminal = stages[-1]
         if terminal["stage"] == "SOLD":
             proceeds = _debt_sale_proceeds(amount)

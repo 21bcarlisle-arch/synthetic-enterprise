@@ -221,3 +221,63 @@ later, director-gated build that the invariant GUARDS rather than competes with.
 **Bottom line:** invariant first (correctness wall, now), time-varying channel second (fidelity feature, gated) —
 the mint's "cross-generator consistency invariant" is the right first BUILD, with the one correction that the
 defect is a single-generator category error, not a generator disagreement.
+
+---
+
+## CORRECTION (2026-08-03, the BUILD tick) — two errors, both found by measuring rather than reading
+
+Status above is stale: BUILD is no longer blocked (`director_build_open`/`director_level_up` were
+abolished 2026-07-29 and swept 2026-08-03), and the atom is now **L0→L2** as
+`W2_payment_channel_dd_consistency_invariant`. The verdict and §5's sequencing argument both **stand** —
+the defect is a single-generator category error, the invariant is the correct first build, and it was
+built. Two substantive claims did not survive contact with the data.
+
+### Error 1 — §3B's sample-surface count is an UNDERCOUNT (3 stated, **8** measured), and its reason is false
+
+§3B says: *"Sample class = 3 customers (C5/C6 are SME → `payment_channel=None` on the sample surface and
+carry no resi behavioural trajectory, so they only surface in the ledger)."*
+
+**They all carry a behavioural trajectory.** Measured on `site/data/customer_sample.json` with the
+shipped control, the sample class is **8**: C1g, C4, C8 (resi `standard_credit`) **plus** C5, C6 (SME)
+**plus C_IC1, C_IC2, C_IC3g (I&C)** — every one of them `payment_channel: null` with `dd_failed > 0`.
+The union class is therefore **8**, not 5.
+
+### Error 2 — there are THREE DD-artefact generators, not two; §1's table is missing the one that matters
+
+§1 maps `arrears_engine` (ledger) and `payment_behaviour_source` (sample). The I&C rows above come from
+neither. `background/live_payment_triad.py` maps **both `"failed"` AND `"dispute"`** onto the literal
+string `DD_FAILED`, under its own explicitly **NAMED SIMPLIFICATION** (*"the legacy analytics vocabulary
+has only ON_TIME/LATE/DD_FAILED"*). So every corporate **invoice dispute** — a CHAPS customer, correctly
+carrying `INVOICE_DISPUTED` on the ledger surface — is recorded as a returned Direct Debit on the
+behavioural surface. A surface this DISCOVER never opened.
+
+Minted as `W2_non_dd_miss_vocabulary`, with the trap recorded: the fix is **not** a rename.
+`payment_behaviour_analytics.dd_fail_rate` counts `result == "DD_FAILED"`, and `life_event_detector`,
+`affordability_inference` and `sme_credit_risk` all read `late_rate + dd_fail_rate` as their distress
+signal — emitting a new label without teaching those four would make a non-DD customer's misses stop
+registering as distress at all.
+
+### A third miss, in the method rather than the finding — the caller census
+
+`grep -rn "arrears_stages"` finds **one** production caller (`tools/generate_billing_ledger.py`). There
+are **two**. `simulation/arrears_engine.py` dispatches it as
+`(arrears_stages if outcome == "failed" else ic_arrears_stages)(...)` in two places, which no name-grep
+reaches. It was found only because `method` was made a **required keyword-only** argument instead of a
+defaulted one, so the un-migrated call site failed loudly at the call rather than quietly in the data.
+That is the same rename/indirection fail-open `SP2_1`'s `_add_wd` census hit, in a different disguise.
+
+### What §4b's remediation list got RIGHT, and the one item deliberately not done
+
+The stage-vocabulary branch landed as specified (`DD_FAILED`/"Direct debit returned" reserved for
+`direct_debit`; non-DD opens `PAYMENT_MISSED`). **The SME case-normalisation was deliberately NOT done**,
+and §4b's one-line framing of it (*"fix the SME case-normalisation ... so I&C/SME never route through the
+resi channel model"*) is a trap. Measured: `payment_outcome("bacs", stress, rng, segment="SME")` returns
+`("success", 0)` **unconditionally**, because the dispute branch is gated on `_IC_SEGMENTS = ("ic", "I&C")`
+and SME is not in it. Normalising the case alone therefore moves C5/C6 onto a path where they can **never
+fail a payment**, deleting 3 failed payments and 3 arrears cases of real SME bad debt. **The case bug has
+been masking the absence of any SME payment-outcome model.** Minted separately as
+`W2_sme_segment_case_normalisation`, blocked on an anchored SME default-behaviour source rather than a
+coefficient invented to fill the gap.
+
+**Carried forward:** this is the fifth consecutive atom whose closed DISCOVER doc contained
+build-blocking errors. A closed DISCOVER doc is a hypothesis, not a specification.
