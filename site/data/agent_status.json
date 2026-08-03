@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-03T09:01:23.263836+00:00",
+  "last_updated": "2026-08-03T09:14:24.824001+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:01:23.263836+00:00",
+      "last_heartbeat": "2026-08-03T09:14:24.824001+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-07-31T21:01:32.579272+00:00",
       "anomaly": null,
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:00:59.767782+00:00",
+      "last_heartbeat": "2026-08-03T09:10:59.769389+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-08-03T03:15:59.673956+00:00",
       "anomaly": null,
@@ -34,10 +34,10 @@
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-08-03T09:00:58.743671+00:00",
-      "last_action": "Run complete in 469s \u2014 3901 KB (run_output_ab570a3d2_20260803T085310Z.json)",
-      "last_action_ts": "2026-08-03T09:00:58.743671+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-08-03T09:10:43.888409+00:00",
+      "last_action": "Sim started \u2014 git=1f4cda668",
+      "last_action_ts": "2026-08-03T09:10:43.888409+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T09:00:38.814553+00:00",
+      "last_heartbeat": "2026-08-03T09:13:11.077503+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-31T21:01:33.438860+00:00",
       "anomaly": null,
