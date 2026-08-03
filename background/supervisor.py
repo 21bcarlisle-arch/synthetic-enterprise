@@ -474,8 +474,16 @@ _ABOLISHED_PERMISSION_BLOCK_TOKENS = (
     # and matching only the identifier is how the convention survived its own deletion.
     "director ratification", "director word", "director authoris",
     "director-authoris", "awaiting the director", "awaiting director", "director opens",
-    "director must", "director-reserved", "director reserved", "needs a director",
-    "director sign-off", "director signoff", "console-only", "console only",
+    "needs a director", "director sign-off", "director signoff", "console-only", "console only",
+    # DELIBERATELY NOT HERE: the bare adjectives "director-reserved" / "director must". They name
+    # no ACT, so they cannot be shown to be an abolished one -- and R13 CURRICULUM reservations
+    # ("director for any named curriculum-difficulty value", "director-reserved SE_DRAW population
+    # activation") describe themselves exactly that way. Curriculum authorship is a question about
+    # who writes the simulation's CONTENT, not about permission to build, and it was not part of
+    # the 2026-07-29 rip-out. Fail-closed on the ambiguity: the cost of leaving one mint parked is
+    # one parked mint; the cost of the other error is silently overriding a reservation the
+    # director still holds. Caught by test_planner_rung's own fixture, which used exactly that
+    # phrasing for a genuine block.
 )
 
 

@@ -79,3 +79,19 @@ def test_unreadable_or_unstated_mint_fails_closed_to_blocked(tmp_path):
     ip.mkdir(parents=True, exist_ok=True)
     (ip / "PLANNER_MINTED_bare.md").write_text("# a mint with no marker and no UNBLOCKS line\n")
     assert _slugs(tmp_path)["blocked"] == ["PLANNER_MINTED_bare.md"]
+
+
+@pytest.mark.parametrize("reason", [
+    "director-reserved SE_DRAW population activation",
+    "self for the mechanism; director for any named curriculum-difficulty value",
+    "the director must name the scenario difficulty (R13)",
+])
+def test_a_bare_director_reserved_adjective_does_NOT_unblock(tmp_path, reason):
+    """REGRESSION (caught live 2026-08-03 by test_planner_rung's own fixture, ~20 min after the
+    first version shipped): matching the bare adjective "director-reserved" swept in R13 CURRICULUM
+    reservations, which phrase themselves exactly that way. Curriculum authorship is about who
+    writes the simulation's CONTENT, not permission to build -- it was never part of the rip-out.
+    A reason must name an abolished ACT (a level-up, a build-open, a ratification, a sign-off, an
+    adjudication, an authorisation) to unblock; an adjective naming no act fails closed."""
+    _mint(tmp_path, "curr", reason)
+    assert _slugs(tmp_path)["blocked"] == ["PLANNER_MINTED_curr.md"]
