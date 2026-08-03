@@ -1,32 +1,33 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow"><title>Project Status - Synthetic Enterprise</title><style>:root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;--blue:#2a78d6;--teal:#1baf7a}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;background:var(--bg);color:var(--text);margin:0;padding:0;font-size:14px;line-height:1.5}.site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border)}.nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px}.nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px}.nav-link:hover{color:var(--text)}.nav-link.active{color:var(--blue);font-weight:600}.container{max-width:1100px;margin:0 auto;padding:32px 24px}h1,h2{color:var(--text)}h1{font-size:1.5rem;font-weight:700;margin-bottom:4px}h2{font-size:1rem;font-weight:600;margin:32px 0 14px}table{border-collapse:collapse;width:100%;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}th{background:var(--surface2);color:var(--muted);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:none}tr:hover td{background:var(--surface2)}.pos{color:var(--green)}.neg{color:var(--red)}.meta{color:var(--muted);font-size:0.85em;margin-bottom:16px}pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;color:var(--text);white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:var(--muted)}dd{margin:0}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}.kpi-card .kpi-value{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;color:var(--text)}.kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:6px}.rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;border:1px solid currentColor}.rag-green{background:rgba(12,163,12,0.12);color:var(--green)}.rag-amber{background:rgba(250,178,25,0.18);color:#95720f}.rag-red{background:rgba(208,59,59,0.12);color:var(--red)}.btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--text)}.btn:hover{background:var(--surface2)}</style></head><body><nav class="site-nav"><a href="/shadow/" class="nav-logo">&#9889; Poesys</a><a href="/shadow/" class="nav-link">Overview</a><a href="/shadow/customers/" class="nav-link">Customers</a><a href="/shadow/supplier/" class="nav-link">Supplier</a><a href="/shadow/sim/" class="nav-link">Sim</a><a href="/shadow/project/" class="nav-link active">Project</a><a href="/" class="nav-link" style="margin-left:auto">Live site</a></nav><div class="container"><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>RX</dd><dt>Test Count</dt><dd>18504</dd><dt>Company Modules</dt><dd>462</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre>## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T17:38:44Z
+Last updated: 2026-08-03T18:58:35Z
 
-**W1_13 (2026-08-03, `89103080d`) — the external anchor landed, and the ENVELOPE was the side that was
-wrong. L0→L2, recorded.** The blocker below asked whether a 43,338 kWh/yr domestic gas premise is a real
-category or a modelling artefact. Both sides of that disagreement were internal, so the work was external
-and only external: **DESNZ NEED 2026** (published 11 June 2026, England & Wales, consumption year 2024,
-weather-corrected), the publisher's own tables and no aggregator. Two artefacts answer different halves —
-the published aggregate over 21.6m properties, which carries an explicit **`Pre 1919`** age class
-(detached gas-heated 3-bed **median 17,283 / UQ 23,068**, n=72,173), and the record-level 50k sample, from
-which any percentile is computable; the sample was cross-checked against the aggregate *before use*
-(medians 0.5% and 2.8% apart), which validates the **sampling**, not the source, since both share the NEED
-lineage. **Two metadata facts did the real work, neither guessed:** `PROP_AGE_BAND 1` is *"before 1930"*,
-not pre-1919, so the measured tail includes cavity-walled 1919-29 stock and every percentile is an
-**under**-estimate of the true pre-1919 solid-wall tail (stated because the bias runs *against* the
-conclusion); and the data is **right-censored at 50,000 kWh/yr** because DESNZ removes larger readings as
-too large — making 50,000 the national statistics publisher's *own* threshold for "too large to be a
-domestic gas reading", the same **kind** of object as the company's envelope.
-**Verdict: `RESI_CONSUMPTION_ENVELOPE_GAS.high` 40,000 → 50,000, cited to that threshold.** The
-justification does **not** depend on C4, and that is the point: the old bound flagged **1.02% of all
-gas-heated E&W homes and 14.1% of pre-1930 detached homes** as implausible — an absurdity-catcher rejecting
-one in seven of a real, common dwelling class had to move whether or not the fabric model existed. **R12
-counterfactual, stated because the ordering invites the suspicion: had C4 come in at 55,000 the anchor
-would not have covered it and the PHYSICS would have been the side that moved.** C4 sits at ~p99 of its own
-size band (pre-1930 detached 101–150 m²: median 16,800, p99 38,900, max 49,900, **zero censoring** so those
-percentiles are reliable) — one deliberately-worst archetype at p99 is expected; a *second* premise above
-p99 is a physics finding. R13: decided blind to P&L, measured before margin.
-**W1_11 stays at L2** — clearing a blocker has never moved a `level_current`. The settlement switch is now
-unblocked and drawable, but it is not thrown, and throwing it moves published figures across the whole book.
-**Control-set hole closed:** `RESI_CONSUMPTION_ENVELOPE_GAS` had **no test of its own** — the single test
-named for the envelope class exercises only the *electricity* invariant, so the gas bound could have been
-any number and the s</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-03T17:41:42Z | Run f790fd506dcf0c97e6ebb77a8b2242bb9ca63d1c | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
+**DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
+mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
+at all** while all six sub-parts (DD1, DD1-sizes-collection, DD2, DD3, DD4a, DD5 SITE, DD-H) were built,
+committed and live — the stale-cell class again, so it was re-verified against artefacts rather than
+re-stamped: `run_output_latest.json` carries every DD block and `dd_h_solvency_gap.measure_from_run_output()`
+now returns **measurable=True** (belief £4,118,110.43 / truth £4,116,298.23 / gap £1,812.20 / tell False,
+as at 2020-10) where on 2026-07-29 it honestly reported NOT-MEASURABLE. **DD2's parked opening balance was
+wrong in BOTH halves.** Not the prior occupant's debt — SLC 27/12.2, and `change_of_tenancy_register.py`'s
+own opening lines, put debt on the **person**; and W2_12 hitting its target is not an unblock, because
+`TenancyChangeCoupler` has **no production caller** (grep-verified) and `simulation/life_events.py` emits
+**no move event at all**. Wiring it would be a live mechanism with a permanently dead input — the **fourth**
+orphan-transition instance, and the first where the orphan was holding another atom's work in a queue by
+proxy. **A C-S5 fail-open, found by testing the claim rather than reading the code:** the docstring said
+monthly/quarterly billing "all carry the same way" while the loop collected one standing DD **per BILL** —
+a quarterly customer paying 4 direct debits a year against 12 months of energy, a 3× under-collection
+feeding straight into DD3's booked liability and DD-H's gap. Fixed; byte-identical on the real
+(monthly, zero-gap) book. **The measured defect is PINNED, not fabricated shut:** the opening DD is the
+first bill — one seasonal month annualised flat — so it is a function of **the month the customer walked
+in**: **+33.2%** (gas, April join) and **−46.3%** (gas, July join) against +2.1%/−1.0%/+2.6% on the
+weakly-seasonal electricity accounts, with C2g alone carrying **£293.49 of spurious held credit** against
+a £1,812.20 portfolio peak. Strict xfail (XPASSes when the source is mutated to annual/12), minted as
+atom `D_opening_dd_seasonal_sizing` — fixing it needs a **published** monthly-shape source, and no
+coefficient here may be fabricated. **Held at L2:** expert_hour not_attempted, DD4b unbuilt, sizing defect
+open. 1835 passed + 1 strict xfail; `epistemic_verifier` PASS (532 files).
+
+**D_printed_figure_rederivation (2026-08-03, `8e57c9cdd`) — the mint's prescribed fix would have changed
+the CHARGE to tidy the printout. L0→L2, recorded.** The footing fix closed "the column adds up"; this
+closes "each line can be re-derived". Measured on the RENDERED artefact first: **86.1% of usage lines
+(1441/1674)** and 243 standing-charge lines showed a multiplication that does not hold — `317.9 kWh ×
+11.90p = </pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-03T18:59:46Z | Run 1f600ad9628ae2bddca03b8e8caac7ddd2523566 | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
