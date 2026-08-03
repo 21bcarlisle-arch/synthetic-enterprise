@@ -420,3 +420,211 @@ def test_the_affordability_reference_has_not_drifted():
 def test_the_heating_commodity_of_a_gas_home_is_gas(series):
     assert series.heating_commodity == "gas"
     assert series.annual_gas_kwh > series.annual_electricity_kwh
+
+
+# ---------------------------------------------------------------------------
+# The book-level provider set, and THE SWITCH
+#
+# `fabric_eligibility` deciding a premise is fabric-driven has never made the
+# runner USE the trace: the branch that chooses the provider is separate code.
+# A switch that is declared but not thrown reads identically to one that is
+# thrown from everywhere except the settled numbers, which is why the control
+# below judges the SETTLED book rather than the intention.
+# ---------------------------------------------------------------------------
+
+
+def _book(**overrides):
+    """A miniature book: one domestic premise, one half-hourly-metered premise,
+    one commercial premise. Enough for every branch of the switch."""
+    households = {
+        "C1": make_household("C1"),
+        "HH1": make_household("HH1"),
+        "OFF1": make_household("OFF1", property_type=PropertyType.COMMERCIAL_OFFICE,
+                               bedrooms=None),
+    }
+    kwargs = dict(
+        customers=[{"customer_id": cid} for cid in households],
+        household_at_date=lambda cid, _date_str: households[cid],
+        is_half_hourly_metered=lambda c: c["customer_id"] == "HH1",
+        weather_site_for=lambda _c: "C1",
+        weather_available=lambda _site: True,
+        latitude_for=lambda _c: LATITUDE,
+        start=WINDOW_START,
+        end=WINDOW_END,
+    )
+    kwargs.update(overrides)
+    return kwargs
+
+
+def test_the_provider_pass_judges_every_customer_not_only_the_eligible_ones():
+    """A caller must be able to say WHY a premise is not fabric-driven, rather
+    than infer it from an absence — an unexplained population drop between two
+    runs is exactly what a bare `{cid: series}` dict hides."""
+    series_by_customer, verdicts = fdp.fabric_providers_for_book(**_book())
+    assert sorted(series_by_customer) == ["C1"]
+    assert sorted(v.customer_id for v in verdicts) == ["C1", "HH1", "OFF1"]
+    reasons = {v.customer_id: v.reason for v in verdicts if not v.is_eligible}
+    assert "metered" in reasons["HH1"]
+    assert "non-domestic" in reasons["OFF1"]
+
+
+def test_an_empty_settlement_window_has_no_providers():
+    """FAIL-OPEN guard: an inverted window must raise, never return an empty
+    provider set that reads as 'nobody is eligible'."""
+    with pytest.raises(ValueError):
+        fdp.fabric_providers_for_book(**_book(start=WINDOW_END, end=WINDOW_START))
+
+
+def test_a_premise_whose_archive_stops_short_is_refused_UP_FRONT_not_mid_run():
+    """COVERAGE IS PART OF ELIGIBILITY. The C1 archive ends 2025-06-07, so a
+    window running past it cannot be settled on fabric. The premise must be
+    recorded ineligible with that reason BEFORE any settlement happens — the
+    alternative is a `shape_fn` that raises on the first uncovered day, halfway
+    through a run that has already billed nine years."""
+    series_by_customer, verdicts = fdp.fabric_providers_for_book(
+        **_book(start=dt.date(2025, 5, 1), end=dt.date(2025, 8, 31))
+    )
+    assert series_by_customer == {}
+    c1 = next(v for v in verdicts if v.customer_id == "C1")
+    assert c1.is_eligible is False
+    assert "does not cover" in c1.reason
+
+
+def test_the_switch_control_passes_on_a_correctly_switched_book():
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    providers = {
+        "C1": fdp.FABRIC_PROVIDER,
+        "HH1": fdp.METERED_PROVIDER,
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(providers, verdicts) is True
+
+
+def test_MUTATION_switch_control_fires_when_the_switch_is_DECLARED_BUT_NOT_THROWN():
+    """The defect this control exists for, and the one the seam sat in for a
+    build: the eligibility pass runs, the trace is generated, and the branch
+    keeps handing the legacy rescaled-PC1 shape to settlement anyway."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    providers = {
+        "C1": fdp.LEGACY_PROVIDER,   # <-- eligible, but settled on the old provider
+        "HH1": fdp.METERED_PROVIDER,
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(providers, verdicts) is False
+
+
+def test_MUTATION_switch_control_fires_when_a_trace_less_premise_is_given_fabric():
+    """The opposite defect: a branch keyed on something other than the trace
+    dict hands a fabric provider to a premise with no trace — which in the
+    runner would raise on the first settlement day, and here is caught first."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    providers = {
+        "C1": fdp.FABRIC_PROVIDER,
+        "HH1": fdp.FABRIC_PROVIDER,   # <-- half-hourly metered, no trace exists
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(providers, verdicts) is False
+
+
+def test_the_switch_control_raises_on_a_provider_it_cannot_classify():
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    with pytest.raises(ValueError, match="unrecognised demand provider"):
+        fdp.settlement_providers_match_eligibility(
+            {"C1": "some_new_generator", "HH1": fdp.METERED_PROVIDER,
+             "OFF1": fdp.LEGACY_PROVIDER},
+            verdicts,
+        )
+
+
+def test_the_switch_control_raises_on_a_customer_that_settled_unjudged():
+    """FAIL-OPEN guard: a customer that settled without an eligibility verdict is
+    a customer the switch was never checked against. Judging only the intersection
+    would report a clean switch on a book it did not cover."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    with pytest.raises(ValueError, match="without an eligibility verdict"):
+        fdp.settlement_providers_match_eligibility(
+            {"C1": fdp.FABRIC_PROVIDER, "HH1": fdp.METERED_PROVIDER,
+             "OFF1": fdp.LEGACY_PROVIDER, "C99": fdp.LEGACY_PROVIDER},
+            verdicts,
+        )
+
+
+def test_a_classified_customer_that_never_settled_is_not_an_error():
+    """A successor customer gated behind a churn event that did not fire is
+    judged but never settles. That must not be confused with the switch failing
+    to reach a customer that DID settle."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    assert fdp.settlement_providers_match_eligibility(
+        {"C1": fdp.FABRIC_PROVIDER, "HH1": fdp.METERED_PROVIDER}, verdicts
+    ) is True
+
+
+def test_the_switch_control_raises_on_a_book_with_no_settled_customers():
+    """FAIL-SILENT guard: `all(...)` over an empty book is vacuously True, which
+    would report a switched book on a run that settled nobody."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    with pytest.raises(ValueError, match="no settled customers"):
+        fdp.settlement_providers_match_eligibility({}, verdicts)
+
+
+# ---------------------------------------------------------------------------
+# THE SWITCH EMPTIED RATHER THAN MISSED
+#
+# `settlement_providers_match_eligibility` compares the settled providers against
+# the DECLARED eligible set. It is therefore blind to the declaration itself being
+# emptied: if the weather archive stops short of the settlement window, every
+# structurally-eligible premise is refused, nobody is declared, nobody can fail to
+# be switched, and the whole book quietly settles on the rescaled national shape
+# the switch exists to replace — with the match-control green throughout.
+# ---------------------------------------------------------------------------
+
+
+def test_a_book_with_no_coverage_refusals_reports_none():
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    assert fdp.coverage_refusals(verdicts) == []
+
+
+def test_MUTATION_coverage_refusal_is_reported_when_the_archive_stops_short():
+    """The named defect: the C1 archive ends 2025-06-07, so a window running past
+    it makes an otherwise-eligible domestic premise revert to legacy. The premise
+    must be NAMED, not absorbed into the same silence as a commercial office."""
+    _, verdicts = fdp.fabric_providers_for_book(
+        **_book(start=dt.date(2025, 5, 1), end=dt.date(2025, 8, 31))
+    )
+    assert fdp.coverage_refusals(verdicts) == ["C1"]
+
+
+def test_the_match_control_is_GREEN_on_the_very_book_the_coverage_control_rejects():
+    """Why the second control is not redundant, asserted rather than argued: on an
+    emptied book the match-control reports a perfectly switched settlement, because
+    an undeclared customer cannot be an unswitched one. Green here and red there is
+    the whole point — if this ever starts failing, the two controls have merged and
+    one of them has stopped being an independent check."""
+    _, verdicts = fdp.fabric_providers_for_book(
+        **_book(start=dt.date(2025, 5, 1), end=dt.date(2025, 8, 31))
+    )
+    all_legacy = {
+        "C1": fdp.LEGACY_PROVIDER,
+        "HH1": fdp.METERED_PROVIDER,
+        "OFF1": fdp.LEGACY_PROVIDER,
+    }
+    assert fdp.settlement_providers_match_eligibility(all_legacy, verdicts) is True
+    assert fdp.coverage_refusals(verdicts) == ["C1"]
+
+
+def test_a_structural_refusal_is_NOT_a_coverage_refusal():
+    """INDEPENDENCE: the control must key on the archive, not on 'ineligible'.
+    A half-hourly-metered premise and a commercial office are refused forever and
+    are not evidence of a silently-emptied switch — a control that counted them
+    would fire on every healthy book and be turned off."""
+    _, verdicts = fdp.fabric_providers_for_book(**_book())
+    refused = {v.customer_id for v in verdicts if not v.is_eligible}
+    assert refused == {"HH1", "OFF1"}
+    assert fdp.coverage_refusals(verdicts) == []
+
+
+def test_coverage_control_raises_rather_than_reporting_clean_on_an_unjudged_book():
+    """FAIL-SILENT guard: `[]` from an empty verdict list reads identically to
+    'the archive covers everyone', on a book that was never judged at all."""
+    with pytest.raises(ValueError, match="never judged"):
+        fdp.coverage_refusals([])

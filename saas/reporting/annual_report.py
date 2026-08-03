@@ -683,6 +683,17 @@ def extract_report_data(run_output: dict) -> dict:
         "trading_book": phase2b.get("trading_book", {}),
         "wholesale_credit_exposure": phase2b.get("wholesale_credit_exposure", {}),
         "margin_call_book": phase2b.get("margin_call_book", {}),
+        # W1_11 settlement switch (2026-08-03): WHICH GENERATOR SETTLED EACH
+        # CUSTOMER, forwarded on the same reasoning as trading_book above and
+        # caught the same way -- run_phase2b records these precisely so "an
+        # unexplained population change is visible in the run, not inferred from
+        # its numbers", and that guarantee is false while this whitelist drops
+        # them. The fabric population is the one thing a reader of a run whose
+        # margin moved needs first: whether a premise settled on fabric physics
+        # or fell back to the rescaled national shape, and the REASON it fell
+        # back. Third recorded instance of the silent-drop class in this dict.
+        "demand_provider_by_customer": phase2b.get("demand_provider_by_customer", {}),
+        "fabric_eligibility": phase2b.get("fabric_eligibility", []),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,

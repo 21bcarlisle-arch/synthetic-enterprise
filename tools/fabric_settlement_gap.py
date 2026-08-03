@@ -93,28 +93,30 @@ def envelope_breaches(rows: list[dict]) -> list[str]:
 def measure(seed: int = fdp.DEFAULT_TRACE_SEED) -> dict:
     register = HouseholdDemandRegister(CUSTOMERS)
     start, end = dt.date.fromisoformat(REPORT_START), dt.date.fromisoformat(REPORT_END)
-    rows, excluded = [], []
+    # The SAME eligibility pass and the SAME trace generation `run_phase2b` settles
+    # on (`fabric_providers_for_book`). Measuring a population the runner does not
+    # use would not be a measurement of the switch.
+    series_by_customer, verdicts = fdp.fabric_providers_for_book(
+        customers=ELEC_CUSTOMERS,
+        household_at_date=register.household_at_date,
+        is_half_hourly_metered=is_hh_customer,
+        weather_site_for=_weather_source_customer_id,
+        weather_available=lambda site: (WEATHER_DIR / f"{site}.csv").exists(),
+        latitude_for=lambda c: c.get("location", {}).get("lat") or 53.0,
+        start=start,
+        end=end,
+        seed=seed,
+    )
+    rows = []
+    excluded = [
+        {"customer_id": v.customer_id, "reason": v.reason}
+        for v in verdicts if not v.is_eligible
+    ]
     for customer in ELEC_CUSTOMERS:
         cid = customer["customer_id"]
-        site = _weather_source_customer_id(customer)
-        verdict = fdp.fabric_eligibility(
-            customer,
-            register.household_at_date(cid, REPORT_START),
-            is_half_hourly_metered=is_hh_customer(customer),
-            weather_available=(WEATHER_DIR / f"{site}.csv").exists(),
-        )
-        if not verdict.is_eligible:
-            excluded.append({"customer_id": cid, "reason": verdict.reason})
+        series = series_by_customer.get(cid)
+        if series is None:
             continue
-        series = fdp.build_fabric_series_for_site(
-            customer_id=cid,
-            household_at_date=lambda d, cid=cid: register.household_at_date(cid, d),
-            weather_site=site,
-            latitude_deg=customer.get("location", {}).get("lat") or 53.0,
-            start=start,
-            end=end,
-            seed=seed,
-        )
         declared = _declared_annual_kwh(cid)
         intensities = {
             year: round(constraint.rationing_intensity, 4)

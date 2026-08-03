@@ -360,6 +360,107 @@ def build_fabric_series_for_site(
 
 
 # ---------------------------------------------------------------------------
+# The book-level provider set — ONE eligibility decision, shared by the runner
+# and the measurement tool
+# ---------------------------------------------------------------------------
+
+# The two refusals below are NOT the same kind of thing, and conflating them is
+# how a thrown switch un-throws itself in silence.
+#
+# A STRUCTURAL refusal (half-hourly metered, non-domestic, no household record) is
+# a permanent property of the premise: that customer was never going to settle on
+# fabric, and the legacy provider is the right answer forever.
+#
+# A COVERAGE refusal is a property of the ARCHIVE, not the premise. The premise is
+# domestic, has fabric parameters and has local weather — it passed every
+# structural test — and it is dropped back to the legacy rescaled-PC1 shape only
+# because the weather file stops short of the settlement window. Extend the window
+# by one day past the archive, or truncate the archive, and every fabric premise in
+# the book silently reverts while `settlement_providers_match_eligibility` keeps
+# returning True: nobody was declared eligible, so nobody failed to be switched.
+# That is a FAIL-OPEN of exactly the R15 shape (a control that passes on an empty
+# set), and it is why the marker exists and why the runner asserts on it separately.
+COVERAGE_REFUSAL = "archive does not cover the settlement window"
+
+
+def fabric_providers_for_book(
+    *,
+    customers: Sequence[Mapping],
+    household_at_date: Callable[[str, str], Household | None],
+    is_half_hourly_metered: Callable[[Mapping], bool],
+    weather_site_for: Callable[[Mapping], str],
+    weather_available: Callable[[str], bool],
+    latitude_for: Callable[[Mapping], float],
+    start: dt.date,
+    end: dt.date,
+    seed: int = DEFAULT_TRACE_SEED,
+) -> tuple[dict[str, FabricDemandSeries], list[FabricEligibility]]:
+    """Decide, ONCE for the whole book, which customers settle on fabric physics,
+    and build their traces.
+
+    `run_phase2b` (which settles real money in the sim) and
+    `tools/fabric_settlement_gap` (which reports what switching does) must not be
+    able to disagree about who is fabric-driven — a measurement of a different
+    population from the one that settles is not a measurement of the switch. So the
+    predicate, the segmentation and the trace generation all live here and both
+    callers pass their own accessors in.
+
+    COVERAGE IS PART OF ELIGIBILITY, decided up front. A customer whose weather
+    archive does not span the whole settlement window is recorded INELIGIBLE with
+    that reason and keeps the legacy provider, rather than being handed a
+    `shape_fn` that raises on the first uncovered day halfway through a run. This
+    is not the fail-open the module forbids: nothing silently substitutes a shape,
+    the refusal is decided before any settlement happens, and the reason is carried
+    into the run's own record where an unexplained population drop is visible.
+
+    Returns `(series_by_customer_id, eligibility_for_every_customer)`. The second
+    element covers EVERY customer passed in, eligible or not, so a caller can log
+    the reason a premise is not fabric-driven instead of inferring it from an
+    absence.
+    """
+    if end < start:
+        raise ValueError(f"an empty settlement window ({start}..{end}) has no providers")
+    window = [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
+
+    series_by_customer: dict[str, FabricDemandSeries] = {}
+    verdicts: list[FabricEligibility] = []
+    for customer in customers:
+        cid = str(customer.get("customer_id", ""))
+        site = weather_site_for(customer)
+        verdict = fabric_eligibility(
+            customer,
+            household_at_date(cid, start.isoformat()),
+            is_half_hourly_metered=is_half_hourly_metered(customer),
+            weather_available=weather_available(site),
+        )
+        if not verdict.is_eligible:
+            verdicts.append(verdict)
+            continue
+        series = build_fabric_series_for_site(
+            customer_id=cid,
+            household_at_date=lambda d, _cid=cid: household_at_date(_cid, d),
+            weather_site=site,
+            latitude_deg=latitude_for(customer),
+            start=start,
+            end=end,
+            seed=seed,
+        )
+        if not series_covers_window(series, window):
+            verdicts.append(
+                FabricEligibility(
+                    cid,
+                    False,
+                    f"{COVERAGE_REFUSAL}: weather archive {site!r} does not cover the "
+                    f"whole settlement window {start.isoformat()}..{end.isoformat()}",
+                )
+            )
+            continue
+        series_by_customer[cid] = series
+        verdicts.append(verdict)
+    return series_by_customer, verdicts
+
+
+# ---------------------------------------------------------------------------
 # The seam itself
 # ---------------------------------------------------------------------------
 
@@ -448,6 +549,79 @@ def overlays_are_mutually_exclusive(
     if not fabric_driven:
         return True
     return not applied_overlays
+
+
+# The provider names a settled customer's demand can have come from. Named rather
+# than described so the control below compares against a list.
+FABRIC_PROVIDER = "fabric_physics"
+LEGACY_PROVIDER = "legacy_pc1_rescaled"
+METERED_PROVIDER = "hh_metered_reads"
+DEMAND_PROVIDERS = (FABRIC_PROVIDER, LEGACY_PROVIDER, METERED_PROVIDER)
+
+
+def settlement_providers_match_eligibility(
+    provider_by_customer: Mapping[str, str],
+    eligibility: Sequence[FabricEligibility],
+) -> bool:
+    """THE SWITCH ITSELF, as a failable predicate: True iff every customer the
+    eligibility pass declared fabric-driven actually SETTLED on the fabric
+    provider, and no other customer did.
+
+    This is the control the wiring needed and did not have. `fabric_eligibility`
+    deciding a customer is eligible has never made `run_phase2b` use the trace —
+    the branch that chooses the provider is separate code, and a switch that is
+    declared but not thrown reads identically to one that is thrown from
+    everywhere except the settled numbers. It FIRES on a branch that computes the
+    eligibility and then keeps the legacy shape, and on a branch that hands a
+    fabric shape to a customer with no trace.
+
+    Raises on an unrecognised provider name, on an empty book, and on a customer
+    that SETTLED without ever being classified: a control that ignores what it
+    cannot classify reports a clean switch on a book it did not check. The
+    converse — a classified customer that never settled — is legitimate (a
+    successor customer gated behind a churn event that did not fire) and is
+    simply not judged.
+    """
+    unknown = sorted({p for p in provider_by_customer.values() if p not in DEMAND_PROVIDERS})
+    if unknown:
+        raise ValueError(f"unrecognised demand provider(s) {unknown}: cannot judge the switch")
+    if not provider_by_customer:
+        raise ValueError("a book with no settled customers is not a switched book")
+    judged = {v.customer_id: v for v in eligibility}
+    unclassified = sorted(set(provider_by_customer) - set(judged))
+    if unclassified:
+        raise ValueError(
+            f"customers {unclassified} settled without an eligibility verdict: "
+            "cannot judge whether the switch reached them"
+        )
+    for cid, provider in provider_by_customer.items():
+        if (provider == FABRIC_PROVIDER) != judged[cid].is_eligible:
+            return False
+    return True
+
+
+def coverage_refusals(eligibility: Sequence[FabricEligibility]) -> list[str]:
+    """The customers that would have settled on fabric physics but for the weather
+    archive stopping short of the settlement window.
+
+    Separated from `settlement_providers_match_eligibility` on purpose: that control
+    asks "did the switch reach everyone it was DECLARED for", and this one asks "was
+    the declaration itself quietly emptied". A book where every fabric premise was
+    coverage-refused satisfies the first control perfectly — nobody was declared, so
+    nobody was missed — while settling the entire book on the rescaled national
+    shape the switch exists to replace.
+
+    Raises on an empty verdict list rather than returning `[]`: a book nothing was
+    judged on has not been checked, and reporting "no coverage refusals" for it is
+    the fail-silent half of the same defect.
+    """
+    if not eligibility:
+        raise ValueError("no eligibility verdicts: the book was never judged for coverage")
+    return sorted(
+        v.customer_id
+        for v in eligibility
+        if not v.is_eligible and v.reason.startswith(COVERAGE_REFUSAL)
+    )
 
 
 def prebound_channel_is_fed(series: FabricDemandSeries) -> bool:

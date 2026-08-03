@@ -1162,7 +1162,16 @@ def shipped_path_population(
     commodity: str = "electricity",
     generator: str = "shipped demand path (demand_model.build_demand_shape on PC1)",
 ) -> "PopulationTraces":
-    """The generator that is ACTUALLY in the demand path today.
+    """The LEGACY generator: a rescaled national PC1 shape.
+
+    NO LONGER "the generator actually in the demand path today", and the claim is
+    corrected here rather than left to rot -- the W1_11 settlement switch made
+    `simulation.fabric_demand_path` the provider for every ELIGIBLE DOMESTIC
+    premise in `run_phase2b`, so this path now settles only the customers fabric
+    refused (half-hourly metered, non-domestic, no household record, or no weather
+    coverage). It remains the right BASELINE to score the fabric population
+    against -- that comparison is the point -- but reading it as the shipped path
+    would now overstate its reach.
 
     `simulation.demand_model.build_demand_shape` applies weather, occupancy and
     asset adjustments to a stored national PC1 half-hourly shape. `weather_days`

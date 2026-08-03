@@ -131,9 +131,25 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
+from simulation.fabric_demand_path import (
+    FABRIC_PROVIDER,
+    LEGACY_PROVIDER,
+    METERED_PROVIDER,
+    coverage_refusals,
+    fabric_providers_for_book,
+    fabric_shape_fn,
+    settlement_providers_match_eligibility,
+)
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
-from simulation.weather_inputs import cloud_cover_for_customer, lookback_mean_temps, weather_means_for_customer
+from simulation.weather_inputs import (
+    _weather_source_customer_id,
+    cloud_cover_for_customer,
+    lookback_mean_temps,
+    weather_means_for_customer,
+)
+from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
+from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.household_demand import HouseholdDemandRegister
 
@@ -862,6 +878,61 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         c["customer_id"]: load_hh_consumption(c["customer_id"])
         for c in ELEC_CUSTOMERS if is_hh_customer(c)
     }
+
+    # ---- W1_11 L2->L3: THE SETTLEMENT SWITCH ----
+    # Fabric physics REPLACES the rescaled national PC1 shape as the demand
+    # PROVIDER for eligible domestic premises. Until this line, the company had
+    # never faced the fabric world on the path it actually settles, bills and
+    # hedges on -- the coupling was a side panel (tools/couple_fabric.py) standing
+    # beside the book. The provider changes; no consumer does.
+    #
+    # R12/R13 PRE-COMMITMENT (recorded before any downstream number was read): a
+    # real premise is spikier than a rescaled national average and its annual
+    # level is set by its FABRIC, not by its declared EAC. Imbalance cost and net
+    # margin will very likely get WORSE and per-customer volumes will move
+    # materially. That is the correct consequence of removing a smoothing
+    # artefact, not a regression, and nothing here may be tuned to bring the old
+    # numbers back. The declared EAC stays untouched: it is the company's BELIEF,
+    # and the disagreement with the world is the coupled-triad gap.
+    #
+    # GAS IS DELIBERATELY NOT SWITCHED. `run_gas_term` takes an AQ, not a
+    # shape_fn, and -- unlike electricity, whose EAC is re-estimated from billing
+    # records each term (`_company_eac_estimate`) -- the gas AQ never reconciles
+    # to settled volumes. Driving gas demand from fabric while the AQ belief stays
+    # frozen at its declared value would lock in a permanent 4x hedge mismatch no
+    # real supplier could carry, which is an absurdity, not a gap. The gas seam +
+    # AQ reconciliation is registered as the next atom, not built here.
+    _fabric_start = date.fromisoformat(REPORT_START)
+    _fabric_end = date.fromisoformat(effective_end)
+    fabric_series_by_customer, fabric_eligibility_verdicts = fabric_providers_for_book(
+        customers=ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS,
+        household_at_date=household_demand_register.household_at_date,
+        is_half_hourly_metered=is_hh_customer,
+        weather_site_for=_weather_source_customer_id,
+        weather_available=lambda site: (WEATHER_DATA_DIR_PATH / f"{site}.csv").exists(),
+        latitude_for=lambda c: c.get("location", {}).get("lat") or DEFAULT_LATITUDE_DEG,
+        start=_fabric_start,
+        end=_fabric_end,
+    )
+    demand_provider_by_customer: dict[str, str] = {}
+    print(f"Fabric-driven premises (W1_11 settlement switch): "
+          f"{sorted(fabric_series_by_customer)}")
+    for _v in fabric_eligibility_verdicts:
+        if not _v.is_eligible:
+            print(f"  {_v.customer_id}: legacy provider -- {_v.reason}")
+
+    def _fabric_battery_dispatch_for(cid: str):
+        """The one composition `fabric_shape_fn` leaves to the caller. The trace
+        models PV but not the battery, so the battery is dispatched here against
+        the trace's own gross load and generation -- the same function, and the
+        same 16:00-20:00 discharge window, the legacy path uses."""
+        def dispatch(gross: list[float], generation: list[float], date_str: str) -> list[float]:
+            dyn = household_demand_register.dynamic_assets(cid, date_str) or {}
+            battery_kwh = dyn.get("battery_kwh", 0.0) if dyn.get("battery") else 0.0
+            if not battery_kwh:
+                return [g - p for g, p in zip(gross, generation)]
+            return _battery_daily_dispatch(gross, generation, battery_kwh)
+        return dispatch
 
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]
@@ -1658,7 +1729,21 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
                 if customer.get("segment") == "I&C":
                     shape_fn = make_triad_aware_shape_fn(shape_fn, _ic_triad_alert_set)
+                demand_provider_by_customer[cid] = METERED_PROVIDER
+            elif cid in fabric_series_by_customer:
+                # W1_11: the fabric trace IS the demand. Every legacy overlay
+                # (HDD heating uplift, EPC consumption multiplier, ASHP uplift,
+                # overnight-EV overlay, solar offset, occupancy shape/volume) is
+                # REPLACED rather than stacked -- the trace already contains each
+                # of them, so applying any of them here would double-count.
+                shape_fn = fabric_shape_fn(
+                    fabric_series_by_customer[cid],
+                    "electricity",
+                    battery_dispatch=_fabric_battery_dispatch_for(cid),
+                )
+                demand_provider_by_customer[cid] = FABRIC_PROVIDER
             else:
+                demand_provider_by_customer[cid] = LEGACY_PROVIDER
                 profile_class = customer.get("profile_class", 1)
                 property_record = properties.get(cid, DEFAULT_PROPERTY)
                 # Phase O: always pass cloud cover + latitude — any resi customer
@@ -2576,9 +2661,44 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         print(f"WARNING [MC-2 collateral death-test] failed: {_mc2_exc}")
         _mc2_tb.print_exc()
 
+    # W1_11 settlement switch: the control runs on the SETTLED book, not on the
+    # intention. It raises rather than returns False on a book it cannot judge.
+    if not settlement_providers_match_eligibility(
+        demand_provider_by_customer, fabric_eligibility_verdicts
+    ):
+        raise AssertionError(
+            "the fabric settlement switch did not reach the book it was declared for: "
+            f"providers={demand_provider_by_customer}, "
+            f"eligible={sorted(v.customer_id for v in fabric_eligibility_verdicts if v.is_eligible)}"
+        )
+
+    # ...and the control above cannot catch the switch being emptied rather than
+    # missed. A premise refused because the weather archive stops short of the
+    # settlement window is structurally eligible: it reverts to the rescaled
+    # national shape while the match-control still reads clean, because an
+    # undeclared customer cannot be an unswitched one. Extend REPORT_END past the
+    # archive and the whole fabric population disappears in silence, so the empty
+    # set is asserted separately here rather than trusted.
+    _coverage_refused = coverage_refusals(fabric_eligibility_verdicts)
+    if _coverage_refused:
+        raise AssertionError(
+            "the fabric settlement switch was silently emptied by archive coverage: "
+            f"{_coverage_refused} are structurally eligible premises settled on the "
+            f"legacy provider because the weather archive does not span "
+            f"{REPORT_START}..{effective_end}"
+        )
+
     return {
         "all_records": all_records,
         "administration_event": administration_event,
+        # W1_11: which generator settled each electricity customer's demand, and
+        # why a premise is not fabric-driven -- recorded so an unexplained
+        # population change is visible in the run, not inferred from its numbers.
+        "demand_provider_by_customer": dict(demand_provider_by_customer),
+        "fabric_eligibility": [
+            {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}
+            for v in fabric_eligibility_verdicts
+        ],
         "committee_wake_ups": committee_wake_ups,
         "customer_events": customer_events_log,
         "churned_billing_accounts": sorted(churned_billing_accounts),
