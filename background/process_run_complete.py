@@ -908,7 +908,13 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     # the baseline would re-base every run and the panel would read "nothing changed"
     # forever.
     try:
-        from tools.generate_director_data import main as gen_director_delta
+        # Import generate(), NOT main(): main() is the CLI entry point and parses
+        # sys.argv, so an in-process call inherited THIS process's arguments and
+        # argparse exited with SystemExit(2) -- a BaseException the `except Exception`
+        # below does not catch, i.e. it would abort the whole publish mid-way rather
+        # than degrade to a logged failure. Caught by
+        # test_website_integrity_fix.py::test_generate_dashboard_json_returns_gate_status.
+        from tools.generate_director_data import generate as gen_director_delta
         gen_director_delta()
         log("Generated site/data/director_delta.json")
     except Exception as exc:
