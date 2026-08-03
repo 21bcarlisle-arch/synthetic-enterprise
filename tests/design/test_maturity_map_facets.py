@@ -112,6 +112,11 @@ REVIEWED_CLOSE_TO_LEARN = {
     #    class as OPS1_launcher_cutover_completion and OPS_run_marker_sweep_livelock.
     #  * SITE_director_window_delta_view -- an evidence-surface/operator-legibility door, same class
     #    as its parent SITE1_expert_doors and the three SITE_EH atoms directly above.
+    # 2026-08-03 reviewed (worker tick, dead-fork rescue audit). Classified on its merits: a register
+    # OF STALL CLASSES is a self-audit instrument -- it measures whether the machine's own account of
+    # when it stopped working can be TRUSTED. It moves no money and touches no revenue flow, which is
+    # the identical class to OPS_run_marker_sweep_livelock and OPS1_launcher_cutover_completion.
+    "OPS_stall_class_register_adoption",
     "SP2_2_rng_substream_primitive",
     "SP3_size_and_clone_ratchet",
     "SP4_owned_quantity_registry_gate",

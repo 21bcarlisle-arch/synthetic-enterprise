@@ -1111,7 +1111,8 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an ops queue whose retry worker never acquires the lock: the dashboard shows healthy retries while the queue grows without bound, and nobody is paged because nothing ever errors"
   depends_on: []
-
+  simplifications:
+  - '2026-08-03 TWO RIVAL IMPLEMENTATIONS EXIST, BOTH OFF-MAIN, NEITHER MERGED (worker tick fork audit, docs/staging/WORKER_FINDING_DEAD_FORK_RESCUE_AUDIT_2026-08-03.md). Both were UNCOMMITTED in dead fork worktrees and have been preserved as RESCUE commits on their own branches: worktree-agent-a5555b1e8256de0e4 (rescued 448c2dee5 -- background_worker.py +266, process_run_complete.py +27, tests/background/test_background_worker.py and test_process_run_complete.py +346) and worktree-agent-ad14ac1d4858a473f (rescued f50b4cc26 -- background_worker.py +277, process_run_complete.py +70, and a NEW 423-line tests/background/test_run_marker_sweep.py that exists nowhere else). NEITHER IS MERGED AND THAT IS DELIBERATE: two rivals for one atom is a RECONCILIATION, not a merge, and blind-merging either would silently pick a winner on no evidence -- the same rival-pair situation as SITE_EH1, where the audit showed the winner had landed and the loser still held one idea worth keeping. THE WORK IS: diff the two against each other and against main, decide which livelock fix is correct (the sweep can never acquire the run lock the producer holds, so it has logged "will retry next cycle" for 404 markers every cycle without ever succeeding -- a permanent total failure reported in the vocabulary of a transient retry), merge the winner through the real pre-commit gate, and graft anything the loser has that the winner lacks. R15: whichever lands must FIRE on the livelock it fixes -- a sweep that reports retry-forever must be distinguishable from a sweep that is genuinely waiting.'
 
 - id: H10_worktree_isolation
   name: "Concurrent BUILD atoms run in isolated git worktrees (native isolation: worktree), map read-during-build"
@@ -3201,3 +3202,20 @@
   - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_director_window_delta_view_2026-07-28.md. RECLASSIFICATION, RECORDED PLAINLY: an earlier tick filed this as "BUILD DONE, only the abolished level move remained" and it was NOT -- artifact verification on real disk this tick found "window_delta" appearing ONLY in docs/design/*.md, with no code and no test anywhere. It was reclassified from archivable to genuinely-unbuilt on that evidence. This is the stale-cell class in miniature: a claim of doneness that no artifact supported, which is exactly why the disposition was artifact verification rather than a bulk archive.'
   - '2026-08-03 MINT -- L2 TARGET, NOT L3, AND THE REASON IS THE ACCEPTANCE TEST: the only real acceptance for an operator-legibility surface is the director finding it useful, which cannot be self-certified. Build to a working delta (what moved since a recorded last-look stamp) and let use decide the rest. R11 BINDS HARD HERE: done means fetching the LIVE deployed page and asserting the rendered delta changed as intended -- not the code, not the JSON on origin. The last-look stamp is state that must survive a publish; a delta view that silently resets to "everything is new" on every regeneration is the fail-open form of this feature and must be tested against. SITE lane, so it runs parallel to any BUILD per THREE_LANES.'
   evidence: [docs/staging/in_progress/PLANNER_MINTED_director_window_delta_view_2026-07-28.md]
+- id: OPS_stall_class_register_adoption
+  name: "Adopt the rescued stall-class register: a 693-line module + 447-line test built in a fork that died before committing, with no rival and no home atom until now"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [background/stall_class_register.py, background/daily_self_note.py, tests/background/test_stall_class_register.py]
+  depends_on: []
+  blocked_on: null
+  simplifications:
+  - '2026-08-03 MINTED (worker tick fork audit, docs/staging/WORKER_FINDING_DEAD_FORK_RESCUE_AUDIT_2026-08-03.md). THE REASON THIS ATOM EXISTS IS THE FINDING: background/stall_class_register.py (+693) and tests/background/test_stall_class_register.py (+447) were sitting UNTRACKED in .claude/worktrees/agent-ab2bd7adb8d3e2305 -- not on a branch, not in any commit, one worktree prune from being lost with no reflog trace. They are now preserved as RESCUE commit 5bb96b5cb on worktree-agent-ab2bd7adb8d3e2305, NOT merged. Unlike the two OPS_run_marker_sweep_livelock rivals there is NO competing implementation, so this is an ADOPTION (audit + gate + merge), not a reconciliation. Nothing of it exists on main -- both files return "No such file or directory" there.'
+  - '2026-08-03 MINT -- ADOPT, DO NOT REBUILD, BUT DO NOT MERGE BLIND EITHER. The work must go through the REAL pre-commit gate before landing: it was rescued with --no-verify onto its own branch precisely so that no untested code reached a shared surface, which means it has never faced the gate. Read it against what already exists (daily_self_note.py is in its file_scope and is live on main) rather than assuming a dead fork got the design right. R15 IS THE ACCEPTANCE, AND IT IS SHARP FOR THIS ONE: a register OF STALL CLASSES is itself a control, so it must FIRE on a real stall class and stay quiet otherwise -- a register that has only ever recorded stalls after they were already known has demonstrated nothing. Guard the three killer patterns explicitly: FAIL-OPEN (an unreadable or empty register must not read as "no stalls"), FAIL-SILENT (the register being unavailable is a FAILED check, not a clean one), TAUTOLOGY (it must not derive its stall list from the same source it is supposed to be auditing). R12: a count of stall classes is a DIAGNOSTIC, never a target to drive to zero.'
+  evidence: [docs/staging/WORKER_FINDING_DEAD_FORK_RESCUE_AUDIT_2026-08-03.md]
