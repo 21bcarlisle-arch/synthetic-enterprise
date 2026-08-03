@@ -9,21 +9,46 @@
     "offshore_note": "sum of 'Offshore wind - seabed' (row 9) + 'Offshore wind - floating' (row 10)",
     "measurement_basis": "Ofgem Renewables Obligation accreditation + FiT registrations + MCS + REPD + DNO embedded-capacity registers -- a licensing/accreditation register, NOT settlement-metered output. Independent of the Elexon AGWS settlement feed sim/weather_price_chain.py ingests (anti-marking-own-homework).",
     "used_by": "sim/renewable_capacity_trend.py -- real_capacity_wind_onshore/offshore/solar(), strict A1, load_factor_residual, check_load_factor_residual_bounded",
-    "wall": "R13 BASELINE -- historical only, fidelity-to-reality anchor, never tuned for company P&L reasons. Held flat (piecewise-constant) outside 2016-2025, same convention as the AGWS-fitted effective fleet."
+    "wall": "R13 BASELINE -- historical only, fidelity-to-reality anchor, never tuned for company P&L reasons. Held flat (piecewise-constant) outside 2016-2025, same convention as the AGWS-fitted effective fleet.",
+    "year_2015_addendum": "2026-08-03 (W1_7 L2 commissioning-smoothing pass): the 2015 year-end point was added from the SAME ET 6.1 'Annual' worksheet (column '2015', rows 8/9+10/12). It exists solely as the year-START capacity for 2016 so the year-MEAN (uniform-commissioning) basis is computable for every generation year 2016-2025 -- see docs/market_research/w1_7_commissioning_smoothing_and_restacking.md. The generation/load-factor table (w1_7_dukes_generation_and_load_factor_annual.json) is deliberately NOT extended to 2015, so A5/A6 still iterate 2016-2025 exactly as before."
   },
   "onshore_mw": {
-    "2016": 10832.53, "2017": 12597.15, "2018": 13424.85, "2019": 13998.33,
-    "2020": 14075.07, "2021": 14492.75, "2022": 14840.36, "2023": 15531.89,
-    "2024": 16199.27, "2025": 16430.69
+    "2015": 9212.24,
+    "2016": 10832.53,
+    "2017": 12597.15,
+    "2018": 13424.85,
+    "2019": 13998.33,
+    "2020": 14075.07,
+    "2021": 14492.75,
+    "2022": 14840.36,
+    "2023": 15531.89,
+    "2024": 16199.27,
+    "2025": 16430.69
   },
   "offshore_mw": {
-    "2016": 5293.4, "2017": 6987.85, "2018": 8180.5, "2019": 9888.3,
-    "2020": 10382.85, "2021": 11255.48, "2022": 13847.48, "2023": 14734.68,
-    "2024": 16139.68, "2025": 16649.68
+    "2015": 5093.5,
+    "2016": 5293.4,
+    "2017": 6987.85,
+    "2018": 8180.5,
+    "2019": 9888.3,
+    "2020": 10382.85,
+    "2021": 11255.48,
+    "2022": 13847.48,
+    "2023": 14734.68,
+    "2024": 16139.68,
+    "2025": 16649.68
   },
   "solar_mw": {
-    "2016": 11914.02, "2017": 12760.02, "2018": 13059.07, "2019": 13344.84,
-    "2020": 13772.24, "2021": 14251.35, "2022": 14812.56, "2023": 17574.21,
-    "2024": 19429.91, "2025": 21914.97
+    "2015": 9601.22,
+    "2016": 11914.02,
+    "2017": 12760.02,
+    "2018": 13059.07,
+    "2019": 13344.84,
+    "2020": 13772.24,
+    "2021": 14251.35,
+    "2022": 14812.56,
+    "2023": 17574.21,
+    "2024": 19429.91,
+    "2025": 21914.97
   }
 }

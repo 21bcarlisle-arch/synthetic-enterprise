@@ -99,14 +99,47 @@ def _cells(out: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
     }
 
 
-def measure() -> Dict[str, object]:
+def measure(year_aware: bool = False) -> Dict[str, object]:
     """Run the coupled loop on the real record and compute the per-cell gap.
 
     Returns a dict with the population gap, every cell's gap, the worst cell (the
     SCORE), the chain fit + spike diagnostics, and the fitted belief -- so a caller
     or test can quote the real numbers.
+
+    `year_aware` (W1_7, 2026-08-03) -- THE WIRING DEFECT AND WHY THE DEFAULT STAYS False.
+    Until this parameter existed, `measure()` called `derive_price_on_record()` on its
+    bare default, so the harness that measures the company's weather-price belief
+    against SIM ground truth never once exercised W1_7's year-aware mechanism: W1_7
+    could be arbitrarily right or wrong and this measurement would not have moved. That
+    was a real hole and this parameter closes it -- the mechanism is now reachable from,
+    and tested through, the harness.
+
+    The DEFAULT is deliberately still False, for three reasons, none of them inertia:
+
+      1. WHOSE SCORE IS THIS. The ledger pair this module writes is
+         `W1_6_physics_price_signal` <-> `C13_weather_normalisation`. Changing the SIM
+         truth underneath it would silently redefine a DIFFERENT atom's recorded gap
+         while leaving its label untouched -- the ledger would keep saying "W1_6" and
+         quietly mean something else. A measurement whose meaning changes without its
+         name changing is not a measurement.
+      2. R12, AND THE HONEST NEGATIVE RESULT. Year-awareness makes the chain's agreement
+         with real published SSP WORSE, not better: MAE £23.99 -> £25.66 /MWh over the
+         same 3,337 days (`chain_vs_real_ssp_mae(year_aware=True)`). That is reported,
+         not tuned away -- and it is exactly why flipping the default here would be the
+         goal-seek trap in reverse. If the year-aware gap happened to look nicer, that
+         would be the WORST possible reason to adopt it.
+      3. WHAT THE NEGATIVE RESULT ACTUALLY SAYS (R4 -- diagnose, do not patch). A more
+         time-correct capacity trend does not degrade the physics; it SURFACES the other
+         missing time-varying terms it was previously compensating for. The chain still
+         has a zero carbon price (`price_engine`'s own R10 note: UK ETS has applied since
+         2021 and is not wired in) and a constant thermal efficiency. Making capacity
+         honest while carbon stays at zero removes a coincidental cancellation. The fix
+         is to source the carbon series, not to un-fix the capacity.
+
+    So: exercised, measured, reported -- and NOT adopted as the default until the
+    carbon term lands and the SSP calibration is deliberately re-run (FRAME §9 task 7).
     """
-    out = derive_price_on_record()
+    out = derive_price_on_record(year_aware=year_aware)
     truth = out["derived_price"]
 
     # -- COMPANY side: observables ONLY cross the wall. The company sees the
@@ -163,6 +196,28 @@ def measure() -> Dict[str, object]:
         "chain_params": params,
         "spike": spike,
         "n": int(len(truth)),
+        "year_aware": bool(year_aware),
+    }
+
+
+def year_aware_gap_delta() -> Dict[str, object]:
+    """W1_7 DIAGNOSTIC (R12 -- reported, never a target, never a gate). Runs the coupled
+    loop BOTH ways and returns the delta the year-aware SIM truth makes to the measured
+    belief-vs-truth gap. Never asserts a direction: a smaller gap is not a win (it would
+    mean the company's linear belief tracks the new truth better, which says nothing
+    about fidelity) and a larger one is not a regression."""
+    base = measure(year_aware=False)
+    ya = measure(year_aware=True)
+    return {
+        "worst_cell_default": base["worst_cell"],
+        "worst_cell_year_aware": ya["worst_cell"],
+        "worst_gap_default": base["worst_gap"],
+        "worst_gap_year_aware": ya["worst_gap"],
+        "worst_gap_delta": ya["worst_gap"] - base["worst_gap"],
+        "population_gap_default": base["population_gap"].gap,
+        "population_gap_year_aware": ya["population_gap"].gap,
+        "population_gap_delta": ya["population_gap"].gap - base["population_gap"].gap,
+        "n": base["n"],
     }
 
 
@@ -247,6 +302,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--write-ledger", action="store_true",
                     help="persist the measured gap into coupled_gap_ledger.json")
+    ap.add_argument("--year-aware-delta", action="store_true",
+                    help="also print the W1_7 year-aware gap delta (a DIAGNOSTIC, R12 -- "
+                         "never written to the ledger, never a gate)")
     args = ap.parse_args()
 
     m = measure()
@@ -267,6 +325,15 @@ def main() -> None:
         print(f"    {name:16s} gap={c['gap']:.3f}  MAE_model=£{c['mae_model']:.1f}"
               f"  bias=£{c['bias_model']:+.1f}  n={c['n']}")
     print(f"  WORST CELL (the score)   : {m['worst_cell']}  gap={m['worst_gap']:.3f}")
+
+    if args.year_aware_delta:
+        d = year_aware_gap_delta()
+        print("  W1_7 year-aware DIAGNOSTIC (R12 -- not a target, not written to the ledger):")
+        print(f"    worst gap      {d['worst_gap_default']:.4f} -> {d['worst_gap_year_aware']:.4f}"
+              f"  (delta {d['worst_gap_delta']:+.4f}, cell "
+              f"{d['worst_cell_default']} -> {d['worst_cell_year_aware']})")
+        print(f"    population gap {d['population_gap_default']:.4f} -> "
+              f"{d['population_gap_year_aware']:.4f}  (delta {d['population_gap_delta']:+.4f})")
 
     if args.write_ledger:
         result = build_gap_result(m)

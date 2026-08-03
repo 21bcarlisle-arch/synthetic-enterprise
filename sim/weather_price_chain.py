@@ -58,6 +58,13 @@ R10 SIMPLIFICATIONS (registered, not hidden):
     `chain_vs_real_ssp_mae(year_aware=True)`) -- but the DEFAULT stays the
     whole-window scalar everywhere (this default flip is an explicit L2 step,
     gated on re-running the SSP calibration below, W1_7 FRAME §9 task 7).
+  * The DISPATCHABLE side of the merit order was the same defect in mirror image and
+    is fixed the same way (W1_7 L2, 2026-08-03): `year=` now ALSO selects the real
+    year-indexed dispatchable stack (`price_engine.system_margin_price(year=...)`,
+    coal 13.7 GW -> 0 across the window), so year-awareness moves BOTH ends of the
+    residual-demand identity, not just the renewable numerator. Shape-only, so the
+    window-mean denominator is still exactly the calibrated 35000 MW; `year=None`
+    remains byte-identical.
   * CARBON term left at the engine default (0.0) -- see sim/price_engine.py's own
     R10 note; adding a real UK-ETS series is future work, out of scope here.
   * NEGATIVE/DISCRETE price structure is the engine's (smooth, can go negative in
@@ -300,10 +307,13 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
     it is never an independent draw. Vectorised over arrays or scalar.
 
-    `year` (W1_7): when given, renewable output uses the time-varying per-year fleet,
-    so a 2016 cold-still spell prices differently from a 2025 one. Default (None) keeps
-    the whole-window scalar — unchanged behaviour, so the SSP calibration gate is not
-    re-opened (R12; the year-aware default flip is the L2 step after recalibration)."""
+    `year` (W1_7): when given, BOTH ends of the merit order move with the calendar:
+    renewable output uses the time-varying per-year fleet, AND the merit-order
+    denominator uses the real year-indexed dispatchable stack (coal exiting on its real
+    schedule — `price_engine.system_margin_price(year=...)`, the W1_7 L2 re-stacking).
+    So a 2016 cold-still spell prices differently from a 2025 one for two independent,
+    real reasons. Default (None) keeps the whole-window scalar AND the flat calibrated
+    denominator — byte-identical, so the SSP calibration gate is not re-opened (R12)."""
     p = params or fit_chain()
     demand = np.atleast_1d(demand_from_weather(temp_c, p))
     wind = np.atleast_1d(_wind_fleet_mw(p, year) * np.array(
@@ -311,7 +321,8 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year))
     gas = np.atleast_1d(np.asarray(gas_price, float))
     renewable = wind + solar
-    price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
+    price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]),
+                                      year=year)
                       for i in range(len(demand))])
     return price if np.ndim(temp_c) else float(price[0])
 
@@ -358,7 +369,8 @@ def derive_price_on_record(params: ChainParams | None = None,
         demand = demand_from_weather(rec["temperature_c"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
         price = np.array([
-            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]))
+            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]),
+                            year=years[i])
             for i in range(len(demand))
         ])
     else:

@@ -947,3 +947,473 @@ def check_onshore_offshore_generation_split_vs_real(
         if abs(real_onshore_share - sim_onshore_share) > tolerance:
             return False
     return True
+
+
+# ════════════════════════════════════════════════════════════════════════════════════════
+# L2 CLOSURE — the FRAME §4 L2 bar, both halves (2026-08-03, file_scope widened to
+# sim/price_engine.py by the orchestrator). FRAME §4 L2 reads, verbatim:
+#
+#   "L2 (regime-consistent): smooth commissioning within a year to real commissioning
+#    dates where known; add the coal→gas→wind merit-order re-stacking so the *marginal
+#    plant* (and hence the gas-floor vs system-margin blend price_engine.py already
+#    models) shifts over τ. Coal exits the stack on its real retirement schedule."
+#
+# PART 1 (below) is the commissioning smoothing. PART 2 is the re-stacking.
+# ════════════════════════════════════════════════════════════════════════════════════════
+
+# ── PART 1: COMMISSIONING-DATE SMOOTHING ────────────────────────────────────────────────
+#
+# THE DEFECT, precisely. DUKES/ET 6.1 publishes CUMULATIVE INSTALLED CAPACITY AT YEAR
+# END. A5 (above) reconstructs generation as `year_end_capacity × load_factor × hours`
+# and reports a real max error of 14.1% (offshore 2017). The prior pass MEASURED that
+# and named its cause — a fleet that grows through the year did not have its year-end
+# capacity available for the whole year — but did not fix it, calling it "the FRAME §4
+# L2 item this pass does not touch ... it would need sub-annual commissioning dates this
+# sim does not ingest."
+#
+# THE FINDING THAT MAKES IT FIXABLE WITHOUT SUB-ANNUAL DATES. The FRAME says "smooth
+# commissioning within a year to real commissioning dates WHERE KNOWN". Where they are
+# not known, the defensible smoothing is UNIFORM commissioning through the year, whose
+# time-average is simply the mean of the year-start and year-end stocks. That is not a
+# guess: it is DESNZ's OWN published load-factor convention, and this pass CONFIRMED it
+# empirically with a prediction that could have failed. Reconstructing generation on the
+# year-MEAN basis instead of the year-END basis collapses the reconciliation error
+# across all 27 comparable technology-year cells:
+#
+#     basis        max |error|    mean |error|
+#     year-END        14.1%          4.4%       (A5, the existing check)
+#     year-MEAN        0.6%          0.2%       (A7, below)
+#
+# Onshore wind and solar land at |error| < 0.05% on EVERY year — i.e. the published
+# load factor is EXACTLY generation / (mean_capacity × hours). That is a decisive,
+# falsifiable identification of the published convention, not a tuned improvement: had
+# DESNZ used the year-end basis, the mean basis would have made things WORSE by roughly
+# the same 14%, and A9 (below) would fire. The 14.1% was therefore an ARTEFACT OF THE
+# WRONG CAPACITY BASIS, not a real fidelity gap.
+#
+# R12 DISCIPLINE, load-bearing. No existing tolerance is retro-tightened to bank this:
+# A5's 0.25 stays exactly where it was, on exactly the basis it was written for. The
+# mean basis is a NEW basis with its OWN pre-stated tolerance (A7) plus two
+# tolerance-FREE structural invariants (A8 bracketing, A9 comparative dominance). The
+# strongest of the three is A9, which has no tunable number in it at all.
+#
+# WHAT THIS IS NOT. It is not real per-project commissioning dates (REPD/CfD delivery
+# dates); a plant energising in November still contributes as if it arrived evenly
+# through the year. Registered as an R10 simplification, named not hidden. The seam is
+# `installed_capacity_at(..., year_fraction=...)`: a real commissioning calendar drops
+# in behind exactly that signature without moving any caller.
+
+# The within-year commissioning profile. "uniform" = capacity accrues evenly across the
+# year, so capacity(f) is linear from the year-start stock to the year-end stock and its
+# time-average is their mean. The only profile supported; named as a constant so a real
+# commissioning calendar becomes a second value here rather than an edit to the callers.
+COMMISSIONING_PROFILE = "uniform"
+
+# Pre-stated (NOT fitted) tolerance for the year-MEAN reconciliation, A7. Set at 2% —
+# an order of magnitude below the year-END basis's observed 14.1% max, and >3x above
+# the year-MEAN basis's observed 0.6% max, deliberately leaving real headroom rather
+# than being narrowed onto the observed residuals (the same anti-goal-seek convention
+# as _GENERATION_RECONCILIATION_TOLERANCE=0.25 vs 14.1% and
+# _LOAD_FACTOR_RESIDUAL_MAX_CV=0.35 vs ~0.17). The residual that remains is DESNZ's own
+# capacity-vintage/revision drift between the two published tables, not sim error.
+_MEAN_BASIS_RECONCILIATION_TOLERANCE = 0.02
+
+# A9 only compares cells where the fleet actually GREW enough for the two bases to
+# differ materially. Below ~1% annual growth the year-end and year-mean stocks coincide
+# to within the published rounding and the comparison is pure noise. Pre-stated.
+_A9_MIN_ANNUAL_GROWTH_FRAC = 0.01
+
+_CAPACITY_SERIES_KEY = {
+    "onshore_wind": "onshore_mw",
+    "offshore_wind": "offshore_mw",
+    "solar": "solar_mw",
+}
+
+
+def _reject_non_finite(value: float, what: str) -> float:
+    """R15: reject NaN/inf FIRST, before any comparison. Every guard below is a
+    comparison guard, and comparison guards are NaN-blind (a NaN silently makes every
+    `>` and `<` False, so a fail-open passes). Non-finite in = loud raise, never a
+    quiet pass."""
+    v = float(value)
+    if not np.isfinite(v):
+        raise ValueError(f"{what} is non-finite ({value!r}) — refusing to compare")
+    return v
+
+
+def _capacity_series(technology: str, capacity_source_path=None) -> dict:
+    if technology not in _CAPACITY_SERIES_KEY:
+        raise ValueError(f"unknown technology {technology!r}; expected one of "
+                         f"{sorted(_CAPACITY_SERIES_KEY)}")
+    return _load_dukes_capacity(capacity_source_path)[_CAPACITY_SERIES_KEY[technology]]
+
+
+def installed_capacity_at(technology: str, year: int, year_fraction: float,
+                          capacity_source_path=None) -> float:
+    """Installed capacity (MW) of `technology` at a point WITHIN calendar year `year`,
+    `year_fraction` in [0, 1] (0 = 1 Jan, the year-START stock; 1 = 31 Dec, the
+    published year-END stock). Under the `COMMISSIONING_PROFILE = "uniform"` profile
+    this is the linear interpolation between the two year-end stocks that bracket the
+    year — the commissioning smoothing FRAME §4 L2 asks for.
+
+    The year-START stock is the PREVIOUS year's published year-end value. Where the
+    previous year is outside the ingested series (only at the very first year of the
+    file) the series is held flat backwards, the same R13 hold-flat convention every
+    other accessor here uses — so the first year degenerates to a constant rather than
+    silently inventing a growth rate.
+
+    THE SEAM for real commissioning dates: a REPD/CfD delivery calendar drops in here,
+    replacing the linear profile, without touching a single caller.
+    """
+    f = _reject_non_finite(year_fraction, "year_fraction")
+    if not 0.0 <= f <= 1.0:
+        raise ValueError(f"year_fraction must be in [0, 1], got {f!r}")
+    series = _capacity_series(technology, capacity_source_path)
+    y = _clamped_dukes_year(year, series)
+    end_mw = _reject_non_finite(series[str(y)], f"{technology} year-end capacity {y}")
+    prev_key = str(y - 1)
+    start_mw = (_reject_non_finite(series[prev_key], f"{technology} year-end capacity {y - 1}")
+                if prev_key in series else end_mw)
+    return start_mw + (end_mw - start_mw) * f
+
+
+def mean_installed_capacity_mw(technology: str, year: int, capacity_source_path=None) -> float:
+    """The year-AVERAGE installed capacity (MW) — the time-average of
+    `installed_capacity_at` over the year, which under the uniform commissioning
+    profile is exactly the mean of the year-start and year-end stocks.
+
+    THIS is the capacity basis DESNZ's published load factors are computed on
+    (identified empirically to <0.05% on onshore wind and solar every year — see the
+    section header and A7/A9 below), so it is the basis on which
+    `capacity × load_factor × hours` actually reconstructs published generation."""
+    start = installed_capacity_at(technology, year, 0.0, capacity_source_path)
+    end = installed_capacity_at(technology, year, 1.0, capacity_source_path)
+    return 0.5 * (start + end)
+
+
+CAPACITY_BASES = ("year_end", "year_mean")
+
+
+def capacity_on_basis(technology: str, year: int, basis: str = "year_end",
+                      capacity_source_path=None) -> float:
+    """Installed capacity (MW) on the named basis. `"year_end"` is the published DUKES
+    stock (the pre-existing behaviour, unchanged); `"year_mean"` is the
+    commissioning-smoothed year average. An unknown basis raises rather than silently
+    falling back to a default (R15 FAIL-OPEN forbidden)."""
+    if basis not in CAPACITY_BASES:
+        raise ValueError(f"unknown capacity basis {basis!r}; expected one of {CAPACITY_BASES}")
+    if technology not in _CAPACITY_SERIES_KEY:
+        raise ValueError(f"unknown technology {technology!r}; expected one of "
+                         f"{sorted(_CAPACITY_SERIES_KEY)}")
+    if basis == "year_mean":
+        return mean_installed_capacity_mw(technology, year, capacity_source_path)
+    return _REAL_CAPACITY_FOR_GENERATION_TECH[technology](year, capacity_source_path)
+
+
+def implied_generation_on_basis_gwh(technology: str, year: int, basis: str = "year_end",
+                                    source_path=None, capacity_source_path=None) -> float:
+    """`implied_generation_gwh` with an explicit capacity basis. `basis="year_end"`
+    returns EXACTLY what `implied_generation_gwh` returns (the pre-existing A5 path,
+    left byte-identical); `basis="year_mean"` uses the commissioning-smoothed year
+    average."""
+    capacity_mw = capacity_on_basis(technology, year, basis, capacity_source_path)
+    lf = real_load_factor(technology, year, source_path)
+    return capacity_mw * lf * _hours_in_year(year) / 1000.0
+
+
+def check_mean_capacity_reconciles_to_generation(
+    technology: str | None = None, source_path=None, capacity_source_path=None,
+    tol_frac: float = _MEAN_BASIS_RECONCILIATION_TOLERANCE,
+) -> bool:
+    """**A7** — the commissioning-smoothing invariant. On the year-MEAN capacity basis,
+    `capacity × load_factor × hours` reconstructs real published generation within a
+    pre-stated 2% for every technology-year 2016-2025.
+
+    This is A5's check on the corrected basis, NOT a re-tuning of A5 (whose 0.25
+    tolerance on the year-END basis is untouched). It is a genuinely harder test: 2% is
+    12.5x tighter than A5's, and it is met with room to spare (observed max 0.6%).
+    Never a vacuous pass — fewer than 2 comparable years returns False, an unknown
+    technology raises, and a non-finite figure anywhere raises before comparison."""
+    data = _load_dukes_generation(source_path)
+    techs = [technology] if technology else list(_GENERATION_TECH_KEYS)
+    for t in techs:
+        if t not in _GENERATION_TECH_KEYS:
+            raise ValueError(f"unknown technology {t!r}; expected one of {_GENERATION_TECH_KEYS}")
+        years = sorted(int(y) for y in data["generation_gwh"][t])
+        if len(years) < 2:
+            return False  # never a vacuous pass (R15)
+        for y in years:
+            real = _reject_non_finite(real_generation_gwh(t, y, source_path),
+                                      f"real generation {t} {y}")
+            implied = _reject_non_finite(
+                implied_generation_on_basis_gwh(t, y, "year_mean", source_path,
+                                                capacity_source_path),
+                f"implied generation {t} {y}")
+            if real <= 0:
+                return False
+            if abs(implied - real) / real > tol_frac:
+                return False
+    return True
+
+
+def check_mean_capacity_brackets_year_end(technology: str | None = None,
+                                          capacity_source_path=None) -> bool:
+    """**A8** — the STRUCTURAL invariant of the smoothing, with no tunable tolerance in
+    it at all: for every year, the year-MEAN capacity lies between the year-START and
+    year-END stocks, and strictly between them whenever the fleet moved at all.
+
+    This is what makes the smoothing a smoothing rather than an arbitrary rescale: an
+    implementation that returned the year-end stock (i.e. did nothing), the year-start
+    stock, or any value outside the bracket, FIRES. Fewer than 2 years in the series
+    returns False rather than passing vacuously."""
+    techs = [technology] if technology else list(_CAPACITY_SERIES_KEY)
+    for t in techs:
+        series = _capacity_series(t, capacity_source_path)
+        years = sorted(int(y) for y in series)
+        if len(years) < 2:
+            return False  # never a vacuous pass (R15)
+        for y in years[1:]:  # the first year has no true year-start stock (held flat)
+            start = _reject_non_finite(installed_capacity_at(t, y, 0.0, capacity_source_path),
+                                       f"{t} year-start {y}")
+            end = _reject_non_finite(installed_capacity_at(t, y, 1.0, capacity_source_path),
+                                     f"{t} year-end {y}")
+            mean = _reject_non_finite(
+                mean_installed_capacity_mw(t, y, capacity_source_path), f"{t} year-mean {y}")
+            lo, hi = min(start, end), max(start, end)
+            if not lo <= mean <= hi:
+                return False
+            if start != end and not lo < mean < hi:
+                return False
+    return True
+
+
+def check_mean_basis_dominates_year_end_basis(source_path=None, capacity_source_path=None) -> bool:
+    """**A9** — the COMPARATIVE invariant, and the strongest of the three because it
+    contains no tolerance to tune: on every technology-year where the fleet grew by at
+    least `_A9_MIN_ANNUAL_GROWTH_FRAC`, the year-MEAN basis must reconstruct published
+    generation at least as accurately as the year-END basis.
+
+    This is the falsifiable prediction that identifies DESNZ's published convention.
+    Had DESNZ computed load factors on the year-end basis, switching to the year-mean
+    basis would have made a fast-growing fleet's reconstruction roughly as much WORSE
+    as it in fact makes it BETTER, and this check would FIRE. It passing is evidence
+    ABOUT THE PUBLISHED SOURCE, obtained by a test that could have refuted it — not a
+    number massaged into place. Fewer than 2 qualifying cells returns False."""
+    data = _load_dukes_generation(source_path)
+    compared = 0
+    for t in _GENERATION_TECH_KEYS:
+        series = _capacity_series(t, capacity_source_path)
+        for y in sorted(int(y) for y in data["generation_gwh"][t]):
+            start = installed_capacity_at(t, y, 0.0, capacity_source_path)
+            end = installed_capacity_at(t, y, 1.0, capacity_source_path)
+            if start <= 0 or (end - start) / start < _A9_MIN_ANNUAL_GROWTH_FRAC:
+                continue
+            if str(y - 1) not in series:
+                continue  # no true year-start stock; the bases coincide by construction
+            real = _reject_non_finite(real_generation_gwh(t, y, source_path),
+                                      f"real generation {t} {y}")
+            if real <= 0:
+                return False
+            err_end = abs(implied_generation_on_basis_gwh(
+                t, y, "year_end", source_path, capacity_source_path) - real) / real
+            err_mean = abs(implied_generation_on_basis_gwh(
+                t, y, "year_mean", source_path, capacity_source_path) - real) / real
+            _reject_non_finite(err_end, f"year-end error {t} {y}")
+            _reject_non_finite(err_mean, f"year-mean error {t} {y}")
+            compared += 1
+            if err_mean > err_end:
+                return False
+    return compared >= 2  # never a vacuous pass (R15)
+
+
+# ── PART 2: THE COAL→GAS→WIND MERIT-ORDER RE-STACKING ───────────────────────────────────
+#
+# THE DEFECT. `sim/price_engine.py` normalises residual demand against a single
+# hand-set constant, `DISPATCHABLE_CAPACITY_MW = 35000.0` — its own docstring flags it:
+# "this fleet has shrunk over 2016-2025 as coal exited". The scarcity ratio
+# `x = RD / DISPATCHABLE_CAPACITY_MW` therefore treats the thermal stack as if it never
+# changed, while in reality GB/UK coal went 13.7 GW → 0 and the whole dispatchable
+# fleet contracted ~18% across the window. The convex tail `A2·max(0, x - X_TIGHT)²`
+# consequently bites at the same absolute residual demand in 2025 as in 2016 — false to
+# reality, and precisely the second half of the FRAME §4 L2 bar.
+#
+# THE CONSTRUCTION — SHAPE, NOT LEVEL (this is the R12/S8 wall in code, not in prose).
+# The real DUKES 5.7.A dispatchable stack is used ONLY for its year-to-year SHAPE:
+#
+#     dispatchable_capacity_mw(τ) = DISPATCHABLE_CAPACITY_MW × D_real(τ) / mean(D_real)
+#
+# so the 2016-2025 window MEAN denominator is EXACTLY the calibrated 35000 MW it has
+# always been, and A0/A1/A2/X_TIGHT/SCARCITY_EXPONENT are not re-opened, re-fit, or
+# even read. Only the RELATIVE tilt across τ is new. This is the identical construction
+# `fleet_trajectory` already uses on the renewable side (a mean-matched scalar becomes a
+# per-year one) and it is what "layer the trend ON TOP of the merit order" means
+# operationally. It also makes the two named R10 level errors in the source (UK not GB;
+# interconnectors absent) structurally harmless: both are level effects and both are
+# divided out by the normalisation. They would matter if the series replaced the
+# calibrated level. It does not.
+#
+# WHAT IS NOT MODELLED, named not hidden (R10). The marginal-plant identity itself.
+# Real re-stacking has a second limb: through ~2016-2018 coal was frequently the
+# price-SETTING plant, so the floor was coal SRMC, not gas SRMC. Modelling that needs a
+# coal price series AND the UK Carbon Price Support trajectory (the very thing that
+# pushed coal above gas in the stack) — neither is ingested, and `price_engine`'s own
+# carbon term still defaults to 0.0 with the same note. Building it on guessed prices
+# would be confabulation. So: the CAPACITY limb of the re-stacking is built and
+# data-backed; the FUEL-SWITCHING limb is registered as the remaining gap. Closing it
+# is a sourcing pass (coal price + CPS £/tCO2 by year), not a design question.
+
+DISPATCHABLE_CAPACITY_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "market_research" / "w1_7_dukes_dispatchable_capacity_annual.json"
+)
+
+# The window the price engine's constants were calibrated over (2016-03-01..2025-06-07,
+# sim/price_engine.py's own docstring). The shape normalisation divides by the mean over
+# exactly these years, so the calibrated level is preserved. 2015 is present in the
+# series only as the year-START stock for 2016 and is deliberately NOT in the mean.
+_DISPATCHABLE_SHAPE_WINDOW = tuple(range(2016, 2026))
+
+_DISPATCHABLE_FUEL_KEYS = (
+    "coal_mw", "oil_mw", "gas_mw", "mixed_dual_mw",
+    "nuclear_mw", "pumped_hydro_mw", "bioenergy_waste_mw", "other_fossil_mw",
+)
+
+# Pre-stated (NOT fitted) floor on the observed contraction of the dispatchable fleet
+# across the window, A10. The real observed contraction is ~18.3% (67.4 GW 2016 →
+# 55.1 GW 2025); 5% is set well below it so the check asserts the DIRECTION and rough
+# scale of a real structural change rather than pinning the generated value (a pinned
+# value is the failure mode that cost this project a 4-day publish blackout).
+_MIN_DISPATCHABLE_CONTRACTION_FRAC = 0.05
+
+
+class DispatchableSeriesUnavailableError(RuntimeError):
+    """The real DUKES 5.7.A dispatchable-capacity series is not on disk. R15
+    FAIL-SILENT discipline: every accessor below raises rather than silently falling
+    back to the flat calibrated constant — a silent fallback would make the re-stacking
+    disappear while every check still reported green, which is exactly the
+    "unavailable check is a FAILED check" pattern."""
+
+
+@lru_cache(maxsize=1)
+def _load_dispatchable_capacity(source_path=None) -> dict:
+    path = Path(source_path) if source_path else DISPATCHABLE_CAPACITY_PATH
+    if not path.exists():
+        raise DispatchableSeriesUnavailableError(
+            f"real DUKES 5.7.A dispatchable-capacity series not found at {path} "
+            "— refusing to silently fall back to the flat calibrated constant."
+        )
+    data = json.loads(path.read_text())
+    fuels = data.get("fuel_mw") or {}
+    for key in _DISPATCHABLE_FUEL_KEYS:
+        if key not in fuels or not fuels[key]:
+            raise DispatchableSeriesUnavailableError(
+                f"dispatchable-capacity file at {path} is missing/empty '{key}'")
+    return fuels
+
+
+def _dispatchable_year_end_mw(year: int, source_path=None) -> float:
+    fuels = _load_dispatchable_capacity(source_path)
+    series = fuels["coal_mw"]
+    y = _clamped_dukes_year(year, series)
+    total = 0.0
+    for key in _DISPATCHABLE_FUEL_KEYS:
+        total += _reject_non_finite(fuels[key][str(y)], f"{key} {y}")
+    return total
+
+
+def real_dispatchable_capacity_mw(year: int, source_path=None,
+                                  basis: str = "year_end") -> float:
+    """The real DUKES 5.7.A dispatchable (thermal + nuclear + storage) fleet, MW, for
+    calendar year τ — coal + oil + gas + mixed/dual + nuclear + pumped hydro +
+    bioenergy/waste + other fossil, matching `price_engine.DISPATCHABLE_CAPACITY_MW`'s
+    own stated definition (weather-driven renewables are excluded: they sit on the
+    RENEWABLE side of the residual-demand identity, never in its denominator).
+
+    `basis="year_mean"` applies the same commissioning smoothing as Part 1 — a
+    RETIRING fleet has the same year-end-vs-year-average problem as a growing one, in
+    the opposite direction. R13 hold-flat outside 2015-2025."""
+    if basis not in CAPACITY_BASES:
+        raise ValueError(f"unknown capacity basis {basis!r}; expected one of {CAPACITY_BASES}")
+    end = _dispatchable_year_end_mw(year, source_path)
+    if basis == "year_end":
+        return end
+    series = _load_dispatchable_capacity(source_path)["coal_mw"]
+    y = _clamped_dukes_year(year, series)
+    prev = (_dispatchable_year_end_mw(y - 1, source_path)
+            if str(y - 1) in series else end)
+    return 0.5 * (prev + end)
+
+
+@lru_cache(maxsize=8)
+def _dispatchable_window_mean_mw(source_path=None, basis: str = "year_end") -> float:
+    vals = [real_dispatchable_capacity_mw(y, source_path, basis)
+            for y in _DISPATCHABLE_SHAPE_WINDOW]
+    mean = float(np.mean(vals))
+    if not np.isfinite(mean) or mean <= 0:
+        raise DispatchableSeriesUnavailableError(
+            f"dispatchable window mean is degenerate ({mean!r}) — refusing to normalise")
+    return mean
+
+
+def dispatchable_shape(year: int, source_path=None, basis: str = "year_end") -> float:
+    """The dimensionless year-to-year SHAPE of the dispatchable fleet: that year's real
+    fleet divided by the 2016-2025 window mean. 1.0 = the window-average stack. Real
+    values run ~1.09 (2016, coal still 13.7 GW) down to ~0.89 (2024-25, coal zero)."""
+    real = real_dispatchable_capacity_mw(year, source_path, basis)
+    return real / _dispatchable_window_mean_mw(source_path, basis)
+
+
+def dispatchable_capacity_mw(year: int, source_path=None, basis: str = "year_end") -> float:
+    """**The re-stacked merit-order denominator for calendar year τ** — the value
+    `sim/price_engine.py::system_margin_price(year=τ)` normalises residual demand
+    against instead of the flat calibrated constant.
+
+    = `price_engine.DISPATCHABLE_CAPACITY_MW × dispatchable_shape(τ)`, so the window
+    mean is EXACTLY the calibrated 35000 MW and no calibrated constant is re-opened
+    (R12/S8). Coal's real exit (13.7 GW → 0 across 2016-2025) is what drives the tilt,
+    which is the FRAME's "coal exits the stack on its real retirement schedule."""
+    from sim.price_engine import DISPATCHABLE_CAPACITY_MW
+    return DISPATCHABLE_CAPACITY_MW * dispatchable_shape(year, source_path, basis)
+
+
+def real_coal_capacity_by_year(source_path=None) -> dict:
+    """The real GB/UK coal-fired capacity series, {int year: MW}, DUKES 5.7.A row 32.
+    THE SERIES A4 ALWAYS NEEDED AND NEVER HAD — `check_no_coal_after_retirement` has
+    been a FAIL-LOUD stub since the FRAME was written precisely because "there is no
+    coal series ingested in this sim". There is now."""
+    coal = _load_dispatchable_capacity(source_path)["coal_mw"]
+    return {int(y): _reject_non_finite(v, f"coal capacity {y}") for y, v in coal.items()}
+
+
+def check_no_coal_after_retirement_on_real_series(source_path=None) -> bool:
+    """**A4, LIVE** — the FRAME's fourth invariant, finally exercised on real data
+    instead of only on its own fail-loud path. Delegates to the unchanged, already
+    mutation-proven `check_no_coal_after_retirement` predicate, handing it the real
+    DUKES coal series. Real result: TRUE — UK coal capacity is 18.5 MW in 2024 (the
+    year Ratcliffe-on-Soar closed, 30 Sept) and exactly 0.0 in 2025, so no year
+    STRICTLY AFTER `LAST_COAL_GENERATION_YEAR` (2024) carries any coal."""
+    return check_no_coal_after_retirement(real_coal_capacity_by_year(source_path))
+
+
+def check_dispatchable_fleet_contracts(
+    source_path=None, min_contraction_frac: float = _MIN_DISPATCHABLE_CONTRACTION_FRAC,
+) -> bool:
+    """**A10** — the re-stacking's own signature: the dispatchable fleet at the END of
+    the window is materially SMALLER than at the start. Without this, a
+    `dispatchable_shape` that silently returned 1.0 for every year (i.e. the
+    re-stacking doing nothing) would pass every other check here.
+
+    Direction and rough scale only, never a pinned value: asserts a contraction of at
+    least a pre-stated 5% against a real observed ~18%. Fewer than 2 years, a
+    non-positive start, or a non-finite figure fails/raises rather than passing."""
+    series = _load_dispatchable_capacity(source_path)["coal_mw"]
+    years = sorted(int(y) for y in series)
+    if len(years) < 2:
+        return False  # never a vacuous pass (R15)
+    first = _reject_non_finite(real_dispatchable_capacity_mw(years[0], source_path),
+                               f"dispatchable {years[0]}")
+    last = _reject_non_finite(real_dispatchable_capacity_mw(years[-1], source_path),
+                              f"dispatchable {years[-1]}")
+    if first <= 0:
+        return False
+    return (first - last) / first >= min_contraction_frac

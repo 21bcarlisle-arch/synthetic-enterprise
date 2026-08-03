@@ -107,6 +107,54 @@ WIND_RATED_MS = 12.0
 WIND_CUT_OUT_MS = 25.0
 
 
+# --- W1_7 (2026-08-03): the coal->gas->wind merit-order RE-STACKING seam ---
+# FRAME §4 L2 for `W1_7_renewable_capacity_trends` asks for "the coal->gas->wind
+# merit-order re-stacking so the marginal plant (and hence the gas-floor vs
+# system-margin blend price_engine.py already models) shifts over tau. Coal exits
+# the stack on its real retirement schedule."
+#
+# The R10 note above already concedes the defect: DISPATCHABLE_CAPACITY_MW is a flat
+# hand-set 35000 and "this fleet has shrunk over 2016-2025 as coal exited". It has:
+# real UK coal capacity went 13.7 GW (2016) -> 0 (2025) and the whole dispatchable
+# stack contracted ~18%, so the convex scarcity tail A2*max(0, x - X_TIGHT)**p bites
+# at the same ABSOLUTE residual demand in 2025 as in 2016. False to reality.
+#
+# THE SEAM, and its wall. Passing `year=tau` to `system_margin_price`/`synthetic_price`
+# swaps the flat constant for the real year-indexed dispatchable fleet, sourced in
+# `sim/renewable_capacity_trend.dispatchable_capacity_mw` from DUKES 5.7.A. That
+# function returns `DISPATCHABLE_CAPACITY_MW * (D_real(tau) / mean_2016_2025(D_real))`
+# -- SHAPE ONLY. The window-mean denominator therefore remains EXACTLY the calibrated
+# 35000, and A0/A1/A2/X_TIGHT/SCARCITY_EXPONENT/THERMAL_EFFICIENCY are not re-opened,
+# re-fit or even read by the trend layer (R12/S8: a time-varying input is a fidelity
+# fix; re-fitting the multiplier to chase a nicer MAE would be goal-seeking).
+#
+# `year=None` (the default) is BYTE-IDENTICAL to the pre-W1_7 behaviour -- no import
+# happens, no file is read, no arithmetic changes. The import is lazy and inside the
+# function purely to keep this module dependency-free at import time, exactly as
+# `weather_price_chain._wind_fleet_mw` already does for the renewable side.
+_USE_CALIBRATED_CONSTANT = object()  # sentinel: "caller did not name a capacity"
+
+
+def _resolve_dispatchable_capacity_mw(dispatchable_capacity_mw, year) -> float:
+    """Pick the merit-order denominator. Explicit capacity wins; `year` selects the
+    real year-indexed fleet; neither gives the calibrated constant.
+
+    Naming BOTH is a caller bug and raises -- silently preferring one would make a
+    year-aware call quietly fall back to the flat constant, i.e. the re-stacking
+    disappearing while everything still looked green (R15 FAIL-SILENT)."""
+    explicit = dispatchable_capacity_mw is not _USE_CALIBRATED_CONSTANT
+    if explicit and year is not None:
+        raise ValueError(
+            "pass either dispatchable_capacity_mw or year, not both — an explicit "
+            "capacity would silently override the year-indexed re-stacked fleet")
+    if explicit:
+        return float(dispatchable_capacity_mw)
+    if year is None:
+        return DISPATCHABLE_CAPACITY_MW
+    from sim.renewable_capacity_trend import dispatchable_capacity_mw as _fleet
+    return float(_fleet(int(year)))
+
+
 def gas_floor_price(
     gas_price_gbp_per_mwh: float,
     thermal_efficiency: float = THERMAL_EFFICIENCY,
@@ -132,7 +180,8 @@ def system_margin_price(
     gas_floor_price_gbp_per_mwh: float,
     demand_mw: float,
     renewable_generation_mw: float,
-    dispatchable_capacity_mw: float = DISPATCHABLE_CAPACITY_MW,
+    dispatchable_capacity_mw: float = _USE_CALIBRATED_CONSTANT,
+    year: int | None = None,
 ) -> float:
     """The merit-order system price (£/MWh): the gas floor scaled by a
     residual-demand scarcity multiplier.
@@ -158,9 +207,16 @@ def system_margin_price(
     level) fit against real Elexon SSP — see module docstring. No longer
     requires renewable_generation_mw > 0 (residual demand handles a
     zero-renewables period gracefully; it is simply RD = demand_mw).
+
+    `year` (W1_7 re-stacking): when given, `dispatchable_capacity_mw` comes from the
+    REAL year-indexed DUKES dispatchable fleet (coal exiting on its real schedule)
+    instead of the flat calibrated constant — see the module-level seam note. Default
+    None is byte-identical to the pre-W1_7 behaviour. Naming both `year` and an
+    explicit `dispatchable_capacity_mw` raises.
     """
+    capacity = _resolve_dispatchable_capacity_mw(dispatchable_capacity_mw, year)
     residual_demand_mw = demand_mw - renewable_generation_mw
-    x = residual_demand_mw / dispatchable_capacity_mw
+    x = residual_demand_mw / capacity
     tight_excess = max(0.0, x - X_TIGHT)
     multiplier = A0 + A1 * x + A2 * (tight_excess ** SCARCITY_EXPONENT)
     return gas_floor_price_gbp_per_mwh * multiplier
@@ -192,9 +248,15 @@ def synthetic_price(
     renewable_generation_mw: float,
     thermal_efficiency: float = THERMAL_EFFICIENCY,
     carbon_price_gbp_per_tonne: float = 0.0,
-    dispatchable_capacity_mw: float = DISPATCHABLE_CAPACITY_MW,
+    dispatchable_capacity_mw: float = _USE_CALIBRATED_CONSTANT,
+    year: int | None = None,
 ) -> float:
     """Convenience wrapper chaining gas_floor_price -> system_margin_price —
-    the full merit-order price for one settlement period."""
+    the full merit-order price for one settlement period.
+
+    `year` (W1_7 re-stacking): passthrough to `system_margin_price` — the real
+    year-indexed dispatchable fleet replaces the flat calibrated constant. Default
+    None is byte-identical to the pre-W1_7 behaviour."""
     floor = gas_floor_price(gas_price_gbp_per_mwh, thermal_efficiency, carbon_price_gbp_per_tonne)
-    return system_margin_price(floor, demand_mw, renewable_generation_mw, dispatchable_capacity_mw)
+    return system_margin_price(floor, demand_mw, renewable_generation_mw,
+                               dispatchable_capacity_mw, year)

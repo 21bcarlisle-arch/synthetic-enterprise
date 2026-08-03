@@ -1,0 +1,137 @@
+{
+  "_provenance": {
+    "source": "DUKES Table 5.7.A 'Capacity by fuel', generator type 'All generating companies' (rows 32-44 of the '5.7' worksheet), MW",
+    "url": "https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx",
+    "landing_page": "https://www.gov.uk/government/statistics/electricity-chapter-5-digest-of-united-kingdom-energy-statistics-dukes",
+    "fetched": "2026-08-03",
+    "http_status": 200,
+    "units": "MW, capacity at calendar year end",
+    "rows_taken": {
+      "coal_mw": "row 32 \u2014 Coal fired",
+      "oil_mw": "row 33 \u2014 Oil fired",
+      "gas_mw": "row 34 \u2014 Gas fired",
+      "mixed_dual_mw": "row 35 \u2014 Mixed or dual fuelled",
+      "nuclear_mw": "row 36 \u2014 Nuclear stations",
+      "pumped_hydro_mw": "row 38 \u2014 Pumped hydro",
+      "bioenergy_waste_mw": "row 43 \u2014 Bioenergy and waste",
+      "other_fossil_mw": "row 44 \u2014 Other fossil fuels"
+    },
+    "basis": "DUKES note 1: grid export capacity where available, else installed capacity. The de-rating in this table's title applies to WIND, SOLAR and SMALL-SCALE HYDRO only (note 4) -- none of which are taken here; every row ingested is a thermal/nuclear/storage row on a grid-export basis.",
+    "rows_deliberately_excluded": [
+      "Hydro (natural flow) row 37 \u2014 weather-driven renewable, sits on the RENEWABLE side of the residual-demand identity, not the dispatchable denominator",
+      "Onshore wind (39) / Offshore wind (40) / Wave and tidal (41) / Solar (42) \u2014 the renewable side, and de-rated in this table (note 4)",
+      "Total rows 31/45/46/47 \u2014 aggregates, would double-count"
+    ],
+    "used_by": "sim/renewable_capacity_trend.py \u2014 real_dispatchable_capacity_mw(), dispatchable_shape(), dispatchable_capacity_mw(), real_coal_capacity_by_year(), A4 (check_no_coal_after_retirement on the REAL series), A10 (check_dispatchable_fleet_contracts); reaches the merit order via sim/price_engine.py::system_margin_price(year=...)",
+    "R10_simplification_geography": "DUKES 5.7 is UNITED KINGDOM; the sim's settlement data (Elexon) is GB. Northern Ireland (~2 GW, on the SEM not the GB market) is therefore included in this series. This is a LEVEL error, and it is divided out by construction: only the SHAPE (each year / the 2016-2025 window mean) is used, and the calibrated DISPATCHABLE_CAPACITY_MW=35000 level is preserved unchanged.",
+    "R10_simplification_interconnectors": "Interconnector import capacity (~4 GW 2016 -> ~11.7 GW 2025) is part of price_engine's stated definition of the dispatchable fleet but is NOT in DUKES 5.7 and is NOT ingested here. It grew while the thermal fleet shrank, so this series OVERSTATES the true contraction of dispatchable capability. Named, not hidden; closing it needs a NESO interconnector-register pass.",
+    "R13_wall": "BASELINE \u2014 real published history, fidelity-to-reality only, never tuned for company P&L. Held flat (piecewise-constant) outside 2015-2025; the forward window is CURRICULUM and is not authored here.",
+    "year_2015_note": "2015 is carried for the same reason as in the capacity file: it is the year-START stock for 2016 under the year-MEAN basis."
+  },
+  "fuel_mw": {
+    "coal_mw": {
+      "2015": 17555.83,
+      "2016": 13698.52,
+      "2017": 13363.4543,
+      "2018": 10376.8521,
+      "2019": 6817.4878,
+      "2020": 5364.2794,
+      "2021": 5349.0654,
+      "2022": 5339.8242,
+      "2023": 2045.7,
+      "2024": 18.4763,
+      "2025": 0.0
+    },
+    "oil_mw": {
+      "2015": 1393.3,
+      "2016": 1285.46,
+      "2017": 1206.2251,
+      "2018": 1386.2043,
+      "2019": 1411.836,
+      "2020": 1272.3769,
+      "2021": 1340.3346,
+      "2022": 1343.2508,
+      "2023": 1409.2449,
+      "2024": 1400.1276,
+      "2025": 1405.2956
+    },
+    "gas_mw": {
+      "2015": 32476.93,
+      "2016": 33248.4,
+      "2017": 35045.5581,
+      "2018": 34576.4492,
+      "2019": 34683.4586,
+      "2020": 35213.5896,
+      "2021": 34914.3916,
+      "2022": 35009.0797,
+      "2023": 36119.2905,
+      "2024": 36279.5388,
+      "2025": 36508.4861
+    },
+    "mixed_dual_mw": {
+      "2015": 930.0,
+      "2016": 930.0,
+      "2017": 970.0,
+      "2018": 559.0,
+      "2019": 559.0,
+      "2020": 514.0,
+      "2021": 514.0,
+      "2022": 514.0,
+      "2023": 0.0,
+      "2024": 0.0,
+      "2025": 0.0
+    },
+    "nuclear_mw": {
+      "2015": 9261.0,
+      "2016": 9261.0,
+      "2017": 9261.0,
+      "2018": 9261.0,
+      "2019": 9261.0,
+      "2020": 8923.0,
+      "2021": 7833.0,
+      "2022": 5883.0,
+      "2023": 5883.0,
+      "2024": 5883.0,
+      "2025": 5883.0
+    },
+    "pumped_hydro_mw": {
+      "2015": 2744.0,
+      "2016": 2744.0,
+      "2017": 2744.0,
+      "2018": 2744.0,
+      "2019": 2744.0,
+      "2020": 2744.0,
+      "2021": 2744.0,
+      "2022": 2744.0,
+      "2023": 2744.0,
+      "2024": 2744.0,
+      "2025": 2744.0
+    },
+    "bioenergy_waste_mw": {
+      "2015": 5090.15,
+      "2016": 5701.17,
+      "2017": 6012.8456,
+      "2018": 7450.5159,
+      "2019": 7791.0775,
+      "2020": 7864.4482,
+      "2021": 7958.8803,
+      "2022": 8127.0765,
+      "2023": 8242.0847,
+      "2024": 8265.5267,
+      "2025": 8315.0357
+    },
+    "other_fossil_mw": {
+      "2015": 615.92,
+      "2016": 573.64,
+      "2017": 435.3944,
+      "2018": 375.7423,
+      "2019": 482.7082,
+      "2020": 384.0832,
+      "2021": 323.9733,
+      "2022": 329.3665,
+      "2023": 240.0209,
+      "2024": 239.0095,
+      "2025": 239.0095
+    }
+  }
+}

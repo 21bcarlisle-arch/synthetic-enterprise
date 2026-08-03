@@ -263,11 +263,18 @@ def test_offshore_non_decreasing_fails_on_fewer_than_two_comparable_years():
 
 # ── R15: A1 STRICT (real DUKES installed capacity, 2026-08-03 L2 pass) ──────────────────
 def test_real_capacity_accessors_are_positive_and_clamp_flat():
-    assert rct.real_capacity_wind_onshore(2016) > 0
-    assert rct.real_capacity_wind_offshore(2025) > 0
+    """R13 hold-flat outside the ingested window. Written against the series' OWN first
+    and last year rather than hard-coded 2016/2025: the file legitimately grows at both
+    ends (2015 was added for the year-MEAN capacity basis), and a clamp test that pins
+    the window boundary breaks on real data arriving rather than on the behaviour it
+    claims to check."""
+    series = rct._load_dukes_capacity()["onshore_mw"]
+    first, last = min(int(y) for y in series), max(int(y) for y in series)
+    assert rct.real_capacity_wind_onshore(first) > 0
+    assert rct.real_capacity_wind_offshore(last) > 0
     assert rct.real_capacity_solar(2020) > 0
-    assert rct.real_capacity_wind_offshore(2050) == rct.real_capacity_wind_offshore(2025)
-    assert rct.real_capacity_wind_onshore(2000) == rct.real_capacity_wind_onshore(2016)
+    assert rct.real_capacity_wind_offshore(last + 25) == rct.real_capacity_wind_offshore(last)
+    assert rct.real_capacity_wind_onshore(first - 16) == rct.real_capacity_wind_onshore(first)
 
 
 def test_a1_strict_holds_on_real_dukes_capacity():
@@ -723,3 +730,451 @@ def test_real_onshore_offshore_generation_share_rejects_non_positive_denominator
     finally:
         tmp.unlink(missing_ok=True)
         rct._load_dukes_generation.cache_clear()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# W1_7 L2 CLOSURE — the FRAME §4 L2 bar, both halves (2026-08-03, file_scope widened
+# to sim/price_engine.py). PART 1 = commissioning smoothing (A7/A8/A9); PART 2 = the
+# coal->gas->wind merit-order re-stacking (A4-live, A10, the price_engine seam);
+# PART 3 = the coupled-triad wiring defect.
+#
+# R15 throughout: every new invariant is shown to FIRE on its own named defect. The
+# two-way proof is the point — a check that only ever passes is not evidence.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+from sim import price_engine as pe  # noqa: E402  (grouped with the L2 block it serves)
+
+
+# ── PART 1: commissioning-date smoothing ───────────────────────────────────────────────
+
+def test_installed_capacity_at_interpolates_between_the_bracketing_year_ends():
+    """The smoothing itself: f=0 is the year-START stock (= the previous published
+    year-end), f=1 is the published year-end, f=0.5 is the midpoint."""
+    start = rct.installed_capacity_at("offshore_wind", 2017, 0.0)
+    end = rct.installed_capacity_at("offshore_wind", 2017, 1.0)
+    assert start == pytest.approx(rct.real_capacity_wind_offshore(2016))
+    assert end == pytest.approx(rct.real_capacity_wind_offshore(2017))
+    assert start < end, "offshore grew 2016->2017; the fixture premise must hold"
+    assert rct.installed_capacity_at("offshore_wind", 2017, 0.5) == pytest.approx(
+        0.5 * (start + end))
+    assert rct.mean_installed_capacity_mw("offshore_wind", 2017) == pytest.approx(
+        0.5 * (start + end))
+
+
+def test_installed_capacity_at_rejects_non_finite_and_out_of_range_fractions():
+    """R15: NaN/inf rejected FIRST — a NaN fraction would otherwise sail through both
+    `0.0 <= f` and `f <= 1.0` (comparison guards are NaN-blind) and silently produce a
+    NaN capacity that every downstream `abs(...) > tol` check would then PASS."""
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError):
+            rct.installed_capacity_at("offshore_wind", 2020, bad)
+    for bad in (-0.01, 1.01):
+        with pytest.raises(ValueError):
+            rct.installed_capacity_at("offshore_wind", 2020, bad)
+    with pytest.raises(ValueError):
+        rct.installed_capacity_at("nuclear", 2020, 0.5)
+
+
+def test_capacity_on_basis_rejects_an_unknown_basis_rather_than_defaulting():
+    """R15 FAIL-OPEN: a typo'd basis must raise, never silently fall back to year_end
+    (which would make a caller believe it had smoothing when it had none)."""
+    with pytest.raises(ValueError):
+        rct.capacity_on_basis("solar", 2020, "yearmean")
+    assert rct.capacity_on_basis("solar", 2020, "year_end") == pytest.approx(
+        rct.real_capacity_solar(2020))
+
+
+def test_a7_mean_basis_reconciles_to_published_generation_on_real_data():
+    """A7: on the year-MEAN basis, capacity x load-factor x hours reconstructs real
+    published generation within the pre-stated 2% — 12.5x tighter than A5's year-END
+    tolerance, and met with room to spare (observed max 0.6%, and <0.05% on onshore
+    wind and solar every single year)."""
+    assert rct.check_mean_capacity_reconciles_to_generation() is True
+    for tech in ("onshore_wind", "offshore_wind", "solar"):
+        assert rct.check_mean_capacity_reconciles_to_generation(tech) is True
+
+
+def test_a7_FIRES_on_a_transcription_error_mutation():
+    """R15 KILLER MUTATION: A7 must be a real data-integrity guard, not vacuously true
+    because its tolerance is generous. A 10x load-factor transcription error fires."""
+    cap = {"onshore_mw": {"2015": 900.0, "2016": 1000.0, "2017": 1100.0},
+           "offshore_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0},
+           "solar_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0}}
+    # generation consistent with the MEAN basis: mean(2016)=950, mean(2017)=1050
+    gen = {"generation_gwh": {"onshore_wind": {"2016": 950 * 0.25 * 8784 / 1000,
+                                               "2017": 1050 * 0.25 * 8760 / 1000},
+                              "offshore_wind": {"2016": 1.0 * 0.25 * 8784 / 1000,
+                                                "2017": 1.0 * 0.25 * 8760 / 1000},
+                              "solar": {"2016": 1.0 * 0.25 * 8784 / 1000,
+                                        "2017": 1.0 * 0.25 * 8760 / 1000}},
+           "load_factor_pct": {"onshore_wind": {"2016": 25.0, "2017": 25.0},
+                               "offshore_wind": {"2016": 25.0, "2017": 25.0},
+                               "solar": {"2016": 25.0, "2017": 25.0}}}
+    cap_p, gen_p = Path("/tmp/w1_7_a7_cap.json"), Path("/tmp/w1_7_a7_gen.json")
+    mut_p = Path("/tmp/w1_7_a7_gen_mut.json")
+    cap_p.write_text(json.dumps(cap))
+    gen_p.write_text(json.dumps(gen))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_mean_capacity_reconciles_to_generation(
+            "onshore_wind", source_path=str(gen_p), capacity_source_path=str(cap_p)) is True
+
+        mutant = json.loads(json.dumps(gen))
+        mutant["load_factor_pct"]["onshore_wind"]["2017"] = 250.0  # THE MUTATION
+        mut_p.write_text(json.dumps(mutant))
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_mean_capacity_reconciles_to_generation(
+            "onshore_wind", source_path=str(mut_p), capacity_source_path=str(cap_p)) is False
+    finally:
+        for p in (cap_p, gen_p, mut_p):
+            p.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+
+
+def test_a8_mean_capacity_brackets_the_year_ends_on_real_data():
+    assert rct.check_mean_capacity_brackets_year_end() is True
+    for tech in ("onshore_wind", "offshore_wind", "solar"):
+        assert rct.check_mean_capacity_brackets_year_end(tech) is True
+
+
+def test_a8_FIRES_when_the_smoothing_silently_does_nothing(monkeypatch):
+    """R15 KILLER MUTATION, and the one that matters most for this half: an
+    implementation that quietly returned the year-END stock — i.e. the smoothing
+    present in name only — must FIRE. A8 has no tunable tolerance in it, so this is a
+    pure structural proof."""
+    assert rct.check_mean_capacity_brackets_year_end("offshore_wind") is True
+    monkeypatch.setattr(rct, "mean_installed_capacity_mw",
+                        lambda tech, year, capacity_source_path=None:
+                        rct.installed_capacity_at(tech, year, 1.0, capacity_source_path))
+    assert rct.check_mean_capacity_brackets_year_end("offshore_wind") is False
+
+
+def test_a8_fails_on_fewer_than_two_years_rather_than_passing_vacuously():
+    fixture = {"onshore_mw": {"2020": 100.0}, "offshore_mw": {"2020": 100.0},
+               "solar_mw": {"2020": 100.0}}
+    tmp = Path("/tmp/w1_7_a8_thin.json")
+    tmp.write_text(json.dumps(fixture))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        assert rct.check_mean_capacity_brackets_year_end(
+            "onshore_wind", capacity_source_path=str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+
+
+def test_a9_mean_basis_dominates_the_year_end_basis_on_real_data():
+    """A9, the tolerance-FREE comparative invariant: on every technology-year where the
+    fleet grew >=1%, the year-MEAN basis reconstructs published generation at least as
+    well as the year-END basis. Passing this identifies DESNZ's published load-factor
+    convention — see the killer mutation below, which is the same test run against a
+    source that genuinely uses the year-END convention."""
+    assert rct.check_mean_basis_dominates_year_end_basis() is True
+
+
+def _a9_fixture(basis: str) -> tuple:
+    """A synthetic publisher whose generation figures were computed on `basis`.
+    Onshore grows 20%/yr (well past the 1% qualifying threshold); the other two
+    technologies are flat so they are skipped."""
+    cap = {"onshore_mw": {"2015": 1000.0, "2016": 1200.0, "2017": 1440.0},
+           "offshore_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0},
+           "solar_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0}}
+    hours = {"2016": 8784, "2017": 8760}
+
+    def onshore(y):
+        end = cap["onshore_mw"][y]
+        start = cap["onshore_mw"][str(int(y) - 1)]
+        c = end if basis == "year_end" else 0.5 * (start + end)
+        return c * 0.25 * hours[y] / 1000.0
+
+    flat = {y: 1.0 * 0.25 * hours[y] / 1000.0 for y in hours}
+    gen = {"generation_gwh": {"onshore_wind": {y: onshore(y) for y in hours},
+                              "offshore_wind": dict(flat), "solar": dict(flat)},
+           "load_factor_pct": {t: {y: 25.0 for y in hours}
+                               for t in ("onshore_wind", "offshore_wind", "solar")}}
+    return cap, gen
+
+
+def test_a9_FIRES_on_a_source_that_genuinely_uses_the_year_END_convention():
+    """R15 KILLER MUTATION — the two-way proof that A9 measures the world rather than
+    asserting it. Same check, same code, two synthetic publishers: one that computed
+    its load factors on the year-MEAN basis (A9 True) and one that used the year-END
+    basis (A9 False). If A9 could not fire on the second, its PASS on the real DESNZ
+    data would be worthless."""
+    paths = []
+    try:
+        results = {}
+        for basis in ("year_mean", "year_end"):
+            cap, gen = _a9_fixture(basis)
+            cp = Path(f"/tmp/w1_7_a9_cap_{basis}.json")
+            gp = Path(f"/tmp/w1_7_a9_gen_{basis}.json")
+            cp.write_text(json.dumps(cap))
+            gp.write_text(json.dumps(gen))
+            paths += [cp, gp]
+            rct._load_dukes_capacity.cache_clear()
+            rct._load_dukes_generation.cache_clear()
+            results[basis] = rct.check_mean_basis_dominates_year_end_basis(
+                source_path=str(gp), capacity_source_path=str(cp))
+        assert results["year_mean"] is True, (
+            "a publisher using the mean-capacity convention must satisfy A9")
+        assert results["year_end"] is False, (
+            "A9 MUST fire on a publisher using the year-end convention — otherwise its "
+            "pass on real DESNZ data proves nothing about the real convention")
+    finally:
+        for p in paths:
+            p.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+
+
+def test_a9_fails_rather_than_passing_when_too_few_cells_qualify():
+    """R15 anti-vacuous-pass: a series where nothing grew has no qualifying cells, so
+    A9 must return False (an unavailable comparison is a FAILED comparison), never
+    True-because-the-loop-body-never-ran."""
+    cap = {"onshore_mw": {"2015": 100.0, "2016": 100.0, "2017": 100.0},
+           "offshore_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0},
+           "solar_mw": {"2015": 1.0, "2016": 1.0, "2017": 1.0}}
+    gen = {"generation_gwh": {t: {"2016": 219.6, "2017": 219.0}
+                              for t in ("onshore_wind", "offshore_wind", "solar")},
+           "load_factor_pct": {t: {"2016": 25.0, "2017": 25.0}
+                               for t in ("onshore_wind", "offshore_wind", "solar")}}
+    cp, gp = Path("/tmp/w1_7_a9_flat_cap.json"), Path("/tmp/w1_7_a9_flat_gen.json")
+    cp.write_text(json.dumps(cap))
+    gp.write_text(json.dumps(gen))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+        assert rct.check_mean_basis_dominates_year_end_basis(
+            source_path=str(gp), capacity_source_path=str(cp)) is False
+    finally:
+        cp.unlink(missing_ok=True)
+        gp.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+
+
+def test_a5s_year_end_tolerance_was_NOT_retro_tightened_to_bank_the_smoothing():
+    """R12 ANTI-GOAL-SEEK, mechanised rather than exhorted. The smoothing makes the
+    reconciliation dramatically better, and the tempting move is to now narrow A5's
+    tolerance onto the improved numbers and call the old 14.1% 'fixed'. That would be
+    tuning a validator to flatter its generator. A5 keeps its original 0.25 on its
+    original year-END basis; the improvement lives in A7's separate, tighter bound."""
+    assert rct._GENERATION_RECONCILIATION_TOLERANCE == 0.25
+    assert rct._MEAN_BASIS_RECONCILIATION_TOLERANCE == 0.02
+    assert rct.check_capacity_load_factor_reconciles_to_generation() is True
+
+
+def test_year_end_basis_is_byte_identical_to_the_pre_smoothing_implied_generation():
+    """The new basis-aware entry point must not perturb the old one at all."""
+    for tech in ("onshore_wind", "offshore_wind", "solar"):
+        for y in range(2016, 2026):
+            assert rct.implied_generation_on_basis_gwh(tech, y, "year_end") == (
+                rct.implied_generation_gwh(tech, y))
+
+
+# ── PART 2: the coal->gas->wind merit-order re-stacking ────────────────────────────────
+
+def test_the_restacked_denominator_preserves_the_calibrated_level_EXACTLY():
+    """THE R12/S8 WALL, AS A TEST — the single most important assertion in this half.
+    The re-stacking is allowed to change the SHAPE of the merit-order denominator over
+    calendar time and nothing else. Its mean over the calibration window must remain
+    EXACTLY `price_engine.DISPATCHABLE_CAPACITY_MW`, proving the SSP/gamma calibration
+    was not re-opened, re-fit, or nudged."""
+    window = rct._DISPATCHABLE_SHAPE_WINDOW
+    mean = float(np.mean([rct.dispatchable_capacity_mw(y) for y in window]))
+    assert mean == pytest.approx(pe.DISPATCHABLE_CAPACITY_MW, rel=1e-12)
+    assert float(np.mean([rct.dispatchable_shape(y) for y in window])) == pytest.approx(
+        1.0, rel=1e-12)
+
+
+def test_the_stack_re_stacks_coal_exits_and_the_fleet_tightens():
+    """The mechanism's actual claim: the dispatchable fleet contracts across the window
+    as coal leaves, so the same residual demand is a TIGHTER margin in 2025 than 2016.
+    Direction and ordering only — no generated value is pinned."""
+    coal = rct.real_coal_capacity_by_year()
+    assert coal[2016] > 10_000, "premise: coal was a major part of the 2016 stack"
+    assert coal[2025] == 0.0, "premise: coal is gone by 2025"
+    assert rct.dispatchable_capacity_mw(2016) > rct.dispatchable_capacity_mw(2025)
+    assert rct.dispatchable_shape(2016) > 1.0 > rct.dispatchable_shape(2025)
+
+
+def test_a4_no_coal_after_retirement_is_LIVE_on_the_real_series_at_last():
+    """A4 (FRAME §4's fourth invariant) has been a FAIL-LOUD stub since the FRAME was
+    written, because no coal series was ingested. DUKES 5.7.A now supplies one, so the
+    check finally runs on real data: UK coal is 18.5 MW in 2024 (Ratcliffe-on-Soar
+    closed 30 Sept 2024) and exactly 0.0 in 2025."""
+    assert rct.check_no_coal_after_retirement_on_real_series() is True
+    coal = rct.real_coal_capacity_by_year()
+    assert set(coal) >= set(range(2016, 2026))
+    assert all(coal[y] == 0.0 for y in coal if y > rct.LAST_COAL_GENERATION_YEAR)
+
+
+def test_a4_live_FIRES_on_a_post_retirement_coal_mutation():
+    """R15 KILLER MUTATION on the REAL-series path (the fail-loud path was already
+    proven): a DUKES-shaped file with coal surviving past retirement must fire."""
+    good = json.loads(rct.DISPATCHABLE_CAPACITY_PATH.read_text())
+    mutant = json.loads(json.dumps(good))
+    mutant["fuel_mw"]["coal_mw"]["2025"] = 4000.0  # THE MUTATION: coal that never left
+    tmp = Path("/tmp/w1_7_a4_live_mutant.json")
+    tmp.write_text(json.dumps(mutant))
+    try:
+        rct._load_dispatchable_capacity.cache_clear()
+        assert rct.check_no_coal_after_retirement_on_real_series(str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_a10_dispatchable_fleet_contracts_on_real_data():
+    assert rct.check_dispatchable_fleet_contracts() is True
+
+
+def test_a10_FIRES_on_a_flat_fleet_the_very_defect_it_exists_to_catch():
+    """R15 KILLER MUTATION: a fleet that never contracts — i.e. the re-stacking doing
+    nothing at all, the exact pre-W1_7 state — must fire. Without A10 a
+    `dispatchable_shape` stuck at 1.0 would pass every other check here."""
+    good = json.loads(rct.DISPATCHABLE_CAPACITY_PATH.read_text())
+    flat = json.loads(json.dumps(good))
+    for _fuel, series in flat["fuel_mw"].items():
+        first = series[min(series, key=int)]
+        for y in series:
+            series[y] = first  # THE MUTATION: nothing ever retires
+    tmp = Path("/tmp/w1_7_a10_flat.json")
+    tmp.write_text(json.dumps(flat))
+    try:
+        rct._load_dispatchable_capacity.cache_clear()
+        assert rct.check_dispatchable_fleet_contracts(str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_source_FAILS_LOUD_when_missing_never_silently_flat():
+    """R15 FAIL-SILENT: an unavailable series is a FAILED check. Falling back to the
+    flat calibrated constant would make the re-stacking vanish while every check
+    stayed green."""
+    rct._load_dispatchable_capacity.cache_clear()
+    try:
+        with pytest.raises(rct.DispatchableSeriesUnavailableError):
+            rct.real_dispatchable_capacity_mw(2020, source_path="/nonexistent/disp.json")
+        with pytest.raises(rct.DispatchableSeriesUnavailableError):
+            rct.check_dispatchable_fleet_contracts("/nonexistent/disp.json")
+    finally:
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_rejects_an_unknown_basis():
+    with pytest.raises(ValueError):
+        rct.real_dispatchable_capacity_mw(2020, basis="year_middle")
+
+
+# ── PART 2b: the price_engine seam (the FRAME's literal landing point) ─────────────────
+
+def test_price_engine_default_path_is_BYTE_IDENTICAL_without_a_year():
+    """R12/S8: no year, no change. The calibrated constants are untouched and the
+    default call produces exactly the pre-W1_7 arithmetic."""
+    floor = pe.gas_floor_price(60.0)
+    x = (40000.0 - 8000.0) / pe.DISPATCHABLE_CAPACITY_MW
+    expected = floor * (pe.A0 + pe.A1 * x
+                        + pe.A2 * max(0.0, x - pe.X_TIGHT) ** pe.SCARCITY_EXPONENT)
+    assert pe.system_margin_price(floor, 40000.0, 8000.0) == expected
+    assert pe.synthetic_price(60.0, 40000.0, 8000.0) == expected
+    assert pe.system_margin_price(floor, 40000.0, 8000.0,
+                                  pe.DISPATCHABLE_CAPACITY_MW) == expected
+
+
+def test_price_engine_year_selects_the_restacked_fleet_and_moves_the_price():
+    """The compounding claim, now driven by the STACK rather than the renewables: hold
+    demand, gas AND renewable output fixed, vary only the calendar year, and the price
+    must move — because the plant available to serve that residual demand really did
+    shrink as coal closed. A tighter 2025 stack prices the same residual higher."""
+    p2016 = pe.synthetic_price(60.0, 40000.0, 8000.0, year=2016)
+    p2025 = pe.synthetic_price(60.0, 40000.0, 8000.0, year=2025)
+    assert p2016 != p2025
+    assert p2025 > p2016, "the fleet contracted, so the same residual is a tighter margin"
+
+
+def test_price_engine_raises_when_both_a_capacity_and_a_year_are_named():
+    """R15 FAIL-SILENT: silently letting an explicit capacity win would make a
+    year-aware caller quietly fall back to the flat constant — the re-stacking
+    disappearing while everything still looked green."""
+    with pytest.raises(ValueError):
+        pe.system_margin_price(120.0, 40000.0, 8000.0, 35000.0, 2016)
+    with pytest.raises(ValueError):
+        pe.synthetic_price(60.0, 40000.0, 8000.0, dispatchable_capacity_mw=35000.0, year=2016)
+
+
+def test_chain_year_aware_now_moves_BOTH_ends_of_the_residual_demand_identity():
+    """The wiring: `derive_price(year=...)` must thread the year into the merit-order
+    denominator too, not just the renewable numerator. Proven by holding the renewable
+    side constant — a wind speed below cut-in and full cloud in midwinter, so wind and
+    solar output are identical across years — and showing the price still moves."""
+    kw = dict(temp_c=2.0, wind_speed_ms=1.0, cloud_pct=100.0, day_of_year=1, gas_price=60.0)
+    assert wpc.wind_output_from_speed(1.0, year=2016) == wpc.wind_output_from_speed(1.0, year=2025)
+    assert wpc.solar_output_from_weather(1, 100.0, year=2016) == pytest.approx(
+        wpc.solar_output_from_weather(1, 100.0, year=2025))
+    assert wpc.derive_price(year=2016, **kw) != wpc.derive_price(year=2025, **kw), (
+        "with the renewable side held constant, any year sensitivity left MUST come "
+        "from the re-stacked dispatchable denominator"
+    )
+
+
+# ── PART 3: the coupled-triad wiring defect ───────────────────────────────────────────
+
+def test_the_triad_harness_can_now_actually_exercise_the_year_aware_mechanism():
+    """THE DEFECT THIS CLOSES: `background/weather_price_triad.measure()` called
+    `derive_price_on_record()` on its bare default, so the harness that measures the
+    company's belief against SIM ground truth never exercised W1_7's mechanism at all —
+    W1_7 could have been arbitrarily wrong and this measurement would not have moved.
+
+    A spy on the seam proves the wiring both ways (the default is genuinely False, and
+    the flag genuinely reaches the chain) without paying for two full 3,337-day runs."""
+    from background import weather_price_triad as wpt
+
+    seen = []
+    real = wpt.derive_price_on_record
+
+    def spy(params=None, year_aware=False):
+        seen.append(year_aware)
+        raise RuntimeError("stop after the seam — the wiring is what is under test")
+
+    wpt.derive_price_on_record = spy
+    try:
+        for flag in (None, True, False):
+            with pytest.raises(RuntimeError):
+                wpt.measure() if flag is None else wpt.measure(year_aware=flag)
+    finally:
+        wpt.derive_price_on_record = real
+
+    assert seen == [False, True, False], (
+        "measure() must default to year_aware=False (it scores the W1_6<->C13 ledger "
+        "pair) AND must actually pass the flag through when asked"
+    )
+
+
+def test_the_triad_year_aware_delta_is_reported_as_a_diagnostic_not_asserted(monkeypatch):
+    """R12: `year_aware_gap_delta` reports both gaps and their difference; it must
+    never assert a direction. Real measured values (2026-08-03, 3,337 days): worst-cell
+    gap 0.397 -> 0.492 and population gap 0.246 -> 0.309 — the gap GROWS, because the
+    year-aware truth carries a calendar dimension the company's linear gas/temp/wind
+    belief cannot see at all. That is the coupled triad working as designed (FRAME §7),
+    not a regression, and emphatically not a number to tune."""
+    from background import weather_price_triad as wpt
+
+    class _G:
+        gap = 0.5
+
+    calls = []
+
+    def fake_measure(year_aware=False):
+        calls.append(year_aware)
+        return {"worst_cell": "cold_still_tail", "worst_gap": 0.49 if year_aware else 0.4,
+                "population_gap": _G(), "n": 3337}
+
+    monkeypatch.setattr(wpt, "measure", fake_measure)
+    d = wpt.year_aware_gap_delta()
+    assert calls == [False, True], "the delta must run the loop BOTH ways"
+    assert d["worst_gap_delta"] == pytest.approx(0.09)
+    assert d["worst_gap_default"] == 0.4 and d["worst_gap_year_aware"] == 0.49
