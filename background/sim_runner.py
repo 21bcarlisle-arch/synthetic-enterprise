@@ -129,21 +129,37 @@ def run_simulation() -> bool:
         f"4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
     )
 
-    # UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged):
-    # this call passes ONLY the marker just written above -- this loop never
-    # re-scans staging/ for a DIFFERENT, earlier marker this exact process
-    # may have skipped on a prior iteration. process_run_complete.py's own
-    # `main()` used to return 0 both when it genuinely processed a marker AND
-    # when its own lock was already held by a concurrent instance -- so rc==0
-    # did NOT distinguish "processed" from "someone else was already running,
-    # this marker was left untouched." Since 2026-07-29 a lock-skip returns
-    # EXIT_LOCK_SKIPPED (75) and is logged as such below, but that only makes
-    # the skip VISIBLE here: there is still no retry of a skipped marker
-    # anywhere in this file. The real safety net is entirely external:
-    # background/background_worker.py::process_leftover_run_markers()
-    # unconditionally re-globs every run_complete_*.md in staging/ at the
-    # top of its own loop, every cycle -- it, not this function, is what
-    # actually guarantees a lock-skipped marker still gets processed.
+    auto_process_marker(marker)
+
+    return True
+
+
+def auto_process_marker(marker):
+    """Publish ONE just-written run-complete marker, and report the outcome to
+    the publish-gate wedge detector.
+
+    Extracted from run_simulation() (2026-08-03) so the wedge-detector wiring
+    below sits on a seam a test can actually DRIVE. It previously lived inline
+    in a function that shells out to the whole simulation, so the only
+    reachable test was one that called the recorder directly -- which is a
+    TAUTOLOGY (R15): it passes whether or not this path is wired up at all.
+    Returns the return code seen (124 for a timeout), for callers and tests.
+
+    UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged):
+    this call passes ONLY the marker just written by the caller -- the run loop
+    never re-scans staging/ for a DIFFERENT, earlier marker this exact process
+    may have skipped on a prior iteration. process_run_complete.py's own
+    `main()` used to return 0 both when it genuinely processed a marker AND
+    when its own lock was already held by a concurrent instance -- so rc==0
+    did NOT distinguish "processed" from "someone else was already running,
+    this marker was left untouched." Since 2026-07-29 a lock-skip returns
+    EXIT_LOCK_SKIPPED (75) and is logged as such below, but that only makes
+    the skip VISIBLE here: there is still no retry of a skipped marker
+    anywhere in this file. The real safety net is entirely external:
+    background/background_worker.py::process_leftover_run_markers()
+    unconditionally re-globs every run_complete_*.md in staging/ at the
+    top of its own loop, every cycle -- it, not this function, is what
+    actually guarantees a lock-skipped marker still gets processed."""
     processor = Path(__file__).parent / 'process_run_complete.py'
     try:
         proc_result = subprocess.run(
@@ -151,17 +167,49 @@ def run_simulation() -> bool:
             cwd=str(PROJECT_DIR),
             timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
         )
-        if proc_result.returncode == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
+        rc = proc_result.returncode
+        if rc == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
             log('Auto-process lock-skipped the marker (another instance holds '
                 'the run lock) -- marker untouched, left for background_worker')
-        elif proc_result.returncode == 0:
+        elif rc == 0:
             log('Auto-processed run complete marker')
         else:
-            log('Auto-process failed (rc={}) -- marker left for background_worker'.format(proc_result.returncode))
+            log('Auto-process failed (rc={}) -- marker left for background_worker'.format(rc))
+        # H15 (2026-08-03): feed THIS path's outcome into the publish-gate wedge
+        # detector too. This is the path that actually publishes in the steady
+        # state, and it fed the detector NOTHING -- only
+        # background_worker's leftover sweep did, and that sweep by
+        # construction chews the STALE backlog. So a healthy pipeline
+        # publishing cleanly every ~10 min could never clear a wedge streak the
+        # sweep kept growing: the alarm stayed armed ~5960 min against a
+        # working publisher (2026-07-30..08-03). The router itself is
+        # defensive and treats rc=75 as evidence of nothing.
+        _record_publish_gate_outcome(marker, rc)
+        return rc
     except subprocess.TimeoutExpired:
         log('Auto-process timed out after 1200s -- marker left for background_worker')
+        # A timeout IS a publish failure (the marker stays unpublished), and it
+        # is exactly how the 4-day 2026-07-25 blackout presented. rc=None would
+        # be ambiguous, so report the timeout as a distinct non-zero code
+        # rather than letting the detector see nothing at all.
+        _record_publish_gate_outcome(marker, 124)
+        return 124
 
-    return True
+
+def _record_publish_gate_outcome(marker, rc):
+    """Report this publisher's outcome to the shared publish-gate wedge
+    detector (`process_run_complete.record_publish_gate_outcome`).
+
+    Imported lazily, not at module scope, for the same reason
+    background_worker.py does: importing the publish pipeline at sim_runner
+    import time drags in the whole reporting stack. Swallows everything -- a
+    monitoring failure must never break the run loop it monitors."""
+    try:
+        from background import process_run_complete as prc
+        return prc.record_publish_gate_outcome(marker, rc)
+    except Exception as exc:
+        log('publish-gate outcome recording failed (non-fatal): {}'.format(exc))
+        return None
 
 
 def _check_hold(was_held: bool) -> tuple[bool, bool]:

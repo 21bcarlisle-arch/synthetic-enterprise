@@ -1647,6 +1647,60 @@ def record_publish_gate_success(*, now=None):
         return False
 
 
+def record_publish_gate_outcome(marker, rc):
+    """Route ONE run-complete processing return code into the publish-gate wedge
+    detector. THE shared router for every caller that publishes a marker.
+
+    WHY IT LIVES HERE (2026-08-03, this exact defect): this routing used to
+    exist ONLY as `background_worker._record_publish_gate_outcome`, wired into
+    `process_leftover_run_markers()`'s sweep. But that sweep is NOT the path
+    that actually publishes in the steady state -- `background/sim_runner.py`
+    publishes the marker it just wrote, every cycle, and fed its return code to
+    NOBODY. The detector was therefore blind to the ONLY healthy publisher and
+    saw only the sweep, which by construction chews the STALE backlog. Result
+    (observed 2026-07-30..08-03): sim_runner published cleanly every ~10 min --
+    04:02Z "Committed locally... Done" -- while the sweep failed on 4-day-old
+    markers, so the wedge streak only ever grew. The alarm stayed armed for
+    ~5960 min against a pipeline that was working, firing a PRIORITY-ZERO
+    doorbell each tick for a wedge that no longer existed.
+
+    R10 (class, not instance): the fix is not "also call it from sim_runner" as
+    a second copy -- it is ONE router that every publish path must feed, so a
+    THIRD publisher added later cannot reintroduce a half-blind detector by
+    forgetting to duplicate the logic.
+
+    THREE outcomes, not two (fail-open closed 2026-07-29, preserved here): a
+    lock-skip (EXIT_LOCK_SKIPPED) means the caller did NOT publish the marker
+    -- evidence of NOTHING about the gate's health -- so it records NEITHER a
+    success NOR a failure and leaves the streak exactly as it found it.
+    Recording it as a success actively DISARMED the detector.
+
+    Defensive by construction: a monitoring failure must never break the
+    pipeline it monitors. Returns "success" / "failure" / "skipped" / None
+    (None == the router itself errored) so callers and tests can assert which
+    branch ran.
+    """
+    try:
+        if rc == EXIT_LOCK_SKIPPED:
+            return "skipped"
+        if rc == 0:
+            record_publish_gate_success()
+            return "success"
+        git_hash = "unknown"
+        try:
+            git_hash = parse_marker(Path(marker)).get("git_hash", "unknown")
+        except Exception:
+            pass
+        record_publish_gate_failure(
+            "process_run_complete rc={} on {}".format(rc, Path(marker).name),
+            rc=rc, git_hash=git_hash,
+        )
+        return "failure"
+    except Exception as exc:
+        log("record_publish_gate_outcome error (swallowed): {}".format(exc))
+        return None
+
+
 def maybe_ntfy(data, net_margin, insights=None):
     """Send NTFY for notable exceptions. Returns log message if sent, else None."""
     admin = data.get("administration_event")

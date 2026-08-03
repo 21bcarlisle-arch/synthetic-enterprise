@@ -125,23 +125,17 @@ def _record_publish_gate_outcome(marker, rc):
     item with "a run published cleanly" -- for a marker nobody published.
     Observed 2026-07-29 16:53Z: both backed-up markers recorded successes one
     minute before the lock holder itself failed the gate at 16:54Z, wiping the
-    streak that was supposed to raise the alert."""
+    streak that was supposed to raise the alert.
+
+    DELEGATES (2026-08-03): the three-outcome logic now lives ONCE in
+    `process_run_complete.record_publish_gate_outcome` so that EVERY publish
+    path feeds the same detector. This sweep was the only caller, which left
+    the detector blind to sim_runner.py -- the path that actually publishes in
+    the steady state -- for ~4 days. This wrapper stays because it is the name
+    tests/background/test_background_worker.py pins."""
     try:
         from background import process_run_complete as prc
-        if rc == EXIT_LOCK_SKIPPED:
-            return
-        if rc == 0:
-            prc.record_publish_gate_success()
-        else:
-            git_hash = "unknown"
-            try:
-                git_hash = prc.parse_marker(marker).get("git_hash", "unknown")
-            except Exception:
-                pass
-            prc.record_publish_gate_failure(
-                f"process_run_complete rc={rc} on {marker.name}",
-                rc=rc, git_hash=git_hash,
-            )
+        prc.record_publish_gate_outcome(marker, rc)
     except Exception as exc:
         log(f"publish-gate outcome recording skipped for {marker.name}: {exc}")
 
