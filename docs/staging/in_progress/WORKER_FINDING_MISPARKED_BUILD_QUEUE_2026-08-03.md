@@ -446,3 +446,69 @@ SERL diversity, EPC-linked metered annual consumption), Expert Hour not attempte
 stale unless a tick re-runs it — *the same orphan-transition class this atom just closed one level up*,
 registered rather than declared solved. R11 bound stated honestly: the Proof rows were verified in the
 **generated** panel data, not on the live poesys.net pixel; that lands with the next publish.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — W1_13 drawn as the BLOCKER of the drawn atom, and the envelope was the side that was wrong
+
+The doorbell handed over `W1_11_fabric_physics_core` (level 2→3). Its L2→L3 step was held on a **named,
+measured blocker** — `W1_13_high_tail_gas_anchor` — so the blocker *was* the feasible work (Rule 0: yield
+dials until work exists; the blocker is not a reason to hold when it is itself drawable). **Network was
+PROBED, not assumed**, and was available, which is what made the external DISCOVER drawable at all.
+
+**`W1_13` L0→L2, commit `89103080d`, pushed, origin verified.** Full write-up:
+`docs/market_research/need_domestic_gas_high_tail.md`.
+
+### The verdict: the ENVELOPE moves, the fabric is FLAGGED not falsified
+`RESI_CONSUMPTION_ENVELOPE_GAS.high` **40,000 → 50,000 kWh/yr**, anchored on DESNZ NEED 2026's own
+domestic-gas validity threshold. **The justification does not depend on C4** — the old bound flagged
+**1.02% of all gas-heated E&W homes and 14.1% of pre-1930 detached homes** as implausible. An
+absurdity-catcher rejecting one in seven of a real, common dwelling class had to move regardless of what
+the fabric model produced.
+
+### Three method points worth carrying to the remaining Class B items
+1. **The metadata was the evidence, not the tables.** Two facts nobody would have guessed decided this:
+   `PROP_AGE_BAND 1` is *"before 1930"*, not pre-1919 (so the measured tail is an UNDER-estimate of the
+   true pre-1919 solid-wall tail — recorded because the bias runs *against* the conclusion), and the data
+   is **right-censored at 50,000** because DESNZ removes larger readings. That censoring fact turned out
+   to be the whole answer: it hands you the publisher's own threshold for domestic absurdity, which is the
+   same *kind* of object as the invariant being judged. Reading the tables without the metadata would have
+   produced confidently wrong percentiles computed on a retained subset.
+2. **Two artefacts from one publisher is still ONE source.** The record-level sample was cross-checked
+   against the published aggregate before use — but that validates the **sampling**, not the source, and is
+   recorded as such. The prior lesson (*agreeing sources may share lineage*) applies to a publisher's own
+   two files just as much as to two aggregator websites.
+3. **State the R12 counterfactual when the ordering invites suspicion.** Moving a band right after a
+   measurement breached it looks exactly like goal-seeking. The defence has to be a counterfactual, not a
+   protest: *had C4 come in at 55,000, this anchor would not have covered it and the physics would have
+   been the side that moved.* The anchor was chosen by what it **is**, not by what it clears.
+
+### Two findings registered, neither fixed on sight (SELF_INTERRUPT_DISCIPLINE — machine not blocked)
+- **The bound is the wrong SHAPE, not merely the wrong value.** 43 MWh/yr is unremarkable for a pre-1919
+  detached and would be a screaming defect on a 2-bed post-2000 flat. A single national scalar was
+  simultaneously too tight for old detached stock (14.1% false positives) and far too loose for a modern
+  flat, where the same reading is ~4× the class median and passes silently. **Widening it to 50,000 fixes
+  the first problem and makes the second slightly worse** — said plainly rather than left to be discovered.
+  The right shape is a class-conditioned envelope keyed on dwelling type/age/floor area, and the published
+  distribution needed to build it is now in the anchor doc.
+- **THIRD instance of the orphan-transition class**, and this one corrects a claim in `W1_11`'s own cell:
+  the note asserting `tools/fabric_settlement_gap.py` "is its production caller and writes the artefact
+  each run" is **false on both halves** — grep finds no caller anywhere outside its own module/test/prose,
+  and it writes only under `--write`. **Caught by verifying rather than trusting the note:** after the
+  envelope move the tool *printed* every premise inside the envelope while the artefact on disk still read
+  `[1500, 40000]` and `inside_envelope_gas: false` — the artefact this atom's blocker rested on was stale.
+  Joins `generate_evidence_data.generate()` and `write_fabric_gap_entries`. The durable fix is one
+  reconciliation running the measurement tools with `--write` from the publish path, designed once for the
+  whole `couple_*`/gap-tool family rather than patched per tool.
+
+### Control-set hole closed en route
+`RESI_CONSUMPTION_ENVELOPE_GAS` had **no test of its own** — the one test named for the envelope class
+exercises only the *electricity* invariant, so the gas bound could have been any number at all and the
+suite would have stayed green. R15 both ways: three real source mutations, each firing its own named test,
+baseline restored green.
+
+**NEXT TICK'S DRAW, named:** `W1_11`'s settlement switch is now **unblocked and drawable** — throw it, run
+the full sim, measure the population-level belief-vs-truth gap through `H_GAP`, and only then claim L3.
+Expect published financial figures to move; that is the R13 baseline correction landing, not a regression.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
+callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue.

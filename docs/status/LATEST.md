@@ -1,5 +1,42 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T15:59:34Z
+Last updated: 2026-08-03T16:14:46Z
+
+**W1_13 (2026-08-03, `89103080d`) — the external anchor landed, and the ENVELOPE was the side that was
+wrong. L0→L2, recorded.** The blocker below asked whether a 43,338 kWh/yr domestic gas premise is a real
+category or a modelling artefact. Both sides of that disagreement were internal, so the work was external
+and only external: **DESNZ NEED 2026** (published 11 June 2026, England & Wales, consumption year 2024,
+weather-corrected), the publisher's own tables and no aggregator. Two artefacts answer different halves —
+the published aggregate over 21.6m properties, which carries an explicit **`Pre 1919`** age class
+(detached gas-heated 3-bed **median 17,283 / UQ 23,068**, n=72,173), and the record-level 50k sample, from
+which any percentile is computable; the sample was cross-checked against the aggregate *before use*
+(medians 0.5% and 2.8% apart), which validates the **sampling**, not the source, since both share the NEED
+lineage. **Two metadata facts did the real work, neither guessed:** `PROP_AGE_BAND 1` is *"before 1930"*,
+not pre-1919, so the measured tail includes cavity-walled 1919-29 stock and every percentile is an
+**under**-estimate of the true pre-1919 solid-wall tail (stated because the bias runs *against* the
+conclusion); and the data is **right-censored at 50,000 kWh/yr** because DESNZ removes larger readings as
+too large — making 50,000 the national statistics publisher's *own* threshold for "too large to be a
+domestic gas reading", the same **kind** of object as the company's envelope.
+**Verdict: `RESI_CONSUMPTION_ENVELOPE_GAS.high` 40,000 → 50,000, cited to that threshold.** The
+justification does **not** depend on C4, and that is the point: the old bound flagged **1.02% of all
+gas-heated E&W homes and 14.1% of pre-1930 detached homes** as implausible — an absurdity-catcher rejecting
+one in seven of a real, common dwelling class had to move whether or not the fabric model existed. **R12
+counterfactual, stated because the ordering invites the suspicion: had C4 come in at 55,000 the anchor
+would not have covered it and the PHYSICS would have been the side that moved.** C4 sits at ~p99 of its own
+size band (pre-1930 detached 101–150 m²: median 16,800, p99 38,900, max 49,900, **zero censoring** so those
+percentiles are reliable) — one deliberately-worst archetype at p99 is expected; a *second* premise above
+p99 is a physics finding. R13: decided blind to P&L, measured before margin.
+**W1_11 stays at L2** — clearing a blocker has never moved a `level_current`. The settlement switch is now
+unblocked and drawable, but it is not thrown, and throwing it moves published figures across the whole book.
+**Control-set hole closed:** `RESI_CONSUMPTION_ENVELOPE_GAS` had **no test of its own** — the single test
+named for the envelope class exercises only the *electricity* invariant, so the gas bound could have been
+any number and the suite stayed green. R15 both ways: three real source mutations, each firing its own named
+test, baseline restored. 69/69 invariant tests; 532 passed + 2 xfailed across the affected suites;
+`epistemic_verifier` PASS. Anchor: `docs/market_research/need_domestic_gas_high_tail.md`.
+**Third instance of the orphan class, correcting the record below:** the claim that
+`tools/fabric_settlement_gap.py` "is its production caller and writes the artefact each run" is **false on
+both halves** — grep finds no caller anywhere, and it writes only under `--write`. Caught because the tool
+*printed* every premise inside the envelope while the artefact on disk still showed the old bound and a
+breach that no longer existed. Refreshed; the durable fix is registered, not patched on sight.
 
 **W1_11 (2026-08-03, `66d73d1e0`) — the fabric physics now has a seam into the path the company settles on,
 and the level is HELD at 2 on a MEASURED blocker rather than shipped on a plausible mechanism.**
