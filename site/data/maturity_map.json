@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3485
+      "stall_consecutive_unchanged": 35
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1848,7 +1848,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2909,7 +2909,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 2,
@@ -2917,9 +2917,9 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2721
+      "stall_consecutive_unchanged": 2747
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -3397,7 +3397,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3406,8 +3406,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3425,8 +3425,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3444,8 +3444,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3463,8 +3463,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3482,8 +3482,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W3_1b_intra_year_price_cap_granularity",
@@ -3501,8 +3501,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3520,8 +3520,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3540,7 +3540,7 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3558,8 +3558,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H_stop_control_gap_characterisation",
@@ -3577,8 +3577,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3587,7 +3587,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3595,9 +3595,28 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 227
+    },
+    {
+      "id": "OPS_stall_class_register_adoption",
+      "name": "Adopt the rescued stall-class register: a 693-line module + 447-line test built in a fork that died before committing, with no rival and no home atom until now",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     }
   ],
   "lanes": {
@@ -3680,7 +3699,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 178,
+  "total_atoms": 179,
   "epoch2_movements": [
     {
       "id": "M1",

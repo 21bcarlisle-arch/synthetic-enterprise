@@ -222,3 +222,47 @@ derives its door list from rather than hand-typing one.
 
 **Still open, unchanged by this tick:** the remaining Class B BUILD halves; the auto-processor
 broad-`add` finding (queued, not blocking).
+
+---
+## PROGRESS 2026-08-03 (worker tick) — the three-lane draw was a STALE-CELL job, and it hid a control fail-open
+
+This tick drew the same three atoms as the last one. Checking real state first (R7) showed why: two of
+the three had their builds **adopted onto main this morning** (`08acb5f60` evidence pages, `094bbc007`
+expert doors) while their `level_current` cells still read the pre-build value. The UNMERGED-WORK guard
+flagged all three, but the answer was neither "rebuild" nor "adopt" — the work was already home and only
+the *record* was stale. **Re-verified rather than re-stamped**, per the standing rule that a control
+passing for the wrong reason is not evidence.
+
+**Two levels recorded, each against its own named condition** (`gate_authorizations.jsonl`):
+- `SITE_director_window_delta_view` **L1→L2**. Not a judgement call: the ledger's own L1 correction from
+  earlier today named the unblock condition verbatim — *"L2 becomes claimable on the next publish via
+  `site/live_pixel_verify.py --door /director/`"*. Tested, not assumed. main==origin, `/director/` 200,
+  live run PASS, delta panel rendering real derived values.
+- `SITE_evidence_pages_behind_nodes` **L0→L2**. 25/25 tests, live `/evidence/` renders 6395 elements of
+  primary-state evidence, and the **orphan transition closed**: `generate_evidence_data.generate()` was
+  never wired into `process_run_complete.py` despite its own docstring saying it was safe to call from
+  there. A page derived entirely from moving sources would have frozen at its build-day state.
+  *Honest bound:* at wiring time the regenerated page differed only in `generated_at`/`git_hash` — the
+  freeze was structural and future-facing, not an observed stale page.
+
+### The finding worth carrying: coverage derived from the sitemap was a FAIL-OPEN
+
+`site/live_pixel_verify.py` — the control `SITE1_expert_doors` rests its R11 evidence on — derived its
+door list from `site/sitemap.xml` alone. The sitemap deliberately excludes off-nav surfaces. So **every
+deployed-but-unadvertised door was skipped while the tool reported "8/8 doors verified"**. Two live doors
+sat outside coverage: `/evidence/` (200, linked six times from the front-door diagram, missing from the
+sitemap in breach of that file's *own* stated inclusion rule) and `/director/` (200, `NEVER_ADVERTISED`
+by design, so it could **never** be covered by a default run — its R11 evidence rested on a manual
+`--door` flag that nothing repeated).
+
+Fixed both ways, as **class guards not instance fixes** (R10): `/evidence/` added to the sitemap;
+`INTERNAL_DOORS`+`all_doors()` so a default run covers every *deployed* door. Two new controls derive
+their door set from the **repo** and cross-check against `site/_redirects` as an *independent* oracle —
+deriving it from the sitemap would have been the tautology pattern. R15 both ways: with `/evidence/`
+removed the control fails naming exactly `/evidence/`, and passes restored. **Live coverage 8/8 → 11/11.**
+
+`SITE1_expert_doors` **held at 2**: its remaining L3 residual is the SITE_CONSTITUTION's own Final DoD
+line, a genuine Expert Hour across all doors. Closing a fail-open in its control does not discharge that.
+
+**Still open, unchanged:** the 11 remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25 callers);
+the auto-processor broad-`add` finding (queued, not blocking).

@@ -189,6 +189,29 @@ def canonical_doors(sitemap: Path = SITEMAP) -> list[str]:
     return doors
 
 
+# Live doors that are deliberately NOT in the sitemap, and therefore invisible to
+# canonical_doors() above. They are off-nav/noindex by design (the sitemap's own
+# exclusion rule, mirrored by NEVER_ADVERTISED in
+# tests/tools/test_site1_proof_crawlability.py) -- but "not advertised to crawlers"
+# is not "not deployed": both serve 200 to anyone with the URL.
+#
+# Deriving coverage from the sitemap ALONE was a fail-open: an internal door could
+# only ever be checked by someone remembering `--door /director/` by hand, so the
+# R11 evidence for /director/ rested on a manual invocation that nothing repeated.
+# A default run now covers every deployed door, advertised or not.
+INTERNAL_DOORS = ("/director/", "/shadow/")
+
+
+def all_doors(sitemap: Path = SITEMAP) -> list[str]:
+    """Every DEPLOYED door: the advertised canonical set plus the internal surfaces.
+
+    Fail-closed via canonical_doors(); the internal list is additive, so a broken
+    sitemap still raises rather than silently degrading to internal-only coverage.
+    """
+    doors = canonical_doors(sitemap)
+    return doors + [d for d in INTERNAL_DOORS if d not in doors]
+
+
 def feed_urls(html: str) -> list[str]:
     """The `../data/*.json` URLs the door's own inline script fetches, de-duplicated,
     with the cache-busting query stripped."""
@@ -331,7 +354,9 @@ def verify_door(door_path: str, fetcher=None) -> DoorResult:
 
 
 def verify_all(doors: list[str] | None = None, fetcher=None) -> list[DoorResult]:
-    return [verify_door(d, fetcher) for d in (doors or canonical_doors())]
+    # Default coverage is EVERY deployed door (advertised + internal), not just the
+    # advertised set -- see INTERNAL_DOORS.
+    return [verify_door(d, fetcher) for d in (doors or all_doors())]
 
 
 def main(argv: list[str] | None = None) -> int:

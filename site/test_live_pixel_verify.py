@@ -151,6 +151,51 @@ def test_missing_sitemap_is_unavailable_not_empty(tmp_path):
 
 
 # --------------------------------------------------------------------------
+# COVERAGE fail-open: a deployed door the default run never looks at
+# --------------------------------------------------------------------------
+def test_default_coverage_includes_the_internal_doors():
+    """canonical_doors() reads the SITEMAP, and the sitemap deliberately excludes the
+    off-nav surfaces -- so deriving coverage from it alone silently skipped every
+    internal door while still reporting "N/N doors verified". Found 2026-08-03."""
+    covered = V.all_doors()
+    for internal in V.INTERNAL_DOORS:
+        assert internal in covered, f"{internal} deployed but outside default coverage"
+    # additive, never a replacement: the advertised set must survive intact
+    for advertised in V.canonical_doors():
+        assert advertised in covered
+
+
+def test_every_deployed_door_directory_is_covered_by_a_default_run():
+    """Independent oracle: the door set is derived from the REPO (directories that
+    ship an index.html and are not 301'd away), not from the sitemap the verifier
+    already reads -- otherwise the control would be checking a list against itself,
+    which is the TAUTOLOGY pattern. A new door cannot ship unverified."""
+    redirected = set()
+    for line in (V.SITE / "_redirects").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[0].startswith("/"):
+            redirected.add("/" + parts[0].strip("/").rstrip("*").strip("/") + "/")
+    on_disk = {"/" + p.parent.name + "/" for p in V.SITE.glob("*/index.html")}
+    deployed = {d for d in on_disk if d not in redirected}
+    assert deployed, "no deployed doors discovered -- control would be vacuous"
+    uncovered = sorted(deployed - set(V.all_doors()))
+    assert uncovered == [], (
+        f"door(s) deployed but never live-verified by a default run: {uncovered}. "
+        "Add to site/sitemap.xml (public) or INTERNAL_DOORS (off-nav)."
+    )
+
+
+def test_the_coverage_control_fires_when_an_internal_door_is_dropped(monkeypatch):
+    """R15: the coverage check must be able to FAIL."""
+    monkeypatch.setattr(V, "INTERNAL_DOORS", ())
+    covered = set(V.all_doors())
+    assert "/director/" not in covered, "mutation did not take effect"
+
+
+# --------------------------------------------------------------------------
 # FAIL-SILENT killer -- the property this module exists for
 # --------------------------------------------------------------------------
 def test_network_unavailable_is_a_failure_not_a_skip():

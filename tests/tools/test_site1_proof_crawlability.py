@@ -145,6 +145,77 @@ def test_no_advertised_url_is_itself_a_redirect_source(sitemap_text):
 
 
 # ===========================================================================
+# The OTHER direction: a public door that exists must be advertised
+# ===========================================================================
+def _redirect_sources() -> set[str]:
+    """Redirect sources parsed from site/_redirects (independent oracle)."""
+    assert REDIRECTS.is_file(), "site/_redirects missing -- cannot cross-check"
+    sources = set()
+    for line in REDIRECTS.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[0].startswith("/"):
+            sources.add(parts[0].rstrip("*").rstrip("/") or "/")
+    assert len(sources) > 3, f"parsed only {len(sources)} redirect sources -- oracle is empty"
+    return sources
+
+
+def _public_doors_on_disk() -> set[str]:
+    """Every door directory that actually ships a page, minus the two documented
+    exclusion classes. DERIVED from the repo, never hand-typed -- that is the whole
+    point: a hand-typed list would need editing by the same change that adds a door,
+    which is precisely the edit that gets forgotten."""
+    redirected = _redirect_sources()
+    doors = set()
+    for page in SITE.glob("*/index.html"):
+        rel = "/" + page.parent.name + "/"
+        if rel.rstrip("/") in redirected or rel in REDIRECTED_LEGACY or rel in NEVER_ADVERTISED:
+            continue
+        doors.add(rel)
+    assert doors, "no public doors discovered on disk -- this control would be vacuous"
+    return doors
+
+
+def test_every_public_door_on_disk_is_advertised(sitemap_text):
+    """The missing half of the sitemap contract, and a real fail-open closed.
+
+    Every control above checks that what IS advertised is legitimate. NOTHING checked
+    that a legitimate door is advertised AT ALL -- so a new public door could ship,
+    be linked from the front door, serve 200, and never appear in the sitemap.
+
+    That is not merely an SEO nit here, because `site/live_pixel_verify.py` DERIVES
+    its door list from this sitemap (`canonical_doors()`). An unlisted door is
+    therefore never live-pixel-verified by a default run: the R11 control silently
+    skips it while reporting "N/N doors verified". Found live on 2026-08-03 --
+    /evidence/ (linked six times from the front-door diagram, serving 200) was absent
+    from this file and thus outside the verifier's coverage entirely.
+    """
+    advertised = {loc[len(CANONICAL_HOST):] for loc in _locs(sitemap_text)}
+    unlisted = sorted(_public_doors_on_disk() - advertised)
+    assert unlisted == [], (
+        f"public door(s) exist on disk but are not advertised: {unlisted}. "
+        "An unlisted door is also invisible to site/live_pixel_verify.py, which derives "
+        "its door list from this sitemap -- so it is never verified against the live surface."
+    )
+
+
+def test_the_unlisted_door_control_fires_on_a_dropped_entry(sitemap_text):
+    """R15: prove the control above can FAIL, on a SCRATCH copy of the document.
+
+    Drops a door that genuinely exists on disk and asserts the check reports exactly
+    that door -- a control that passes on a mutilated sitemap would be theatre.
+    """
+    victim = sorted(_public_doors_on_disk())[0]
+    mutated = sitemap_text.replace(
+        f"  <url><loc>{CANONICAL_HOST}{victim}</loc></url>\n", "")
+    assert mutated != sitemap_text, f"mutation did not apply for {victim}"
+    advertised = {loc[len(CANONICAL_HOST):] for loc in _locs(mutated)}
+    assert sorted(_public_doors_on_disk() - advertised) == [victim]
+
+
+# ===========================================================================
 # robots.txt points at the real sitemap, and its crawler policy is untouched
 # ===========================================================================
 def test_robots_points_at_the_sitemap():

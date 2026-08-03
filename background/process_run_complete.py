@@ -920,6 +920,26 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Director delta data generation failed: {}".format(exc))
     try:
+        # SITE_evidence_pages_behind_nodes: /evidence/ renders the primary-state
+        # evidence behind every model-on-a-page node -- atom levels, ledger records,
+        # cited artefacts, test counts. It derives ENTIRELY from sources that move on
+        # their own (docs/design/maturity_map.yaml, gate_authorizations.jsonl,
+        # test_execution_log.jsonl), so leaving it unwired would have frozen the page
+        # at whatever was committed the day it was built while the map moved beneath
+        # it -- an evidence surface that silently describes a past state is worse than
+        # no evidence surface. Same orphan-transition defect as the 2026-07-14
+        # director_twin.json/provisional_plan.json freeze; closed here rather than
+        # filed as a finding.
+        #
+        # generate() raises EvidenceSourceUnavailable BEFORE writing on a missing or
+        # empty source, so a bad source leaves the PREVIOUS page live rather than
+        # replacing it with a plausible blank (fail-closed, its own docstring).
+        from tools.generate_evidence_data import generate as gen_evidence
+        gen_evidence(git_hash=git_hash)
+        log("Generated site/data/evidence.json + site/evidence/index.html")
+    except Exception as exc:
+        log("Evidence page generation failed: {}".format(exc))
+    try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
         # WEBSITE_AS_SHOWCASE.md tab 4: case-study recommender.
