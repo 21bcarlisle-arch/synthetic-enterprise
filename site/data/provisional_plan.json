@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T05:25:06.466931+00:00",
+  "generated_at": "2026-08-03T05:46:27.026770+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -69,7 +69,7 @@
   },
   "critical_path_by_epoch": {
     "2": {
-      "open_atoms": 22,
+      "open_atoms": 23,
       "critical_chain": [
         "HX2_stall_set_coverage_verdict",
         "HX1_exit_criterion_counter_mechanise",
@@ -110,14 +110,14 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 52,
+    "total_open_atoms": 53,
     "code_free_discover_frame_atoms": 11,
-    "atoms_with_real_file_scope": 41,
-    "max_concurrent_width_overall": 36,
+    "atoms_with_real_file_scope": 42,
+    "max_concurrent_width_overall": 37,
     "per_epoch": {
       "2": {
-        "open_atoms": 22,
-        "max_concurrent_width": 12
+        "open_atoms": 23,
+        "max_concurrent_width": 13
       },
       "4": {
         "open_atoms": 7,
@@ -141,10 +141,10 @@
   "director_hours": {
     "window_days": 3.0,
     "from_rich_touches": 69,
-    "substantive_staged_doc_touches": 201,
-    "routine_daemon_markers_excluded": 2112,
+    "substantive_staged_doc_touches": 200,
+    "routine_daemon_markers_excluded": 2113,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 30.98,
+    "estimated_director_hours_per_day": 30.84,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },

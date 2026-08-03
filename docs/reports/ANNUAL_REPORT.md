@@ -139,14 +139,14 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 
 | Risk Indicator | Value | RAG | Implication |
 |----------------|-------|-----|-------------|
-| Revenue concentration | HHI 2250, I&C 99% | **AMBER** | Single I&C departure removes 14-29%% of margin |
+| Revenue concentration | HHI 4122, I&C 99% | **RED** | Single I&C departure removes 14-29%% of margin |
 | Gas segment ROC | 221.5x (net £64,555.70 on £291.51 capital) | **GREEN** | Gas legs destroy capital; electricity cross-subsidises |
 | Churn blind miss rate | 2/5 departures (40%) | **AMBER** | Company did not forecast these churns |
 | Demand estimation error | Peak mean 2.1%, max 7.5% | **AMBER** | EAC drift from asset acquisitions; smart meters eliminate |
 | Pricing basis risk (worst year) | 2025: +34.0% mean over-estimate | **RED** | Over-priced contracts help margin but create churn risk |
 | Net margin % of revenue | 34.0% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
 
-**Board Action Required:** Pricing basis risk (worst year) — RED rating(s) require immediate attention.
+**Board Action Required:** Revenue concentration, Pricing basis risk (worst year) — RED rating(s) require immediate attention.
 
 ## Hedging Mandate — Before/After Phase 5c
 
@@ -840,25 +840,50 @@ CLV is computed from churn renewal history and net margins accumulated up to tha
 
 Whole-run totals (cumulative across all settlement periods). Average: £1,286.61, range £219.95–£4,218.12.
 
-- C1: cost to serve £329.93, net margin after CTS £1,754.65
-- C1g: cost to serve £330.00, net margin after CTS £1,210.63
-- C2: cost to serve £505.43, net margin after CTS £6,828.47
-- C2g: cost to serve £505.55, net margin after CTS £2,780.39
-- C3: cost to serve £219.95, net margin after CTS £2,147.54
-- C3g: cost to serve £220.00, net margin after CTS £1,078.53
-- C4: cost to serve £439.89, net margin after CTS £3,404.32
-- C4g: cost to serve £440.00, net margin after CTS £503.12
-- C5: cost to serve £599.87, net margin after CTS £7,200.91
-- C6: cost to serve £959.77, net margin after CTS £22,039.61
-- C7: cost to serve £519.13, net margin after CTS £10,388.69
-- C8: cost to serve £505.43, net margin after CTS £11,936.39
-- C9: cost to serve £491.72, net margin after CTS £12,233.31
-- C_IC1: cost to serve £4,218.12, net margin after CTS £1,867,517.16
-- C_IC2: cost to serve £3,718.18, net margin after CTS £903,105.09
-- C_IC3: cost to serve £3,218.32, net margin after CTS £1,804,310.08
-- C_IC3g: cost to serve £3,219.18, net margin after CTS £619,427.85
-- C_IC4: cost to serve £2,718.52, net margin after CTS £1,103,966.75
+- C1: cost to serve £329.93, net margin after CTS £169.11
+- C1g: cost to serve £330.00, net margin after CTS £379.62
+- C2: cost to serve £505.43, net margin after CTS £561.35
+- C2g: cost to serve £505.55, net margin after CTS £787.81
+- C3: cost to serve £219.95, net margin after CTS £-97.56 — **NET_NEGATIVE** (tariff uplift needed: +2.7%)
+- C3g: cost to serve £220.00, net margin after CTS £116.46
+- C4: cost to serve £439.89, net margin after CTS £-529.28 — **NET_NEGATIVE** (tariff uplift needed: +7.0%)
+- C4g: cost to serve £440.00, net margin after CTS £-2,734.72 — **NET_NEGATIVE** (tariff uplift needed: +23.5%)
+- C5: cost to serve £599.87, net margin after CTS £-810.67 — **NET_NEGATIVE** (tariff uplift needed: +6.5%)
+- C6: cost to serve £959.77, net margin after CTS £2,506.62
+- C7: cost to serve £519.13, net margin after CTS £-938.73 — **NET_NEGATIVE** (tariff uplift needed: +4.3%)
+- C8: cost to serve £505.43, net margin after CTS £1,798.04
+- C9: cost to serve £491.72, net margin after CTS £1,765.01
+- C_IC1: cost to serve £4,218.12, net margin after CTS £839,303.20
+- C_IC2: cost to serve £3,718.18, net margin after CTS £429,020.08
+- C_IC3: cost to serve £3,218.32, net margin after CTS £115,751.44
+- C_IC3g: cost to serve £3,219.18, net margin after CTS £61,291.80
+- C_IC4: cost to serve £2,718.52, net margin after CTS £29,502.13 — MARGIN_SQUEEZE (below 2% benchmark)
 
+**Activity-Based Pricing Actions**
+
+The following 5 customer(s) are loss-making after cost-to-serve and require immediate tariff review:
+  - C3: net margin after CTS £-97.56 on revenue £3,592.92 — raise tariff by ≥2.7% to break even
+  - C4: net margin after CTS £-529.28 on revenue £7,547.45 — raise tariff by ≥7.0% to break even
+  - C4g: net margin after CTS £-2,734.72 on revenue £11,617.81 — raise tariff by ≥23.5% to break even
+  - C5: net margin after CTS £-810.67 on revenue £12,467.15 — raise tariff by ≥6.5% to break even
+  - C7: net margin after CTS £-938.73 on revenue £21,880.99 — raise tariff by ≥4.3% to break even
+The following 1 customer(s) are profitable but below the 2% net-margin benchmark (MARGIN_SQUEEZE): C_IC4
+
+## Tariff Repricing Impact Assessment
+
+Estimated churn risk at the break-even tariff level for each loss-making customer.
+Active = current opportunity; churned = retrospective counterfactual.
+
+| Customer | Fuel | Seg | Status | Uplift needed | Total loss | Churn @ B/E | Decision |
+|----------|------|-----|--------|--------------|-----------|-------------|----------|
+| C3 | elec | resi | churned | +2.7% | £97.56 | 7% | Raise — churn risk manageable |
+| C7 | elec | resi | active | +4.3% | £938.73 | 8% | Raise — churn risk manageable |
+| C5 | elec | SME | churned | +6.5% | £810.67 | 10% | Raise — churn risk manageable |
+| C4 | elec | resi | churned | +7.0% | £529.28 | 11% | Raise — churn risk manageable |
+| C4g | gas | resi | active | +23.5% | £2,734.72 | 17% | Raise — churn risk manageable |
+
+**Repriceable now (2)**: C7, C4g — break-even churn risk below 40%. Uplift advised.
+**Missed repricing window (3 churned)**: C3, C5, C4 — break-even price would not have triggered high churn. Earlier repricing might have changed economics.
 
 ## Margin Recovery Surcharges (Phase 16c + 19a)
 
@@ -950,18 +975,18 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 
 | Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |
 |---------|-----|-----------|-----------|----------|-------------|-----------------|
-| C5 | SME | MEDIUM | 30% | 10% | -21.5% [competitive] | £7,200.91 |
-| C7 | resi | LOW | 14% | 17% | -14.3% | £10,388.69 |
-| C4 | resi | LOW | 14% | 14% | -9.0% | £3,404.32 |
-| C6 | SME | LOW | 11% | 25% | -25.8% [competitive] | £22,039.61 |
-| C9 | resi | LOW | 11% | 14% | -14.3% | £12,233.31 |
-| C_IC3 | I&C | LOW | 10% | 8% | -54.9% [competitive] | £1,804,310.08 |
-| C8 | resi | LOW | 10% | 10% | -23.6% [competitive] | £11,936.39 |
-| C2 | resi | LOW | 9% | 10% | -23.6% [competitive] | £6,828.47 |
-| C3 | resi | LOW | 6% | 8% | -38.8% [competitive] | £2,147.54 |
-| C1 | resi | LOW | 5% | 5% | -12.0% | £1,754.65 |
-| C_IC2 | I&C | LOW | 4% | 95% | +12.4% [overpriced] | £903,105.09 |
-| C_IC1 | I&C | LOW | 3% | 95% | +0.0% | £1,867,517.16 |
+| C5 | SME | MEDIUM | 30% | 10% | -21.5% [competitive] | £-810.67 |
+| C7 | resi | LOW | 14% | 17% | -14.3% | £-938.73 |
+| C4 | resi | LOW | 14% | 14% | -9.0% | £-529.28 |
+| C6 | SME | LOW | 11% | 25% | -25.8% [competitive] | £2,506.62 |
+| C9 | resi | LOW | 11% | 14% | -14.3% | £1,765.01 |
+| C_IC3 | I&C | LOW | 10% | 8% | -54.9% [competitive] | £115,751.44 |
+| C8 | resi | LOW | 10% | 10% | -23.6% [competitive] | £1,798.04 |
+| C2 | resi | LOW | 9% | 10% | -23.6% [competitive] | £561.35 |
+| C3 | resi | LOW | 6% | 8% | -38.8% [competitive] | £-97.56 |
+| C1 | resi | LOW | 5% | 5% | -12.0% | £169.11 |
+| C_IC2 | I&C | LOW | 4% | 95% | +12.4% [overpriced] | £429,020.08 |
+| C_IC1 | I&C | LOW | 3% | 95% | +0.0% | £839,303.20 |
 
 **Risk Band Summary (latest renewal):**
 - CRITICAL (>=50%): 0 accounts
@@ -976,15 +1001,15 @@ Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and comp
 
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
-| C3 | resi | 2020-06-30 | 4.0yr | -4.0% | -38.8% | 6% | 8% | £2,147.54 |
-| C5 | SME | 2020-12-30 | 5.0yr | +1.1% | -21.5% | 30% | 10% | £7,200.91 |
-| C1 | resi | 2021-12-30 | 6.0yr | +2.1% | -12.0% | 5% | 5% | £1,754.65 |
-| C6 | SME | 2024-03-30 | 8.0yr | -2.1% | -25.8% | 11% | 25% | £22,039.61 |
-| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 14% | 14% | £3,404.32 |
+| C3 | resi | 2020-06-30 | 4.0yr | -4.0% | -38.8% | 6% | 8% | £-97.56 |
+| C5 | SME | 2020-12-30 | 5.0yr | +1.1% | -21.5% | 30% | 10% | £-810.67 |
+| C1 | resi | 2021-12-30 | 6.0yr | +2.1% | -12.0% | 5% | 5% | £169.11 |
+| C6 | SME | 2024-03-30 | 8.0yr | -2.1% | -25.8% | 11% | 25% | £2,506.62 |
+| C4 | resi | 2024-09-29 | 8.0yr | +3.8% | -9.0% | 14% | 14% | £-529.28 |
 
 **Root Cause Summary:**
 - Total churned accounts: 5
-- Lifetime margin lost: £36,547.03
+- Lifetime margin lost: £1,238.24
 - Average tenure at departure: 6.2 years
 - Company-warned churns (co. est. >=20%): 1 -- C6
 - Crisis-era churns (2021-22): 1 -- absolute crisis price level, not rate-change delta, was the driver
@@ -1301,7 +1326,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £396 |
 | 2022 | 9 | 62 | 6.9 | £20,458 |
 | 2023 | 4 | 28 | 7.0 | £49,076 |
@@ -1671,7 +1696,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-29T21:40:34Z
+Generated: 2026-07-29T22:13:07Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2168,7 +2193,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,712 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C7: 19 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2354,25 +2379,25 @@ ROC = lifetime net / lifetime capital. ROC < 0 = capital destroyer.
 
 ## Portfolio Concentration Risk
 
-Revenue concentration analysis across 18 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **2250** — MODERATE (1,500-2,500).
+Revenue concentration analysis across 13 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **4122** — HIGH (>2,500).
 
 **Segment Margin Share:**
-- I&C: £6,298,326.93 (98.7% of total positive margin)
-- resi: £54,266.03 (0.9% of total positive margin)
-- SME: £29,240.52 (0.5% of total positive margin)
+- I&C: £1,474,868.65 (99.5% of total positive margin)
+- resi: £5,577.41 (0.4% of total positive margin)
+- SME: £2,506.62 (0.2% of total positive margin)
 
 **Top 5 Accounts by Margin Contribution:**
 
 | Account | Segment | Lifetime Margin | Share | Latest Churn Risk | Margin at Risk |
 |---------|---------|-----------------|-------|-------------------|----------------|
-| C_IC1 | I&C | £1,867,517.16 | 29.3% | 3% | £60,320.80 |
-| C_IC3 | I&C | £1,804,310.08 | 28.3% | 10% | £178,626.70 |
-| C_IC4 | I&C | £1,103,966.75 | 17.3% | 0% | £0.00 |
-| C_IC2 | I&C | £903,105.09 | 14.2% | 4% | £33,143.96 |
-| C_IC3g | I&C | £619,427.85 | 9.7% | 0% | £0.00 |
+| C_IC1 | I&C | £839,303.20 | 56.6% | 3% | £27,109.49 |
+| C_IC2 | I&C | £429,020.08 | 28.9% | 4% | £15,745.04 |
+| C_IC3 | I&C | £115,751.44 | 7.8% | 10% | £11,459.39 |
+| C_IC3g | I&C | £61,291.80 | 4.1% | 0% | £0.00 |
+| C_IC4 | I&C | £29,502.13 | 2.0% | 0% | £0.00 |
 
 **Concentration Risk Warning:**
-- I&C segment accounts for 98.7% of total portfolio margin
+- I&C segment accounts for 99.5% of total portfolio margin
 - Resi and SME segments are effectively margin-neutral at portfolio scale
 - A single large I&C departure would remove 14-29% of all margin
 - Board action: diversify acquisition pipeline toward profitable resi/SME to reduce I&C dependency
@@ -2724,7 +2749,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-09-27: treasury £2,466,728.49, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,738.69, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,749.43, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-12-26: treasury £2,466,760.10, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-12-26: treasury £2,466,760.10, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C6 on 2016-12-31 period 48, net margin £-407.32
 
