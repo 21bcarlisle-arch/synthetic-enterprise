@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-03T12:00:37.287727+00:00",
+  "last_updated": "2026-08-03T12:56:54.811059+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T12:00:22.532590+00:00",
+      "last_heartbeat": "2026-08-03T12:56:30.693325+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-07-31T21:01:32.579272+00:00",
       "anomaly": null,
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T11:57:11.147064+00:00",
+      "last_heartbeat": "2026-08-03T12:52:11.155075+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-08-03T09:17:11.101674+00:00",
       "anomaly": null,
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T12:00:04.272285+00:00",
+      "last_heartbeat": "2026-08-03T12:56:01.646721+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-31T21:01:33.438860+00:00",
       "anomaly": null,
