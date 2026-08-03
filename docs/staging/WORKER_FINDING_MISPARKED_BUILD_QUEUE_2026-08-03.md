@@ -187,3 +187,38 @@ worth carrying into the other 11 Class B items, whose designs have had no more s
   correction (the company was computing deadlines early across bank holidays), not regression.
 - **Class A: 5 items** still need `level_current` re-verified against real artifacts before any archive.
 - The auto-processor broad-`add` finding above is still unfixed (queued, not blocking).
+
+---
+## PROGRESS 2026-08-03 (worker tick) — Class B: SITE lane drawn, and a rival-branch trap avoided
+
+This tick drew the three-lane set (1 BUILD + 2 SITE) rather than re-triaging the queue.
+
+**`SITE1_expert_doors` (SITE lane) — residual (b) CLOSED, level deliberately NOT moved.** Commit
+`80055c4ff`. Its L2→L3 note recorded (b) as "R11 live-pixel verify (no autonomous network)". Network
+was **probed, not assumed**, and was available — so the live surface was actually driven rather than the
+residual re-stated for a fourth tick. `site/_live_harness.mjs` + `site/live_pixel_verify.py` fetch each
+canonical door AND its live JSON from poesys.net and run the door's own boot path against them, so the
+assertion lands on the rendered pixel. 7/8 doors verified live; the 8th was a **real live defect the
+control found on its first honest run** — `/proof/` served the literal text
+`belief_coeffs: [object Object]` — now fixed and re-verified. R15 both ways, 13/13, four mutations each
+firing exactly their own test. **Level held at 2**: residual (c) is genuinely unbuilt.
+
+**The rival-branch trap, worth recording as a class.** Before building, the two unmerged branches holding
+`SITE1` proof-door work were audited (memory: *guard flags unmerged → ADOPT, don't rebuild*).
+Both turned out to be **fully superseded by main**: `worktree-agent-ac55b4bffa0425237`'s
+`test_site1_proof_citations.py` is an 85-line *subset* of main's, and
+`worktree-agent-a6ad9f2b324019a71` (2026-07-30) would have **re-added the deleted permission machinery**
+(`fronts.yaml`, `fronts_reconciler.py`, `inbound_ratification.py`, `director_authority_channels.py`) that
+CLAUDE.md requires to stay deleted and `test_the_permission_surface_is_gone` guards. Adopting it on the
+strength of "an unmerged branch holds unique work" would have reverted a ratified rip-out. **"Ahead of
+main" is not "holds work main lacks"** — diff against main in BOTH directions before adopting. Neither
+branch was reaped this tick (not the drawn work, and the rescue branches carry other atoms' content).
+
+**Stale evidence corrected on the atom:** its evidence list still cites `site/method/`,
+`site/simplified/` and `site/tours/` as built doors with their own render harnesses. All three now
+**301 to `/proof/`** under the SITE_V5 five-surface ruling, so that evidence describes doors that are no
+longer reachable. The canonical live set is the 8 URLs in `site/sitemap.xml`, which is what the verifier
+derives its door list from rather than hand-typing one.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; the auto-processor
+broad-`add` finding (queued, not blocking).

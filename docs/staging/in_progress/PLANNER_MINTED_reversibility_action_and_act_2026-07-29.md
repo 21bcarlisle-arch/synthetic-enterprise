@@ -68,3 +68,60 @@ release only the delta the reversibility test newly permits — do not re-releas
 ## Reverse / undo
 Each released item carries its own recorded one-line undo (re-set the level/blocked_on/window). The
 batch is a report — retract by follow-up NTFY. git revert of the release commits.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — the residual MEASURED, and the act-list is largely obsolete
+
+The block note above said the residual is "15 reversible level moves, deliberately NOT bulk-stamped,
+each needing re-verification against real artifacts first." That is still the right disposition. What
+this tick adds is the thing that was missing: **the actual list, measured off real map state**, so the
+next tick draws named atoms instead of re-deriving the triage a fourth time.
+
+### Finding 1 — the `director_level_up` blocks are already gone from the map
+`docs/design/maturity_map.yaml` now carries **4 blocked atoms out of 179**, and not one is
+`director_level_up`:
+`W1_8_zonal_locational_pricing` (closed/watching-brief), `OPS1_operational_layer_rebuild`
+(director_systemd_deploy), `OPS1_governance_refusal_mutation_test` (director_live_run),
+`H27_payment_belief_gap` (coupled_triad_measured). The 2026-08-03 sweep did its job. So there is no
+blocked *set* left to release — only level *cells* that the sweep never touched, which is precisely the
+abolished-block stale-cells class (clearing `blocked_on` has never moved `level_current`).
+
+### Finding 2 — 29 atoms carry a "level HELD per R16 / director_level_up" note, and 18 of them are AT TARGET
+Measured this tick by scanning every atom's `simplifications` for a HELD-per-R16 note and comparing
+`level_current` to `level_target`:
+
+**Already at target — the note is STALE PROSE, not a held level (18):**
+`C13_weather_normalisation`, `CA1_cohort_assignment_live`, `CA2_coverage_report_realised_cohort`,
+`CA3_segmentation_untestable_ledger_marking`, `F1a_sim_customer_response`, `F1b_company_comms`,
+`F1c_harness_conversation_gap`, `G11_activity_cost_utilisation`, `H23_publish_gate_scope_marker`,
+`H24_precommit_gate_git_env_isolation`, `H24_worktree_dir_autoreap`, `W1_2_generate_futures`,
+`W1_3_national_weather_signal`, `W1_4_regional_weather_field`, `W1_6_physics_price_signal`,
+`W1_9_dsr_flex_markets`, `W2_13_occupancy_consumption_volume_shape`, `W2_2_population_draw`.
+These need **no level move at all**. Their notes assert a wait on an act that no longer exists, which
+misleads anything scanning for "HELD" — the correction is to the note, not to the cell.
+
+**Genuinely below target — the real re-verification queue (11):**
+`B10_competitor_switching_response` (L0→3), `B6_collateral_cash_death_loop` (L0→3),
+`B7_customer_state_layer_moves_and_shocks` (L0→3), `DD_seasonal_cashflow_physics` (L0→3),
+`E5_carbon_three_ledger` (L0→3), `SITE1_expert_doors` (L2→3), `SPINE_1_scenario_world_state` (L0→3),
+`SPINE_3_gas_storage_crisis_regime` (L0→3), `W1_10_ev_heatpump_geography` (L2→3),
+`W1_5_premise_demand_shape` (L1→3), `W1_7_renewable_capacity_trends` (L2→3).
+
+### Finding 3 — the batched [ACT]'s own act-list is obsolete, and saying so is the point
+`docs/observability/work_at_risk_batched_act_2026-07-29.md` ACT 1 offers the director "Path A: phone-sign
+the LEVEL_UP batch OR Path B: console-authorize the R16 gate relaxation." **Neither is needed.** R16 was
+rescoped 2026-08-03 to *record*, not *authorise*; `record_level_up_self_certified` is the path, and a
+level move is not among the four reserved classes in `background/one_way_door.py`. ACT 3's two "values
+slivers" are likewise not bare asks the director owes an answer to — under NEVER_ASK_WITHOUT_RECOMMENDING
+they proceed with a recommendation. **ACT 2 (`generator_draw_wiring`, `SE_DRAW_POPULATION=1`) is the one
+item that genuinely stays reserved** — population activation is curriculum, and curriculum is the
+director's under R13.
+
+### Why nothing was stamped this tick, and the evidence for that being right
+`SITE1_expert_doors` is one of the 11, and this same tick did real build work on it: closed its L2→L3
+residual (b) by driving the LIVE doors (`site/live_pixel_verify.py`, commit `80055c4ff`), which found and
+fixed a genuine live defect. It was still **held at L2**, because residuals (a) and (c) are unbuilt. One
+atom, verified properly, moved zero levels. A bulk stamp of all 11 would have recorded it as L3.
+
+**NEXT TICK'S DRAW, named:** the 11 above, one at a time, each re-verified against artifacts before any
+`record_level_up_self_certified`. Plus the cheap, separable cleanup: correct the 18 stale HELD notes.
