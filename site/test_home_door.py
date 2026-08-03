@@ -31,7 +31,11 @@ DATA = HERE / "data"
 # the score/yardstick, the honest "not yet instrumented" state, and the diagram. The
 # cost-to-serve leg (the only dynamic render this door had) moved to /proof, and its
 # R11/R15 render tests moved with it (site/proof/test_proof_door.py). These remaining
-# tests are static-scan structural guards, so no Node render harness is needed.
+# tests are static-scan structural guards, so no Node render harness was needed --
+# UNTIL SITE_EH1_segment_disclosure (2026-07-29 cold-eyes BLOCKER-1) added exactly
+# ONE dynamic render back: a composition-disclosure sentence (never a £ figure, so
+# RC7 stays intact), fetched so it cannot silently drift from the live book. That one
+# render gets its own tiny Node harness (_home_render_harness.mjs) below.
 
 
 # ---------------------------------------------------------------------------
@@ -148,3 +152,93 @@ def test_model_on_a_page_diagram_hosted_and_resolves():
     assert len(alt) > 200, "alt text too thin for a complex diagram (accessibility)"
     for movement in ("wall", "company", "score", "governance"):
         assert movement.lower() in alt.lower(), f"alt text omits the {movement!r} movement"
+
+
+# ---------------------------------------------------------------------------
+# SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1, 2026-07-29): "the mission
+# is carbon abatement through personalisation ... front door: 0 occurrences of
+# I&C." The revenue mix is stated BEFORE the mission claim, sourced live (never
+# hardcoded, so a run's real composition can never silently drift from the text).
+# R11: the ACTUAL rendered pixel from a dedicated Node/vm harness
+# (_home_render_harness.mjs, same technique as site/company/_render_harness.mjs).
+# R15: mutating segment_mix must move the rendered pixel; unavailable data must
+# fail closed to an honest note, never a silent gap.
+# ---------------------------------------------------------------------------
+import shutil
+import subprocess
+
+import pytest
+
+HARNESS = HERE / "_home_render_harness.mjs"
+NODE = shutil.which("node")
+pytestmark_home = pytest.mark.skipif(NODE is None, reason="node not available")
+
+
+def _render_home(data: dict) -> dict:
+    proc = subprocess.run(
+        [NODE, str(HARNESS), str(INDEX)],
+        input=json.dumps(data),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode == 0, f"harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
+def _live_company() -> dict:
+    return json.loads((DATA / "company.json").read_text())
+
+
+def test_composition_note_placed_before_mission_claim():
+    # Structural check: the disclosure element sits BEFORE the mission/pitch
+    # paragraph in source order -- "before the mission claim" is literal. The
+    # phrase also appears once in the <meta description> (before <body>), so
+    # this compares against its occurrence IN THE BODY (the .pitch paragraph).
+    text = INDEX.read_text()
+    body_start = text.index("<body>")
+    mission_in_body = text.index("carbon abatement through personalisation", body_start)
+    assert text.index('id="composition-note"') < mission_in_body
+
+
+@pytest.mark.skipif(NODE is None, reason="node not available")
+def test_composition_note_renders_live_segment_mix_r11():
+    d = _live_company()
+    sm = d.get("segment_mix") or {}
+    if not sm.get("available"):
+        pytest.skip("segment_mix not in live company.json yet (pre-deploy / old generator process)")
+    out = _render_home(d)
+    note = out["composition-note"]["innerHTML"]
+    import html as _htmlmod
+    assert _htmlmod.escape(sm["classification"]) in note, note
+    assert "%" in note
+    assert 'href="./company/' in note, note  # links to the fuller drill-down (R1)
+
+
+@pytest.mark.skipif(NODE is None, reason="node not available")
+def test_composition_note_follows_source_r15():
+    # R15 independence: mutate the classification/pcts in the source -- the
+    # rendered pixel must follow (a hardcoded sentence would fail this).
+    d = _live_company()
+    if not (d.get("segment_mix") or {}).get("available"):
+        pytest.skip("segment_mix not in live company.json yet (pre-deploy / old generator process)")
+    d["segment_mix"] = dict(d["segment_mix"])
+    d["segment_mix"]["classification_label"] = "SENTINEL-mixed book -- 55.5% of settled revenue is I&C"
+    d["segment_mix"]["ic_revenue_pct"] = 55.5
+    d["segment_mix"]["residential_revenue_pct"] = 44.5
+    note = _render_home(d)["composition-note"]["innerHTML"]
+    assert "SENTINEL-mixed" in note, note
+    assert "55.5" in note, note
+
+
+@pytest.mark.skipif(NODE is None, reason="node not available")
+def test_composition_note_fail_closed_when_unavailable_r15():
+    note = _render_home({"segment_mix": {"available": False}})["composition-note"]["innerHTML"]
+    assert "unavailable" in note.lower(), note
+
+
+def test_no_pound_figure_in_composition_disclosure_rc7():
+    # RC7 must stay intact: this new render is a % composition statement, never
+    # a £ cohort figure -- the harness file itself must not format currency.
+    code = HARNESS.read_text()
+    assert "gbp(" not in code and "£" not in code, "composition harness must not render a £ figure (RC7)"

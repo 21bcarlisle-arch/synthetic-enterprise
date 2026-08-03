@@ -73,6 +73,15 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
 .hyp { font-size: 12px; color: var(--text); line-height: 1.65; max-width: 760px;
   border-left: 3px solid var(--blue); padding: 10px 14px; background: var(--surface); border-radius: 6px; margin-bottom: 14px; }
 .hyp strong { color: var(--blue); }
+/* SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the revenue/segment
+   mix must be disclosed BEFORE any per-customer or narrative money claim -- an amber
+   honesty box, same visual grammar as .hyp, placed first on the page. */
+.seg-mix { font-size: 12px; color: var(--text); line-height: 1.65; max-width: 760px;
+  border-left: 3px solid var(--amber); padding: 10px 14px; background: var(--surface); border-radius: 6px; margin-bottom: 18px; }
+.seg-mix strong { color: var(--text); }
+.seg-mix .sm-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; max-width: 360px; }
+.seg-mix .sm-ic { background: var(--blue); }
+.seg-mix .sm-resi { background: var(--amber); }
 .cap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; }
 .cap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; }
 .cap-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.2px; }
@@ -117,6 +126,12 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     not find here is an effort metric: no test counts, no commit charts &mdash; a product is judged by
     what it does, not how much was typed.
   </p>
+
+  <!-- SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the revenue mix is
+       stated BEFORE any per-customer or narrative money figure below -- the book this
+       run drew is disclosed here first, once, and every per-customer tile in Finance
+       is split by the SAME classification (never re-derived per surface). -->
+  <div class="seg-mix" id="seg-mix-banner">Loading...</div>
 
   <!-- SURFACE-3's single job: the SaaS shown as PRODUCT -- the capability grid -->
   <div class="sec">What the product does &mdash; capabilities, each a real output from the latest run</div>
@@ -367,6 +382,33 @@ function renderCoverage(s){
     (s&&s.generated_at?" &middot; generated "+esc(s.generated_at):"")+".";
 }
 
+// SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the revenue mix,
+// stated BEFORE any per-customer or narrative money claim on this page. Fail-closed
+// (R15): an unavailable segment_mix renders an honest "not available" note, never a
+// silently-omitted banner that would let an undisclosed figure slip past it.
+function renderSegmentMix(d){
+  var sm=(d&&d.segment_mix)||{};
+  var box=el("seg-mix-banner");
+  if(!box) return;
+  if(!sm.available){
+    box.innerHTML="<strong>Segment mix unavailable for this run.</strong> The per-customer "+
+      "figures below could not be split by segment -- treat any blended £/customer figure "+
+      "with caution until this is restored.";
+    return;
+  }
+  box.innerHTML=
+    "<strong>"+esc(sm.classification_label||"")+".</strong> Every per-customer figure on this "+
+    "page is split by segment below &mdash; a blended average across a book this concentrated "+
+    "would read as household economics when it is not. "+esc(sm.window||"")+", "+esc(sm.clock||"")+
+    " clock. "+esc(sm.includes_note||"")+
+    '<div class="sm-bar"><div class="sm-ic" style="width:'+Number(sm.ic_revenue_pct||0)+'%"></div>'+
+    '<div class="sm-resi" style="width:'+Number(sm.residential_revenue_pct||0)+'%"></div></div>'+
+    "I&amp;C "+pct(sm.ic_revenue_pct)+" (n="+esc(sm.ic_customers)+") &middot; Residential (incl. SME) "+
+    pct(sm.residential_revenue_pct)+" (n="+esc(sm.residential_customers)+") of settled revenue. "+
+    '<a class="evlink" href="'+esc(sm.evidence_url||"../data/dashboard.json")+'" target="_blank" rel="noopener">'+
+    esc(sm.evidence||"dashboard.json")+" &rarr;</a>";
+}
+
 // The product, running live: what the book is doing RIGHT NOW, at a glance.
 function renderState(d){
   var f=d.finance||{}, t=d.trading_risk||{};
@@ -452,12 +494,35 @@ function renderFinance(d){
   var hasN = (N!=null && Number(N)>0);
   var nmPer  = hasN ? f.latest_year_net_margin_gbp/N : null;
   var revPer = hasN ? f.latest_year_revenue_gbp/N    : null;
-  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers";
+  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers (blended, all segments)";
   var perCls = (nmPer==null)?"":(nmPer>=0?"pos":"neg");
+  // SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1): the blended £/customer tiles
+  // above are immediately followed by the SAME figure split by segment -- a book this
+  // concentrated (segment_mix.classification_label) makes the blended number read as
+  // household economics when it is actually earned almost entirely by I&C accounts.
+  // Different clock than the blended tiles (settled, lifetime, from segment_annual --
+  // there is no billed-clock segment breakdown to divide), labelled honestly as such.
+  var sm=d.segment_mix||{};
+  var segTiles=[];
+  if(sm.available){
+    var icCls=(sm.ic_net_margin_per_customer_gbp>=0)?"pos":"neg";
+    var resiCls=(sm.residential_net_margin_per_customer_gbp>=0)?"pos":"neg";
+    segTiles=[
+      kpiTile("Net margin / customer — I&C", gbpFull(sm.ic_net_margin_per_customer_gbp),
+        "settled · lifetime · ÷ "+esc(sm.ic_customers)+" I&C customers", icCls),
+      kpiTile("Net margin / customer — residential", gbpFull(sm.residential_net_margin_per_customer_gbp),
+        "settled · lifetime · ÷ "+esc(sm.residential_customers)+" residential customers (incl. SME)", resiCls),
+      kpiTile("Revenue / customer — I&C", gbpFull(sm.ic_revenue_per_customer_gbp),
+        "settled · lifetime · ÷ "+esc(sm.ic_customers)+" I&C customers"),
+      kpiTile("Revenue / customer — residential", gbpFull(sm.residential_revenue_per_customer_gbp),
+        "settled · lifetime · ÷ "+esc(sm.residential_customers)+" residential customers (incl. SME)"),
+    ];
+  }
   var kpis=[
     // --- UNIT ECONOMICS + RATES (book-size-honest, lead the panel) ---
     kpiTile("Net margin / customer", gbpFull(nmPer), perBasis, perCls),
     kpiTile("Revenue / customer", gbpFull(revPer), perBasis),
+  ].concat(segTiles).concat([
     kpiTile("Collection rate", pct(f.collection_rate_pct), "banked ÷ billed · a rate, book-size-invariant"),
     // --- CUMULATIVE TOTALS (demoted; each carries the scales-with-book caveat) ---
     kpiTile("Net margin (total)", gbp(f.settled_net_margin_gbp, settledProv), (b.clock||"settled")+" · 10-yr cumulative · scales with drawn book"+(settledProv?" · provisional":""), netCls),
@@ -469,7 +534,7 @@ function renderFinance(d){
     kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
     kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
     kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
-  ];
+  ]);
   el("finance-kpis").innerHTML=kpis.join("");
   el("finance-unit-note").innerHTML = (N!=null)
     ? "<b>Why unit economics.</b> The totals above are 10-year cumulative across a drawn book of "+
@@ -775,6 +840,7 @@ jget("../data/decisions.json").then(renderDecisions).catch(function(){
   el("state-decisions").innerHTML='<div class="muted">decisions.json unavailable at generation time</div>';
 });
 jget("../data/company.json").then(function(d){
+  renderSegmentMix(d);
   renderState(d);
   renderFinance(d);
   renderTrading(d);

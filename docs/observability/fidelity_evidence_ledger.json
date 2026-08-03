@@ -173,13 +173,13 @@
     "atom_id": "W2_11_payment_truth",
     "rel_id": "live_payment_detection_gap::A1_G1",
     "relationship": {
-      "believed_failures": 44,
+      "believed_failures": 41,
       "cell_id": "A1_G1",
-      "detection_gap": 0.5,
+      "detection_gap": 0.48484848484848486,
       "kind": "payment_failure_detection",
       "provenance": "estimated_from_data",
       "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
-      "true_failures": 36
+      "true_failures": 33
     }
   },
   "live_payment_detection_gap::A1_G2": {
@@ -192,7 +192,7 @@
       "kind": "payment_failure_detection",
       "provenance": "estimated_from_data",
       "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
-      "true_failures": 7
+      "true_failures": 6
     }
   }
 }

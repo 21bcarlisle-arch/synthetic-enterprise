@@ -48,6 +48,7 @@ vm.runInContext(code, sandbox);
 sandbox.renderCapabilities(caps);
 sandbox.renderCoverage(cov);
 sandbox.renderDecisions(decs);
+sandbox.renderSegmentMix(d);
 sandbox.renderState(d);
 sandbox.renderFinance(d);
 sandbox.renderTrading(d);
@@ -59,6 +60,7 @@ sandbox.renderBuild(d);
 const ids = [
   "cap-grid", "cap-passport",
   "cov-intro", "cov-kpis", "cov-body", "cov-passport",
+  "seg-mix-banner",
   "state-kpis", "state-decisions",
   "finance-intro", "finance-kpis", "finance-unit-note", "cost-to-serve-dist", "arrears-dist", "credit-cycle", "bridge-intro", "bridge-body", "finance-passport",
   "trading-intro", "trading-kpis", "hedge-body", "trading-passport",

@@ -296,10 +296,96 @@ def _crossing_blindfold(dashboard, sim):
 
 
 # ---------------------------------------------------------------------------
-# The anchors register.
+# Book composition (SITE_EH1_segment_disclosure, cold-eyes BLOCKER-2
+# 2026-07-29): "the book declares itself I&C exactly where a residential
+# benchmark is missed... the single disclosure of true composition sits in a
+# note field where it functions as an excuse. Classification must be picked
+# ONCE and held EVERYWHERE." Computed from dashboard.financial.segment_annual
+# -- the SAME source and SAME method as tools/generate_company_data.py's
+# _segment_mix, so the front-door/company classification and this register's
+# classification can never silently disagree (BLOCKER-2's defect was two
+# tellings of the same fact -- this makes it one).
 # ---------------------------------------------------------------------------
-def _anchors_runtime(anchoring):
-    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept."""
+def _book_composition(dashboard):
+    segs = ((dashboard or {}).get("financial") or {}).get("segment_annual") or []
+    ic_rev = resi_rev = 0.0
+    seen = False
+    for row in segs:
+        if not isinstance(row, dict):
+            continue
+        for key, v in row.items():
+            if key == "year" or not isinstance(v, dict):
+                continue
+            rev = v.get("revenue_gbp") or 0.0
+            seen = True
+            if str(key).startswith("i&c"):
+                ic_rev += rev
+            else:
+                resi_rev += rev
+    total_rev = ic_rev + resi_rev
+    if not seen or not total_rev:
+        return dict(available=False)
+    ic_pct = round(100.0 * ic_rev / total_rev, 2)
+    resi_pct = round(100.0 * resi_rev / total_rev, 2)
+    classification = (
+        "I&C-majority" if ic_pct >= 50.0
+        else "residential-majority" if resi_pct >= 50.0
+        else "mixed"
+    )
+    return dict(
+        available=True,
+        clock="settled",
+        window="10-yr cumulative (financial.segment_annual)",
+        ic_revenue_pct=ic_pct,
+        residential_revenue_pct=resi_pct,
+        classification=classification,
+        classification_label="{} book -- {}% of settled revenue is I&C".format(classification, ic_pct),
+        evidence="site/data/dashboard.json financial.segment_annual",
+        evidence_url="../data/dashboard.json",
+    )
+
+
+# The population each anchor's EXTERNAL benchmark actually measures -- stated
+# once per card so a residential benchmark can never be cleared by an I&C
+# note (BLOCKER-2). Sourced from the benchmark's own published scope (Ofgem
+# switching data is residential; the Ofgem/EUA bad-debt survey is industry-
+# wide/segment-neutral; Ofgem QoS complaints is I&C-adjusted per this run's
+# own benchmark band; DESNZ arrears is explicitly I&C commercial).
+_BENCHMARK_POPULATION = {
+    "churn": "residential (Ofgem switching data)",
+    "bad_debt": "industry-wide (Ofgem/EUA survey, segment-neutral)",
+    "complaints": "I&C-adjusted (Ofgem QoS survey)",
+    "arrears": "I&C (DESNZ commercial benchmark)",
+}
+
+
+def _population_mismatch(benchmark_pop, composition):
+    """True when the benchmark's population and the book's HELD classification
+    point the same direction as a genuine miss would be masked or a genuine
+    pass would be undeserved -- i.e. a residential benchmark measured against
+    an I&C-majority book, or vice versa. None when composition is unavailable
+    (fail-closed shape: the mismatch flag is never silently False by default,
+    it is either a real bool or explicitly absent)."""
+    if not composition or not composition.get("available"):
+        return None
+    book = composition.get("classification")
+    pop = (benchmark_pop or "").lower()
+    if "residential" in pop and book == "I&C-majority":
+        return True
+    if pop.startswith("i&c") or "i&c" in pop.split("(")[0]:
+        if book == "residential-majority":
+            return True
+    if "industry-wide" in pop:
+        return False  # segment-neutral by construction -- no population to mismatch
+    return False
+
+
+def _anchors_runtime(anchoring, composition=None):
+    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept.
+    Every card now also states WHICH POPULATION its benchmark measures and
+    whether that population mismatches the book's held classification
+    (composition) -- structurally visible on every row, not just the one
+    (churn) where it happened to excuse a miss."""
     if not isinstance(anchoring, dict):
         return dict(available=False)
     lrc = anchoring.get("long_run_comparison", {}) or {}
@@ -310,6 +396,9 @@ def _anchors_runtime(anchoring):
             sim_value=(str(lrc.get("sim_avg_pct")) + "%" if lrc.get("sim_avg_pct") is not None else None),
             benchmark_value=(str(lrc.get("ofgem_avg_pct")) + "% (Ofgem)" if lrc.get("ofgem_avg_pct") is not None else None),
             ratio=lrc.get("ratio"), rag=lrc.get("rag"), note=lrc.get("note"),
+            benchmark_population=_BENCHMARK_POPULATION["churn"],
+            book_classification=(composition or {}).get("classification_label"),
+            population_mismatch=_population_mismatch(_BENCHMARK_POPULATION["churn"], composition),
         ))
 
     def _latest(lst, val_key, lo_key=None, hi_key=None, unit="%"):
@@ -324,6 +413,9 @@ def _anchors_runtime(anchoring):
             sim_value=(str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
             benchmark_value=(str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
             ratio=None, rag=r.get("rag"), note="of revenue",
+            benchmark_population=_BENCHMARK_POPULATION["bad_debt"],
+            book_classification=(composition or {}).get("classification_label"),
+            population_mismatch=_population_mismatch(_BENCHMARK_POPULATION["bad_debt"], composition),
         ))
     cp = (anchoring.get("complaints_vs_benchmark") or [])
     if cp:
@@ -333,6 +425,9 @@ def _anchors_runtime(anchoring):
             sim_value=(str(r.get("complaint_rate_pct")) + "%" if r.get("complaint_rate_pct") is not None else None),
             benchmark_value=(str(r.get("benchmark_lo")) + "-" + str(r.get("benchmark_green_hi")) + "% (Ofgem QoS)"),
             ratio=None, rag=r.get("rag"), note=("crisis year" if r.get("is_crisis_year") else "normal year"),
+            benchmark_population=_BENCHMARK_POPULATION["complaints"],
+            book_classification=(composition or {}).get("classification_label"),
+            population_mismatch=_population_mismatch(_BENCHMARK_POPULATION["complaints"], composition),
         ))
     ar = (anchoring.get("arrears_vs_benchmark") or [])
     if ar:
@@ -342,10 +437,14 @@ def _anchors_runtime(anchoring):
             sim_value=(str(r.get("ic_aggregate_rate_pct")) + "% (I&C agg.)" if r.get("ic_aggregate_rate_pct") is not None else None),
             benchmark_value="I&C <8% normal / <12% crisis (DESNZ)",
             ratio=None, rag=r.get("rag"), note=None,
+            benchmark_population=_BENCHMARK_POPULATION["arrears"],
+            book_classification=(composition or {}).get("classification_label"),
+            population_mismatch=_population_mismatch(_BENCHMARK_POPULATION["arrears"], composition),
         ))
     return dict(
         available=True,
         overall_rag=anchoring.get("overall_rag"),
+        book_composition=composition or dict(available=False),
         cards=cards,
         meta=anchoring.get("meta", {}),
         evidence="site/state/population_anchoring.json",
@@ -474,8 +573,11 @@ def generate():
                   "benchmarks and keeps the RAG rating as measured; the assumption library is the "
                   "human-readable provenance trail, each row a sim value against an industry "
                   "benchmark with its source and a checked status. Where a status is a warning or "
-                  "an open refresh, it is shown, not smoothed.",
-            runtime=_anchors_runtime(anchoring),
+                  "an open refresh, it is shown, not smoothed. Every row also states which "
+                  "POPULATION its benchmark measures (SITE_EH1_segment_disclosure, 2026-07-29 "
+                  "cold-eyes BLOCKER-2): the book's own classification is computed once "
+                  "(book_composition) and held here, never used ad hoc as an excuse.",
+            runtime=_anchors_runtime(anchoring, _book_composition(dashboard)),
             library=_anchors_library(md_text),
         ),
     )

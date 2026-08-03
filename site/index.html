@@ -47,6 +47,12 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .honesty { margin-top: 26px; border-left: 3px solid var(--text); padding: 4px 0 4px 16px;
   font-size: 14px; line-height: 1.6; max-width: 60ch; color: var(--muted); }
 .honesty strong { color: var(--text); font-weight: 700; }
+/* SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the book's revenue mix
+   stated BEFORE the mission claim below -- same visual grammar as .honesty (an up-front
+   disclosure, not a footnote), amber accent to distinguish it as a composition caveat. */
+.composition { margin-top: 26px; border-left: 3px solid var(--amber); padding: 4px 0 4px 16px;
+  font-size: 14px; line-height: 1.6; max-width: 60ch; color: var(--muted); }
+.composition strong { color: var(--text); font-weight: 700; }
 .pitch { margin-top: 22px; font-size: 15px; line-height: 1.65; max-width: 62ch; color: var(--muted); }
 .pitch strong { color: var(--text); font-weight: 600; }
 
@@ -148,6 +154,11 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 
 <section class="hero">
   <h1>An energy company built and run by AI, to find the cheapest tonne of carbon left.</h1>
+  <!-- SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the revenue mix,
+       stated BEFORE the mission claim below -- a fetched (never hardcoded) live figure,
+       the SAME classification /company/ discloses (segment_mix, one classification held
+       everywhere). Fail-closed (R15): unavailable data renders an honest note, not a gap. -->
+  <p class="composition" id="composition-note">Loading the book's revenue mix&hellip;</p>
   <p class="honesty"><strong>No customers. No licence. A running simulator</strong> -- a fully
     autonomous licensed supplier will not be permitted, because a licence needs accountable
     humans, and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
@@ -258,5 +269,34 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 
 </div></div>
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="./privacy/" style="color:var(--muted);">Privacy</a></footer>
+<!-- SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1 2026-07-29): the ONLY dynamic
+     render on this door -- a single composition-disclosure sentence, fetched (never
+     hardcoded) so it cannot silently drift from the live book. No £ figure is rendered
+     here (RC7 stays intact -- this is a % composition statement, not a cohort financial). -->
+<script>
+function escHome(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function renderComposition(d){
+  var sm=(d&&d.segment_mix)||{};
+  var box=document.getElementById("composition-note");
+  if(!box) return;
+  if(!sm.available){
+    box.innerHTML="<strong>Segment mix unavailable for this run.</strong> The book's revenue "+
+      "composition could not be computed -- see <a href=\"./company/\">The Company</a> for detail.";
+    return;
+  }
+  box.innerHTML=
+    "<strong>This run's book: "+escHome(sm.classification_label||"")+".</strong> The mission "+
+    "below is stated for households; the book this run drew is not one &mdash; "+
+    Number(sm.ic_revenue_pct||0).toFixed(1)+"% of settled revenue is I&amp;C, "+
+    Number(sm.residential_revenue_pct||0).toFixed(1)+"% residential (incl. SME). See "+
+    '<a href="./company/#state-kpis">The Company</a> for the mix split by every per-customer figure.';
+}
+(function(){
+  fetch("./data/company.json?t="+Date.now()).then(function(r){return r.json();}).then(renderComposition).catch(function(){
+    var box=document.getElementById("composition-note");
+    if(box) box.innerHTML="<strong>Segment mix unavailable for this run.</strong> company.json could not be loaded.";
+  });
+})();
+</script>
 </body>
 </html>

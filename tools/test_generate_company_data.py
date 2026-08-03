@@ -9,7 +9,9 @@ coverage cell (segment), and FAIL-CLOSED on an empty sample (never a silent zero
 """
 from tools.generate_company_data import (
     _arrears_distribution,
+    _check_segment_disclosure_present,
     _cost_to_serve_distribution,
+    _segment_mix,
 )
 
 
@@ -267,3 +269,150 @@ def test_arrears_fail_closed_on_empty_ledger_r15():
     ok = _arrears_distribution({}, _ledger({"C1": (100.0, 50.0, "resi"),
                                             "C2": (100.0, 90.0, "resi")}))
     assert ok["missing_lines"] and len(ok["missing_lines"]) >= 3
+
+
+# --- SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1, 2026-07-29) ---------------
+#
+# "The clock is labelled on every figure and the SEGMENT on none." _segment_mix
+# discloses revenue/margin BY SEGMENT wherever this generator's own per-customer
+# tiles divide money by customers. R12/R13: reads segment_annual + stress_bands
+# ONLY -- it must never reweight or author the book.
+
+
+def _dashboard(segment_annual):
+    return {"financial": {"segment_annual": segment_annual}}
+
+
+def test_segment_mix_follows_segment_annual_and_stress_bands_r15():
+    # A book earned almost entirely by I&C accounts -- the classification, the
+    # pct split and the per-customer figures must all FOLLOW the source (a baked
+    # constant fails this).
+    dash = _dashboard([
+        {"year": 2024,
+         "i&c_electricity": {"revenue_gbp": 9000.0, "net_gbp": 900.0},
+         "resi_electricity": {"revenue_gbp": 1000.0, "net_gbp": 100.0}},
+    ])
+    sb = {"ic": 2, "residential": 8}
+    out = _segment_mix(dash, sb)
+    assert out["available"] is True
+    assert out["classification"] == "I&C-majority"
+    assert out["ic_revenue_pct"] == 90.0
+    assert out["residential_revenue_pct"] == 10.0
+    assert out["ic_customers"] == 2 and out["residential_customers"] == 8
+    assert out["ic_net_margin_per_customer_gbp"] == 450.0  # 900 / 2
+    assert out["residential_net_margin_per_customer_gbp"] == 12.5  # 100 / 8
+
+
+def test_segment_mix_mutation_moves_classification_and_split_r15():
+    # Killer mutation: flip the book to residential-majority -- classification
+    # and every derived figure must follow, not stay pinned to the old shape.
+    ic_majority = _dashboard([
+        {"year": 2024, "i&c_electricity": {"revenue_gbp": 9000.0, "net_gbp": 900.0},
+         "resi_electricity": {"revenue_gbp": 1000.0, "net_gbp": 100.0}},
+    ])
+    resi_majority = _dashboard([
+        {"year": 2024, "i&c_electricity": {"revenue_gbp": 1000.0, "net_gbp": 100.0},
+         "resi_electricity": {"revenue_gbp": 9000.0, "net_gbp": 900.0}},
+    ])
+    sb = {"ic": 2, "residential": 8}
+    a = _segment_mix(ic_majority, sb)
+    b = _segment_mix(resi_majority, sb)
+    assert a["classification"] == "I&C-majority"
+    assert b["classification"] == "residential-majority"
+    assert a["ic_revenue_pct"] != b["ic_revenue_pct"]
+
+
+def test_segment_mix_sme_folds_into_residential_not_dropped():
+    # sme_electricity is neither "i&c_*" nor "resi_*" -- it must be counted
+    # (folded into residential, per the includes_note), never silently dropped
+    # from the total (which would corrupt the pct split).
+    dash = _dashboard([
+        {"year": 2024,
+         "i&c_electricity": {"revenue_gbp": 500.0, "net_gbp": 50.0},
+         "sme_electricity": {"revenue_gbp": 500.0, "net_gbp": 50.0}},
+    ])
+    sb = {"ic": 1, "residential": 1}
+    out = _segment_mix(dash, sb)
+    assert out["available"] is True
+    assert out["ic_revenue_pct"] == 50.0
+    assert out["residential_revenue_pct"] == 50.0
+    assert "SME" in out["includes_note"]
+
+
+def test_segment_mix_fail_closed_on_missing_inputs_r15():
+    # FAIL-CLOSED: no segment_annual, no stress_bands, or a book with zero total
+    # revenue -- never silently claim an available split from nothing.
+    assert _segment_mix({}, {"ic": 1, "residential": 1})["available"] is False
+    assert _segment_mix(_dashboard([{"year": 2024, "i&c_electricity": {"revenue_gbp": 1.0}}]), None)["available"] is False
+    assert _segment_mix(_dashboard([{"year": 2024, "i&c_electricity": {"revenue_gbp": 0.0}}]), {"ic": 1, "residential": 1})["available"] is False
+
+
+def test_segment_mix_no_goal_seek_reads_only_revenue_and_net_r12():
+    # R12/R13: this reads revenue_gbp/net_gbp + customer counts ONLY -- it must
+    # never reweight the book or read any other field that could turn a
+    # disclosure surface into a tuning knob.
+    dash = _dashboard([
+        {"year": 2024,
+         "i&c_electricity": {"revenue_gbp": 900.0, "net_gbp": 90.0, "net_margin_pct": 999.0},
+         "resi_electricity": {"revenue_gbp": 100.0, "net_gbp": 10.0, "net_margin_pct": -999.0}},
+    ])
+    sb = {"ic": 1, "residential": 1}
+    out = _segment_mix(dash, sb)
+    assert out["ic_revenue_pct"] == 90.0  # unaffected by the absurd net_margin_pct values present
+
+
+# --- R10 CLASS GUARD: any per-customer money figure must carry its segment ------
+
+
+def test_segment_disclosure_gate_passes_with_no_per_customer_figures():
+    # Nothing to disclose against -- the gate has nothing to fail on.
+    assert _check_segment_disclosure_present({"finance": {}}) is True
+
+
+def test_segment_disclosure_gate_fails_when_per_customer_figure_has_no_segment_mix_r15():
+    # THE KILLER MUTATION named in the task: a per-customer money figure ships
+    # with segment_mix missing entirely -- must fail, not pass by omission.
+    doc = {"some_new_tile_per_customer_gbp": 12345.0}
+    assert _check_segment_disclosure_present(doc) is False
+
+
+def test_segment_disclosure_gate_fails_on_blank_or_unavailable_segment_mix_r15():
+    # FAIL-CLOSED: segment_mix present but available:False, or present-but-blank
+    # required fields, must still fail -- not pass on a hollow shell.
+    doc_a = {"x_per_customer_gbp": 1.0, "segment_mix": {"available": False}}
+    assert _check_segment_disclosure_present(doc_a) is False
+    doc_b = {"x_per_customer_gbp": 1.0, "segment_mix": {
+        "available": True, "classification": None, "ic_revenue_pct": 90.0,
+        "residential_revenue_pct": 10.0, "ic_customers": 1, "residential_customers": 1,
+    }}
+    assert _check_segment_disclosure_present(doc_b) is False
+
+
+def test_segment_disclosure_gate_passes_when_segment_mix_complete():
+    doc = {"x_per_customer_gbp": 1.0, "segment_mix": {
+        "available": True, "classification": "I&C-majority", "ic_revenue_pct": 90.0,
+        "residential_revenue_pct": 10.0, "ic_customers": 1, "residential_customers": 1,
+    }}
+    assert _check_segment_disclosure_present(doc) is True
+
+
+def test_segment_disclosure_gate_finds_per_customer_keys_at_any_depth():
+    # The scan must find a future per-customer figure NESTED anywhere in the
+    # document -- not just top-level -- so a new nested tile can't dodge the
+    # gate by being buried inside another section.
+    doc = {"some_section": {"nested": {"deep_per_customer_gbp": 1.0}}}
+    assert _check_segment_disclosure_present(doc) is False
+    doc["segment_mix"] = {
+        "available": True, "classification": "I&C-majority", "ic_revenue_pct": 90.0,
+        "residential_revenue_pct": 10.0, "ic_customers": 1, "residential_customers": 1,
+    }
+    assert _check_segment_disclosure_present(doc) is True
+
+
+def test_live_company_json_segment_mix_passes_its_own_gate():
+    # The real generated document must pass its own gate -- the gate this atom
+    # adds must not immediately red the surface it protects.
+    from tools.generate_company_data import generate
+    data = generate()
+    assert _check_segment_disclosure_present(data) is True
+    assert data["segment_mix"]["available"] is True

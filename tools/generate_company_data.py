@@ -25,6 +25,7 @@ R14 (SITE_CONSTITUTION binding rule 2): EVERY financial figure carries its clock
 explicit `//`-basis note. No number appears without its evidence source.
 """
 import json
+import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -554,6 +555,146 @@ def _stress_bands(sample):
     )
 
 
+def _segment_mix(dashboard, stress_bands):
+    """Revenue/margin mix, disclosed BY SEGMENT, wherever money is divided by
+    customers (SITE_EH1_segment_disclosure, cold-eyes BLOCKER-1 2026-07-29):
+    the finance panel's per-customer tiles used to blend a book that is
+    ~98.75pct I&C revenue into one number that read as household economics.
+
+    Sourced from dashboard.financial.segment_annual (settled clock, 10-yr
+    cumulative) -- the SAME population stress_bands (company.json's own
+    ic/residential customer counts) is drawn from, so the two reconcile.
+    "i&c_*" legs are I&C; every other leg (resi_electricity, resi_gas,
+    sme_electricity) is grouped residential -- stress_bands carries no
+    separate SME customer bucket, so SME is disclosed as folded into
+    residential rather than silently dropped.
+
+    Classification is picked ONCE here (the majority segment by settled
+    revenue) and is meant to be held everywhere this data is consumed
+    (the front door + /company/) -- never re-derived ad hoc per surface
+    (BLOCKER-2's defect: the same fact stated once, as an excuse, nowhere
+    else). R12/R13: this reads and discloses -- it never reweights the book.
+    """
+    segs = ((dashboard or {}).get("financial") or {}).get("segment_annual") or []
+    ic_rev = ic_net = resi_rev = resi_net = 0.0
+    seen = False
+    for row in segs:
+        if not isinstance(row, dict):
+            continue
+        for key, v in row.items():
+            if key == "year" or not isinstance(v, dict):
+                continue
+            rev = v.get("revenue_gbp") or 0.0
+            net = v.get("net_gbp") or 0.0
+            seen = True
+            if str(key).startswith("i&c"):
+                ic_rev += rev
+                ic_net += net
+            else:  # resi_electricity, resi_gas, sme_electricity
+                resi_rev += rev
+                resi_net += net
+    total_rev = ic_rev + resi_rev
+    ic_n = (stress_bands or {}).get("ic")
+    resi_n = (stress_bands or {}).get("residential")
+    if not seen or not total_rev or ic_n is None or resi_n is None:
+        return dict(available=False)
+
+    ic_pct = round(100.0 * ic_rev / total_rev, 2)
+    resi_pct = round(100.0 * resi_rev / total_rev, 2)
+    classification = (
+        "I&C-majority" if ic_pct >= 50.0
+        else "residential-majority" if resi_pct >= 50.0
+        else "mixed"
+    )
+    total_n = ic_n + resi_n
+    return dict(
+        available=True,
+        clock="settled",
+        window="10-yr cumulative (financial.segment_annual)",
+        ic_revenue_gbp=round(ic_rev, 2),
+        ic_revenue_pct=ic_pct,
+        ic_customers=ic_n,
+        ic_net_margin_gbp=round(ic_net, 2),
+        ic_net_margin_per_customer_gbp=(round(ic_net / ic_n, 2) if ic_n else None),
+        ic_revenue_per_customer_gbp=(round(ic_rev / ic_n, 2) if ic_n else None),
+        residential_revenue_gbp=round(resi_rev, 2),
+        residential_revenue_pct=resi_pct,
+        residential_customers=resi_n,
+        residential_net_margin_gbp=round(resi_net, 2),
+        residential_net_margin_per_customer_gbp=(round(resi_net / resi_n, 2) if resi_n else None),
+        residential_revenue_per_customer_gbp=(round(resi_rev / resi_n, 2) if resi_n else None),
+        classification=classification,
+        classification_label="{} book -- {}% of settled revenue is I&C, from {} of {} customers".format(
+            classification, ic_pct, ic_n, total_n
+        ),
+        includes_note="Residential figures include SME (sme_electricity) -- the customer-count "
+                      "split (stress_bands) carries no separate SME bucket.",
+        evidence="site/data/dashboard.json financial.segment_annual + company.json stress_bands",
+        evidence_url="../data/dashboard.json",
+    )
+
+
+# R10 CLASS GUARD (SITE_EH1_segment_disclosure, cold-eyes BLOCKER-1 2026-07-29):
+# "the CLOCK is labelled on every figure and the SEGMENT on none." Any key
+# ending in this suffix is, by definition, money divided by a customer count --
+# exactly the shape of the defect. Matching by SUFFIX (not the specific field
+# names this atom happens to add today) is the class fix: a future per-customer
+# figure fails this gate automatically if it ships with no segment context,
+# never needing a human to remember to extend an allowlist (R10).
+_PER_CUSTOMER_KEY_SUFFIX = "_per_customer_gbp"
+_SEGMENT_MIX_REQUIRED_FIELDS = (
+    "classification", "ic_revenue_pct", "residential_revenue_pct",
+    "ic_customers", "residential_customers",
+)
+
+
+def _find_per_customer_keys(obj, path=""):
+    """Recursively collect every dotted path to a non-null key ending in
+    _PER_CUSTOMER_KEY_SUFFIX anywhere in the published document."""
+    hits = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            p = path + "." + str(k) if path else str(k)
+            if str(k).endswith(_PER_CUSTOMER_KEY_SUFFIX) and v is not None:
+                hits.append(p)
+            hits.extend(_find_per_customer_keys(v, p))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj[:50]):
+            hits.extend(_find_per_customer_keys(v, path + "[{}]".format(i)))
+    return hits
+
+
+def _check_segment_disclosure_present(data):
+    """Publish gate (mirrors _check_basis_labels_present's pattern in
+    tools/generate_dashboard_data.py, R14): any per-customer money figure
+    published without its segment context alongside it is BLOCKER-1's defect
+    reintroduced. FAIL-CLOSED (R15): an absent or incomplete segment_mix does
+    NOT pass by omission -- it fails loudly, the same discipline as the
+    basis-label gate it is modelled on. A document with no per-customer figure
+    at all has nothing to disclose against and passes (this is a disclosure
+    gate, not a mandate to compute a per-customer figure that doesn't exist)."""
+    hits = _find_per_customer_keys(data)
+    if not hits:
+        return True
+    sm = data.get("segment_mix") or {}
+    if not sm.get("available"):
+        print(
+            "SEGMENT-DISCLOSURE GATE FAILED: {} per-customer money figure(s) published "
+            "with no segment_mix disclosure alongside them -- {}".format(len(hits), hits),
+            file=sys.stderr,
+        )
+        return False
+    missing = [f for f in _SEGMENT_MIX_REQUIRED_FIELDS if sm.get(f) is None]
+    if missing:
+        print(
+            "SEGMENT-DISCLOSURE GATE FAILED: segment_mix present but incomplete -- "
+            "missing {} (per-customer figures found: {})".format(missing, hits),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
 def generate():
     dashboard = _load(DASHBOARD_PATH) or {}
     bridge = _load(BRIDGE_PATH) or {}
@@ -561,6 +702,7 @@ def generate():
     ledger = _load(LEDGER_PATH) or {}
 
     meta = dashboard.get("meta", {}) or {}
+    stress_bands = _stress_bands(sample)
     data = dict(
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         dashboard_generated_at=meta.get("generated_at"),
@@ -570,9 +712,13 @@ def generate():
         household=_household(sample, ledger),
         cost_to_serve=_cost_to_serve_distribution(sample),
         arrears=_arrears_distribution(sample, ledger),
-        stress_bands=_stress_bands(sample),
+        stress_bands=stress_bands,
+        segment_mix=_segment_mix(dashboard, stress_bands),
         compliance=_compliance(dashboard),
     )
+    ok = _check_segment_disclosure_present(data)
+    if not ok:
+        print("SEGMENT-DISCLOSURE GATE FAILED -- see stderr above (company.json still written).")
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: " + str(OUT_PATH))

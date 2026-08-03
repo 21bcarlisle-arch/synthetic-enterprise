@@ -514,3 +514,83 @@ def test_credit_cycle_split_puts_dd1_staggering_on_the_instrumented_side():
     assert "staggered" not in not_yet[1], (
         "staggering must not sit in the not-yet-instrumented clause post-DD1: " + panel
     )
+
+
+# --- SITE_EH1_segment_disclosure (cold-eyes BLOCKER-1, 2026-07-29) --------------
+#
+# "the /company/ finance panel LEADS with 'Net margin / customer' ... over a book
+# that is 98.75pct I&C revenue... the CLOCK is labelled on every figure and the
+# SEGMENT on none." R11: the segment-mix banner and the per-segment per-customer
+# tiles must actually RENDER from live company.json, before any per-customer
+# figure. R15: mutating segment_mix must move the rendered pixel.
+
+
+def test_segment_mix_banner_renders_before_finance_kpis_r11():
+    d = _live()
+    sm = d.get("segment_mix") or {}
+    if not sm.get("available"):
+        pytest.skip("segment_mix not in live company.json yet (pre-deploy / old generator process)")
+    out = _render(d)
+    banner = out["seg-mix-banner"]["innerHTML"]
+    import html as _htmlmod
+    assert _htmlmod.escape(sm["classification"]) in banner, banner
+    assert f"{sm['ic_revenue_pct']:.2f}" in banner or f"{sm['ic_revenue_pct']:.1f}" in banner, banner
+    assert f"n={sm['ic_customers']}" in banner, banner
+    assert f"n={sm['residential_customers']}" in banner, banner
+    # the banner text is present ahead of the blended finance KPIs in source
+    # order -- the block itself is placed before the finance section in the HTML
+    # (structural check, matches "before the mission claim on /company/").
+    assert INDEX.read_text().index('id="seg-mix-banner"') < INDEX.read_text().index('id="finance-kpis"')
+
+
+def test_segment_mix_banner_fail_closed_when_unavailable_r15():
+    d = _live()
+    d["segment_mix"] = {"available": False}
+    out = _render(d)
+    assert "unavailable" in out["seg-mix-banner"]["innerHTML"].lower(), out["seg-mix-banner"]["innerHTML"]
+
+
+def test_finance_kpis_split_net_margin_per_customer_by_segment_r11():
+    d = _live()
+    sm = d.get("segment_mix") or {}
+    if not sm.get("available"):
+        pytest.skip("segment_mix not in live company.json yet (pre-deploy / old generator process)")
+    out = _render(d)
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "Net margin / customer — I&amp;C" in kpis, kpis
+    assert "Net margin / customer — residential" in kpis, kpis
+    assert "Revenue / customer — I&amp;C" in kpis, kpis
+    assert "Revenue / customer — residential" in kpis, kpis
+    # the actual live per-segment figures render, in the page's own gbpFull format
+    assert "{:,.2f}".format(sm["ic_net_margin_per_customer_gbp"]) in kpis, kpis
+    assert "{:,.2f}".format(sm["residential_net_margin_per_customer_gbp"]) in kpis, kpis
+    # each carries a DISTINCT clock/basis label from the blended tile above it --
+    # R14 discipline extended to the segment it is now also labelled with.
+    assert "÷ " + str(sm["ic_customers"]) + " I&amp;C customers" in kpis, kpis
+    assert "÷ " + str(sm["residential_customers"]) + " residential customers" in kpis, kpis
+
+
+def test_segment_per_customer_tiles_follow_source_r15():
+    # R15 independence: mutate segment_mix's per-customer figures -- the
+    # rendered pixel must follow (a hardcoded/baked figure fails this).
+    d = _live()
+    if not (d.get("segment_mix") or {}).get("available"):
+        pytest.skip("segment_mix not in live company.json yet (pre-deploy / old generator process)")
+    d["segment_mix"]["ic_net_margin_per_customer_gbp"] = 424242.42
+    d["segment_mix"]["residential_net_margin_per_customer_gbp"] = 111.11
+    out = _render(d)
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "424,242.42" in kpis, kpis
+    assert "111.11" in kpis, kpis
+
+
+def test_segment_per_customer_tiles_absent_when_segment_mix_unavailable_r15():
+    # FAIL-CLOSED: with no segment_mix, the segment-split tiles must not render
+    # at all (never a silently-blended figure mislabelled as segment-split).
+    d = _live()
+    d["segment_mix"] = {"available": False}
+    out = _render(d)
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "Net margin / customer — I&amp;C" not in kpis, kpis
+    # the blended tile still renders (it degrades gracefully, not vanishes).
+    assert "Net margin / customer</div>" in kpis, kpis
