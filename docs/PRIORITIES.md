@@ -1,10 +1,56 @@
 # Current Priorities
 
-**last director review: 2026-07-23**
+**last director review: 2026-08-03**
 
 ---
 
-## TOP OF QUEUE — [DIRECTOR-RULING] PRODUCT FIRST (2026-07-23, `docs/staging/done/DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23.md`)
+## TOP OF QUEUE — [DIRECTOR CONSOLE] PREMISE FABRIC PHYSICS ABOVE SITE (2026-08-03)
+
+Director, verbatim: *"The premise fabric finding is the important one — every home being a scaled
+copy of the average is exactly what the board warned about. Prioritise fixing that over the site
+work."*
+
+This **supersedes the 2026-07-23 PRODUCT FIRST ordering below** on one axis only: the fabric chain
+now outranks SITE V5. Everything else in that ruling still stands, including its central point that
+machinery is not product — the fabric chain IS product, and it is the deepest fidelity defect on the
+board.
+
+**The finding, with evidence** (`docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md`, measured against
+Spec 003's two-level test, which the 2026-07-23 ranking already named as the bar for item 4):
+* **Level 1 FAIL — homes too smooth.** Median period-to-period change 0.008–0.012 kWh on a ~0.7 kWh
+  mean (~1.5%); day-vs-next-day shape correlation **0.97**; no half-hour below 0.05 kWh in ten years
+  (no empty house, ever); repeating rescaled-fraction values betraying one deterministic base shape.
+* **Level 2 FAIL — the crowd doesn't smooth.** C8–C9 correlation 0.95 (near-clones); 3-home aggregate
+  peak/mean **5.9 vs 5.7 for a single home** — aggregation smooths nothing. Annuals within 8% of each
+  other: no between-home scale variation.
+* Gas has **no premise-level trace at any resolution** — monthly totals off one national shape.
+
+That is the definition of "every home is a scaled copy of the average", and it silently flatters
+every downstream number that depends on diversity: peak exposure, imbalance, flexibility headroom,
+and the whole carbon-personalisation case.
+
+**The ranked chain** (framed atoms already exist; dependencies sequence them):
+1. **W1_11_fabric_physics_core** — 2R2C grey-box (indoor-air + building-mass node), deadband stat,
+   finite modulation. The head of the chain; its only dependency (`W1_4_regional_weather_field`) is met.
+2. **W1_12_premise_trace_generator** — per-premise half-hourly gas + electricity for the whole book,
+   Layer 2 behaviour on top of Layer 1 physics.
+3. **C14_thermal_parameter_inference** — the company estimates each premise's heat loss from meter
+   reads + EPC-class data only. The wall leg.
+4. **H_GAP_fabric_belief_truth_gap** — the two-level test as a STANDING failable control, landed RED
+   against the current generator. The harness leg; the coupled triad's third loop.
+
+**W1_5_premise_demand_shape is demoted L3 → L1** (2026-08-03, self-certified with the evidence
+above). It was carrying `level_current: 3` while the acceptance test named in its own ranking
+FAILS — a false level rendering as true on the director's site. Un-promoting is not self-promoting;
+honesty about levels is not a dial.
+
+**SITE V5 continues in the L2 SITE lane** (permanently parallel per THREE_LANES) — this re-rank
+moves BUILD-lane effort and attention, it does not idle the site lane, and P-4's visible-surface
+split still applies to anything the director flags below bar.
+
+---
+
+## PRIOR TOP OF QUEUE — [DIRECTOR-RULING] PRODUCT FIRST (2026-07-23, `docs/staging/done/DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23.md`)
 
 Director's verdict, verbatim: *"Nothing material is happening."* The recent verified hours are
 dominated by MACHINERY (governance, continuity, authority, measurement) while PRODUCT — the ratified

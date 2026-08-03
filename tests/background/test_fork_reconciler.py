@@ -752,3 +752,67 @@ def test_reap_one_worktree_never_uses_force():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 pytestmark = pytest.mark.operational
+
+
+# ── STRANDED reporting (H24, 2026-08-03) ────────────────────────────────────────────────────
+# "your worktree reaper can't reap itself, which is why those strays never clear" (director
+# console). Measured live at the time: 26 worktrees, 0 eligible, and the report said
+# WORKTREE_REAP_CLEAN / alarm=False -- so a population the control was STRUCTURALLY unable to
+# touch read as health for 16 days. "Nothing eligible" must never again be indistinguishable
+# from "nothing to do".
+
+def _stranded_env(n_dirty=0, n_orphan=0, n_locked=0, n_merged_clean=0):
+    """Build an injectable worktree population with a known refusal mix."""
+    wts, states, dirty = [{"path": MAIN2, "branch": "main", "detached": False,
+                           "locked": False, "locked_reason": None, "bare": False}], {}, {}
+    def add(prefix, i, branch_state, is_dirty, locked=False):
+        b = f"{prefix}-{i}"
+        p = f"/wt/{b}"
+        wts.append(_rwt(p, b, locked=locked, locked_reason="in use" if locked else None))
+        states[b] = branch_state
+        dirty[p] = is_dirty
+    for i in range(n_dirty):       add("dirty", i, "MERGED", True)
+    for i in range(n_orphan):      add("orphan", i, "ORPHAN", False)
+    for i in range(n_locked):      add("locked", i, "IN_FLIGHT", False, locked=True)
+    for i in range(n_merged_clean):add("done", i, "MERGED", False)
+    return dict(worktrees=wts, branch_states=states, main_path=MAIN2, enforce=False,
+                dirty_fn=lambda p: dirty.get(p, False), salvage_tag_fn=lambda b: None)
+
+
+def test_a_standing_stranded_population_ALARMS_instead_of_reporting_clean():
+    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=16, n_orphan=5, n_locked=3))
+    assert ev["status"] == "WORKTREE_REAP_STRANDED"
+    assert ev["alarm"] is True, "a reaper that cannot act on its own population is not CLEAN"
+    assert "16 dirty" in ev["detail"] and "5 orphan-branch" in ev["detail"]
+    # the legitimately-kept ones are counted separately, not smeared into the failure
+    assert "4 legitimately kept" in ev["detail"]  # 3 locked + main
+
+
+def test_MUTATION_a_healthy_population_is_still_CLEAN_and_silent():
+    """The other way: locked/live/main refusals are the control WORKING. A guard that alarmed on
+    every non-empty `kept` would be as useless as one that never alarmed."""
+    ev = F.evaluate_worktree_reap(**_stranded_env(n_locked=3))
+    assert ev["status"] == "WORKTREE_REAP_CLEAN"
+    assert ev["alarm"] is False
+
+
+def test_a_couple_of_dirty_forks_midbuild_is_churn_not_an_alarm():
+    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=2))
+    assert ev["status"] == "WORKTREE_REAP_CLEAN" and ev["alarm"] is False
+    assert "2 stranded" in ev["detail"], "still COUNTED, just under the threshold"
+
+
+def test_eligible_work_still_reports_ELIGIBLE_not_stranded():
+    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=16, n_merged_clean=1))
+    assert ev["status"] == "WORKTREE_REAP_ELIGIBLE", "real work must not be masked by the alarm"
+
+
+def test_refusal_is_stranded_splits_the_two_classes():
+    for live in ("main worktree -- never reaped", "locked (in use) -- never reaped",
+                 "branch is IN_FLIGHT -- live/undecided fork, never reaped",
+                 "detached/no branch -- undetermined, never reaped"):
+        assert F.refusal_is_stranded(live) is False, live
+    for stuck in ("uncommitted/untracked changes -- never reaped",
+                  "branch is ORPHAN -- live/undecided fork, never reaped",
+                  "branch ref absent, no salvage tag -- undetermined, never reaped"):
+        assert F.refusal_is_stranded(stuck) is True, stuck

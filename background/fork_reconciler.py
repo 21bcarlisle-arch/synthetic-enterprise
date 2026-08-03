@@ -313,6 +313,11 @@ def evaluate_worktree_reconcile(*, worktrees: list[dict] | None = None,
 WORKTREE_REAP_ENFORCE_FLAG = PROJECT_DIR / "docs" / "observability" / ".worktree_reap_enabled"
 
 
+# How many STRANDED worktrees before the reaper is judged to be failing rather than idling. A
+# couple of dirty forks mid-build is ordinary churn; a standing population is the control-set hole.
+STRANDED_WORKTREE_ALARM_AT = 5
+
+
 def worktree_reap_enabled(flag: Path | None = None) -> bool:
     """True only if the director flag is a readable regular file (fail-safe: absent = report-first,
     same convention as `reap_enabled` for branches -- but its OWN flag/file, not shared with it)."""
@@ -339,6 +344,22 @@ def _salvage_tag_for(branch: str) -> str | None:
     confirmed-salvaged by `salvage_and_reap`), else None. Mirrors the tag-name convention there."""
     tag = "salvage/" + branch.replace("/", "_")
     return tag if _git("rev-parse", "-q", "--verify", f"refs/tags/{tag}").strip() else None
+
+
+# A refusal reason is either LIVE -- the worktree is legitimately in use and keeping it is the
+# control WORKING -- or STRANDED: the control cannot act on it and never will without a change.
+# Separating these is what makes "0 eligible" interpretable; conflating them is what let 26
+# worktrees accumulate over 16 days behind a green WORKTREE_REAP_CLEAN (H24, 2026-08-03).
+_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "detached/no branch")
+
+
+def refusal_is_stranded(reason: str) -> bool:
+    """True if a kept-worktree reason means the reaper is STUCK on it rather than correctly
+    sparing it. Dirty and ORPHAN are the two stranded classes: a fork in this project dies dirty,
+    so `MERGED and CLEAN` is unsatisfiable for the real population -- a control-SET hole, not a
+    guard defect."""
+    r = str(reason or "")
+    return not any(tok in r for tok in _LIVE_REFUSALS)
 
 
 def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *,
@@ -435,9 +456,13 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
                       for e in eligible]
 
     failed = [r for r in reaped if not r["removed"]]
+    _stranded_now = [k for k in kept if refusal_is_stranded(k.get("reason", ""))]
     # Eligible-but-not-yet-enforced is routine housekeeping, not a problem -- only a genuine
     # failure to remove something the classifier already proved safe is worth alarming on.
-    alarm = bool(enforce and failed)
+    # A standing stranded population is a REAL alarm: the control is running, reporting, and
+    # unable to do its job. Previously only an enforce-mode removal failure alarmed, so the
+    # unsatisfiable-conjunction case was silent by construction.
+    alarm = bool(enforce and failed) or len(_stranded_now) >= STRANDED_WORKTREE_ALARM_AT
     if enforce:
         removed_n = sum(1 for r in reaped if r["removed"])
         if failed:
@@ -456,8 +481,33 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         shown = ", ".join(Path(e["path"]).name for e in eligible[:6]) + (" …" if len(eligible) > 6 else "")
         detail = f"{len(eligible)} worktree dir(s) reapable [REPORT-FIRST, none removed]: {shown}"
     else:
-        status = "WORKTREE_REAP_CLEAN"
-        detail = f"no reapable worktree dirs; {len(kept)} kept (locked/live/dirty/main)"
+        # FAIL-SILENT FIX (H24, 2026-08-03, director console: "your worktree reaper can't reap
+        # itself, which is why those strays never clear"). `eligible == 0` was reported as CLEAN
+        # unconditionally -- indistinguishable from "nothing to do" -- so a population the control
+        # is STRUCTURALLY unable to touch read as health for 16 days while 26 worktrees piled up.
+        # An unavailable check is a FAILED check (R15 fail-silent): say which it is.
+        stranded = [k for k in kept if refusal_is_stranded(k.get("reason", ""))]
+        if len(stranded) >= STRANDED_WORKTREE_ALARM_AT:
+            from collections import Counter
+            why = Counter(
+                "dirty" if "uncommitted" in k.get("reason", "") else
+                "orphan-branch" if "ORPHAN" in k.get("reason", "") else
+                "undetermined"
+                for k in stranded
+            )
+            status = "WORKTREE_REAP_STRANDED"
+            detail = (
+                f"0 reapable but {len(stranded)} STRANDED worktree dir(s) the reaper cannot act on "
+                + "(" + ", ".join(f"{n} {w}" for w, n in why.most_common()) + "); "
+                + f"{len(kept) - len(stranded)} legitimately kept (locked/live/main). "
+                "Eligibility requires MERGED-and-CLEAN, but a fork here dies DIRTY, so the "
+                "conjunction is unsatisfiable for the real population -- salvage the content to a "
+                "ref first, then the worktree is clean and removable with nothing lost."
+            )
+        else:
+            status = "WORKTREE_REAP_CLEAN"
+            detail = (f"no reapable worktree dirs; {len(kept)} kept "
+                      f"({len(stranded)} stranded, under the alarm threshold)")
 
     return {"status": status, "alarm": alarm, "detail": detail, "eligible": eligible, "kept": kept,
             "reaped": reaped, "enforce": enforce}
