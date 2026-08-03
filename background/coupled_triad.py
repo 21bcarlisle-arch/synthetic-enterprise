@@ -89,6 +89,23 @@ _AUTHORITATIVE_COUPLING = {
     # depends_on, so build_coupling never DERIVES this pair -- it is filled in from
     # the table (like W2_9->C11), no cross-check conflict.
     "W1_6": "C13",
+    # The FABRIC triad (W1_11 fabric truth -> W1_12 traces -> C14 inference ->
+    # H_GAP harness). Registered 2026-08-03 by the H_GAP build, which found the
+    # hole: C14's depends_on ALREADY names W1_12, so build_coupling() DERIVES
+    # W1_12->C14 -- but the final coupling is assembled from THIS table alone, so
+    # a derived-but-unregistered pair is silently dropped. W1_12 therefore sat at
+    # L2 as a coupled world atom with no measured gap while the Proof panel's D1
+    # detector ("depth nobody copes with") stayed blind to it, and world_l3_blocked
+    # never fired. That is a FAIL-OPEN in the gate, not a missing row: the table
+    # was acting as a whitelist while reading as a cross-check.
+    "W1_12": "C14",
+    # W1_11 carries the fabric TRUTH that C14 infers, and its row is the EPC-prior
+    # belief measured against that truth (the pair (W1_11, W1_12) is deliberately
+    # two rows: two distinct belief sources, and collapsing them would hide what
+    # the company's own inference bought over the register it started from). No
+    # C-twin names W1_11 in depends_on, so this pair is non-derivable and the table
+    # is its sole source -- the same standing as W2_9->C11 above.
+    "W1_11": "C14",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).

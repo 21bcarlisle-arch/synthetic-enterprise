@@ -49,9 +49,13 @@ def test_reflects_real_ledger_exactly():
     assert cg["available"] is True
     # 8 map-coupled W2 pairs + W1_5<->C13 (map-coupled 2026-07-21, measured) +
     # W1_6<->C13 (ledger-only, surfaced via the defensive not-in-coupling branch)
-    # = 10, all measured.
-    assert cg["pair_count"] == 10
-    assert cg["measured"] == 10
+    # + the FABRIC triad's two rows (2026-08-03, H_GAP): W1_11<->C14 (the EPC
+    # register's belief) and W1_12<->C14 (the company's own C14 posterior). Two
+    # rows, not one, because they are two distinct belief sources and collapsing
+    # them would hide what the company's inference bought over the register.
+    # = 12, all measured.
+    assert cg["pair_count"] == 12
+    assert cg["measured"] == 12
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -87,7 +91,7 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 9   # 10 live pairs, W2_7 nulled
+    assert cg["measured"] == 11  # 12 live pairs, W2_7 nulled
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -99,9 +103,10 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured), and
-    # W1_6 still appears (live ledger, defensive branch) -> 9 map pairs + W1_6 = 10.
-    assert cg["pair_count"] == 10
+    # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured),
+    # W1_6 still appears (live ledger, defensive branch), and the two fabric pairs
+    # appear (map coupling) -> 11 map pairs + W1_6 = 12.
+    assert cg["pair_count"] == 12
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"

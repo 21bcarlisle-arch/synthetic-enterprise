@@ -1,4 +1,170 @@
 {
+  "W1_11_fabric_physics_core": {
+    "baseline": "no-skill = predict the climatological mean truth (0.177); MAE_noskill=0.1004",
+    "components": {
+      "belief_form": "EPC register prior HLC (kW/K), company-side",
+      "belief_source": "EPC register prior only",
+      "bias_model": -0.020561,
+      "inference_improvement": -0.03485122498061882,
+      "mae_model": 0.020561,
+      "mae_noskill": 0.100365,
+      "money_consequence_epc": {
+        "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
+        "forgone_annual_kg_co2e": 2313.9489887715818,
+        "forgone_lifetime_gbp": 161.8953479483207,
+        "gbp_per_tonne_co2e": 69.96495978689096,
+        "misrank_rate": 0.1
+      },
+      "money_consequence_inferred": {
+        "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = inferred.",
+        "forgone_annual_kg_co2e": 0.0,
+        "forgone_lifetime_gbp": 0.0,
+        "gbp_per_tonne_co2e": null,
+        "misrank_rate": 0.0
+      },
+      "n": 10,
+      "premises": 10,
+      "prior": 0.176921,
+      "two_level": {
+        "cells": {
+          "L1.1_half_hourly_texture": {
+            "value": 0.11986853745551919,
+            "verdict": "fail"
+          },
+          "L1.2_day_to_day_shape_correlation": {
+            "value": 0.37894397827992987,
+            "verdict": "pass"
+          },
+          "L1.3_away_days_per_year": {
+            "value": 12.175,
+            "verdict": "pass"
+          },
+          "L1.4_weekday_weekend_separation": {
+            "value": 0.08727144283958961,
+            "verdict": "unvalidated"
+          },
+          "L1.5_max_multiplicity_share": {
+            "value": 0.06666666666666667,
+            "verdict": "pass"
+          },
+          "L2.1_smoothing_ratio": {
+            "value": 0.34308097030723966,
+            "verdict": "pass"
+          },
+          "L2.2_between_home_correlation": {
+            "value": 0.06189294382557433,
+            "verdict": "pass"
+          },
+          "L2.3_timing_diversity_periods": {
+            "value": 0.40733295826496724,
+            "verdict": "fail"
+          },
+          "L2.4_scale_spread_p90_p10": {
+            "value": 1.7153778902140424,
+            "verdict": "unvalidated"
+          }
+        },
+        "failed_levels": [
+          "L1",
+          "L2"
+        ],
+        "generator": "premise_trace.generate_premise_trace (W1_12)",
+        "goal_seek_warning": null,
+        "is_red": true
+      }
+    },
+    "g0": 0.10036526959999999,
+    "gap": 0.2048599389205446,
+    "measured_at": "2026-08-03T15:00:19.878047+00:00",
+    "metric": "prediction",
+    "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
+    "raw_gap": 0.02056082299999999,
+    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
+    "twin_atom_id": "C14_thermal_parameter_inference"
+  },
+  "W1_12_premise_trace_generator": {
+    "baseline": "no-skill = predict the climatological mean truth (0.177); MAE_noskill=0.1004",
+    "components": {
+      "belief_form": "C14 posterior HLC (kW/K): EPC prior shrunk toward meter evidence",
+      "belief_source": "C14 posterior (EPC + meter evidence)",
+      "bias_model": -0.00153,
+      "inference_improvement": -0.03485122498061882,
+      "mae_model": 0.024059,
+      "mae_noskill": 0.100365,
+      "money_consequence_epc": {
+        "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
+        "forgone_annual_kg_co2e": 2313.9489887715818,
+        "forgone_lifetime_gbp": 161.8953479483207,
+        "gbp_per_tonne_co2e": 69.96495978689096,
+        "misrank_rate": 0.1
+      },
+      "money_consequence_inferred": {
+        "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = inferred.",
+        "forgone_annual_kg_co2e": 0.0,
+        "forgone_lifetime_gbp": 0.0,
+        "gbp_per_tonne_co2e": null,
+        "misrank_rate": 0.0
+      },
+      "n": 10,
+      "premises": 10,
+      "prior": 0.176921,
+      "two_level": {
+        "cells": {
+          "L1.1_half_hourly_texture": {
+            "value": 0.11986853745551919,
+            "verdict": "fail"
+          },
+          "L1.2_day_to_day_shape_correlation": {
+            "value": 0.37894397827992987,
+            "verdict": "pass"
+          },
+          "L1.3_away_days_per_year": {
+            "value": 12.175,
+            "verdict": "pass"
+          },
+          "L1.4_weekday_weekend_separation": {
+            "value": 0.08727144283958961,
+            "verdict": "unvalidated"
+          },
+          "L1.5_max_multiplicity_share": {
+            "value": 0.06666666666666667,
+            "verdict": "pass"
+          },
+          "L2.1_smoothing_ratio": {
+            "value": 0.34308097030723966,
+            "verdict": "pass"
+          },
+          "L2.2_between_home_correlation": {
+            "value": 0.06189294382557433,
+            "verdict": "pass"
+          },
+          "L2.3_timing_diversity_periods": {
+            "value": 0.40733295826496724,
+            "verdict": "fail"
+          },
+          "L2.4_scale_spread_p90_p10": {
+            "value": 1.7153778902140424,
+            "verdict": "unvalidated"
+          }
+        },
+        "failed_levels": [
+          "L1",
+          "L2"
+        ],
+        "generator": "premise_trace.generate_premise_trace (W1_12)",
+        "goal_seek_warning": null,
+        "is_red": true
+      }
+    },
+    "g0": 0.10036526959999999,
+    "gap": 0.23971116390116343,
+    "measured_at": "2026-08-03T15:00:19.878047+00:00",
+    "metric": "prediction",
+    "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
+    "raw_gap": 0.024058675591070052,
+    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
+    "twin_atom_id": "C14_thermal_parameter_inference"
+  },
   "W1_5_premise_demand_shape": {
     "baseline": "worst cell = summer: company temperature+wind-chill (CWV) degree-day weather-normalisation MAE 2276 MW vs no-skill 2190 MW",
     "components": {
@@ -206,21 +372,21 @@
   "W2_11_payment_behaviour_source": {
     "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
     "components": {
-      "caught": 16,
-      "flagged_size": 16,
-      "miss_rate": 0.627907,
-      "missed": 27,
-      "missed_harm": 27.0,
-      "total_harm": 43.0,
-      "truth_size": 43
+      "caught": 4,
+      "flagged_size": 5,
+      "miss_rate": 0.2,
+      "missed": 1,
+      "missed_harm": 1.0,
+      "total_harm": 5.0,
+      "truth_size": 5
     },
-    "g0": 43.0,
-    "gap": 0.627906976744186,
-    "measured_at": "2026-07-21T07:22:44.236159+00:00",
+    "g0": 5.0,
+    "gap": 0.2,
+    "measured_at": "2026-08-03T15:03:19.210735+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2632, ageing 1.2326; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
-    "raw_gap": 27.0,
-    "run_git_commit": "588fc8a91de28fed0a30b4557e34e2d98748f79b",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.0714, ageing 0.4000; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 1.0,
+    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
