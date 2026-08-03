@@ -200,3 +200,26 @@ with identical arguments returns a bit-identical dict (`test_measure_is_determin
   into `daily_self_note.py` + Proof door per the atom's own "per digest" spec; (b) F1b's missing
   exploration policy (logged against F1b's own file_scope, not this atom's); (c) live-population
   wiring once F1a/F1b are invoked by a `run_phase*.py` driver.
+- BUILD-fork hardening pass (2026-08-03, second worker tick, same file_scope): re-ran the shipped
+  21 tests fresh (all green) and R15-audited `intent_leak_rate`/`detect_intent_leak` against the
+  three killer patterns by hand. Found and fixed a genuine FAIL-OPEN: an axis with zero non-neutral-
+  truth customers scored (e.g. an all-neutral-truth population subset, verified to really exist at
+  this deterministic seed — 5 of 200 synthetic customers) returned a fabricated `0.0` ("clean") leak
+  rate, indistinguishable from a genuinely-tested clean result. Fixed: an unscored axis now reports
+  `None` (never a fabricated number); `detect_intent_leak` treats `None` as "no verdict from this
+  axis", never as evidence of cleanliness; if BOTH axes are starved of evidence the control now fails
+  CLOSED (`ConversationGapUnmeasurable`) rather than silently passing. 4 new tests added (25 total,
+  all passing) proving: fails closed on empty population; fails closed when both axes are starved
+  (for both the honest AND peeking generators — a control-availability failure, not a property of
+  which generator is used); a single-axis-starved population reports `None` for the unscored axis
+  while still genuinely scoring the other; `detect_intent_leak` never raises and never treats `None`
+  as clean. Also independently verified (not asserted, executed) the FAIL-SILENT guard: a
+  `generate_fn` that raises propagates the exception (never silently "passes"), and `measure()`
+  itself fails closed with `ConversationGapUnmeasurable` when the underlying call breaks. TAUTOLOGY
+  guard re-confirmed: the oracle (`simulation.nudge_physics`) is read completely independently of
+  either generator's mechanism. R12 note: this pass changed only the CONTROL's fail-open behaviour,
+  never the diagnostic gap/uplift numbers themselves — no tuning toward a flattering value. Level
+  verdict handed to the orchestrator: L2 (genuine artefact + happy path + verify) is supportable on
+  the measurement organ itself; the FRAME's own two residuals (daily_self_note/Proof-door wiring,
+  live-population wiring) remain outside this atom's file_scope and outside a HARDEN-stage Expert
+  Hour, so `loop_stage` stays `build`, not `harden`.

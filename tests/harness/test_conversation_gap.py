@@ -272,6 +272,77 @@ def test_R15_both_ways_same_population_same_situation():
     assert peeking_rate["framing_leak_rate"] > honest_rate["framing_leak_rate"]
 
 
+# --- R15 FAIL-OPEN GUARD on the intent-leak control itself ------------------
+# Found empirically while hardening this atom: the ORIGINAL implementation
+# returned a fabricated 0.0 ("clean") leak rate whenever an axis had ZERO
+# scored (non-neutral-truth) customers -- indistinguishable from a genuinely
+# clean measurement even though NOTHING was checked. This is exactly the
+# FAIL-OPEN killer pattern (R15 doctrine: "passes on missing/zero/empty").
+
+
+def test_intent_leak_rate_fails_closed_on_empty_population():
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.intent_leak_rate(
+            gap_ledger.honest_zero_evidence_generate, [], Situation.RENEWAL, Product.DUAL_FUEL
+        )
+
+
+def test_intent_leak_rate_fails_closed_not_fail_open_when_no_axis_has_evidence():
+    """A population with zero non-neutral-truth customers on EITHER axis must
+    raise rather than silently report a 'clean' 0.0 -- an unavailable check is
+    a FAILED check (R15), never a quiet pass. Fixture sanity confirms the
+    deterministic synthetic population genuinely contains such an all-neutral
+    subset at this seed, so this is a real reachable condition, not a
+    hypothetical."""
+    pop = gap_ledger._synthetic_population(200)
+    both_neutral = [
+        c for c in pop
+        if gap_ledger.true_framing_category(c) == "neutral"
+        and gap_ledger.true_tone_category(c) == "neutral"
+    ]
+    assert both_neutral, "fixture sanity: population must contain all-neutral-truth customers"
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.intent_leak_rate(
+            gap_ledger.honest_zero_evidence_generate, both_neutral, Situation.RENEWAL, Product.DUAL_FUEL
+        )
+    # the failure is about EVIDENCE AVAILABILITY, not which generate_fn is used --
+    # even the peeking variant must fail closed over a starved population.
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.intent_leak_rate(_peeking_generate, both_neutral, Situation.RENEWAL, Product.DUAL_FUEL)
+
+
+def test_intent_leak_rate_reports_none_not_zero_for_a_starved_single_axis():
+    """A population starved on ONE axis only (framing-neutral, tone-non-
+    neutral) must report `None` for the unscored axis -- never a fabricated
+    0.0 -- while still genuinely scoring the other axis."""
+    pop = gap_ledger._synthetic_population(200)
+    framing_starved = [
+        c for c in pop
+        if gap_ledger.true_framing_category(c) == "neutral"
+        and gap_ledger.true_tone_category(c) != "neutral"
+    ]
+    assert framing_starved, "fixture sanity: population must contain a framing-starved/tone-scored subset"
+    rate = gap_ledger.intent_leak_rate(
+        gap_ledger.honest_zero_evidence_generate, framing_starved, Situation.MISSED_PAYMENT, Product.GAS
+    )
+    assert rate["framing_scored"] == 0
+    assert rate["framing_leak_rate"] is None
+    assert rate["tone_scored"] > 0
+    assert rate["tone_leak_rate"] == 0.0  # honest generator, genuinely measured, genuinely clean
+    assert gap_ledger.detect_intent_leak(rate) is False
+
+
+def test_detect_intent_leak_treats_none_axis_as_no_verdict_never_a_typeerror():
+    """Defensive on the public `detect_intent_leak` signature: a `None` axis
+    (zero scored customers) must never raise and must never be treated as
+    evidence of cleanliness -- it simply contributes no verdict; the OTHER
+    axis's real reading still fires normally."""
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": None, "tone_leak_rate": None}) is False
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": None, "tone_leak_rate": 0.9}) is True
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": 0.9, "tone_leak_rate": None}) is True
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": None, "tone_leak_rate": 0.01}) is False
+
+
 # --- R10: the harness's duplicated-by-convention situation/lever map must --
 # --- not drift from the real F1a source table ------------------------------
 

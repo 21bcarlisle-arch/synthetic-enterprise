@@ -418,7 +418,21 @@ def intent_leak_rate(
     directly. Customers whose TRUE category is 'neutral' are excluded from
     each axis's denominator -- a neutral send to a neutral-truth customer is
     not evidence of leaking, since neutral is also the honest zero-evidence
-    default."""
+    default.
+
+    FAIL-OPEN GUARD (R15 -- found empirically while hardening this atom): an
+    axis with ZERO scored customers must never report a fabricated `0.0`
+    ("clean") leak rate -- that is indistinguishable from a genuinely-tested
+    clean result and would let a starved population (e.g. an all-neutral-truth
+    subset, or an accidentally-empty one) silently read as "no leak detected"
+    when NOTHING was actually checked. An unscored axis reports `None`
+    instead; `detect_intent_leak` treats `None` as "this axis contributes no
+    verdict", never as evidence of cleanliness. If BOTH axes are starved (no
+    evidence anywhere), that is a total control failure -- fail CLOSED with
+    `ConversationGapUnmeasurable`, matching this module's fail-closed
+    philosophy elsewhere (`summarise_gap`, `outcome_uplift_vs_control`)."""
+    if not customer_ids:
+        raise ConversationGapUnmeasurable("no customers to score the intent-leak control over")
     framing_leaks = tone_leaks = framing_scored = tone_scored = 0
     for customer_id in customer_ids:
         message = generate_fn(customer_id, CustomerSegment(), situation, product, step)
@@ -432,24 +446,36 @@ def intent_leak_rate(
             tone_scored += 1
             if message.tone == _TONE_CATEGORY_TO_LEVER[truth_tone]:
                 tone_leaks += 1
+    if framing_scored == 0 and tone_scored == 0:
+        raise ConversationGapUnmeasurable(
+            "zero non-neutral-truth customers scored on EITHER axis -- the "
+            "intent-leak control has no evidence to certify a clean result "
+            "from (R15 fail-open guard); widen the population/situation "
+            "rather than trust a silent 0.0"
+        )
     return {
         "n_customers": len(customer_ids),
         "framing_scored": framing_scored,
         "tone_scored": tone_scored,
-        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else 0.0,
-        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else 0.0,
+        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else None,
+        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else None,
     }
 
 
-def detect_intent_leak(rate_row: Mapping[str, float], threshold: float = _INTENT_LEAK_THRESHOLD) -> bool:
+def detect_intent_leak(rate_row: Mapping[str, Optional[float]], threshold: float = _INTENT_LEAK_THRESHOLD) -> bool:
     """Fires True iff EITHER lever's leak rate exceeds `threshold`. The honest
     baseline is EXACTLY 0.0 (proven by construction -- see
     `honest_zero_evidence_generate` / `ConversationGenerator._tone_and_framing`'s
     empty-belief default), so any positive threshold already gives slack; this
-    is not tuned to make the alarm quiet (R12)."""
+    is not tuned to make the alarm quiet (R12). An axis reported as `None`
+    (zero scored customers, see `intent_leak_rate`'s fail-open guard)
+    contributes no verdict -- it is never treated as evidence of cleanliness
+    nor coerced to a number that could raise a TypeError."""
+    framing_rate = rate_row.get("framing_leak_rate")
+    tone_rate = rate_row.get("tone_leak_rate")
     return (
-        rate_row.get("framing_leak_rate", 0.0) > threshold
-        or rate_row.get("tone_leak_rate", 0.0) > threshold
+        (framing_rate is not None and framing_rate > threshold)
+        or (tone_rate is not None and tone_rate > threshold)
     )
 
 
