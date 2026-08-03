@@ -744,6 +744,25 @@ function classifyGap(v){
 }
 function fmtGap(v){ return v==null?"—":Number(v).toFixed(3); }
 
+// A coupled-gap component value may be a scalar, a list, or a nested map (the
+// regression pairs carry `belief_coeffs: {b_hdd: ..., b_cdd: ...}`). String() on a
+// map renders the literal text "[object Object]" -- which is what this door was
+// actually serving, found by site/live_pixel_verify.py driving the LIVE page. On a
+// door whose whole proposition is "every figure walks to its evidence", a component
+// that renders as [object Object] is a figure that cannot be read at all.
+// Depth-limited so a self-referential payload cannot spin.
+function fmtComponent(v, depth){
+  depth = depth || 0;
+  if (v == null) return "—";
+  if (typeof v === "number") return Number.isFinite(v) ? Number(v).toFixed(4) : String(v);
+  if (typeof v !== "object") return String(v);
+  if (depth >= 2) return "…";
+  if (Array.isArray(v)) return v.map(function(x){ return fmtComponent(x, depth+1); }).join(", ");
+  var ks = Object.keys(v);
+  if (!ks.length) return "—";
+  return ks.map(function(k){ return k+"="+fmtComponent(v[k], depth+1); }).join(", ");
+}
+
 function renderCoupledGaps(d){
   var intro=document.getElementById("gap-intro");
   var body=document.getElementById("coupled-gaps");
@@ -805,8 +824,7 @@ function renderCoupledGaps(d){
     var comp = (p.components && Object.keys(p.components).length)
       ? '<details><summary>Components &amp; measurement basis &rarr;</summary>'+
           '<div class="gap-note">'+Object.keys(p.components).map(function(k){
-            var v=p.components[k];
-            return esc(k)+': '+esc(typeof v==="number"?Number(v).toFixed(4):String(v));
+            return esc(k)+': '+esc(fmtComponent(p.components[k]));
           }).join(" &middot; ")+'</div></details>'
       : '';
     return '<div class="gap-row">'+
