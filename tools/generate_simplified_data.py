@@ -14,10 +14,21 @@ never authors new text (SITE_CONSTITUTION rule 5: "the site is a rendering,
 never an author").
 """
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
+
+# Importable both as `tools.generate_simplified_data` (process_run_complete.py)
+# and as a bare script (`python3 tools/generate_simplified_data.py`).
+if str(Path(__file__).resolve().parent.parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools.abolished_block_classes import (  # noqa: E402
+    ABOLISHED_BLOCK_CLASSES,
+    annotate_notes,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
@@ -57,6 +68,7 @@ def generate():
 
     by_lane: dict[str, list[dict]] = {}
     total_entries = 0
+    total_superseded = 0
     for atom in atoms:
         if not isinstance(atom, dict):
             continue
@@ -64,14 +76,21 @@ def generate():
         if not notes:
             continue
         lane = atom.get("lane", "unknown")
+        # `notes` stays byte-identical (rule 5: the site is a rendering, never
+        # an author). `superseded` is DERIVED metadata keyed by note index, so a
+        # note describing a hold behind an ABOLISHED act can be marked as
+        # historical instead of reading as live policy on /proof/.
+        note_texts, superseded = annotate_notes(notes)
         by_lane.setdefault(lane, []).append({
             "atom_id": atom.get("id"),
             "atom_name": atom.get("name"),
             "level_current": atom.get("level_current"),
             "level_target": atom.get("level_target"),
-            "notes": notes,
+            "notes": note_texts,
+            "superseded": superseded,
         })
         total_entries += len(notes)
+        total_superseded += len(superseded)
 
     lanes_out = [
         {
@@ -90,6 +109,20 @@ def generate():
         "lanes": lanes_out,
         "total_atoms_with_notes": sum(len(l["atoms"]) for l in lanes_out),
         "total_notes": total_entries,
+        # The dead-rule exposure, published rather than quietly corrected: how
+        # many register notes describe a hold behind an act that no longer
+        # exists, and what replaced each act. The renderer marks these as
+        # historical; the count is itself an honesty figure.
+        "total_notes_superseded": total_superseded,
+        "abolished_block_classes": [
+            {
+                "name": c.name,
+                "abolished_on": c.abolished_on,
+                "ruling": c.ruling,
+                "replaced_by": c.replaced_by,
+            }
+            for c in ABOLISHED_BLOCK_CLASSES.values()
+        ],
     }, indent=2))
     return True
 
