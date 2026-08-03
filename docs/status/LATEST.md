@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T19:22:43Z
+Last updated: 2026-08-03T19:46:01Z
 
 **DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
 mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
@@ -636,7 +636,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (503s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (517s / 9 min):
 - Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
 - Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
@@ -748,6 +748,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1366.8h across 54 sized atom(s) (9 of 63 below-target atoms still unsized).
-- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
+- Remaining effort: ~1366.9h across 56 sized atom(s) (9 of 65 below-target atoms still unsized).
+- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
