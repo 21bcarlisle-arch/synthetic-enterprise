@@ -127,6 +127,28 @@ class DDLevelCollectionBook:
             ),
         }
 
+    def basis(self) -> dict:
+        """R14 -- every published financial figure carries its clock.
+
+        A level collection is an INSTRUCTION: the fixed standing amount the
+        supplier asks the bank for on the customer's payment day. Whether the
+        bank honours it is a separate event, carried by DD2's balance book
+        (``banked_gbp`` / ``collection_outcome``). So this total is on the
+        INSTRUCTED clock and must not be read as cash banked.
+        """
+        note = (
+            "Level DD INSTRUCTED (the fixed standing amount requested on the "
+            "customer's payment day), not cash banked. Whether each instruction "
+            "was honoured is a separate event carried by dd_balance_book's "
+            "collection_outcome / banked_gbp -- on the real run some come back "
+            "failed (ARUDD). Do not read this total as treasury receipts."
+        )
+        entry = {"clock": "instructed", "provisional": True, "note": note}
+        return {
+            "total_level_collected_gbp": entry,
+            "mean_monthly_level_dd_gbp": entry,
+        }
+
     def serialise(self) -> dict:
         """JSON-safe form for the run-output surface (mirrors
         ``DDBalanceBook.serialise``): the summary plus a bounded set of real
@@ -134,6 +156,7 @@ class DDLevelCollectionBook:
         sample_ids = sorted(self.schedules)[:_SAMPLE_SCHEDULE_CUSTOMERS]
         return {
             "summary": self.summary(),
+            "basis": self.basis(),
             "sample_schedules": {
                 cid: [dataclasses.asdict(c) for c in self.schedules[cid]]
                 for cid in sample_ids

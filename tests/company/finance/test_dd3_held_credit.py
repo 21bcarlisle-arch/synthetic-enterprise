@@ -149,3 +149,64 @@ def test_tell_silent_when_no_held_credit():
     assert bs["customer_credit_held_gbp"] == pytest.approx(0.0)
     assert bs["cash_rich_but_insolvent"] is False
     assert bs["true_total_equity_gbp"] == pytest.approx(bs["naive_total_equity_gbp"])
+
+
+# ---------------------------------------------------------------------------
+# R14 (2026-08-03) -- the DD3 report block must carry its clocks.
+#
+# The reclassification puts a BILLED-and-BANKED held-credit figure against
+# SETTLED-clock equity. That mixed basis is legitimate as a tell, but publishing
+# it unlabelled is precisely the "financial figure without its clock" defect --
+# a reader would take true_total_equity_gbp for a statutory balance-sheet line.
+# ---------------------------------------------------------------------------
+def _dd3_block():
+    from saas.reporting.annual_report import _compute_dd3_held_credit_balance_sheet
+
+    return _compute_dd3_held_credit_balance_sheet(
+        {
+            "ledger_events": [
+                {
+                    "event_type": "billing_event",
+                    "transaction_id": "T1",
+                    "timestamp": "2020-05-31",
+                    "customer_id": "C1",
+                    "amount_gbp": 500.0,
+                },
+            ],
+            "dd_balance_book": {
+                "summary": {
+                    "peak_held_credit_gbp": 120.0,
+                    "peak_month": "2020-10",
+                    "portfolio_final_held_credit_gbp": 0.0,
+                }
+            },
+        },
+        opening_treasury=1_000.0,
+    )
+
+
+def test_dd3_report_block_carries_its_clocks():
+    block = _dd3_block()
+    assert block is not None, "fixture must produce a real block or this proves nothing"
+    basis = block.get("basis")
+    assert basis, "the DD3 balance-sheet block publishes no basis at all"
+    for key in ("customer_credit_held_gbp", "true_total_equity_gbp",
+                "naive_total_equity_gbp"):
+        assert key in block, f"fixture no longer publishes {key}"
+        assert key in basis, f"{key} is published without a clock"
+        assert basis[key].get("clock"), f"{key} basis has no clock"
+        assert "provisional" in basis[key]
+        assert basis[key].get("note"), f"{key} basis has no note"
+
+
+def test_dd3_basis_names_the_mixed_clock_not_just_settled():
+    """The load-bearing content: the adjusted equity is NOT a settled-clock
+    figure, and its label must say so. A basis block that called everything
+    'settled' would pass a shape-only check while lying about the number."""
+    basis = _dd3_block()["basis"]
+    assert basis["naive_total_equity_gbp"]["clock"] == "settled"
+    assert basis["true_total_equity_gbp"]["clock"] != "settled", (
+        "the held-credit-adjusted equity mixes two clocks and must not be "
+        "published as a settled-clock figure"
+    )
+    assert "banked" in basis["customer_credit_held_gbp"]["clock"]

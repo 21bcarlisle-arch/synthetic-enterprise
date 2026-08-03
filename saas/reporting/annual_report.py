@@ -848,6 +848,48 @@ def _compute_dd3_held_credit_balance_sheet(run_output, opening_treasury=0.0):
         # The closing held credit too, so the seasonal round-trip (build then
         # full draw-down) is legible beside the peak.
         bs["closing_held_credit_gbp"] = summary.get("portfolio_final_held_credit_gbp")
+        # R14 (2026-08-03): no financial figure without its clock. The held
+        # credit reclassified here is NOT on the same clock as the equity it is
+        # reclassified out of -- the equity comes off the double-entry journal
+        # (settled clock) while the held credit comes off DD2's balance book
+        # (issued bills netted against BANKED collections). Saying so is the
+        # point: an unlabelled liability sitting inside a balance sheet is
+        # exactly the defect R14 exists to catch. The two DD-side figures also
+        # inherit DD2's own basis block, carried through verbatim so a consumer
+        # never has to guess which clock it is holding.
+        bs["basis"] = {
+            "customer_credit_held_gbp": {
+                "clock": "billed-and-banked",
+                "provisional": True,
+                "note": (
+                    "Held customer credit from dd_balance_book: issued bills "
+                    "(billed clock) netted against level DD actually banked "
+                    "(banked clock). Reclassified out of settled-clock equity, "
+                    "so the two sides of this view are on DIFFERENT clocks and "
+                    "the adjusted equity is an indicative insolvency test, not "
+                    "a statutory balance sheet."
+                ),
+            },
+            "true_total_equity_gbp": {
+                "clock": "settled",  # MUTATION 7: mislabel the mixed-clock figure
+                "provisional": True,
+                "note": (
+                    "Settled-clock equity from the double-entry journal, less "
+                    "the billed-and-banked held customer credit above. Mixed "
+                    "basis by construction -- that is what makes it a tell "
+                    "rather than a reported figure."
+                ),
+            },
+            "naive_total_equity_gbp": {
+                "clock": "settled",
+                "provisional": True,
+                "note": (
+                    "Equity straight off the double-entry journal, treating "
+                    "held customer credit as the company's own money. This is "
+                    "the BELIEF half of the DD-H solvency gap."
+                ),
+            },
+        }
         return bs
     except Exception:
         return None

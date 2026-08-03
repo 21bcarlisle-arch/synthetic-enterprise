@@ -207,3 +207,24 @@ def test_sample_schedules_bounded():
         bills += _monthly_bills(cid, [70] * 12)
     book = _level_book(bills)
     assert len(book.serialise()["sample_schedules"]) == _SAMPLE_SCHEDULE_CUSTOMERS
+
+
+def test_level_collection_total_carries_its_clock():
+    """R14 (2026-08-03): `total_level_collected_gbp` is INSTRUCTED money, not
+    banked money -- on the real run 26 of 751 instructions come back failed. A
+    total published without that distinction reads as treasury receipts and is
+    exactly the basis-less figure R14 forbids."""
+    bills = _monthly_bills(_pick_ids(1, want_dd=True)[0], [70] * 12)
+    out = _level_book(bills).serialise()
+    basis = out["basis"]
+    for key in ("total_level_collected_gbp", "mean_monthly_level_dd_gbp"):
+        assert key in basis, f"{key} is published without a clock"
+        assert basis[key].get("clock") == "instructed"
+        assert "provisional" in basis[key]
+        assert basis[key].get("note")
+    # The note must name the separate banked event, not just say "instructed" --
+    # a passport that does not point at the other clock is decoration.
+    assert "banked" in basis["total_level_collected_gbp"]["note"]
+    # Every published GBP figure in the summary is labelled.
+    unlabelled = [k for k in out["summary"] if k.endswith("_gbp") and k not in basis]
+    assert unlabelled == [], f"unlabelled published GBP figures: {unlabelled}"

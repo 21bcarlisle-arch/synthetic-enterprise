@@ -33,6 +33,7 @@ to `docs/reports/run_output_latest.json` plus a versioned copy stamped with
 the current git commit and timestamp.
 """
 
+import dataclasses
 import json
 import subprocess
 from datetime import datetime, timezone
@@ -40,7 +41,10 @@ from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
-from simulation.dd_balance_book import build_dd_balance_book
+from simulation.dd_balance_book import (
+    build_dd_balance_book,
+    collection_outcomes_from_attempts,
+)
 from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.billing.dd_review_runner import run_annual_reviews
 from company.billing.account_adjustment_register import (
@@ -573,7 +577,21 @@ def main(report_end: str | None = None, policy=None):
     # financial figure. It emits the held-credit-liability figure DD3 will book
     # into the double-entry chart and DD-H will weigh against believed solvency
     # (both the registered next gated steps, deliberately not wired here).
-    dd_balance_book = build_dd_balance_book(bills)
+    #
+    # 2026-08-03 (DD2 residual): the balance now carries what was actually
+    # BANKED, not what was instructed. `dd_collection_book` above already
+    # resolves every DD bill's collection through the real Bacs rails and some
+    # come back `failed` (ARUDD); counting money that never left the customer's
+    # bank as held credit overstated the liability. The overlay is derived from
+    # that book's own attempt records -- company-observable (its own bank
+    # rails), no RNG, no new population, and DD1's instructed level-fixed
+    # amount below is deliberately unchanged by it.
+    dd_balance_book = build_dd_balance_book(
+        bills,
+        collection_outcomes=collection_outcomes_from_attempts(
+            bills, [dataclasses.asdict(a) for a in dd_collection_book.all_attempts()]
+        ),
+    )
 
     # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
     # made first-class -- the standing monthly amount actually SIZES a collection

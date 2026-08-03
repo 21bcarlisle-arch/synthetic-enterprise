@@ -164,7 +164,9 @@ def test_serialise_shape_and_sample_cap():
     for cid in ids:
         bills += _monthly_bills(cid, [90.0] * 12)
     out = build_dd_balance_book(bills).serialise()
-    assert set(out) == {"summary", "monthly_held_credit_series", "sample_trajectories"}
+    assert set(out) == {
+        "summary", "basis", "monthly_held_credit_series", "sample_trajectories",
+    }
     assert len(out["sample_trajectories"]) == _SAMPLE_TRAJECTORY_CUSTOMERS, (
         "sample trajectories must be capped for the business surface"
     )
@@ -200,3 +202,213 @@ def test_held_credit_liability_is_actually_measured_not_fail_open():
         "a sustained-credit customer must register real held credit"
     )
     assert s["n_ever_in_credit"] == 1
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-03 -- DD2 residual: the COLLECTION-OUTCOME overlay.
+#
+# Before this, the balance assumed every instructed level DD was banked. On the
+# real 2016-2025 run 26 of 751 DD collections come back `failed` (ARUDD), so the
+# held-credit LIABILITY was computed from money that never left the customer's
+# bank. These tests hold the overlay to R15 BOTH WAYS: a failure must MOVE the
+# liability (no fail-open), and an outcome that has not arrived must NOT be
+# recoded as a failure (no fail-closed-on-silence artefact).
+# ---------------------------------------------------------------------------
+import math
+
+import pytest
+
+from simulation.dd_balance_book import (
+    OUTCOME_ASSUMED,
+    OUTCOME_COLLECTED,
+    OUTCOME_FAILED,
+    collection_outcomes_from_attempts,
+)
+
+
+def _attempt(cid, day, amount, outcome="collected"):
+    return {
+        "customer_id": cid,
+        "attempt_date": day,
+        "amount_gbp": amount,
+        "outcome": outcome,
+        "failure_reason": "" if outcome == "collected" else "ARUDD",
+    }
+
+
+def _summer_winter(n_years=1):
+    """A seasonal shape: cheap summer, expensive winter, so a level DD genuinely
+    builds credit through the warm months."""
+    year = [130.0, 120.0, 100.0, 70.0, 50.0, 40.0, 40.0, 45.0, 60.0, 85.0, 110.0, 130.0]
+    return year * n_years
+
+
+def test_failed_collection_reduces_held_credit_and_is_labelled():
+    """FAIL-OPEN guard: money instructed but never banked is NOT held credit."""
+    bills = _monthly_bills(_DD_ID, _summer_winter())
+    all_collected = build_dd_balance_book(bills)
+    # Fail the June collection -- deep in the summer credit build.
+    overlay = {(_DD_ID, "2016-06"): OUTCOME_FAILED}
+    with_failure = build_dd_balance_book(bills, collection_outcomes=overlay)
+
+    peak_all = all_collected.summary()["peak_held_credit_gbp"]
+    peak_fail = with_failure.summary()["peak_held_credit_gbp"]
+    assert peak_all > 0, "fixture must actually build credit or the test proves nothing"
+    assert peak_fail < peak_all, (
+        "a failed collection must LOWER the held-credit liability -- counting "
+        "money that never reached the bank is the fail-open this closes"
+    )
+
+    june = [p for p in with_failure.trajectories[_DD_ID] if p.month == "2016-06"][0]
+    assert june.collection_outcome == OUTCOME_FAILED
+    assert june.banked_gbp == 0.0, "a failed collection banks nothing"
+    assert june.collected_gbp > 0.0, (
+        "the INSTRUCTED standing amount is unchanged by a bank failure -- DD1's "
+        "level-fixed invariant reads this field"
+    )
+    s = with_failure.summary()
+    assert s["n_failed_collections"] == 1
+    assert s["uncollected_level_dd_gbp"] == june.collected_gbp
+
+
+def test_unarrived_outcome_is_assumed_not_failed():
+    """FAIL-CLOSED-ON-SILENCE guard (C-S1): an outcome that has not arrived is
+    not a failure. Silence must leave the instructed treatment standing, or the
+    liability would collapse to nothing the moment the attempt stream lagged."""
+    bills = _monthly_bills(_DD_ID, _summer_winter())
+    no_overlay = build_dd_balance_book(bills)
+    all_known = build_dd_balance_book(
+        bills,
+        collection_outcomes={
+            (_DD_ID, p.month): OUTCOME_COLLECTED for p in no_overlay.trajectories[_DD_ID]
+        },
+    )
+    assert no_overlay.summary()["peak_held_credit_gbp"] == \
+        all_known.summary()["peak_held_credit_gbp"], (
+        "an absent outcome must behave exactly like a known success"
+    )
+    assert all(
+        p.collection_outcome == OUTCOME_ASSUMED for p in no_overlay.trajectories[_DD_ID]
+    )
+    assert no_overlay.summary()["n_collections_with_known_outcome"] == 0
+    assert all_known.summary()["n_collections_with_known_outcome"] == 12
+    assert no_overlay.summary()["n_failed_collections"] == 0
+
+
+def test_outcome_arrival_order_does_not_change_the_book():
+    """C-S1 event-arrival tolerance + C-S2 replay: outcomes may arrive singly,
+    late or out of order without changing the answer."""
+    bills = _monthly_bills(_DD_ID, _summer_winter())
+    full = {(_DD_ID, "2016-03"): OUTCOME_FAILED, (_DD_ID, "2016-09"): OUTCOME_FAILED}
+    reversed_arrival = dict(sorted(full.items(), reverse=True))
+    a = build_dd_balance_book(bills, collection_outcomes=full).summary()
+    b = build_dd_balance_book(bills, collection_outcomes=reversed_arrival).summary()
+    assert a == b, "outcome arrival ORDER must not change the book (C-S1/C-S2)"
+
+
+def test_level_fixed_invariant_survives_a_failed_collection():
+    """DD1's consumer contract: a bank failure must not make a level DD stop
+    being level. The instructed amount is what DD1 reads."""
+    from simulation.dd_level_collection_book import build_dd_level_collection_book
+
+    bills = _monthly_bills(_DD_ID, _summer_winter())
+    book = build_dd_balance_book(
+        bills, collection_outcomes={(_DD_ID, "2016-06"): OUTCOME_FAILED}
+    )
+    lcb = build_dd_level_collection_book(book)
+    assert lcb.summary()["all_schedules_level_fixed"] is True
+
+
+def test_non_finite_bill_amount_is_rejected_not_absorbed():
+    """R15 fail-open: NaN is comparison-blind (`nan > 0` is False), so a NaN
+    bill would silently drop that customer out of the held-credit aggregate and
+    leave a plausible, wrong liability. Reject FIRST, never coerce."""
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        bills = _monthly_bills(_DD_ID, [90.0] * 6)
+        bills[3]["total_amount_gbp"] = bad
+        # Match the guard's OWN message. Without this the test would pass for
+        # the WRONG REASON: with the finiteness check removed, a NaN still
+        # blows up several frames later inside dd_review._recommended_monthly
+        # (`round(nan)` raises ValueError too), so a bare `pytest.raises(
+        # ValueError)` proves nothing about THIS module's guard.
+        with pytest.raises(ValueError, match="must be finite"):
+            build_dd_balance_book(bills)
+    # ...and the reason it matters, stated as an executable fact rather than a
+    # comment: this is the comparison blindness the finiteness check pre-empts.
+    assert not (float("nan") > 0)
+    assert math.isnan(float("nan") - 1.0)
+
+
+def test_outcome_join_matches_bills_and_flags_a_slipped_walk():
+    """The join between bills and Bacs attempts is positional; the amount on
+    each side is an INDEPENDENT cross-check of it (two separate structures). A
+    slipped walk must RAISE, never silently attribute one month's failure to
+    another."""
+    bills = _monthly_bills(_DD_ID, [90.0, 91.0, 92.0])
+    attempts = [
+        _attempt(_DD_ID, "2016-02-14", 90.0),
+        _attempt(_DD_ID, "2016-03-14", 91.0, outcome="failed"),
+        _attempt(_DD_ID, "2016-04-14", 92.0),
+    ]
+    overlay = collection_outcomes_from_attempts(bills, attempts)
+    assert overlay == {
+        (_DD_ID, "2016-01"): OUTCOME_COLLECTED,
+        (_DD_ID, "2016-02"): OUTCOME_FAILED,
+        (_DD_ID, "2016-03"): OUTCOME_COLLECTED,
+    }
+
+    slipped = [attempts[0], _attempt(_DD_ID, "2016-03-14", 999.99, outcome="failed")]
+    with pytest.raises(ValueError, match="unsound"):
+        collection_outcomes_from_attempts(bills, slipped)
+
+
+def test_unknown_outcome_string_is_not_read_as_collected():
+    """FAIL-CLOSED: only the literal success value banks the money. A renamed or
+    corrupted outcome must not read as 'collected'."""
+    bills = _monthly_bills(_DD_ID, [90.0])
+    overlay = collection_outcomes_from_attempts(
+        bills, [_attempt(_DD_ID, "2016-02-14", 90.0, outcome="C0LLECTED")]
+    )
+    assert overlay == {(_DD_ID, "2016-01"): OUTCOME_FAILED}
+
+
+def test_short_attempt_stream_leaves_the_tail_assumed():
+    """C-S1: outcomes still in flight. The covered months resolve; the tail
+    stays `assumed` rather than being invented either way."""
+    bills = _monthly_bills(_DD_ID, [90.0, 90.0, 90.0])
+    overlay = collection_outcomes_from_attempts(
+        bills, [_attempt(_DD_ID, "2016-02-14", 90.0, outcome="failed")]
+    )
+    assert overlay == {(_DD_ID, "2016-01"): OUTCOME_FAILED}
+    book = build_dd_balance_book(bills, collection_outcomes=overlay)
+    outcomes = [p.collection_outcome for p in book.trajectories[_DD_ID]]
+    assert outcomes == [OUTCOME_FAILED, OUTCOME_ASSUMED, OUTCOME_ASSUMED]
+
+
+def test_non_dd_customers_never_enter_the_overlay():
+    """The overlay inherits the SAME population gate as the book itself."""
+    non_dd = _pick_ids(1, want_dd=False)[0]
+    bills = _monthly_bills(non_dd, [90.0, 90.0])
+    assert collection_outcomes_from_attempts(
+        bills, [_attempt(non_dd, "2016-02-14", 90.0, outcome="failed")]
+    ) == {}
+
+
+def test_held_credit_figures_carry_their_clock():
+    """R14: no financial figure without its basis. The held-credit liability is
+    billed-clock consumption against banked-clock collections -- and an
+    unlabelled liability is a defect, not a formatting choice."""
+    bills = _monthly_bills(_DD_ID, _summer_winter())
+    out = build_dd_balance_book(bills).serialise()
+    basis = out["basis"]
+    for key in ("peak_held_credit_gbp", "portfolio_final_held_credit_gbp",
+                "held_credit_gbp", "uncollected_level_dd_gbp"):
+        assert key in basis, f"{key} is published without a clock"
+        entry = basis[key]
+        assert entry.get("clock"), f"{key} basis has no clock"
+        assert "provisional" in entry
+        assert entry.get("note"), f"{key} basis has no note"
+    # The clock must actually NAME the banked half -- a basis label that does
+    # not mention what changed is decoration, not a passport.
+    assert "banked" in basis["peak_held_credit_gbp"]["clock"]
+    assert "banked" in basis["peak_held_credit_gbp"]["note"]
