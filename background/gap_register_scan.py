@@ -317,6 +317,14 @@ def register8_followons(dir_path: Path | None = None) -> list[dict[str, str]]:
     return out
 
 
+# --------------------------------------------------------------------------- register 9
+# Imported at module scope so a missing census module is a LOUD ImportError at
+# draw time, not a register that silently vanishes from the residue.
+from background.shared_primitive_census import (  # noqa: E402
+    census_register_open as register9_shared_primitive_census,
+)
+
+
 # --------------------------------------------------------------------------- aggregate
 _REGISTERS = {
     "simplifications": register1_simplifications,
@@ -327,6 +335,19 @@ _REGISTERS = {
     "claim_placeholder": register5_claim_placeholders,
     "model_tf2": register7_model_timeframe2,
     "followons": register8_followons,
+    # Register 9 -- the shared-primitive census (SP5). Wired here rather than
+    # left standalone because the WIRING is the atom: a census nothing reads is
+    # the consumed-not-absorbed failure mode it exists to catch. Its own
+    # `census_register_open` already honours this module's injectable-path and
+    # fail-safe-toward-work contract (an absent/malformed census yields an
+    # `unreadable` OPEN row, never a silent empty).
+    "shared_primitive_census": register9_shared_primitive_census,
+    # Register 9 -- the shared-primitive census (SP5). Wired here rather than
+    # left standalone because the WIRING is the atom: a census nothing reads is
+    # the consumed-not-absorbed failure mode it exists to catch. Its own
+    # `census_register_open` already honours this module's injectable-path and
+    # fail-safe-toward-work contract (an absent/malformed census yields an
+    # `unreadable` OPEN row, never a silent empty).
 }
 
 

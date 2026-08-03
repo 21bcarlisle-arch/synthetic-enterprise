@@ -1,0 +1,75 @@
+{
+  "clone_ceiling": 223,
+  "clone_count": 267,
+  "clone_set_count": 86,
+  "files_scanned": 699,
+  "functions_scanned": 7624,
+  "generated_at": "2026-08-03T12:45:29.783066+00:00",
+  "migration_note": null,
+  "previous_register_count": null,
+  "quantity_registry_coverage": {
+    "bad_debt": {
+      "has_owner": false,
+      "owner_module": null
+    },
+    "carbon": {
+      "has_owner": false,
+      "owner_module": null
+    },
+    "cost_to_serve": {
+      "has_owner": false,
+      "owner_module": null
+    },
+    "expected_value": {
+      "has_owner": false,
+      "owner_module": null
+    },
+    "net_margin": {
+      "has_owner": false,
+      "owner_module": null
+    },
+    "treasury": {
+      "has_owner": false,
+      "owner_module": null
+    }
+  },
+  "register_count": 91,
+  "shared_primitive_inventory": {
+    "background_daemon_log_helper": {
+      "caller_count": 12,
+      "exists": false,
+      "migrated_count": 0
+    },
+    "clamp_term_end": {
+      "caller_count": 7,
+      "exists": false,
+      "migrated_count": 0
+    },
+    "register_base_class": {
+      "caller_count": 113,
+      "exists": false,
+      "migrated_count": 0
+    },
+    "rng_substream_primitive": {
+      "caller_count": 36,
+      "exists": false,
+      "migrated_count": 0
+    },
+    "season_for_date": {
+      "caller_count": 3,
+      "exists": false,
+      "migrated_count": 0
+    },
+    "vat_constant": {
+      "caller_count": 4,
+      "exists": true,
+      "migrated_count": 0
+    },
+    "working_day_calculator": {
+      "caller_count": 24,
+      "exists": true,
+      "migrated_count": 0
+    }
+  },
+  "unparseable": []
+}

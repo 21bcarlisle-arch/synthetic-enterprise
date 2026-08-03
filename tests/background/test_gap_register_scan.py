@@ -15,6 +15,7 @@ Plus invariant 2: a parse/read error on any register reads DRAWABLE (fail-safe t
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import pytest
 
@@ -40,6 +41,24 @@ def _empty_paths(tmp_path) -> dict:
     props = tmp_path / "proposals_empty"
     props.mkdir(parents=True, exist_ok=True)
     carbon = _write(tmp_path / "carbon_ledger.py", "# wired\n")
+    # Register 9 (shared-primitive census). Pinned like every other register --
+    # an unpinned new register would read LIVE disk and silently break the
+    # neuter contract this file exists to prove.
+    census = _write(tmp_path / "census.json", json.dumps({
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "clone_count": 100,
+        "clone_ceiling": 223,
+        "register_count": 91,
+        "previous_register_count": 91,
+        "migration_note": None,
+        "shared_primitive_inventory": {
+            "working_day_calculator": {
+                "exists": True, "caller_count": 5, "migrated_count": 5},
+        },
+        "quantity_registry_coverage": {
+            "net_margin": {"has_owner": True, "owner_module": "x.py"},
+        },
+    }))
     return {
         "simplifications": mm,
         "fidelity": fid,
@@ -49,6 +68,7 @@ def _empty_paths(tmp_path) -> dict:
         "claim_placeholder": carbon,
         "model_tf2": model,
         "followons": props,
+        "shared_primitive_census": census,
     }
 
 
