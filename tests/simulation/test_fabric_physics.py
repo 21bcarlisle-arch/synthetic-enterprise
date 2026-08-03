@@ -109,6 +109,7 @@ def test_reconstruction_reproduces_the_three_observed_daily_statistics():
         temperature_max_c=8.4,
         temperature_mean_c=4.3,
         day_of_year=20,
+        latitude_deg=DEFAULT_LATITUDE_DEG,
     )
     assert len(profile.temperatures_c) == PERIODS_PER_DAY
     assert min(profile.temperatures_c) == pytest.approx(1.2, abs=0.05)
@@ -133,6 +134,7 @@ def test_reconstruction_reconciles_across_the_year(t_min, t_max, t_mean, day):
         temperature_max_c=t_max,
         temperature_mean_c=t_mean,
         day_of_year=day,
+        latitude_deg=DEFAULT_LATITUDE_DEG,
     )
     assert reconstruction_reconciles(profile)
 
@@ -140,7 +142,8 @@ def test_reconstruction_reconciles_across_the_year(t_min, t_max, t_mean, day):
 def test_reconstruction_rejects_an_inverted_range_rather_than_fabricating_a_profile():
     with pytest.raises(ValueError):
         reconstruct_ambient_profile(
-            temperature_min_c=9.0, temperature_max_c=2.0, temperature_mean_c=5.0, day_of_year=50
+            temperature_min_c=9.0, temperature_max_c=2.0, temperature_mean_c=5.0, day_of_year=50,
+            latitude_deg=DEFAULT_LATITUDE_DEG,
         )
 
 
@@ -148,7 +151,8 @@ def test_reconstruction_reconciles_control_fires_on_an_unreconciled_profile():
     """R15: the control must be able to FAIL. Hand it a profile whose residual the
     solve could not absorb and it fires."""
     good = reconstruct_ambient_profile(
-        temperature_min_c=1.0, temperature_max_c=7.0, temperature_mean_c=4.0, day_of_year=20
+        temperature_min_c=1.0, temperature_max_c=7.0, temperature_mean_c=4.0, day_of_year=20,
+        latitude_deg=DEFAULT_LATITUDE_DEG,
     )
     assert reconstruction_reconciles(good)
     mutated = AmbientProfile(
@@ -181,10 +185,12 @@ def test_the_profile_is_not_one_fixed_shape_across_the_year():
     """The timing comes from solar geometry, so a January and a July day with the
     same min/max/mean still peak at different hours."""
     january = reconstruct_ambient_profile(
-        temperature_min_c=4.0, temperature_max_c=10.0, temperature_mean_c=6.5, day_of_year=15
+        temperature_min_c=4.0, temperature_max_c=10.0, temperature_mean_c=6.5, day_of_year=15,
+        latitude_deg=DEFAULT_LATITUDE_DEG,
     )
     july = reconstruct_ambient_profile(
-        temperature_min_c=4.0, temperature_max_c=10.0, temperature_mean_c=6.5, day_of_year=196
+        temperature_min_c=4.0, temperature_max_c=10.0, temperature_mean_c=6.5, day_of_year=196,
+        latitude_deg=DEFAULT_LATITUDE_DEG,
     )
     assert january.sunrise_hour > july.sunrise_hour
     assert january.peak_hour != july.peak_hour
@@ -506,6 +512,7 @@ def test_heavier_fabric_damps_the_indoor_swing_and_the_control_can_fire():
                 temperature_max_c=day.temperature_max_c,
                 temperature_mean_c=day.temperature_mean_c,
                 day_of_year=day.day_of_year,
+                latitude_deg=DEFAULT_LATITUDE_DEG,
             )
             result = simulate_day(
                 household=household,

@@ -336,6 +336,37 @@ sim run, which a bounded tick does not take); the `_PRICE_CAP_QUARTERLY` calenda
 (registered as debt on `W3_1`, out of this atom's scope); the auto-processor broad-`add` finding.
 
 ---
+## PROGRESS 2026-08-03 (worker tick) — C14 drawn from self-refill, and a prior tick's build was found half-landed
+
+This tick's draw was the self-refill atom **`C14_thermal_parameter_inference`** (the COMPANY leg of the
+fabric coupled triad), not a Class B item. **L0→L2**, recorded in `gate_authorizations.jsonl`.
+`company/pricing/thermal_inference.py` + its suite: 44 pass + 1 strict-xfail; epistemic_verifier PASS.
+
+**Three fail-opens found by MEASURING rather than by review**, each now a control with a mutation proof:
+the reported confidence barely moved between daily and monthly reads while the error grew from 0.2% to
+18%; a flat assumed SCOP put a heat pump 55% out with no widening; and a **summer-only read history
+passed the degree-day span test**, extrapolating winter fabric loss from July hot water, because the
+searched balance point drifts up to 18 C. Stating the uncertainty honestly then *improved* the estimates
+(monthly 18.4% → 7.5%), because the shrinkage weights became right — worth carrying: a fail-open in an
+UNCERTAINTY model is not merely cosmetic, it corrupts the estimate that consumes it.
+
+**A negative result was recorded rather than tuned away.** The lag-based thermal-response estimate does
+not recover fabric-mass ordering (pre-1919 solid wall 13.3h vs post-2000 flat 21.8h — backwards). It is
+pinned as a **strict xfail** so an estimator improvement FAILS and forces the docstring claim to be
+corrected, rather than the claim being silently outgrown.
+
+**PROCESS FINDING 3 — a prior tick's build was left half-landed, and only building on it revealed it.**
+`observed with evidence`: `simulation/premise_trace.py` and `tests/simulation/test_premise_trace.py` were
+`git add`-ed but never committed, and `simulation/fabric_physics.py` carried an uncommitted deliberate
+fail-loud change (`reconstruct_ambient_profile` lost its silent `DEFAULT_LATITUDE_DEG` fallback). The
+production callers were updated; the **committed test file was not**, so `tests/simulation/test_fabric_physics.py`
+had 9 failures sitting in the working tree. The W1_12 map cell already claimed L2. Landing C14 was
+blocked by it (C14's harness leg imports `simulation.premise_trace`), so the 7 call sites were fixed and
+the whole set landed together. **The map cell said L2 while the build was uncommitted and its sibling
+suite was red** — same class as the stale-cells finding above, one step earlier: a level recorded before
+its build was actually *landed*, not merely before it was verified.
+
+---
 
 **Recommended fix, not yet built:** when `process_run_complete.py` successfully publishes marker N, it
 should archive every *older* marker to `done/` as SUPERSEDED-BY-N in the same commit — they describe runs

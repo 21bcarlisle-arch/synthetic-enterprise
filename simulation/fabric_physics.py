@@ -66,6 +66,48 @@ peaks will very likely WORSEN imbalance costs and margin. That is the CORRECT
 consequence of removing a smoothing artefact and must not be treated as a
 regression or tuned back.
 
+LOCAL WEATHER AND PER-ORIENTATION SUN (director finding, 2026-08-03 fix)
+--------------------------------------------------------------------------
+`observed-with-evidence` — as first built, this module had exactly ONE caller
+of `reconstruct_ambient_profile`/`reconstruct_irradiance_profile` anywhere in
+the tree (`tests/simulation/test_fabric_physics.py`), and every one of them
+either omitted `latitude_deg` or passed `DEFAULT_LATITUDE_DEG` explicitly.
+`DEFAULT_LATITUDE_DEG` (a UK population-weighted mean, 53.0 deg) was therefore
+what every simulated premise actually received — the averaging fault the
+director asked to have confirmed one layer up from the demand model. There was
+also no per-orientation sun at all: `clear_sky_ghi_kw_per_m2` is global
+HORIZONTAL irradiance, so a north- and a south-facing home received identical
+solar gain.
+
+Two fixes, both load-bearing:
+
+1. **Genuinely local weather, honestly bounded at FOUR sites.** `latitude_deg`
+   is no longer defaulted anywhere in this module — `reconstruct_ambient_profile`
+   and `reconstruct_irradiance_profile` now RAISE if it is missing rather than
+   silently falling back to the national mean. `simulate_premise` resolves it
+   itself from `DailyWeather.location_id` via `latitude_for_weather_site`
+   (`WEATHER_SITE_LATITUDE_DEG`, the REAL published coordinates the archive was
+   fetched at — `saas/customers.py`'s C1-C4 `location` dicts / `docs/data-sources/
+   weather.md`), which raises for any id outside the four sites the archive
+   actually covers. This is honest at exactly the resolution the archive
+   supports: FOUR real sites (London/Manchester/Glasgow/Cotswolds), DAILY
+   statistics reconstructed to half-hourly by solar geometry. It is NOT
+   per-postcode weather — the archive does not have that, and nothing here
+   claims otherwise.
+2. **Per-orientation sun.** `reconstruct_poa_irradiance_profile` transposes the
+   global horizontal irradiance onto the premise's own glazing plane using the
+   Liu & Jordan (1963) isotropic-sky model with the Erbs, Klein & Duffie (1982)
+   beam/diffuse split and the general Duffie & Beckman (2013, *Solar Engineering
+   of Thermal Processes*, 4th ed., Eq. 1.6.2) angle-of-incidence formula — full
+   citations at each function. `Household.roof_aspect` (already EPC-derived,
+   already carried by every household, previously read by nothing in this
+   module) is reused as the glazing orientation; there is no separate
+   window-facing field, so this is a stated proxy, not a new fabrication.
+   `"na"` (flats/commercial — no private roof to speak of) maps to tilt=0, which
+   the transposition reduces to plain GHI by construction: unknown orientation
+   degrades honestly to the old undifferentiated behaviour rather than
+   inventing a facade.
+
 ANCHOR INDEPENDENCE
 -------------------
 SAP-class fields PARAMETERISE the fabric here. They must never also be used to
@@ -102,9 +144,44 @@ _SUB_STEP_HOURS = 0.5 / SUB_STEPS_PER_PERIOD
 
 STREAM_NAME = "W1_11_fabric_physics"
 
-# `domain-knowledge` — UK population-weighted latitude. An INPUT, not a per-home
-# fabrication: callers with a real location pass their own.
+# `domain-knowledge` — UK population-weighted latitude. An INPUT a caller may
+# legitimately choose for genuinely NATIONAL/aggregate work (there is no such
+# thing as "the" latitude of a whole-GB roll-up) — never a silent per-premise
+# fallback. No function in this module defaults to it any more (2026-08-03
+# fix): `latitude_deg` is a required argument everywhere a real location
+# exists to pass, precisely so a caller cannot forget it and land here
+# unnoticed.
 DEFAULT_LATITUDE_DEG = 53.0
+
+# `domain-knowledge` — the REAL published coordinates of the four sites the
+# weather archive (`sim/weather_data/C{1..4}.csv`, Open-Meteo reanalysis) was
+# actually fetched at. Copied from `saas/customers.py`'s `location` dicts
+# (cross-checked against `docs/data-sources/weather.md`) — the SAME
+# coordinates the archive already used, not a new or re-guessed location.
+# These are the only four sites this simulation has real local weather for;
+# resolving a premise past this table (e.g. to a synthetic postcode) would be
+# a fabrication this module refuses to make.
+WEATHER_SITE_LATITUDE_DEG: dict[str, float] = {
+    "C1": 51.5074,  # London
+    "C2": 53.4808,  # Manchester
+    "C3": 55.8642,  # Glasgow
+    "C4": 51.8330,  # Cotswolds
+}
+
+
+def latitude_for_weather_site(location_id: str) -> float:
+    """FAIL-CLOSED (R15): the real latitude for one of the four sites this
+    archive covers. Raises for anything else rather than silently returning
+    `DEFAULT_LATITUDE_DEG` — that silent fallback is precisely the fault this
+    function exists to close off."""
+    try:
+        return WEATHER_SITE_LATITUDE_DEG[location_id]
+    except KeyError:
+        raise ValueError(
+            f"{location_id!r} is not one of the weather sites this archive "
+            f"covers ({sorted(WEATHER_SITE_LATITUDE_DEG)}) — refusing to "
+            "silently default to a national-average latitude"
+        ) from None
 
 
 # ---------------------------------------------------------------------------
@@ -139,13 +216,20 @@ def solar_elevation_sin(latitude_deg: float, day_of_year: int, hour: float) -> f
     return math.sin(lat) * math.sin(dec) + math.cos(lat) * math.cos(dec) * math.cos(hour_angle)
 
 
+# `domain-knowledge` — solar constant (kW/m^2), the extraterrestrial
+# irradiance on a plane normal to the sun's rays at 1 AU. Named once and reused
+# by the Haurwitz clear-sky model below AND by the clearness-index calculation
+# the orientation transposition needs, so the two stay numerically consistent.
+_SOLAR_CONSTANT_KW_PER_M2 = 1.361
+
+
 def clear_sky_ghi_kw_per_m2(latitude_deg: float, day_of_year: int, hour: float) -> float:
     """Clear-sky global horizontal irradiance (kW/m^2), Haurwitz-form:
     0.75 of the extraterrestrial horizontal beam. Zero below the horizon."""
     sin_alt = solar_elevation_sin(latitude_deg, day_of_year, hour)
     if sin_alt <= 0.0:
         return 0.0
-    return 0.75 * 1.361 * sin_alt
+    return 0.75 * _SOLAR_CONSTANT_KW_PER_M2 * sin_alt
 
 
 def cloud_attenuation(cloud_cover_fraction: float) -> float:
@@ -192,14 +276,19 @@ def reconstruct_ambient_profile(
     temperature_max_c: float,
     temperature_mean_c: float,
     day_of_year: int,
-    latitude_deg: float = DEFAULT_LATITUDE_DEG,
+    latitude_deg: float,
     thermal_lag_hours: float = 2.0,
 ) -> AmbientProfile:
     """Half-hourly ambient temperature from the three observed daily statistics.
 
     Minimum and maximum are exact by construction; the overnight decay rate is
     solved (bisection) so the profile's mean matches the observed daily mean.
+
+    `latitude_deg` has NO default (2026-08-03 fix): a missing real location
+    must fail loudly, not silently reconstruct against the national mean.
     """
+    if not math.isfinite(latitude_deg):
+        raise ValueError(f"latitude_deg must be finite, got {latitude_deg!r}")
     if temperature_max_c < temperature_min_c:
         raise ValueError(
             f"temperature_max_c ({temperature_max_c}) below temperature_min_c ({temperature_min_c})"
