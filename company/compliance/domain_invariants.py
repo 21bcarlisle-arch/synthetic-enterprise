@@ -234,12 +234,37 @@ RESI_CONSUMPTION_ENVELOPE_ELEC = RangeInvariant(
     source="Derived from Ofgem TDCV Low/High with headroom for electric-heated homes",
     low=500.0, high=15000.0, unit="kWh/year",
 )
+# High bound RE-ANCHORED 2026-08-03 (W1_13) from 40,000 to 50,000 on an
+# EXTERNAL published distribution, replacing a bound derived from this sim's
+# own previous generator (observed max 35,913 kWh/yr, run_output_latest.json
+# 2026-07-09). 50,000 is DESNZ's OWN validity threshold for a domestic gas
+# record in NEED -- above it, the national statistics publisher removes the
+# reading as too large (metadata: "removed due to being too large (over
+# 50,000 kWh)"; validity flag G). That is the same KIND of object as this
+# invariant: a published cut-off for domestic absurdity, chosen by the
+# publisher for the same purpose.
+#
+# WHY IT HAD TO MOVE, independent of any sim output: NEED 2026 (England and
+# Wales, 2024, weather-corrected) puts 1.02% of ALL gas-heated homes -- and
+# 14.1% of pre-1930 DETACHED homes -- above the old 40,000 bound. An
+# invariant whose job is to catch absurdity was flagging one in seven of a
+# real, common dwelling class. Full workings, the censoring caveat and the
+# R12 counterfactual: docs/market_research/need_domestic_gas_high_tail.md
+#
+# KNOWN WRONG SHAPE (registered, not fixed here): a single national scalar
+# cannot be right for both a pre-1919 detached and a post-2000 flat. At
+# 50,000 this is correctly loose for old detached stock and far too loose
+# for a modern flat. The fix is a class-conditioned envelope keyed on
+# dwelling type/age/floor area; the published distribution for it is in the
+# doc above.
 RESI_CONSUMPTION_ENVELOPE_GAS = RangeInvariant(
     id="resi_consumption_envelope_gas", description="Plausible annual resi gas consumption",
-    # High bound widened from an initial 25,000 for the same reason --
-    # real observed max in this sim's verified population is 35,913 kWh/yr
-    # (large/poorly-insulated homes), run_output_latest.json 2026-07-09.
-    source="Derived from Ofgem TDCV Low/High with headroom", low=1500.0, high=40000.0, unit="kWh/year",
+    source=(
+        "DESNZ National Energy Efficiency Data-Framework (NEED) 2026, England and Wales, "
+        "consumption year 2024 -- publisher's own domestic gas validity threshold (>50,000 "
+        "kWh/yr removed as too large). docs/market_research/need_domestic_gas_high_tail.md"
+    ),
+    low=1500.0, high=50000.0, unit="kWh/year",
 )
 
 _DAYS_PER_MONTH = 30.44

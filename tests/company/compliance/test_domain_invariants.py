@@ -8,6 +8,7 @@ from company.compliance.domain_invariants import (
     TDCV_GAS_MEDIUM,
     UNIT_RATE_ELEC_RESI_BY_YEAR,
     RESI_CONSUMPTION_ENVELOPE_ELEC,
+    RESI_CONSUMPTION_ENVELOPE_GAS,
     check_back_billing_cap_respected,
     check_vat,
     check_vat_consistent_with_consumption,
@@ -139,6 +140,48 @@ def test_resi_consumption_envelope_catches_gross_implausibility():
     # SME-scale figure that should never appear on a resi account.
     assert check_resi_consumption_plausible("electricity", 2500.0) is True
     assert check_resi_consumption_plausible("electricity", 45000.0) is False
+
+
+# --- W1_13 (2026-08-03): the GAS envelope had NO test of its own. The test
+# --- above is named for the envelope class but exercises only ELECTRICITY,
+# --- so the gas bound could have been any number and the suite stayed green.
+# --- That is a control-SET hole, not a control defect. Closed here, with the
+# --- external anchor pinned so the bound cannot silently revert to being
+# --- derived from this sim's own output.
+# --- Anchor: docs/market_research/need_domestic_gas_high_tail.md
+
+
+def test_resi_gas_envelope_admits_the_REAL_high_tail_of_the_english_stock():
+    """DESNZ NEED 2026 (E&W, 2024): 1.02% of all gas-heated homes, and 14.1% of
+    pre-1930 DETACHED homes, consume more than the old 40,000 kWh/yr bound.
+    Real dwellings in the pre-1930 detached 101-150 m2 band reach 49,900."""
+    for real_but_high in (40_100.0, 43_338.0, 49_900.0):
+        assert check_resi_consumption_plausible("gas", real_but_high) is True, (
+            f"{real_but_high:,.0f} kWh/yr is a real, published domestic gas figure "
+            "for pre-1919 detached stock -- flagging it is a false positive"
+        )
+
+
+def test_resi_gas_envelope_still_catches_gross_implausibility():
+    """R15: the widened bound must still be able to FAIL. A genuine
+    order-of-magnitude error (the C6 SME-on-a-resi-account class) is rejected."""
+    assert check_resi_consumption_plausible("gas", 12_000.0) is True
+    assert check_resi_consumption_plausible("gas", 50_100.0) is False
+    assert check_resi_consumption_plausible("gas", 250_000.0) is False
+    assert check_resi_consumption_plausible("gas", 900.0) is False
+
+
+def test_resi_gas_envelope_high_bound_is_the_PUBLISHED_threshold_not_a_sim_observation():
+    """The old bound was this sim's own previous generator max (35,913) plus
+    headroom -- an internal number used to judge an internal number. The new one
+    is DESNZ's published cut-off for a domestic gas record. This test fails if
+    anyone re-derives it from sim output again."""
+    assert RESI_CONSUMPTION_ENVELOPE_GAS.high == 50_000.0
+    src = RESI_CONSUMPTION_ENVELOPE_GAS.source
+    assert "NEED" in src and "DESNZ" in src, src
+    assert "need_domestic_gas_high_tail" in src, src
+    # The tell-tale of an internally-derived bound, which is what this replaced.
+    assert "observed sim population" not in src.lower(), src
 
 
 def test_range_invariant_boundaries_are_inclusive():
