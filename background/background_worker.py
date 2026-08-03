@@ -197,8 +197,12 @@ def _check_zero_progress(pending):
         )
         log(msg)
         try:
-            from background.ntfy_utils import send_ntfy
-            send_ntfy(msg)
+            # Pages through the ONE contract (G-N2: an untyped page is forbidden).
+            # No transition_key: this call site already owns its own transition
+            # suppression via the `stalled_on`/`already_alarmed` sweep state above,
+            # and keying it again would suppress the retry that block depends on.
+            from background.notify import notify
+            notify(msg, kind="real_alarm")
         except Exception as exc:
             # An unavailable checker is a FAILED check, not a passed one (R15
             # FAIL-SILENT). The alarm still lands in the worker log above, and
