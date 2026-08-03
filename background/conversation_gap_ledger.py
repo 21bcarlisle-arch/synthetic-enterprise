@@ -418,7 +418,17 @@ def intent_leak_rate(
     directly. Customers whose TRUE category is 'neutral' are excluded from
     each axis's denominator -- a neutral send to a neutral-truth customer is
     not evidence of leaking, since neutral is also the honest zero-evidence
-    default."""
+    default.
+
+    R15 FAIL-OPEN GUARD (2026-08-03 harness self-audit): an axis with ZERO
+    scored customers (`framing_scored`/`tone_scored` == 0 -- e.g. a
+    population/situation combination with no non-neutral-truth customers on
+    that axis) reports that axis's rate as `None`, NEVER a fabricated `0.0`.
+    The prior code defaulted an unscored axis straight to 0.0, which is
+    indistinguishable from a GENUINELY clean 0-out-of-N measurement -- exactly
+    the "zero-observation input silently reads as no leak" pattern this organ
+    exists to catch on the COMPANY side; it must not also commit it itself.
+    `detect_intent_leak` below is the paired fail-closed consumer of this."""
     framing_leaks = tone_leaks = framing_scored = tone_scored = 0
     for customer_id in customer_ids:
         message = generate_fn(customer_id, CustomerSegment(), situation, product, step)
@@ -436,20 +446,38 @@ def intent_leak_rate(
         "n_customers": len(customer_ids),
         "framing_scored": framing_scored,
         "tone_scored": tone_scored,
-        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else 0.0,
-        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else 0.0,
+        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else None,
+        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else None,
     }
 
 
-def detect_intent_leak(rate_row: Mapping[str, float], threshold: float = _INTENT_LEAK_THRESHOLD) -> bool:
+def detect_intent_leak(rate_row: Mapping[str, Optional[float]], threshold: float = _INTENT_LEAK_THRESHOLD) -> bool:
     """Fires True iff EITHER lever's leak rate exceeds `threshold`. The honest
     baseline is EXACTLY 0.0 (proven by construction -- see
     `honest_zero_evidence_generate` / `ConversationGenerator._tone_and_framing`'s
     empty-belief default), so any positive threshold already gives slack; this
-    is not tuned to make the alarm quiet (R12)."""
+    is not tuned to make the alarm quiet (R12).
+
+    R15 FAIL-OPEN GUARD (2026-08-03): a rate of `None` means that axis was
+    UNSCORED (`intent_leak_rate`'s zero-denominator case), not measured-clean
+    -- it must never silently compare as "not > threshold" without the caller
+    knowing that axis was never actually evaluated. If BOTH axes are
+    unmeasurable this control raises `ConversationGapUnmeasurable` (fail
+    CLOSED -- an unavailable check is a failed check, R15 doctrine) instead of
+    returning a fabricated `False`. A single measurable axis is enough to
+    evaluate the control on (the mandate is "EITHER lever", so one honestly
+    unscored axis does not block judgement on the other)."""
+    framing_rate = rate_row.get("framing_leak_rate")
+    tone_rate = rate_row.get("tone_leak_rate")
+    if framing_rate is None and tone_rate is None:
+        raise ConversationGapUnmeasurable(
+            "intent-leak control unmeasurable: zero non-neutral-truth customers were "
+            "scored on EITHER axis (framing_scored=0 and tone_scored=0) -- refusing to "
+            "report a fabricated 'clean' verdict for a control that never actually ran."
+        )
     return (
-        rate_row.get("framing_leak_rate", 0.0) > threshold
-        or rate_row.get("tone_leak_rate", 0.0) > threshold
+        (framing_rate is not None and framing_rate > threshold)
+        or (tone_rate is not None and tone_rate > threshold)
     )
 
 
@@ -541,9 +569,14 @@ def record_gap(
 
 
 def retro_gap_line(**measure_kwargs) -> str:
-    """One-line summary for the morning self-note (NOT wired in from this
-    file_scope -- see FRAME doc residuals). PURE (no side effect) and
-    fail-closed: any measurement error returns an honest RED string, never a
+    """One-line summary for the morning self-note. Wired into
+    `background/daily_self_note.py` (per-digest) and `tools/generate_proof_data.py`
+    (the Proof door reads the latest recorded row, mirroring how
+    `_coupled_gaps`/`_control_killlist` read a ledger rather than recomputing --
+    2026-08-03, discharging the FRAME doc's named residual). PURE (no side
+    effect) and fail-closed: any measurement error, including the R15
+    intent-leak control's own fail-closed refusal to answer on an
+    all-unscored population, returns an honest RED string, never a
     fabricated number."""
     try:
         row = measure(**measure_kwargs)

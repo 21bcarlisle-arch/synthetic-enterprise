@@ -408,6 +408,79 @@ def _coupled_gaps(atoms):
     )
 
 
+def _conversation_gap():
+    """The F1c Proof-door panel (atom F1c_harness_conversation_gap's own spec:
+    "per digest + Proof door") -- the conversation belief-vs-truth susceptibility
+    gap, the CA-weighted (55/35/10) outcome uplift, and the mandatory R15
+    intent-leak control verdict, read straight from F1c's own history ledger
+    (docs/observability/conversation_gap_ledger.json, populated per-digest by
+    background/daily_self_note.py::run() calling
+    background.conversation_gap_ledger.record_gap) -- NEVER recomputed here
+    (SITE_CONSTITUTION rule 5: "the site is a rendering, never an author", the
+    same "read the ledger" discipline `_coupled_gaps`/`_control_killlist` above
+    already use). Re-running the measurement at site-generation time would also
+    be a silent SECOND writer of behaviour the organ owns -- this panel only
+    ever reads the row the digest already recorded.
+
+    R15: this panel must be able to FAIL. An absent/unreadable/empty ledger (the
+    digest has not run yet on this checkout) or a not-measurable latest row
+    renders `available=False` / `measurable=False` rather than a fabricated
+    gap; the intent-leak `fired` verdict is passed straight through from what
+    the organ itself decided, never reinterpreted on the site side (avoids a
+    second, possibly-diverging judgement of the same control)."""
+    try:
+        from background.conversation_gap_ledger import GAP_LEDGER_PATH
+    except Exception:
+        return dict(available=False,
+                    note="background.conversation_gap_ledger not importable at generation time")
+
+    try:
+        rows = json.loads(GAP_LEDGER_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return dict(
+            available=False,
+            source="docs/observability/conversation_gap_ledger.json",
+            note="no conversation_gap_ledger.json row yet -- the digest "
+                 "(background/daily_self_note.py) has not measured F1c on this checkout",
+        )
+    if not isinstance(rows, list) or not rows:
+        return dict(available=False, source="docs/observability/conversation_gap_ledger.json",
+                    note="conversation_gap_ledger.json is empty")
+
+    latest = rows[-1]
+    if not isinstance(latest, dict):
+        return dict(available=False, source="docs/observability/conversation_gap_ledger.json",
+                    note="latest conversation_gap_ledger.json row is malformed")
+    if not latest.get("measurable"):
+        return dict(
+            available=True, measurable=False,
+            source="docs/observability/conversation_gap_ledger.json",
+            measured_at=latest.get("measured_at"),
+            reason=latest.get("reason"),
+            history_count=len(rows),
+        )
+
+    gap = latest.get("belief_vs_truth_gap") if isinstance(latest.get("belief_vs_truth_gap"), dict) else {}
+    leak = latest.get("intent_leak") if isinstance(latest.get("intent_leak"), dict) else {}
+    return dict(
+        available=True,
+        measurable=True,
+        source="docs/observability/conversation_gap_ledger.json",
+        measured_at=latest.get("measured_at"),
+        run_git_commit=latest.get("run_git_commit"),
+        n_customers=latest.get("n_customers"),
+        situations_measured=latest.get("situations_measured"),
+        framing_category_match_rate=gap.get("framing_category_match_rate"),
+        tone_category_match_rate=gap.get("tone_category_match_rate"),
+        mean_framing_gap=gap.get("mean_framing_gap"),
+        mean_tone_gap=gap.get("mean_tone_gap"),
+        outcome_uplift_by_situation=latest.get("outcome_uplift_by_situation"),
+        intent_leak_fired=bool(leak.get("fired")),
+        intent_leak=leak,
+        history_count=len(rows),
+    )
+
+
 def _control_killlist():
     """The CONTROL KILL-LIST rendered onto the Proof door (R15,
     CONTROLS_THAT_CANNOT_FAIL.md): which of the company's controls have been
@@ -1186,6 +1259,7 @@ def generate():
         verification=_verification_stack(atoms),
         open_work=_open_work(atoms),
         coupled_gaps=_coupled_gaps(atoms),
+        conversation_gap=_conversation_gap(),
         control_killlist=_control_killlist(),
         predictions=_predictions_ledger(),
         principles=_principles(),

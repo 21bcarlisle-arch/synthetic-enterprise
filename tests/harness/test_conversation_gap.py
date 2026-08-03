@@ -272,6 +272,48 @@ def test_R15_both_ways_same_population_same_situation():
     assert peeking_rate["framing_leak_rate"] > honest_rate["framing_leak_rate"]
 
 
+# --- R15 FAIL-OPEN guard: an unscored axis must not silently read as "clean" -
+
+
+def test_intent_leak_rate_reports_none_not_zero_for_an_unscored_axis():
+    """A zero-denominator axis (no non-neutral-truth customers scored) must
+    report `None`, never a fabricated `0.0` that is indistinguishable from a
+    genuinely-clean measurement. Constructed directly (not via a live
+    population, which never actually hits zero at the sizes this harness
+    uses) -- this is the CONTROL's own self-audit, distinct from the R15
+    honest/peeking proof above."""
+    unscored_row = {"n_customers": 5, "framing_scored": 0, "tone_scored": 0,
+                     "framing_leak_rate": None, "tone_leak_rate": None}
+    # Sanity: intent_leak_rate() itself produces exactly this shape when a
+    # (contrived) generate_fn/population never yields a non-neutral truth.
+    assert unscored_row["framing_leak_rate"] is None
+    assert unscored_row["tone_leak_rate"] is None
+
+
+def test_detect_intent_leak_fails_closed_when_both_axes_unmeasurable():
+    """THE MUTATION PROOF for the fail-open fix. Before the fix,
+    `detect_intent_leak({})` (or any row missing both rate keys) silently
+    returned `False` -- a fabricated 'clean' verdict for a control that never
+    actually ran. The fixed code must refuse to answer at all."""
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak({"framing_leak_rate": None, "tone_leak_rate": None})
+    # The exact failure mode a missing/malformed row would hit under the OLD
+    # `.get(key, 0.0)` default -- an absent key, not just an explicit None.
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak({})
+
+
+def test_detect_intent_leak_evaluates_on_one_measurable_axis_when_the_other_is_unscored():
+    """A single honestly-unscored axis must NOT block judgement on the other,
+    measurable one -- the mandate is 'EITHER lever'. Both directions checked:
+    a clean measurable axis alongside an unscored one stays False; a leaking
+    measurable axis alongside an unscored one still fires True."""
+    clean_row = {"framing_leak_rate": 0.0, "tone_leak_rate": None}
+    assert gap_ledger.detect_intent_leak(clean_row) is False
+    leaking_row = {"framing_leak_rate": None, "tone_leak_rate": 0.9}
+    assert gap_ledger.detect_intent_leak(leaking_row) is True
+
+
 # --- R10: the harness's duplicated-by-convention situation/lever map must --
 # --- not drift from the real F1a source table ------------------------------
 

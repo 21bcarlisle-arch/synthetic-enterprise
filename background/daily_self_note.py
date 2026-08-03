@@ -403,6 +403,18 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
         lines.append(f"- {_red(f'solvency belief-vs-truth gap unavailable: {e}')}")
 
+    # F1c conversation belief-vs-truth gap (read-only; §2-severed — per-customer
+    # susceptibility gap + CA-weighted outcome uplift + the mandatory R15
+    # intent-leak control, over F1c's own self-contained synthetic population
+    # driving the real F1a/F1b modules. R12: a diagnostic the note reads, never
+    # a number that feeds the draw). Fail-closed — mirrors the DD-H block above.
+    lines += ["", "**Conversation belief-vs-truth gap** _(F1c — company's inferred susceptibility vs the SIM's true category, plus the R15 intent-leak control)_"]
+    try:
+        from background.conversation_gap_ledger import retro_gap_line as _f1c_gap_line
+        lines.append(f"- {_f1c_gap_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
+        lines.append(f"- {_red(f'conversation belief-vs-truth gap unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 
@@ -463,6 +475,17 @@ def run(force: bool = False, now: datetime | None = None, *, send=None,
         sha, _ = _runner("rev-parse", "HEAD")
         record_gap(measured_at=now.isoformat(timespec="minutes"),
                    run_git_commit=(sha or "").strip() or None)
+    except Exception:  # noqa: BLE001 — the ledger is history, never a gate on publishing
+        pass
+    # F1c: append a dated conversation belief-vs-truth gap row to its own history
+    # ledger (per-digest gap over time), same idiom as DD-H above. Fail-closed —
+    # a ledger write failure must never crash the digest (the note is already
+    # published; the RED line is in it regardless if the organ is unavailable).
+    try:
+        from background.conversation_gap_ledger import record_gap as _record_f1c_gap
+        sha, _ = _runner("rev-parse", "HEAD")
+        _record_f1c_gap(measured_at=now.isoformat(timespec="minutes"),
+                         run_git_commit=(sha or "").strip() or None)
     except Exception:  # noqa: BLE001 — the ledger is history, never a gate on publishing
         pass
     return "published"
