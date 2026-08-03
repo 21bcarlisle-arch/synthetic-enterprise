@@ -6,38 +6,17 @@
 <title>Poesys -- Glossary</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
 <style>
-:root {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-}
-:root[data-theme="light"] {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
+/* Brand palette from ../brand/brand.css (BRAND_CONSTITUTION §3a light-default);
+ * the page's own :root palette (and its dark-base theme blocks, which §3a calls a
+ * compliance defect: "a page whose base surface is dark FAILS brand compliance")
+ * were deleted on adoption. Every colour below is a var() into the token source. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-house); font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-logo { margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
 .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -54,9 +33,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .count { font-size: 11px; color: var(--muted); margin: 10px 0 18px; }
 .glist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .gterm { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+/* A term deep-linked from another door (../glossary/#t-<slug>) is highlighted so the
+ * reader lands ON the definition rather than somewhere in a 26-card grid. Soft fill
+ * behind black text -- law 3, soft colour is never text or a thin line. */
+.gterm:target { background: var(--blue-soft); border-color: var(--blue); }
 .gterm-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .gterm-name { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
-.gterm-abbr { font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; color: var(--blue);
+.gterm-abbr { font-size: 11px; font-weight: 700; color: var(--blue);
   background: var(--surface2); border-radius: 5px; padding: 1px 6px; }
 .gterm-cat { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
   border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; margin-left: auto; }
@@ -64,6 +47,10 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .gterm-see { font-size: 11px; color: var(--muted); }
 .gterm-see a { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .gterm-see a:hover { border-bottom-color: var(--blue); }
+/* The permalink every door's glossary layer targets. Muted until hovered -- it is
+ * navigation, not status, so it carries no BRAG colour. */
+.gterm-anchor { color: var(--muted); text-decoration: none; font-weight: 700; opacity: .45; }
+.gterm-anchor:hover { opacity: 1; color: var(--blue); }
 .empty { color: var(--muted); font-size: 13px; padding: 24px 0; }
 @media (max-width: 640px) {
   .wrap { padding: 28px 16px; }
@@ -74,14 +61,12 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </head>
 <body>
 <nav class="site-nav">
-  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-logo wordmark">poesys.</a>
   <a href="../" class="nav-link">Home</a>
-  <a href="../company/" class="nav-link">Company</a>
-  <a href="../world/" class="nav-link">World</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
   <a href="../proof/" class="nav-link">Proof</a>
-  <a href="../proof/#method-anchor" class="nav-link">Method</a>
-  <a href="../proof/#project-anchor" class="nav-link">Journey</a>
-  <a href="../proof/#simplified-anchor" class="nav-link">Simplified</a>
+  <a href="../glossary/" class="nav-link active">Glossary</a>
 </nav>
 <div class="wrap">
 
@@ -101,6 +86,28 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
 
 var STATE = { data: null, cat: "all", q: "" };
+
+/* The term -> anchor-id rule. This is the CONTRACT the cross-door glossary layer
+ * (site/assets/glossary-layer.js) links against: a door writing
+ * `../glossary/#t-<slug>` must produce the same slug this page renders as an
+ * element id, or the deep link lands nowhere.
+ *
+ * It is deliberately DUPLICATED here rather than imported. This page must stay
+ * self-contained: site/_live_harness.mjs evaluates inline <script> blocks only
+ * (`(?![^>]*\bsrc=)`), so a runtime dependency on an external asset would make
+ * the R11 live verifier unable to render this door at all. Duplication without a
+ * guard is drift waiting to happen, so the two implementations are pinned
+ * together by an executable contract test -- site/test_glossary_layer.py::
+ * test_slug_contract_matches_between_page_and_layer runs BOTH under node against
+ * every term in the live feed and requires byte-identical output. Change one and
+ * that test goes red. */
+function termSlug(t){
+  return "t-" + String(t == null ? "" : t)
+    .toLowerCase()
+    .replace(/[‐-―]/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 function catLabel(d, id){
   var c = (d.categories||[]).filter(function(x){return x.id===id;})[0];
@@ -141,10 +148,12 @@ function renderTerms(d){
     return;
   }
   document.getElementById("glist").innerHTML = shown.map(function(t){
+    var slug = termSlug(t.term);
     var abbr = t.abbr ? '<span class="gterm-abbr">' + esc(t.abbr) + '</span>' : "";
     var see = t.see ? '<div class="gterm-see">Where it lives: <a href="' + esc(t.see_url||"#") + '">' + esc(t.see) + ' &rarr;</a></div>' : "";
-    return '<div class="gterm">' +
+    return '<div class="gterm" id="' + esc(slug) + '">' +
       '<div class="gterm-head"><span class="gterm-name">' + esc(t.term) + '</span>' + abbr +
+        '<a class="gterm-anchor" href="#' + esc(slug) + '" aria-label="Permalink to ' + esc(t.term) + '">#</a>' +
         '<span class="gterm-cat">' + esc(catLabel(d, t.category)) + '</span></div>' +
       '<div class="gterm-def">' + esc(t.definition) + '</div>' +
       see +

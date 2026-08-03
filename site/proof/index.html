@@ -219,6 +219,13 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   .held-id, .kl-name { overflow-wrap: anywhere; }
   .rev-head, .gap-head { gap: 6px; }
 }
+/* GLOSSARY LAYER (site/assets/glossary-layer.js). A term used in this door's prose
+ * is inspectable in place: hover for the definition, click through to its
+ * permalink on /glossary/. The affordance is a hairline underline, never a colour
+ * -- colour is information, and "this word has a definition" is not a status
+ * (BRAND_CONSTITUTION §4 law 1). */
+.gloss-term { border-bottom: var(--border-hairline) dotted var(--muted); cursor: help; }
+.gloss-term:hover { border-bottom-color: var(--blue); }
 </style>
 </head>
 <body>
@@ -267,12 +274,12 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     <div class="cl-title">The claim-status vocabulary used across this page</div>
     <div class="cl-row">
       <span class="badge blue">VERIFIED</span> a consumer's fetch confirmed it (R1) &mdash;
-      <span class="badge amber">PROVISIONAL</span> real but still moving or externally uncalibrated &mdash;
+      <span class="badge amber" data-gloss="PROVISIONAL">PROVISIONAL</span> real but still moving or externally uncalibrated &mdash;
       <span class="badge amber">PLANNED</span> named but not yet measured, never faked &mdash;
       <span class="badge purple">CHOSEN</span> a constant somebody typed, not a measurement &mdash; it was
-      <em>decided</em>, and a different number was available (renewal tolerance 2%, the VaR limit at 15%
+      <em>decided</em>, and a different number was available (renewal tolerance 2%, the <span data-gloss="VaR">VaR</span> limit at 15%
       of term revenue, the assumption library's sim_value column, DCA 20% recovery / 15% commission) &mdash;
-      <span class="badge green">BENCHMARK</span> lifted from an external source (Ofgem, Elexon, NESO), not
+      <span class="badge green">BENCHMARK</span> lifted from an external source (<span data-gloss="Ofgem">Ofgem</span>, <span data-gloss="Elexon">Elexon</span>, <span data-gloss="NESO">NESO</span>), not
       produced by this system &mdash;
       <span class="badge red">RETRACTED</span> was wrong, shown struck through with the correction linked (below).
     </div>
@@ -377,7 +384,7 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   <div class="sec">Verification Stack &mdash; Expert-Hour passes &amp; the defects they caught</div>
   <div class="card">
     <p class="muted" style="margin-bottom:14px">
-      Each atom on the maturity map faces an adversarial "Expert Hour" cold-eyes review before a
+      Each atom on the <span data-gloss="Maturity map — atom &amp; level">maturity map</span> faces an adversarial "Expert Hour" cold-eyes review before a
       level is banked. These are the reviews that PASSED and the real defects (NEEDS_WORK findings)
       they surfaced and forced fixed -- the honesty discipline shown working, not asserted.
     </p>
@@ -1266,6 +1273,13 @@ Promise.all([
   document.getElementById("inv-unit-note").innerHTML='<span style="color:var(--red)">Could not load investor summary data</span>';
 });
 </script>
+<!-- GLOSSARY LAYER (SITE_CONSTITUTION migration item 8). Two lines is the whole
+     adoption cost: every [data-gloss] term in this door's prose becomes
+     inspectable in place and permalinked into /glossary/. Definitions are never
+     restated here -- they are read from the one feed at render time. -->
+<script src="../assets/glossary-layer.js"
+        data-glossary-src="../data/glossary.json"
+        data-glossary-base="../glossary/" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>
