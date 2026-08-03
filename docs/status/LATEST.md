@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T19:46:01Z
+Last updated: 2026-08-03T20:08:51Z
 
 **DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
 mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
@@ -636,7 +636,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (517s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (513s / 9 min):
 - Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
 - Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930

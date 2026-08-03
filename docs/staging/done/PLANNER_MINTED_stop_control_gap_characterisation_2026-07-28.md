@@ -1,5 +1,17 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
 <!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_build_open', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: stop-control gap; BUILD needs a director BUILD_OPEN (console-only, one-way door #5), never self-authored -->
+<!-- L0->L2 BUILT 2026-08-03 (worker tick). The DISCOVER doc had existed since 2026-07-28 but the atom's
+  level never moved, correctly: its own mint note says an inventory that only LISTS stops has demonstrated
+  nothing. L2 = background/stop_control_audit.py + tests/background/test_stop_control_audit.py (30 tests,
+  R15 both ways), which makes docs/design/STOP_CONTROL_GAP.md falsifiable against real state. It FIRED on
+  first run: inventory row 6 (.comment_intake_locked) claimed a halt over a daemon retired 2026-07-24 whose
+  flag no source references and whose manifest state is `retired` -- DEAD_TARGET. Row reclassified, claim
+  pinned by a regression test. Ledger: gate_authorizations.jsonl LEVEL_UP_SELF_CERTIFIED.
+  READ THIS BEFORE RE-DERIVING THE BLOCK ABOVE: the "category-5 / director_build_open / never
+  self-authorised" premise this doc escalates on is DEAD. director_build_open was abolished 2026-07-29;
+  the reserved list is four real-world classes and CLAUDE.md states a "safety control" that stops a
+  SIMULATION is not one of them. The section-4 stop-control BUILD is DRAWABLE on the agent's own authority
+  -- it is unbuilt, not reserved. Superseding note is in STOP_CONTROL_GAP.md section 5. -->
 # [PLANNER-MINTED] — Stop-control gap characterisation (SPEC_005 §7.13 material-safety) — DISCOVER half (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): inventory published at `docs/design/STOP_CONTROL_GAP.md`.**

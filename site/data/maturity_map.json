@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1339
+      "stall_consecutive_unchanged": 1412
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -2898,7 +2898,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2919,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2959,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 26
+      "stall_consecutive_unchanged": 32
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -2978,7 +2978,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 38
+      "stall_consecutive_unchanged": 46
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3359,7 +3359,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3447,7 +3447,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 56
+      "stall_consecutive_unchanged": 59
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3466,7 +3466,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 59
+      "stall_consecutive_unchanged": 63
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3485,7 +3485,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 59
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3504,7 +3504,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 60
+      "stall_consecutive_unchanged": 67
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3542,7 +3542,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stall_consecutive_unchanged": 47
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3582,7 +3582,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "W2_sme_segment_case_normalisation",
@@ -3601,7 +3601,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3620,7 +3620,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 54
+      "stall_consecutive_unchanged": 57
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3639,7 +3639,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "D_printed_figure_rederivation",
@@ -3669,17 +3669,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "discover",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 49
+      "stall_consecutive_unchanged": 53
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3717,7 +3717,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 41
+      "stall_consecutive_unchanged": 49
     }
   ],
   "lanes": {
