@@ -1,0 +1,2705 @@
+{
+  "generated_at": "2026-08-03T11:40:27Z",
+  "git_hash": "da80470cd",
+  "suite": {
+    "test_count": 20084,
+    "timestamp": "2026-08-03T05:58:13.869291+00:00"
+  },
+  "sources": {
+    "node_mapping": "site/data/moap_node_atoms.json",
+    "maturity_map": "docs/design/maturity_map.yaml",
+    "ledger": "docs/observability/gate_authorizations.jsonl",
+    "test_execution_log": "docs/observability/test_execution_log.jsonl"
+  },
+  "nodes": [
+    {
+      "id": "governance_method",
+      "name": "Governance & method",
+      "declared_stage": "Live",
+      "computed_stage": "Live",
+      "stage_matches": true,
+      "look_href": "./proof/#method-anchor",
+      "evidence_href": "./evidence/#governance_method",
+      "atoms": [
+        {
+          "id": "A1_learn_loop_chair",
+          "name": "Formalised learn-loop / retrospective cadence",
+          "lane": "A_strategy_governance",
+          "loop_stage": "idle",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": ".claude/skills/incident-retro/SKILL.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/skills/incident-retro/SKILL.md",
+              "raw": ".claude/skills/incident-retro/SKILL.md",
+              "is_test": false
+            },
+            {
+              "path": "background/retro_cadence_check.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/retro_cadence_check.py",
+              "raw": "background/retro_cadence_check.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/background/test_retro_cadence_check.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/background/test_retro_cadence_check.py",
+              "raw": "tests/background/test_retro_cadence_check.py",
+              "is_test": true,
+              "test_functions": 23
+            },
+            {
+              "path": "background/retro_cadence_check.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/retro_cadence_check.py",
+              "raw": "background/retro_cadence_check.py::last_retro(as_of=) (R15 fail-open guard)",
+              "is_test": false
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 23,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "A2_decision_rights_register",
+          "name": "Decision-rights register + bitemporal decision-event logging",
+          "lane": "A_strategy_governance",
+          "loop_stage": "idle",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/governance/decision_rights.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/governance/decision_rights.py",
+              "raw": "company/governance/decision_rights.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/company/governance/test_decision_rights.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/governance/test_decision_rights.py",
+              "raw": "tests/company/governance/test_decision_rights.py",
+              "is_test": true,
+              "test_functions": 26
+            },
+            {
+              "path": "simulation/renewals.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/renewals.py",
+              "raw": "simulation/renewals.py (real call site: pricing_move + L2 live approval caller _route_pricing_move)",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_renewals.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_renewals.py",
+              "raw": "tests/simulation/test_renewals.py (integration tests proving real decision-events land)",
+              "is_test": true,
+              "test_functions": 17
+            },
+            {
+              "path": "saas/ledger.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/ledger.py",
+              "raw": "saas/ledger.py::build_ledger() (real call site: credit_collections_policy, every real bad-debt write-off)",
+              "is_test": false
+            },
+            {
+              "path": "tests/saas/test_ledger.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/saas/test_ledger.py",
+              "raw": "tests/saas/test_ledger.py (integration tests proving real decision-events land for the second wired class)",
+              "is_test": true,
+              "test_functions": 75
+            },
+            {
+              "path": "company/interfaces/bitemporal_event_log.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/interfaces/bitemporal_event_log.py",
+              "raw": "company/interfaces/bitemporal_event_log.py (L3 immutability fix, commit e6198a77)",
+              "is_test": false
+            },
+            {
+              "path": "tests/company/interfaces/test_bitemporal_event_log.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/interfaces/test_bitemporal_event_log.py",
+              "raw": "tests/company/interfaces/test_bitemporal_event_log.py (immutability regression)",
+              "is_test": true,
+              "test_functions": 33
+            }
+          ],
+          "test_files": 4,
+          "test_functions": 151,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "A3_approval_interface",
+          "name": "Approval interface (requests-awaiting-decision surface, human-operable)",
+          "lane": "A_strategy_governance",
+          "loop_stage": "idle",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
+              "raw": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
+              "is_test": false
+            },
+            {
+              "path": "company/governance/approval_interface.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/governance/approval_interface.py",
+              "raw": "company/governance/approval_interface.py",
+              "is_test": false
+            },
+            {
+              "path": "simulation/renewals.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/renewals.py",
+              "raw": "simulation/renewals.py::_route_pricing_move (L2 live caller)",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_renewals_approval_routing.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_renewals_approval_routing.py",
+              "raw": "tests/simulation/test_renewals_approval_routing.py (7 tests: outcome-neutrality + live caller)",
+              "is_test": true,
+              "test_functions": 8
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 8,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "F1_epistemic_verifier",
+          "name": "SIM/company epistemic barrier verifier (static + timing)",
+          "lane": "F_risk_compliance",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "tools/epistemic_verifier.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/epistemic_verifier.py",
+              "raw": "tools/epistemic_verifier.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "F2_sanity_daemon",
+          "name": "Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting",
+          "lane": "F_risk_compliance",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "background/sanity_daemon.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/sanity_daemon.py",
+              "raw": "background/sanity_daemon.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "F3_obligations_register",
+          "name": "Obligations register + domain invariants (risk-tiered compliance checks)",
+          "lane": "F_risk_compliance",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/compliance/domain_invariants.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/compliance/domain_invariants.py",
+              "raw": "company/compliance/domain_invariants.py",
+              "is_test": false
+            },
+            {
+              "path": "company/compliance/population_sanity.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/compliance/population_sanity.py",
+              "raw": "company/compliance/population_sanity.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "H1_supervisor_turn_granting",
+          "name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
+          "lane": "H_harness",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "background/supervisor.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/supervisor.py",
+              "raw": "background/supervisor.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md",
+              "raw": "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md",
+              "is_test": false
+            },
+            {
+              "path": "tests/background/test_supervisor.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/background/test_supervisor.py",
+              "raw": "tests/background/test_supervisor.py",
+              "is_test": true,
+              "test_functions": 185
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 185,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "H5_security_profiles",
+          "name": "Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model",
+          "lane": "H_harness",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "background/secrets_location.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/secrets_location.py",
+              "raw": "background/secrets_location.py",
+              "is_test": false
+            },
+            {
+              "path": "background/egress_allowlist.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/egress_allowlist.py",
+              "raw": "background/egress_allowlist.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md",
+              "raw": "docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/observability/session-watchdog-log.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/observability/session-watchdog-log.md",
+              "raw": "docs/observability/session-watchdog-log.md:4354 (2026-07-11 05:59 UTC director binding constraint)",
+              "is_test": false
+            },
+            {
+              "path": "docs/review_gates/done/POESYS_ROUTINE_SCOPE_TIER1.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/review_gates/done/POESYS_ROUTINE_SCOPE_TIER1.md",
+              "raw": "docs/review_gates/done/POESYS_ROUTINE_SCOPE_TIER1.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/staging/done/ADVISOR_STEER_ROUTINE_SCOPE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/ADVISOR_STEER_ROUTINE_SCOPE.md",
+              "raw": "docs/staging/done/ADVISOR_STEER_ROUTINE_SCOPE.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "H7_skills_and_rules",
+          "name": "Harness skills/ and path-scoped rules/ -- procedure moved out of CLAUDE.md into decay-resistant mechanism",
+          "lane": "H_harness",
+          "loop_stage": "idle",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": ".claude/skills/phase-close/SKILL.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/skills/phase-close/SKILL.md",
+              "raw": ".claude/skills/phase-close/SKILL.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/skills/staging-protocol/SKILL.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/skills/staging-protocol/SKILL.md",
+              "raw": ".claude/skills/staging-protocol/SKILL.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/skills/cold-eyes-walk/SKILL.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/skills/cold-eyes-walk/SKILL.md",
+              "raw": ".claude/skills/cold-eyes-walk/SKILL.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/skills/incident-retro/SKILL.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/skills/incident-retro/SKILL.md",
+              "raw": ".claude/skills/incident-retro/SKILL.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/rules/epistemic-wall-company.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/rules/epistemic-wall-company.md",
+              "raw": ".claude/rules/epistemic-wall-company.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/rules/epistemic-wall-sim.md",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/rules/epistemic-wall-sim.md",
+              "raw": ".claude/rules/epistemic-wall-sim.md",
+              "is_test": false
+            },
+            {
+              "path": ".claude/hooks/log_instructions_loaded.py",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/hooks/log_instructions_loaded.py",
+              "raw": ".claude/hooks/log_instructions_loaded.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/HARNESS_SKILLS_AND_RULES_ADOPTION.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/HARNESS_SKILLS_AND_RULES_ADOPTION.md",
+              "raw": "docs/design/HARNESS_SKILLS_AND_RULES_ADOPTION.md",
+              "is_test": false
+            },
+            {
+              "path": "background/claude_md_integrity.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/claude_md_integrity.py",
+              "raw": "background/claude_md_integrity.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/tools/test_claude_md_integrity.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_claude_md_integrity.py",
+              "raw": "tests/tools/test_claude_md_integrity.py",
+              "is_test": true,
+              "test_functions": 49
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 49,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "H12_mutation_test_controls",
+          "name": "Mutation-test the entire control apparatus: every control must fire on its own named defect (kill list + the 3 killer patterns)",
+          "lane": "H_harness",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md",
+              "raw": "docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/INVARIANT_LIBRARY_REDTEAM.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/INVARIANT_LIBRARY_REDTEAM.md",
+              "raw": "docs/design/INVARIANT_LIBRARY_REDTEAM.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "G2_fidelity_evidence_ledger",
+          "name": "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions",
+          "lane": "G_data_learning",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "raw": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "raw": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts": 1784462364.9718432,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784465577.7011025,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'RATIFIED: G1, G2, G3 -> L2. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784535333.5318944,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            }
+          ],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        }
+      ],
+      "atoms_at_target": 11,
+      "atoms_with_ledger": 1,
+      "atoms_with_missing": 11
+    },
+    {
+      "id": "the_world",
+      "name": "The world",
+      "declared_stage": "Building",
+      "computed_stage": "Building",
+      "stage_matches": true,
+      "look_href": "./world/#causal-chain",
+      "evidence_href": "./evidence/#the_world",
+      "atoms": [
+        {
+          "id": "W1_3_national_weather_signal",
+          "name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
+          "lane": "W1_market_weather",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/W1_3_national_weather_signal_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/W1_3_national_weather_signal_FRAME.md",
+              "raw": "docs/design/frame/W1_3_national_weather_signal_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md",
+              "raw": "docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "sim/weather_engine.py",
+              "status": "RESOLVED",
+              "resolved_path": "sim/weather_engine.py",
+              "raw": "sim/weather_engine.py (Pass 1: regime-switching AR1 joint temp/wind/cloud, calibrated on 3446 real days)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/demand_model.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/demand_model.py",
+              "raw": "simulation/demand_model.py (real sim-run caller)",
+              "is_test": false
+            },
+            {
+              "path": "tests/sim/test_weather_engine.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/sim/test_weather_engine.py",
+              "raw": "tests/sim/test_weather_engine.py (27 tests)",
+              "is_test": true,
+              "test_functions": 28
+            },
+            {
+              "path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "raw": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 28,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784346784.104655,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Recorded by console orchestrator on the director's authenticated console act (R7). NOTE: weather W1_3-6/C13 BUILD crosses the Epoch-3 gate per his explicit 'weather physics' naming -- flagged to him via NTFY as a gate-crossing-by-console-authorization."
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784499318.3929029,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a live company consumer for G1-3. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784535333.532003,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784541430.1100795,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            }
+          ],
+          "missing": []
+        },
+        {
+          "id": "W1_4_regional_weather_field",
+          "name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
+          "lane": "W1_market_weather",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md",
+              "raw": "docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/W1_4_regional_weather_field_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/W1_4_regional_weather_field_FRAME.md",
+              "raw": "docs/design/frame/W1_4_regional_weather_field_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/REGIONAL_WEATHER_FIELD_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/REGIONAL_WEATHER_FIELD_FRAME.md",
+              "raw": "docs/design/REGIONAL_WEATHER_FIELD_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "sim/weather_engine.py",
+              "status": "RESOLVED",
+              "resolved_path": "sim/weather_engine.py",
+              "raw": "sim/weather_engine.py (Pass 2: fit_regional_cholesky/simulate_regional_deviations, spatially-correlated regional field bound to national)",
+              "is_test": false
+            },
+            {
+              "path": "tests/sim/test_weather_engine.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/sim/test_weather_engine.py",
+              "raw": "tests/sim/test_weather_engine.py (27 tests)",
+              "is_test": true,
+              "test_functions": 28
+            },
+            {
+              "path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "raw": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 28,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784346784.104655,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Recorded by console orchestrator on the director's authenticated console act (R7). NOTE: weather W1_3-6/C13 BUILD crosses the Epoch-3 gate per his explicit 'weather physics' naming -- flagged to him via NTFY as a gate-crossing-by-console-authorization."
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784499318.393003,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a live company consumer for G1-3. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784541430.1101966,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784633789.4103763,
+              "iso": "2026-07-21",
+              "authorized_by": "director",
+              "provenance": "Director console ratification (live session turn, 2026-07-21): 'W1_4 -> L3 RATIFIED (twin-exempt as public/company-knowable; the whitelist mechanism with the W1_9 negative test is the right shape).' Recorded by the console session on the director's directly-typed authorization (authentication convention (a)). W1_4 is director-exempt from the coupled-twin L3 gate (_TWIN_EXEMPT, commit 15c7f5e3c) -- regional weather is Met-Office-public."
+            }
+          ],
+          "missing": []
+        },
+        {
+          "id": "W1_5_premise_demand_shape",
+          "name": "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)",
+          "lane": "W1_market_weather",
+          "loop_stage": "idle",
+          "level_current": 1,
+          "level_target": 3,
+          "at_target": false,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/W1_5_premise_demand_shape_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/W1_5_premise_demand_shape_FRAME.md",
+              "raw": "docs/design/frame/W1_5_premise_demand_shape_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md",
+              "raw": "2026-08-03 DEMOTED L3 -> L1 (director console: the premise fabric finding is the important one). The cell claimed L3 while the acceptance test named in its OWN priority ranking FAILS, measured on the published traces: day-vs-next-day shape correlation 0.97; median period-to-period change 0.008-0.012 kWh on a ~0.7 kWh mean; no half-hour below 0.05 kWh in ten years; C8-C9 correlation 0.95; 3-home aggregate peak/mean 5.9 vs 5.7 for ONE home, so aggregation smooths nothing; annuals within 8%. That is one deterministic base shape rescaled per home -- exactly the defect this atom exists to not have. Gas has no premise-level trace at any resolution. L1 is honest: a real mechanism exists and runs on real weather, but it does not produce diverse premises. Un-promoting is not self-promoting; the replacement chain is W1_11 -> W1_12 -> C14 -> H_GAP. Evidence: docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md. loop_stage set to IDLE, not build (corrected same day): this atom is NOT independently BUILD-drawable. Its route back to L3 is the fabric chain W1_11 -> W1_12, not a patch to the rescaling generator -- and it was briefly left at build, where the draw immediately picked it over W1_11, which would have sent a fork to improve the very mechanism being replaced. It stays DISCOVER/FRAME-workable and its level rises when W1_12 lands.",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784346784.104655,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Recorded by console orchestrator on the director's authenticated console act (R7). NOTE: weather W1_3-6/C13 BUILD crosses the Epoch-3 gate per his explicit 'weather physics' naming -- flagged to him via NTFY as a gate-crossing-by-console-authorization."
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784499318.393103,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a live company consumer for G1-3. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts": 1784541430.1103058,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784640313.8227723,
+              "iso": "2026-07-21",
+              "authorized_by": "director",
+              "provenance": "Director console 2026-07-21 (live session, verbatim): 'RATIFIED batch: W1_5->L2, W1_10->L1, W1_10->L2 -- all ledger-backed. Console provenance: this message.' Authentication convention (a), directly-typed. Built+verified overnight (W1_5 premise demand on local weather + national-reconciliation invariant; W1_10 national adoption S-curves + regional adoption field, A1 exact); reverted to ledger-baseline this morning when the unbacked self-promotion wedged the publish gate, now genuinely ratified."
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784641860.0823083,
+              "iso": "2026-07-21",
+              "authorized_by": "director",
+              "provenance": "Director console 2026-07-21 (live session, verbatim): 'W1_5->L3 RATIFIED -- the fork is on origin, condition met, move the cell. Console provenance: this message.' Authentication convention (a). L3 code on origin (f4f417297): idiosyncratic per-property noise on its own C-S2 substream (mean-1 lognormal, aggregation-consistency preserved BY CONSTRUCTION, R15 noise_is_unbiased control mutation-proven, regression-safe factor=1.0 byte-identical to L2, 24 tests + epistemic PASS). Coupled-triad gap to C13 measured (C13 at L2). L3 is director-reserved -- the twin cannot ratify it; this is the director's 'this is real' ruling."
+            },
+            {
+              "action": "LEVEL_UP_SELF_CERTIFIED",
+              "level": 1,
+              "ts": 1785744757.0538878,
+              "iso": "2026-08-03",
+              "authorized_by": "agent_self_certified",
+              "provenance": "DEMOTION L3->L1, recorded for the audit trail (a decrease needs no gate, but the ledger is the record). Director console 2026-08-03: the premise fabric finding is the important one -- every home a scaled copy of the average. Spec 003 two-level test FAILS on the published traces: day-to-day shape correlation 0.97, aggregate peak/mean 5.9 vs 5.7 single-home (no smoothing), C8-C9 correlation 0.95, no half-hour under 0.05 kWh in ten years, gas has no premise trace. L3 was a false level rendering as true on the site. See docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md and the 2026-08-03 PRIORITIES re-rank."
+            }
+          ],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W1_6_physics_price_signal",
+          "name": "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)",
+          "lane": "W1_market_weather",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md",
+              "raw": "docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/W1_6_physics_price_signal_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/W1_6_physics_price_signal_FRAME.md",
+              "raw": "docs/design/frame/W1_6_physics_price_signal_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "sim/weather_price_chain.py",
+              "status": "RESOLVED",
+              "resolved_path": "sim/weather_price_chain.py",
+              "raw": "sim/weather_price_chain.py (L4: weather->demand+renewable->residual->merit-order DERIVED price, fit on the real record, R13 baseline)",
+              "is_test": false
+            },
+            {
+              "path": "company/pricing/weather_price_belief.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/pricing/weather_price_belief.py",
+              "raw": "company/pricing/weather_price_belief.py",
+              "is_test": false
+            },
+            {
+              "path": "background/weather_price_triad.py",
+              "status": "RESOLVED",
+              "resolved_path": "background/weather_price_triad.py",
+              "raw": "background/weather_price_triad.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/sim/test_weather_price_chain.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/sim/test_weather_price_chain.py",
+              "raw": "tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)",
+              "is_test": true,
+              "test_functions": 9
+            },
+            {
+              "path": "tests/company/test_weather_price_belief.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/test_weather_price_belief.py",
+              "raw": "tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)",
+              "is_test": true,
+              "test_functions": 4
+            },
+            {
+              "path": "tests/test_weather_price_triad.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/test_weather_price_triad.py",
+              "raw": "tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)",
+              "is_test": true,
+              "test_functions": 9
+            },
+            {
+              "path": "docs/observability/coupled_gap_ledger.json",
+              "status": "RESOLVED",
+              "resolved_path": "docs/observability/coupled_gap_ledger.json",
+              "raw": "docs/observability/coupled_gap_ledger.json (W1_6 gap measured)",
+              "is_test": false
+            }
+          ],
+          "test_files": 3,
+          "test_functions": 22,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784346784.104655,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Recorded by console orchestrator on the director's authenticated console act (R7). NOTE: weather W1_3-6/C13 BUILD crosses the Epoch-3 gate per his explicit 'weather physics' naming -- flagged to him via NTFY as a gate-crossing-by-console-authorization."
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts": 1784462364.971781,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784499318.393203,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a live company consumer for G1-3. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784554889.194562,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20: RATIFIED W1_6_physics_price_signal -> L3; the weather-driven price engine is banked."
+            }
+          ],
+          "missing": []
+        },
+        {
+          "id": "W1_reveal_over_time",
+          "name": "Historical data reveal-over-time (point-in-time blindfold at the source, not just company/ code)",
+          "lane": "W1_market_weather",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md",
+              "raw": "docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "raw": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/charters/W1_market_weather.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/charters/W1_market_weather.md",
+              "raw": "docs/design/charters/W1_market_weather.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/THE_VALUE_CYCLE_FRAMING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/THE_VALUE_CYCLE_FRAMING.md",
+              "raw": "docs/design/THE_VALUE_CYCLE_FRAMING.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md",
+              "raw": "docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md",
+              "raw": "docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "company/interfaces/bitemporal_event_log.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/interfaces/bitemporal_event_log.py",
+              "raw": "company/interfaces/bitemporal_event_log.py",
+              "is_test": false
+            },
+            {
+              "path": "company/interfaces/point_in_time_view.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/interfaces/point_in_time_view.py",
+              "raw": "company/interfaces/point_in_time_view.py",
+              "is_test": false
+            },
+            {
+              "path": "simulation/run_phase2b.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/run_phase2b.py",
+              "raw": "simulation/run_phase2b.py",
+              "is_test": false
+            },
+            {
+              "path": ".claude/hooks/block_point_in_time_read.py",
+              "status": "RESOLVED",
+              "resolved_path": ".claude/hooks/block_point_in_time_read.py",
+              "raw": ".claude/hooks/block_point_in_time_read.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/company/interfaces/test_point_in_time_view.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/interfaces/test_point_in_time_view.py",
+              "raw": "tests/company/interfaces/test_point_in_time_view.py::TestBuildPriceBitemporalLog::test_same_day_price_not_visible_at_midnight_but_prior_day_is (real, code-executed proof the same-day boundary leak is closed; class renamed from TestGetPriceHistoryAsOf 2026-07-29 HARDEN -- broken evidence node-id was a fail-silent, the cited proof could not be located)",
+              "is_test": true,
+              "test_functions": 29
+            },
+            {
+              "path": "tests/company/interfaces/test_bitemporal_event_log.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/interfaces/test_bitemporal_event_log.py",
+              "raw": "tests/company/interfaces/test_bitemporal_event_log.py::TestOutOfOrderArrivalInvariance (2026-07-27 HARDEN, dial-4 yielded: pins the reveal answer to (transaction_time, decision_time) NOT insertion order -- C-S1 out-of-order settlement-run arrival + C-S2 replay; R15 both-ways, a real-source last-inserted-wins mutation reds exactly these guards)",
+              "is_test": true,
+              "test_functions": 33
+            }
+          ],
+          "test_files": 2,
+          "test_functions": 62,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "W3_1_price_cap_binding",
+          "name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
+          "lane": "W3_industry_systems",
+          "loop_stage": "harden",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "raw": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "is_test": false
+            },
+            {
+              "path": "simulation/hedged_settlement.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/hedged_settlement.py",
+              "raw": "simulation/hedged_settlement.py::run_deemed_term()",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_hedged_settlement.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_hedged_settlement.py",
+              "raw": "tests/simulation/test_hedged_settlement.py (6 new cap-binding tests)",
+              "is_test": true,
+              "test_functions": 20
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 20,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "W3_2_settlement_timetable",
+          "name": "Real settlement timetable (D+1/D+... true-up) as an explicit world mechanism",
+          "lane": "W3_industry_systems",
+          "loop_stage": "idle",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/regulatory/settlement_reconciliation.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/regulatory/settlement_reconciliation.py",
+              "raw": "company/regulatory/settlement_reconciliation.py (adjacent, company-side only, not this atom's own scope -- calibration-constant source of truth)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/settlement_timetable.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/settlement_timetable.py",
+              "raw": "simulation/settlement_timetable.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_settlement_timetable.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_settlement_timetable.py",
+              "raw": "tests/simulation/test_settlement_timetable.py (18 tests, all passing)",
+              "is_test": true,
+              "test_functions": 22
+            },
+            {
+              "path": "simulation/settlement_run_series.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/settlement_run_series.py",
+              "raw": "simulation/settlement_run_series.py::build_settlement_revision_log (L2 real call site)",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_settlement_run_series.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_settlement_run_series.py",
+              "raw": "tests/simulation/test_settlement_run_series.py (10 tests: final-value-neutrality + point-in-time blindfold)",
+              "is_test": true,
+              "test_functions": 16
+            }
+          ],
+          "test_files": 2,
+          "test_functions": 38,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        }
+      ],
+      "atoms_at_target": 6,
+      "atoms_with_ledger": 4,
+      "atoms_with_missing": 4
+    },
+    {
+      "id": "the_households",
+      "name": "The households",
+      "declared_stage": "Live",
+      "computed_stage": "Live",
+      "stage_matches": true,
+      "look_href": "./customers/#cust-who",
+      "evidence_href": "./evidence/#the_households",
+      "atoms": [
+        {
+          "id": "W2_1_archetype_layers",
+          "name": "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)",
+          "lane": "W2_customer_generator",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "simulation/household_segments.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/household_segments.py",
+              "raw": "simulation/household_segments.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W2_2_population_draw",
+          "name": "Per-run stochastic population draw (vs current fixed cast)",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_EVIDENCE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_EVIDENCE.md",
+              "raw": "docs/design/EPOCH2_EVIDENCE.md",
+              "is_test": false
+            },
+            {
+              "path": "simulation/population_draw.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/population_draw.py",
+              "raw": "simulation/population_draw.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md",
+              "raw": "docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md",
+              "is_test": false
+            },
+            {
+              "path": "company/analytics/cohort_discovery.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/analytics/cohort_discovery.py",
+              "raw": "company/analytics/cohort_discovery.py",
+              "is_test": false
+            },
+            {
+              "path": "tools/couple_cohort.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/couple_cohort.py",
+              "raw": "tools/couple_cohort.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W2_4_household_budget",
+          "name": "Household budget sketch as hidden SIM state (income band, essential-cost floor, discretionary margin, savings buffer, priority-of-debts stack)",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "raw": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "is_test": false
+            },
+            {
+              "path": "company/compliance/crisis_bad_debt_validator.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/compliance/crisis_bad_debt_validator.py",
+              "raw": "company/compliance/crisis_bad_debt_validator.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/observability/sanity_adjudication_ledger.json",
+              "status": "RESOLVED",
+              "resolved_path": "docs/observability/sanity_adjudication_ledger.json",
+              "raw": "docs/observability/sanity_adjudication_ledger.json (coldwalk:bad_debt_implausibly_low_through_2021_22_crisis, adjudicated-real)",
+              "is_test": false
+            },
+            {
+              "path": "docs/market_research/household_budget_w2_4.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/market_research/household_budget_w2_4.md",
+              "raw": "docs/market_research/household_budget_w2_4.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W2_5_life_event_stream",
+          "name": "Life-event stream (job loss, illness, divorce, retirement, new child) -- ONE shared W2 event generator",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "raw": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/market_research/life_event_stream_w2_5.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/market_research/life_event_stream_w2_5.md",
+              "raw": "docs/market_research/life_event_stream_w2_5.md",
+              "is_test": false
+            },
+            {
+              "path": "simulation/life_events.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/life_events.py",
+              "raw": "simulation/life_events.py (real, wired, ONS-calibrated: job_loss/income_recovery/new_baby/retirement_starts/illness/divorce + solar/EV/heat-pump/smart-meter/insulation)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/household_demand.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/household_demand.py",
+              "raw": "simulation/household_demand.py (real call site: generate_life_events)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/run_phase2b.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/run_phase2b.py",
+              "raw": "simulation/run_phase2b.py (real production entry point importing household_demand)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/switching_propensity.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/switching_propensity.py",
+              "raw": "simulation/switching_propensity.py (real downstream consumer of income_stress)",
+              "is_test": false
+            },
+            {
+              "path": "tests/simulation/test_life_events_internals.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/simulation/test_life_events_internals.py",
+              "raw": "tests/simulation/test_life_events_internals.py + test_phase_b_life_events.py + tests/sim/test_phase_mv_economic_life_events.py + tests/company/crm/test_life_events.py (97 tests)",
+              "is_test": true,
+              "test_functions": 15
+            },
+            {
+              "path": "tests/sim/test_phase_mv_economic_life_events.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/sim/test_phase_mv_economic_life_events.py",
+              "raw": "tests/simulation/test_life_events_internals.py + test_phase_b_life_events.py + tests/sim/test_phase_mv_economic_life_events.py + tests/company/crm/test_life_events.py (97 tests)",
+              "is_test": true,
+              "test_functions": 29
+            },
+            {
+              "path": "tests/company/crm/test_life_events.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_life_events.py",
+              "raw": "tests/simulation/test_life_events_internals.py + test_phase_b_life_events.py + tests/sim/test_phase_mv_economic_life_events.py + tests/company/crm/test_life_events.py (97 tests)",
+              "is_test": true,
+              "test_functions": 21
+            },
+            {
+              "path": "company/crm/life_events.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/life_events.py",
+              "raw": "company/crm/life_events.py + life_event_impact.py (broader taxonomy incl. divorce/serious_illness, confirmed orphaned -- zero non-test callers)",
+              "is_test": false
+            }
+          ],
+          "test_files": 3,
+          "test_functions": 65,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "W2_6_sme_distress_twin",
+          "name": "SME/I&C distress twin (sector shocks, insolvency events, late-payment culture)",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "raw": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/market_research/sme_distress_twin_w2_6.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/market_research/sme_distress_twin_w2_6.md",
+              "raw": "docs/market_research/sme_distress_twin_w2_6.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W2_7_willingness_classification",
+          "name": "Can't-pay vs won't-pay -- hidden ABILITY x WILLINGNESS 2x2, classified by the company under uncertainty",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "raw": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/market_research/willingness_classification_incidence.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/market_research/willingness_classification_incidence.md",
+              "raw": "docs/market_research/willingness_classification_incidence.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W2_8_self_rationing",
+          "name": "Pay-but-don't-heat self-rationing (perfect payment record, consumption collapses below plausible living levels)",
+          "lane": "W2_customer_generator",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "raw": "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        }
+      ],
+      "atoms_at_target": 7,
+      "atoms_with_ledger": 0,
+      "atoms_with_missing": 7
+    },
+    {
+      "id": "the_wall",
+      "name": "The wall",
+      "declared_stage": "Live",
+      "computed_stage": "Live",
+      "stage_matches": true,
+      "look_href": "./world/#crossings",
+      "evidence_href": "./evidence/#the_wall",
+      "atoms": [
+        {
+          "id": "W4_1_typed_adapters",
+          "name": "Typed, versioned-message SIM/company boundary adapters (go-live seam)",
+          "lane": "W4_the_wall",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/interfaces/sim_interface.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/interfaces/sim_interface.py",
+              "raw": "company/interfaces/sim_interface.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/WALLED_INTERFACES_SKETCH.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/WALLED_INTERFACES_SKETCH.md",
+              "raw": "docs/design/WALLED_INTERFACES_SKETCH.md",
+              "is_test": false
+            },
+            {
+              "path": "tools/market_data_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/market_data_port.py",
+              "raw": "tools/market_data_port.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/charters/W4_the_wall.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/charters/W4_the_wall.md",
+              "raw": "docs/design/charters/W4_the_wall.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/observability/action_needed_register.json",
+              "status": "RESOLVED",
+              "resolved_path": "docs/observability/action_needed_register.json",
+              "raw": "docs/observability/action_needed_register.json (walled-interfaces-priority-rank, resolved:true)",
+              "is_test": false
+            },
+            {
+              "path": "tools/meter_read_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/meter_read_port.py",
+              "raw": "tools/meter_read_port.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/tools/test_meter_read_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_meter_read_port.py",
+              "raw": "tests/tools/test_meter_read_port.py",
+              "is_test": true,
+              "test_functions": 6
+            },
+            {
+              "path": "tools/acquisition_funnel_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/acquisition_funnel_port.py",
+              "raw": "tools/acquisition_funnel_port.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/tools/test_acquisition_funnel_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_acquisition_funnel_port.py",
+              "raw": "tests/tools/test_acquisition_funnel_port.py",
+              "is_test": true,
+              "test_functions": 7
+            },
+            {
+              "path": "tools/contact_centre_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/contact_centre_port.py",
+              "raw": "tools/contact_centre_port.py",
+              "is_test": false
+            },
+            {
+              "path": "tests/tools/test_contact_centre_port.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_contact_centre_port.py",
+              "raw": "tests/tools/test_contact_centre_port.py",
+              "is_test": true,
+              "test_functions": 5
+            }
+          ],
+          "test_files": 3,
+          "test_functions": 18,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "W4_3_external_truth_wall",
+          "name": "Name the EXTERNAL-TRUTH WALL constitutionally: the five failure themes are one failure at different altitudes -- the boundary between what the machine KNOWS and what is EXTERNALLY TRUE; make it a first-class architectural law",
+          "lane": "W4_the_wall",
+          "loop_stage": "idle",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md",
+              "raw": "docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/EXTERNAL_TRUTH_WALL.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EXTERNAL_TRUTH_WALL.md",
+              "raw": "docs/design/EXTERNAL_TRUTH_WALL.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "W4_4_payment_observable_seam",
+          "name": "Payment observable seam (coupled-triad SEAM of the D5 decomposition): the typed, versioned SIM/company interface through which the company OBSERVES payments -- bank statements, remittance advices, settlement/BACS reports, DD success/failure notifications -- exposing OBSERVABLES ONLY (never the sim payment-behaviour internals). The go-live payment adapter seam (swap sim for real bank/Bacs behind the unchanged contract).",
+          "lane": "W4_the_wall",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/in_progress/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
+              "raw": "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts": 1784384098.1078503,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console ruling 2026-07-18 (verbatim: 'CONFIRMED: the enforced model stands -- the draw-filter is the BUILD authorization, the twin only sequences within it, no manual idle->build ever. H23 and H24_worktree STAND; RATIFIED: H23 -> L3, H24_worktree -> L2. BUILD work: sequence the payment triad (W2_11 baseline fidelity ... externally anchored, difficulty dials mine); W1 stays DISCOVER. ... Console provenance: this message.')"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784398598.3929424,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console ruling 2026-07-18 (verbatim: 'RATIFIED: W2_11->L1, W4_4->L2. H27 gap: propose its level only when genuinely measured. AUTHORIZED: wire the W2_11<->D5 coupling and complete the gap measurement for real. NEXT CAMPAIGN: A -- site rebuild per the reconciled site specs, W1 DISCOVER alongside. Console provenance: this message.')"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784416930.7702973,
+              "iso": "2026-07-18",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-18/19 (REPEATED): 'APPROVED: payment triad -> L3 escalated build. Console provenance: this message.' \u2014 build landed+verified (3bfd4e98c on origin, epistemic PASS, live gap 0.2, R15-proven, full publish gate green 18058); NTFY down so this ratifies the L3 cell-move he could not see completed."
+            }
+          ],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "C2_discovery_through_interfaces",
+          "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+          "lane": "C_customer_ops",
+          "loop_stage": "idle",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_EVIDENCE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_EVIDENCE.md",
+              "raw": "docs/design/EPOCH2_EVIDENCE.md",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/property_model.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/property_model.py",
+              "raw": "company/crm/property_model.py::Property.provenance/confidence_for/source_for/as_of_for/overall_confidence",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/property_discovery.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/property_discovery.py",
+              "raw": "company/crm/property_discovery.py",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/home_registry.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/home_registry.py",
+              "raw": "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/onboarding_journey.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/onboarding_journey.py",
+              "raw": "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/decarb_recommender.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/decarb_recommender.py",
+              "raw": "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
+              "is_test": false
+            },
+            {
+              "path": "tests/company/crm/test_property_discovery.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_property_discovery.py",
+              "raw": "tests/company/crm/test_property_discovery.py",
+              "is_test": true,
+              "test_functions": 14
+            },
+            {
+              "path": "tests/company/crm/test_c2_discovery_wired.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_c2_discovery_wired.py",
+              "raw": "tests/company/crm/test_c2_discovery_wired.py",
+              "is_test": true,
+              "test_functions": 13
+            },
+            {
+              "path": "tests/company/crm/test_property_model.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_property_model.py",
+              "raw": "tests/company/crm/test_property_model.py (belief-layer tests)",
+              "is_test": true,
+              "test_functions": 28
+            },
+            {
+              "path": "tests/company/crm/test_home_registry.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_home_registry.py",
+              "raw": "tests/company/crm/test_home_registry.py (belief-layer tests)",
+              "is_test": true,
+              "test_functions": 29
+            }
+          ],
+          "test_files": 4,
+          "test_functions": 84,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        }
+      ],
+      "atoms_at_target": 4,
+      "atoms_with_ledger": 1,
+      "atoms_with_missing": 4
+    },
+    {
+      "id": "the_company",
+      "name": "The company",
+      "declared_stage": "Building",
+      "computed_stage": "Building",
+      "stage_matches": true,
+      "look_href": "./company/#state-decisions",
+      "evidence_href": "./evidence/#the_company",
+      "atoms": [
+        {
+          "id": "C1_segment_layers",
+          "name": "Customer segment flavour fields (smart meter, dual-fuel, home/business type)",
+          "lane": "C_customer_ops",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "tools/generate_customer_sample.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/generate_customer_sample.py",
+              "raw": "tools/generate_customer_sample.py",
+              "is_test": false
+            },
+            {
+              "path": "saas/customers.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/customers.py",
+              "raw": "saas/customers.py",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "C2_discovery_through_interfaces",
+          "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+          "lane": "C_customer_ops",
+          "loop_stage": "idle",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_EVIDENCE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_EVIDENCE.md",
+              "raw": "docs/design/EPOCH2_EVIDENCE.md",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/property_model.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/property_model.py",
+              "raw": "company/crm/property_model.py::Property.provenance/confidence_for/source_for/as_of_for/overall_confidence",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/property_discovery.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/property_discovery.py",
+              "raw": "company/crm/property_discovery.py",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/home_registry.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/home_registry.py",
+              "raw": "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/onboarding_journey.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/onboarding_journey.py",
+              "raw": "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
+              "is_test": false
+            },
+            {
+              "path": "company/crm/decarb_recommender.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/crm/decarb_recommender.py",
+              "raw": "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
+              "is_test": false
+            },
+            {
+              "path": "tests/company/crm/test_property_discovery.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_property_discovery.py",
+              "raw": "tests/company/crm/test_property_discovery.py",
+              "is_test": true,
+              "test_functions": 14
+            },
+            {
+              "path": "tests/company/crm/test_c2_discovery_wired.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_c2_discovery_wired.py",
+              "raw": "tests/company/crm/test_c2_discovery_wired.py",
+              "is_test": true,
+              "test_functions": 13
+            },
+            {
+              "path": "tests/company/crm/test_property_model.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_property_model.py",
+              "raw": "tests/company/crm/test_property_model.py (belief-layer tests)",
+              "is_test": true,
+              "test_functions": 28
+            },
+            {
+              "path": "tests/company/crm/test_home_registry.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/crm/test_home_registry.py",
+              "raw": "tests/company/crm/test_home_registry.py (belief-layer tests)",
+              "is_test": true,
+              "test_functions": 29
+            }
+          ],
+          "test_files": 4,
+          "test_functions": 84,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "C9_cantpay_wontpay_classifier",
+          "name": "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)",
+          "lane": "C_customer_ops",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/COUPLED_TRIAD_DESIGN.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/COUPLED_TRIAD_DESIGN.md",
+              "raw": "docs/design/COUPLED_TRIAD_DESIGN.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "D1_bill_correctness",
+          "name": "Bill line-item correctness (VAT, segment labelling, non-commodity recovery)",
+          "lane": "D_billing_metering",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/BILL_CORRECTNESS_ADDENDUM.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/BILL_CORRECTNESS_ADDENDUM.md",
+              "raw": "docs/staging/done/BILL_CORRECTNESS_ADDENDUM.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "D2_three_clocks",
+          "name": "Three settlement clocks (physical/financial/regulatory) reconciled per bill",
+          "lane": "D_billing_metering",
+          "loop_stage": "harden",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "raw": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "raw": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/charters/D_billing_metering.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/charters/D_billing_metering.md",
+              "raw": "docs/design/charters/D_billing_metering.md",
+              "is_test": false
+            },
+            {
+              "path": "tools/generate_margin_bridge.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/generate_margin_bridge.py",
+              "raw": "tools/generate_margin_bridge.py",
+              "is_test": false
+            },
+            {
+              "path": "tools/generate_dashboard_data.py",
+              "status": "RESOLVED",
+              "resolved_path": "tools/generate_dashboard_data.py",
+              "raw": "tools/generate_dashboard_data.py::_check_bridge_reconciles",
+              "is_test": false
+            },
+            {
+              "path": "saas/reporting/annual_report.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/reporting/annual_report.py",
+              "raw": "saas/reporting/annual_report.py::per_customer_monthly",
+              "is_test": false
+            },
+            {
+              "path": "site/index.html",
+              "status": "RESOLVED",
+              "resolved_path": "site/index.html",
+              "raw": "site/index.html::renderBridgeWorkedExample",
+              "is_test": false
+            },
+            {
+              "path": "site/data/margin_bridge.json",
+              "status": "RESOLVED",
+              "resolved_path": "site/data/margin_bridge.json",
+              "raw": "site/data/margin_bridge.json (live, C1 2020-12 worked example)",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "D3_catchup_rebilling",
+          "name": "Estimated billing & catch-up rebilling cycle",
+          "lane": "D_billing_metering",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/observability/sanity_adjudication_ledger.json",
+              "status": "RESOLVED",
+              "resolved_path": "docs/observability/sanity_adjudication_ledger.json",
+              "raw": "docs/observability/sanity_adjudication_ledger.json (defect:estimated_bill_amount_on_true_consumption)",
+              "is_test": false
+            },
+            {
+              "path": "simulation/run_phase4c_on_phase2b.py",
+              "status": "RESOLVED",
+              "resolved_path": "simulation/run_phase4c_on_phase2b.py",
+              "raw": "simulation/run_phase4c_on_phase2b.py (_estimated_settlement_records, _annotate_billing_basis, _resolve_catchup)",
+              "is_test": false
+            },
+            {
+              "path": "company/billing/back_billing.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/billing/back_billing.py",
+              "raw": "company/billing/back_billing.py (BackBillingAssessment, reason=ESTIMATED_READ_CORRECTED -- previously built, unwired; now live)",
+              "is_test": false
+            },
+            {
+              "path": "site/data/customers/C3g.json",
+              "status": "RESOLVED",
+              "resolved_path": "site/data/customers/C3g.json",
+              "raw": "real full 2016-2025 run, 2026-07-12: 1588 bills, 471 estimated (29.7%, consistent with the 27% finding below), 155 catch-ups resolved (67 undercharge/88 overcharge), raw delta GBP7,950.07, GBP7,864.25 chargeable, GBP85.82 written off under the Ofgem 12-month cap (2 real cap-applied cases) -- site/data/customers/C3g.json INV470 (2018-08-31) read by eye: 12 consecutive estimated gas bills resolved on the real read, GBP480.64 raw undercharge, GBP39.61 correctly written off (the oldest sliver pre-dates the SLC 31A 12-month protected window as of the billing date), GBP441.03 charged -- folded into that bills own total_amount_gbp with bill_shock_pct/clarity_score recomputed consistently.",
+              "is_test": false
+            },
+            {
+              "path": "tests/controls/test_control_mutation.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/controls/test_control_mutation.py",
+              "raw": "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a \u00a30.01 token write-off against a ~\u00a33,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3.",
+              "is_test": true,
+              "test_functions": 98
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 98,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "E1_ledger_double_entry",
+          "name": "Double-entry ledger + management accounts (income statement)",
+          "lane": "E_finance_treasury",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/finance/double_entry.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/finance/double_entry.py",
+              "raw": "company/finance/double_entry.py",
+              "is_test": false
+            },
+            {
+              "path": "saas/ledger.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/ledger.py",
+              "raw": "saas/ledger.py",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/E1_CORPORATION_TAX_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/E1_CORPORATION_TAX_FINDING.md",
+              "raw": "docs/design/E1_CORPORATION_TAX_FINDING.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "E2_revenue_reconciliation",
+          "name": "Single reconciled revenue definition across every reporting surface",
+          "lane": "E_finance_treasury",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md",
+              "raw": "docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "raw": "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+              "is_test": false
+            },
+            {
+              "path": "site/supplier/index.html",
+              "status": "MISSING",
+              "resolved_path": null,
+              "raw": "site/supplier/index.html::basisNote",
+              "is_test": false
+            },
+            {
+              "path": "site/project/index.html",
+              "status": "RESOLVED",
+              "resolved_path": "site/project/index.html",
+              "raw": "site/project/index.html::renderKpis",
+              "is_test": false
+            },
+            {
+              "path": "site/customers/index.html",
+              "status": "RESOLVED",
+              "resolved_path": "site/customers/index.html",
+              "raw": "site/customers/index.html",
+              "is_test": false
+            },
+            {
+              "path": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
+              "raw": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
+              "is_test": true,
+              "test_functions": 10
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 10,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "UNRESOLVED_CITATION"
+          ]
+        },
+        {
+          "id": "B1_margin_bridge",
+          "name": "Year-over-year margin bridge with residual reconciliation",
+          "lane": "B_commercial",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "saas/reporting/margin_attribution.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/reporting/margin_attribution.py",
+              "raw": "saas/reporting/margin_attribution.py",
+              "is_test": false
+            },
+            {
+              "path": "saas/reporting/annual_report.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/reporting/annual_report.py",
+              "raw": "saas/reporting/annual_report.py::_section_gross_margin_bridge/_section_net_margin_bridge",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md",
+              "raw": "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/market_research/ASSUMPTIONS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/market_research/ASSUMPTIONS.md",
+              "raw": "docs/market_research/ASSUMPTIONS.md (B1 Margin Bridge section)",
+              "is_test": false
+            },
+            {
+              "path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "raw": "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+              "is_test": false
+            },
+            {
+              "path": "site/data/margin_bridge.json",
+              "status": "RESOLVED",
+              "resolved_path": "site/data/margin_bridge.json",
+              "raw": "site/data/margin_bridge.json",
+              "is_test": false
+            },
+            {
+              "path": "docs/reports/ANNUAL_REPORT.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/reports/ANNUAL_REPORT.md",
+              "raw": "docs/reports/ANNUAL_REPORT.md (live-regenerated, both notes confirmed rendered)",
+              "is_test": false
+            },
+            {
+              "path": "saas/reporting/margin_attribution.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/reporting/margin_attribution.py",
+              "raw": "saas/reporting/margin_attribution.py::residual_is_material (R15 reconciliation tripwire)",
+              "is_test": false
+            },
+            {
+              "path": "tests/saas/test_phase_nt_margin_bridge.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/saas/test_phase_nt_margin_bridge.py",
+              "raw": "tests/saas/test_phase_nt_margin_bridge.py::TestResidualReconciliationControl (8 tests, mutation-proven)",
+              "is_test": true,
+              "test_functions": 35
+            }
+          ],
+          "test_files": 1,
+          "test_functions": 35,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD"
+          ]
+        },
+        {
+          "id": "B2_opex_cost_to_serve",
+          "name": "Opex/cost-to-serve mechanism -- full B2 taxonomy (true/benchmark ledger, fixed floor, break-even, segment capital/ROCE, concentration)",
+          "lane": "B_commercial",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "raw": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "raw": "docs/staging/done/MARGIN_REALISM_amended.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md",
+              "raw": "docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/staging/done/from_rich_20260710_190908.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/from_rich_20260710_190908.md",
+              "raw": "docs/staging/done/from_rich_20260710_190908.md",
+              "is_test": false
+            },
+            {
+              "path": "saas/opex_ledger.py",
+              "status": "RESOLVED",
+              "resolved_path": "saas/opex_ledger.py",
+              "raw": "saas/opex_ledger.py",
+              "is_test": false
+            },
+            {
+              "path": "company/finance/segment_capital.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/finance/segment_capital.py",
+              "raw": "company/finance/segment_capital.py",
+              "is_test": false
+            },
+            {
+              "path": "company/risk/concentration_risk.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/risk/concentration_risk.py",
+              "raw": "company/risk/concentration_risk.py",
+              "is_test": false
+            },
+            {
+              "path": "site/supplier/index.html",
+              "status": "MISSING",
+              "resolved_path": null,
+              "raw": "site/supplier/index.html (Cost-to-Serve + Fixed Cost Floor/Break-Even + Segment Capital/ROCE + Concentration cards)",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "UNRESOLVED_CITATION",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "B3_hedge_tariff_alignment",
+          "name": "Hedge-tariff alignment (cost locked when price is locked)",
+          "lane": "B_commercial",
+          "loop_stage": "harden",
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "raw": "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/B3_HEDGE_TARIFF_ALIGNMENT_FINDING.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/B3_HEDGE_TARIFF_ALIGNMENT_FINDING.md",
+              "raw": "docs/design/B3_HEDGE_TARIFF_ALIGNMENT_FINDING.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "B4_competitor_field",
+          "name": "Competitor field (price ceiling / undercut pressure)",
+          "lane": "B_commercial",
+          "loop_stage": "idle",
+          "level_current": 0,
+          "level_target": 1,
+          "at_target": false,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "company/market/tariff_benchmarking.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/market/tariff_benchmarking.py",
+              "raw": "company/market/tariff_benchmarking.py (real, built, orphaned -- zero non-test callers)",
+              "is_test": false
+            },
+            {
+              "path": "company/pricing/renewal_pricing_engine.py",
+              "status": "RESOLVED",
+              "resolved_path": "company/pricing/renewal_pricing_engine.py",
+              "raw": "company/pricing/renewal_pricing_engine.py (real, built, orphaned -- zero non-test callers)",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/B4_competitor_field_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/B4_competitor_field_FRAME.md",
+              "raw": "docs/design/frame/B4_competitor_field_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/COMPETITOR_FIELD_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/COMPETITOR_FIELD_FRAME.md",
+              "raw": "docs/design/COMPETITOR_FIELD_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "raw": "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        }
+      ],
+      "atoms_at_target": 11,
+      "atoms_with_ledger": 0,
+      "atoms_with_missing": 12
+    },
+    {
+      "id": "the_score",
+      "name": "The score",
+      "declared_stage": "Building",
+      "computed_stage": "Building",
+      "stage_matches": true,
+      "look_href": "./proof/#not-proven",
+      "evidence_href": "./evidence/#the_score",
+      "atoms": [
+        {
+          "id": "A5_tournament_fitness_mortality",
+          "name": "Tournament fitness function + mortality rules (which company variants survive/die across generated-future runs)",
+          "lane": "A_strategy_governance",
+          "loop_stage": "idle",
+          "level_current": 0,
+          "level_target": 1,
+          "at_target": false,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md",
+              "raw": "docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "A6_coupled_triad_gap_metric",
+          "name": "The coupled triad: SIM depth -> company copes through the wall -> harness measures the belief-vs-truth GAP (the gap is the score)",
+          "lane": "A_strategy_governance",
+          "loop_stage": "build",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/staging/done/THE_COUPLED_TRIAD.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/THE_COUPLED_TRIAD.md",
+              "raw": "docs/staging/done/THE_COUPLED_TRIAD.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_LEDGER_RECORD",
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "A_scope_of_need_scoring_frame",
+          "name": "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric",
+          "lane": "G_data_learning",
+          "loop_stage": "idle   # PARKED 2026-07-20: the 5x3 archetype x regime frame + worst-cell scoring built (L1); ONE cell (A1_G2 affordability x crisis) live-fed via the fidelity bridge (live_fidelity_evidence.py). L1->L2 (feed real per-cell gaps from a live run) needs MORE live coupled consumers producing belief-vs-truth gaps for the other cells -- a broader coupled-triad build, not an A-scope increment (the fidelity grid can only score cells that have a live gap). No in-scope BUILD increment now. UNBLOCK: more live coupled consumers wired (each populates more cells). Parked so the BUILD draw stops re-offering live-consumer-gated work (Rule 0).",
+          "level_current": 1,
+          "level_target": 3,
+          "at_target": false,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md",
+              "raw": "docs/design/EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md",
+              "raw": "docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts": 1784499318.392603,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a live company consumer for G1-3. Console provenance: this message.'"
+            }
+          ],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "E5_carbon_three_ledger",
+          "name": "Carbon three-ledger (the v4 mission's core measurement): customer carbon SAVED / operational carbon SPENT (people, compute, tokens) / NET position, feeding \u00a3 per tonne CO2e = (cost to serve + cost to persuade incl compute) / carbon abated. A DIAGNOSTIC, reported like a P&L, never an optimisation target",
+          "lane": "E_finance_treasury",
+          "loop_stage": "idle   # PARKED 2026-07-20: rung 1 (carbon three-ledger data model + CARBON_NOT_A_TARGET grep-guard) built, L0->L1 proposed. Rung 2 is BLOCKED, not effort-gated: SAVED needs the unbuilt per-household cost-and-carbon trajectory (personalisation, a separate build); the SPENT emitter needs the emissions-factor SET which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). No in-scope BUILD increment. UNBLOCK: director emissions-factor + counterfactual-method values-calls, OR the trajectory build lands. Parked so the BUILD draw stops re-offering values-call-gated work (Rule 0).",
+          "level_current": 0,
+          "level_target": 3,
+          "at_target": false,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/PURPOSE_PITCH_V4.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/PURPOSE_PITCH_V4.md",
+              "raw": "docs/design/PURPOSE_PITCH_V4.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/CARBON_NOT_A_TARGET_CONSTRAINT.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/CARBON_NOT_A_TARGET_CONSTRAINT.md",
+              "raw": "docs/design/CARBON_NOT_A_TARGET_CONSTRAINT.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/SITE_SURFACE_AUDIT_2026-07-19.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/SITE_SURFACE_AUDIT_2026-07-19.md",
+              "raw": "docs/design/SITE_SURFACE_AUDIT_2026-07-19.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/CARBON_THREE_LEDGER_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/CARBON_THREE_LEDGER_DISCOVER.md",
+              "raw": "docs/design/CARBON_THREE_LEDGER_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/E5_EMISSIONS_FACTOR_REGISTER_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/E5_EMISSIONS_FACTOR_REGISTER_DISCOVER.md",
+              "raw": "docs/design/E5_EMISSIONS_FACTOR_REGISTER_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/frame/E5_carbon_three_ledger_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/frame/E5_carbon_three_ledger_FRAME.md",
+              "raw": "docs/design/frame/E5_carbon_three_ledger_FRAME.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md",
+              "raw": "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        },
+        {
+          "id": "G1_fidelity_grid_scorer",
+          "name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
+          "lane": "G_data_learning",
+          "loop_stage": "harden",
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "in_map": true,
+          "citations": [
+            {
+              "path": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "raw": "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+              "is_test": false
+            },
+            {
+              "path": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "raw": "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+              "is_test": false
+            }
+          ],
+          "test_files": 0,
+          "test_functions": 0,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts": 1784462364.97182,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts": 1784465577.7007093,
+              "iso": "2026-07-19",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'RATIFIED: G1, G2, G3 -> L2. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts": 1784535333.5317304,
+              "iso": "2026-07-20",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            }
+          ],
+          "missing": [
+            "NO_TEST_CITED"
+          ]
+        }
+      ],
+      "atoms_at_target": 2,
+      "atoms_with_ledger": 2,
+      "atoms_with_missing": 5
+    }
+  ],
+  "totals": {
+    "nodes": 6,
+    "atoms": 46,
+    "citations": 212,
+    "citations_resolved": 209,
+    "citations_relocated": 1,
+    "citations_missing": 2,
+    "atoms_with_missing": 43,
+    "nodes_fully_evidenced": 0
+  }
+}
