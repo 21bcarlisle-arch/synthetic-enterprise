@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-30T00:28:09Z
+Last updated: 2026-08-03T04:01:43Z
 
 **FIXED (2026-07-29, `67a2e3ee6` + `42cff58b6`) — one director message became two queued acts. Cause named,
 not filtered.** The director's ntfy arrived twice, eight seconds apart, and each copy was separately acked and
@@ -532,10 +532,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (458s / 8 min):
-- Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
-- Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
-- Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
+**Latest simulation results (2016–2025)** — auto-processed (459s / 8 min):
+- Net margin: £1,501,000.74 | Gross: £6,451,376.58 | Capital: £51,422
+- Treasury: £2,466,636 → £3,878,099 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,359,201.50 | Net after CTS: £1,477,842
 - Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -640,6 +640,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~626.0h across 46 sized atom(s) (9 of 55 below-target atoms still unsized).
+- Remaining effort: ~623.4h across 45 sized atom(s) (8 of 53 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

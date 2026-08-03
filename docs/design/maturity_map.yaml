@@ -2501,11 +2501,11 @@
   value_stream: wholesale_to_price
   provenance: proposal
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
-  block_reason: "Engine BUILT 2026-07-28 (efad226db); 2 of 3 exit criteria met, criterion-1 reconstructibility PARTIAL (3/5 calm cells) pending an EU/UK-ETS carbon TIME-SERIES DISCOVER (a named R10 data gap, no interim tuning per R12/R13); then the director ratifies the level (R16)."
+  block_reason: "2026-07-30 re-audit: level_current now 1 (self-certified on reproduced evidence, was a stale 0). TWO named gaps stand between 1 and the target 3, neither of them permission: (a) exit criterion 1 is 3/5 calm cells, NOT MET, awaiting an EU/UK-ETS carbon TIME-SERIES DISCOVER -- deliberately NOT tuned toward 5/5 (R12/R13; a fabricated carbon series would be the fidelity violation, not the fix); (b) NEWLY FOUND -- sim/price_engine.py never imports or calls sim/merit_order_reconstruction.py (grep-confirmed; the sole importer is the measurement harness), so the engine is a STANDALONE DIAGNOSTIC, not wired into the live simulated price path the company observes. Whether 'reconstructible' requires live wiring is an open DESIGN question, not a blocker on this cell."
   dial_inherited: 3
   evidence: ['docs/staging/done/PLANNER_MINTED_merit_order_reconstruction_discover_2026-07-25.md', 'docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md', 'docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md', 'docs/staging/DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27.md', 'sim/merit_order_reconstruction.py', 'tests/sim/test_merit_order_reconstruction.py', 'docs/fidelity/W1_6b_merit_order_reconstructibility_evidence.md']
   file_scope: [sim, tests/sim]

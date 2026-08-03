@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generated_at": "2026-07-30T00:17:48Z",
+    "generated_at": "2026-08-03T03:50:19Z",
     "git_commit": "unknown",
-    "household_count": 14,
+    "household_count": 13,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "69 timeline + reaction-chain entries on record",
+      "headline": "73 timeline + reaction-chain entries on record",
       "account_id": "C7",
       "base_account_id": "C7",
       "segment": "resi",
@@ -46,15 +46,15 @@
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "5 debt write-off event(s) in the arrears cascade",
-      "account_id": "C4",
-      "base_account_id": "C4",
+      "headline": "2 debt write-off event(s) in the arrears cascade",
+      "account_id": "C1",
+      "base_account_id": "C1",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C4",
+        "acc": "C1",
         "tab": "timeline",
-        "year": 2018
+        "year": 2016
       }
     },
     {
@@ -72,13 +72,13 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 12% (2019 to 2024) but never once answered a survey -- invisible to the company's measurement instrument",
-      "account_id": "C_IC2",
-      "base_account_id": "C_IC2",
-      "segment": "I&C",
+      "headline": "True satisfaction fell 22% (2017 to 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "account_id": "C4",
+      "base_account_id": "C4",
+      "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C_IC2",
+        "acc": "C4",
         "tab": "timeline",
         "year": 2024
       }

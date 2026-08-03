@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 180
+      "stall_consecutive_unchanged": 3045
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1251,7 +1251,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 176
+      "stall_consecutive_unchanged": 3095
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1270,7 +1270,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 158
+      "stall_consecutive_unchanged": 3022
     },
     {
       "id": "SITE_EH3_figure_reconciliation_and_periods",
@@ -1289,7 +1289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 188
+      "stall_consecutive_unchanged": 2991
     },
     {
       "id": "H10_worktree_isolation",
@@ -1841,7 +1841,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stall_consecutive_unchanged": 3294
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2800,9 +2800,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2812,9 +2812,9 @@
         "F1a_sim_customer_response"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 121
+      "stall_consecutive_unchanged": 126
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2838,8 +2838,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3382
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2848,7 +2848,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2860,7 +2860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80
+      "stall_consecutive_unchanged": 3424
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 304
+      "stall_consecutive_unchanged": 2204
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2940,7 +2940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 91
+      "stall_consecutive_unchanged": 3505
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3255,7 +3255,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1010
+      "stall_consecutive_unchanged": 14363
     },
     {
       "id": "OPS1_launcher_cutover_completion",
