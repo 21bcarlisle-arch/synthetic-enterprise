@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3069
+      "stall_consecutive_unchanged": 3101
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1251,7 +1251,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3118
+      "stall_consecutive_unchanged": 3154
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1260,17 +1260,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 3047
+      "stall_consecutive_unchanged": 3069
     },
     {
       "id": "SITE_EH3_figure_reconciliation_and_periods",
@@ -1289,7 +1289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3016
+      "stall_consecutive_unchanged": 3047
     },
     {
       "id": "H10_worktree_isolation",
@@ -1841,7 +1841,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3320
+      "stall_consecutive_unchanged": 3349
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2825,7 +2825,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 2,
-      "loop_stage": "frame",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2839,7 +2839,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3415
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2860,7 +2860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3451
+      "stall_consecutive_unchanged": 3492
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2881,7 +2881,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 87
+      "stall_consecutive_unchanged": 91
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2217
+      "stall_consecutive_unchanged": 2244
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2940,7 +2940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3533
+      "stall_consecutive_unchanged": 3576
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3255,7 +3255,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14473
+      "stall_consecutive_unchanged": 14615
     },
     {
       "id": "OPS1_launcher_cutover_completion",
