@@ -20,6 +20,7 @@ Everything here is a RENDERING of data this project already keeps honestly
 No number appears without its evidence link (SITE_CONSTITUTION binding rule 1).
 """
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -37,6 +38,118 @@ OUT_PATH = PROJECT / "site" / "data" / "proof.json"
 # Evidence-link bases (same convention as generate_method_data.py's retro links)
 GH_PAGES = "https://21bcarlisle-arch.github.io/synthetic-enterprise/"
 RETRO_LINK_BASE = GH_PAGES + "retrospectives/"
+
+# ---------------------------------------------------------------------------
+# CITATION RESOLUTION -- MAJOR-7, the half neither rescue branch closed.
+#
+# The Expert-Hour finding said the /proof/ citations were "inert by construction"
+# and named the STYLING lie (a dead anchor wearing a live link's class). Rendering
+# those citations as inert provenance tags fixes the styling, but it does NOT make
+# the citation TRUE: on 2026-08-03 six of the fifteen repo-internal paths this page
+# published pointed at files that no longer existed at the path shown, because the
+# staging protocol ARCHIVES a directive (docs/staging/X.md -> docs/staging/done/X.md,
+# or in_progress/) once it has been actioned. A reader told "the evidence is at
+# docs/staging/MARGIN_REALISM.md" and finding nothing there has been misled just as
+# badly as by a dead <a href="#">, and on a door whose whole proposition is "walk any
+# figure to its evidence" that is the same defect wearing different clothes.
+#
+# R10 (fix the CLASS, not the instance): rather than hand-patching fifteen literals
+# that will rot again at the next archive sweep, ONE pass over the finished payload
+# re-points every citation field at wherever the artefact actually lives now. The
+# literals below stay authored at their ORIGINAL path -- that is the honest historical
+# reference -- and resolution is what keeps them walkable as the tree moves.
+#
+# This function deliberately does NOT raise on an unresolvable path: wedging the
+# publish pipeline on a citation typo would be the "control false-positive jams the
+# pipeline" failure this project has already been burned by. The GATE is the test
+# (tests/tools/test_site1_proof_citations_resolve.py), which reads the PUBLISHED
+# proof.json and stats each path itself -- an independent oracle, not this resolver's
+# own opinion, so the pair cannot be tautological.
+# ---------------------------------------------------------------------------
+
+# Where an actioned/parked staging directive or a closed review gate ends up. Ordered:
+# first hit wins, so the live location is preferred over an archived duplicate.
+CITATION_ARCHIVE_DIRS = (
+    "docs/staging/done",
+    "docs/staging/in_progress",
+    "docs/staging/fyi",
+    "docs/staging/drafts",
+    "docs/review_gates/done",
+)
+# Keys whose string values are evidence citations. Extend this when a new citation
+# field is added -- a citation NOT listed here is simply never resolved (and the gate
+# test walks the same key set, so it is never silently exempted either).
+CITATION_KEYS = ("source", "doctrine", "outcome_source")
+# A citation may carry a human section pointer, e.g. "docs/design/PITCH.md (§12)".
+# That is a label, not part of the path, and must be stripped before any stat().
+_CITE_ANNOTATION = re.compile(r"\s*\((?:§|#|sec\.?|section\s)[^)]*\)\s*$", re.I)
+
+
+def citation_path(value):
+    """Split a citation string into (repo-relative path, trailing annotation).
+
+    Returns (None, None) for anything that is not a repo-internal FILE path -- an
+    http(s) URL, an empty value, a non-string, a bare directory reference, or an
+    honest prose statement that no source exists ("no hedge-outcome source is
+    built") -- so callers never try to stat a URL, "invent" a file for a directory,
+    or read a sentence as a filename.
+
+    Prose is separated from a path by whitespace: every citation in this repo is a
+    whitespace-free relative path (optionally followed by a "(§n)" section label).
+    A sentence always contains a space; a path never does. Kept deliberately tight
+    so the FAIL-OPEN direction is closed -- "docs/staging/GONE.md" can never be
+    waved through as prose, because it has no space in it.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None, None
+    if value.startswith("http://") or value.startswith("https://"):
+        return None, None
+    m = _CITE_ANNOTATION.search(value)
+    annotation = m.group(0) if m else ""
+    path = value[: m.start()] if m else value
+    path = path.strip()
+    if not path or path.endswith("/"):
+        # A directory citation (docs/retrospectives/) is checked as a directory by
+        # the gate, but has no basename to relocate, so it is never rewritten.
+        return None, None
+    if re.search(r"\s", path):
+        return None, None  # prose, not a path
+    return path, annotation
+
+
+def _resolve_citation(value):
+    """Re-point one citation at wherever the artefact lives NOW.
+
+    Unchanged if the literal path still resolves, or if there is nothing to look
+    for. Otherwise the same basename is sought under CITATION_ARCHIVE_DIRS. If it
+    cannot be found at all the ORIGINAL string is returned untouched -- publishing
+    never blocks on this, and the gate test fails loudly instead.
+    """
+    path, annotation = citation_path(value)
+    if path is None:
+        return value
+    if (PROJECT / path).exists():
+        return value
+    name = Path(path).name
+    for d in CITATION_ARCHIVE_DIRS:
+        candidate = PROJECT / d / name
+        if candidate.exists():
+            return d + "/" + name + annotation
+    return value
+
+
+def resolve_citations(node):
+    """Walk the finished payload and resolve every citation field in place."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k in CITATION_KEYS and isinstance(v, str):
+                node[k] = _resolve_citation(v)
+            else:
+                resolve_citations(v)
+    elif isinstance(node, list):
+        for item in node:
+            resolve_citations(item)
+    return node
 
 LANE_NAMES = {
     "W1_market_weather": "W1 Market & Weather",
@@ -1192,6 +1305,9 @@ def generate():
         not_proven=_not_proven(),
         corrections=_corrections(),
     )
+    # MAJOR-7: re-point every evidence citation at where the artefact lives now,
+    # so an archived staging directive stays walkable instead of silently 404ing.
+    resolve_citations(data)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: " + str(OUT_PATH))
