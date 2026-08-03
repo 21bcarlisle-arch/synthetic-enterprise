@@ -45,6 +45,7 @@ whole point of the wall -- never a target to tune away; the "band" is magnitude,
 not a pass/fail verdict on the company.
 """
 import json
+import math
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -298,8 +299,95 @@ def _crossing_blindfold(dashboard, sim):
 # ---------------------------------------------------------------------------
 # The anchors register.
 # ---------------------------------------------------------------------------
-def _anchors_runtime(anchoring):
-    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept."""
+def _finite_float(v):
+    """Reject non-finite (NaN/inf) and unparseable values FIRST, before any
+    comparison -- comparison guards are otherwise NaN-blind (standing repo
+    rule). Returns a float or None."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
+def _bad_debt_rag(rate_pct, upstream_rag):
+    """SITE_EH3 cold-eyes MAJOR-4: a non-positive (or non-finite/unavailable)
+    bad-debt rate is a hard RED with a named cause -- NEVER an AMBER
+    calibration nudge. Bad debt is the number that kills real suppliers; a
+    sign/accrual error must not read as "a bit off benchmark". This
+    OVERRIDES whatever RAG population_anchor.py (out of this atom's file_scope)
+    computed upstream -- the invariant is enforced here regardless of the
+    upstream source, so the class fails automatically even if the upstream
+    generator regresses.
+
+    Returns (rag, note). A finite, positive rate falls through to the
+    upstream RAG unchanged (never tightened/loosened here -- R12: this is a
+    plausibility flag, not a place to re-grade a fine calibration)."""
+    r = _finite_float(rate_pct)
+    if r is None:
+        return "RED", (
+            "of revenue -- bad-debt rate is unavailable/non-finite, forced RED "
+            "(an unreadable figure is a failed check, never a pass)"
+        )
+    if r <= 0:
+        return "RED", (
+            "of revenue -- bad-debt rate is non-positive (" + str(rate_pct) + "%), a sign "
+            "or accrual-timing error, not a calibration nudge -- forced RED, never AMBER "
+            "(SITE_EH3 cold-eyes MAJOR-4)"
+        )
+    return (upstream_rag or "UNKNOWN"), "of revenue"
+
+
+def _margin_rag(margin_pct):
+    """SITE_EH3 cold-eyes MAJOR-5: margin had no plausibility anchor at all,
+    so the one metric where R12's band matters most had none. Real UK supply
+    margins run roughly -2% to +4% (Ofgem price-cap EBIT allowance ~1.9-2.4%;
+    published supplier accounts show low-single-digit or negative margins
+    most years). This band is a DIAGNOSTIC FLAG on the published figure --
+    R12 binds hard here: it is NEVER used to tune, scale or nudge the margin
+    itself, only to rate the plausibility of what is already published.
+
+    Non-finite/unavailable is rejected FIRST (RED, not a silent pass)."""
+    m = _finite_float(margin_pct)
+    if m is None:
+        return "RED"
+    if -2.0 <= m <= 4.0:
+        return "GREEN"
+    if -6.0 <= m < -2.0 or 4.0 < m <= 8.0:
+        return "AMBER"
+    return "RED"
+
+
+def _anchors_margin_card(dashboard):
+    """SITE_EH3 cold-eyes MAJOR-5: adds the missing margin anchor row. Uses
+    the ledger (bill-derived) net margin -- the same figure this project's
+    own bad-debt bridge treats as canonical -- so the anchor tracks a real,
+    already-published number, never a value computed just for this card.
+    R12: this is a plausibility FLAG, never a target; the margin figure
+    itself is read as-is, untouched."""
+    fin = (dashboard or {}).get("financial") or {}
+    ledger = fin.get("ledger") or {}
+    rev = _finite_float(ledger.get("revenue_gbp"))
+    net = _finite_float(ledger.get("net_margin_gbp"))
+    margin_pct = round(net / rev * 100, 2) if (rev not in (None, 0.0) and net is not None) else None
+    return dict(
+        metric="Net margin (ledger, cumulative)",
+        sim_value=(str(margin_pct) + "%" if margin_pct is not None else None),
+        benchmark_value="-2% to 4% (real UK supply) / 1.9-2.4% (Ofgem price-cap EBIT allowance)",
+        ratio=None,
+        rag=_margin_rag(margin_pct),
+        note=(
+            "R12: a plausibility flag on the published ledger net margin -- never a "
+            "target; the margin figure itself is never tuned toward this band."
+        ),
+    )
+
+
+def _anchors_runtime(anchoring, dashboard=None):
+    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept
+    (with the bad-debt non-positive override and the added margin anchor
+    row -- both SITE_EH3 class-closing invariants, applied here regardless
+    of what the upstream anchoring source computed)."""
     if not isinstance(anchoring, dict):
         return dict(available=False)
     lrc = anchoring.get("long_run_comparison", {}) or {}
@@ -319,12 +407,17 @@ def _anchors_runtime(anchoring):
     bd = (anchoring.get("bad_debt_vs_benchmark") or [])
     if bd:
         r = bd[-1]
+        bd_rag, bd_note = _bad_debt_rag(r.get("bad_debt_rate"), r.get("rag"))
         cards.append(dict(
             metric="Bad debt rate (" + str(r.get("year")) + ")",
             sim_value=(str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
             benchmark_value=(str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
-            ratio=None, rag=r.get("rag"), note="of revenue",
+            ratio=None, rag=bd_rag, note=bd_note,
         ))
+    # SITE_EH3 cold-eyes MAJOR-5: margin had NO anchor row at all -- add it,
+    # unconditionally (a missing dashboard degrades to an honest unavailable
+    # card via _finite_float(None) -> None -> RED, never a silent omission).
+    cards.append(_anchors_margin_card(dashboard))
     cp = (anchoring.get("complaints_vs_benchmark") or [])
     if cp:
         r = cp[-1]
@@ -475,7 +568,7 @@ def generate():
                   "human-readable provenance trail, each row a sim value against an industry "
                   "benchmark with its source and a checked status. Where a status is a warning or "
                   "an open refresh, it is shown, not smoothed.",
-            runtime=_anchors_runtime(anchoring),
+            runtime=_anchors_runtime(anchoring, dashboard),
             library=_anchors_library(md_text),
         ),
     )

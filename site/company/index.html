@@ -161,6 +161,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="passport" id="cost-to-serve-dist"></div>
     <div class="passport" id="arrears-dist"></div>
     <div class="passport" id="credit-cycle"></div>
+    <div class="passport" id="baddebt-period-note"></div>
   </div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
@@ -422,7 +423,20 @@ function renderDecisions(dd){
     '<a class="evlink" href="../data/decisions.json" target="_blank" rel="noopener">decisions.json &rarr;</a></p>';
 }
 
-function renderFinance(d){
+// SITE_EH3 cold-eyes MAJOR-6: whether year `yr`'s annual-series row is a
+// partial year, per financial.annual[].period_coverage (tools/
+// generate_dashboard_data.py's _year_coverage). Returns the period_coverage
+// object when partial, else null -- a missing/unloaded dashboard.json (or a
+// year not found in the series) degrades to null (no false "part year"
+// claim), never a fabricated flag.
+function partYearInfo(dash, yr){
+  var ann=((dash&&dash.financial)||{}).annual||[];
+  var row=ann.filter(function(r){return String(r.year)===String(yr);})[0];
+  var pc=row&&row.period_coverage;
+  return (pc&&pc.is_partial_year)?pc:null;
+}
+
+function renderFinance(d, dash){
   var f=d.finance||{};
   var b=f.settled_basis||{};
   var settledProv = !!b.provisional;

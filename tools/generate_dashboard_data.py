@@ -5,12 +5,13 @@ Called by process_run_complete.py after every full sim run, or manually:
   python3 tools/generate_dashboard_data.py [path/to/run_output.json]
 """
 import json
+import math
 import re
 import statistics
 import subprocess
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from company.analytics.retention_deferral_economics import (
@@ -21,6 +22,11 @@ from company.trading.hedge_decision import VAR_REVENUE_LIMIT
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
+# Same source generate_world_data.py's sim_window reads (SIM_DATA_PATH there) --
+# the real settled window [period_from, period_to], used to flag partial-year
+# annual rows (SITE_EH3 cold-eyes MAJOR-6: a 5.2-month 2025 stub rendered as a
+# full annual row with no period label).
+SIM_PERIOD_DATA_PATH = PROJECT / "site" / "data" / "sim_data.json"
 
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
@@ -199,6 +205,95 @@ def _find_latest_run_json():
     return candidates[0] if candidates else None
 
 
+def _load_sim_period():
+    """Real sim settlement window (period_from/period_to), read from
+    site/data/sim_data.json's metadata -- the same source
+    generate_world_data.py's sim_window uses. Returns (None, None) if
+    unavailable so callers degrade to "period coverage unknown" (which
+    _year_coverage then treats as PARTIAL, never as a silently assumed full
+    year -- R15 fail-open guard)."""
+    try:
+        meta = json.loads(SIM_PERIOD_DATA_PATH.read_text()).get("metadata", {}) or {}
+    except Exception:
+        return None, None
+    return meta.get("period_from"), meta.get("period_to")
+
+
+def _year_coverage(year, period_from, period_to):
+    """Whether calendar year `year`'s annual row is covered by a FULL 12
+    months of the sim's real settlement window [period_from, period_to].
+    Returns (is_partial_year, months_covered, coverage_from, coverage_to).
+
+    SITE_EH3 cold-eyes MAJOR-6: a 5.2-month 2025 stub was rendering as a
+    full annual row (revenue read as a 57% YoY "collapse" against 2024,
+    bills_count read as a collapse) with no page stating "part year" --
+    R14 gives every figure its clock; this gives every annual-series figure
+    its PERIOD, which for an annual row is half the basis.
+
+    R15 fail-open guard: an unavailable/unparseable window returns
+    is_partial_year=True -- unknown coverage defaults to PARTIAL, never to
+    a silently-assumed full year, so a missing period can never render as
+    a full-year trend row by omission."""
+    if not period_from or not period_to:
+        return True, None, None, None
+    try:
+        pf = date.fromisoformat(str(period_from)[:10])
+        pt = date.fromisoformat(str(period_to)[:10])
+    except ValueError:
+        return True, None, None, None
+    y0, y1 = date(year, 1, 1), date(year, 12, 31)
+    start, end = max(pf, y0), min(pt, y1)
+    if start > end:
+        return True, 0.0, str(y0), str(y0)  # no coverage at all this calendar year
+    days = (end - start).days + 1
+    total_days = (y1 - y0).days + 1
+    months = round(days / total_days * 12, 1)
+    is_partial = not (start == y0 and end == y1)
+    return is_partial, months, str(start), str(end)
+
+
+def _bad_debt_basis(annual_sum_gbp, ledger_gbp):
+    """R10 class-closing bridge for bad debt, published twice at two
+    irreconcilable bases with no bridge (SITE_EH3 cold-eyes MAJOR-4): a
+    naive sum of the per-year annual-series entries (financial.annual[].
+    bad_debt_gbp) read ~130x smaller than the ledger total
+    (financial.ledger.bad_debt_gbp), feeding the same doors. The ledger
+    figure is the plausible one (the real write-off/provision total, not
+    <0.02% of revenue) and is published here as the CANONICAL headline;
+    the annual-series sum is kept alongside as an explicitly DIFFERENT,
+    smaller construction -- never silently interchangeable with it. Mirrors
+    the existing settled<->billed net-margin bridge pattern
+    (extract_portfolio's basis dict / margin_bridge.json).
+
+    Non-finite (NaN/inf) inputs are rejected FIRST, before any comparison
+    or ratio is computed (comparison guards are NaN-blind otherwise)."""
+    def _finite(v):
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        return f if math.isfinite(f) else None
+
+    a = _finite(annual_sum_gbp)
+    l = _finite(ledger_gbp)
+    ratio_x = round(abs(l / a), 1) if (a not in (None, 0) and l is not None) else None
+    return {
+        "canonical_gbp": l if l is not None else 0.0,
+        "canonical_source": "ledger_pnl.bad_debt_gbp",
+        "annual_series_sum_gbp": a if a is not None else 0.0,
+        "annual_series_source": "sum(years[*].bad_debt_gbp)",
+        "ratio_x": ratio_x,
+        "note": (
+            "The ledger figure is CANONICAL (the real write-off/provision "
+            "total). The per-year annual series is a different, smaller "
+            "construction -- its sum is shown for provenance only and must "
+            "never be read as the same headline; the two bases are not "
+            "currently reconciled by an explicit bridge and diverge by the "
+            "ratio stated above."
+        ),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Elexon SSP monthly aggregation
 # ---------------------------------------------------------------------------
@@ -299,7 +394,7 @@ def extract_portfolio(data):
     }
 
 
-def extract_financial(data):
+def extract_financial(data, sim_period=None):
     # MARGIN_REALISM.md Step 1 (2026-07-10, director-decided programme, gauge
     # fix): `years[yr].revenue_gbp` is commodity/energy revenue ONLY
     # (settlement-record based) -- it excludes standing charges, non-
@@ -320,6 +415,7 @@ def extract_financial(data):
     # MARGIN_REALISM_STEP1_DIAGNOSIS.md -- NOT yet reconciled across every
     # surface or added to the consistency gate; this is the first surface.
     mgmt_accounts = data.get("management_accounts", {})
+    period_from, period_to = sim_period if sim_period is not None else (None, None)
     annual = []
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
@@ -328,8 +424,10 @@ def extract_financial(data):
         gas = csplit.get("gas", {})
         net = ydata.get("net_gbp", 0)
         total_revenue = mgmt_accounts.get(yr, {}).get("income_statement", {}).get("revenue_gbp")
+        year_int = int(yr)
+        is_partial, months_covered, cov_from, cov_to = _year_coverage(year_int, period_from, period_to)
         annual.append({
-            "year": int(yr),
+            "year": year_int,
             "revenue_gbp": _fmt(ydata.get("revenue_gbp", 0)),
             "total_revenue_gbp": _fmt(total_revenue) if total_revenue is not None else None,
             "net_margin_pct": (
@@ -347,6 +445,20 @@ def extract_financial(data):
             "gas_net_gbp": _fmt(gas.get("net_gbp", 0)),
             "bills_count": int(ydata.get("bills_count", 0)),
             "avg_bill_shock_pct": _fmt(ydata.get("avg_bill_shock_pct", 0)),
+            # SITE_EH3 cold-eyes MAJOR-6: every annual-series figure carries its
+            # PERIOD, not just its clock. is_partial_year defaults to True when
+            # the real sim window is unavailable (R15 fail-open guard, above).
+            "period_coverage": {
+                "is_partial_year": is_partial,
+                "months_covered": months_covered,
+                "from": cov_from,
+                "to": cov_to,
+            },
+            # The class-closing invariant: any consumer rendering a YoY/trend
+            # comparison off this series MUST skip rows where this is False --
+            # a partial row read against a full prior year is exactly the
+            # false "57% collapse" MAJOR-6 caught.
+            "trend_eligible": (not is_partial),
         })
 
     # Segment annual
@@ -372,6 +484,9 @@ def extract_financial(data):
         segment_annual.append(row)
 
     ledger = data.get("ledger_pnl", {})
+    annual_bad_debt_sum = sum(
+        (data["years"][yr].get("bad_debt_gbp") or 0) for yr in data.get("years", {})
+    )
     return {
         "annual": annual,
         "segment_annual": segment_annual,
@@ -389,6 +504,9 @@ def extract_financial(data):
             "fixed_cost_gbp": _fmt(ledger.get("fixed_cost_gbp", 0)),
             "operating_net_margin_gbp": _fmt(ledger.get("operating_net_margin_gbp", 0)),
         },
+        # SITE_EH3 cold-eyes MAJOR-4: bad debt was published twice, ~130x apart,
+        # with no bridge. One canonical figure, bridged to the other basis.
+        "bad_debt_basis": _bad_debt_basis(annual_bad_debt_sum, ledger.get("bad_debt_gbp", 0)),
     }
 
 
@@ -1575,7 +1693,7 @@ def generate(run_json_path=None):
             "spot_monthly_count": len(spot_monthly),
         },
         "portfolio": portfolio,
-        "financial": extract_financial(data),
+        "financial": extract_financial(data, sim_period=_load_sim_period()),
         "trading": extract_trading(data, spot_monthly),
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
@@ -1611,7 +1729,8 @@ def generate(run_json_path=None):
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
     bridge_ok = _check_bridge_reconciles()
-    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok
+    bad_debt_ok = _check_bad_debt_basis_present(dashboard["financial"])
+    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok and bad_debt_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1774,6 +1893,25 @@ def _check_bridge_reconciles():
             f"exceeds tolerance ({BRIDGE_TOLERANCE_GBP:,.2f}) -- the settlement<->billed "
             "reconciliation no longer holds, investigate the mechanism (R4), do not raise "
             "the tolerance to make this pass.",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def _check_bad_debt_basis_present(financial):
+    """SITE_EH3 cold-eyes MAJOR-4: extends CLOCK_TRUTH_AND_THE_BRIDGE.md's
+    basis-label discipline to bad debt, published twice at two irreconcilable
+    bases with no bridge (a naive sum of the annual series read ~130x smaller
+    than the ledger total, both feeding the same doors). A published
+    financial.bad_debt_basis missing its canonical figure or its bridging
+    note is a defect, caught here rather than shipping two disagreeing
+    bad-debt numbers to the front door."""
+    bdb = (financial or {}).get("bad_debt_basis") or {}
+    if bdb.get("canonical_gbp") is None or not bdb.get("note") or not bdb.get("canonical_source"):
+        print(
+            "BAD-DEBT BASIS GATE FAILED: financial.bad_debt_basis missing its canonical "
+            "figure, source, or bridging note.",
             file=sys.stderr,
         )
         return False
