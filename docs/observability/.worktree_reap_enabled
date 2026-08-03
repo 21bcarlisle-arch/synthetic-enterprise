@@ -1,0 +1,17 @@
+ARMED 2026-08-03, immediately after `.fork_reap_enabled`, because the branch reaper CANNOT ACT
+WITHOUT IT. git refuses to delete a branch that is checked out in a worktree, so with only the
+branch flag armed the reconciler reaped 0 of 26 orphans (it had been reporting "reaped 26/26" --
+a fail-silent, fixed the same day). This flag removes the DIRECTORY, which is what unblocks it.
+
+BLAST RADIUS: `git worktree remove` on directories only, no --force. Never touches main, bare,
+locked, dirty, or IN_FLIGHT worktrees. Never deletes a branch, a commit or a tag -- a removed
+worktree's BRANCH REF SURVIVES, so every held branch's work stays reachable by name and its
+content by `git show <branch>:<path>`.
+
+PRECONDITION MET: every eligible directory is CLEAN and its branch carries a VERIFIED salvage
+tag, so the working copy is redundant with a commit that is pinned. That is exactly the property
+fork_salvage guarantees, and the FORK-SALVAGE log has read "41 worktrees, all clean -- nothing
+at risk" on every pass since 13:30.
+
+REVERSE IT: delete this file (report-first returns at once). A removed directory is rebuilt with
+`git worktree add .claude/worktrees/<name> <branch>` -- no content is lost by removing it.

@@ -1,0 +1,23 @@
+ARMED 2026-08-03 (director, console: "Arm the reconciler now that salvage makes it safe").
+
+WHY IT IS SAFE NOW AND WAS NOT BEFORE. Report-first existed because reaping an orphan whose
+work was UNCOMMITTED destroyed that work outright -- the branch tip did not contain it, so a
+salvage tag on the tip preserved nothing. `background/fork_salvage.py` (ExecStopPost, armed
+2026-08-03) closes exactly that hole: every dirty agent worktree is committed to its OWN branch
+on every exit path, so "work exists but is uncommitted" is no longer reachable. A salvage tag on
+the tip therefore now preserves everything, which is the precondition this flag was waiting on.
+Proven live before arming: 38/41 worktrees salvaged, 0 failed, 0 left dirty, and every FORK-
+SALVAGE line since 13:30 reads "41 worktrees, all clean -- nothing at risk".
+
+WHAT IS STILL TRUE. Reap is salvage-FIRST and refuses on unverified salvage (tag must resolve to
+the branch tip, else no delete). It never merges to main -- landing stays the worker's gated job.
+14 branches carrying source that exists NOWHERE on main are HELD in `.fork_reap_held` and are
+never reaped while listed; a held orphan reads as acknowledged, so this can be the standing
+mechanism while they wait for triage.
+
+KNOWN GAP (not blocking, recorded rather than silently accepted): `salvage_and_reap` creates the
+tag LOCALLY and does not push it. Reaped work therefore survives loss of a worktree but not loss
+of this machine until the tags are pushed. Push `salvage/*` after any enforce pass.
+
+REVERSE IT: delete this file. Reap returns to report-first detection immediately, no other state
+changes. Any branch already reaped is recoverable via `git checkout salvage/<branch-name>`.

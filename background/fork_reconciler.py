@@ -111,12 +111,23 @@ def reap_enabled(flag: Path | None = None) -> bool:
 
 def held_branches(path: Path | None = None) -> set[str]:
     """Branch names the director has HELD from reaping (never auto-reaped, even under enforce).
-    One name per line; blank / '#' lines ignored. Empty set if the file is absent/unreadable."""
+    One name per line; blank lines, whole-line '#' comments AND trailing '#' comments ignored.
+    Empty set if the file is absent/unreadable.
+
+    Trailing comments are stripped deliberately (2026-08-03). A held entry written as
+    `worktree-agent-abc   # holds the only copy of X` previously parsed as the WHOLE line,
+    which can never equal a real branch name -- so the hold silently did nothing and the
+    branch was reaped on the next enforce pass. That is a FAIL-OPEN in the one control
+    standing between armed reaping and real work: the failure mode of a mis-parsed hold must
+    be "this branch survives", never "this branch is deleted". Annotating a held branch with
+    WHY it is held is exactly what a reader needs, so the parser accommodates it rather than
+    the convention forbidding it.
+    """
     out: set[str] = set()
     try:
         for ln in (path or HELD_FILE).read_text().splitlines():
-            ln = ln.strip()
-            if ln and not ln.startswith("#"):
+            ln = ln.split("#", 1)[0].strip()
+            if ln:
                 out.add(ln)
     except Exception:
         return set()
@@ -142,7 +153,35 @@ def salvage_and_reap(branch: str) -> dict:
                 "detail": f"salvage tag does not match tip ({tagged[:9]} != {tip[:9]}) — reap REFUSED"}
     _git("branch", "-D", branch)
     _git("worktree", "prune")
+    # VERIFY THE DELETION ACTUALLY HAPPENED (2026-08-03). `_git` returns '' on any non-zero exit
+    # and never raises, so `branch -D` failing was previously indistinguishable from it working:
+    # this function reported reaped=True unconditionally. Observed live the first time enforce was
+    # armed -- it logged "reaped 26/26" while deleting exactly ZERO branches, because git refuses
+    # to delete a branch that is CHECKED OUT IN A WORKTREE and every one of these branches still
+    # had its `.claude/worktrees/agent-*` directory. That is the R15 FAIL-SILENT pattern in the
+    # destructive half of the reconciler: the orphan count would never fall, the alarm would never
+    # clear, and the log would assert cleanup that was not happening. Post-condition beats return
+    # code -- ask git whether the ref is gone.
+    if _git("rev-parse", "-q", "--verify", f"refs/heads/{branch}").strip():
+        wt = _worktree_holding(branch)
+        why = f" — branch is checked out in worktree {wt}; reap that DIRECTORY first " \
+              f"(evaluate_worktree_reap, its own .worktree_reap_enabled flag)" if wt else ""
+        return {"branch": branch, "tag": tag, "reaped": False,
+                "detail": f"salvaged @ {tip[:9]} but branch still present after delete{why}"}
     return {"branch": branch, "tag": tag, "reaped": True, "detail": f"salvaged @ {tip[:9]} then reaped"}
+
+
+def _worktree_holding(branch: str) -> str:
+    """Path of the worktree that has `branch` checked out, or '' if none. Read-only; never raises.
+    Exists to make the reap refusal above ACTIONABLE -- "still present" is a symptom, "held by this
+    directory" is the thing a reader can go and fix."""
+    path = ""
+    for line in _git("worktree", "list", "--porcelain").splitlines():
+        if line.startswith("worktree "):
+            path = line[len("worktree "):].strip()
+        elif line.strip() == f"branch refs/heads/{branch}":
+            return path
+    return ""
 
 
 # ── live evaluation (report-first by default; report-only unless the flag arms reap) ────────
@@ -386,7 +425,21 @@ def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *
             branch_ok, branch_reason = True, f"branch already confirmed-salvaged+reaped (tag {salvage_tag})"
         else:
             branch_ok, branch_reason = False, "branch ref absent, no salvage tag -- undetermined, never reaped"
-    else:  # IN_FLIGHT or an as-yet-unsalvaged ORPHAN -- branch still live/undecided, a real fork's home
+    elif branch_state == "ORPHAN" and salvage_tag:
+        # BREAKS THE DEADLOCK (2026-08-03). Before this, an ORPHAN branch and its worktree could
+        # never be cleaned up in either order: `salvage_and_reap` cannot delete a branch that is
+        # CHECKED OUT in a worktree (git refuses), and this classifier would not release the
+        # worktree until the branch was already gone. Neither could go first, so the pair was
+        # immortal -- which is the actual mechanism behind the accretion this module was written
+        # to stop, and why `refusal_is_stranded` already scores ORPHAN as STRANDED rather than
+        # correctly-spared. The cycle is safe to cut HERE, on the directory side, because a
+        # VERIFIED salvage tag means the fork's work is committed to the branch and pinned by the
+        # tag: the directory is then a redundant working copy, and removing it touches no commit.
+        # The branch ref itself survives this -- it is reaped separately, on the next pass, and
+        # only if it is not HELD. Deliberately narrow: still requires a salvage tag (an unsalvaged
+        # orphan falls through to the refusal below) and still requires CLEAN (checked next).
+        branch_ok, branch_reason = True, f"branch ORPHAN but confirmed-salvaged (tag {salvage_tag}) -- directory is a redundant copy"
+    else:  # IN_FLIGHT, or an as-yet-UNSALVAGED ORPHAN -- branch still live/undecided, a real fork's home
         branch_ok, branch_reason = False, f"branch is {branch_state} -- live/undecided fork, never reaped"
     if not branch_ok:
         return {"eligible": False, "reason": branch_reason}

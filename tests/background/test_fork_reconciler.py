@@ -97,6 +97,31 @@ def test_held_branches_reader(tmp_path):
     assert F.held_branches(tmp_path / "absent") == set()
 
 
+def test_trailing_comment_does_not_void_the_hold(tmp_path):
+    """R15: the hold must FAIL SAFE. A held entry annotated with why it is held used to parse
+    as the whole line -- which can never equal a real branch name, so the hold silently did
+    nothing and the branch was reaped on the next enforce pass. Regression for that fail-open
+    (2026-08-03: found while arming enforce, with 14 real branches written this way)."""
+    p = tmp_path / ".fork_reap_held"
+    p.write_text(
+        "worktree-agent-abc   # holds the only copy of regulation_commons/\n"
+        "worktree-agent-def#no space before the hash\n"
+    )
+    assert F.held_branches(p) == {"worktree-agent-abc", "worktree-agent-def"}
+
+
+def test_an_annotated_held_branch_actually_survives_enforce(tmp_path):
+    """The parse bug above only matters because of THIS: prove end-to-end that a branch held
+    with a trailing comment is not reaped when enforce is armed. Fails loudly on the reaper."""
+    p = tmp_path / ".fork_reap_held"
+    p.write_text("build/holdme   # annotated exactly the way the real held file is written\n")
+    r = F.evaluate_fork_lifecycle(
+        branches=[_b("build/holdme", False, DL + 60)], now=NOW, enforce=True,
+        held=F.held_branches(p),
+        reaper=lambda n: (_ for _ in ()).throw(AssertionError(f"reaped held branch {n}!")))
+    assert r["reaped"] == [] and r["held_orphans"] == ["build/holdme"]
+
+
 # ── the hard floor: salvage ALWAYS precedes reap; refuse if salvage can't be confirmed ─────
 def test_salvage_precedes_reap_and_refuses_when_salvage_cannot_be_confirmed(monkeypatch):
     calls = []
@@ -121,6 +146,11 @@ def test_salvage_and_reap_deletes_only_after_confirmed_salvage(monkeypatch):
         calls.append(a)
         if a[:1] == ("rev-parse",) and a[-1] == "build/y":
             return "TIPAAA\n"
+        if a[:1] == ("rev-parse",) and a[-1] == "refs/heads/build/y":
+            # post-delete post-condition (2026-08-03): the ref is GONE once `branch -D` ran.
+            # The fake has to model this now -- reaped=True is no longer asserted from the
+            # absence of an error, it is asserted from the ref actually having disappeared.
+            return "" if any(c[:2] == ("branch", "-D") for c in calls) else "TIPAAA\n"
         if a[:1] == ("rev-parse",) and "--verify" in a:
             return "existing\n"                                 # tag already exists (the 33 case)
         if a[:1] == ("rev-parse",) and a[-1].endswith("^{commit}"):
@@ -816,3 +846,83 @@ def test_refusal_is_stranded_splits_the_two_classes():
                   "branch is ORPHAN -- live/undecided fork, never reaped",
                   "branch ref absent, no salvage tag -- undetermined, never reaped"):
         assert F.refusal_is_stranded(stuck) is True, stuck
+
+
+# ── R15: the destructive half must not report success it did not achieve ────────────────────
+def test_reap_reports_failure_when_the_branch_survives_the_delete(monkeypatch):
+    """FAIL-SILENT regression (2026-08-03, found live). `_git` returns '' on non-zero exit, so a
+    refused `branch -D` looked identical to a successful one and salvage_and_reap returned
+    reaped=True regardless. Armed for the first time, it logged "reaped 26/26" having deleted
+    NOTHING -- git refuses to delete a branch checked out in a worktree. Here the ref survives
+    the delete; the result must say so, and must name the worktree holding it."""
+    tip = "a" * 40
+    def fake_git(*args):
+        if args[0] == "rev-parse" and args[1] == "b/live":
+            return tip + "\n"
+        if args[0] == "rev-parse" and "--verify" in args:
+            # tag lookup resolves; the branch ref STILL EXISTS after the delete (the bug)
+            return (tip + "\n") if args[-1].startswith("salvage/") else (tip + "\n")
+        if args[0] == "rev-parse":
+            return tip + "\n"
+        if args[0] == "worktree" and args[1] == "list":
+            return f"worktree /repo/.claude/worktrees/agent-live\nbranch refs/heads/b/live\n"
+        return ""
+    monkeypatch.setattr(F, "_git", fake_git)
+    r = F.salvage_and_reap("b/live")
+    assert r["reaped"] is False, "reported a reap that did not happen"
+    assert "still present" in r["detail"]
+    assert "agent-live" in r["detail"], "refusal must name the worktree holding the branch"
+
+
+def test_reap_reports_success_only_when_the_ref_is_actually_gone(monkeypatch):
+    """The other half of the mutation pair: identical flow, ref genuinely gone -> reaped True."""
+    tip = "a" * 40
+    def fake_git(*args):
+        if args[0] == "rev-parse" and args[1] == "b/dead":
+            return tip + "\n"
+        if args[0] == "rev-parse" and "--verify" in args:
+            if args[-1].startswith("refs/heads/"):
+                return ""                      # the branch IS gone
+            return tip + "\n"                  # the salvage tag resolves
+        if args[0] == "rev-parse":
+            return tip + "\n"
+        return ""
+    monkeypatch.setattr(F, "_git", fake_git)
+    r = F.salvage_and_reap("b/dead")
+    assert r["reaped"] is True and "then reaped" in r["detail"]
+
+
+# ── the orphan/worktree DEADLOCK (2026-08-03) ───────────────────────────────────────────────
+def _wt_reap(path="/repo/.claude/worktrees/agent-x", branch="worktree-agent-x"):
+    return {"path": path, "branch": branch, "detached": False, "locked": False, "bare": False}
+
+
+def test_salvaged_orphan_worktree_is_reapable_breaking_the_deadlock():
+    """Before this, an ORPHAN branch + its worktree could never be cleaned in EITHER order:
+    `branch -D` is refused while the branch is checked out in a worktree, and this classifier
+    would not release the worktree until the branch was gone. The pair was immortal -- the real
+    mechanism behind the worktree accretion. A VERIFIED salvage tag means the work is committed
+    and pinned, so the directory is redundant and safe to remove first."""
+    r = F.classify_worktree_reap(_wt_reap(), "/repo", "ORPHAN", dirty=False, salvage_tag="salvage/worktree-agent-x")
+    assert r["eligible"] is True
+    assert "confirmed-salvaged" in r["reason"]
+
+
+def test_unsalvaged_orphan_worktree_is_still_never_reaped():
+    """The deadlock-breaker is narrow: no salvage tag means the work is NOT provably preserved,
+    so the directory must stay. This is the guard that keeps the fix from becoming a data-loss."""
+    r = F.classify_worktree_reap(_wt_reap(), "/repo", "ORPHAN", dirty=False, salvage_tag=None)
+    assert r["eligible"] is False and "live/undecided" in r["reason"]
+
+
+def test_dirty_salvaged_orphan_worktree_is_still_never_reaped():
+    """Clean-ness is still required even with a salvage tag: uncommitted work in the directory
+    is by definition not in the commit the tag pins."""
+    r = F.classify_worktree_reap(_wt_reap(), "/repo", "ORPHAN", dirty=True, salvage_tag="salvage/worktree-agent-x")
+    assert r["eligible"] is False and "uncommitted" in r["reason"]
+
+
+def test_in_flight_worktree_is_never_reaped_even_with_a_salvage_tag():
+    """A LIVE fork's home is never touched -- the deadlock-breaker applies to ORPHAN only."""
+    r = F.classify_worktree_reap(_wt_reap(), "/repo", "IN_FLIGHT", dirty=False, salvage_tag="salvage/worktree-agent-x")
+    assert r["eligible"] is False and "live/undecided" in r["reason"]

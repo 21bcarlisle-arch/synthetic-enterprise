@@ -1,0 +1,35 @@
+# Branches HELD from auto-reap. One branch name per line; '#' and blank lines ignored.
+# A held orphan is NEVER reaped even under enforce, and reads as acknowledged (no alarm) --
+# which is what lets enforce be the STANDING mechanism while these wait for triage.
+#
+# Written 2026-08-03 when enforce was armed. Every branch below was verified to contain at
+# least one SOURCE FILE THAT EXISTS NOWHERE ON MAIN (`git cat-file -e main:<path>` fails), so
+# reaping it would move real, never-landed work behind a salvage tag where nothing looks.
+# Reaping is non-lossy (tag-then-verify-then-delete) but it is not VISIBLE, and the standing
+# failure here has been finished work silently converting back into queued work.
+#
+# REMOVE A LINE once that branch's work has landed on main or been positively judged superseded.
+
+# -- the audit's rival pair for OPS_run_marker_sweep_livelock (pick a winner, don't merge both)
+worktree-agent-a5555b1e8256de0e4   # RIVAL A: background_worker +266, process_run_complete +27
+worktree-agent-ad14ac1d4858a473f   # RIVAL B: + tests/background/test_run_marker_sweep.py (423, not on main)
+
+# -- the audit's LOSING SITE_EH1 rival, held only for the one idea main lacks:
+#    _population_from_source/_POP_PATTERNS read an anchor's population from the BENCHMARK SOURCE
+#    TEXT (an independent oracle) where main's winner reads it from the dashboard (closer to the
+#    R15 TAUTOLOGY pattern). Release once that idea is extracted or positively rejected.
+worktree-agent-a416449f398f3b333
+
+# -- surfaced by the 2026-08-03 13:26 salvage sweep, NOT covered by the rescue audit.
+#    These were never triaged by anyone; each holds new source absent from main.
+worktree-agent-a3faa0acb3290cf4c   # regulation_commons/ package: working_days 246, working_day_guard 246, refresh_bank_holidays 158 + 776 lines of tests
+worktree-agent-a0ce47338375413e2   # tools/moap_evidence.py 628 + tests 413 + site/evidence page test 282
+worktree-agent-a8181339172167dad   # generate_evidence_pages 434, moap_evidence 463, moap_evidence_gate 340 + tests 503
+worktree-agent-a8661079868072634   # RIVAL moap set: site/moap_evidence 327, generate_moap_evidence_data 376 + 3 test files
+worktree-agent-a28e560dac839894b   # tools/build_population_value_frontier.py 615
+worktree-agent-a860ccd66f355984a   # 3 detectors: origin_freeze 129, console_rescue 143, advisor_restart_ruling 107 + test
+worktree-agent-a6ad9f2b324019a71   # site proof expert-hour fixes 327 + predictions-ledger test 191
+worktree-agent-ae5594bc48eb7fdb2   # tests/tools/test_site_eh1_segment_disclosure.py 449
+worktree-agent-a84b7d9b76495702e   # tests/sim/test_merit_order_price_wiring.py 341
+worktree-agent-ae60f5d5b72b61420   # tests/tools/test_generate_proof_conversation_gap.py 149
+worktree-agent-a878c7c096d5deb9a   # tools/test_generate_world_data.py 169
