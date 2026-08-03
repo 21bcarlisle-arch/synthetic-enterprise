@@ -161,3 +161,29 @@ is absorbed under a message that does not describe it. This is the third recorde
 The durable fix is for the auto-processor to stage its **own named paths** rather than broad-add, which is
 registered here as a finding rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE: queue, don't fix on
 sight, unless the machine is blocked — it is not).
+
+---
+## PROGRESS 2026-08-03 (next worker tick) -- Class B: 1 of 12 built, 11 still drawable
+
+`working_day_calculator` (the item the previous tick dispatched but did not land) is now **BUILD Pass 1
+complete** as map atom `SP2_1_working_day_calculator`, `level_current 0 -> 1`, recorded in
+`gate_authorizations.jsonl` (R16). Landed `company/compliance/working_days.py` + a three-way-reconciled
+England-&-Wales bank-holiday table 2012-2028, and `tools/working_day_guard.py` + R15 test, with **all 25
+call sites unchanged** per the mandatory two-pass shape. Level is 1 and not 2 deliberately: Pass 2
+migration is untouched, so no deadline the company actually computes has moved yet.
+
+**Two errors in the closed DISCOVER doc were found by building it** (both corrected in the doc):
+its census of 22 callers was an undercount -- the real number is **25**, and the three it missed include
+two copies of the same arithmetic renamed to `_add_wd`, which is precisely the rename fail-open a
+name-only guard passes; and its `working_days_between` interval was specified backwards
+(`[start, end)` vs the shipped `(start, end]`), which would have silently moved every deadline the
+primitive is supposed to leave alone. **A closed DISCOVER doc is a hypothesis, not a specification** --
+worth carrying into the other 11 Class B items, whose designs have had no more scrutiny than this one had.
+
+**STILL OPEN, unchanged by this tick:**
+- **Class B: 11 items** (all except `working_day_calculator`) remain drawable BUILD work.
+- **Class B residual on this item:** Pass 2 -- migrate the 25 callers, shrinking `BASELINE_ALLOWLIST`
+  to empty, then `SP2_1` can claim L2+. Expect published deadline figures to move; that is R13 baseline
+  correction (the company was computing deadlines early across bank holidays), not regression.
+- **Class A: 5 items** still need `level_current` re-verified against real artifacts before any archive.
+- The auto-processor broad-`add` finding above is still unfixed (queued, not blocking).

@@ -1,5 +1,33 @@
 # Working-Day Calculator — DISCOVER/design half (2026-07-28)
 
+> **BUILD PASS 1 LANDED 2026-08-03 — and it found two errors in this document. Read these
+> before trusting §1 or §4 below; both are corrected in place, with the original claim kept
+> visible so the correction is auditable rather than a silent rewrite.**
+>
+> 1. **§1's census of 22 is an UNDERCOUNT. The real figure is 25.** The census was built by
+>    grepping for four known helper names. The BUILD half's structural guard rule (§5 rule 3)
+>    found three more that a name grep cannot see:
+>    `company/market/transfer_objection_register.py::_add_wd` and
+>    `company/regulatory/annual_compliance_attestation_register.py::_add_wd` — the same
+>    arithmetic under a shortened name, i.e. the exact rename fail-open §5 predicted, present
+>    in the live tree rather than hypothetical — plus
+>    `company/trading/bsc_credit_register.py::is_cdn_overdue`, the inline-loop case §1 row 6
+>    correctly predicted but attributed to a helper name that does not exist. **This is the
+>    evidence that rule 3 earns its place**: a name-only guard would have shipped green over
+>    three live second definitions.
+> 2. **§4's `working_days_between` interval is WRONG.** §4 specifies half-open `[start, end)`.
+>    The four shipped implementations increment BEFORE testing, so the real interval is
+>    `(start, end]` — days *after* `start`, up to and *including* `end`. The two readings agree
+>    whenever both endpoints are working days, which is why the slip survived review; they
+>    diverge exactly when an endpoint is a weekend or holiday (Fri→Sat is 0 shipped, 1 under
+>    this doc). Building to the doc literally would have silently moved every deadline the
+>    primitive is meant to leave unchanged. **Shipped semantics is canonical**, and is now
+>    pinned by `test_interval_is_start_exclusive_end_inclusive`.
+>
+> Also closed: §3's TO-BE-SOURCED 2016–2018 gap — sourced, not fabricated. See §3.
+>
+> Pass 2 (migrate the 25 callers, shrink the allowlist to empty) remains OUTSTANDING.
+
 **Status:** DISCOVER/design only. The BUILD half is `blocked_on: director_build_open` per
 `docs/staging/in_progress/PLANNER_MINTED_working_day_calculator_2026-07-28.md`. This document
 does NOT create the module, migrate a caller, or change any code — it is the handoff artefact
@@ -153,7 +181,27 @@ England & Wales, 2025 and 2026 (**real, GDS-published, fetched live — safe to 
 Live feed's full current window (also fetchable, not individually reproduced here): E&W
 2019–2028, 56 events total.
 
-### TO-BE-SOURCED (do not fabricate)
+### RESOLVED 2026-08-03 (BUILD Pass 1) — sourced, not fabricated
+The gap below is CLOSED. Source of record for the committed table is
+**`ministryofjustice/govuk-bank-holidays`, `govuk_bank_holidays/bank-holidays.json`** (@ `main`,
+fetched 2026-08-03) — chosen over the live gov.uk feed for two reasons: it covers **2012–2028**,
+including every year GDS has dropped from its rolling window, and `githubusercontent.com` is on
+this project's **egress allowlist** (`background/egress_allowlist.py`) whereas `gov.uk` is not.
+
+**Three-way reconciliation run before any date was committed — all three agree EXACTLY on every
+overlapping year:**
+
+| comparison | years | result |
+|---|---|---|
+| `alphagov/calendars` (`lib/data/bank-holidays.json`, @ `master`) vs source of record | 2015–2021 | 56 events each, **identical set** |
+| live `gov.uk/bank-holidays.json` vs source of record | 2019–2028 | 83 events each, **identical set** |
+| `alphagov/calendars` vs live feed | 2019–2021 | 24 events each, **identical set** |
+
+`alphagov/calendars` is archived and stores dates as `DD/MM/YYYY` under
+`divisions.england-and-wales.<year>`; normalised to ISO before comparison. Note the live feed has
+grown since this DISCOVER pass (83 E&W events for 2019–2028, not the 56 recorded in §3 above).
+
+### TO-BE-SOURCED (do not fabricate) — original text, now superseded by the block above
 The sim runs against real 2016–2025 Elexon settlement history (per `CLAUDE.md`), so the
 committed table needs **2016–2018 E&W bank holidays**, which fall outside the live feed's
 current rolling window. I did not fetch these — they must be sourced from
