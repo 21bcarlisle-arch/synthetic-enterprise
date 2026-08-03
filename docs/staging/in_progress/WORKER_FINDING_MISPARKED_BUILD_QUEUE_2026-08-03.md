@@ -589,3 +589,50 @@ population. That is H_GAP's own L3 residual, which is why H_GAP is honestly at 2
 
 **Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
 callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — W1_6b drawn, and the "blocker" in its cell had been dead for hours
+
+The doorbell named `W1_6b_merit_order_reconstruction` (level 1->3). The live `_self_refill_draw()` is
+**dial-weighted and returns a different atom on each call** (observed: `H_stop_control_gap_characterisation`,
+`OPS_stall_class_register_adoption`, `C_supply_start_semantic_separation`, `HX1_exit_criterion_counter_mechanise`
+on four consecutive calls), so the doorbell's atom is a legitimate member of the feasible set rather than
+a stale single answer. Worth carrying: *"the doorbell may name a stale draw"* does **not** generalise to
+*"the live draw is the one true answer"* — for a weighted draw there is no single live answer to check against.
+
+**W1_6b L1->L2, commit `bed520d26`, pushed, origin verified.** The map cell's `block_reason` named two gaps;
+**both had been closed the same morning** by `0a6be8c47`, which PROPOSED level 1->2 and never touched the
+cell. That is the stale-cells class again, and it is now the **third** recorded instance of a build landing
+without its record. Re-verified against artifacts, not re-stamped.
+
+**The substance: a suspect exit criterion was put on trial instead of rewritten.** The prior tick recorded
+that criterion 3a grades an SRMC stack against SSP — an imbalance *cash-out* price — and deliberately
+refused to act, because changing an exit criterion while holding the atom it grades is the conflict of
+interest exit-test integrity forbids. Correct call, and it left the question open. This tick answered it
+with an **oracle**: `sim/market_index_history.py` brings Elexon MID (the traded wholesale price; 147,290 raw
+records -> 73,272 volume-weighted periods). Against MID the engine wins **5/5** where it wins 2/5 against
+SSP, error roughly halving.
+
+That table makes "the criterion is wrong" easy to argue — the instruments sit **12.30 GBP/MWh** apart
+(corr 0.655), a gap *larger than the lift being graded*. **The argument is wrong.** Scoring the REAL TRADED
+PRICE as the predictor, under criterion 3a unchanged, passes **5/5**: a perfect wholesale model clears the
+bar, so the criterion is VALID, it STANDS, and the 2/5 shortfall is the ENGINE's. **The hypothesis that
+motivated the work was refuted, and that is the outcome that cost the atom something.**
+
+**Method worth carrying to the remaining Class B items:** when a measurement looks like it is grading the
+wrong thing, the move is not to change the criterion and not to argue about it — it is to **feed the
+criterion a known-good input and see whether it passes**. That test is cheap, external, and it can go
+against you.
+
+**A tautology in this tick's OWN test, found only by mutating.** The chunk-width control asserted the issued
+window width against `MAX_RANGE_DAYS` — the same constant that produced it — so mutating 7 -> 31 made the
+fetcher issue 31-day windows and the test still passed. This is the **second** recorded instance of R15's
+TAUTOLOGY pattern appearing inside a test written against R15 (after `min(x) == min(x)` in H_GAP). Reading
+did not find either; mutating the source found both.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the 25
+callers); the auto-processor broad-`add` finding; the superseded-`run_complete`-marker queue (**16 markers
+now queued**, up from 13 — the throughput inequality is still widening exactly as recorded).
+
+**Newly buildable, named for a later draw:** MID covers 2021-2022, so the **crisis-year / tight-hour
+measurement** W1_6b lacks for L3 is now sourceable from the same feed rather than blocked.
