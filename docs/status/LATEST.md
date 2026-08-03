@@ -1,5 +1,28 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T09:30:04Z
+Last updated: 2026-08-03T15:59:34Z
+
+**W1_11 (2026-08-03, `66d73d1e0`) — the fabric physics now has a seam into the path the company settles on,
+and the level is HELD at 2 on a MEASURED blocker rather than shipped on a plausible mechanism.**
+`simulation/fabric_demand_path.py` turns a customer + the household register + the real Open-Meteo archive
+into the SAME `shape_fn(date_str)->[48]` callable every term-pricing path already consumes — the provider
+changes, no consumer does. It replaces (never stacks on) the legacy overlay stack, chains the thermal state
+across life-event boundaries via the new `PremiseTrace.final_state`, and RAISES rather than falling back on
+a date it has no trace for. **Wiring it found what reading it would not:** `comfort_constraint_for` has
+always accepted `prior_year_bill_gbp` and **no caller on any path ever supplied it** — the prebound response
+was a live mechanism with a dead input, so every household heated to full SAP comfort however expensive its
+dwelling was to run, which is precisely where the empirical prebound gap is largest. Now fed from the
+trace's own prior-year kWh, **no coefficient touched**. **The blocker, measured**
+(`tools/fabric_settlement_gap.py` → `docs/observability/fabric_settlement_gap.json`): three of four eligible
+domestic premises land inside the company's own plausibility envelope; **C4 lands at 43,338 kWh/yr gas
+against a 40,000 high bound that was itself set from the PREVIOUS generator's observed maximum.** Two
+internal numbers disagreeing is not evidence about the world, and R12 forbids closing it by moving either
+side — minted `W1_13_high_tail_gas_anchor` for the external NEED/EHS distribution that settles it.
+Settlement is **not** switched: shipping a domain-invariant breach into billing is an R10 absurdity. The
+seam is **not** an orphan — the measurement tool is its production caller. 232 green across the fabric
+suites; `epistemic_verifier` PASS (530 files). En route, `tests/harness/test_premise_two_level.py`'s 19
+errors + 1 failure on main's working tree were fixed (an earlier uncommitted change made `latitude_deg`
+required without updating that caller).
+
 
 **FIXED (2026-07-29, `67a2e3ee6` + `42cff58b6`) — one director message became two queued acts. Cause named,
 not filtered.** The director's ntfy arrived twice, eight seconds apart, and each copy was separately acked and
@@ -532,11 +555,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (470s / 8 min):
-- Net margin: £1,501,000.74 | Gross: £6,451,376.58 | Capital: £51,422
-- Treasury: £2,466,636 → £3,878,099 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,359,201.50 | Net after CTS: £1,477,842
-- Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
+- Net margin: £1,558,778.65 | Gross: £6,515,977.28 | Capital: £51,822
+- Treasury: £2,466,636 → £3,935,517 | 38 committee interventions | 1606 bills issued
+- Enterprise value: £8,092,479.25 | Net after CTS: £1,535,410
+- Retention: 12 offers, 12/12 retained | 4 no-offer churns | 4 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -640,6 +663,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~647.1h across 47 sized atom(s) (8 of 55 below-target atoms still unsized).
-- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
+- Remaining effort: ~1406.9h across 55 sized atom(s) (9 of 64 below-target atoms still unsized).
+- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 4.3h (+3.4h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
