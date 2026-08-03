@@ -300,9 +300,13 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
     it is never an independent draw. Vectorised over arrays or scalar.
 
-    `year` (W1_7): when given, renewable output uses the time-varying per-year fleet,
-    so a 2016 cold-still spell prices differently from a 2025 one. Default (None) keeps
-    the whole-window scalar — unchanged behaviour, so the SSP calibration gate is not
+    `year` (W1_7): when given, renewable output uses the time-varying per-year fleet
+    AND the merit order's dispatchable-capacity denominator uses the real coal+gas+
+    nuclear plant capacity for that year (W1_7 L2 re-stacking,
+    `sim.price_engine.system_margin_price`'s own `year=` kwarg) — so a 2016 cold-still
+    spell prices differently from a 2025 one on BOTH the renewable-fleet side and the
+    dispatchable-fleet side. Default (None) keeps the whole-window scalar and the flat
+    dispatchable constant — unchanged behaviour, so the SSP calibration gate is not
     re-opened (R12; the year-aware default flip is the L2 step after recalibration)."""
     p = params or fit_chain()
     demand = np.atleast_1d(demand_from_weather(temp_c, p))
@@ -311,8 +315,16 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
     solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year))
     gas = np.atleast_1d(np.asarray(gas_price, float))
     renewable = wind + solar
-    price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
-                      for i in range(len(demand))])
+    # `year` only passed through when given -- keeps the exact 3-positional-arg call
+    # signature for the (overwhelmingly common) year=None path, so a caller that
+    # monkeypatches `synthetic_price` with a 3-arg stub (as an existing R15 mutation
+    # test does) is unaffected by this kwarg's addition.
+    if year is None:
+        price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
+                          for i in range(len(demand))])
+    else:
+        price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]), year=year)
+                          for i in range(len(demand))])
     return price if np.ndim(temp_c) else float(price[0])
 
 
@@ -337,8 +349,10 @@ def derive_price_on_record(params: ChainParams | None = None,
     intermediate demand/renewable/residual for inspection.
 
     `year_aware` (W1_7): when True, EACH ROW uses ITS OWN calendar year's per-year
-    effective renewable fleet (`sim.renewable_capacity_trend.capacity_wind/solar`)
-    instead of the single whole-window scalar -- the mechanism actually LAYERED onto
+    effective renewable fleet (`sim.renewable_capacity_trend.capacity_wind/solar`) AND
+    its own year's real dispatchable (coal+gas+nuclear) capacity (W1_7 L2 re-stacking,
+    `sim.price_engine.system_margin_price`'s `year=` kwarg) instead of the single
+    whole-window scalar / flat constant -- the mechanism actually LAYERED onto
     the ground-truth series the harness (`background/weather_price_triad.py`)
     measures the company against, not just reachable in isolation via the `year=`
     kwarg on the individual link functions. Default False preserves the existing
@@ -358,7 +372,7 @@ def derive_price_on_record(params: ChainParams | None = None,
         demand = demand_from_weather(rec["temperature_c"], p)
         renewable = np.asarray(wind) + np.asarray(solar)
         price = np.array([
-            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]))
+            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]), year=years[i])
             for i in range(len(demand))
         ])
     else:

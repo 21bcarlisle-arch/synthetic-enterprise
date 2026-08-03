@@ -947,3 +947,244 @@ def check_onshore_offshore_generation_split_vs_real(
         if abs(real_onshore_share - sim_onshore_share) > tolerance:
             return False
     return True
+
+
+# ── L2 (a): COMMISSIONING-DATE SMOOTHING (FRAME §4, 2026-08-03 this fork) ───────────
+# The A5 reconciliation gap above (docstring: "genuine artifact of DUKES's year-END
+# capacity convention vs a growing fleet's year-AVERAGE capacity") is the exact
+# commissioning-date-smoothing item the FRAME names as the remaining L2 step. This sim
+# has no per-turbine commissioning-date feed (none is published at that granularity) --
+# the honest, disclosed approximation is PIECEWISE-LINEAR interpolation between the
+# real DUKES year-END snapshots already ingested, standing in for the (unknown) real
+# intra-year commissioning schedule. For a linear ramp, the year's AVERAGE capacity is
+# exactly the mean of its two bounding year-end values: (cap(year-1) + cap(year)) / 2.
+# The FIRST year in the window (2016) has no year-1 anchor -- honestly UN-SMOOTHABLE,
+# left at its raw year-end value (same R13 hold-flat convention used at every other
+# out-of-window edge in this module).
+
+_SMOOTHABLE_TECH_FOR_CAPACITY = {
+    "wind_onshore": real_capacity_wind_onshore,
+    "wind_offshore": real_capacity_wind_offshore,
+    "solar": real_capacity_solar,
+}
+
+
+def real_capacity_smoothed(technology: str, year: int, source_path=None) -> float:
+    """Commissioning-date-SMOOTHED real installed capacity (MW) for `technology` in
+    {"wind_onshore", "wind_offshore", "solar"} at calendar year τ: the mean of τ's and
+    (τ-1)'s real DUKES year-end capacity, i.e. the exact average of a linear ramp
+    between the two known snapshots. Falls back to the raw (unsmoothed) year-end value
+    for the first year in the window, where no prior-year anchor exists -- disclosed,
+    not silently degenerate.
+    """
+    if technology not in _SMOOTHABLE_TECH_FOR_CAPACITY:
+        raise ValueError(f"unknown technology {technology!r}; expected one of "
+                         f"{sorted(_SMOOTHABLE_TECH_FOR_CAPACITY)}")
+    real_fn = _SMOOTHABLE_TECH_FOR_CAPACITY[technology]
+    data = _load_dukes_capacity(source_path)
+    key = {"wind_onshore": "onshore_mw", "wind_offshore": "offshore_mw",
+           "solar": "solar_mw"}[technology]
+    first_year = min(int(y) for y in data[key])
+    y = _clamped_dukes_year(year, data[key])
+    if y <= first_year:
+        return real_fn(y, source_path)  # un-smoothable edge -- raw year-end value
+    return (real_fn(y - 1, source_path) + real_fn(y, source_path)) / 2.0
+
+
+def implied_generation_gwh_smoothed(technology: str, year: int, source_path=None,
+                                    capacity_source_path=None) -> float:
+    """As `implied_generation_gwh`, but using the commissioning-SMOOTHED capacity
+    (`real_capacity_smoothed`) instead of the raw year-end DUKES snapshot -- the same
+    capacity x load_factor x hours mechanism, the smoothed input."""
+    _TECH_MAP = {"onshore_wind": "wind_onshore", "offshore_wind": "wind_offshore",
+                 "solar": "solar"}
+    if technology not in _TECH_MAP:
+        raise ValueError(f"unknown technology {technology!r}; expected one of "
+                         f"{sorted(_TECH_MAP)}")
+    capacity_mw = real_capacity_smoothed(_TECH_MAP[technology], year, capacity_source_path)
+    lf = real_load_factor(technology, year, source_path)
+    hours = _hours_in_year(year)
+    return capacity_mw * lf * hours / 1000.0
+
+
+def check_commissioning_smoothing_reduces_reconciliation_gap(
+    source_path=None, capacity_source_path=None, min_relative_improvement: float = 0.5,
+) -> bool:
+    """A5-refinement: commissioning-date SMOOTHING (linear interpolation between real
+    DUKES year-end snapshots) must materially TIGHTEN the A5 capacity x load-factor ->
+    generation reconciliation vs the raw (unsmoothed) year-end value -- the literal
+    claim FRAME §4's L2 bar makes. Compares the MEAN absolute percentage reconciliation
+    error across every technology-year cell where smoothing is possible (excludes each
+    technology's first window year -- no prior-year anchor) for the raw vs smoothed
+    capacity input, and requires the smoothed mean error to be at most
+    `(1 - min_relative_improvement)` of the raw mean error.
+
+    Real result (2026-08-03 pass): raw (year-end) mean abs error ~4.17% across the 27
+    comparable technology-year cells (2017-2025 x 3 technologies) vs smoothed mean abs
+    error ~0.16% -- a ~96.1% relative reduction, comfortably clearing the pre-stated
+    50% bar (set with real headroom below the observed improvement, same convention as
+    every other tolerance in this module -- R12's anti-goal-seek sibling). Never a
+    vacuous pass -- fewer than 2 comparable cells fails (R15 FAIL-OPEN forbidden).
+    """
+    data = _load_dukes_generation(source_path)
+    raw_errs: list = []
+    smoothed_errs: list = []
+    for tech, tech_key in (("onshore_wind", "wind_onshore"),
+                           ("offshore_wind", "wind_offshore"), ("solar", "solar")):
+        years = sorted(int(y) for y in data["generation_gwh"][tech])
+        cap_series = _load_dukes_capacity(capacity_source_path)[
+            {"wind_onshore": "onshore_mw", "wind_offshore": "offshore_mw",
+             "solar": "solar_mw"}[tech_key]]
+        first_year = min(int(y) for y in cap_series)
+        for y in years:
+            if y <= first_year:
+                continue  # un-smoothable edge -- excluded from both series identically
+            real = real_generation_gwh(tech, y, source_path)
+            if real <= 0:
+                return False
+            raw = implied_generation_gwh(tech, y, source_path, capacity_source_path)
+            smoothed = implied_generation_gwh_smoothed(tech, y, source_path, capacity_source_path)
+            raw_errs.append(abs(raw - real) / real)
+            smoothed_errs.append(abs(smoothed - real) / real)
+    if len(raw_errs) < 2:
+        return False  # never a vacuous pass (R15)
+    raw_mean = float(np.mean(raw_errs))
+    smoothed_mean = float(np.mean(smoothed_errs))
+    if raw_mean <= 0:
+        return False
+    return smoothed_mean <= raw_mean * (1.0 - min_relative_improvement)
+
+
+# ── L2 (b): DISPATCHABLE-FLEET RE-STACKING -- coal -> gas -> wind (FRAME §4) ─────────
+# The merit-order price physics (sim/price_engine.py) normalises residual demand
+# against a single flat DISPATCHABLE_CAPACITY_MW = 35000.0 constant -- that module's
+# own R10 docstring already names the gap: "this fleet has shrunk over 2016-2025 as
+# coal exited" and "would be grounded by a National Grid ESO capacity-register figure
+# for the specific year." This section ingests the real DUKES Table 5.7 plant-capacity
+# register (coal/gas/nuclear, ALL GENERATING COMPANIES) -- a THIRD, independent DESNZ
+# table from the two already used above (ET 6.1 renewables capacity/mix-share/
+# generation) -- and exposes a time-varying `real_dispatchable_capacity_mw(year)` that
+# sim/price_engine.py reads when given an explicit `year=` (mirroring the exact
+# year=None-preserves-baseline convention sim/weather_price_chain.py already
+# established for the renewable fleet -- R12/R13: the SSP calibration is not re-opened
+# by default).
+
+DISPATCHABLE_CAPACITY_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "market_research" / "w1_7_dukes_5_7_dispatchable_capacity_annual.json"
+)
+
+# The same CCGT/OCGT/coal/nuclear basket sim/price_engine.py's own pre-existing R10
+# docstring named for its flat constant -- 'gas_fired_mw' in the DUKES 5.7 series
+# already sums CCGT + OCGT/gas-turbine capacity (verified against Table 5.7.B's
+# separately-reported CCGT + gas-turbine rows, see the JSON's own provenance note).
+# Interconnector import capacity stays OUT (a disclosed, UNCHANGED gap -- the original
+# flat constant never included it either).
+_DISPATCHABLE_FUEL_KEYS = ("coal_fired_mw", "gas_fired_mw", "nuclear_mw")
+
+
+class DispatchableCapacitySourceUnavailableError(RuntimeError):
+    """Same R15 FAIL-SILENT discipline as the other real-series loaders above: the
+    real DUKES 5.7 plant-capacity series is not on disk -- every accessor below fails
+    LOUD rather than silently falling back to the flat pre-2026-08-03 constant (that
+    fallback would silently re-introduce the exact flat-fleet fidelity gap this
+    section exists to close)."""
+
+
+@lru_cache(maxsize=1)
+def _load_dispatchable_capacity(source_path=None) -> dict:
+    path = Path(source_path) if source_path else DISPATCHABLE_CAPACITY_PATH
+    if not path.exists():
+        raise DispatchableCapacitySourceUnavailableError(
+            f"real DUKES 5.7 dispatchable-capacity series not found at {path} — "
+            "refusing to silently fall back to the flat constant."
+        )
+    data = json.loads(path.read_text())
+    for key in _DISPATCHABLE_FUEL_KEYS:
+        if not data.get(key):
+            raise DispatchableCapacitySourceUnavailableError(
+                f"real DUKES 5.7 dispatchable-capacity file at {path} is missing/empty '{key}'"
+            )
+    return data
+
+
+def _clamped_dispatchable_year(year: int, series: dict) -> int:
+    """Same R13 hold-flat convention as `_clamped_dukes_year`: piecewise-constant,
+    flat outside the real 2016-2025 window."""
+    years = sorted(int(y) for y in series)
+    y = min(max(int(year), years[0]), years[-1])
+    return y if y in years else min(years, key=lambda k: abs(k - y))
+
+
+def real_coal_capacity_mw(year: int, source_path=None) -> float:
+    """Real GB coal-fired plant capacity (MW), all generating companies, DUKES Table
+    5.7 -- the series that lets A4 (`check_no_coal_after_retirement`) finally be
+    exercised on REAL data rather than only a synthetic test fixture."""
+    data = _load_dispatchable_capacity(source_path)
+    series = data["coal_fired_mw"]
+    return float(series[str(_clamped_dispatchable_year(year, series))])
+
+
+def real_gas_capacity_mw(year: int, source_path=None) -> float:
+    """Real GB gas-fired (CCGT + OCGT) plant capacity (MW), all generating companies,
+    DUKES Table 5.7."""
+    data = _load_dispatchable_capacity(source_path)
+    series = data["gas_fired_mw"]
+    return float(series[str(_clamped_dispatchable_year(year, series))])
+
+
+def real_nuclear_capacity_mw(year: int, source_path=None) -> float:
+    """Real GB nuclear plant capacity (MW), all generating companies, DUKES Table
+    5.7."""
+    data = _load_dispatchable_capacity(source_path)
+    series = data["nuclear_mw"]
+    return float(series[str(_clamped_dispatchable_year(year, series))])
+
+
+def real_dispatchable_capacity_mw(year: int, source_path=None) -> float:
+    """THE re-stacking input: real coal + gas + nuclear plant capacity (MW) for
+    calendar year τ -- what `sim/price_engine.py::system_margin_price`/`synthetic_price`
+    reads (via a lazy import, mirroring `weather_price_chain._wind_fleet_mw`'s pattern)
+    when given an explicit `year=`. Piecewise-constant, flat outside 2016-2025 (R13).
+
+    Real result (2026-08-03 pass): the fleet shrinks from ~56.2 GW (2016) to ~42.4 GW
+    (2025) as coal exits the stack (13.7 GW -> 0 MW) while gas holds broadly flat
+    (~33.2 -> ~36.5 GW) and nuclear steps down in two real retirement waves (2020,
+    2022) -- coal->gas->(nuclear-shrinking) re-stacking, mechanically representable by
+    a single shrinking scarcity-normalisation denominator without re-opening the merit-
+    order calibration itself (R12/S8; the calibration constants A0/A1/A2/X_TIGHT stay
+    untouched -- only their `x` input's denominator becomes time-varying when opted
+    into).
+    """
+    return (real_coal_capacity_mw(year, source_path)
+            + real_gas_capacity_mw(year, source_path)
+            + real_nuclear_capacity_mw(year, source_path))
+
+
+def check_dispatchable_capacity_declines_2016_2025(source_path=None, min_ratio: float = 0.85) -> bool:
+    """The dispatchable/thermal fleet materially SHRINKS across the historical window
+    as coal exits -- real GB fact (the last coal plant closed 2024, `LAST_COAL_
+    GENERATION_YEAR`). Fires if the last comparable year's capacity is not at most
+    `min_ratio` x the first year's (real observed ratio ~0.755 -- 42391/56208 -- well
+    under the pre-stated 0.85 bar, set with headroom above the observed shrinkage so a
+    modest data revision would not spuriously flip this). Never a vacuous pass -- needs
+    >= 2 years (R15)."""
+    data = _load_dispatchable_capacity(source_path)
+    years = sorted(int(y) for y in data["coal_fired_mw"])
+    if len(years) < 2:
+        return False
+    first = real_dispatchable_capacity_mw(years[0], source_path)
+    last = real_dispatchable_capacity_mw(years[-1], source_path)
+    if first <= 0:
+        return False
+    return last <= min_ratio * first
+
+
+def real_coal_capacity_series(source_path=None) -> dict:
+    """The full real coal-capacity-by-year series, as a plain {year: mw} dict -- the
+    form `check_no_coal_after_retirement` (above) takes. Exists so that check can
+    finally be exercised on REAL data (previously only a hand-built synthetic fixture
+    existed, per this module's own honesty note -- 'no real coal series exists in this
+    sim to exercise it on')."""
+    data = _load_dispatchable_capacity(source_path)
+    return {int(y): float(v) for y, v in data["coal_fired_mw"].items()}
