@@ -1703,7 +1703,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-08-03T14:08:24Z
+Generated: 2026-08-03T14:26:41Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
