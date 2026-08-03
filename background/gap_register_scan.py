@@ -342,17 +342,11 @@ _REGISTERS = {
     # fail-safe-toward-work contract (an absent/malformed census yields an
     # `unreadable` OPEN row, never a silent empty).
     "shared_primitive_census": register9_shared_primitive_census,
-    # Register 9 -- the shared-primitive census (SP5). Wired here rather than
-    # left standalone because the WIRING is the atom: a census nothing reads is
-    # the consumed-not-absorbed failure mode it exists to catch. Its own
-    # `census_register_open` already honours this module's injectable-path and
-    # fail-safe-toward-work contract (an absent/malformed census yields an
-    # `unreadable` OPEN row, never a silent empty).
 }
 
 
 def open_residue(paths: dict[str, Path] | None = None) -> dict[str, list[dict[str, str]]]:
-    """The OPEN residue across all eight registers, {register_name: [open_row, ...]}. Every register
+    """The OPEN residue across all NINE registers, {register_name: [open_row, ...]}. Every register
     fails safe toward work (an unreadable register yields an `unreadable` row, never a silent empty).
     Paths (for fixture isolation): {register_name: Path} overrides a register's primary-state path.
 

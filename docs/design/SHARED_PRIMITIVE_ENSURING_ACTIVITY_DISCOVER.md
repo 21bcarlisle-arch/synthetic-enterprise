@@ -1,6 +1,20 @@
-<!-- DISCOVER artefact only. BUILD half (publishing the census register, editing the phase-close
-     skill, wiring 5.3/5.4 onto the retro cadence) stays blocked_on director_build_open — nothing in
-     this file is executable; it is the design the BUILD half will implement. -->
+<!-- DISCOVER artefact. STATUS 2026-08-03: the BUILD half is BUILT, as map atom
+     SP5_shared_primitive_ensuring_activity (level_current 0 -> 2). The `director_build_open` park
+     this header used to cite was abolished 2026-07-29. What landed, against the design below:
+       5.1 background/shared_primitive_census.py + docs/observability/shared_primitive_census.json,
+           WIRED as register 9 in background/gap_register_scan.py::_REGISTERS (row added to
+           GAP_REGISTER_MINT_SOURCE_CONTRACT.md).
+       5.2 phase-close SKILL.md item 0d, at the designed insertion point.
+       5.3 standing_review_due() -- delegates to the EXISTING retro cadence, no second timer --
+           plus phase-close item 6d.
+       5.4 record_standing_review() + reader check (e). ONE DEVIATION FROM THE DESIGN, deliberate:
+           §5.4 left the hand-off as a checklist instruction, which is the prose-only failure mode
+           MAKE_IT_STICK names. Instead the review is a RECORD carried in the census artefact
+           (§5.3 step 4's own "the register carries its own history"), the write seam refuses a
+           stamp without an independent trust-ledger verdict, and an unrun/stale/needs_work review
+           is an OPEN register-9 row. The checklist still instructs; it is no longer the only thing
+           standing between a skipped review and a clean register.
+     NOT built: nothing self-schedules a review (5.3 rides the retro cadence by design). -->
 # Shared-Primitive Ensuring Activity — DISCOVER/design (§5.1–5.4)
 
 **Serves:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §5 ("none of the

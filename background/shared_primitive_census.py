@@ -29,8 +29,21 @@ would be a tautology; every number here is recomputed from source on every run.
 
 LEVEL HONESTY: this atom targets level_current 0 -> 2, deliberately NOT 3 -- level 3 requires the
 census to have caught a REAL re-duplication in the wild, which cannot be claimed at build time
-(the register has never yet run against a genuine drift event). See module docstring bottom for
-what is and is not built.
+(the register has never yet run against a genuine drift event).
+
+WHAT IS BUILT (2026-08-03): 5.1 the census generator + register #9's reader, WIRED into
+`background/gap_register_scan.py::_REGISTERS`; 5.2 the phase-close duplication question (item 0d);
+5.3 the standing-review trigger (`standing_review_due`, delegating to the EXISTING retro cadence --
+no second timer) + phase-close item 6d; 5.4 the review-of-record (`record_standing_review`) whose
+stamp lives in the census artefact and whose independence is enforced AT THE WRITE SEAM -- it
+refuses unless a matching fresh-context verdict already exists in `background/trust_ledger.py`.
+Check (e) of the reader then makes an UNRUN standing review an OPEN row, so the ensuring activity
+cannot quietly stop happening; that is the MAKE_IT_STICK test applied to this atom's own mechanism.
+
+WHAT IS NOT BUILT: nothing schedules a standing review by itself -- 5.3 rides the retro cadence by
+design, so the review fires when a session runs phase-close item 6/6d, and its absence is visible
+as register-9 residue rather than as silence. The clone ceiling is still the ruling's s0 number
+(223), to be reconciled when SP3 lands its own detector.
 
 Primary-state artefact (generator-owned; nothing else may write it):
     docs/observability/shared_primitive_census.json
@@ -38,6 +51,9 @@ Primary-state artefact (generator-owned; nothing else may write it):
 CLI:
     python3 -m background.shared_primitive_census            # regenerate + print residue
     python3 -m background.shared_primitive_census --check    # read-only: print residue, exit 1 if OPEN
+    python3 -m background.shared_primitive_census --review-due   # is the 5.3 standing review due?
+    python3 -m background.shared_primitive_census --record-review \\
+        --subject shared_primitive_census_<date> --verdict pass --evaluator phase-close-evaluator
 """
 from __future__ import annotations
 
@@ -55,6 +71,12 @@ from typing import Any
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OBS_DIR = PROJECT_DIR / "docs" / "observability"
 CENSUS_PATH = OBS_DIR / "shared_primitive_census.json"
+
+# 5.3/5.4: the standing structural review's own stamp, carried INSIDE the census artefact. The
+# DISCOVER doc's 5.3 step 4 names this explicitly -- "a dated note appended to the census register
+# itself, so the register carries its own history rather than requiring a second log."
+REVIEW_STAMP_KEY = "last_standing_review"
+_REVIEW_STAMP_FIELDS = ("date", "evaluator", "verdict", "subject")
 
 # The scan roots named in the DISCOVER doc (5.1), matching the advisor's own method: company code,
 # not test code.
@@ -337,13 +359,24 @@ def generate(
 
     prev_path = previous_census_path or CENSUS_PATH
     prev_register_count: int | None = None
+    carried_review: dict[str, Any] | None = None
     try:
         prev = json.loads(Path(prev_path).read_text(encoding="utf-8"))
         prev_register_count = prev.get("register_count")
+        # CARRY FORWARD, never fabricate (5.3): a standing review is a thing that HAPPENED on a
+        # date. Regenerating the census must not erase that fact (which would re-open the row and
+        # demand a second review of the same window), and must not invent one either -- the ONLY
+        # writer of this stamp is `record_standing_review`, which refuses without an independent
+        # trust-ledger verdict. Carrying it forward preserves its own date, so freshness is still
+        # judged against when the review actually ran.
+        stamp = prev.get(REVIEW_STAMP_KEY)
+        if isinstance(stamp, dict):
+            carried_review = stamp
     except Exception:  # noqa: BLE001 -- no valid prior census; drift check simply has nothing to compare
         prev_register_count = None
 
     return {
+        REVIEW_STAMP_KEY: carried_review,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "clone_count": clone["clone_count"],
         "clone_ceiling": CLONE_CEILING,
@@ -510,17 +543,68 @@ def census_register_open(path: Path | None = None, now: datetime | None = None) 
                       "recorded in this run (new duplication accreting, not draining)",
         })
 
+
+    # (e) 5.3/5.4 -- the standing structural review itself. Without this row the review is an
+    # exhortation in a checklist: a session that simply never runs it leaves no trace, and the
+    # register reads CLOSED while the ensuring activity has silently stopped happening. That is the
+    # MAKE_IT_STICK failure mode this atom exists to prevent, applied to its OWN mechanism.
+    # The reader only checks the stamp's PRESENCE, SHAPE, FRESHNESS and VERDICT -- independence
+    # lives at the WRITE seam (`record_standing_review` refuses without a trust-ledger verdict from
+    # a whitelisted fresh-context evaluator), so this stays a pure function of the census file and
+    # `now`, preserving the `_REGISTERS` fixture-isolation contract.
+    stamp = data.get(REVIEW_STAMP_KEY)
+    if not isinstance(stamp, dict):
+        out.append({
+            "register": "shared_primitive_census",
+            "id": "standing_review_never_recorded",
+            "reason": f"no {REVIEW_STAMP_KEY} stamp -- the 5.3 standing structural review has never "
+                      "been recorded through record_standing_review() (unrun is not evidence of no drift)",
+        })
+    elif any(k not in stamp for k in _REVIEW_STAMP_FIELDS):
+        out.append({
+            "register": "shared_primitive_census",
+            "id": "standing_review_malformed",
+            "reason": f"{REVIEW_STAMP_KEY} missing field(s) "
+                      f"{[k for k in _REVIEW_STAMP_FIELDS if k not in stamp]} (fail-safe OPEN)",
+        })
+    else:
+        try:
+            reviewed_at = datetime.fromisoformat(str(stamp["date"]))
+            if reviewed_at.tzinfo is None:
+                reviewed_at = reviewed_at.replace(tzinfo=timezone.utc)
+            review_age = (now - reviewed_at).total_seconds() / 86400.0
+        except (ValueError, TypeError):
+            review_age = None
+            out.append({
+                "register": "shared_primitive_census",
+                "id": "standing_review_malformed",
+                "reason": f"unparseable {REVIEW_STAMP_KEY}.date: {stamp.get('date')!r} (fail-safe OPEN)",
+            })
+        if review_age is not None and review_age > threshold:
+            out.append({
+                "register": "shared_primitive_census",
+                "id": "standing_review_overdue",
+                "reason": f"last standing structural review was {review_age:.1f}d ago, cadence "
+                          f"threshold {threshold}d -- re-run per phase-close 6d and route the diff "
+                          "through the fresh-context evaluator (5.4)",
+            })
+        if str(stamp.get("verdict", "")).lower() in ("needs_work", "needs-work"):
+            out.append({
+                "register": "shared_primitive_census",
+                "id": "standing_review_needs_work",
+                "reason": f"the last standing review ({stamp.get('date')}, {stamp.get('evaluator')}) "
+                          f"returned NEEDS_WORK on {stamp.get('subject')} -- its named drifted items "
+                          "are open GAP2-triaged work until a later review reads PASS (5.4 step iii)",
+            })
     return out
 
 
 def shared_primitive_census_open(path: Path | None = None) -> bool:
     """True iff register #9 holds any OPEN row -- symmetrical to
-    `background.gap_register_scan.gap_register_open()`. Wiring this in as row #9 of that reader's
-    `_REGISTERS` table (background/gap_register_scan.py, outside this atom's file_scope) is the
-    ONE remaining line needed to make register #9 count toward the whole-set rest proof in
-    `supervisor.authorized_set_enumeration()` -- see this module's own docstring tail for the exact
-    line. Until that wiring lands, this function is directly callable/testable but not yet on the
-    tick's own draw path."""
+    `background.gap_register_scan.gap_register_open()`. WIRED (2026-08-03) as row #9 of that
+    reader's `_REGISTERS` table, so register #9 counts toward the whole-set rest proof in
+    `supervisor.authorized_set_enumeration()` -- a census nothing reads could not make a rest claim
+    impossible, which is the consumed-not-absorbed failure mode this atom exists to catch."""
     return bool(census_register_open(path))
 
 
@@ -547,12 +631,120 @@ def standing_review_due(today=None, retro_dir: Path | None = None, project_dir: 
         return f"standing structural review DUE: retro_cadence_check unavailable ({exc})"
 
 
+# =========================================================================== 5.4 review-of-record
+def record_standing_review(
+    subject: str,
+    verdict: str,
+    evaluator: str,
+    *,
+    reviewed_at: str | None = None,
+    notes: str = "",
+    path: Path | None = None,
+) -> dict[str, Any]:
+    """Stamp a COMPLETED 5.3/5.4 standing structural review into the census artefact -- the ONLY
+    writer of `REVIEW_STAMP_KEY`, and the seam where INDEPENDENCE is enforced.
+
+    5.4 is the load-bearing part of this atom ('the same context that wrote the 91 registers is the
+    least able to see them as a problem'). A stamp the building session could write for itself would
+    be the TAUTOLOGY pattern -- the census certifying its own review. So this function REFUSES
+    unless a matching verdict already exists in `background/trust_ledger.py`, which independently
+    whitelists fresh-context evaluators (`INDEPENDENT_EVALUATORS`) and is written by
+    `judge_validation.record_close_verdict` -- i.e. the review must have been recorded through the
+    SAME judge-measurement path phase-close item 6c already mandates, so a 5.3 review that later
+    proves to have missed real drift charges back to that judge's measured error rate (R15: no
+    verdict-organ escapes measurement).
+
+    FAIL-CLOSED: an unimportable/unreadable trust ledger REFUSES the stamp (raising), it never
+    stamps optimistically -- an unavailable independence check is a FAILED independence check.
+    """
+    if not isinstance(subject, str) or not subject.strip():
+        raise ValueError("record_standing_review requires a non-empty subject (what was reviewed).")
+    verdict_norm = str(verdict).strip().lower().replace("-", "_")
+    if verdict_norm not in ("pass", "needs_work"):
+        raise ValueError(f"verdict must be 'pass' or 'needs_work', got {verdict!r}.")
+
+    try:
+        from background import trust_ledger as tl
+
+        ledger = tl._load_ledger()
+    except Exception as exc:  # noqa: BLE001 -- unavailable independence check == FAILED independence check
+        raise RuntimeError(
+            f"cannot verify the review's independence -- trust ledger unavailable ({exc}). "
+            "The stamp is REFUSED rather than written optimistically (R15 fail-silent)."
+        ) from exc
+
+    match = [
+        e for e in ledger
+        if e.get("subject") == subject
+        and e.get("evaluator_name") == evaluator
+        and str(e.get("verdict", "")).lower() == verdict_norm
+    ]
+    if not match:
+        raise ValueError(
+            f"no trust-ledger verdict '{verdict_norm}' from evaluator {evaluator!r} on subject "
+            f"{subject!r}. Record the fresh-context evaluator's verdict FIRST via "
+            "`python3 -m background.judge_validation record-close --task-class harness_supervisor "
+            f"--verdict {verdict_norm} --evaluator {evaluator} --subject {subject}` -- the census "
+            "may not certify its own standing review (5.4)."
+        )
+
+    stamp = {
+        "date": reviewed_at or match[-1].get("evaluated_at") or datetime.now(timezone.utc).date().isoformat(),
+        "evaluator": evaluator,
+        "verdict": verdict_norm,
+        "subject": subject,
+        "notes": notes,
+    }
+    p = Path(path or CENSUS_PATH)
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("census file is not a JSON object")
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"cannot stamp a review onto an unreadable census ({exc}) -- regenerate it first "
+            "(`python3 -m background.shared_primitive_census`)."
+        ) from exc
+    data[REVIEW_STAMP_KEY] = stamp
+    p.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return stamp
+
+
 # =========================================================================== CLI
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="read-only: report residue, do not regenerate")
     parser.add_argument("--migration-note", default=None, help="record a migration note for this run's register-count growth")
+    parser.add_argument("--review-due", action="store_true",
+                        help="read-only: is the 5.3 standing structural review due? exit 1 if due")
+    parser.add_argument("--record-review", action="store_true",
+                        help="stamp a COMPLETED 5.3/5.4 review (requires --subject/--verdict/--evaluator; "
+                             "refuses without a matching trust-ledger verdict)")
+    parser.add_argument("--subject", default=None)
+    parser.add_argument("--verdict", default=None, choices=("pass", "needs_work"))
+    parser.add_argument("--evaluator", default="phase-close-evaluator")
+    parser.add_argument("--notes", default="")
     args = parser.parse_args()
+
+    if args.review_due:
+        due = standing_review_due()
+        if due:
+            print(f"[shared_primitive_census] standing structural review DUE: {due}")
+            return 1
+        print("[shared_primitive_census] standing structural review not due")
+        return 0
+
+    if args.record_review:
+        if not args.subject or not args.verdict:
+            print("--record-review requires --subject and --verdict", file=sys.stderr)
+            return 2
+        try:
+            stamp = record_standing_review(args.subject, args.verdict, args.evaluator, notes=args.notes)
+        except (ValueError, RuntimeError) as exc:
+            print(f"[shared_primitive_census] REFUSED: {exc}", file=sys.stderr)
+            return 2
+        print(f"[shared_primitive_census] recorded standing review: {stamp}")
+        return 0
 
     if args.check:
         rows = census_register_open()
