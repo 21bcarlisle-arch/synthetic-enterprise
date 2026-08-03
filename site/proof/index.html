@@ -29,6 +29,15 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
 .evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .evlink:hover { border-bottom-color: var(--blue); }
+/* MAJOR-7 fix (2026-07-29 cold-eyes Expert Hour, SITE1_expert_doors): a citation to a
+   repo-internal path that is NOT web-servable must render as a visibly NON-LINK
+   provenance tag -- never a fake anchor (href of a bare fragment, click suppressed)
+   wearing the .evlink class of a genuinely resolvable evidence link. On a door whose whole
+   proposition is "walk any figure to its evidence", a dead citation styled as a live
+   one trains the reader to distrust the real ones. */
+.evsrc { font-size: 10px; color: var(--muted); border-bottom: 1px dotted var(--border); cursor: help; }
+.evsrc-tag { font-size: 8px; color: var(--muted); border: 1px solid var(--border); border-radius: 3px;
+  padding: 0 4px; margin-left: 4px; vertical-align: middle; text-transform: uppercase; letter-spacing: .03em; }
 .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
 .badge.provisional { color: var(--amber); border: 1px solid var(--amber); }
 .badge.ok { color: var(--green); border: 1px solid var(--green); }
@@ -37,6 +46,10 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .badge.amber { color: var(--amber); border: 1px solid var(--amber); }
 .badge.red { color: var(--red); border: 1px solid var(--red); }
 .badge.green { color: var(--green); border: 1px solid var(--green); }
+/* MINOR-10 fix: SITE_CONSTITUTION rule 6 names six claim statuses; the legend rendered
+   only four. A constant someone TYPED and a live measurement still settling are not the
+   same epistemic object, and neither is a figure lifted from an external regulator. */
+.badge.purple { color: var(--purple); border: 1px solid var(--purple); }
 .mono { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
 .claim-legend { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin: 22px 0 4px; }
 .cl-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
@@ -228,6 +241,27 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     simplifications register fold in below.
   </p>
 
+  <!-- MINOR-9 fix (2026-07-29 cold-eyes Expert Hour, proof-door half only): every section
+       below is rendered client-side from the JSON endpoints named here, so a non-JS crawler
+       (or a reader with scripting off) previously saw only "Loading..." placeholders and
+       would index THAT as the content of the evidence page. This block names the real,
+       structured data directly, so the fallback is the source data itself rather than a
+       spinner. The reviewer verified all these endpoints return 200 with real payloads.
+       NOT fixed here (outside this fork's file scope): site/sitemap.xml, site/robots.txt,
+       and /glossary/'s own empty-body case -- all still open under MINOR-9. -->
+  <noscript>
+    <div class="card" style="border-left:3px solid var(--amber)">
+      <p><strong>JavaScript is required to render this page.</strong> Every figure above and below is
+      fetched live and rendered from real repo data &mdash; nothing here is a mock. Read the source data
+      directly: <a href="../data/proof.json">/data/proof.json</a> (the predictions ledger, the
+      incident&rarr;rule timeline, the verification stack, corrections and open work),
+      <a href="../data/fidelity.json">/data/fidelity.json</a> (the fidelity instrument),
+      <a href="../data/method.json">/data/method.json</a>,
+      <a href="../data/simplified.json">/data/simplified.json</a> (the simplifications register) and
+      <a href="../data/dashboard.json">/data/dashboard.json</a> (the cost-to-serve leg).</p>
+    </div>
+  </noscript>
+
   <!-- CLAIM-STATUS LEGEND (SITE_CONSTITUTION rule 6 vocabulary) + didactic hypothesis -->
   <div class="claim-legend" id="claim-legend">
     <div class="cl-title">The claim-status vocabulary used across this page</div>
@@ -235,7 +269,22 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
       <span class="badge blue">VERIFIED</span> a consumer's fetch confirmed it (R1) &mdash;
       <span class="badge amber">PROVISIONAL</span> real but still moving or externally uncalibrated &mdash;
       <span class="badge amber">PLANNED</span> named but not yet measured, never faked &mdash;
+      <span class="badge purple">CHOSEN</span> a constant somebody typed, not a measurement &mdash; it was
+      <em>decided</em>, and a different number was available (renewal tolerance 2%, the VaR limit at 15%
+      of term revenue, the assumption library's sim_value column, DCA 20% recovery / 15% commission) &mdash;
+      <span class="badge green">BENCHMARK</span> lifted from an external source (Ofgem, Elexon, NESO), not
+      produced by this system &mdash;
       <span class="badge red">RETRACTED</span> was wrong, shown struck through with the correction linked (below).
+    </div>
+    <!-- MINOR-10 fix (2026-07-29 cold-eyes Expert Hour): CHOSEN and BENCHMARK were missing.
+         SITE_CONSTITUTION rule 6 names six statuses (observed-with-evidence, external-benchmark,
+         chosen-not-derived, not-yet-instrumented, hypothesis-with-a-designed-test, retracted);
+         this legend rendered four, and had no way to say "we chose this number". -->
+    <div class="cl-row" style="font-size:11px">
+      Mapping to SITE_CONSTITUTION rule 6: VERIFIED = observed-with-evidence &middot;
+      BENCHMARK = external-benchmark &middot; CHOSEN = chosen-not-derived &middot;
+      PLANNED = not-yet-instrumented &middot; PROVISIONAL = hypothesis-with-a-designed-test &middot;
+      RETRACTED = retracted.
     </div>
     <div class="hyp" style="margin-top:12px">
       <strong>Falsifiable hypothesis.</strong> Every figure on this surface can be walked to the repo
@@ -448,6 +497,37 @@ function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){retur
 function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
 function fmtBytes(n){if(n==null)return "--";if(n<1024)return n+" B";return (n/1024).toFixed(0)+" KB";}
 
+// MAJOR-7 fix (2026-07-29 cold-eyes Expert Hour): ONE shared citation renderer, so the
+// CLASS is fixed rather than ten separate instances. A source is rendered as a genuine
+// clickable link ONLY if it actually resolves on the public web:
+//   * an absolute http(s) URL, or
+//   * a docs/retrospectives/<file>.md path, which IS published -- mirrored to
+//     RETRO_LINK_BASE, the exact convention tools/generate_proof_data.py already uses
+//     for this page's timeline retro links.
+// Everything else (docs/design/*, docs/staging/*, docs/review_gates/*, site/state/*.json,
+// tools/*.py -- none web-servable at poesys.net; the reviewer verified
+// docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md, the source for
+// COR-1, the flagship retraction, 404s) renders as an inert, tooltipped "unpublished"
+// tag. The provenance is still SHOWN in full -- it is just no longer dressed as a link
+// that goes somewhere.
+var RETRO_LINK_BASE="https://21bcarlisle-arch.github.io/synthetic-enterprise/retrospectives/";
+function srcCite(source,label){
+  if(source==null||source==="") return "";
+  source=String(source);
+  label=(label==null||label==="")?source:label;
+  var href=null;
+  if(/^https?:\/\//.test(source)){
+    href=source;
+  } else if(/^docs\/retrospectives\/[^/]+\.md$/.test(source)){
+    // Only a concrete published .md file -- never the bare directory, which is not
+    // itself a served page.
+    href=RETRO_LINK_BASE+source.slice("docs/retrospectives/".length);
+  }
+  if(href) return '<a class="evlink" href="'+esc(href)+'" target="_blank" rel="noopener">'+esc(label)+'</a>';
+  return '<span class="evsrc" title="repo-internal path, not published on the web: '+esc(source)+
+    '">'+esc(label)+'<span class="evsrc-tag">unpublished</span></span>';
+}
+
 function renderTimeline(d){
   var tl=d.timeline||[];
   document.getElementById("timeline-intro").textContent=
@@ -458,12 +538,18 @@ function renderTimeline(d){
     var links=(r.retro_links||[]).map(function(l){
       return '<a class="evlink" href="'+esc(l.link)+'" target="_blank" rel="noopener">retro: '+esc(l.filename)+' &rarr;</a>';
     }).join(" ");
-    var src=r.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(r.source)+'">source: '+esc(r.source)+'</a>':"";
+    // MAJOR-7 fix: this computed `src` was DEAD CODE before -- the render below
+    // duplicated a raw esc(r.source) and only ever showed it when retro links were
+    // ABSENT, so a rule with both a retro link and a staging-doc source showed the
+    // source not at all. Now the citation always renders, through srcCite, and a
+    // non-retro repo path (R10/R12/R14's docs/staging/*.md) reads as inert.
+    var src=r.source?srcCite(r.source,"source: "+r.source):"";
+    var tlParts=[links,src].filter(Boolean);
     return '<div class="tl-row"><span class="tl-date">'+esc(r.date)+'</span>'+
       '<div><span class="tl-rule-id">'+esc(r.id)+'</span><span class="tl-rule-name">'+esc(r.name)+'</span></div>'+
       '<div class="tl-rule-text">'+esc(r.rule)+'</div>'+
       '<div class="tl-incident"><span class="tl-incident-label">The incident that forged it</span>'+esc(r.incident)+'</div>'+
-      '<div class="tl-links">'+(links||'<span class="muted">source: '+esc(r.source)+'</span>')+'</div></div>';
+      '<div class="tl-links">'+(tlParts.length?tlParts.join(" &middot; "):'<span class="muted">No source recorded.</span>')+'</div></div>';
   }).join("")||'<div class="muted">No timeline data.</div>';
 }
 
@@ -482,7 +568,7 @@ function renderVerification(d){
   var lb=v.levels_banked||{};
   var lbStr=Object.keys(lb).map(function(k){return lb[k]+" at L"+k;}).join(", ");
   document.getElementById("banked-note").innerHTML="Levels banked (honest, not rounded up): "+esc(lbStr)+
-    '. Evidence: <a class="evlink" href="#" onclick="return false" title="docs/design/maturity_map.yaml">docs/design/maturity_map.yaml</a>.';
+    '. Evidence: '+srcCite("docs/design/maturity_map.yaml")+'.';
 
   var reviews=v.reviews||[];
   document.getElementById("reviews").innerHTML=reviews.map(function(r){
@@ -562,9 +648,9 @@ function renderPredictions(d){
   intro.innerHTML="The real shadow-live decision log: hedge stance, renewal-price flags and retention EVs are "+
     "pre-registered <em>before</em> the outcome is known, then graded against what actually happened. "+
     "Clock started "+esc(p.clock_started)+". Predictions from "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a>'+
+    srcCite(p.source)+
     "; outcomes from the independent "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.outcome_source)+'">'+esc(p.outcome_source)+'</a>'+
+    srcCite(p.outcome_source)+
     ". Every entry lands on one of "+esc((p.verdict_vocabulary||[]).join(" / "))+
     " &mdash; there is no “inconclusive”, and nothing waits longer than "+
     esc(p.horizon_days)+" days before it is declared UNGRADEABLE with its blocker named.";
@@ -638,7 +724,7 @@ function renderPrinciples(d){
       '<p style="margin:0 0 8px">'+esc(p.claim)+'</p>'+
       '<p class="muted" style="margin:0 0 8px"><em>'+esc(p.why)+'</em></p>'+
       '<div class="muted" style="font-size:11px">Basis: '+esc(p.basis)+
-        ' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a></div>'+
+        ' &middot; '+srcCite(p.source)+'</div>'+
       '</div>';
   }).join(""):'<div class="card muted">No numbered findings recorded yet.</div>';
 }
@@ -683,7 +769,7 @@ function renderCoupledGaps(d){
     "that holds both the hidden truth and the company's observable-only belief — measures the gap. "+
     "<strong>The gap is the score.</strong> 1 = no better than a blind prior; 0 = a wall leak (a defect, "+
     "not a triumph); between is honest, partial learning. Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(cg.source)+'">'+esc(cg.source)+'</a>.';
+    srcCite(cg.source)+'.';
 
   var kpis=[
     {l:"Coupled pairs",v:num(cg.pair_count)},
@@ -790,8 +876,8 @@ function renderKilllist(d){
     "(passes on missing/empty/malformed), <strong>FAIL-SILENT</strong> (passes when the checker itself is "+
     "unavailable) &mdash; are what turns a control into theatre. THEATRE rows are proven NOT to fire and are "+
     "sorted to the top, in red. Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(ck.source||"")+'">'+esc(ck.source||"control registry")+'</a>'+
-    (ck.doctrine?' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(ck.doctrine)+'">'+esc(ck.doctrine)+'</a>':'')+'.';
+    (ck.source?srcCite(ck.source):'<span class="muted">no source recorded</span>')+
+    (ck.doctrine?' &middot; '+srcCite(ck.doctrine):'')+'.';
 
   var theatreAlarm = (ck.theatre_remaining!=null && ck.theatre_remaining>0);
   var kpis=[
@@ -867,8 +953,8 @@ function renderFidelity(d){
   }
   intro.innerHTML="Atom <span class=\"aid\">"+esc(d.atom_id||"")+"</span> &middot; measured "+
     esc(String(d.measured_at||"").slice(0,10))+" &middot; source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(d.source_ledger||"")+'">'+esc(d.source_ledger||"")+'</a>'+
-    (d.steer_doc?' &middot; steer: <a class="evlink" href="#" onclick="return false" title="'+esc(d.steer_doc)+'">'+esc(d.steer_doc)+'</a>':'')+
+    (d.source_ledger?srcCite(d.source_ledger):'<span class="muted">no source recorded</span>')+
+    (d.steer_doc?' &middot; steer: '+srcCite(d.steer_doc):'')+
     '. <strong>The average is a trap</strong> &mdash; this instrument leads with the exposure-tail and worst-cell CVaR, never the calm-year MAE.';
 
   var et=d.exposure_tail||{};
@@ -961,7 +1047,7 @@ function renderCorrections(d){
     return;
   }
   body.innerHTML=cors.map(function(c){
-    var src=c.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(c.source)+'">'+esc(c.source)+' &rarr;</a>':'';
+    var src=c.source?srcCite(c.source)+' &rarr;':'';
     return '<div class="cor"><div class="cor-head"><span class="badge red">'+esc(c.status||"RETRACTED")+'</span>'+
       '<span class="cor-id">'+esc(c.id||"")+'</span><span class="cor-date">'+esc(c.date||"")+'</span></div>'+
       '<div class="cor-claim">'+esc(c.claim)+'</div>'+

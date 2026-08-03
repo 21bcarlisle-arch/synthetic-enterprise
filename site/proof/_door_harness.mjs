@@ -67,7 +67,10 @@ sandbox.renderSimplified(simplified);
 sandbox.renderCostToServe(dashboard);
 
 const ids = [
-  "timeline-intro", "verify-kpis", "banked-note",
+  // "timeline" and "principles" added for the MAJOR-7 citation tests: the fake-evlink
+  // defect lived in the timeline rows and the principles cards, so a rendered-pixel
+  // (R11) assertion needs those two containers, not just their intro paragraphs.
+  "timeline-intro", "timeline", "principles", "verify-kpis", "banked-note",
   "openwork-intro", "gap-intro", "gap-kpis",
   "pred-intro", "pred-kpis", "pred-body", "build-note",
   "method-framing", "method-roles", "method-rules",
