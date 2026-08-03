@@ -2096,77 +2096,59 @@ def surface_missing_work_block_defects(
     send_ntfy_fn: Any = None,
 ) -> list[str]:
     """§4 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): a staged [DIRECTOR-RULING]/[STEER]
-    that carries NO 'WORK THIS CREATES' block is a defect IN THE RULING -- "say so and request it; do
-    not silently absorb it." `ruling_steer_missing_work_block()` DETECTS the case; this function SURFACES
-    it to a real consumer, closing the fail-silent gap that the detector was wired NOWHERE (an
-    un-surfaced detector is a fail-silent control -- feedback_fail_silent_control_patterns).
+    that carries NO 'WORK THIS CREATES' block is a defect IN THE DOC. `ruling_steer_missing_work_block()`
+    DETECTS the case; this function SURFACES it to a real consumer, closing the fail-silent gap that the
+    detector was wired NOWHERE (an un-surfaced detector is a fail-silent control --
+    feedback_fail_silent_control_patterns). Returns the list of currently-defective ruling names; the
+    caller (`run_cycle`) logs them, which is the surface.
 
-    Each currently-defective ruling becomes a durable [ACTION NEEDED]-class register item (the director
-    off-nav window / daily note reads OPEN items from `action_needed`) AND, on the TRANSITION into the
-    signalled state, a single NTFY -- fire-once-then-daily via `should_notify` (R5: transition-only,
-    carries the diagnostic payload, never re-fired every tick). A ruling that GAINS a block, or is
-    archived/parked out of the staging root, is RECONCILED closed (`clear_item`) so a FIXED defect leaves
-    the window -- no orphan (R11 'no orphan transitions'). The request NEVER fabricates the block on the
-    author's behalf (§4: definition stays with the author); it only asks for it.
+    IT DOES NOT PAGE THE DIRECTOR, and that is the whole design (2026-08-03, rip-out 102c29790 +
+    THE_STANDARD, which governs where the 07-27 ruling's "say so and request it" conflicts). §4's ask
+    used to become a durable [ACTION NEEDED] register item + an NTFY -- i.e. a "waiting on Rich" queue
+    entry for something that is NOT one of the four reserved real-world classes. `register_item` now
+    REFUSES exactly that, so the register/NTFY path was dead code the moment the guard landed. The
+    machine's answer to a block-less doc is the one THE_STANDARD prescribes: absorb it -- the tick draws
+    the staged doc and mints the work from the body -- and say what it did, never open a queue and wait.
 
-    R15 both ways: a block-less ruling -> an open register item + a due NTFY; add the block or archive it
-    -> the item clears. Neutralising the detector (`ruling_steer_missing_work_block` -> []) makes the
-    block-less case go UNDETECTED -> the surface produces no item (the fail-open direction the test
-    proves catchable). Returns the list of currently-defective ruling names (for logging/tests).
+    WHY THE DEAD PATH WAS REMOVED RATHER THAN LEFT UNREACHABLE (this is a defect, not tidying): the
+    refusal is decided by `one_way_door.classify_action` over the item's `what` string, and that string
+    INTERPOLATES THE RULING'S FILENAME. A ruling whose name happened to carry a reserved-class trigger
+    word would have classified as reserved and slipped a page through, while its neighbours were
+    refused -- a control whose firing depends on an unrelated filename. Deleting the path removes the
+    nondeterminism instead of relying on the guard to keep catching it.
 
-    FAIL-SAFE: register/NTFY failures are best-effort and never raise into the caller (run_cycle must
-    never break because a defect could not be surfaced) -- but a failure leaves the item DUE, so the
-    next cycle retries (mirrors action_needed's own last_sent-clock discipline)."""
+    STILL RECONCILES (R11 'no orphan transitions'): any legacy `ruling_missing_work_block:` item left in
+    a live register from before the guard is cleared here, so a withdrawn convention's items leave the
+    director window rather than lingering forever unresolvable.
+
+    `send_ntfy_fn` is accepted and DELIBERATELY NEVER CALLED. It stays in the signature so the test can
+    hold the teeth in the fail-open direction: if anyone re-wires a director page onto this defect class,
+    `test_blockless_ruling_detected_but_never_pages` goes RED.
+
+    R15 both ways: a block-less ruling -> returned (so it is logged) and NO register item, NO send;
+    a ruling that gains a block, or is archived/parked, -> not returned and any legacy item cleared.
+    Neutralising the detector (`ruling_steer_missing_work_block` -> []) makes the block-less case go
+    UNDETECTED -> the surface returns nothing (the fail-open direction the test proves catchable).
+
+    FAIL-SAFE: reconcile failures are best-effort and never raise into the caller -- run_cycle must never
+    break because a defect could not be surfaced."""
     from background import action_needed
 
     missing = ruling_steer_missing_work_block(staging_dir)
     still_defective = {_MISSING_BLOCK_ITEM_PREFIX + name for name in missing}
-    how = (
-        "Close the ruling with a 'WORK THIS CREATES' block naming each deliverable, its acceptance "
-        "criteria and its target lane -- the machine mints one atom per deliverable from that block."
-    )
-    why = (
-        "§4 DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27: a ruling/steer arriving without a "
-        "'WORK THIS CREATES' block is a defect in the ruling -- say so and request it; do not silently "
-        "absorb it. Definition stays with the author; the machine never fabricates the block."
-    )
 
-    # RECONCILE first: clear any prior defect item whose ruling is no longer block-less in the root (a
-    # block was added, or the doc was archived/parked) so a FIXED defect leaves the director window.
+    # RECONCILE: clear every legacy defect item. `still_defective` is intentionally computed and
+    # compared even though nothing writes these items any more -- if a live register carries one for a
+    # ruling that IS still block-less, clearing it would be a false "fixed"; it is left alone to be
+    # cleared on the cycle after the doc is actually closed or parked.
     try:
         register = action_needed.load_register(register_path)
         for item_id in list(register):
             if item_id.startswith(_MISSING_BLOCK_ITEM_PREFIX) and item_id not in still_defective:
                 action_needed.clear_item(item_id, path=register_path)
-    except Exception:  # noqa: BLE001 -- a reconcile failure must not stop surfacing live defects
+    except Exception:  # noqa: BLE001 -- a reconcile failure must not stop reporting live defects
         pass
 
-    for name in missing:
-        item_id = _MISSING_BLOCK_ITEM_PREFIX + name
-        what = f"Staged ruling/steer '{name}' carries NO 'WORK THIS CREATES' block (§4 defect)."
-        try:
-            # Read the TRANSITION gate before (re-)registering: a new/never-sent item is due, an
-            # already-sent open item is silent until its daily restate (register_item never advances
-            # this clock -- action_needed 2026-07-18 register-vs-sent conflation fix).
-            due = action_needed.should_notify(item_id, path=register_path)
-            try:
-                action_needed.register_item(item_id, what=what, how=how, why=why, path=register_path)
-            except action_needed.NotReservedForDirector:
-                # 2026-08-03: a staged doc missing its "WORK THIS CREATES" block is a DEFECT IN THE
-                # DOC, which the tick fixes by minting the work from the body itself -- never a
-                # decision to page the director for. Skip the durable item; the draw already
-                # surfaces the doc.
-                continue
-            if not due:
-                continue
-            fn = send_ntfy_fn
-            if fn is None:
-                from background.ntfy_utils import send_ntfy as fn
-            sent_id = fn(action_needed.format_action_needed(item_id, what, how, why))
-            if sent_id:
-                action_needed.mark_sent(item_id, path=register_path)
-        except Exception:  # noqa: BLE001 -- best-effort; leaves the item DUE for next-cycle retry
-            continue
     return missing
 
 
@@ -4172,10 +4154,11 @@ def run_cycle() -> None:
     _was_paused = False
 
     # §4 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): surface any staged [DIRECTOR-
-    # RULING]/[STEER] that lacks a 'WORK THIS CREATES' block to the director window + a transition-only
-    # NTFY, so a machine-detectable defect never silently drops (§4: "say so and request it; do not
-    # silently absorb it"). Runs BEFORE the session-busy short-circuit -- an alert is not a grant, so it
-    # must fire even while the session is working. Best-effort: a surface failure never breaks the cycle.
+    # RULING]/[STEER] that lacks a 'WORK THIS CREATES' block, so a machine-detectable defect never
+    # silently drops. THIS LOG LINE IS THE SURFACE (2026-08-03): it does NOT page the director -- a
+    # missing block is a defect in the DOC, not one of the four reserved classes, so the tick absorbs it
+    # by drawing the doc and minting from the body. Runs BEFORE the session-busy short-circuit so it is
+    # recorded even while the session is working. Best-effort: a failure never breaks the cycle.
     try:
         defects = surface_missing_work_block_defects()
         if defects:

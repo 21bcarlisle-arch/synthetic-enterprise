@@ -2,23 +2,30 @@
 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27, deliverable 4).
 
 Item 2 (landed) built the §4 PARSER (`work_this_creates_deliverables`) and the missing-block DETECTOR
-(`ruling_steer_missing_work_block`), both R15-proven. But §4 is binding *on the advisor*: "A ruling
-arriving without one is a defect in the ruling -- say so and request it; do not silently absorb it."
-The detector was wired NOWHERE (an un-surfaced detector is a fail-silent control), so a block-less
-ruling would be detected and then silently dropped -- the exact silent absorption §4 forbids.
+(`ruling_steer_missing_work_block`), both R15-proven. The detector was wired NOWHERE (an un-surfaced
+detector is a fail-silent control), so a block-less ruling would be detected and then silently dropped.
+`supervisor.surface_missing_work_block_defects()` wires it to a real consumer: it returns the defective
+ruling names and `run_cycle` LOGS them.
 
-`supervisor.surface_missing_work_block_defects()` wires the detector to a real consumer: a durable
-[ACTION NEEDED]-class register item (the director window / daily note reads OPEN items) + a
-transition-only NTFY (R5). These tests prove it BOTH ways:
-  * MUST FIRE: a staged ruling with NO block -> an open register item naming the ruling + the ask, and
-    a single NTFY on the transition (fire-once, not per-cycle).
-  * MUST STAY SILENT: a ruling WITH a block, and a non-ruling doc, produce no item and no NTFY (no
-    false page -- feedback_control_false_positive_jams_pipeline).
-  * RECONCILE: adding the block (or archiving the doc) clears the item (a fixed defect leaves the
-    window -- R11 no-orphan-transition).
+WHAT CHANGED 2026-08-03 (rip-out 102c29790 + THE_STANDARD, which governs the conflict). The surface used
+to open a durable [ACTION NEEDED] register item + fire an NTFY -- a "waiting on Rich" queue entry for
+something that is NOT one of the four reserved real-world classes. `action_needed.register_item` now
+REFUSES exactly that class, which made the register/NTFY path dead code and left these tests asserting a
+withdrawn contract (they were the whole of the 4-hour operational-signal RED on 2026-08-03). The
+machine's answer to a block-less doc is now the one THE_STANDARD prescribes: ABSORB it -- the tick draws
+the staged doc and mints the work from its body -- and say what it did, never page and wait.
+
+These tests prove the surface BOTH ways under the current contract:
+  * MUST DETECT: a staged ruling with NO block -> returned by the surface (so run_cycle logs it).
+  * MUST NEVER PAGE: the same defect produces NO register item and NO NTFY. This is the fail-open teeth
+    -- re-wiring a director page onto this non-reserved defect class turns this test RED.
+  * MUST STAY SILENT: a ruling WITH a block, and a non-ruling doc, produce nothing at all (no false
+    detection -- feedback_control_false_positive_jams_pipeline).
+  * RECONCILE: a legacy pre-guard item clears once its ruling gains a block or leaves the root, so a
+    withdrawn convention's items leave the director window (R11 no-orphan-transition).
   * R15 INDEPENDENCE: neutralising the detector (`ruling_steer_missing_work_block` -> []) with a
-    block-less ruling still on disk makes the defect go UNDETECTED -> the surface produces nothing:
-    the fail-open direction is catchable, and the surface provably depends on the real detector, not a
+    block-less ruling still on disk makes the defect go UNDETECTED -> the surface returns nothing: the
+    fail-open direction is catchable, and the surface provably depends on the real detector, not a
     constant.
 """
 import pytest
@@ -52,7 +59,27 @@ def env(tmp_path, monkeypatch):
     return staging, register, sent, _send
 
 
-def test_blockless_ruling_surfaces_item_and_fires_once(env):
+def _seed_legacy_item(register, ruling_name):
+    """Write a pre-guard §4 item straight into the register file, bypassing register_item (which now
+    refuses this whole class). Reproduces what a live register carried before 2026-08-03, so the
+    reconcile path is tested against real legacy state rather than state the code can still create."""
+    reg = action_needed.load_register(register)
+    reg[supervisor._MISSING_BLOCK_ITEM_PREFIX + ruling_name] = {
+        "item_id": supervisor._MISSING_BLOCK_ITEM_PREFIX + ruling_name,
+        "what": f"Staged ruling/steer '{ruling_name}' carries NO 'WORK THIS CREATES' block (§4 defect).",
+        "how": "legacy", "why": "legacy",
+        "first_asked_at": "2026-08-01T00:00:00+00:00",
+        "last_pinged_at": "2026-08-01T00:00:00+00:00",
+        "last_sent_at": None, "resolved": False,
+    }
+    action_needed.save_register(reg, register)
+    assert len(action_needed.open_items(register)) == 1      # the legacy item really is open
+
+
+def test_blockless_ruling_detected_but_never_pages(env):
+    """MUST DETECT + MUST NEVER PAGE. The defect is surfaced through the RETURN VALUE (run_cycle logs
+    it), and produces no director-queue item and no NTFY -- a missing block is a defect in the doc, not
+    one of the four reserved real-world classes, so it is absorbed and never queued against a human."""
     staging, register, sent, send = env
     (staging / "DIRECTOR_RULING_NOBLOCK_2026-07-27.md").write_text(_RULING_NO_BLOCK)
 
@@ -60,24 +87,31 @@ def test_blockless_ruling_surfaces_item_and_fires_once(env):
         staging_dir=staging, register_path=register, send_ntfy_fn=send)
     assert got == ["DIRECTOR_RULING_NOBLOCK_2026-07-27.md"]
 
-    # a durable OPEN register item naming the ruling + the ask
-    items = action_needed.open_items(register)
-    assert len(items) == 1
-    item = items[0]
-    assert "DIRECTOR_RULING_NOBLOCK_2026-07-27.md" in item["what"]
-    assert "WORK THIS CREATES" in item["how"]
-    assert "do not silently absorb" in item["why"]
+    assert action_needed.open_items(register) == []          # no "waiting on Rich" entry
+    assert sent == []                                        # and no page
 
-    # a single NTFY on the TRANSITION, naming the ruling and stating the ask
-    assert len(sent) == 1
-    assert "DIRECTOR_RULING_NOBLOCK_2026-07-27.md" in sent[0]
-    assert "WORK THIS CREATES" in sent[0]
-
-    # fire-once: a second cycle with the SAME unfixed defect does NOT re-fire (R5 transition-only)
-    supervisor.surface_missing_work_block_defects(
+    # stable across cycles: still detected, still never paged (no drift into a queue on repeat ticks)
+    again = supervisor.surface_missing_work_block_defects(
         staging_dir=staging, register_path=register, send_ntfy_fn=send)
-    assert len(sent) == 1                      # still one send -- not re-paged every cycle
-    assert len(action_needed.open_items(register)) == 1   # still exactly one open item
+    assert again == ["DIRECTOR_RULING_NOBLOCK_2026-07-27.md"]
+    assert action_needed.open_items(register) == []
+    assert sent == []
+
+
+def test_the_register_itself_refuses_this_defect_class(env):
+    """The guard this contract rests on, asserted directly rather than assumed: the §4 ask really is
+    outside the four reserved classes, so `register_item` REFUSES it. If that guard were ever loosened,
+    the surface's no-page design would be resting on nothing -- this test says so out loud."""
+    _, register, _, _ = env
+    with pytest.raises(action_needed.NotReservedForDirector):
+        action_needed.register_item(
+            "ruling_missing_work_block:DIRECTOR_RULING_X_2026-07-27.md",
+            what="Staged ruling/steer 'DIRECTOR_RULING_X_2026-07-27.md' carries NO "
+                 "'WORK THIS CREATES' block (§4 defect).",
+            how="Close the ruling with a 'WORK THIS CREATES' block.",
+            why="§4 DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27.",
+            path=register,
+        )
 
 
 def test_ruling_with_block_stays_silent(env):
@@ -93,12 +127,16 @@ def test_ruling_with_block_stays_silent(env):
     assert sent == []
 
 
-def test_adding_the_block_reconciles_the_item_closed(env):
-    """R15 / no-orphan: a block-less ruling surfaces an item; add the block -> the item CLEARS so a
-    FIXED defect leaves the director window (a release whose effect is nothing is a defect -- R11)."""
+def test_adding_the_block_reconciles_a_legacy_item_closed(env):
+    """R11 no-orphan: a LEGACY pre-guard item (the register no longer creates these) clears once its
+    ruling gains a block -- a withdrawn convention's items must be able to LEAVE the director window,
+    not linger forever unresolvable."""
     staging, register, sent, send = env
     doc = staging / "DIRECTOR_RULING_FIXME_2026-07-27.md"
     doc.write_text(_RULING_NO_BLOCK)
+    _seed_legacy_item(register, doc.name)
+
+    # still block-less -> the legacy item is NOT cleared (clearing it would be a false "fixed")
     supervisor.surface_missing_work_block_defects(
         staging_dir=staging, register_path=register, send_ntfy_fn=send)
     assert len(action_needed.open_items(register)) == 1
@@ -108,31 +146,32 @@ def test_adding_the_block_reconciles_the_item_closed(env):
         staging_dir=staging, register_path=register, send_ntfy_fn=send)
     assert got == []
     assert action_needed.open_items(register) == []   # reconciled closed -- window is clean
+    assert sent == []
 
 
-def test_archiving_the_ruling_reconciles_the_item_closed(env):
-    """A block-less ruling PARKED to in_progress/ (consumed) is no longer a root defect -> its item
-    clears. The reconcile keys on the OBSERVABLE root state, not on how the doc left the root."""
+def test_archiving_the_ruling_reconciles_a_legacy_item_closed(env):
+    """A block-less ruling PARKED to in_progress/ (consumed) is no longer a root defect -> its legacy
+    item clears. The reconcile keys on the OBSERVABLE root state, not on how the doc left the root."""
     staging, register, sent, send = env
     doc = staging / "DIRECTOR_RULING_PARKME_2026-07-27.md"
     doc.write_text(_RULING_NO_BLOCK)
-    supervisor.surface_missing_work_block_defects(
-        staging_dir=staging, register_path=register, send_ntfy_fn=send)
-    assert len(action_needed.open_items(register)) == 1
+    _seed_legacy_item(register, doc.name)
 
     (staging / "in_progress").mkdir()
     doc.rename(staging / "in_progress" / doc.name)   # parked/consumed
     supervisor.surface_missing_work_block_defects(
         staging_dir=staging, register_path=register, send_ntfy_fn=send)
     assert action_needed.open_items(register) == []
+    assert sent == []
 
 
 def test_R15_neutralised_detector_leaves_the_defect_undetected(env, monkeypatch):
     """R15 INDEPENDENCE (the fail-open direction, catchable): the surface depends on the REAL detector,
     not a constant. With a block-less ruling still on disk, neutralising the detector (mutation:
-    `ruling_steer_missing_work_block` -> []) makes the defect go UNDETECTED -> the surface produces no
-    item. The honest test (first block) asserts the item IS produced -> it goes RED under this mutation,
-    which is exactly the teeth R15 requires: a control that could not fail here would be worse than none."""
+    `ruling_steer_missing_work_block` -> []) makes the defect go UNDETECTED -> the surface returns
+    nothing. The honest test (first block) asserts the defect IS returned -> it goes RED under this
+    mutation, which is exactly the teeth R15 requires: a control that could not fail here would be
+    worse than none."""
     staging, register, sent, send = env
     (staging / "DIRECTOR_RULING_HIDDEN_2026-07-27.md").write_text(_RULING_NO_BLOCK)
 
