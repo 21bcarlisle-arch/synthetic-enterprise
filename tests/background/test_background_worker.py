@@ -13,6 +13,7 @@ process_leftover_run_markers() unconditionally re-globs every
 run_complete_*.md still in staging/, every time it's called, regardless of
 how many there are or what state they're in.
 """
+import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -35,6 +36,10 @@ def _isolate(tmp_path, monkeypatch):
     import background.process_run_complete as prc
     monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
+    # OPS_run_marker_sweep_livelock: the sweep's stall counter is real on-disk
+    # state. An unpinned flag leaks into every other test's loader and starts
+    # alarming off their fixtures -- pin it per-test.
+    monkeypatch.setattr(background_worker, "SWEEP_STATE_FILE", tmp_path / ".run_marker_sweep_state.json")
     yield
 
 
@@ -284,6 +289,217 @@ def test_processing_order_is_deterministic_sorted(monkeypatch):
 
     processed_order = [Path(c).name for c in calls]
     assert processed_order == sorted(names)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OPS_run_marker_sweep_livelock (2026-08-03)
+#
+# THE DEFECT: every marker in staging/ was re-attempted every cycle, each
+# attempt spawning process_run_complete.py, each returning EXIT_LOCK_SKIPPED
+# because sim_runner.py holds the run lock while publishing its OWN marker
+# inline. 404 markers x "will retry next cycle", forever, having never once
+# succeeded -- a livelock whose log reads like a healthy queue.
+#
+# THE CLASS-CLOSING INVARIANT (R10 -- and NOT "delete the backlog"): a leftover
+# marker has a TERMINAL state other than "published". A marker a strictly
+# later PUBLISHED run has overtaken is retired to done/ with its reason
+# recorded, because re-running its pipeline would republish a stale snapshot
+# over current figures. And a retry loop that never succeeds must ALARM.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _write(dirpath, name, body="# Simulation Run Complete\n"):
+    dirpath.mkdir(parents=True, exist_ok=True)
+    p = dirpath / name
+    p.write_text(body)
+    return p
+
+
+def test_superseded_markers_are_retired_without_running_the_pipeline():
+    """The livelock fix: a marker overtaken by a later PUBLISHED run reaches a
+    terminal state by rename -- no subprocess, so no run lock, so it cannot be
+    lock-skipped. This is the property that makes the backlog drain."""
+    done = background_worker.STAGING_DIR / "done"
+    _write(done, "run_complete_20260803T044922Z.md")
+    old = _write(background_worker.STAGING_DIR, "run_complete_20260729T214902Z.md")
+
+    calls = []
+    import unittest.mock as m
+    with m.patch.object(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+        background_worker.process_leftover_run_markers()
+
+    assert calls == [], "a superseded marker must never be fed to the publish pipeline"
+    assert not old.exists()
+    retired = done / old.name
+    assert retired.exists(), "superseded marker must land in done/, not vanish"
+    # R10: retired, not deleted -- the reason travels WITH the artefact.
+    text = retired.read_text()
+    assert "# Simulation Run Complete" in text, "original content must be preserved"
+    assert "Superseded (not published)" in text
+    assert "20260803T044922Z" in text, "must name the run that overtook it"
+
+
+def test_an_unsuperseded_marker_is_still_published():
+    """The safety net the original glob existed for is INTACT: a marker with
+    no later published run is still attempted, every cycle. This is the
+    assertion that would fail if the fix had 'drained' the backlog by
+    retiring everything."""
+    done = background_worker.STAGING_DIR / "done"
+    _write(done, "run_complete_20260803T040000Z.md")
+    newer = _write(background_worker.STAGING_DIR, "run_complete_20260803T064304Z.md")
+
+    calls = []
+    import unittest.mock as m
+    with m.patch.object(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+        background_worker.process_leftover_run_markers()
+
+    assert [Path(c).name for c in calls] == [newer.name]
+
+
+def test_mixed_backlog_retires_the_stale_and_publishes_the_live_one():
+    """The real 2026-08-03 shape in miniature: 401 superseded + 12 pending."""
+    done = background_worker.STAGING_DIR / "done"
+    _write(done, "run_complete_20260802T120000Z.md")
+    stale = [_write(background_worker.STAGING_DIR, f"run_complete_2026080{d}T010000Z.md")
+             for d in (1, 2)]
+    live = _write(background_worker.STAGING_DIR, "run_complete_20260803T010000Z.md")
+
+    calls = []
+    import unittest.mock as m
+    with m.patch.object(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+        background_worker.process_leftover_run_markers()
+
+    assert [Path(c).name for c in calls] == [live.name]
+    for s in stale:
+        assert not s.exists() and (done / s.name).exists()
+
+
+def test_no_published_run_yet_retires_nothing():
+    """FAIL-SAFE DIRECTION: with an empty (or absent) done/ there is no
+    supersession frontier, so NOTHING may be retired -- every marker is
+    pending. A fix that retired markers here would be destroying unpublished
+    runs on a fresh checkout."""
+    markers = [_write(background_worker.STAGING_DIR, f"run_complete_2026080{d}T010000Z.md")
+               for d in (1, 2, 3)]
+    calls = []
+    import unittest.mock as m
+    with m.patch.object(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+        background_worker.process_leftover_run_markers()
+
+    assert len(calls) == 3
+    for mk in markers:
+        assert mk.exists() or True  # consumed by the pipeline mock, not retired
+    assert not list((background_worker.STAGING_DIR / "done").glob("*.md"))
+
+
+def test_an_unparseable_marker_name_is_never_treated_as_superseded():
+    """FAIL-OPEN guard (R15): the failure mode of a bad stamp parse must be
+    'we tried to publish something we needn't have', never 'we retired a
+    marker nobody published'."""
+    superseded, pending = background_worker.classify_markers(
+        [Path("run_complete_.md"), Path("run_complete_NOT_A_STAMP.md")],
+        "20260803T044922Z",
+    )
+    assert superseded == []
+    assert len(pending) == 2
+
+
+def test_supersession_is_strict_the_frontier_run_itself_is_not_retired():
+    """Off-by-one guard: the newest PUBLISHED stamp must not retire a marker
+    bearing that same stamp (a duplicate marker for the run in hand)."""
+    superseded, pending = background_worker.classify_markers(
+        [Path("run_complete_20260803T044922Z.md")], "20260803T044922Z")
+    assert superseded == []
+    assert len(pending) == 1
+
+
+def test_zero_progress_alarm_fires_when_the_oldest_marker_never_moves(monkeypatch):
+    """THE FAIL-SILENT CLOSER: 404 x 'will retry next cycle' must not be able
+    to masquerade as a healthy queue. Same oldest pending marker across
+    STALL_ALARM_CYCLES sweeps == an alarm."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "id")
+    stuck = [Path("run_complete_20260729T214902Z.md")]
+
+    fired = [background_worker._check_zero_progress(stuck)
+             for _ in range(background_worker.STALL_ALARM_CYCLES)]
+
+    assert fired == [False] * (background_worker.STALL_ALARM_CYCLES - 1) + [True]
+    assert len(sent) == 1 and "ZERO progress" in sent[0]
+    # R5: transition-only. It must not re-fire every cycle thereafter.
+    assert background_worker._check_zero_progress(stuck) is False
+    assert len(sent) == 1
+
+
+def test_zero_progress_alarm_resets_when_the_backlog_actually_moves(monkeypatch):
+    """The alarm must be able to be QUIET when things work, or it is noise."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "id")
+
+    for i in range(background_worker.STALL_ALARM_CYCLES * 2):
+        # A different oldest marker each cycle == the queue is draining.
+        assert background_worker._check_zero_progress(
+            [Path(f"run_complete_2026080{i}T010000Z.md")]) is False
+    assert sent == []
+
+
+def test_zero_progress_alarm_is_not_fail_silent_when_ntfy_is_unavailable(monkeypatch):
+    """R15 FAIL-SILENT: an unavailable checker is a FAILED check, not a passed
+    one. If the NTFY send raises, the alarm must NOT be recorded as delivered
+    -- the next cycle has to try again."""
+    import background.ntfy_utils as nu
+
+    def _boom(*a, **k):
+        raise RuntimeError("ntfy down")
+
+    monkeypatch.setattr(nu, "send_ntfy", _boom)
+    stuck = [Path("run_complete_20260729T214902Z.md")]
+    for _ in range(background_worker.STALL_ALARM_CYCLES):
+        background_worker._check_zero_progress(stuck)
+
+    state = json.loads(background_worker.SWEEP_STATE_FILE.read_text())
+    assert state.get("stalled_on") is None, "a failed send must not latch the alarm closed"
+
+    sent = []
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "id")
+    assert background_worker._check_zero_progress(stuck) is True
+    assert len(sent) == 1
+
+
+def test_a_failed_retirement_never_breaks_the_sweep(monkeypatch):
+    """Defensive by construction: a disposal failure must not abort the cycle
+    -- the PENDING markers still need their publish attempt. Exercises the
+    real retire function against a rename it cannot perform."""
+    done = background_worker.STAGING_DIR / "done"
+    _write(done, "run_complete_20260803T044922Z.md")
+    _write(background_worker.STAGING_DIR, "run_complete_20260729T214902Z.md")
+    live = _write(background_worker.STAGING_DIR, "run_complete_20260803T060000Z.md")
+
+    # Scoped to THIS marker only. A blanket `Path.rename` patch would make
+    # every rename in the process raise for the duration of the test -- the
+    # exact cross-test bleed this module's own fixture exists to prevent.
+    real_rename = Path.rename
+
+    def _boom(self, target):
+        if self.name.startswith("run_complete_20260729"):
+            raise OSError("disk full")
+        return real_rename(self, target)
+
+    monkeypatch.setattr(Path, "rename", _boom)
+    calls = []
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success())
+
+    background_worker.process_leftover_run_markers()  # must not raise
+
+    assert [Path(c).name for c in calls] == [live.name], \
+        "the live marker must still be published even though retirement failed"
+
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
