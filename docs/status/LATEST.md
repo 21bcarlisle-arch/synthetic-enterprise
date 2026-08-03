@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T05:08:01Z
+Last updated: 2026-08-03T05:24:22Z
 
 **FIXED (2026-07-29, `67a2e3ee6` + `42cff58b6`) — one director message became two queued acts. Cause named,
 not filtered.** The director's ntfy arrived twice, eight seconds apart, and each copy was separately acked and
@@ -532,10 +532,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (467s / 8 min):
 - Net margin: £1,501,000.74 | Gross: £6,451,376.58 | Capital: £51,422
 - Treasury: £2,466,636 → £3,878,099 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,359,201.50 | Net after CTS: £1,477,842
+- Enterprise value: £7,359,201.50 | Net after CTS: £6,381,833
 - Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
