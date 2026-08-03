@@ -27,6 +27,16 @@ RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.
 # 2026-07-29 16:53Z: two markers logged "Processed", both untouched, one minute
 # before the lock holder itself failed the gate). See _record_publish_gate_outcome.
 EXIT_LOCK_SKIPPED = 75
+# OPS_run_marker_sweep_livelock (2026-08-03): when set to "1" in the
+# environment of a `process_run_complete.py <marker>` subprocess invocation,
+# main() TRUSTS that its caller already holds RUN_LOCK_FILE for the entire
+# batch this process is one member of, and processes the marker directly
+# without attempting its own (redundant, and -- before this fix -- ALWAYS
+# LOSING) acquisition of the same lock. See background_worker.py::
+# process_leftover_run_markers for the caller-side half of this mechanism
+# and its docstring for why a per-marker re-acquisition inside the same
+# batch is structurally guaranteed to lose to the parent that spawned it.
+LOCK_ALREADY_HELD_ENV = "SE_RUN_LOCK_ALREADY_HELD"
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # H11_naive_organ (L2): the deliberately-amnesiac question organ's log + the
@@ -1753,7 +1763,22 @@ def main(marker_path_str):
     state -- see that function's own docstring for the other half of this
     coupling. A marker skipped here WILL still be processed, just not by
     sim_runner.py's own retry (there is none) -- by background_worker.py's
-    sweep instead."""
+    sweep instead.
+
+    LOCK_ALREADY_HELD_ENV (2026-08-03, OPS_run_marker_sweep_livelock): if the
+    caller has set this env var to "1", it has already won RUN_LOCK_FILE
+    itself (background_worker.py's sweep batches MANY markers under ONE
+    lock acquisition, held for the whole batch) and this invocation must
+    NOT attempt its own -- doing so would just open a fresh fd on the same
+    lock file and lose to the parent's still-held lock, EVERY time, which
+    is the exact livelock this mechanism exists to close (before this fix,
+    every one of ~404 backlogged markers lost this same race, every cycle,
+    forever). Trusting the flag is safe because the only legitimate setter
+    is the sweep itself, which really does hold the lock for this
+    subprocess's whole lifetime -- see background_worker.py::
+    process_leftover_run_markers for the caller-side half."""
+    if os.environ.get(LOCK_ALREADY_HELD_ENV) == "1":
+        return _process(marker_path_str)
     with _run_lock() as acquired:
         if not acquired:
             log("Another process_run_complete instance is already running -- "

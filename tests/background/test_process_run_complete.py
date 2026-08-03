@@ -372,6 +372,86 @@ def test_main_skips_when_lock_already_held(tmp_path, monkeypatch):
     assert rc == prc.EXIT_LOCK_SKIPPED
     assert rc != 0, "a lock-skip must never be indistinguishable from a real publish"
     assert called == []  # _process must never run while another instance holds the lock
+
+
+# ── OPS_run_marker_sweep_livelock (2026-08-03): LOCK_ALREADY_HELD_ENV ────────
+# background_worker.py's sweep now wins the run lock ONCE for a whole batch of
+# markers and tells each per-marker subprocess it spawned (via this env var)
+# to skip its own lock acquisition -- previously EVERY such subprocess opened
+# a fresh fd on the same lock file and always lost to the parent that just
+# spawned it, an even more self-defeating livelock than the one the sweep
+# itself was fixing.
+
+def test_main_processes_directly_when_lock_already_held_env_is_set(tmp_path, monkeypatch):
+    """The core mechanism: with the env flag set, main() must call _process()
+    directly WITHOUT attempting its own _run_lock() acquisition at all --
+    proven by holding the real lock in this test (which would make a real
+    acquisition attempt fail) and asserting _process() still ran."""
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    monkeypatch.setenv(prc.LOCK_ALREADY_HELD_ENV, "1")
+
+    marker, _ = make_marker(tmp_path)
+    called = []
+    monkeypatch.setattr(prc, "_process", lambda m: called.append(m) or 0)
+
+    # Hold the REAL lock ourselves first, simulating the sweep that spawned
+    # this process -- a real _run_lock() acquisition attempt from inside
+    # main() would fail here. The env flag must make main() skip that
+    # attempt entirely and go straight to _process().
+    with prc._run_lock() as acquired:
+        assert acquired is True
+        rc = prc.main(str(marker))
+
+    assert rc == 0
+    assert called == [str(marker)]
+
+
+def test_main_never_returns_exit_lock_skipped_when_env_flag_is_set(tmp_path, monkeypatch):
+    """Even if _process() itself fails, the env-flag path must never produce
+    EXIT_LOCK_SKIPPED -- that code means specifically 'nobody attempted this
+    marker', which is false whenever LOCK_ALREADY_HELD_ENV is honoured."""
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    monkeypatch.setenv(prc.LOCK_ALREADY_HELD_ENV, "1")
+
+    marker, _ = make_marker(tmp_path)
+    monkeypatch.setattr(prc, "_process", lambda m: 1)
+
+    rc = prc.main(str(marker))
+
+    assert rc == 1
+    assert rc != prc.EXIT_LOCK_SKIPPED
+
+
+def test_main_still_acquires_its_own_lock_when_env_flag_is_absent(tmp_path, monkeypatch):
+    """Regression guard for the original coupling (sim_runner.py's own direct
+    call to main() carries no such env flag): without LOCK_ALREADY_HELD_ENV,
+    main() must still take its own lock and skip when it's held by someone
+    else -- unchanged from before this fix."""
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    monkeypatch.delenv(prc.LOCK_ALREADY_HELD_ENV, raising=False)
+
+    marker, _ = make_marker(tmp_path)
+    called = []
+    monkeypatch.setattr(prc, "_process", lambda m: called.append(m) or 0)
+
+    with prc._run_lock() as acquired:
+        assert acquired is True
+        rc = prc.main(str(marker))
+
+    assert rc == prc.EXIT_LOCK_SKIPPED
+    assert called == []
     assert marker.exists()  # left in place for the lock-holder to archive
 
 

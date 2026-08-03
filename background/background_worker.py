@@ -7,6 +7,8 @@ Respects UK peak electricity hours: pauses between 16:00-19:00 GMT daily.
 Logs all activity to docs/observability/background-worker-log.md
 """
 
+import json
+import os
 import subprocess
 import sys
 import time
@@ -56,6 +58,171 @@ def run_ollama_task(prompt: str, task_name: str) -> str:
 STAGING_DIR = Path("docs/staging")
 DONE_DIR = STAGING_DIR / "done"
 
+# ── OPS_run_marker_sweep_livelock (2026-08-03) ──────────────────────────────
+# PURPOSE: this sweep is the safety net for a run_complete marker that
+# process_run_complete.py's own lock-skip path left untouched (see this
+# function's docstring below for the producer-side half of the coupling).
+# Before this fix the sweep re-attempted EVERY leftover marker EVERY cycle,
+# each attempt independently racing sim_runner.py (or any earlier marker in
+# the SAME sweep) for the same non-blocking flock -- a race it could only
+# ever LOSE while the lock holder was mid-pipeline, since the lock holder
+# takes it inline while publishing the marker it just wrote and never
+# releases it "for" a sweeper. Result: 404 markers, every one of ~thousands
+# of cycles, EXIT_LOCK_SKIPPED, forever -- a livelock indistinguishable in
+# the log from a slow-but-working queue.
+#
+# GUARANTEE / WHY THIS CAN NOW WIN: the sweep acquires process_run_complete's
+# run lock ITSELF, ONCE, for the whole batch -- not once per marker -- and
+# tells every per-marker subprocess it spawns (via LOCK_ALREADY_HELD_ENV)
+# to skip its own doomed re-acquisition and process directly. A marker can
+# now only fail to be attempted for a real reason (the lock is genuinely
+# busy with something else RIGHT NOW), never because the sweep's own
+# children were racing each other or their own parent.
+#
+# BOUNDED BATCH: holding the run lock indefinitely would starve
+# sim_runner.py's own live publish (its ~9-min cadence is the thing that
+# matters most). MARKER_SWEEP_TIME_BUDGET_SECONDS caps how long one sweep
+# call keeps draining before yielding the lock back for the next cycle --
+# the backlog drains over successive cycles, never in one unbounded pass.
+# In practice this is a safety bound, not the common case: process_run_
+# complete.py's own change-detection gate makes every marker after the
+# first "real" publish in a batch a cheap archive-only skip.
+MARKER_SWEEP_TIME_BUDGET_SECONDS = 600  # 10 min/cycle; leaves headroom in the 30-min worker loop
+# The env var contract with process_run_complete.py::main() -- see that
+# module's own LOCK_ALREADY_HELD_ENV constant and docstring.
+LOCK_ALREADY_HELD_ENV = "SE_RUN_LOCK_ALREADY_HELD"
+
+# ── Zero-progress retry-loop alarm (R10 class closure) ──────────────────────
+# A retry loop that has attempted work for thousands of cycles and DRAINED
+# ZERO of it is an ALARM, not a log line -- it is structurally
+# indistinguishable, in a log of "Lock-skipped ... will retry next cycle",
+# from a queue that is merely slow. This is a GENERAL primitive: any retry
+# loop can report (markers_found, markers_drained) for its own cycle and get
+# the same zero-progress detection, independent of what "a marker" even
+# means. It is deliberately NOT derived from the sweep's own decision to
+# skip/attempt (that would be a tautology, R15) -- the caller passes counts
+# it observed directly from real subprocess return codes.
+ZERO_PROGRESS_STATE_FILE = Path("docs/observability/.marker_sweep_zero_progress_state.json")
+ZERO_PROGRESS_ALARM_THRESHOLD = 5        # consecutive cycles: markers pending, zero drained
+ZERO_PROGRESS_COOLDOWN_SECONDS = 60 * 60  # re-arm: at most one alert/hour while it stays stuck
+ZERO_PROGRESS_TRANSITION_KEY = "marker_sweep_zero_progress"
+
+
+def _read_zero_progress_state():
+    """FAIL-CLOSED read (R15 fail-silent doctrine, same shape as
+    process_run_complete._read_publish_gate_state): an unreadable/corrupt
+    state file must NOT be treated as a fresh, healthy zero-streak -- that
+    would let a disk hiccup silently erase a real in-progress alarm streak
+    right before it reaches threshold. It reports state_unavailable=True so
+    the caller can treat "the checker can't see its own history" as itself
+    alarm-worthy (an unavailable check is a FAILED check)."""
+    if not ZERO_PROGRESS_STATE_FILE.exists():
+        return {"consecutive_zero_progress": 0, "alerted_at": None, "state_unavailable": False}
+    try:
+        st = json.loads(ZERO_PROGRESS_STATE_FILE.read_text())
+        if not isinstance(st, dict):
+            raise ValueError("zero-progress state is not an object")
+        st.setdefault("consecutive_zero_progress", 0)
+        st.setdefault("alerted_at", None)
+        st["state_unavailable"] = False
+        return st
+    except (json.JSONDecodeError, OSError, ValueError):
+        return {"consecutive_zero_progress": 0, "alerted_at": None, "state_unavailable": True}
+
+
+def _write_zero_progress_state(state):
+    out = {
+        "consecutive_zero_progress": state.get("consecutive_zero_progress", 0),
+        "alerted_at": state.get("alerted_at"),
+    }
+    ZERO_PROGRESS_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    ZERO_PROGRESS_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+
+
+def _record_sweep_progress(*, markers_found, markers_drained, now=None, notify_fn=None):
+    """The zero-progress-retry-loop ALARM itself (R10 class closure for
+    OPS_run_marker_sweep_livelock). `markers_found`/`markers_drained` MUST be
+    counts the caller observed directly from real per-marker outcomes this
+    cycle -- never re-derived from this function's own state file (that
+    would make the checked value depend on the same source it checks, R15's
+    TAUTOLOGY pattern).
+
+    Semantics:
+      - markers_found == 0: nothing to drain -- not a stuck retry loop.
+        Reset the streak; if a persistent-zero alarm was open, log its
+        resolution (a real release trigger, R11 no-orphan-transitions: the
+        backlog being genuinely empty IS the thing that resolves it).
+      - markers_found > 0 and markers_drained > 0: real progress this cycle,
+        even if the backlog isn't fully cleared. Reset the streak; page a
+        recovery notice if a persistent-zero alarm had previously fired.
+      - markers_found > 0 and markers_drained == 0: one more zero-progress
+        cycle. After ZERO_PROGRESS_ALARM_THRESHOLD consecutive such cycles,
+        page once (re-armed by a cooldown so a persistent livelock can't
+        spam every cycle).
+    Fully defensive: a monitoring failure here must never break the sweep
+    that calls it -- matches every other check in this codebase's alarm
+    primitives (record_publish_gate_failure, run_operational_layer_signal)."""
+    try:
+        now = float(now) if now is not None else time.time()
+        if notify_fn is None:
+            from background.notify import notify as notify_fn
+        state = _read_zero_progress_state()
+        unavailable = bool(state.get("state_unavailable"))
+        streak = int(state.get("consecutive_zero_progress") or 0)
+        last_alert = state.get("alerted_at")
+
+        if not markers_found:
+            was_alarmed = streak >= ZERO_PROGRESS_ALARM_THRESHOLD
+            _write_zero_progress_state({"consecutive_zero_progress": 0, "alerted_at": None})
+            if was_alarmed:
+                log("Zero-progress retry-loop alarm cleared -- marker backlog is empty.")
+            return {"streak": 0, "fired": False}
+
+        if markers_drained:
+            was_alarmed = streak >= ZERO_PROGRESS_ALARM_THRESHOLD
+            _write_zero_progress_state({"consecutive_zero_progress": 0, "alerted_at": None})
+            if was_alarmed:
+                notify_fn(
+                    "[MARKER SWEEP RECOVERED] process_leftover_run_markers drained {} of {} "
+                    "backlogged run_complete marker(s) this cycle, after {} consecutive "
+                    "zero-progress cycles -- the retry loop is making real progress again."
+                    .format(markers_drained, markers_found, streak),
+                    kind="real_alarm", transition_key=ZERO_PROGRESS_TRANSITION_KEY, state="GREEN",
+                )
+                log("Zero-progress retry-loop alarm RECOVERED -- paged.")
+            return {"streak": 0, "fired": False}
+
+        # markers_found > 0 and markers_drained == 0: one more zero-progress cycle.
+        streak += 1
+        threshold_met = unavailable or streak >= ZERO_PROGRESS_ALARM_THRESHOLD
+        armed = last_alert is None or (now - float(last_alert)) >= ZERO_PROGRESS_COOLDOWN_SECONDS
+        fired = False
+        alerted_at = last_alert
+        if threshold_met and armed:
+            reason = ("its own state file is unreadable (fail-closed alarm)" if unavailable
+                      else "{} consecutive cycles with markers pending and zero drained".format(streak))
+            notify_fn(
+                "[MARKER SWEEP ZERO PROGRESS] process_leftover_run_markers has made NO "
+                "progress -- {} ({} marker(s) currently pending in docs/staging/). A retry "
+                "loop that has never succeeded is a livelock, not a slow queue: check whether "
+                "the process_run_complete run lock is held by a stuck process."
+                .format(reason, markers_found),
+                kind="real_alarm", transition_key=ZERO_PROGRESS_TRANSITION_KEY, state="RED",
+                re_escalate_after=ZERO_PROGRESS_COOLDOWN_SECONDS,
+            )
+            alerted_at = now
+            fired = True
+            log("Zero-progress retry-loop alarm FIRED ({} consecutive cycles).".format(streak))
+        else:
+            log("Sweep zero-progress streak = {} (threshold {}) -- {}".format(
+                streak, ZERO_PROGRESS_ALARM_THRESHOLD,
+                "below threshold" if not threshold_met else "armed/cooldown"))
+        _write_zero_progress_state({"consecutive_zero_progress": streak, "alerted_at": alerted_at})
+        return {"streak": streak, "fired": fired}
+    except Exception as exc:
+        log("Zero-progress alarm error (swallowed): {}".format(exc))
+        return {"streak": 0, "fired": False, "error": str(exc)}
+
 
 def process_leftover_run_markers():
     """Process any run_complete_*.md markers that process_run_complete.py left behind.
@@ -77,36 +244,81 @@ def process_leftover_run_markers():
     other mechanism to rescue it -- see tests/background/
     test_background_worker.py's own test asserting this glob is genuinely
     unconditional (not gated behind queue state, peak-hours, or any other
-    check) for the regression guard on this exact property."""
+    check) for the regression guard on this exact property.
+
+    LOCK-ONCE-PER-SWEEP (2026-08-03, OPS_run_marker_sweep_livelock): the
+    unconditional glob above is unchanged, but HOW leftover markers get
+    attempted changed structurally -- see the block comment above this
+    function for the full purpose/guarantee/why. In short: this function now
+    wins process_run_complete's run lock itself, ONCE, for the whole batch
+    (bounded by MARKER_SWEEP_TIME_BUDGET_SECONDS), instead of each per-marker
+    subprocess independently -- and always losing -- the same race. If the
+    lock can't be won right now, this makes ZERO per-marker attempts and logs
+    ONE line, closing the log-storm symptom as a side effect of closing the
+    livelock itself. Every cycle's (found, drained) outcome feeds the
+    zero-progress alarm above."""
     markers = sorted(STAGING_DIR.glob("run_complete_*.md"))
     if not markers:
+        _record_sweep_progress(markers_found=0, markers_drained=0)
         return
-    log(f"Found {len(markers)} leftover run_complete marker(s) — processing")
-    processor = Path(__file__).parent / "process_run_complete.py"
-    for marker in markers:
-        result = subprocess.run(
-            [sys.executable, str(processor), str(marker)],
-            cwd=str(Path(__file__).resolve().parent.parent),
-            timeout=900,
-        )
-        if result.returncode == EXIT_LOCK_SKIPPED:
-            # NOT processed -- another instance holds the run lock and the
-            # marker is untouched. Saying "Processed" here was a false claim in
-            # the worker log (it is what a reader sees first when diagnosing a
-            # backlog) as well as a false success to the wedge detector.
-            log(f"Lock-skipped {marker.name} (another instance holds the run "
-                f"lock) — still pending, will retry next cycle")
-        elif result.returncode == 0:
-            log(f"Processed {marker.name}")
-        else:
-            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle")
-        # H15_publish_gate_failure_alert: feed every processing outcome into the
-        # publish-gate wedge detector. This sweep is the recurring caller that
-        # actually manifests a silent wedge -- process_run_complete returns
-        # rc!=0 every cycle (test-fail / OOM SIGKILL rc=-9 / report-regen fail)
-        # and leaves the marker in staging, so N consecutive failures here == a
-        # stalled pipeline that must raise ONE [ACTION NEEDED] alert.
-        _record_publish_gate_outcome(marker, result.returncode)
+
+    from background import process_run_complete as prc
+    with prc._run_lock() as acquired:
+        if not acquired:
+            log(f"Run lock busy (another instance is actively publishing) -- "
+                f"{len(markers)} leftover marker(s) still pending, making ZERO "
+                f"per-marker attempts this cycle (will retry next cycle)")
+            _record_sweep_progress(markers_found=len(markers), markers_drained=0)
+            return
+
+        log(f"Won the run lock -- draining leftover marker backlog "
+            f"({len(markers)} found, budget {MARKER_SWEEP_TIME_BUDGET_SECONDS}s)")
+        processor = Path(__file__).parent / "process_run_complete.py"
+        drained = 0
+        start = time.monotonic()
+        for marker in markers:
+            if time.monotonic() - start > MARKER_SWEEP_TIME_BUDGET_SECONDS:
+                log(f"Sweep time budget exhausted -- {len(markers) - drained} marker(s) "
+                    f"left for next cycle")
+                break
+            env = dict(os.environ)
+            env[LOCK_ALREADY_HELD_ENV] = "1"
+            try:
+                result = subprocess.run(
+                    [sys.executable, str(processor), str(marker)],
+                    cwd=str(Path(__file__).resolve().parent.parent),
+                    env=env,
+                    timeout=900,
+                )
+            except Exception as exc:
+                # A per-marker crash/timeout must not abort the rest of the
+                # batch -- log and move on to the next marker, same
+                # resilience the loop already gave a real rc!=0.
+                log(f"Exception processing {marker.name}: {exc} -- will retry next cycle")
+                continue
+            if result.returncode == EXIT_LOCK_SKIPPED:
+                # Should be structurally impossible now (this sweep holds the
+                # lock for every child's whole lifetime) -- if it ever
+                # happens, the env-var contract broke, not that the race was
+                # lost again. Treated exactly as before: untouched, no false
+                # claim of success.
+                log(f"Lock-skipped {marker.name} (unexpected under the sweep's own held "
+                    f"lock -- check LOCK_ALREADY_HELD_ENV wiring) -- still pending, will "
+                    f"retry next cycle")
+            elif result.returncode == 0:
+                log(f"Processed {marker.name}")
+                drained += 1
+            else:
+                log(f"Failed to process {marker.name} (rc={result.returncode}) -- will retry next cycle")
+            # H15_publish_gate_failure_alert: feed every processing outcome into the
+            # publish-gate wedge detector. This sweep is the recurring caller that
+            # actually manifests a silent wedge -- process_run_complete returns
+            # rc!=0 every cycle (test-fail / OOM SIGKILL rc=-9 / report-regen fail)
+            # and leaves the marker in staging, so N consecutive failures here == a
+            # stalled pipeline that must raise ONE [ACTION NEEDED] alert.
+            _record_publish_gate_outcome(marker, result.returncode)
+        log(f"Sweep drained {drained}/{len(markers)} marker(s) this cycle")
+        _record_sweep_progress(markers_found=len(markers), markers_drained=drained)
 
 
 def _record_publish_gate_outcome(marker, rc):
