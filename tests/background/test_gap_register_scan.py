@@ -58,6 +58,15 @@ def _empty_paths(tmp_path) -> dict:
         "quantity_registry_coverage": {
             "net_margin": {"has_owner": True, "owner_module": "x.py"},
         },
+        # The 5.3/5.4 standing-review stamp. A NEW check inside an already-wired register needs
+        # pinning here for the same reason the register itself did: an unpinned new rung reads
+        # live disk and silently breaks the neuter contract this file exists to prove.
+        "last_standing_review": {
+            "date": datetime.now(timezone.utc).date().isoformat(),
+            "evaluator": "phase-close-evaluator",
+            "verdict": "pass",
+            "subject": "shared_primitive_census_fixture",
+        },
     }))
     return {
         "simplifications": mm,

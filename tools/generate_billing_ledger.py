@@ -475,7 +475,13 @@ def generate(run_json_path=None, out_path=None):
                 "invoice_number": invoice_number,
                 "arrears_gbp": round(amount, 2),
                 "opened_date": due_date.isoformat(),
-                "stages": _arrears_stages(amount, due_date, eventually_resolved, archetype),
+                # `method` is the SAME label written onto the payment record
+                # above -- the arrears case and the payment it opened from must
+                # agree, which is the whole point of
+                # PAYMENT_CHANNEL_DD_CONSISTENCY. Reading it from anywhere else
+                # would reintroduce the two-generator disagreement.
+                "stages": _arrears_stages(amount, due_date, eventually_resolved,
+                                           archetype, method=method),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome == "dispute":

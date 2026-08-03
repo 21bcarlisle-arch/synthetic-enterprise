@@ -27,6 +27,7 @@ import pytest
 
 from company.pricing import thermal_inference as ti
 from simulation import premise_trace as pt
+from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.household import (
     BoilerAge,
     BuildEra,
@@ -159,7 +160,12 @@ def panel(weather_days):
             bedrooms=bedrooms,
         )
         trace = pt.generate_premise_trace(
-            premise_id=name, household=household, weather=weather_days, seed=17
+            premise_id=name, household=household, weather=weather_days, seed=17,
+            # W1_11 HARDEN made latitude_deg REQUIRED on every public entry point
+            # (it is a legitimate INPUT, a defect only as a silent FALLBACK). This
+            # panel is a synthetic national one with no site, so it passes the
+            # population-weighted UK value explicitly.
+            latitude_deg=DEFAULT_LATITUDE_DEG,
         )
         commodity = (
             "electricity" if system == HeatingSystem.HEAT_PUMP_AIR else "gas"

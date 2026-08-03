@@ -139,13 +139,52 @@ def _reserved_for_director(what: str, how: str, why: str) -> bool:
         return False
 
 
+def _valid_pre_classified_door(category: str | None) -> bool:
+    """Does `category` name a live OneWayDoorCategory? FAIL-CLOSED, opposite in direction to
+    `_reserved_for_director` and deliberately so: this predicate ADMITS an ask, so an unreadable
+    or unrecognised value must admit nothing and fall back to classifying `what`."""
+    if not category:
+        return False
+    # "unclassified" is the fail-safe half of the SAME upstream predicate, not an escape hatch:
+    # build_executor DOWNGRADES a turn's escalation to a benign draw whenever classify_action says
+    # the stated door_reason is reversible, and only reaches the alert path with "unclassified"
+    # when there was nothing at all to classify. Refusing that case would re-open the silent-drop
+    # this parameter exists to close -- a possibly-genuine door nobody hears about.
+    if str(category) == "unclassified":
+        return True
+    try:
+        from background.one_way_door import OneWayDoorCategory as _C
+        return str(category) in {c.value for c in _C} or str(category) in {c.name for c in _C}
+    except Exception:
+        return False
+
+
 def register_item(
     item_id: str, what: str, how: str, why: str,
     path: Path | None = None, now: str | None = None,
+    pre_classified_door: str | None = None,
 ) -> dict:
     """Add (or re-register, e.g. updated details) an open item. Does NOT
     send the NTFY itself -- the caller sends it once via
     format_action_needed(), then calls this to record/update the item.
+
+    `pre_classified_door` -- the door a CALLER has already classified through
+    `one_way_door.classify_action`, passed as that verdict's category value. Use it ONLY when the
+    same sole enumeration this guard consults has already returned is_one_way_door on the REAL
+    action, and the `what` string here is a human-facing wrapper around it. Rejected unless it
+    names a live OneWayDoorCategory, and recorded on the item so an audit sees which door was
+    claimed and by whom -- provenance, not a bypass.
+
+    WHY IT EXISTS (2026-08-03, real regression caught by this module's own tests): the headless
+    executor reaches `_alert_wall(kind="wall_escalated")` ONLY after build_executor has run
+    `classify_action` on the turn's door_reason and confirmed a genuine door (a mislabelled
+    reversible gate is DOWNGRADED there and never alerts). Its `what` is then the wrapper sentence
+    "Headless executor hit a one-way door (WALL) ...", which classifies as NOT reserved -- so this
+    guard refused the registration, the refusal path returned before send_ntfy, and EVERY wall
+    escalation went silent. That breaks the P0 wall ESCALATION_IS_NTFY_NEVER_WINDOW: a door the
+    director never hears about is the silent stall that rule exists to kill. Re-classifying a
+    wrapper sentence was also a SECOND classifier over the wrong string, which the docstring of
+    `_reserved_for_director` explicitly forbids.
 
     RESERVED-CLASS GUARD (2026-08-03, director console, finishing
     DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY + THE_STANDARD §2/§3). An item may be registered
@@ -175,7 +214,7 @@ def register_item(
     for a page THAT NEVER WENT OUT. The actual send-clock is `last_sent_at`,
     stamped ONLY by mark_sent() after a CONFIRMED successful send -- never
     here, never merely because an item was created or its text refreshed."""
-    if not _reserved_for_director(what, how, why):
+    if not (_valid_pre_classified_door(pre_classified_door) or _reserved_for_director(what, how, why)):
         raise NotReservedForDirector(
             f"REFUSED to register director ask {item_id!r}: it is not one of the four reserved "
             f"real-world consequences (real money / real people / an irretractable public claim in "
@@ -194,6 +233,10 @@ def register_item(
         # with refreshed details) -- a re-register must NEVER roll back a
         # confirmed sent-clock. A first create leaves this unset (due).
         "last_sent_at": register.get(item_id, {}).get("last_sent_at"),
+        # Audit trail for the pre-classified admission path: which door the caller claimed,
+        # so an item admitted on an upstream verdict is distinguishable from one this module
+        # classified itself. Absent on the ordinary path.
+        "pre_classified_door": pre_classified_door if _valid_pre_classified_door(pre_classified_door) else None,
         "resolved": False,
     }
     save_register(register, path)

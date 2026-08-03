@@ -8,6 +8,8 @@ draw from the same deterministic engine over the same bills.
 """
 from datetime import date, timedelta
 
+import pytest
+
 from simulation.arrears_engine import (
     FUEL_POVERTY_DD_FAIL_MULTIPLIER,
     FUEL_POVERTY_ON_TIME_MULTIPLIER,
@@ -16,6 +18,7 @@ from simulation.arrears_engine import (
     apply_debt_recovery,
     apply_emergent_bad_debt,
     arrears_stages,
+    opening_arrears_stage,
     compute_debt_recovery,
     compute_emergent_bad_debt,
     debt_archetype,
@@ -96,8 +99,8 @@ def test_payment_outcome_bacs_ic_can_dispute():
 
 
 def test_arrears_stages_written_off_vs_resolved():
-    resolved = arrears_stages(100.0, date(2022, 1, 1), True)
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False)
+    resolved = arrears_stages(100.0, date(2022, 1, 1), True, method='direct_debit')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
     assert "RESOLVED" in [s["stage"] for s in resolved]
     assert "WRITTEN_OFF" in [s["stage"] for s in written_off]
 
@@ -225,7 +228,7 @@ def test_debt_archetype_single_high_year_reads_overwhelmed():
 
 
 def test_arrears_stages_written_off_unchanged_then_recovered_for_overwhelmed():
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='OVERWHELMED')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='OVERWHELMED', method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'RECOVERED']
@@ -236,7 +239,7 @@ def test_arrears_stages_written_off_unchanged_then_recovered_for_overwhelmed():
 
 
 def test_arrears_stages_written_off_unchanged_then_recovered_for_neutral():
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL', method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names[-1] == 'RECOVERED'
     wo = next(s for s in written_off if s['stage'] == 'WRITTEN_OFF')
@@ -244,7 +247,7 @@ def test_arrears_stages_written_off_unchanged_then_recovered_for_neutral():
 
 
 def test_arrears_stages_written_off_unchanged_then_sold_for_avoidant():
-    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT')
+    written_off = arrears_stages(100.0, date(2022, 1, 1), False, archetype='AVOIDANT', method='direct_debit')
     stage_names = [s['stage'] for s in written_off]
     assert stage_names == ['DD_FAILED', 'FIRST_NOTICE', 'SECOND_NOTICE', 'WRITTEN_OFF',
                            'PLACED_WITH_DCA', 'SOLD']
@@ -255,8 +258,8 @@ def test_arrears_stages_written_off_unchanged_then_sold_for_avoidant():
 
 
 def test_arrears_stages_default_archetype_is_neutral():
-    default = arrears_stages(100.0, date(2022, 1, 1), False)
-    explicit_neutral = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL')
+    default = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
+    explicit_neutral = arrears_stages(100.0, date(2022, 1, 1), False, archetype='NEUTRAL', method='direct_debit')
     assert default == explicit_neutral
 
 
@@ -449,3 +452,64 @@ def test_payment_outcome_matched_tone_increases_on_time_rate():
         successes_no_tone += outcome_no_tone == "success"
         successes_with_tone += outcome_with_tone == "success"
     assert successes_with_tone >= successes_no_tone
+
+
+# --- Method-aware arrears opening stage (atom
+# W2_payment_channel_dd_consistency_invariant) ---
+#
+# These sit on the GENERATOR, deliberately. The population test in
+# tests/company/compliance/test_payment_channel_dd_consistency.py judges the
+# billing ledger, which is a build ARTEFACT -- a source mutation here does not
+# move it until it is regenerated, so the artefact test alone would let a
+# regression sit green until the next publish. These fire on the source.
+
+def test_a_direct_debit_arrears_case_still_opens_with_dd_failed():
+    """Direction (b): the legitimate case is untouched."""
+    stages = arrears_stages(100.0, date(2022, 1, 1), True, method='direct_debit')
+    assert stages[0]['stage'] == 'DD_FAILED'
+    assert stages[0]['note'] == 'Direct debit returned'
+
+
+def test_a_standard_credit_arrears_case_does_not_open_with_a_dd_failure():
+    """Direction (a): the named defect. A customer with no Direct Debit
+    Instruction has nothing that could be returned."""
+    stages = arrears_stages(100.0, date(2022, 1, 1), True, method='standard_credit')
+    assert stages[0]['stage'] == 'PAYMENT_MISSED'
+    assert 'direct debit' not in stages[0]['note'].lower()
+
+
+def test_every_non_dd_method_gets_a_method_appropriate_opening_stage():
+    """R10 -- the closure is the CLASS. Every non-DD label the two generators
+    can emit, not just the standard_credit instance that was reported."""
+    for method in ('standard_credit', 'standing_order', 'card', 'prepayment',
+                   'bacs', 'chaps'):
+        opening = opening_arrears_stage(method, date(2022, 1, 1))
+        assert opening['stage'] == 'PAYMENT_MISSED', method
+        assert 'direct debit' not in opening['note'].lower(), method
+
+
+def test_an_unknown_method_does_not_fall_back_to_a_direct_debit_failure():
+    """Fail-closed: a method nobody anticipated must not inherit the DD
+    vocabulary by default."""
+    opening = opening_arrears_stage('carrier_pigeon', date(2022, 1, 1))
+    assert opening['stage'] == 'PAYMENT_MISSED'
+    assert 'direct debit' not in opening['note'].lower()
+
+
+def test_method_is_a_required_argument_so_an_unupdated_caller_fails_loudly():
+    """A default of 'direct_debit' would have preserved the exact defect the
+    parameter exists to remove -- every un-migrated caller would keep stamping
+    'Direct debit returned' onto non-DD customers while the build read as done.
+    This is the guard that keeps the argument required."""
+    with pytest.raises(TypeError):
+        arrears_stages(100.0, date(2022, 1, 1), True)
+
+
+def test_the_collections_cascade_after_the_opening_stage_is_method_independent():
+    """Only the FIRST stage is method-specific: once the money is late the
+    collections process is the same. Asserting this stops a future change from
+    quietly forking the whole cascade per method."""
+    dd = arrears_stages(100.0, date(2022, 1, 1), False, method='direct_debit')
+    sc = arrears_stages(100.0, date(2022, 1, 1), False, method='standard_credit')
+    assert [s['stage'] for s in dd[1:]] == [s['stage'] for s in sc[1:]]
+    assert [s['date'] for s in dd] == [s['date'] for s in sc]

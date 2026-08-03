@@ -243,8 +243,22 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         # re-ingested as a fresh urgent command (answer-correlation, path 2).
         pin = action_needed.pin_for(item_id)
         how_pinned = f"{how}\nReply to CLOSE: start your NTFY with PIN {pin} (e.g. 'PIN {pin} PROCEED')."
+        # A wall_escalated alert is ALREADY past the sole one-way-door enumeration: build_executor
+        # runs classify_action on the turn's stated door_reason and DOWNGRADES a reversible
+        # review-gate to a benign draw, so reaching here means a confirmed door (or, on the
+        # fail-safe path, one with nothing to classify). Pass that verdict through rather than
+        # letting register_item re-classify this function's human-facing wrapper sentence -- which
+        # reads as not-reserved and silently killed every wall NTFY (P0 ESCALATION_IS_NTFY).
+        door = None
+        if kind == "wall_escalated":
+            try:
+                from background.one_way_door import classify_action
+                v = classify_action(getattr(result, "atom_reason", None) or "")
+                door = v.category.value if (v and v.category) else "unclassified"
+            except Exception:
+                door = "unclassified"
         try:
-            action_needed.register_item(item_id, what, how_pinned, why)
+            action_needed.register_item(item_id, what, how_pinned, why, pre_classified_door=door)
         except action_needed.NotReservedForDirector as refused:
             # 2026-08-03: the wall is NOT the director's to answer -> do not page, do not queue.
             # THE_STANDARD §3: recommend, act on the recommendation, say what was decided. The
@@ -280,8 +294,8 @@ def _default_fold() -> list[str]:
     Fold errors are swallowed here on purpose: a failed fold leaves the inbox at rest, so
     the immediately-following reconcile check STOPS the loop — never a silent mis-fold."""
     try:
-        from tools.merge_atom_status import merge
         from background.tree_lock import tree_lock
+        from tools.merge_atom_status import merge
 
         with tree_lock():
             folded = merge()  # folds + clears inboxes, writes maturity_map.yaml in place

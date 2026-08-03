@@ -51,6 +51,14 @@ def _clean_census(**overrides) -> dict:
             "net_margin": {"has_owner": True, "owner_module": "x.py"},
             "carbon": {"has_owner": True, "owner_module": "y.py"},
         },
+        # 5.3/5.4: a CLOSED register now also requires that the standing structural review has
+        # actually HAPPENED recently -- an unrun ensuring activity is not evidence of no drift.
+        c.REVIEW_STAMP_KEY: {
+            "date": datetime.now(timezone.utc).date().isoformat(),
+            "evaluator": "phase-close-evaluator",
+            "verdict": "pass",
+            "subject": "shared_primitive_census_fixture",
+        },
     }
     data.update(overrides)
     return data
@@ -420,6 +428,143 @@ def test_missing_census_reaches_the_reader_as_open_not_absent(
     assert rows and rows[0]["id"] == "unreadable"
     assert gap_register_scan.gap_register_open(
         {"shared_primitive_census": tmp_path / "does_not_exist.json"}) is True
+
+
+# --------------------------------------------------------------------------- 5.3/5.4 the standing
+# review itself, R15 both ways. Without these the review is an exhortation in a checklist: a session
+# that never runs it leaves no trace and the register reads CLOSED anyway.
+def test_never_recorded_standing_review_reads_open(tmp_path):
+    """MUTATION: drop the review stamp from an otherwise-perfect census -> the register must OPEN.
+    This is the control that makes 'nobody ever ran the standing review' visible as WORK rather
+    than as silence."""
+    data = _clean_census()
+    del data[c.REVIEW_STAMP_KEY]
+    p = _write(tmp_path / "census.json", json.dumps(data))
+    rows = c.census_register_open(p)
+    assert [r["id"] for r in rows] == ["standing_review_never_recorded"], rows
+    # RESTORE: put the stamp back -> the row closes on its own merits, not by omission.
+    assert c.census_register_open(_write(tmp_path / "b.json", json.dumps(_clean_census()))) == []
+
+
+def test_null_review_stamp_is_not_a_valid_review(tmp_path):
+    """`generate()` carries forward a null stamp when no review has ever run -- a null must read
+    OPEN exactly like an absent key, never as 'present therefore fine'."""
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: None})))
+    assert [r["id"] for r in c.census_register_open(p)] == ["standing_review_never_recorded"]
+
+
+def test_stale_standing_review_reads_open(tmp_path):
+    """A review that happened once, long ago, is not a STANDING activity. Past the retro cadence's
+    own threshold it must re-open -- the same 'unmeasured is not evidence of no drift' rule the
+    census staleness check already applies to itself."""
+    threshold = c._stale_days_threshold()
+    old = (datetime.now(timezone.utc) - timedelta(days=threshold + 3)).date().isoformat()
+    stamp = {"date": old, "evaluator": "phase-close-evaluator", "verdict": "pass",
+             "subject": "shared_primitive_census_old"}
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: stamp})))
+    rows = c.census_register_open(p)
+    assert [r["id"] for r in rows] == ["standing_review_overdue"], rows
+    # RESTORE: a review inside the window closes it.
+    fresh = dict(stamp, date=(datetime.now(timezone.utc) - timedelta(days=1)).date().isoformat())
+    assert c.census_register_open(
+        _write(tmp_path / "b.json", json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: fresh})))) == []
+
+
+def test_needs_work_verdict_keeps_the_register_open(tmp_path):
+    """5.4 step (iii): a NEEDS_WORK verdict's named drifted items are OPEN work. A fresh review that
+    FAILED must not close the register just because it is recent."""
+    stamp = {"date": datetime.now(timezone.utc).date().isoformat(),
+             "evaluator": "phase-close-evaluator", "verdict": "needs_work", "subject": "s"}
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: stamp})))
+    assert [r["id"] for r in c.census_register_open(p)] == ["standing_review_needs_work"]
+
+
+def test_malformed_review_stamp_fails_safe_open(tmp_path):
+    for bad in ({"date": "2026-08-01"}, {"date": "not-a-date", "evaluator": "e", "verdict": "pass",
+                                         "subject": "s"}):
+        p = _write(tmp_path / f"c{abs(hash(str(bad)))}.json",
+                   json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: bad})))
+        rows = c.census_register_open(p)
+        assert rows and rows[0]["id"] == "standing_review_malformed", (bad, rows)
+
+
+def test_generate_carries_a_review_forward_but_never_fabricates_one(tmp_path):
+    """TAUTOLOGY guard on the carry-forward: regenerating the census must preserve a review that
+    really happened (with its OWN date, so freshness is still judged honestly) and must NOT invent
+    one when the prior census has none -- otherwise the act of regenerating would silently close
+    the row the review is supposed to hold open."""
+    src = tmp_path / "proj"
+    (src / "company").mkdir(parents=True)
+    stamp = {"date": "2026-07-30", "evaluator": "phase-close-evaluator", "verdict": "pass",
+             "subject": "shared_primitive_census_2026-07-30"}
+    prev = _write(tmp_path / "prev.json", json.dumps(_clean_census(**{c.REVIEW_STAMP_KEY: stamp})))
+    carried = c.generate(project_dir=src, previous_census_path=prev)
+    assert carried[c.REVIEW_STAMP_KEY] == stamp, "a real review must survive regeneration"
+
+    no_prev = c.generate(project_dir=src, previous_census_path=tmp_path / "absent.json")
+    assert no_prev[c.REVIEW_STAMP_KEY] is None, "regeneration must never fabricate a review"
+
+
+def test_record_standing_review_refuses_without_an_independent_verdict(tmp_path, monkeypatch):
+    """The load-bearing 5.4 control: the census may NOT certify its own review. With an empty trust
+    ledger (no fresh-context evaluator ever filed a verdict), the stamp is REFUSED."""
+    from background import trust_ledger as tl
+
+    monkeypatch.setattr(tl, "LEDGER_PATH", _write(tmp_path / "ledger.json", "[]"))
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census()))
+    with pytest.raises(ValueError, match="no trust-ledger verdict"):
+        c.record_standing_review("subj-1", "pass", "phase-close-evaluator", path=p)
+
+
+def test_record_standing_review_accepts_a_real_recorded_verdict(tmp_path, monkeypatch):
+    """RESTORE side: once the fresh-context evaluator's verdict IS in the ledger, the stamp lands
+    and the register's review row closes. Both states are reachable -- the control is not
+    unconditionally-refusing theatre."""
+    from background import trust_ledger as tl
+
+    monkeypatch.setattr(tl, "LEDGER_PATH", _write(tmp_path / "ledger.json", json.dumps([{
+        "task_class": "harness_supervisor", "verdict": "pass",
+        "evaluator_name": "phase-close-evaluator",
+        "evaluated_at": datetime.now(timezone.utc).date().isoformat(),
+        "subject": "subj-1", "defects_found_post_close": 0, "rework_required": False, "notes": "",
+    }])))
+    data = _clean_census()
+    del data[c.REVIEW_STAMP_KEY]
+    p = _write(tmp_path / "census.json", json.dumps(data))
+    assert c.census_register_open(p), "precondition: the register is OPEN before the review"
+
+    stamp = c.record_standing_review("subj-1", "pass", "phase-close-evaluator", path=p)
+    assert stamp["evaluator"] == "phase-close-evaluator"
+    assert c.census_register_open(p) == [], "a properly-recorded review closes the row"
+
+
+def test_record_standing_review_refuses_a_non_whitelisted_evaluator(tmp_path, monkeypatch):
+    """A self-reported grader name cannot appear in the ledger at all (trust_ledger's own
+    INDEPENDENT_EVALUATORS whitelist), so no matching entry exists and the stamp is refused. The
+    building session cannot route around 5.4 by naming itself the evaluator."""
+    from background import trust_ledger as tl
+
+    monkeypatch.setattr(tl, "LEDGER_PATH", _write(tmp_path / "ledger.json", "[]"))
+    with pytest.raises(ValueError):
+        tl.record_verdict(tl.TaskClass.HARNESS_SUPERVISOR, tl.Verdict.PASS,
+                          "the-session-that-built-it", "subj-1")
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census()))
+    with pytest.raises(ValueError, match="no trust-ledger verdict"):
+        c.record_standing_review("subj-1", "pass", "the-session-that-built-it", path=p)
+
+
+def test_record_standing_review_refuses_when_the_ledger_is_unavailable(tmp_path, monkeypatch):
+    """FAIL-SILENT guard: an unavailable independence check is a FAILED independence check. The
+    stamp must be REFUSED, never written optimistically."""
+    from background import trust_ledger as tl
+
+    def _boom():
+        raise OSError("ledger unavailable")
+
+    monkeypatch.setattr(tl, "_load_ledger", _boom)
+    p = _write(tmp_path / "census.json", json.dumps(_clean_census()))
+    with pytest.raises(RuntimeError, match="trust ledger unavailable"):
+        c.record_standing_review("subj-1", "pass", "phase-close-evaluator", path=p)
 
 
 if __name__ == "__main__":

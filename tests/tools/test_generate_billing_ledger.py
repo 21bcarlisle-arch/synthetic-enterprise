@@ -88,19 +88,19 @@ def test_dd_high_some_failures():
 
 
 def test_arrears_resolved():
-    stages = _arrears_stages(200.0, date(2022, 11, 15), True)
+    stages = _arrears_stages(200.0, date(2022, 11, 15), True, method="direct_debit")
     names = [s["stage"] for s in stages]
     assert "RESOLVED" in names and "WRITTEN_OFF" not in names
 
 
 def test_arrears_written_off():
-    stages = _arrears_stages(200.0, date(2022, 11, 15), False)
+    stages = _arrears_stages(200.0, date(2022, 11, 15), False, method="direct_debit")
     names = [s["stage"] for s in stages]
     assert "WRITTEN_OFF" in names and "RESOLVED" not in names
 
 
 def test_arrears_dates_ordered():
-    stages = _arrears_stages(200.0, date(2022, 11, 15), True)
+    stages = _arrears_stages(200.0, date(2022, 11, 15), True, method="direct_debit")
     assert [s["date"] for s in stages] == sorted(s["date"] for s in stages)
 
 
