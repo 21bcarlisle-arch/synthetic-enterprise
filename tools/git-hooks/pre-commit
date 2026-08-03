@@ -60,3 +60,22 @@ python3 tools/moap_coherence_gate.py || exit 1
 # register refuses the archive (never silently unblocks). Reuses open_question_register's blocking
 # predicate (no re-implementation). R15-proven both ways in tests/tools/test_ruling_archive_question_gate.py.
 python3 tools/ruling_archive_question_gate.py || exit 1
+
+# SIZE + CLONE RATCHET (SP3, 2026-08-03, DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS §3):
+# a monotonic ceiling on module size and cross-file structural duplication, so structural debt
+# drains as a SIDE-EFFECT of ordinary work and never needs a remediation sprint. Four rules: no
+# baselined file exceeds its own frozen count; a file this commit TOUCHES comes out no larger than
+# it went in (the rule that actually drains); new files/functions are capped (600/60, NEW only --
+# the 43 existing oversized files are grandfathered, never retroactively broken); the clone count
+# never exceeds its frozen ceiling. Anti-Goodhart (ruling §7): these are tripwires and reported
+# facts, NEVER scores to minimise -- there is no lower bound and there must never be one.
+# Currently rollout_state=warn (ruling §8): it PRINTS and logs to
+# docs/observability/size_ratchet_warnings.jsonl but does NOT block. The warn->gate flip is a
+# deliberate one-line diff to docs/observability/size_ratchet_baseline.json after one retro
+# cadence -- never an auto-flip (that would be the silent-state-change class R2/R7 forbid).
+# Staging-aware (an out-of-scope commit pays nothing) and fail-closed in BOTH states: a missing/
+# corrupt baseline or an unparseable source REFUSES, because an unavailable check is a failed
+# check. No bypass flag by design -- exceptions go through tools/size_ratchet_override.py, which
+# logs a named decision scoped to one file at one line count. R15-proven both ways in
+# tests/tools/test_size_ratchet_gate.py (13 source mutations, each firing its own named test).
+python3 tools/size_ratchet_gate.py || exit 1

@@ -1,7 +1,9 @@
-<!-- DISCOVER/DESIGN half only. BUILD half (live ratchet, wired gate, code changes) is
-     blocked_on director_build_open (R16) -- NOT executed here, per
-     docs/staging/in_progress/PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md. No code touched,
-     no gate wired, no other file edited. -->
+<!-- BUILT 2026-08-03 (worker tick), atom SP3_size_and_clone_ratchet L0->L2. The park reason above
+     (director_build_open) was abolished 2026-07-29 and swept 2026-08-03. The build is live:
+     tools/size_ratchet.py + tools/size_ratchet_gate.py + tools/size_ratchet_override.py, wired into
+     tools/git-hooks/pre-commit in WARN state, R15-proven both ways by 13 source mutations.
+     THREE OF THIS DOCUMENT'S LOAD-BEARING CLAIMS WERE REFUTED BY BUILDING IT -- see the
+     BUILD CORRECTIONS section appended at the foot. Read that before trusting anything above it. -->
 # Size + Clone Ratchet — DISCOVER/Design (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §3 (Required shape,
@@ -353,3 +355,103 @@ matter beyond "test gate first" as an efficiency/clarity convention, not a corre
 
 Nothing above is a wall. No safety/auth/curriculum control is touched by any part of this design
 (mint's own "Walls untouched" section, restated): this is build-discipline tooling only.
+
+---
+# BUILD CORRECTIONS (2026-08-03 worker tick, atom `SP3_size_and_clone_ratchet` L0→L2)
+
+Three load-bearing claims above were **refuted by measurement during the build**. They are corrected
+here rather than edited away, because the pattern is the point: this is the sixth consecutive atom
+whose closed DISCOVER doc contained a build-blocking error, and the errors keep being of *different
+kinds*. A closed DISCOVER doc is a hypothesis, not a specification.
+
+## Correction 1 — §2.1 "No existing clone-census tool found in-repo" is now FALSE
+
+§2.1 concluded: *"The BUILD half therefore needs to **build** the census tool, not reuse one — there
+is nothing to reuse."* True on 2026-07-28. **False by the time BUILD drew**, and by only six days:
+`background/shared_primitive_census.py` (atom SP5, landed earlier on 2026-08-03) ships a
+parameterised AST clone detector — `_clone_census` / `_function_shape` / `_iter_source_files`, with
+`DEFAULT_NODE_THRESHOLD = 45` — whose own module docstring records the reconciliation it owed SP3:
+*"to be reconciled against SP3's own detector once that atom lands, never silently assumed equal."*
+
+Building the designed `tools/clone_census.py` would have put **a second AST clone detector in the
+repo, committed by the atom whose entire purpose is to stop duplication** — the 91-registers pattern
+reproduced by its own remedy. So the build **imports SP5's detector** instead, and
+`test_sp3_does_not_ship_a_rival_clone_detector` fails if the fingerprinting ever comes home.
+
+**Worth carrying:** a DISCOVER doc's "nothing exists to reuse" finding has a shelf life measured in
+days on a codebase moving this fast, and it is exactly the claim whose staleness does the most
+damage — it is the claim that authorises writing new code.
+
+## Correction 2 — §2.3's "freeze the ceiling at 223 from the ruling text" is a FAIL-OPEN, and 223 is not reproducible
+
+§2.3 said to record 223 directly from the ruling and reconcile later. §1.2 said the opposite for file
+sizes (*"freeze whatever it reads then… today's are illustrative, not the frozen baseline"*). The
+document contradicts itself, and **§2.3 is the wrong half**.
+
+§8 named the condition for trusting 223: *"re-derive 223 with its chosen convention and confirm it
+still lands at (or very near) 223 before trusting the frozen ceiling."* **Measured at build time, it
+does not, under either available convention:**
+
+| convention | scope | clone-sets | instances |
+|---|---|---:|---:|
+| ruling §0 (external, 2026-07-28) | "788 source modules" | 70 | **223** |
+| SP5's detector, SP5's 5 roots | 707 files | 87 | **269** |
+| SP5's detector, SP3's 8 roots | 813 files | 92 | **283** |
+| body-only fingerprint, 8 roots | 813 files | 68 | **209** |
+
+The spread is not drift alone — the tree also moved hard (789 → 818 files, **+24k lines in six
+days**), and the conventions genuinely differ (SP5 fingerprints the whole function node including
+its signature; a body-only fingerprint reads 74 lower). **Freezing 223 against a tree measuring 283
+would have handed the ratchet 60 instances of silent headroom on day one** — someone could have added
+60 cross-file clones and the gate would have stayed green. That is a fail-open by construction, and
+it is the opposite of what a ratchet is.
+
+**Built instead:** the ceiling is frozen from the detector that actually runs, over the declared
+scope, at the moment of freezing (**283**), with the ruling's 223 carried in the artefact as
+`historical_reference_ceiling` plus a note — so the delta stays visible and is never laundered into
+"we were always at 283". This resolves §8's second open question by answering it in the negative.
+
+## Correction 3 — the ceiling the ruling set was never actually enforced anywhere
+
+Found while checking whether SP5 already gated on its own constant. `CLONE_CEILING = 223` appears at
+exactly **two** sites in the whole repo: its definition, and one write into
+`docs/observability/shared_primitive_census.json`. **It is never compared to anything.** The artefact
+on disk today reads `"clone_ceiling": 223` next to `"clone_count": 267` — a 44-instance breach,
+sitting in primary state, firing nothing.
+
+So the ruling's ceiling existed as a **reported fact with no tripwire attached**. That is precisely
+the orphan-transition class this project has now recorded five times (`generate_evidence_data.generate()`,
+`write_fabric_gap_entries`, `fabric_settlement_gap.py`, `TenancyChangeCoupler`, and the W1_11 wiring
+mutation) — here in its subtlest disguise yet: not a function nobody calls, but a **constant nobody
+compares**. It reads as enforcement to anyone grepping for the number.
+
+SP3 *is* the missing tripwire, which is the strongest available argument that this atom was worth
+building rather than archiving.
+
+## Open questions §8 — resolved
+
+- **Tighter new-file cap (400 vs 600):** kept at **600**. 89 existing files already exceed 400 and 43
+  exceed 600; a 400 cap on new files while 89 existing files sit above it invites the split-to-dodge
+  perturbation §0 forbids. 600 with a logged override is the honest bar. Revisit at the warn→gate flip
+  with a cycle of real warn-log evidence, not now on argument alone.
+- **Methods vs module-level functions:** collapsed (both counted), because that is what SP5's detector
+  does and a single detector is worth more than a marginally better convention. Recorded, not hidden.
+- **Warn-log format:** JSONL, one object per finding, same convention as `decision_log.jsonl`.
+
+## What this build does NOT claim (the honest L2/L3 boundary)
+
+`rollout_state` is **warn**: the ratchet detects, prints and logs, and does **not** block. It has
+therefore never actually prevented a real regression in the wild, which is what L3 needs. The
+warn→gate flip is a deliberate one-line diff after one retro cadence of warn-log evidence, and is
+this atom's named L3 residual. **A gate that has only ever run in warn state is an untested brake.**
+
+## Findings registered, not fixed on sight (SELF_INTERRUPT_DISCIPLINE — the machine is not blocked)
+
+1. **SP5's census scope omits `tools/` and `interface/`** (110 files, ~31k lines it never sees), while
+   the ruling's own census scope was "all 788 source modules". SP3 uses the wider, ruling-faithful
+   scope. Two live numbers now describe "the clone count" over different scopes; they must be
+   reconciled to one, and SP5's is the side that deviates. Not fixed here — it is another atom's file
+   and changing its scope moves its register's output.
+2. **SP5's `CLONE_CEILING = 223` is now doubly wrong** — unenforced (correction 3) *and* 46 below its
+   own detector's live reading of its own scope. Reconciling it against SP3's frozen ceiling is the
+   natural next touch on that module.
