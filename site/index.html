@@ -50,6 +50,17 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .pitch { margin-top: 22px; font-size: 15px; line-height: 1.65; max-width: 62ch; color: var(--muted); }
 .pitch strong { color: var(--text); font-weight: 600; }
 
+/* whose book this is -- the segment disclosure that must precede the mission claim
+   (SITE_EH1_segment_disclosure). Hairline block, structural ink only, no decorative
+   colour: this is information, and it is deliberately not softened. */
+.bookmix { padding: 26px 0; border-bottom: 1px solid var(--text); }
+.bookmix .bl { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 600; color: var(--muted); }
+.bookmix p { margin-top: 12px; font-size: 14px; line-height: 1.65; max-width: 64ch; color: var(--muted); }
+.bookmix p strong { color: var(--text); font-weight: 700; }
+.bookmix a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.bookmix a:hover { border-bottom-color: var(--text); }
+
 /* section label */
 .sec { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
   color: var(--muted); padding: 30px 0 0; }
@@ -157,6 +168,41 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     contacts, bills, regulatory publications -- never the simulation's own internals. The mission
     is <strong>carbon abatement through personalisation</strong>, measured in £ per tonne of
     CO&#8322; saved.</p>
+</section>
+
+<!-- WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure 2026-07-30, scope item 2: "The revenue mix
+     is stated BEFORE the mission claim ... and on the front door").
+
+     WHY IT IS HERE AND NOT LOWER: a cold-eyes Expert Hour failed the SITE1 atom on exactly this
+     ordering. The front door, the mission, the score, the personalisation thesis and the one
+     drilled-into account were ALL residential -- "I&C" appeared zero times on this page -- while
+     the book behind every published figure earns essentially all of its revenue from a handful of
+     industrial & commercial accounts. Every figure carried its clock (R14) and none carried its
+     segment. A reader who meets the household-carbon mission before meeting the book's composition
+     has been misled by ordering alone, so the composition now comes first.
+
+     NO LIVE FIGURE, NO INLINE SCRIPT: this surface deliberately renders neither (the documented
+     post-condition of DIRECTOR_RULING_FRONT_MISSION_BLOCK, guarded by site/test_front_door_brand.py).
+     So the claim below is a hand-authored THRESHOLD claim, and `data-mix-claim` is its machine-
+     readable form: tools/generate_dashboard_data.py::_check_front_door_segment_claim recomputes the
+     real share from the run's own segment split every publish and FAILS the publish if this sentence
+     stops being true. The sentence cannot silently rot into a false public claim (one-way door 3).
+
+     NOT a cohort-£ figure (RC7 wall): a share of revenue and an account count, never a £ total. -->
+<section class="bookmix" data-mix-claim="non_domestic_revenue_share_gt_95">
+  <div class="bl">Whose book this is</div>
+  <p><strong>Before the mission: this book is not households.</strong> The supplier below is real
+    in the sense that matters here &mdash; it settles, prices, hedges, bills and collects against the
+    actual market record &mdash; but the population it serves is a small teaching book drawn fresh
+    each run, and <strong>more than 95% of its revenue is non-domestic</strong>: a handful of
+    industrial and commercial accounts, not households. Residential accounts outnumber them and earn
+    a rounding error of the revenue. Every per-customer figure on this site is therefore split by
+    segment, each with its own denominator &mdash; the exact mix, account counts and per-segment unit
+    economics are on <a href="./company/">The Company</a>.</p>
+  <p>Read the mission claim below with that in mind: the abatement thesis is about
+    <em>households</em>, and the book that currently funds the lights is not. That gap is stated
+    here rather than left for a reader to find, and closing it &mdash; changing what the company is
+    <em>for</em>, or which customers it serves &mdash; is a director's call, not the machine's.</p>
 </section>
 
 <!-- MISSION block (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the falsifiable claim on

@@ -145,20 +145,65 @@ def test_finance_totals_marked_scales_with_book_rc6():
 
 
 def test_finance_per_customer_follows_book_size_rc6():
-    # R15 (a control must be able to FAIL): the £/customer figure and its stated
-    # denominator must follow N. Mutate the sample size; both the denominator label
-    # and the rendered value must change -- a hardcoded ratio would fail this.
+    """RC6's original property, PORTED to the segment axis by
+    SITE_EH1_segment_disclosure -- not weakened, re-aimed.
+
+    RC6 asserted that the BLENDED "Net margin / customer" tile and its stated
+    denominator both follow N (a hardcoded ratio would fail). SITE_EH1 removed
+    that blended tile as the defect itself: over a book whose revenue is ~99%
+    non-domestic, one blended £/customer describes no customer the company has.
+    The R15 property survives unchanged and now binds PER SEGMENT: each tile's
+    value must follow ITS OWN segment's figure and ITS OWN n, and the denominator
+    it prints must be that segment's account count.
+    """
     d = _live()
-    d["finance"]["latest_year_net_margin_gbp"] = 700000.0
-    d["stress_bands"]["total"] = 7
+    mix = d.get("book_mix") or {}
+    if not mix.get("available") or not mix.get("segments"):
+        pytest.skip("book_mix not in live company.json yet (pre-deploy / old generator)")
+    seg = mix["segments"][0]
+    seg["n_accounts"] = 7
+    seg["net_margin_per_customer_gbp"] = 700000.0 / 7
+    seg["revenue_per_customer_gbp"] = 1400000.0 / 7
+    seg["latest_year_present"] = True
     out = _render(d)
     kpis = out["finance-kpis"]["innerHTML"]
-    assert "÷ 7 sampled customers" in kpis, kpis
+    assert "÷ 7 " in kpis, kpis
     assert "100,000.00" in kpis, kpis  # 700000 / 7, denominator-stated
-    # And a different N moves the value (independence, not a constant):
-    d["stress_bands"]["total"] = 14
+    # A different n moves BOTH the denominator label and the value (independence,
+    # not a constant baked into the page):
+    seg["n_accounts"] = 14
+    seg["net_margin_per_customer_gbp"] = 700000.0 / 14
     out2 = _render(d)
-    assert "50,000.00" in out2["finance-kpis"]["innerHTML"], out2["finance-kpis"]["innerHTML"]
+    kpis2 = out2["finance-kpis"]["innerHTML"]
+    assert "÷ 14 " in kpis2, kpis2
+    assert "50,000.00" in kpis2, kpis2
+    assert "100,000.00" not in kpis2, kpis2
+
+
+def test_no_blended_per_customer_tile_leads_the_finance_panel():
+    """SITE_EH1_segment_disclosure, the defect itself. A blended £/customer tile --
+    however correctly clock-labelled, however honestly it states its ÷N -- is the
+    finding that FAILED SITE1: it read as a household figure over a ~99% I&C book.
+    It may never return as a headline tile."""
+    kpis = _render(_live())["finance-kpis"]["innerHTML"]
+    for stale in ("Net margin / customer", "Revenue / customer"):
+        assert '<div class="kpi-l">{}</div>'.format(stale) not in kpis, (
+            "the blended '{}' tile is back as a headline".format(stale))
+
+
+def test_missing_segment_mix_publishes_no_per_customer_figure_at_all():
+    """FAIL-CLOSED (R15): with no segment mix, falling back to the blended figure is
+    precisely the defect, so ABSENCE is the safe state. The page must publish no
+    per-customer number rather than an unlabelled one."""
+    d = _live()
+    d["book_mix"] = {"available": False, "reason": "mutated for this test"}
+    kpis = _render(d)["finance-kpis"]["innerHTML"]
+    assert "the book's segment mix could not be read" in kpis, kpis
+    # No per-customer VALUE is published: the tile renders the null marker, and the
+    # bare blended label never reappears even on this degraded path.
+    head = kpis.split("Collection rate")[0]
+    assert '<div class="kpi-v neu">--</div>' in head, head
+    assert '<div class="kpi-l">Net margin / customer</div>' not in head, head
 
 
 def test_cost_to_serve_rendered_as_distribution_not_total_rc6_r11():
