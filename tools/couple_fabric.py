@@ -66,6 +66,7 @@ if str(PROJECT_DIR) not in sys.path:
 
 from background import fabric_gap_ledger as fgl  # noqa: E402
 from company.pricing import thermal_inference as ti  # noqa: E402
+from simulation import fabric_physics as fp  # noqa: E402
 from simulation import premise_trace as pt  # noqa: E402
 from simulation.household import (  # noqa: E402
     BoilerAge,
@@ -82,6 +83,16 @@ from simulation.household import (  # noqa: E402
 # window would produce refusals rather than a gap.
 WINDOW_START = dt.date(2022, 1, 1)
 WINDOW_END = dt.date(2022, 4, 30)
+
+# The weather SITE this panel is driven by, named ONCE so the archive it reads and
+# the solar geometry it reconstructs against cannot drift apart. Before 2026-08-03
+# they had: `load_weather()` read C1 (London, 51.51 N) while `generate_premise_trace`
+# was called without `latitude_deg` and silently fell back to `DEFAULT_LATITUDE_DEG`
+# (53.0 N, the UK population-weighted mean). Every gap number this tool has ever
+# written to the ledger was therefore computed with sunrise, solar noon and clear-sky
+# irradiance for a site ~1.5 degrees north of the weather driving it — the exact
+# averaging fault the module docstring claimed had been closed.
+SITE = "C1"
 AS_OF = dt.date(2022, 5, 1)
 
 # The default unit rate. DIAGNOSTIC input, not a company figure: the money
@@ -231,7 +242,7 @@ def load_weather():
     raise, never fall back to a synthetic series. A gap measured against invented
     weather would be a number with no meaning, reported as though it had one.
     """
-    return pt.load_trace_weather("C1", start=WINDOW_START, end=WINDOW_END)
+    return pt.load_trace_weather(SITE, start=WINDOW_START, end=WINDOW_END)
 
 
 def build_panel(weather, *, seed: int = 17, limit: int | None = None):
@@ -241,7 +252,11 @@ def build_panel(weather, *, seed: int = 17, limit: int | None = None):
     for premise_id, ptype, era, insulation, bedrooms, people, heating, cadence in specs:
         household = _household(premise_id, ptype, era, insulation, bedrooms, people, heating)
         trace = pt.generate_premise_trace(
-            premise_id=premise_id, household=household, weather=weather, seed=seed
+            premise_id=premise_id,
+            household=household,
+            weather=weather,
+            seed=seed,
+            latitude_deg=fp.latitude_for_weather_site(SITE),
         )
         commodity = "electricity" if heating == HeatingSystem.HEAT_PUMP_AIR else "gas"
         out.append((premise_id, household, trace, commodity, cadence))

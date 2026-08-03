@@ -1,0 +1,167 @@
+{
+  "window": {
+    "start": "2016-01-01",
+    "end": "2025-06-07"
+  },
+  "seed": 2016,
+  "envelope": {
+    "electricity": [
+      500.0,
+      15000.0
+    ],
+    "gas": [
+      1500.0,
+      40000.0
+    ]
+  },
+  "eligible": [
+    {
+      "customer_id": "C1",
+      "heating_commodity": "gas",
+      "segments": 10,
+      "fabric_annual_electricity_kwh": 1727.7,
+      "fabric_annual_gas_kwh": 3156.3,
+      "declared_annual_electricity_kwh": 2500.0,
+      "declared_annual_gas_kwh": 12000.0,
+      "inside_envelope_electricity": true,
+      "inside_envelope_gas": true,
+      "prebound_intensity_by_year": {
+        "2016": 0.05,
+        "2017": 0.05,
+        "2018": 0.05,
+        "2019": 0.05,
+        "2020": 0.05,
+        "2021": 0.05,
+        "2022": 0.05,
+        "2023": 0.05,
+        "2024": 0.05,
+        "2025": 0.05
+      },
+      "prebound_channel_is_fed": true,
+      "carries_half_hourly_texture": true,
+      "covers_the_window": true
+    },
+    {
+      "customer_id": "C2",
+      "heating_commodity": "gas",
+      "segments": 10,
+      "fabric_annual_electricity_kwh": 3446.6,
+      "fabric_annual_gas_kwh": 20600.8,
+      "declared_annual_electricity_kwh": 3500.0,
+      "declared_annual_gas_kwh": 15000.0,
+      "inside_envelope_electricity": true,
+      "inside_envelope_gas": true,
+      "prebound_intensity_by_year": {
+        "2016": 0.05,
+        "2017": 0.05,
+        "2018": 0.05,
+        "2019": 0.05,
+        "2020": 0.05,
+        "2021": 0.05,
+        "2022": 0.05,
+        "2023": 0.05,
+        "2024": 0.05,
+        "2025": 0.05
+      },
+      "prebound_channel_is_fed": true,
+      "carries_half_hourly_texture": true,
+      "covers_the_window": true
+    },
+    {
+      "customer_id": "C3",
+      "heating_commodity": "gas",
+      "segments": 11,
+      "fabric_annual_electricity_kwh": 2352.0,
+      "fabric_annual_gas_kwh": 8460.8,
+      "declared_annual_electricity_kwh": 3200.0,
+      "declared_annual_gas_kwh": 14000.0,
+      "inside_envelope_electricity": true,
+      "inside_envelope_gas": true,
+      "prebound_intensity_by_year": {
+        "2016": 0.05,
+        "2017": 0.05,
+        "2018": 0.05,
+        "2019": 0.05,
+        "2020": 0.05,
+        "2021": 0.05,
+        "2022": 0.05,
+        "2023": 0.8,
+        "2024": 0.8,
+        "2025": 0.8
+      },
+      "prebound_channel_is_fed": true,
+      "carries_half_hourly_texture": true,
+      "covers_the_window": true
+    },
+    {
+      "customer_id": "C4",
+      "heating_commodity": "gas",
+      "segments": 10,
+      "fabric_annual_electricity_kwh": 3526.8,
+      "fabric_annual_gas_kwh": 43338.1,
+      "declared_annual_electricity_kwh": 5500.0,
+      "declared_annual_gas_kwh": 22000.0,
+      "inside_envelope_electricity": true,
+      "inside_envelope_gas": false,
+      "prebound_intensity_by_year": {
+        "2016": 0.05,
+        "2017": 0.2385,
+        "2018": 0.1948,
+        "2019": 0.2149,
+        "2020": 0.2048,
+        "2021": 0.1778,
+        "2022": 0.2176,
+        "2023": 0.1698,
+        "2024": 0.1892,
+        "2025": 0.1882
+      },
+      "prebound_channel_is_fed": true,
+      "carries_half_hourly_texture": true,
+      "covers_the_window": true
+    }
+  ],
+  "excluded": [
+    {
+      "customer_id": "C5",
+      "reason": "non-domestic premise (PropertyType.COMMERCIAL_OFFICE)"
+    },
+    {
+      "customer_id": "C6",
+      "reason": "non-domestic premise (PropertyType.COMMERCIAL_WAREHOUSE)"
+    },
+    {
+      "customer_id": "C7",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C8",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C9",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C_IC1",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C_IC2",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C_IC3",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    },
+    {
+      "customer_id": "C_IC4",
+      "reason": "half-hourly metered: real reads outrank a generator"
+    }
+  ],
+  "envelope_breaches": [
+    "C4"
+  ],
+  "switch_is_clear": false,
+  "measured_at": "2026-08-03T15:55:27.904947+00:00",
+  "run_git_commit": "381b0f2c08d7317acadc09c3d2042b841e009d40"
+}

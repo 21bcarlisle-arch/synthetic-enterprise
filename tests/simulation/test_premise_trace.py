@@ -83,8 +83,7 @@ def weather() -> list[pt.TraceWeatherDay]:
 @pytest.fixture(scope="module")
 def trace(weather) -> pt.PremiseTrace:
     return pt.generate_premise_trace(
-        premise_id="P-base", household=make_household(), weather=weather, seed=42
-    )
+        premise_id="P-base", household=make_household(), weather=weather, seed=42, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
 
 
 # ---------------------------------------------------------------------------
@@ -134,8 +133,8 @@ def test_the_same_premise_and_seed_reproduce_the_trace_exactly(weather):
     kwargs = dict(
         premise_id="P-det", household=make_household(), weather=weather[:60], seed=11
     )
-    a = pt.generate_premise_trace(**kwargs)
-    b = pt.generate_premise_trace(**kwargs)
+    a = pt.generate_premise_trace(**kwargs, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    b = pt.generate_premise_trace(**kwargs, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert [list(d.electricity_kwh) for d in a.days] == [
         list(d.electricity_kwh) for d in b.days
     ]
@@ -146,11 +145,9 @@ def test_two_premises_differ_structurally_not_by_injected_noise(weather):
     """Diversity must come from the STRUCTURAL per-premise draw. Same fabric,
     same weather, different premise id -> different trace."""
     a = pt.generate_premise_trace(
-        premise_id="P-a", household=make_household("C1"), weather=weather[:60], seed=5
-    )
+        premise_id="P-a", household=make_household("C1"), weather=weather[:60], seed=5, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     b = pt.generate_premise_trace(
-        premise_id="P-b", household=make_household("C2"), weather=weather[:60], seed=5
-    )
+        premise_id="P-b", household=make_household("C2"), weather=weather[:60], seed=5, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert [list(d.electricity_kwh) for d in a.days] != [
         list(d.electricity_kwh) for d in b.days
     ]
@@ -184,12 +181,10 @@ def test_fabric_only_moves_level_and_character(weather):
     common = _pinned_layer_two(weather)
     leaky = pt.generate_premise_trace(
         household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     tight = pt.generate_premise_trace(
         household=make_household(insulation=InsulationLevel.FULL, build_era=BuildEra.POST_2000),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert pt.fabric_only_moves_level_and_character(leaky, tight)
 
 
@@ -199,12 +194,10 @@ def test_fabric_only_control_FIRES_when_fabric_leaks_into_behaviour(weather):
     common = _pinned_layer_two(weather)
     leaky = pt.generate_premise_trace(
         household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     tight = pt.generate_premise_trace(
         household=make_household(insulation=InsulationLevel.FULL, build_era=BuildEra.POST_2000),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     day = tight.days[0]
     mutated_day = dataclasses.replace(
         day,
@@ -218,8 +211,8 @@ def test_fabric_only_control_FIRES_when_fabric_does_not_move_the_level(weather):
     """R15 mutation: cloning one home is the 'archetype-and-perturb' defect."""
     common = _pinned_layer_two(weather)
     household = make_household()
-    a = pt.generate_premise_trace(household=household, **common)
-    b = pt.generate_premise_trace(household=household, **common)
+    a = pt.generate_premise_trace(household=household, **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    b = pt.generate_premise_trace(household=household, **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     # Identical fabric -> heat ratio 1.0 -> the fabric did no work.
     assert not pt.fabric_only_moves_level_and_character(a, b)
 
@@ -228,26 +221,24 @@ def test_behaviour_only_moves_timing_and_volume(weather):
     """Half two: hold the fabric fixed, vary Layer 2 -> only timing+volume move."""
     common = _pinned_layer_two(weather)
     household = make_household()
-    base = pt.generate_premise_trace(household=household, **common)
+    base = pt.generate_premise_trace(household=household, **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     shifted_behaviour = dataclasses.replace(
         common["behaviour"],
         wake_period=common["behaviour"].wake_period + 4,
         daytime_occupancy=min(0.95, common["behaviour"].daytime_occupancy + 0.4),
     )
     shifted = pt.generate_premise_trace(
-        household=household, **{**common, "behaviour": shifted_behaviour}
-    )
+        household=household, **{**common, "behaviour": shifted_behaviour}, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert pt.behaviour_only_moves_timing_and_volume(base, shifted)
 
 
 def test_behaviour_only_control_FIRES_when_behaviour_moves_the_fabric(weather):
     """R15 mutation: Layer 2 reaching inside the thermal model."""
     common = _pinned_layer_two(weather)
-    base = pt.generate_premise_trace(household=make_household(), **common)
+    base = pt.generate_premise_trace(household=make_household(), **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     other_fabric = pt.generate_premise_trace(
         household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert not pt.behaviour_only_moves_timing_and_volume(base, other_fabric)
 
 
@@ -256,8 +247,8 @@ def test_behaviour_only_control_FIRES_when_the_seam_is_dead(weather):
     orphan transition (R11), which is a defect and not a pass."""
     common = _pinned_layer_two(weather)
     household = make_household()
-    a = pt.generate_premise_trace(household=household, **common)
-    b = pt.generate_premise_trace(household=household, **common)
+    a = pt.generate_premise_trace(household=household, **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    b = pt.generate_premise_trace(household=household, **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert not pt.behaviour_only_moves_timing_and_volume(a, b)
 
 
@@ -357,8 +348,7 @@ def population(weather) -> dict[str, pt.PremiseTrace]:
                 f"C-{name}", insulation=ins, property_type=ptype, build_era=era
             ),
             weather=weather,
-            seed=200 + i,
-        )
+            seed=200 + i, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
         for i, (name, ins, ptype, era) in enumerate(POPULATION)
     }
 
@@ -415,8 +405,7 @@ def heat_pump_trace(weather) -> pt.PremiseTrace:
             "C-hp", heating_system=HeatingSystem.HEAT_PUMP_AIR, insulation=InsulationLevel.FULL
         ),
         weather=weather,
-        seed=77,
-    )
+        seed=77, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
 
 
 def test_a_heat_pump_premise_heats_with_electricity(heat_pump_trace):
@@ -504,13 +493,11 @@ def test_a_rationing_household_underheats_relative_to_its_own_comfort(weather):
     common = _pinned_layer_two(weather, premise_id="P-preb", seed=31)
     household = make_household()
     comfortable = pt.generate_premise_trace(
-        household=household, constraint=pt.ComfortConstraint.unconstrained(), **common
-    )
+        household=household, constraint=pt.ComfortConstraint.unconstrained(), **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     squeezed = pt.generate_premise_trace(
         household=household,
         constraint=pt.comfort_constraint_for(income_stress=IncomeStress.HIGH),
-        **common,
-    )
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
     assert squeezed.annual_kwh("gas") < comfortable.annual_kwh("gas")
 
 
@@ -522,8 +509,7 @@ def test_a_rationing_household_underheats_relative_to_its_own_comfort(weather):
 def test_empty_weather_raises_rather_than_producing_an_empty_trace():
     with pytest.raises(ValueError):
         pt.generate_premise_trace(
-            premise_id="P-empty", household=make_household(), weather=[], seed=1
-        )
+            premise_id="P-empty", household=make_household(), weather=[], seed=1, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
 
 
 def test_a_missing_weather_archive_raises():
@@ -539,8 +525,7 @@ def test_a_non_residential_premise_is_refused():
             premise_id="P-shed",
             household=make_household(property_type=PropertyType.COMMERCIAL_WAREHOUSE),
             weather=[],
-            seed=1,
-        )
+            seed=1, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
 
 
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
@@ -553,8 +538,7 @@ def test_non_finite_weather_is_rejected_first(bad, weather):
     )
     with pytest.raises(ValueError):
         pt.generate_premise_trace(
-            premise_id="P-nan", household=make_household(), weather=[poisoned], seed=1
-        )
+            premise_id="P-nan", household=make_household(), weather=[poisoned], seed=1, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
 
 
 def test_controls_refuse_a_population_too_small_to_judge():

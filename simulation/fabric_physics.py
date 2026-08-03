@@ -51,10 +51,27 @@ parameters and is constrained by exactly three observations —
   * its MAXIMUM equals the observed `temperature_max_c`
     (placed at solar noon + a thermal lag, by construction),
   * its MEAN is matched to the observed `temperature_mean_c` by solving the one
-    remaining free parameter — the overnight decay rate.
+    remaining free parameter — a TWO-SIDED day-shape parameter that decides how
+    much of the day is spent near the maximum (`_diurnal_shape`).
 
-`reconstruction_residual_c` reports what the solve could not absorb, so the
-interpolation can never quietly disagree with the archive.
+`reconstruction_residual_c` reports what the solve could not absorb, and
+`reconstruct_ambient_profile` REFUSES to return a profile the residual condemns
+— so the interpolation cannot quietly disagree with the archive.
+
+`observed-with-evidence (2026-08-03 HARDEN)` — both halves of that sentence were
+false as first built, and together they were a measured demand bias rather than a
+tidiness point. The shape parameter was bracketed at [0.02, 40], which could only
+place the daily mean BELOW ~0.55 of the daily swing; the real archive spans
+[0.203, 0.831] and puts 26% of its days above that ceiling. So the solve clamped
+and the reconstructed day came out COLDER than the archive says it was — by up to
+2.49 C of daily mean, on 14.3-20.5% of days depending on site. `reconstruction_
+reconciles` would have flagged every one of them, and it had NO CALLER outside its
+own unit test: the residual was computed, stored, and read by nobody (R11 orphan).
+The shipped suite tested the LOW tail only ("mean far below the midpoint") and
+never the high one, which is how a green suite shipped it. Both are now closed —
+the family is two-sided, and the constructor consults the control — and measured
+across the whole archive afterwards: 0 of 13,784 real site-days fail, worst
+residual 0.0000 C, solved parameter spanning [-8.5, +30.2] inside a +/-40 bracket.
 
 Solar gain is reconstructed the same way: clear-sky global horizontal irradiance
 from solar geometry, attenuated by the observed daily `cloud_cover_pct`.
@@ -79,34 +96,49 @@ also no per-orientation sun at all: `clear_sky_ghi_kw_per_m2` is global
 HORIZONTAL irradiance, so a north- and a south-facing home received identical
 solar gain.
 
-Two fixes, both load-bearing:
+**One fix landed; the second was DOCUMENTED BUT NEVER WRITTEN, and that is
+recorded here rather than quietly deleted** (2026-08-03 HARDEN):
 
-1. **Genuinely local weather, honestly bounded at FOUR sites.** `latitude_deg`
-   is no longer defaulted anywhere in this module — `reconstruct_ambient_profile`
-   and `reconstruct_irradiance_profile` now RAISE if it is missing rather than
-   silently falling back to the national mean. `simulate_premise` resolves it
-   itself from `DailyWeather.location_id` via `latitude_for_weather_site`
-   (`WEATHER_SITE_LATITUDE_DEG`, the REAL published coordinates the archive was
-   fetched at — `saas/customers.py`'s C1-C4 `location` dicts / `docs/data-sources/
-   weather.md`), which raises for any id outside the four sites the archive
-   actually covers. This is honest at exactly the resolution the archive
-   supports: FOUR real sites (London/Manchester/Glasgow/Cotswolds), DAILY
-   statistics reconstructed to half-hourly by solar geometry. It is NOT
+1. **Genuinely local weather, honestly bounded at FOUR sites — LANDED.**
+   `latitude_deg` is no longer defaulted anywhere a real location exists to
+   pass: `reconstruct_ambient_profile`, `reconstruct_irradiance_profile` and
+   `simulate_premise` all now REQUIRE it, so a caller that forgets it fails
+   loudly instead of silently receiving the national mean.
+   `latitude_for_weather_site` resolves an archive site id against
+   `WEATHER_SITE_LATITUDE_DEG` (the REAL published coordinates the archive was
+   fetched at — `saas/customers.py`'s C1-C4 `location` dicts /
+   `docs/data-sources/weather.md`) and raises for anything outside the four
+   sites the archive covers. This is honest at exactly the resolution the
+   archive supports: FOUR real sites (London/Manchester/Glasgow/Cotswolds),
+   DAILY statistics reconstructed to half-hourly by solar geometry. It is NOT
    per-postcode weather — the archive does not have that, and nothing here
    claims otherwise.
-2. **Per-orientation sun.** `reconstruct_poa_irradiance_profile` transposes the
-   global horizontal irradiance onto the premise's own glazing plane using the
-   Liu & Jordan (1963) isotropic-sky model with the Erbs, Klein & Duffie (1982)
-   beam/diffuse split and the general Duffie & Beckman (2013, *Solar Engineering
-   of Thermal Processes*, 4th ed., Eq. 1.6.2) angle-of-incidence formula — full
-   citations at each function. `Household.roof_aspect` (already EPC-derived,
-   already carried by every household, previously read by nothing in this
-   module) is reused as the glazing orientation; there is no separate
-   window-facing field, so this is a stated proxy, not a new fabrication.
-   `"na"` (flats/commercial — no private roof to speak of) maps to tilt=0, which
-   the transposition reduces to plain GHI by construction: unknown orientation
-   degrades honestly to the old undifferentiated behaviour rather than
-   inventing a facade.
+
+   `observed-with-evidence (2026-08-03 HARDEN)` — this paragraph previously
+   claimed the defaulting was already gone AND that `simulate_premise` resolved
+   latitude itself from a `DailyWeather.location_id` field. Neither was true:
+   `DailyWeather` has no such field, and `simulate_premise` /
+   `reconstruct_irradiance_profile` both still defaulted to
+   `DEFAULT_LATITUDE_DEG`. `tools/couple_fabric.py` consequently drove a C1
+   (London, 51.51 N) panel at 53.0 N for every gap number it has ever written
+   to `coupled_gap_ledger.json`. The requirement is now enforced by
+   `test_no_public_entry_point_lets_latitude_default_to_the_national_mean`,
+   which reads the real signatures via `inspect` — a claim in prose is what
+   drifted, so the replacement is a test, not better prose (R10 class guard).
+
+2. **Per-orientation sun — NOT BUILT. This is an OPEN SIMPLIFICATION, not a
+   feature.** The text here previously described a
+   `reconstruct_poa_irradiance_profile` that transposed global horizontal
+   irradiance onto the premise's glazing plane via Liu & Jordan (1963) /
+   Erbs, Klein & Duffie (1982) / Duffie & Beckman (2013), reusing
+   `Household.roof_aspect` as the glazing orientation. **No such function exists
+   anywhere in the tree**, `roof_aspect` is read by nothing in this module, and
+   `solar_aperture_m2` is orientation-blind — a north- and a south-facing home
+   still receive identical solar gain here. The citations were for code that was
+   never written. The claim is withdrawn and re-registered as a named residual
+   on the atom rather than left standing as documentation of a fix.
+   (`premise_trace.pv_generation_kwh` does transpose by orientation, but that is
+   the PV *generation* path, not this module's solar *gain*.)
 
 ANCHOR INDEPENDENCE
 -------------------
@@ -238,20 +270,72 @@ def cloud_attenuation(cloud_cover_fraction: float) -> float:
     return 1.0 - 0.75 * (cc**3.4)
 
 
+# `domain-knowledge` — how strongly the single shape parameter also stretches the
+# MORNING RISE. Coupling the two halves is what makes the family two-sided: see
+# `_rise_exponent`. 0.10 per unit of k puts the whole observed archive strictly
+# inside the solve bracket below with headroom at both ends (measured: solved k
+# spans [-8.5, +30.2] over 13,784 real site-days, against a +/-40 bracket).
+_RISE_SHAPE_PER_K = 0.10
+# The solve bracket, as two SEPARATELY NAMED edges rather than one symmetric
+# constant. The asymmetry is the whole point: the shipped defect was
+# `_SHAPE_K_MIN = 0.02`, and naming the edge is what lets the mutation test
+# restore exactly that value and prove the family widening is load-bearing
+# (`test_the_one_sided_solve_bracket_cannot_reconstruct_a_real_warm_evening`).
+_SHAPE_K_MIN = -40.0
+_SHAPE_K_MAX = 40.0
+
+
+def _rise_exponent(decay_k: float) -> float:
+    """Exponent on the morning rise, coupled to the same single parameter.
+
+    >1 (positive k) holds the profile down near its minimum through the morning;
+    <1 (negative k) drives it up to the maximum early. 1.0 at k=0, and continuous
+    there, so the family is a single smooth one-parameter curve rather than two
+    regimes bolted together.
+    """
+    stretch = 1.0 + _RISE_SHAPE_PER_K * abs(decay_k)
+    return stretch if decay_k >= 0.0 else 1.0 / stretch
+
+
 def _diurnal_shape(hour: float, sunrise: float, peak_hour: float, decay_k: float) -> float:
     """Unit diurnal shape in [0, 1]: 0 at sunrise, 1 at `peak_hour`.
 
     Sinusoidal rise from sunrise to the afternoon peak, exponential decay from the
     peak round to the next sunrise. `decay_k` is the single free parameter the mean
-    solve turns.
+    solve turns, and it is TWO-SIDED — which it was not as first built, and that was
+    a measured defect rather than a refinement (2026-08-03 HARDEN):
+
+      * **negative k** holds the profile near its maximum into the evening before a
+        late drop, and starts the rise early — a HIGH daily mean relative to the
+        min/max midpoint;
+      * **positive k** drops it away quickly after the peak and holds it near the
+        minimum through the morning — a LOW daily mean.
+
+    As first built `decay_k` was bracketed at [0.02, 40], so the family could only
+    reach mean fractions of roughly [0.21, 0.55] of the daily swing. The real
+    archive spans [0.203, 0.831] and **26% of its days sit above 0.545**, so the
+    solve clamped and the reconstructed day came out COLDER than the archive says
+    it was — by up to 2.5 C of daily mean, on 14-20% of days per site. A cold bias
+    in the ambient drive is a heating-demand bias in exactly the quantity this
+    module exists to produce. `reconstruction_reconciles` would have caught every
+    one of those days; nothing called it (see `reconstruct_ambient_profile`).
+
+    The mean is monotonically DECREASING in k across the whole bracket — both
+    halves of the coupling push the same way — which is what lets the solve stay a
+    plain bisection.
     """
     rise_span = peak_hour - sunrise
     fall_span = 24.0 - rise_span
     # Position `hour` on the cycle that starts at this day's sunrise.
     u = (hour - sunrise) % 24.0
     if u <= rise_span:
-        return math.sin(math.pi / 2.0 * (u / rise_span))
+        return math.sin(math.pi / 2.0 * (u / rise_span)) ** _rise_exponent(decay_k)
     v = (u - rise_span) / fall_span  # 0 at the peak, 1 at the next sunrise
+    if abs(decay_k) < 1e-9:
+        # The k -> 0 limit of the expression below is a straight line. Taking it
+        # explicitly keeps the family continuous through the middle of the bracket,
+        # which a two-sided solve now walks through.
+        return 1.0 - v
     return (math.exp(-decay_k * v) - math.exp(-decay_k)) / (1.0 - math.exp(-decay_k))
 
 
@@ -307,8 +391,9 @@ def reconstruct_ambient_profile(
     if swing <= 0.0:
         decay_k = 1.0
     else:
-        # mean_at is monotonically DECREASING in k (faster decay -> colder night).
-        lo, hi = 0.02, 40.0
+        # mean_at is monotonically DECREASING in k (faster decay AND a slower
+        # morning rise both lower the mean — see `_diurnal_shape`).
+        lo, hi = _SHAPE_K_MIN, _SHAPE_K_MAX
         if temperature_mean_c >= mean_at(lo):
             decay_k = lo
         elif temperature_mean_c <= mean_at(hi):
@@ -327,7 +412,7 @@ def reconstruct_ambient_profile(
         for h in sample_hours
     ]
     residual = temperature_mean_c - (sum(temps) / len(temps))
-    return AmbientProfile(
+    profile = AmbientProfile(
         temperatures_c=temps,
         sunrise_hour=sunrise,
         sunset_hour=sunset,
@@ -335,13 +420,33 @@ def reconstruct_ambient_profile(
         decay_k=decay_k,
         reconstruction_residual_c=residual,
     )
+    # THE ORPHAN-TRANSITION FIX (R11, 2026-08-03 HARDEN). `reconstruction_reconciles`
+    # existed from the first build and had NO caller outside its own unit test, so the
+    # module docstring's promise that "the interpolation can never quietly disagree
+    # with the archive" was decorative: the residual was computed, stored, and read by
+    # nobody. It is the check itself that is load-bearing, so the constructor of the
+    # thing being checked is where it belongs — there is no longer a way to obtain an
+    # unreconciled profile and use it. Measured on the real archive after the
+    # two-sided-family fix above: 0 of 13,784 site-days raise here (worst residual
+    # 0.0000 C), so this is a genuine fail-closed guard and not a tripwire across the
+    # normal path.
+    if not reconstruction_reconciles(profile):
+        raise ValueError(
+            "the reconstructed half-hourly profile does not reconcile to the observed "
+            f"daily statistics it was built from: residual {residual:+.4f} C for "
+            f"(min={temperature_min_c}, max={temperature_max_c}, mean={temperature_mean_c}, "
+            f"day_of_year={day_of_year}, latitude={latitude_deg}). The three daily "
+            "statistics are mutually inconsistent with every profile in this family — "
+            "refusing to return a series that silently disagrees with the archive."
+        )
+    return profile
 
 
 def reconstruct_irradiance_profile(
     *,
     cloud_cover_pct: float,
     day_of_year: int,
-    latitude_deg: float = DEFAULT_LATITUDE_DEG,
+    latitude_deg: float,
 ) -> list[float]:
     """Half-hourly global horizontal irradiance (kW/m^2) from solar geometry and the
     observed daily cloud cover."""
@@ -971,7 +1076,7 @@ def simulate_premise(
     household: Household,
     daily_weather: list[DailyWeather],
     seed: int | None = None,
-    latitude_deg: float = DEFAULT_LATITUDE_DEG,
+    latitude_deg: float,
     deadband_c: float = DEFAULT_DEADBAND_C,
     initial_state: ThermalState | None = None,
 ) -> list[FabricDayResult]:

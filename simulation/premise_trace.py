@@ -882,7 +882,7 @@ def pv_generation_kwh(
     *,
     irradiance_kw_per_m2: Sequence[float],
     day_of_year: int,
-    latitude_deg: float = DEFAULT_LATITUDE_DEG,
+    latitude_deg: float,
 ) -> list[float]:
     """PV output by ORIENTATION against the same reconstructed irradiance field
     the thermal model uses — one weather truth, two consumers."""
@@ -1077,6 +1077,11 @@ class PremiseTrace:
     constraint: ComfortConstraint
     source: HeatSource
     base_schedule: HeatingSchedule
+    final_state: ThermalState
+    """The thermal state at the END of the last day, so a caller that generates the
+    window in segments (a life event changes the household mid-window) can CHAIN
+    them. Without it every segment boundary would reset the walls to setback and
+    inject a fake heating spike the premise never had."""
 
     def daily(self, commodity: str) -> list[float]:
         if commodity == "gas":
@@ -1116,7 +1121,7 @@ def generate_premise_trace(
     behaviour: BehaviourProfile | None = None,
     constraint: ComfortConstraint | None = None,
     away_days: Iterable[dt.date] | None = None,
-    latitude_deg: float = DEFAULT_LATITUDE_DEG,
+    latitude_deg: float,
     deadband_c: float = DEFAULT_DEADBAND_C,
     initial_state: ThermalState | None = None,
     smart_charging_window: tuple[int, int] | None = None,
@@ -1320,6 +1325,7 @@ def generate_premise_trace(
         constraint=comfort,
         source=source,
         base_schedule=base_schedule,
+        final_state=state,
     )
 
 

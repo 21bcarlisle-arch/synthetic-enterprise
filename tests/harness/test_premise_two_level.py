@@ -51,6 +51,7 @@ import statistics
 import pytest
 
 from background import fabric_gap_ledger as fgl
+from simulation import fabric_physics as fp
 from simulation import premise_trace as pt
 from simulation.household import (
     BoilerAge,
@@ -137,7 +138,14 @@ def shipped(weather):
 def traces(weather):
     return [
         pt.generate_premise_trace(
-            premise_id=spec[0], household=_household(*spec), weather=weather, seed=7
+            premise_id=spec[0],
+            household=_household(*spec),
+            weather=weather,
+            seed=7,
+            # `latitude_deg` lost its default when the fabric build closed the
+            # fail-open of silently siting every premise at 53 degN. The panel is
+            # the C1 weather site, so it is sited there and nowhere else.
+            latitude_deg=fp.latitude_for_weather_site("C1"),
         )
         for spec in POPULATION
     ]

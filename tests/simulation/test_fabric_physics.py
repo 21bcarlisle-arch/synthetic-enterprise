@@ -11,9 +11,11 @@ archive it came from — each with the mutation that makes it FIRE (R15).
 from __future__ import annotations
 
 import math
+import re
 
 import pytest
 
+from simulation import fabric_physics
 from simulation.fabric_physics import (
     DEFAULT_LATITUDE_DEG,
     PERIODS_PER_DAY,
@@ -206,13 +208,13 @@ def test_daylight_hours_are_seasonal_and_symmetric_about_solar_noon():
 
 
 def test_irradiance_is_zero_overnight_and_attenuated_by_cloud():
-    clear = reconstruct_irradiance_profile(cloud_cover_pct=0.0, day_of_year=172)
-    overcast = reconstruct_irradiance_profile(cloud_cover_pct=100.0, day_of_year=172)
+    clear = reconstruct_irradiance_profile(cloud_cover_pct=0.0, day_of_year=172, latitude_deg=DEFAULT_LATITUDE_DEG)
+    overcast = reconstruct_irradiance_profile(cloud_cover_pct=100.0, day_of_year=172, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert clear[0] == 0.0 and clear[-1] == 0.0
     assert sum(overcast) < sum(clear)
     assert all(o <= c + 1e-12 for o, c in zip(overcast, clear))
     # Midwinter noon sun is far weaker than midsummer noon sun.
-    midwinter = reconstruct_irradiance_profile(cloud_cover_pct=0.0, day_of_year=355)
+    midwinter = reconstruct_irradiance_profile(cloud_cover_pct=0.0, day_of_year=355, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert max(midwinter) < max(clear)
 
 
@@ -344,8 +346,7 @@ def test_heat_pump_cop_falls_as_ambient_falls_and_stays_bounded():
 def test_a_premise_with_no_heating_system_delivers_no_heat():
     household = make_household(heating_system=HeatingSystem.NONE)
     results = simulate_premise(
-        premise_id="P-none", household=household, daily_weather=winter_week(), seed=3
-    )
+        premise_id="P-none", household=household, daily_weather=winter_week(), seed=3, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert sum(sum(day.heat_delivered_kwh) for day in results) == 0.0
     assert sum(sum(day.fuel_kwh) for day in results) == 0.0
 
@@ -404,8 +405,8 @@ def test_the_substream_is_isolated_from_the_global_random_state():
 def test_simulation_is_deterministic_across_repeat_runs():
     household = make_household()
     week = winter_week()
-    first = simulate_premise(premise_id="P-D", household=household, daily_weather=week, seed=7)
-    second = simulate_premise(premise_id="P-D", household=household, daily_weather=week, seed=7)
+    first = simulate_premise(premise_id="P-D", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
+    second = simulate_premise(premise_id="P-D", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert [d.heat_delivered_kwh for d in first] == [d.heat_delivered_kwh for d in second]
 
 
@@ -413,8 +414,7 @@ def test_indoor_temperature_is_held_near_the_setpoint_during_heated_periods():
     household = make_household()
     schedule = heating_schedule_for("P-T", household, seed=7)
     results = simulate_premise(
-        premise_id="P-T", household=household, daily_weather=winter_week(), seed=7
-    )
+        premise_id="P-T", household=household, daily_weather=winter_week(), seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     settled = results[-1]
     heated = [
         settled.indoor_air_c[p]
@@ -434,8 +434,7 @@ def test_the_deadband_produces_partial_and_varying_duty_cycles():
         premise_id="P-Duty",
         household=make_household(build_era=BuildEra.POST_2000, insulation=InsulationLevel.FULL),
         daily_weather=winter_week(),
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     duties = [d for day in results for d in day.duty_cycle_fraction]
     partial = [d for d in duties if 0.0 < d < 1.0]
     assert partial, "no partial duty cycle: the heat source is not cycling at all"
@@ -445,8 +444,7 @@ def test_the_deadband_produces_partial_and_varying_duty_cycles():
 def test_heat_delivery_is_not_a_rescaled_base_shape_L15():
     """The harness spec's L1.5 structural check, run against this generator."""
     results = simulate_premise(
-        premise_id="P-L15", household=make_household(), daily_weather=winter_week(), seed=7
-    )
+        premise_id="P-L15", household=make_household(), daily_weather=winter_week(), seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     series = [day.heat_delivered_kwh for day in results]
     assert texture_is_not_a_rescaled_shape(series)
 
@@ -521,8 +519,7 @@ def test_heavier_fabric_damps_the_indoor_swing_and_the_control_can_fire():
                 source=source,
                 ambient_profile=profile,
                 irradiance_kw_per_m2=reconstruct_irradiance_profile(
-                    cloud_cover_pct=day.cloud_cover_pct, day_of_year=day.day_of_year
-                ),
+                    cloud_cover_pct=day.cloud_cover_pct, day_of_year=day.day_of_year, latitude_deg=DEFAULT_LATITUDE_DEG),
                 initial_state=state,
             )
             out.append(result)
@@ -547,8 +544,8 @@ def test_two_identical_premises_differ_in_TIMING_without_injected_noise():
     out of per-period noise. Same fabric, same weather, different premise id."""
     household = make_household()
     week = winter_week()
-    a = simulate_premise(premise_id="P-A", household=household, daily_weather=week, seed=7)
-    b = simulate_premise(premise_id="P-B", household=household, daily_weather=week, seed=7)
+    a = simulate_premise(premise_id="P-A", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
+    b = simulate_premise(premise_id="P-B", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert a[-1].heat_delivered_kwh != b[-1].heat_delivered_kwh
     # ... and the difference is in WHEN, not merely a scale factor on the whole day.
     ratios = [
@@ -566,14 +563,12 @@ def test_annual_level_falls_as_fabric_improves():
         premise_id="P-Same",
         household=make_household(build_era=BuildEra.PRE_1919, insulation=InsulationLevel.POOR),
         daily_weather=week,
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     good = simulate_premise(
         premise_id="P-Same",
         household=make_household(build_era=BuildEra.POST_2000, insulation=InsulationLevel.FULL),
         daily_weather=week,
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert sum(sum(d.heat_delivered_kwh) for d in poor) > sum(
         sum(d.heat_delivered_kwh) for d in good
     )
@@ -593,11 +588,11 @@ def test_colder_weather_raises_delivered_heat():
     ]
     mild_heat = sum(
         sum(d.heat_delivered_kwh)
-        for d in simulate_premise(premise_id="P-W", household=household, daily_weather=mild, seed=7)
+        for d in simulate_premise(premise_id="P-W", household=household, daily_weather=mild, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     )
     cold_heat = sum(
         sum(d.heat_delivered_kwh)
-        for d in simulate_premise(premise_id="P-W", household=household, daily_weather=cold, seed=7)
+        for d in simulate_premise(premise_id="P-W", household=household, daily_weather=cold, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     )
     assert cold_heat > mild_heat
 
@@ -608,15 +603,13 @@ def test_thermal_state_chains_across_days():
     household = make_household(build_era=BuildEra.PRE_1919, insulation=InsulationLevel.POOR)
     week = winter_week()
     chained = simulate_premise(
-        premise_id="P-Chain", household=household, daily_weather=week, seed=7
-    )
+        premise_id="P-Chain", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     warm_start = simulate_premise(
         premise_id="P-Chain",
         household=household,
         daily_weather=week,
         seed=7,
-        initial_state=ThermalState(indoor_air_c=21.0, mass_c=21.0),
-    )
+        initial_state=ThermalState(indoor_air_c=21.0, mass_c=21.0), latitude_deg=DEFAULT_LATITUDE_DEG)
     assert chained[0].heat_delivered_kwh != warm_start[0].heat_delivered_kwh
     assert chained[0].end_state.mass_c != warm_start[0].end_state.mass_c
 
@@ -629,14 +622,12 @@ def test_a_heat_pump_runs_smoother_than_a_cycling_boiler():
         premise_id="P-HS",
         household=make_household(heating_system=HeatingSystem.GAS_BOILER_COMBI),
         daily_weather=week,
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     heat_pump = simulate_premise(
         premise_id="P-HS",
         household=make_household(heating_system=HeatingSystem.HEAT_PUMP_AIR),
         daily_weather=week,
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
 
     def saturated_share(results) -> float:
         duties = [d for day in results for d in day.duty_cycle_fraction]
@@ -658,8 +649,7 @@ def test_heat_pump_electricity_rises_super_linearly_as_ambient_falls():
             for i in range(5)
         ]
         runs = simulate_premise(
-            premise_id="P-HP", household=household, daily_weather=week, seed=7
-        )
+            premise_id="P-HP", household=household, daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
         return sum(sum(d.fuel_kwh) for d in runs[1:])  # drop the warm-up day
 
     warm, mid, cold = elec_at(8.0), elec_at(3.0), elec_at(-2.0)
@@ -669,14 +659,12 @@ def test_heat_pump_electricity_rises_super_linearly_as_ambient_falls():
 def test_fuel_exceeds_delivered_heat_for_a_boiler_and_is_below_it_for_a_heat_pump():
     week = winter_week()
     boiler = simulate_premise(
-        premise_id="P-F", household=make_household(), daily_weather=week, seed=7
-    )
+        premise_id="P-F", household=make_household(), daily_weather=week, seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     heat_pump = simulate_premise(
         premise_id="P-F",
         household=make_household(heating_system=HeatingSystem.HEAT_PUMP_AIR),
         daily_weather=week,
-        seed=7,
-    )
+        seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     boiler_heat = sum(sum(d.heat_delivered_kwh) for d in boiler)
     boiler_fuel = sum(sum(d.fuel_kwh) for d in boiler)
     hp_heat = sum(sum(d.heat_delivered_kwh) for d in heat_pump)
@@ -693,8 +681,7 @@ def test_delivered_heat_is_finite_and_non_negative_everywhere():
             premise_id=f"P-{era.value}",
             household=make_household(build_era=era),
             daily_weather=winter_week(),
-            seed=7,
-        )
+            seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
         for day in results:
             for value in day.heat_delivered_kwh + day.fuel_kwh + day.indoor_air_c:
                 assert math.isfinite(value)
@@ -704,8 +691,7 @@ def test_delivered_heat_is_finite_and_non_negative_everywhere():
 
 def test_every_day_returns_a_full_settlement_period_set():
     results = simulate_premise(
-        premise_id="P-Shape", household=make_household(), daily_weather=winter_week(), seed=7
-    )
+        premise_id="P-Shape", household=make_household(), daily_weather=winter_week(), seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
     assert len(results) == len(winter_week())
     for day in results:
         assert len(day.heat_delivered_kwh) == PERIODS_PER_DAY
@@ -727,8 +713,236 @@ def test_solar_gain_reduces_delivered_heat_on_a_clear_day():
 
     def heat(cloud_pct: float) -> float:
         runs = simulate_premise(
-            premise_id="P-Sun", household=household, daily_weather=week(cloud_pct), seed=7
-        )
+            premise_id="P-Sun", household=household, daily_weather=week(cloud_pct), seed=7, latitude_deg=DEFAULT_LATITUDE_DEG)
         return sum(sum(d.heat_delivered_kwh) for d in runs)
 
     assert heat(100.0) > heat(0.0)
+
+
+# ---------------------------------------------------------------------------
+# HARDEN 2026-08-03 — the sub-daily reconstruction was COLD-BIASED on 1 day in 6,
+# and the control that would have caught it had no caller.
+#
+# The shipped family bracketed the shape parameter at [0.02, 40], which is
+# ONE-SIDED: it could only place the daily mean BELOW roughly 0.55 of the daily
+# swing. The real archive puts 26% of its days above that, so the solve clamped
+# and the reconstructed day came out colder than the archive says it was — a
+# heating-demand bias in exactly the series this module exists to produce.
+#
+# The shipped test suite tested the low tail only ("mean far below the midpoint")
+# and never the high tail, which is why a green suite shipped it. Every test below
+# either drives the HIGH tail or restores the shipped defect and proves it fires.
+# ---------------------------------------------------------------------------
+
+# Real rows from the Historical Ground Truth archive (`sim/weather_data/*.csv`),
+# the four most extreme mean-fractions it contains. Named with their real dates so
+# the anchor is checkable, not invented.
+_REAL_HIGH_MEAN_DAYS = [
+    # (site, date, day_of_year, latitude, t_min, t_max, t_mean, mean_fraction)
+    ("C3", "2018-10-20", 293, 55.8642, 5.2, 14.1, 12.6, 0.831),
+    ("C1", "2017-09-21", 264, 51.5074, 11.4, 18.2, 16.9, 0.809),
+    ("C4", "2017-12-25", 359, 51.8330, 2.4, 9.8, 8.4, 0.811),
+    ("C2", "2017-05-17", 137, 53.4808, 8.9, 13.8, 12.8, 0.796),
+]
+
+# The lowest mean-fraction the archive contains — the OTHER tail, which the
+# coupled rise exponent is what reaches.
+_REAL_LOW_MEAN_DAY = ("C2", "2018-12-15", 349, 53.4808, 1.0, 7.9, 2.4, 0.203)
+
+
+def _residual_from(error: ValueError) -> float:
+    """Pull the reported reconstruction residual back out of the refusal message, so a
+    mutation test can assert HOW WRONG the reconstruction went and not merely that
+    something raised. A bare `pytest.raises` would go green on any unrelated error."""
+    found = re.search(r"residual ([+-][0-9.]+) C", str(error))
+    assert found, f"the refusal must report its residual; got: {error}"
+    return abs(float(found.group(1)))
+
+
+@pytest.mark.parametrize("site,date,doy,lat,t_min,t_max,t_mean,frac", _REAL_HIGH_MEAN_DAYS)
+def test_a_real_warm_evening_day_reconstructs_to_its_own_archive_mean(
+    site, date, doy, lat, t_min, t_max, t_mean, frac
+):
+    """The high tail the shipped suite never tested. These are real archive rows:
+    a day that stayed warm into the evening and dropped late sits well above the
+    min/max midpoint, and the reconstruction must land on the mean the archive
+    actually recorded — not 2 C below it."""
+    profile = reconstruct_ambient_profile(
+        temperature_min_c=t_min, temperature_max_c=t_max, temperature_mean_c=t_mean,
+        day_of_year=doy, latitude_deg=lat,
+    )
+    reconstructed_mean = sum(profile.temperatures_c) / PERIODS_PER_DAY
+    assert reconstructed_mean == pytest.approx(t_mean, abs=0.05)
+    assert reconstruction_reconciles(profile)
+    # A high mean is reached by the NEGATIVE half of the bracket. If this ever
+    # comes back non-negative the family has silently changed shape.
+    assert profile.decay_k < 0.0
+
+
+def test_the_one_sided_solve_bracket_cannot_reconstruct_a_real_warm_evening(monkeypatch):
+    """R15 MUTATION — restore the SHIPPED DEFECT (`_SHAPE_K_MIN = 0.02`) and the
+    real archive day above stops reconstructing. This is what proves the two-sided
+    family is load-bearing rather than a refinement: with the one-sided bracket the
+    solve clamps and the profile disagrees with the archive it was built from."""
+    site, date, doy, lat, t_min, t_max, t_mean, frac = _REAL_HIGH_MEAN_DAYS[0]
+    monkeypatch.setattr(fabric_physics, "_SHAPE_K_MIN", 0.02)
+    with pytest.raises(ValueError, match="does not reconcile") as caught:
+        reconstruct_ambient_profile(
+            temperature_min_c=t_min, temperature_max_c=t_max, temperature_mean_c=t_mean,
+            day_of_year=doy, latitude_deg=lat,
+        )
+    # Assert the MAGNITUDE, not merely that something raised: the shipped defect was
+    # a multi-degree cold bias, so a test that only checks "it raised" would go green
+    # on any unrelated failure. `2018-10-20` at C3 came out 2.49 C too cold.
+    assert _residual_from(caught.value) > 2.0
+
+
+def test_the_coupled_rise_exponent_is_load_bearing_at_both_tails(monkeypatch):
+    """R15 MUTATION — flatten `_rise_exponent` to the constant 1.0 (i.e. keep the
+    two-sided decay but drop the coupling) and the archive's most EXTREME days stop
+    reconstructing. The decay half alone does not span the observed range."""
+    monkeypatch.setattr(fabric_physics, "_RISE_SHAPE_PER_K", 0.0)
+    site, date, doy, lat, t_min, t_max, t_mean, frac = _REAL_LOW_MEAN_DAY
+    with pytest.raises(ValueError, match="does not reconcile") as caught:
+        reconstruct_ambient_profile(
+            temperature_min_c=t_min, temperature_max_c=t_max, temperature_mean_c=t_mean,
+            day_of_year=doy, latitude_deg=lat,
+        )
+    assert _residual_from(caught.value) > 0.05
+
+
+def test_the_real_archive_low_tail_also_reconstructs():
+    """The other end of the same fix — a day that stayed cold until a late spike."""
+    site, date, doy, lat, t_min, t_max, t_mean, frac = _REAL_LOW_MEAN_DAY
+    profile = reconstruct_ambient_profile(
+        temperature_min_c=t_min, temperature_max_c=t_max, temperature_mean_c=t_mean,
+        day_of_year=doy, latitude_deg=lat,
+    )
+    assert sum(profile.temperatures_c) / PERIODS_PER_DAY == pytest.approx(t_mean, abs=0.05)
+    assert profile.decay_k > 0.0
+
+
+def test_the_mean_solve_is_monotone_across_the_whole_bracket():
+    """The bisection's UNSTATED PRECONDITION, asserted. `reconstruct_ambient_profile`
+    solves by bisection, which is only correct if the reconstructed mean is monotone
+    in the shape parameter. The coupling added at HARDEN moves BOTH halves the same
+    way; if a later change breaks that, the solve silently returns a wrong root
+    rather than failing, so the property is pinned here and not left implicit."""
+    hours = [(p + 0.5) * 0.5 for p in range(PERIODS_PER_DAY)]
+    # (sunrise, peak, required floor) — the floor the family must reach is SEASONAL,
+    # because the archive's own extremes are: its lowest mean-fraction (0.203) is a
+    # MIDWINTER day and its highest (0.831) is autumn. A short winter day spends most
+    # of its length in the decay half, so it can reach much lower than a midsummer
+    # day, and demanding one flat floor of all three would be a made-up requirement.
+    for sunrise, peak, floor in ((8.06, 15.97, 0.19), (6.0, 16.0, 0.19), (4.0, 18.0, 0.25)):
+        ks = [fabric_physics._SHAPE_K_MIN + i * 0.5 for i in range(161)]
+        means = [
+            sum(fabric_physics._diurnal_shape(h, sunrise, peak, k) for h in hours) / PERIODS_PER_DAY
+            for k in ks
+        ]
+        assert all(a > b for a, b in zip(means, means[1:])), (
+            f"mean is not strictly decreasing in k for sunrise={sunrise}, peak={peak}"
+        )
+        # And the family must SPAN the range the real archive demands, with headroom,
+        # or the bracket is tuned to the data rather than chosen.
+        assert means[-1] < floor and means[0] > 0.85
+
+
+def test_the_shape_family_is_continuous_through_k_equals_zero():
+    """k=0 is the linear-decay limit and the two-sided solve now walks through it.
+    A discontinuity there would break the bisection."""
+    hours = [(p + 0.5) * 0.5 for p in range(PERIODS_PER_DAY)]
+    for h in hours:
+        below = fabric_physics._diurnal_shape(h, 8.0, 16.0, -1e-7)
+        at = fabric_physics._diurnal_shape(h, 8.0, 16.0, 0.0)
+        above = fabric_physics._diurnal_shape(h, 8.0, 16.0, 1e-7)
+        assert below == pytest.approx(at, abs=1e-6)
+        assert above == pytest.approx(at, abs=1e-6)
+
+
+def test_the_whole_real_weather_archive_reconstructs_without_a_cold_bias():
+    """POPULATION-LEVEL, on Historical Ground Truth rather than a fixture — this is
+    the check that would have caught the shipped defect, and it is the one the suite
+    did not have. Every sampled real site-day must reconcile, and the residuals must
+    show NO SYSTEMATIC SIGN: the defect was a one-sided clamp, so a mean residual
+    pinned at zero is what distinguishes a fixed family from a lucky sample."""
+    import csv
+    import datetime as dt
+    from pathlib import Path
+
+    residuals: list[float] = []
+    for site in ("C1", "C2", "C3", "C4"):
+        path = Path("sim/weather_data") / f"{site}.csv"
+        if not path.exists():                       # FAIL-OPEN guard: a missing
+            raise AssertionError(                   # archive must FAIL, never pass
+                f"the real weather archive {path} is missing — this control cannot "
+                "pass vacuously"
+            )
+        latitude = fabric_physics.latitude_for_weather_site(site)
+        rows = list(csv.DictReader(path.open()))
+        for row in rows[::11]:                      # every 11th day, ~1,250 days
+            day = dt.date.fromisoformat(row["date"])
+            profile = reconstruct_ambient_profile(
+                temperature_min_c=float(row["temperature_min_c"]),
+                temperature_max_c=float(row["temperature_max_c"]),
+                temperature_mean_c=float(row["temperature_mean_c"]),
+                day_of_year=day.timetuple().tm_yday,
+                latitude_deg=latitude,
+            )
+            residuals.append(profile.reconstruction_residual_c)
+
+    assert len(residuals) > 1000, "sampled too few real days to be a population check"
+    assert max(abs(r) for r in residuals) <= 0.05
+    assert abs(sum(residuals) / len(residuals)) < 1e-3
+
+
+def test_reconstruct_ambient_profile_actually_CONSULTS_its_reconciliation_control(monkeypatch):
+    """R15 MUTATION on the ORPHAN FIX (R11). `reconstruction_reconciles` shipped with
+    no caller outside its own unit test: the residual was computed, stored and read by
+    nobody, so the docstring's promise that the interpolation 'can never quietly
+    disagree with the archive' was decorative.
+
+    Force the control to refuse and a PERFECTLY ORDINARY day must now raise. If the
+    call were removed from the constructor this test goes green-to-red, which is
+    precisely what an orphan control cannot do."""
+    monkeypatch.setattr(fabric_physics, "reconstruction_reconciles", lambda *a, **k: False)
+    with pytest.raises(ValueError, match="does not reconcile"):
+        reconstruct_ambient_profile(
+            temperature_min_c=1.2, temperature_max_c=8.4, temperature_mean_c=4.3,
+            day_of_year=20, latitude_deg=DEFAULT_LATITUDE_DEG,
+        )
+
+
+def test_no_public_entry_point_lets_latitude_default_to_the_national_mean():
+    """R10 CLASS GUARD, not an instance fix.
+
+    `DEFAULT_LATITUDE_DEG` is a legitimate INPUT for genuinely national/aggregate
+    work, and a defect the moment it is a silent FALLBACK. The module docstring has
+    claimed since the first build that `latitude_deg` "is no longer defaulted
+    anywhere in this module" — and it was still defaulted on `simulate_premise` and
+    `reconstruct_irradiance_profile`, the two entry points a caller actually reaches
+    for. `tools/couple_fabric.py` duly drove a C1 (London, 51.51 N) panel at 53.0 N
+    for every gap number it ever wrote.
+
+    Naming the entry points here is what stops the claim drifting from the code
+    again: a new default on any of them fails this test rather than a docstring.
+    """
+    import inspect
+
+    from simulation import premise_trace
+
+    guarded = [
+        (fabric_physics, "reconstruct_ambient_profile"),
+        (fabric_physics, "reconstruct_irradiance_profile"),
+        (fabric_physics, "simulate_premise"),
+        (premise_trace, "generate_premise_trace"),
+        (premise_trace, "pv_generation_kwh"),
+    ]
+    for module, name in guarded:
+        function = getattr(module, name)   # AttributeError here = a renamed entry
+        parameter = inspect.signature(function).parameters["latitude_deg"]
+        assert parameter.default is inspect.Parameter.empty, (
+            f"{module.__name__}.{name} lets latitude_deg default to "
+            f"{parameter.default!r} — a caller that forgets it silently gets the "
+            "national mean instead of its own site's solar geometry"
+        )
