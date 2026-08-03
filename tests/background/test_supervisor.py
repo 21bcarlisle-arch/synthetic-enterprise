@@ -636,25 +636,47 @@ def _forks_in(draw):
     return [x for x in _ALL12 if x in draw]
 
 
-def test_self_refill_draw_bounds_fan_out_to_three_not_twelve(monkeypatch):
+def test_self_refill_draw_bounds_fan_out_to_the_ceiling_not_twelve(monkeypatch):
     """A cycle that could raw-draw 12 forks (3 BUILD + 3 SITE + 6 DISCOVERY) is CAPPED to
-    MAX_CONCURRENT_FORKS (3), BUILD-priority -- no 12-fork blooms. MUTATION: lift the ceiling and
-    the same cycle blooms back to 12, proving the cap is what bounds it (not the draw itself)."""
+    MAX_CONCURRENT_FORKS, BUILD-priority -- no 12-fork blooms. The ceiling is a BUDGET DIAL (narrowed
+    3 -> 1 on 2026-08-03); this test owns the capping MECHANISM, so it PINS the dial at 3 rather than
+    reading it, and stays meaningful wherever the live dial sits. MUTATION: lift the ceiling and the
+    same cycle blooms back to 12, proving the cap is what bounds it (not the draw itself)."""
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     _stub_lanes(monkeypatch, 3, 3, 6)
     draw = supervisor._self_refill_draw()
     forks = _forks_in(draw)
-    assert len(forks) == supervisor.MAX_CONCURRENT_FORKS == 3, f"expected <=3, got {len(forks)}: {forks}"
-    assert set(forks) == {"B0", "B1", "B2"}                 # BUILD fills the whole budget (priority)
-    assert "<=3 concurrent Agent forks" in draw              # doorbell STATES the ceiling
+    assert len(forks) == 3, f"expected <=3, got {len(forks)}: {forks}"
+    assert set(forks) == {"B0", "B1", "B2"}                  # BUILD fills the whole budget (priority)
+    assert "<=3 concurrent Agent forks" in draw              # doorbell STATES the live ceiling
     assert "merge its branch to main" in draw                # ...and the merge-or-reap lifecycle
 
     monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 99)   # mutation: neuter the ceiling
     assert len(_forks_in(supervisor._self_refill_draw())) == 12   # -> the 12-fork bloom returns
 
 
+def test_live_fork_ceiling_is_serial_and_takes_the_single_atom_fast_path(monkeypatch):
+    """THE BUDGET DIAL ITSELF (director console, 2026-08-03, "fewer forks, only where genuinely
+    parallel"). Guards the SHIPPED value, which the mechanism tests above deliberately pin away:
+    at the live ceiling a 12-fork-eligible cycle grants exactly ONE atom, and the message is the
+    plain single-atom fast path -- no THREE-LANE fan-out preamble, no per-atom fork instruction.
+    If someone widens the dial back to >1 without a director decision, this fails."""
+    assert supervisor.MAX_CONCURRENT_FORKS == 1, "fork fan-out is serial by director decision"
+    _stub_lanes(monkeypatch, 3, 3, 6)
+    draw = supervisor._self_refill_draw()
+    assert _forks_in(draw) == ["B0"]                          # 12 eligible -> 1 granted
+    assert "THREE-LANE" not in draw and "CONCURRENT" not in draw
+    assert "one Agent fork per atom" not in draw
+
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 99)   # mutation: neuter the ceiling
+    assert len(_forks_in(supervisor._self_refill_draw())) == 12   # -> the 12-fork bloom returns
+
+
 def test_self_refill_draw_cap_fills_across_lanes_by_priority(monkeypatch):
-    """With a small BUILD lane the budget fills SITE then DISCOVERY -- still <=3 total, and the
-    lowest-priority lane (DISCOVERY) is trimmed first."""
+    """With a small BUILD lane the budget fills SITE then DISCOVERY -- still <=cap total, and the
+    lowest-priority lane (DISCOVERY) is trimmed first. Pins the dial at 3 (see the mechanism note
+    above): lane PRIORITY ORDER is only observable when the budget spans more than one lane."""
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     _stub_lanes(monkeypatch, 1, 3, 6)
     draw = supervisor._self_refill_draw()
     forks = _forks_in(draw)
@@ -1037,6 +1059,9 @@ def test_self_refill_draw_single_atom_message_unchanged():
 
 
 def test_self_refill_draw_reports_concurrent_grant_and_logs_it(monkeypatch):
+    # Owns the CONCURRENT-GRANT MESSAGE SHAPE, which only exists above a serial ceiling, so it pins
+    # the budget dial at 3 (live value is 1 since 2026-08-03 -- see the fan-out ceiling tests).
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     logged = []
     monkeypatch.setattr(supervisor, "log", lambda msg: logged.append(msg))
     supervisor.MATURITY_MAP_PATH.write_text(_TWO_DISJOINT_ATOMS_YAML)
@@ -1160,7 +1185,9 @@ def test_site_lane_excludes_build_in_progress_atom(tmp_path, monkeypatch):
 def test_self_refill_draws_all_three_lanes_even_when_build_is_non_empty(monkeypatch):
     """THE regression: with a non-empty BUILD lane, SITE and DISCOVERY MUST
     still draw in the same cycle -- the old cascade returned on BUILD and left
-    both idle. One grant message carries all three clearly-labelled sections."""
+    both idle. One grant message carries all three clearly-labelled sections.
+    Pins the budget dial at 3 -- a three-lane message needs a budget of at least three."""
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     logged = []
     monkeypatch.setattr(supervisor, "log", lambda msg: logged.append(msg))
     supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
@@ -1175,10 +1202,12 @@ def test_self_refill_draws_all_three_lanes_even_when_build_is_non_empty(monkeypa
     assert any("BUILD=1, SITE=1, DISCOVERY=1" in m for m in logged)
 
 
-def test_self_refill_dedups_site_atom_out_of_discovery_lane():
+def test_self_refill_dedups_site_atom_out_of_discovery_lane(monkeypatch):
     """De-dup: BUILD wins over SITE wins over DISCOVERY. A site-scoped idle
     atom is a SITE atom, so it appears in the SITE section, never also in the
-    DISCOVERY section (which draws idle atoms)."""
+    DISCOVERY section (which draws idle atoms). Pins the dial at 3 -- de-dup
+    ACROSS lane sections is only observable when the budget spans lanes."""
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
     reason = supervisor._self_refill_draw()
     # SITE_ATOM_IDLE appears exactly once (in the SITE section).
@@ -1199,9 +1228,11 @@ def test_self_refill_dedups_site_scoped_build_atom_into_build_lane():
     assert reason.count("SITE_BUILD") == 1
 
 
-def test_self_refill_site_and_discovery_draw_when_build_is_empty():
+def test_self_refill_site_and_discovery_draw_when_build_is_empty(monkeypatch):
     """No BUILD candidate at all, but a SITE atom and a DISCOVERY atom exist
-    -- both must still draw (a gated/empty BUILD lane never idles the others)."""
+    -- both must still draw (a gated/empty BUILD lane never idles the others).
+    Pins the dial at 3: 'both lanes draw' needs a budget of at least two."""
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
     supervisor.MATURITY_MAP_PATH.write_text(
         "- id: SITE_ONLY\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
         "  level_current: 0\n  level_target: 2\n  file_scope: [\"site\"]\n"
@@ -2654,21 +2685,36 @@ def test_lawb_held_build_lane_leaves_siblings_drawable(monkeypatch):
     the real draw returns the sibling work, NOT rest -- a block in one lane never suppresses the
     others. R15 MUTATION (failure #2): the global-gate variant that reads the lead lane to decide
     the whole draw returns None (the false global rest the ruling forbids), proving the isolation
-    the real draw provides is genuine and not incidental."""
+    the real draw provides is genuine and not incidental.
+
+    LAW B is about ISOLATION (a held lane must not zero the draw), NOT about width -- so the
+    invariant is asserted at the LIVE ceiling, where the budget admits only the highest-priority
+    surviving sibling. The separate width case is pinned at 3 below."""
     _stub_lanes(monkeypatch, 0, 2, 3)               # BUILD held empty; siblings have work
     draw = supervisor._self_refill_draw()
     assert draw is not None                          # a held lead lane does NOT zero the draw
-    assert "S0" in draw and "D0" in draw             # SITE + DISCOVERY drawn despite the BUILD block
+    assert _forks_in(draw)                           # ...and real sibling work is actually granted
+    assert "S0" in draw                              # SITE (next by priority) draws despite the block
     assert _global_gated_draw() is None              # ...but the GLOBAL-gate mutation falsely rests
+
+    # WIDTH case: given budget for more than one, the held lane's siblings BOTH draw in one cycle.
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
+    wide = supervisor._self_refill_draw()
+    assert "S0" in wide and "D0" in wide              # SITE + DISCOVERY together despite BUILD held
 
 
 def test_lawb_held_site_lane_leaves_siblings_drawable(monkeypatch):
     """Symmetric direction: a held SITE cluster leaves BUILD+DISCOVERY fully drawable -- isolation
-    holds whichever single lane is the one blocked, not just the lead lane."""
+    holds whichever single lane is the one blocked, not just the lead lane. Same split as above:
+    isolation at the live ceiling, simultaneity pinned at a widened one."""
     _stub_lanes(monkeypatch, 2, 0, 3)               # SITE held empty; siblings have work
     draw = supervisor._self_refill_draw()
     assert draw is not None
-    assert "B0" in draw and "D0" in draw             # BUILD + DISCOVERY drawn despite the SITE block
+    assert "B0" in draw                              # BUILD (top priority) draws despite the block
+
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 3)
+    wide = supervisor._self_refill_draw()
+    assert "B0" in wide and "D0" in wide              # BUILD + DISCOVERY together despite SITE held
 
 
 def test_lawb_held_lane_does_not_ground_rest(monkeypatch):

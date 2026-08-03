@@ -192,7 +192,11 @@ ATOM_STALL_THRESHOLD = 2  # consecutive same-fingerprint draws before deprioriti
 # its own tree_lock acquisition (the exact discipline every single-atom
 # FRAME pass this session already used) -- stated explicitly in the granted
 # message, not assumed understood.
-IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 6
+# NARROWED 6 -> 2 (director console, 2026-08-03, budget cut): DISCOVER/FRAME forks write no
+# production code, but they carry the same per-turn context cost as a BUILD fork. Width 6 was the
+# largest single contributor to the 12-fork raw draw. It stays >1 because this is the always-drawable
+# idle lane and it must never be the reason the tick rests (R17).
+IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 2
 
 # BOUNDED FAN-OUT (director P0, 2026-07-17): a HARD CEILING on the TOTAL concurrent Agent forks a
 # single doorbell may instruct, across all three lanes combined. The per-lane widths above are now
@@ -200,7 +204,16 @@ IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 6
 # DISCOVERY = up to ~12 forks ("the wreckage"); bounded to 3 disjoint forks it is recoverable
 # ("3 misbehaving forks I can reason about"). The ceiling widens later ONLY by a deliberate
 # director decision once bounded-parallel is proven boring -- a dial earned through trust, not before.
-MAX_CONCURRENT_FORKS = 3
+#
+# NARROWED 3 -> 1 (director console, 2026-08-03, "18% of my weekly budget in under 10 hours ...
+# fewer forks, only where genuinely parallel"): fan-out was measured as the dominant token line --
+# 54 Agent spawns produced 5,479 of the day's 9,653 API calls and 655M of 1.23B cache-read tokens,
+# because every fork turn re-reads a full context copy. One of that day's three Item E forks
+# (sim/weather_weighting.py) also died leaving NO artefact on any branch, so the fan-out was buying
+# orphan risk as well as tokens. Default is now SERIAL. A second fork is justified only by a
+# genuinely disjoint file_scope on work large enough to outweigh a whole extra context stream --
+# raise this deliberately for such a draw, do not leave it raised.
+MAX_CONCURRENT_FORKS = 1
 
 # THREE_LANES.md (2026-07-13, director-decided, "mechanise the three-lane
 # draw so the supervisor draws SITE and DISCOVERY every cycle regardless of
@@ -209,7 +222,9 @@ MAX_CONCURRENT_FORKS = 3
 # of loop_stage. `site/**` shares no path with `sim/**`/`company/**`, so like
 # the idle/DISCOVER-FRAME tier it needs no cross-atom disjointness scan; a
 # modest width cap keeps a single grant readable while still fanning out.
-SITE_LANE_CONCURRENT_WIDTH = 3
+# NARROWED 3 -> 1 (director console, 2026-08-03, budget cut): the SITE lane stays permanently
+# parallel to BUILD (THREE_LANES.md) -- that is untouched. Only its WIDTH drops to serial.
+SITE_LANE_CONCURRENT_WIDTH = 1
 
 # R3_WORK_GRANTING_REDESIGN.md requirement 1+4 (2026-07-12, P0, 9th idle
 # variant): "nothing to do" must be an impossible terminal state while the
