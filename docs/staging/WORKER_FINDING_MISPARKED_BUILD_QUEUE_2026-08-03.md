@@ -94,3 +94,70 @@ Deliberately NOT archived this tick: the three concurrent BUILD forks (W1_6b, DD
    converts invisible designed work into drawable work (the R17 consumed-≠-absorbed stall class).
 4. Reconcile `gap1_reader_contract_failopen_fix`: it has a `gate_authorizations.jsonl` record but was
    filed as an unbuilt BUILD half. One of the two is wrong.
+
+## DISPOSITION COMPLETE (later tick, 2026-08-03) — all 18 flagged items closed, none bulk-archived
+
+Item 3 above ("rank the Class B BUILD halves into the normal draw") was the named top residual. It is now
+**done**, and item 4 is **resolved by verification**. Every one of the 18 flagged files was dispositioned
+individually. Final split — **11 minted / 6 verified-built / 1 closed NO-BUILD**:
+
+### 11 minted as real map atoms (`docs/design/maturity_map.yaml`, 167 → 178 atoms)
+`SP2_1_working_day_calculator`, `SP2_2_rng_substream_primitive`, `SP3_size_and_clone_ratchet`,
+`SP4_owned_quantity_registry_gate`, `SP5_shared_primitive_ensuring_activity`,
+`W3_1b_intra_year_price_cap_granularity`, `W2_payment_channel_dd_consistency_invariant`,
+`C_supply_start_semantic_separation`, `D_money_boundary_reconciliation`,
+`H_stop_control_gap_characterisation`, `SITE_director_window_delta_view`.
+
+Each carries `blocked_on: null` (the `director_build_open` park is abolished), its own `file_scope`, the
+exit criteria from its mint doc, and its R15 both-ways obligation written into `simplifications:` rather
+than left in a staged file no draw reads. They now compete as BUILD work. `D_money_boundary_reconciliation`
+is deliberately a **new** id, not a re-mint of `money_representation_evidence` — that atom was DISCOVER-only
+and its DISCOVER is closed; what is registered is the BUILD half its own recommendation named (the 37.0% of
+bills whose rounded line items do not sum to the printed total), with the float→Decimal core migration
+kept separate on its merits.
+
+Six of the eleven are `close_to_learn` and were each classified **individually**, with reasons, into
+`tests/design/test_maturity_map_facets.py::REVIEWED_CLOSE_TO_LEARN` — the other five went to
+`meter_to_cash` / `price_to_bill`, because "everything I just added is close_to_learn" is exactly the
+unreviewed default that list exists to catch. 19/19 facet tests pass.
+
+### 6 verified BUILT → archived to `done/`
+The four from the correction above, plus `ruling_consumption_ledger_release`, plus
+**`gap1_reader_contract_failopen_fix` — which resolves item 4**. Its two `gate_authorizations.jsonl`
+entries are `BUILD_OPEN` grants (a now-abolished *permission* act), **not** level records, so there was
+never a contradiction to reconcile. The only `LEVEL_UP_SELF_CERTIFIED` entry matching "GAP1" belongs to a
+different atom (`GAP1_gap_registers_as_mint_sources`, level 3). The fix itself is **built and live**:
+`background/gap_register_scan.py:25-27` keys register 1 on a text heuristic (not the non-existent
+`measured_bound` field) and register 6 on `state` across ALL prefixes (not `audit:*`) — the two fail-opens
+the mint named.
+
+### 1 closed NO-BUILD
+`inbound_ratification_batch_path` — it asks for a hold-until-ratified mechanism, i.e. the permission
+machinery `background/inbound_ratification.py` that CLAUDE.md requires to **stay deleted** (guarded by
+`test_the_permission_surface_is_gone`). Verified gone on disk. Reasoning recorded in the archived file.
+
+### Still in `in_progress/` on purpose — the next tick's named draw
+`PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md`. Its stated blocker ("the agent cannot
+self-cross the R16 wall") **is now false** — R16 was rescoped 2026-08-03 to *record*, not *authorise*. Its
+residual is 15 reversible level moves that are now self-certifiable, and they are deliberately NOT
+bulk-stamped: each needs re-verification against artifacts first. This tick is its own evidence for why —
+one of the five "build done, level move pending" items (`director_window_delta_view`) had no code and no
+test at all.
+
+## PROCESS FINDING — the auto-processor swept this tick's in-flight work into its own commit
+
+**Observed with evidence, not inferred:** commit `c0eee24e9` is messaged
+"Auto-process run complete: report + LATEST.md + site/ (git=1f4cda668, net=£1,501,001)" but its diff
+contains **this tick's 11-atom mint** (`docs/design/maturity_map.yaml` +191, and the regenerated
+`site/data/maturity_map.json` +231) **and the 18 staging archive moves** — none of which is auto-process
+output. `git log --oneline -2 -- docs/staging/done/PLANNER_MINTED_privacy_policy_page_2026-07-28.md`
+returns `c0eee24e9`.
+
+Nothing was lost and the site JSON regeneration was in fact correct, so this is recorded rather than
+reverted — rewriting history on a tree with three concurrent writers would cost more than the mislabel.
+But the commit message is now a false record of what that commit contains, which is the known broad-`add`
+hazard: `process_run_complete.py` stages by directory, so any uncommitted work in those paths at sweep time
+is absorbed under a message that does not describe it. This is the third recorded instance of the class.
+The durable fix is for the auto-processor to stage its **own named paths** rather than broad-add, which is
+registered here as a finding rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE: queue, don't fix on
+sight, unless the machine is blocked — it is not).

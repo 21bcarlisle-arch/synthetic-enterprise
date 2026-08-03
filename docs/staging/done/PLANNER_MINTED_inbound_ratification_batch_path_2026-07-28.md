@@ -1,3 +1,19 @@
+<!-- CLOSED NO-BUILD 2026-08-03 (worker tick). NOT minted as a map atom, and this is a substantive
+  refusal rather than a park. This atom asks for a batched INBOUND-RATIFICATION path -- a mechanism that
+  HOLDS a triage row until the director ratifies the move. That is precisely the permission machinery
+  DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29 deleted and that CLAUDE.md names by filename:
+  background/inbound_ratification.py "must stay deleted", enforced by
+  tests/background/test_gate_authorization.py::test_the_permission_surface_is_gone.
+  Verified against real disk this tick: `git ls-files | grep inbound_ratification` returns only this mint
+  doc and docs/design/INBOUND_RATIFICATION_BATCH_PATH_CONTRACT.md -- the module itself is gone.
+  Building it would re-grow the surface the ruling removed. Under the current standard (PROPOSE, RECORD,
+  ACT; silence is validation; only four real-world classes are reserved) a triage row moving into
+  `deliberate-and-staying` is not one of the four -- so it PROCEEDS and is recorded; it does not queue for
+  a ratification that no longer exists. The atom's own asymmetry guard (moves OUT toward `mint`, and moves
+  among the other three buckets, pass through autonomously) is now simply the behaviour of every move.
+  Archived closed. The contract doc is deliberately left in place as the record of what was designed and
+  why it was not built -- deleting it would erase the reasoning along with the mechanism. -->
+
 <!-- SUPERVISOR_DRAW: self-drawable -->
 <!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: BUILD half (b)/(c) is DONE and committed (background/inbound_ratification.py + 23-test R15-both-ways suite); the ONLY remaining work is the director's LEVEL move 0->3 (R16: the agent cannot self-bump; it lands at build-quality with blocked_on director_level_up). RELEASE CONDITION: a director/console LEVEL_UP for this atom, at which point it closes and archives to done/. -->
 <!-- BUILD HALF (b)/(c) DONE 2026-07-28 (worker tick, commit pending) — background/inbound_ratification.py

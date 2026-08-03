@@ -91,6 +91,33 @@ REVIEWED_CLOSE_TO_LEARN = {
     "SITE_EH1_segment_disclosure",
     "SITE_EH2_predictions_ledger_can_fail",
     "SITE_EH3_figure_reconciliation_and_periods",
+    # 2026-08-03 reviewed (worker tick, the R17 consumed-not-absorbed mint of 11 BUILD halves that
+    # had been sitting in docs/staging/in_progress/ as "staging noise" while being real designed
+    # work). Classified on their merits, one at a time, NOT as a batch to clear this gate -- the
+    # other five atoms from the same mint were classified into meter_to_cash / price_to_bill /
+    # close_to_learn separately, precisely because "everything I just added is close_to_learn" is
+    # the unreviewed default this list exists to catch.
+    #  * SP2_2_rng_substream_primitive -- unifies 16 independent substream derivations (5 distinct
+    #    formulas, one with a concrete namespace-collision risk) into one canonical primitive. What
+    #    it protects is DETERMINISTIC REPLAY (C-S2): whether the machine's own account of its
+    #    stochastic world can be trusted when a new draw is added. No revenue flow.
+    #  * SP3_size_and_clone_ratchet, SP4_owned_quantity_registry_gate,
+    #    SP5_shared_primitive_ensuring_activity -- build-discipline gates. SP4 in particular is a
+    #    trust-the-published-number atom of exactly the SITE_EH1 class (it exists because net margin
+    #    currently has 4 second-sources including a live ~4.2x dashboard divergence, and carbon has 5
+    #    disagreeing emission-factor tables). They cap duplicated CODE and duplicated AUTHORITY over a
+    #    figure; neither is a revenue movement.
+    #  * H_stop_control_gap_characterisation -- operational safety legibility: what can actually be
+    #    stopped, by whom, how fast, and what a stop does NOT stop. Same process-lifecycle-integrity
+    #    class as OPS1_launcher_cutover_completion and OPS_run_marker_sweep_livelock.
+    #  * SITE_director_window_delta_view -- an evidence-surface/operator-legibility door, same class
+    #    as its parent SITE1_expert_doors and the three SITE_EH atoms directly above.
+    "SP2_2_rng_substream_primitive",
+    "SP3_size_and_clone_ratchet",
+    "SP4_owned_quantity_registry_gate",
+    "SP5_shared_primitive_ensuring_activity",
+    "H_stop_control_gap_characterisation",
+    "SITE_director_window_delta_view",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",

@@ -1,3 +1,18 @@
+<!-- BLOCK DISSOLVED 2026-08-03 (worker tick) -- KEPT IN in_progress/ ON PURPOSE, AS DRAWABLE WORK,
+  NOT ARCHIVED. The stated blocker above is now FALSE. It reads "the agent cannot self-cross the R16 wall",
+  but R16 was RESCOPED 2026-08-03: "a level move must leave an auditable trace in gate_authorizations.jsonl
+  ... What R16 never required, and no longer implies, is that anyone AUTHORISE the move: self-certify with
+  the evidence and go." There is no wall left to cross, and no phone-signed LEVEL_UP batch to wait for.
+  RESIDUAL, NAMED SO THE NEXT TICK CAN DRAW IT DIRECTLY: item #2's 15 reversible level moves are now
+  self-certifiable via background.gate_authorization.record_level_up_self_certified.
+  They are deliberately NOT bulk-stamped here. Each needs its level RE-VERIFIED against real artifacts
+  first -- clearing a blocked_on has never moved a level_current, and a control that passes for the wrong
+  reason is not evidence (the abolished-block stale-cells class). Precedent from THIS SAME TICK: five items
+  filed as "build done, only the abolished level move remained" were checked against real disk, and one of
+  them -- director_window_delta_view -- turned out to have no code and no test anywhere, only design-doc
+  mentions. A bulk stamp would have recorded it as done. Fifteen individual re-verifications is the work;
+  that is not bookkeeping, and it is why this file stays in the BUILD queue rather than the archive. -->
+
 <!-- PARTIALLY ACTIONED 2026-07-29 (planner tick):
   #3 (batched [ACT]) DELIVERED -> docs/observability/work_at_risk_batched_act_2026-07-29.md (committed).
   #2 (release the proceed-at-risk set) is BLOCKED, not self-actionable: the reclassification's 15
