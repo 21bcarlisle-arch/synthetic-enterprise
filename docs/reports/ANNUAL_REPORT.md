@@ -1695,17 +1695,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-29T22:13:07Z
+Live portfolio (10 active customers) under 12-month forward scenarios.
+Generated: 2026-08-03T07:52:56Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-399,125 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£798,249 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,565,120 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-398,850 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£797,700 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,563,950 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
@@ -2738,7 +2738,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
   - 2016-01-01: treasury £2,466,636.22, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-01-31: treasury £2,466,647.46, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-01-31: treasury £2,466,647.46, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,658.74, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,670.14, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-04-30: treasury £2,466,680.16, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
@@ -2749,7 +2749,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-09-27: treasury £2,466,728.49, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,738.69, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,749.43, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-12-26: treasury £2,466,760.10, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-12-26: treasury £2,466,760.10, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25
 - Worst single period: C6 on 2016-12-31 period 48, net margin £-407.32
 
