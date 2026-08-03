@@ -45,13 +45,51 @@ from company.billing.pre_bill_validation import (
     validate_bills,
     exception_queue_as_dicts,
     validate_rendered_bill_reads,
+    validate_rendered_bill_money,
     BillValidationResult,
     ValidationOutcome,
+)
+from saas.money import (
+    MoneyBoundaryError,
+    display_rate_gbp_per_day,
+    display_rate_p_per_kwh,
+    foot_components_to_total,
 )
 
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+
+
+def _printed_unit_rate(printed_consumption_kwh, printed_commodity_amount_gbp):
+    """The p/kWh rate to print on the usage line, or None if none reproduces it.
+
+    None is the honest outcome for a zero-consumption bill and for a line no
+    printable rate can express; the portal renders the amount without a rate.
+    """
+    if not printed_consumption_kwh:
+        return None
+    rate = display_rate_p_per_kwh(
+        printed_consumption_kwh, printed_commodity_amount_gbp
+    )
+    return None if rate is None else rate[0]
+
+
+def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
+    """The GBP/day rate to print, or None if the line cannot carry one.
+
+    Deliberately fitted against the PRINTED standing charge rather than the
+    bill's raw one, because the printed pair is what the customer multiplies.
+
+    A bill with no day count returns None rather than raising: that line simply
+    prints no per-day rate, which claims nothing and so cannot be unreproducible.
+    A rate printed WITHOUT its day count is the real defect, and that is caught
+    on the other side by `check_printed_line_rederives`, which fails closed on it.
+    """
+    if days_in_period is None:
+        return None
+    rate = display_rate_gbp_per_day(days_in_period, printed_standing_charge_gbp)
+    return None if rate is None else rate[0]
 
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): every bill must state
@@ -146,6 +184,7 @@ def generate(run_json_path=None, out_path=None):
 
     rng = random.Random(42)
     held_reads: list[BillValidationResult] = []
+    held_money: list[BillValidationResult] = []
     invoices_by_cid = {}
     payments_by_cid = {}
     arrears_by_cid = {}
@@ -226,6 +265,49 @@ def generate(run_json_path=None, out_path=None):
         closing_read_rounded = round(closing_read_kwh, 1)
         displayed_consumption_kwh = round(closing_read_rounded - opening_read_rounded, 1)
 
+        # D_money_boundary_reconciliation (2026-08-03, the [ACT] returned by
+        # docs/design/MONEY_REPRESENTATION_EVIDENCE.md): the money analogue of
+        # the reads fix immediately above, and the same class fix. Previously
+        # each of the four money line items was round()ed independently here
+        # and the total was round()ed independently AGAIN from the raw float,
+        # so the printed column did not add up to the printed total on 534 of
+        # 1603 invoices (33.3%) -- e.g. 94.50 + 34.15 + 8.36 + 6.85 printed
+        # against a total of 143.88.
+        #
+        # Now the printed total is DERIVED from the printed line items via the
+        # one declared money boundary (saas/money.py), so the invoice adds up
+        # by construction, and no line item is fudged to absorb a residual --
+        # every printed line is exactly the quantization of its own raw value.
+        # The catch-up adjustment is a genuine FIFTH printed component on a
+        # back-billing bill (it is added to the total outside the four category
+        # fields), so it must be in this set or the derived total would drop
+        # it -- that omission is what sank the first F6 build.
+        money_components = {
+            "commodity_amount_gbp": bill.get("commodity_amount_gbp", 0.0) or 0.0,
+            "non_commodity_amount_gbp": bill.get("non_commodity_amount_gbp", 0.0) or 0.0,
+            "standing_charge_gbp": bill.get("standing_charge_gbp", 0.0) or 0.0,
+            "vat_gbp": bill.get("vat_gbp", 0.0) or 0.0,
+        }
+        if bill.get("catchup_applied") and bill.get("catchup_adjustment_gbp") is not None:
+            money_components["catchup_adjustment_gbp"] = bill["catchup_adjustment_gbp"]
+        try:
+            printed_money, printed_total = foot_components_to_total(
+                money_components, amount, label=f"{cid}/{period_end}"
+            )
+        except MoneyBoundaryError as exc:
+            # A residual too large to be rounding means the declared total
+            # contains money that is not in the printed component set. HOLD the
+            # bill rather than print a total nobody can reconcile -- the same
+            # treatment the reads check below gives its own failure, and the
+            # opposite of falling back to the unreconciled figure (R15: that
+            # fallback would be the fail-open).
+            held_money.append(BillValidationResult(
+                customer_id=cid, period_end=period_end,
+                outcome=ValidationOutcome.HELD,
+                reasons=["slc_6_7_billing_accuracy: %s" % exc],
+            ))
+            continue
+
         inv = {
             "invoice_number": invoice_number,
             "customer_id": cid,
@@ -233,13 +315,32 @@ def generate(run_json_path=None, out_path=None):
             "period_end": period_end,
             "commodity": commodity,
             "consumption_kwh": displayed_consumption_kwh,
-            "commodity_amount_gbp": round(bill.get("commodity_amount_gbp", 0), 2),
-            "non_commodity_amount_gbp": round(bill.get("non_commodity_amount_gbp", 0), 2),
-            "standing_charge_gbp": round(bill.get("standing_charge_gbp", 0), 2),
+            "commodity_amount_gbp": printed_money["commodity_amount_gbp"],
+            # The printed usage rate is decided HERE, once, against the printed
+            # pair -- not recomputed downstream by generate_invoice_data or in
+            # the browser. Two independent derivations of the same printed
+            # figure is how the display precision drifts apart again.
+            "unit_rate_p_per_kwh": _printed_unit_rate(
+                displayed_consumption_kwh, printed_money["commodity_amount_gbp"]
+            ),
+            "non_commodity_amount_gbp": printed_money["non_commodity_amount_gbp"],
+            "standing_charge_gbp": printed_money["standing_charge_gbp"],
             "days_in_period": bill.get("days_in_period"),
-            "standing_charge_gbp_per_day": bill.get("standing_charge_gbp_per_day"),
-            "vat_gbp": round(bill.get("vat_gbp", 0), 2),
-            "total_amount_gbp": round(amount, 2),
+            # D_printed_figure_rederivation (2026-08-03): the daily rate used
+            # to be passed through RAW from the bill -- a full-precision
+            # standing_charge/days quotient -- so the customer-facing artefact
+            # printed binary-float residue (0.23983870967741938) on 324
+            # invoices, and the rendered line "31 days x GBP 0.24/day" did not
+            # multiply out to the standing charge printed beside it on 243.
+            # The rate now comes from the money boundary at a display precision
+            # that reproduces the PRINTED standing charge exactly. None when no
+            # printable precision does: the bill then shows the charge without
+            # a per-day rate rather than printing arithmetic that fails.
+            "standing_charge_gbp_per_day": _printed_daily_rate(
+                bill.get("days_in_period"), printed_money["standing_charge_gbp"]
+            ),
+            "vat_gbp": printed_money["vat_gbp"],
+            "total_amount_gbp": printed_total,
             "issue_date": issue_date.isoformat(),
             "generation_delay_days": generation_delay_days,
             "due_date": due_date.isoformat(),
@@ -275,7 +376,11 @@ def generate(run_json_path=None, out_path=None):
             inv["catchup_periods_covered"] = bill.get("catchup_periods_covered")
             inv["catchup_direction"] = bill.get("catchup_direction")
             inv["catchup_raw_delta_gbp"] = bill.get("catchup_raw_delta_gbp")
-            inv["catchup_adjustment_gbp"] = bill.get("catchup_adjustment_gbp")
+            # The PRINTED adjustment -- the same penny-quantized figure that
+            # went into the derived total above, not a second independent
+            # round() of the raw value (which is how the four category lines
+            # drifted from their own total in the first place).
+            inv["catchup_adjustment_gbp"] = printed_money.get("catchup_adjustment_gbp")
             inv["catchup_written_off_gbp"] = bill.get("catchup_written_off_gbp")
             inv["catchup_back_billing_cap_applied"] = bill.get("catchup_back_billing_cap_applied")
         else:
@@ -287,11 +392,19 @@ def generate(run_json_path=None, out_path=None):
         # ToU tariff (Day/Night/Peak registers) bills correctly without a
         # schema change. Do not build ToU itself here -- just the structure
         # that permits it, per the addendum's own instruction.
+        # D_printed_figure_rederivation (2026-08-03): the register carries its
+        # own printed unit rate. The portal previously computed this rate in
+        # the browser (amount/kwh*100, then toFixed(2)), which is where the
+        # unreproducible usage line was actually RENDERED -- so the display
+        # precision has to be decided here, once, where it can be tested,
+        # rather than reimplemented in JS where it would drift from the Python
+        # policy. None when no printable precision reproduces the amount.
         inv["registers"] = [{
             "register_id": "1",
             "label": "Anytime",
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
+            "unit_rate_p_per_kwh": inv["unit_rate_p_per_kwh"],
         }]
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
@@ -312,6 +425,22 @@ def generate(run_json_path=None, out_path=None):
             ))
             continue
 
+        # D_money_boundary_reconciliation, the money twin of the reads gate
+        # above and the same standing-guard role: by construction of
+        # printed_total this cannot fire in normal operation, so if it ever
+        # does, an independent rounding site has been reintroduced between the
+        # computed bill and the printed one. Checked on the assembled `inv`
+        # (the exact dict written to the ledger), not on the intermediate
+        # values -- the guard must see what the customer sees, or it would
+        # only be re-asserting the arithmetic it just did.
+        money_reasons = validate_rendered_bill_money(inv)
+        if money_reasons:
+            held_money.append(BillValidationResult(
+                customer_id=cid, period_end=period_end,
+                outcome=ValidationOutcome.HELD, reasons=money_reasons,
+            ))
+            continue
+
         invoices_by_cid.setdefault(cid, []).append(inv)
 
         # D3 step 2: a credit invoice (amount <= 0) has nothing to collect --
@@ -325,7 +454,11 @@ def generate(run_json_path=None, out_path=None):
             pay = {
                 "invoice_number": invoice_number,
                 "payment_date": payment_date.isoformat(),
-                "amount_gbp": round(amount, 2),
+                # The customer pays what the invoice PRINTS, not the
+                # full-precision total behind it -- collecting a figure that
+                # differs from the one on the bill is exactly the "maths
+                # doesn't add up" surface this atom closes.
+                "amount_gbp": printed_total,
                 "method": method,
                 "outcome": outcome,
                 "income_stress_at_time": stress,
@@ -406,7 +539,7 @@ def generate(run_json_path=None, out_path=None):
             "arrears_history": arrs,
         }
 
-    all_held = list(held_bills) + held_reads
+    all_held = list(held_bills) + held_reads + held_money
     result = {
         "meta": {
             "source_json": str(run_json_path),
@@ -414,6 +547,7 @@ def generate(run_json_path=None, out_path=None):
             "customer_count": len(customers),
             "held_bill_count": len(all_held),
             "held_reads_reconciliation_count": len(held_reads),
+            "held_money_reconciliation_count": len(held_money),
         },
         "customers": customers,
         "exception_queue": exception_queue_as_dicts(all_held),

@@ -891,19 +891,36 @@ function waterfallChip(label,d){
    but the array shape supports N so a future ToU tariff with Day/Night/Peak
    registers bills correctly here without a render-layer change). Falls back
    to the old single flat line if i.registers is absent (pre-Defect-3 data). */
+/* D_printed_figure_rederivation (2026-08-03): a printed rate is rendered at
+   ITS OWN precision, floor 2dp, not forced to toFixed(2). The precision is
+   chosen in Python (saas/money.py::minimal_display_rate) so that
+   printed_quantity x printed_rate == printed_amount exactly; truncating it
+   here would re-break the identity on the pixel, which is the whole defect --
+   86.1% of rendered usage lines showed a multiplication that did not hold.
+   Nothing is invented here: this only stops the renderer from throwing away
+   precision the figure already carries. */
+function rateStr(v){
+  if(v==null)return null;
+  var s=String(v),i=s.indexOf(".");
+  var dp=i>=0?(s.length-i-1):0;
+  return v.toFixed(Math.max(2,Math.min(6,dp)));
+}
 function billUsageLinesHtml(i){
   var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
   if(i.registers&&i.registers.length){
     return i.registers.map(function(r){
-      var rate=r.consumption_kwh?(r.amount_gbp/r.consumption_kwh*100):null;
+      /* Prefer the rate the ledger printed; fall back to computing one only
+         for pre-2026-08-03 records that predate the field. */
+      var rate=r.unit_rate_p_per_kwh!=null?r.unit_rate_p_per_kwh
+        :(r.consumption_kwh?(r.amount_gbp/r.consumption_kwh*100):null);
       var label=i.registers.length>1?("Usage ("+esc(r.label)+")"):"Usage";
       return rate!=null
-        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rate.toFixed(2)+unitTag+" = "+gbp(r.amount_gbp)+"</span></div>"
+        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(rate)+unitTag+" = "+gbp(r.amount_gbp)+"</span></div>"
         :"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+gbp(r.amount_gbp)+"</span></div>";
     }).join("");
   }
   if(i.unit_rate_p_per_kwh!=null){
-    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+i.unit_rate_p_per_kwh.toFixed(2)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>";
+    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(i.unit_rate_p_per_kwh)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>";
   }
   return "<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+gbp(i.commodity_amount_gbp)+"</span></div>";
 }
@@ -914,7 +931,7 @@ function billEquationHtml(i){
   // were already computed internally to derive standing_charge_gbp, just
   // never exposed until now (saas/bill_generator.py).
   var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
-    ?("+ Standing charge ("+i.days_in_period+" days &times; £"+i.standing_charge_gbp_per_day.toFixed(2)+"/day)")
+    ?("+ Standing charge ("+i.days_in_period+" days &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
     :"+ Standing charge";
   parts.push("<div class=\"row\"><span class=\"rl\">"+scLabel+"</span><span>"+gbp(i.standing_charge_gbp)+"</span></div>");
   if(i.non_commodity_amount_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ Network &amp; environmental</span><span>"+gbp(i.non_commodity_amount_gbp)+"</span></div>");
@@ -964,11 +981,11 @@ function downloadBillPdf(i){
     y+=7;
   }
   if(i.consumption_kwh!=null&&i.commodity_amount_gbp!=null){
-    var rateNote=i.unit_rate_p_per_kwh!=null?(" @ "+i.unit_rate_p_per_kwh.toFixed(2)+"p/kWh"):"";
+    var rateNote=i.unit_rate_p_per_kwh!=null?(" @ "+rateStr(i.unit_rate_p_per_kwh)+"p/kWh"):"";
     line("Usage: "+i.consumption_kwh.toFixed(1)+" kWh"+rateNote,i.commodity_amount_gbp);
   }
   var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
-    ?("Standing charge ("+i.days_in_period+" days x £"+i.standing_charge_gbp_per_day.toFixed(2)+"/day)")
+    ?("Standing charge ("+i.days_in_period+" days x £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
     :"Standing charge";
   line(scLabel,i.standing_charge_gbp);
   if(i.non_commodity_amount_gbp)line("Network & environmental",i.non_commodity_amount_gbp);

@@ -33,9 +33,11 @@ from company.compliance.domain_invariants import (
     check_resi_bill_consumption_plausible,
     check_back_billing_cap_respected,
     check_bill_foots,
+    check_printed_bill_foots_exactly,
     check_bill_line_items_non_negative,
     check_bill_period_sane,
     is_credit_bill,
+    _FOOTING_COMPONENT_KEYS,
 )
 
 
@@ -261,6 +263,35 @@ def validate_rendered_bill_reads(inv: dict) -> list:
             "slc_6_7_billing_accuracy: billed usage %.1f kWh does not reconcile with the "
             "printed meter reads %.1f -> %.1f (closing - opening = %.1f kWh)"
             % (billed, opening, closing, reads_delta)
+        )
+    return reasons
+
+
+def validate_rendered_bill_money(inv: dict) -> list:
+    """Money-reconciliation reason(s) for one rendered invoice dict. Empty list
+    == the printed line items sum exactly to the printed total.
+
+    The money twin of `validate_rendered_bill_reads`, and deliberately the same
+    shape: both check the RENDERED bill (after the print-boundary rounding),
+    both are zero-tolerance, and both HOLD to the exception queue rather than
+    issuing a bill whose own arithmetic a customer can refute.
+
+    D_money_boundary_reconciliation (2026-08-03): before the boundary fix,
+    534/1603 printed invoices (33.3%) would have been held by this check.
+    After it, this is a standing guard -- it should never fire in normal
+    operation, and if it does, a new independent-rounding site has been
+    reintroduced somewhere between the computed bill and the printed one.
+    """
+    reasons: list[str] = []
+    if not check_printed_bill_foots_exactly(inv):
+        printed = {
+            k: inv.get(k) for k in _FOOTING_COMPONENT_KEYS
+            if k in inv and inv.get(k) is not None
+        }
+        shown = " + ".join(f"{k}={v}" for k, v in printed.items()) or "(no printed line items)"
+        reasons.append(
+            "slc_6_7_billing_accuracy: printed line items do not sum exactly to the "
+            "printed total %s -- %s" % (inv.get("total_amount_gbp"), shown)
         )
     return reasons
 

@@ -43,9 +43,17 @@ def test_real_invoice_maps_core_fields():
 
 
 def test_real_invoice_derives_unit_rate_from_real_usage_and_charge():
+    """D_printed_figure_rederivation (2026-08-03): this used to assert the old
+    2dp derivation, `round(62.69/471.1*100, 2)` = 13.31p -- and THIS FIXTURE IS
+    ITSELF AN INSTANCE OF THE DEFECT: 471.1 kWh x 13.31p is GBP 62.70, not the
+    GBP 62.69 printed beside it. The test pinned a rate the bill's own
+    arithmetic contradicts. It now asserts the property instead: whatever rate
+    is printed must reproduce the printed amount."""
     out = _real_invoice(_LEDGER_INV)
-    expected = round(62.69 / 471.1 * 100, 2)
-    assert out["unit_rate_p_per_kwh"] == expected
+    rate = out["unit_rate_p_per_kwh"]
+    assert rate is not None
+    assert round(471.1 * rate / 100, 2) == 62.69
+    assert round(471.1 * round(62.69 / 471.1 * 100, 2) / 100, 2) == 62.70  # the old rate
 
 
 def test_real_invoice_unit_rate_none_when_no_consumption():

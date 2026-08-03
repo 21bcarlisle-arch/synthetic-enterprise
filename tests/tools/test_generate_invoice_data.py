@@ -29,9 +29,24 @@ def test_real_invoice_credited_status_for_catchup_overcharge():
     assert inv["status"] == "CREDITED"
 
 
-def test_real_invoice_derives_unit_rate():
+def test_real_invoice_derives_a_unit_rate_that_REPRODUCES_the_printed_amount():
+    """D_printed_figure_rederivation (2026-08-03): this used to assert
+    `round(63.32/471.1*100, 2)` -- i.e. it pinned the defect. That 2dp rate is
+    13.44p, and 471.1 x 13.44p is GBP 63.32... only by luck of this fixture; on
+    the real book the same formula made 86.1% of rendered usage lines fail
+    their own multiplication. The assertion is now the PROPERTY the printed
+    figures must have, not the formula that produced them."""
     inv = _real_invoice(_raw_invoice())
-    assert inv["unit_rate_p_per_kwh"] == round(63.32 / 471.1 * 100, 2)
+    rate = inv["unit_rate_p_per_kwh"]
+    assert rate is not None
+    assert round(inv["consumption_kwh"] * rate / 100, 2) == inv["commodity_amount_gbp"]
+
+
+def test_real_invoice_carries_through_a_unit_rate_the_ledger_already_printed():
+    """The ledger chooses the display precision; the mapper must not re-round
+    it. Two independent derivations of one printed figure is how they drift."""
+    inv = _real_invoice(_raw_invoice(unit_rate_p_per_kwh=13.4408))
+    assert inv["unit_rate_p_per_kwh"] == 13.4408
 
 
 def test_real_invoice_unit_rate_none_when_zero_consumption():

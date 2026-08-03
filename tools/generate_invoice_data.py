@@ -19,6 +19,8 @@ import json
 import sys
 from pathlib import Path
 
+from saas.money import display_rate_p_per_kwh
+
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
@@ -54,7 +56,26 @@ def _real_invoice(inv):
     (single-register today, schema supports N) carried through the same way."""
     kwh = inv.get("consumption_kwh", 0) or 0
     commodity_amt = inv.get("commodity_amount_gbp", 0) or 0
-    unit_rate_p_per_kwh = round(commodity_amt / kwh * 100, 2) if kwh else None
+    printed_commodity_amt = round(commodity_amt, 2)
+    # D_printed_figure_rederivation (2026-08-03): this used to be
+    # round(commodity_amt / kwh * 100, 2), which made the usage line fail its
+    # own multiplication on 86.1% of rendered invoices -- "317.9 kWh x 11.90p
+    # = GBP 37.82" when the product is 37.83.
+    #
+    # CARRIED THROUGH from the ledger where it has already been chosen against
+    # the same printed pair (generate_billing_ledger.py::_printed_unit_rate),
+    # and otherwise derived HERE THROUGH THE SAME BOUNDARY for a record that
+    # predates the field. The policy lives in saas/money.py either way, so the
+    # two call sites cannot drift to different precisions; what must not happen
+    # is this module inventing its own rounding again, which is what produced
+    # the defect. Falling back to None instead would silently drop the bill
+    # equation from the portal for any record missing the field -- an absence
+    # that reads as "nothing claimed" to the invariant while quietly removing
+    # the very transparency this atom exists to provide.
+    unit_rate_p_per_kwh = inv.get("unit_rate_p_per_kwh")
+    if unit_rate_p_per_kwh is None and kwh:
+        derived = display_rate_p_per_kwh(kwh, printed_commodity_amt)
+        unit_rate_p_per_kwh = None if derived is None else derived[0]
     return dict(
         id="%s-INV%d" % (inv["customer_id"], inv["invoice_number"]),
         date=inv["period_end"],
@@ -63,7 +84,7 @@ def _real_invoice(inv):
         commodity=inv["commodity"],
         consumption_kwh=kwh,
         unit_rate_p_per_kwh=unit_rate_p_per_kwh,
-        commodity_amount_gbp=round(commodity_amt, 2),
+        commodity_amount_gbp=printed_commodity_amt,
         standing_charge_gbp=round(inv.get("standing_charge_gbp", 0) or 0, 2),
         # Calculation-transparency breakdown (2026-07-10, director page comment:
         # "Days x standing charges... explain the maths properly") -- carried

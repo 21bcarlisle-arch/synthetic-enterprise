@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from decimal import Decimal, ROUND_HALF_UP
 from math import isfinite
 from typing import Optional
 
@@ -466,6 +467,95 @@ BILL_FOOTS = StructuralInvariant(
     source="Basic biller arithmetic footing (INVARIANT_LIBRARY_REDTEAM.md gap 2; R10)",
 )
 
+# D_money_boundary_reconciliation (2026-08-03), the R10 CLASS extension of
+# BILL_FOOTS. BILL_FOOTS checks the COMPUTED bill -- full-precision floats
+# straight out of saas/bill_generator.py, where footing holds trivially and to
+# a 5p tolerance. Nothing checked the PRINTED bill, and that is where the real
+# defect lived: tools/generate_billing_ledger.py rounded each of the four line
+# items independently and rounded the raw total independently again, so
+# 533/1441 bills in the 2026-07-28 measured run (37.0%), and 534/1603 printed
+# invoices in the published docs/state/billing_ledger.json at the time of this
+# build (33.3%),
+# printed a column of figures that did not add up to their own total
+# (docs/design/MONEY_REPRESENTATION_EVIDENCE.md §2).
+#
+# KEYSET GAP, NAMED NOT PAPERED OVER (2026-08-03 HARDEN walk of the deployed
+# surface). This control's reach is exactly _FOOTING_COMPONENT_KEYS plus the
+# declared total; it is structurally blind to every other printed figure on the
+# same invoice, and the walk found two live populations it therefore passes:
+#   (1) standing_charge_gbp_per_day prints raw float residue -- 0.24000000000000002,
+#       0.23983870967741938 -- on 396/1603 indexed invoices. It is a rate, not a
+#       penny figure (a real bill prints it as p/day to 2dp of a PENNY), so
+#       quantizing it to _PENNY would be the WRONG fix and it is deliberately
+#       not bolted on here; it needs a declared rate precision.
+#   (2) commodity_amount_gbp cannot be re-derived from the printed
+#       consumption_kwh x unit_rate_p_per_kwh on 1382/1603 indexed invoices,
+#       because the printed unit rate is a 1dp rounding of a full-precision
+#       rate (proportional, ~0.05%: worst case 20.86 on a 38,818.33 bill).
+# Both are the SAME customer-facing class as the footing defect -- a figure on
+# the face of the bill the customer cannot reproduce -- but neither is a
+# footing defect, and widening this control to cover them would make one check
+# answer two different questions. They are queued as their own atom
+# (D_printed_figure_rederivation), per SELF-INTERRUPT DISCIPLINE.
+#
+# The class is "a quantized representation of a bill whose parts don't sum to
+# its whole", and the tolerance must be ZERO here precisely because these are
+# the printed values: a customer re-adding the column gets an exact answer or
+# the bill is wrong. A penny-tolerant printed check would pass the very defect
+# it exists to catch -- the entire observed population was off by 1-2p.
+PRINTED_BILL_FOOTS_EXACTLY = StructuralInvariant(
+    id="printed_bill_foots_exactly",
+    description=(
+        "A RENDERED invoice's printed line items must sum EXACTLY -- zero "
+        "tolerance, to the penny as printed -- to the total printed on the "
+        "same invoice, and every FOOTING figure -- the components it sums and "
+        "the total itself -- must be penny-quantized. Named defect: line items "
+        "94.50 + 34.15 + 8.36 + 6.85 "
+        "printed against a total of 143.88 (they sum to 143.86), because the "
+        "components and the total were each rounded independently from full-"
+        "precision floats. Distinct from bill_foots, which checks the COMPUTED "
+        "bill at full precision and 5p tolerance: a bill can foot as computed "
+        "and still not foot as printed, which is what the customer sees. "
+        "Sign-invariant (a credit note foots normally). A missing or "
+        "unreadable printed total, an unreadable component, a non-finite "
+        "figure, or a printed figure carrying sub-penny precision all fail "
+        "CLOSED -- a printed figure that cannot be reconciled has already "
+        "failed the only test that matters on a bill's face."
+    ),
+    source=(
+        "SLC 6.7 billing accuracy / basic biller arithmetic footing at the print "
+        "boundary (docs/design/MONEY_REPRESENTATION_EVIDENCE.md §2 [ACT]; R10 "
+        "class extension of bill_foots)"
+    ),
+)
+
+PRINTED_LINE_REDERIVES = StructuralInvariant(
+    id="printed_line_rederives",
+    description=(
+        "Every printed line on a RENDERED invoice that shows a quantity and a "
+        "rate must reproduce its own printed amount from them, exactly, at the "
+        "precision printed: printed_quantity x printed_rate == printed_amount "
+        "to the penny. Named defect: a bill printing '317.9 kWh x 11.90p = "
+        "GBP 37.82' -- the product is 37.83, so the arithmetic on the face of "
+        "the bill does not hold; 86.1% of rendered usage lines and 243 "
+        "standing-charge lines failed this. Distinct from "
+        "printed_bill_foots_exactly, which asks whether the COLUMN adds to the "
+        "TOTAL: a bill can foot perfectly and still show a usage line whose "
+        "own multiplication is wrong, which is the same customer test one "
+        "level down. A line may legitimately print NO rate (an amount whose "
+        "pricing no single unit rate generated); what it may not do is print a "
+        "rate that does not reproduce the amount beside it. Fails CLOSED on a "
+        "line that shows a rate but no quantity or no amount, on unreadable or "
+        "non-finite figures, and on a printed rate carrying more precision "
+        "than the display policy admits."
+    ),
+    source=(
+        "SLC 6.7 billing accuracy / the customer's own arithmetic at the print "
+        "boundary (maturity map D_printed_figure_rederivation; R10 class "
+        "extension of printed_bill_foots_exactly)"
+    ),
+)
+
 BILL_LINE_ITEMS_NON_NEGATIVE = StructuralInvariant(
     id="bill_line_items_non_negative",
     description=(
@@ -589,6 +679,8 @@ ALL_INVARIANTS: list = [
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
     VAT_SEGMENT_MATCHES_CONSUMPTION,
     BILL_FOOTS,
+    PRINTED_BILL_FOOTS_EXACTLY,
+    PRINTED_LINE_REDERIVES,
     BILL_LINE_ITEMS_NON_NEGATIVE,
     BILL_PERIOD_TEMPORAL_SANE,
     DEBT_INTEREST_BUSINESS_ONLY,
@@ -851,6 +943,13 @@ _LINE_ITEM_KEYS = (
 # a real catch-up bill foots and is not wrongly HELD.
 _FOOTING_COMPONENT_KEYS = _LINE_ITEM_KEYS + ("catchup_adjustment_gbp",)
 
+#: Penny quantum for the PRINTED-representation check below. Kept local to this
+#: module rather than imported from saas.money on purpose: the harness plays
+#: the external auditor here, so its arithmetic must not be borrowed from the
+#: code it audits (R15 TAUTOLOGY -- a check whose value derives from the same
+#: source it checks cannot fail).
+_PENNY = Decimal("0.01")
+
 
 def is_credit_bill(bill: dict) -> bool:
     """A catch-up OVERCHARGE correction is a genuine CREDIT note whose monetary
@@ -898,6 +997,70 @@ def check_bill_foots(bill: dict) -> bool:
             return False  # fail closed: a non-finite component cannot foot
         footed += fval
     return abs(declared - footed) <= _FOOTING_TOLERANCE_GBP
+
+
+def check_printed_bill_foots_exactly(inv: dict) -> bool:
+    """PRINTED_BILL_FOOTS_EXACTLY enforcement: a RENDERED invoice's printed
+    line items must sum exactly to its printed total.
+
+    Input is a rendered invoice dict (the shape written into
+    `site/state/billing_ledger.json`), NOT the full-precision computed bill --
+    `check_bill_foots` is the check for that. The two are deliberately
+    different checks with different tolerances, because a bill can foot as
+    computed and still not foot as printed; the printed one is what the
+    customer re-adds.
+
+    Zero tolerance BY DESIGN. The comparison is done in Decimal on the
+    printed values so it asks the question a customer asks with a pen: do
+    these figures, as written, add to that figure, as written? Any tolerance
+    at all would pass the entire observed defect population (1-2p per bill).
+
+    Fails CLOSED on: an absent printed total (unlike `check_bill_foots`, a
+    rendered invoice with no total is not "nothing to disagree with" -- it is
+    an invoice that cannot be paid); an unreadable or non-finite total or
+    component; and a printed figure carrying sub-penny precision (e.g.
+    143.8649), which cannot honestly appear on a bill and would otherwise let
+    an unquantized figure through a sum that happens to reconcile.
+
+    Sign-invariant: a credit note (negative total and negative components)
+    foots by the same arithmetic.
+    """
+    if "total_amount_gbp" not in inv:
+        return False  # fail closed: a rendered invoice must state its total
+
+    def _penny_exact(value):
+        """Return the value as a penny-quantized Decimal, or None if it is
+        unreadable, non-finite, or carries sub-penny precision."""
+        if isinstance(value, bool) or value is None:
+            return None
+        try:
+            fval = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not isfinite(fval):
+            return None
+        dec = Decimal(str(fval))
+        if dec != dec.quantize(_PENNY, rounding=ROUND_HALF_UP):
+            return None  # sub-penny precision cannot be a printed money figure
+        return dec.quantize(_PENNY, rounding=ROUND_HALF_UP)
+
+    declared = _penny_exact(inv.get("total_amount_gbp"))
+    if declared is None:
+        return False
+
+    footed = Decimal("0")
+    for key in _FOOTING_COMPONENT_KEYS:
+        if key not in inv or inv.get(key) is None:
+            # A component absent from the rendered invoice is not printed, so
+            # it is legitimately not part of the printed sum. This is the ONLY
+            # permissive path, and it is the same one BILL_FOOTS relies on for
+            # catchup_adjustment_gbp on an ordinary (non-catch-up) bill.
+            continue
+        component = _penny_exact(inv.get(key))
+        if component is None:
+            return False  # fail closed: an unreadable printed component
+        footed += component
+    return footed == declared
 
 
 def check_bill_line_items_non_negative(bill: dict) -> bool:
@@ -961,6 +1124,104 @@ def check_bill_period_sane(bill: dict) -> bool:
     if start > end:
         return False
     return (end - start).days <= _MAX_BILL_PERIOD_DAYS
+
+
+#: The printed lines this check knows how to re-derive, as
+#: (rate_field, quantity_field, amount_field, rate_scale_to_gbp). `scale` turns
+#: one unit of the rate into pounds: a p/kWh rate is a hundredth of a pound, a
+#: GBP/day rate is already pounds.
+_REDERIVABLE_PRINTED_LINES = (
+    ("unit_rate_p_per_kwh", "consumption_kwh", "commodity_amount_gbp", Decimal("0.01")),
+    ("standing_charge_gbp_per_day", "days_in_period", "standing_charge_gbp", Decimal("1")),
+)
+
+#: Most decimal places a printed rate may carry. A figure with more precision
+#: than this is not a printed rate -- it is an unquantized float that reached
+#: the page (0.23983870967741938 GBP/day was the observed defect), and it fails
+#: this check even if it happens to multiply out correctly.
+_MAX_PRINTED_RATE_DP = 6
+
+
+def _printed_decimal(value):
+    """Read a printed figure as a Decimal, or None if it cannot honestly be one.
+
+    None for a bool, a None, an unreadable value, or a non-finite one. The
+    non-finite test comes FIRST at every call site below, because every
+    comparison in this module is NaN-blind and would otherwise silently report
+    a clean pass for a corrupt figure.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        fval = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not isfinite(fval):
+        return None
+    return Decimal(str(fval))
+
+
+def check_printed_line_rederives(inv: dict) -> bool:
+    """PRINTED_LINE_REDERIVES enforcement: every printed line that shows a rate
+    must reproduce its own printed amount from its own printed figures.
+
+    Input is a rendered invoice dict (the shape written into
+    `site/state/billing_ledger.json` and `site/data/customers/*.json`), not the
+    full-precision computed bill.
+
+    **This check deliberately re-implements the arithmetic.** It does not
+    import `saas.money`, which is what PRINTS these figures. Asking the
+    generator whether its own output reconciles is the R15 TAUTOLOGY pattern --
+    it would pass by construction for any rate the generator chose, including a
+    wrong one, and the control could never fire. The multiplication here is the
+    one a customer does with a pen, written independently.
+
+    A line with NO printed rate PASSES: an amount whose pricing no single unit
+    rate generated is honestly presented without one (see
+    `saas.money.minimal_display_rate`). What fails is printing a rate that does
+    not reproduce the amount printed beside it.
+
+    Fails CLOSED on a line that shows a rate but is missing its quantity or its
+    amount -- a rate with nothing to multiply is exactly the defect, not an
+    absence of evidence -- and on a rate carrying more precision than a printed
+    figure can honestly have.
+    """
+    def _rederives(line, rate_field, qty_field, amount_field, scale):
+        if line.get(rate_field) is None:
+            return True  # no rate printed on this line: nothing is claimed
+        rate = _printed_decimal(line.get(rate_field))
+        if rate is None:
+            return False  # fail closed: a printed rate we cannot read
+        if -rate.as_tuple().exponent > _MAX_PRINTED_RATE_DP:
+            return False  # fail closed: unquantized float residue on the page
+        quantity = _printed_decimal(line.get(qty_field))
+        amount = _printed_decimal(line.get(amount_field))
+        if quantity is None or amount is None:
+            return False  # fail closed: a rate with nothing to multiply
+        reproduced = (quantity * rate * scale).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        return reproduced == amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    for spec in _REDERIVABLE_PRINTED_LINES:
+        if not _rederives(inv, *spec):
+            return False
+
+    # Per-register usage lines. The portal renders ONE ROW PER REGISTER, so
+    # these are printed lines in their own right -- checking only the invoice
+    # summary would leave the rows a customer actually reads unchecked, and
+    # would pass vacuously on any bill whose summary omits a rate.
+    registers = inv.get("registers")
+    if isinstance(registers, list):
+        for reg in registers:
+            if not isinstance(reg, dict):
+                return False  # fail closed: an unreadable printed row
+            if not _rederives(
+                reg, "unit_rate_p_per_kwh", "consumption_kwh", "amount_gbp",
+                Decimal("0.01"),
+            ):
+                return False
+    return True
 
 
 def invariant_count() -> int:
