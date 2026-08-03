@@ -446,6 +446,76 @@ def _archive_marker(marker):
         return True
 
 
+SUPERSEDED_BLOCK_HEADER = "## SUPERSEDED — archived without publishing"
+DEFAULT_SUPERSEDE_REASON = (
+    "A run_complete marker is an idempotent request to regenerate ANNUAL_REPORT.md, "
+    "LATEST.md and site/data/dashboard.json FROM THAT RUN'S JSON. Only the newest run "
+    "reflects current state, so publishing an older one does not merely burn ~8 minutes "
+    "of pipeline -- it overwrites the live business surfaces with STALE figures "
+    "(regenerate_report() reads the marker's own json_path). This marker was therefore "
+    "archived unprocessed, superseded by a newer run."
+)
+
+
+def supersede_run_markers(markers, superseded_by, reason=None, log_fn=None):
+    """Archive run_complete markers that a NEWER marker has superseded.
+
+    PURPOSE (OPS_run_marker_sweep_livelock, 2026-08-03). The leftover sweep in
+    `background_worker.process_leftover_run_markers()` used to attempt EVERY
+    marker in staging/ oldest-first, every cycle. Observed live: 406 markers
+    spanning 2026-07-29..08-03, 1668 lock-skips / 571 failures / 300
+    "successes", backlog still GROWING (382 -> 405 in 4h) because sim_runner
+    mints one every ~9 min while a single publish costs ~8 min. The 300
+    "successes" were the worse half: each one republished a business surface
+    from a run up to five days old.
+
+    GUARANTEES.
+      G1  NEVER DELETES (R10 wall). A marker leaves the staging root only once
+          `_archive_marker` confirms a copy exists in done/. If that cannot be
+          confirmed the marker is LEFT IN PLACE and reported as not archived.
+      G2  ARCHIVING-WITH-REASON. The reason and the superseding marker's name
+          are appended INTO the archived file, so done/ carries its own
+          explanation rather than a silent disappearance.
+      G3  NON-FATAL. One marker's failure never aborts the rest and never
+          propagates to the sweep -- an archival problem must not stop
+          publishing.
+
+    FIT: reuses the archive mechanism this module already owns (`DONE_DIR` +
+    `_archive_marker`, the same path `_process()`'s change-detection SKIP
+    takes). No new store, no new lifecycle -- superseded-archive is the SAME
+    terminal state a skipped-as-identical marker already reaches.
+
+    Returns the list of archived marker names (empty list on total failure).
+    """
+    _log = log_fn or log
+    archived = []
+    note = "\n\n{}\n\nSuperseded-by: {}\nSuperseded-at: {}\nReason: {}\n".format(
+        SUPERSEDED_BLOCK_HEADER,
+        getattr(superseded_by, "name", superseded_by),
+        datetime.now(timezone.utc).isoformat(),
+        reason or DEFAULT_SUPERSEDE_REASON,
+    )
+    for marker in markers:
+        try:
+            marker = Path(marker)
+            try:
+                marker.write_text(marker.read_text() + note)
+            except OSError as exc:
+                # G2 best-effort: the file itself is still preserved intact in
+                # done/, and the reason is still recorded in the log below, so
+                # failing to stamp the note must not orphan the marker.
+                _log("Supersede note could not be written to {} ({}) -- archiving "
+                     "anyway; reason recorded in this log".format(marker.name, exc))
+            if _archive_marker(marker):
+                archived.append(marker.name)
+            else:
+                _log("Supersede FAILED for {} -- not confirmed present in done/, "
+                     "left in staging".format(marker.name))
+        except Exception as exc:  # G3
+            _log("Supersede error for {} (left in staging): {}".format(marker, exc))
+    return archived
+
+
 def log(msg):
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = "- [{}] [process_run] {}".format(ts, msg)

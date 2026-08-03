@@ -35,6 +35,17 @@ def _isolate(tmp_path, monkeypatch):
     import background.process_run_complete as prc
     monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
+    # Supersede-archive (2026-08-03) MOVES markers into process_run_complete's
+    # DONE_DIR. Unredirected, that is the REAL docs/staging/done/ -- caught live:
+    # the first run of this suite after the change left 4 synthetic markers as
+    # untracked files in the working tree (same test-isolation-leak class as the
+    # redirects above).
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "done")
+    # The sweep's zero-progress alarm persists state and pages via notify();
+    # neither may touch the real observability dir or the director's phone.
+    monkeypatch.setattr(background_worker, "SWEEP_STATE_FILE", tmp_path / ".sweep_state.json")
+    import background.notify as _notify
+    monkeypatch.setattr(_notify, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     yield
 
 
@@ -62,11 +73,15 @@ def test_single_marker_is_processed(monkeypatch):
 
 
 def test_collects_every_leftover_marker_unconditionally(monkeypatch):
-    """The core regression guard: this is the ONE property the whole
-    sim_runner.py / process_run_complete.py coupling depends on -- if this
-    glob is ever narrowed (e.g. skip markers older than N, or only the
-    most recent one), a lock-skipped marker becomes permanently orphaned
-    with nothing left to rescue it."""
+    """The core regression guard, restated for supersede-and-archive
+    (2026-08-03). The property the whole sim_runner.py /
+    process_run_complete.py coupling depends on is that NO marker is left
+    orphaned in staging: the glob must stay unconditional (no age cut-off, no
+    peak-hours gate, no queue-state gate). What changed is a marker's terminal
+    state -- the newest is PUBLISHED, the rest are ARCHIVED-AS-SUPERSEDED --
+    not whether every marker is dealt with. That is strictly stronger than the
+    old 'every marker is attempted', which the 406-marker live backlog proved
+    was never actually delivered."""
     names = [f"run_complete_2026071{i}T000000Z.md" for i in range(1, 4)]
     for name in names:
         (background_worker.STAGING_DIR / name).write_text("# Simulation Run Complete\n")
@@ -78,9 +93,18 @@ def test_collects_every_leftover_marker_unconditionally(monkeypatch):
 
     background_worker.process_leftover_run_markers()
 
-    assert len(calls) == 3
-    processed_paths = {Path(c[-1]).name for c in calls}
-    assert processed_paths == set(names)
+    # Only the newest is published...
+    assert len(calls) == 1
+    assert Path(calls[0][-1]).name == names[-1]
+    # ...and EVERY other marker reached a terminal state: archived, not orphaned.
+    # (The newest is still in staging only because the real publisher -- which
+    # archives it itself -- is mocked out here.)
+    left = {p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md")}
+    assert left == {names[-1]}
+    import background.process_run_complete as prc
+    assert {p.name for p in prc.DONE_DIR.glob("run_complete_*.md")} == set(names[:-1])
+    # The non-marker file is untouched by the same glob.
+    assert (background_worker.STAGING_DIR / "from_rich_20260713.md").exists()
 
 
 def test_a_failed_marker_does_not_stop_the_others_being_attempted(monkeypatch):
@@ -269,10 +293,13 @@ def test_a_real_failure_is_still_recorded(monkeypatch):
     assert len(failures) == 1 and failures[0]["rc"] == 1
 
 
-def test_processing_order_is_deterministic_sorted(monkeypatch):
-    """sorted() on the glob result means the oldest-timestamped marker
-    (by filename) is always attempted first -- a real, if minor,
-    fairness property worth locking in."""
+def test_the_published_marker_is_the_newest_regardless_of_glob_order(monkeypatch):
+    """sorted() on the glob result orders markers chronologically (the name
+    carries a fixed-width UTC timestamp). Supersede-and-archive (2026-08-03)
+    inverts which end of that order is published: the NEWEST, because
+    `_process()` regenerates the business surfaces from the marker's OWN
+    json_path, so publishing the oldest republishes the stalest figures.
+    Superseded January-order used to publish 300 stale runs over five days."""
     names = ["run_complete_20260713T030000Z.md", "run_complete_20260713T010000Z.md", "run_complete_20260713T020000Z.md"]
     for name in names:
         (background_worker.STAGING_DIR / name).write_text("# Simulation Run Complete\n")
@@ -282,8 +309,7 @@ def test_processing_order_is_deterministic_sorted(monkeypatch):
 
     background_worker.process_leftover_run_markers()
 
-    processed_order = [Path(c).name for c in calls]
-    assert processed_order == sorted(names)
+    assert [Path(c).name for c in calls] == [max(names)]
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
