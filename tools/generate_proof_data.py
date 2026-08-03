@@ -1207,27 +1207,356 @@ def _principles():
     ]
 
 
-def _not_proven():
-    """v4 pitch §13 honesty spine: the load-bearing claims NOT yet proven, stated
-    plainly (honesty is the aesthetic). Per the Note on Claims these are arguments
-    and hypotheses-with-a-designed-test, not results -- and the site says so."""
-    return [
-        dict(claim="Personalisation keeps paying as it gets finer",
-             status="hypothesis — test designed, not a result",
-             note="That value keeps rising past broad groups into the fine-grained combinations most companies never reach is the load-bearing commercial claim; currently a hypothesis with a designed test."),
-        dict(claim="Timing beats messaging by enough to matter commercially",
-             status="hypothesis — the least-anchored, most likely wrong",
-             note="Nothing connects a household's mood or attention to its meter; the timing thesis rests on behavioural-trial evidence, not data we can generate faithfully from. The newest idea here."),
-        dict(claim="Any real tonne of CO₂ has been abated",
-             status="not proven — only real households abate",
-             note="In-simulation counterfactuals prove the mechanism is coherent; they do not abate carbon."),
-        dict(claim="The blueprint transfers to another market",
-             status="not proven",
-             note="…without more work than the argument implies."),
-        dict(claim="A customer has received a personalised anything",
-             status="not proven — architecture makes it possible, scale has not",
-             note="No customer has yet received a personalised anything from this system."),
-    ]
+# ---------------------------------------------------------------------------
+# THE HONESTY SPINE, MADE FALSIFIABLE -- MINOR-11 (2026-07-29 cold-eyes Expert
+# Hour, SITE1_expert_doors).
+#
+# THE FINDING. "The time-expiring honesty claims in proof.json not_proven carry
+# fixed prose with no numeric binding, unlike neighbouring blocks which carry
+# counters/sources -- so if authored rather than computed they go silently false
+# the first time a contact is recorded. SITE_CONSTITUTION rule 7 requires exactly
+# these to be data-driven. Needs a source-side check, not a fetch."
+#
+# They were authored. Five hand-typed cards, no source, no counter, nothing that
+# could ever change -- on the one panel of the credibility door whose entire job
+# is to say what is NOT true yet. Worse, the three facts SITE_CONSTITUTION rule 7
+# names by hand (no external person has yet seen this work - no household data has
+# entered the system - no volunteer has been approached) were not on the surface
+# at ALL, so the rule's own examples were the ones missing.
+#
+# WHY THIS SHAPE (R4: the nearest working analogue is the predictions ledger
+# directly above -- same file, same door, already solved the same problem).
+# The ledger stopped "parking" a prediction forever by giving every undecided row
+# a NAMED blocker with an AGE and a HORIZON, past which it becomes UNGRADEABLE
+# rather than a silent, permanent maybe. An honesty fact has the identical failure
+# mode -- an assertion that can only ever stay true -- so it gets the identical
+# treatment rather than a second, differently-shaped mechanism.
+#
+# THE GUARANTEES.
+#   G1 EVERY claim carries a PROBE: a question, a real repo-side source, and an
+#      observed value. A prose-only claim cannot be published -- `not_proven_integrity`
+#      flags it and tests/tools/test_site1_proof_not_proven_binding.py fails the
+#      build. This is the R10 class closure: the next hand-authored honesty card
+#      fails automatically, rather than this one being fixed as an instance.
+#   G2 A claim whose probe OBSERVES ITS FALSIFIER flips to NO LONGER TRUE by
+#      itself. The page stops asserting it; it does not need anyone to notice.
+#   G3 Where no mechanical oracle exists, the claim is bounded by an ATTESTATION
+#      HORIZON. Past it, the claim renders UNVERIFIED -- never "still true". An
+#      un-maintained honesty claim decays to unverified, which is the fail-CLOSED
+#      direction.
+#   G4 R15 FAIL-SILENT: an unreadable / missing / malformed probe source is a
+#      FAILED check, so the claim goes UNVERIFIED with the reason named. It never
+#      falls through to "still true".
+#   G5 INDEPENDENCE (R15 TAUTOLOGY): the mechanical probe reads the drawn customer
+#      book -- an artefact this generator does not write and cannot influence.
+#      The attestation probe is honestly WEAKER (a dated human/agent statement),
+#      and every attested claim SAYS SO on the surface, in `probe.independence`.
+#      Dressing an attestation as a measurement would be the exact defect this
+#      panel exists to expose.
+# ---------------------------------------------------------------------------
+
+HONESTY_ATTESTATIONS_PATH = PROJECT / "site" / "state" / "honesty_attestations.json"
+CUSTOMER_SAMPLE_PATH = PROJECT / "site" / "state" / "customer_sample.json"
+
+# G3: how long a dated attestation stands before the claim resting on it stops
+# being publishable as true. Deliberately short -- an honesty fact nobody has
+# re-checked in a month is not a fact, it is a habit.
+ATTESTATION_HORIZON_DAYS = 30
+
+S_HOLDS = "STILL TRUE"
+S_FALSIFIED = "NO LONGER TRUE"
+S_UNVERIFIED = "UNVERIFIED"
+NOT_PROVEN_STATES = (S_HOLDS, S_FALSIFIED, S_UNVERIFIED)
+
+# Field names that only appear once a REAL person's data is in the book. The
+# simulated population is drawn from distributions and carries none of them: it
+# has segment/tenure/occupancy/payment_channel, never a name, an address, a
+# postcode, a phone number, a bank account or a real meter identifier.
+# Over-inclusive on purpose -- a false positive costs one loud "NO LONGER TRUE"
+# card that a human immediately disputes; a false negative is the site quietly
+# asserting no household data is present while it is.
+PERSONAL_DATA_FIELDS = frozenset({
+    "address", "address_line_1", "address_line_2", "bank_account_number",
+    "contact_email", "contact_phone", "customer_name", "date_of_birth", "dob",
+    "email", "email_address", "first_name", "full_name", "iban", "last_name",
+    "meter_serial", "meter_serial_number", "mobile", "mpan", "mprn",
+    "national_insurance_number", "ni_number", "phone", "phone_number",
+    "post_code", "postcode", "sort_code", "surname", "telephone",
+})
+
+
+def _walk_keys(node, out):
+    """Every key name anywhere in a JSON tree. Iterative shape, never raises."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            out.add(key)
+            _walk_keys(value, out)
+    elif isinstance(node, list):
+        for value in node:
+            _walk_keys(value, out)
+
+
+def personal_data_probe():
+    """MECHANICAL, INDEPENDENT probe: is any real person's data in the book?
+
+    Reads the drawn customer population -- an artefact written by the population
+    generator, not by this file. If a real household ever enters the system its
+    record has to carry at least one of the identifiers a supplier cannot serve
+    a real customer without, and this probe counts them.
+
+    R15 FAIL-SILENT: unreadable/malformed source -> available=False, which the
+    caller turns into UNVERIFIED. An unavailable check is a FAILED check.
+    """
+    rel = "site/state/customer_sample.json"
+    try:
+        raw = json.loads(CUSTOMER_SAMPLE_PATH.read_text())
+        if not isinstance(raw, dict):
+            raise ValueError("payload is not an object")
+        customers = raw.get("customers")
+        if not isinstance(customers, (dict, list)) or not customers:
+            raise ValueError("no drawn customer book in the payload")
+    except Exception as exc:
+        return dict(
+            name="personal_data_in_the_book", source=rel, available=False,
+            observed=None, unit="personal-data fields", stamp=None,
+            question="Does any record in the drawn customer book carry a real "
+                     "person's identifier (name, address, postcode, phone, email, "
+                     "bank details, or a real meter number)?",
+            falsifies_when="> 0",
+            independence="INDEPENDENT -- the customer book is written by the "
+                         "population generator, never by this door.",
+            detail="the customer book could not be read at generation time (%s)" % exc)
+    keys = set()
+    _walk_keys(customers, keys)
+    hits = sorted(keys & PERSONAL_DATA_FIELDS)
+    return dict(
+        name="personal_data_in_the_book", source=rel, available=True,
+        observed=len(hits), unit="personal-data fields",
+        stamp=_get(raw, "meta", "generated_at"),
+        question="Does any record in the drawn customer book carry a real person's "
+                 "identifier (name, address, postcode, phone, email, bank details, "
+                 "or a real meter number)?",
+        falsifies_when="> 0",
+        independence="INDEPENDENT -- the customer book is written by the population "
+                     "generator, never by this door.",
+        detail=("found: " + ", ".join(hits)) if hits else
+               "%d record(s) scanned, %d distinct field names, none of them a real "
+               "person's identifier" % (
+                   len(customers), len(keys)))
+
+
+def _attestations():
+    """The dated honesty register. Deliberately a SEPARATE file, not a literal in
+    this module -- a fact restated inside the code that publishes it is the prose
+    defect MINOR-11 named, wearing a dict."""
+    rel = "site/state/honesty_attestations.json"
+    try:
+        raw = json.loads(HONESTY_ATTESTATIONS_PATH.read_text())
+        entries = raw.get("attestations")
+        if not isinstance(entries, dict):
+            raise ValueError("no `attestations` object")
+    except Exception as exc:
+        return rel, None, str(exc)
+    return rel, entries, None
+
+
+def attestation_probe(fact_id, question, register, source_rel, load_error, today):
+    """ATTESTED probe: a dated statement, bounded by a horizon.
+
+    Weaker than a measurement and says so. Three ways it refuses to report
+    "still true": the register is unreadable (R15 FAIL-SILENT), the fact has no
+    entry at all (a claim nobody has ever attested is not evidence), or the
+    attestation is older than ATTESTATION_HORIZON_DAYS (G3 -- it decays to
+    UNVERIFIED rather than standing forever).
+    """
+    base = dict(
+        name="attested_honesty_fact", source=source_rel, unit="days since attestation",
+        question=question, falsifies_when="the register records still_true: false",
+        independence="ATTESTED, NOT MEASURED -- a dated statement in a register "
+                     "outside this door, bounded by a %d-day horizon. Weaker than a "
+                     "measurement; published as such." % ATTESTATION_HORIZON_DAYS,
+        fact_id=fact_id, attested_on=None, attested_by=None, horizon_days=ATTESTATION_HORIZON_DAYS)
+    if register is None:
+        return dict(base, available=False, observed=None, stamp=None,
+                    detail="the honesty register could not be read at generation "
+                           "time (%s)" % load_error)
+    entry = register.get(fact_id)
+    if not isinstance(entry, dict):
+        return dict(base, available=False, observed=None, stamp=None,
+                    detail="no attestation recorded for %r -- an unattested honesty "
+                           "claim is unverified, not true" % fact_id)
+    attested_on = entry.get("attested_on")
+    age = _day_delta(today, attested_on)
+    if age is None:
+        return dict(base, available=False, observed=None, stamp=attested_on,
+                    attested_on=attested_on, attested_by=entry.get("attested_by"),
+                    detail="the attestation carries no usable date (%r), so its age "
+                           "cannot be bounded" % (attested_on,))
+    return dict(base, available=True, observed=age, stamp=attested_on,
+                attested_on=attested_on, attested_by=entry.get("attested_by"),
+                still_true=bool(entry.get("still_true", False)),
+                detail=entry.get("basis") or "")
+
+
+def _classify_not_proven(probe):
+    """The claim's published state, DERIVED. Order matters: unavailable is checked
+    before anything else, so a broken probe can never read as a clean one."""
+    if not probe.get("available"):
+        return S_UNVERIFIED, ("This claim is currently UNVERIFIED: %s. An unavailable "
+                             "check is a FAILED check (R15) -- the claim is not being "
+                             "asserted." % (probe.get("detail") or "the probe could not run"))
+    if probe["name"] == "personal_data_in_the_book":
+        if (probe.get("observed") or 0) > 0:
+            return S_FALSIFIED, ("The probe found %d personal-data field(s) in the drawn "
+                                 "book (%s). This claim is NO LONGER TRUE and is published "
+                                 "as such." % (probe["observed"], probe.get("detail")))
+        return S_HOLDS, probe.get("detail") or ""
+    # attested_honesty_fact
+    if not probe.get("still_true", False):
+        return S_FALSIFIED, ("The honesty register records this fact as no longer true "
+                             "(attested %s). Published as such." % probe.get("attested_on"))
+    if probe["observed"] > ATTESTATION_HORIZON_DAYS:
+        return S_UNVERIFIED, ("Last attested %s, %d days ago -- past the %d-day horizon. "
+                              "An honesty claim nobody has re-checked inside the horizon "
+                              "is UNVERIFIED, not true."
+                              % (probe.get("attested_on"), probe["observed"],
+                                 ATTESTATION_HORIZON_DAYS))
+    return S_HOLDS, probe.get("detail") or ""
+
+
+def not_proven_integrity(entries):
+    """R10 CLASS CLOSURE. MINOR-11 was not "five bad cards" -- it was that the
+    panel had no shape at all, so any prose could be published as an honesty
+    fact. This is the invariant that makes the whole CLASS fail: every published
+    claim must carry a probe with a named question, a named source and a state
+    drawn from the vocabulary. Add a sixth prose-only card and this returns a
+    violation; the test suite turns that into a red build.
+    """
+    violations = []
+    for i, e in enumerate(entries or []):
+        where = "not_proven[%d] %r" % (i, (e or {}).get("claim"))
+        if not isinstance(e, dict):
+            violations.append("%s is not an object" % where)
+            continue
+        probe = e.get("probe")
+        if not isinstance(probe, dict):
+            violations.append("%s carries no probe -- prose-only honesty claims are "
+                              "not publishable (SITE_CONSTITUTION rule 7)" % where)
+            continue
+        for key in ("name", "source", "question", "falsifies_when", "independence"):
+            if not probe.get(key):
+                violations.append("%s probe is missing %r" % (where, key))
+        if "observed" not in probe:
+            violations.append("%s probe records no observed value" % where)
+        if e.get("state") not in NOT_PROVEN_STATES:
+            violations.append("%s state %r is outside the vocabulary %s"
+                              % (where, e.get("state"), list(NOT_PROVEN_STATES)))
+        if probe.get("available") and e.get("state") == S_UNVERIFIED:
+            violations.append("%s is UNVERIFIED while its probe reports available -- "
+                              "the state is not derived from the probe" % where)
+    return violations
+
+
+# The claims themselves. Prose still writes the CLAIM and the NOTE -- what a
+# claim means is a human sentence. What changed is that no claim may assert
+# itself: each names the probe that can take it away.
+#
+# PHRASING IS LOAD-BEARING HERE. Every card is written as a statement that is
+# TRUE TODAY and will EXPIRE, so one state vocabulary covers the panel and the
+# rendered badge is never ambiguous. The v4 pitch wrote three of these the other
+# way up ("Any real tonne of CO2 has been abated -- not proven"), which reads fine
+# as prose but makes "NO LONGER TRUE" mean the opposite thing on different cards.
+# Same claims, same honesty, turned the same way round.
+_NOT_PROVEN_CLAIMS = [
+    dict(id="no_household_data_has_entered_the_system",
+         claim="No household data has entered the system",
+         kind="time-expiring fact",
+         probe_kind="personal_data",
+         note="SITE_CONSTITUTION rule 7 names this fact by hand. Every customer on "
+              "this site is drawn from distributions; not one is a person. The claim "
+              "is bound to the drawn book itself, so the first real record falsifies "
+              "it without anyone remembering to edit this page."),
+    dict(id="no_external_person_has_seen_this_work",
+         claim="No external person has yet seen this work",
+         kind="time-expiring fact",
+         probe_kind="attested",
+         note="SITE_CONSTITUTION rule 7 names this fact by hand. It has no mechanical "
+              "oracle -- nothing in a repository can observe who has been shown a "
+              "screen -- so it rests on a dated attestation with a horizon, and says "
+              "so rather than borrowing the authority of a measurement."),
+    dict(id="no_volunteer_has_been_approached",
+         claim="No volunteer has been approached",
+         kind="time-expiring fact",
+         probe_kind="attested",
+         note="SITE_CONSTITUTION rule 7 names this fact by hand. Contacting a real "
+              "person is one of the four reserved acts (background/one_way_door.py), "
+              "so an approach cannot happen quietly -- but the record of it lives "
+              "outside this door, hence a dated attestation, not a count."),
+    dict(id="any_real_tonne_of_co2_has_been_abated",
+         claim="Any real tonne of CO₂ has been abated",
+         kind="time-expiring fact",
+         probe_kind="personal_data",
+         note="In-simulation counterfactuals prove the mechanism is coherent; they do "
+              "not abate carbon. Only real households abate, so this claim is bound to "
+              "the same probe: no real household in the book, no real tonne."),
+    dict(id="a_customer_has_received_a_personalised_anything",
+         claim="A customer has received a personalised anything",
+         kind="time-expiring fact",
+         probe_kind="personal_data",
+         note="Architecture makes it possible; scale has not. You cannot send a "
+              "personalised anything to someone you hold no contact details for, so "
+              "the same book probe binds this claim too."),
+    dict(id="personalisation_keeps_paying_as_it_gets_finer",
+         claim="Personalisation keeps paying as it gets finer",
+         kind="hypothesis with a designed test",
+         probe_kind="attested",
+         note="That value keeps rising past broad groups into the fine-grained "
+              "combinations most companies never reach is the load-bearing commercial "
+              "claim; currently a hypothesis with a designed test and no result."),
+    dict(id="timing_beats_messaging_commercially",
+         claim="Timing beats messaging by enough to matter commercially",
+         kind="hypothesis with a designed test",
+         probe_kind="attested",
+         note="Nothing connects a household's mood or attention to its meter; the "
+              "timing thesis rests on behavioural-trial evidence, not data we can "
+              "generate faithfully from. The newest idea here, and the least anchored."),
+    dict(id="the_blueprint_transfers_to_another_market",
+         claim="The blueprint transfers to another market",
+         kind="hypothesis with a designed test",
+         probe_kind="attested",
+         note="One market is implemented (GB). The portability constraints are "
+              "honoured at the seams by design review, which is an argument, not a "
+              "second market running."),
+]
+
+
+def _not_proven(today=None):
+    """v4 pitch §13 honesty spine, MINOR-11 rebuild: the load-bearing claims NOT
+    yet proven -- each now bound to a probe that can take it away.
+
+    See the section header above for purpose, guarantees and the independence
+    argument. Nothing here asserts itself: `state` is derived, never authored.
+    """
+    today = today or datetime.now(timezone.utc).date().isoformat()
+    source_rel, register, load_error = _attestations()
+    mechanical = personal_data_probe()
+
+    out = []
+    for spec in _NOT_PROVEN_CLAIMS:
+        if spec["probe_kind"] == "personal_data":
+            probe = dict(mechanical)
+        else:
+            probe = attestation_probe(spec["id"], spec["claim"], register,
+                                      source_rel, load_error, today)
+        state, why = _classify_not_proven(probe)
+        out.append(dict(
+            id=spec["id"], claim=spec["claim"], kind=spec["kind"], note=spec["note"],
+            state=state, why=why, probe=probe,
+            # Kept so an older consumer of this feed still finds a status string,
+            # but it is now DERIVED from the probe rather than typed.
+            status="%s — %s" % (state.lower(), spec["kind"]),
+        ))
+    return out
 
 
 def _corrections():
@@ -1286,6 +1615,7 @@ def generate():
 
     atoms = _load_atoms()
     retros = _retro_library()
+    not_proven = _not_proven()
 
     data = dict(
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -1302,7 +1632,11 @@ def generate():
         control_killlist=_control_killlist(),
         predictions=_predictions_ledger(),
         principles=_principles(),
-        not_proven=_not_proven(),
+        not_proven=not_proven,
+        # MINOR-11 / R10: the class guard travels WITH the data, so a prose-only
+        # honesty card is visible on the surface as a defect rather than only in
+        # a test log. Empty list = the invariant held for every published claim.
+        not_proven_integrity=not_proven_integrity(not_proven),
         corrections=_corrections(),
     )
     # MAJOR-7: re-point every evidence citation at where the artefact lives now,

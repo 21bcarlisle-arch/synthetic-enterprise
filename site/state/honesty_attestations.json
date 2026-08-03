@@ -1,0 +1,36 @@
+{
+  "note": "THE HONESTY REGISTER (SITE_CONSTITUTION rule 7, MINOR-11 close, 2026-08-03). The time-expiring honesty facts the /proof/ door publishes, each as a DATED statement rather than a sentence typed into a page. Read tools/generate_proof_data.py's `_not_proven` section header for why this file exists as a file: a fact restated inside the code that publishes it cannot contradict that code. An entry here is deliberately WEAKER evidence than a measurement, and the door says so on every card that rests on one. Two ways a claim here stops being published as true: set `still_true` to false, or simply let `attested_on` age past the horizon (tools/generate_proof_data.py::ATTESTATION_HORIZON_DAYS, currently 30 days) -- after which the door renders the claim UNVERIFIED, never 'still true'. That is the fail-CLOSED direction and it is the whole point: an honesty claim nobody has re-checked in a month is a habit, not a fact.",
+  "horizon_days_authority": "tools/generate_proof_data.py::ATTESTATION_HORIZON_DAYS",
+  "attestations": {
+    "no_external_person_has_seen_this_work": {
+      "still_true": true,
+      "attested_on": "2026-08-03",
+      "attested_by": "SITE1_expert_doors build fork (agent), MINOR-11 close",
+      "basis": "The work has been seen by the director (Rich) and his advisor, who are the project, not an external audience. No demo, no walkthrough, no shared link to anyone outside those two. The site is public at poesys.net, so 'seen' here means shown-to, not theoretically-reachable -- stated plainly because the weaker reading would make the claim unfalsifiable."
+    },
+    "no_volunteer_has_been_approached": {
+      "still_true": true,
+      "attested_on": "2026-08-03",
+      "attested_by": "SITE1_expert_doors build fork (agent), MINOR-11 close",
+      "basis": "Contacting a real person is reserved class 2 (background/one_way_door.py) and has never been exercised for recruitment. No volunteer, no pilot household, no trial participant has been approached by the machine or on its behalf."
+    },
+    "personalisation_keeps_paying_as_it_gets_finer": {
+      "still_true": true,
+      "attested_on": "2026-08-03",
+      "attested_by": "SITE1_expert_doors build fork (agent), MINOR-11 close",
+      "basis": "Still a hypothesis with a designed test and no graded result. The test design lives in the segmentation/personalisation lane of docs/design/maturity_map.yaml; nothing in the predictions ledger on this door grades it."
+    },
+    "timing_beats_messaging_commercially": {
+      "still_true": true,
+      "attested_on": "2026-08-03",
+      "attested_by": "SITE1_expert_doors build fork (agent), MINOR-11 close",
+      "basis": "Still a hypothesis and the least anchored one. The nudge-physics benchmarks in docs/market_research/ are external behavioural-trial evidence, not a result this system produced."
+    },
+    "the_blueprint_transfers_to_another_market": {
+      "still_true": true,
+      "attested_on": "2026-08-03",
+      "attested_by": "SITE1_expert_doors build fork (agent), MINOR-11 close",
+      "basis": "One market is implemented (GB / Ofgem). The portability constraints (docs/staging/done/PORTABILITY_DESIGN_CONSTRAINTS.md) are honoured at the seams by design review, which is an argument for transferability, not a second market running."
+    }
+  }
+}

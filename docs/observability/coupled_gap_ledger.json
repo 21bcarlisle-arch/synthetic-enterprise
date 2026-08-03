@@ -206,21 +206,21 @@
   "W2_11_payment_behaviour_source": {
     "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
     "components": {
-      "caught": 16,
-      "flagged_size": 16,
-      "miss_rate": 0.627907,
-      "missed": 27,
-      "missed_harm": 27.0,
-      "total_harm": 43.0,
-      "truth_size": 43
+      "caught": 17,
+      "flagged_size": 42,
+      "miss_rate": 0.564103,
+      "missed": 22,
+      "missed_harm": 22.0,
+      "total_harm": 39.0,
+      "truth_size": 39
     },
-    "g0": 43.0,
-    "gap": 0.627906976744186,
-    "measured_at": "2026-07-21T07:22:44.236159+00:00",
+    "g0": 39.0,
+    "gap": 0.5641025641025641,
+    "measured_at": "2026-08-03T08:14:58.814299+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2632, ageing 1.2326; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
-    "raw_gap": 27.0,
-    "run_git_commit": "588fc8a91de28fed0a30b4557e34e2d98748f79b",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.2051; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 22.0,
+    "run_git_commit": "92855001b3f613ff2ca28d4d8e285cd57d07e849",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
