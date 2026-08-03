@@ -188,6 +188,70 @@ def test_year_none_is_backward_compatible():
     assert p_default == p_none
 
 
+# ── WIRING: dispatchable-capacity re-stacking reaches derive_price, not just the ───────
+# renewable-fleet side (FRAME §4 L2 (b), 2026-08-03 this fork). `test_same_weather_
+# prices_differently_across_years` above already shows year=early != year=late, but
+# that conflates TWO mechanisms now (renewable fleet growth AND dispatchable-fleet
+# shrinkage) -- these tests isolate the dispatchable-capacity half specifically.
+def test_derive_price_threads_year_into_the_dispatchable_denominator_too():
+    """derive_price must not silently drop `year` on its way to the merit-order call
+    -- it must produce EXACTLY what calling price_engine.synthetic_price directly
+    with the same (gas, demand, renewable, year) would, proving the re-stacking
+    reaches the actual price formula, not just the renewable-fleet inputs upstream
+    of it."""
+    from sim.price_engine import synthetic_price as engine_synthetic_price
+
+    p = wpc.fit_chain()
+    for year in (2016, 2025):
+        demand = float(np.ravel(wpc.demand_from_weather(_DRAW["temp_c"], p))[0])
+        wind = float(np.ravel(wpc.wind_output_from_speed(
+            _DRAW["wind_speed_ms"], p, year=year))[0])
+        solar = float(np.ravel(wpc.solar_output_from_weather(
+            _DRAW["day_of_year"], _DRAW["cloud_pct"], p, year=year))[0])
+        expected = engine_synthetic_price(_DRAW["gas_price"], demand, wind + solar, year=year)
+        got = wpc.derive_price(**_DRAW, year=year)
+        assert got == pytest.approx(expected)
+
+
+def test_derive_price_year_aware_price_differs_even_with_the_renewable_fleet_held_flat():
+    """Isolates the dispatchable-fleet contribution from the renewable-fleet one:
+    hold the renewable fleet PINNED at its 2016 value across both calls (so ALL of
+    the year-to-year renewable-output difference is neutralised) and confirm the
+    price STILL differs between 2016 and 2025 -- proof the dispatchable-capacity
+    re-stacking alone has teeth, not just riding on the renewable-fleet mechanism."""
+    from sim.price_engine import synthetic_price as engine_synthetic_price
+
+    p = wpc.fit_chain()
+    demand = float(np.ravel(wpc.demand_from_weather(_DRAW["temp_c"], p))[0])
+    # Renewable output pinned at the 2016 fleet for BOTH calls.
+    wind = float(np.ravel(wpc.wind_output_from_speed(_DRAW["wind_speed_ms"], p, year=2016))[0])
+    solar = float(np.ravel(wpc.solar_output_from_weather(
+        _DRAW["day_of_year"], _DRAW["cloud_pct"], p, year=2016))[0])
+    renewable = wind + solar
+    price_2016 = engine_synthetic_price(_DRAW["gas_price"], demand, renewable, year=2016)
+    price_2025 = engine_synthetic_price(_DRAW["gas_price"], demand, renewable, year=2025)
+    assert price_2016 != price_2025
+
+
+def test_derive_price_on_record_year_aware_layers_dispatchable_capacity_too():
+    """`derive_price_on_record(year_aware=True)` must thread each row's OWN year into
+    the dispatchable side as well as the renewable side -- proven by reproducing one
+    row's derived price from the underlying per-row demand/renewable/year via
+    price_engine.synthetic_price directly (not merely asserting 'the series changed',
+    which the pre-existing test already covers for the renewable-fleet half)."""
+    from sim.price_engine import synthetic_price as engine_synthetic_price
+
+    out = wpc.derive_price_on_record(year_aware=True)
+    years = [rct._year_of(d) for d in out["dates"]]
+    # Spot-check a handful of rows spanning the window (not all ~3000+, for speed).
+    idxs = [0, len(years) // 4, len(years) // 2, 3 * len(years) // 4, len(years) - 1]
+    for i in idxs:
+        expected = engine_synthetic_price(
+            float(out["gas_price"][i]), float(out["demand_mw"][i]),
+            float(out["renewable_mw"][i]), year=years[i])
+        assert out["derived_price"][i] == pytest.approx(expected)
+
+
 # ── Onshore/offshore split (new this pass) ──────────────────────────────────────────────
 def test_offshore_and_onshore_are_split_and_positive():
     traj = rct.fleet_trajectory()
@@ -723,3 +787,212 @@ def test_real_onshore_offshore_generation_share_rejects_non_positive_denominator
     finally:
         tmp.unlink(missing_ok=True)
         rct._load_dukes_generation.cache_clear()
+
+
+# ── W1_7 FRAME §4 L2 (a): commissioning-date SMOOTHING (2026-08-03 this fork) ─────────
+# No per-turbine commissioning-date feed exists in this sim (none is published at that
+# granularity) -- the honest, disclosed approximation is piecewise-LINEAR interpolation
+# between the real DUKES year-end snapshots, standing in for the unknown intra-year
+# commissioning schedule. For a linear ramp, a year's AVERAGE capacity is exactly the
+# mean of its two bounding year-end values.
+
+def test_real_capacity_smoothed_is_the_average_of_consecutive_year_ends():
+    """Pure arithmetic check, independent of the reconciliation invariant below:
+    smoothed(2020) must equal exactly (real(2019) + real(2020)) / 2 for every
+    technology."""
+    for tech, real_fn in (("wind_onshore", rct.real_capacity_wind_onshore),
+                         ("wind_offshore", rct.real_capacity_wind_offshore),
+                         ("solar", rct.real_capacity_solar)):
+        expected = (real_fn(2019) + real_fn(2020)) / 2.0
+        assert rct.real_capacity_smoothed(tech, 2020) == pytest.approx(expected, rel=1e-9)
+
+
+def test_real_capacity_smoothed_falls_back_to_raw_at_the_first_window_year():
+    """2016 has no 2015 anchor to average against -- honestly un-smoothable, so it
+    falls back to the raw year-end value rather than silently degenerating."""
+    assert rct.real_capacity_smoothed("wind_offshore", 2016) == pytest.approx(
+        rct.real_capacity_wind_offshore(2016), rel=1e-9)
+    # And R13 hold-flat still clamps below the window the same way.
+    assert rct.real_capacity_smoothed("solar", 2000) == rct.real_capacity_smoothed("solar", 2016)
+
+
+def test_real_capacity_smoothed_rejects_unknown_technology():
+    with pytest.raises(ValueError):
+        rct.real_capacity_smoothed("nuclear", 2020)
+    with pytest.raises(ValueError):
+        rct.implied_generation_gwh_smoothed("nuclear", 2020)
+
+
+def test_commissioning_smoothing_reduces_reconciliation_gap_on_real_data():
+    """THE FRAME §4 L2 claim, load-bearing: commissioning-date smoothing must
+    materially tighten the A5 capacity x load-factor -> generation reconciliation.
+    Real result (this pass): raw (year-end) mean abs error ~4.17% across the 27
+    comparable technology-year cells vs smoothed mean abs error ~0.16% -- a ~96%
+    relative reduction, comfortably clearing the pre-stated 50% bar. If this ever
+    flips False, re-check the market-research numbers before assuming regression."""
+    assert rct.check_commissioning_smoothing_reduces_reconciliation_gap() is True
+    # And the concrete worst-offender cell the FRAME's own A5 finding named (offshore
+    # 2017, naive gap 14.08%) is the clearest single illustration of the mechanism:
+    real = rct.real_generation_gwh("offshore_wind", 2017)
+    naive = rct.implied_generation_gwh("offshore_wind", 2017)
+    smoothed = rct.implied_generation_gwh_smoothed("offshore_wind", 2017)
+    naive_gap = abs(naive - real) / real
+    smoothed_gap = abs(smoothed - real) / real
+    assert naive_gap == pytest.approx(0.1408, abs=0.005)
+    assert smoothed_gap < naive_gap * 0.1  # smoothing cuts this specific cell's gap >90%
+
+
+def test_commissioning_smoothing_check_FIRES_when_smoothing_is_reverted_to_naive():
+    """R15 KILLER MUTATION: if `implied_generation_gwh_smoothed` collapsed back to
+    the raw (unsmoothed) year-end value -- e.g. a future refactor that accidentally
+    drops the averaging -- the two error series would be IDENTICAL, so the
+    'smoothed <= raw * 0.5' improvement bar could no longer hold (equal is not <=
+    half). We simulate that regression directly by monkeypatching
+    `real_capacity_smoothed` to just return the raw year-end value, proving the
+    check has teeth rather than passing on any input."""
+    original = rct.real_capacity_smoothed
+    try:
+        rct.real_capacity_smoothed = lambda tech, year, source_path=None: (
+            rct._SMOOTHABLE_TECH_FOR_CAPACITY[tech](year, source_path)
+        )
+        assert rct.check_commissioning_smoothing_reduces_reconciliation_gap() is False
+    finally:
+        rct.real_capacity_smoothed = original
+
+
+def test_commissioning_smoothing_check_fails_on_fewer_than_two_comparable_cells():
+    """Engineer a capacity source whose first window year (2020) excludes all but
+    ONE (tech, year) cell as un-smoothable, across all three technologies combined
+    -- exercising the explicit '< 2 comparable cells' guard, not merely a large
+    reconciliation error (a different, already-covered failure mode)."""
+    cap_fixture = {"onshore_mw": {"2020": 1000.0, "2021": 1100.0},
+                   "offshore_mw": {"2020": 500.0},
+                   "solar_mw": {"2020": 800.0}}
+    gen_fixture = {"generation_gwh": {"onshore_wind": {"2020": 100.0, "2021": 110.0},
+                                      "offshore_wind": {"2020": 50.0},
+                                      "solar": {"2020": 80.0}},
+                   "load_factor_pct": {"onshore_wind": {"2020": 25.0, "2021": 25.0},
+                                       "offshore_wind": {"2020": 25.0},
+                                       "solar": {"2020": 10.0}}}
+    cap_path = Path("/tmp/w1_7_test_smoothing_thin_cap.json")
+    gen_path = Path("/tmp/w1_7_test_smoothing_thin_gen.json")
+    cap_path.write_text(json.dumps(cap_fixture))
+    gen_path.write_text(json.dumps(gen_fixture))
+    try:
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+        # onshore contributes exactly 1 cell (2021; 2020 is the un-smoothable first
+        # year); offshore and solar contribute 0 (their only year, 2020, is the first
+        # window year for THEIR series too) -- 1 total comparable cell, < 2.
+        assert rct.check_commissioning_smoothing_reduces_reconciliation_gap(
+            source_path=str(gen_path), capacity_source_path=str(cap_path)) is False
+    finally:
+        cap_path.unlink(missing_ok=True)
+        gen_path.unlink(missing_ok=True)
+        rct._load_dukes_capacity.cache_clear()
+        rct._load_dukes_generation.cache_clear()
+
+
+# ── W1_7 FRAME §4 L2 (b): coal -> gas -> wind marginal-plant RE-STACKING ──────────────
+# Real DUKES Table 5.7 plant-capacity series (a THIRD independent DESNZ table) now
+# grounds the dispatchable-fleet denominator `sim/price_engine.py` normalises residual
+# demand against, replacing the flat 35000 MW constant with a time-varying real one
+# when opted into via `year=`.
+
+def test_real_dispatchable_capacity_components_sum_correctly():
+    y = 2020
+    total = rct.real_dispatchable_capacity_mw(y)
+    parts = (rct.real_coal_capacity_mw(y) + rct.real_gas_capacity_mw(y)
+             + rct.real_nuclear_capacity_mw(y))
+    assert total == pytest.approx(parts, rel=1e-9)
+
+
+def test_real_dispatchable_capacity_clamps_flat_outside_window_R13():
+    assert rct.real_dispatchable_capacity_mw(2050) == rct.real_dispatchable_capacity_mw(2025)
+    assert rct.real_dispatchable_capacity_mw(2000) == rct.real_dispatchable_capacity_mw(2016)
+
+
+def test_real_coal_capacity_hits_zero_by_the_real_retirement_year():
+    """GB's last coal plant (Ratcliffe-on-Soar) closed 2024-09-30 -- real DUKES 5.7
+    data shows coal capacity at 0 MW by 2025 (2024 itself still carries a residual
+    18.5 MW wind-down remnant, honestly not forced to exactly zero)."""
+    assert rct.real_coal_capacity_mw(2025) == 0.0
+    assert rct.real_coal_capacity_mw(2016) > 10000.0  # ~13.7 GW at the window start
+
+
+def test_dispatchable_capacity_declines_2016_2025_on_real_data():
+    """Real result (this pass): ~56.2 GW (2016) -> ~42.4 GW (2025), ratio ~0.754 --
+    well under the pre-stated 0.85 bar (set with headroom above the observed
+    shrinkage)."""
+    assert rct.check_dispatchable_capacity_declines_2016_2025() is True
+
+
+def test_dispatchable_capacity_declines_check_FIRES_on_a_growing_fleet_mutation():
+    """R15 KILLER MUTATION: a fixture where the dispatchable fleet GROWS instead of
+    shrinking must fire."""
+    growing = {"coal_fired_mw": {"2016": 5000.0, "2025": 8000.0},
+               "gas_fired_mw": {"2016": 30000.0, "2025": 34000.0},
+               "nuclear_mw": {"2016": 9000.0, "2025": 9500.0}}
+    tmp = Path("/tmp/w1_7_test_dispatchable_growing.json")
+    tmp.write_text(json.dumps(growing))
+    try:
+        rct._load_dispatchable_capacity.cache_clear()
+        assert rct.check_dispatchable_capacity_declines_2016_2025(source_path=str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_capacity_declines_check_fails_on_fewer_than_two_years():
+    single = {"coal_fired_mw": {"2020": 5000.0}, "gas_fired_mw": {"2020": 30000.0},
+              "nuclear_mw": {"2020": 9000.0}}
+    tmp = Path("/tmp/w1_7_test_dispatchable_single_year.json")
+    tmp.write_text(json.dumps(single))
+    try:
+        rct._load_dispatchable_capacity.cache_clear()
+        assert rct.check_dispatchable_capacity_declines_2016_2025(source_path=str(tmp)) is False
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_capacity_source_FAILS_LOUD_when_missing():
+    """R15 FAIL-SILENT forbidden: a missing DUKES 5.7 source must raise, never
+    silently fall back to the pre-2026-08-03 flat constant."""
+    rct._load_dispatchable_capacity.cache_clear()
+    with pytest.raises(rct.DispatchableCapacitySourceUnavailableError):
+        rct.real_dispatchable_capacity_mw(2020, source_path="/nonexistent/dukes_5_7.json")
+    rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_capacity_source_FAILS_LOUD_on_incomplete_data():
+    incomplete = {"coal_fired_mw": {"2020": 5000.0}, "gas_fired_mw": {}}
+    tmp = Path("/tmp/w1_7_test_dispatchable_incomplete.json")
+    tmp.write_text(json.dumps(incomplete))
+    try:
+        rct._load_dispatchable_capacity.cache_clear()
+        with pytest.raises(rct.DispatchableCapacitySourceUnavailableError):
+            rct.real_dispatchable_capacity_mw(2020, source_path=str(tmp))
+    finally:
+        tmp.unlink(missing_ok=True)
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_check_no_coal_after_retirement_PASSES_on_the_REAL_series():
+    """Closes the honesty gap this module's own docstring named: 'A4's
+    violation-detection half is separately proven on a clearly-synthetic, test-only
+    fixture ... since no real coal series exists in this sim to exercise it on.' A
+    real DUKES 5.7 coal-capacity series now exists (`real_coal_capacity_series`) and
+    genuinely passes A4 -- not a stub, not a synthetic fixture."""
+    real_series = rct.real_coal_capacity_series()
+    assert len(real_series) >= 2
+    assert rct.check_no_coal_after_retirement(real_series) is True
+
+
+def test_check_no_coal_after_retirement_FIRES_on_a_mutated_REAL_series():
+    """R15 KILLER MUTATION on the REAL series this time (not just the synthetic
+    fixture the prior fork used): inject a post-retirement survival into the
+    genuine DUKES-derived coal series and confirm the check fires."""
+    real_series = dict(rct.real_coal_capacity_series())
+    real_series[max(real_series) + 1] = 500.0  # coal surviving one year past the window
+    assert rct.check_no_coal_after_retirement(real_series) is False

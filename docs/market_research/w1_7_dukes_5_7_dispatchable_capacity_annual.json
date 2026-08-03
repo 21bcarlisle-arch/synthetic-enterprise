@@ -1,0 +1,28 @@
+{
+  "_provenance": {
+    "source": "DUKES Table 5.7.A 'Capacity by fuel, MW', worksheet '5.7', rows for 'All generating companies' -- Coal fired / Gas fired / Nuclear stations",
+    "url": "https://assets.publishing.service.gov.uk/media/6a6a3622cceb23e8678976bf/DUKES_5.7.xlsx",
+    "landing_page": "https://www.gov.uk/government/statistics/electricity-chapter-5-digest-of-united-kingdom-energy-statistics-dukes",
+    "fetched": "2026-08-03",
+    "http_status": 200,
+    "units": "MW, de-rated/nameplate transmission-connected + embedded plant capacity at calendar year end, ALL GENERATING COMPANIES (major power producers + other generators combined)",
+    "measurement_basis": "DESNZ's own plant-capacity register (licensed/connected generating plant by fuel type) -- a DIFFERENT DESNZ table from w1_7_dukes_installed_capacity_annual.json (that one is DUKES/Energy Trends Table ET 6.1, renewables-only, Ofgem RO/FiT/REGO accreditation basis). Independent of the Elexon AGWS settlement feed sim/weather_price_chain.py ingests (anti-marking-own-homework).",
+    "technology_basis": "'Gas fired' = CCGT + OCGT/gas-turbine capacity summed (verified: Table 5.7.B's separately-reported CCGT + gas-turbine rows sum exactly to Table 5.7.A's 'Gas fired' row, e.g. 2016 major-power-producer CCGT 29706 + gas turbines 864.5 = 30570.5 = the 5.7.A MPP gas-fired figure). 'Coal fired' = conventional coal steam stations. 'Nuclear stations' = all nuclear capacity. DISPATCHABLE_CAPACITY_MW in sim/price_engine.py sums these three (coal+gas+nuclear) -- the same CCGT/OCGT/coal/nuclear basket the module's own pre-existing R10 docstring named for its flat 35000 MW constant, now time-varying. Interconnector import capacity (also named in that docstring) remains OUT of this series -- DUKES 5.13 is a further, un-fetched table; a disclosed, unchanged gap (the original flat constant never included it either).",
+    "used_by": "sim/renewable_capacity_trend.py -- real_coal_capacity_mw/real_gas_capacity_mw/real_nuclear_capacity_mw/real_dispatchable_capacity_mw(); sim/price_engine.py's optional year-aware dispatchable-capacity re-stacking (system_margin_price/synthetic_price year= kwarg); check_no_coal_after_retirement exercised on this REAL series for the first time (previously only a synthetic test fixture existed, per the FRAME's honesty note)."
+  },
+  "coal_fired_mw": {
+    "2016": 13698.52, "2017": 13363.4543, "2018": 10376.8521, "2019": 6817.4878,
+    "2020": 5364.2794, "2021": 5349.0654, "2022": 5339.8242, "2023": 2045.7,
+    "2024": 18.4763, "2025": 0.0
+  },
+  "gas_fired_mw": {
+    "2016": 33248.4, "2017": 35045.5581, "2018": 34576.4492, "2019": 34683.4586,
+    "2020": 35213.5896, "2021": 34914.3916, "2022": 35009.0797, "2023": 36119.2905,
+    "2024": 36279.5388, "2025": 36508.4861
+  },
+  "nuclear_mw": {
+    "2016": 9261.0, "2017": 9261.0, "2018": 9261.0, "2019": 9261.0,
+    "2020": 8923.0, "2021": 7833.0, "2022": 5883.0, "2023": 5883.0,
+    "2024": 5883.0, "2025": 5883.0
+  }
+}

@@ -139,6 +139,93 @@ def test_system_margin_price_custom_dispatchable_capacity():
     assert price_default_cap != price_custom_cap
 
 
+# --- W1_7 FRAME §4 L2 (b): coal -> gas -> wind marginal-plant RE-STACKING (year=) ---
+# `system_margin_price`/`synthetic_price` gain an optional `year` kwarg: when given,
+# real time-varying coal+gas+nuclear dispatchable capacity (DUKES Table 5.7) replaces
+# the flat DISPATCHABLE_CAPACITY_MW constant. `year=None` (every pre-existing test
+# above) must stay BYTE-IDENTICAL -- the SSP calibration this module's own docstring
+# describes is not re-opened by default (R12/R13).
+
+def test_system_margin_price_year_none_is_byte_identical_to_the_flat_constant():
+    """Regression guard: adding the `year` kwarg must not perturb a single existing
+    caller's output. Explicit year=None must equal the (pre-existing) no-year call."""
+    floor = 50.0
+    no_year_arg = system_margin_price(floor, demand_mw=28000.0, renewable_generation_mw=6000.0)
+    explicit_none = system_margin_price(floor, demand_mw=28000.0, renewable_generation_mw=6000.0, year=None)
+    assert no_year_arg == explicit_none
+
+
+def test_system_margin_price_year_aware_differs_between_2016_and_2025():
+    """THE re-stacking claim: the SAME gas floor/demand/renewable inputs must price
+    DIFFERENTLY in 2016 vs 2025, because the real dispatchable fleet shrank (coal
+    exiting the stack) -- mechanically, not by an independent draw."""
+    floor = 50.0
+    price_2016 = system_margin_price(floor, demand_mw=28000.0, renewable_generation_mw=6000.0, year=2016)
+    price_2025 = system_margin_price(floor, demand_mw=28000.0, renewable_generation_mw=6000.0, year=2025)
+    price_no_year = system_margin_price(floor, demand_mw=28000.0, renewable_generation_mw=6000.0)
+    assert price_2016 != price_2025
+    assert price_2016 != price_no_year  # year=2016 does not silently equal the flat constant
+
+
+def test_system_margin_price_year_aware_uses_the_real_dispatchable_series():
+    """Not just 'different' -- the EXACT real series value, proving the wiring reads
+    `real_dispatchable_capacity_mw` rather than some other number."""
+    from sim.renewable_capacity_trend import real_dispatchable_capacity_mw
+    floor = 50.0
+    demand_mw, renewable_mw = 28000.0, 6000.0
+    for year in (2016, 2020, 2025):
+        expected_cap = real_dispatchable_capacity_mw(year)
+        expected = system_margin_price(floor, demand_mw, renewable_mw, dispatchable_capacity_mw=expected_cap)
+        got = system_margin_price(floor, demand_mw, renewable_mw, year=year)
+        assert got == pytest.approx(expected)
+
+
+def test_system_margin_price_year_aware_2025_fleet_is_tighter_than_2016():
+    """The real fleet SHRINKS 2016->2025 (coal exits) -- so at IDENTICAL residual
+    demand, 2025's smaller dispatchable denominator reads as a scarcer system (a
+    higher price), a mechanical consequence of the re-stacking, not a tuned output."""
+    floor = 50.0
+    demand_mw, renewable_mw = 28000.0, 6000.0
+    price_2016 = system_margin_price(floor, demand_mw, renewable_mw, year=2016)
+    price_2025 = system_margin_price(floor, demand_mw, renewable_mw, year=2025)
+    assert price_2025 > price_2016
+
+
+def test_synthetic_price_year_none_is_byte_identical():
+    gas_price, demand_mw, renewable_mw = 25.0, 15000.0, 1000.0
+    assert synthetic_price(gas_price, demand_mw, renewable_mw) == synthetic_price(
+        gas_price, demand_mw, renewable_mw, year=None)
+
+
+def test_synthetic_price_year_kwarg_threads_through_to_system_margin_price():
+    gas_price, demand_mw, renewable_mw = 25.0, 15000.0, 1000.0
+    floor = gas_floor_price(gas_price)
+    expected = system_margin_price(floor, demand_mw, renewable_mw, year=2020)
+    assert synthetic_price(gas_price, demand_mw, renewable_mw, year=2020) == pytest.approx(expected)
+
+
+def test_dispatchable_capacity_for_year_FIRES_when_source_is_missing():
+    """R15 FAIL-SILENT forbidden: if the real DUKES 5.7 series were unavailable, the
+    year-aware path must raise -- never silently fall back to the flat constant
+    (that fallback would hide exactly the re-stacking this section exists to add)."""
+    import sim.renewable_capacity_trend as rct
+    rct._load_dispatchable_capacity.cache_clear()
+    original_path = rct.DISPATCHABLE_CAPACITY_PATH
+    try:
+        rct.DISPATCHABLE_CAPACITY_PATH = type(original_path)("/nonexistent/dukes_5_7.json")
+        with pytest.raises(rct.DispatchableCapacitySourceUnavailableError):
+            system_margin_price(50.0, demand_mw=28000.0, renewable_generation_mw=6000.0, year=2020)
+    finally:
+        rct.DISPATCHABLE_CAPACITY_PATH = original_path
+        rct._load_dispatchable_capacity.cache_clear()
+
+
+def test_dispatchable_capacity_for_year_clamps_flat_outside_the_real_window_R13():
+    price_2050 = system_margin_price(50.0, demand_mw=28000.0, renewable_generation_mw=6000.0, year=2050)
+    price_2025 = system_margin_price(50.0, demand_mw=28000.0, renewable_generation_mw=6000.0, year=2025)
+    assert price_2050 == price_2025
+
+
 # --- wind cubic physics: unchanged ---
 
 def test_wind_power_below_cut_in_is_zero():
