@@ -1,0 +1,34 @@
+{
+  "_provenance": {
+    "purpose": "Real UK regional wind (onshore + offshore) installed capacity, used as CAPACITY WEIGHTS for sim/weather_weighting.py's capacity_weighted_wind_speed(). Built for item E of docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md (director instruction 2026-08-03). This is the HIGHEST-VALUE half of that item: W1_7_renewable_capacity_trends already MEASURED a ~4.6-5.1x wind load-factor residual and diagnosed the mechanism as exactly this -- sim/price_engine.py's power curve is driven by a NATIONAL-MEAN wind speed, while real turbines are sited non-randomly in high-wind locations (Scotland, offshore). This file supplies the real siting weights that make a capacity-weighted alternative index constructible and checkable.",
+    "source": "DESNZ (Department for Energy Security and Net Zero) 'Renewable electricity - installed capacity by region 2003-2024', part of the Accredited Official Statistics publication Energy Trends, published alongside 'Renewable Electricity in Scotland, Wales, Northern Ireland and England in 2024'.",
+    "url": "https://assets.publishing.service.gov.uk/media/68da76f3c487360cc70c9e9e/Regional_spreadsheets__2003-2024__-_installed_capacity__MW_.xlsx",
+    "landing_page": "https://www.gov.uk/government/statistics/regional-renewable-statistics",
+    "fetched": "2026-08-03",
+    "http_status": 200,
+    "published": "2025-09-30 (per the workbook's own Cover sheet); next publication September 2026",
+    "sheet": "MW2024 (the workbook contains one MWyyyy sheet per year 2003-2024; MW2024 is the most recent and the one used here)",
+    "units": "MW installed capacity at 31 December (workbook Note 2)",
+    "offshore_attribution": "Per the workbook's own Notes sheet, Note 4: 'Offshore wind is allocated to regions/countries according to where the cabling comes ashore' -- a real, stated allocation convention, not this atom's invention.",
+    "site_to_region_mapping": {
+      "C1": "London -- DESNZ 'London' row",
+      "C2": "Manchester -- DESNZ 'North West' row",
+      "C3": "Glasgow -- DESNZ 'Scotland' row (whole-country figure, no sub-Scotland split; matches the population file's same convention)",
+      "C4": "Cotswolds -- DESNZ 'South West' row"
+    },
+    "resolution_honesty": "Same 4-site constraint as the population file: each weight is an entire region-or-nation's total installed wind capacity attributed to ONE weather-archive site, not a site-local capacity figure. Scotland's real installed wind capacity (~14.4 GW) dwarfs the other three sites combined (~2.86 GW) -- this large real skew IS the point (it is the real-world siting-selection effect the W1_7 residual diagnosed), not a data error.",
+    "never_fabricated": "No weight in this file is invented, interpolated, or defaulted to uniform. Every figure is read directly from the fetched DESNZ workbook's MW2024 sheet.",
+    "raw_regional_rows_mw": {
+      "London": {"onshore_wind_mw": 11.395055119076424, "offshore_wind_mw": 0.0},
+      "North West": {"onshore_wind_mw": 496.7209680883442, "offshore_wind_mw": 2003.0},
+      "Scotland": {"onshore_wind_mw": 10281.064343189852, "offshore_wind_mw": 4076.7799999999993},
+      "South West": {"onshore_wind_mw": 349.85934868294, "offshore_wind_mw": 0.0}
+    }
+  },
+  "wind_capacity_mw_by_location": {
+    "C1": 11.395055119076424,
+    "C2": 2499.7209680883442,
+    "C3": 14357.844343189851,
+    "C4": 349.85934868294
+  }
+}
