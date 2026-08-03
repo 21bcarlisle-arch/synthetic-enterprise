@@ -69,7 +69,7 @@ sandbox.renderCostToServe(dashboard);
 const ids = [
   "timeline-intro", "verify-kpis", "banked-note",
   "openwork-intro", "gap-intro", "gap-kpis",
-  "pred-intro", "pred-kpis", "build-note",
+  "pred-intro", "pred-kpis", "pred-body", "build-note",
   "method-framing", "method-roles", "method-rules",
   "simplified-intro", "simplified-kpis", "simplified-body",
   "corrections-intro", "corrections",
