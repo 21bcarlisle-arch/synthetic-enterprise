@@ -4593,3 +4593,4 @@ Structured performance entries are added after each task completes.
 - [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
 - [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
 - [2026-07-17T10:04:23Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-29T22:19:47Z] refresh_elexon_ssp_rolling: appended 19968 records for 2025-06-08..2026-07-28; rolling now covers 2025-06-07+1..2026-07-28 (19968 total)
