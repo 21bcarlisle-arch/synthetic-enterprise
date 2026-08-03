@@ -306,18 +306,56 @@ def test_module_writes_only_its_own_ledger_path():
     assert "lp.write_text(" in source
 
 
+# Write primitives that would ESCAPE a `.write_text(`-only scan. The
+# FRAME-stage structural control counted `.write_text(` alone, so a
+# `json.dump(fp)` / `open(path, "w")` / `os.replace` write into a company/ or
+# simulation/ file would have sailed straight through it -- a FAIL-OPEN in the
+# wall assertion itself (R15: the control must be able to fail).
+_FORBIDDEN_WRITE_PRIMITIVES = (
+    "json.dump(",
+    "shutil.",
+    "os.remove(",
+    "os.replace(",
+    "os.rename(",
+    ".unlink(",
+    ".rename(",
+    ".touch(",
+    "pickle.dump(",
+)
+
+
+def test_module_uses_no_write_primitive_that_escapes_the_write_text_scan():
+    """R15 hardening of the structural control ABOVE: prove the wall assertion
+    cannot be bypassed by simply writing through a different primitive."""
+    source = Path(gap_ledger.__file__).read_text(encoding="utf-8")
+    found = [p for p in _FORBIDDEN_WRITE_PRIMITIVES if p in source]
+    assert not found, f"module uses write primitives the write_text scan would miss: {found}"
+    # A bare `open(` in write mode likewise escapes the scan. This module has
+    # no legitimate need for it (it reads via `.read_text` and writes via the
+    # single `.write_text`), so the strict form is the honest assertion.
+    assert "open(" not in source, "module calls open() -- a write mode would escape the write_text scan"
+
+
 def test_module_never_imported_by_the_supervisor_draw():
     """SEVERANCE (R12): the gap is a DIAGNOSTIC, never a target -- it must
     never feed priority, reward, selection, or scheduling. Mirrors
-    tests/background/test_dd_h_solvency_gap.py's own severance test."""
+    tests/background/test_dd_h_solvency_gap.py's own severance test.
+
+    R15 FAIL-SILENT fix: the FRAME-stage version wrapped the supervisor check
+    in `if supervisor_path.exists()`, so a renamed/moved supervisor.py would
+    have made this control silently pass without checking anything. The file's
+    existence is now ASSERTED -- an unavailable check is a failed check."""
     source = Path(gap_ledger.__file__).read_text(encoding="utf-8")
     assert "import supervisor" not in source
     assert "from background.supervisor" not in source
 
     supervisor_path = Path(gap_ledger.__file__).resolve().parent / "supervisor.py"
-    if supervisor_path.exists():
-        supervisor_source = supervisor_path.read_text(encoding="utf-8")
-        assert "conversation_gap_ledger" not in supervisor_source
+    assert supervisor_path.exists(), (
+        f"supervisor.py not found at {supervisor_path} -- this severance control cannot run, "
+        "which is a FAILED check, not a pass"
+    )
+    supervisor_source = supervisor_path.read_text(encoding="utf-8")
+    assert "conversation_gap_ledger" not in supervisor_source
 
 
 def test_measurement_functions_never_mutate_a_caller_supplied_estimator_beyond_its_own_reads():
@@ -386,6 +424,222 @@ def test_retro_gap_line_is_fail_closed_and_pure():
 
 
 # --- end-to-end shape of the full self-contained measurement ---------------
+
+
+# --- R15 FAIL-OPEN REGRESSIONS on the MANDATORY intent-leak control --------
+# Every test in this block was RUN against the FRAME-stage implementation
+# first and FAILED there: `detect_intent_leak` was
+# `rate_row.get(key, 0.0) > threshold`, which returned a reassuring False
+# ("clean, no leak") on an empty population, an empty/malformed row, a NaN
+# rate, and an all-neutral-truth population. A control that reports CLEAN when
+# it measured nothing is the R15 FAIL-OPEN pattern verbatim -- these pin the
+# fix so the class cannot come back (R10: the class, not the instance).
+
+
+def test_intent_leak_rate_reports_None_not_zero_for_an_axis_that_scored_nobody():
+    """0.0 must mean "measured, no leak found"; an axis that scored nobody
+    must be `None` -- the two are NOT the same claim."""
+    rate = gap_ledger.intent_leak_rate(
+        gap_ledger.honest_zero_evidence_generate, [], Situation.RENEWAL, Product.DUAL_FUEL
+    )
+    assert rate["framing_scored"] == 0 and rate["tone_scored"] == 0
+    assert rate["framing_leak_rate"] is None, "an unscored axis must not report a confident 0.0"
+    assert rate["tone_leak_rate"] is None
+
+
+def test_R15_control_refuses_an_empty_population_instead_of_reporting_clean():
+    rate = gap_ledger.intent_leak_rate(
+        gap_ledger.honest_zero_evidence_generate, [], Situation.RENEWAL, Product.DUAL_FUEL
+    )
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak(rate)
+
+
+def test_R15_control_refuses_an_all_neutral_truth_population():
+    """A population in which the control CANNOT discriminate (every customer's
+    true category is neutral, so neither axis has a denominator) is an
+    unavailable check, not a clean bill of health."""
+    pop = gap_ledger._synthetic_population(400)
+    all_neutral = [
+        c for c in pop
+        if gap_ledger.true_framing_category(c) == "neutral"
+        and gap_ledger.true_tone_category(c) == "neutral"
+    ]
+    assert all_neutral, "fixture sanity: population must contain some all-neutral-truth customers"
+    rate = gap_ledger.intent_leak_rate(
+        gap_ledger.honest_zero_evidence_generate, all_neutral, Situation.RENEWAL, Product.DUAL_FUEL
+    )
+    assert rate["framing_scored"] == 0 and rate["tone_scored"] == 0
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak(rate)
+
+
+@pytest.mark.parametrize("bad_row", [{}, {"wrong_key": 1.0}, {"framing_leak_rate": None, "tone_leak_rate": None}])
+def test_R15_control_refuses_a_malformed_or_wholly_unmeasured_row(bad_row):
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak(bad_row)
+
+
+@pytest.mark.parametrize("bad_row", [[], None, "0.0", 0.0])
+def test_R15_control_refuses_a_row_that_is_not_a_mapping(bad_row):
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak(bad_row)
+
+
+@pytest.mark.parametrize("bad_rate", [float("nan"), float("inf"), float("-inf")])
+def test_R15_control_refuses_a_nonfinite_rate_which_would_read_as_clean(bad_rate):
+    """NaN is the sharp one: EVERY comparison with NaN is False, so a NaN rate
+    silently read as "below threshold" = clean. Non-finite must be rejected
+    FIRST, before any comparison."""
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak({"framing_leak_rate": bad_rate, "tone_leak_rate": 0.0})
+
+
+@pytest.mark.parametrize("bad_rate", [-0.1, 1.5, 42.0])
+def test_R15_control_refuses_an_out_of_range_rate(bad_rate):
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak({"framing_leak_rate": bad_rate, "tone_leak_rate": 0.0})
+
+
+@pytest.mark.parametrize("bad_threshold", [1.0, 1.5, -0.1, float("nan"), float("inf"), True, "0.5"])
+def test_R15_control_refuses_a_threshold_that_could_never_fire(bad_threshold):
+    """An alarm whose threshold is >= 1.0 can never fire on a rate in [0, 1] --
+    that is a control that cannot fail, which R15 forbids outright."""
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.detect_intent_leak(
+            {"framing_leak_rate": 0.0, "tone_leak_rate": 0.0}, threshold=bad_threshold
+        )
+
+
+def test_R15_a_partial_check_is_decided_by_the_axis_that_DID_measure():
+    """One axis unmeasurable must not veto (nor mask) a real leak the other
+    axis genuinely caught."""
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": 0.9, "tone_leak_rate": None}) is True
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": None, "tone_leak_rate": 0.9}) is True
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": 0.0, "tone_leak_rate": None}) is False
+
+
+def test_R15_a_measured_zero_still_reads_as_clean():
+    """The guard must not have made the control unable to PASS -- a genuinely
+    measured 0.0 on both axes is still a clean verdict."""
+    assert gap_ledger.detect_intent_leak({"framing_leak_rate": 0.0, "tone_leak_rate": 0.0}) is False
+
+
+# --- R15 mutation proof for the TONE axis (the FRAME proved framing only) ---
+
+_TONE_LEVER_FOR_CATEGORY = {
+    "empathetic_responsive": "empathetic_toned",
+    "firm_responsive": "firm_toned",
+    "neutral": "neutral_toned",
+}
+
+
+def _tone_peeking_generate(customer_id, segment, situation, product, step):
+    """The same named defect as `_peeking_generate`, but leaking through the
+    TONE lever -- the axis the FRAME-stage exit tests never mutation-proved.
+    A control proven on only one of its two axes is half a control."""
+    honest = gap_ledger.honest_zero_evidence_generate(customer_id, segment, situation, product, step)
+    truth = nudge_physics.tone_susceptibility_for(customer_id)
+    return replace(honest, tone=_TONE_LEVER_FOR_CATEGORY[truth.value])
+
+
+def test_R15_tone_axis_peeking_variant_IS_caught_and_honest_is_not():
+    """Both arms over the IDENTICAL population/situation, so the contrast
+    cannot be a fixture artefact."""
+    pop = gap_ledger._synthetic_population(80)
+    honest = gap_ledger.intent_leak_rate(
+        gap_ledger.honest_zero_evidence_generate, pop, Situation.MISSED_PAYMENT, Product.DUAL_FUEL
+    )
+    peeking = gap_ledger.intent_leak_rate(
+        _tone_peeking_generate, pop, Situation.MISSED_PAYMENT, Product.DUAL_FUEL
+    )
+    assert honest["tone_leak_rate"] == 0.0
+    assert gap_ledger.detect_intent_leak(honest) is False
+    assert peeking["tone_leak_rate"] == 1.0
+    assert gap_ledger.detect_intent_leak(peeking) is True
+    # and the leak is confined to the axis that actually peeked
+    assert peeking["framing_leak_rate"] == 0.0
+
+
+# --- C-S1 / C-S2: arrival order, lateness, replay -------------------------
+
+
+def test_CS1_gap_rows_are_invariant_to_customer_arrival_order():
+    """C-S1: no logic here may assume a batch arrives complete or in order.
+    Per-customer rows must be identical however the population is ordered."""
+    pop = gap_ledger._synthetic_population(40)
+    est = SusceptibilityEstimator()
+    for cust in pop[:20]:
+        _feed_confident_framing_belief(est, cust, "loss_framed")
+
+    forward = {r["customer_id"]: r for r in gap_ledger.belief_vs_truth_gap(pop, est)}
+    reversed_ = {r["customer_id"]: r for r in gap_ledger.belief_vs_truth_gap(list(reversed(pop)), est)}
+    assert forward == reversed_
+
+
+def test_CS1_intent_leak_rate_is_invariant_to_customer_arrival_order():
+    pop = gap_ledger._synthetic_population(60)
+    a = gap_ledger.intent_leak_rate(_peeking_generate, pop, Situation.RENEWAL, Product.DUAL_FUEL)
+    b = gap_ledger.intent_leak_rate(
+        _peeking_generate, list(reversed(pop)), Situation.RENEWAL, Product.DUAL_FUEL
+    )
+    assert a == b
+
+
+def test_CS1_gap_measurement_of_a_subset_matches_the_same_customers_in_the_full_batch():
+    """Events arriving SINGLY or LATE must give the same per-customer answer
+    as the complete batch -- the measurement is per-customer, never a
+    batch-completeness assumption."""
+    pop = gap_ledger._synthetic_population(30)
+    est = SusceptibilityEstimator()
+    for cust in pop[:15]:
+        _feed_confident_framing_belief(est, cust, "loss_framed")
+
+    full = {r["customer_id"]: r for r in gap_ledger.belief_vs_truth_gap(pop, est)}
+    singly = {}
+    for cust in pop:  # one at a time, as if each arrived on its own
+        (row,) = gap_ledger.belief_vs_truth_gap([cust], est)
+        singly[cust] = row
+    assert full == singly
+
+
+# --- ledger durability: a corrupt history must not be silently clobbered ----
+
+
+def test_record_gap_refuses_to_clobber_a_corrupt_ledger(tmp_path):
+    """R15 FAIL-SILENT regression: the FRAME-stage `_load_ledger` swallowed a
+    JSONDecodeError into `[]`, so the very next append REWROTE the file and
+    the prior history vanished with no error at all."""
+    ledger_path = tmp_path / "conversation_gap_ledger.json"
+    ledger_path.write_text("{not valid json at all", encoding="utf-8")
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.record_gap(
+            measured_at="t1", ledger_path=ledger_path,
+            customer_count=20, situations=[Situation.RENEWAL], training_rounds=5,
+        )
+    # the corrupt file is left untouched for a human to look at, not overwritten
+    assert ledger_path.read_text(encoding="utf-8") == "{not valid json at all"
+
+
+def test_record_gap_refuses_a_non_list_ledger(tmp_path):
+    ledger_path = tmp_path / "conversation_gap_ledger.json"
+    ledger_path.write_text('{"rows": []}', encoding="utf-8")
+    with pytest.raises(gap_ledger.ConversationGapUnmeasurable):
+        gap_ledger.record_gap(
+            measured_at="t1", ledger_path=ledger_path,
+            customer_count=20, situations=[Situation.RENEWAL], training_rounds=5,
+        )
+
+
+def test_record_gap_still_creates_a_fresh_ledger_when_none_exists(tmp_path):
+    """The durability guard must not have broken the legitimate first write."""
+    ledger_path = tmp_path / "nested" / "conversation_gap_ledger.json"
+    row = gap_ledger.record_gap(
+        measured_at="t1", ledger_path=ledger_path,
+        customer_count=20, situations=[Situation.RENEWAL], training_rounds=5,
+    )
+    assert row["measurable"] is True
+    assert len(json.loads(ledger_path.read_text(encoding="utf-8"))) == 1
 
 
 def test_measure_reports_all_three_mandated_things():

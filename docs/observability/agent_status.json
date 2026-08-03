@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-03T08:00:51.031808+00:00",
+  "last_updated": "2026-08-03T08:13:37.363139+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-08-03T05:41:07.561243+00:00",
+      "last_heartbeat": "2026-08-03T08:13:37.363139+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-08-03T05:41:07.561243+00:00",
+      "last_action_ts": "2026-08-03T08:13:37.363139+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"

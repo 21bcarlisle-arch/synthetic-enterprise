@@ -79,6 +79,7 @@ uplift being any particular size -- nothing here is tuned toward a target value.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
@@ -418,7 +419,14 @@ def intent_leak_rate(
     directly. Customers whose TRUE category is 'neutral' are excluded from
     each axis's denominator -- a neutral send to a neutral-truth customer is
     not evidence of leaking, since neutral is also the honest zero-evidence
-    default."""
+    default.
+
+    R15 FAIL-OPEN GUARD (hardened at BUILD, after the FRAME-stage version was
+    caught reporting a confident `0.0` -- i.e. "clean" -- for an axis whose
+    denominator was ZERO): an axis that scored NOBODY did not measure
+    anything, so its rate is reported as `None`, NEVER as 0.0. A rate of 0.0
+    means "measured, and found no leak"; `None` means "this check could not
+    run". `detect_intent_leak` REFUSES the latter rather than passing it."""
     framing_leaks = tone_leaks = framing_scored = tone_scored = 0
     for customer_id in customer_ids:
         message = generate_fn(customer_id, CustomerSegment(), situation, product, step)
@@ -436,21 +444,70 @@ def intent_leak_rate(
         "n_customers": len(customer_ids),
         "framing_scored": framing_scored,
         "tone_scored": tone_scored,
-        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else 0.0,
-        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else 0.0,
+        # None (NOT 0.0) when the axis scored nobody -- see the docstring guard.
+        "framing_leak_rate": round(framing_leaks / framing_scored, 6) if framing_scored else None,
+        "tone_leak_rate": round(tone_leaks / tone_scored, 6) if tone_scored else None,
     }
 
 
+_LEAK_RATE_KEYS = ("framing_leak_rate", "tone_leak_rate")
+
+
 def detect_intent_leak(rate_row: Mapping[str, float], threshold: float = _INTENT_LEAK_THRESHOLD) -> bool:
-    """Fires True iff EITHER lever's leak rate exceeds `threshold`. The honest
-    baseline is EXACTLY 0.0 (proven by construction -- see
+    """Fires True iff EITHER lever's MEASURED leak rate exceeds `threshold`.
+    The honest baseline is EXACTLY 0.0 (proven by construction -- see
     `honest_zero_evidence_generate` / `ConversationGenerator._tone_and_framing`'s
     empty-belief default), so any positive threshold already gives slack; this
-    is not tuned to make the alarm quiet (R12)."""
-    return (
-        rate_row.get("framing_leak_rate", 0.0) > threshold
-        or rate_row.get("tone_leak_rate", 0.0) > threshold
-    )
+    is not tuned to make the alarm quiet (R12).
+
+    R15 FAIL-CLOSED (hardened at BUILD). The FRAME-stage version was
+    `rate_row.get(key, 0.0) > threshold`, which returned False -- i.e. a
+    reassuring "CLEAN" -- on an empty population, an empty/malformed row, and
+    a NaN rate. All three were REPRODUCED before this fix (see
+    tests/harness/test_conversation_gap.py's fail-open regression block). An
+    unavailable check is a FAILED check, so this now RAISES
+    `ConversationGapUnmeasurable` when:
+      * `rate_row` is not a mapping, or carries neither rate key;
+      * a present rate is non-finite (NaN/inf -- checked FIRST, because every
+        NaN comparison is False and would otherwise read as "clean") or lies
+        outside [0, 1];
+      * NEITHER axis was measurable (both `None`) -- the control discriminated
+        nothing at all;
+      * `threshold` is itself non-finite or outside [0, 1) -- a threshold of
+        1.0 or more is an alarm that could never fire.
+    An axis that is `None` while the OTHER axis measured is tolerated as a
+    partial check, and the measured axis alone decides."""
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) \
+            or not math.isfinite(threshold) or not 0.0 <= threshold < 1.0:
+        raise ConversationGapUnmeasurable(
+            f"intent-leak threshold must be a finite number in [0, 1), got {threshold!r}"
+        )
+    if not isinstance(rate_row, Mapping):
+        raise ConversationGapUnmeasurable(
+            f"intent-leak row must be a mapping, got {type(rate_row).__name__}"
+        )
+    if not any(key in rate_row for key in _LEAK_RATE_KEYS):
+        raise ConversationGapUnmeasurable(
+            f"intent-leak row carries neither of {_LEAK_RATE_KEYS}: {sorted(rate_row)}"
+        )
+
+    measured: list[float] = []
+    for key in _LEAK_RATE_KEYS:
+        rate = rate_row.get(key)
+        if rate is None:
+            continue  # this axis scored nobody -- not measurable, and NOT "clean"
+        if isinstance(rate, bool) or not isinstance(rate, (int, float)) or not math.isfinite(rate):
+            raise ConversationGapUnmeasurable(f"intent-leak {key} is not a finite number: {rate!r}")
+        if not 0.0 <= rate <= 1.0:
+            raise ConversationGapUnmeasurable(f"intent-leak {key} outside [0, 1]: {rate!r}")
+        measured.append(float(rate))
+
+    if not measured:
+        raise ConversationGapUnmeasurable(
+            "intent-leak control measured NEITHER axis (no non-neutral-truth customers scored) "
+            "-- an unavailable check is a FAILED check, never a clean pass"
+        )
+    return any(rate > threshold for rate in measured)
 
 
 # ---------------------------------------------------------------------------
@@ -507,11 +564,29 @@ def measure(
 
 
 def _load_ledger(ledger_path: Path) -> list[dict]:
+    """Read the existing append-only history.
+
+    R15 FAIL-SILENT GUARD (hardened at BUILD): the FRAME-stage version
+    swallowed `json.JSONDecodeError` AND a non-list payload into `[]`, so a
+    corrupt ledger was silently CLOBBERED -- the append rewrote the file with
+    one row and the prior history vanished with no error. A genuinely absent
+    file is the legitimate first-write case and still returns `[]`; anything
+    present-but-unreadable now raises rather than destroying history."""
+    if not ledger_path.exists():
+        return []
     try:
         data = json.loads(ledger_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return []
-    return data if isinstance(data, list) else []
+    except json.JSONDecodeError as e:
+        raise ConversationGapUnmeasurable(
+            f"conversation gap ledger at {ledger_path} is present but not valid JSON "
+            f"({e}) -- refusing to overwrite existing history"
+        ) from e
+    if not isinstance(data, list):
+        raise ConversationGapUnmeasurable(
+            f"conversation gap ledger at {ledger_path} is a {type(data).__name__}, expected a list "
+            "-- refusing to overwrite existing history"
+        )
+    return data
 
 
 def record_gap(
