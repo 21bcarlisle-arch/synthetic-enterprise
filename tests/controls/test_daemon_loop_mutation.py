@@ -65,7 +65,11 @@ def _sent_hours_ago(register, item_id, hours):
     # which correctly reads as never-sent => always due (a separate behaviour,
     # tested elsewhere), not as a fresh page.
     ts = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
-    action_needed.register_item(item_id, "q", "how", "why", path=register, now=ts)
+    # The `what` must be a genuinely RESERVED ask since 2026-08-03 -- `register_item` refuses
+    # anything outside the four real-world classes (THE_STANDARD §2). These cases are about the
+    # re-ping CADENCE, not about what may be asked, so any reserved ask serves.
+    action_needed.register_item(item_id, "authorise spending real money on the paid feed",
+                                "how", "why", path=register, now=ts)
     action_needed.mark_sent(item_id, path=register, now=ts)
 
 
@@ -129,7 +133,12 @@ def dms_isolated(tmp_path, monkeypatch):
     # here targets them, so no-op them -- otherwise these stall/commit-clock mutation tests flake on
     # live state (a real fork orphan added a 2nd page => assert len(calls)==1 failed; R2 caught it in
     # the running gate though the test passed in isolation).
-    for _chk in ("_check_pull_loop_transport", "_check_gate_wall", "_check_fork_lifecycle",
+    # `_check_gate_wall` dropped from this list 2026-08-03: the function was DELETED with the
+    # permission machinery (it paged a GATE_VIOLATION whenever an atom advanced with no
+    # director-console authorization -- an alarm on the machine doing what THE_STANDARD requires).
+    # raising=False is deliberately NOT used: if a name here stops existing, that should fail loudly
+    # rather than silently no-op a check this fixture believes it is neutralising.
+    for _chk in ("_check_pull_loop_transport", "_check_fork_lifecycle",
                  "_check_worktree_reconcile", "_check_status_honesty"):
         monkeypatch.setattr(dms, _chk, lambda *a, **k: None)
     (tmp_path / "staging").mkdir()

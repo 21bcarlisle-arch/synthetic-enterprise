@@ -355,19 +355,49 @@ def _apply_inbox_to_lines(lines: list[str], inbox: dict) -> list[str]:
             m = re.match(rf"^(\s*){map_field}:(.*)$", ln, re.DOTALL)
             if not m:
                 continue
-            flow, trailing = _split_flow_list(m.group(2))
+            # MULTI-LINE flow lists (2026-08-03). `_split_flow_list` is a
+            # bracket-depth scanner, but it was only ever handed ONE physical line, so a
+            # flow list whose `]` sits on a LATER line returned (None, None) -- and then
+            # `m.group(2).strip()` is truthy ("[' ...,") so path (b) skipped it too, and
+            # path (c) found the field really was declared and raised. Net effect: an
+            # atom whose evidence list wraps was PERMANENTLY unfoldable, which
+            # fail-closes the publish gate forever -- the exact 2026-07-29 fault class
+            # this function was already fixed for once, recurring on a different shape.
+            # Found live: OPS_run_marker_sweep_livelock, whose four-entry evidence list
+            # wraps across four lines, reddened the gate for every writer.
+            # Feed the scanner the rest of the BLOCK, not the rest of the LINE; it is
+            # already quote- and depth-aware, so it stops at the true closing bracket.
+            _rest = m.group(2) + "".join(block[k + 1:])
+            flow, trailing = _split_flow_list(_rest)
             if flow is not None:
-                # (a) single-line flow list: rewrite the one line in place,
-                # PRESERVING any trailing comment (hand-authored rationale).
+                # (a) flow list (one line or many): rewrite it as ONE line in place,
+                # PRESERVING any trailing comment (hand-authored rationale). `trailing`
+                # is everything after the `]`, which for a wrapped list includes the
+                # remaining block -- keep only its first line's tail as the comment and
+                # let the untouched lines below stand.
+                # `_span` = how many EXTRA physical lines the list occupies past line k.
+                # Count newlines in `flow` alone: `m.group(2)` already contributes its own
+                # trailing newline to `flow`, so adding both double-counts and the splice
+                # eats the following sibling field (caught by this fix's own test, which
+                # asserts the `simplifications:` line below a wrapped `evidence:` survives).
+                _span = flow.count("\n")
+                # `trailing` is everything after the `]` in the WHOLE remaining block, so it
+                # always carries the following lines too -- keep ONLY the tail of the closing
+                # line (a hand-authored `# why ...` comment) and let the rest stand untouched.
+                # Doing this conditionally was a real bug: on a single-line list `_span == 0`,
+                # the full remainder was kept and re-emitted, duplicating every subsequent
+                # field of the atom (caught by test_EVERY_atom_in_the_real_map_is_foldable's
+                # duplicate-key assertion, on D3_catchup_rebilling among others).
+                trailing = trailing.split("\n", 1)[0]
                 current = yaml.safe_load(flow)
                 if not isinstance(current, list):
                     raise MergeError(
                         f"'{map_field}' on atom '{atom_id}' is not a flow list"
                     )
                 current.extend(additions)
-                block[k] = (
+                block[k:k + 1 + _span] = [
                     f"{m.group(1)}{map_field}: {_dump_flow_list(current)}{trailing}\n"
-                )
+                ]
                 break
             if m.group(2).strip():
                 continue  # a scalar or something else -- not a list we can append to
