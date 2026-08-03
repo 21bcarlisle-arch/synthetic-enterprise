@@ -777,3 +777,163 @@ annualisation one layer up), flagged for remediation-on-touch, not fixed specula
 
 **Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the
 25 callers); the auto-processor broad-`add` finding; the superseded `run_complete` marker queue.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — Class B: `payment_channel_dd_consistency_invariant` BUILT, and the DISCOVER had missed a whole generator
+
+Drew the named self-refill atom **`W2_payment_channel_dd_consistency_invariant`** — the fourth Class B
+half to be built. **L0→L2**, recorded in `gate_authorizations.jsonl`.
+
+### What landed
+`PAYMENT_CHANNEL_DD_CONSISTENCY` registered in the invariant library (R10 — the closure is the CLASS
+rule, not the C1g instance), enforced by `check_payment_channel_dd_consistency` symmetrically across the
+billing-ledger and behavioural record shapes; and
+`simulation/arrears_engine.opening_arrears_stage()`, which makes the **one** method-specific arrears
+stage method-aware — `direct_debit` keeps `DD_FAILED`/"Direct debit returned", every non-DD method opens
+`PAYMENT_MISSED`. The collections cascade after it is method-independent, and a test now asserts that so
+a later change cannot quietly fork the whole cascade per method.
+
+**Measured on the real book, both directions:** the billing ledger's **12** violating arrears cases
+(C1g, C4, C5, C6, C8) went to **0** after regeneration, while all **25** genuine `direct_debit` failures
+were left untouched. That second number is the one that matters — the easy way to make this control
+green is to over-block, which would have deleted real bad-debt signal to shrink a count (R12).
+
+### The DISCOVER doc was wrong in two places — fifth consecutive atom
+Both errors were found by measuring, not by reading it:
+1. **Its sample-surface count of 3 is an undercount; the real number is 8.** Its stated reason — that
+   SME/I&C customers "carry no resi behavioural trajectory" — is simply false. They all do.
+2. **It mapped two generators. There are three.** `background/live_payment_triad.py` maps **both**
+   `"failed"` and `"dispute"` onto the literal string `DD_FAILED`, under its own *named simplification*.
+   That is where every I&C customer's `dd_failed` count comes from: a CHAPS customer's **invoice
+   dispute**, correctly recorded as `INVOICE_DISPUTED` on the ledger, is recorded as a returned Direct
+   Debit on the behavioural surface. A surface the DISCOVER never opened.
+
+### Worth carrying: a required argument found a caller that grep could not
+`grep -rn "arrears_stages"` finds one production caller. There are **two** — `arrears_engine` dispatches
+it as `(arrears_stages if outcome == "failed" else ic_arrears_stages)(...)`, which no name-grep reaches.
+It surfaced only because `method` was made a **required keyword-only** argument rather than one
+defaulted to `"direct_debit"`. A default would have been the fail-open in miniature: every un-migrated
+caller keeps stamping "Direct debit returned" onto non-DD customers while the build reads as done.
+**Same class as `SP2_1`'s `_add_wd` census miss, in a different disguise.**
+
+### An honest bound on my own population control
+The ledger test judges a **build artefact on disk**, so a source mutation does not move it until the
+ledger is regenerated — it would have sat green through the mutation that reverts the whole fix. That is
+precisely why the generator-side tests exist alongside it. Stated rather than left for the next tick to
+discover. R15 both ways regardless: **9 real source mutations, each firing its own named test** with the
+rest green, byte-clean restore, baseline green. The population control is vacuity-guarded (it asserts the
+checked fields exist *and* that both a DD and a non-DD case are present), so "0 violations" cannot pass
+for the wrong reason.
+
+### Two atoms minted, each carrying its measured trap so the next tick does not walk into it
+- **`W2_non_dd_miss_vocabulary`** — the named L3 residual (the 8 behavioural-surface customers). The fix
+  is **not** a rename: four consumers (`payment_behaviour_analytics`, `life_event_detector`,
+  `affordability_inference`, `sme_credit_risk`) read `late_rate + dd_fail_rate` as their distress signal,
+  so emitting a new label without teaching them would make a non-DD customer's misses stop registering
+  as distress at all — a silent loss of real signal, worse than the mislabel.
+- **`W2_sme_segment_case_normalisation`** — the DISCOVER called this a one-line fix. Measured:
+  `payment_outcome("bacs", stress, rng, segment="SME")` returns `("success", 0)` **unconditionally**
+  (the dispute branch is gated on `_IC_SEGMENTS`, which excludes SME), so normalising the case alone puts
+  C5/C6 on a path where they can **never fail a payment** — deleting 3 failed payments and 3 arrears
+  cases of real SME bad debt. **The case bug has been masking the absence of any SME outcome model.**
+  Blocked on an anchored source, not on a coefficient invented to fill the gap.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves; `SP2_1` Pass 2 (migrate the
+25 callers); the auto-processor broad-`add` finding; the superseded `run_complete` marker queue.
+
+---
+## PROGRESS 2026-08-03 (worker tick) — Class B: `size_and_clone_ratchet` BUILT, and the ceiling it was told to enforce had never been compared to anything
+
+Drew the named self-refill atom **`SP3_size_and_clone_ratchet`** — the fifth Class B half to be built.
+**L0→L2**, recorded in `gate_authorizations.jsonl`, commit `8128c058e`, pushed, origin verified.
+
+### What landed
+`tools/size_ratchet.py` (engine) + `tools/size_ratchet_gate.py` (pre-commit skin) +
+`tools/size_ratchet_override.py` (logged, per-instance override), wired into `tools/git-hooks/pre-commit`
+in **warn** state, baseline frozen at `docs/observability/size_ratchet_baseline.json`. Four rules:
+file-exceeds-frozen-baseline; **touched-file-grew-vs-HEAD** (the one that makes debt DRAIN rather than
+merely freeze); new-file/new-function caps 600/60 (NEW only — the 43 existing oversized files are
+grandfathered, never retroactively broken); the clone ceiling. Measured against **the INDEX, never the
+working tree** — this repo has three concurrent writers and a permanently dirty tree, so a worktree-based
+ratchet would red on a co-writer's uncommitted work, which is the control-false-positive class that has
+already jammed this pipeline before.
+
+### The finding: a ceiling that was a REPORTED FACT with no tripwire attached
+`CLONE_CEILING = 223` — the number the ruling set and this atom was minted to enforce — appears at exactly
+**two sites in the entire repo**: its definition in `background/shared_primitive_census.py`, and one write
+into `docs/observability/shared_primitive_census.json`. **It is never compared to anything.** That artefact
+reads `"clone_ceiling": 223` directly beside `"clone_count": 267` — a 44-instance breach sitting in primary
+state, firing nothing, for as long as it has existed.
+
+This is the **fifth** recorded instance of the orphan-transition class (after `generate_evidence_data.generate()`,
+`write_fabric_gap_entries`, `fabric_settlement_gap.py`, `TenancyChangeCoupler`) and its subtlest disguise
+yet: **not a function nobody calls, but a constant nobody compares.** It reads as enforcement to anyone
+grepping for the number. Worth carrying: the orphan class is not limited to callables — any value that
+*looks* like a threshold needs its comparison site named, not assumed.
+
+### Three DISCOVER claims refuted by building it — sixth consecutive atom, and the staleness has a shape
+1. **"No clone-census tool exists in-repo, so BUILD must build one"** was true on 2026-07-28 and **false by
+   the draw six days later**: SP5 landed one earlier the *same morning*. Building the designed
+   `tools/clone_census.py` would have put a **second AST clone detector** in the repo, committed by the atom
+   whose whole purpose is to stop duplication. SP3 imports SP5's detector instead, pinned by
+   `test_sp3_does_not_ship_a_rival_clone_detector`. **The "nothing exists to reuse" claim is precisely the
+   one whose staleness does the most damage, because it is the claim that authorises writing new code.**
+2. **Freezing the ceiling at 223 is a fail-open.** The DISCOVER's own §8 made "re-derive it and confirm it
+   lands near 223" the *condition* for trusting it. It does not, under either convention: 283 over SP3's
+   8-root scope, 269 over SP5's 5 roots, 209 body-only — and the tree moved 789→818 files (+24k lines) in
+   six days. 223 against a tree measuring 283 grants **60 instances of silent headroom on day one**. Frozen
+   at the measured 283, with 223 carried as `historical_reference_ceiling` so the delta stays visible rather
+   than laundered into "we were always at 283".
+3. The doc **contradicted itself** — §1.2 said freeze what you measure at go-live, §2.3 said copy 223 from
+   the ruling. Where a DISCOVER disagrees with itself, the half that says *measure* has now won twice.
+
+### R15 both ways, and a mutation that was SILENT
+28 tests. **13 source mutations, each firing its own named test** with the rest green, baseline restored
+byte-clean. Tautology/fail-open/fail-silent killers each pinned: the gate never rewrites its own ceiling;
+a missing/corrupt baseline, an unparseable source, or an empty scope scan **REFUSES in both rollout states**
+(the warn rail absorbs false positives from the *rules*, never the ratchet being structurally broken); an
+unreadable decision log grants **no** override.
+
+**One mutation initially fired nothing.** Deleting `append_warn_log`'s empty-input guard changed no test,
+because `run()` already returns early on no findings — so the guard is **unreachable from its only caller**
+and no caller-level test could ever exercise it. Dead defence that read as covered. Now pinned by a direct
+function-boundary test. **Worth carrying: a guard protected by its caller's own precondition is invisible
+to every caller-level test — mutation is the only thing that finds it, and reading the file did not.**
+
+### Live-proved, not merely committed (R2)
+`core.hooksPath` → `tools/git-hooks`, so the gate went live the moment it was written. Verified by
+deliberately growing a real scoped file and running the real gate against the real tree: it printed the
+warn block naming the file and delta, appended to `size_ratchet_warnings.jsonl`, and exited 0. Restored
+byte-clean. Then it fired **for real, unprompted**, on the very next commit (`bbd13ace9`, +225 lines on
+`domain_invariants.py`) — correct reading, warn state, did not block.
+
+### A half-landed sibling build found and LANDED, not just noted
+`W2_payment_channel_dd_consistency_invariant`'s build was **never committed**: `PAYMENT_CHANNEL_DD_CONSISTENCY`
+had 6 occurrences in the working tree and **0 at HEAD**, +225 uncommitted lines, while its **L0→L2 was already
+recorded in the ledger**. A recorded level whose build exists nowhere in the repo makes the ledger a false
+record. Green before landing (521 passed, 1 xfailed) — and that greenness is the trap, since it passed only
+because the working tree held the build. Landed as `bbd13ace9`. **Fourth recorded instance of the
+untracked-build class today**, which is now comfortably this project's most frequent failure mode.
+
+**STILL UNCOMMITTED in the tree, named rather than swept in** (broad `add` on a shared tree is its own
+recorded defect): `sim/weather_hdd.py` (+173), `background/action_needed.py` (+45),
+`background/executor_governor.py` (+16). Each needs its own atom's verification against its ledger record.
+**This is drawable work and it is the highest-value thing in this queue right now** — the class has bitten
+four times in one day.
+
+### SP3's own L3 residual, stated honestly
+`rollout_state` is **warn**: the ratchet detects, prints and logs, but does **not** block. It has therefore
+never prevented a real regression. **A gate that has only ever run in warn state is an untested brake.** L3
+needs the warn→gate flip — a deliberate one-line diff to the baseline artefact after one retro cadence of
+real warn-log evidence, never an auto-flip (that would be the silent-state-change class R2/R7 forbid) —
+plus evidence the 600 cap does not false-fire on legitimate work.
+
+**Also registered, not fixed on sight:** SP5's census scope omits `tools/` and `interface/` (110 files,
+~31k lines it never sees) while SP3 uses the ruling-faithful 8 roots, so two live numbers now describe
+"the clone count"; SP5 is the side that deviates. And its `CLONE_CEILING = 223` is now doubly wrong —
+unenforced *and* 46 below its own detector's reading of its own scope.
+
+**Still open, unchanged by this tick:** the remaining Class B BUILD halves (**9** now); `SP2_1` Pass 2
+(migrate the 25 callers); the auto-processor broad-`add` finding — **which fired again during this tick**:
+the publisher had already broad-staged this tick's `maturity_map.yaml` edit into its own index, so the
+commit had to be made by explicit pathspec to avoid the sweep; the superseded `run_complete` marker queue.
