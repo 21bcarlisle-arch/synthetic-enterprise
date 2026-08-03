@@ -118,6 +118,20 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     what it does, not how much was typed.
   </p>
 
+  <!-- 0a. WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure, 2026-07-30).
+       Scope item 2: "The revenue mix is stated BEFORE the mission claim." This block sits
+       ahead of EVERY claim on the page -- ahead of the falsifiable-product hypothesis, the
+       finance panel and the household drill-down -- because a reader who meets a £/customer
+       figure before meeting the book's composition has been misled by ordering alone. The
+       cold-eyes Expert Hour that failed SITE1 named exactly that: the clock was labelled on
+       every figure and the segment on none. -->
+  <div class="sec">Whose book this is &mdash; the revenue mix, before any claim</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="mix-intro">Loading...</p>
+    <div class="kpis" id="mix-kpis"></div>
+    <div class="passport" id="mix-note"></div>
+  </div>
+
   <!-- SURFACE-3's single job: the SaaS shown as PRODUCT -- the capability grid -->
   <div class="sec">What the product does &mdash; capabilities, each a real output from the latest run</div>
   <p class="hyp">
@@ -296,6 +310,60 @@ function kpiTile(label, value, basis, klass){
     (basis?'<div class="kpi-basis">// '+esc(basis)+'</div>':'')+'</div>';
 }
 
+// SITE_EH1_segment_disclosure: WHOSE BOOK THIS IS. The revenue mix, rendered before
+// any claim on this page. A reader who meets "Net margin / customer £26,909" before
+// learning that ~99% of the revenue behind it is earned by five Industrial &
+// Commercial accounts has been misled by ORDERING, even though every figure carried
+// its clock. The mix is the missing axis; this block is it.
+//
+// It renders SHARES and COUNTS (never a bare total), each segment with its own n, and
+// it states the mission/book tension in the open rather than leaving it for the reader
+// to discover three panels later. FAIL-CLOSED: an unavailable mix says so loudly --
+// it never degrades to a page that looks like a residential book.
+function renderBookMix(d){
+  var m=(d&&d.book_mix)||{};
+  if(!m.available){
+    el("mix-intro").innerHTML="<b>The book's segment mix is unavailable for this run.</b> "+
+      "Every &pound;/customer figure below is therefore unlabelled on the segment axis and "+
+      "should not be read as describing any particular customer"+
+      (m.reason?" ("+esc(m.reason)+")":"")+".";
+    el("mix-kpis").innerHTML="";
+    el("mix-note").innerHTML="";
+    return;
+  }
+  var segs=m.segments||[];
+  var mixSentence=segs.map(function(s){
+    return "<b>"+esc(s.label)+"</b> "+pct(s.revenue_share_pct)+" of revenue from <b>"+
+           esc(s.n_accounts==null?"?":s.n_accounts)+"</b> account(s)";
+  }).join("; ");
+  el("mix-intro").innerHTML=
+    "<b>Read this before any figure on this page.</b> Over "+
+    esc((m.window_years||[])[0])+"&ndash;"+esc(m.latest_year)+", this run's book earned its "+
+    "revenue like this: "+mixSentence+". That is a <b>"+
+    (m.composition_class==="non_domestic"?"business (non-domestic) book":
+     m.composition_class==="domestic"?"domestic (household) book":"genuinely mixed book")+
+    "</b> &mdash; "+pct(m.non_domestic_revenue_share_pct)+" of revenue is non-domestic, "+
+    pct(m.domestic_revenue_share_pct)+" is households. Every per-customer figure below is "+
+    "therefore split by segment with its own denominator; a single blended &pound;/customer "+
+    "across "+esc(m.n_accounts_total)+" accounts would describe no customer this company has.";
+  var kp=segs.map(function(s){
+    return kpiTile(s.label+" — share of revenue", pct(s.revenue_share_pct),
+      "settled · "+((m.window_years||[])[0])+"–"+m.latest_year+" cumulative · n="+
+      (s.n_accounts==null?"?":s.n_accounts)+" account(s)",
+      (s.segment===m.dominant_segment)?"neu":"");
+  });
+  el("mix-kpis").innerHTML=kp.join("");
+  el("mix-note").innerHTML=
+    "<b>Basis.</b> "+esc(m.basis)+". Accounts are counted from each drawn account's own "+
+    "segment field (n="+esc(m.n_accounts_total)+" total"+
+    ((m.n_accounts_unclassified>0)?", "+esc(m.n_accounts_unclassified)+" unclassified and excluded from every segment denominator":"")+
+    "). "+((m.unclassified_revenue_gbp>0)?"<b>"+gbpFull(m.unclassified_revenue_gbp)+
+    " of revenue could not be classified to a segment and is still in the denominator.</b> ":"")+
+    "<b>The mission tension, stated not hidden.</b> "+esc(m.mission_note)+
+    " Evidence: <a class=\"evlink\" href=\""+esc(m.evidence_url||"#")+"\" target=\"_blank\" rel=\"noopener\">"+
+    esc(m.evidence)+"</a>";
+}
+
 // SURFACE-3's single job: render the product's capability grid from published run
 // outputs only (render-not-author). Each card pulls its headline from
 // capabilities.json; a null headline degrades to an honest "not yet measured"
@@ -462,16 +530,38 @@ function renderFinance(d, w){
     "invoiced; the <b>banked</b> clock is cash actually collected. A number without its clock is a "+
     "defect here, not a rounding choice."+drawLine+partialCaveat;
   var netCls = (f.settled_net_margin_gbp>=0)?"pos":"neg";
-  // Unit economics: latest-year total / N, denominator stated explicitly (same clock, same year).
-  var hasN = (N!=null && Number(N)>0);
-  var nmPer  = hasN ? f.latest_year_net_margin_gbp/N : null;
-  var revPer = hasN ? f.latest_year_revenue_gbp/N    : null;
-  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers"+partialSubSuffix;
-  var perCls = (nmPer==null)?"":(nmPer>=0?"pos":"neg");
-  var kpis=[
-    // --- UNIT ECONOMICS + RATES (book-size-honest, lead the panel) ---
-    kpiTile("Net margin / customer", gbpFull(nmPer), perBasis, perCls),
-    kpiTile("Revenue / customer", gbpFull(revPer), perBasis),
+  // SITE_EH1_segment_disclosure, scope item 1: EVERY per-customer tile splits by
+  // segment, each with its OWN n. The blended "Net margin / customer £26,909.56 ÷ 19"
+  // that used to lead this panel was the defect: it was clock-labelled and its
+  // denominator was stated, but ~99% of the revenue behind it came from five I&C
+  // accounts, so the figure described no customer the company actually has. The blend
+  // is not deleted (R12 -- an inconvenient diagnostic is not hidden); it is stripped of
+  // headline status and moved into the unit-note below with the reason attached.
+  var mix=(d.book_mix)||{};
+  var mixSegs=(mix.available?(mix.segments||[]):[]);
+  // SITE_EH3 (adopted alongside EH1): a per-customer tile is still a figure for a
+  // PERIOD, so the part-year label travels onto the segment tiles too -- but only
+  // when the mix's own latest year IS the part year, never assumed from `yr`.
+  var mixPartSuffix = (String(mix.latest_year)===String(f.latest_year)) ? partialSubSuffix : "";
+  var perTiles=[];
+  mixSegs.forEach(function(s){
+    var nmCls=(s.net_margin_per_customer_gbp==null)?"":(s.net_margin_per_customer_gbp>=0?"pos":"neg");
+    var basis=((s.latest_year_present && s.n_accounts)
+      ? mix.latest_year+" · settled · ÷ "+s.n_accounts+" "+s.label+" account(s)"
+      : mix.latest_year+" · settled · "+(s.per_customer_unavailable_reason||"not divisible"))+mixPartSuffix;
+    perTiles.push(kpiTile("Net margin / customer — "+s.label,
+      gbpFull(s.net_margin_per_customer_gbp), basis, nmCls));
+    perTiles.push(kpiTile("Revenue / customer — "+s.label,
+      gbpFull(s.revenue_per_customer_gbp), basis));
+  });
+  if(!mixSegs.length){
+    // FAIL-CLOSED: with no segment mix there is NO per-customer tile at all. Falling
+    // back to the blended figure is precisely the defect, so absence is the safe state.
+    perTiles.push(kpiTile("Net margin / customer", "--",
+      "unavailable · the book's segment mix could not be read, and a blended "+
+      "£/customer over an unknown mix is not published", "neu"));
+  }
+  var kpis=perTiles.concat([
     kpiTile("Collection rate", pct(f.collection_rate_pct), "banked ÷ billed · a rate, book-size-invariant"),
     // --- CUMULATIVE TOTALS (demoted; each carries the scales-with-book caveat) ---
     kpiTile("Net margin (total)", gbp(f.settled_net_margin_gbp, settledProv), (b.clock||"settled")+" · 10-yr cumulative · scales with drawn book"+(settledProv?" · provisional":""), netCls),
@@ -483,15 +573,29 @@ function renderFinance(d, w){
     kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
     kpiTile("Corp. tax "+yr+partialSuffix, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts"+partialSubSuffix, "neg"),
     kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
-  ];
+  ]);
   el("finance-kpis").innerHTML=kpis.join("");
+  // SITE_EH1: the demoted blend lives here, WITH its reason -- kept reconcilable, never
+  // a headline. It is also the one place the settled/billed clock difference between the
+  // per-segment tiles (settled segment split) and this blend (billed mgmt accounts) is
+  // named, so the reader is never left to assume one clock.
+  var bl=(mix.available?mix.blended:null);
+  var blendNote = bl
+    ? " <b>The blended figure, demoted.</b> Across all "+esc(bl.n_accounts)+" accounts on the "+
+      esc(bl.clock)+" clock the book earns "+gbpFull(bl.revenue_per_customer_gbp)+
+      " revenue and "+gbpFull(bl.net_margin_per_customer_gbp)+" net margin per account. "+
+      esc(bl.reason)+" The per-segment tiles above are on the <b>settled</b> clock (the run's own "+
+      "segment split); this blend is <b>billed</b> (management accounts) &mdash; the two clocks do "+
+      "not agree and the bridge below is where that gap is reconciled."
+    : "";
   el("finance-unit-note").innerHTML = (N!=null)
     ? "<b>Why unit economics.</b> The totals above are 10-year cumulative across a drawn book of "+
       "<b>N="+esc(N)+" sampled customers</b> (curriculum-weighted replay); they scale with the book "+
       "and are <b>not meaningful in isolation</b> &mdash; a bigger draw makes every total bigger with "+
       "no change in how well the supplier runs. The &pound;/customer figures and rates are the reading "+
-      "that transfers between books. Every ratio states its denominator; no total is presented as a headline."
-    : "";
+      "that transfers between books. Every ratio states its denominator; no total is presented as a headline."+
+      blendNote
+    : blendNote;
 
   // RC6 (DIRECTOR §C): cost-to-serve as a DISTRIBUTION, never a bare total. A single
   // book-total cost figure hides that cost-to-serve is spread wide across customers --
@@ -669,10 +773,28 @@ function renderWholesale(d){
 function renderHousehold(d){
   var h=d.household||{};
   if(!h.available){ el("hh-intro").textContent="Household drill-down source not available at generation time."; return; }
+  // SITE_EH1_segment_disclosure: the one account drilled into is RESIDENTIAL, and
+  // residential is a rounding error in this book's revenue. The cold-eyes review named
+  // that mismatch (a household drill-down standing in for a business book) as part of
+  // the same defect, so the drill-down now states its own segment's weight up front
+  // instead of letting one household imply the shape of the whole company.
+  var hmix=(d.book_mix)||{};
+  var hseg=null;
+  if(hmix.available){
+    (hmix.segments||[]).forEach(function(s){
+      if(String(s.segment).toLowerCase()===String(h.segment||"").toLowerCase()) hseg=s;
+    });
+  }
   el("hh-intro").innerHTML=
     "Account <b>"+esc(h.id)+"</b> -- a real residential household acquired "+esc(h.acquisition_date)+", "+
     "carried the whole way down: who it is, its lifetime economics on the settled clock, its own billed-vs-"+
-    "banked cash, and the actual arrears cases behind that gap. Absorbed as-is from the supplier view.";
+    "banked cash, and the actual arrears cases behind that gap. Absorbed as-is from the supplier view."+
+    (hseg
+      ? " <b>Weight, stated up front:</b> this is one of "+esc(hseg.n_accounts)+" <b>"+esc(hseg.label)+
+        "</b> account(s), and that whole segment is "+pct(hseg.revenue_share_pct)+" of the book's revenue "+
+        "&mdash; so this account shows how the supplier WORKS, and must not be read as showing where the "+
+        "money comes from ("+esc(hmix.dominant_label)+" is "+pct(hmix.dominant_share_pct)+")."
+      : "");
   var attrs=[
     ["Segment", esc(h.segment)+(h.dual_fuel?" · dual fuel":"")],
     ["Payment", esc(h.payment_channel)],

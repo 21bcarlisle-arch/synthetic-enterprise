@@ -8,11 +8,8 @@
   via NTFY. Left in in_progress/ (open sub-item = the director act ACT-1/ACT-2 in the batched [ACT]).
   Self-authority release sweep already found 0/21 self-releasable; nothing crossed the R16 wall; no
   --no-verify (R16). R12 held: count stays 21 by honest classification, not re-scoped to zero. -->
-<!-- SUPERVISOR_DRAW: blocked-on-director -->
-<!-- BLOCK_RELEASE: director_level_up — #3 delivered; #2 releases the 15 director_level_up items via
-     the director act ACT-1 in docs/observability/work_at_risk_batched_act_2026-07-29.md (phone-sign
-     the LEVEL_UP batch, OR console-authorize atom #4's R16 gate relaxation). Agent cannot self-cross
-     the R16 wall. -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: #3 delivered; #2 releases the 15 director_level_up items via the director act ACT-1 in docs/observability/work_at_risk_batched_act_2026-07-29.md (phone-sign the LEVEL_UP batch, OR console-authorize atom #4's R16 gate relaxation). Agent cannot self-cross the R16 wall. -->
 
 # [PLANNER-MINTED] Action the proceed-at-risk class with recorded undos, and send ONE batched [ACT] (2026-07-29)
 

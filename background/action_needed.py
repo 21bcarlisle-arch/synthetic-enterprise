@@ -107,6 +107,38 @@ def format_action_needed(item_id: str, what: str, how: str, why: str) -> str:
     return f"[ACTION NEEDED] {item_id}\nWhat: {what}\nHow: {how}\nWhy: {why}"
 
 
+class NotReservedForDirector(ValueError):
+    """Raised when something tries to register a director ask that is not one of the four
+    real-world-consequence classes. The correct handling is to ACT, not to ask."""
+
+
+def _reserved_for_director(what: str, how: str, why: str) -> bool:
+    """Is this ask one of the four things THE_STANDARD §2 still reserves -- spending real money,
+    contacting real people, an irretractable public claim under the company's name, or a real
+    person's safety? Delegated to `one_way_door.classify_action`, the SOLE enumeration, so this
+    can never drift into a second, competing list of what the director must decide.
+
+    FAIL-OPEN BY DESIGN, and this direction is deliberate: if the classifier is unavailable the
+    answer is "not reserved" and the registration is REFUSED. The asymmetry the old machinery had
+    backwards -- an unnecessary ask costs the director's attention (the only scarce resource,
+    MAKE_IT_STICK), while wrongly proceeding on something reversible costs about an hour of compute
+    and produces a finding. Erring toward acting is the cheap error now.
+
+    Classified on `what` -- THE ASK ITSELF -- and deliberately NOT on the `how`/`why` prose. Those
+    fields are long explanatory text, and running a keyword classifier over them produces exactly
+    the false-fires this guard exists to stop: on the first live run, a level-ratification batch
+    scored as an IRRETRACTABLE_PUBLIC_CLAIM because its rationale mentioned "publish-wiring is a
+    named follow-on", and an authority-seam sign-off scored as LIVE_CREDENTIAL_EXPOSURE because it
+    described an "HMAC key" being fail-closed. Neither ask touched anything real. A reserved ask is
+    reserved by WHAT IS BEING DECIDED, so that is the string classified.
+    """
+    try:
+        from background import one_way_door as _owd
+        return bool(_owd.classify_action(str(what or "")).is_one_way_door)
+    except Exception:
+        return False
+
+
 def register_item(
     item_id: str, what: str, how: str, why: str,
     path: Path | None = None, now: str | None = None,
@@ -114,6 +146,21 @@ def register_item(
     """Add (or re-register, e.g. updated details) an open item. Does NOT
     send the NTFY itself -- the caller sends it once via
     format_action_needed(), then calls this to record/update the item.
+
+    RESERVED-CLASS GUARD (2026-08-03, director console, finishing
+    DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY + THE_STANDARD §2/§3). An item may be registered
+    ONLY if it is genuinely reserved to the director -- real money, real people, an irretractable
+    public claim in the company's name, a real person's safety. Anything else raises
+    NotReservedForDirector and is NOT registered, because the answer to it is to act and say what
+    you did ("here is what I am doing unless you object"), never to open a queue and page a human.
+
+    WHY A MECHANISM AND NOT A RULE (MAKE_IT_STICK: every prose-only rule decayed; every mechanised
+    one held). The ruling deleted the permission machinery on 2026-07-29, but this register kept
+    three withdrawn-convention asks alive -- a "level ratification batch", an "authority seam
+    sign-off" and a "build-open residual" -- and re-pinged them to the director's phone daily for
+    five days, the last on 2026-08-02. Nothing in the code disagreed with them; the standard said
+    they were void and the register went on nagging anyway. This is where that class of item now
+    dies: at write time, on the same enumeration the rest of the system uses.
 
     CLASS FIX (2026-07-18, director-caught real incident: a governance
     [ACT] item was registered/re-registered several times, every send
@@ -128,6 +175,14 @@ def register_item(
     for a page THAT NEVER WENT OUT. The actual send-clock is `last_sent_at`,
     stamped ONLY by mark_sent() after a CONFIRMED successful send -- never
     here, never merely because an item was created or its text refreshed."""
+    if not _reserved_for_director(what, how, why):
+        raise NotReservedForDirector(
+            f"REFUSED to register director ask {item_id!r}: it is not one of the four reserved "
+            f"real-world consequences (real money / real people / an irretractable public claim in "
+            f"the company's name / a real person's safety), so it is not the director's to answer. "
+            f"THE_STANDARD §3: state the options, name the recommendation, say why -- then TAKE IT "
+            f"and proceed, recording how to reverse it. Ask: {what!r}"
+        )
     ts = now or datetime.now(timezone.utc).isoformat()
     register = load_register(path)
     register[item_id] = {

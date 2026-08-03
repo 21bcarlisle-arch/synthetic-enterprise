@@ -653,9 +653,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "discover",
+      "loop_stage": "verify",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -663,9 +663,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -674,9 +674,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "discover",
+      "loop_stage": "verify",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -686,9 +686,9 @@
         "W1_5_premise_demand_shape"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -697,9 +697,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "discover",
+      "loop_stage": "verify",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -707,9 +707,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 60
+      "stall_consecutive_unchanged": 81
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -1226,13 +1226,89 @@
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
+      "expert_hour_status": "attempted_finding_open",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3166
+    },
+    {
+      "id": "SITE_EH1_segment_disclosure",
+      "name": "Segment mix disclosed wherever money is divided by customers -- the book is 98.75pct I&C while every narrative surface is residential",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "build",
+      "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 57
+      "stall_consecutive_unchanged": 3230
+    },
+    {
+      "id": "SITE_EH2_predictions_ledger_can_fail",
+      "name": "The published predictions ledger must be able to record a miss (R15 on a public surface)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 1,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3069
+    },
+    {
+      "id": "SITE_EH3_figure_reconciliation_and_periods",
+      "name": "Reconcile the published figures: one bad-debt series, a margin plausibility anchor, and part-periods labelled as such",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3116
+    },
+    {
+      "id": "OPS_run_marker_sweep_livelock",
+      "name": "The leftover run_complete sweep can never win the run lock -- a livelock that grows the staging backlog ~150/day",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 36
     },
     {
       "id": "H10_worktree_isolation",
@@ -1772,7 +1848,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1784,7 +1860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1816,9 +1892,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1826,9 +1902,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 71
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -2699,9 +2775,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2709,9 +2785,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stall_consecutive_unchanged": 102
     },
     {
       "id": "F1a_sim_customer_response",
@@ -2720,9 +2796,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2732,9 +2808,9 @@
         "F1b_company_comms"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stall_consecutive_unchanged": 84
     },
     {
       "id": "F1b_company_comms",
@@ -2743,9 +2819,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2755,9 +2831,9 @@
         "F1a_sim_customer_response"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 126
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2768,7 +2844,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 2,
-      "loop_stage": "frame",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2781,8 +2857,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 33
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2791,7 +2867,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2803,7 +2879,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 3506
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2824,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stall_consecutive_unchanged": 105
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -2843,7 +2919,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 69
+      "stall_consecutive_unchanged": 2290
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2883,7 +2959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 3594
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3198,7 +3274,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 207
+      "stall_consecutive_unchanged": 14791
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3302,7 +3378,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 159,
+  "total_atoms": 163,
   "epoch2_movements": [
     {
       "id": "M1",

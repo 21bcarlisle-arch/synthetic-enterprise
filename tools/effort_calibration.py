@@ -237,7 +237,7 @@ def compute_durations(transitions: list[LevelTransition]) -> list[dict]:
     commit) are dropped rather than counted as zero or negative cost.
 
     NON-PROGRESS transitions are dropped, not counted as effort: a DEMOTION
-    (a level revert -- fronts_reconciler reverting a self-promotion, e.g.
+    (a level revert -- e.g. un-promoting an over-claimed cell,
     BRAND1 L3->L2 or SITE1 L2->L1, both observed in this repo's real history at
     120h+) or a same-level re-affirmation (L3 mentioned again with no rise) is
     NOT build effort toward a level -- it is time the atom SAT at the higher

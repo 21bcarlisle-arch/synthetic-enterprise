@@ -78,6 +78,20 @@ FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish
 # per PUSH_THROTTLE_SECONDS; the next successful push carries every commit
 # accumulated since the last one.
 PUSH_THROTTLE_SECONDS = 30 * 60
+# The publish commit runs the FULL pre-commit hook chain (tools/git-hooks/pre-commit:
+# status-honesty, pre_commit_test_gate, level_promotion_gate, site_lane_gate,
+# moap_coherence_gate, ruling_archive_question_gate). Because a publish stages
+# site/data/**, site_lane_gate takes its BROAD branch and runs the whole site suite --
+# 27.3s measured on its own, 2026-08-03, against the 30s cap this call used to carry.
+# The old cap was chosen when the hooks were trivial; it silently became a function of
+# how many tests exist rather than of whether the commit is healthy, and a timeout there
+# was UNCAUGHT (see git_commit_push) so it took the whole publish down as rc=1.
+# Sized to BOTH constraints: ~10x the measured hook-chain cost (so growth in the suite
+# does not silently re-create the wedge), while still fitting inside the 900s cap
+# background_worker.py::process_leftover_run_markers puts on this whole process -- the
+# fast-test gate already spends ~420s of that. A cap larger than the caller's budget
+# would just move the kill one level up and lose the log line that explains it.
+GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 5 * 60
 # H15_publish_gate_failure_alert (2026-07-14): the publish gate (fast-test
 # suite + the processor's return code) can fail SILENTLY and repeatedly. The
 # real worked example was pytest OOM-killed (rc=-9 -> "Tests FAILED - not
@@ -1266,14 +1280,39 @@ def git_commit_push(git_hash, net_margin):
     # (observed directly: a manually-staged code change landed inside an
     # unrelated auto-process commit message).
     with tree_lock():
-        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
-        # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
-        # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
-        # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
-        # was folded this cycle.
-        subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
-                        "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=30)
-        result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
+        try:
+            subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=120)
+            # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
+            # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
+            # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
+            # was folded this cycle.
+            subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
+                            "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=120)
+            # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
+            # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
+            # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
+            # moap_coherence_gate, ruling_archive_question_gate). A publish commit stages
+            # site/data/**, which fires site_lane_gate's BROAD trigger -- the WHOLE site
+            # suite, measured at 27.3s on its own, against the 30s cap this used to carry.
+            # The cap was set when the hooks were trivial and quietly became a
+            # publish-blocker as the suite grew: the deadline is now a property of how many
+            # tests exist, not of whether the commit is healthy.
+            result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR),
+                                    timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired as exc:
+            # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:
+            # "sim_runner TimeoutExpired must be caught -- uncaught exception kills the
+            # loop"). It propagated out of _process(), so process_run_complete exited
+            # rc=1 having logged NEITHER "Nothing to commit or commit failed" NOR "Done"
+            # -- the wedge detector recorded it as a test_regression, which it was not,
+            # and the diagnosis pointed at the test suite for hours. A slow hook chain
+            # must degrade to "retry next cycle", never take the pipeline down, and must
+            # say SO in the log.
+            log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
+                "deadline. Nothing committed; retrying next cycle. If this repeats, the "
+                "hook chain (not the run) is the cause.".format(
+                    GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__))
+            return False
         if result.returncode != 0:
             log("Nothing to commit or commit failed")
             return False
@@ -1606,6 +1645,60 @@ def record_publish_gate_success(*, now=None):
     except Exception as exc:
         log("record_publish_gate_success error (swallowed): {}".format(exc))
         return False
+
+
+def record_publish_gate_outcome(marker, rc):
+    """Route ONE run-complete processing return code into the publish-gate wedge
+    detector. THE shared router for every caller that publishes a marker.
+
+    WHY IT LIVES HERE (2026-08-03, this exact defect): this routing used to
+    exist ONLY as `background_worker._record_publish_gate_outcome`, wired into
+    `process_leftover_run_markers()`'s sweep. But that sweep is NOT the path
+    that actually publishes in the steady state -- `background/sim_runner.py`
+    publishes the marker it just wrote, every cycle, and fed its return code to
+    NOBODY. The detector was therefore blind to the ONLY healthy publisher and
+    saw only the sweep, which by construction chews the STALE backlog. Result
+    (observed 2026-07-30..08-03): sim_runner published cleanly every ~10 min --
+    04:02Z "Committed locally... Done" -- while the sweep failed on 4-day-old
+    markers, so the wedge streak only ever grew. The alarm stayed armed for
+    ~5960 min against a pipeline that was working, firing a PRIORITY-ZERO
+    doorbell each tick for a wedge that no longer existed.
+
+    R10 (class, not instance): the fix is not "also call it from sim_runner" as
+    a second copy -- it is ONE router that every publish path must feed, so a
+    THIRD publisher added later cannot reintroduce a half-blind detector by
+    forgetting to duplicate the logic.
+
+    THREE outcomes, not two (fail-open closed 2026-07-29, preserved here): a
+    lock-skip (EXIT_LOCK_SKIPPED) means the caller did NOT publish the marker
+    -- evidence of NOTHING about the gate's health -- so it records NEITHER a
+    success NOR a failure and leaves the streak exactly as it found it.
+    Recording it as a success actively DISARMED the detector.
+
+    Defensive by construction: a monitoring failure must never break the
+    pipeline it monitors. Returns "success" / "failure" / "skipped" / None
+    (None == the router itself errored) so callers and tests can assert which
+    branch ran.
+    """
+    try:
+        if rc == EXIT_LOCK_SKIPPED:
+            return "skipped"
+        if rc == 0:
+            record_publish_gate_success()
+            return "success"
+        git_hash = "unknown"
+        try:
+            git_hash = parse_marker(Path(marker)).get("git_hash", "unknown")
+        except Exception:
+            pass
+        record_publish_gate_failure(
+            "process_run_complete rc={} on {}".format(rc, Path(marker).name),
+            rc=rc, git_hash=git_hash,
+        )
+        return "failure"
+    except Exception as exc:
+        log("record_publish_gate_outcome error (swallowed): {}".format(exc))
+        return None
 
 
 def maybe_ntfy(data, net_margin, insights=None):

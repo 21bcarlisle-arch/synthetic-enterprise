@@ -31,3 +31,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# MINOR-9 fix (2026-07-29 cold-eyes Expert Hour, SITE1_expert_doors): sitemap.xml
+# previously 404'd while this file invited normal crawling -- point crawlers at the
+# real file so the canonical door set is what gets indexed, not the JS placeholders.
+Sitemap: https://poesys.net/sitemap.xml

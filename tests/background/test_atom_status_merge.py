@@ -468,12 +468,13 @@ def test_absent_field_is_created_not_aborted(tmp_path):
     assert atom["file_scope"] == ["sim/x.py"], "created field mis-nested into a sibling"
 
 
-def test_unparseable_field_aborts_rather_than_creating_a_duplicate_key(tmp_path):
-    """The create path (c) must never fire on a field that EXISTS but the fold
-    failed to parse -- that writes a second `field:` key, pyyaml keeps the last,
-    and the original value is silently lost. This is the guard against trusting
-    the same reasoning that just failed. A multi-line flow list is the concrete
-    shape the line-at-a-time scanner cannot read."""
+def test_a_wrapped_flow_list_FOLDS_now_instead_of_wedging(tmp_path):
+    """A flow list whose `]` sits on a LATER line used to be unfoldable, and an unfoldable
+    inbox never clears -- so it fail-closed the publish gate forever. Found live 2026-08-03 on
+    OPS_run_marker_sweep_livelock (a four-entry evidence list wrapped over four lines), which
+    reddened the gate for every writer. The scanner is now handed the rest of the BLOCK rather
+    than the rest of the LINE; it was already quote- and depth-aware, so it stops at the true
+    closing bracket. The wrapped list is rewritten as one line, with its entries preserved."""
     map_copy = tmp_path / "maturity_map.yaml"
     map_copy.write_text(
         "- id: WRAPPED_atom\n"
@@ -486,9 +487,37 @@ def test_unparseable_field_aborts_rather_than_creating_a_duplicate_key(tmp_path)
     inbox_dir.mkdir()
     _write_inbox(inbox_dir, "WRAPPED_atom", 1, "wrapped")
 
+    merge(map_path=map_copy, inbox_dir=inbox_dir)
+
+    atom = yaml.safe_load(map_copy.read_text())[0]
+    assert atom["evidence"][:2] == ["first.py", "second.py"], "wrapped entries lost in the fold"
+    assert "wrapped" in " ".join(atom["evidence"]), "the inbox addition never landed"
+    # and the sibling key is intact -- the multi-line splice must not eat the line after `]`.
+    # (It legitimately GAINS the inbox's own simplification; what matters is that the
+    # pre-existing entry survived rather than being consumed by the splice.)
+    assert atom["simplifications"][0] == "n", "the splice consumed a sibling field"
+
+
+def test_unparseable_field_STILL_aborts_rather_than_creating_a_duplicate_key(tmp_path):
+    """R15: widening the parser must not disarm the guard. The create path (c) must never fire
+    on a field that EXISTS but the fold failed to parse -- that writes a second `field:` key,
+    pyyaml keeps the last, and the original value is silently lost. An UNTERMINATED flow list
+    (no closing bracket anywhere in the atom) is a shape the depth scanner genuinely cannot
+    read, so the guard must still raise on it."""
+    map_copy = tmp_path / "maturity_map.yaml"
+    map_copy.write_text(
+        "- id: BROKEN_atom\n"
+        "  level_current: 0\n"
+        "  evidence: [first.py,\n"
+        "    second.py\n"          # <- never closed
+    )
+    inbox_dir = tmp_path / "atom_status"
+    inbox_dir.mkdir()
+    _write_inbox(inbox_dir, "BROKEN_atom", 1, "broken")
+
     with pytest.raises(MergeError, match="refusing to create a duplicate key"):
         merge(map_path=map_copy, inbox_dir=inbox_dir)
 
     # fail-closed: the map is untouched and the inbox survives for a human to fix
-    assert "second.py]" in map_copy.read_text()
-    assert (inbox_dir / "WRAPPED_atom.yaml").exists()
+    assert "second.py" in map_copy.read_text()
+    assert (inbox_dir / "BROKEN_atom.yaml").exists()

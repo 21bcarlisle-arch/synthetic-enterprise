@@ -194,6 +194,54 @@ def test_observe_order_independent():
     )
 
 
+def test_interleaved_multi_customer_single_late_out_of_order_arrival():
+    """C-S1 (event-arrival tolerance), stress case beyond the single-customer
+    order-independence test above: replies for TWO DIFFERENT customers arrive
+    interleaved, singly (one ``observe_response`` call at a time, never a
+    batch), LATE (a large gap between ``emitted_step`` and
+    ``responded_step``, i.e. large ``latency``), and OUT OF ORDER relative to
+    when their messages were actually sent. There is no batch/completeness
+    assumption anywhere in the estimator to violate -- ``observe_response``
+    takes exactly one (customer, message, response) triple and folds it in
+    independently -- so this test asserts the OUTCOME of that design: final
+    beliefs match processing each customer's own history in isolation, and
+    cross-customer interleaving never leaks state between customers."""
+    # Customer X: two messages sent early (steps 0, 1); customer Y: one
+    # message sent later (step 10). Responses resolve in a scrambled order
+    # that matches none of the send order, with one very late reply
+    # (latency=40) mixed in with a fast one (latency=1).
+    msg_x0 = _msg(mid="x0", framing="loss_framed", emitted_step=0)
+    msg_x1 = _msg(mid="x1", framing="gain_framed", emitted_step=1)
+    msg_y0 = _msg(mid="y0", framing="loss_framed", emitted_step=10)
+
+    resp_x0 = _resp(rid="rx0", responds_to="x0", action=ResponseAction.PAY, latency=40, emitted_step=0)
+    resp_x1 = _resp(rid="rx1", responds_to="x1", action=ResponseAction.NO_REPLY, latency=2, emitted_step=1)
+    resp_y0 = _resp(rid="ry0", responds_to="y0", action=ResponseAction.REPLY, latency=1, emitted_step=10)
+
+    # Arrival order at the estimator: Y's reply first (even though X's
+    # messages were sent earlier), then X's LATE reply, then X's fast one --
+    # i.e. neither send order nor latency order nor customer order.
+    scrambled = SusceptibilityEstimator()
+    assert scrambled.observe_response("y", msg_y0, resp_y0) is True   # single call
+    assert scrambled.observe_response("x", msg_x0, resp_x0) is True   # single call, late
+    assert scrambled.observe_response("x", msg_x1, resp_x1) is True   # single call
+
+    # Reference: each customer's own pair processed in natural (sent) order,
+    # in an entirely separate estimator instance per customer.
+    ref_x = SusceptibilityEstimator()
+    ref_x.observe_response("x", msg_x0, resp_x0)
+    ref_x.observe_response("x", msg_x1, resp_x1)
+    ref_y = SusceptibilityEstimator()
+    ref_y.observe_response("y", msg_y0, resp_y0)
+
+    assert scrambled.belief("x").framing_means() == ref_x.belief("x").framing_means()
+    assert scrambled.belief("y").framing_means() == ref_y.belief("y").framing_means()
+    # No cross-contamination: x's belief carries no gain_framed leak from y,
+    # and y's belief holds only what y was actually sent.
+    assert set(scrambled.belief("y").framing.keys()) == {"loss_framed"}
+    assert set(scrambled.belief("x").framing.keys()) == {"loss_framed", "gain_framed"}
+
+
 def test_faster_positive_reply_counts_for_more():
     fast = SusceptibilityEstimator()
     slow = SusceptibilityEstimator()

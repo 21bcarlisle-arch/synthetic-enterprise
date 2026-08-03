@@ -8,6 +8,7 @@ import json
 import math
 import re
 import statistics
+import subprocess
 import sys
 from collections import defaultdict
 from datetime import date, datetime, timezone
@@ -36,6 +37,17 @@ BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
 # never bakes in a stale phase/test-count label.
 _BUILD_PHASE = "OL"
 _BUILD_TEST_COUNT = 15148
+
+
+def _git_head():
+    """Real HEAD SHA, or None if git cannot answer. Returning None (never a
+    guess) is what lets the caller publish the honest string "unknown" instead of
+    a plausible-looking fake -- an unavailable provenance lookup is a FAILED
+    lookup, not a licence to invent one (R15 fail-silent)."""
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        return None
 
 
 def _resolve_book():
@@ -265,7 +277,14 @@ def extract_portfolio(data):
                 "clock": "settled",
                 "provisional": True,
                 "bridge_available": True,
-                "bridge_url": "./data/margin_bridge.json",
+                # Door pages live one level down (/company/, /proof/), so the
+                # bridge resolves as ../data/. "./data/..." resolved to
+                # /company/data/margin_bridge.json -> 404 (cold-eyes Expert Hour
+                # 2026-07-29). Latent when caught -- no site/ consumer reads this
+                # field yet -- but a broken evidence path shipped in published
+                # data is the constitution's rule-1 defect whether or not
+                # anything currently follows it.
+                "bridge_url": "../data/margin_bridge.json",
                 "note": (
                     "Settlement-derived (total_net_gbp). Diverges from the "
                     "bill-derived ledger view (financial.ledger.net_margin_gbp) "
@@ -1679,7 +1698,14 @@ def generate(run_json_path=None):
 
     # Extract meta
     cache_meta = data.get("_cache_meta", {})
-    git_commit = cache_meta.get("git_commit", run_json_path.stem.split("_")[2] if "_" in run_json_path.stem else "unknown")
+    # Provenance must name a commit or admit it cannot. The old fallback parsed
+    # the RUN FILENAME -- run_output_latest.json yielded the literal string
+    # "latest", which every published door then carried as its git_commit. That
+    # is the textbook fail-open: it satisfies any presence check forever and can
+    # never contradict a claim, breaking the audit chain at its root while
+    # looking populated (cold-eyes Expert Hour 2026-07-29). Real HEAD, or the
+    # honest string "unknown" -- never a filename fragment dressed as a SHA.
+    git_commit = cache_meta.get("git_commit") or _git_head() or "unknown"
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     build_phase, build_test_count, build_modules = _load_build_info()
@@ -1732,9 +1758,10 @@ def generate(run_json_path=None):
     bridge_ok = _check_bridge_reconciles()
     bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
     period_ok = _check_period_coverage_present(dashboard["financial"])
+    mix_claim_ok = _check_front_door_segment_claim(dashboard)
     consistency_ok = (
         consistency_ok and population_ok and basis_ok and bridge_ok
-        and bad_debt_ok and period_ok
+        and bad_debt_ok and period_ok and mix_claim_ok
     )
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -1863,6 +1890,86 @@ def _check_basis_labels_present(portfolio):
             file=sys.stderr,
         )
         return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# FRONT-DOOR SEGMENT-CLAIM COHERENCE GATE
+# (SITE_EH1_segment_disclosure, 2026-07-30, scope item 2 + R10 class fix)
+#
+# The front door states the book's revenue mix in words BEFORE the mission claim,
+# because a household-carbon mission read over a ~99%-non-domestic book misleads by
+# ordering alone. That surface renders no live figure and carries no inline script
+# (the documented post-condition of DIRECTOR_RULING_FRONT_MISSION_BLOCK), so the
+# sentence is hand-authored -- which means it can ROT into a false public claim the
+# moment the drawn book changes shape. Irretractable public claims are a one-way
+# door (CLAUDE.md door 3), so a false one must BLOCK the publish, not be noticed
+# later by a human.
+#
+# The claim is machine-readable: site/index.html carries
+#   data-mix-claim="non_domestic_revenue_share_gt_<NN>"
+# and this gate recomputes the real share from the run's OWN segment split and
+# fails if the claim no longer holds.
+#
+# INDEPENDENCE (R15 anti-tautology): the CLAIM is parsed from the hand-authored HTML;
+# the VALUE is computed from dashboard.financial.segment_annual. Two different
+# sources, so they can genuinely disagree -- which is the entire point.
+# FAIL-CLOSED: a missing/malformed claim attribute, an unparseable threshold, an
+# unreadable front door, or an unavailable mix all FAIL. An unavailable check is a
+# FAILED check (R15 fail-silent), and "no claim found" must never mean "claim fine".
+# ---------------------------------------------------------------------------
+FRONT_DOOR_PATH = PROJECT / "site" / "index.html"
+_MIX_CLAIM_RE = re.compile(r'data-mix-claim="non_domestic_revenue_share_gt_(\d{1,3})"')
+
+
+def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
+    from tools.generate_company_data import segment_revenue_mix
+
+    try:
+        html = front_door_path.read_text()
+    except OSError as exc:
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: front door unreadable ({}) -- an "
+            "unavailable check is a FAILED check, not a pass".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    matches = _MIX_CLAIM_RE.findall(html)
+    if not matches:
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: no data-mix-claim="
+            '"non_domestic_revenue_share_gt_<NN>" on the front door. The segment '
+            "disclosure that must precede the mission claim is missing or was edited "
+            "into an unverifiable form (SITE_EH1_segment_disclosure).",
+            file=sys.stderr,
+        )
+        return False
+
+    mix = segment_revenue_mix((dashboard.get("financial") or {}).get("segment_annual"))
+    if not mix.get("available"):
+        print(
+            "FRONT-DOOR MIX-CLAIM GATE FAILED: the book's segment mix is unavailable "
+            "({}), so the front door's published mix claim cannot be verified".format(
+                mix.get("reason")
+            ),
+            file=sys.stderr,
+        )
+        return False
+
+    actual = mix["non_domestic_revenue_share_pct"]
+    for raw in matches:
+        threshold = float(raw)
+        if not actual > threshold:
+            print(
+                "FRONT-DOOR MIX-CLAIM GATE FAILED: the front door claims non-domestic "
+                "revenue share > {:.0f}%, but this run's book is {:.2f}% non-domestic "
+                "({} composition). The published sentence is now FALSE -- fix the "
+                "sentence (it is a disclosure, not a target: never reweight the book to "
+                "make it true, R12/R13).".format(threshold, actual, mix["composition_class"]),
+                file=sys.stderr,
+            )
+            return False
     return True
 
 

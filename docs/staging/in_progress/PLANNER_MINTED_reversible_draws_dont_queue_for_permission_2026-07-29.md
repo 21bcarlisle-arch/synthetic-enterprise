@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_ratification -- §4 gate BUILT+R15 this tick (report-only); the remaining half (§1: does the live draw need a change, or is the existing exclusion of build-done director_level_up atoms sufficient?) is a design adjudication with R16 wedge risk, plus the report-to-block promotion decision for the §4 gate. Release = that §1 adjudication answered. -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_ratification', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: §4 gate BUILT+R15 this tick (report-only); the remaining half (§1: does the live draw need a change, or is the existing exclusion of build-done director_level_up atoms sufficient?) is a design adjudication with R16 wedge risk, plus the report-to-block promotion decision for the §4 gate. Release = that §1 adjudication answered. -->
 <!-- blocked_on: main-session/director design adjudication of exit-criterion §1 (does the live
      draw need any change, or is the existing exclusion of build-done `director_level_up` atoms
      sufficient?) AND the report->block promotion decision for the §4 gate. §4 itself is BUILT

@@ -177,3 +177,86 @@ def test_exit_criterion_3a_partial_pending_ets_series_no_tuning():
     assert verdict["aggregate_lift"] == pytest.approx(
         sum(c["mae_lift"] for c in cells.values())
     )
+
+
+# --------------------------------------------------------------------------
+# 4. BUILD-fork re-verification (2026-07-30, W1_6b re-audit) — R15 mutation tests
+#    written against the CLAIMED prior state, per criterion-bearing control.
+#    Independent re-run confirmed the real-data measurement holds exactly as
+#    recorded (3/5 cells, same MAE table) — see docs/fidelity/ evidence doc.
+# --------------------------------------------------------------------------
+
+def test_R15_criterion1_control_not_tautological_identical_reconstruction_shows_no_wins(
+    monkeypatch,
+):
+    """Mutation for exit criterion 1's control (`per_cell_reconstructibility` /
+    `reconstructibility_verdict`): if the 'reconstruction' collapsed to being
+    LITERALLY IDENTICAL to `gas_floor_alone` (the defect this atom exists to repair
+    — a reduced-form multiplier indistinguishable from the naive floor), the win
+    count must go to exactly ZERO, not silently show a spurious win from floating-
+    point noise or a tautological same-source comparison (R15 pattern #1). This
+    proves the MAE-lift check genuinely compares two INDEPENDENT computations."""
+    import simulation.run_merit_order_reconstructibility as runner
+    from sim.merit_order_reconstruction import gas_floor_alone_price_gbp_per_mwh
+
+    def _identical_to_floor(gas, demand, renewables, year, **kw):
+        return gas_floor_alone_price_gbp_per_mwh(gas)
+
+    monkeypatch.setattr(runner, "reconstruct_price_gbp_per_mwh", _identical_to_floor)
+
+    rows = [
+        {"year": 2019, "gas_price": 20.0, "demand_mw": 30000.0, "renewable_mw": 8000.0, "ssp": 45.0},
+        {"year": 2019, "gas_price": 22.0, "demand_mw": 28000.0, "renewable_mw": 9000.0, "ssp": 30.0},
+        {"year": 2019, "gas_price": 18.0, "demand_mw": 31000.0, "renewable_mw": 7500.0, "ssp": 60.0},
+    ]
+    cells = runner.per_cell_reconstructibility(rows)
+    verdict = runner.reconstructibility_verdict(cells)
+    assert cells["2019"]["mae_lift"] == pytest.approx(0.0)
+    assert cells["2019"]["reconstruction_wins"] is False
+    assert verdict["met"] is False
+    assert verdict["n_won"] == 0
+
+
+def test_R15_frozen_ruler_survives_a_price_engine_mutation(monkeypatch):
+    """R15 mutation for exit criterion 2 (frozen-baseline independence): if someone
+    later tunes `price_engine.THERMAL_EFFICIENCY` (e.g. chasing a better-looking
+    lift — exactly the R12/R13 violation this ruler exists to prevent), the frozen
+    `gas_floor_alone` ruler in THIS module must NOT move, because
+    `from sim.price_engine import THERMAL_EFFICIENCY` binds the VALUE at import
+    time, not a live read. Proves the ruler is genuinely decoupled from the source
+    it freezes against — not silently re-coupled through a shared reference."""
+    import sim.price_engine as price_engine
+    from sim.merit_order_reconstruction import gas_floor_alone_price_gbp_per_mwh
+
+    before = gas_floor_alone_price_gbp_per_mwh(30.0)
+    monkeypatch.setattr(price_engine, "THERMAL_EFFICIENCY", 0.90)  # attempted mutation
+    after = gas_floor_alone_price_gbp_per_mwh(30.0)
+    assert before == after == pytest.approx(60.0), (
+        "the frozen ruler moved when price_engine.THERMAL_EFFICIENCY changed — "
+        "it is no longer independent of the value it is meant to freeze against"
+    )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "FOUND DEFECT, not fixed here (2026-07-30 W1_6b re-audit): "
+        "simulation/run_merit_order_reconstructibility.py is OUTSIDE this BUILD "
+        "fork's file_scope (sim/, tests/sim/, docs/fidelity/, docs/market_research/ "
+        "only) — the fix belongs to whoever owns simulation/. "
+        "reconstructibility_verdict({}) currently returns met=True on EMPTY input "
+        "(a FAIL-OPEN, R15 killer pattern #2: a control that passes on missing/"
+        "empty data): losing_cells is vacuously empty when there are no cells at "
+        "all, so a caller that accidentally hands it malformed/empty data (e.g. a "
+        "silent cache-load failure) would see 'exit criterion 3a: MET' with ZERO "
+        "measured evidence behind it. This xfail is strict so it flips to a hard "
+        "failure — forcing this marker's removal — the moment the guard is added."
+    ),
+)
+def test_R15_KNOWN_GAP_reconstructibility_verdict_fails_open_on_empty_cells():
+    from simulation.run_merit_order_reconstructibility import reconstructibility_verdict
+
+    verdict = reconstructibility_verdict({})
+    assert verdict["met"] is False, (
+        f"expected a not-met verdict on empty input, got vacuous met=True: {verdict}"
+    )

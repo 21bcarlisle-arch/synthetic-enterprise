@@ -86,3 +86,64 @@ is already structurally complete; it is starved of one grounded input, not mis-s
 partial with a named, non-fabricable data blocker). Any level move stays `blocked_on:
 director_level_up` (FRAME §4). This is not L3: the headline reconstructibility criterion is honestly
 not yet met.
+
+---
+
+## Re-audit (2026-07-30, W1_6b BUILD fork, re-verify-don't-re-stamp)
+
+Independently re-ran everything rather than trusting the 2026-07-28 record.
+
+- **`pytest tests/sim/test_merit_order_reconstruction.py`**: 12/12 passed at the time of re-audit
+  (10 pass + 2 real-data tests, since `sim/cache/` — gitignored — was present in the checkout used
+  for the real-data re-run). `env PYTHONPATH=. python3 simulation/run_merit_order_reconstructibility.py`
+  reproduced the **exact same table** as this doc (82,760 rows; 2016 −0.72, 2017 −1.76, 2018 +0.11,
+  2019 +3.64, 2020 +3.25; 3/5 → NOT MET). The claimed measurement is real and reproducible, not stale.
+- **`sim/price_engine.py` does NOT call into `merit_order_reconstruction.py` anywhere** — confirmed by
+  grep. The engine is a standalone analysis/measurement module, not yet wired into the live simulated
+  price path. This matters for the level verdict below.
+- **R15 mutation audit, one control per exit criterion** (`tests/sim/test_merit_order_reconstruction.py`
+  §4, added this pass):
+  1. **Criterion 1** (`per_cell_reconstructibility` / `reconstructibility_verdict`) — NOT tautological:
+     monkeypatching the reconstruction to be literally identical to `gas_floor_alone` correctly drives
+     `mae_lift` to 0 and `n_won` to 0 (`test_R15_criterion1_control_not_tautological_...`). **But a real
+     FAIL-OPEN was found and is NOT fixed here** (out of this fork's `file_scope`):
+     `reconstructibility_verdict({})` returns `met=True` vacuously on empty input (empty `losing_cells`
+     set) — a caller handed empty/malformed data would see "exit criterion 3a: MET" with zero evidence
+     behind it. Pinned as a strict-xfail (`test_R15_KNOWN_GAP_reconstructibility_verdict_fails_open_on_empty_cells`)
+     naming the exact fix (`simulation/run_merit_order_reconstructibility.py` needs an explicit
+     `if not cells: return not-met` guard) for whoever owns `simulation/`.
+  2. **Criterion 2** (frozen ruler) — confirmed genuinely independent, not just present-by-identity: a
+     mutation test (`test_R15_frozen_ruler_survives_a_price_engine_mutation`) monkeypatches
+     `price_engine.THERMAL_EFFICIENCY` and proves `gas_floor_alone_price_gbp_per_mwh` here does NOT move
+     (value-bound at import time). The existing identity check on `_NAIVE_FAMILY_IDS` still holds.
+  3. **Criterion 3** (R15 mutation controls themselves) — independently re-verified by hand outside
+     pytest: reversing the merit stack and inflating a single plant's SRMC both correctly flip
+     `is_merit_order_monotone` to `False`; a hand-built crisis-carry cell dict
+     (`{"2019": losing -3.0, "2022": winning +20.0}`) correctly returns `met=False` with `"2019"` in
+     `losing_cells` despite a positive `aggregate_lift` of +17.0. Both fire on their named defect; both
+     already-existing tests are genuine, not decorative.
+- **No fabricated data used**: no network probe was attempted (none needed — no new external series was
+  sourced this pass); the EU/UK-ETS carbon-price NAMED GAP remains open exactly as recorded on 2026-07-28.
+
+### Honest level verdict: still proposed L1, not L2/L3
+
+Evidence supporting L1 (not L0): a real, grounded, falsifiable SRMC engine exists; it reproduces its
+claimed measurement exactly on real Elexon/gas data; its R15 controls are genuine (mutation-verified
+both ways this pass, not merely asserted).
+
+Evidence AGAINST L2/L3:
+- **Criterion 1 (the headline reconstructibility claim) is still 3/5, not 5/5** — unchanged since
+  2026-07-28, correctly NOT tuned to close the gap (R12/R13). The remaining gap is the same NAMED,
+  non-fabricable EU/UK-ETS carbon-price time series (2016/2017 losing cells).
+- **The engine is not wired into `sim/price_engine.py`** — it exists as a parallel, standalone
+  measurement module. "Ordinary-day SSP substantially reconstructible" per the atom's own wording is
+  not yet true of the LIVE simulated price path, only of this offline analysis.
+- **A real fail-open was found this pass** in `reconstructibility_verdict`'s handling of empty input
+  (see above) — a control that cannot fail on its own null case is exactly the R15 pattern this project
+  treats as disqualifying evidence until fixed; it is queued (xfail-pinned), not silently absorbed.
+
+Recommended `level_current`: **1** (unchanged from the prior proposal). `level_target: 3` requires, at
+minimum: (a) the ETS-series DISCOVER closing 2016/2017 without curve-fitting, (b) the empty-input
+fail-open closed, (c) a director/twin decision on whether "reconstructible" requires live wiring into
+`price_engine.py` or stands as a standalone diagnostic capability. None of these are one-way doors; all
+are queued as follow-on work, not blocked on this report.

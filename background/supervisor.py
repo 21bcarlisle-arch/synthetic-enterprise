@@ -336,7 +336,6 @@ def _real_staged_instructions() -> list[str]:
             misparked_actionable_in_progress,
             misparked_open_campaign_in_progress,
             selfdrawable_mint_in_progress,
-            unreleased_ledger_directive_in_staging,
         )
         real.extend("in_progress/" + n for n in misparked_actionable_in_progress(STAGING_DIR / "in_progress"))
         # SECOND net (2026-07-23 NIGHT_ENFORCEMENT addendum, the 20:00Z bug): a director-authored
@@ -354,17 +353,13 @@ def _real_staged_instructions() -> list[str]:
         for n in selfdrawable_mint_in_progress(STAGING_DIR / "in_progress", CAMPAIGN_REGISTER_PATH):
             if "in_progress/" + n not in real:
                 real.append("in_progress/" + n)
-        # FOURTH net (2026-07-28, atom ruling_consumption_ledger_release): a ruling carrying a
-        # `LEDGER: <ACTION> <target>` directive whose authenticated ledger entry does NOT yet exist
-        # is a DECLARED-but-UNRELEASED block -- it must surface as open work (needs a director act),
-        # never be silently consumed. Reads root + in_progress; READ-ONLY on authority (never writes
-        # a ledger entry -- R16). Returns [] while every directive is authenticated (no false churn).
-        for n in unreleased_ledger_directive_in_staging(
-            [STAGING_DIR, STAGING_DIR / "in_progress"]
-        ):
-            key = ("in_progress/" + n) if (STAGING_DIR / "in_progress" / n).exists() else n
-            if key not in real and n not in real:
-                real.append(key)
+        # FOURTH net DELETED 2026-08-03 (director console, finishing
+        # DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY + NTFY_IS_THE_DIRECTOR): it surfaced any
+        # staged doc carrying a `LEDGER: <ACTION> <target>` directive with no matching AUTHENTICATED
+        # ledger entry, as "declared-but-unreleased -- needs a director act". That is the withdrawn
+        # authority seam itself: the LEDGER:/BUILD_OPEN convention was deleted on 2026-07-29, so this
+        # net could only ever re-manufacture work items whose stated resolution was a director
+        # signature. It is gone with `parse_ledger_directives` / `report_ruling_release`.
     except Exception:  # a detection error must never break the draw
         pass
     return real
@@ -469,8 +464,34 @@ def _actionable_backlog_item() -> str | None:
 # corrupted input. So the abolition lives HERE, in the predicate: a `blocked_on` that names a
 # director-permission convention no longer suppresses anything, no matter who writes it or when.
 _ABOLISHED_PERMISSION_BLOCK_TOKENS = (
+    # the machine-readable tokens (2026-07-29 ruling items 1-3)
     "director_build_open", "director_level_up", "build_open", "level_up_proposed",
     "front_open", "gate_clear", "ledger-release", "ledger_release",
+    # 2026-08-03: the PROSE forms. The token list alone left 6 parked mints "blocked" whose stated
+    # reason was a permission ask spelled out in English -- "a director word authorising live
+    # activation", "director ratification of the proposed set", "main-session/director design
+    # adjudication". They are the same abolished act wearing a sentence instead of an identifier,
+    # and matching only the identifier is how the convention survived its own deletion.
+    "director ratification", "director word", "director authoris",
+    "director-authoris", "awaiting the director", "awaiting director", "director opens",
+    "needs a director", "director sign-off", "director signoff", "console-only", "console only",
+    # DELIBERATELY NOT HERE: the bare adjectives "director-reserved" / "director must". They name
+    # no ACT, so they cannot be shown to be an abolished one -- and R13 CURRICULUM reservations
+    # ("director for any named curriculum-difficulty value", "director-reserved SE_DRAW population
+    # activation") describe themselves exactly that way. Curriculum authorship is a question about
+    # who writes the simulation's CONTENT, not about permission to build, and it was not part of
+    # the 2026-07-29 rip-out. Fail-closed on the ambiguity: the cost of leaving one mint parked is
+    # one parked mint; the cost of the other error is silently overriding a reservation the
+    # director still holds. Caught by test_planner_rung's own fixture, which used exactly that
+    # phrasing for a genuine block.
+)
+
+
+# "main-session/director DESIGN adjudication", "director-side adjudication" -- the word between
+# "director" and "adjudication" varies, so this is a pattern rather than another literal.
+_ABOLISHED_PERMISSION_BLOCK_PATTERNS = (
+    re.compile(r"director[-\s]\w*\s*adjudication", re.I),
+    re.compile(r"director[-\s]\w{0,12}\s*(approval|permission|go[- ]ahead)", re.I),
 )
 
 
@@ -480,7 +501,9 @@ def _names_abolished_permission_block(reason: Any) -> bool:
     `director_level_up` to paragraphs of prose whose operative clause was "the executing act -- a
     per-atom BUILD_OPEN in gate_authorizations.jsonl -- is director-console-only"."""
     text = str(reason or "").lower()
-    return any(tok in text for tok in _ABOLISHED_PERMISSION_BLOCK_TOKENS)
+    if any(tok in text for tok in _ABOLISHED_PERMISSION_BLOCK_TOKENS):
+        return True
+    return any(p.search(text) for p in _ABOLISHED_PERMISSION_BLOCK_PATTERNS)
 
 
 def _is_externally_blocked(a: dict) -> bool:
@@ -622,6 +645,132 @@ def _build_in_progress_ids() -> set:
         return set()
 
 
+def _unmerged_work_paths(root: Path | None = None) -> frozenset:
+    """File paths carrying UNMERGED work anywhere in this checkout -- read from GIT REALITY
+    (worktrees, unmerged branch tips, uncommitted worktree edits), never from a marker some
+    dispatcher had to remember to write.
+
+    WHY (2026-07-30, H10, the third consecutive blind dispatch): the sibling guard
+    `_build_in_progress_ids` excludes atoms a live fork owns, but only if the orchestrator
+    WROTE `.build_in_progress.json` at dispatch. On 2026-07-30 that file was `{}` while five
+    forks held 4,270 uncommitted lines, so the draw re-offered SITE_EH1 twice and produced two
+    rival implementations of one atom; a JSON record written to fix the same bug (`.forks_in_
+    flight.json`) went unread by the very next tick and predicted its own decay. Both failed for
+    ONE reason: they must be VOLUNTARILY MAINTAINED. Git cannot be forgotten -- a branch with
+    commits not in main, or a dirty worktree, is a FACT of the repo. This guard reads that fact.
+
+    GUARANTEE: an atom whose declared `file_scope` overlaps a path with unmerged work is not
+    offered as fresh BUILD work while a non-collliding candidate exists, so the draw cannot mint
+    a rival implementation of work already in flight.
+
+    NOT A WALL (Rule 0): the caller applies this as a SOFT deprioritise -- if every candidate
+    collides, the full set is restored rather than reporting false exhaustion. FAIL-OPEN by
+    construction: any git failure/timeout returns an EMPTY set (no exclusion), because a broken
+    guard must never stall the loop. An empty return is therefore indistinguishable from "no
+    unmerged work" -- that is deliberate and is why this deprioritises rather than gates.
+    """
+    import subprocess
+    base = Path(root) if root is not None else PROJECT_DIR
+    paths: set = set()
+
+    def _git(args: list, cwd: Path) -> str:
+        try:
+            r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True,
+                               text=True, timeout=20)
+            return r.stdout if r.returncode == 0 else ""
+        except Exception:
+            return ""
+
+    # (a) Committed work on any local branch not contained in main -- `main...b` diffs from the
+    #     merge base, i.e. exactly what that branch CHANGED (not what main moved on past).
+    #     Resolve the trunk rather than hardcoding "main": on a checkout without it, every
+    #     `main..branch` would error and the guard would fail-open COMPLETELY and silently
+    #     (an unavailable check is a FAILED check -- R15 fail-silent). Fall back to HEAD.
+    default_ref = "main"
+    if not _git(["rev-parse", "--verify", "--quiet", default_ref], base).strip():
+        default_ref = _git(["symbolic-ref", "--short", "HEAD"], base).strip() or "HEAD"
+    for line in _git(["for-each-ref", "--format=%(refname:short)", "refs/heads/"], base).splitlines():
+        branch = line.strip()
+        if not branch or branch == default_ref:
+            continue
+        ahead = _git(["rev-list", "--count", f"{default_ref}..{branch}"], base).strip()
+        if not ahead.isdigit() or int(ahead) == 0:
+            continue
+        for p in _git(["diff", "--name-only", f"{default_ref}...{branch}"], base).splitlines():
+            if p.strip():
+                paths.add(p.strip())
+
+    # (b) UNCOMMITTED edits in every linked worktree -- the state that nearly lost 4,270 lines.
+    #     A dirty worktree is in-flight work even with zero commits on its branch.
+    for line in _git(["worktree", "list", "--porcelain"], base).splitlines():
+        if not line.startswith("worktree "):
+            continue
+        wt = line.split(" ", 1)[1].strip()
+        if not wt or Path(wt) == base:
+            continue
+        for st in _git(["status", "--porcelain"], Path(wt)).splitlines():
+            p = st[3:].strip() if len(st) > 3 else ""
+            if " -> " in p:                      # renames: "old -> new"
+                p = p.split(" -> ", 1)[1].strip()
+            if p:
+                paths.add(p)
+    return frozenset(paths)
+
+
+def _atom_collides_with_unmerged(atom: dict, unmerged: frozenset) -> bool:
+    """True when this atom's declared file_scope overlaps a path carrying unmerged work.
+
+    Directory-aware in BOTH directions, because file_scope mixes granularities: a scope entry
+    may be a directory (`site`, `sim`, `site/company/`) containing a changed file, or a file
+    (`site/index.html`) that IS the changed path. Undeclared scope (None) returns False -- this
+    guard NEVER newly excludes an atom the existing disjointness rule already fails closed on
+    (`_atom_file_scope` -> None is ineligible for a CONCURRENT grant anyway), so it cannot make
+    the single-atom draw stricter than it was."""
+    scope = _atom_file_scope(atom)
+    if not scope or not unmerged:
+        return False
+    for entry in scope:
+        e = str(entry).strip().rstrip("/")
+        if not e:
+            continue
+        for changed in unmerged:
+            if changed == e or changed.startswith(e + "/") or e.startswith(changed + "/"):
+                return True
+    return False
+
+
+def _prefer_unmerged_free(candidates: list, lane: str = "BUILD") -> list:
+    """Apply the unmerged-work guard as a SOFT preference to a candidate list.
+
+    Shared by the two CODE-WRITING draws (BUILD and SITE) -- both mint rival implementations if
+    they re-offer in-flight work, and the 2026-07-30 double-dispatch spanned both (SITE_EH1 has
+    non-site scope entries so it draws in BUILD; SITE1_expert_doors is scope `['site']` so it
+    draws in the SITE lane). The DISCOVER/FRAME lane is deliberately NOT filtered: it produces
+    docs/thinking, where a second pass on the same atom is not a rival build.
+
+    Rule 0 is structural here, not a comment: an all-colliding set is returned UNCHANGED, so this
+    can never zero the feasible set. Fail-open on any error (git unavailable -> no exclusion)."""
+    if not candidates:
+        return candidates
+    try:
+        unmerged = _unmerged_work_paths()
+        if not unmerged:
+            return candidates
+        free = [a for a in candidates if not _atom_collides_with_unmerged(a, unmerged)]
+        if not free:
+            log(f"UNMERGED-WORK guard ({lane}): every candidate overlaps unmerged work -- keeping "
+                "full set (Rule 0: a guard never zeroes the feasible set)")
+            return candidates
+        if len(free) != len(candidates):
+            dropped = [a.get("id") for a in candidates if a not in free]
+            log(f"UNMERGED-WORK guard ({lane}): deprioritising {dropped} -- file_scope overlaps "
+                "unmerged branch/worktree work (a fresh fork would mint a rival implementation)")
+        return free
+    except Exception as err:  # pragma: no cover - fail-open safety
+        log(f"UNMERGED-WORK guard ({lane}) skipped (fail-open, never stalls the draw): {err}")
+        return candidates
+
+
 def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False) -> list[dict]:
     """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
     "be wider" as a property of the granting model, not a standing
@@ -731,28 +880,18 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     _bip = _build_in_progress_ids()
     if _bip:
         candidates = [a for a in candidates if a.get("id") not in _bip]
-    # SELF-GOVERNANCE SCOPE MODEL draw filter (sub-step 5, SELF_GOVERNANCE_SCOPE_MODEL.md §4.2/§10):
-    # intersect BUILD candidates with authorized_build (in an OPEN front & non-gated, or a per-atom
-    # BUILD_OPEN). This is the read-side PREVENTION half of the gate-wall generalisation -- the
-    # compliant loop never even DRAWS a gated/off-front atom for BUILD. DORMANT/SAFE by default: it
-    # only engages when the director-created enforcement flag is present (absent through sub-steps
-    # 1-5, so the live draw is byte-for-byte unchanged). loop_stage is already respected upstream
-    # (`_is_valid_candidate` drops loop_stage==idle atoms, so a DISCOVER-stage atom is never a BUILD
-    # candidate); this adds the front/gate intersection on top. DISCOVER/FRAME (idle draw) and SITE
-    # are separate functions -- untouched, so a HELD-front world still draws DISCOVER/FRAME (no idle-
-    # stall, Rule 0). Fail-open on any error: detection (fronts_reconciler.evaluate) is the backstop,
-    # and a broken filter must never stall the loop.
-    if candidates:
-        try:
-            from background import fronts_reconciler as _fronts
-            if _fronts.fronts_enforcement_enabled():
-                _before = len(candidates)
-                candidates = _fronts.filter_build_candidates(candidates)
-                if len(candidates) != _before:
-                    log(f"SCOPE-MODEL draw filter: BUILD candidates {_before} -> {len(candidates)} "
-                        "after fronts/gates intersection (DISCOVER/FRAME/SITE lanes unaffected)")
-        except Exception as _scope_err:  # pragma: no cover - fail-open safety
-            log(f"SCOPE-MODEL draw filter skipped (fail-open; detection is the backstop): {_scope_err}")
+    # DELETED 2026-08-03 (director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY
+    # item 3): the SELF-GOVERNANCE SCOPE MODEL draw filter intersected BUILD candidates with
+    # `authorized_build` (an OPEN front, or a per-atom BUILD_OPEN in the ledger). It existed SOLELY to
+    # decide whether the director had permitted a BUILD, which is the exact thing item 3 abolishes --
+    # "if a code path exists solely to decide whether the director has permitted something, delete it".
+    # The 2026-07-29 sweep only deleted its enable-flag (`.fronts_enforcement_enabled`), leaving the
+    # path dormant-but-armed: any recreation of that file would have silently re-gated the BUILD draw.
+    # Dormant permission machinery is still permission machinery, so the call site is now GONE, not
+    # flagged off -- and with its last caller removed, `background/fronts_reconciler.py` and
+    # `background/fronts.yaml` (the declaration of "which regions the loop may BUILD in without
+    # asking") were deleted outright rather than left as dead scaffolding for the convention to
+    # regrow on. There is no front to be on, and no BUILD to be opened.
     # COUPLED_TRIAD binding rule 1 (director P1, COUPLED_TRIAD_DESIGN.md 4.1):
     # a WORLD atom stepping toward L3 is excluded from the BUILD draw until its
     # coupled company twin exists (>=L1) AND the pair's belief-vs-truth gap is
@@ -769,6 +908,15 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
             else:
                 _kept.append(_a)
         candidates = _kept
+    # UNMERGED-WORK guard (2026-07-30, H10 -- the fix the `.forks_in_flight.json` record itself
+    # named after predicting its own decay). Prefer candidates whose file_scope does NOT overlap
+    # work already sitting unmerged in a branch/worktree, so the draw cannot hand out an atom a
+    # prior fork already built and thereby mint a RIVAL implementation (it did exactly that twice
+    # for SITE_EH1 inside one hour). Backstops `_build_in_progress_ids` above, which fail-opens
+    # whenever the dispatcher never wrote its marker -- the exact state that let this happen.
+    # SOFT, per Rule 0: if EVERY candidate collides the full set is kept rather than reporting
+    # false exhaustion. Mirrors `exclude_stalled`'s own prefer-then-fall-back shape.
+    candidates = _prefer_unmerged_free(candidates, lane="BUILD")
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
@@ -1275,12 +1423,12 @@ def _site_lane_draw_concurrent(
         if a.get("id") in exclude_ids:
             return False
         if _is_externally_blocked(a):
-            # Complete-awaiting-a-director-act (e.g. blocked_on: director_level_up):
-            # the build work is done, ONLY ratification remains, so a fork would find
-            # nothing to build. Ungated means ignore loop_stage/epoch parking -- NOT
-            # ignore blocked_on. Matches every other lane (_self_refill BUILD + the two
-            # idle draws already filter _is_externally_blocked). Without this the site
-            # draw re-offers ratification-blocked SITE1/BRAND1 every cycle (loop thrash).
+            # Genuinely blocked on an EXTERNAL act (an upstream dependency, a reserved
+            # real-world consequence): a fork would find nothing to build. Note this is
+            # now a much smaller set -- since 2026-08-03 `_is_externally_blocked` ignores
+            # every abolished permission convention, so "awaiting ratification" is no
+            # longer a hold here or anywhere. Ungated means ignore loop_stage/epoch
+            # parking -- NOT ignore a real blocked_on. Matches every other lane.
             return False
         level_current, level_target = a.get("level_current"), a.get("level_target")
         if level_current is None or level_target is None:
@@ -1303,6 +1451,11 @@ def _site_lane_draw_concurrent(
     _bip_site = _build_in_progress_ids()
     if _bip_site:
         candidates = [a for a in candidates if a.get("id") not in _bip_site]
+    # UNMERGED-WORK guard on the SITE lane (2026-07-30, H10): same reason as the BUILD lane above --
+    # the marker guard fail-opens when the dispatcher never wrote it, and SITE1_expert_doors (scope
+    # ['site']) was re-drawn on this lane while two rival SITE_EH1 builds already sat unmerged in
+    # worktrees touching site/. Soft preference; an all-colliding set is kept intact (Rule 0).
+    candidates = _prefer_unmerged_free(candidates, lane="SITE")
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
@@ -1516,11 +1669,9 @@ def build_atom_hold_reasons(atoms: list | None = None) -> dict:
         bip = _build_in_progress_ids()
     except Exception:
         bip = set()
-    try:
-        from background import fronts_reconciler as _fr
-        fronts_on = _fr.fronts_enforcement_enabled()
-    except Exception:
-        _fr, fronts_on = None, False
+    # No fronts/BUILD_OPEN permission intersection here either (deleted 2026-08-03 with the draw-side
+    # filter above): this function explains WHY an atom is not drawable, and "the director has not
+    # opened its front" is no longer a reason that exists.
     gap_ledger = _coupled_load_gap_ledger()
 
     reasons: dict = {}
@@ -1544,13 +1695,6 @@ def build_atom_hold_reasons(atoms: list | None = None) -> dict:
         if aid in bip:
             reasons[aid] = "fork_in_flight"
             continue
-        if fronts_on and _fr is not None:
-            try:
-                if not _fr.filter_build_candidates([a]):
-                    reasons[aid] = "off_open_front"
-                    continue
-            except Exception:
-                pass  # fail-open: don't invent an off-front hold on a filter error
         try:
             blocked, why = _coupled_world_l3_blocked(a, atoms, gap_ledger)
         except Exception:
@@ -2005,7 +2149,14 @@ def surface_missing_work_block_defects(
             # already-sent open item is silent until its daily restate (register_item never advances
             # this clock -- action_needed 2026-07-18 register-vs-sent conflation fix).
             due = action_needed.should_notify(item_id, path=register_path)
-            action_needed.register_item(item_id, what=what, how=how, why=why, path=register_path)
+            try:
+                action_needed.register_item(item_id, what=what, how=how, why=why, path=register_path)
+            except action_needed.NotReservedForDirector:
+                # 2026-08-03: a staged doc missing its "WORK THIS CREATES" block is a DEFECT IN THE
+                # DOC, which the tick fixes by minting the work from the body itself -- never a
+                # decision to page the director for. Skip the durable item; the draw already
+                # surfaces the doc.
+                continue
             if not due:
                 continue
             fn = send_ntfy_fn
@@ -2920,9 +3071,41 @@ def _in_progress_minted_slugs(staging_dir: Path | None = None) -> dict[str, list
             continue
         if re.search(r"SUPERVISOR_DRAW:\s*self-drawable", head):
             drawable.append(f.name)
+        elif _mint_blocker_is_abolished_permission(f):
+            # 2026-08-03 (director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY):
+            # a mint whose ONLY stated blocker is an abolished permission convention
+            # (director_level_up / director_build_open / a LEDGER: release / a ratification) is
+            # SELF-DRAWABLE, whatever its marker says. Same abolition `_is_externally_blocked`
+            # applies to map atoms, applied here to parked mints -- without it the two disagreed:
+            # the map said "drawable", the mint doc said "waiting on the director", and 17 mints sat
+            # in in_progress/ being re-enumerated every tick as OPEN MINTS awaiting an act that no
+            # longer exists. Mechanism, not a one-time edit: a mint written tomorrow citing a dead
+            # convention is drawn too, and the flip is logged loudly by the caller.
+            drawable.append(f.name)
         else:
             blocked.append(f.name)
     return {"blocked": sorted(blocked), "self_drawable": sorted(drawable)}
+
+
+def _mint_blocker_is_abolished_permission(path: Path) -> bool:
+    """True iff a parked mint's stated blocking reason names ONLY an abolished director-permission
+    convention -- and does NOT also describe one of the four reserved real-world consequences.
+    Delegated to `one_way_door.classify_action` for the reserved half (the SOLE enumeration), so a
+    mint genuinely blocked on real money / real people / a public claim / a real person's safety
+    still blocks even when it also cites a permission token. FAIL-CLOSED to False (stays blocked) on
+    any read error -- an unreadable mint is not evidence of drawability."""
+    try:
+        body = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    reason = _extract_blocking_reason(body)
+    if not _names_abolished_permission_block(reason):
+        return False
+    try:
+        from background import one_way_door as _owd
+        return not _owd.classify_action(reason).is_one_way_door
+    except Exception:
+        return False
 
 
 def _extract_blocking_reason(body: str) -> str:
@@ -3145,109 +3328,14 @@ def _planner_rung_draw(
     )
 
 
-# ── RUNG 1c: DIRECTOR-ACT RUNG ZERO (2026-07-29, DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE §2) ──
-# WHY THIS EXISTS. The three problems the ruling names are channel / LATENCY / volume, and this is
-# LATENCY: "A faster channel with the same latency is worthless." A director console act of
-# 2026-07-28 ~19:40 BST sat unconsumed for ~11 HOURS behind cooldown re-stamps / HARDEN re-verifies,
-# because a signed director act (the SCARCEST resource, MAKE_IT_STICK) had NO draw rung -- it took
-# effect only PASSIVELY, the next time the affected atom happened to surface in a normal lane.
-#
-# THE PLAIN ANSWER (§2 requires it stated, then the fix). Read of the live draw
-# (`_self_refill_draw` rung order + `gate_authorization`): **NO.** A signed `BUILD_OPEN` /
-# `LEVEL_UP_PROPOSED` did NOT draw at rung-zero. Two sub-cases, split by act type:
-#   * A **BUILD_OPEN** makes its atom drawable in LANE 1 BUILD (which already outranks
-#     cooldown/HARDEN/campaign/backlog), so a BUILD_OPEN'd atom with no residual `blocked_on` does
-#     NOT have the rung-zero latency -- it flows on the next BUILD draw. (Confirmed live: CA1,
-#     generator_draw_wiring etc. carry no build-gate `blocked_on`; the map has no
-#     `blocked_on: director_build_open` convention at all.)
-#   * A **LEVEL_UP_PROPOSED** is different and IS the 11h gap: R16/R17 make the LEDGER the authority,
-#     but the DRAW reads the map's `level_current`. A ratified L{N} whose map atom still sits at
-#     `level_current < N` (typically also still carrying `blocked_on: director_level_up`) is
-#     INVISIBLE to every lane (`_is_externally_blocked` drops it), so it sits until an agent turn
-#     happens to notice the ledger -- exactly the latency observed. THIS rung surfaces that
-#     reconciliation gap as rung-zero work.
-# So the fix is scoped, honestly, to the level-reconciliation gap -- not a fabricated BUILD_OPEN
-# branch that would never fire (R12: do not invent a change to look busy).
-#
-# INDEPENDENCE (R15, no tautology). The unconsumed test compares TWO independent sources: the signed
-# ledger (`gate_authorization.read_ledger` + `is_valid_level_up`, director/console|phone-native only)
-# vs the map's own `level_current`. Neither derives from the other. FAIL-CLOSED against a phantom
-# draw: only a VALID director act with an INTEGER ratified level whose map atom EXISTS and sits
-# strictly below it fires; an absent/malformed/twin-self-written/level-less entry is not an act.
-# FAIL-SILENT guard: an on-disk ledger that is non-empty but reads back as zero parsed entries is a
-# FAILED read (not "no acts") -- logged loudly, never silently treated as drained.
-def _director_act_rung_zero_draw(
-    ledger_path: Path | None = None, map_path: Path | None = None
-) -> str | None:
-    """RUNG 1c. Return a rung-zero draw naming an UNCONSUMED authenticated director LEVEL_UP_PROPOSED
-    (ledger ratified L{N}, map still at level_current < N), else None. Placed below the two
-    PRIORITY-ZERO operational rungs (a wedged publish gate / persistent operational red block even
-    publishing this atom's result) but ABOVE every product/HARDEN/campaign/backlog lane, so a signed
-    director act releases its atom on the NEXT tick, not 11h later. Reads the map/ledger from module
-    globals by default so a test can pin both (memory `new_draw_rung_needs_fixture_isolation`)."""
-    try:
-        import yaml
-        from background import gate_authorization as _ga
-    except ImportError:
-        return None
-    lp = ledger_path or _ga.LEDGER_PATH
-    ledger = _ga.read_ledger(lp)
-    # FAIL-SILENT guard (R15): a non-empty ledger file that parses to zero entries is a FAILED read,
-    # not an authoritative "no director acts". Say so loudly; never silently green-light rest.
-    try:
-        if not ledger and Path(lp).exists() and Path(lp).stat().st_size > 0:
-            log("DIRECTOR-ACT RUNG: gate ledger present but parsed to ZERO entries -- FAILED read, "
-                "NOT 'no acts' (R15 fail-silent). Not drawing a phantom rung; surface the read fault.")
-            return None
-    except OSError:
-        return None
-    if not ledger:
-        return None
-    # Highest ratified level per atom, with the EARLIEST ratifying ts for that level (waited longest).
-    ratified: dict[str, tuple[int, float]] = {}
-    for e in ledger:
-        if not (_ga.is_valid_level_up(e) and isinstance(e.get("level"), int)):
-            continue
-        atom = str(e.get("atom") or "").strip()
-        if not atom:
-            continue
-        n = e["level"]
-        ts = e.get("ts")
-        ts = float(ts) if isinstance(ts, (int, float)) else float("inf")
-        prev = ratified.get(atom)
-        if prev is None or n > prev[0] or (n == prev[0] and ts < prev[1]):
-            ratified[atom] = (n, ts)
-    if not ratified:
-        return None
-    try:
-        atoms = yaml.safe_load(Path(map_path or MATURITY_MAP_PATH).read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError):
-        return None
-    if not isinstance(atoms, list):
-        return None
-    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
-    unconsumed: list[tuple[float, str, int, int]] = []  # (ts, atom, ratified_N, map_level)
-    for atom, (n, ts) in ratified.items():
-        m = by_id.get(atom)
-        if not isinstance(m, dict):
-            continue
-        cur = m.get("level_current")
-        if isinstance(cur, int) and cur < n:  # ledger ahead of map -> not yet reconciled
-            unconsumed.append((ts, atom, n, cur))
-    if not unconsumed:
-        return None
-    unconsumed.sort(key=lambda t: (t[0], t[1]))  # oldest act first; deterministic id tiebreak
-    ts0, atom0, n0, cur0 = unconsumed[0]
-    extra = f" (+{len(unconsumed) - 1} more unconsumed)" if len(unconsumed) > 1 else ""
-    return (
-        "DIRECTOR-ACT RUNG ZERO (RUNG 1c; DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE 2026-07-29 §2): an "
-        f"AUTHENTICATED director LEVEL_UP_PROPOSED for {atom0} -> L{n0} is UNCONSUMED (map "
-        f"level_current={cur0}, ledger is authority per R16/R17){extra} -- RECONCILE THE MAP TO THE "
-        f"LEDGER NOW: bump {atom0} level_current to L{n0} through the level gate (never --no-verify, "
-        "R16) and clear any blocked_on: director_level_up. A signed director act is the scarcest "
-        "resource (MAKE_IT_STICK); it releases on the NEXT tick, not 11h behind cooldown/HARDEN."
-    )
-
+# ── RUNG 1c: DELETED 2026-08-03 ──────────────────────────────────────────────────────────────
+# `_director_act_rung_zero_draw()` drew, at rung zero, any AUTHENTICATED director LEVEL_UP_PROPOSED
+# sitting unconsumed (ledger ratified L{N}, map still below it) -- built because a signed act had
+# once waited ~11h behind cooldown/HARDEN re-verifies. Both halves of its premise are now gone: the
+# director does not ratify levels (2026-07-29 ruling item 2), and `is_valid_level_up` no longer
+# recognises a LEVEL_UP_PROPOSED act at all, so this rung could only ever fire on legacy ledger
+# history. The agent records its own level move and moves the map cell in the same act -- there is
+# no second party's act left to consume, and therefore no latency to prioritise away.
 
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
@@ -3326,17 +3414,6 @@ def _self_refill_draw() -> str | None:
             "paging threshold -> drawing the daemon-lifecycle fix above every product/HARDEN lane "
             "(director console 2026-07-25)")
         return op_red
-    # RUNG 1c -- DIRECTOR-ACT RUNG ZERO (2026-07-29, DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE §2).
-    # Below the two PRIORITY-ZERO operational rungs, above every product/HARDEN/campaign/backlog lane:
-    # a signed director LEVEL_UP_PROPOSED whose map atom is not yet reconciled (level_current < the
-    # ratified level) is drawn FIRST, so a director act releases its atom on the NEXT tick rather than
-    # sitting ~11h behind cooldown re-stamps / HARDEN re-verifies (the exact 2026-07-28 latency).
-    director_act = _director_act_rung_zero_draw()
-    if director_act:
-        log("DIRECTOR-ACT RUNG ZERO (RUNG 1c): an authenticated director LEVEL_UP_PROPOSED is "
-            "unconsumed (ledger ahead of the map) -> reconciling it above every product/HARDEN lane "
-            "(DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE 2026-07-29 §2)")
-        return director_act
     build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
     drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
 
@@ -3556,12 +3633,6 @@ def _is_drained_and_gated() -> bool:
         # rung added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the
         # exact overnight rest the draw now refuses (13 consecutive reds, tick resting beside them).
         if _operational_red_persistent_draw():
-            return False
-        # RUNG 1c -- DIRECTOR-ACT RUNG ZERO (2026-07-29, DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE §2):
-        # rest is NEVER legitimate while an authenticated director LEVEL_UP_PROPOSED sits unconsumed
-        # (the ledger ahead of the map). Mirror of the rung added to `_self_refill_draw`; without it,
-        # `_is_drained_and_gated` would green-light rest over the exact 11h latency the draw now refuses.
-        if _director_act_rung_zero_draw():
             return False
         if _maturity_map_draw_concurrent(exclude_stalled=True):
             return False

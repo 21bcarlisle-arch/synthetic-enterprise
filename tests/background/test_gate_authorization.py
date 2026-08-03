@@ -1,309 +1,66 @@
-"""GATE-WALL detection control (OPS1, director P0 2026-07-17).
+"""LEVEL-RECORD ledger: what remains of gate_authorization after the permission machinery was
+removed (2026-08-03, director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY).
 
-R15 mutation coverage: a control that never fires is theatre. These prove the wall FIRES on its
-own defect (an idle->build promotion with no director-console authorization) and stays QUIET on
-an authorized one -- and that an INVALID authorization (a twin/machine self-write, non-console,
-or no-provenance) does NOT silence it ("not marking your own homework").
+WHAT THIS FILE USED TO TEST, and why it is gone. It was the GATE-WALL detection control: an
+idle->build promotion with no director-console authorization ALARMED, an authorized one stayed
+quiet, and an invalid/forged authorization did not silence it. Every one of those behaviours was
+an answer to "has the director permitted this?", which is no longer a question the system asks --
+so `evaluate_gate_wall`, `authorized_atoms`, the HELD records, the FRONT_OPEN/GATE_CLEAR family,
+the twin's L1/L2 ratification and the phone-HMAC channel were all deleted, and their tests with
+them.
 
-PRINCIPLE under test (director): self-SUSTAIN through an open gate is fine; self-PROMOTE across a
-gate (idle->build) without the director's authenticated console act is what this catches.
+WHAT SURVIVES, and why it is still worth a control. "Propose, record, act" keeps the RECORD: a
+level move must leave an auditable trace of what moved and on what evidence (R16's real
+requirement, which was never that a human authorise it). These tests hold that line -- the record
+must be honest about who wrote it, must carry evidence, and must be refused when it does not.
 """
 from __future__ import annotations
-
-import json
 
 import pytest
 
 from background import gate_authorization as G
 
 
-def _write_baseline(tmp_path, stages):
-    p = tmp_path / "baseline.json"
-    p.write_text(json.dumps({"genesis_commit": "TEST", "stages": stages}))
-    return p
+def _self_cert_entry(atom="A1", level=2, provenance="tests green + R15 mutation proof"):
+    return {"atom": atom, "action": "LEVEL_UP_SELF_CERTIFIED",
+            "authorized_by": "agent_self_certified", "channel": "self",
+            "level": level, "provenance": provenance}
 
 
-def _write_ledger(tmp_path, entries):
-    p = tmp_path / "ledger.jsonl"
-    p.write_text("".join(json.dumps(e) + "\n" for e in entries))
-    return p
-
-
-def _valid_entry(atom):
-    return {"atom": atom, "action": "BUILD_OPEN", "authorized_by": "director",
-            "channel": "console", "provenance": "director console message 2026-07-17: open BUILD"}
-
-
-def _hold_entry(atom):
-    return {"atom": atom, "action": "HELD_PENDING_VERIFICATION", "authorized_by": "director",
-            "channel": "console", "provenance": "director console msg 2026-07-17: HOLD pending L3 run"}
-
-
-def _eval(tmp_path, baseline, current, ledger):
-    bp = _write_baseline(tmp_path, baseline)
-    lp = _write_ledger(tmp_path, ledger)
-    cur = tmp_path / "map.yaml"
-    # write a minimal map yaml the current_loop_stages reader can parse
-    cur.write_text("atoms:\n" + "".join(
-        f"  - id: {a}\n    loop_stage: {s}\n" for a, s in current.items()))
-    return G.evaluate_gate_wall(map_path=cur, baseline_path=bp, ledger_path=lp)
-
-
-# ── the mutation: fires on the defect, quiet when authorized ───────────────────────────────
-def test_unauthorized_promotion_ALARMS(tmp_path):
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[])
-    assert r["status"] == "GATE_VIOLATION" and r["alarm"] is True
-    assert [u["atom"] for u in r["unauthorized"]] == ["A"]
-
-
-def test_authorized_promotion_is_QUIET(tmp_path):
-    # THE mutation: the SAME promotion, now with a valid director-console authorization -> silent.
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[_valid_entry("A")])
-    assert r["status"] == "GATE_CLEAN" and r["alarm"] is False
-
-
-def test_invalid_authorization_does_NOT_silence_the_alarm(tmp_path):
-    """A twin/machine self-write cannot authorize: non-console channel, missing provenance, or
-    authorized_by != director does NOT count. 'Not marking your own homework.'"""
-    bad_channel = {**_valid_entry("A"), "channel": "doorbell"}       # worker self-write
-    no_prov = {**_valid_entry("A"), "provenance": ""}                # bare / no trace
-    not_director = {**_valid_entry("A"), "authorized_by": "twin"}    # twin is a voice, not a hand
-    for bad in (bad_channel, no_prov, not_director):
-        r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[bad])
-        assert r["status"] == "GATE_VIOLATION" and r["alarm"] is True, bad
-
-
-def test_grandfathered_active_atom_and_docwork_stay_quiet(tmp_path):
-    # B was already active at genesis -> grandfathered (not a promotion). C stayed idle (doc-only
-    # DISCOVER/FRAME work is allowed and does not flip loop_stage) -> not a promotion.
-    r = _eval(tmp_path, baseline={"B": "build", "C": "idle"},
-              current={"B": "harden", "C": "idle"}, ledger=[])
-    assert r["status"] == "GATE_CLEAN" and r["alarm"] is False
-
-
-def test_mixed_one_authorized_one_not(tmp_path):
-    r = _eval(tmp_path, baseline={"A": "idle", "D": "idle"},
-              current={"A": "build", "D": "build"}, ledger=[_valid_entry("A")])
-    assert r["alarm"] is True
-    assert [u["atom"] for u in r["unauthorized"]] == ["D"]           # only the unauthorized one
-
-
-# ── HELD: red but acknowledged (no alarm), never treated as authorized ─────────────────────
-def test_held_promotion_is_RED_but_no_alarm(tmp_path):
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[_hold_entry("A")])
-    assert r["status"] == "GATE_HELD" and r["alarm"] is False   # acknowledged -> no page
-    assert [h["atom"] for h in r["held"]] == ["A"]              # ...but still tracked red, NOT cleared
-
-
-def test_held_does_not_count_as_authorization(tmp_path):
-    # A hold must NOT clear the atom to green. Only a BUILD_OPEN does. (Don't wave it through.)
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[_hold_entry("A")])
-    assert r["status"] != "GATE_CLEAN"
-
-
-def test_held_plus_a_real_violation_STILL_alarms(tmp_path):
-    # A held atom does not mask a DIFFERENT unauthorized promotion -> the wall still alarms on B.
-    r = _eval(tmp_path, baseline={"A": "idle", "B": "idle"},
-              current={"A": "build", "B": "build"}, ledger=[_hold_entry("A")])
-    assert r["status"] == "GATE_VIOLATION" and r["alarm"] is True
-    assert [u["atom"] for u in r["unauthorized"]] == ["B"]
-
-
-def test_record_hold_then_wall_is_held_not_clean(tmp_path):
-    lp = tmp_path / "ledger.jsonl"
-    G.record_hold("A", "director console msg 2026-07-17: HOLD A pending live L3 verification", path=lp)
-    entries = G.read_ledger(lp)
-    assert entries and all(G._is_valid_hold(e) for e in entries)
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=entries)
-    assert r["status"] == "GATE_HELD"
-
-
-# ── pure predicates ────────────────────────────────────────────────────────────────────────
-def test_promotions_since_baseline_pure():
-    proms = G.promotions_since_baseline(
-        current={"A": "build", "B": "harden", "C": "idle", "E": "build"},
-        baseline={"A": "idle", "B": "build", "C": "idle"})        # E absent from baseline -> ignored
-    atoms = {p["atom"] for p in proms}
-    assert atoms == {"A"}          # A idle->build; B grandfathered; C stayed idle; E new (not baseline)
-
-
-def test_valid_authorization_predicate():
-    assert G._is_valid_authorization(_valid_entry("A")) is True
-    assert G._is_valid_authorization({**_valid_entry("A"), "channel": "ntfy"}) is False
-    assert G._is_valid_authorization({**_valid_entry("A"), "provenance": "  "}) is False
-    assert G._is_valid_authorization({"atom": "A"}) is False
-    assert G._is_valid_authorization(None) is False
-
-
-# ── the record path end to end ─────────────────────────────────────────────────────────────
-def test_record_gate_opening_then_wall_is_clean(tmp_path):
-    lp = tmp_path / "ledger.jsonl"
-    G.record_gate_opening(["A", "D"], "director console msg 2026-07-17: open BUILD on A,D", path=lp)
-    entries = G.read_ledger(lp)
-    assert {e["atom"] for e in entries} == {"A", "D"}
-    assert all(G._is_valid_authorization(e) for e in entries)
-    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=entries)
-    assert r["status"] == "GATE_CLEAN"
-
-
-def test_readers_fail_safe(tmp_path):
-    assert G.read_ledger(tmp_path / "nope.jsonl") == []
-    assert G.load_baseline(tmp_path / "nope.json") == {}
-    assert G.current_loop_stages(tmp_path / "nope.yaml") == {}
-
-
-# ── the deadman fires it (the running home) -- transition-only ─────────────────────────────
-def test_deadman_fires_gate_violation_and_is_transition_only(tmp_path, monkeypatch):
-    # The deadman delegates transition-only to notify(); isolate its store + capture via ntfy_utils.
-    from background import deadmans_switch as D
-    import background.notify as N
-    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
-    calls = []
-    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
-    monkeypatch.setattr(
-        "background.gate_authorization.evaluate_gate_wall",
-        lambda: {"status": "GATE_VIOLATION", "alarm": True,
-                 "detail": "1 BUILD promotion with no director-console authorization: X",
-                 "unauthorized": [{"atom": "X", "from": "idle", "to": "build"}]},
-    )
-    D._check_gate_wall()
-    assert len(calls) == 1 and "GATE VIOLATION" in calls[0]      # the alarm fires
-    D._check_gate_wall()
-    assert len(calls) == 1                                        # ...once -- transition-only (R5)
-
-
-def test_deadman_silent_when_gate_clean(tmp_path, monkeypatch):
-    from background import deadmans_switch as D
-    import background.notify as N
-    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
-    calls = []
-    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
-    monkeypatch.setattr(
-        "background.gate_authorization.evaluate_gate_wall",
-        lambda: {"status": "GATE_CLEAN", "alarm": False, "detail": "clean", "unauthorized": []},
-    )
-    D._check_gate_wall()
-    assert calls == []                                           # a clean wall never pages
-
-
-# ── real-defect smoke: the LIVE wall must be well-formed (report-only, never raises) ───────
-def test_live_wall_is_well_formed_and_never_raises():
-    r = G.evaluate_gate_wall()
-    assert set(r) >= {"status", "alarm", "detail", "unauthorized", "held"}
-    assert isinstance(r["alarm"], bool)
-    assert r["status"] in ("GATE_CLEAN", "GATE_HELD", "GATE_VIOLATION")
-
-
-# ── DIRECTOR_TWIN routine-level authority: L1/L2 only, structural L3 refusal (2026-07-21) ─────
-
-def _twin_entry(atom="A", level=2, provenance="twin verdict: APPROVE"):
-    return {"atom": atom, "action": "LEVEL_UP_TWIN", "level": level,
-            "authorized_by": "director_twin", "channel": "twin", "provenance": provenance}
-
-
-def test_twin_level_up_valid_for_l1_and_l2():
-    assert G.is_valid_twin_level_up(_twin_entry(level=1)) is True
-    assert G.is_valid_twin_level_up(_twin_entry(level=2)) is True
-
-
-def test_R15_twin_level_up_INVALID_for_l3_and_above():
-    # The refusal point IN THE VALIDATOR: a twin entry claiming L3+ is not a valid authorization,
-    # so it can NEVER clear the LEVEL gate even if forged. Mutation: raise TWIN_LEVEL_CAP to 3 and
-    # this fails.
-    assert G.is_valid_twin_level_up(_twin_entry(level=3)) is False
-    assert G.is_valid_twin_level_up(_twin_entry(level=4)) is False
-    # ...and is_valid_level_up (the gate's actual predicate) rejects it too
-    assert G.is_valid_level_up(_twin_entry(level=3)) is False
-    # ...so it does NOT clear an L3 move
-    from background.fronts_reconciler import _level_cleared
-    assert _level_cleared("A", 3, [_twin_entry(level=3)]) is False
-
-
-def test_is_valid_level_up_accepts_a_twin_l2_entry():
-    assert G.is_valid_level_up(_twin_entry(level=2)) is True
-    from background.fronts_reconciler import _level_cleared
-    assert _level_cleared("A", 2, [_twin_entry(level=2)]) is True
-    assert _level_cleared("A", 1, [_twin_entry(level=2)]) is True
-
-
-def test_twin_entry_needs_all_fields_and_a_bounded_int_level():
-    assert G.is_valid_twin_level_up({**_twin_entry(), "provenance": ""}) is False   # no provenance
-    assert G.is_valid_twin_level_up({**_twin_entry(), "channel": "console"}) is False  # wrong channel
-    assert G.is_valid_twin_level_up({**_twin_entry(), "authorized_by": "director"}) is False
-    assert G.is_valid_twin_level_up({**_twin_entry(), "level": None}) is False       # must be an int
-    assert G.is_valid_twin_level_up({**_twin_entry(), "level": 0}) is False          # >=1
-
-
-def test_twin_entry_does_not_masquerade_as_a_director_console_act():
-    # Honesty: a twin authority is NOT a director-console act -- it does not authorize BUILD_OPEN,
-    # and is not counted among director-authorized atoms.
-    e = _twin_entry(level=2)
-    assert G._is_valid_authorization(e) is False          # not a BUILD_OPEN authorization
-    assert G.authorized_atoms([e]) == set()
-
-
-def test_record_twin_level_up_writes_honest_envelope_and_refuses_l3(tmp_path):
-    led = tmp_path / "ledger.jsonl"
-    G.record_twin_level_up("A", 2, "twin verdict: APPROVE", path=led)
-    entries = G.read_ledger(led)
-    assert len(entries) == 1
-    e = entries[0]
-    assert e["authorized_by"] == "director_twin" and e["channel"] == "twin"
-    assert e["action"] == "LEVEL_UP_TWIN" and e["level"] == 2
-    # The write path itself refuses a director-reserved level (belt-and-braces with the validator)
-    with pytest.raises(ValueError):
-        G.record_twin_level_up("A", 3, "should never record", path=led)
-    with pytest.raises(ValueError):
-        G.record_twin_level_up("A", None, "no level", path=led)  # type: ignore[arg-type]
-    assert len(G.read_ledger(led)) == 1  # only the valid L2 entry was ever written
-
-
-# ═══════════════════════════════════════════════════════════════════════════════════════════════
-# SELF-CERTIFICATION (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2): "director_
-# level_up is abolished as a block ... recording satisfies R16's real requirement, self-certification
-# does not need a separate permission gate on top." R15 both ways: an honest self-cert entry clears
-# the level gate at ANY level (no twin-style cap -- the block is abolished, not merely widened); a
-# forged/dishonest one (missing evidence, wrong channel/authorized_by) does not.
-# ═══════════════════════════════════════════════════════════════════════════════════════════════
-def _self_cert_entry(atom="A", level=None, provenance="tests green: 12/12, R15 mutation both-ways"):
-    e = {"atom": atom, "action": "LEVEL_UP_SELF_CERTIFIED",
-         "authorized_by": "agent_self_certified", "channel": "self", "provenance": provenance}
-    if level is not None:
-        e["level"] = level
-    return e
-
-
+# ── the record is valid at ANY level: there is no reserved tier left ───────────────────────
 def test_self_certified_level_up_valid_at_any_level():
-    # Unlike the twin (capped at L2), self-certification has NO level cap -- the block is abolished.
     assert G.is_valid_self_certified_level_up(_self_cert_entry(level=1)) is True
     assert G.is_valid_self_certified_level_up(_self_cert_entry(level=3)) is True
     assert G.is_valid_self_certified_level_up(_self_cert_entry(level=99)) is True
+    # L3 was the director's "this is real" tier; it is now recorded like any other.
     assert G.is_valid_level_up(_self_cert_entry(level=3)) is True
 
 
+# ── R15: the control FIRES on its own defect (an unevidenced or dishonest record) ──────────
 def test_self_certified_needs_atom_and_nonempty_provenance():
     assert G.is_valid_self_certified_level_up(_self_cert_entry(provenance="")) is False
     assert G.is_valid_self_certified_level_up({**_self_cert_entry(), "atom": ""}) is False
 
 
-def test_self_certified_does_not_masquerade_as_console_or_twin():
-    e = _self_cert_entry(level=2)
-    assert G._is_valid_authorization(e) is False       # not a BUILD_OPEN authorization
-    assert G.is_valid_twin_level_up(e) is False         # honestly not a twin act either
-    assert G.authorized_atoms([e]) == set()
-
-
-def test_R15_self_certification_clears_the_level_gate_via_reconciler_and_pre_commit_gate():
-    from background.fronts_reconciler import _level_cleared
-    ledger = [_self_cert_entry(atom="A", level=3)]
-    assert _level_cleared("A", 3, ledger) is True
-    # a forged entry (wrong authorized_by/channel, self-declaring the honest labels) does NOT clear
-    forged = {**_self_cert_entry(atom="A", level=3), "authorized_by": "worker", "channel": "agent"}
+def test_a_forged_record_is_not_a_record():
+    """The honesty requirement is what is load-bearing now. An entry claiming to be a
+    self-certification while stamping a different author/channel is NOT a valid record -- so the
+    pre-commit level gate still refuses the commit that carries it."""
+    forged = {**_self_cert_entry(), "authorized_by": "worker", "channel": "agent"}
     assert G.is_valid_self_certified_level_up(forged) is False
-    assert _level_cleared("A", 3, [forged]) is False
-    # an unevidenced self-certification (empty provenance) does NOT clear either
-    unevidenced = {**_self_cert_entry(atom="A", level=3), "provenance": ""}
-    assert _level_cleared("A", 3, [unevidenced]) is False
+    assert G.is_valid_level_up(forged) is False
+
+
+def test_legacy_director_and_twin_entries_are_history_not_authority():
+    """A console LEVEL_UP_PROPOSED or a twin LEVEL_UP_TWIN already in the ledger stays readable as
+    history, but is no longer a separate authority -- the mover self-certifies instead. This is the
+    mutation that proves the permission path is really gone rather than merely unused."""
+    console = {"atom": "A1", "action": "LEVEL_UP_PROPOSED", "authorized_by": "director",
+               "channel": "console", "level": 3, "provenance": "director console 2026-07-21"}
+    twin = {"atom": "A1", "action": "LEVEL_UP_TWIN", "authorized_by": "director_twin",
+            "channel": "twin", "level": 2, "provenance": "twin canon verdict"}
+    assert G.is_valid_level_up(console) is False
+    assert G.is_valid_level_up(twin) is False
 
 
 def test_record_level_up_self_certified_writes_honest_envelope_and_requires_evidence(tmp_path):
@@ -324,138 +81,19 @@ def test_record_level_up_self_certified_writes_honest_envelope_and_requires_evid
     assert len(G.read_ledger(led)) == 1  # only the valid entry was ever written
 
 
-# ═══════════════════════════════════════════════════════════════════════════════════════════════
-# PHONE-NATIVE AUTHORITY WIRING (director console ratification 2026-07-22).
-# R15 both ways THROUGH the gate predicates (not just the pure dac module): a genuine phone ruling
-# authorizes a live promotion; a forged/reserved/repurposed/keyless one does NOT clear the wall.
-# ═══════════════════════════════════════════════════════════════════════════════════════════════
-import background.ntfy_utils as _ntfy_utils
-from background import director_authority_channels as _dac
-
-_PHONE_KEY = "test-hmac-key-for-gate-wiring"
+def test_readers_fail_safe(tmp_path):
+    assert G.read_ledger(tmp_path / "nope.jsonl") == []
+    assert G.load_baseline(tmp_path / "nope.json") == {}
 
 
-def _key(monkeypatch):
-    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", _PHONE_KEY)
-
-
-def _signed_ntfy_entry(action="BUILD_OPEN", atom="F1a", *, key_text=None, provenance="phone ruling"):
-    text = _dac._bound_signed_text(action, atom)
-    signed = _ntfy_utils.sign_wake_message(text)  # signs with the patched global key
-    return {"atom": atom, "action": action, "authorized_by": "director",
-            "channel": _dac.DIRECTOR_NTFY, "signed_payload": signed, "provenance": provenance}
-
-
-def _bridge_runner(author):
-    """A fake git runner returning `author` as %an for `git log -1 --format=%an <c>`."""
-    class _R:
-        returncode = 0
-        stdout = author + "\n"
-    return lambda args: _R()
-
-
-# ── PASS: a genuine phone ruling clears a live promotion through the gate wall ──────────────────
-def test_phone_ntfy_BUILD_OPEN_authorizes_a_promotion(tmp_path, monkeypatch):
-    _key(monkeypatch)
-    entry = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
-    assert G._is_valid_authorization(entry) is True
-    r = _eval(tmp_path, {"X": "idle"}, {"X": "build"}, [entry])
-    assert r["status"] == "GATE_CLEAN", r  # phone authority actually clears the wall live
-
-
-def test_phone_advisor_ruling_authorizes_only_with_bridge_authorship(monkeypatch):
-    entry = {"atom": "Y", "action": "BUILD_OPEN", "authorized_by": "director",
-             "channel": _dac.ADVISOR_RULING, "ruling_marker": _dac.RULING_MARKER,
-             "commit": "abc123", "provenance": "advisor [DIRECTOR-RULING]"}
-    # Bridge-authored commit → valid; any other author → rejected (fail-closed).
-    assert G._valid_phone_authority(entry, "BUILD_OPEN",
-                                    runner=_bridge_runner(G.ADVISOR_BRIDGE_AUTHOR_NAME)) is True
-    assert G._valid_phone_authority(entry, "BUILD_OPEN",
-                                    runner=_bridge_runner("Rich Carlisle")) is False
-    assert G._advisor_commit_is_bridge_authored("", runner=_bridge_runner("x")) is False  # no commit
-
-
-def test_phone_level_up_and_front_open_accept_genuine_rulings(monkeypatch):
-    _key(monkeypatch)
-    lvl = _signed_ntfy_entry(action="LEVEL_UP_PROPOSED", atom="Z")
-    assert G.is_valid_level_up(lvl) is True
-    fo = _signed_ntfy_entry(action="FRONT_OPEN", atom="W")
-    fo["front"] = "epoch2"
-    assert G.is_valid_front_open(fo) is True
-
-
-# ── FAIL-CLOSED: the wall the phone channel must NOT cross ──────────────────────────────────────
-def test_R15_reserved_action_rejected_even_with_perfect_signature(monkeypatch):
-    _key(monkeypatch)
-    # A safety/authz-trust action is NOT on ROUTINE_ACTIONS → invalid even perfectly signed.
-    for reserved in ("SKIP_PERMISSIONS", "PROFILE_CHANGE", "SAFETY_CONTROL_CHANGE", "BUILD_OPENX"):
-        e = _signed_ntfy_entry(action=reserved, atom="X")
-        assert G._valid_phone_authority(e, reserved) is False, reserved
-        assert G._is_valid_authorization(e) is False, reserved
-
-
-def test_R15_signature_cannot_be_repurposed_across_actions(monkeypatch):
-    _key(monkeypatch)
-    # Perfectly signed for BUILD_OPEN — must NOT satisfy a LEVEL_UP predicate.
-    e = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
-    assert G.is_valid_level_up(e) is False
-    assert G._valid_director_act(e, "LEVEL_UP_PROPOSED") is False
-
-
-def test_R15_worker_forgery_wrong_key_rejected(monkeypatch):
-    _key(monkeypatch)
-    good = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
-    # Re-sign the same text with a DIFFERENT (worker) key → verification fails against the real key.
-    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", "worker-forged-key")
-    forged_sig = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "X"))
-    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", _PHONE_KEY)  # back to the real key
-    good["signed_payload"] = forged_sig
-    assert G._is_valid_authorization(good) is False
-
-
-def test_R15_no_key_fails_closed(monkeypatch):
-    entry = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")  # signed while key present in helper? no
-    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", None)  # key unavailable ⇒ verify returns None
-    assert G._is_valid_authorization(entry) is False
-
-
-def test_console_authorization_still_works_no_regression(tmp_path):
-    # The additive wiring must not break the pre-existing console path.
-    console = _valid_entry("X")  # {atom, action:BUILD_OPEN, authorized_by:director, channel:console,...}
-    assert G._is_valid_authorization(console) is True
-    r = _eval(tmp_path, {"X": "idle"}, {"X": "build"}, [console])
-    assert r["status"] == "GATE_CLEAN"
-
-
-# ── The responder-side writer: fail-closed minting of a director_ntfy ledger entry ──────────────
-def test_record_director_ntfy_ruling_writes_only_on_valid_signature(tmp_path, monkeypatch):
-    _key(monkeypatch)
-    led = tmp_path / "ledger.jsonl"
-    signed = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "A"))
-    e = G.record_director_ntfy_ruling(signed, path=led)
-    assert e is not None and e["action"] == "BUILD_OPEN" and e["atom"] == "A"
-    assert e["channel"] == _dac.DIRECTOR_NTFY and e["authorized_by"] == "director"
-    assert len(G.read_ledger(led)) == 1
-    # And that written entry actually authorizes through the read-side predicate.
-    assert G._is_valid_authorization(G.read_ledger(led)[0]) is True
-
-
-def test_record_director_ntfy_ruling_mints_nothing_on_bad_input(tmp_path, monkeypatch):
-    _key(monkeypatch)
-    led = tmp_path / "ledger.jsonl"
-    # Unsigned junk, a non-RULING signed message, and a RESERVED action all write NOTHING.
-    assert G.record_director_ntfy_ruling("not a signed payload", path=led) is None
-    plain = _ntfy_utils.sign_wake_message("hello there")  # valid HMAC but not a RULING
-    assert G.record_director_ntfy_ruling(plain, path=led) is None
-    reserved = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("SKIP_PERMISSIONS", "A"))
-    assert G.record_director_ntfy_ruling(reserved, path=led) is None
-    assert G.read_ledger(led) == []  # fail-closed: no ledger pollution
-
-
-def test_record_director_ntfy_ruling_rejects_stale_replay(tmp_path, monkeypatch):
-    _key(monkeypatch)
-    led = tmp_path / "ledger.jsonl"
-    stale = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "A"),
-                                          timestamp=1)  # ancient
-    assert G.record_director_ntfy_ruling(stale, path=led) is None
-    assert G.read_ledger(led) == []
+def test_the_permission_surface_is_gone():
+    """A NAMED anti-regression: these are the entry points the ruling deleted. If any of them comes
+    back, the convention has regrown -- this fails loudly rather than letting the machinery quietly
+    re-gate a draw."""
+    for name in ("authorized_atoms", "held_atoms", "evaluate_gate_wall", "unauthorized_promotions",
+                 "is_valid_front_open", "is_valid_front_close", "is_valid_gate_clear",
+                 "is_valid_twin_level_up", "record_twin_level_up", "record_front_open",
+                 "record_gate_clear", "record_gate_opening", "record_hold",
+                 "record_director_ntfy_ruling", "parse_ledger_directives",
+                 "confirm_authenticated_release", "report_ruling_release"):
+        assert not hasattr(G, name), f"{name} is permission machinery and must stay deleted"

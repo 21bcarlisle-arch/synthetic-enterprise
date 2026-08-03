@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- director-window delta view; level move director-reserved (R16, no self-bump) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: director-window delta view; level move director-reserved (R16, no self-bump) -->
 # [PLANNER-MINTED] — Director-window delta view (SPEC_005 §7.10 / Spec-005 §3) — SITE-lane (2026-07-28)
 
 > **BUILT 2026-07-28: "Since you last looked" delta panel LIVE on `site/director/index.html`.**

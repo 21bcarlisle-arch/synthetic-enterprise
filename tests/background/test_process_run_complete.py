@@ -947,3 +947,94 @@ def test_gate_failure_log_tail_is_bounded(monkeypatch, tmp_path):
     assert len(text) < prc.GATE_FAILURE_TAIL_CHARS * 3, \
         "the red-gate tail must be bounded, not the whole suite output"
     assert "FAILED tests/a.py::t" in text, "the summary line must survive the bound"
+
+
+# --- The commit-timeout crash that wedged publishing (2026-08-03) -------------
+# git_commit_push runs the FULL pre-commit hook chain, whose site_lane_gate branch
+# alone measured 27.3s against a 30s subprocess cap. The TimeoutExpired was UNCAUGHT:
+# it propagated out of _process(), so process_run_complete exited rc=1 having logged
+# NEITHER "Nothing to commit or commit failed" NOR "Done", and the wedge detector
+# recorded a "test_regression" that was nothing of the sort. R15 -- these prove the
+# catch is real, not asserted.
+
+def _commit_push_with(monkeypatch, run_side_effect):
+    """Drive git_commit_push with a stubbed subprocess.run and a no-op tree_lock."""
+    import contextlib
+    monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
+    monkeypatch.setattr(prc.subprocess, "run", run_side_effect)
+    return prc.git_commit_push("abc1234", 1_500_000)
+
+
+def test_commit_timeout_is_caught_and_does_not_crash_the_publish(monkeypatch, tmp_path):
+    """THE REGRESSION. A slow hook chain must degrade to "retry next cycle".
+
+    MUTATION: remove the `except subprocess.TimeoutExpired` in git_commit_push and
+    this raises instead of returning False -- which is exactly the 2026-08-03 crash.
+    """
+    import subprocess as _sp
+
+    def _run(argv, **kw):
+        if argv[:2] == ["git", "commit"]:
+            raise _sp.TimeoutExpired(cmd=argv, timeout=kw.get("timeout", 0))
+        return _FakeCompleted(0)
+
+    assert _commit_push_with(monkeypatch, _run) is False, \
+        "a timed-out commit must report failure, not crash the publish"
+
+
+def test_commit_timeout_says_so_in_the_log(monkeypatch, tmp_path):
+    """The crash was hard to diagnose because it logged NOTHING between the
+    'Committing and pushing' line and the process's death -- the failure has to
+    name itself, or the next reader blames the test suite again (R9: evidence
+    before narrative).
+
+    MUTATION: drop the log() call from the except branch and this fails.
+    """
+    import subprocess as _sp
+    written = []
+    monkeypatch.setattr(prc, "log", lambda m: written.append(m))
+
+    def _run(argv, **kw):
+        if argv[:2] == ["git", "commit"]:
+            raise _sp.TimeoutExpired(cmd=argv, timeout=kw.get("timeout", 0))
+        return _FakeCompleted(0)
+
+    assert _commit_push_with(monkeypatch, _run) is False
+    joined = "\n".join(written)
+    assert "TIMED OUT" in joined, joined
+    assert "hook chain" in joined, "the log must point at the hook chain, not the run"
+
+
+def test_commit_timeout_budget_fits_inside_the_workers_own_cap():
+    """A commit cap larger than background_worker's 900s cap on the whole process
+    would just move the kill one level up and lose the explaining log line.
+
+    MUTATION: set GIT_COMMIT_HOOK_TIMEOUT_SECONDS above the worker's timeout and
+    this fails.
+    """
+    import re
+    from pathlib import Path as _Path
+    worker = _Path(prc.__file__).parent / "background_worker.py"
+    assert worker.exists(), "background_worker.py is the caller whose cap this must fit"
+    src = worker.read_text()
+    # The cap that actually applies: the one on the subprocess.run that INVOKES
+    # process_run_complete inside process_leftover_run_markers -- not, say,
+    # run_ollama_task's unrelated timeout (which this test caught on its first run).
+    sweep = src[src.index("def process_leftover_run_markers"):]
+    sweep = sweep[:sweep.index("\ndef ", 1)]
+    caps = [int(m) for m in re.findall(r"timeout=(\d+)", sweep)]
+    assert caps, "could not find the marker sweep's own subprocess timeout"
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS < min(caps), (
+        "commit cap {}s must fit inside the sweep's own {}s cap on the whole "
+        "process".format(prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, min(caps)))
+
+
+def test_commit_timeout_has_real_headroom_over_the_hook_chain():
+    """The old 30s cap failed because it was BELOW the hook chain's measured cost
+    (site suite alone: 27.3s). Keep a real multiple so suite growth cannot quietly
+    re-create the wedge.
+
+    MUTATION: drop the constant back to 30 and this fails.
+    """
+    measured_hook_chain_seconds = 30  # site_lane_gate broad branch, 2026-08-03
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= 5 * measured_hook_chain_seconds

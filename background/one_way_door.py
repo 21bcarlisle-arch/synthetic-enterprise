@@ -149,6 +149,21 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
         # Changing a billing plan or a model entitlement SPENDS REAL MONEY -- it is a
         # money wall, not a settings preference, and must not be released with settings.
         r"\bbilling\b", r"\b(plan|model) entitlement",
+        # 2026-08-03: found by the action_needed reserved-class guard's own R15 test. "Authorise a
+        # real card payment for the paid Elexon feed subscription" and "pay for the subscription
+        # with the company card" both matched NOTHING above -- `payment to` requires a recipient,
+        # `charge the card` requires that exact verb, and `paid subscription` missed "paid ... feed
+        # subscription". This classifier is now the ONLY thing between the loop and real spending
+        # (every other gate was deleted with the permission machinery), so a gap here is a gap in a
+        # WALL, not in a dial. Widening detection stays safety-INCREASING and needs no authorisation.
+        # DELIBERATE OMISSIONS, same reasoning as the currency-amount note above: `invoice` and
+        # `direct debit` are core SIMULATED domain vocabulary here (the company issues invoices and
+        # runs DD collections every settlement period), so either would fire on the simulation's own
+        # routine work -- a control that jams the pipeline is its own defect. Every pattern below
+        # pairs money with a REAL-WORLD purchasing context that the simulation never uses.
+        r"\bcard payment\b", r"\bpay(ing)? for\b[^.]{0,40}\bsubscription\b",
+        r"\b(company|corporate|real) card\b",
+        r"\bsubscri(be|ption)\b[^.]{0,30}\b(paid|cost|fee)\b", r"\breal (card|bank) \w+\b",
     ],
     OneWayDoorCategory.REAL_WORLD_COMMITMENT: [
         r"\bsign(ed|ing)? (a |the )?contract\b", r"\blegal(ly)? bind", r"\bregulatory filing\b",

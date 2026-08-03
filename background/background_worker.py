@@ -7,6 +7,7 @@ Respects UK peak electricity hours: pauses between 16:00-19:00 GMT daily.
 Logs all activity to docs/observability/background-worker-log.md
 """
 
+import json
 import subprocess
 import sys
 import time
@@ -55,6 +56,158 @@ def run_ollama_task(prompt: str, task_name: str) -> str:
 
 STAGING_DIR = Path("docs/staging")
 DONE_DIR = STAGING_DIR / "done"
+# Persistent sweep state (oldest-marker stall counter). Module-level so tests
+# can redirect it -- a new real-disk flag that tests do NOT pin leaks into
+# every unpinned loader and starts alarming off other tests' fixtures.
+SWEEP_STATE_FILE = Path("docs/observability/.run_marker_sweep_state.json")
+# Consecutive sweeps with the SAME oldest marker still sitting in staging/
+# before the zero-progress alarm fires. The worker loop is 30 min, so this is
+# ~1.5h of a retry loop that is provably not retrying.
+STALL_ALARM_CYCLES = 3
+
+
+def _marker_stamp(name: str) -> str | None:
+    """`run_complete_20260803T064304Z.md` -> `20260803T064304Z`.
+
+    Returns None for anything that does not parse. FAIL-SAFE DIRECTION (R15):
+    an unparseable name is treated as PENDING by every caller, never as
+    superseded -- the failure mode of a bad parse must be "we tried to publish
+    something we didn't need to", never "we retired a marker nobody published".
+    """
+    stem = Path(name).stem
+    if not stem.startswith("run_complete_"):
+        return None
+    stamp = stem[len("run_complete_"):]
+    return stamp or None
+
+
+def _newest_published_stamp(done_dir: Path) -> str | None:
+    """The latest run stamp that actually REACHED done/, i.e. the newest run
+    whose publish pipeline ran to completion. This is the supersession
+    frontier: any marker older than it describes a snapshot that has already
+    been overtaken on every published surface."""
+    if not done_dir.is_dir():
+        return None
+    stamps = [s for s in (_marker_stamp(p.name) for p in done_dir.glob("run_complete_*.md")) if s]
+    return max(stamps) if stamps else None
+
+
+def classify_markers(markers, newest_published):
+    """Split leftover markers into (superseded, pending).
+
+    SUPERSEDED == a strictly LATER run has already been published. Re-running
+    the pipeline on such a marker does not "catch up" -- it regenerates
+    ANNUAL_REPORT.md, LATEST.md and the whole site FROM A STALE SNAPSHOT,
+    overwriting current figures with older ones. That is a fidelity
+    regression (R11/R14: every published figure carries its clock; this would
+    silently wind the clock backwards), so supersession is a TERMINAL state,
+    not a retry state.
+
+    Ordering is lexicographic on the fixed-width UTC stamp, which for this
+    format is chronological. Unparseable names sort as pending (see
+    _marker_stamp)."""
+    superseded, pending = [], []
+    for marker in markers:
+        stamp = _marker_stamp(marker.name)
+        if newest_published and stamp and stamp < newest_published:
+            superseded.append(marker)
+        else:
+            pending.append(marker)
+    return superseded, pending
+
+
+def retire_superseded_marker(marker: Path, newest_published: str, done_dir: Path) -> bool:
+    """Move a superseded marker to done/ with the reason RECORDED IN THE FILE.
+
+    R10 forbids closing the backlog defect by DELETING the backlog. This does
+    not delete: the marker keeps its content and gains an explicit
+    superseded-by stamp, so an auditor reading done/ can see exactly why this
+    run was never published and which run overtook it."""
+    try:
+        done_dir.mkdir(parents=True, exist_ok=True)
+        note = (
+            "\n\n## Superseded (not published)\n\n"
+            f"Retired by background_worker.process_leftover_run_markers() at "
+            f"{datetime.now(timezone.utc).isoformat()}.\n"
+            f"A strictly later run ({newest_published}) had already completed its publish "
+            f"pipeline, so this snapshot was overtaken on every published surface before "
+            f"this marker could be processed. Re-running the pipeline here would have "
+            f"republished stale figures over current ones. No publish was performed.\n"
+        )
+        with open(marker, "a") as fh:
+            fh.write(note)
+        marker.rename(done_dir / marker.name)
+        return True
+    except Exception as exc:
+        log(f"Could not retire superseded marker {marker.name}: {exc}")
+        return False
+
+
+def _load_sweep_state() -> dict:
+    try:
+        return json.loads(SWEEP_STATE_FILE.read_text())
+    except Exception:
+        return {}
+
+
+def _save_sweep_state(state: dict):
+    try:
+        SWEEP_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SWEEP_STATE_FILE.write_text(json.dumps(state, indent=2))
+    except Exception as exc:
+        log(f"Could not persist run-marker sweep state: {exc}")
+
+
+def _check_zero_progress(pending):
+    """A retry loop that has NEVER succeeded is an ALARM, not a log line.
+
+    THE DEFECT THIS CLOSES (2026-08-03, atom OPS_run_marker_sweep_livelock):
+    the sweep logged `Lock-skipped ... will retry next cycle` 404 times per
+    cycle, for days. That is the vocabulary of a healthy transient queue, and
+    it is indistinguishable in the log from progress -- so a permanent total
+    failure read as a working retry. FAIL-SILENT, exactly the R15 pattern.
+
+    The signal is the OLDEST pending marker: if the same marker is still the
+    oldest N sweeps running, nothing is draining, whatever the per-marker log
+    lines say. R5: fires ONCE on the transition into the stalled state and
+    stays quiet until the oldest marker actually changes."""
+    state = _load_sweep_state()
+    oldest = pending[0].name if pending else None
+    if oldest is None:
+        if state.get("stalled_on"):
+            log("Run-marker sweep: backlog cleared — zero-progress alarm reset")
+        _save_sweep_state({})
+        return False
+    if state.get("oldest") == oldest:
+        cycles = int(state.get("cycles", 0)) + 1
+    else:
+        cycles = 1
+    already_alarmed = state.get("stalled_on") == oldest
+    fire = cycles >= STALL_ALARM_CYCLES and not already_alarmed
+    _save_sweep_state({
+        "oldest": oldest, "cycles": cycles,
+        "stalled_on": oldest if (fire or already_alarmed) else None,
+    })
+    if fire:
+        msg = (
+            f"[ACTION NEEDED] Run-marker sweep has made ZERO progress for {cycles} "
+            f"consecutive cycles: {oldest} is still the oldest of {len(pending)} pending "
+            f"run_complete marker(s). The publish retry loop is not retrying — treat "
+            f"'will retry next cycle' in background-worker-log.md as FALSE."
+        )
+        log(msg)
+        try:
+            from background.ntfy_utils import send_ntfy
+            send_ntfy(msg)
+        except Exception as exc:
+            # An unavailable checker is a FAILED check, not a passed one (R15
+            # FAIL-SILENT). The alarm still lands in the worker log above, and
+            # we do NOT record it as alarmed, so the next cycle retries the send.
+            log(f"Zero-progress alarm NTFY failed (alarm stands, will re-send): {exc}")
+            state = _load_sweep_state()
+            state["stalled_on"] = None
+            _save_sweep_state(state)
+    return fire
 
 
 def process_leftover_run_markers():
@@ -80,10 +233,35 @@ def process_leftover_run_markers():
     check) for the regression guard on this exact property."""
     markers = sorted(STAGING_DIR.glob("run_complete_*.md"))
     if not markers:
+        _check_zero_progress([])
         return
-    log(f"Found {len(markers)} leftover run_complete marker(s) — processing")
+
+    # THE GLOB STAYS UNCONDITIONAL (see docstring above) -- every leftover
+    # marker is still collected and still DISPOSED every cycle. What changed
+    # (2026-08-03, OPS_run_marker_sweep_livelock) is that disposal now has a
+    # terminal state other than "published": a marker a later published run
+    # has already overtaken is RETIRED, not retried forever. Retiring is a
+    # rename, not a pipeline run, so it needs no run lock and cannot be
+    # lock-skipped -- which is what turned this sweep into a livelock.
+    done_dir = STAGING_DIR / "done"
+    newest_published = _newest_published_stamp(done_dir)
+    superseded, pending = classify_markers(markers, newest_published)
+
+    if superseded:
+        retired = sum(
+            1 for m in superseded
+            if retire_superseded_marker(m, newest_published, done_dir)
+        )
+        log(f"Retired {retired}/{len(superseded)} superseded run_complete marker(s) "
+            f"— overtaken by published run {newest_published}, not republished")
+
+    _check_zero_progress(pending)
+
+    if not pending:
+        return
+    log(f"Found {len(pending)} leftover run_complete marker(s) — processing")
     processor = Path(__file__).parent / "process_run_complete.py"
-    for marker in markers:
+    for marker in pending:
         result = subprocess.run(
             [sys.executable, str(processor), str(marker)],
             cwd=str(Path(__file__).resolve().parent.parent),
@@ -125,23 +303,17 @@ def _record_publish_gate_outcome(marker, rc):
     item with "a run published cleanly" -- for a marker nobody published.
     Observed 2026-07-29 16:53Z: both backed-up markers recorded successes one
     minute before the lock holder itself failed the gate at 16:54Z, wiping the
-    streak that was supposed to raise the alert."""
+    streak that was supposed to raise the alert.
+
+    DELEGATES (2026-08-03): the three-outcome logic now lives ONCE in
+    `process_run_complete.record_publish_gate_outcome` so that EVERY publish
+    path feeds the same detector. This sweep was the only caller, which left
+    the detector blind to sim_runner.py -- the path that actually publishes in
+    the steady state -- for ~4 days. This wrapper stays because it is the name
+    tests/background/test_background_worker.py pins."""
     try:
         from background import process_run_complete as prc
-        if rc == EXIT_LOCK_SKIPPED:
-            return
-        if rc == 0:
-            prc.record_publish_gate_success()
-        else:
-            git_hash = "unknown"
-            try:
-                git_hash = prc.parse_marker(marker).get("git_hash", "unknown")
-            except Exception:
-                pass
-            prc.record_publish_gate_failure(
-                f"process_run_complete rc={rc} on {marker.name}",
-                rc=rc, git_hash=git_hash,
-            )
+        prc.record_publish_gate_outcome(marker, rc)
     except Exception as exc:
         log(f"publish-gate outcome recording skipped for {marker.name}: {exc}")
 

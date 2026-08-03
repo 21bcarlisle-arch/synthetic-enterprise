@@ -1,0 +1,27 @@
+{
+  "_provenance": {
+    "source": "DESNZ Energy Trends Table ET 6.1, 'Annual' worksheet, rows 56-64 'SHARES OF ELECTRICITY GENERATED (%)' -- percentage of TOTAL GB electricity generated (all fuels, row 64 denominator) contributed by each technology.",
+    "url": "https://assets.publishing.service.gov.uk/media/6a6a0cabb0205b954abca5a8/ET_6.1_JUL_26.xlsx",
+    "landing_page": "https://www.gov.uk/government/statistics/energy-trends-section-6-renewables",
+    "fetched": "2026-08-03",
+    "http_status": 200,
+    "units": "percent of total GB electricity generated (all fuels)",
+    "measurement_basis": "Per the workbook's own Notes 7/8: actual generation where metered, otherwise estimated from typical/design load factors applied to accredited RO/FiT/REGO capacity -- NOT the Elexon Balancing Mechanism settlement feed (AGWS) sim/weather_price_chain.py ingests. Independent collection pipeline (anti-marking-own-homework) -- this is the 'DESNZ Energy Trends Table 6 mix-share' the FRAME names as the required VALIDATOR anchor, distinct from the AGWS-fitted GENERATOR series this trajectory is built from.",
+    "used_by": "sim/renewable_capacity_trend.py::check_mix_share_against_independent_source (A3) -- compares wind's share of (wind+solar) generation, real vs the sim's AGWS-fitted trajectory, on the SAME normalisation basis on both sides (avoids a total-system-generation denominator mismatch the sim has no concept of)."
+  },
+  "onshore_share_pct": {
+    "2016": 6.1191, "2017": 8.5691, "2018": 9.1033, "2019": 9.7379,
+    "2020": 11.2386, "2021": 9.5253, "2022": 10.8065, "2023": 11.3304,
+    "2024": 12.1708, "2025": 11.7243
+  },
+  "offshore_share_pct": {
+    "2016": 4.8371, "2017": 6.2395, "2018": 7.9476, "2019": 9.7731,
+    "2020": 13.1327, "2021": 11.562, "2022": 13.8885, "2023": 16.8041,
+    "2024": 17.0622, "2025": 17.7197
+  },
+  "solar_share_pct": {
+    "2016": 3.0649, "2017": 3.4178, "2018": 3.7958, "2019": 3.7956,
+    "2020": 4.0436, "2021": 3.9393, "2022": 4.3049, "2023": 5.062,
+    "2024": 5.2411, "2025": 6.855
+  }
+}

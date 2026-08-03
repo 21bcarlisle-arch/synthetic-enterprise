@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- size-and-clone ratchet; level move director-reserved (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: size-and-clone ratchet; level move director-reserved (R16) -->
 <!-- DESIGN half CLOSED 2026-07-28: docs/design/SIZE_AND_CLONE_RATCHET_DISCOVER.md (live census 789 files/169,852 lines corroborates ruling's 788; no existing clone tool — minimal AST detector designed; warn-then-gate + logged override + R15 both-ways designed; ceiling 223). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Size + clone ratchet (debt drains by side-effect, never by remediation sprint) (2026-07-28)
 

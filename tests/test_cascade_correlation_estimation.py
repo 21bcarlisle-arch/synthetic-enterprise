@@ -93,6 +93,65 @@ def test_unavailable_series_is_a_failed_check():
         D.assert_coupling_present(a, None)
 
 
+# ── R15 mutation: NaN-blind comparisons must reject non-finite FIRST ────────
+# Per the project's standing finding ("comparison guards are NaN-blind"), a
+# bare `x > y` / `x >= y` on a NaN silently evaluates False -- which reads
+# IDENTICAL to a genuine negative verdict. Each control below must instead
+# raise loud on non-finite input, never fold it into the same False a real
+# collapsed-coupling / broken-compounding finding returns.
+
+def test_liftestimate_rejects_nonfinite_lift_at_construction():
+    """The killer mutation: build a LiftEstimate with a NaN lift directly
+    (bypassing joint_tail_lift's own invariants) -- `.coupled`/`.anti_coupled`
+    would otherwise both silently read False (neither fires) on a NaN. The
+    class boundary itself must catch it."""
+    good = D.LiftEstimate(lift=1.5, u=0.1, upper=True, lam=1.35,
+                           n_conditioned=100, p_joint=0.02, p_a=0.1, p_b=0.1)
+    assert good.lift == 1.5  # the intact (non-mutated) construction still works
+    for bad_lift in (float("nan"), float("inf"), -1.0):
+        with pytest.raises(D.DegenerateSeriesError):
+            D.LiftEstimate(lift=bad_lift, u=0.1, upper=True, lam=1.35,
+                            n_conditioned=100, p_joint=0.02, p_a=0.1, p_b=0.1)
+
+
+def test_liftestimate_rejects_nonfinite_lam_and_bad_u():
+    with pytest.raises(D.DegenerateSeriesError):
+        D.LiftEstimate(lift=1.5, u=0.1, upper=True, lam=float("nan"),
+                        n_conditioned=100, p_joint=0.02, p_a=0.1, p_b=0.1)
+    with pytest.raises(ValueError):
+        D.LiftEstimate(lift=1.5, u=float("nan"), upper=True, lam=1.35,
+                        n_conditioned=100, p_joint=0.02, p_a=0.1, p_b=0.1)
+
+
+def test_assert_coupling_present_rejects_nonfinite_min_lift():
+    """The killer mutation: a NaN `min_lift` floor makes `est.lift >= floor`
+    silently False regardless of the true lift, misreporting a genuinely
+    coupled link as COLLAPSED. Must raise instead of returning a verdict."""
+    a, b = _tail_coupled_pair()
+    intact = D.assert_coupling_present(a, b)
+    assert intact.present, "sanity: the intact call must still read present"
+    with pytest.raises(ValueError):
+        D.assert_coupling_present(a, b, min_lift=float("nan"))
+
+
+def test_compounding_holds_rejects_nonfinite_l_end():
+    """The killer mutation: a NaN l_end makes `l_end + tol >= product`
+    silently False -- indistinguishable from a genuine 'chain thinned' finding.
+    Must raise, never return a verdict for garbage input."""
+    assert D.compounding_holds(3.0, [1.5, 1.8])  # sanity: intact case still True
+    with pytest.raises(D.DegenerateSeriesError):
+        D.compounding_holds(float("nan"), [1.5, 1.8])
+    with pytest.raises(D.DegenerateSeriesError):
+        D.compounding_holds(float("inf"), [1.5, 1.8])
+
+
+def test_compounding_holds_rejects_nonfinite_link_lift():
+    with pytest.raises(D.DegenerateSeriesError):
+        D.compounding_holds(3.0, [1.5, float("nan")])
+    with pytest.raises(D.DegenerateSeriesError):
+        D.compounding_holds(3.0, [1.5, float("-inf")])
+
+
 # ── the anti-pooling step (S3.1) ────────────────────────────────────────────
 def test_condition_restricts_to_the_regime():
     series = np.arange(10.0)

@@ -45,7 +45,6 @@ import yaml
 # console channel. The two systems compose ADDITIVELY -- console validity is unchanged; the phone
 # channels only ADD acceptance for the default-deny ROUTINE_ACTIONS allowlist. Reserved actions
 # (safety/authz-trust/Tier-1/one-way-door) stay console-only, enforced by dac's allowlist.
-from background import director_authority_channels as dac
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -126,160 +125,28 @@ def promotions_since_baseline(current: dict, baseline: dict) -> list:
     return out
 
 
-def _is_valid_authorization(entry) -> bool:
-    """A ledger entry counts as BUILD_OPEN authorization if it is a director-console BUILD_OPEN with
-    provenance, OR (since the 2026-07-22 phone ratification) a phone-native director_ntfy/advisor_ruling
-    BUILD_OPEN (BUILD_OPEN is on the ROUTINE_ACTIONS allowlist). A twin/machine self-write tagged
-    anything other than these, or missing provenance, does NOT authorize -- 'not marking your own
-    homework'; and the worker cannot mint a director_ntfy entry (HMAC key is out-of-tree)."""
-    return _valid_director_act(entry, "BUILD_OPEN")
+
+# ── PERMISSION SURFACE: DELETED 2026-08-03 ────────────────────────────────────────────────
+# Removed here (director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY items
+# 1-3 and NTFY_IS_THE_DIRECTOR): `_is_valid_authorization` / `authorized_atoms` (per-atom
+# BUILD_OPEN), `_is_valid_hold` / `held_atoms`, the SCOPE_ACTIONS record family
+# (FRONT_OPEN / FRONT_CLOSE / GATE_CLEAR) with `is_valid_front_open` / `is_valid_front_close` /
+# `is_valid_gate_clear`, and the authority-channel predicates underneath them --
+# `_valid_console_act`, `_advisor_commit_is_bridge_authored`, `_valid_phone_authority`,
+# `_valid_director_act`.
+#
+# Every one of them answered the same question: HAS THE DIRECTOR PERMITTED THIS? That question no
+# longer exists inside the simulation. Their last consumers went with `background/fronts.yaml` and
+# `background/fronts_reconciler.py`; deleting the callers while leaving these would have left the
+# convention one import away from regrowing.
+#
+# WHAT SURVIVES IN THIS MODULE, and why: the LEDGER ITSELF and the level RECORD. R16's real
+# requirement was that a level move be ledger-backed -- an auditable trace of what moved and on
+# what evidence -- never that a human authorise it. That is the "record" in propose / record / act,
+# so `record_level_up_self_certified` + `is_valid_level_up` stay, and `tools/level_promotion_gate.py`
+# still refuses an UNRECORDED level move at commit time. It refuses unrecorded, never unpermitted.
 
 
-def authorized_atoms(ledger: list) -> set:
-    """Set of atoms with at least one VALID director-console BUILD_OPEN authorization."""
-    return {e["atom"] for e in ledger if _is_valid_authorization(e) and e.get("atom")}
-
-
-def _is_valid_hold(entry) -> bool:
-    """A HELD_PENDING_VERIFICATION record: the director has SEEN this specific promotion and
-    deliberately parked it RED pending live verification (NOT authorized -- it stays uncleared).
-    Same director-console provenance requirement as an authorization. A hold does NOT wave the
-    atom through; it distinguishes a director-acknowledged known-red from an unacknowledged
-    violation, so the deadman does not hourly-re-page a state the director already parked (R5).
-    Accepts a console hold OR (since 2026-07-22) a phone-native HELD (on the ROUTINE allowlist)."""
-    return _valid_director_act(entry, "HELD_PENDING_VERIFICATION")
-
-
-def held_atoms(ledger: list) -> set:
-    """Atoms the director has explicitly HELD red pending verification (acknowledged, NOT cleared)."""
-    return {e["atom"] for e in ledger if _is_valid_hold(e) and e.get("atom")}
-
-
-# ── SCOPE-MODEL record types (SELF_GOVERNANCE_SCOPE_MODEL.md §3, sub-step 3) ────────────────
-# The scope model generalises the single-atom gate-wall to a declared REGION. It ADDS record types
-# to THIS ledger (it does NOT build a parallel one). Every new record type validates through the
-# SAME four checks as an authorization — action + authorized_by==director + channel==console +
-# non-empty provenance — so the autonomous worker (the doorbell channel) can never legitimately
-# mint one, exactly as it can never mint a BUILD_OPEN. (Detection is honest+loud now; forge-proofing
-# the console trace cryptographically is the deferred prevention layer, sub-step 7.)
-SCOPE_ACTIONS = ("FRONT_OPEN", "GATE_CLEAR", "FRONT_CLOSE", "LEVEL_UP_PROPOSED")
-
-
-def _valid_console_act(entry, action: str) -> bool:
-    """The four-check console-validity predicate for an arbitrary record `action`. Same trust model
-    as _is_valid_authorization (which is the BUILD_OPEN-specialised form) — a non-console / no-
-    provenance / non-director entry is NOT a director act, whatever it self-declares as its action.
-    PURE console predicate — the phone channels are added by `_valid_director_act`, never here."""
-    return (
-        isinstance(entry, dict)
-        and entry.get("action") == action
-        and entry.get("authorized_by") == "director"
-        and entry.get("channel") == "console"
-        and bool(str(entry.get("provenance") or "").strip())
-    )
-
-
-def _advisor_commit_is_bridge_authored(commit, *, runner=None) -> bool:
-    """Git-authorship check for the advisor_ruling channel: is `commit` authored by the advisor
-    bridge identity? FAIL-CLOSED — a missing commit, a git error, an unknown commit, or a
-    non-bridge author all return False (an unverifiable authorship is a FAILED check, R15). `runner`
-    is injectable for tests. See ADVISOR_BRIDGE_AUTHOR_NAME for this check's honest limitation."""
-    c = str(commit or "").strip()
-    if not c:
-        return False
-    run = runner or (lambda args: subprocess.run(
-        ["git", *args], cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=15))
-    try:
-        r = run(["log", "-1", "--format=%an", c])
-        if getattr(r, "returncode", 1) != 0:
-            return False
-        return (r.stdout or "").strip() == ADVISOR_BRIDGE_AUTHOR_NAME
-    except Exception:
-        return False
-
-
-def _valid_phone_authority(entry, action: str, *, runner=None) -> bool:
-    """Does this entry carry valid ROUTINE director authority for EXACTLY `action` via a phone-native
-    channel? Two channels, action-matched so a signature for one routine action can never satisfy a
-    predicate for another (the REPURPOSE guard, preserved at the gate boundary too):
-      - director_ntfy: dac.is_valid_director_ntfy (HMAC-signed, key out-of-tree, bound to action:atom).
-      - advisor_ruling: dac.is_valid_advisor_ruling (marker + structural provenance) AND the carrying
-        commit is bridge-authored (`_advisor_commit_is_bridge_authored`) — the git check the proposal
-        adds at the wiring layer (impure, so it lives here, not in the pure dac validator).
-    FAIL-CLOSED throughout; `entry.action == action` required on both branches."""
-    if not (isinstance(entry, dict) and entry.get("action") == action):
-        return False
-    if dac.is_valid_director_ntfy(entry):
-        return True
-    if dac.is_valid_advisor_ruling(entry):
-        return _advisor_commit_is_bridge_authored(entry.get("commit"), runner=runner)
-    return False
-
-
-def _valid_director_act(entry, action: str, *, runner=None) -> bool:
-    """Console OR phone-native routine authority for `action` — the umbrella every routine `is_valid_*`
-    predicate routes through since the 2026-07-22 ratification. Console validity is unchanged; the
-    phone channels only ADD acceptance, and only for the default-deny ROUTINE_ACTIONS allowlist that
-    dac enforces (a reserved/safety/authz-trust action fails on the phone branch even with a perfect
-    signature). Additive by construction — a console entry still passes via `_valid_console_act`."""
-    return _valid_console_act(entry, action) or _valid_phone_authority(entry, action, runner=runner)
-
-
-def is_valid_front_open(entry) -> bool:
-    """A FRONT_OPEN opens a declared front: authorizes continuous BUILD of every in-region, non-
-    gated atom (present and future) until a FRONT_CLOSE. Requires a non-empty `front` id + the four
-    console checks. The scaling win: ONE act authorizes a REGION."""
-    return _valid_director_act(entry, "FRONT_OPEN") and bool(str(entry.get("front") or "").strip())
-
-
-def is_valid_front_close(entry) -> bool:
-    """A FRONT_CLOSE re-freezes a front's region to DISCOVER/FRAME (R11: every open has a tested
-    close whose effect is real). Requires a non-empty `front` id + the four console checks."""
-    return _valid_director_act(entry, "FRONT_CLOSE") and bool(str(entry.get("front") or "").strip())
-
-
-def is_valid_gate_clear(entry) -> bool:
-    """A GATE_CLEAR waves ONE specific atom through ONE specific gate (narrower than opening a
-    front). Requires a non-empty `atom` + the four console checks. `gate` is optional (absent =>
-    clears any gate for that atom, like a per-atom BUILD_OPEN)."""
-    return _valid_director_act(entry, "GATE_CLEAR") and bool(str(entry.get("atom") or "").strip())
-
-
-# The DIRECTOR_TWIN standing approver may ratify ROUTINE levels only (director console
-# 2026-07-21: "run its live L1/L2 proof ... so routine levels stop queuing on me -- L3 stays
-# mine"). This is the STRUCTURAL boundary: a twin authority NEVER clears L3+, even if a twin
-# entry forges level>=3 (is_valid_twin_level_up caps it). L3+ is the director's "this is real"
-# ruling and needs a genuine director-console LEVEL_UP_PROPOSED.
-TWIN_LEVEL_CAP = 2
-
-
-def is_valid_twin_level_up(entry) -> bool:
-    """A DIRECTOR_TWIN routine level ratification. Valid ONLY for an explicit integer level in
-    [1, TWIN_LEVEL_CAP] — a twin entry at L3+ is INVALID (the R15 refusal point in the validator:
-    the twin cannot ratify a director-reserved level even by forging the entry). Honestly stamped
-    authorized_by==director_twin, channel==twin (it does NOT masquerade as a director-console act),
-    with non-empty provenance carrying the twin's canon-based verdict."""
-    if not (isinstance(entry, dict)
-            and entry.get("action") == "LEVEL_UP_TWIN"
-            and entry.get("authorized_by") == "director_twin"
-            and entry.get("channel") == "twin"
-            and bool(str(entry.get("atom") or "").strip())
-            and bool(str(entry.get("provenance") or "").strip())):
-        return False
-    lvl = entry.get("level")
-    return isinstance(lvl, int) and 1 <= lvl <= TWIN_LEVEL_CAP
-
-
-# SELF-CERTIFICATION (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2): "director_level_up
-# is abolished as a block. Levels are proposed and recorded (ledger-backed per R16), never gated --
-# recording satisfies R16's real requirement, self-certification does not need a separate permission gate
-# on top." R16's real requirement was always that a level move be LEDGER-BACKED (an auditable record, not
-# a bare commit message) -- NOT that the record be director-authored. This is the replacement authority:
-# the agent may certify its own level move, at ANY level (no twin-style cap -- the BLOCK is abolished
-# outright, not merely widened), provided it is HONESTLY stamped (authorized_by=='agent_self_certified',
-# channel=='self' -- it never masquerades as a console/twin/phone act) and carries non-empty `provenance`
-# stating the evidence the move rests on. The recording requirement is what remains load-bearing; the
-# director-permission requirement is what is deleted.
 def is_valid_self_certified_level_up(entry) -> bool:
     """A SELF-CERTIFIED level ratification: the agent records its own level move with evidence, no
     director/twin act required. Requires a non-empty `atom` and non-empty `provenance` (the evidence),
@@ -296,28 +163,22 @@ def is_valid_self_certified_level_up(entry) -> bool:
 
 
 def is_valid_level_up(entry) -> bool:
-    """Does this ledger entry authorize an atom's level_current move? THREE valid authorities:
-      1. A DIRECTOR-CONSOLE LEVEL_UP_PROPOSED (any level, incl. L3+) — the director+advisor act.
-      2. A DIRECTOR_TWIN LEVEL_UP_TWIN (routine L1/L2 ONLY, per is_valid_twin_level_up) — the
-         standing approver so routine levels stop queuing on the director; L3+ stays director-reserved.
-      3. A SELF-CERTIFIED LEVEL_UP_SELF_CERTIFIED (any level, per is_valid_self_certified_level_up) —
-         2026-07-29 ruling item 2: recording (evidence + an honest, non-forged stamp) satisfies R16;
-         no director permission is required on top of it.
+    """Is this ledger entry a valid RECORD of an atom's level_current move?
 
-    Requires a non-empty `atom`. For the console act an optional integer `level` bounds the
-    authorization to a specific target (absent => any increase). A worker-forged entry self-declaring
-    channel==console is the known residual (sub-step 7 prevention); a twin entry is honestly stamped
-    and structurally capped at L2 so it can never over-reach into the director's L3+ reservation; a
-    self-certified entry is honestly stamped too (channel=='self', never 'console') so it is always
-    visible in the ledger for exactly what it is -- an agent's own record, not a director act."""
-    if is_valid_twin_level_up(entry):
-        return True
-    if is_valid_self_certified_level_up(entry):
-        return True
-    if not (_valid_director_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
-        return False
-    lvl = entry.get("level")
-    return lvl is None or isinstance(lvl, int)
+    ONE authority remains (2026-08-03, director console, finishing the 2026-07-29 ruling): a
+    SELF-CERTIFIED `LEVEL_UP_SELF_CERTIFIED` entry -- honestly stamped, carrying the evidence the
+    move rests on. The two director-permission authorities that used to sit above it are gone:
+    the DIRECTOR-CONSOLE `LEVEL_UP_PROPOSED` act and the DIRECTOR_TWIN routine ratification (which
+    existed only to stop routine levels queuing on a human, a queue that no longer exists).
+
+    "Propose, record, act": this predicate is the RECORD half and nothing else. It asks whether the
+    move left an auditable trace, never whether anyone permitted it. `tools/level_promotion_gate.py`
+    refuses an UNRECORDED level increase at commit time on exactly this basis.
+
+    A legacy console/twin entry already in the ledger is still readable history; it simply is not a
+    separate authority any more, so this returns False for it and the mover self-certifies instead.
+    """
+    return is_valid_self_certified_level_up(entry)
 
 
 def record_level_up_self_certified(atom: str, level: int | None, provenance: str, *, ts: float | None = None,
@@ -341,117 +202,8 @@ def record_level_up_self_certified(atom: str, level: int | None, provenance: str
     _append_envelope(fields, provenance, "agent_self_certified", "self", ts=ts, path=path)
 
 
-def record_front_open(front: str, provenance: str, *, ts: float | None = None,
-                      path: Path | None = None) -> None:
-    """Append a director-console FRONT_OPEN. CONSOLE-PATH ONLY (same contract as
-    record_gate_opening): call it acting on the director's authenticated console act. The autonomous
-    worker must never call this — that is the prevention layer; detection makes a forged/absent
-    authorization LOUD regardless."""
-    _append_record({"front": front, "action": "FRONT_OPEN"}, provenance, ts=ts, path=path)
 
 
-def record_front_close(front: str, provenance: str, *, ts: float | None = None,
-                       path: Path | None = None) -> None:
-    """Append a director-console FRONT_CLOSE (re-freezes the region). Console-path only."""
-    _append_record({"front": front, "action": "FRONT_CLOSE"}, provenance, ts=ts, path=path)
-
-
-def record_gate_clear(atom: str, gate: str | None, provenance: str, *, ts: float | None = None,
-                      path: Path | None = None) -> None:
-    """Append a director-console GATE_CLEAR for one atom (optionally one named gate). Console-path only."""
-    rec = {"atom": atom, "action": "GATE_CLEAR"}
-    if gate is not None:
-        rec["gate"] = gate
-    _append_record(rec, provenance, ts=ts, path=path)
-
-
-def record_level_up(atom: str, level: int | None, provenance: str, *, ts: float | None = None,
-                    path: Path | None = None) -> None:
-    """Append a director-console LEVEL_UP_PROPOSED authorizing an atom's level move (optionally to a
-    specific `level`). Console-path only — the worker proposes with evidence, the director+advisor
-    move the cell, and only THAT act writes this."""
-    rec = {"atom": atom, "action": "LEVEL_UP_PROPOSED"}
-    if level is not None:
-        rec["level"] = level
-    _append_record(rec, provenance, ts=ts, path=path)
-
-
-def record_twin_level_up(atom: str, level: int, provenance: str, *, ts: float | None = None,
-                         path: Path | None = None) -> None:
-    """Append a DIRECTOR_TWIN routine level ratification (L1/L2 ONLY). Honestly stamped
-    authorized_by==director_twin, channel==twin — it does NOT masquerade as a director-console act.
-    Raises on a non-integer or director-reserved (>=3) level: the twin ratifies routine levels only,
-    and the write path itself refuses to record a level the twin has no authority over (belt to the
-    is_valid_twin_level_up braces). Called by the orchestrator ONLY on a twin APPROVE verdict
-    (director_twin.ratify_routine_level); the twin process itself stays a voice, not a hand."""
-    if not isinstance(level, int):
-        raise ValueError("twin level ratification requires an explicit integer level")
-    if not (1 <= level <= TWIN_LEVEL_CAP):
-        raise ValueError(
-            f"the DIRECTOR_TWIN may ratify routine L1-L{TWIN_LEVEL_CAP} only; L{level} is "
-            "director-reserved (canon) and needs a genuine director-console LEVEL_UP_PROPOSED")
-    _append_twin_record({"atom": atom, "action": "LEVEL_UP_TWIN", "level": level},
-                        provenance, ts=ts, path=path)
-
-
-def _append_record(fields: dict, provenance: str, *, ts: float | None = None,
-                   path: Path | None = None) -> None:
-    """Append ONE console record (arbitrary extra `fields` + the fixed director-console envelope).
-    Same writer discipline as _append_ledger; never raises."""
-    _append_envelope(fields, provenance, "director", "console", ts=ts, path=path)
-
-
-def _append_twin_record(fields: dict, provenance: str, *, ts: float | None = None,
-                        path: Path | None = None) -> None:
-    """Append ONE twin record with the HONEST director_twin/twin envelope (never the console one)."""
-    _append_envelope(fields, provenance, "director_twin", "twin", ts=ts, path=path)
-
-
-def record_director_ntfy_ruling(signed_payload: str, *, provenance: str | None = None,
-                                max_age_seconds: int | None = None, ts: float | None = None,
-                                path: Path | None = None) -> dict | None:
-    """THE ONLY path that mints a director_ntfy authority ledger entry. Called by ntfy_responder on
-    an inbound message. FAIL-CLOSED: verifies `signed_payload` HMAC-signs a fresh, bound
-    `RULING:<action>:<atom>` for a ROUTINE action, and writes NOTHING otherwise (unverifiable,
-    stale, reserved-action, or malformed → returns None, no ledger write). The autonomous worker
-    cannot mint one because it cannot read SE_WAKE_HMAC_KEY to produce a valid signature (the
-    out-of-tree-key TAUTOLOGY guard). Returns the written entry, or None.
-
-    Belt-and-braces: the assembled entry is re-validated through dac.is_valid_director_ntfy before
-    the write, so the ledgered record is exactly one the read-side predicates will accept — no path
-    writes an entry that would later be judged invalid."""
-    max_age = dac.NTFY_MAX_AGE_SECONDS if max_age_seconds is None else max_age_seconds
-    if not isinstance(signed_payload, str) or not signed_payload.strip():
-        return None
-    try:
-        from background.ntfy_utils import verify_wake_message
-    except Exception:
-        return None  # ntfy_utils unavailable (no send topic) -> mint nothing (fail-closed)
-    verified = verify_wake_message(signed_payload, max_age_seconds=max_age)
-    if verified is None or not verified.startswith("RULING:"):
-        return None  # no key / bad signature / stale / not a ruling → mint nothing
-    parts = verified.split(":", 2)   # ["RULING", action, atom]
-    if len(parts) != 3:
-        return None
-    _, action, atom = parts[0], parts[1].strip(), parts[2].strip()
-    stamp = ts if ts is not None else time.time()
-    entry = {
-        "atom": atom, "action": action, "ts": stamp,
-        "authorized_by": "director", "channel": dac.DIRECTOR_NTFY,
-        "provenance": provenance or f"director_ntfy HMAC-verified ruling '{verified}'",
-        "signed_payload": signed_payload,
-    }
-    # Only write what the read-side predicate will accept (routine action, bound, fresh).
-    if not dac.is_valid_director_ntfy(entry, max_age_seconds=max_age):
-        return None
-    p = path or LEDGER_PATH
-    try:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        with p.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        return None
-    return entry
 
 
 def _append_envelope(fields: dict, provenance: str, authorized_by: str, channel: str, *,
@@ -468,14 +220,6 @@ def _append_envelope(fields: dict, provenance: str, authorized_by: str, channel:
             f.write(json.dumps(rec) + "\n")
     except Exception:
         pass
-
-
-def unauthorized_promotions(promotions: list, ledger: list) -> list:
-    """THE predicate: promotions (idle->advanced) with NO valid director-console authorization.
-    Pure -> mutation-testable. A promotion with a matching valid ledger entry is authorized
-    (quiet); one with none, or only an invalid (non-console / no-provenance) entry, is LOUD."""
-    ok = authorized_atoms(ledger)
-    return [p for p in promotions if p["atom"] not in ok]
 
 
 # ── ledger read/write ─────────────────────────────────────────────────────────────────────
@@ -497,199 +241,3 @@ def read_ledger(path: Path | None = None) -> list:
     return out
 
 
-# ── ruling-consumption → block-release REPORTING (atom `ruling_consumption_ledger_release`) ─
-# DIRECTOR_RULING_BLOCKED_MINT_BATCH §0 + WORK-THIS-CREATES d1: "Ruling-consumption creates the
-# ledger entry that releases a block -- or a plain statement of what can, if it cannot." DISCOVER
-# verdict (docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md): hybrid A/B. The AUTHORITY-
-# WRITING code already exists and is fail-closed (record_gate_opening = console; record_director_
-# ntfy_ruling = HMAC-signed phone, key out-of-tree/worker-unreadable). The MISSING piece is purely
-# a READ-ONLY reporting/confirmation step in the consumption path: nothing (a) detects a ruling
-# INTENDS to open a build, (b) CONFIRMS an authenticated ledger entry exists for it, (c) reports
-# the block UNRELEASED (never silently "done") when it does not. That silent gap is why three
-# BUILD-opening rulings sat blocked 3+h. These functions supply (a)+(b)+(c). CRITICAL R16 SAFETY:
-# they NEVER write authority -- they only read the ledger and report; a bare staged doc carrying a
-# directive line therefore authorizes NOTHING here (inference never releases). The director's own
-# console/phone act (record_gate_opening / record_director_ntfy_ruling) remains the sole writer.
-LEDGER_DIRECTIVE_ACTIONS = ("BUILD_OPEN", "FRONT_OPEN", "LEVEL_UP_PROPOSED")
-# Canonical machine-parseable directive line a ruling carries to declare its intended release
-# (DISCOVER §5): `LEDGER: <ACTION> <target> [level]`. Parsed strictly (R3: no free-form prose
-# parsing that a quote of some other atom's `blocked_on:` could false-trip) -- the literal `LEDGER:`
-# prefix + a canonical action token + a non-empty target are all required.
-_LEDGER_DIRECTIVE_RE = re.compile(
-    r"^\s*LEDGER:\s+(?P<action>[A-Z_]+)\s+(?P<target>[^\s]+)(?:\s+(?P<level>\d+))?\s*$"
-)
-
-
-def parse_ledger_directives(text: str) -> list:
-    """Parse the canonical `LEDGER: <ACTION> <target> [level]` directive lines out of a ruling doc.
-    Returns a list of {action, target, level?} dicts, one per WELL-FORMED canonical line, in order.
-    FAIL-CLOSED: a line whose action is not in LEDGER_DIRECTIVE_ACTIONS, or that is malformed, is
-    SKIPPED (never a silent partial match) -- so an unparseable/ambiguous line yields no directive
-    and therefore no release. Never raises."""
-    out: list = []
-    if not isinstance(text, str):
-        return out
-    for line in text.splitlines():
-        m = _LEDGER_DIRECTIVE_RE.match(line)
-        if not m:
-            continue
-        action = m.group("action")
-        if action not in LEDGER_DIRECTIVE_ACTIONS:
-            continue
-        target = (m.group("target") or "").strip()
-        if not target:
-            continue
-        d = {"action": action, "target": target}
-        if m.group("level") is not None:
-            d["level"] = int(m.group("level"))
-        out.append(d)
-    return out
-
-
-def confirm_authenticated_release(directive: dict, ledger: list) -> bool:
-    """Does an AUTHENTICATED ledger entry exist that grants the release this directive declares?
-    Routes each action through the SAME validity predicate the blocker gate reads, so authority is
-    confirmed in exactly the form `authorized_atoms` / `is_valid_front_open` / `is_valid_level_up`
-    consume -- and ONLY a console or (out-of-tree-HMAC) phone entry passes those. A directive is a
-    mere declaration of intent; it is NEVER itself evidence of authority (R16). Returns False on any
-    missing/unauthenticated grant (fail-closed). Never raises."""
-    try:
-        action = directive.get("action")
-        target = directive.get("target")
-        if not target:
-            return False
-        if action == "BUILD_OPEN":
-            return target in authorized_atoms(ledger)
-        if action == "FRONT_OPEN":
-            return any(is_valid_front_open(e) and e.get("front") == target for e in ledger)
-        if action == "LEVEL_UP_PROPOSED":
-            want = directive.get("level")
-            for e in ledger:
-                if not (is_valid_level_up(e) and e.get("atom") == target):
-                    continue
-                lvl = e.get("level")
-                # A level-bounded directive is confirmed only by an entry for that exact level
-                # (or an unbounded entry, which authorizes any increase). Fail-closed otherwise.
-                if want is None or lvl is None or lvl == want:
-                    return True
-            return False
-    except Exception:
-        return False
-    return False
-
-
-def report_ruling_release(ruling_text: str, *, ledger: list | None = None,
-                          ledger_path: Path | None = None, reader=None) -> dict:
-    """The consumption-path REPORT (DISCOVER §2 (c)): given a consumed ruling's text, classify each
-    of its `LEDGER:` directives as RELEASED (an authenticated ledger entry exists) or UNRELEASED (a
-    release was declared but NO authenticated entry backs it -- the block STAYS; a director act is
-    required). Returns {directives, released, unreleased, ledger_available}. NEVER writes to the
-    ledger (read-only; R16 preserved by construction). FAIL-SILENT guard: if the ledger cannot be
-    read, ledger_available=False and EVERY directive is reported UNRELEASED -- an unavailable check
-    is a FAILED check, never a silent pass (R15). `reader` (defaults to read_ledger) is injectable so
-    the unavailable-ledger branch is exercisable. Never raises."""
-    directives = parse_ledger_directives(ruling_text)
-    if ledger is None:
-        _reader = reader or read_ledger
-        try:
-            ledger = _reader(ledger_path)
-            available = ledger is not None
-        except Exception:
-            ledger, available = [], False
-    else:
-        available = True
-    if ledger is None:
-        ledger, available = [], False
-    released: list = []
-    unreleased: list = []
-    for d in directives:
-        target = d.get("target")
-        confirmed = available and confirm_authenticated_release(d, ledger)
-        (released if confirmed else unreleased).append({
-            "action": d.get("action"), "target": target, **({"level": d["level"]} if "level" in d else {}),
-        })
-    return {
-        "directives": len(directives),
-        "released": released,
-        "unreleased": unreleased,
-        "ledger_available": available,
-    }
-
-
-def record_gate_opening(atoms, provenance: str, *, ts: float | None = None,
-                        path: Path | None = None) -> None:
-    """Append a director-console BUILD_OPEN authorization for one or more atoms. CONSOLE-PATH
-    ONLY: call this when acting on the director's authenticated console gate-opening, and pass
-    a provenance string that traces to that console act (the director_input_log 'window' entry
-    / the console directive). The autonomous worker (doorbell channel) must never call this --
-    that is the prevention layer; detection makes an unauthorized flip LOUD regardless."""
-    _append_ledger(atoms, "BUILD_OPEN", provenance, ts=ts, path=path)
-
-
-def record_hold(atoms, provenance: str, *, ts: float | None = None,
-                path: Path | None = None) -> None:
-    """Append a director-console HELD_PENDING_VERIFICATION record: the director has SEEN this
-    promotion and deliberately parks it RED pending live verification (NOT an authorization).
-    Console-path only, same as record_gate_opening. The atom stays uncleared in the wall; the
-    hold only suppresses hourly re-paging of a state the director already acknowledged."""
-    _append_ledger(atoms, "HELD_PENDING_VERIFICATION", provenance, ts=ts, path=path)
-
-
-def _append_ledger(atoms, action: str, provenance: str, *, ts: float | None = None,
-                   path: Path | None = None) -> None:
-    if isinstance(atoms, str):
-        atoms = [atoms]
-    p = path or LEDGER_PATH
-    stamp = ts if ts is not None else time.time()
-    try:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        with p.open("a", encoding="utf-8") as f:
-            for atom in atoms:
-                f.write(json.dumps({
-                    "atom": atom, "action": action, "ts": stamp,
-                    "authorized_by": "director", "channel": "console",
-                    "provenance": provenance,
-                }) + "\n")
-    except Exception:
-        pass
-
-
-# ── live evaluation (report-only) ─────────────────────────────────────────────────────────
-def evaluate_gate_wall(*, map_path: Path | None = None, baseline_path: Path | None = None,
-                       ledger_path: Path | None = None) -> dict:
-    """REPORT ONLY. Classify the gate wall from the live map vs baseline vs ledger.
-      GATE_CLEAN     every promotion since genesis is director-console-authorized   (no alarm)
-      GATE_HELD      the only un-authorized promotions are director-ACKNOWLEDGED holds (no alarm,
-                     but NOT cleared -- still red, pending live verification)
-      GATE_VIOLATION >=1 promotion with NEITHER authorization NOR an acknowledged hold  (ALARM)
-    Never raises."""
-    current = current_loop_stages(map_path)
-    baseline = load_baseline(baseline_path)
-    ledger = read_ledger(ledger_path)
-    proms = promotions_since_baseline(current, baseline)
-    authz = authorized_atoms(ledger)
-    held = held_atoms(ledger)
-    unauth = [p for p in proms if p["atom"] not in authz and p["atom"] not in held]
-    held_proms = [p for p in proms if p["atom"] not in authz and p["atom"] in held]
-    if unauth:
-        names = ", ".join(u["atom"] for u in unauth[:6])
-        return {"status": "GATE_VIOLATION", "alarm": True,
-                "detail": f"{len(unauth)} BUILD promotion(s) with NO director-console authorization "
-                          f"and NO acknowledged hold: {names}",
-                "unauthorized": unauth, "held": held_proms}
-    if held_proms:
-        names = ", ".join(h["atom"] for h in held_proms[:6])
-        return {"status": "GATE_HELD", "alarm": False,
-                "detail": f"{len(held_proms)} promotion(s) HELD red pending director verification "
-                          f"(acknowledged, not cleared): {names}",
-                "unauthorized": [], "held": held_proms}
-    return {"status": "GATE_CLEAN", "alarm": False,
-            "detail": f"all {len(proms)} promotion(s) since genesis are director-authorized",
-            "unauthorized": [], "held": []}
-
-
-if __name__ == "__main__":
-    import sys
-    r = evaluate_gate_wall()
-    print(json.dumps(r, indent=2))
-    sys.exit(1 if r["alarm"] else 0)

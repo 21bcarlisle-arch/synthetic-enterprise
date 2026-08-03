@@ -144,21 +144,97 @@ def test_finance_totals_marked_scales_with_book_rc6():
     assert "scales with drawn book" in kpis, kpis
 
 
+def _esc(s: str) -> str:
+    # The page's own esc() HTML-escapes before injecting a label, so a segment label
+    # containing "&" ("Industrial & Commercial") renders as "&amp;". Assert against
+    # the ESCAPED form -- that is the actual pixel (R11).
+    return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _first_segment(d: dict) -> dict:
+    mix = d.get("book_mix") or {}
+    assert mix.get("available"), "book_mix unavailable -- see fail-closed test below"
+    segs = [s for s in (mix.get("segments") or []) if s.get("latest_year_present")]
+    assert segs, "no segment has a latest year to divide"
+    return segs[0]
+
+
 def test_finance_per_customer_follows_book_size_rc6():
     # R15 (a control must be able to FAIL): the £/customer figure and its stated
-    # denominator must follow N. Mutate the sample size; both the denominator label
-    # and the rendered value must change -- a hardcoded ratio would fail this.
+    # denominator must follow the account count. Mutate a SEGMENT's own margin and
+    # its own n; both the denominator label and the rendered value must change --
+    # a hardcoded ratio would fail this.
+    #
+    # 2026-08-03 (SITE_EH1_segment_disclosure): this test used to assert the single
+    # blended tile "÷ N sampled customers". That blend was the defect the atom
+    # closed -- ~99% of the revenue behind it came from five I&C accounts, so it
+    # described no customer the company has -- and it is now demoted out of the
+    # tiles into the unit note. The test's INTENT is unchanged (the ratio must
+    # follow its denominator, not be baked in); only the denominator it follows is
+    # now per-segment, which is the stricter reading.
     d = _live()
-    d["finance"]["latest_year_net_margin_gbp"] = 700000.0
-    d["stress_bands"]["total"] = 7
+    seg = _first_segment(d)
+    seg["latest_year_net_margin_gbp"] = 700000.0
+    seg["n_accounts"] = 7
+    seg["net_margin_per_customer_gbp"] = 700000.0 / 7
     out = _render(d)
     kpis = out["finance-kpis"]["innerHTML"]
-    assert "÷ 7 sampled customers" in kpis, kpis
+    assert f"÷ 7 {_esc(seg['label'])} account(s)" in kpis, kpis
     assert "100,000.00" in kpis, kpis  # 700000 / 7, denominator-stated
-    # And a different N moves the value (independence, not a constant):
-    d["stress_bands"]["total"] = 14
+    # And a different n moves the value (independence, not a constant):
+    seg["n_accounts"] = 14
+    seg["net_margin_per_customer_gbp"] = 700000.0 / 14
     out2 = _render(d)
     assert "50,000.00" in out2["finance-kpis"]["innerHTML"], out2["finance-kpis"]["innerHTML"]
+
+
+def test_per_customer_tiles_are_split_by_segment_site_eh1():
+    # SITE_EH1_segment_disclosure, scope item 1: EVERY per-customer tile carries its
+    # segment AND that segment's own denominator. The blended "Net margin / customer
+    # ÷ 19 sampled customers" headline must not come back -- read cold it promised a
+    # household business earning ~£27k net margin per household.
+    d = _live()
+    mix = d.get("book_mix") or {}
+    if not mix.get("available"):
+        pytest.skip("book_mix unavailable in this run -- fail-closed path tested below")
+    kpis = _render(d)["finance-kpis"]["innerHTML"]
+    for s in mix.get("segments") or []:
+        assert f"Net margin / customer — {_esc(s['label'])}" in kpis, kpis
+        assert f"Revenue / customer — {_esc(s['label'])}" in kpis, kpis
+    assert "sampled customers" not in kpis, "the blended per-customer tile is back: " + kpis
+
+
+def test_book_mix_block_renders_shares_and_mission_tension_site_eh1():
+    # R11: the mix is a rendered pixel, not a field in a JSON file nobody reads --
+    # and it renders BEFORE any claim on the page.
+    d = _live()
+    mix = d.get("book_mix") or {}
+    if not mix.get("available"):
+        pytest.skip("book_mix unavailable in this run")
+    out = _render(d)
+    intro = out["mix-intro"]["innerHTML"]
+    note = out["mix-note"]["innerHTML"]
+    tiles = out["mix-kpis"]["innerHTML"]
+    for s in mix.get("segments") or []:
+        lab = _esc(s["label"])
+        assert lab in intro or lab in tiles, (intro, tiles)
+    assert f"{mix['non_domestic_revenue_share_pct']:.1f}" in intro or \
+        f"{mix['non_domestic_revenue_share_pct']:.2f}" in intro, intro
+    # RC7 wall: shares and counts, never a bare cohort £ total, in the lead block.
+    assert "mission" in note.lower(), note
+
+
+def test_book_mix_unavailable_fails_closed_site_eh1_r15():
+    # R15 fail-closed: with no mix the page must SAY the mix is unavailable and must
+    # publish NO per-customer figure at all -- degrading back to the blend is exactly
+    # the defect. Mutating availability must change the pixel (independence).
+    d = _live()
+    d["book_mix"] = {"available": False, "reason": "segment split not readable"}
+    out = _render(d)
+    assert "unavailable" in out["mix-intro"]["innerHTML"].lower(), out["mix-intro"]["innerHTML"]
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "sampled customers" not in kpis, kpis
+    assert "the book's segment mix could not be read" in kpis, kpis
 
 
 def test_cost_to_serve_rendered_as_distribution_not_total_rc6_r11():
@@ -438,15 +514,25 @@ def test_credit_held_liability_renders_beside_treasury_r11():
         html = out[key]["innerHTML"]
         assert "Treasury" in html, f"{key}: treasury tile missing"
         assert "Customer credit held" in html, f"{key}: held-credit companion missing -- treasury stands alone"
-    # the expected floor = sum of in-credit (negative) balances in the drawn sample
+    # The floor = sum of in-credit (negative) balances in the drawn sample.
+    # Asserted STRUCTURALLY, never as a literal (2026-08-03): this figure is
+    # derived from live generated data, so a legitimate world change moves it.
+    # Its literal twin in tests/ (a pinned churn date) wedged the publish gate for
+    # ~4 days -- see tests/tools/test_no_live_data_literal_pins.py for the class
+    # guard. R12: a generated value is a DIAGNOSTIC, never a target.
     held = sum(-v for v in d["arrears"]["values_gbp"] if v < 0)
-    assert round(held, 2) == 2975.67, f"live floor changed: {held}"
+    assert held > 0, "no in-credit balances in the live sample -- the held-credit floor is not instrumented"
     # R14: the liability carries its clock/basis (banked/liability), and the panel
     # states the mechanism + the cash-rich-but-insolvent tell.
     panel = out["credit-cycle"]["innerHTML"]
     assert "liability" in panel.lower(), panel
     assert "cash-rich" in panel.lower() and "insolvent" in panel.lower(), panel
-    assert "2,975.67" in panel, panel  # the real instrumented floor
+    # R11 claim-equals-pixel, and STRONGER than the literal was: the literal could
+    # not tell a rendered figure that tracks the source from one that merely
+    # happened to match. This asserts the pixel IS the live-derived floor.
+    assert "{:,.2f}".format(round(held, 2)) in panel, (
+        "rendered held-credit floor is not the live-derived figure "
+        "{:,.2f}: {}".format(held, panel))
 
 
 def test_credit_held_follows_source_r15():

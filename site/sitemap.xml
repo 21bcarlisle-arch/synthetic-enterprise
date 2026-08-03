@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MINOR-9 fix (2026-07-29 cold-eyes Expert Hour, site/proof/index.html
+  SITE_EH2/atom SITE1_expert_doors): sitemap.xml 404'd while robots.txt invited
+  normal crawling; this file closes that gap. No lastmod is published: this
+  file is hand-authored, not regenerated per run, so a claimed lastmod would be
+  a stale, unfalsifiable date (R14 discipline extended to this artifact).
+
+  Inclusion rule, matching this site's own information architecture
+  (docs/design/SITE_CONSTITUTION.md, site/_redirects):
+    INCLUDED: the live, canonical door set, the front door plus every
+    surface reachable from it that is not itself a 301 redirect target.
+    EXCLUDED: /director/ (explicitly off-nav and noindex by design, an
+    auth-adjacent surface, not a public door; see site/director/index.html
+    and the SITE1 Expert-Hour credited-strong note); /shadow/ (the internal
+    advisor mirror, not a public surface); every legacy directory that
+    site/_redirects 301s away (/method/, /simplified/, /project/, /tours/,
+    /wip-flow/, /platform/, /method-casebook/, /supplier/, /sim/), whose
+    content is folded into /proof/ and whose old directories are kept
+    in-repo for reference only, "unreachable canonically" per _redirects'
+    own comment; listing them here would advertise dead-end URLs.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://poesys.net/</loc></url>
+  <url><loc>https://poesys.net/world/</loc></url>
+  <url><loc>https://poesys.net/company/</loc></url>
+  <url><loc>https://poesys.net/proof/</loc></url>
+  <url><loc>https://poesys.net/customers/</loc></url>
+  <url><loc>https://poesys.net/now/</loc></url>
+  <url><loc>https://poesys.net/glossary/</loc></url>
+  <url><loc>https://poesys.net/privacy/</loc></url>
+</urlset>

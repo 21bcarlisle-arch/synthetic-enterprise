@@ -15,20 +15,14 @@ from __future__ import annotations
 
 import pytest
 
-from background import fronts_reconciler
 from background import supervisor
 
 
 @pytest.fixture(autouse=True)
 def _isolate_map(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
-    # Isolate the live fronts-enforcement flag: these unit cases exercise the
-    # hold-reason classifier, not front membership, so the global fronts filter
-    # must be OFF or a synthetic build atom (in no real open front) is reported
-    # off_open_front. See test_fronts_draw_filter.py / test_draw_external_block.py.
-    monkeypatch.setattr(
-        fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled"
-    )
+    # (The fronts-enforcement isolation this fixture used to do is gone with the machinery:
+    # there is no front membership to be off, so no synthetic build atom can be held off_open_front.)
     return tmp_path
 
 

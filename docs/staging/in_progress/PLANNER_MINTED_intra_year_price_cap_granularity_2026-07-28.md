@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- intra-year price-cap granularity BUILD blocked on director_level_up (R16), pending sub-annual cap-window discovery -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: intra-year price-cap granularity BUILD blocked on director_level_up (R16), pending sub-annual cap-window discovery -->
 # [PLANNER-MINTED] — sub-annual (quarterly) Ofgem price-cap table granularity (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): analysis published at `docs/design/INTRA_YEAR_PRICE_CAP_GRANULARITY_DISCOVER.md`.**

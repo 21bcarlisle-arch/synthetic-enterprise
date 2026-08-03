@@ -303,10 +303,39 @@ def test_check_period_coverage_true_against_real_committed_dashboard():
     assert 2025 in partial_years
 
 
-def test_real_committed_dashboard_bad_debt_ratio_matches_known_finding():
-    """R11: pins the exact divergence the atom's own evidence cites (129.6x)
-    against the live artifact this session's regeneration produced."""
+def test_real_committed_dashboard_bad_debt_bridge_is_self_consistent():
+    """R11 against the live artifact -- but asserting the BRIDGE RELATIONSHIP, not a
+    pinned magnitude.
+
+    This test previously pinned ratio_x == 129.61, the divergence the atom's evidence
+    happened to observe on the 2026-06-18 run. That is a generated value: it is a
+    property of one run's data, not of the mechanism. Regenerating dashboard.json from
+    any other run moves it (this run reconciles at 1.0x, both figures GBP 1,944.15) and
+    the control would red-flag a perfectly healthy artifact -- the pinned-generated-value
+    class that has cost this project a multi-day publish blackout before.
+
+    The invariant the atom actually closes is: bad debt is published ONCE, with both
+    measurements present, the ledger named authoritative, and a ratio that genuinely
+    bridges the two. That is what is asserted here, so the control still fires on a
+    broken or absent bridge (R15) while surviving legitimate data movement.
+    """
     dashboard = json.loads(DASHBOARD_PATH.read_text())
     br = dashboard["financial"]["bad_debt_reconciliation"]
-    assert br["ratio_x"] is not None
-    assert math.isclose(br["ratio_x"], 129.61, rel_tol=0.01)
+
+    annual = br["annual_series_total_gbp"]
+    ledger = br["ledger_total_gbp"]
+    ratio = br["ratio_x"]
+
+    # R15, reject non-finite FIRST: a NaN/None ratio is a failed bridge, not a pass.
+    for name, val in (("annual", annual), ("ledger", ledger)):
+        assert isinstance(val, (int, float)) and math.isfinite(val), f"{name} not finite"
+    assert ratio is not None and math.isfinite(ratio), "ratio_x missing/non-finite"
+
+    # The ratio must actually be the bridge between the two published figures.
+    assert math.isclose(ratio, ledger / annual, rel_tol=1e-6), (
+        f"ratio_x {ratio} does not bridge ledger {ledger} / annual {annual}"
+    )
+
+    # Both bases must be stated, and the ledger is the authoritative figure.
+    assert br["authoritative"] == "ledger"
+    assert br["annual_series_basis"] and br["ledger_basis"]

@@ -97,26 +97,84 @@ def test_render_bills_reads_and_expand_toggle_present():
 
 
 def test_closed_account_notice_real_churned_customer_c1():
-    # Date history (why this constant moves, and why that is not a bug):
-    #  - Pre-2026-07-13: C1 churned 2020-12-30.
-    #  - 2026-07-13 (W2_5_life_event_stream): illness/divorce draws were added to
-    #    a SHARED econ_rng, contaminating downstream draws and pushing C1's churn
-    #    to 2021-12-30. The assertion tracked that (contaminated) value.
-    #  - After C-S2 named-RNG-substream discipline landed (simulation/life_events.py
-    #    lines ~214-300: one isolated substream per event type), the churn draw is
-    #    no longer shifted by life-event draws, so it REVERTED to its natural
-    #    2020-12-30. That reversion is the C-S2 fix working as intended, not a
-    #    regression -- verified: C-S2 substreams exist and C1's churn is isolated.
-    # This assertion tracks the CURRENT real generated date. NOTE (queued debt):
-    # pinning an exact RNG-derived date makes this test brittle enough to WEDGE
-    # the publish pipeline on any legitimate life-event change -- the real fix is
-    # to assert C1's own generated churned-date structurally, not a literal.
+    """C1's closed-account notice must render the account's OWN generated churn
+    date and final bill -- asserted structurally, never as an RNG-derived literal.
+
+    Why no literal (the queued debt this test's own comment named, paid 2026-08-03):
+    the churn date is an RNG draw, so any legitimate life-event/world change moves
+    it. It moved 2020-12-30 -> 2021-12-30 -> 2020-12-30 -> 2021-12-30 across
+    W2_5 / C-S2 / W2_12-W2_14, and on the last move the pinned literal WEDGED the
+    publish gate for ~4 days (2026-07-30 01:28Z -> 2026-08-03), blocking every
+    publish while the sim itself was healthy. A control that fires on a legitimate
+    content change is a defect in the control (R12: the generated value is a
+    DIAGNOSTIC, never a target).
+
+    The structural assertions below are strictly STRONGER than the literal was:
+    the literal could not tell a fabricated date from a real one (a hardcoded
+    default that happened to match would have passed). These cross-check the
+    rendered date against an INDEPENDENT part of the record -- the invoice stream
+    -- so the port cannot satisfy them by inventing or defaulting a date.
+    """
     d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
-    notice = _closed_account_notice(d, d["invoices"])
-    assert notice.startswith("Account closed 2020-12-30")
-    assert (d["invoices"][-1]["id"] + ".") in notice
+    invoices = d["invoices"]
+    churn_events = [e for e in d.get("timeline", []) if e.get("type") == "churned"]
+    # Fixture must stay meaningful: if C1 stops being a churned account with a
+    # write-off, this test is silently testing nothing -- fail loudly instead.
+    assert churn_events, (
+        "C1 is no longer a churned account -- this test's whole subject is the "
+        "closed-account notice. Re-point it at a real churned account with a "
+        "write-off rather than deleting the coverage."
+    )
+    assert invoices, "C1 has no invoices -- closedAccountNotice() cannot be exercised"
+
+    churn_date = churn_events[-1]["date"]
+    notice = _closed_account_notice(d, invoices)
+    assert notice.startswith("Account closed " + churn_date + " — "), notice
+
+    # INDEPENDENT ORACLE (not the timeline the date came from): the rendered date
+    # must be consistent with the account's own billing history -- billing stops at
+    # churn. A fabricated or defaulted date fails this even if it parses.
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", churn_date), churn_date
+    last_period_end = max(i["period_end"] for i in invoices)
+    assert churn_date >= last_period_end, (
+        "churn date {} precedes the last billed period end {} -- the notice is "
+        "rendering a date the billing history contradicts".format(
+            churn_date, last_period_end)
+    )
+    assert not [i for i in invoices if i["period_start"] > churn_date], (
+        "C1 has invoice periods starting after its churn date -- billing did not "
+        "stop at churn, so the rendered closed-account date is not real"
+    )
+
+    assert (invoices[-1]["id"] + ".") in notice
     # C1 has a real historical write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
     assert "settled to zero" in notice
+
+
+def test_closed_account_notice_date_tracks_the_record_not_a_constant():
+    """R15 mutation proof that the structural assertion above can still FAIL.
+
+    The literal it replaced could only ever catch a date CHANGE; this proves the
+    replacement catches the thing that actually matters -- a notice whose date is
+    not the account's own. Mutating the record's churn date must move the rendered
+    date with it; if closedAccountNotice() ever hardcoded or defaulted a date, the
+    rendered value would stay put and this fails.
+    """
+    d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
+    real_date = [e for e in d["timeline"] if e.get("type") == "churned"][-1]["date"]
+    assert _closed_account_notice(d, d["invoices"]).startswith(
+        "Account closed " + real_date + " — ")
+
+    mutated = json.loads(json.dumps(d))
+    sentinel = "1999-01-01"
+    for e in mutated["timeline"]:
+        if e.get("type") == "churned":
+            e["date"] = sentinel
+    mutated_notice = _closed_account_notice(mutated, mutated["invoices"])
+    assert mutated_notice.startswith("Account closed " + sentinel + " — "), (
+        "the rendered date did not follow the record -- closedAccountNotice() is "
+        "not reading the account's own churn event")
+    assert real_date not in mutated_notice
 
 
 def test_closed_account_notice_empty_for_still_active_customer():

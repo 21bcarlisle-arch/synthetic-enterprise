@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-29T21:03:17Z",
-  "portfolio_as_of": "2026-07-29T20:56:49Z",
-  "active_customers": 11,
+  "generated_at": "2026-08-03T05:58:10Z",
+  "portfolio_as_of": "2026-08-03T05:50:11Z",
+  "active_customers": 10,
   "projection_months": 12,
   "scenarios": {
     "base": {
@@ -12,7 +12,6 @@
       "gas_12m_forward_gbp_per_mwh": 55.08,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -31,7 +30,6 @@
       "gas_12m_forward_gbp_per_mwh": 35.7,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -50,7 +48,6 @@
       "gas_12m_forward_gbp_per_mwh": 93.84,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -69,7 +66,6 @@
       "gas_12m_forward_gbp_per_mwh": 110.16,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -82,8 +78,8 @@
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": -399124.53,
-    "bear": 798249.07,
-    "crisis": 1565119.84
+    "bull": -398850.25,
+    "bear": 797700.49,
+    "crisis": 1563949.55
   }
 }

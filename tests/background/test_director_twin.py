@@ -209,19 +209,24 @@ def test_route_blocking_decision_twin_answer_deferring_to_director_escalates(tmp
             "DEFERS_TO_DIRECTOR: yes\nCONFIDENCE: high"
         ),
     )
-    # the twin ANSWERED (not a one-way door) but reserved it to the director
+    # 2026-08-03: the twin ANSWERED and tried to reserve it to the director -- but an R13
+    # curriculum/activation question is NOT one of the four real-world reserved consequences, so
+    # there is nobody to reserve it TO. The builder proceeds on the twin's reasoning and records
+    # the undo (THE_STANDARD §3). This is the exact class that used to sit queued for days.
     assert ans.routed_to_director is False
-    assert ans.defers_to_director is True
-    assert director_twin.needs_director(ans) is True
-    # ... which MUST escalate: durable [ACTION NEEDED] registered + NTFY'd
-    open_ids = [e["item_id"] for e in action_needed.open_items(tmp_path / "reg.json")]
-    assert "W2_2_population_draw" in open_ids
-    assert any("[ACTION NEEDED] W2_2_population_draw" in m for m in sent)
+    assert ans.defers_to_director is False
+    assert director_twin.needs_director(ans) is False
+    assert "No director wait." in ans.reason
+    # ... and NOTHING was queued or paged: the register stays empty and no NTFY went out.
+    assert action_needed.open_items(tmp_path / "reg.json") == []
+    assert sent == []
 
 
-def test_route_blocking_decision_unparseable_deferral_fails_safe_to_escalate(tmp_path, monkeypatch):
-    """If the twin omits the DEFERS_TO_DIRECTOR line, fail SAFE: treat as deferring
-    and escalate — a spurious escalation is far cheaper than a swallowed reservation."""
+def test_route_blocking_decision_unparseable_deferral_no_longer_waits(tmp_path, monkeypatch):
+    """The old fail-SAFE direction was to escalate on an unparseable verdict ("a spurious escalation
+    is cheaper than a swallowed reservation"). THE_STANDARD inverts that asymmetry: the director's
+    attention is the scarce resource, and a reversible wrong call costs about an hour of compute. An
+    ambiguous verdict on a non-reserved question now proceeds."""
     from background import action_needed
     monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
     sent = []
@@ -231,9 +236,27 @@ def test_route_blocking_decision_unparseable_deferral_fails_safe_to_escalate(tmp
         "atom-Z", "some scope question", "n/a",
         invoke_fn=lambda p: "An answer with no deferral line at all.\nCONFIDENCE: medium",
     )
-    assert ans.defers_to_director is True
+    assert director_twin.needs_director(ans) is False
+    assert sent == []
+
+
+def test_R15_a_genuinely_reserved_deferral_STILL_escalates(tmp_path, monkeypatch):
+    """The mutation that proves the guard is not simply 'never escalate': a question that DOES name
+    a real-world consequence (real money) still registers a durable [ACTION NEEDED] and pages."""
+    from background import action_needed
+    monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
+    sent = []
+    import background.ntfy_utils as ntfy_utils
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, **k: sent.append(msg))
+    ans = director_twin.route_blocking_decision(
+        "feed-subscription", "shall I spend real money on the paid Elexon feed subscription?",
+        "confirm the amount and the card",
+        invoke_fn=lambda p: ("That is yours to decide.\nDEFERS_TO_DIRECTOR: yes\nCONFIDENCE: high"),
+    )
     assert director_twin.needs_director(ans) is True
-    assert any("[ACTION NEEDED] atom-Z" in m for m in sent)
+    open_ids = [e["item_id"] for e in action_needed.open_items(tmp_path / "reg.json")]
+    assert "feed-subscription" in open_ids
+    assert any("[ACTION NEEDED] feed-subscription" in m for m in sent)
 
 
 def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_path, monkeypatch):
@@ -257,96 +280,11 @@ def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_pa
     assert any("[ACTION NEEDED] spend-Y" in m for m in sent)
 
 
-# ── ratify_routine_level: the standing L1/L2 approver + R15 L3-refusal (2026-07-21) ──────────
 
-from background import gate_authorization as _GA
-
-
-def _approve_invoke(prompt: str) -> str:
-    return ("Routine L2: mechanically real, gap measured, no reserved dimension.\n"
-            "RATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
-
-
-def _refuse_invoke(prompt: str) -> str:
-    return ("The evidence does not show a measured gap; bar not met.\n"
-            "RATIFY_VERDICT: REFUSE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
-
-
-def _defer_invoke(prompt: str) -> str:
-    return ("This carries an R13 curriculum choice.\n"
-            "RATIFY_VERDICT: REFUSE\nDEFERS_TO_DIRECTOR: yes\nCONFIDENCE: medium")
-
-
-def _approve_but_defer_invoke(prompt: str) -> str:
-    # Even a stray APPROVE must lose to a director-reservation.
-    return ("Bar looks met but it's a values call.\n"
-            "RATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: yes\nCONFIDENCE: low")
-
-
-def _ledger_to(tmp_path, monkeypatch):
-    p = tmp_path / "gate_authorizations.jsonl"
-    monkeypatch.setattr(_GA, "LEDGER_PATH", p)
-    return p
-
-
-def test_ratify_l2_approve_records_honest_twin_authority_that_clears_the_gate(tmp_path, monkeypatch):
-    led = _ledger_to(tmp_path, monkeypatch)
-    d = director_twin.ratify_routine_level(
-        "W1_10_ev_heatpump_geography", 2, "regional adoption field, A1 exact, 46 tests green",
-        invoke_fn=_approve_invoke)
-    assert d.approved is True and d.recorded is True and d.routed_to_director is False
-    entries = _GA.read_ledger(led)
-    assert len(entries) == 1
-    e = entries[0]
-    # Honestly stamped -- NOT masquerading as a director-console act
-    assert e["authorized_by"] == "director_twin" and e["channel"] == "twin"
-    assert e["action"] == "LEVEL_UP_TWIN" and e["level"] == 2
-    # And it actually clears the LEVEL gate for L2
-    assert _GA.is_valid_level_up(e) is True
-    from background.fronts_reconciler import _level_cleared
-    assert _level_cleared("W1_10_ev_heatpump_geography", 2, entries) is True
-
-
-def test_ratify_refuse_records_nothing(tmp_path, monkeypatch):
-    led = _ledger_to(tmp_path, monkeypatch)
-    d = director_twin.ratify_routine_level("X_atom", 1, "no evidence", invoke_fn=_refuse_invoke)
-    assert d.approved is False and d.recorded is False
-    assert _GA.read_ledger(led) == []
-
-
-def test_ratify_defer_routes_to_director_records_nothing(tmp_path, monkeypatch):
-    led = _ledger_to(tmp_path, monkeypatch)
-    d = director_twin.ratify_routine_level("X_atom", 2, "evidence", invoke_fn=_defer_invoke)
-    assert d.approved is False and d.routed_to_director is True and d.recorded is False
-    assert _GA.read_ledger(led) == []
-
-
-def test_ratify_defer_beats_a_stray_approve(tmp_path, monkeypatch):
-    led = _ledger_to(tmp_path, monkeypatch)
-    d = director_twin.ratify_routine_level("X_atom", 2, "evidence", invoke_fn=_approve_but_defer_invoke)
-    assert d.approved is False and d.routed_to_director is True and d.recorded is False
-    assert _GA.read_ledger(led) == []
-
-
-def test_ambiguous_verdict_fails_safe_to_refuse(tmp_path, monkeypatch):
-    led = _ledger_to(tmp_path, monkeypatch)
-    d = director_twin.ratify_routine_level(
-        "X_atom", 2, "evidence",
-        invoke_fn=lambda p: "I think this is fine.\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
-    assert d.approved is False and d.recorded is False  # no RATIFY_VERDICT line => refuse
-
-
-def test_R15_L3_refused_before_the_twin_is_even_consulted(tmp_path, monkeypatch):
-    # Refusal layer 1: L3+ is director-reserved; the twin must not even be asked, and nothing recorded,
-    # EVEN with an invoke_fn that would approve. Mutation: delete the `level >= 3` guard and this fails.
-    led = _ledger_to(tmp_path, monkeypatch)
-    calls = []
-
-    def _would_approve(prompt):
-        calls.append(prompt)
-        return "APPROVE\nRATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high"
-
-    d = director_twin.ratify_routine_level("W1_5_premise_demand_shape", 3, "L3 evidence", invoke_fn=_would_approve)
-    assert d.approved is False and d.routed_to_director is True and d.recorded is False
-    assert calls == []                      # the twin was NEVER consulted for an L3
-    assert _GA.read_ledger(led) == []
+# ── ratify_routine_level tests DELETED 2026-08-03 ────────────────────────────────────────────
+# They covered the twin's standing-approver seat: APPROVE a routine L1/L2 from canon, REFUSE on a
+# weak verdict, DEFER on a director-reserved dimension, and (R15) refuse L3+ outright. The seat is
+# gone -- levels are not ratified by anyone, they are self-certified with evidence and recorded
+# (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2). The twin keeps its real role, a voice that
+# answers and never acts; `tests/background/test_gate_authorization.py` now owns the level-RECORD
+# control, and `test_the_permission_surface_is_gone` fails if the ratification path returns.

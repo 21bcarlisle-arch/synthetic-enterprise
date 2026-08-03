@@ -336,3 +336,88 @@ def test_budget_stress_reduces_pay_probability(monkeypatch):
     assert p_full_stress < p_no_stress
     # ~40% haircut at maximal stress (declared in positive_action_probability).
     assert p_full_stress == pytest.approx(p_no_stress * 0.6)
+
+
+# ── 8. R15 audit (2026-07-30 BUILD pass): mutation-prove each control ─────────
+#
+# CLAUDE.md R15 doctrine: no control counts as evidence unless a MUTATION
+# TEST proves it fires on its own named defect. The three tests below prove
+# (a) the wall guard would catch an injected truth field on the response
+# shape, (b) this module's own latency clamp is load-bearing -- if it
+# regressed, the seam's construction-time C-S3 guard stops a same-step reply
+# leaving ``respond()`` rather than silently returning one, and (c) the
+# standing NaN-blindness killer pattern is closed: a non-finite lever
+# multiplier is rejected loudly, before it can silently mis-route a customer
+# via a NaN comparison (comparisons against NaN are always False in Python).
+
+
+def test_r15_added_truth_field_would_be_caught_by_wall_guard():
+    """R15 mutation (a), the wall guard: prove the field-name check used by
+    ``test_response_carries_no_forbidden_truth_field`` is not tautological --
+    it must FIRE on a mutant response shape that leaks a hidden trait, and
+    still PASS on the real (unmutated) ``respond()`` output. Without the
+    positive (catches-the-mutant) half, the negative-only check above would
+    be theatre: it would pass equally on a real design and a broken one that
+    simply never happened to add a forbidden field name."""
+    from dataclasses import dataclass as _dc, fields as _fields
+
+    @_dc(frozen=True)
+    class _MutantResponseWithLeakedTrust:
+        response_id: str
+        responds_to: str
+        action: ResponseAction
+        channel_chosen: Channel
+        latency: int
+        responded_step: int
+        trust: float  # the injected hidden-trait leak
+
+    mutant_fields = {f.name.lower() for f in _fields(_MutantResponseWithLeakedTrust)}
+    leaked = {f for f in FORBIDDEN_TRUTH_FIELDS if f.lower() in mutant_fields}
+    assert leaked, (
+        "R15: the wall guard's field-name check failed to catch an injected "
+        "truth field on a mutant response shape -- it would be theatre"
+    )
+
+    # The REAL, unmutated response must still pass the identical check.
+    real_fields = {f.lower() for f in cr.respond("Cwall2", _msg()).__dataclass_fields__}
+    assert not (set(f.lower() for f in FORBIDDEN_TRUTH_FIELDS) & real_fields)
+
+
+def test_r15_broken_latency_clamp_mutation_is_caught_at_construction(monkeypatch):
+    """R15 mutation (b), the C-S3 guard: if this module's own ``max(1, ...)``
+    latency clamp in ``_latency_steps`` ever regressed to allow a same-step
+    (zero) value, the seam's construction-time guard
+    (``ConversationResponse.__post_init__``, ``latency <= 0`` rejected) must
+    catch it before a same-step reply can leave ``respond()`` -- proving the
+    clamp is load-bearing, not decorative, and that removing it fails LOUDLY
+    (a raised ``ValueError``), never silently."""
+    monkeypatch.setattr(cr, "_latency_steps", lambda *a, **k: 0)
+    with pytest.raises(ValueError):
+        cr.respond("Cmut", _msg())
+
+
+def test_r15_nonfinite_positive_probability_rejected_before_comparison(monkeypatch):
+    """R15 mutation (c-i), NaN-blindness: if a matched-lever multiplier ever
+    produced a non-finite value (NaN/inf -- e.g. a future div-by-zero-width
+    band bug), the OLD unguarded code path
+    (``_substream(...).random() < positive_action_probability(...)``) would
+    silently misroute the customer: ``min(nan, 1.0)`` is itself ``nan``, and
+    ``x < nan`` is ALWAYS False in Python, so a corrupted probability would
+    silently steer every customer away from the positive action without ever
+    raising -- fail-silent, one of the R15 standing killer patterns. The
+    guard added to ``positive_action_probability`` must reject it FIRST,
+    loudly, before any comparison or clamp."""
+    monkeypatch.setattr(cr, "framing_effectiveness_multiplier", lambda *a, **k: float("nan"))
+    with pytest.raises(ValueError):
+        cr.positive_action_probability("Cnan1", _msg(situation=Situation.RENEWAL, framing="loss_framed"))
+
+
+def test_r15_nonfinite_adverse_share_rejected_before_comparison(monkeypatch):
+    """R15 mutation (c-ii), NaN-blindness on the adverse-share path: a
+    non-finite hidden ``_trust`` value must be rejected by ``_adverse_share``
+    before its own comparison/clamp (``max(0.0, min(nan, 1.0))`` is itself
+    ``nan``), the same standing pattern as the positive-probability guard
+    above."""
+    monkeypatch.setattr(cr, "_trust", lambda c: float("inf"))
+    with pytest.raises(ValueError):
+        cr._adverse_share("Cnan2", _msg(situation=Situation.RENEWAL))

@@ -244,16 +244,18 @@ MINT_MARKED_PREFIX = "PLANNER_MINTED_"
 
 # Canonical release-condition tokens a mint block may resolve to. MIRRORS the maturity-map
 # KNOWN_RELEASER_TOKENS (tests/design/test_maturity_map_facets.py) -- pinned as a subset by
-# test_mint_releaser_tokens_superset_of_map -- PLUS two mint-specific releasers the map atoms do not
-# use: a self-releasing propose-then-proceed window, and a director ratification of a proposal (a
-# director decision beyond a level/build move, e.g. ratifying a ranked gap set or a money-type
-# migration). Matched as a lower-cased substring (a long-form releaser that carries its token still
-# resolves), so `director_build_open_ledger_entry` resolves via `director_build_open`.
+# test_mint_releaser_tokens_superset_of_map -- PLUS one mint-specific releaser the map atoms do not
+# use: a self-releasing propose-then-proceed window. Matched as a lower-cased substring.
+#
+# PRUNED 2026-08-03 (director console, finishing DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY):
+# `director_level_up`, `director_build_open`, `build_open`, `front_open` and `director_ratification`
+# were removed. This tuple is the VOCABULARY of legitimate blocks -- listing an abolished permission
+# act here is what let a mint declare "blocked until the director ratifies" and have the machine
+# treat that as a valid, well-formed hold rather than a defect. The releasers that survive are all
+# genuine external events: the director physically running a live run or a systemd deploy (real
+# acts on a real machine), a coupled-triad gap actually being measured, and the forward-register
+# parking states. `_names_abolished_permission_block` in supervisor.py now overrides any residue.
 MINT_RELEASER_TOKENS = (
-    "director_level_up",
-    "director_build_open",
-    "build_open",
-    "front_open",
     "director_live_run",
     "director_systemd_deploy",
     "coupled_triad_measured",
@@ -261,7 +263,6 @@ MINT_RELEASER_TOKENS = (
     "forward_register",
     "propose_then_proceed",
     "propose-then-proceed",
-    "director_ratification",
 )
 
 _BLOCK_RELEASE_RE = _re.compile(
@@ -355,57 +356,11 @@ def mint_block_hygiene_violations(
 
 
 # ---------------------------------------------------------------------------
-# RULING-CONSUMPTION → BLOCK-RELEASE surfacing (2026-07-28, atom
-# `ruling_consumption_ledger_release`, DISCOVER §2 (c) + §6). The gap the atom closes: a ruling that
-# DECLARES a build-release (via the canonical `LEDGER: <ACTION> <target>` directive line) but whose
-# authenticated ledger entry does NOT yet exist must be SURFACED as still-open work, never silently
-# archived as consumed -- that silent gap is why three BUILD-opening rulings sat blocked 3+h. This
-# detector reads each staged doc, parses its LEDGER directives, and confirms each against the ledger
-# via gate_authorization.report_ruling_release (READ-ONLY -- it NEVER writes authority; R16 holds by
-# construction). A doc with >=1 UNRELEASED directive is surfaced by basename so the tick draws it
-# and either the director acts or the doc states plainly it is unreleased. A doc whose every
-# directive is authenticated (or that carries no directive) is NOT surfaced -- no false churn. Fail-
-# closed toward surfacing on any read/parse error (an undetectable release is treated as unreleased);
-# report-only, NEVER raises (a detection must not crash the draw or the deadman).
-def unreleased_ledger_directive_in_staging(
-    staging_dirs, ledger_path: Path | None = None
-) -> list[str]:
-    """Basenames of staged docs carrying a `LEDGER: <ACTION> <target>` directive whose declared
-    release is NOT backed by an authenticated ledger entry (block stays -- needs a director act).
-    `staging_dirs` is one Path or an iterable of Paths (e.g. staging root + in_progress). De-duped,
-    sorted. Never raises."""
-    try:
-        from background.gate_authorization import parse_ledger_directives, report_ruling_release
-    except Exception:
-        return []
-    if isinstance(staging_dirs, (str, Path)):
-        staging_dirs = [Path(staging_dirs)]
-    seen: set[str] = set()
-    out: list[str] = []
-    for d in staging_dirs:
-        try:
-            d = Path(d)
-            if not d.is_dir():
-                continue
-            candidates = sorted(d.glob("*.md"))
-        except OSError:
-            continue
-        for p in candidates:
-            if p.name in seen:
-                continue
-            try:
-                text = p.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
-            try:
-                if not parse_ledger_directives(text):
-                    continue  # no directive at all -> nothing to surface (no false churn)
-                report = report_ruling_release(text, ledger_path=ledger_path)
-                unreleased = report.get("unreleased") or []
-            except Exception:
-                # fail-closed toward surfacing: an undetectable release is treated as unreleased
-                unreleased = [{"target": "?"}]
-            if unreleased:
-                seen.add(p.name)
-                out.append(p.name)
-    return sorted(out)
+# RULING-CONSUMPTION → BLOCK-RELEASE surfacing: DELETED 2026-08-03 (director console, finishing
+# DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY). `unreleased_ledger_directive_in_staging` read every
+# staged doc, parsed its `LEDGER: <ACTION> <target>` directives, and surfaced as OPEN WORK any whose
+# release was not backed by an authenticated ledger entry -- work whose only possible completion was
+# the director signing something. The directive convention it enforced was withdrawn on 2026-07-29
+# (ruling item 3) and the signature requirement on 2026-07-29 (NTFY_IS_THE_DIRECTOR); this detector
+# outlived both and kept regenerating the queue they abolished.
+# ---------------------------------------------------------------------------

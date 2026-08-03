@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 
-from background import fronts_reconciler
 from background import supervisor
 
 
@@ -21,7 +20,6 @@ def _isolate_map(tmp_path, monkeypatch):
     # since 2026-07-18): these tests exercise the external-block exclusion, not
     # front membership, so the global fronts filter must be OFF or the synthetic
     # OPEN_BUILD atom (in no real open front) is zeroed. See test_fronts_draw_filter.py.
-    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     return tmp_path
 
 

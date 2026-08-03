@@ -522,6 +522,264 @@ def _arrears_distribution(sample, ledger):
     return out
 
 
+# ---------------------------------------------------------------------------
+# SEGMENT DISCLOSURE (SITE_EH1_segment_disclosure, 2026-07-30).
+#
+# THE DEFECT this exists to close (cold-eyes Expert Hour on SITE1, its single
+# most damaging finding): /company/ led its finance panel with a BLENDED
+# "Net margin / customer" and "Revenue / customer" -- correctly clock-labelled
+# (R14) and honestly showing its denominator (÷19) -- over a book whose revenue
+# is ~99% Industrial & Commercial, under a household-carbon narrative in which
+# I&C appeared ZERO times. R14 discipline was fully present and pointed at the
+# WRONG AXIS: the CLOCK was labelled on every figure and the SEGMENT on none.
+# A blended £/customer over this book describes no customer the company has.
+#
+# This is a DISCLOSURE change only. It does NOT touch the book's composition --
+# which segments the company serves is CURRICULUM (R13, the director's
+# instrument), and reweighting a population to make a published figure read
+# better is goal-seeking (R12). If a figure reads badly once split honestly, it
+# is left to read badly.
+# ---------------------------------------------------------------------------
+
+# The canonical segment taxonomy. Keys are the `segment_split` prefixes the run
+# emits (dashboard.financial.segment_annual keys are "<prefix>_<commodity>",
+# already lower-cased), and they match customer_sample's own `segment` field
+# lower-cased -- so ACCOUNT COUNTS and REVENUE join on the same token with no
+# second naming convention. `population_class` is the axis a published benchmark
+# has to agree with (see tools/generate_world_data.py): domestic households are
+# not a business book and the two are not each other's benchmark.
+_SEGMENTS = {
+    "resi": dict(label="Residential", population_class="domestic"),
+    "sme": dict(label="SME (small business)", population_class="non_domestic"),
+    "i&c": dict(label="Industrial & Commercial", population_class="non_domestic"),
+}
+# Above this share of revenue, the book IS that population class for benchmarking
+# purposes. Below it in both directions the book is genuinely mixed and only a
+# whole-market benchmark can grade it. Chosen once, stated here, never tuned to
+# an outcome (R12).
+_DOMINANCE_SHARE_PCT = 80.0
+
+
+def _segment_prefix(segment_annual_key):
+    """'i&c_electricity' -> 'i&c'. The commodity is the LAST underscore-delimited
+    token; everything before it is the segment. Returns the raw prefix even when
+    it is unknown to _SEGMENTS -- an unrecognised segment must show up as
+    unclassified revenue, never be silently dropped from the denominator (the
+    exact fail-silent shape saas/reporting/css_statement.py guards against)."""
+    return str(segment_annual_key).rsplit("_", 1)[0]
+
+
+def segment_revenue_mix(segment_annual):
+    """The book's revenue mix by segment, cumulative over the whole run window.
+
+    Reads dashboard.financial.segment_annual, which is the run's OWN settlement
+    records view of per-segment revenue (`data['years'][*]['segment_split']`,
+    settled clock -- see saas/reporting/css_statement.py). Pure function of its
+    argument so the front-door coherence gate in generate_dashboard_data.py can
+    compute the same share without reaching through company.json.
+
+    FAIL-CLOSED (R15): a missing/empty/malformed segment_annual returns
+    available=False with no shares, never a silently-zero mix the page would
+    render as "0% I&C" -- which would read as a DOMESTIC book, the precise lie
+    this whole atom exists to prevent.
+    """
+    rows = [r for r in (segment_annual or []) if isinstance(r, dict)]
+    if not rows:
+        return dict(available=False, reason="segment_annual missing or empty")
+
+    revenue = {}
+    unclassified = {}
+    for row in rows:
+        for key, cell in row.items():
+            if key == "year" or not isinstance(cell, dict):
+                continue
+            rev = cell.get("revenue_gbp")
+            if not isinstance(rev, (int, float)):
+                continue
+            prefix = _segment_prefix(key)
+            bucket = revenue if prefix in _SEGMENTS else unclassified
+            bucket[prefix] = bucket.get(prefix, 0.0) + float(rev)
+
+    total = sum(revenue.values()) + sum(unclassified.values())
+    if total <= 0:
+        return dict(available=False, reason="segment_annual carries no positive revenue")
+
+    def _share(v):
+        return round(100.0 * v / total, 2)
+
+    by_class = {"domestic": 0.0, "non_domestic": 0.0}
+    for prefix, amount in revenue.items():
+        by_class[_SEGMENTS[prefix]["population_class"]] += amount
+
+    domestic_pct = _share(by_class["domestic"])
+    non_domestic_pct = _share(by_class["non_domestic"])
+    if non_domestic_pct >= _DOMINANCE_SHARE_PCT:
+        composition_class = "non_domestic"
+    elif domestic_pct >= _DOMINANCE_SHARE_PCT:
+        composition_class = "domestic"
+    else:
+        composition_class = "mixed"
+
+    return dict(
+        available=True,
+        total_revenue_gbp=round(total, 2),
+        domestic_revenue_share_pct=domestic_pct,
+        non_domestic_revenue_share_pct=non_domestic_pct,
+        unclassified_revenue_gbp=round(sum(unclassified.values()), 2),
+        unclassified_segments=sorted(unclassified),
+        composition_class=composition_class,
+        dominance_threshold_pct=_DOMINANCE_SHARE_PCT,
+        revenue_by_segment={k: round(v, 2) for k, v in revenue.items()},
+        share_by_segment={k: _share(v) for k, v in revenue.items()},
+        years=[r.get("year") for r in rows],
+    )
+
+
+def _account_counts_by_segment(sample):
+    """Account counts per segment, read from each drawn account's OWN `segment`
+    field -- NOT from an id substring. stress_bands (below) buckets on `"IC" in
+    cid`, which silently files the two SME accounts under "residential"; the
+    per-segment denominators here must not inherit that, because an n that is
+    wrong by 2 is a wrong £/customer figure. An account whose segment is absent
+    or unrecognised is counted as UNCLASSIFIED, never folded into a real
+    segment's denominator."""
+    custs = ((sample or {}).get("customers")) or {}
+    counts = {}
+    unclassified = 0
+    for c in custs.values():
+        seg = str(c.get("segment") or "").strip().lower()
+        if seg in _SEGMENTS:
+            counts[seg] = counts.get(seg, 0) + 1
+        else:
+            unclassified += 1
+    return counts, unclassified, len(custs)
+
+
+def _book_mix(dashboard, sample):
+    """The segment disclosure block: the revenue mix, and per-customer unit
+    economics SPLIT BY SEGMENT with each segment's own n.
+
+    Scope item 1 of the atom: "Every per-customer tile splits by segment (a
+    blended per-customer figure over a 98.75% I&C book is the defect; show resi
+    and I&C separately, each with its own n)."
+
+    Clock (R14): the per-segment revenue/net legs come from the run's segment
+    split, which is SETTLED. The blended tiles this replaces were BILLED
+    (management accounts). That is a real clock difference and it is stated on
+    every tile rather than quietly harmonised -- the settled<->billed gap is the
+    bridge's job, not this block's.
+    """
+    financial = (dashboard or {}).get("financial", {}) or {}
+    mix = segment_revenue_mix(financial.get("segment_annual"))
+    if not mix.get("available"):
+        return dict(available=False, reason=mix.get("reason"))
+
+    rows = [r for r in (financial.get("segment_annual") or []) if isinstance(r, dict)]
+    latest = rows[-1]
+    latest_year = latest.get("year")
+
+    counts, n_unclassified, n_total = _account_counts_by_segment(sample)
+
+    # Latest-year revenue/net per segment (summed across that segment's commodity legs).
+    latest_rev, latest_net = {}, {}
+    for key, cell in latest.items():
+        if key == "year" or not isinstance(cell, dict):
+            continue
+        prefix = _segment_prefix(key)
+        if prefix not in _SEGMENTS:
+            continue
+        latest_rev[prefix] = latest_rev.get(prefix, 0.0) + float(cell.get("revenue_gbp") or 0.0)
+        latest_net[prefix] = latest_net.get(prefix, 0.0) + float(cell.get("net_gbp") or 0.0)
+
+    segments = []
+    for prefix in sorted(mix["revenue_by_segment"], key=lambda p: -mix["revenue_by_segment"][p]):
+        n = counts.get(prefix)
+        present = prefix in latest_rev
+        rev = latest_rev.get(prefix)
+        net = latest_net.get(prefix)
+        # FAIL-CLOSED: no n (or n=0) means NO per-customer figure. Falling back to
+        # the whole-book denominator is exactly the blend this atom removes.
+        divisible = bool(n) and present
+        segments.append(dict(
+            segment=prefix,
+            label=_SEGMENTS[prefix]["label"],
+            population_class=_SEGMENTS[prefix]["population_class"],
+            n_accounts=n,
+            revenue_gbp=mix["revenue_by_segment"][prefix],
+            revenue_share_pct=mix["share_by_segment"][prefix],
+            latest_year_present=present,
+            latest_year_revenue_gbp=(round(rev, 2) if rev is not None else None),
+            latest_year_net_margin_gbp=(round(net, 2) if net is not None else None),
+            revenue_per_customer_gbp=(round(rev / n, 2) if divisible else None),
+            net_margin_per_customer_gbp=(round(net / n, 2) if divisible else None),
+            per_customer_unavailable_reason=(
+                None if divisible
+                else ("no account of this segment in the drawn book" if not n
+                      else "this segment billed no revenue in " + str(latest_year))
+            ),
+        ))
+
+    dominant = segments[0] if segments else None
+    # The blended figure is KEPT (it is a real reading and R12 forbids hiding an
+    # inconvenient diagnostic) but STRIPPED OF HEADLINE STATUS, with the reason
+    # attached. latest_year_* here are the BILLED management-accounts figures the
+    # old blended tiles used, so the number a reader saw yesterday is still
+    # findable and reconcilable rather than silently vanished.
+    ma = ((dashboard or {}).get("management_accounts", {}) or {}).get("annual", []) or []
+    latest_ma = ma[-1] if ma else {}
+    blended = None
+    if n_total and latest_ma:
+        blended = dict(
+            n_accounts=n_total,
+            clock="billed",
+            revenue_per_customer_gbp=round((latest_ma.get("revenue_gbp") or 0.0) / n_total, 2),
+            net_margin_per_customer_gbp=round((latest_ma.get("net_margin_gbp") or 0.0) / n_total, 2),
+            withheld_as_headline=True,
+            reason=(
+                "A blended £/customer across " + str(n_total) + " accounts describes no customer "
+                "this company has: " + (
+                    "{:.1f}% of revenue is earned by {} {} account(s)".format(
+                        dominant["revenue_share_pct"], dominant["n_accounts"], dominant["label"])
+                    if dominant else "the book is dominated by one segment"
+                ) + ". It is kept here as a reconcilable diagnostic, never as a headline (R12: a "
+                "metric is a diagnostic, never a target)."
+            ),
+        )
+
+    return dict(
+        available=True,
+        clock="settled",
+        basis=(
+            "per-segment revenue and net margin from the run's own settlement segment split · "
+            "settled clock · £/customer divides each segment's latest-year figure by THAT "
+            "segment's own account count in the drawn book"
+        ),
+        latest_year=latest_year,
+        window_years=[y for y in mix["years"] if y is not None],
+        n_accounts_total=n_total,
+        n_accounts_unclassified=n_unclassified,
+        segments=segments,
+        blended=blended,
+        dominant_segment=(dominant or {}).get("segment"),
+        dominant_label=(dominant or {}).get("label"),
+        dominant_share_pct=(dominant or {}).get("revenue_share_pct"),
+        domestic_revenue_share_pct=mix["domestic_revenue_share_pct"],
+        non_domestic_revenue_share_pct=mix["non_domestic_revenue_share_pct"],
+        composition_class=mix["composition_class"],
+        dominance_threshold_pct=mix["dominance_threshold_pct"],
+        unclassified_revenue_gbp=mix["unclassified_revenue_gbp"],
+        total_revenue_gbp=mix["total_revenue_gbp"],
+        mission_note=(
+            "The front door's mission is household carbon abatement through personalisation. "
+            "This book is not that book. Whether the mission and the book should agree is a "
+            "DIRECTOR question (values, one-way door 6) and is escalated, not decided here; "
+            "what this panel owes the reader is the composition, stated before any claim."
+        ),
+        evidence="site/data/dashboard.json -> financial.segment_annual; site/data/customer_sample.json (segment field)",
+        evidence_url="../data/dashboard.json",
+    )
+
+
 def _stress_bands(sample):
     """The book by each customer's latest income-stress band -- re-homed from the
     retired SIM-Explorer 'Customers' tab into The Company (v4 §4①, affordability/
@@ -565,6 +823,7 @@ def generate():
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         dashboard_generated_at=meta.get("generated_at"),
         git_commit=meta.get("git_commit"),
+        book_mix=_book_mix(dashboard, sample),
         finance=_three_clock_finance(dashboard, bridge, ledger),
         trading_risk=_trading_risk(dashboard),
         household=_household(sample, ledger),

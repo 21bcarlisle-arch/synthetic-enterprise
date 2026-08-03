@@ -20,7 +20,8 @@ Everything here is a RENDERING of data this project already keeps honestly
 No number appears without its evidence link (SITE_CONSTITUTION binding rule 1).
 """
 import json
-from datetime import datetime, timezone
+import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
@@ -29,6 +30,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 RETRO_DIR = PROJECT / "docs" / "retrospectives"
 SCORECARD_PATH = PROJECT / "site" / "state" / "track_record_scorecard.json"
+LIVE_PORTFOLIO_PATH = PROJECT / "site" / "state" / "live_portfolio.json"
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 CONTROL_REGISTRY_PATH = PROJECT / "docs" / "design" / "control_registry.json"
 OUT_PATH = PROJECT / "site" / "data" / "proof.json"
@@ -36,6 +38,118 @@ OUT_PATH = PROJECT / "site" / "data" / "proof.json"
 # Evidence-link bases (same convention as generate_method_data.py's retro links)
 GH_PAGES = "https://21bcarlisle-arch.github.io/synthetic-enterprise/"
 RETRO_LINK_BASE = GH_PAGES + "retrospectives/"
+
+# ---------------------------------------------------------------------------
+# CITATION RESOLUTION -- MAJOR-7, the half neither rescue branch closed.
+#
+# The Expert-Hour finding said the /proof/ citations were "inert by construction"
+# and named the STYLING lie (a dead anchor wearing a live link's class). Rendering
+# those citations as inert provenance tags fixes the styling, but it does NOT make
+# the citation TRUE: on 2026-08-03 six of the fifteen repo-internal paths this page
+# published pointed at files that no longer existed at the path shown, because the
+# staging protocol ARCHIVES a directive (docs/staging/X.md -> docs/staging/done/X.md,
+# or in_progress/) once it has been actioned. A reader told "the evidence is at
+# docs/staging/MARGIN_REALISM.md" and finding nothing there has been misled just as
+# badly as by a dead <a href="#">, and on a door whose whole proposition is "walk any
+# figure to its evidence" that is the same defect wearing different clothes.
+#
+# R10 (fix the CLASS, not the instance): rather than hand-patching fifteen literals
+# that will rot again at the next archive sweep, ONE pass over the finished payload
+# re-points every citation field at wherever the artefact actually lives now. The
+# literals below stay authored at their ORIGINAL path -- that is the honest historical
+# reference -- and resolution is what keeps them walkable as the tree moves.
+#
+# This function deliberately does NOT raise on an unresolvable path: wedging the
+# publish pipeline on a citation typo would be the "control false-positive jams the
+# pipeline" failure this project has already been burned by. The GATE is the test
+# (tests/tools/test_site1_proof_citations_resolve.py), which reads the PUBLISHED
+# proof.json and stats each path itself -- an independent oracle, not this resolver's
+# own opinion, so the pair cannot be tautological.
+# ---------------------------------------------------------------------------
+
+# Where an actioned/parked staging directive or a closed review gate ends up. Ordered:
+# first hit wins, so the live location is preferred over an archived duplicate.
+CITATION_ARCHIVE_DIRS = (
+    "docs/staging/done",
+    "docs/staging/in_progress",
+    "docs/staging/fyi",
+    "docs/staging/drafts",
+    "docs/review_gates/done",
+)
+# Keys whose string values are evidence citations. Extend this when a new citation
+# field is added -- a citation NOT listed here is simply never resolved (and the gate
+# test walks the same key set, so it is never silently exempted either).
+CITATION_KEYS = ("source", "doctrine", "outcome_source")
+# A citation may carry a human section pointer, e.g. "docs/design/PITCH.md (§12)".
+# That is a label, not part of the path, and must be stripped before any stat().
+_CITE_ANNOTATION = re.compile(r"\s*\((?:§|#|sec\.?|section\s)[^)]*\)\s*$", re.I)
+
+
+def citation_path(value):
+    """Split a citation string into (repo-relative path, trailing annotation).
+
+    Returns (None, None) for anything that is not a repo-internal FILE path -- an
+    http(s) URL, an empty value, a non-string, a bare directory reference, or an
+    honest prose statement that no source exists ("no hedge-outcome source is
+    built") -- so callers never try to stat a URL, "invent" a file for a directory,
+    or read a sentence as a filename.
+
+    Prose is separated from a path by whitespace: every citation in this repo is a
+    whitespace-free relative path (optionally followed by a "(§n)" section label).
+    A sentence always contains a space; a path never does. Kept deliberately tight
+    so the FAIL-OPEN direction is closed -- "docs/staging/GONE.md" can never be
+    waved through as prose, because it has no space in it.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None, None
+    if value.startswith("http://") or value.startswith("https://"):
+        return None, None
+    m = _CITE_ANNOTATION.search(value)
+    annotation = m.group(0) if m else ""
+    path = value[: m.start()] if m else value
+    path = path.strip()
+    if not path or path.endswith("/"):
+        # A directory citation (docs/retrospectives/) is checked as a directory by
+        # the gate, but has no basename to relocate, so it is never rewritten.
+        return None, None
+    if re.search(r"\s", path):
+        return None, None  # prose, not a path
+    return path, annotation
+
+
+def _resolve_citation(value):
+    """Re-point one citation at wherever the artefact lives NOW.
+
+    Unchanged if the literal path still resolves, or if there is nothing to look
+    for. Otherwise the same basename is sought under CITATION_ARCHIVE_DIRS. If it
+    cannot be found at all the ORIGINAL string is returned untouched -- publishing
+    never blocks on this, and the gate test fails loudly instead.
+    """
+    path, annotation = citation_path(value)
+    if path is None:
+        return value
+    if (PROJECT / path).exists():
+        return value
+    name = Path(path).name
+    for d in CITATION_ARCHIVE_DIRS:
+        candidate = PROJECT / d / name
+        if candidate.exists():
+            return d + "/" + name + annotation
+    return value
+
+
+def resolve_citations(node):
+    """Walk the finished payload and resolve every citation field in place."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k in CITATION_KEYS and isinstance(v, str):
+                node[k] = _resolve_citation(v)
+            else:
+                resolve_citations(v)
+    elif isinstance(node, list):
+        for item in node:
+            resolve_citations(item)
+    return node
 
 LANE_NAMES = {
     "W1_market_weather": "W1 Market & Weather",
@@ -505,40 +619,521 @@ def _control_killlist():
     )
 
 
+# ---------------------------------------------------------------------------
+# Section 4: the predictions ledger. THE LEDGER MUST BE ABLE TO RECORD A MISS.
+#
+# PURPOSE. This door is billed as "the page an expert checks first". A ledger on
+# which no prediction can ever be wrong is not evidence, it is theatre. Atom
+# SITE_EH2_predictions_ledger_can_fail was minted from a cold-eyes Expert Hour
+# that found exactly that: every failure routed to an unfalsifiable escape hatch
+# ("inconclusive ... not counted as a miss"; "ungraded -- market data has not
+# advanced"), one prediction re-logged four times was counted as four, and the
+# headline implied a track record that did not exist.
+#
+# GUARANTEES this layer provides, and how each is enforced:
+#   G1 DE-DUPLICATION. A prediction re-logged daily is ONE prediction with a
+#      re-log count. Counts are derived from DISTINCT predictions, never from log
+#      lines and never from the upstream scorecard's own *_count fields (which
+#      counted an entry whose outcome literally reads "no_grading_logic_yet" as
+#      graded). Where derived and upstream counts disagree, BOTH are published.
+#   G2 A CLOSED VERDICT VOCABULARY. Every distinct prediction lands on exactly one
+#      of ON TARGET / MISS / AWAITING OUTCOME / UNGRADEABLE. There is no
+#      "inconclusive" and no bare "ungraded" -- both were the escape hatch.
+#   G3 BOUNDED UNDECIDEDNESS. AWAITING OUTCOME is time-boxed to
+#      INCONCLUSIVE_HORIZON_DAYS from the FIRST log of that prediction, and every
+#      undecided entry NAMES its blocker and that blocker's AGE. Past the horizon
+#      the entry is declared UNGRADEABLE and struck from the track record. Nothing
+#      is parked forever -- an unbounded escape hatch IS the fail-open.
+#   G4 A MISS IS REACHABLE. When the outcome is observed, the grade is arithmetic
+#      against an INDEPENDENT source and a wrong prediction renders MISS.
+#   G5 FAIL-CLOSED. Missing / zero / empty / non-finite / malformed outcome data
+#      grades UNGRADEABLE, never ON TARGET and never AWAITING-forever. An
+#      unavailable grader is a FAILED check (R15), not a clean record.
+#   G6 A SELF-CHECK ON THE CLASS (R10). _ledger_integrity re-derives G2+G3 over
+#      the finished rows; a violation is published on the surface rather than
+#      silently rendering a tidy ledger.
+#
+# WHY IT IS NOT A TAUTOLOGY. The PREDICTION comes from the pre-registered
+# decision log (site/state/track_record_scorecard.json, written by
+# tools/generate_track_record_scorecard.py from site/state/live_decisions_*.json)
+# and the OUTCOME comes from a different file with a different writer
+# (site/state/live_portfolio.json, the observed portfolio snapshot). Mutating
+# either one alone moves the verdict.
+#
+# EPISTEMIC WALL. Both sources are the company's own published claims and its own
+# observed portfolio. Nothing here reads sim internals to grade a prediction.
+# ---------------------------------------------------------------------------
+
+# G3: how long an undecided prediction may stay undecided before the ledger
+# stops waiting and declares it UNGRADEABLE with its blocker named.
+INCONCLUSIVE_HORIZON_DAYS = 14
+
+V_ON_TARGET = "ON TARGET"
+V_MISS = "MISS"
+V_AWAITING = "AWAITING OUTCOME"
+V_UNGRADEABLE = "UNGRADEABLE"
+VERDICT_VOCABULARY = (V_ON_TARGET, V_MISS, V_AWAITING, V_UNGRADEABLE)
+
+
+def _parse_day(value):
+    """A YYYY-MM-DD date, or None. Never raises."""
+    try:
+        return datetime.strptime(str(value)[:10], "%Y-%m-%d").date()
+    except Exception:
+        return None
+
+
+def _day_delta(later, earlier):
+    a, b = _parse_day(later), _parse_day(earlier)
+    if a is None or b is None:
+        return None
+    return (a - b).days
+
+
+def _finite(value):
+    """A usable float, or None.
+
+    Non-numeric and non-finite values are rejected FIRST, before any comparison.
+    Comparison guards are NaN-blind: `abs(nan) <= tol` is False AND
+    `abs(nan) > tol` is False, so a NaN slipped into a rate would fall through
+    both branches of a grade and land wherever the code happens to default --
+    which is how a fail-open is born.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return float(value)
+
+
+def _horizon_deadline(first_logged_at):
+    day = _parse_day(first_logged_at)
+    if day is None:
+        return None
+    return (day + timedelta(days=INCONCLUSIVE_HORIZON_DAYS)).isoformat()
+
+
+def _observed_portfolio():
+    """The OUTCOME source -- deliberately a DIFFERENT file to the prediction source.
+
+    R15 FAIL-SILENT: if this source is absent, unreadable, malformed, or empty,
+    the grader is UNAVAILABLE. An unavailable check is a FAILED check, so callers
+    turn that into UNGRADEABLE with the reason named -- never a clean record and
+    never an indefinite wait.
+    """
+    rel = "site/state/live_portfolio.json"
+    try:
+        raw = json.loads(LIVE_PORTFOLIO_PATH.read_text())
+        if not isinstance(raw, dict):
+            raise ValueError("payload is not an object")
+        customers = raw.get("customers")
+        if not isinstance(customers, list):
+            raise ValueError("no `customers` list in the snapshot")
+    except Exception as exc:
+        return dict(available=False, name=rel, stamp=None, customer_count=0,
+                    by_cid={}, source_year=None,
+                    detail="the observed-outcome source could not be read at "
+                           "generation time (%s)" % exc)
+    by_cid = {c["cid"]: c for c in customers
+              if isinstance(c, dict) and c.get("cid")}
+    if not by_cid:
+        return dict(available=False, name=rel, stamp=raw.get("generated_at"),
+                    customer_count=0, by_cid={},
+                    source_year=raw.get("source_year"),
+                    detail="the observed-outcome source is present but carries ZERO "
+                           "identified accounts, so it cannot witness any outcome")
+    return dict(available=True, name=rel, stamp=raw.get("generated_at"),
+                customer_count=len(by_cid), by_cid=by_cid,
+                source_year=raw.get("source_year"), detail=None)
+
+
+def _blocker(source_name, stamp, today, detail):
+    """A NAMED blocker carrying its AGE. The replacement for a bare 'inconclusive'."""
+    return dict(source=source_name, stamp=stamp,
+                age_days=_day_delta(today, stamp) if stamp else None,
+                detail=detail)
+
+
+def _park(row, today, blocker):
+    """G3: bound the wait. Inside the horizon -> AWAITING OUTCOME with the deadline
+    stated. Past it -> UNGRADEABLE, struck from the track record. Never parked."""
+    age = _day_delta(today, row.get("first_logged_at"))
+    row["blocker"] = blocker
+    row["days_since_first_logged"] = age
+    row["horizon_days"] = INCONCLUSIVE_HORIZON_DAYS
+    row["horizon_deadline"] = _horizon_deadline(row.get("first_logged_at"))
+    if age is None:
+        # Malformed log date: we cannot prove the wait is bounded, so we do not
+        # get to wait. Fail closed.
+        row["verdict"] = V_UNGRADEABLE
+        row["verdict_reason"] = (
+            "UNGRADEABLE: the pre-registered entry carries no parseable log date, so "
+            "the grading horizon cannot be bounded. An unbounded wait is the "
+            "fail-open, so this entry is struck rather than parked.")
+        return row
+    if age > INCONCLUSIVE_HORIZON_DAYS:
+        row["verdict"] = V_UNGRADEABLE
+        row["verdict_reason"] = (
+            "UNGRADEABLE: first logged %s, %d days ago. The %d-day grading horizon "
+            "expired %d days ago (%s) and the blocker never cleared, so this entry is "
+            "struck from the track record. It is not a pass, and it is not still "
+            "waiting." % (row.get("first_logged_at"), age, INCONCLUSIVE_HORIZON_DAYS,
+                          age - INCONCLUSIVE_HORIZON_DAYS, row["horizon_deadline"]))
+        return row
+    row["verdict"] = V_AWAITING
+    row["verdict_reason"] = (
+        "AWAITING OUTCOME: first logged %s, %d of %d horizon days used. If the "
+        "blocker has not cleared by %s this entry is declared UNGRADEABLE."
+        % (row.get("first_logged_at"), age, INCONCLUSIVE_HORIZON_DAYS,
+           row["horizon_deadline"]))
+    return row
+
+
+def _grade_renewal(row, observed, tolerance, today):
+    """Grade one distinct renewal-price prediction. Can return MISS (G4)."""
+    cid = row.get("cid")
+    row["observed_source"] = observed.get("name")
+    row["observed_stamp"] = observed.get("stamp")
+
+    # G5 FAIL-SILENT: an unavailable grader is a FAILED check, immediately.
+    if not observed.get("available"):
+        row["verdict"] = V_UNGRADEABLE
+        row["blocker"] = _blocker(observed.get("name"), observed.get("stamp"), today,
+                                  observed.get("detail"))
+        row["verdict_reason"] = (
+            "UNGRADEABLE: the outcome source (%s) is unavailable, so this prediction "
+            "cannot be graded at all. An unavailable check is a FAILED check (R15) -- "
+            "a blank record, never a clean one." % observed.get("name"))
+        return row
+
+    cust = observed["by_cid"].get(cid)
+    if cust is None:
+        row["verdict"] = V_UNGRADEABLE
+        row["blocker"] = _blocker(
+            observed.get("name"), observed.get("stamp"), today,
+            "account %s is absent from the observed portfolio snapshot (%d accounts "
+            "present)" % (cid, observed.get("customer_count") or 0))
+        row["verdict_reason"] = (
+            "UNGRADEABLE: no observed outcome exists for %s -- the account is not in "
+            "the snapshot, so neither an on-target nor a missed grade can be earned."
+            % cid)
+        return row
+
+    target = _parse_day(row.get("renewal_date"))
+    if target is None:
+        row["verdict"] = V_UNGRADEABLE
+        row["blocker"] = _blocker(
+            observed.get("name"), observed.get("stamp"), today,
+            "the pre-registered entry carries no parseable renewal date (%r)"
+            % row.get("renewal_date"))
+        row["verdict_reason"] = ("UNGRADEABLE: the pre-registered entry is malformed "
+                                 "(no renewal date). Malformed is never a pass.")
+        return row
+
+    last_raw = cust.get("last_renewal_date")
+    last = _parse_day(last_raw)
+    row["observed_last_renewal_date"] = last_raw
+    if last is None or last < target:
+        return _park(row, today, _blocker(
+            observed.get("name"), observed.get("stamp"), today,
+            "the snapshot's own renewal clock has not advanced past the flagged date: "
+            "%s last renewed %s, the flag was for %s"
+            % (cid, last_raw if last_raw else "never", row.get("renewal_date"))))
+
+    # The renewal IS observed. From here the ledger grades, and it can MISS.
+    proposed = _finite(row.get("proposed_rate_gbp_per_mwh"))
+    actual = _finite(cust.get("current_rate_gbp_per_mwh"))
+    if proposed is None or proposed <= 0 or actual is None:
+        row["verdict"] = V_UNGRADEABLE
+        row["blocker"] = _blocker(
+            observed.get("name"), observed.get("stamp"), today,
+            "the renewal is observed but a rate is missing, zero or non-finite "
+            "(predicted=%r, observed=%r), so no arithmetic can grade it"
+            % (row.get("proposed_rate_gbp_per_mwh"),
+               cust.get("current_rate_gbp_per_mwh")))
+        row["verdict_reason"] = (
+            "UNGRADEABLE: malformed rate data. Missing, zero and non-finite never "
+            "grade as on-target.")
+        return row
+
+    tol = _finite(tolerance)
+    if tol is None or tol < 0:
+        tol = 0.0
+    delta = (actual - proposed) / proposed
+    row["observed_rate_gbp_per_mwh"] = actual
+    row["delta_pct"] = round(delta * 100.0, 2)
+    row["tolerance_pct"] = round(tol * 100.0, 2)
+    shape = ("%s renewed on %s at %.2f GBP/MWh against %.2f predicted (%+.2f%%, "
+             "tolerance +/-%.2f%%)."
+             % (cid, last_raw, actual, proposed, row["delta_pct"], row["tolerance_pct"]))
+    if abs(delta) <= tol:
+        row["verdict"] = V_ON_TARGET
+        row["verdict_reason"] = "ON TARGET: " + shape
+    else:
+        row["verdict"] = V_MISS
+        row["verdict_reason"] = "MISS: " + shape
+    return row
+
+
+def _grade_hedge(row, hedge_grading, today):
+    """Grade one distinct hedge stance.
+
+    There is no outcome source for a hedge stance in this codebase: nothing joins
+    a stance to the realised cost of holding it. So a hedge stance is NEVER
+    invented a grade -- it is bounded instead (G3): AWAITING inside the horizon,
+    UNGRADEABLE past it, with the missing signal named as the blocker. This is
+    the same honesty pattern the retention block already uses ("grading them
+    would require building that missing signal first, not inventing a result
+    now"), applied to the block that lacked it.
+    """
+    stale = (hedge_grading or {}).get("current_market_data_stale_days")
+    detail = ("no outcome source exists: nothing in this codebase joins a hedge stance "
+              "to the realised cost of holding it, so there is no signal to grade "
+              "against (market data currently %s day(s) stale)"
+              % ("?" if stale is None else stale))
+    return _park(row, today,
+                 _blocker("no hedge-outcome source is built", None, today, detail))
+
+
+def _dedupe(entries, keyfn):
+    """G1: collapse re-logs of the SAME prediction into one row with a count.
+
+    Returns (rows, log_lines) where each row carries the first log's fields plus
+    relog_count / first_logged_at / last_logged_at / upstream_outcomes.
+    """
+    groups, order, log_lines = {}, [], 0
+    for entry in entries or []:
+        if not isinstance(entry, dict):
+            continue
+        log_lines += 1
+        key = keyfn(entry)
+        if key not in groups:
+            groups[key] = dict(first=entry, count=0, days=[], outcomes=[])
+            order.append(key)
+        grp = groups[key]
+        grp["count"] += 1
+        day = entry.get("decision_run_at")
+        if _parse_day(day):
+            grp["days"].append(str(day)[:10])
+        outcome = entry.get("outcome")
+        if outcome and outcome not in grp["outcomes"]:
+            grp["outcomes"].append(outcome)
+    rows = []
+    for key in order:
+        grp = groups[key]
+        days = sorted(grp["days"])
+        row = dict(grp["first"])
+        row.pop("graded", None)
+        row.pop("outcome", None)
+        row["relog_count"] = grp["count"]
+        row["first_logged_at"] = days[0] if days else None
+        row["last_logged_at"] = days[-1] if days else None
+        row["upstream_outcomes"] = grp["outcomes"]
+        rows.append(row)
+    return rows, log_lines
+
+
+def _count_verdicts(rows):
+    counts = {v: 0 for v in VERDICT_VOCABULARY}
+    for row in rows:
+        counts[row.get("verdict")] = counts.get(row.get("verdict"), 0) + 1
+    return counts
+
+
+def _ledger_integrity(rows):
+    """G6 / R10: re-derive the two guarantees over the FINISHED rows, so this
+    defect class fails automatically rather than one instance being patched.
+
+    A violation is published on the surface. A ledger that cannot show its own
+    integrity failing is the very control-that-cannot-fail this atom was minted
+    for.
+    """
+    violations = []
+    for row in rows:
+        label = "%s/%s" % (row.get("kind"), row.get("label"))
+        verdict = row.get("verdict")
+        if verdict not in VERDICT_VOCABULARY:
+            violations.append(
+                "%s carries verdict %r, which is outside the closed vocabulary %s"
+                % (label, verdict, list(VERDICT_VOCABULARY)))
+        if verdict in (V_AWAITING, V_UNGRADEABLE) and not row.get("blocker"):
+            violations.append("%s is undecided but names no blocker" % label)
+        if verdict == V_AWAITING:
+            age = row.get("days_since_first_logged")
+            if age is None:
+                violations.append(
+                    "%s is AWAITING with no measurable age -- the wait is unbounded"
+                    % label)
+            elif age > INCONCLUSIVE_HORIZON_DAYS:
+                violations.append(
+                    "%s has been AWAITING for %d days, past the %d-day horizon -- "
+                    "permanently parked" % (label, age, INCONCLUSIVE_HORIZON_DAYS))
+    return dict(ok=not violations, violations=violations,
+               horizon_days=INCONCLUSIVE_HORIZON_DAYS)
+
+
+def _blocker_summary(rows):
+    seen, out = set(), []
+    for row in rows:
+        blk = row.get("blocker")
+        if not blk:
+            continue
+        src, age = blk.get("source"), blk.get("age_days")
+        key = (src, blk.get("stamp"))
+        if key in seen:
+            continue
+        seen.add(key)
+        if blk.get("stamp"):
+            out.append("%s (stamped %s, %s day(s) old)"
+                       % (src, blk["stamp"], "?" if age is None else age))
+        else:
+            out.append(str(src))
+    return out
+
+
+def _ledger_headline(counts, rows, log_lines, distinct):
+    """The headline the data actually SUPPORTS -- never a count that implies a
+    track record. R12: this number is a diagnostic. If the honest render is
+    "0 of 2 graded", that is what ships."""
+    if distinct == 0:
+        return ("No predictions are on the record yet, so no track record is claimed. "
+                "%d log line(s) carried nothing gradeable." % log_lines)
+    graded = counts[V_ON_TARGET] + counts[V_MISS]
+    head = ("%d of %d distinct predictions graded (%d on target, %d MISSED); "
+            "%d awaiting outcome, %d UNGRADEABLE."
+            % (graded, distinct, counts[V_ON_TARGET], counts[V_MISS],
+               counts[V_AWAITING], counts[V_UNGRADEABLE]))
+    head += (" %d log line(s) de-duplicate to %d distinct prediction(s) -- the same "
+             "prediction re-logged daily is one prediction, not many."
+             % (log_lines, distinct))
+    if graded == 0:
+        head += (" NO TRACK RECORD HAS BEEN ESTABLISHED: not one prediction on this "
+                 "ledger has yet been graded against an observed outcome.")
+    blockers = _blocker_summary(rows)
+    if blockers:
+        head += " Grading is blocked on: " + "; ".join(blockers) + "."
+    return head
+
+
 def _predictions_ledger():
-    """The centrepiece: the REAL shadow-live pre-registered decision log
-    (site/state/track_record_scorecard.json). A real source exists, so it is
-    surfaced verbatim -- misses/ungraded/inconclusive included -- NOT a
-    placeholder. Honesty over completeness: a mostly-ungraded early state is
-    the honest story, not a hidden one."""
+    """The centrepiece: the REAL shadow-live pre-registered decision log, graded
+    so that a wrong prediction lands as a MISS. See the section header above for
+    the purpose, the six guarantees and the independence argument.
+
+    Honesty over completeness: an early ledger with nothing graded is the honest
+    story -- but it must be stated as "nothing graded", not dressed as a count.
+    """
+    source = "site/state/track_record_scorecard.json"
     try:
         sc = json.loads(SCORECARD_PATH.read_text())
-    except Exception:
-        return dict(available=False,
-                    note="track_record_scorecard.json not readable at generation time")
+        if not isinstance(sc, dict):
+            raise ValueError("payload is not an object")
+    except Exception as exc:
+        # R15 FAIL-SILENT: the checker being unavailable is a FAILED check. Say so
+        # loudly rather than rendering an empty (and therefore clean) ledger.
+        return dict(
+            available=False, source=source,
+            headline="LEDGER SOURCE UNAVAILABLE -- %s could not be read at generation "
+                     "time, so NOTHING on this door has been graded. An unavailable "
+                     "check is a FAILED check (R15): this is a blank record, never a "
+                     "clean one." % source,
+            note="track_record_scorecard.json not readable at generation time (%s)" % exc)
+
     rg = sc.get("renewal_grading") or {}
     hg = sc.get("hedge_grading") or {}
     rev = sc.get("retention_ev_log") or {}
+    tolerance = sc.get("renewal_tolerance_pct")
+    today = sc.get("wall_clock_today") or datetime.now(timezone.utc).date().isoformat()
+    observed = _observed_portfolio()
+
+    # G1: every renewal log line, whatever bucket upstream filed it in, then
+    # de-duplicated on the prediction's own identity (who / when / what price).
+    renewal_lines = []
+    for bucket in ("graded", "pending", "inconclusive"):
+        renewal_lines.extend(rg.get(bucket) or [])
+    renewal_rows, renewal_log_lines = _dedupe(
+        renewal_lines,
+        lambda e: (e.get("cid"), str(e.get("renewal_date")),
+                   round(_finite(e.get("proposed_rate_gbp_per_mwh")) or 0.0, 4)))
+    for row in renewal_rows:
+        row["kind"] = "renewal"
+        row["label"] = "%s @ %s" % (row.get("cid"), row.get("renewal_date"))
+        _grade_renewal(row, observed, tolerance, today)
+
+    # G1 again: the hedge stance IS the prediction, so identical stances are one
+    # prediction re-logged, not N forecasts.
+    hedge_rows, hedge_log_lines = _dedupe(
+        hg.get("entries") or [], lambda e: str(e.get("hedge_recommendation")))
+    for row in hedge_rows:
+        row["kind"] = "hedge"
+        row["label"] = str(row.get("hedge_recommendation"))
+        _grade_hedge(row, hg, today)
+
+    # A single stance repeated for the whole log is a CONSTANT, not a forecast.
+    # Stated on the surface as an observation about this recommender's output; the
+    # recommender itself is out of this atom's scope (registered, not fixed).
+    constant_warning = None
+    if len(hedge_rows) == 1 and hedge_log_lines >= 3:
+        constant_warning = (
+            "All %d hedge log lines carry the SAME recommendation (%s). A constant is "
+            "not a forecast: a recommender that has only ever said one thing cannot be "
+            "scored, whatever the market did. Counted here as ONE prediction re-logged "
+            "%d times."
+            % (hedge_log_lines, hedge_rows[0].get("hedge_recommendation"),
+               hedge_log_lines))
+
+    rows = renewal_rows + hedge_rows
+    counts = _count_verdicts(rows)
+    log_lines = renewal_log_lines + hedge_log_lines
+    distinct = len(rows)
+    graded = counts[V_ON_TARGET] + counts[V_MISS]
+
+    # G1: publish the upstream claim next to the derived count wherever they
+    # disagree, rather than silently overriding it. Upstream counted an entry
+    # whose own outcome reads "gradeable_but_no_grading_logic_yet" as graded.
+    upstream_graded = (_finite(rg.get("graded_count")) or 0) + \
+                      (_finite(hg.get("graded_count")) or 0)
+    reconciliation = None
+    if int(upstream_graded) != graded or (sc.get("log_entry_count") or 0) != log_lines:
+        reconciliation = (
+            "The upstream scorecard claims %d graded across %s log entries; this door "
+            "derives %d graded across %d log lines and %d distinct predictions. The "
+            "derived figures govern here -- they are computed from the entries "
+            "themselves, and an entry whose recorded outcome is "
+            "\"gradeable_but_no_grading_logic_yet\" is not a grade."
+            % (int(upstream_graded), sc.get("log_entry_count"), graded, log_lines,
+               distinct))
+
     return dict(
         available=True,
-        source="site/state/track_record_scorecard.json",
+        source=source,
+        outcome_source=observed.get("name"),
+        outcome_source_available=observed.get("available"),
+        outcome_source_stamp=observed.get("stamp"),
+        outcome_source_age_days=_day_delta(today, observed.get("stamp")),
+        outcome_source_detail=observed.get("detail"),
         clock_started=sc.get("clock_started"),
         wall_clock_today=sc.get("wall_clock_today"),
-        log_entry_count=sc.get("log_entry_count"),
-        renewal_tolerance_pct=sc.get("renewal_tolerance_pct"),
-        renewal=dict(
-            graded=rg.get("graded_count"), pending=rg.get("pending_count"),
-            inconclusive=rg.get("inconclusive_count"),
-            on_target=rg.get("on_target_count"), off_target=rg.get("off_target_count"),
-            churned=rg.get("churned_count"),
-            inconclusive_entries=rg.get("inconclusive", []),
-            graded_entries=rg.get("graded", []),
-        ),
-        hedge=dict(
-            graded=hg.get("graded_count"), ungraded=hg.get("ungraded_count"),
-            current_market_data_stale_days=hg.get("current_market_data_stale_days"),
-            entries=hg.get("entries", []),
-        ),
+        renewal_tolerance_pct=tolerance,
+        horizon_days=INCONCLUSIVE_HORIZON_DAYS,
+        verdict_vocabulary=list(VERDICT_VOCABULARY),
+        log_lines=log_lines,
+        log_entry_count_upstream_claimed=sc.get("log_entry_count"),
+        distinct_predictions=distinct,
+        graded=graded,
+        on_target=counts[V_ON_TARGET],
+        missed=counts[V_MISS],
+        awaiting=counts[V_AWAITING],
+        ungradeable=counts[V_UNGRADEABLE],
+        headline=_ledger_headline(counts, rows, log_lines, distinct),
+        reconciliation=reconciliation,
+        integrity=_ledger_integrity(rows),
+        renewal=dict(rows=renewal_rows, log_lines=renewal_log_lines,
+                     distinct=len(renewal_rows)),
+        hedge=dict(rows=hedge_rows, log_lines=hedge_log_lines,
+                   distinct=len(hedge_rows), constant_warning=constant_warning,
+                   current_market_data_stale_days=hg.get(
+                       "current_market_data_stale_days")),
         retention=dict(
             logged=rev.get("logged_count"), graded=rev.get("graded_count"),
             note=rev.get("note"),
@@ -710,6 +1305,9 @@ def generate():
         not_proven=_not_proven(),
         corrections=_corrections(),
     )
+    # MAJOR-7: re-point every evidence citation at where the artefact lives now,
+    # so an archived staging directive stays walkable instead of silently 404ing.
+    resolve_citations(data)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: " + str(OUT_PATH))

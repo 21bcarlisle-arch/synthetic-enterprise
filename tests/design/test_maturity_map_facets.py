@@ -69,6 +69,28 @@ REVIEWED_CLOSE_TO_LEARN = {
     # sibling drawability-mechanism atom) and all 52 H_harness siblings, and it is GAP1's TRUE stream,
     # not a dumping-ground default.
     "GAP1_gap_registers_as_mint_sources",
+    # 2026-08-03 reviewed (worker tick, diagnosed from docs/observability/background-worker-log.md).
+    # Classified on its merits, not to clear the gate: the leftover run_complete sweep can never
+    # acquire the run lock the producer holds, so it has logged "will retry next cycle" for 404
+    # markers, every cycle, without ever succeeding -- a livelock reporting a permanent total
+    # failure in the vocabulary of a transient retry. It moves no money and touches no revenue
+    # flow; what it measures is whether the machine's own account of its publish queue can be
+    # TRUSTED, which is the identical class to OPS1_launcher_cutover_completion (process-lifecycle
+    # integrity) and H_forward_discovery_draw. close_to_learn is its TRUE stream, not a default.
+    "OPS_run_marker_sweep_livelock",
+    # 2026-07-29 reviewed (worker tick): the three atoms minted from SITE1_expert_doors' cold-eyes
+    # Expert Hour (BLOCKER-1, MAJOR-3, MAJOR-4/5/6). They were minted with value_stream=
+    # 'evidence_surfaces', a stream that has never been in VALID_STREAMS -- so the mint left this
+    # test RED on the working tree. Classified on their merits, not to clear the gate: each one is
+    # about whether a PUBLISHED figure or claim can be trusted (a segment-mix disclosure behind a
+    # headline per-customer margin; a predictions ledger that must be able to record a MISS; one
+    # bad-debt series, a margin plausibility band, and part-periods labelled as such). None moves
+    # money or touches a revenue flow -- they measure belief-vs-truth on the evidence surfaces of
+    # the close, which is the same close_to_learn class as their own parent SITE1_expert_doors and
+    # as the G-fidelity/H_harness siblings.
+    "SITE_EH1_segment_disclosure",
+    "SITE_EH2_predictions_ledger_can_fail",
+    "SITE_EH3_figure_reconciliation_and_periods",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
@@ -139,6 +161,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     # close_to_learn is its TRUE stream (it measures what can and cannot yet be validated, not revenue).
     "CA3_segmentation_untestable_ledger_marking",
     "W4_1_typed_adapters", "W4_2_verifier_timing_extension", "W4_3_external_truth_wall",
+    # 2026-08-03 reviewed (worker tick, minted from ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS).
+    # Classified on its merits, not to clear the gate: this is the HARNESS leg of the fabric
+    # coupled triad -- the two-level test (spiky homes, smooth crowds) as a standing failable
+    # control, plus the EPC-vs-actual and inferred-vs-actual fabric gap metrics. It measures
+    # whether the premise generator's traces can be BELIEVED and how wrong the company's fabric
+    # beliefs are; it moves no money and touches no revenue flow. That is the identical class to
+    # its sibling harness-gap atoms F1c_harness_conversation_gap and A6_coupled_triad_gap_metric,
+    # and close_to_learn is its TRUE stream, not a dumping-ground default.
+    "H_GAP_fabric_belief_truth_gap",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

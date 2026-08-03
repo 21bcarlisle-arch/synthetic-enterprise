@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_build_open -- stop-control gap; BUILD needs a director BUILD_OPEN (console-only, one-way door #5), never self-authored -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_build_open', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: stop-control gap; BUILD needs a director BUILD_OPEN (console-only, one-way door #5), never self-authored -->
 # [PLANNER-MINTED] — Stop-control gap characterisation (SPEC_005 §7.13 material-safety) — DISCOVER half (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): inventory published at `docs/design/STOP_CONTROL_GAP.md`.**

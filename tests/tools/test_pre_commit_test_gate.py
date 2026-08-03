@@ -74,7 +74,7 @@ def test_maturity_map_change_runs_the_level_sensitive_set():
     assert targets != []                                        # NOT skipped as "pure data"
     assert set(gate.LEVEL_SENSITIVE_TESTS) <= set(targets)
     assert "tests/tools/test_generate_proof_coupled_gaps.py" in targets  # the test that escaped
-    assert "tests/background/test_fronts_reconciler.py" in targets       # the self-promotion guard
+    assert "tests/background/test_gate_authorization.py" in targets      # the level-RECORD control
 
 
 def test_ledger_change_runs_the_level_sensitive_set():

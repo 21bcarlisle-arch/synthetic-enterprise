@@ -470,7 +470,28 @@ def extract_report_data(run_output: dict) -> dict:
             continue
         cts = cost_to_serve.get("by_customer", {}).get(cid, {})
         revenue_gbp = sum(r["revenue_gbp"] for r in recs)
-        net_after_cts = cts.get("net_margin_gbp")
+        # A SEMANTIC COLLISION ACROSS THIS SEAM, not a typo in either module
+        # (cold-eyes forensic audit 2026-07-29). saas/cost_to_serve.py documents
+        # its own `margin_gbp` as the revenue-minus-wholesale (GROSS) figure, so
+        # ITS `net_margin_gbp` means "gross minus cost-to-serve". The record-level
+        # `net_margin_gbp` summed into `net_gbp` below is a different quantity --
+        # net AFTER capital costs. Reading the former and publishing it as
+        # `net_margin_after_cost_to_serve_gbp` therefore published gross-minus-CTS
+        # under a name that says net: the identity `published == gross - cts` held
+        # for every one of the 19 accounts, and portfolio-wide it overstated the
+        # figure 4.28x (£6,405,881.07 vs a true £1,497,776.44).
+        #
+        # Why this one mattered more than its size: it inverted the sign on the
+        # high-cost-to-serve tail. Five net-negative accounts published as
+        # profitable (worst: a true -£2,734.72 shown as +£503.12), which is
+        # precisely the tail this project's activity-based-pricing principle
+        # exists to expose -- and `_pricing_action` below consumed the same wrong
+        # value, so the pricing recommendation inherited the inversion.
+        net_gbp = sum(r["net_margin_gbp"] for r in recs)
+        cost_to_serve_gbp = cts.get("cost_to_serve_gbp")
+        net_after_cts = (
+            net_gbp - cost_to_serve_gbp if cost_to_serve_gbp is not None else None
+        )
         # 2026-07-11 (HARDEN sweep, harden_sweep:live_site:B3_hedge_tariff_alignment):
         # hedge_fraction has always been on every settlement record (real per-term
         # value for fixed/hedged terms; 0.0 for deemed/SVT by definition -- buys at
@@ -492,8 +513,8 @@ def extract_report_data(run_output: dict) -> dict:
             "revenue_gbp": revenue_gbp,
             "gross_gbp": sum(r["margin_gbp"] for r in recs),
             "capital_gbp": sum(r["capital_cost_gbp"] for r in recs),
-            "net_gbp": sum(r["net_margin_gbp"] for r in recs),
-            "cost_to_serve_gbp": cts.get("cost_to_serve_gbp"),
+            "net_gbp": net_gbp,
+            "cost_to_serve_gbp": cost_to_serve_gbp,
             "net_margin_after_cost_to_serve_gbp": net_after_cts,
             "pricing_action": _pricing_action(net_after_cts, revenue_gbp),
             "avg_hedge_fraction": round(avg_hedge_fraction, 4) if avg_hedge_fraction is not None else None,
@@ -621,7 +642,16 @@ def extract_report_data(run_output: dict) -> dict:
             "avg_complaint_probability"
         ),
         "cost_to_serve_portfolio_gbp": cost_to_serve.get("portfolio", {}).get("cost_to_serve_gbp"),
-        "net_margin_after_cost_to_serve_gbp": cost_to_serve.get("portfolio", {}).get("net_margin_gbp"),
+        # Same seam collision as the per-customer figure above: cost_to_serve's
+        # portfolio `net_margin_gbp` is gross-minus-CTS. Sum the corrected
+        # per-customer values so the portfolio total and its components agree by
+        # construction (they disagreed before -- the portfolio figure was
+        # gross-based while nothing published reconciled it).
+        "net_margin_after_cost_to_serve_gbp": sum(
+            v["net_margin_after_cost_to_serve_gbp"]
+            for v in per_customer_lifetime.values()
+            if v.get("net_margin_after_cost_to_serve_gbp") is not None
+        ),
         "flexibility_revenue_summary": flex_summary,
         # FIXED 2026-07-10 (found while building the Operations-tab DSR KPI,
         # PRIORITIES.md): this field's own name says "total" but only ever

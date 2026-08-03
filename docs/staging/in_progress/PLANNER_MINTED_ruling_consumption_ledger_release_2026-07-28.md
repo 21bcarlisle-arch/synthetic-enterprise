@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- BUILD half (b)(c) DONE + R15-both-ways-proven (14 tests, tests/background/test_ruling_consumption_ledger_release.py); only the level_current 0->3 move remains, director-reserved (R16 -- the agent proposes level, never moves the cell). -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: BUILD half (b)(c) DONE + R15-both-ways-proven (14 tests, tests/background/test_ruling_consumption_ledger_release.py); only the level_current 0->3 move remains, director-reserved (R16 -- the agent proposes level, never moves the cell). -->
 <!-- RELEASED 2026-07-28: director console signoff (ruling_consumption_authority_seam_signoff) — items 1+2 ARE this atom's named blocker (director_authority_seam_signoff). BUILD half (ruling-consumption writes/parses the ledger entry that releases a block) now authorised; BUILD_OPEN recorded in docs/observability/gate_authorizations.jsonl (channel=console). Level move stays director_level_up (R16). -->
 # [PLANNER-MINTED] — Ruling-consumption must PRODUCE the ledger entry that releases a block — or name what can (§0 + WORK-THIS-CREATES deliverable 1) (2026-07-28)
 
