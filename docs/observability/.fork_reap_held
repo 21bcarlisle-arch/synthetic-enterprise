@@ -10,9 +10,13 @@
 #
 # REMOVE A LINE once that branch's work has landed on main or been positively judged superseded.
 
-# -- the audit's rival pair for OPS_run_marker_sweep_livelock (pick a winner, don't merge both)
-worktree-agent-a5555b1e8256de0e4   # RIVAL A: background_worker +266, process_run_complete +27
-worktree-agent-ad14ac1d4858a473f   # RIVAL B: + tests/background/test_run_marker_sweep.py (423, not on main)
+# -- RELEASED 2026-08-03: the OPS_run_marker_sweep_livelock rival pair is SETTLED. Neither won:
+#    main rebuilt the atom after both were orphaned (32616f77d + 291768c32). RIVAL B is ABSORBED
+#    (supersession + zero-progress alarm are live on main). RIVAL A is superseded as a necessity;
+#    its batch-scoped lock idea is recorded in the triage finding, not force-fitted onto a file
+#    that has moved twice. Verified: pending markers 404 -> 1, 4,298 archived, last zero-progress
+#    alarm 10:45 UTC (BEFORE the fix), sweep state fresh. Work stays at salvage/<branch> on origin.
+#    Full reasoning: docs/staging/in_progress/WORKER_FINDING_FORK_BRANCH_TRIAGE_2026-08-03.md
 
 # -- the audit's LOSING SITE_EH1 rival, held only for the one idea main lacks:
 #    _population_from_source/_POP_PATTERNS read an anchor's population from the BENCHMARK SOURCE
