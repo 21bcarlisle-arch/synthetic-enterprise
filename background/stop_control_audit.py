@@ -271,6 +271,99 @@ def _derive_verdict(controls: tuple[StopControl, ...]) -> tuple[str, list[str]]:
     return ("MET" if not residual else "PARTIAL"), residual
 
 
+def _check_vocabulary(c: StopControl, tag: str) -> list[str]:
+    out = []
+    if c.classification not in CLASSIFICATIONS:
+        out.append(f"{tag}: unknown classification {c.classification!r}")
+    if c.reach not in REACHES:
+        out.append(f"{tag}: unknown reach {c.reach!r}")
+    return out
+
+
+def _check_module_symbols(c: StopControl, tag: str, root: Path) -> list[str]:
+    """Oracle: the implementing file's real source text."""
+    module_path = root / c.module
+    if not module_path.exists():
+        return [f"{tag}: MODULE_MISSING — {c.module} does not exist"]
+    source = module_path.read_text(encoding="utf-8", errors="replace")
+    return [
+        f"{tag}: SYMBOL_MISSING — {c.module} no longer contains {sym!r}"
+        for sym in c.symbols
+        if sym not in source
+    ]
+
+
+def _check_flag_readers(c: StopControl, tag: str, root: Path) -> list[str]:
+    """Oracle: the literal flag name in the source of each module said to read it. A flag file
+    is only a control because something reads it."""
+    if not c.flag:
+        return []
+    flag_name = Path(c.flag).name
+    out = []
+    if not c.flag_readers:
+        out.append(f"{tag}: UNREAD_FLAG — claims flag {c.flag} but names no reader")
+    for reader in c.flag_readers:
+        reader_path = root / reader
+        if not reader_path.exists():
+            out.append(f"{tag}: READER_MISSING — {reader} does not exist")
+        elif flag_name not in reader_path.read_text(encoding="utf-8", errors="replace"):
+            out.append(f"{tag}: FLAG_UNREFERENCED — {reader} does not reference {flag_name}")
+    return out
+
+
+def _check_halt_targets(c: StopControl, tag: str, states: dict[str, str], live: bool) -> list[str]:
+    """Oracle: the process manifest's declared state. This is the check that found row 6."""
+    out = []
+    for session in c.halts_processes:
+        state = states.get(session)
+        if state is None:
+            out.append(f"{tag}: UNKNOWN_PROCESS — {session!r} is not in the process manifest")
+        elif live and state not in _STOPPABLE_STATES:
+            out.append(
+                f"{tag}: DEAD_TARGET — claims to halt {session!r}, which the manifest declares "
+                f"state={state!r}; a control over a process that must never run halts nothing"
+            )
+    return out
+
+
+def _check_cited_tests(c: StopControl, tag: str, root: Path, live: bool) -> list[str]:
+    """Oracle: `def <name>(` in the real test file. The inventory's 'Release tested?' column is
+    otherwise a claim about nothing."""
+    out = []
+    if live and not c.cited_tests:
+        out.append(f"{tag}: UNTESTED_CLAIM — claimed as a live stop control with no cited test")
+    for cite in c.cited_tests:
+        if "::" not in cite:
+            out.append(f"{tag}: malformed test citation {cite!r}")
+            continue
+        rel, test_name = cite.split("::", 1)
+        test_path = root / rel
+        if not test_path.exists():
+            out.append(f"{tag}: TEST_FILE_MISSING — {rel}")
+        elif f"def {test_name}(" not in test_path.read_text(encoding="utf-8", errors="replace"):
+            out.append(f"{tag}: TEST_MISSING — {rel} no longer defines {test_name}")
+    return out
+
+
+def _check_doc_alignment(controls: tuple[StopControl, ...], doc_text: str) -> list[str]:
+    """Oracle: the `| N |` rows of the document itself — the doc must not grow a row nobody
+    checks, nor lose one the registry still claims."""
+    out = []
+    row_ids = doc_row_ids(doc_text)
+    registry_ids = {c.id for c in controls}
+    if unchecked := row_ids - registry_ids:
+        out.append(
+            f"DOC_ROW_UNCHECKED — STOP_CONTROL_GAP.md §1 lists control(s) {sorted(unchecked)} "
+            f"that this audit does not check"
+        )
+    if phantom := registry_ids - row_ids:
+        out.append(
+            f"REGISTRY_ROW_UNDOCUMENTED — registry control(s) {sorted(phantom)} appear in no "
+            f"row of STOP_CONTROL_GAP.md §1"
+        )
+    return out
+
+
 def audit(
     controls: tuple[StopControl, ...] | None = None,
     doc_path: Path | None = None,
@@ -295,74 +388,13 @@ def audit(
         if c.id in seen_ids:
             result.violations.append(f"{tag}: DUPLICATE id in the registry")
         seen_ids.add(c.id)
-        if c.classification not in CLASSIFICATIONS:
-            result.violations.append(f"{tag}: unknown classification {c.classification!r}")
-        if c.reach not in REACHES:
-            result.violations.append(f"{tag}: unknown reach {c.reach!r}")
-
         live = c.classification == "stop_control"
 
-        # -- the module and its symbols, against real source ----------------------
-        module_path = root / c.module
-        if not module_path.exists():
-            result.violations.append(f"{tag}: MODULE_MISSING — {c.module} does not exist")
-        else:
-            source = module_path.read_text(encoding="utf-8", errors="replace")
-            for sym in c.symbols:
-                if sym not in source:
-                    result.violations.append(
-                        f"{tag}: SYMBOL_MISSING — {c.module} no longer contains {sym!r}"
-                    )
-
-        # -- the durable flag, against the source of every claimed reader ---------
-        if c.flag:
-            flag_name = Path(c.flag).name
-            if not c.flag_readers:
-                result.violations.append(
-                    f"{tag}: UNREAD_FLAG — claims flag {c.flag} but names no reader"
-                )
-            for reader in c.flag_readers:
-                reader_path = root / reader
-                if not reader_path.exists():
-                    result.violations.append(
-                        f"{tag}: READER_MISSING — {reader} does not exist"
-                    )
-                elif flag_name not in reader_path.read_text(encoding="utf-8", errors="replace"):
-                    result.violations.append(
-                        f"{tag}: FLAG_UNREFERENCED — {reader} does not reference {flag_name}"
-                    )
-
-        # -- what it claims to halt, against the declared process set -------------
-        for session in c.halts_processes:
-            state = states.get(session)
-            if state is None:
-                result.violations.append(
-                    f"{tag}: UNKNOWN_PROCESS — {session!r} is not in the process manifest"
-                )
-            elif live and state not in _STOPPABLE_STATES:
-                result.violations.append(
-                    f"{tag}: DEAD_TARGET — claims to halt {session!r}, which the manifest "
-                    f"declares state={state!r}; a control over a process that must never run "
-                    f"halts nothing"
-                )
-
-        # -- cited tests, against the real test files -----------------------------
-        if live and not c.cited_tests:
-            result.violations.append(
-                f"{tag}: UNTESTED_CLAIM — claimed as a live stop control with no cited test"
-            )
-        for cite in c.cited_tests:
-            if "::" not in cite:
-                result.violations.append(f"{tag}: malformed test citation {cite!r}")
-                continue
-            rel, test_name = cite.split("::", 1)
-            test_path = root / rel
-            if not test_path.exists():
-                result.violations.append(f"{tag}: TEST_FILE_MISSING — {rel}")
-            elif f"def {test_name}(" not in test_path.read_text(encoding="utf-8", errors="replace"):
-                result.violations.append(
-                    f"{tag}: TEST_MISSING — {rel} no longer defines {test_name}"
-                )
+        result.violations += _check_vocabulary(c, tag)
+        result.violations += _check_module_symbols(c, tag, root)
+        result.violations += _check_flag_readers(c, tag, root)
+        result.violations += _check_halt_targets(c, tag, states, live)
+        result.violations += _check_cited_tests(c, tag, root, live)
 
         if live:
             result.live_controls.append(c.id)
@@ -374,20 +406,7 @@ def audit(
         )
 
     # -- the doc's own table must not drift from what gets checked ---------------
-    row_ids = doc_row_ids(doc_text)
-    registry_ids = {c.id for c in controls}
-    unchecked = row_ids - registry_ids
-    phantom = registry_ids - row_ids
-    if unchecked:
-        result.violations.append(
-            f"DOC_ROW_UNCHECKED — STOP_CONTROL_GAP.md §1 lists control(s) {sorted(unchecked)} "
-            f"that this audit does not check"
-        )
-    if phantom:
-        result.violations.append(
-            f"REGISTRY_ROW_UNDOCUMENTED — registry control(s) {sorted(phantom)} appear in no "
-            f"row of STOP_CONTROL_GAP.md §1"
-        )
+    result.violations += _check_doc_alignment(controls, doc_text)
 
     # -- the doc's headline verdict must match what the registry now implies -----
     result.derived_verdict, result.residual = _derive_verdict(controls)
