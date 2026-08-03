@@ -1,0 +1,2103 @@
+{
+  "_doc": "DERIVED evidence behind every model-on-a-page node (atom SITE_evidence_pages_behind_nodes). Every figure is read from primary state by tools/generate_moap_evidence_data.py -- nothing on the evidence page is authored. A node's derived_stage is computed from its atoms' real levels in docs/design/maturity_map.yaml; claimed_stage is the site's own hand-set claim, carried ONLY so the two can be seen to disagree.",
+  "generated_at_utc": "2026-08-03T08:51:00.528475+00:00",
+  "sources": {
+    "map": "docs/design/maturity_map.yaml",
+    "mapping": "site/data/moap_node_atoms.json",
+    "level_ledger": "docs/observability/gate_authorizations.jsonl",
+    "fidelity_register": "docs/observability/fidelity_evidence_ledger.json",
+    "test_roots": [
+      "tests",
+      "site"
+    ]
+  },
+  "suite_execution": {
+    "available": true,
+    "test_count": 18324,
+    "timestamp": "2026-07-17T10:04:27.481741+00:00"
+  },
+  "totals": {
+    "nodes": 6,
+    "atoms": 46,
+    "ledger_records": 28,
+    "fidelity_rows": 1,
+    "test_functions": 3954
+  },
+  "nodes": [
+    {
+      "id": "governance_method",
+      "anchor": "node-governance_method",
+      "name": "Governance & method",
+      "claimed_stage": "Live",
+      "derived_stage": "Live",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "A1_learn_loop_chair",
+          "name": "Formalised learn-loop / retrospective cadence",
+          "lane": "A_strategy_governance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/retrospectives/",
+            ".claude/skills/incident-retro/SKILL.md",
+            "background/retro_cadence_check.py",
+            "tests/background/test_retro_cadence_check.py",
+            "background/retro_cadence_check.py::last_retro(as_of=) (R15 fail-open guard)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 160,
+            "files": [
+              {
+                "path": "tests/background/test_deadmans_switch.py",
+                "test_functions": 48
+              },
+              {
+                "path": "tests/background/test_health_check.py",
+                "test_functions": 42
+              },
+              {
+                "path": "tests/background/test_daily_self_note.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/background/test_retro_cadence_check.py",
+                "test_functions": 23
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "A2_decision_rights_register",
+          "name": "Decision-rights register + bitemporal decision-event logging",
+          "lane": "A_strategy_governance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "passed_execute_after_fix",
+          "evidence_refs": [
+            "company/governance/decision_rights.py",
+            "tests/company/governance/test_decision_rights.py",
+            "simulation/renewals.py (real call site: pricing_move + L2 live approval caller _route_pricing_move)",
+            "tests/simulation/test_renewals.py (integration tests proving real decision-events land)",
+            "saas/ledger.py::build_ledger() (real call site: credit_collections_policy, every real bad-debt write-off)",
+            "tests/saas/test_ledger.py (integration tests proving real decision-events land for the second wired class)",
+            "company/interfaces/bitemporal_event_log.py (L3 immutability fix, commit e6198a77)",
+            "tests/company/interfaces/test_bitemporal_event_log.py (immutability regression)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 94,
+            "files": [
+              {
+                "path": "tests/saas/test_ledger.py",
+                "test_functions": 75
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "A3_approval_interface",
+          "name": "Approval interface (requests-awaiting-decision surface, human-operable)",
+          "lane": "A_strategy_governance",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
+            "company/governance/approval_interface.py",
+            "simulation/renewals.py::_route_pricing_move (L2 live caller)",
+            "tests/simulation/test_renewals_approval_routing.py (7 tests: outcome-neutrality + live caller)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 115,
+            "files": [
+              {
+                "path": "tests/background/test_deadmans_switch.py",
+                "test_functions": 48
+              },
+              {
+                "path": "tests/company/governance/test_decision_rights.py",
+                "test_functions": 26
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/company/governance/test_approval_interface.py",
+                "test_functions": 14
+              },
+              {
+                "path": "tests/simulation/test_renewals_approval_routing.py",
+                "test_functions": 8
+              }
+            ]
+          }
+        },
+        {
+          "id": "F1_epistemic_verifier",
+          "name": "SIM/company epistemic barrier verifier (static + timing)",
+          "lane": "F_risk_compliance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "tools/epistemic_verifier.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "F2_sanity_daemon",
+          "name": "Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting",
+          "lane": "F_risk_compliance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "background/sanity_daemon.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "F3_obligations_register",
+          "name": "Obligations register + domain invariants (risk-tiered compliance checks)",
+          "lane": "F_risk_compliance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "company/compliance/domain_invariants.py",
+            "company/compliance/population_sanity.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "H1_supervisor_turn_granting",
+          "name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
+          "lane": "H_harness",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "background/supervisor.py",
+            "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md",
+            "tests/background/test_supervisor.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 204,
+            "files": [
+              {
+                "path": "tests/background/test_supervisor.py",
+                "test_functions": 185
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "H5_security_profiles",
+          "name": "Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model",
+          "lane": "H_harness",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "background/secrets_location.py",
+            "background/egress_allowlist.py",
+            "docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md",
+            "docs/observability/session-watchdog-log.md:4354 (2026-07-11 05:59 UTC director binding constraint)",
+            "docs/review_gates/done/POESYS_ROUTINE_SCOPE_TIER1.md",
+            "docs/staging/done/ADVISOR_STEER_ROUTINE_SCOPE.md",
+            "CLAUDE.md 'Routine creation, standing rule'"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "H7_skills_and_rules",
+          "name": "Harness skills/ and path-scoped rules/ -- procedure moved out of CLAUDE.md into decay-resistant mechanism",
+          "lane": "H_harness",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            ".claude/skills/phase-close/SKILL.md",
+            ".claude/skills/staging-protocol/SKILL.md",
+            ".claude/skills/cold-eyes-walk/SKILL.md",
+            ".claude/skills/incident-retro/SKILL.md",
+            ".claude/rules/epistemic-wall-company.md",
+            ".claude/rules/epistemic-wall-sim.md",
+            ".claude/hooks/log_instructions_loaded.py",
+            "docs/design/HARNESS_SKILLS_AND_RULES_ADOPTION.md",
+            "background/claude_md_integrity.py",
+            "tests/tools/test_claude_md_integrity.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 3,
+            "test_functions": 75,
+            "files": [
+              {
+                "path": "tests/tools/test_claude_md_integrity.py",
+                "test_functions": 49
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/tools/test_log_instructions_loaded_hook.py",
+                "test_functions": 7
+              }
+            ]
+          }
+        },
+        {
+          "id": "H12_mutation_test_controls",
+          "name": "Mutation-test the entire control apparatus: every control must fire on its own named defect (kill list + the 3 killer patterns)",
+          "lane": "H_harness",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md",
+            "docs/design/INVARIANT_LIBRARY_REDTEAM.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 3,
+            "test_functions": 96,
+            "files": [
+              {
+                "path": "tests/background/test_deadmans_switch.py",
+                "test_functions": 48
+              },
+              {
+                "path": "tests/background/test_naive_organ.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "G2_fidelity_evidence_ledger",
+          "name": "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions",
+          "lane": "G_data_learning",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+            "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md"
+          ],
+          "ledger_records": 3,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts_utc": "2026-07-19T11:59:24.971843+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-19T12:52:57.701102+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'RATIFIED: G1, G2, G3 -> L2. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-20T08:15:33.531894+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 11,
+        "at_target": 11,
+        "ledger_records": 3,
+        "fidelity_rows": 0,
+        "test_files": 25,
+        "test_functions": 839
+      }
+    },
+    {
+      "id": "the_world",
+      "anchor": "node-the_world",
+      "name": "The world",
+      "claimed_stage": "Building",
+      "derived_stage": "Building",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "W1_3_national_weather_signal",
+          "name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
+          "lane": "W1_market_weather",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+            "docs/design/frame/W1_3_national_weather_signal_FRAME.md",
+            "docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md",
+            "sim/weather_engine.py (Pass 1: regime-switching AR1 joint temp/wind/cloud, calibrated on 3446 real days)",
+            "simulation/demand_model.py (real sim-run caller)",
+            "tests/sim/test_weather_engine.py (27 tests)",
+            "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md"
+          ],
+          "ledger_records": 4,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-18T03:53:04.104655+00:00",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Record"
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-19T22:15:18.392903+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-20T08:15:33.532003+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-20T09:57:10.110080+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 17,
+            "files": [
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              }
+            ]
+          }
+        },
+        {
+          "id": "W1_4_regional_weather_field",
+          "name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
+          "lane": "W1_market_weather",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+            "docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md",
+            "docs/design/frame/W1_4_regional_weather_field_FRAME.md",
+            "docs/design/REGIONAL_WEATHER_FIELD_FRAME.md",
+            "sim/weather_engine.py (Pass 2: fit_regional_cholesky/simulate_regional_deviations, spatially-correlated regional field bound to national)",
+            "tests/sim/test_weather_engine.py (27 tests)",
+            "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md"
+          ],
+          "ledger_records": 4,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-18T03:53:04.104655+00:00",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Record"
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-19T22:15:18.393003+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-20T09:57:10.110197+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-21T11:36:29.410376+00:00",
+              "authorized_by": "director",
+              "provenance": "Director console ratification (live session turn, 2026-07-21): 'W1_4 -> L3 RATIFIED (twin-exempt as public/company-knowable; the whitelist mechanism with the W1_9 negative test is the right shape).' Recorded by the console session on the director's directly-typed authorization (authentication convention (a)). W1_4 is director-exempt from the coupled-twin L3 gate (_TWIN_EXEMPT, commit 15c7f5e3c) --"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 17,
+            "files": [
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              }
+            ]
+          }
+        },
+        {
+          "id": "W1_5_premise_demand_shape",
+          "name": "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)",
+          "lane": "W1_market_weather",
+          "in_map": true,
+          "level_current": 1,
+          "level_target": 3,
+          "at_target": false,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+            "docs/design/frame/W1_5_premise_demand_shape_FRAME.md",
+            "2026-08-03 DEMOTED L3 -> L1 (director console: the premise fabric finding is the important one). The cell claimed L3 while the acceptance test named in its OWN priority ranking FAILS, measured on the published traces: day-vs-next-day shape correlation 0.97; median period-to-period change 0.008-0.012 kWh on a ~0.7 kWh mean; no half-hour below 0.05 kWh in ten years; C8-C9 correlation 0.95; 3-home aggregate peak/mean 5.9 vs 5.7 for ONE home, so aggregation smooths nothing; annuals within 8%. That is one deterministic base shape rescaled per home -- exactly the defect this atom exists to not have. Gas has no premise-level trace at any resolution. L1 is honest: a real mechanism exists and runs on real weather, but it does not produce diverse premises. Un-promoting is not self-promoting; the replacement chain is W1_11 -> W1_12 -> C14 -> H_GAP. Evidence: docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md. loop_stage set to IDLE, not build (corrected same day): this atom is NOT independently BUILD-drawable. Its route back to L3 is the fabric chain W1_11 -> W1_12, not a patch to the rescaling generator -- and it was briefly left at build, where the draw immediately picked it over W1_11, which would have sent a fork to improve the very mechanism being replaced. It stays DISCOVER/FRAME-workable and its level rises when W1_12 lands."
+          ],
+          "ledger_records": 6,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-18T03:53:04.104655+00:00",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Record"
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-19T22:15:18.393103+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts_utc": "2026-07-20T09:57:10.110306+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: W1_3 -> L3, W1_4 -> L2, W1_2 -> L2, D -> L2, W1_5 -> L1. AUTHORIZED: the heartbeat migration -- 128k tokens/hour at rest is untenable; implement your proposed shape and prove cheap-rest, wake-on-staged-doc, and never-block-input together. AGWS data is now cached -- the cascade is unblocked; build it. Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-21T13:25:13.822772+00:00",
+              "authorized_by": "director",
+              "provenance": "Director console 2026-07-21 (live session, verbatim): 'RATIFIED batch: W1_5->L2, W1_10->L1, W1_10->L2 -- all ledger-backed. Console provenance: this message.' Authentication convention (a), directly-typed. Built+verified overnight (W1_5 premise demand on local weather + national-reconciliation invariant; W1_10 national adoption S-curves + regional adoption field, A1 exact); reverted to ledger-base"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-21T13:51:00.082308+00:00",
+              "authorized_by": "director",
+              "provenance": "Director console 2026-07-21 (live session, verbatim): 'W1_5->L3 RATIFIED -- the fork is on origin, condition met, move the cell. Console provenance: this message.' Authentication convention (a). L3 code on origin (f4f417297): idiosyncratic per-property noise on its own C-S2 substream (mean-1 lognormal, aggregation-consistency preserved BY CONSTRUCTION, R15 noise_is_unbiased control mutation-proven"
+            },
+            {
+              "action": "LEVEL_UP_SELF_CERTIFIED",
+              "level": 1,
+              "ts_utc": "2026-08-03T08:12:37.053888+00:00",
+              "authorized_by": "agent_self_certified",
+              "provenance": "DEMOTION L3->L1, recorded for the audit trail (a decrease needs no gate, but the ledger is the record). Director console 2026-08-03: the premise fabric finding is the important one -- every home a scaled copy of the average. Spec 003 two-level test FAILS on the published traces: day-to-day shape correlation 0.97, aggregate peak/mean 5.9 vs 5.7 single-home (no smoothing), C8-C9 correlation 0.95, no"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 3,
+            "test_functions": 42,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              },
+              {
+                "path": "tests/tools/test_generate_premise_demand_data.py",
+                "test_functions": 6
+              }
+            ]
+          }
+        },
+        {
+          "id": "W1_6_physics_price_signal",
+          "name": "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)",
+          "lane": "W1_market_weather",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+            "docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md",
+            "docs/design/frame/W1_6_physics_price_signal_FRAME.md",
+            "sim/weather_price_chain.py (L4: weather->demand+renewable->residual->merit-order DERIVED price, fit on the real record, R13 baseline)",
+            "company/pricing/weather_price_belief.py",
+            "background/weather_price_triad.py",
+            "tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)",
+            "docs/observability/coupled_gap_ledger.json (W1_6 gap measured)"
+          ],
+          "ledger_records": 4,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-18T03:53:04.104655+00:00",
+              "authorized_by": "director",
+              "provenance": "director console message 2026-07-18: 'Build now. Authorize the real backlog atoms in in_progress/ as an OPEN FRONT -- the loop draws and builds them continuously in bounded parallel (<=3). known-safe real work (supplier + SIM: M2 accounts/payments, weather physics, supplier reporting, domain artefacts, production-readiness). Excluded (gated): REPO_PRIVATE (one-way door, director decision).' Record"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts_utc": "2026-07-19T11:59:24.971781+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-19T22:15:18.393203+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-20T13:41:29.194562+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20: RATIFIED W1_6_physics_price_signal -> L3; the weather-driven price engine is banked."
+            }
+          ],
+          "fidelity_rows": 1,
+          "fidelity": [
+            {
+              "key": "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19",
+              "layer": "EVIDENCE",
+              "measured_at": "2026-07-19T00:00:00+00:00",
+              "metrics": {
+                "per_cell_lift_n": 10,
+                "relationship_n": 9
+              }
+            }
+          ],
+          "tests": {
+            "test_files": 3,
+            "test_functions": 44,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_fidelity_emitter.py",
+                "test_functions": 13
+              },
+              {
+                "path": "site/proof/test_fidelity_panel.py",
+                "test_functions": 12
+              }
+            ]
+          }
+        },
+        {
+          "id": "W1_reveal_over_time",
+          "name": "Historical data reveal-over-time (point-in-time blindfold at the source, not just company/ code)",
+          "lane": "W1_market_weather",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md",
+            "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+            "docs/design/charters/W1_market_weather.md",
+            "docs/design/THE_VALUE_CYCLE_FRAMING.md",
+            "docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md",
+            "docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md",
+            "company/interfaces/bitemporal_event_log.py",
+            "company/interfaces/point_in_time_view.py",
+            "simulation/run_phase2b.py",
+            ".claude/hooks/block_point_in_time_read.py",
+            "tests/company/interfaces/test_point_in_time_view.py::TestBuildPriceBitemporalLog::test_same_day_price_not_visible_at_midnight_but_prior_day_is (real, code-executed proof the same-day boundary leak is closed; class renamed from TestGetPriceHistoryAsOf 2026-07-29 HARDEN -- broken evidence node-id was a fail-silent, the cited proof could not be located)",
+            "tests/company/interfaces/test_bitemporal_event_log.py::TestOutOfOrderArrivalInvariance (2026-07-27 HARDEN, dial-4 yielded: pins the reveal answer to (transaction_time, decision_time) NOT insertion order -- C-S1 out-of-order settlement-run arrival + C-S2 replay; R15 both-ways, a real-source last-inserted-wins mutation reds exactly these guards)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 6,
+            "test_functions": 289,
+            "files": [
+              {
+                "path": "tests/background/test_supervisor.py",
+                "test_functions": 185
+              },
+              {
+                "path": "tests/company/interfaces/test_bitemporal_event_log.py",
+                "test_functions": 33
+              },
+              {
+                "path": "tests/tools/test_claude_hooks.py",
+                "test_functions": 32
+              },
+              {
+                "path": "tests/company/interfaces/test_point_in_time_view.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/simulation/test_run_phase2b_mtm_sample_reveal_wiring.py",
+                "test_functions": 5
+              },
+              {
+                "path": "tests/simulation/test_run_phase2b_reveal_source_wiring.py",
+                "test_functions": 5
+              }
+            ]
+          }
+        },
+        {
+          "id": "W3_1_price_cap_binding",
+          "name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
+          "lane": "W3_industry_systems",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/staging/done/MARGIN_REALISM_amended.md",
+            "simulation/hedged_settlement.py::run_deemed_term()",
+            "tests/simulation/test_hedged_settlement.py (6 new cap-binding tests)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 205,
+            "files": [
+              {
+                "path": "tests/background/test_supervisor.py",
+                "test_functions": 185
+              },
+              {
+                "path": "tests/simulation/test_hedged_settlement.py",
+                "test_functions": 20
+              }
+            ]
+          }
+        },
+        {
+          "id": "W3_2_settlement_timetable",
+          "name": "Real settlement timetable (D+1/D+... true-up) as an explicit world mechanism",
+          "lane": "W3_industry_systems",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "company/regulatory/settlement_reconciliation.py (adjacent, company-side only, not this atom's own scope -- calibration-constant source of truth)",
+            "simulation/settlement_timetable.py",
+            "tests/simulation/test_settlement_timetable.py (18 tests, all passing)",
+            "simulation/settlement_run_series.py::build_settlement_revision_log (L2 real call site)",
+            "tests/simulation/test_settlement_run_series.py (10 tests: final-value-neutrality + point-in-time blindfold)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 22,
+            "files": [
+              {
+                "path": "tests/simulation/test_settlement_timetable.py",
+                "test_functions": 22
+              }
+            ]
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 7,
+        "at_target": 6,
+        "ledger_records": 18,
+        "fidelity_rows": 1,
+        "test_files": 17,
+        "test_functions": 636
+      }
+    },
+    {
+      "id": "the_households",
+      "anchor": "node-the_households",
+      "name": "The households",
+      "claimed_stage": "Live",
+      "derived_stage": "Live",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "W2_1_archetype_layers",
+          "name": "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "simulation/household_segments.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 0,
+            "test_functions": 0,
+            "files": []
+          }
+        },
+        {
+          "id": "W2_2_population_draw",
+          "name": "Per-run stochastic population draw (vs current fixed cast)",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_EVIDENCE.md",
+            "simulation/population_draw.py",
+            "docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md",
+            "company/analytics/cohort_discovery.py",
+            "tools/couple_cohort.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 4,
+            "test_functions": 109,
+            "files": [
+              {
+                "path": "tests/simulation/test_population_draw.py",
+                "test_functions": 45
+              },
+              {
+                "path": "tests/test_gap_metric.py",
+                "test_functions": 30
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/background/test_director_twin.py",
+                "test_functions": 15
+              }
+            ]
+          }
+        },
+        {
+          "id": "W2_4_household_budget",
+          "name": "Household budget sketch as hidden SIM state (income band, essential-cost floor, discretionary margin, savings buffer, priority-of-debts stack)",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+            "company/compliance/crisis_bad_debt_validator.py",
+            "docs/observability/sanity_adjudication_ledger.json (coldwalk:bad_debt_implausibly_low_through_2021_22_crisis, adjudicated-real)",
+            "docs/market_research/household_budget_w2_4.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 109,
+            "files": [
+              {
+                "path": "tests/sim/test_w2_6_sme_distress.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/background/test_sanity_daemon.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/sim/test_w2_4_household_budget.py",
+                "test_functions": 24
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "W2_5_life_event_stream",
+          "name": "Life-event stream (job loss, illness, divorce, retirement, new child) -- ONE shared W2 event generator",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+            "docs/market_research/life_event_stream_w2_5.md",
+            "simulation/life_events.py (real, wired, ONS-calibrated: job_loss/income_recovery/new_baby/retirement_starts/illness/divorce + solar/EV/heat-pump/smart-meter/insulation)",
+            "simulation/household_demand.py (real call site: generate_life_events)",
+            "simulation/run_phase2b.py (real production entry point importing household_demand)",
+            "simulation/switching_propensity.py (real downstream consumer of income_stress)",
+            "tests/simulation/test_life_events_internals.py + test_phase_b_life_events.py + tests/sim/test_phase_mv_economic_life_events.py + tests/company/crm/test_life_events.py (97 tests)",
+            "company/crm/life_events.py + life_event_impact.py (broader taxonomy incl. divorce/serious_illness, confirmed orphaned -- zero non-test callers)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 7,
+            "test_functions": 137,
+            "files": [
+              {
+                "path": "tests/sim/test_phase_mv_economic_life_events.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/background/test_sanity_daemon.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/test_c10_self_rationing_detection.py",
+                "test_functions": 23
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/sim/test_w2_5_substream_isolation.py",
+                "test_functions": 15
+              },
+              {
+                "path": "tests/tools/test_year_spotlight.py",
+                "test_functions": 14
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "W2_6_sme_distress_twin",
+          "name": "SME/I&C distress twin (sector shocks, insolvency events, late-payment culture)",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+            "docs/market_research/sme_distress_twin_w2_6.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 7,
+            "test_functions": 168,
+            "files": [
+              {
+                "path": "tests/simulation/test_phase_b_life_events.py",
+                "test_functions": 52
+              },
+              {
+                "path": "tests/sim/test_w2_6_sme_distress.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/background/test_sanity_daemon.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              },
+              {
+                "path": "tests/saas/test_channel_attribution.py",
+                "test_functions": 14
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "W2_7_willingness_classification",
+          "name": "Can't-pay vs won't-pay -- hidden ABILITY x WILLINGNESS 2x2, classified by the company under uncertainty",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md",
+            "docs/market_research/willingness_classification_incidence.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 6,
+            "test_functions": 130,
+            "files": [
+              {
+                "path": "tests/test_gap_metric.py",
+                "test_functions": 30
+              },
+              {
+                "path": "tests/background/test_sanity_daemon.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/sim/test_w2_7_willingness_classification.py",
+                "test_functions": 27
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "W2_8_self_rationing",
+          "name": "Pay-but-don't-heat self-rationing (perfect payment record, consumption collapses below plausible living levels)",
+          "lane": "W2_customer_generator",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 6,
+            "test_functions": 123,
+            "files": [
+              {
+                "path": "tests/test_gap_metric.py",
+                "test_functions": 30
+              },
+              {
+                "path": "tests/sim/test_w2_8_self_rationing.py",
+                "test_functions": 25
+              },
+              {
+                "path": "tests/test_c10_self_rationing_detection.py",
+                "test_functions": 23
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 7,
+        "at_target": 7,
+        "ledger_records": 0,
+        "fidelity_rows": 0,
+        "test_files": 35,
+        "test_functions": 776
+      }
+    },
+    {
+      "id": "the_wall",
+      "anchor": "node-the_wall",
+      "name": "The wall",
+      "claimed_stage": "Live",
+      "derived_stage": "Live",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "W4_1_typed_adapters",
+          "name": "Typed, versioned-message SIM/company boundary adapters (go-live seam)",
+          "lane": "W4_the_wall",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "company/interfaces/sim_interface.py",
+            "docs/design/WALLED_INTERFACES_SKETCH.md",
+            "tools/market_data_port.py",
+            "docs/design/charters/W4_the_wall.md",
+            "docs/observability/action_needed_register.json (walled-interfaces-priority-rank, resolved:true)",
+            "tools/meter_read_port.py",
+            "tests/tools/test_meter_read_port.py",
+            "tools/acquisition_funnel_port.py",
+            "tests/tools/test_acquisition_funnel_port.py",
+            "tools/contact_centre_port.py",
+            "tests/tools/test_contact_centre_port.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 4,
+            "test_functions": 37,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/tools/test_acquisition_funnel_port.py",
+                "test_functions": 7
+              },
+              {
+                "path": "tests/tools/test_meter_read_port.py",
+                "test_functions": 6
+              },
+              {
+                "path": "tests/tools/test_contact_centre_port.py",
+                "test_functions": 5
+              }
+            ]
+          }
+        },
+        {
+          "id": "W4_3_external_truth_wall",
+          "name": "Name the EXTERNAL-TRUTH WALL constitutionally: the five failure themes are one failure at different altitudes -- the boundary between what the machine KNOWS and what is EXTERNALLY TRUE; make it a first-class architectural law",
+          "lane": "W4_the_wall",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md",
+            "docs/design/EXTERNAL_TRUTH_WALL.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "W4_4_payment_observable_seam",
+          "name": "Payment observable seam (coupled-triad SEAM of the D5 decomposition): the typed, versioned SIM/company interface through which the company OBSERVES payments -- bank statements, remittance advices, settlement/BACS reports, DD success/failure notifications -- exposing OBSERVABLES ONLY (never the sim payment-behaviour internals). The go-live payment adapter seam (swap sim for real bank/Bacs behind the unchanged contract).",
+          "lane": "W4_the_wall",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md"
+          ],
+          "ledger_records": 3,
+          "ledger": [
+            {
+              "action": "BUILD_OPEN",
+              "level": null,
+              "ts_utc": "2026-07-18T14:14:58.107850+00:00",
+              "authorized_by": "director",
+              "provenance": "director console ruling 2026-07-18 (verbatim: 'CONFIRMED: the enforced model stands -- the draw-filter is the BUILD authorization, the twin only sequences within it, no manual idle->build ever. H23 and H24_worktree STAND; RATIFIED: H23 -> L3, H24_worktree -> L2. BUILD work: sequence the payment triad (W2_11 baseline fidelity ... externally anchored, difficulty dials mine); W1 stays DISCOVER. ... C"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-18T18:16:38.392942+00:00",
+              "authorized_by": "director",
+              "provenance": "director console ruling 2026-07-18 (verbatim: 'RATIFIED: W2_11->L1, W4_4->L2. H27 gap: propose its level only when genuinely measured. AUTHORIZED: wire the W2_11<->D5 coupling and complete the gap measurement for real. NEXT CAMPAIGN: A -- site rebuild per the reconciled site specs, W1 DISCOVER alongside. Console provenance: this message.')"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-18T23:22:10.770297+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-18/19 (REPEATED): 'APPROVED: payment triad -> L3 escalated build. Console provenance: this message.' \u2014 build landed+verified (3bfd4e98c on origin, epistemic PASS, live gap 0.2, R15-proven, full publish gate green 18058); NTFY down so this ratifies the L3 cell-move he could not see completed."
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 20,
+            "files": [
+              {
+                "path": "tests/interface/test_payment_observable_seam.py",
+                "test_functions": 20
+              }
+            ]
+          }
+        },
+        {
+          "id": "C2_discovery_through_interfaces",
+          "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+          "lane": "C_customer_ops",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_EVIDENCE.md",
+            "company/crm/property_model.py::Property.provenance/confidence_for/source_for/as_of_for/overall_confidence",
+            "company/crm/property_discovery.py",
+            "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
+            "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
+            "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
+            "tests/company/crm/test_property_discovery.py",
+            "tests/company/crm/test_c2_discovery_wired.py",
+            "tests/company/crm/test_property_model.py (belief-layer tests)",
+            "tests/company/crm/test_home_registry.py (belief-layer tests)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 22,
+            "files": [
+              {
+                "path": "tests/company/crm/test_c2_discovery_wired.py",
+                "test_functions": 13
+              },
+              {
+                "path": "tests/company/crm/test_c2_wall_read_enforcement.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 4,
+        "at_target": 4,
+        "ledger_records": 3,
+        "fidelity_rows": 0,
+        "test_files": 8,
+        "test_functions": 98
+      }
+    },
+    {
+      "id": "the_company",
+      "anchor": "node-the_company",
+      "name": "The company",
+      "claimed_stage": "Building",
+      "derived_stage": "Building",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "C1_segment_layers",
+          "name": "Customer segment flavour fields (smart meter, dual-fuel, home/business type)",
+          "lane": "C_customer_ops",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "tools/generate_customer_sample.py",
+            "saas/customers.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 11,
+            "files": [
+              {
+                "path": "tests/tools/test_generate_customer_sample.py",
+                "test_functions": 11
+              }
+            ]
+          }
+        },
+        {
+          "id": "C2_discovery_through_interfaces",
+          "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+          "lane": "C_customer_ops",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_EVIDENCE.md",
+            "company/crm/property_model.py::Property.provenance/confidence_for/source_for/as_of_for/overall_confidence",
+            "company/crm/property_discovery.py",
+            "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
+            "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
+            "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
+            "tests/company/crm/test_property_discovery.py",
+            "tests/company/crm/test_c2_discovery_wired.py",
+            "tests/company/crm/test_property_model.py (belief-layer tests)",
+            "tests/company/crm/test_home_registry.py (belief-layer tests)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 22,
+            "files": [
+              {
+                "path": "tests/company/crm/test_c2_discovery_wired.py",
+                "test_functions": 13
+              },
+              {
+                "path": "tests/company/crm/test_c2_wall_read_enforcement.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "C9_cantpay_wontpay_classifier",
+          "name": "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)",
+          "lane": "C_customer_ops",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/COUPLED_TRIAD_DESIGN.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 103,
+            "files": [
+              {
+                "path": "tests/test_gap_metric.py",
+                "test_functions": 30
+              },
+              {
+                "path": "tests/background/test_sanity_daemon.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              },
+              {
+                "path": "tests/tools/test_generate_proof_coupled_gaps.py",
+                "test_functions": 9
+              }
+            ]
+          }
+        },
+        {
+          "id": "D1_bill_correctness",
+          "name": "Bill line-item correctness (VAT, segment labelling, non-commodity recovery)",
+          "lane": "D_billing_metering",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/staging/done/BILL_CORRECTNESS_ADDENDUM.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 28,
+            "files": [
+              {
+                "path": "tests/background/test_atom_status_merge.py",
+                "test_functions": 15
+              },
+              {
+                "path": "tests/tools/test_level_promotion_gate.py",
+                "test_functions": 13
+              }
+            ]
+          }
+        },
+        {
+          "id": "D2_three_clocks",
+          "name": "Three settlement clocks (physical/financial/regulatory) reconciled per bill",
+          "lane": "D_billing_metering",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+            "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+            "docs/design/charters/D_billing_metering.md",
+            "tools/generate_margin_bridge.py",
+            "tools/generate_dashboard_data.py::_check_bridge_reconciles",
+            "saas/reporting/annual_report.py::per_customer_monthly",
+            "site/index.html::renderBridgeWorkedExample",
+            "site/data/margin_bridge.json (live, C1 2020-12 worked example)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 457,
+            "files": [
+              {
+                "path": "tests/saas/reporting/test_annual_report.py",
+                "test_functions": 194
+              },
+              {
+                "path": "tests/background/test_supervisor.py",
+                "test_functions": 185
+              },
+              {
+                "path": "tests/tools/test_website_integrity_fix.py",
+                "test_functions": 34
+              },
+              {
+                "path": "tests/tools/test_activity_cost.py",
+                "test_functions": 32
+              },
+              {
+                "path": "tests/tools/test_generate_margin_bridge.py",
+                "test_functions": 12
+              }
+            ]
+          }
+        },
+        {
+          "id": "D3_catchup_rebilling",
+          "name": "Estimated billing & catch-up rebilling cycle",
+          "lane": "D_billing_metering",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/observability/sanity_adjudication_ledger.json (defect:estimated_bill_amount_on_true_consumption)",
+            "simulation/run_phase4c_on_phase2b.py (_estimated_settlement_records, _annotate_billing_basis, _resolve_catchup)",
+            "company/billing/back_billing.py (BackBillingAssessment, reason=ESTIMATED_READ_CORRECTED -- previously built, unwired; now live)",
+            "real full 2016-2025 run, 2026-07-12: 1588 bills, 471 estimated (29.7%, consistent with the 27% finding below), 155 catch-ups resolved (67 undercharge/88 overcharge), raw delta GBP7,950.07, GBP7,864.25 chargeable, GBP85.82 written off under the Ofgem 12-month cap (2 real cap-applied cases) -- site/data/customers/C3g.json INV470 (2018-08-31) read by eye: 12 consecutive estimated gas bills resolved on the real read, GBP480.64 raw undercharge, GBP39.61 correctly written off (the oldest sliver pre-dates the SLC 31A 12-month protected window as of the billing date), GBP441.03 charged -- folded into that bill's own total_amount_gbp with bill_shock_pct/clarity_score recomputed consistently.",
+            "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a \u00a30.01 token write-off against a ~\u00a33,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3."
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 0,
+            "test_functions": 0,
+            "files": []
+          }
+        },
+        {
+          "id": "E1_ledger_double_entry",
+          "name": "Double-entry ledger + management accounts (income statement)",
+          "lane": "E_finance_treasury",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "company/finance/double_entry.py",
+            "saas/ledger.py",
+            "docs/design/E1_CORPORATION_TAX_FINDING.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 54,
+            "files": [
+              {
+                "path": "tests/company/finance/test_double_entry.py",
+                "test_functions": 35
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "E2_revenue_reconciliation",
+          "name": "Single reconciled revenue definition across every reporting surface",
+          "lane": "E_finance_treasury",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md",
+            "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md",
+            "site/supplier/index.html::basisNote",
+            "site/project/index.html::renderKpis",
+            "site/customers/index.html",
+            "tests/tools/test_e2_revenue_reconciliation_surfaces.py"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 5,
+            "test_functions": 302,
+            "files": [
+              {
+                "path": "tests/background/test_supervisor.py",
+                "test_functions": 185
+              },
+              {
+                "path": "tests/tools/test_effort_calibration.py",
+                "test_functions": 46
+              },
+              {
+                "path": "tests/background/test_health_check.py",
+                "test_functions": 42
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
+                "test_functions": 10
+              }
+            ]
+          }
+        },
+        {
+          "id": "B1_margin_bridge",
+          "name": "Year-over-year margin bridge with residual reconciliation",
+          "lane": "B_commercial",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "saas/reporting/margin_attribution.py",
+            "saas/reporting/annual_report.py::_section_gross_margin_bridge/_section_net_margin_bridge",
+            "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md",
+            "docs/market_research/ASSUMPTIONS.md (B1 Margin Bridge section)",
+            "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md",
+            "site/data/margin_bridge.json",
+            "docs/reports/ANNUAL_REPORT.md (live-regenerated, both notes confirmed rendered)",
+            "saas/reporting/margin_attribution.py::residual_is_material (R15 reconciliation tripwire)",
+            "tests/saas/test_phase_nt_margin_bridge.py::TestResidualReconciliationControl (8 tests, mutation-proven)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 3,
+            "test_functions": 80,
+            "files": [
+              {
+                "path": "tests/background/test_deadmans_switch.py",
+                "test_functions": 48
+              },
+              {
+                "path": "tests/background/test_daily_self_note.py",
+                "test_functions": 28
+              },
+              {
+                "path": "tests/background/test_harden_commit.py",
+                "test_functions": 4
+              }
+            ]
+          }
+        },
+        {
+          "id": "B2_opex_cost_to_serve",
+          "name": "Opex/cost-to-serve mechanism -- full B2 taxonomy (true/benchmark ledger, fixed floor, break-even, segment capital/ROCE, concentration)",
+          "lane": "B_commercial",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+            "docs/staging/done/MARGIN_REALISM_amended.md",
+            "docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md",
+            "docs/staging/done/from_rich_20260710_190908.md",
+            "saas/opex_ledger.py",
+            "company/finance/segment_capital.py",
+            "company/risk/concentration_risk.py",
+            "site/supplier/index.html (Cost-to-Serve + Fixed Cost Floor/Break-Even + Segment Capital/ROCE + Concentration cards)"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 98,
+            "files": [
+              {
+                "path": "tests/controls/test_control_mutation.py",
+                "test_functions": 98
+              }
+            ]
+          }
+        },
+        {
+          "id": "B3_hedge_tariff_alignment",
+          "name": "Hedge-tariff alignment (cost locked when price is locked)",
+          "lane": "B_commercial",
+          "in_map": true,
+          "level_current": 2,
+          "level_target": 2,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "passed",
+          "evidence_refs": [
+            "docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md",
+            "docs/design/B3_HEDGE_TARIFF_ALIGNMENT_FINDING.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 233,
+            "files": [
+              {
+                "path": "tests/saas/reporting/test_annual_report.py",
+                "test_functions": 194
+              },
+              {
+                "path": "tests/tools/test_generate_customer_data.py",
+                "test_functions": 39
+              }
+            ]
+          }
+        },
+        {
+          "id": "B4_competitor_field",
+          "name": "Competitor field (price ceiling / undercut pressure)",
+          "lane": "B_commercial",
+          "in_map": true,
+          "level_current": 0,
+          "level_target": 1,
+          "at_target": false,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "company/market/tariff_benchmarking.py (real, built, orphaned -- zero non-test callers)",
+            "company/pricing/renewal_pricing_engine.py (real, built, orphaned -- zero non-test callers)",
+            "docs/design/frame/B4_competitor_field_FRAME.md",
+            "docs/design/COMPETITOR_FIELD_FRAME.md",
+            "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 0,
+            "test_functions": 0,
+            "files": []
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 12,
+        "at_target": 11,
+        "ledger_records": 0,
+        "fidelity_rows": 0,
+        "test_files": 28,
+        "test_functions": 1388
+      }
+    },
+    {
+      "id": "the_score",
+      "anchor": "node-the_score",
+      "name": "The score",
+      "claimed_stage": "Building",
+      "derived_stage": "Building",
+      "supported": true,
+      "atoms": [
+        {
+          "id": "A5_tournament_fitness_mortality",
+          "name": "Tournament fitness function + mortality rules (which company variants survive/die across generated-future runs)",
+          "lane": "A_strategy_governance",
+          "in_map": true,
+          "level_current": 0,
+          "level_target": 1,
+          "at_target": false,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 2,
+            "test_functions": 48,
+            "files": [
+              {
+                "path": "tests/background/test_one_way_door.py",
+                "test_functions": 29
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "A6_coupled_triad_gap_metric",
+          "name": "The coupled triad: SIM depth -> company copes through the wall -> harness measures the belief-vs-truth GAP (the gap is the score)",
+          "lane": "A_strategy_governance",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "build",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/staging/done/THE_COUPLED_TRIAD.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 4,
+            "test_functions": 112,
+            "files": [
+              {
+                "path": "tests/tools/test_effort_calibration.py",
+                "test_functions": 46
+              },
+              {
+                "path": "tests/test_gap_metric.py",
+                "test_functions": 30
+              },
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              },
+              {
+                "path": "tests/test_coupled_triad_gate.py",
+                "test_functions": 17
+              }
+            ]
+          }
+        },
+        {
+          "id": "A_scope_of_need_scoring_frame",
+          "name": "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric",
+          "lane": "G_data_learning",
+          "in_map": true,
+          "level_current": 1,
+          "level_target": 3,
+          "at_target": false,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md",
+            "docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md"
+          ],
+          "ledger_records": 1,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts_utc": "2026-07-19T22:15:18.392603+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: site -- cover SITE1_expert_doors and BRAND1_identity_system (lane H_harness) so the loop builds the site rebuild continuously. Reconcile-then-propose per the staged steer: brief and constitution against ratified pitch v4 first, door set to me before rebuilding, no new pages. RATIFIED: A -> L1, D -> L1. BUILD-OPEN: the W1/W2 cascade atoms. Wire a"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "E5_carbon_three_ledger",
+          "name": "Carbon three-ledger (the v4 mission's core measurement): customer carbon SAVED / operational carbon SPENT (people, compute, tokens) / NET position, feeding \u00a3 per tonne CO2e = (cost to serve + cost to persuade incl compute) / carbon abated. A DIAGNOSTIC, reported like a P&L, never an optimisation target",
+          "lane": "E_finance_treasury",
+          "in_map": true,
+          "level_current": 0,
+          "level_target": 3,
+          "at_target": false,
+          "loop_stage": "idle",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/PURPOSE_PITCH_V4.md",
+            "docs/design/CARBON_NOT_A_TARGET_CONSTRAINT.md",
+            "docs/design/SITE_SURFACE_AUDIT_2026-07-19.md",
+            "docs/design/CARBON_THREE_LEDGER_DISCOVER.md",
+            "docs/design/E5_EMISSIONS_FACTOR_REGISTER_DISCOVER.md",
+            "docs/design/frame/E5_carbon_three_ledger_FRAME.md",
+            "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md"
+          ],
+          "ledger_records": 0,
+          "ledger": [],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        },
+        {
+          "id": "G1_fidelity_grid_scorer",
+          "name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
+          "lane": "G_data_learning",
+          "in_map": true,
+          "level_current": 3,
+          "level_target": 3,
+          "at_target": true,
+          "loop_stage": "harden",
+          "expert_hour": "not_attempted",
+          "evidence_refs": [
+            "docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md",
+            "docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md"
+          ],
+          "ledger_records": 3,
+          "ledger": [
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 1,
+              "ts_utc": "2026-07-19T11:59:24.971820+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'FRONT_OPEN: campaign -- make campaign BUILD self-drawing (the mechanical RC1 fix; gate-after authorized it in prose, this is the mechanism). RATIFIED: SSP price engine, G1, G2, G3 -> L1. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 2,
+              "ts_utc": "2026-07-19T12:52:57.700709+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-19 (verbatim): 'RATIFIED: G1, G2, G3 -> L2. ... Console provenance: this message.'"
+            },
+            {
+              "action": "LEVEL_UP_PROPOSED",
+              "level": 3,
+              "ts_utc": "2026-07-20T08:15:33.531730+00:00",
+              "authorized_by": "director",
+              "provenance": "director console 2026-07-20 (verbatim): 'RATIFIED: SITE1 -> L2, BRAND1 -> L3. I'll re-Expert-Hour the site and come back with a verdict. Ratify any other pending level proposals in the same batch -- list what you moved. Then keep building: E5 carbon three-ledger, the W1 cascade, and the remaining site merge work. Console provenance: this message.'"
+            }
+          ],
+          "fidelity_rows": 0,
+          "fidelity": [],
+          "tests": {
+            "test_files": 1,
+            "test_functions": 19,
+            "files": [
+              {
+                "path": "tests/design/test_maturity_map_facets.py",
+                "test_functions": 19
+              }
+            ]
+          }
+        }
+      ],
+      "totals": {
+        "atoms": 5,
+        "at_target": 2,
+        "ledger_records": 4,
+        "fidelity_rows": 0,
+        "test_files": 9,
+        "test_functions": 217
+      }
+    }
+  ]
+}

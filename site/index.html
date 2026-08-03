@@ -130,6 +130,13 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .node-look { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 600;
   color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .node-look:hover { border-bottom-color: var(--text); }
+/* Second walk off every node (atom SITE_evidence_pages_behind_nodes): "Look" goes to a VIEW of
+   the thing; "Evidence" goes to the primary state that substantiates the stage word above --
+   atom levels, recorded level moves, fidelity rows, test provenance. A node whose stage claim
+   the evidence does not carry fails the publish gate (site/moap_evidence.py). */
+.node-evidence { display: block; margin-top: 6px; font-size: 12px; font-weight: 600;
+  color: var(--muted); text-decoration: none; }
+.node-evidence:hover { color: var(--text); }
 
 .also { padding: 22px 0 6px; font-size: 12.5px; color: var(--muted); }
 .also a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
@@ -247,31 +254,37 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
       <div class="node-head"><span class="node-name">Governance &amp; method</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">One human sets the mission and the handful of decisions that can&rsquo;t be undone; AI designs, builds and tests the rest; a standing set of gates and rules steers everything below it and refuses work that would break them.</p>
       <a class="node-look" href="./proof/#method-anchor">Look: how the machine checks its own work &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-governance_method">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The world</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">Real weather over 2016&ndash;2025 drives the actual half-hourly wholesale prices &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. That price record is real. Per-home DEMAND is not there yet: today every property is one national shape rescaled, so homes look far too smooth and a crowd of them does not smooth out the way a real street does. The fabric-physics rebuild (a per-property thermal model driven by its own local weather) is the current top priority.</p>
       <a class="node-look" href="./world/#causal-chain">Look: real weather moving real prices &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-the_world">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The households</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">A fresh mix of synthetic households every run, each with hidden traits and a metered life the company has to discover from the outside. Their bigger life events &mdash; moves, new arrivals, income shocks &mdash; are being wired in next.</p>
       <a class="node-look" href="./customers/#cust-who">Look: a household&rsquo;s year &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-the_households">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The wall</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">The company never sees inside the simulation. It learns its world only the way a real supplier would &mdash; market feeds, forecasts that carry error, imperfect meter reads, payments, complaints &mdash; and the settled truth about a period lands months after it happened.</p>
       <a class="node-look" href="./world/#crossings">Look: what does and doesn&rsquo;t cross the wall &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-the_wall">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The company</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">One joined-up stack: win customers, forecast the book, price tariffs, hedge forward, bill on three clocks, chase what&rsquo;s owed, settle late and learn from the true-up. Billing, collections and the discovery loop run today; cost-to-serve, competitors and the cash-collateral death-loop are still to come. It can be wrong, and it can die.</p>
       <a class="node-look" href="./company/#state-decisions">Look: what it believed vs what was true &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-the_company">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The score</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today; the carbon meter is designed but not yet wired to live meter reads, and the site says so rather than pretend.</p>
       <a class="node-look" href="./proof/#not-proven">Look: the score, including what isn&rsquo;t measured yet &rarr;</a>
+      <a class="node-evidence" href="./evidence/#node-the_score">Evidence: the atoms, level moves and tests behind this &rarr;</a>
     </div>
   </div>
 </section>

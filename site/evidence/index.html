@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>poesys. -- the evidence behind each part of the model</title>
+<meta name="description" content="The primary-state evidence behind every node of the poesys model-on-a-page: atom levels, recorded level moves, fidelity-register rows and test provenance -- all derived, none authored.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* EVIDENCE PAGES BEHIND THE DIAGRAM NODES (atom SITE_evidence_pages_behind_nodes).
+   Every node of the front-door model-on-a-page walks here to the PRIMARY-STATE evidence
+   behind its stage claim. NOT ONE FIGURE ON THIS PAGE IS AUTHORED IN MARKUP: the whole
+   body is rendered by the inline script below from ../data/moap_evidence.json, which
+   tools/generate_moap_evidence_data.py derives from the maturity map, the level-move
+   ledger, the fidelity register and the repo's own test tree. Colour lives only in the
+   token source (brand.css); this style block consumes tokens, never raw hex. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-house);
+  font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.shell { max-width: 1060px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); }
+.inner { padding: 0 56px; }
+@media (max-width: 640px) { .inner { padding: 0 22px; } }
+
+.site-nav { display: flex; justify-content: space-between; align-items: baseline;
+  padding: 26px 0 22px; border-bottom: 1px solid var(--text); }
+.nav-logo { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+nav.doors { display: flex; gap: 26px; font-size: 13px; font-weight: 500; flex-wrap: wrap; }
+nav.doors a { color: var(--muted); text-decoration: none; }
+nav.doors a:hover { color: var(--text); }
+nav.doors a.active { color: var(--text); font-weight: 700; }
+
+.hero { padding: 48px 0 34px; border-bottom: 1px solid var(--text); }
+h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.12; max-width: 20ch; }
+.lede { margin-top: 18px; font-size: 15px; line-height: 1.65; max-width: 64ch; color: var(--muted); }
+.stamp { margin-top: 20px; font-size: 11.5px; color: var(--muted); font-family: var(--font-mono, monospace); }
+
+.summary { display: flex; flex-wrap: wrap; gap: 28px; padding: 26px 0; border-bottom: 1px solid var(--border); }
+.fig { min-width: 120px; }
+.fig-n { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.fig-l { margin-top: 4px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+
+.node-ev { padding: 30px 0; border-bottom: 1px solid var(--border); }
+.node-ev-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.node-ev-name { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+.stage { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; color: var(--text); }
+.stage-live { background: var(--green-soft); }
+.stage-building { background: var(--amber-soft); }
+.stage-planned { background: var(--surface2); color: var(--muted); }
+.derivation { margin-top: 10px; font-size: 12.5px; color: var(--muted); max-width: 72ch; }
+.derivation.bad { color: var(--text); border-left: 3px solid var(--text); padding-left: 12px; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12.5px; }
+th { text-align: left; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--text); }
+td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--font-mono, monospace); white-space: nowrap; }
+.atom-id { font-family: var(--font-mono, monospace); font-size: 11.5px; }
+.atom-name { display: block; margin-top: 3px; color: var(--muted); max-width: 52ch; }
+.tick { font-weight: 700; }
+.detail { margin-top: 14px; font-size: 12px; color: var(--muted); }
+.detail summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.detail ul { margin: 10px 0 0 18px; }
+.detail li { margin-bottom: 8px; line-height: 1.55; }
+.mono { font-family: var(--font-mono, monospace); font-size: 11px; }
+.none { color: var(--muted); font-style: italic; }
+footer { padding: 30px 0 40px; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+footer a { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="shell"><div class="inner">
+
+<div class="site-nav">
+  <a class="nav-logo" href="../">poesys.</a>
+  <nav class="doors">
+    <a href="../world/">World</a>
+    <a href="../company/">Company</a>
+    <a href="../proof/">Proof</a>
+    <a href="../project/">Project</a>
+    <a class="active" href="./">Evidence</a>
+  </nav>
+</div>
+
+<div class="hero">
+  <h1>The evidence behind each part of the model</h1>
+  <p class="lede">Every part of the model on the front page claims a build stage. This page is
+    where that claim is cashed. For each part: the atoms it rests on and their real levels, every
+    recorded level move, the fidelity-register rows measured against it, and the test code
+    addressed to it. Nothing here is written by hand &mdash; the whole page is derived from the
+    maturity map, the level-move ledger, the fidelity register and the repository's own test
+    tree, so a figure cannot drift from the state it reports.</p>
+  <p class="stamp" id="stamp"></p>
+</div>
+
+<div class="summary" id="summary"></div>
+<div id="nodes"></div>
+
+<footer id="sources"></footer>
+
+</div></div>
+
+<script>
+function esc(s){ return String(s == null ? "" : s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function n(v){ return (typeof v === "number" && isFinite(v)) ? v.toLocaleString("en-GB") : "--"; }
+function stageClass(s){
+  if (s === "Live") return "stage stage-live";
+  if (s === "Building") return "stage stage-building";
+  return "stage stage-planned";
+}
+
+function renderStamp(d){
+  var el = document.getElementById("stamp");
+  if (!el) return;
+  var suite = d.suite_execution || {};
+  var parts = ["derived " + esc(d.generated_at_utc)];
+  if (suite.available) {
+    parts.push("last whole-suite execution: " + n(suite.test_count) + " tests at " + esc(suite.timestamp));
+  } else {
+    parts.push("last whole-suite execution: NOT RECORDED");
+  }
+  el.innerHTML = parts.join(" &middot; ");
+}
+
+function renderSummary(d){
+  var el = document.getElementById("summary");
+  if (!el) return;
+  var t = d.totals || {};
+  var figs = [
+    [t.nodes, "parts of the model"],
+    [t.atoms, "atoms behind them"],
+    [t.ledger_records, "recorded level moves"],
+    [t.fidelity_rows, "fidelity-register rows"],
+    [t.test_functions, "test functions naming them"]
+  ];
+  el.innerHTML = figs.map(function(f){
+    return '<div class="fig"><div class="fig-n">' + n(f[0]) + '</div><div class="fig-l">' + esc(f[1]) + '</div></div>';
+  }).join("");
+}
+
+function atomRows(node){
+  return (node.atoms || []).map(function(a){
+    return '<tr>'
+      + '<td><span class="atom-id">' + esc(a.id) + '</span>'
+      + (a.name ? '<span class="atom-name">' + esc(a.name) + '</span>' : '')
+      + (a.in_map ? '' : '<span class="atom-name">NOT IN THE MATURITY MAP &mdash; this reference is stale</span>')
+      + '</td>'
+      + '<td class="num">' + n(a.level_current) + ' / ' + n(a.level_target) + '</td>'
+      + '<td class="num' + (a.at_target ? ' tick' : '') + '">' + (a.at_target ? 'at target' : 'below') + '</td>'
+      + '<td class="num">' + n(a.ledger_records) + '</td>'
+      + '<td class="num">' + n(a.fidelity_rows) + '</td>'
+      + '<td class="num">' + n((a.tests || {}).test_functions) + '</td>'
+      + '</tr>';
+  }).join("");
+}
+
+function ledgerList(node){
+  var items = [];
+  (node.atoms || []).forEach(function(a){
+    (a.ledger || []).forEach(function(r){
+      items.push('<li><span class="mono">' + esc(a.id) + ' &rarr; level ' + n(r.level)
+        + ' &middot; ' + esc(r.ts_utc) + ' &middot; ' + esc(r.authorized_by) + '</span><br>'
+        + esc(r.provenance) + '</li>');
+    });
+  });
+  if (!items.length) return '<p class="none">No level move has been recorded for these atoms.</p>';
+  return '<ul>' + items.join("") + '</ul>';
+}
+
+function fidelityList(node){
+  var items = [];
+  (node.atoms || []).forEach(function(a){
+    (a.fidelity || []).forEach(function(f){
+      var metrics = Object.keys(f.metrics || {}).map(function(k){
+        return esc(k) + '=' + esc(f.metrics[k]);
+      }).join(", ");
+      items.push('<li><span class="mono">' + esc(f.key) + ' &middot; ' + esc(f.layer)
+        + ' &middot; measured ' + esc(f.measured_at) + '</span><br>' + (metrics || '(no scalar metrics on this row)') + '</li>');
+    });
+  });
+  if (!items.length) return '<p class="none">No fidelity-register row has been measured against these atoms.</p>';
+  return '<ul>' + items.join("") + '</ul>';
+}
+
+function testList(node){
+  var items = [];
+  (node.atoms || []).forEach(function(a){
+    ((a.tests || {}).files || []).forEach(function(f){
+      items.push('<li><span class="mono">' + esc(f.path) + '</span> &middot; '
+        + n(f.test_functions) + ' test functions <span class="none">(names ' + esc(a.id) + ')</span></li>');
+    });
+  });
+  if (!items.length) return '<p class="none">No test file names these atoms.</p>';
+  return '<ul>' + items.join("") + '</ul>';
+}
+
+function renderNode(node){
+  var t = node.totals || {};
+  var agree = node.claimed_stage == null || node.claimed_stage === node.derived_stage;
+  var derivation = agree
+    ? 'Derived from the atoms below: ' + n(t.at_target) + ' of ' + n(t.atoms)
+      + ' at target &rarr; <strong>' + esc(node.derived_stage) + '</strong>. The front page claims '
+      + esc(node.claimed_stage == null ? node.derived_stage : node.claimed_stage) + ', and the evidence carries it.'
+    : 'THE CLAIM IS NOT CARRIED BY THE EVIDENCE. The front page claims <strong>'
+      + esc(node.claimed_stage) + '</strong>; the atoms below compute <strong>'
+      + esc(node.derived_stage) + '</strong> (' + n(t.at_target) + ' of ' + n(t.atoms) + ' at target).';
+  return '<section class="node-ev" id="' + esc(node.anchor) + '">'
+    + '<div class="node-ev-head"><span class="node-ev-name">' + esc(node.name) + '</span>'
+    + '<span class="' + stageClass(node.derived_stage) + '">' + esc(node.derived_stage) + '</span></div>'
+    + '<p class="derivation' + (agree ? '' : ' bad') + '">' + derivation + '</p>'
+    + '<table><thead><tr><th>Atom</th><th class="num">Level</th><th class="num">Standing</th>'
+    + '<th class="num">Level moves</th><th class="num">Fidelity rows</th><th class="num">Test fns</th></tr></thead>'
+    + '<tbody>' + atomRows(node) + '</tbody></table>'
+    + '<details class="detail"><summary>Recorded level moves (' + n(t.ledger_records) + ')</summary>' + ledgerList(node) + '</details>'
+    + '<details class="detail"><summary>Fidelity-register rows (' + n(t.fidelity_rows) + ')</summary>' + fidelityList(node) + '</details>'
+    + '<details class="detail"><summary>Test provenance (' + n(t.test_files) + ' files, ' + n(t.test_functions) + ' test functions)</summary>' + testList(node) + '</details>'
+    + '</section>';
+}
+
+function renderNodes(d){
+  var el = document.getElementById("nodes");
+  if (!el) return;
+  var nodes = (d && d.nodes) || [];
+  if (!nodes.length) {
+    el.innerHTML = '<section class="node-ev"><p class="derivation bad">EVIDENCE UNAVAILABLE &mdash; '
+      + 'the derivation produced no nodes. This page renders nothing rather than assert anything.</p></section>';
+    return;
+  }
+  el.innerHTML = nodes.map(renderNode).join("");
+}
+
+function renderSources(d){
+  var el = document.getElementById("sources");
+  if (!el) return;
+  var s = (d && d.sources) || {};
+  var rows = [
+    ["atom levels", s.map],
+    ["node &rarr; atom mapping", s.mapping],
+    ["level-move ledger", s.level_ledger],
+    ["fidelity register", s.fidelity_register],
+    ["test provenance scanned from", (s.test_roots || []).join(", ")]
+  ];
+  el.innerHTML = 'Every figure above is derived from primary state by '
+    + '<span class="mono">tools/generate_moap_evidence_data.py</span>. Sources:<br>'
+    + rows.map(function(r){ return esc(r[0]) + ': <span class="mono">' + esc(r[1]) + '</span>'; }).join("<br>");
+}
+
+function renderEvidence(d){
+  renderStamp(d);
+  renderSummary(d);
+  renderNodes(d);
+  renderSources(d);
+}
+
+if (typeof document !== "undefined" && document.addEventListener) {
+  fetch("../data/moap_evidence.json")
+    .then(function(r){ return r.json(); })
+    .then(renderEvidence)
+    .catch(function(){ renderNodes({ nodes: [] }); });
+}
+</script>
+</body>
+</html>

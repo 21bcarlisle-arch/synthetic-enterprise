@@ -65,6 +65,7 @@ from moap_coherence import (  # noqa: E402
     SITE,
     coherence_findings,
 )
+from moap_evidence import EVIDENCE_DATA, evidence_findings  # noqa: E402
 from moap_render import render_findings  # noqa: E402
 from moap_stage import stage_disagreements  # noqa: E402
 
@@ -76,7 +77,12 @@ from moap_stage import stage_disagreements  # noqa: E402
 MAP = "docs/design/maturity_map.yaml"
 MAPPING = "site/data/moap_node_atoms.json"
 DIAGRAM = "site/index.html"
-TRIGGER_FILES = frozenset({MAP, MAPPING, DIAGRAM})
+# Phase E (atom SITE_evidence_pages_behind_nodes) adds a FIFTH surface: the evidence page behind
+# each node and the primary-state data it renders. A change to either can dangle an anchor or
+# leave the page's figures behind the map, so both join the trigger set.
+EVIDENCE_PAGE = "site/evidence/index.html"
+EVIDENCE_DATA_FILE = "site/data/moap_evidence.json"
+TRIGGER_FILES = frozenset({MAP, MAPPING, DIAGRAM, EVIDENCE_PAGE, EVIDENCE_DATA_FILE})
 
 MODE_FILE = ROOT / "tools" / "moap_coherence_gate.mode"
 ENFORCE = "enforce"
@@ -86,6 +92,7 @@ SHADOW = "shadow"
 S_MAPPING = "map<->diagram"
 S_STAGE = "map->site(declared)"
 S_RENDER = "site-render"
+S_EVIDENCE = "node->evidence"
 
 
 def gate_mode(mode_file: Path = MODE_FILE) -> str:
@@ -113,14 +120,20 @@ def is_triggered(files: list[str]) -> bool:
 
 
 def gather_findings(
-    site: Path = SITE, map_path: Path = _MAP, mapping_path: Path = _MAPPING
+    site: Path = SITE,
+    map_path: Path = _MAP,
+    mapping_path: Path = _MAPPING,
+    evidence_data_path: Path = EVIDENCE_DATA,
 ) -> list[tuple[str, str, str, str]]:
-    """The union of the three ready-made BLOCKING query sets across the four surfaces, each
+    """The union of the four ready-made BLOCKING query sets across the five surfaces, each
     normalized to (surface, kind, subject, detail):
       * Phase A mapping integrity (HARD kinds only -- ORPHAN_ATOM is the soft §5 backlog, excluded)
       * Phase B declared-vs-computed stage disagreements (map/model vs the site's hand-set stage)
       * Phase C rendered-vs-computed drift (the front-door HTML word vs the computed stage)
-    Empty means all four surfaces agree on every node's stage."""
+      * Phase E node->evidence (a non-trivially-staged node with no evidence page, a dangling
+        anchor, an evidence record that substantiates nothing, figures that have fallen behind
+        the map, or a claim the node's own evidence computes differently)
+    Empty means all five surfaces agree, and every claim can be walked to the state behind it."""
     out: list[tuple[str, str, str, str]] = []
     for kind, subject, detail in coherence_findings(site, map_path, mapping_path):
         if kind in _HARD:
@@ -132,6 +145,10 @@ def gather_findings(
         )
     for kind, node, detail in render_findings(site, map_path, mapping_path):
         out.append((S_RENDER, kind, node, detail))
+    for kind, subject, detail in evidence_findings(
+        site, map_path, mapping_path, evidence_data_path
+    ):
+        out.append((S_EVIDENCE, kind, subject, detail))
     return out
 
 

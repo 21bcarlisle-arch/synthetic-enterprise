@@ -44,12 +44,23 @@ _CLS = {"Live": "live", "Building": "building", "Planned": "planned"}
 
 
 def _build(tmp, nodes, atom_levels):
-    """Synthetic (site/index.html, mapping, map). `nodes` is a list of dicts:
+    """Synthetic (site/index.html, mapping, map, evidence page, evidence data). `nodes` is a list
+    of dicts:
       {name, atoms:[ids], declared: 'Live'|.., rendered: 'Live'|..}
-    `atom_levels` is {id: (current, target)}. Returns (site_dir, map_path, mapping_path) to pass
-    straight into gate.gather_findings()."""
+    `atom_levels` is {id: (current, target)}. Returns (site_dir, map_path, mapping_path,
+    evidence_data_path) to pass straight into gate.gather_findings().
+
+    2026-08-03 (atom SITE_evidence_pages_behind_nodes): the gate now unions a FIFTH surface --
+    each node's evidence page (Phase E, site/moap_evidence.py). A fixture site with no evidence
+    page is not a coherent site, so the builder emits the evidence link, the page and the derived
+    data alongside the other three surfaces. The evidence figures are built from `atom_levels`,
+    i.e. from the SAME primary state the map is built from -- so this stays a Phase A/B/C fixture
+    (Phase E is clean by construction here) and never masks a Phase-E defect, which has its own
+    dedicated mutation suite in tests/tools/test_moap_evidence_gate.py + site/test_moap_evidence.py.
+    """
     site = tmp / "site"
     (site / "data").mkdir(parents=True, exist_ok=True)
+    (site / "evidence").mkdir(parents=True, exist_ok=True)
     mapping = {
         "nodes": [
             {"id": n["name"].lower(), "name": n["name"],
@@ -64,15 +75,50 @@ def _build(tmp, nodes, atom_levels):
     )
     map_path = tmp / "map.yaml"
     map_path.write_text(map_txt, encoding="utf-8")
-    heads = "\n".join(_HEAD.format(name=n["name"], cls=_CLS[n["rendered"]], stage=n["rendered"]) for n in nodes)
-    (site / "index.html").write_text(f'<div class="nodes">{heads}</div>', encoding="utf-8")
-    return site, map_path, site / "data" / "moap_node_atoms.json"
+    heads = "\n".join(
+        _HEAD.format(name=n["name"], cls=_CLS[n["rendered"]], stage=n["rendered"])
+        + f'<a class="node-evidence" href="./evidence/#node-{n["name"].lower()}">Evidence</a>'
+        for n in nodes
+    )
+    (site / "index.html").write_text(
+        f'<section><div class="nodes">{heads}</div></section>', encoding="utf-8"
+    )
+    (site / "evidence" / "index.html").write_text("<html>evidence</html>", encoding="utf-8")
+
+    evidence = {"nodes": []}
+    for n in nodes:
+        rows = [
+            {"id": a, "level_current": atom_levels.get(a, (0, 1))[0],
+             "level_target": atom_levels.get(a, (0, 1))[1],
+             "ledger_records": 1, "fidelity_rows": 0,
+             "tests": {"test_functions": 5, "test_files": 1, "files": []}}
+            for a in n["atoms"]
+        ]
+        evidence["nodes"].append({
+            "id": n["name"].lower(),
+            "anchor": f'node-{n["name"].lower()}',
+            "name": n["name"],
+            "claimed_stage": n["declared"],
+            "atoms": rows,
+            "totals": {
+                "atoms": len(rows),
+                "at_target": sum(1 for r in rows if r["level_current"] >= r["level_target"]),
+                "ledger_records": len(rows),
+                "fidelity_rows": 0,
+                "test_files": len(rows),
+                "test_functions": 5 * len(rows),
+            },
+        })
+    evidence_path = site / "data" / "moap_evidence.json"
+    evidence_path.write_text(json.dumps(evidence), encoding="utf-8")
+
+    return site, map_path, site / "data" / "moap_node_atoms.json", evidence_path
 
 
 def _findings(nodes, atom_levels):
     with tempfile.TemporaryDirectory() as d:
-        site, m, g = _build(Path(d), nodes, atom_levels)
-        return gate.gather_findings(site, m, g)
+        site, m, g, e = _build(Path(d), nodes, atom_levels)
+        return gate.gather_findings(site, m, g, e)
 
 
 # --- MECHANISM: clean baseline ------------------------------------------------
