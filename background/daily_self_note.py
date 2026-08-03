@@ -368,6 +368,19 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
                      f"({st['substantive_commits']} substantive commits). "
                      "Cause requires narration (authority-gated vs drained vs genuine idle) — agent adds it.")
 
+    # HX2 stall-set coverage (DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27 §3):
+    # the ratified exit criterion counts STALL-class events, so the honesty of that count depends
+    # entirely on the SET being complete. Publishing the coverage here means a hole in the set is
+    # visible every morning rather than discovered when HX1 quietly counts zero (FAIL-SILENT).
+    # R12: this is a gate on ONE decision (may harness investment resume), never a quality score.
+    # Fail-closed on import/read, exactly like the gap diagnostics below.
+    lines += ["", "**Stall-set coverage** _(HX2 — does every stall class the counter relies on have a live detector?)_"]
+    try:
+        from background.stall_class_register import coverage_line as _stall_coverage_line
+        lines.append(f"- {_stall_coverage_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated all-clear
+        lines.append(f"- {_red(f'stall-set coverage unavailable: {e}')}")
+
     lines += ["", "**R17 — THE TICK NEVER RESTS (status, standing morning report)**"]
     lines.append(f"- {r17 if r17 else _red(r17_err)}")
     # LAW C item 2 (2026-07-27): the note must report EFFECT, not just the WIRED status above, and
