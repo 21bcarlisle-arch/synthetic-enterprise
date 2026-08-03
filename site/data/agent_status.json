@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-30T00:17:06.225263+00:00",
+  "last_updated": "2026-07-30T00:35:39.702490+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-30T00:17:06.225263+00:00",
-      "last_action": "Heartbeat \u2014 28 files tracked",
-      "last_action_ts": "2026-07-30T00:17:06.225263+00:00",
+      "last_heartbeat": "2026-07-29T23:25:59.545811+00:00",
+      "last_action": "Heartbeat \u2014 26 files tracked",
+      "last_action_ts": "2026-07-29T23:25:59.545811+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-30T00:12:32.881746+00:00",
+      "last_heartbeat": "2026-07-29T23:22:32.873611+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-07-29T23:22:32.873611+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-30T00:11:57.025526+00:00",
-      "last_action": "Sim started \u2014 git=5b9453f65",
-      "last_action_ts": "2026-07-30T00:11:57.025526+00:00",
+      "last_heartbeat": "2026-07-29T23:18:54.245506+00:00",
+      "last_action": "Sim started \u2014 git=cf2eb84e3",
+      "last_action_ts": "2026-07-29T23:18:54.245506+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T23:38:35.425695+00:00",
+      "last_heartbeat": "2026-07-29T22:34:03.296998+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-29T23:38:35.425695+00:00",
+      "last_action_ts": "2026-07-29T22:34:03.296998+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T23:38:50.978216+00:00",
+      "last_heartbeat": "2026-07-29T22:34:15.127162+00:00",
       "last_action": "Acked message: 'Your backlog is in a document but the thing that picks your next job reads the m'",
-      "last_action_ts": "2026-07-29T23:38:50.978216+00:00",
+      "last_action_ts": "2026-07-29T22:34:15.127162+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T23:42:13.799029+00:00",
+      "last_heartbeat": "2026-07-30T00:35:39.702490+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-29T23:42:13.799029+00:00",
+      "last_action_ts": "2026-07-30T00:35:39.702490+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-30T00:15:13.933578+00:00",
+      "last_heartbeat": "2026-07-29T23:25:01.011613+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-07-29T23:58:22.191272+00:00",
+      "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T23:52:21.875018+00:00",
+      "last_heartbeat": "2026-07-29T23:22:18.646289+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-29T23:52:21.875018+00:00",
+      "last_action_ts": "2026-07-29T23:22:18.646289+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
