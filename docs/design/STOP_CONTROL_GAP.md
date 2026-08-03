@@ -21,7 +21,7 @@ Every existing hold/kill/governor affordance found by reading `background/execut
 | 3 | **R3 two-strike (`MAX_CONSECUTIVE_FAILURES=2`)**, `executor_governor.run_loop` | The headless loop itself, after 2 consecutive failed/errored turns. | Automatic (no human trigger) — `consecutive_failures >= max_consecutive_failures` → `stop_reason="repeated_failure"`, alerted via NTFY. | Yes as an automatic halt (covered by the loop's own test suite), but this is a **self-diagnosed halt, not a human-triggered stop control** — out of scope for §7.13's "reach a stop control" requirement, included here for completeness of the inventory. |
 | 4 | **`TurnBudget`** (`executor_governor.TurnBudget`) | New turn dispatch once the sliding-window turn/token cap is full. | Automatic, config-driven (`max_turns_per_window`), fail-closed if unconfigured. | Rate-limiter, not a stop control — a full budget self-clears as the window slides; not director-triggered. Included for completeness. |
 | 5 | **`code_stale` self-staleness re-exec**, `executor_daemon.run_forever` | The daemon's *own process*, when its on-disk source has drifted from what it imported. | Automatic (`source_fingerprint()` mismatch), not human-triggered. | Not a human stop control — a self-healing re-exec. Included for completeness. |
-| 6 | **`docs/observability/.comment_intake_locked`**, `background/director_comments.py` (per user memory `project_comment_intake_lock_and_rail3_heartbeat`) | The `director_comments` intake daemon (fail-closed stop). | Director-created flag; agent may not restart/remove it. | Not audited in this pass (outside the four named modules) — noted for completeness as an existing precedent for a director-only halt flag, not a control over the *executor/build* loop this atom is scoped to. |
+| 6 | ~~**`docs/observability/.comment_intake_locked`**, `background/director_comments.py`~~ — **NOT A CONTROL. Falsified 2026-08-03 by `background/stop_control_audit.py`.** | **Nothing.** | — | The 2026-07-28 pass listed this as an existing director-only halt flag, on a user-memory citation, and marked it "not audited in this pass". Auditing it refutes it: the page-comment channel was **retired permanently** on 2026-07-24 (`DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md`), `background/director_comments.py`'s intake path is *deleted* and its `main()` is a permanent safe no-op, **no source in the repo references `.comment_intake_locked` at all**, and `background/process_manifest.yaml` declares `director-comments` `state: retired`. A lock over a process that must never run halts nothing. Row kept, reclassified — see §6. |
 | 7 | **Per-turn timeout kill**, `background/build_executor.py::reap_turn` / `_reap_surplus_child` | One already-dispatched `claude -p` child process, when its own per-turn deadline (`timeout`) elapses, or once landed evidence makes it surplus. | Automatic (`monotonic() >= deadline` or landed-evidence detected) — calls `proc.kill()`. | This **is** a mechanism that can terminate a live subprocess — but it fires on an internal timer/landed-evidence condition, **not on a director stop request**. It proves the *capability* to kill a live child exists in the codebase (so a director-triggered version is a small delta, not new invention — relevant to §4 below), but it is not itself reachable by a human. |
 | 8 | **Dead-man's switch**, `background/deadmans_switch.py` | Nothing directly — it is a detector/alarm (NTFY `[BLOCKED]`/`[STALL]`), external to the tmux/supervisor stack, keyed on the meaningful-git-commit clock. | Automatic, on elapsed thresholds. | It is **not a stop control at all** — it never halts anything, only alerts. Listed to rule it out explicitly: it is sometimes informally described as a "safety net" but does not satisfy "reach a stop control — a way to halt autonomous operation" (§7.13). |
 
@@ -132,13 +132,23 @@ control from scratch."
 
 ## 5. [ACT] escalation to the director
 
-**The BUILD of any new or modified stop control is category-5 safety-control work** (`CLAUDE.md`
-PROCEED-BY-DEFAULT one-way-door list, item 5: "Security posture/secrets/safety-control changes") —
-`director_build_open` / console-only, **never self-authorised** by this or any future atom. This DISCOVER atom
-performs inventory and characterisation only; it adds, wires, or modifies no control.
+> **SUPERSEDED 2026-08-03 — the premise of this section is dead, and the section is kept only so the
+> record shows why.** It reads that the BUILD is "category-5 safety-control work, `director_build_open` /
+> console-only". Both halves of that are gone. `director_build_open` was **abolished 2026-07-29** and swept
+> 2026-08-03 (PROPOSE, RECORD, ACT — "there is no such thing as a BUILD being opened"). And the reserved
+> list is now exactly four items, none of which this is: `CLAUDE.md` states plainly that **"a 'safety
+> control' that stops a *simulation* is NOT one of these"**, and the only real-world control left reserved
+> is *the agent's own sandbox profile* — which a stop control does not touch, since it **narrows** what this
+> machine can do rather than widening it. **The §4 build is therefore drawable now, on the agent's own
+> authority, recorded not asked.** It is not built here because this atom is the characterisation; it is
+> unblocked, not reserved. Do not re-derive a gate from the paragraph below.
 
-**For the director:** the sketch in §4 is ready to scope as a BUILD atom whenever you choose to open it. Two
-sub-decisions worth separating when you do:
+The original text, for the record: *the BUILD of any new or modified stop control is category-5
+safety-control work (`CLAUDE.md` PROCEED-BY-DEFAULT one-way-door list, item 5) — `director_build_open` /
+console-only, never self-authorised.* This DISCOVER atom performs inventory and characterisation only; it
+adds, wires, or modifies no control — that part still holds.
+
+**For the director:** the sketch in §4 is ready to scope as a BUILD atom. Two sub-decisions worth separating:
 - (a) whether the director-window-reachable affordance is worth building now given F2's already-logged
   read-only-rendering-vs-acting-window canon conflict (the site would need an authenticated app surface, not a
   static render, to host it) — this is the same conflict already flagged for the whole DO battery, not new to
@@ -147,7 +157,53 @@ sub-decisions worth separating when you do:
   building independently of the window question, since it closes the more safety-material half of the residual
   (mid-flight halt) without waiting on the window-architecture decision.
 
-Per the mint's own marker, this DISCOVER half is now closing — flip
-`docs/staging/PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md`'s
-`<!-- SUPERVISOR_DRAW: self-drawable -->` marker to blocked and leave the BUILD escalation standing as this
-[ACT] item.
+Per the mint's own marker, this DISCOVER half closed 2026-07-28. (The marker flip it asks for is moot —
+the block it names was abolished; see the superseding note at the head of this section.)
+
+---
+
+## 6. The audit — this document is falsifiable, 2026-08-03 (L0→L2)
+
+Sections 1–5 are prose, and prose about what can be stopped **decays silently**: a control gets retired, a
+cited test gets renamed, a daemon this doc claims to halt goes `retired` in the manifest — and the document
+keeps reading as reassurance. The atom's own mint note set the bar in R15's outcome-test form: *"the artefact
+must be checkable against the live process set, so a later reader can falsify it by finding a stop it claims
+exists that does not."*
+
+`background/stop_control_audit.py` is that checker; `tests/background/test_stop_control_audit.py` (30 tests)
+is its R15 proof. Every row of §1 is a machine-readable claim, and **no claim is checked against itself** —
+each resolves against a source the registry does not control:
+
+| Claim | Independent oracle | Fires as |
+|---|---|---|
+| the module implementing the control exists, and still defines its symbols | the real file's real source text | `MODULE_MISSING` / `SYMBOL_MISSING` |
+| the durable flag is actually *read* by the modules said to read it | the flag's literal name in each reader's source | `FLAG_UNREFERENCED` / `UNREAD_FLAG` / `READER_MISSING` |
+| the "Release tested?" citations are real tests | `def <name>(` in the real test file | `TEST_MISSING` / `TEST_FILE_MISSING` / `UNTESTED_CLAIM` |
+| **a control can actually reach what it claims to halt** | `background/process_manifest.yaml`'s declared state | `UNKNOWN_PROCESS` / **`DEAD_TARGET`** |
+| §1's table has not grown a row nobody checks | the `\| N \|` rows parsed from this document | `DOC_ROW_UNCHECKED` / `REGISTRY_ROW_UNDOCUMENTED` |
+| the **PARTIAL** verdict below still matches reality | verdict re-derived from every live control's `reach` + `mid_flight` | `VERDICT_STALE` |
+
+**It has already fired on real state.** Row 6 above was falsified by this audit on its first run, not by
+inspection: the inventory claimed a live director-only halt flag over a daemon the manifest declares
+`retired`. That is the `DEAD_TARGET` check, and `test_control_over_a_retired_process_is_a_dead_target`
+pins the original claim so it can never be re-asserted silently.
+
+Failure directions, per R15's three killers:
+- **FAIL-OPEN** — an empty registry, or one where every row has been quietly reclassified as inert, is a
+  `VACUOUS` violation. A population control that passes because the population is empty proves nothing.
+- **FAIL-SILENT** — a missing/malformed doc or process manifest, or a doc stating no parseable coverage
+  verdict, **raises**. An unavailable check is a failed check; it never returns a pass.
+- **TAUTOLOGY** — `test_dead_target_reads_the_manifest_not_the_registry` flips the *manifest* while holding
+  the registry fixed and asserts the verdict changes, which a registry-vs-registry check could not do.
+
+**The release side (R11, no orphan transition).** The residual in §3 is now *measured*, not asserted: if
+anyone ever builds the §4 control, a live entry with `reach="window"` and `mid_flight=True` makes the derived
+verdict **MET**, and this document's `Coverage verdict: PARTIAL` immediately fails the audit as
+`VERDICT_STALE`. The doc cannot survive its own gap being closed —
+`test_verdict_goes_stale_when_a_window_reachable_midflight_stop_appears` proves it.
+
+Run it: `python3 background/stop_control_audit.py` (exit 0 pass / 1 violations / 2 unavailable).
+
+**What this does NOT do:** it adds, wires, and modifies no stop control. The residual named in §3 — a
+director-window-reachable, authenticated, mid-flight stop — is still open, and is now the thing this audit
+watches for rather than something a reader has to take on trust.
