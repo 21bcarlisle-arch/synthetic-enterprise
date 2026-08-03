@@ -53,6 +53,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 _SITE_DIR = ROOT / "site"
+_TOOLS_DIR = Path(__file__).resolve().parent
+# This module is imported BY PATH (tests use importlib.spec_from_file_location), so tools/ is not
+# necessarily on sys.path -- put it there explicitly before importing its Phase-E sibling.
+if str(_TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_TOOLS_DIR))
 # The moap_* derivation modules live under site/ and import each other by bare name (the
 # `pytest site/` rootdir convention). Put site/ on the path so this gate can reuse their queries.
 if str(_SITE_DIR) not in sys.path:
@@ -68,6 +73,11 @@ from moap_coherence import (  # noqa: E402
 from moap_render import render_findings  # noqa: E402
 from moap_stage import stage_disagreements  # noqa: E402
 
+# Phase E (atom SITE_evidence_pages_behind_nodes) lives in tools/ beside this gate, not under
+# site/, because it needs yaml to read the map's per-atom evidence lists. Same contract as the
+# other three: a ready-made pure query the gate unions.
+from moap_evidence import evidence_findings  # noqa: E402
+
 # The four surfaces' source files. A staged change to ANY of these can drift a node's stage
 # across surfaces. The MAP is the critical inclusion -- it is the surface the site-lane gate is
 # blind to (that gate fires only on site/ edits). THE_MODEL_ON_A_PAGE.md is the human-readable
@@ -76,7 +86,11 @@ from moap_stage import stage_disagreements  # noqa: E402
 MAP = "docs/design/maturity_map.yaml"
 MAPPING = "site/data/moap_node_atoms.json"
 DIAGRAM = "site/index.html"
-TRIGGER_FILES = frozenset({MAP, MAPPING, DIAGRAM})
+# Phase E's two files: the evidence surface behind each node. Staging either of them (or the map,
+# or the diagram) can break/stale the evidence trail a node's stage claim rests on.
+EVIDENCE_PAGE = "site/evidence/index.html"
+EVIDENCE_DATA = "site/data/moap_evidence.json"
+TRIGGER_FILES = frozenset({MAP, MAPPING, DIAGRAM, EVIDENCE_PAGE, EVIDENCE_DATA})
 
 MODE_FILE = ROOT / "tools" / "moap_coherence_gate.mode"
 ENFORCE = "enforce"
@@ -86,6 +100,7 @@ SHADOW = "shadow"
 S_MAPPING = "map<->diagram"
 S_STAGE = "map->site(declared)"
 S_RENDER = "site-render"
+S_EVIDENCE = "site-evidence"
 
 
 def gate_mode(mode_file: Path = MODE_FILE) -> str:
@@ -115,12 +130,15 @@ def is_triggered(files: list[str]) -> bool:
 def gather_findings(
     site: Path = SITE, map_path: Path = _MAP, mapping_path: Path = _MAPPING
 ) -> list[tuple[str, str, str, str]]:
-    """The union of the three ready-made BLOCKING query sets across the four surfaces, each
+    """The union of the four ready-made BLOCKING query sets across the surfaces, each
     normalized to (surface, kind, subject, detail):
       * Phase A mapping integrity (HARD kinds only -- ORPHAN_ATOM is the soft §5 backlog, excluded)
       * Phase B declared-vs-computed stage disagreements (map/model vs the site's hand-set stage)
       * Phase C rendered-vs-computed drift (the front-door HTML word vs the computed stage)
-    Empty means all four surfaces agree on every node's stage."""
+      * Phase E evidence trail (a node claiming a non-trivial stage whose evidence page is
+        missing, unlinked, absent from the evidence data, or recording a stale stage)
+    Empty means every surface agrees on every node's stage AND that stage is substantiated by a
+    reachable, current evidence page."""
     out: list[tuple[str, str, str, str]] = []
     for kind, subject, detail in coherence_findings(site, map_path, mapping_path):
         if kind in _HARD:
@@ -132,6 +150,8 @@ def gather_findings(
         )
     for kind, node, detail in render_findings(site, map_path, mapping_path):
         out.append((S_RENDER, kind, node, detail))
+    for kind, subject, detail in evidence_findings(site, map_path, mapping_path):
+        out.append((S_EVIDENCE, kind, subject, detail))
     return out
 
 
@@ -158,9 +178,12 @@ def decide(findings: list[tuple[str, str, str, str]], mode: str) -> int:
     sys.stderr.write(
         "\n[moap-coherence] ❌ COMMIT REFUSED (§6 coherence-by-derivation, Phase D). A node's "
         "Live/Building/Planned stage must agree across the model, the diagram, the site and the "
-        "map. Fix the drift (usually: the site/mapping over-claims a node whose atoms are below "
-        "target, or an atom level moved) then commit. To de-fang a scanner false-positive without "
-        "wedging publish, write 'shadow' to tools/moap_coherence_gate.mode.\n"
+        "map, and be substantiated by a reachable evidence page. Fix the drift (usually: the "
+        "site/mapping over-claims a node whose atoms are below target, or an atom level moved; "
+        "an EVIDENCE_* finding means the evidence page behind a node is missing, unlinked or "
+        "stale -- regenerate it with `python3 tools/moap_evidence.py --write`) then commit. To "
+        "de-fang a scanner false-positive without wedging publish, write 'shadow' to "
+        "tools/moap_coherence_gate.mode.\n"
     )
     return 1
 

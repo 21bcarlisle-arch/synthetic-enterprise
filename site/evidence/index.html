@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>poesys. -- the evidence behind the model on a page</title>
+<meta name="description" content="For every part of the model on a page: the atoms its build stage is derived from, their levels, the artefacts they name and whether those exist, the tests defined, and the measured belief-vs-truth gaps.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* SITE_evidence_pages_behind_nodes -- the evidence surface behind the front-door diagram.
+   Every figure on this page is GENERATED (tools/moap_evidence.py -> ../data/moap_evidence.json)
+   from the maturity map, the repo tree and the observability ledgers; nothing here is authored
+   prose about the state, so there is no editorial claim on this page to keep in sync.
+   Colour consumes brand tokens only (BRAND_CONSTITUTION law 1) -- never a raw hex. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-house);
+  font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.shell { max-width: 1060px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); }
+.inner { padding: 0 56px; }
+@media (max-width: 640px) { .inner { padding: 0 22px; } }
+
+.site-nav { display: flex; justify-content: space-between; align-items: baseline;
+  padding: 26px 0 22px; border-bottom: 1px solid var(--text); }
+.nav-logo { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+nav.doors { display: flex; gap: 26px; font-size: 13px; font-weight: 500; }
+nav.doors a { color: var(--muted); text-decoration: none; }
+nav.doors a:hover, nav.doors a.active { color: var(--text); }
+nav.doors a.active { font-weight: 700; }
+
+.hero { padding: 48px 0 30px; border-bottom: 1px solid var(--text); }
+.hero h1 { font-size: clamp(24px, 3.6vw, 36px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; max-width: 22ch; }
+.hero p { margin-top: 18px; font-size: 14px; line-height: 1.65; max-width: 66ch; color: var(--muted); }
+.hero p strong { color: var(--text); font-weight: 600; }
+
+.summary { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--text); }
+@media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+.sfig { padding: 20px 18px 22px 0; border-right: 1px solid var(--border); border-top: 1px solid var(--border); }
+.sfig .sk { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; min-height: 24px; }
+.sfig .sv { font-size: clamp(19px, 2.2vw, 24px); font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; }
+
+.nodeblk { padding: 30px 0; border-bottom: 1px solid var(--text); }
+.nodeblk h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; display: inline-block; }
+.stage { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; color: var(--text); margin-left: 10px; vertical-align: middle; }
+.stage-live { background: var(--green-soft); }
+.stage-building { background: var(--amber-soft); }
+.stage-planned { background: var(--surface2); color: var(--muted); }
+.derivation { margin-top: 12px; border-left: 3px solid var(--text); padding: 4px 0 4px 14px;
+  font-size: 13px; line-height: 1.6; max-width: 70ch; color: var(--muted); }
+.derivation strong { color: var(--text); font-weight: 700; }
+.lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+  color: var(--muted); margin-top: 24px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--text); white-space: nowrap; }
+td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+.yes { color: var(--text); font-weight: 700; }
+.no { color: var(--red); font-weight: 700; }
+.none { color: var(--muted); font-size: 12px; margin-top: 10px; max-width: 70ch; }
+.foot { padding: 22px 0 30px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+.foot code { font-size: 10.5px; }
+.foot a, .hero a, .derivation a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="shell"><div class="inner">
+
+<header class="site-nav">
+  <a href="../" class="nav-logo wordmark">poesys.</a>
+  <nav class="doors">
+    <a href="../">Home</a>
+    <a href="../world/">The World</a>
+    <a href="../company/">The Company</a>
+    <a href="../proof/">Proof</a>
+    <a href="./" class="active">Evidence</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>The evidence behind the model on a page</h1>
+  <p>Every part of the diagram on the front door wears a build stage &mdash; <strong>Live</strong>,
+    <strong>Building</strong> or <strong>Planned</strong>. That word is not typed by anyone: it is
+    <strong>derived</strong> from the levels of the named build atoms behind that part. This page is
+    the primary state that derivation runs on, per part: the atoms and their levels, the artefacts
+    each atom names and whether those files actually exist, how many tests those test files really
+    define, the recorded level moves, and &mdash; where the harness has measured one &mdash; the
+    belief-vs-truth gap itself. <strong>No prose restates a claim here</strong>; every figure below
+    is read out of the map, the repo tree and the ledgers at generation time.</p>
+</section>
+
+<div class="summary" id="ev-summary"></div>
+
+<!-- One STATIC section per model-on-a-page node, in diagram order, each carrying the fragment
+     id the front door deep-links (./evidence/#node-<id>). The anchors are static ON PURPOSE:
+     site/test_link_walk.py::test_live_site_moap_nodes_deep_anchored resolves every front-door
+     node link against the target page's SOURCE, so a client-side-only id would land a reader at
+     the page top. The CONTENT of each section is rendered from ../data/moap_evidence.json --
+     the derivation, never authored here. tools/moap_evidence.py's gate query fails publish if a
+     node the front door links has no section here (EVIDENCE_ANCHOR_NOT_ON_PAGE). -->
+<section class="nodeblk" id="node-governance_method"><div id="ev-node-governance_method"></div></section>
+<section class="nodeblk" id="node-the_world"><div id="ev-node-the_world"></div></section>
+<section class="nodeblk" id="node-the_households"><div id="ev-node-the_households"></div></section>
+<section class="nodeblk" id="node-the_wall"><div id="ev-node-the_wall"></div></section>
+<section class="nodeblk" id="node-the_company"><div id="ev-node-the_company"></div></section>
+<section class="nodeblk" id="node-the_score"><div id="ev-node-the_score"></div></section>
+
+<footer class="foot" id="ev-provenance"></footer>
+
+</div></div>
+<footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
+<script>
+function esc(s) {
+  return String(s === null || s === undefined ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function num(x, dp) {
+  if (x === null || x === undefined || typeof x !== "number" || !isFinite(x)) return "--";
+  return x.toFixed(dp === undefined ? 3 : dp);
+}
+function stageClass(s) {
+  return "stage stage-" + String(s || "planned").toLowerCase();
+}
+
+function renderSummary(d) {
+  var t = (d && d.totals) || {};
+  var cells = [
+    ["Parts of the model", String(t.nodes === undefined ? "--" : t.nodes)],
+    ["Build atoms behind them", (t.atoms_at_target === undefined ? "--" : t.atoms_at_target) + " / " + (t.atoms === undefined ? "--" : t.atoms) + " at target"],
+    ["Named artefacts on disk", (t.artefacts_resolving === undefined ? "--" : t.artefacts_resolving) + " / " + (t.artefacts_total === undefined ? "--" : t.artefacts_total) + " resolve"],
+    ["Tests defined in them", String(t.tests_defined === undefined ? "--" : t.tests_defined)]
+  ];
+  var h = "";
+  for (var i = 0; i < cells.length; i++) {
+    h += '<div class="sfig"><div class="sk">' + esc(cells[i][0]) + '</div>' +
+         '<div class="sv">' + esc(cells[i][1]) + '</div></div>';
+  }
+  document.getElementById("ev-summary").innerHTML = h;
+}
+
+function atomTable(node) {
+  var h = '<table><thead><tr><th>Atom</th><th>Lane</th><th>Stage</th>' +
+          '<th class="num">Level</th><th class="num">At target</th>' +
+          '<th class="num">Artefacts</th><th class="num">Tests</th></tr></thead><tbody>';
+  for (var i = 0; i < node.atoms.length; i++) {
+    var a = node.atoms[i];
+    h += "<tr>" +
+      "<td><code>" + esc(a.id) + "</code></td>" +
+      "<td>" + esc(a.lane) + "</td>" +
+      "<td>" + esc(a.loop_stage) + "</td>" +
+      '<td class="num">' + esc(a.level_current) + " / " + esc(a.level_target) + "</td>" +
+      '<td class="num ' + (a.at_target ? "yes" : "no") + '">' + (a.at_target ? "yes" : "NO") + "</td>" +
+      '<td class="num">' + esc(a.artefacts_resolving) + " / " + esc(a.artefacts.length) + "</td>" +
+      '<td class="num">' + esc(a.tests_defined) + "</td>" +
+      "</tr>";
+  }
+  return h + "</tbody></table>";
+}
+
+function artefactTable(node) {
+  var h = '<table><thead><tr><th>Artefact named by the atom</th><th>Atom</th><th>Kind</th>' +
+          '<th class="num">On disk</th><th class="num">Tests defined</th></tr></thead><tbody>';
+  var rows = 0;
+  for (var i = 0; i < node.atoms.length; i++) {
+    var a = node.atoms[i];
+    for (var j = 0; j < a.artefacts.length; j++) {
+      var f = a.artefacts[j];
+      rows++;
+      h += "<tr>" +
+        "<td><code>" + esc(f.path) + "</code></td>" +
+        "<td><code>" + esc(a.id) + "</code></td>" +
+        "<td>" + esc(f.kind) + "</td>" +
+        '<td class="num ' + (f.exists ? "yes" : "no") + '">' + (f.exists ? "yes" : "MISSING") + "</td>" +
+        '<td class="num">' + (f.tests_defined === null || f.tests_defined === undefined ? "--" : esc(f.tests_defined)) + "</td>" +
+        "</tr>";
+    }
+  }
+  if (!rows) return '<p class="none">No atom behind this part names a repo artefact yet.</p>';
+  return h + "</tbody></table>";
+}
+
+function gapTable(node) {
+  var h = '<table><thead><tr><th>Atom</th><th>Measured</th><th class="num">Gap</th>' +
+          '<th class="num">Raw gap</th><th class="num">Naive baseline g0</th><th>Measured at</th></tr></thead><tbody>';
+  var rows = 0;
+  for (var i = 0; i < node.atoms.length; i++) {
+    var a = node.atoms[i];
+    if (a.coupled_gap) {
+      rows++;
+      h += "<tr>" +
+        "<td><code>" + esc(a.id) + "</code></td>" +
+        "<td>" + esc(a.coupled_gap.metric) + "</td>" +
+        '<td class="num">' + num(a.coupled_gap.gap) + "</td>" +
+        '<td class="num">' + num(a.coupled_gap.raw_gap) + "</td>" +
+        '<td class="num">' + num(a.coupled_gap.g0) + "</td>" +
+        "<td>" + esc(String(a.coupled_gap.measured_at || "").slice(0, 10)) + "</td>" +
+        "</tr>";
+    }
+    for (var j = 0; j < (a.fidelity_rows || []).length; j++) {
+      var r = a.fidelity_rows[j];
+      var mk = Object.keys(r.metrics || {});
+      var bits = [];
+      for (var k = 0; k < mk.length; k++) bits.push(mk[k] + "=" + num(r.metrics[mk[k]]));
+      if (r.cells && r.cells.length) {
+        var worst = r.cells[0];
+        for (var c = 1; c < r.cells.length; c++) if (r.cells[c].lift < worst.lift) worst = r.cells[c];
+        bits.push("worst cell " + worst.cell + " (" + worst.regime + ") lift=" + num(worst.lift, 2));
+        bits.push(r.cells.length + " cells");
+      }
+      rows++;
+      h += "<tr>" +
+        "<td><code>" + esc(a.id) + "</code></td>" +
+        "<td>fidelity ledger: " + esc(r.kind || r.layer || r.rel_id) + "</td>" +
+        '<td class="num" colspan="3">' + esc(bits.join("; ")) + "</td>" +
+        "<td>" + esc(String(r.measured_at || "").slice(0, 10)) + "</td>" +
+        "</tr>";
+    }
+  }
+  if (!rows) {
+    return '<p class="none">No atom behind this part has a measured belief-vs-truth gap or a ' +
+           'fidelity-ledger row yet. That absence is itself the state: the stage claim rests on ' +
+           'levels and artefacts, not on a measurement.</p>';
+  }
+  return h + "</tbody></table>";
+}
+
+function ledgerTable(node) {
+  var h = '<table><thead><tr><th>Atom</th><th class="num">Map level</th>' +
+          '<th class="num">Highest level recorded</th><th>Recorded moves</th></tr></thead><tbody>';
+  var rows = 0;
+  for (var i = 0; i < node.atoms.length; i++) {
+    var a = node.atoms[i];
+    var L = a.level_ledger || [];
+    if (!L.length) continue;
+    rows++;
+    var top = null, moves = [];
+    for (var j = 0; j < L.length; j++) {
+      if (typeof L[j].level === "number" && (top === null || L[j].level > top)) top = L[j].level;
+      moves.push(esc(L[j].when + " " + L[j].action + (typeof L[j].level === "number" ? " L" + L[j].level : "")));
+    }
+    h += "<tr>" +
+      "<td><code>" + esc(a.id) + "</code></td>" +
+      '<td class="num">' + esc(a.level_current) + "</td>" +
+      '<td class="num">' + (top === null ? "--" : esc(top)) + "</td>" +
+      "<td>" + moves.join(" &middot; ") + "</td>" +
+      "</tr>";
+  }
+  if (!rows) return '<p class="none">No level move behind this part predates the ledger&rsquo;s own start; nothing recorded.</p>';
+  return h + "</tbody></table>";
+}
+
+function renderNodes(d) {
+  var nodes = (d && d.nodes) || [];
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    var below = [];
+    for (var j = 0; j < n.atoms.length; j++) {
+      if (!n.atoms[j].at_target) below.push("<code>" + esc(n.atoms[j].id) + "</code>");
+    }
+    var h =
+      "<h2>" + esc(n.name) + '</h2><span class="' + stageClass(n.computed_stage) + '">' +
+      esc(n.computed_stage) + "</span>" +
+      '<p class="derivation"><strong>' + esc(n.atoms_at_target) + "</strong> of <strong>" +
+      esc(n.atoms_total) +
+      "</strong> build atoms behind this part are at their target level, so it computes <strong>" +
+      esc(n.computed_stage) + "</strong>" +
+      (below.length ? ". Below target: " + below.join(", ") : "") +
+      ". The front door renders that word; it is not typed there." +
+      "</p>" +
+      '<div class="lbl">The atoms this stage is derived from</div>' + atomTable(n) +
+      '<div class="lbl">' + esc(n.artefacts_resolving) + " of " + esc(n.artefacts_total) +
+      " artefacts these atoms name resolve on disk</div>" + artefactTable(n) +
+      '<div class="lbl">Measured belief-vs-truth gaps and fidelity-ledger rows</div>' + gapTable(n) +
+      '<div class="lbl">Recorded level moves (the ledger, not the claim)</div>' + ledgerTable(n);
+    var slot = document.getElementById("ev-node-" + n.id);
+    // A node with no static section on this page cannot render. That is a publish-gate defect
+    // (tools/moap_evidence.py::EVIDENCE_ANCHOR_NOT_ON_PAGE), never something to paper over here.
+    if (slot) slot.innerHTML = h;
+  }
+}
+
+function renderProvenance(d) {
+  var src = (d && d.sources) || [];
+  var h = "";
+  for (var i = 0; i < src.length; i++) h += (i ? " &middot; " : "") + "<code>" + esc(src[i]) + "</code>";
+  var stamp = (d && d.suite_stamp) || {};
+  document.getElementById("ev-provenance").innerHTML =
+    "Generated <code>" + esc(d && d.generated_at) + "</code> by <code>tools/moap_evidence.py</code> " +
+    "from maturity map digest <code>" + esc(d && d.map_digest) + "</code>.<br>" +
+    "Read from: " + h + ".<br>" +
+    "Suite stamp at last recorded collection: <code>" +
+    esc(stamp.test_count === undefined ? "--" : stamp.test_count) + "</code> tests collected, <code>" +
+    esc(String(stamp.timestamp || "--").slice(0, 19)) + "</code>. " +
+    "Derivation rule: " + esc(d && d.derivation_rule);
+}
+
+function renderEvidence(d) {
+  renderSummary(d);
+  renderNodes(d);
+  renderProvenance(d);
+}
+
+fetch("../data/moap_evidence.json")
+  .then(function (r) { return r.json(); })
+  .then(function (d) {
+    renderEvidence(d);
+    try {
+      if (window.location && window.location.hash) {
+        var el = document.querySelector(window.location.hash);
+        if (el && typeof el.scrollIntoView === "function") el.scrollIntoView();
+      }
+    } catch (e) { /* deep-link scroll is a nicety, never a render blocker */ }
+  });
+</script>
+</body>
+</html>

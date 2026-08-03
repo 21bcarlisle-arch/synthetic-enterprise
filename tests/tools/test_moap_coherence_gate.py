@@ -35,6 +35,11 @@ _spec = importlib.util.spec_from_file_location(
 gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
+# The gate puts site/ on sys.path at import time; reuse the REAL derivation to build fixtures
+# whose evidence surface agrees with the stage its own atom levels compute (never a second
+# hand-maintained copy of the rule).
+from moap_stage import compute_stage  # noqa: E402
+
 
 _HEAD = (
     '<div class="node-head"><span class="node-name">{name}</span>'
@@ -44,12 +49,21 @@ _CLS = {"Live": "live", "Building": "building", "Planned": "planned"}
 
 
 def _build(tmp, nodes, atom_levels):
-    """Synthetic (site/index.html, mapping, map). `nodes` is a list of dicts:
+    """Synthetic (site/index.html, mapping, map, evidence page + evidence data). `nodes` is a
+    list of dicts:
       {name, atoms:[ids], declared: 'Live'|.., rendered: 'Live'|..}
     `atom_levels` is {id: (current, target)}. Returns (site_dir, map_path, mapping_path) to pass
-    straight into gate.gather_findings()."""
+    straight into gate.gather_findings().
+
+    The evidence surface (Phase E, atom SITE_evidence_pages_behind_nodes) is built COHERENT with
+    whatever stage the fixture's atom levels compute: page present, one evidence anchor per
+    non-Planned node, one evidence-data entry per node recording the computed+declared stage. A
+    fixture that models a coherent site must model its evidence pages too -- the Phase-E
+    mutations (page deleted, anchor dangling, data stale) are exercised in
+    tests/tools/test_moap_evidence.py."""
     site = tmp / "site"
     (site / "data").mkdir(parents=True, exist_ok=True)
+    (site / "evidence").mkdir(parents=True, exist_ok=True)
     mapping = {
         "nodes": [
             {"id": n["name"].lower(), "name": n["name"],
@@ -64,8 +78,49 @@ def _build(tmp, nodes, atom_levels):
     )
     map_path = tmp / "map.yaml"
     map_path.write_text(map_txt, encoding="utf-8")
-    heads = "\n".join(_HEAD.format(name=n["name"], cls=_CLS[n["rendered"]], stage=n["rendered"]) for n in nodes)
+
+    computed = {
+        n["name"].lower(): compute_stage(
+            [
+                {"current": atom_levels.get(a, (0, 1))[0], "target": atom_levels.get(a, (0, 1))[1]}
+                for a in n["atoms"]
+            ]
+        )
+        for n in nodes
+    }
+    heads = "\n".join(
+        _HEAD.format(name=n["name"], cls=_CLS[n["rendered"]], stage=n["rendered"])
+        + (
+            f'<a class="node-look" href="./evidence/#node-{n["name"].lower()}">Evidence</a>'
+            if computed[n["name"].lower()] != "Planned"
+            else ""
+        )
+        for n in nodes
+    )
     (site / "index.html").write_text(f'<div class="nodes">{heads}</div>', encoding="utf-8")
+    (site / "evidence" / "index.html").write_text(
+        "<html><body>"
+        + "".join(f'<section id="node-{nid}"></section>' for nid in computed)
+        + "</body></html>",
+        encoding="utf-8",
+    )
+    (site / "data" / "moap_evidence.json").write_text(
+        json.dumps(
+            {
+                "nodes": [
+                    {
+                        "id": n["name"].lower(),
+                        "name": n["name"],
+                        "declared_stage": n["declared"],
+                        "computed_stage": computed[n["name"].lower()],
+                        "atoms": [],
+                    }
+                    for n in nodes
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
     return site, map_path, site / "data" / "moap_node_atoms.json"
 
 
