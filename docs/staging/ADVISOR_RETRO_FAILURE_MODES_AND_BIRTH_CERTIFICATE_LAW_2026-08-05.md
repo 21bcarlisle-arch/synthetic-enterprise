@@ -37,3 +37,11 @@ Concrete instantiations for adopt/adapt/reject, in evidence order:
 Not a refactor mandate, not new organs, not process ceremony — five certificates and one small validator, attached to gates and sweeps that already run. If CC finds a cheaper mechanism achieving the same contracts, that is an adapt verdict and welcome. Reject verdicts need evidence, per the standing pattern.
 
 — Advisor retro, 2026-08-05, machine offline; lands with the Saturday batch.
+
+## Amendment (same day) — three hardenings from the director's planning session
+
+1. **The law's system-level instance.** The Birth Certificate's "bound" field, applied to the system itself, is a **traffic forecast**: order-of-magnitude expected volumes per artery (customers, reads/day, settlement periods, events/day) at go-live and at scale, plus a **deepening register** — subsystems knowingly basic-with-more-coming, whose seams are built wide while internals stay simple. Lives in `TARGET_DESIGN.md` (already commissioned). Until it exists, honest bounds cannot be written for load-bearing seams, and the 10k probe has no expected values to confirm or refute.
+2. **Instantiation 6 — the bypass certificate.** Any deliberate fast path (bulk lane trading subtlety for volume) carries: the measured volume it exists for, and a standing sample-reconciliation against the subtle path. A bypass without one is FM-2's pointless-parallel, pre-registered before it happens. Open question for CC: does SIM_FAST_MODE reconcile against the full path on samples today? If not, it is the first missing certificate.
+3. **RHYTHM's instrument, under its own law.** The July code-graph (688 modules; source of the KNIFE targets) may be promoted to a per-epoch observatory ONLY with its own certificate — reader: epoch-close consolidation; bound: one report per epoch; death: superseded by the next. Per this retro's core finding, detection is not the gap: an observatory without a named consumer is the naive-organ failure repeated, and should not be built.
+
+The merge/split tie-breaker from the same session, recorded for KNIFE: **the graph proposes, the forecast disposes** — observed structure generates merge candidates; stated destination decides them.
