@@ -3937,7 +3937,10 @@ def _atom_fingerprint(atom: dict) -> str:
         str(atom.get("level_current")),
         str(atom.get("level_target")),
         str(atom.get("loop_stage")),
-        str(len(atom.get("simplifications") or [])),
+        # simplifications moved to the sibling store (retro FM-1); the map now
+        # carries the count directly. The fingerprint only ever needed the count
+        # (a note being appended == progress), so this is value-identical.
+        str(atom.get("simplifications_count") or 0),
         str(expert_hour.get("last")),
     )
     return "|".join(parts)

@@ -30,8 +30,23 @@ from tools import abolished_block_classes as abc
 # --------------------------------------------------------------------------
 
 def _write_map(tmp_path: Path, atoms: list[dict]) -> Path:
+    # The simplifications register moved to the sibling store (retro FM-1). Write
+    # the map with a `simplifications_count` scalar and emit each atom's notes to
+    # <map_dir>/simplifications/<id>.yaml, mirroring the live layout so the
+    # generator/reader find the notes exactly where they now live.
+    from tools import simplifications_store as store
+
+    store_dir = tmp_path / "simplifications"
+    map_atoms = []
+    for a in atoms:
+        a = dict(a)
+        notes = a.pop("simplifications", None)
+        if isinstance(notes, list) and notes:
+            store.append_for_atom(a["id"], notes, store_dir)
+            a["simplifications_count"] = len(notes)
+        map_atoms.append(a)
     p = tmp_path / "maturity_map.yaml"
-    p.write_text(yaml.safe_dump(atoms, sort_keys=False))
+    p.write_text(yaml.safe_dump(map_atoms, sort_keys=False))
     return p
 
 

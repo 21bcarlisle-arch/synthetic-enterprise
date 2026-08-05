@@ -25,6 +25,7 @@ import yaml
 if str(Path(__file__).resolve().parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from tools import simplifications_store as store  # noqa: E402
 from tools.abolished_block_classes import (  # noqa: E402
     ABOLISHED_BLOCK_CLASSES,
     annotate_notes,
@@ -72,7 +73,10 @@ def generate():
     for atom in atoms:
         if not isinstance(atom, dict):
             continue
-        notes = atom.get("simplifications") or []
+        # simplifications now live in the sibling store (retro FM-1); the loader
+        # returns EXACTLY the list this field used to hold. The store sits beside
+        # the map, so a relocated MATURITY_MAP_YAML relocates the store too.
+        notes = store.for_atom(atom.get("id"), MATURITY_MAP_YAML.parent / "simplifications") or []
         if not notes:
             continue
         lane = atom.get("lane", "unknown")

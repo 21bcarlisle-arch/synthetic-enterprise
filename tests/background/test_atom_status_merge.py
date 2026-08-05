@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tools import simplifications_store as store
 from tools.merge_atom_status import (
     MergeError,
     changed_files,
@@ -29,6 +30,7 @@ from tools.merge_atom_status import (
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
 REAL_MAP = PROJECT / "docs" / "design" / "maturity_map.yaml"
+REAL_STORE = PROJECT / "docs" / "design" / "simplifications"
 
 # Two disjoint real atoms currently at level 0 -- the H9/H10 pair this build
 # is for. Kept generic (looked up, not hard-required) so the test survives a
@@ -73,6 +75,9 @@ def _write_inbox(inbox_dir: Path, atom_id: str, level: int, tag: str) -> None:
 def _fixture(tmp_path: Path) -> tuple[Path, Path]:
     map_copy = tmp_path / "maturity_map.yaml"
     shutil.copy2(REAL_MAP, map_copy)
+    # simplifications live in the sibling store (retro FM-1); copy it beside the
+    # map so the merge finds it exactly as it does in the live tree.
+    shutil.copytree(REAL_STORE, tmp_path / "simplifications")
     inbox_dir = tmp_path / "atom_status"
     inbox_dir.mkdir()
     return map_copy, inbox_dir
@@ -124,11 +129,16 @@ def test_merge_lands_both_and_preserves_every_other_atom(tmp_path):
     assert after_atoms[ATOM_A]["level_current"] == 1
     assert after_atoms[ATOM_B]["level_current"] == 2
 
-    # appended evidence + simplification landed on both
+    # appended evidence landed in the map; appended simplification landed in the
+    # sibling store (retro FM-1), with the map's count kept in sync.
+    sd = map_copy.parent / "simplifications"
     assert "docs/design/H9_proof.md" in after_atoms[ATOM_A]["evidence"]
     assert "docs/design/H10_proof.md" in after_atoms[ATOM_B]["evidence"]
-    assert any("H9_proof" in s for s in after_atoms[ATOM_A]["simplifications"])
-    assert any("H10_proof" in s for s in after_atoms[ATOM_B]["simplifications"])
+    assert any("H9_proof" in s for s in store.for_atom(ATOM_A, sd))
+    assert any("H10_proof" in s for s in store.for_atom(ATOM_B, sd))
+    assert after_atoms[ATOM_A]["simplifications_count"] == store.count_for_atom(ATOM_A, sd)
+    assert after_atoms[ATOM_B]["simplifications_count"] == store.count_for_atom(ATOM_B, sd)
+    assert "simplifications" not in after_atoms[ATOM_A] and "simplifications" not in after_atoms[ATOM_B]
 
     # (3) MAP INTEGRITY: exactly {A, B} changed; every other block byte-identical
     after_blocks = _split_blocks(after)
@@ -252,26 +262,35 @@ def test_scoped_suite_selector():
 # unfoldable style therefore wedged publishing indefinitely, and would again for
 # any of the map's 30+ block-style atoms.
 # ---------------------------------------------------------------------------
+# Post-retro-FM-1 shape: `simplifications` moved to the sibling store, the map
+# carries `simplifications_count`. The block-style `evidence:` fold (the actual
+# 2026-07-29 regression) is preserved. `_block_fixture` seeds the store to match
+# the counts below.
 BLOCK_MAP = """\
 - id: FLOW_atom
   level_current: 0
   evidence: [a.py]
-  simplifications: ['flow note']
+  simplifications_count: 1
 - id: BLOCK_atom
   level_current: 0
   evidence:
   - first.py
   - second.py
-  simplifications:
-  - 'an existing note that happens to be quite long and would be wrapped by a naive
-    dumper across continuation lines'
+  simplifications_count: 1
   file_scope:
   - background/x.py
 - id: TAIL_atom
   level_current: 1
   evidence: [z.py]
-  simplifications: []
 """
+# The existing notes those counts stand for (seeded into the fixture store).
+_BLOCK_STORE_SEED = {
+    "FLOW_atom": ["flow note"],
+    "BLOCK_atom": [
+        "an existing note that happens to be quite long and would be wrapped by a "
+        "naive dumper across continuation lines"
+    ],
+}
 
 
 def _assert_no_duplicate_keys(text: str) -> None:
@@ -298,6 +317,9 @@ def _assert_no_duplicate_keys(text: str) -> None:
 def _block_fixture(tmp_path: Path) -> tuple[Path, Path]:
     map_copy = tmp_path / "maturity_map.yaml"
     map_copy.write_text(BLOCK_MAP)
+    sd = tmp_path / "simplifications"
+    for aid, notes in _BLOCK_STORE_SEED.items():
+        store.append_for_atom(aid, notes, sd)
     inbox_dir = tmp_path / "atom_status"
     inbox_dir.mkdir()
     return map_copy, inbox_dir
@@ -317,9 +339,13 @@ def test_block_style_atom_folds_and_clears_its_inbox(tmp_path):
 
     atoms = {a["id"]: a for a in yaml.safe_load(map_copy.read_text())}
     atom = atoms["BLOCK_atom"]
+    sd = map_copy.parent / "simplifications"
     assert atom["level_current"] == 3
     assert atom["evidence"] == ["first.py", "second.py", "docs/design/blockproof.md"]
-    assert atom["simplifications"][-1] == "2026-07-13 BUILD blockproof landed"
+    # the appended simplification lands in the STORE; the map's count tracks it
+    assert store.for_atom("BLOCK_atom", sd)[-1] == "2026-07-13 BUILD blockproof landed"
+    assert atom["simplifications_count"] == store.count_for_atom("BLOCK_atom", sd) == 2
+    assert "simplifications" not in atom
     # the append must land in the RIGHT list -- not leak into the next field
     assert atom["file_scope"] == ["background/x.py"]
 
@@ -372,6 +398,8 @@ def test_EVERY_atom_in_the_real_map_is_foldable(tmp_path):
     hand-authored style cannot re-open the hole silently."""
     map_copy = tmp_path / "maturity_map.yaml"
     shutil.copy2(REAL_MAP, map_copy)
+    shutil.copytree(REAL_STORE, tmp_path / "simplifications")
+    sd = map_copy.parent / "simplifications"
     inbox_dir = tmp_path / "atom_status"
     inbox_dir.mkdir()
     atom_ids = [a["id"] for a in yaml.safe_load(map_copy.read_text())]
@@ -400,11 +428,15 @@ def test_EVERY_atom_in_the_real_map_is_foldable(tmp_path):
     text = map_copy.read_text()
     _assert_no_duplicate_keys(text)
     folded_map = {a["id"]: a for a in yaml.safe_load(text)}
+    # evidence lands in the map; the simplification lands in the sibling store,
+    # with the map's count kept in sync -- and NO `simplifications` field returns.
+    assert not any("simplifications" in folded_map[aid] for aid in atom_ids), \
+        "the fold must never re-create a `simplifications:` field in the map"
     missing = [
         aid for aid in atom_ids
         if "docs/design/foldcheck.md" not in (folded_map[aid].get("evidence") or [])
-        or "2026-07-13 BUILD foldcheck landed"
-        not in (folded_map[aid].get("simplifications") or [])
+        or "2026-07-13 BUILD foldcheck landed" not in store.for_atom(aid, sd)
+        or folded_map[aid].get("simplifications_count") != store.count_for_atom(aid, sd)
     ]
     assert missing == [], (
         f"fold reported success but the value never reached the map for: {missing}"
@@ -421,7 +453,6 @@ COMMENTED_MAP = """\
 - id: COMMENTED_atom
   level_current: 0
   evidence: [docs/design/BACKLOG.md]  # why this list is what it is [see note]
-  simplifications: ['a note']
 - id: MINTED_atom
   level_current: 0
   loop_stage: idle
@@ -462,9 +493,13 @@ def test_absent_field_is_created_not_aborted(tmp_path):
 
     atoms = {a["id"]: a for a in yaml.safe_load(map_copy.read_text())}
     atom = atoms["MINTED_atom"]
+    sd = map_copy.parent / "simplifications"
     assert atom["level_current"] == 3
     assert atom["evidence"] == ["docs/design/firstreport.md"]
-    assert atom["simplifications"] == ["2026-07-13 BUILD firstreport landed"]
+    # simplification lands in the store; the map gains only its count scalar
+    assert store.for_atom("MINTED_atom", sd) == ["2026-07-13 BUILD firstreport landed"]
+    assert atom["simplifications_count"] == 1
+    assert "simplifications" not in atom
     assert atom["file_scope"] == ["sim/x.py"], "created field mis-nested into a sibling"
 
 
@@ -481,7 +516,7 @@ def test_a_wrapped_flow_list_FOLDS_now_instead_of_wedging(tmp_path):
         "  level_current: 0\n"
         "  evidence: [first.py,\n"
         "    second.py]\n"
-        "  simplifications: ['n']\n"
+        "  loop_stage: idle\n"  # a stable sibling AFTER the wrapped `]`
     )
     inbox_dir = tmp_path / "atom_status"
     inbox_dir.mkdir()
@@ -493,9 +528,7 @@ def test_a_wrapped_flow_list_FOLDS_now_instead_of_wedging(tmp_path):
     assert atom["evidence"][:2] == ["first.py", "second.py"], "wrapped entries lost in the fold"
     assert "wrapped" in " ".join(atom["evidence"]), "the inbox addition never landed"
     # and the sibling key is intact -- the multi-line splice must not eat the line after `]`.
-    # (It legitimately GAINS the inbox's own simplification; what matters is that the
-    # pre-existing entry survived rather than being consumed by the splice.)
-    assert atom["simplifications"][0] == "n", "the splice consumed a sibling field"
+    assert atom["loop_stage"] == "idle", "the splice consumed a sibling field"
 
 
 def test_unparseable_field_STILL_aborts_rather_than_creating_a_duplicate_key(tmp_path):

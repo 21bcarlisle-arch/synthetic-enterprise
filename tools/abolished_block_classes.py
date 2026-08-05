@@ -240,6 +240,12 @@ def register_exposure(path: Path | None = None) -> dict | None:
     atoms = _load_atoms(path)
     if atoms is None:
         return None
+    # simplifications moved to the sibling store (retro FM-1); read the notes
+    # through the loader, keyed to the store beside the map being scanned.
+    from tools import simplifications_store as store
+
+    src = path or MATURITY_MAP_YAML
+    store_dir = Path(src).parent / "simplifications"
     by_class: dict[str, int] = {}
     notes_touched = 0
     atoms_touched = 0
@@ -247,7 +253,7 @@ def register_exposure(path: Path | None = None) -> dict | None:
         if not isinstance(atom, dict):
             continue
         hit_this_atom = False
-        for note in atom.get("simplifications") or []:
+        for note in store.for_atom(atom.get("id"), store_dir):
             refs = find_abolished_references(str(note))
             if refs:
                 notes_touched += 1
