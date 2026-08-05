@@ -21,12 +21,19 @@ BLOCK_PIT_READ = REPO_ROOT / ".claude" / "hooks" / "block_point_in_time_read.py"
 
 
 def _run(script: Path, payload: dict, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess:
+    # These hooks are seat-GUARDED (.claude/hooks/_seat.py): inert in a foreign
+    # seat. Force resident so the behaviour under test actually runs. Foreign
+    # inertness is proven separately in tests/hooks/test_seat_guard.py.
+    import os
+
+    env = {**os.environ, "SE_SEAT": "resident"}
     return subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
         capture_output=True,
         text=True,
         cwd=cwd,
+        env=env,
     )
 
 
