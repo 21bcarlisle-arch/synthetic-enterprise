@@ -17,3 +17,10 @@
 A **seat-guard**: each hook derives seat identity from a marker that exists only on Skynet (environment variable or a file OUTSIDE the repo — anything in-repo clones everywhere) and silently no-ops when absent. `pull_next_work.py` first, then the stamp/log hooks; the guard itself gets an R15 mutation test both ways (marker present → hook acts; absent → provably inert). Register in the map under the naming law — plain title: "Hooks know whose hands they're in." Future CCM tasks then rest on structure, not luck.
 
 — Advisor note, staged 2026-08-05 evening; machine offline throughout both CCM sessions.
+
+## Amendment (2026-08-05, ~21:45) — all four PRs merged; seat-guard SHIPPED; one observation
+
+The director merged PRs #4, #5, #6, #7 at 21:31. Updates to the above:
+- **The seat-guard is BUILT and on main** (PR #7) — do not re-mint. Seven hooks guarded, `block_sudo` universal, structural-lock test prevents unguarded future hooks, R15 both ways (advisor replicated the mutation digit-for-digit). Marker: `~/.config/synthetic-enterprise/.env.ntfy`; `SE_SEAT` overrides. Fail-closed: marker missing/unreadable → hooks silently inert. Resident-side integration self-proves at first wake: if the tick draws work, the guard passed through.
+- **The epistemic wall is under test** (PR #6, merged WITH its perimeter-widening amendment): static import ratchet over {company, saas} ↔ {sim, simulation}, seam = company.interfaces. Class (a) company-side→SIM holds 2 named legacy edges (saas→simulation) — the wall's highest-priority shrink targets. Class (b) freezes the ~107-edge reverse mass. Shrink-only allowlists, stale-entry enforced. Advisor ran the full suite on merged main: 114 green across design+hooks+architecture tiers; map 248,736 bytes; store 181 files.
+- **Observation to reconcile at wake:** commit `4483b34` ("chore(liveness): publish heartbeat", 17:38 2026-08-05) was pushed DIRECTly to main while the machine was nominally offline and no workflows exist. The liveness publisher appears to have run at least once mid-week. Check the boot/journal record for 2026-08-05 ~17:38 and reconcile; no other unexplained pushes observed.
