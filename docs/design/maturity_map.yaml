@@ -1783,7 +1783,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  blocked_on: closed_zonal_rejected_2026-07-21_watching_brief_in_forward_register
+  blocked_reason: closed_zonal_rejected_2026-07-21_watching_brief_in_forward_register
   block_reason: "Director-rejected 2026-07-21 (the zonal/locational market does not exist in the baseline world); parked as a watching brief in the forward-discovery register -- releases only if the director re-opens it (R13 curriculum, director-reserved)."
   dial_inherited: 3
   provenance: proposal
@@ -2152,7 +2152,7 @@
   level_current: 2
   level_target: 3
   loop_stage: idle   # PARKED 2026-07-17: all 7 designed sub-steps BUILT (console-marker, manifest, scheduling, systemd-migration, deploy-by-construction, notification-contract [17/17 collapsed], test-isolation) + the fork-lifecycle reconciler landed. L2->L3 is the DIRECTOR-TRIGGERED systemd DEPLOY (units reinstall + daemon restart, so booted-SHA/stamps/console-marker go LIVE) + the governance LIVE run -- NOT worker-BUILD. No worker BUILD is drawable here now; flips to build/L3 on the director's deploy. Parked so the loop draws other work instead of treadmilling a done rebuild (Rule 0: empty feasible set is a dial defect, yield).
-  blocked_on: director_systemd_deploy   # worker-complete (L2); L3 = the director-triggered systemd deploy. Excluded from the draw until he deploys (H_draw_excludes_external_blocked_atoms). Clear this to re-admit.
+  blocked_reason: director_systemd_deploy   # worker-complete (L2); L3 = the director-triggered systemd deploy. Excluded from the draw until he deploys (H_draw_excludes_external_blocked_atoms). Clear this to re-admit.
   block_reason: "Worker-complete (L2); L3 = the director-triggered systemd deploy -- excluded from the draw until he deploys."
   dial_inherited: 5
   provenance: director_mandate
@@ -2220,7 +2220,7 @@
   level_current: 2
   level_target: 3
   loop_stage: idle   # PARKED 2026-07-17: harness BUILT (L2). L2->L3 is the DIRECTOR-WATCHED LIVE worker-outcome run, which the atom's own DoD + the director explicitly reserve to a controlled, halt-ready window ("never a maiden flight"). The loop drew this for BUILD; the worker correctly REFUSED to run it autonomously and parked it -- a live instance of the very behaviour this atom verifies. Flips to build/L3 only when the director triggers the live run.
-  blocked_on: director_live_run   # harness complete (L2); L3 = the director-watched live run. Excluded from the draw until he triggers it. Clear this to re-admit.
+  blocked_reason: director_live_run   # harness complete (L2); L3 = the director-watched live run. Excluded from the draw until he triggers it. Clear this to re-admit.
   block_reason: "Harness complete (L2); L3 = the director-watched live run -- excluded from the draw until he triggers it."
   dial_inherited: 2
   provenance: proposal
@@ -2547,7 +2547,7 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  blocked_on: coupled_triad_measured
+  blocked_reason: coupled_triad_measured
   block_reason: "Coupled-triad harness leg; blocked until the coupled-triad belief-vs-truth gap is measured (coupled_triad_measured) -- the world/company legs must land first."
   dial_inherited: 3
   provenance: proposal
