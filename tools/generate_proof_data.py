@@ -305,7 +305,11 @@ def _load_atoms():
 def _held_note(atom):
     """First simplification note that reads as an explicit honest-hold /
     Expert-Hour finding, if any."""
-    for n in (atom.get("simplifications") or []):
+    # simplifications moved to the sibling store (retro FM-1); the loader returns
+    # EXACTLY the list this field used to hold. Store sits beside the map.
+    from tools import simplifications_store as store
+
+    for n in store.for_atom(atom.get("id"), MATURITY_MAP_YAML.parent / "simplifications"):
         s = str(n)
         if any(k in s for k in ("HELD", "NOT L")) or any(
                 k in s.lower() for k in ("honest", "expert-hour", "expert hour")):

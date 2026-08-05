@@ -55,6 +55,12 @@ def test_never_authors_new_text_only_republishes(monkeypatch, tmp_path):
     yaml_path.write_text(yaml_content)
     out_path = tmp_path / "simplified.json"
 
+    # The register moved to the sibling store (retro FM-1): the note lives beside
+    # the map, and the generator reads it there. Write it verbatim into the store.
+    from tools import simplifications_store as store
+    store.append_for_atom("TEST_ATOM", ["a real, verbatim note from the source"],
+                          tmp_path / "simplifications")
+
     import tools.generate_simplified_data as mod
     monkeypatch.setattr(mod, "MATURITY_MAP_YAML", yaml_path)
     monkeypatch.setattr(mod, "OUT_PATH", out_path)
