@@ -22,6 +22,13 @@ import sys
 import time
 from pathlib import Path
 
+# Seat guard: this is the RESIDENT worker seat's presence stamp -- a foreign
+# session running it dirties the seat's docs/observability/.human_last_input
+# (observed live 2026-08-05). Make the hooks dir importable whether run as a
+# script or exec'd via importlib, then import the guard.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 # Prefixes that identify a MACHINE-injected turn (must NOT count as human
 # presence). NOTE: an NTFY relay is deliberately NOT here -- it is a genuine
 # human message from the director's phone (the daemon only carries it), so it
@@ -37,6 +44,9 @@ _STAMP = Path(__file__).resolve().parent.parent.parent / "docs" / "observability
 
 
 def main() -> None:
+    # Seat guard FIRST: inert (no stamp write, no output) in any foreign seat.
+    if not is_resident_seat():
+        return
     try:
         raw = sys.stdin.read()
         prompt = ""

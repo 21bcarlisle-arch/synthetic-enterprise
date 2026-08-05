@@ -39,9 +39,17 @@ longer be satisfied by theatre.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
+
+# Seat guard: the fixed/live/deployed-claim discipline gates the RESIDENT
+# seat's own NTFY sends; a foreign session's Bash must not be blocked by it
+# (a nonzero exit could stop the foreign session's legitimate work). Make the
+# hooks dir importable, then import the guard.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _seat import is_resident_seat  # noqa: E402
 
 # Tracking refs to check, in order. The first that resolves is used. If none
 # resolve, the check is UNAVAILABLE and we fail closed (block).
@@ -119,6 +127,9 @@ def _has_verified_evidence(message: str) -> bool:
 
 
 def main() -> int:
+    # Seat guard FIRST: inert (exit 0, no output) in any foreign seat.
+    if not is_resident_seat():
+        return 0
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):

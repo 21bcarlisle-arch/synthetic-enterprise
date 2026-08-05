@@ -21,11 +21,20 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Seat guard: this hook appends to the RESIDENT seat's observability log
+# (docs/observability/instructions_loaded_log.jsonl). A foreign session must
+# not write there -- make the hooks dir importable, then import the guard.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 LOG_PATH = PROJECT_DIR / "docs" / "observability" / "instructions_loaded_log.jsonl"
 
 
 def main() -> int:
+    # Seat guard FIRST: inert (no log write, no output) in any foreign seat.
+    if not is_resident_seat():
+        return 0
     # Same test-isolation guard as background/director_input_log.py's
     # append_entry() / background/ntfy_mirror.py's append_mirror_entry()
     # (2026-07-09 tmux-leak-class incident) -- a real subprocess-based hook

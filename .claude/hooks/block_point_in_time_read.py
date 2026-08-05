@@ -34,6 +34,12 @@ import re
 import sys
 from pathlib import Path
 
+# Seat guard: this blindfold heuristic gates the RESIDENT seat's company/saas
+# authorship; a foreign session editing those paths must not be flagged by it.
+# Make the hooks dir importable, then import the guard.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 _DANGEROUS_PATTERN = re.compile(r"\brun_settlement\s*\(|\ball_records\b")
 _BOUNDING_EVIDENCE = re.compile(r"as_of|bisect")
 _COMPANY_SAAS_PATH = re.compile(r"^(company|saas)/.*\.py$")
@@ -90,6 +96,9 @@ def _new_content(payload: dict) -> str | None:
 
 
 def main() -> int:
+    # Seat guard FIRST: inert (exit 0, no output) in any foreign seat.
+    if not is_resident_seat():
+        return 0
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
