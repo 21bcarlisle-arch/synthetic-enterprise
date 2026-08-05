@@ -3,11 +3,11 @@
 WHY THIS EXISTS
 ---------------
 The project's core law is an epistemic wall (CLAUDE.md, "Architectural Laws —
-Epistemic Honesty"): the company layer may only know what a real UK energy
-supplier could observe, so `company/` code must not read simulation internals
-except through the sanctioned interface seam. A July 2026 analysis counted on
-the order of a hundred import crossings bypassing the seam. Nothing in the
-tree PREVENTED crossing #107 — a new crossing could be added and no test would
+Epistemic Honesty"): the company/business layer may only know what a real UK
+energy supplier could observe, so it must not read simulation internals except
+through a sanctioned interface seam. A July 2026 analysis counted on the order
+of a hundred import crossings bypassing the seam. Nothing in the tree
+PREVENTED crossing #107 — a new crossing could be added and no test would
 notice.
 
 This module makes the wall MEASURABLE and UN-REGRESSABLE, using the same
@@ -17,31 +17,48 @@ allowlist to shrink as edges are removed and can never silently grow).
 
   * A NEW crossing (an edge not in the dated allowlist) fails the suite,
     naming the edge and pointing at the wall doctrine.
-  * A grandfathered edge that is later DELETED from the code must be removed
-    from the allowlist too, or its stale entry fails the suite. The allowlist
-    is therefore a one-way ratchet: it can only shrink.
+  * A grandfathered edge later DELETED from the code must be removed from the
+    allowlist too, or its stale entry fails the suite. The allowlist is
+    therefore a one-way ratchet: it can only shrink.
 
-PHASE-1 RECON — the sanctioned seam and the shape of "SIM"
-----------------------------------------------------------
-Read directly from the code layout on 2026-08-05 (evidence in the PR body):
+PHASE-1 RECON — the two sides of the wall, and the seams
+--------------------------------------------------------
+Read directly from the code layout (evidence quoted in the PR body). The
+perimeter was DISCOVERED by census, twice — see the lesson at the bottom.
 
-  * The sanctioned seam is the `company.interfaces` package
-    (`company/interfaces/`), fronted by `sim_interface.py` whose own docstring
-    reads: "The company layer must only access simulation data through these
-    methods — it cannot read simulation internals directly." An edge is
-    SANCTIONED (exempt) iff its COMPANY-side endpoint module lives under
-    `company.interfaces` — that is the single crossing surface, in BOTH
-    directions.
+COMPANY (business) side = {company, saas}. Two sibling top-level packages:
+  * `company/` — pricing, billing, CRM, risk, trading, compliance, ...
+  * `saas/`    — the business layer proper (customers, CLV/CAC, churn,
+                 cost-to-serve, reporting). The July analysis named
+                 `saas.customers` the most-depended-on module straddling the
+                 wall. Omitting `saas/` would have left the single largest
+                 crossing class (simulation->saas) invisible and reported the
+                 strictly-forbidden direction (saas->sim) as zero.
 
-  * The simulated world is split across TWO sibling top-level packages, not
-    one: `sim/` (market/price/weather/forward-curve/risk engine) AND
-    `simulation/` (population, households, settlement, customer-behaviour
-    engine — household budgets, life events, demand physics, meter reads).
-    Both are "SIM internals" for the purposes of the wall, so the SIM side of
-    the ratchet is the union {sim, simulation}. Measuring only `company↔sim`
-    would freeze an essentially-empty baseline (3 edges, all inside the seam)
-    and give false confidence while the real crossing mass sits in
-    `simulation↔company`. The per-package census is reported in the PR.
+SIM (simulated world) side = {sim, simulation}. Two sibling top-level packages:
+  * `sim/`        — market/price/weather/forward-curve/risk engine.
+  * `simulation/` — population, households, settlement, customer-behaviour
+                    engine (household budgets, life events, demand physics,
+                    meter reads). This is where the crossing mass lives.
+
+SEAMS (sanctioned crossing surfaces):
+  * `company.interfaces` (`company/interfaces/`), fronted by `sim_interface.py`
+    whose docstring reads: "The company layer must only access simulation data
+    through these methods — it cannot read simulation internals directly." An
+    edge is EXEMPT iff its COMPANY-side endpoint module lives under
+    `company.interfaces` — that is the single company<->sim crossing surface,
+    in BOTH directions.
+  * `interface/` (top-level, singular) is a SEPARATE, seam-related package: its
+    README calls it "The seam. The *only* channel through which sim/ and saas/
+    communicate ... Neither side imports the other directly; both sides depend
+    only on what's defined here." It is NEITHER a COMPANY nor a SIM package, so
+    no wall edge (company-side <-> sim-side) has an endpoint in it, and it is
+    deliberately NOT granted seam-exemption in this checker (conservative — a
+    genuine forbidden saas->sim import is a DIRECT edge and is caught
+    regardless of whether the module also touches interface/; the two
+    saas->simulation edges below prove that). Edges to/from `interface/` are
+    therefore simply outside the ratchet's crossing definition and cannot
+    launder a crossing.
 
 SCOPE / KNOWN LIMIT (stated honestly)
 -------------------------------------
@@ -49,10 +66,17 @@ This covers STATIC imports only — `import X` and `from X import Y`, resolved
 with the stdlib `ast` module over a pure read of the tree. Dynamic imports
 (`__import__`, `importlib.import_module`), `getattr`-driven access, and
 string-eval escape it. That is a known, ACCEPTED limit of this (NET, static)
-tier: the ratchet raises the cost of a static crossing to "you must edit a
-dated allowlist and explain it in review", which is where the overwhelming
-majority of real crossings would land. A dynamic-import tier would be a
-separate, heavier instrument.
+tier: it raises the cost of a static crossing to "you must edit a dated
+allowlist and explain it in review", where the overwhelming majority of real
+crossings land. A dynamic-import tier would be a separate, heavier instrument.
+
+LESSON (recorded per the amendment that widened this ratchet)
+-------------------------------------------------------------
+Perimeter assumptions are themselves findings to verify. Both the SIM side
+(sim/ + simulation/) and the COMPANY side (company/ + saas/) turned out to be
+TWO packages, not one; each was established by an independent AST census, not
+assumed from the directory that shares the concept's name. A wall checker is
+only as honest as its perimeter.
 
 Dependencies: pytest + Python stdlib (`ast`, `os`) only. No project imports,
 so this suite runs even when the app's runtime deps are absent.
@@ -70,26 +94,31 @@ from dataclasses import dataclass
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# Company side of the wall.
-COMPANY_PACKAGES = frozenset({"company"})
-# SIM side of the wall — the simulated world spans BOTH packages (see recon).
+# Company/business side of the wall — TWO packages (see recon).
+COMPANY_PACKAGES = frozenset({"company", "saas"})
+# SIM side of the wall — the simulated world spans TWO packages (see recon).
 SIM_PACKAGES = frozenset({"sim", "simulation"})
-# The sanctioned crossing surface. An edge whose COMPANY-side endpoint module
-# is under this package is a legitimate seam crossing, not a wall violation.
+# The sanctioned company<->sim crossing surface. An edge whose COMPANY-side
+# endpoint module is under this package is a legitimate seam crossing, not a
+# wall violation. (The top-level `interface/` sim<->saas seam is deliberately
+# NOT listed here — see the module docstring.)
 SEAM_PACKAGE = "company.interfaces"
 
-# Top-level directories walked (all under REPO_ROOT). Kept explicit so the
-# walker is deterministic and the mutation fixtures can reuse build_edges().
-WALL_DIRS = ("company", "sim", "simulation")
+# Top-level directories walked (all under REPO_ROOT). These are exactly the
+# four wall-side packages; `interface/` is intentionally excluded because it is
+# neither wall side and cannot host a wall edge.
+WALL_DIRS = ("company", "saas", "sim", "simulation")
 
 WALL_DOCTRINE = (
-    "Epistemic wall (CLAUDE.md, Architectural Laws): the company layer must "
-    "only cross the SIM boundary through the sanctioned seam "
+    "Epistemic wall (CLAUDE.md, Architectural Laws): the company/business layer "
+    "must only cross the SIM boundary through the sanctioned seam "
     f"`{SEAM_PACKAGE}` ({SEAM_PACKAGE.replace('.', '/')}/). A direct import "
-    "between company internals and SIM internals bypasses that seam. If this "
-    "crossing is intentional and unavoidable, route it through the seam; if it "
-    "is genuinely legacy, add it to the dated allowlist in this file with a "
-    "one-line justification — never silently."
+    "between company-side internals (company/, saas/) and SIM internals (sim/, "
+    "simulation/) bypasses that seam. If this crossing is intentional and "
+    "unavoidable, route it through the seam; if it is genuinely legacy, add it "
+    "to the dated allowlist in this file with a one-line justification — never "
+    "silently. company-side reading SIM (class a) is the strictly forbidden "
+    "direction and the highest-priority shrink target."
 )
 
 
@@ -119,8 +148,8 @@ def _module_name(root: str, path: str) -> str:
 def _resolve_relative(src: str, module: str | None, level: int) -> str:
     """Resolve a relative import (`from . import x`) to an absolute dotted name.
 
-    Sibling top-level packages (company / sim / simulation) cannot reach each
-    other via a relative import, so relative imports never produce a wall
+    Sibling top-level packages (company / saas / sim / simulation) cannot reach
+    each other via a relative import, so relative imports never produce a wall
     crossing — but we resolve them correctly anyway for completeness.
     """
     pkg = src.split(".")
@@ -177,10 +206,12 @@ def _under_seam(module: str) -> bool:
 
 
 def company_reads_sim(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
-    """Class (a): company internals importing SIM internals, NOT via the seam.
+    """Class (a): company-side internals importing SIM internals, NOT via seam.
 
     Keyed by (src_module, dst_module) so many import statements collapsing to
     the same module pair count as one edge; value is a representative location.
+    This is the STRICTLY FORBIDDEN direction — the business layer must never
+    read the simulated world's internals.
     """
     out: dict[tuple[str, str], RawEdge] = {}
     for e in edges:
@@ -190,7 +221,7 @@ def company_reads_sim(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
 
 
 def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
-    """Class (b): SIM internals importing company internals, NOT via the seam.
+    """Class (b): SIM internals importing company-side internals, NOT via seam.
 
     Symmetric to class (a): an edge whose company-side endpoint (here the
     TARGET) is under the seam package is a sanctioned crossing and exempt.
@@ -206,7 +237,8 @@ def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
 # The dated, shrink-only allowlists (the ratchet baseline).
 #
 # Baseline frozen 2026-08-05 from a pure static walk of the tree on the
-# `claude/epistemic-wall-import-ratchet-jnw2dl` branch. Each tuple is a
+# `claude/epistemic-wall-import-ratchet-jnw2dl` branch, over the WIDENED
+# perimeter {company, saas} <-> {sim, simulation}. Each tuple is a
 # (source_module, target_module) edge grandfathered on that date. Rules:
 #   * The lists may only SHRINK. Removing a wall crossing from the code must be
 #     matched by deleting its tuple here (enforced by the stale-entry tests).
@@ -215,33 +247,66 @@ def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
 #     that says "this legacy edge is acknowledged and owed a paydown".
 # --------------------------------------------------------------------------
 
-# Class (a) — company/* importing sim.*/simulation.* other than via the seam.
-# Census on 2026-08-05: ZERO. The company layer does not read SIM internals
-# directly today; the only company->SIM edges are the 3 inside the seam file
-# `company/interfaces/sim_interface.py`, which are exempt by construction.
-LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
+# Class (a) — company-side (company/, saas/) importing SIM internals other than
+# via the seam. Census on 2026-08-05: 2 edges, BOTH the strictly-forbidden
+# `saas -> simulation` direction. These are the wall's HIGHEST-PRIORITY shrink
+# targets: the business layer directly importing the simulated world's run
+# harness. (`company/` itself reads SIM internals only inside the seam file.)
+LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset({
+    ("saas.reporting.annual_report", "simulation.run_phase4c_on_phase2b"),
+    ("saas.reporting.segment_report", "simulation.run_segments"),
+})
 
-# Class (b) — sim.*/simulation.* importing company.* other than via the seam.
-# Census on 2026-08-05: 46 edges, ALL originating in `simulation/` (the
-# population/settlement engine wiring the company's own books into a run);
-# `sim/` itself reads company zero times. These are the real crossing mass the
-# July analysis was pointing at.
+# Class (b) — sim.*/simulation.* importing company-side internals other than
+# via the seam. Census on 2026-08-05: 105 edges (59 simulation->saas from 61
+# import statements, + 46 simulation->company); `sim/` itself reads the company
+# side zero times. The simulation->saas mass is the largest crossing class in
+# the codebase and was invisible before the perimeter was widened to include
+# saas/.
 LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
+    ("simulation.acquisition_funnel", "saas.growth_mandate"),
     ("simulation.arrears_engine", "company.policy.decision_policy"),
     ("simulation.churn_journey", "company.core.activation_energy"),
     ("simulation.churn_journey", "company.core.reputation_index"),
     ("simulation.churn_journey", "company.core.resentment_ledger"),
     ("simulation.credit_refund_events", "company.billing.credit_refund"),
     ("simulation.customer_events", "company.crm.churn_model"),
+    ("simulation.customer_events", "saas.churn_model"),
+    ("simulation.customer_events", "saas.customer_reaction"),
+    ("simulation.customer_events", "saas.home_move_win_rate"),
     ("simulation.dd_balance_book", "company.billing.dd_review"),
     ("simulation.dd_collection_book", "company.billing.direct_debit"),
     ("simulation.dd_level_collection_book", "company.billing.direct_debit"),
     ("simulation.feedback_survey", "company.core.reputation_index"),
     ("simulation.hedged_settlement", "company.pricing.ofgem_price_cap"),
+    ("simulation.live_population", "saas.customers"),
     ("simulation.publish_market_feed", "company.market.price_feed"),
     ("simulation.renewals", "company.governance.approval_interface"),
     ("simulation.renewals", "company.governance.decision_rights"),
     ("simulation.renewals", "company.pricing.tariff_engine"),
+    ("simulation.renewals", "saas.tariff_pricing"),
+    ("simulation.run_phase0b", "saas.tariff_pricing"),
+    ("simulation.run_phase0c", "saas.clv_seed"),
+    ("simulation.run_phase0c", "saas.customer_reaction"),
+    ("simulation.run_phase0c", "saas.customers"),
+    ("simulation.run_phase0c", "saas.tariff_pricing"),
+    ("simulation.run_phase1b_weather_pull", "saas.customers"),
+    ("simulation.run_phase1c", "saas.clv_seed"),
+    ("simulation.run_phase1c", "saas.customer_reaction"),
+    ("simulation.run_phase1c", "saas.customers"),
+    ("simulation.run_phase1c", "saas.tariff_pricing"),
+    ("simulation.run_phase1c_full_window", "saas.clv_seed"),
+    ("simulation.run_phase1c_full_window", "saas.customer_reaction"),
+    ("simulation.run_phase1c_full_window", "saas.customers"),
+    ("simulation.run_phase1c_full_window", "saas.tariff_pricing"),
+    ("simulation.run_phase1c_renewals", "saas.clv_seed"),
+    ("simulation.run_phase1c_renewals", "saas.customer_reaction"),
+    ("simulation.run_phase1c_renewals", "saas.customers"),
+    ("simulation.run_phase1d", "saas.customers"),
+    ("simulation.run_phase1e", "saas.customers"),
+    ("simulation.run_phase1e_repriced", "saas.customers"),
+    ("simulation.run_phase2a", "saas.customers"),
+    ("simulation.run_phase2a_repriced", "saas.customers"),
     ("simulation.run_phase2b", "company.analytics.churn_accuracy_report"),
     ("simulation.run_phase2b", "company.core.reputation_index"),
     ("simulation.run_phase2b", "company.core.resentment_ledger"),
@@ -268,11 +333,42 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "company.trading.forward_book"),
     ("simulation.run_phase2b", "company.trading.hedge_decision"),
     ("simulation.run_phase2b", "company.trading.wholesale_credit_exposure"),
+    ("simulation.run_phase2b", "saas.cost_to_serve"),
+    ("simulation.run_phase2b", "saas.customer_reaction"),
+    ("simulation.run_phase2b", "saas.customers"),
+    ("simulation.run_phase2b", "saas.demand_response"),
+    ("simulation.run_phase2b", "saas.growth_mandate"),
+    ("simulation.run_phase2b", "saas.ledger"),
+    ("simulation.run_phase2b", "saas.property_model"),
+    ("simulation.run_phase2b", "saas.smart_meter_rollout"),
+    ("simulation.run_phase2b", "saas.tariff_pricing"),
+    ("simulation.run_phase3a", "saas.customer_reaction"),
+    ("simulation.run_phase3a", "saas.customers"),
+    ("simulation.run_phase4b_on_phase2b", "saas.churn_model"),
+    ("simulation.run_phase4b_on_phase2b", "saas.cost_to_serve"),
+    ("simulation.run_phase4b_on_phase2b", "saas.customers"),
+    ("simulation.run_phase4b_on_phase2b", "saas.enterprise_value"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.account_adjustment_register"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.back_billing"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation"),
     ("simulation.run_phase4c_on_phase2b", "company.compliance.domain_invariants"),
+    ("simulation.run_phase4c_on_phase2b", "saas.bill_generator"),
+    ("simulation.run_phase4c_on_phase2b", "saas.churn_model"),
+    ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
+    ("simulation.run_phase4c_on_phase2b", "saas.cost_to_serve"),
+    ("simulation.run_phase4c_on_phase2b", "saas.customers"),
+    ("simulation.run_phase4c_on_phase2b", "saas.enterprise_value"),
+    ("simulation.run_phase4c_on_phase2b", "saas.home_move_win_rate"),
+    ("simulation.run_phase4c_on_phase2b", "saas.ledger"),
+    ("simulation.run_phase4c_on_phase2b", "saas.payment_behaviour"),
+    ("simulation.run_phase4c_on_phase2b", "saas.reporting.annual_report"),
+    ("simulation.run_segments", "saas.growth_mandate"),
+    ("simulation.run_segments", "saas.ledger"),
+    ("simulation.run_segments", "saas.property_model"),
+    ("simulation.run_segments", "saas.tariff_pricing"),
+    ("simulation.satisfaction_churn", "saas.churn_model"),
+    ("simulation.weather_inputs", "saas.customers"),
 })
 
 
@@ -293,11 +389,11 @@ def _real_edges() -> list[RawEdge]:
 
 
 # --------------------------------------------------------------------------
-# Tests — Phase-1 recon assertion.
+# Tests — Phase-1 recon assertions.
 # --------------------------------------------------------------------------
 
 def test_seam_package_exists_and_is_the_crossing_surface():
-    """The sanctioned seam is `company/interfaces/` — verify it is really there.
+    """The sanctioned company<->sim seam is `company/interfaces/` — verify it.
 
     Guards the recon finding this whole ratchet rests on: if the seam were
     renamed or removed, the exemption logic would silently mislabel edges.
@@ -309,10 +405,31 @@ def test_seam_package_exists_and_is_the_crossing_surface():
     )
 
 
-def test_sim_side_packages_exist():
-    """Both halves of the simulated world are present (sim/ and simulation/)."""
-    for pkg in SIM_PACKAGES:
-        assert os.path.isdir(os.path.join(REPO_ROOT, pkg)), f"SIM package missing: {pkg}/"
+def test_both_wall_sides_exist():
+    """Both packages on each side of the widened perimeter are present."""
+    for pkg in SIM_PACKAGES | COMPANY_PACKAGES:
+        assert os.path.isdir(os.path.join(REPO_ROOT, pkg)), f"wall-side package missing: {pkg}/"
+
+
+def test_interface_seam_is_classified_and_not_a_wall_side():
+    """`interface/` is the sim<->saas seam, and is neither a COMPANY nor a SIM
+    package — so it cannot host a wall edge nor launder one.
+
+    Conservative treatment ("when unsure, non-exempt"): interface/ is NOT in the
+    seam-exemption path, and because it is in neither wall side, no
+    company-side<->sim-side edge can route an endpoint through it. A real
+    forbidden saas->sim import is a DIRECT edge and is caught regardless.
+    """
+    assert os.path.isdir(os.path.join(REPO_ROOT, "interface")), "interface/ package missing"
+    assert "interface" not in COMPANY_PACKAGES
+    assert "interface" not in SIM_PACKAGES
+    assert not _under_seam("interface.contracts.wall_envelope")
+    # Empirically: walking the wall dirs, no classified crossing has an
+    # `interface`-package endpoint (interface/ is not even in WALL_DIRS).
+    edges = _real_edges()
+    for by_key in (company_reads_sim(edges), sim_reads_company(edges)):
+        for src, dst in by_key:
+            assert _top(src) != "interface" and _top(dst) != "interface"
 
 
 # --------------------------------------------------------------------------
@@ -320,12 +437,16 @@ def test_sim_side_packages_exist():
 # --------------------------------------------------------------------------
 
 def test_no_new_company_reads_sim():
-    """No company/* import of SIM internals outside the seam or the allowlist."""
+    """No company-side import of SIM internals outside the seam/allowlist.
+
+    This is the strictly forbidden direction.
+    """
     edges = company_reads_sim(_real_edges())
     new = set(edges) - LEGACY_COMPANY_READS_SIM
     assert not new, (
-        "NEW epistemic-wall crossing(s): company internals importing SIM "
-        "internals outside the seam and not in the dated allowlist:\n"
+        "NEW epistemic-wall crossing(s) in the FORBIDDEN direction: company-side "
+        "internals importing SIM internals outside the seam and not in the dated "
+        "allowlist:\n"
         + _fmt(edges, new)
         + "\n\n"
         + WALL_DOCTRINE
@@ -333,11 +454,11 @@ def test_no_new_company_reads_sim():
 
 
 def test_no_new_sim_reads_company():
-    """No SIM import of company internals outside the seam or the allowlist."""
+    """No SIM import of company-side internals outside the seam/allowlist."""
     edges = sim_reads_company(_real_edges())
     new = set(edges) - LEGACY_SIM_READS_COMPANY
     assert not new, (
-        "NEW epistemic-wall crossing(s): SIM internals importing company "
+        "NEW epistemic-wall crossing(s): SIM internals importing company-side "
         "internals outside the seam and not in the dated allowlist:\n"
         + _fmt(edges, new)
         + "\n\n"
@@ -382,23 +503,24 @@ def test_sim_reads_company_allowlist_has_no_stale_entries():
 # nothing else (not the stale-entry check, not the other direction).
 # --------------------------------------------------------------------------
 
-# A synthetic edge guaranteed absent from the real tree.
+# Synthetic edges guaranteed absent from the real tree. The class-(a) probe is
+# a SAAS-side crossing (the widened company perimeter's dominant class).
 _SYNTH_COMPANY_READS_SIM = RawEdge(
-    src="company.pricing.tariff_engine",
+    src="saas.reporting.annual_report",
     dst="sim.weather_engine",
-    path="company/pricing/tariff_engine.py",
+    path="saas/reporting/annual_report.py",
     lineno=1,
 )
 _SYNTH_SIM_READS_COMPANY = RawEdge(
     src="sim.forward_curve",
-    dst="company.trading.forward_book",
+    dst="saas.customers",
     path="sim/forward_curve.py",
     lineno=1,
 )
 
 
 def test_mutation_injected_company_reads_sim_reds_only_new_crossing():
-    """Inject a company->SIM crossing in memory; assert precise blast radius."""
+    """Inject a saas->SIM crossing in memory; assert precise blast radius."""
     real = _real_edges()
     mutated = real + [_SYNTH_COMPANY_READS_SIM]
     key = (_SYNTH_COMPANY_READS_SIM.src, _SYNTH_COMPANY_READS_SIM.dst)
@@ -422,7 +544,7 @@ def test_mutation_injected_company_reads_sim_reds_only_new_crossing():
 
 
 def test_mutation_injected_sim_reads_company_reds_only_new_crossing():
-    """Inject a SIM->company crossing in memory; assert precise blast radius."""
+    """Inject a SIM->saas crossing in memory; assert precise blast radius."""
     real = _real_edges()
     mutated = real + [_SYNTH_SIM_READS_COMPANY]
     key = (_SYNTH_SIM_READS_COMPANY.src, _SYNTH_SIM_READS_COMPANY.dst)
@@ -440,31 +562,40 @@ def test_mutation_injected_sim_reads_company_reds_only_new_crossing():
     assert not (LEGACY_COMPANY_READS_SIM - set(c2s))
 
 
-def test_mutation_walker_detects_a_physical_crossing_on_disk(tmp_path):
-    """End-to-end proof the AST WALKER (not just set arithmetic) catches a real
-    crossing: write a synthetic company module that imports sim on disk and
-    assert build_edges() surfaces it as a company->SIM violation.
+def test_mutation_walker_detects_physical_crossings_on_disk(tmp_path):
+    """End-to-end proof the AST WALKER (not just set arithmetic) catches real
+    crossings on disk — including a SAAS-side one — from BOTH `company/` and
+    `saas/` against BOTH sim packages.
 
     This closes the fail-open gap where the classifier is correct but the
     walker never produced the edge in the first place.
     """
-    # Minimal synthetic tree: <root>/company/rogue.py imports sim.weather_engine
+    # company/rogue.py imports sim.weather_engine
     comp = tmp_path / "company"
     comp.mkdir()
     (comp / "__init__.py").write_text("")
-    (comp / "rogue.py").write_text(
-        "from sim.weather_engine import secret_internal\n"
+    (comp / "rogue.py").write_text("from sim.weather_engine import secret_internal\n")
+
+    # saas/rogue.py imports simulation.household (the saas-side probe)
+    saas = tmp_path / "saas"
+    saas.mkdir()
+    (saas / "__init__.py").write_text("")
+    (saas / "rogue.py").write_text(
         "import simulation.household\n"
+        "from sim.forward_curve import build_curve\n"
     )
-    sim_dir = tmp_path / "sim"
-    sim_dir.mkdir()
-    (sim_dir / "__init__.py").write_text("")
-    (sim_dir / "weather_engine.py").write_text("secret_internal = 42\n")
+
+    for pkg in ("sim", "simulation"):
+        d = tmp_path / pkg
+        d.mkdir()
+        (d / "__init__.py").write_text("")
+    (tmp_path / "sim" / "weather_engine.py").write_text("secret_internal = 42\n")
 
     edges = build_edges(str(tmp_path), WALL_DIRS)
     c2s = company_reads_sim(edges)
     assert ("company.rogue", "sim.weather_engine") in c2s
-    assert ("company.rogue", "simulation.household") in c2s
+    assert ("saas.rogue", "simulation.household") in c2s
+    assert ("saas.rogue", "sim.forward_curve") in c2s
 
 
 def test_mutation_walker_respects_the_seam_exemption(tmp_path):
@@ -494,7 +625,8 @@ def test_mutation_walker_respects_the_seam_exemption(tmp_path):
 # --------------------------------------------------------------------------
 
 def test_baseline_census_is_exactly_as_frozen():
-    """On today's tree: class (a) == 0, class (b) == the 46 frozen edges."""
+    """On today's tree: class (a) == the 2 saas->simulation edges, class (b) ==
+    the 105 frozen SIM->company-side edges."""
     edges = _real_edges()
     assert set(company_reads_sim(edges)) == LEGACY_COMPANY_READS_SIM
     assert set(sim_reads_company(edges)) == LEGACY_SIM_READS_COMPANY
