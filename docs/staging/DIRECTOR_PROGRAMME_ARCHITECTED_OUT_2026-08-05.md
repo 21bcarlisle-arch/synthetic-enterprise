@@ -1,6 +1,6 @@
 # [DIRECTOR-PROGRAMME] — Architected out, organic in (2026-08-05)
 
-**Type:** Programme statement. Director-commissioned, director-ratified 2026-08-05. Problems and outcomes; mechanisms are the worker's to design.
+**Type:** Programme statement. Director-commissioned, director-ratified 2026-08-05. Amended same day (director): build-vs-buy added to the write-time gate; standing production-readiness constraints added to NET as executable checks. Problems and outcomes; mechanisms are the worker's to design.
 
 ## 0. The problem, in the director's words
 
@@ -13,8 +13,12 @@ Strictly in this order. Each step is the safety condition for the next.
 **MAP — the reuse surface (first, lowest risk).**
 Deliver the capability index (per `ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md`): one derived row per capability — plain words, status, evidence, empty rows visible. Its second job is the point here: **the builder consults it before minting anything new.** Write-time gate: before a new module/function, check the index; extend an existing mechanism or record in the commit why not. The rule is *know, then choose* — forced reuse that couples two purposes is the mirror error of duplication and is equally a defect. This extends `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` from primitives to all capability.
 
+The gate asks two questions, not one: *do we already have this?* (the index) and *does the ecosystem already have this?* Three part classes govern the second: **catalogue parts** — calendars, timezones, money arithmetic, statistical fitting, solvers — are always taken from mature libraries, never hand-rolled (evidence class: the from-scratch working-day calculator of 2026-08-03 built while `holidays`/`workalendar` exist, and the BST/UTC settlement block the same day); **custom tooling** — GB market mechanics, licence conditions, behavioural archetypes, the wall, the harness — is always built, because it is the product; **subsystems** (dispatch, ledgers and similar) may be built custom, but only with a recorded build-vs-buy note naming the library evaluated and the reasons rejected — silence is a gap. Recreating the physics of the GB market is the job; recreating the mathematics underneath it is waste. Dependency discipline still applies: deterministic decade replays mean every new library is pinned and its determinism stated.
+
 **NET — the join tier (second, before any knife).**
 Build the five system tests from `ADVISOR_FINDINGS_MISSING_TEST_TIER_2026-08-04.md` (work loop, physical chain, money chain, market chain, customer lifecycle). Rationale: every serious failure to date has been parts-pass-system-fails; those are also exactly the failures refactoring causes. No structural refactor lands before the joins it crosses are watched.
+
+The net also makes canon's standing production-readiness constraints executable — event-arrival tolerance, idempotent/deterministic replay, asynchronous wall contracts, persistence behind the event-log interface, declared time-scale invariance (per `PRODUCTION_READINESS_SCALE_ADDENDUM.md`). These are currently aspirational, and there is measured drift: the billing ledger existing as two identical 2.3MB copies (FINDING 2, `ADVISOR_FINDINGS_STRUCTURAL_AUDIT_2026-08-04.md`) is the persistence constraint not holding. Each constraint gets a standing check, or is listed as not-mechanisable rather than dropped; same report-only-first, gate-after-a-stable-week promotion as the join tests.
 
 **KNIFE — hotspot consolidation (third, never uniform).**
 Targets are already named by the July dependency analysis, not to be re-derived: the reporting module (~9k lines, mutual-import cycle with the main run), the customer module straddling the wall, the 100+ SIM->company crossings bypassing the empty seam, and the zero-import company modules (~320) which are candidates for wiring or retirement — archive, never delete. Each move: behaviour-preserving, test-protected, one hotspot per pass. The Epoch-3 adapter programme is the boundary half of this knife and is not duplicated here.
@@ -38,7 +42,7 @@ The worker must reconcile 3b with `COLD_EYES_PROTOCOL.md` (in_progress/) — one
 
 ## 4. Decided vs open
 
-**Decided (director, 2026-08-05):** the goal — organic in, architected out; the MAP->NET->KNIFE->RHYTHM sequence; the write-time gate; the target-design document; board shape 3a-c; the board scales by mechanism, manual relay reserved for the exceptional; archive-never-delete stands.
+**Decided (director, 2026-08-05):** the goal — organic in, architected out; the MAP->NET->KNIFE->RHYTHM sequence; the write-time gate; the target-design document; board shape 3a-c; the board scales by mechanism, manual relay reserved for the exceptional; archive-never-delete stands. Also decided (same-day amendment): the write-time gate asks both questions — index and ecosystem — under the three part classes above; canon's standing production-readiness constraints become executable checks in NET.
 **Open to the worker:** all mechanisms — index derivation, join-test design, hotspot order within the named set, battery conversion, the COLD_EYES reconciliation.
 **Reserved:** any change to epistemic-law enforcement or safety controls; REPO_PRIVATE untouched.
 
@@ -46,4 +50,4 @@ The worker must reconcile 3b with `COLD_EYES_PROTOCOL.md` (in_progress/) — one
 
 **Blast radius:** MAP low (derived artefact, no behaviour change). NET medium — join tests may be brittle at first; a red join test blocks publish, so first landing is report-only, promoted to gating after a stable week. KNIFE high — hotspots include money paths; mitigations: sequence position (after NET), one hotspot per pass, behaviour-preserving moves only, byte-identical output checks where they exist (established pattern). RHYTHM low. **Proportionality:** programme-level, multi-epoch; MAP and NET are ordinary-turn work; each KNIFE pass is its own sized draw. Nothing here blocks current lanes; the write-time gate is the only immediate behaviour change.
 
-— Director programme, ratified 2026-08-05. Advisor-staged on the director's explicit instruction.
+— Director programme, ratified 2026-08-05; amended same day (build-vs-buy gate; executable constraints) on the director's instruction. Advisor-staged.
