@@ -38,3 +38,6 @@
 Sizes are from the git tree: local-only artefacts (the big caches, any uncommitted state) are invisible except where named in canon. Runtime memory behaviour is entirely unmeasured — every RAM claim above is arithmetic, not observation. The event-log finding is a source read, not a runtime trace.
 
 — Advisor review, 2026-08-05, prepared while the machine was offline.
+
+## Correction (2026-08-06) — "no SQLite anywhere" was wrong
+CCM characterization work (PR #9) surfaced what this review missed: **`company/billing/invoice.py` embeds SQLite** — `import sqlite3`, runtime-created `company/data/invoices.db` (untracked, not gitignored — minor hygiene item), in-repo schema, money-path in-degree 6. The review's method error, named for the record: it checked for database *artifacts* (.db files, migrations dirs) and never grepped for the *capability* (`import sqlite3`) — absence of artifact is not absence of engine. Revised §1 claim: the state layer is files/JSON **except one embedded SQLite store in the invoice path**, which is also the one money store already sitting behind a queryable engine — relevant context for any future substrate discussion. The probe and every other finding stand unchanged.
