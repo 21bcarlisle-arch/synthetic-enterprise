@@ -46,14 +46,18 @@ mypy has a SECOND determinism hazard ruff does not: its error count for our code
 changes with whether a third-party library is installed WITH type information
 (numpy/pandas ship py.typed), because that makes mypy type-check every
 expression and annotation touching it — errors that vanish when the library is
-absent, and which `follow_imports = skip` does NOT fully suppress (they leak in
-through first-party annotations). To make the baseline a function of OUR code
-alone, `mypy_counts_for` runs mypy with `--python-executable` pointed at a
-freshly-built, dependency-free interpreter, so every third-party import resolves
-as missing -> `Any` while first-party code is analysed from source. A manual
-`mypy --config-file mypy.ini company ...` in an env that has numpy installed
-will therefore report MORE errors than this baseline — expected; the ratchet's
-invocation is the contract, not a bare manual run.
+absent. To make the baseline a function of OUR code alone, `mypy_counts_for`
+passes `--no-site-packages`, mypy's purpose-built flag for exactly this: it
+stops mypy discovering installed PEP 561 packages, so every third-party import
+resolves as missing -> `Any` (via ignore_missing_imports) whatever the ambient
+env has installed, while typeshed's stdlib stubs (bundled inside mypy) and
+first-party source are unaffected. Unlike a `--python-executable`-to-a-bare-venv
+dodge, this does not leak an installed library's types back in through
+first-party annotations. The baseline therefore holds WITH numpy/pandas
+installed (verified) and without them. To reproduce the baseline by hand:
+
+    mypy --config-file mypy.ini --no-site-packages \
+        company saas sim simulation background tools
 
 R15 (CONTROLS_THAT_CANNOT_FAIL) — every assertion below is paired with a
 mutation proof: a synthetic violation (in-memory blast-radius tests) and a real
@@ -146,7 +150,9 @@ RUFF_BASELINE_TOTAL = 2421
 
 # --------------------------------------------------------------------------
 # MYPY BASELINE — dated {module_path: error_count}, frozen 2026-08-06 under the
-# permissive mypy.ini. SHRINK-ONLY, same rules as the ruff baseline.
+# permissive mypy.ini via `mypy --no-site-packages` (third-party libs -> Any,
+# so the census is identical whether or not numpy/pandas are installed).
+# SHRINK-ONLY, same rules as the ruff baseline.
 #
 # Top-10 offending modules on the freeze date (also in the PR body):
 #   simulation/run_phase2b.py .............. 94
@@ -431,40 +437,24 @@ def mypy_counts_from_output(text: str) -> dict[str, int]:
     return counts
 
 
-@lru_cache(maxsize=1)
-def _bare_interpreter() -> str:
-    """Path to a throwaway, DEPENDENCY-FREE python interpreter for mypy.
-
-    The baseline must not shift with the ambient dependency set (see the module
-    docstring's determinism note). Pointing mypy at an interpreter whose
-    site-packages is empty makes EVERY third-party import (numpy, pandas, ...)
-    resolve as missing -> `Any` (via ignore_missing_imports), while first-party
-    code is still analysed from source — so the counts depend only on our code +
-    the pinned mypy version + mypy.ini. `--without-pip` keeps the venv minimal
-    and avoids the ensurepip dependency. Built once per test session.
-    """
-    venv_dir = tempfile.mkdtemp(prefix="mypy-ratchet-bare-venv-")
-    subprocess.run(
-        [sys.executable, "-m", "venv", "--without-pip", venv_dir],
-        check=True, capture_output=True, text=True,
-    )
-    return str(Path(venv_dir) / "bin" / "python")
-
-
 def mypy_counts_for(paths: list[str], cwd: Path, config: Path = MYPY_CONFIG) -> dict[str, int]:
     """Run mypy with the repo config over `paths` and count errors per module.
 
-    Runs against a dependency-free interpreter (`--python-executable`) for a
-    reproducible, env-independent baseline, and a throwaway cache dir (cleaned
-    up) so nothing is written into the repo and the run is order-independent.
-    Exit code 1 (errors found) is expected.
+    Passes `--no-site-packages` so mypy never discovers installed PEP 561
+    third-party packages (numpy, pandas, ...): every third-party import resolves
+    as missing -> `Any` (via ignore_missing_imports), regardless of what the
+    ambient environment has installed, while typeshed's stdlib stubs (bundled
+    inside mypy) and first-party source are unaffected. That makes the per-module
+    baseline a function of our code + the pinned mypy version + mypy.ini ALONE.
+    A throwaway cache dir (cleaned up) keeps the repo clean and the run
+    order-independent. Exit code 1 (errors found) is expected.
     """
     cache_dir = tempfile.mkdtemp(prefix="mypy-ratchet-cache-")
     try:
         cmd = [
             sys.executable, "-m", "mypy",
             "--config-file", str(config),
-            "--python-executable", _bare_interpreter(),
+            "--no-site-packages",
             "--no-incremental",
             "--cache-dir", cache_dir,
             *paths,
