@@ -59,6 +59,23 @@ installed (verified) and without them. To reproduce the baseline by hand:
     mypy --config-file mypy.ini --no-site-packages \
         company saas sim simulation background tools
 
+THIRD determinism hazard, and an OPEN ITEM: the mypy census also depends on the
+HOST INTERPRETER running mypy. Same source, same mypy 2.3.0 (compiled), same
+config and flags, `--no-site-packages` on both: a CPython 3.11 host counts 542
+and the resident CPython 3.12 host counts 551, diverging by +3/+1/+3/+2 in
+exactly four modules (background/daily_self_note.py, weather_demand_triad.py,
+weather_price_triad.py, tools/couple_w2_11_d5.py) every time. This is NOT
+site-packages leakage (two of the four import neither numpy nor pandas; counts
+are identical with those libs fully uninstalled) and NOT cache (identical after
+a full cache clear). By elimination the residual variable is the host
+interpreter; the mechanism is UNRESOLVED (compiled-vs-interpreted mypy is the
+next suspect) and is recorded here honestly rather than papered over. The
+consequence is a design decision, not a fix: the baseline is FROZEN ON THE
+RESIDENT PLATFORM (CPython 3.12, mypy 2.3.0 compiled — the box where this ratchet
+actually runs), and the four mypy census tests call require_resident_platform()
+to FAIL on any other host rather than compare incomparable counts. Re-freeze the
+mypy baseline only from the resident platform.
+
 R15 (CONTROLS_THAT_CANNOT_FAIL) — every assertion below is paired with a
 mutation proof: a synthetic violation (in-memory blast-radius tests) and a real
 one written to a tmp tree and run through the actual tool, each proving the
@@ -101,6 +118,17 @@ BASELINE_DATE = "2026-08-06"
 # deliberately excluded (test files are not the product's type surface, and
 # this very file lives there). Kept in sync with mypy.ini's coverage.
 MYPY_SCOPE = ("company", "saas", "sim", "simulation", "background", "tools")
+
+# The mypy baseline is HOST-INTERPRETER-specific (see the module docstring's
+# determinism note): the same source + mypy 2.3.0 (compiled) + config yields a
+# DIFFERENT per-module census on CPython 3.11 (542) vs the resident CPython 3.12
+# (551), diverging by +9 across exactly four modules — a divergence that is NOT
+# site-packages leakage (two of the four import neither numpy nor pandas, and
+# the counts are identical with those libs uninstalled) and NOT cache (confirmed
+# with the cache cleared). It is, by elimination, the host interpreter running
+# mypy. The baseline below is therefore frozen on the RESIDENT platform, and the
+# mypy census tests refuse to compare it anywhere else.
+RESIDENT_PYTHON = (3, 12)  # CPython 3.12 — the resident WSL2 Ubuntu 24 platform
 
 
 # --------------------------------------------------------------------------
@@ -150,33 +178,35 @@ RUFF_BASELINE_TOTAL = 2421
 
 # --------------------------------------------------------------------------
 # MYPY BASELINE — dated {module_path: error_count}, frozen 2026-08-06 under the
-# permissive mypy.ini via `mypy --no-site-packages` (third-party libs -> Any,
-# so the census is identical whether or not numpy/pandas are installed).
-# SHRINK-ONLY, same rules as the ruff baseline.
+# permissive mypy.ini via `mypy --no-site-packages` on the RESIDENT platform
+# (CPython 3.12, mypy 2.3.0 compiled). third-party libs -> Any, so the census is
+# identical whether or not numpy/pandas are installed; it is NOT identical
+# across host interpreters (see RESIDENT_PYTHON and the determinism note), which
+# is why the census tests guard on the host. SHRINK-ONLY, same rules as ruff.
 #
-# Top-10 offending modules on the freeze date (also in the PR body):
+# Top-10 offending modules on the freeze date (resident 3.12; also in PR body):
 #   simulation/run_phase2b.py .............. 94
-#   background/weather_demand_triad.py ..... 46
-#   background/weather_price_triad.py ...... 31
+#   background/weather_demand_triad.py ..... 47
+#   background/weather_price_triad.py ...... 34
 #   saas/reporting/annual_report.py ........ 25
 #   company/crm/property_discovery.py ...... 16
+#   background/daily_self_note.py .......... 14
 #   background/flex_dispatch_triad.py ...... 13
 #   background/harness_exit_criterion.py ... 13
-#   background/daily_self_note.py .......... 11
+#   tools/couple_w2_11_d5.py ............... 13
 #   company/regulatory/ico_breach_register.py 11
-#   tools/couple_w2_11_d5.py ............... 11
 # --------------------------------------------------------------------------
 MYPY_BASELINE: dict[str, int] = {
     "simulation/run_phase2b.py": 94,
-    "background/weather_demand_triad.py": 46,
-    "background/weather_price_triad.py": 31,
+    "background/weather_demand_triad.py": 47,
+    "background/weather_price_triad.py": 34,
     "saas/reporting/annual_report.py": 25,
     "company/crm/property_discovery.py": 16,
+    "background/daily_self_note.py": 14,
     "background/flex_dispatch_triad.py": 13,
     "background/harness_exit_criterion.py": 13,
-    "background/daily_self_note.py": 11,
+    "tools/couple_w2_11_d5.py": 13,
     "company/regulatory/ico_breach_register.py": 11,
-    "tools/couple_w2_11_d5.py": 11,
     "tools/fabric_settlement_gap.py": 11,
     "simulation/life_events.py": 10,
     "company/billing/account_closure.py": 9,
@@ -307,7 +337,7 @@ MYPY_BASELINE: dict[str, int] = {
     "tools/site_lane_gate.py": 1,
     "tools/tenure_adoption_sensitivity.py": 1,
 }
-MYPY_BASELINE_TOTAL = 542
+MYPY_BASELINE_TOTAL = 551
 
 
 # --------------------------------------------------------------------------
@@ -491,6 +521,41 @@ def _fmt_new(d: dict[str, int]) -> str:
     return "\n".join(f"    {k}: now {c}" for k, c in sorted(d.items()))
 
 
+def _host_descriptor() -> str:
+    """This host's `python -VV` and `mypy --version` (with the compiled: flag).
+
+    Included verbatim in the host-guard failure so a wrong-host run reports the
+    datum the maintainer needs to diagnose a census divergence.
+    """
+    py = subprocess.run([sys.executable, "-VV"], capture_output=True, text=True).stdout.strip()
+    mp = subprocess.run(
+        [sys.executable, "-m", "mypy", "--version"], capture_output=True, text=True
+    ).stdout.strip()
+    return f"    python -VV: {py!r}\n    mypy --version: {mp!r}"
+
+
+def require_resident_platform() -> None:
+    """Guard: the mypy census is only comparable on the RESIDENT interpreter.
+
+    The mypy per-module baseline is host-interpreter-specific (see RESIDENT_PYTHON
+    and the module docstring's determinism note): the same source + mypy 2.3.0 +
+    config counts 542 on CPython 3.11 and 551 on the resident 3.12, and the delta
+    is neither site-packages nor cache. Comparing the frozen (resident-3.12)
+    baseline on any other host is meaningless, so this FAILS (not skips) — a
+    wrong-host run must never look green, and must never be used to re-freeze.
+    """
+    if sys.version_info[:2] != RESIDENT_PYTHON:
+        raise AssertionError(
+            "mypy ratchet ran on the WRONG host interpreter. The mypy baselines "
+            f"are defined on the resident platform (CPython {RESIDENT_PYTHON[0]}."
+            f"{RESIDENT_PYTHON[1]}, mypy 2.3.0 compiled); this host reports a "
+            "DIFFERENT per-module census (CPython 3.11 -> 542 vs resident 3.12 "
+            "-> 551, +9 across four modules), so its counts are NOT comparable "
+            "and you must NOT re-freeze the baseline from this host. Run the mypy "
+            "ratchet on the resident platform.\n" + _host_descriptor()
+        )
+
+
 # ==========================================================================
 # Version pins — the baselines are only valid for these exact versions.
 # ==========================================================================
@@ -577,10 +642,15 @@ def test_ruff_baseline_matches_frozen_census():
 
 # ==========================================================================
 # MYPY RATCHET — regression / new-file / stale, on today's tree.
+#
+# Each census test guards on the resident interpreter FIRST: the frozen baseline
+# is CPython-3.12-specific, so on any other host the guard FAILS with the host
+# datum rather than comparing incomparable counts (see require_resident_platform).
 # ==========================================================================
 
 def test_mypy_no_module_exceeds_baseline():
     """No baselined module may exceed its frozen error count (a regression)."""
+    require_resident_platform()
     exceed = keys_exceeding_baseline(MYPY_BASELINE, real_mypy_counts())
     assert not exceed, (
         "mypy type errors ROSE above the dated baseline in these modules "
@@ -591,6 +661,7 @@ def test_mypy_no_module_exceeds_baseline():
 
 def test_mypy_new_files_are_type_clean():
     """A module absent from the baseline (a new file) must have 0 type errors."""
+    require_resident_platform()
     new = new_keys(MYPY_BASELINE, real_mypy_counts())
     assert not new, (
         "NEW module(s) not in the mypy baseline carry type errors. New files "
@@ -600,6 +671,7 @@ def test_mypy_new_files_are_type_clean():
 
 def test_mypy_no_stale_baseline_entries():
     """A module whose error count fell must be shrunk (shrink-only ratchet)."""
+    require_resident_platform()
     stale = stale_keys(MYPY_BASELINE, real_mypy_counts())
     assert not stale, (
         "STALE mypy baseline entries — these modules have FEWER type errors than "
@@ -610,6 +682,7 @@ def test_mypy_no_stale_baseline_entries():
 
 def test_mypy_baseline_matches_frozen_census():
     """On today's tree the mypy counts equal the frozen baseline exactly."""
+    require_resident_platform()
     counts = real_mypy_counts()
     assert counts == MYPY_BASELINE, (
         "mypy census drifted from the frozen baseline. Diff:\n"
