@@ -1463,7 +1463,36 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     bounds published-heartbeat staleness to <= PUSH_THROTTLE_SECONDS instead of
     unbounded, with no regen/report/site/test. Commits ONLY the explicit paths
     (never the whole index) so a concurrent writer's staged work is never swept in.
+
+    SEAT GUARD, FIRST ACT -- THE GHOST PUSHER (issue #11, closed here). The
+    `__main__` guard at the bottom of this file stops the DAEMON on foreign soil,
+    but this function is the only place in the module that commits and pushes
+    without going through `__main__` at all: anything that IMPORTS
+    process_run_complete and calls `_process()` on a fingerprint-matching marker
+    lands here directly, entrypoint guard untouched. That is not hypothetical --
+    tests/background/test_process_run_complete.py did exactly that, and every
+    unexplained `main` push this week was a test run manufacturing a real
+    `chore(liveness)` commit against whatever checkout it happened to be in.
+
+    So the guard moves to the SIDE-EFFECT, not the entrypoint: no matter who
+    calls, on what soil, via which import path, the commit+push below is reached
+    only from the resident seat. A foreign caller gets one stderr line and False
+    (never sys.exit -- this runs inside a live publish path that must survive a
+    refusal; the caller treats False exactly as it treats "throttled").
+
+    Deliberately NOT wrapped in a try/except: if the seat guard itself cannot
+    load, the ImportError propagates and nothing is committed. R15 FAIL-SILENT --
+    an unavailable check is a FAILED check, and the safe direction for a check
+    that cannot answer is "do not push".
     """
+    try:  # seat guard, FIRST act -- see the docstring (background/_seat.py)
+        from background._seat import is_resident_seat
+    except ModuleNotFoundError:  # launched as `python3 background/process_run_complete.py`
+        from _seat import is_resident_seat  # type: ignore[no-redef]
+    if not is_resident_seat():
+        print("seat-guard: foreign, liveness publish refused "
+              "(process_run_complete._refresh_published_liveness_on_skip)", file=sys.stderr)
+        return False
     if not _push_due():
         return False
     files = [str(PROJECT_DIR / rel) for rel in LIVENESS_SURFACE_FILES

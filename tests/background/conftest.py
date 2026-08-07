@@ -19,9 +19,15 @@ BODY via its own monkeypatch, which runs after this fixture's setup and therefor
 that already isolate explicitly (test_supervisor.py::_isolate) merely point at a different clean
 tmp -- also non-wedged, so correctness is unaffected either way.
 """
+import subprocess
+from pathlib import Path
+
 import pytest
 
 from background import supervisor
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_GIT_DIR = REPO_ROOT / ".git"
 
 
 @pytest.fixture(autouse=True)
@@ -52,3 +58,107 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     _staging = tmp_path / "staging_isolated"
     (_staging / "in_progress").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(supervisor, "STAGING_DIR", _staging, raising=False)
+
+
+# ── THE GHOST-PUSHER TRIPWIRE (issue #11) ────────────────────────────────────────────────────
+# WHAT THIS CATCHES. background/ is the half of this repo that holds push credentials, and its
+# publish path commits and pushes as an ordinary side-effect of an ordinary function call. A test
+# in this directory that forgets to point PROJECT_DIR at a tmp tree therefore does not merely
+# "leak state" the way the fixtures above do -- it manufactures a REAL commit on the REAL
+# checkout and fires a REAL `git push origin HEAD:main`. That is the proven cause of every
+# unexplained main push of the week: test_process_run_complete.py reached
+# `_refresh_published_liveness_on_skip` on the real tree and made a `chore(liveness)... (git=abc)`
+# commit, which failed to land only for want of credentials on the machine that ran it.
+#
+# WHY A TRIPWIRE AND NOT JUST THE FIX. The instance fix (isolate that file's tests) and the class
+# fix (the seat guard on the side-effect itself) are both in this change, but neither of them
+# stops the NEXT test in this directory from calling the next credential-holding function on the
+# real tree. R10: an absurdity-class defect is not closed by an instance fix. This asserts the
+# invariant directly -- NO test in tests/background/ may move the real repo's HEAD -- so the whole
+# class fails automatically and loudly, naming the test and the commit it manufactured.
+#
+# TWO SCOPES, ON PURPOSE. The per-test check is the diagnostic one: it fails the exact test that
+# committed, which is the thing a person needs to know. The session-scoped one is the outer
+# bound -- it catches a commit made anywhere the per-test window does not cover (session-scoped
+# fixture setup/teardown, collection, a detached child that lands its commit after the last test).
+#
+# COST. The per-test check reads .git/HEAD and one ref file: no subprocess, microseconds, so it is
+# affordable on every test in the directory. `git log` runs only on the failure path.
+
+
+def _real_repo_head() -> str:
+    """The real checkout's current HEAD sha, read from .git directly (no subprocess).
+
+    Returns a sentinel string rather than raising on anything unexpected: this is a
+    tripwire, and a tripwire that explodes on an odd checkout would fail honest tests.
+    A sentinel still compares equal to itself, so the before/after check stays valid --
+    it simply cannot detect a move it could not read.
+    """
+    try:
+        if not _GIT_DIR.is_dir():  # worktree/submodule: .git is a file -> ask git once
+            out = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
+                capture_output=True, text=True, timeout=15,
+            )
+            return out.stdout.strip() or "unreadable"
+        head = (_GIT_DIR / "HEAD").read_text().strip()
+        if not head.startswith("ref: "):
+            return head  # detached HEAD: the sha is right there
+        ref = head[5:].strip()
+        loose = _GIT_DIR / ref
+        if loose.is_file():
+            return loose.read_text().strip()
+        packed = _GIT_DIR / "packed-refs"
+        if packed.is_file():
+            for line in packed.read_text().splitlines():
+                if line.endswith(" " + ref):  # "<sha> <ref>"
+                    return line.split()[0]
+        return "unborn:" + ref
+    except (OSError, subprocess.SubprocessError):
+        return "unreadable"
+
+
+def _commits_between(before: str, after: str) -> str:
+    """Subjects of the commits a test manufactured, newest first -- the failure payload (R5)."""
+    try:
+        out = subprocess.run(
+            ["git", "log", "--format=%h %s", "{}..{}".format(before, after)],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=15,
+        )
+        return out.stdout.strip() or "(subjects unavailable)"
+    except (OSError, subprocess.SubprocessError):
+        return "(subjects unavailable)"
+
+
+def _assert_head_unmoved(before: str, where: str) -> None:
+    after = _real_repo_head()
+    if after == before:
+        return
+    pytest.fail(
+        "GHOST PUSHER: {} moved the REAL repo's HEAD.\n"
+        "  {} -> {}\n"
+        "  commit(s) manufactured:\n    {}\n"
+        "A test in tests/background/ must never commit to the real checkout. This one reached a "
+        "credential-holding publish path on the real tree -- almost always a missing "
+        "`monkeypatch.setattr(<module>, \"PROJECT_DIR\", tmp_path)`. Isolate it; do not silence "
+        "this fixture.".format(
+            where, before[:9], after[:9],
+            _commits_between(before, after).replace("\n", "\n    "),
+        )
+    )
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _no_test_may_commit_to_the_real_repo():
+    """Outer bound: the real repo's HEAD is where it was when this session started."""
+    before = _real_repo_head()
+    yield
+    _assert_head_unmoved(before, "this test session")
+
+
+@pytest.fixture(autouse=True)
+def _this_test_may_not_commit_to_the_real_repo(request):
+    """Per-test tripwire: fails the exact test that manufactured the commit."""
+    before = _real_repo_head()
+    yield
+    _assert_head_unmoved(before, request.node.nodeid)
