@@ -241,4 +241,9 @@ def _main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/segmentation_testability_ledger.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("segmentation_testability_ledger")
     raise SystemExit(_main())
