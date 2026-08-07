@@ -1,5 +1,9 @@
 """Tests for background/process_run_complete.py."""
 
+import contextlib
+import functools
+import importlib
+import inspect
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -7,6 +11,103 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import background.process_run_complete as prc
+
+# Files the publish pipeline writes through modules OTHER than prc, each resolving its own
+# output path from its own __file__ or cwd -- so re-rooting prc.PROJECT_DIR does not reach
+# them. (module, attribute, repo-relative path it must currently point at.)
+_PIPELINE_OUTPUT_PATHS = (
+    ("background.agent_status", "STATUS_FILE", "docs/observability/agent_status.json"),
+    ("background.agent_status", "SITE_STATUS_FILE", "site/data/agent_status.json"),
+)
+
+# The two market-feed publishers take their destination as a DEFAULT ARGUMENT, which Python
+# bound to the real path at def-time -- so redirecting the module constant they were defaulted
+# from changes nothing, and both feeds kept being rewritten for real. Rebind the argument
+# itself. (module, function, output keyword, repo-relative path it must currently default to.)
+_PIPELINE_OUTPUT_WRITERS = (
+    ("simulation.publish_market_feed", "publish", "output_path",
+     "docs/market_data/price_feed.json"),
+    ("simulation.publish_consumption_data", "publish_consumption", "output_path",
+     "docs/market_data/consumption_feed.json"),
+)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_project_dir(tmp_path_factory, monkeypatch):
+    """Point PROJECT_DIR -- and EVERY module path derived from it -- at a throwaway tree,
+    for every test in this file. Zero real-tree WRITES (real-tree reads of static input
+    data are left alone: see the collaborator note at the bottom of this fixture).
+
+    THE INCIDENT (issue #11, "the ghost pusher"). Six tests below ran against the REAL
+    PROJECT_DIR with the REAL `subprocess.run`: the four change-detection gate tests, which
+    call `prc._process()` directly, and the two frozen-baseline trigger tests. Two of the
+    four -- the pair whose marker fingerprint MATCHES, so the gate takes its SKIP branch --
+    reach `_refresh_published_liveness_on_skip`, which is `git add` + `git commit` + `git
+    push origin HEAD:main`. Running THIS FILE therefore manufactured a real
+    `chore(liveness): ... (git=abc)` commit on whatever branch was checked out and pushed
+    it; it failed to land only where credentials were absent. The sibling tests were fine
+    -- `_full_isolation_setup` and `TestRefreshPublishedLivenessOnSkip._wire` both wire
+    PROJECT_DIR correctly -- which is precisely why the leak survived: the file LOOKED
+    isolated.
+
+    WHY A DIRECTORY-WIDE RE-ROOT AND NOT FOUR MONKEYPATCHES. Per-test wiring is what
+    failed. It is opt-in, it is invisible when omitted, and prc has FIFTEEN module-level
+    paths under the repo root -- a test that remembers PROJECT_DIR and forgets LAST_PUSH_FILE
+    is still touching the real tree. This walks prc's namespace and re-roots every Path
+    living under the real repo into a per-test sandbox, mirroring the real layout. A path
+    constant added to prc tomorrow is isolated the day it lands, with nothing to remember
+    (R10: close the class, not the instance).
+
+    Tests needing specific contents still monkeypatch their own paths in the test BODY,
+    which runs after this fixture and therefore wins.
+    """
+    real_root = Path(prc.__file__).resolve().parent.parent
+    sandbox = tmp_path_factory.mktemp("prc_tree")
+    for name, value in list(vars(prc).items()):
+        if not isinstance(value, Path):
+            continue
+        try:
+            relative = value.resolve().relative_to(real_root)
+        except ValueError:
+            continue  # already outside the repo -- not ours to re-root
+        target = sandbox / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(prc, name, target)
+    assert prc.PROJECT_DIR == sandbox, "PROJECT_DIR itself must be re-rooted, not just its children"
+    # tree_lock resolves its own LOCK_FILE from ITS OWN __file__, so re-rooting prc's paths
+    # does not move it -- an unwired test would still flock the real docs/observability/.tree.lock
+    # and serialise itself against the live publisher. No test in this file asserts locking
+    # behaviour (two already stub it in their own body), so neutralise it directory-wide.
+    monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
+    # The pipeline also writes through COLLABORATORS that resolve their own output paths from
+    # their own __file__/cwd, so prc.PROJECT_DIR does not reach them: driving main() end-to-end
+    # (test_main_success_flow and the force-republish trio) rewrote four real files on every
+    # run -- the live agent-status door and the two published market feeds. Redirect the
+    # OUTPUTS only; their inputs (the SSP cache, the NBP CSV, the HH data dir) stay real,
+    # because reads are harmless and stubbing them would quietly turn the publish steps into
+    # no-ops rather than isolating them.
+    for module_name, attribute, relative in _PIPELINE_OUTPUT_PATHS:
+        module = importlib.import_module(module_name)
+        current = getattr(module, attribute)  # AttributeError here = renamed away, isolation lost
+        assert str(current).endswith(relative), (
+            "{}.{} now points at {!r}, not {!r} -- this fixture is no longer isolating it".format(
+                module_name, attribute, str(current), relative)
+        )
+        target = sandbox / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(module, attribute, target)
+    for module_name, function_name, keyword, relative in _PIPELINE_OUTPUT_WRITERS:
+        module = importlib.import_module(module_name)
+        original = getattr(module, function_name)
+        default = inspect.signature(original).parameters[keyword].default
+        assert str(default).endswith(relative), (
+            "{}.{}({}=) now defaults to {!r}, not {!r} -- this fixture is no longer "
+            "isolating it".format(module_name, function_name, keyword, str(default), relative)
+        )
+        target = sandbox / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(module, function_name,
+                            functools.partial(original, **{keyword: target}))
 
 
 @pytest.fixture(autouse=True)
@@ -735,6 +836,26 @@ def test_push_reached_origin_false_on_empty_remote_head():
     assert prc._push_reached_origin(0, "", "abc123") is False
 
 
+def _make_resident(home, monkeypatch):
+    """Make this process look like the RESIDENT seat: a real marker file under a
+    throwaway HOME, no SE_SEAT override. Same helper shape as
+    tests/background/test_seat_guard_daemons.py::_make_marker -- deliberately the
+    production discriminator, not the env escape hatch."""
+    marker = Path(home) / ".config" / "synthetic-enterprise" / ".env.ntfy"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("SE_NTFY_TOPIC=not-a-real-secret\n")
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("SE_SEAT", raising=False)
+    return marker
+
+
+def _make_foreign(home, monkeypatch):
+    """Make this process look like a FOREIGN seat: HOME with no marker, no override."""
+    Path(home).mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("SE_SEAT", raising=False)
+
+
 # ── Fault #1 (2026-07-25 overnight publish-freeze): published liveness decoupled from content-change ──
 class TestRefreshPublishedLivenessOnSkip:
     """The on-disk worker-tick heartbeat updates every 60s but only reached origin via a CONTENT
@@ -745,6 +866,11 @@ class TestRefreshPublishedLivenessOnSkip:
 
     def _wire(self, tmp_path, monkeypatch, *, push_due, commit_rc=0, reached=True):
         from contextlib import nullcontext
+        # RESIDENT seat, via a real marker file under a throwaway HOME and NO SE_SEAT
+        # override -- so these behaviour tests run the PRODUCTION discriminator rather
+        # than an escape hatch, and stay valid on a resident machine and a cloud
+        # sandbox alike (see the seat-guard tests below).
+        _make_resident(tmp_path / "home", monkeypatch)
         monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
         (tmp_path / "site" / "data").mkdir(parents=True, exist_ok=True)
         (tmp_path / "docs" / "observability").mkdir(parents=True, exist_ok=True)
@@ -799,6 +925,90 @@ class TestRefreshPublishedLivenessOnSkip:
         assert prc._refresh_published_liveness_on_skip("abc123") is False
         assert not any(c[:2] == ["git", "push"] for c in calls)
         assert recorded == []
+
+
+# ── THE GHOST PUSHER (issue #11): the seat guard sits on the SIDE-EFFECT ─────────────────────
+class TestLivenessPublishRefusesForeignSoil:
+    """`_refresh_published_liveness_on_skip` is the one function in this module that commits
+    and pushes without passing through `__main__`. The entrypoint guard therefore does not
+    cover it: any caller that IMPORTS the module and reaches the change-detection SKIP branch
+    lands here with full push authority on whatever checkout it is standing in. That is the
+    proven ghost -- a test run manufactured a real `chore(liveness)... (git=abc)` commit and
+    fired `git push origin HEAD:main`, landing only where credentials existed.
+
+    So the guard moved to the side-effect. R15, both directions AND the ordering:
+      * FOREIGN  -> one stderr line, returns False, ZERO git calls, and the refusal happens
+                    before any other state is even read.
+      * RESIDENT -> passes through and publishes exactly as before (the class above, which
+                    now wires a real resident marker, is that direction's proof).
+    Neuter `_seat.is_resident_seat()` to `return True` and every test here reds."""
+
+    def _wire_foreign_but_otherwise_ready(self, tmp_path, monkeypatch):
+        """Everything the publish path needs is in place and a push IS due -- the ONLY
+        reason nothing happens must be the seat. A guard tested against a path that would
+        not have published anyway proves nothing (R15 TAUTOLOGY)."""
+        monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+        (tmp_path / "site" / "data").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "docs" / "observability").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "site" / "data" / "tick_heartbeat.json").write_text('{"ts": 1}')
+        (tmp_path / "docs" / "observability" / "agent_status.json").write_text('{"a": 1}')
+        monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
+        monkeypatch.setattr(prc, "_push_due", lambda: True)
+        monkeypatch.setattr(prc, "_record_push_time",
+                            lambda: pytest.fail("a foreign seat recorded a push time"))
+        calls = []
+        monkeypatch.setattr(prc.subprocess, "run",
+                            lambda argv, **kw: calls.append(argv))
+        _make_foreign(tmp_path / "home", monkeypatch)
+        return calls
+
+    def test_foreign_seat_makes_no_git_calls_and_returns_false(self, tmp_path, monkeypatch, capsys):
+        calls = self._wire_foreign_but_otherwise_ready(tmp_path, monkeypatch)
+        assert prc._refresh_published_liveness_on_skip("abc") is False
+        assert calls == [], "a foreign seat reached git: {}".format(calls)
+
+    def test_foreign_seat_leaves_one_stderr_line_naming_the_refusal(self, tmp_path, monkeypatch,
+                                                                    capsys):
+        """A refusal that says nothing is indistinguishable from a healthy no-op (R5)."""
+        self._wire_foreign_but_otherwise_ready(tmp_path, monkeypatch)
+        prc._refresh_published_liveness_on_skip("abc")
+        err = capsys.readouterr().err
+        assert err.count("\n") == 1, "expected exactly one stderr line, got: {!r}".format(err)
+        assert err.startswith("seat-guard: foreign,")
+        assert "_refresh_published_liveness_on_skip" in err
+
+    def test_the_seat_is_checked_before_anything_else(self, tmp_path, monkeypatch):
+        """Ordering lock: the guard is the FIRST act, not merely present somewhere.
+        `_push_due` is the next thing the function would touch -- if it is reached on
+        foreign soil the guard has drifted below it and this reds."""
+        self._wire_foreign_but_otherwise_ready(tmp_path, monkeypatch)
+        monkeypatch.setattr(prc, "_push_due",
+                            lambda: pytest.fail("throttle state read before the seat check"))
+        assert prc._refresh_published_liveness_on_skip("abc") is False
+
+    def test_the_import_call_bypass_is_closed_end_to_end(self, tmp_path, monkeypatch):
+        """The ghost's ACTUAL route, reproduced: import the module, hand `_process` a marker
+        whose fingerprint matches the last processed run, and let the change-detection gate
+        SKIP. At HEAD that reached git on the real tree. `__main__` -- and therefore
+        `refuse_if_foreign` -- is never involved."""
+        staging = tmp_path / "staging"
+        (staging / "done").mkdir(parents=True)
+        monkeypatch.setattr(prc, "STAGING_DIR", staging)
+        monkeypatch.setattr(prc, "DONE_DIR", staging / "done")
+        calls = self._wire_foreign_but_otherwise_ready(tmp_path, monkeypatch)
+
+        data = _sample_data()
+        json_path = tmp_path / "run_output_latest.json"
+        json_path.write_text(json.dumps(data))
+        fp = prc._run_fingerprint(data)
+        fp["source_git_hash"] = "abc"          # matches the marker -> the SKIP branch fires
+        prc._write_last_fingerprint(fp)
+        marker = staging / "run_complete_GHOST.md"
+        marker.write_text("# Run Complete\n\nGit: abc\nJSON: %s\nDuration: 200s\n" % json_path)
+
+        assert prc._process(str(marker)) == 0
+        assert (staging / "done" / marker.name).exists()   # still archived: publishing is unaffected
+        assert calls == [], "the SKIP branch reached git on foreign soil: {}".format(calls)
 
 
 class TestFrozenBaselineOutOfBandTrigger:
