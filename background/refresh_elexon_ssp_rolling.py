@@ -132,6 +132,11 @@ def refresh(today=None, fetcher=None):
 
 
 if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/refresh_elexon_ssp_rolling.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("refresh_elexon_ssp_rolling")
     r = refresh()
     print("status:", r["status"])
     for k in ("window", "fetched_records", "new_last_covered", "total_rolling_records", "error"):

@@ -99,6 +99,11 @@ def evaluate_status_honesty(path: Path | None = None) -> dict:
 
 
 if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/status_honesty.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("status_honesty")
     import json
     import sys
     r = evaluate_status_honesty()

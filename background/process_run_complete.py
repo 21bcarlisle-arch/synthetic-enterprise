@@ -2026,6 +2026,11 @@ def _process(marker_path_str):
 
 
 if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/process_run_complete.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("process_run_complete")
     if len(sys.argv) != 2:
         print("Usage: {} <path/to/run_complete_TIMESTAMP.md>".format(sys.argv[0]))
         sys.exit(1)

@@ -15,6 +15,14 @@
 #
 # The agent BUILT this but did NOT run it (a re-seed kills the drifted session, and the agent may BE it).
 set -uo pipefail
+
+# Seat guard, FIRST act: this re-seeds the resident worker seat's Claude session.
+# One discriminator, shared with the daemons and the hooks (background/_seat.py).
+if ! python3 "$(dirname "$0")/_seat.py"; then
+  echo "seat-guard: foreign, bounce_worker_seat.sh not starting" >&2
+  exit 0
+fi
+
 cd "$(dirname "$0")/.." || exit 1
 WORKER_ID="$(python3 -c 'from background.worker_seat import WORKER_SESSION_ID as w; print(w)')"
 

@@ -2,6 +2,17 @@
 # Start all autonomous background processes in detached tmux sessions.
 # Usage: bash background/start_worker.sh
 # Safe to re-run — skips sessions that are already running.
+# ── SEAT GUARD, FIRST ACT (2026-08-07) ─────────────────────────────────────────
+# This script IS the stack launcher, so it is the single highest-value place to
+# refuse foreign soil: an environment that starts the stack inside a foreign
+# session's clone gets nothing. Shares the ONE discriminator with the daemons and
+# the hooks (background/_seat.py -> .claude/hooks/_seat.py); exit 0 = resident,
+# 1 = foreign. Before the `cd`, so it holds even where the repo is elsewhere.
+if ! python3 "$(dirname "$0")/_seat.py"; then
+  echo "seat-guard: foreign, start_worker.sh not starting" >&2
+  exit 0
+fi
+
 cd ~/synthetic-enterprise
 export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_NUM_CTX=8192
