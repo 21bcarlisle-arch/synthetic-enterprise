@@ -27,3 +27,32 @@
 - ✓ **Segment-mix anchor:** ~33M SVT accounts GB-wide (≈19M DD, ≈7M standard credit) per Ofgem, May 2026.
 
 — Advisor research, 2026-08-07. Six live searches; every ✓ traces to an Ofgem/NESO/LCCC/EMRS/DESNZ artefact fetched this date.
+
+# PART 2 — Deep sweep for the 04-Aug briefs and the credit-balance research (2026-08-07, second pass)
+
+## For the ELECTRICITY brief + the settlement deepening-row (MHHS — the era-switch every decade replay must model)
+✓ Migration is LIVE: started 22 Oct 2025; Elexon expects ~80% of meters accepted by Oct 2026; completion May 2027; the settlement timetable then cuts from **14 months to 4** (~Jul 2027) — the three-clocks physics literally changes regime mid-window. Scale datum: up to **500 billion HH readings/year** post-MHHS. Structural changes: legacy agent roles (DC/DA/MOP) replaced by Data Services / Metering Services; MPAN top-line changed Sep 2025; Load Shaping Service live; migrations coordinated via the Migration Control Centre. P432 (CT advanced meters → HH, to Oct 2026) and P434 (UMS) in flight. Sources: https://www.elexon.co.uk/bsc/operational/market-wide-half-hourly-settlement/ · https://www.mhhsprogramme.co.uk/
+→ SIM consequences: settlement-rerun clocks are era-dependent; the settlement-rows artery driver now has dates; a replay crossing Oct-25→Jul-27 that uses one settlement timetable throughout is disqualified physics.
+
+## For the CFD_AND_ASSETS brief + the map's zonal watching-brief (W1-8)
+✓ **REMA settled 10 Jul 2025: zonal pricing REJECTED; single GB-wide market retained** under "reformed national pricing." The watching-brief's milestone calendar, verbatim from the update: final REMA analysis + full CBA by end-2025; NESO balancing-reform consultation end-2025; TNUoS + connection-charges delivery plan end-2025; CM change consultation end-2025; **SSEP (the package's centrepiece) late 2026**; TNUoS reform delivered by end-2029 incl. primary legislation. Dual-imbalance pricing not reintroduced; CMP444 minded-to-reject. Sources: DESNZ REMA Summer Update 2025; Drax/HSF summaries.
+~ AR7 (launch was expected Aug 2025, post-decision): results/strike prices verify at the DESNZ allocation-round pages before hard-coding any auction datum.
+
+## For the CARBON brief (the mission's cost-and-claims layer)
+✓ **UK ETS current shape:** Auction Reserve Price rises **£22 → £28 in 2026**; maritime in scope from **Jul 2026**; waste/EfW MRV-only from Jan 2026, full from 2028; engineered removals integration from 2029; second free-allocation period starts **2027**, with a ~9-year phase-out of free allocation for CBAM-covered sectors; **UK–EU ETS linkage agreed in principle 19 May 2025** ("as soon as feasible") — a standing repricing event for any multi-year carbon path. Carbon Price Support (~£18/t) still rides on power.
+✓ **UK CBAM: 1 Jan 2027**, no transitional phase; first return due 31 May 2028; £50,000/12-month value de-minimis; **electricity is NOT in UK CBAM scope** (unlike the EU's). Sources: ICAP UK-ETS page; gov.uk CBAM; LexisNexis/analyst summaries.
+→ SIM consequences: generator carbon cost = UKA + CPS flowing into wholesale; the abatement ledger's boundary (tCO2e vs £/t vs claims) now has scheme-dated anchors.
+
+## For the CREDIT_BALANCES research (the −£202 invariant, regulatorily anchored)
+✓ The regime since Sep 2023: **common minimum capital requirements** for domestic suppliers; **mandatory ringfencing of domestic-attributable RO receipts**; and Ofgem's **power to DIRECT ringfencing of Customer Credit Balances** (direction-based on trigger-point reporting — deliberately not blanket, after the industry row); standing rules already prohibit over-reliance on CCBs and require **refund on request**; the Financial Responsibility Principle governs. Live artefacts: Ofgem's annual **Supplier Financial Resilience Report** (2026 edition: https://www.ofgem.gov.uk/sites/default/files/2026-06/Supplier-financial-resilience-report-2026-v.1.1.pdf); worked example Nov 2025 (Tomato Energy SoLR, credit balances protected; SoLR Levy Offset rule).
+→ Upgrade to the brief's invariant: an account credit aging past its anniversary now contradicts named licence machinery (refund-on-request + FRP), not just good practice — and the resilience report is the artefact a real supplier's numbers face.
+
+## For the GAS brief (UIG made executable)
+✓ **The formula, verbatim (Gemini, per LDZ per day): UIG = Total LDZ Energy − DM Energy − NDM Energy − Shrinkage**; "temporary" UIG at D+5 allocation (measurement/modelling error) versus revealed UIG post-reconciliation — the gas mirror of the three-clocks law. Shared out by Class and End User Category. Scale: historically >3% of throughput, >£100M/yr. Machine-readable artefacts: Xoserve's weekly D+1-vs-D+5 national UIG tracker, monthly reconciliation-phased tracker, and the UIG Allocation Issues Tracker (spike explanations). https://www.xoserve.com/help-centre/demand-attribution/unidentified-gas-uig/
+✓ **Project Trident context:** SAP support for UK Link ends **2027** → the modernisation driver; OBC published under the Green Book model; UK Link release cadence ~Feb/Jun/Nov (Feb-2026 release implemented 27 Feb 2026); surface churn through the decade is scheduled, not speculative.
+→ SIM consequences: gas plumbing must be able to PRODUCE a per-LDZ daily UIG residue via that formula, with D+1/D+5/reconciliation clocks; the trackers are calibration ground truth.
+
+## Residual ~ after both sweeps (annual/auction numbers, pointer-only by design)
+AR7 results · UKA spot/auction price · RO obligation level & buyout · GGL p/meter/day · WHD value · AAHEDC rate. Everything else flagged `~` in the briefs is now ✓ above.
+
+— Part 2: six further live searches, 2026-08-07. Coverage note: the remaining staged docs (programme, rulings, retro, taxonomy, audits, CCM/incident notes, capability-index proposal) are internal-architectural — external research adds nothing to them by construction.
