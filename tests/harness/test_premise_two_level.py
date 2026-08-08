@@ -271,20 +271,33 @@ def test_the_shipped_demand_path_meets_the_two_level_test(shipped_result):
     assert not shipped_result.is_red, shipped_result.summary()
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "W1_12's generator fails 2 of the 7 anchored cells. STRICT so an "
-        "improvement forces the residual to be re-stated rather than absorbed. "
-        "Measured 2026-08-03: L1.1 texture 0.1498 against a 0.15 band — a genuine "
-        "knife-edge on its WORST home, and the threshold is NOT moved to make it "
-        "pass (R12: the band is a diagnostic, drift toward the edge triggers R4, "
-        "never a tuning pass); L2.3 timing diversity 0.211 half-hours against a 0.5 "
-        "band — real spread, but the evening peak still clusters harder than a real "
-        "population's does."
-    ),
-)
 def test_the_premise_trace_generator_meets_the_two_level_test(generated_result):
+    """THE RESIDUAL, RE-STATED (2026-08-08). This was pinned `xfail(strict=True)`
+    on two cells; both were closed by naming their mechanism, and the pin is gone
+    rather than relaxed. The band was NOT moved (R12) — both thresholds are the
+    ones the spec landed with.
+
+    L2.3 timing diversity 0.211 -> 1.02 half-hours (band 0.5). Diagnosed root
+    cause: every day's event start was drawn uniformly from the NATIONAL window,
+    so each home's day-to-day timing varied but its long-run centre converged on
+    the envelope mean — a population point mass hiding behind within-home
+    variation. Fixed by giving each premise a persistent
+    `routine_offset_periods` (its own clock), drawn once and applied to
+    appliances, hot water and the heating schedule alike.
+
+    L1.1 texture 0.1499 -> 0.15353 (band 0.15; the 0.1562 first recorded here did
+    not reproduce — the value this fixture actually yields is 0.15353, on P7, and
+    the smaller margin is the honest one to hold this cell to). Lighting and
+    electronics were a per-person wattage times an occupancy FRACTION, which is
+    constant for a whole occupancy block — the module had applied its own
+    "a flat base load re-introduces the smooth series" argument to the fridge but
+    not to the loads beside it. Fixed by switching them, with the stationary
+    on-probability set to the same occupancy, so the expected load is unchanged.
+
+    That the fix is mechanical rather than tuned is what L1.5 attests: it is
+    unmoved at 0.09167 across both changes. A noise-injected pass would have
+    shifted it.
+    """
     assert not generated_result.is_red, generated_result.summary()
 
 
@@ -292,8 +305,11 @@ def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, genera
     """The distance between the two columns IS the value of wiring W1_12 in,
     expressed in the units of the defect rather than as a claim that it is better.
 
-    Both generators are RED. Five of the seven anchored cells that the shipped path
-    fails, `premise_trace` passes.
+    The shipped path is RED. As of 2026-08-08 `premise_trace` fails NO anchored
+    cell, so the gap between the columns is now the whole of the shipped path's
+    failure set. The subset assertion is kept as the standing regression guard:
+    any cell `premise_trace` starts failing that the shipped path passes is a
+    regression, and this test says so.
     """
     shipped_fails = {c.statistic for c in shipped_result.failed}
     generated_fails = {c.statistic for c in generated_result.failed}
@@ -301,8 +317,11 @@ def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, genera
         "premise_trace's failures must be a strict subset of the shipped path's — "
         f"shipped {sorted(shipped_fails)}, generated {sorted(generated_fails)}"
     )
-    assert generated_fails == {"L1.1_half_hourly_texture", "L2.3_timing_diversity_periods"}
-    assert generated_result.is_red, "both generators are RED — this is a measurement, not a win"
+    assert generated_fails == set()
+    assert shipped_result.is_red, (
+        "the shipped demand path is still RED — wiring premise_trace in is the "
+        "open work this measurement exists to size, and it is NOT done"
+    )
 
 
 def test_the_two_generators_are_judged_by_identical_code(shipped, generated):
@@ -330,6 +349,24 @@ def _smooth(grid, window=7):
         lo, hi = max(0, d - window // 2), min(len(flat), d + window // 2 + 1)
         out.append([sum(flat[k][p] for k in range(lo, hi)) / (hi - lo) for p in range(48)])
     return out
+
+
+def _flatten_within_day(grid):
+    """MUTATION for the WORST-CELL selection test — collapse each day to its own
+    flat mean. Texture becomes exactly 0 while every day's total, and therefore
+    the home's annual kWh, is untouched.
+
+    `_smooth` is the right mutation for "does the L1.1 BAND fire", because it is
+    the realistic failure (a generator that reuses a rolling shape). It is the
+    WRONG mutation for "does the verdict pick the worst HOME", because it only
+    averages across days at the same period and so leaves a spiky home's INTRA-day
+    shape intact: on 2026-08-08 it took P8 from 0.2888 to 0.1556, which is above
+    P7's natural 0.1535, so the poisoned home was no longer the population's worst
+    and the test failed on its naming assertion while the verdict logic was in fact
+    correct. A mutation that has to out-run the natural spread is a mutation whose
+    strength depends on the fixture; this one is 0 by construction, so it dominates
+    any population however diverse."""
+    return [[sum(day) / len(day)] * len(day) for day in grid]
 
 
 def _replay_one_day(grid):
@@ -605,6 +642,71 @@ def test_L2_5_aggregation_consistency_is_retained_as_a_regression_guard():
 
 
 # ===========================================================================
+# §3b SOURCE MUTATIONS — the two 2026-08-08 fixes are proven LOAD-BEARING
+#
+# The mutations above act on the trace DATA, which proves the statistics fire.
+# These act on the GENERATOR, which is the only thing that proves the mechanism
+# that closed each cell is what is holding it open. A fix whose removal leaves
+# the cell green was never the fix (R15; and mutating only the data is exactly
+# how a tautology survives inside an R15 test).
+# ===========================================================================
+
+
+def _regenerated_result(monkeypatch, weather, **patches):
+    """Re-run the whole two-level evaluation against a MUTATED generator."""
+    for name, value in patches.items():
+        monkeypatch.setattr(pt, name, value)
+    traces = [
+        pt.generate_premise_trace(
+            premise_id=spec[0],
+            household=_household(*spec),
+            weather=weather,
+            seed=7,
+            latitude_deg=fp.latitude_for_weather_site("C1"),
+        )
+        for spec in POPULATION
+    ]
+    return fgl.evaluate_two_level(fgl.premise_trace_population(traces, weather))
+
+
+def test_L2_3_FIRES_when_every_HOUSEHOLD_CLOCK_is_collapsed(monkeypatch, weather):
+    """MUTATION for the routine offset — clamp every household's own clock to
+    zero and the population is back to one national timetable.
+
+    This is the defect as it actually was: each home still varies day to day, so
+    nothing looks constant, but every home's long-run centre is the same.
+    """
+    mutated = _regenerated_result(monkeypatch, weather, _MAX_ROUTINE_OFFSET_PERIODS=0.0)
+    failed = {c.statistic for c in mutated.failed}
+    assert "L2.3_timing_diversity_periods" in failed, (
+        "collapsing the per-home routine MUST re-open L2.3 — if it does not, the "
+        f"routine is not what is holding the cell open. Got: {mutated.summary()}"
+    )
+
+
+def test_L1_1_FIRES_when_the_SWITCHED_LOADS_are_made_CONTINUOUS_again(monkeypatch, weather):
+    """MUTATION for the switched lighting/electronics banks — replace the chain
+    with its own expectation, which is precisely the per-person-wattage-times-
+    occupancy form that made the base load flat inside every occupancy block.
+
+    Because the mutation is the chain's MEAN, the trace keeps the same energy and
+    the same level; only the texture goes. That the cell re-opens under a
+    mean-preserving mutation is the evidence that L1.1 was closed by generating
+    texture rather than by moving energy around.
+    """
+    mutated = _regenerated_result(
+        monkeypatch,
+        weather,
+        switched_units_on=lambda rng, units, occupancy, state, **kw: units * occupancy,
+    )
+    failed = {c.statistic for c in mutated.failed}
+    assert "L1.1_half_hourly_texture" in failed, (
+        "making the switched banks continuous MUST re-open L1.1 — if it does not, "
+        f"the switching is not what is holding the cell open. Got: {mutated.summary()}"
+    )
+
+
+# ===========================================================================
 # §4 THE THREE FAIL-OPEN PATTERNS
 # ===========================================================================
 
@@ -770,13 +872,23 @@ def test_the_verdict_is_WORST_CELL_not_an_average(generated):
     """
     grids = _grids(generated)
     poisoned = [[list(day) for day in home] for home in grids]
-    poisoned[-1] = _smooth(poisoned[-1])  # one home loses its texture
+    poisoned[-1] = _flatten_within_day(poisoned[-1])  # one home loses its texture
 
     per_home = [fgl.half_hourly_texture(g) for g in poisoned]
     worst, mean = min(per_home), statistics.fmean(per_home)
     assert worst < mean * 0.9, (
         "the fixture must actually discriminate — if the smoothed home does not "
         "drag the worst materially below the mean, this test proves nothing"
+    )
+    # ...and it must discriminate for the RIGHT REASON. The guard above passes
+    # whenever ANY home sits well below the mean, so on 2026-08-08 it stayed green
+    # while the poisoned home was not the worst at all and the naming assertion
+    # below failed with a message about the verdict rather than about the fixture.
+    # A fixture that has stopped setting up its own premise must say so itself.
+    assert per_home.index(worst) == len(per_home) - 1, (
+        f"the poisoned home {generated.homes[-1]} must BE the population's worst "
+        f"({worst:.4g}), else this test is checking the naming of some other home: "
+        f"argmin is {generated.homes[per_home.index(worst)]}"
     )
 
     population = fgl.PopulationTraces(
@@ -1033,8 +1145,14 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
     assert entry["twin_atom_id"] == fgl.FABRIC_TWIN_ATOM
     assert entry["measured_at"] == "2026-08-03T00:00:00Z"
     components = entry["components"]
-    assert components["two_level"]["is_red"] is True
-    assert components["two_level"]["failed_levels"]
+    # The generator has met every anchored cell since 2026-08-08. The recorded
+    # verdict is cross-checked against the recorded CELLS rather than trusted on
+    # its own: `is_red` and the per-cell verdicts are serialised separately, so a
+    # writer that reported a flag its own cells contradict is caught here.
+    two_level = components["two_level"]
+    assert two_level["is_red"] is False
+    assert not [s for s, c in two_level["cells"].items() if c["verdict"] == "FAIL"]
+    assert two_level["failed_levels"] == []
     assert "money_consequence_epc" in components and "money_consequence_inferred" in components
     assert components["money_consequence_epc"]["basis"].startswith("PROVISIONAL")
     assert components["inference_improvement"] > 0.0, "the inferred belief is the better one here"

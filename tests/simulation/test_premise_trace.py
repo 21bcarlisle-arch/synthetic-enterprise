@@ -607,3 +607,149 @@ def test_book_cost_refuses_a_degenerate_book():
         pt.estimate_book_cost(10, 0)
     with pytest.raises(ValueError):
         pt.estimate_book_cost(10, 365, workers=0)
+
+
+# ---------------------------------------------------------------------------
+# The household's own clock, and the switched base load (both added 2026-08-08
+# to close the two residual cells of the two-level test). Each is exercised BOTH
+# ways per this file's standing R15 discipline.
+# ---------------------------------------------------------------------------
+
+
+def test_the_routine_offset_is_a_HABIT_not_a_daily_draw():
+    """It must be a property of the HOUSEHOLD: identical every time the premise is
+    profiled, and different between premises. A per-day draw would give the same
+    within-home variation while leaving every home's long-run centre identical —
+    which is the defect (L2.3) this mechanism exists to remove."""
+    household = make_household()
+    repeated = {
+        pt.behaviour_profile_for("P-habit", household, seed=5).routine_offset_periods
+        for _ in range(5)
+    }
+    assert len(repeated) == 1, "a household's clock must not be re-drawn"
+
+    across_homes = {
+        pt.behaviour_profile_for(f"P-{i}", make_household(f"C-{i}"), seed=5).routine_offset_periods
+        for i in range(40)
+    }
+    assert len(across_homes) > 30, "households must not share one national clock"
+    assert max(abs(o) for o in across_homes) <= pt._MAX_ROUTINE_OFFSET_PERIODS
+
+
+def test_the_routine_offset_moves_the_household_s_EVENING_not_its_volume(weather):
+    """MUTATION-STYLE PAIR: two premises identical but for their clock must differ
+    in WHEN they use electricity and not materially in HOW MUCH."""
+    household = make_household()
+    early = pt.behaviour_profile_for("P-early", household, seed=5)
+    early = dataclasses.replace(early, routine_offset_periods=-3.0)
+    late = dataclasses.replace(early, routine_offset_periods=3.0)
+
+    def evening_centre(profile):
+        trace = pt.generate_premise_trace(
+            premise_id="P-clock", household=household, weather=weather, seed=5,
+            behaviour=profile, latitude_deg=pt.DEFAULT_LATITUDE_DEG,
+        )
+        grid = trace.half_hourly("electricity")
+        picks = [max(range(29, 46), key=lambda p: day[p]) for day in grid]
+        return sum(picks) / len(picks), trace.annual_kwh("electricity")
+
+    early_centre, early_kwh = evening_centre(early)
+    late_centre, late_kwh = evening_centre(late)
+    assert late_centre > early_centre + 1.0, (
+        f"a three-half-hour-later routine must move the evening peak later — "
+        f"early {early_centre:.2f}, late {late_centre:.2f}"
+    )
+    assert late_kwh == pytest.approx(early_kwh, rel=0.10), (
+        "the clock moves consumption in TIME; it must not create or destroy it"
+    )
+
+
+def test_switched_units_REFUSE_an_occupancy_that_is_not_a_probability():
+    """FAIL-OPEN guard: an out-of-range probability must raise, never be clipped
+    into a plausible-looking load."""
+    import random as _random
+
+    rng = _random.Random(0)
+    assert 0 <= pt.switched_units_on(rng, 4, 0.5, 2) <= 4
+    for bad in (-0.01, 1.01, float("nan")):
+        with pytest.raises(ValueError):
+            pt.switched_units_on(rng, 4, bad, 2)
+    with pytest.raises(ValueError):
+        pt.switched_units_on(rng, -1, 0.5, 0)
+
+
+def test_the_switched_base_load_PRESERVES_energy(weather):
+    """THE STANDING GUARD ON THE DRIFT THIS MECHANISM ALREADY CAUSED ONCE.
+
+    Switching lighting and electronics must rearrange the same energy in time,
+    never change how much there is: the anchored quantity (Ofgem TDCV ~2,700
+    kWh/yr non-heating) belongs to the continuous form the switching replaced.
+
+    The first implementation relaxed into each new occupancy level with a
+    3.3-period time constant and so sat below its own stationary level at the
+    start of every block — a systematic -2.2% that no cell of the two-level test
+    would ever have caught, because every one of them is scale-free. This test is
+    the control for that class, and it is the reason the chain re-seeds on a step.
+
+    It is measured ACROSS HOMES on purpose. The bias is systematic and the
+    per-home realisation noise is not, so aggregating separates the two. The
+    first draft of this control asserted one home inside a 2% band and scored the
+    real -1.93% defect as a PASS — a fail-open in the control written to catch a
+    fail-open, which is why the mutation below is part of the deliverable.
+    """
+    bias = _switching_bias(weather, pt.switched_units_on)
+    assert abs(bias) < 0.01, (
+        f"switching must rearrange energy in time, not change it: {100 * bias:+.2f}%"
+    )
+
+
+def test_the_switched_energy_guard_FIRES_on_the_relaxation_BIAS(weather):
+    """R15 for the control above: the defect it was written for must trip it.
+
+    The mutation is the mechanism exactly as first implemented — never re-seed on
+    an occupancy step, always relax into the new level.
+    """
+    # Bound BEFORE `_switching_bias` rebinds the module attribute, or the stub
+    # would call itself rather than the real chain.
+    chain = pt.switched_units_on
+
+    def lagging(rng, units, occupancy, state, **kw):
+        return chain(rng, units, occupancy, state, previous_occupancy=occupancy)
+
+    bias = _switching_bias(weather, lagging)
+    assert bias < -0.01, (
+        f"the relaxation bias must trip the energy guard, measured {100 * bias:+.2f}%"
+    )
+
+
+def _switching_bias(weather, implementation) -> float:
+    """Relative shift in book non-heating electricity under `implementation`,
+    measured against the continuous form that IS the chain's expectation."""
+    households = [
+        make_household(f"C-sw{i}", insulation=ins, property_type=ptype)
+        for i, (ins, ptype) in enumerate(
+            (
+                (InsulationLevel.POOR, PropertyType.TERRACED),
+                (InsulationLevel.PARTIAL, PropertyType.SEMI_DETACHED),
+                (InsulationLevel.FULL, PropertyType.DETACHED),
+                (InsulationLevel.PARTIAL, PropertyType.FLAT),
+            )
+        )
+    ]
+
+    def book(fn):
+        original = pt.switched_units_on
+        pt.switched_units_on = fn
+        try:
+            return sum(
+                pt.generate_premise_trace(
+                    premise_id=f"P-sw{i}", household=hh, weather=weather,
+                    seed=11 + i, latitude_deg=pt.DEFAULT_LATITUDE_DEG,
+                ).annual_kwh("electricity")
+                for i, hh in enumerate(households)
+            )
+        finally:
+            pt.switched_units_on = original
+
+    continuous = book(lambda rng, units, occupancy, state, **kw: units * occupancy)
+    return (book(implementation) - continuous) / continuous

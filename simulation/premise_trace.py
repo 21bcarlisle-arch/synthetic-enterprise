@@ -270,6 +270,31 @@ AWAY_SETPOINT_C = 12.0
 is left on frost protection, and asserting zero would make away days trivially
 detectable in a way real meter data is not."""
 
+# `domain-knowledge` — households keep HABITS, and the habit is the household's,
+# not the nation's. Some homes sit down to eat at 17:30, some at 20:30, and each
+# does so on MOST days. An appliance window like the oven's (32, 42) is the
+# population ENVELOPE; it is not any single household's clock.
+#
+# Drawing each day's start uniformly from that envelope gives every home a
+# different day-to-day timing but the SAME long-run centre — the envelope mean.
+# In population terms that is a point mass, which is the identical defect L2.3
+# exists to catch (`HEATING_PERIOD_WEIGHTS` as one national constant), one level
+# subtler: it hides behind within-home variation instead of being visibly
+# constant. The routine offset is what makes the centre the HOUSEHOLD'S.
+#
+# The systematic part is the part that has a reason: retired households eat
+# earlier, commuting households later, and children pull the evening meal
+# forward. The idiosyncratic part is everything else about a family's clock.
+_ROUTINE_RETIRED_PERIODS = -1.5
+_ROUTINE_COMMUTER_PERIODS = 1.0
+_ROUTINE_CHILDREN_PERIODS = -0.5
+_ROUTINE_IDIOSYNCRATIC_SD_PERIODS = 1.0
+_MAX_ROUTINE_OFFSET_PERIODS = 3.0
+"""+/- three half-hours. With an ~18:45 envelope centre that spans roughly
+17:15-20:15, which is the realistic UK spread of the evening main meal. It is a
+DIAGNOSTIC envelope drawn from domain knowledge, never a value chosen to move
+L2.3 (R12) — the population sd it implies is a consequence, not a target."""
+
 
 @dataclass(frozen=True)
 class BehaviourProfile:
@@ -290,6 +315,16 @@ class BehaviourProfile:
     away_days_per_year: int
     appliance_intensity: float
     """Sublinear scale on event rates with household size."""
+    routine_offset_periods: float = 0.0
+    """This household's habitual shift, in half-hours, of its discretionary
+    activity relative to the national envelope — the home's own clock.
+
+    Drawn ONCE per premise and applied every day, so it is a HABIT rather than
+    noise: it moves the home's long-run centre, which is what distinguishes two
+    households from each other, while leaving each home's day-to-day variation
+    intact. It drives both fuels — a household that eats at 20:30 also heats at
+    20:30 — so it is read by `draw_appliance_events`, `draw_dhw_events` and
+    `daily_schedule` alike, and never re-drawn in any of them."""
 
     @property
     def adult_count(self) -> int:
@@ -351,6 +386,22 @@ def behaviour_profile_for(
     if pensioner_present:
         away = int(away * 0.7)
 
+    # The household's own clock. Structural, drawn once, from its own substream:
+    # two premises differ in WHEN they live, not only in how much they use.
+    systematic = 0.0
+    if pensioner_present and not someone_employed:
+        systematic += _ROUTINE_RETIRED_PERIODS
+    elif someone_employed:
+        systematic += _ROUTINE_COMMUTER_PERIODS
+    if children_count > 0:
+        systematic += _ROUTINE_CHILDREN_PERIODS
+    routine_offset = systematic + _substream(base, "routine").gauss(
+        0.0, _ROUTINE_IDIOSYNCRATIC_SD_PERIODS
+    )
+    routine_offset = max(
+        -_MAX_ROUTINE_OFFSET_PERIODS, min(_MAX_ROUTINE_OFFSET_PERIODS, routine_offset)
+    )
+
     return BehaviourProfile(
         people_count=people_count,
         children_count=children_count,
@@ -363,6 +414,7 @@ def behaviour_profile_for(
         away_days_per_year=away,
         # Sublinear in headcount, as EFUS/NEED volume scaling is.
         appliance_intensity=(people_count / 2.4) ** 0.6,
+        routine_offset_periods=routine_offset,
     )
 
 
@@ -565,6 +617,30 @@ COLD_APPLIANCES: tuple[ColdApplianceSpec, ...] = (
 
 _LIGHTING_KW_PER_PERSON = 0.035
 _ELECTRONICS_KW_PER_PERSON = 0.055
+
+# `domain-knowledge` — lighting and electronics are SWITCHED devices, and this is
+# the same argument the note on `_STANDBY_KW` already makes for the fridge, just
+# applied to the loads it was not applied to. A room is lit or it is not; a TV is
+# on or it is not. Multiplying a per-person wattage by an occupancy fraction
+# produces a load that is CONSTANT for the whole of an occupancy block — the
+# quiet-afternoon signature `0.1453, 0.1453, 0.1536` — which is the smooth series
+# this atom exists to remove, reappearing in the one place the module had not yet
+# swept.
+#
+# Each unit is a two-state chain whose STATIONARY probability is the occupancy
+# this module already computes, so the expected load in every period is EXACTLY
+# what the continuous form produced. Level, annual kWh and the L2.5 aggregate
+# reconciliation are therefore untouched by construction; only the texture
+# changes. That is the difference between generating texture and injecting it.
+_LIGHTING_UNITS_PER_PERSON = 2.0
+"""Rooms lit at once. A three-person household lighting six rooms across an
+evening is `domain-knowledge`, not a fitted count."""
+_ELECTRONICS_UNITS_PER_PERSON = 2.0
+"""Screens/devices drawing at once."""
+_SWITCH_PERSISTENCE = 0.7
+"""Lag-1 autocorrelation of a unit's on/off state: a mean dwell of
+1/(1-0.7) = 3.3 half-hours, i.e. a light left on for about an hour and a half.
+A DIAGNOSTIC of how long people leave things on, never a texture setting (R12)."""
 _METABOLIC_GAIN_KW_PER_PERSON = 0.085
 
 
@@ -588,6 +664,52 @@ def _square_wave_on_hours(
         on_end = cycle_start + duty * cycle_h
         on_h += max(0.0, min(end_h, on_end) - max(start_h, on_start))
     return on_h
+
+
+def switched_units_on(
+    rng: random.Random,
+    units: int,
+    occupancy: float,
+    state: int,
+    *,
+    previous_occupancy: float | None = None,
+) -> int:
+    """Step one period of a bank of `units` two-state switched loads.
+
+    `occupancy` is the STATIONARY on-probability of each unit and `state` is how
+    many were on last period. Transition probabilities are set so the chain's
+    stationary distribution is Binomial(units, occupancy): within a block of
+    constant occupancy the expected load is exactly the continuous form's value,
+    and the persistence only decides HOW the same energy is arranged in time.
+
+    When occupancy STEPS — the household wakes, leaves, comes home — the bank is
+    re-seeded from the new stationary distribution instead of relaxing into it.
+    That is both the physical moment (a step in occupancy IS everyone switching
+    things on at once) and the only way the mean is preserved: a chain that
+    relaxes with a 3.3-period time constant across a step spends the first few
+    periods of every block below its own stationary level, which measured as a
+    systematic -2.2% of non-heating electricity — a silent baseline drift, and
+    the sort of thing R13 forbids far more firmly than it forbids being smooth.
+
+    Raises on an occupancy outside [0, 1]: a probability that is not one must
+    FAIL rather than be silently clipped into a plausible-looking load (R15).
+    """
+    if units < 0:
+        raise ValueError("a bank cannot have a negative number of units")
+    if not 0.0 <= occupancy <= 1.0:
+        raise ValueError(f"occupancy must be a probability in [0, 1], got {occupancy}")
+    if previous_occupancy is None or abs(previous_occupancy - occupancy) > 1e-9:
+        return sum(1 for _ in range(units) if rng.random() < occupancy)
+    state = max(0, min(units, state))
+    turn_on = (1.0 - _SWITCH_PERSISTENCE) * occupancy
+    turn_off = (1.0 - _SWITCH_PERSISTENCE) * (1.0 - occupancy)
+    on = 0
+    for unit in range(units):
+        if unit < state:
+            on += 0 if rng.random() < turn_off else 1
+        else:
+            on += 1 if rng.random() < turn_on else 0
+    return on
 
 
 def cold_appliance_phases(
@@ -662,9 +784,14 @@ def draw_appliance_events(
             rate *= 1.15  # more at home, more cooking and washing
         # Poisson-ish integer count: floor plus a Bernoulli on the remainder.
         count = int(rate) + (1 if rng.random() < rate - int(rate) else 0)
+        # The spec window is the population envelope; this household lives on its
+        # OWN clock inside it, so the envelope is shifted by the routine before
+        # the day's draw. The offset is read from the profile, never re-drawn
+        # here — that is what makes it a habit rather than another day's noise.
+        routine = profile.routine_offset_periods
         lo, hi = spec.window
-        lo = max(profile.wake_period + shift, lo + shift)
-        hi = min(profile.sleep_period + shift, hi + shift)
+        lo = max(profile.wake_period + shift, int(math.floor(lo + shift + routine)))
+        hi = min(profile.sleep_period + shift, int(math.ceil(hi + shift + routine)))
         if hi <= lo:
             continue
         for _ in range(count):
@@ -746,7 +873,13 @@ def draw_dhw_events(
         if roll < 0.5:
             start = min(PERIODS_PER_DAY - 1, profile.wake_period + shift + rng.randint(0, 3))
         elif roll < 0.85:
-            start = min(PERIODS_PER_DAY - 1, 36 + shift + rng.randint(0, 6))
+            # The evening cluster sits on the household's own clock, not on a
+            # national 18:00 — the same routine that moves its cooking.
+            evening_base = 36 + shift + profile.routine_offset_periods
+            start = min(
+                PERIODS_PER_DAY - 1,
+                max(0, int(math.floor(evening_base)) + rng.randint(0, 6)),
+            )
         else:
             start = rng.randint(
                 min(profile.wake_period + shift, PERIODS_PER_DAY - 2),
@@ -969,6 +1102,10 @@ def daily_schedule(
             continuous=base_schedule.continuous,
         )
     shift = profile.weekend_shift_periods if is_weekend else 0
+    # One routine drives both fuels: a household that eats at 20:30 heats at
+    # 20:30 too. Without this the gas and electricity legs of the SAME home
+    # would tell two different stories about when its occupants are up.
+    routine = int(round(profile.routine_offset_periods))
     comfort = base_schedule.comfort_setpoint_c - constraint.setpoint_reduction_c
     setback = min(base_schedule.setback_setpoint_c, comfort - 1.0)
     retained = max(0.0, min(1.0, constraint.comfort_hours_retained))
@@ -981,7 +1118,7 @@ def daily_schedule(
     # A shortened evening period is given up at the START (people heat when they
     # get cold in the evening), which is why rationing moves the peak as well as
     # shrinking it.
-    evening_start = base_schedule.evening_start_period + shift + (
+    evening_start = base_schedule.evening_start_period + shift + routine + (
         (base_schedule.evening_end_period - base_schedule.evening_start_period) - evening_len
     )
     return HeatingSchedule(
@@ -1196,10 +1333,22 @@ def generate_premise_trace(
             _spread_event(event, dhw_heat_kwh)
             _spread_event(event, dhw_gain_kwh, scale=event.heat_fraction)
 
-        # Base load, lighting and electronics: continuous, occupancy-driven.
+        # Base load: standby is constant, the cold appliances cycle, and lighting
+        # and electronics SWITCH. Each bank carries its state across the day, so a
+        # lit room stays lit; the day-salted substream keeps any single day
+        # replayable without the days before it (C-S2).
         sunrise, sunset = daylight_hours(latitude_deg, wx.weather.day_of_year)
         behavioural = [0.0] * PERIODS_PER_DAY
         cold_kwh = [0.0] * PERIODS_PER_DAY
+        switch_rng = _substream(base_seed, f"switched::{day_index}")
+        light_units = max(1, int(round(_LIGHTING_UNITS_PER_PERSON * profile.people_count)))
+        device_units = max(1, int(round(_ELECTRONICS_UNITS_PER_PERSON * profile.people_count)))
+        light_kw_per_unit = _LIGHTING_KW_PER_PERSON * profile.people_count / light_units
+        device_kw_per_unit = _ELECTRONICS_KW_PER_PERSON * profile.people_count / device_units
+        lights_on = 0
+        devices_on = 0
+        prev_device_p: float | None = None
+        prev_light_p: float | None = None
         for period in range(PERIODS_PER_DAY):
             hour = (period + 0.5) * PERIOD_HOURS
             occupancy = occupancy_at(profile, period, is_weekend=is_weekend, is_away=is_away)
@@ -1211,10 +1360,19 @@ def generate_premise_trace(
             # series this atom exists to remove, and it runs on an away day too:
             # the fridge does not go on holiday.
             kw = _STANDBY_KW
-            if awake and not is_away:
-                kw += _ELECTRONICS_KW_PER_PERSON * profile.people_count * occupancy
-                if dark:
-                    kw += _LIGHTING_KW_PER_PERSON * profile.people_count * occupancy
+            live = awake and not is_away
+            device_p = occupancy if live else 0.0
+            light_p = occupancy if live and dark else 0.0
+            devices_on = switched_units_on(
+                switch_rng, device_units, device_p, devices_on,
+                previous_occupancy=prev_device_p,
+            )
+            lights_on = switched_units_on(
+                switch_rng, light_units, light_p, lights_on,
+                previous_occupancy=prev_light_p,
+            )
+            prev_device_p, prev_light_p = device_p, light_p
+            kw += devices_on * device_kw_per_unit + lights_on * light_kw_per_unit
             cold_kwh[period] = cold_appliance_kwh(cold_phases, day_index, period)
             behavioural[period] = kw * PERIOD_HOURS + cold_kwh[period] + appliance_kwh[period]
 
