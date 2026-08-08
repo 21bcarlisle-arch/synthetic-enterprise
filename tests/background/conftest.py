@@ -58,6 +58,20 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     _staging = tmp_path / "staging_isolated"
     (_staging / "in_progress").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(supervisor, "STAGING_DIR", _staging, raising=False)
+    # RUNG 1b OPERATIONAL-LAYER PERSISTENT-RED (director console 2026-07-25): the FOURTH instance of
+    # the same class this fixture already fixes three times above -- `_operational_red_persistent_draw`
+    # reads the REAL .operational_layer_signal.json and sits ABOVE every product/HARDEN lane, so
+    # whenever the live operational suite is red it wins the draw and flips every "map empty -> rest" /
+    # "draws lane X" assertion in this directory. It really was red on 2026-08-08 (consecutive_red 4),
+    # and it red-ed the publish gate through two unrelated files
+    # (test_forward_discovery_draw.py, test_governance_refusal.py) whose subjects have nothing to do
+    # with it. Default to an ABSENT tmp path -- absent => detector returns None (proven by
+    # test_operational_red_persistent_draw.py::test_silent_on_absent_file), so no phantom red. The
+    # rung's own tests set this path in their body, which runs after this fixture and therefore wins.
+    monkeypatch.setattr(
+        supervisor, "OPERATIONAL_LAYER_SIGNAL_FILE",
+        tmp_path / ".operational_layer_signal_absent.json", raising=False,
+    )
 
 
 # ── THE GHOST-PUSHER TRIPWIRE (issue #11) ────────────────────────────────────────────────────

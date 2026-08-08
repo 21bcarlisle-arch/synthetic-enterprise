@@ -86,14 +86,13 @@ def _gate_core_and_idle_lanes(monkeypatch):
     # directly (not the redirected STAGING_DIR), so the real open residue would leak in and forbid
     # the rest these tests exercise in isolation -- same reason as the two lanes above.
     monkeypatch.setattr(sup, "_gap_register_open", lambda *a, **k: False)
-    # RUNG 1b operational-layer PERSISTENT-RED gated too (2026-08-08, worker tick; found wedging the
-    # publish gate). It sits ABOVE the FORWARD-DISCOVERY rung and reads LIVE disk
-    # (.operational_layer_signal.json), which no fixture here redirects -- so whenever the real
-    # operational suite is red, that draw won at RUNG 1b and this file's assertions failed on
-    # AMBIENT STATE rather than on the behaviour under test. Same class, and same fix, as the three
-    # lanes above: a rung added above the one under test must be gated by this helper, or these
-    # tests measure the machine's mood instead of the rung.
-    monkeypatch.setattr(sup, "_operational_red_persistent_draw", lambda *a, **k: None)
+    # NOTE: RUNG 1b (operational-layer PERSISTENT-RED) also sits above this rung and reads live disk.
+    # It is NOT gated here on purpose -- it is neutralised for the whole directory by
+    # tests/background/conftest.py's autouse isolation fixture, alongside the three other live-disk
+    # rungs (publish-gate wedge, planner axes, blocked mints). Path-level isolation there beats a
+    # function stub here: it keeps this test exercising the REAL ladder, and it fixes the class
+    # rather than this one file (2026-08-08 -- the ungated rung red-ed the publish gate through this
+    # file and test_governance_refusal.py).
 
 
 def _point_register_at(monkeypatch, tmp_path, contents: str):
