@@ -1,5 +1,26 @@
-<!-- SUPERVISOR_DRAW: available -->
-> **[IN-PROGRESS — 2026-08-08 worker tick] A1 and A3 DISCHARGED for MAP; A2 STILL OPEN.**
+> **[CLOSED — 2026-08-08 worker tick] ALL THREE DISCHARGED. A2 was the last open sub-item.**
+>
+> **A2 — temporal provenance — DELIVERED** as atom `AO11_map_assertion_provenance`, L0→L2
+> (`e3f5b0c5b`, `220efe7da`). `tools/map_assertion_provenance.py` gives every cell three clocks:
+> `asserted_at` (git blame of that cell's OWN `level_current` line), `artefacts_moved_at` (newest
+> commit touching its `file_scope` — an INDEPENDENT source) and `verified_at` (append-only ledgers).
+> Staleness is now a QUERY: 205 cells in ~1.5s — 4 CONTRADICTED, 59 STALE, 116 UNVERIFIABLE,
+> 26 CURRENT. 24 tests, 12 source mutations all firing.
+>
+> **The bitemporal primitive was checked and DECLINED**, per this file's own instruction to record the
+> answer either way: it models restatement over a `valid_time` a map cell does not have, it is
+> in-memory where these dates are derived, and it sits behind the company seam. Git history is the
+> append-only transaction-time log actually reused.
+>
+> **Honest limit, stated in the tool's docstring rather than hidden:** the clock is file-granular, so
+> it knows THAT a claimed artefact moved, never WHY. Hand-checking all four CONTRADICTED cells found
+> every one moved for other work. A status is a prompt to look, never a verdict.
+>
+> **The 59 STALE / 4 CONTRADICTED findings are QUEUED, not swept** — this file's own risk section
+> names a 185-atom field sweep as the probable failure.
+>
+> ---
+> **[2026-08-08, earlier the same tick] A1 and A3 DISCHARGED for MAP.**
 >
 > **A1 (degraded edges are MAP's precondition) — answered BY CONSTRUCTION, not by a field sweep.**
 > `tools/capability_index.py` **never reads `maturity_map.yaml`**: every row derives from source on

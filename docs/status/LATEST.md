@@ -1,5 +1,45 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T19:16:17Z
+Last updated: 2026-08-08T19:33:22Z
+
+**AO11_map_assertion_provenance (2026-08-08, `e3f5b0c5b`+`220efe7da`) — the map's own cells now
+carry when they were claimed and when anyone last looked. L0→L2, self-certified.**
+Addendum **A2**, the one item AO1 deliberately did not absorb (an index that re-derives on every
+query has no assertion to date; the *map* does). A cell reading L0 while its artefacts say L2 is a
+**validity-window failure** — true when written, silently false now, with nothing carrying either
+date; the DD cell read level 0 while all six sub-parts were built, committed and live.
+`tools/map_assertion_provenance.py` gives every cell **three clocks**: `asserted_at` from `git blame`
+of that cell's **own `level_current` line** (so a prose edit cannot launder a stale claim clean),
+`artefacts_moved_at` from the newest commit touching its `file_scope` — **the code, not the map**,
+which is what makes the comparison independent — and `verified_at` from the append-only ledgers (this
+tool's `--record`, plus the existing `gate_authorizations` self-certifications, which *are* a check
+against evidence at a known moment). Staleness stops being a discovery someone happens to make weeks
+later and becomes arithmetic. **205 cells in ~1.5s: 4 CONTRADICTED, 59 STALE, 116 UNVERIFIABLE
+(48 no scope, 66 directory-scope, 2 tautological), 26 CURRENT.**
+**Two false-positive classes were found by hand-checking the first run and fixed, not shipped.**
+9 CONTRADICTED collapsed to **4** once the rule required the artefacts to have moved *after* the
+claim — most L0 cells name files that already exist **because the work is to change them**, and
+reading those as "already built" reports live, unstarted work as a defect, which is the same weight of
+error as missing a real one. Then **shared scope**: H28 lit up on a gate file **three atoms claim**,
+moved by H30 and W2 — so `scope_exclusive` is now printed and a confound cannot pass as evidence.
+**Hand-checking all four survivors found every one moved for other work** (H29's exclusively-claimed
+`ntfy_utils.py` moved for the NEVER-ASK absorption), so the docstring **states the limit** rather than
+hiding it: a file-granular clock knows *that* a claimed artefact moved, never *why*. A status is a
+**prompt to look, never a verdict** — which is still the whole ask, staleness as a query.
+**R15, mutated in source not mocks: 12 mutations, 12 fire, zero survivors** — vacuity floor,
+blame-join, commit-time pass, independence/tautology, contradiction-loses-ordering, all three
+unverifiable statuses falling through to CURRENT, git-failure-swallowed, and blame-dates-the-block
+across **all three** block-granular strategies. **That last test survived its own mutation twice**: the
+fixture had prose on only one side of the level line, so two of the three wrong implementations passed
+unnoticed — fixed by putting prose above *and* below, as the real map has. Every fixture is a **real
+git repo with controlled commit times**; a mocked git would prove only that the mock returns what the
+test told it to. **Bitemporal reuse checked and DECLINED**, reasons recorded in the docstring so the
+next turn need not repeat it (it models restatement over a `valid_time` a map cell does not have; it
+is in-memory where these dates are derived; it sits behind the company seam) — **git history is the
+append-only transaction-time log actually reused**. Capability index `--find` returned **0 rows**, so
+nothing was extended. **Additive by design:** writes nothing the draw reads, never edits
+`maturity_map.yaml`. 24 tests, epistemic verifier PASS (534 files). Not L3: no Expert-Hour, and the
+**59 STALE / 4 CONTRADICTED findings are QUEUED, not swept** — the addendum names a 185-atom field
+sweep as the probable failure, and SELF_INTERRUPT_DISCIPLINE says queue by default.
 
 **AO1_capability_index (2026-08-08, `7e5a727d4`+`d96b1d45b`) — MAP step 1 of the director's
 ARCHITECTED-OUT programme. The reuse surface, derived. L0→L2, self-certified.**
@@ -748,7 +788,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (522s / 9 min):
 - Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
@@ -861,6 +901,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1761.1h across 68 sized atom(s) (9 of 77 below-target atoms still unsized).
+- Remaining effort: ~1852.5h across 70 sized atom(s) (9 of 79 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

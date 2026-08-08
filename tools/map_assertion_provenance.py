@@ -434,7 +434,11 @@ def _print_rows(rows: list[dict], limit: int | None = None) -> None:
               % (r["atom"][:46], r["level_current"], r["status"],
                  _fmt(r["asserted_at"]), _fmt(r["verified_at"]), _fmt(r["artefacts_moved_at"]),
                  ("  (+%.0fd)" % r["stale_days"]) if r["stale_days"] else "",
-                 "" if r["scope_exclusive"] else "  [shared scope -- another atom may have moved it]"))
+                 # Only where a confound is actually possible: a cell with NO scope
+                 # has nothing another atom could have moved, and printing the
+                 # warning there would train the reader to ignore it.
+                 "" if r["scope_exclusive"] or not r["scope_count"]
+                 else "  [shared scope -- another atom may have moved it]"))
     if limit is not None and len(rows) > limit:
         print("... %d more (use --json for all)" % (len(rows) - limit))
 
