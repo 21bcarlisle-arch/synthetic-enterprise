@@ -1,0 +1,3 @@
+atom_id: F7_obligations_register_coverage
+simplifications:
+- '2026-07-13 REGISTERED (INVARIANT_LIBRARY_REDTEAM.md top-3). Register coverage gaps: physical-harm obligation rows (gas-safety, self-disconnection) under-represented; the existing_tracker field is unresolved/degraded in places; and obligation rows do not carry the KEY of the invariant that enforces them, so SLC-31A-vs-21BA style drift between an obligation and its enforcement can go undetected. Also the enforcement is bills-only -- annual statements, DD resets, refunds are ungated surfaces a bad value can reach a customer through. FIX: extend register coverage + carry an enforcing-invariant key per row (traceability) + widen the gate surface beyond bills. loop_stage idle: rank for BUILD.'

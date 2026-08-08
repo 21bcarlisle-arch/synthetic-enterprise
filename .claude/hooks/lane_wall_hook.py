@@ -69,6 +69,13 @@ import sys
 import time
 from pathlib import Path
 
+# Seat guard: the development-time lane wall is the RESIDENT seat's own build
+# discipline (and it WRITES docs/observability/lane_hook_denials.jsonl on a
+# denial). A foreign session must not be lane-restricted or dirty that log --
+# make the hooks dir importable, then import the guard.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 DENIAL_LOG = Path("docs/observability/lane_hook_denials.jsonl")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -504,6 +511,10 @@ def _resolve_lane() -> str | None:
 
 
 def main() -> int:
+    # Seat guard FIRST: inert (no denial-log write, no output) in any foreign
+    # seat -- before resolving the lane or reading the payload.
+    if not is_resident_seat():
+        return 0
     lane = _resolve_lane()
     if not lane or lane not in _LANE_DENIES:
         return 0

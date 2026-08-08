@@ -14,18 +14,23 @@ single-threaded, to fold each landed inbox's fields into the canonical map.
 
 CRITICAL CONTRACT -- this is a NARROW FIELD MERGE, never a wholesale
 regeneration. `maturity_map.yaml` carries rich hand-authored content
-(`simplifications` prose, `provenance`, `expert_hour`, `depends_on`) that must
-survive untouched. We therefore edit the map's TEXT in place, rewriting only
-the specific field lines of the specific target atoms; every other atom's
-bytes are preserved exactly. Round-tripping the whole file through
-yaml.safe_dump would reflow all 61 atoms and destroy that hand-authored form,
-so we deliberately do NOT do that.
+(`provenance`, `expert_hour`, `depends_on`, and the `simplifications_count`
+scalar) that must survive untouched. We therefore edit the map's TEXT in place,
+rewriting only the specific field lines of the specific target atoms; every
+other atom's bytes are preserved exactly. Round-tripping the whole file through
+yaml.safe_dump would reflow all atoms and destroy that hand-authored form, so we
+deliberately do NOT do that. The simplifications REGISTER itself moved out of the
+map into the sibling store (retro FM-1): `append_simplification` writes the note
+to docs/design/simplifications/<id>.yaml and this tool only keeps the map's
+`simplifications_count` in sync.
 
 Inbox schema (write-inbox fields only):
     id: <atom id, must exist in the map>
     level_current: <int>              # optional; folded onto the atom
-    append_evidence: [<str>, ...]     # optional; appended to `evidence`
-    append_simplification: [<str>, ...] # optional; appended to `simplifications`
+    append_evidence: [<str>, ...]     # optional; appended to `evidence` (in the map)
+    append_simplification: [<str>, ...] # optional; appended to the sibling
+                                        # simplifications store; the map's
+                                        # `simplifications_count` scalar is kept in sync
     written_by: <fork-branch>         # provenance only, not folded
     written_at: <iso8601>             # provenance only, not folded
 
@@ -44,12 +49,25 @@ from pathlib import Path
 
 import yaml
 
+from tools import simplifications_store as store
+
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 INBOX_DIR = PROJECT / "docs" / "design" / "atom_status"
 
-# Fields a fork is permitted to mutate via its inbox.
-_APPENDABLE = {"append_evidence": "evidence", "append_simplification": "simplifications"}
+# Map-text fold fields a fork is permitted to mutate via its inbox. `evidence`
+# still lives in the map (narrow text fold). `simplifications` MOVED to the
+# sibling store (retro FM-1): `append_simplification` is handled separately --
+# it appends to the store file and rewrites only the map's `simplifications_count`
+# scalar (see `_apply_inbox_to_lines`). Keeping it out of this dict is what stops
+# the fold from re-creating a `simplifications:` block in the map.
+_APPENDABLE = {"append_evidence": "evidence"}
+
+
+def _store_dir_for(map_path: Path) -> Path:
+    """The simplifications store sits beside the map, so a test operating on a map
+    copy in a tmp dir gets its own tmp store."""
+    return Path(map_path).parent / "simplifications"
 
 
 class MergeError(Exception):
@@ -308,6 +326,29 @@ def _atom_field_indent(block: list[str], atom_id: str) -> str:
     raise MergeError(f"atom '{atom_id}' has no field lines to take indentation from")
 
 
+def _set_or_create_scalar(block: list[str], atom_id: str, field: str, value) -> list[str]:
+    """Replace a scalar `field: <value>` line in the atom block, or create it if
+    absent. Mirrors the independent-absence-check discipline of the block-list
+    create path: never write a second key on the strength of a parse that failed
+    to find the first."""
+    for k, ln in enumerate(block):
+        m = re.match(rf"^(\s*){re.escape(field)}:\s*(.*)$", ln)
+        if m:
+            block[k] = f"{m.group(1)}{field}: {value}\n"
+            return block
+    if _block_declares_field(block, field):
+        raise MergeError(
+            f"atom '{atom_id}' HAS a '{field}:' line the fold could not parse -- "
+            "refusing to create a duplicate key"
+        )
+    field_indent = _atom_field_indent(block, atom_id)
+    insert_at = len(block)
+    while insert_at > 0 and not block[insert_at - 1].strip():
+        insert_at -= 1  # keep any trailing blank separator line last
+    block[insert_at:insert_at] = [f"{field_indent}{field}: {value}\n"]
+    return block
+
+
 def _atom_block_bounds(lines: list[str], atom_id: str) -> tuple[int, int]:
     """[start, end) line indices of the atom whose `- id:` is `atom_id`.
     A block ends at the next top-level list item (`- ` at column 0) or EOF."""
@@ -326,9 +367,11 @@ def _atom_block_bounds(lines: list[str], atom_id: str) -> tuple[int, int]:
     return start, end
 
 
-def _apply_inbox_to_lines(lines: list[str], inbox: dict) -> list[str]:
+def _apply_inbox_to_lines(lines: list[str], inbox: dict, store_dir: Path) -> list[str]:
     """Fold one inbox's fields into `lines` (mutates only the target atom's
-    block). Returns the new lines list."""
+    block). Returns the new lines list. `store_dir` locates the simplifications
+    store used to compute the `simplifications_count` scalar (the notes
+    themselves are written to the store in merge()'s commit phase)."""
     atom_id = inbox["id"]
     start, end = _atom_block_bounds(lines, atom_id)
     block = lines[start:end]
@@ -441,6 +484,18 @@ def _apply_inbox_to_lines(lines: list[str], inbox: dict) -> list[str]:
                 f"{field_indent}- {_dump_block_item(a)}\n" for a in additions
             ]
 
+    # append_simplification -- the notes MOVED to the sibling store (retro FM-1).
+    # Here we only keep the map's `simplifications_count` scalar in sync with what
+    # the store WILL hold once merge() commits the append; the notes never re-enter
+    # the map. Computing the count from the store (current + additions) rather than
+    # from any map field keeps the two sources from drifting.
+    simpl_additions = inbox.get("append_simplification")
+    if simpl_additions:
+        if not isinstance(simpl_additions, list):
+            raise MergeError(f"append_simplification in inbox '{atom_id}' must be a list")
+        new_count = store.count_for_atom(atom_id, store_dir) + len(simpl_additions)
+        block = _set_or_create_scalar(block, atom_id, "simplifications_count", new_count)
+
     return lines[:start] + block + lines[end:]
 
 
@@ -468,10 +523,14 @@ def merge(
             f"({', '.join(overlap)}) -- re-sequence, do not fold blind"
         )
 
+    store_dir = _store_dir_for(map_path)
     text = map_path.read_text()
     lines = text.splitlines(keepends=True)
+    # Text transforms only (level_current, evidence folds, simplifications_count
+    # scalar). An unknown atom raises here, before ANY commit -- map and store both
+    # untouched. The notes for append_simplification are NOT written yet.
     for ib in inboxes:
-        lines = _apply_inbox_to_lines(lines, ib)
+        lines = _apply_inbox_to_lines(lines, ib, store_dir)
     new_text = "".join(lines)
 
     # Validate the result still parses as YAML before writing anything.
@@ -483,6 +542,14 @@ def merge(
     if dry_run:
         return folded
 
+    # COMMIT. Append the simplification notes to the store FIRST: append_for_atom
+    # carries the <=100KB per-file guard, so a size violation raises here and the
+    # map stays UNWRITTEN (fail-closed) rather than being left with a bumped count
+    # over a store that could not accept the note.
+    for ib in inboxes:
+        adds = ib.get("append_simplification")
+        if adds:
+            store.append_for_atom(ib["id"], adds, store_dir)
     map_path.write_text(new_text)
     if clear:
         for ib in inboxes:

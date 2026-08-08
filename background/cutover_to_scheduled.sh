@@ -12,6 +12,14 @@
 # Idempotent. Each apply step is reconcile-checked. Rollback is a flag flip + unit swap — the
 # persistent-seat heartbeat is byte-for-byte intact behind the flag, so fallback is not a rebuild.
 set -euo pipefail
+
+# Seat guard, FIRST act: this swaps the seat's systemd units and transport flag.
+# One discriminator, shared with the daemons and the hooks (background/_seat.py).
+if ! python3 "$(dirname "$0")/_seat.py"; then
+  echo "seat-guard: foreign, cutover_to_scheduled.sh not starting" >&2
+  exit 0
+fi
+
 cd "$(dirname "$0")/.."
 
 FLAG="docs/observability/.scheduled_invocations_enabled"

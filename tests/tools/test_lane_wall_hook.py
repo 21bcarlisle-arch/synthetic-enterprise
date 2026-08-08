@@ -24,6 +24,10 @@ def _run(
 
     full_env = dict(os.environ)
     full_env.pop("SE_LANE", None)  # never inherit the real session's own lane, if any
+    # This hook is seat-GUARDED (.claude/hooks/_seat.py): inert in a foreign
+    # seat. Force resident so the lane behaviour under test runs; foreign
+    # inertness is proven separately in tests/hooks/test_seat_guard.py.
+    full_env["SE_SEAT"] = "resident"
     if env:
         full_env.update(env)
     return subprocess.run(

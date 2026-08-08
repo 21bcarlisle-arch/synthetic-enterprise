@@ -701,8 +701,10 @@ def test_atom_fingerprint_stable_for_unchanged_atom():
 
 
 def test_atom_fingerprint_changes_when_simplifications_grow():
-    before = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications": ["a"]}
-    after = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications": ["a", "b"]}
+    # simplifications moved to the sibling store (retro FM-1); the map carries the
+    # count, and the fingerprint keys on it (a note appended == count grows == progress).
+    before = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications_count": 1}
+    after = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications_count": 2}
     assert supervisor._atom_fingerprint(before) != supervisor._atom_fingerprint(after)
 
 

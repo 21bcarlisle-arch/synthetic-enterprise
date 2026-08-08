@@ -25,6 +25,14 @@ import sys
 import time
 from pathlib import Path
 
+# Seat guard: THE dangerous case. This Stop hook draws work from the RESIDENT
+# seat's supervisor and feeds it back as the next turn -- a foreign session
+# running it would consume the resident seat's instruction channel from an
+# alien sandbox. Make the hooks dir importable (script or importlib-exec),
+# then import the guard; the guard is the first act of main().
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 # parents[2], NOT parent.parent: this file lives at <repo>/.claude/hooks/, so
 # hooks -> .claude -> <repo> is TWO levels up. The old .parent.parent resolved
 # to <repo>/.claude, so ENABLE_FLAG pointed at <repo>/.claude/docs/observability/
@@ -425,6 +433,11 @@ def decide(payload: dict) -> dict | None:
 
 
 def main() -> None:
+    # Seat guard FIRST: in any FOREIGN seat this hook is provably inert --
+    # exit 0, no stdout (no block+continue JSON), no health/log/state write,
+    # no draw. Only the resident worker seat is ever pulled into the loop.
+    if not is_resident_seat():
+        sys.exit(0)
     # Load-time self-check (§9): if the worker_seat import failed, the worker-seat guard
     # would silently allow-stop every session -> the worker is never pulled. Record it as a
     # LOUD DRAW_ERROR (the deadman alarms), then fail-safe allow-stop as always.

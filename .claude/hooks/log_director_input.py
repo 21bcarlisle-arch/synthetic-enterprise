@@ -21,6 +21,12 @@ import os
 import sys
 from pathlib import Path
 
+# Seat guard: this hook logs every prompt to the RESIDENT seat's private ops
+# repo (background/director_input_log.py). A foreign session must not write to
+# that channel -- make the hooks dir importable, then import the guard.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _seat import is_resident_seat  # noqa: E402
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
@@ -57,6 +63,9 @@ def _load_env_file() -> None:
 
 
 def main() -> int:
+    # Seat guard FIRST: inert (no log write/push, no output) in any foreign seat.
+    if not is_resident_seat():
+        return 0
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):

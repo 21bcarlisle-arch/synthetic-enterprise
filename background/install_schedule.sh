@@ -5,6 +5,15 @@
 # machine this script + the repo alone reproduce the service config — no hand-configuration, no
 # hidden machine state. The declared cron set is empty by design, so nothing is installed there.
 set -euo pipefail
+
+# Seat guard, FIRST act: installing the resident seat's systemd units on foreign
+# soil would persist the stack into a machine that is not the seat. One
+# discriminator, shared with the daemons and the hooks (background/_seat.py).
+if ! python3 "$(dirname "$0")/_seat.py"; then
+  echo "seat-guard: foreign, install_schedule.sh not starting" >&2
+  exit 0
+fi
+
 cd "$(dirname "$0")/.."
 mkdir -p ~/.config/systemd/user
 

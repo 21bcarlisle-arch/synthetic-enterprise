@@ -150,6 +150,11 @@ def scan_staging(staging_dir: str | Path = "docs/staging") -> list[dict]:
 
 
 if __name__ == "__main__":  # pragma: no cover - human/digest consumer
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/reserved_clause_gate.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("reserved_clause_gate")
     target = sys.argv[1] if len(sys.argv) > 1 else "docs/staging"
     findings = scan_path(target) if Path(target).is_file() else scan_staging(target)
     if not findings:

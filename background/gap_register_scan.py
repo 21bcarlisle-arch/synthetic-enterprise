@@ -43,6 +43,7 @@ DESIGN_DIR = PROJECT_DIR / "docs" / "design"
 OBS_DIR = PROJECT_DIR / "docs" / "observability"
 
 MATURITY_MAP_PATH = DESIGN_DIR / "maturity_map.yaml"
+SIMPLIFICATIONS_STORE_DIR = DESIGN_DIR / "simplifications"
 FIDELITY_LEDGER_PATH = OBS_DIR / "fidelity_evidence_ledger.json"
 SANITY_LEDGER_PATH = OBS_DIR / "sanity_adjudication_ledger.json"
 BOARD_SPEC_GLOB_DIR = DESIGN_DIR
@@ -72,21 +73,6 @@ _MEASURED_BOUND_RE = re.compile(
 )
 
 
-def _iter_simplifications(node: Any):
-    """Yield every free-text simplification string from a parsed maturity_map (recursive)."""
-    if isinstance(node, dict):
-        s = node.get("simplifications")
-        if isinstance(s, list):
-            for e in s:
-                if isinstance(e, str):
-                    yield node.get("id", node.get("atom", "?")), e
-        for v in node.values():
-            yield from _iter_simplifications(v)
-    elif isinstance(node, list):
-        for v in node:
-            yield from _iter_simplifications(v)
-
-
 def _entry_is_open(entry: str) -> bool:
     """A simplification entry is OPEN (drawable) when it is NEITHER a dated progress-log line NOR
     carries an inline measured bound. FAIL-SAFE toward OPEN on an entry we cannot classify."""
@@ -97,18 +83,22 @@ def _entry_is_open(entry: str) -> bool:
     return True  # bare, unmeasured, non-log simplification -> OPEN
 
 
-def register1_simplifications(path: Path | None = None) -> list[dict[str, str]]:
-    p = path or MATURITY_MAP_PATH
+def register1_simplifications(store_dir: Path | None = None) -> list[dict[str, str]]:
+    # Register 1's source moved out of the map into the sibling simplifications
+    # store (retro FM-1). Still an INDEPENDENT DISK READ (invariant 1) and still
+    # injectable (fixture isolation): `store_dir` overrides the store location.
+    # The loader returns EXACTLY the {atom_id: [note, ...]} the map field held.
     try:
-        import yaml  # local import: the reader must not hard-fail if PyYAML is unavailable
+        from tools import simplifications_store as store  # local: reader must not hard-fail
 
-        data = yaml.safe_load(Path(p).read_text(encoding="utf-8"))
+        all_notes = store.load_all(store_dir or SIMPLIFICATIONS_STORE_DIR)
     except Exception as exc:  # noqa: BLE001 -- any parse/read failure is fail-safe toward work
         return [_unreadable("simplifications", str(exc)[:120])]
     out: list[dict[str, str]] = []
-    for atom_id, entry in _iter_simplifications(data):
-        if _entry_is_open(entry):
-            out.append({"register": "simplifications", "id": f"{atom_id}", "reason": entry[:140]})
+    for atom_id, entries in all_notes.items():
+        for entry in entries:
+            if isinstance(entry, str) and _entry_is_open(entry):
+                out.append({"register": "simplifications", "id": f"{atom_id}", "reason": entry[:140]})
     return out
 
 

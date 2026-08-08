@@ -32,7 +32,10 @@ def _write(p, text: str):
 def _empty_paths(tmp_path) -> dict:
     """Fixture paths for EVERY register that yield an empty (or minimal-closed) residue, so the
     aggregate neuters to []. Each register is pinned; nothing reads live disk."""
-    mm = _write(tmp_path / "maturity_map.yaml", "atoms: []\n")
+    # Register 1's source is now the sibling simplifications store (retro FM-1):
+    # an injectable DIRECTORY, not the map. An empty store dir yields empty residue.
+    simpl_store = tmp_path / "simpl_store"
+    simpl_store.mkdir(parents=True, exist_ok=True)
     fid = _write(tmp_path / "fidelity.json", "{}")
     san = _write(tmp_path / "sanity.json", "{}")
     board = tmp_path / "board_empty"  # dir with no reconciliation files
@@ -69,7 +72,7 @@ def _empty_paths(tmp_path) -> dict:
         },
     }))
     return {
-        "simplifications": mm,
+        "simplifications": simpl_store,
         "fidelity": fid,
         "sanity": san,
         "board_recon": board,
@@ -100,8 +103,10 @@ def test_neuter_all_registers_reads_closed_then_restore_reads_open(tmp_path):
 # --------------------------------------------------------------------------- MUTATION 2 (seed one row)
 def test_single_open_row_flips_level_to_yes(tmp_path):
     paths = _empty_paths(tmp_path)
-    # a bare, unmeasured, non-log simplification is the seeded open row (register 1)
-    _write(paths["simplifications"], "atoms:\n  - id: A1\n    simplifications:\n      - flat churn rate assumed\n")
+    # a bare, unmeasured, non-log simplification is the seeded open row (register 1).
+    # Seed it into the store (an atom file), the register's source of record now.
+    from tools import simplifications_store as store
+    store.append_for_atom("A1", ["flat churn rate assumed"], paths["simplifications"])
     res = g.open_residue(paths)
     assert res["simplifications"], "a bare unmeasured simplification must be OPEN"
     assert g.gap_register_open(paths) is True
@@ -109,16 +114,15 @@ def test_single_open_row_flips_level_to_yes(tmp_path):
 
 # --------------------------------------------------------------------------- MUTATION 3 (register 1 old key)
 def test_register1_text_heuristic_beats_old_measured_bound_key(tmp_path):
-    mm = _write(
-        tmp_path / "mm.yaml",
-        "atoms:\n"
-        "  - id: A1\n"
-        "    simplifications:\n"
-        "      - flat churn assumed everywhere\n"            # BARE -> OPEN
-        "      - '2026-07-20 HARDEN LANDED merit-order engine'\n"  # dated log line -> not open
-        "      - hedge ratio within 5% of target\n",        # inline measured bound -> not open
-    )
-    rows = g.register1_simplifications(mm)
+    from tools import simplifications_store as store
+
+    sd = tmp_path / "simpl_store"
+    store.append_for_atom("A1", [
+        "flat churn assumed everywhere",              # BARE -> OPEN
+        "2026-07-20 HARDEN LANDED merit-order engine",  # dated log line -> not open
+        "hedge ratio within 5% of target",            # inline measured bound -> not open
+    ], sd)
+    rows = g.register1_simplifications(sd)
     ids_reasons = [r["reason"] for r in rows]
     # corrected TEXT HEURISTIC: exactly the bare unmeasured non-log entry is OPEN
     assert any("flat churn" in r for r in ids_reasons)
@@ -128,11 +132,8 @@ def test_register1_text_heuristic_beats_old_measured_bound_key(tmp_path):
     # OLD KEY MUTATION: a reader keyed on a structured `measured_bound` FIELD finds NOTHING (the
     # entries are plain strings; the field exists nowhere) -> it would report an empty residue while
     # a true unmeasured simplification demonstrably exists. The corrected key catches it. CONTROL FIRES.
-    import yaml
-
-    data = yaml.safe_load(mm.read_text())
     old_key_residue = [
-        e for _atom, e in g._iter_simplifications(data)
+        e for notes in store.load_all(sd).values() for e in notes
         if isinstance(e, dict) and not e.get("measured_bound")  # keys on a field that never appears
     ]
     assert old_key_residue == [], "old measured_bound-field key fail-opens to empty (proves the bug)"

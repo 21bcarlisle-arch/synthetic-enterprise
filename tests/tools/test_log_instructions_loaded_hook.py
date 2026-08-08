@@ -41,6 +41,10 @@ def _run_main(payload: dict, monkeypatch):
     # which subprocess.run() would inherit by default, silently defeating
     # the guard those tests exist specifically to prove engages for real.
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    # The hook is seat-GUARDED (.claude/hooks/_seat.py): inert in a foreign
+    # seat. Force resident so the real write path runs; foreign inertness is
+    # proven separately in tests/hooks/test_seat_guard.py.
+    monkeypatch.setenv("SE_SEAT", "resident")
     import io
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
     return hook.main()
@@ -68,6 +72,7 @@ def test_appends_multiple_entries_not_overwrite(monkeypatch):
 
 def test_malformed_stdin_degrades_gracefully(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)  # exercise the JSON-parse path, not the test-guard's own early return
+    monkeypatch.setenv("SE_SEAT", "resident")  # seat-guarded hook: reach the JSON path, not the seat guard
     import io
     monkeypatch.setattr(sys, "stdin", io.StringIO("not json at all"))
     rc = hook.main()
@@ -81,6 +86,7 @@ def test_pytest_guard_no_ops_even_with_valid_payload(monkeypatch):
     without writing anything, even given an otherwise-valid payload -- this
     is what stopped the real pollution incident the subprocess tests below
     would otherwise reproduce on every CI run."""
+    monkeypatch.setenv("SE_SEAT", "resident")  # seat-guarded hook: reach the PYTEST_CURRENT_TEST guard under test
     import io
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({
         "load_reason": "path_glob_match", "file_path": "/x/y.md", "file_name": "y.md",
