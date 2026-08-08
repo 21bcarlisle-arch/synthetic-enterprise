@@ -2748,19 +2748,63 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 2
   provenance: proposal
-  file_scope: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, simulation/payment_behaviour_source.py, tools/generate_billing_ledger.py, tests/simulation/test_arrears_engine.py]
+  file_scope: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, simulation/payment_behaviour_source.py, simulation/dd_collection_book.py, tools/generate_billing_ledger.py, tests/simulation/test_arrears_engine.py, tests/simulation/test_dd_collection_book.py]
   depends_on: [W2_sme_segment_case_normalisation]
   blocked_on: null
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a risk system where refining one desk's model reprices every other desk's book, because they all pull from one random seed -- so no baseline survives any improvement and nobody can tell a real change from a reshuffle."
-  evidence: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, docs/staging/done/WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE_2026-08-08.md]
+  evidence: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, simulation/dd_collection_book.py, tools/generate_billing_ledger.py, tests/simulation/test_arrears_engine.py, docs/staging/done/WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE_2026-08-08.md]
   notes: >-
+    BUILT 2026-08-08, L0->L2. `arrears_engine.bill_substream(seed, customer_id, period_end, commodity)`
+    is the new contract: a bill's payment outcome is a pure function of its own identity, so it cannot
+    depend on iteration order, on how many bills precede it, or on how many draws any other bill or
+    subsystem consumes. All FOUR consumers migrated -- compute_emergent_bad_debt, compute_debt_recovery,
+    tools.generate_billing_ledger, and simulation.dd_collection_book (the 4th replica, NOT in the
+    original file_scope; it was found during the build because it hand-maintained the lockstep
+    obligation in a comment, and leaving it on the shared stream would have broken its documented
+    agreement with ground truth -- file_scope extended rather than the defect half-fixed).
+    THE DEFECT WAS WORSE THAN "FRAGILE" -- it was already BROKEN, which the atom had not established.
+    Lockstep was an obligation each consumer had to hand-maintain, and generate_billing_ledger does
+    not: it skips the outcome draw entirely for credit invoices (amount <= 0). The real run has 24,
+    the first at sorted index 138 of 1557, so the ledger and the P&L drew from offset streams across
+    the remaining 91% of bills and DISAGREED ON THE FAILED/DISPUTE DECISION FOR 42 OF THEM. The module
+    docstring's central claim ("the ledger and the P&L bad debt figure are now provably the same source
+    of truth") was false; it is now true by construction. Post-fix the same measurement gives 0
+    disagreements, 0 outcomes changed under shuffled iteration, and 0 outcomes changed when C5/C6 are
+    removed entirely (the atom's own named defect, in miniature).
+    R15 -- six new controls, each mutation-proven to FAIL on its own named defect: restoring the shared
+    stream kills the order-independence, cross-customer-isolation and ledger/P&L-agreement tests;
+    dropping period_end from the key kills the distinctness test; concatenating key parts without a
+    separator kills the collision test; swapping sha256 for hash() kills the cross-process replay test.
+    The pre-existing acceptance test could NOT catch this: faithfully replayed against its own fixture,
+    the historical code gives 0 disagreements (no credit invoice, no held bill), versus 13 once one
+    real-shaped credit invoice is added -- so a new test carries that exemplar.
+    commodity is a REQUIRED key component with no default. It is redundant today (gas is its own
+    account, C1g beside C1, so (customer_id, period_end) is unique across all 1557 real bills) but a
+    defaulted value would silently collapse an account's two fuels onto one stream the moment dual-fuel
+    billing lands -- the same silent coupling this atom removes.
+    BASELINE MOVED, as expected for an RNG re-keying (R13: an isolation/architecture fix decided blind
+    to company P&L, never tuned toward an outcome). vs committed HEAD: 73 of 1557 invoice payment
+    statuses changed, arrears cases 40 -> 41. Three tests rested on the old draws and were repaired,
+    not weakened: test_churned_arrears_written_off had gone VACUOUS (its assertion sat behind
+    `if arrears_case_count > 0`, which the new draw made 0) and was additionally hiding a stale
+    assertion that WRITTEN_OFF be the LAST stage, untrue since the DCA branch landed; the I&C dispute
+    fixture was 500 copies of ONE bill, which correctly resolves 500 identical ways now, so it is 500
+    distinct bills; the customer-door credit-framing test asserted the LIVE C1 happened to be in
+    credit (-63.49 -> 0.00) and now sets the balance explicitly, mirroring its own sign-following
+    sibling (R11 live-value coverage is retained by test_money_kpis_render_live_billed_banked_balance).
+    CROSS-WORKER FLAG RESOLVED: the untracked test_credit_balance_control.py survives -- C7's longest
+    undischarged credit moves 1224 -> 608 days (floor -201.96 -> -202.27), still the material
+    multi-year hold its `days > 365` exemplar asserts. That control remains fragile by nature (it
+    reads a regenerated ledger), which its own docstring already concedes; not rewritten here, as it
+    belongs to another worker's in-flight file.
+    ORIGINAL QUEUEING NOTE FOLLOWS.
     Queued 2026-08-08 from the W2_sme_segment_case_normalisation build, with a CONTROLLED measurement
     rather than a suspicion. compute_emergent_bad_debt/compute_debt_recovery create one
     random.Random(seed) OUTSIDE the bill loop and iterate bills sorted by (customer_id, period_end),
@@ -3424,15 +3468,16 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: director_programme
   depends_on: [AO1_capability_index]
   couples_with: []
-  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
-  file_scope: ['tools/write_time_gate.py', 'tests/tools/test_write_time_gate.py']
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'tools/write_time_gate.py', 'tools/git-hooks/commit-msg', 'tests/tools/test_write_time_gate.py', 'docs/design/WRITE_TIME_GATE.md']
+  file_scope: ['tools/write_time_gate.py', 'tests/tools/test_write_time_gate.py', 'tools/git-hooks/commit-msg', 'docs/design/WRITE_TIME_GATE.md']
+  build_note: "L0->L2 2026-08-08. LIVE, not merely committed (R2): wired at tools/git-hooks/commit-msg, which core.hooksPath already points at -- and commit-msg, NOT pre-commit, because the message does not exist when pre-commit runs, so a pre-commit reading the record would read the PREVIOUS commit's message and pass. That is the fail-open this atom would most plausibly have shipped with. 41 tests; 8 SOURCE mutations, each breaking one guard alone: G1 missing record, G2 class validity, G3 catalogue-without-library, G4 subsystem build-vs-buy, G5 index terms, G6 index-contradiction -- plus TWO on the DETECTOR rather than the guards, since a gate whose detector never fires passes every test while checking nothing (code-root blindness, and the test-file false-positive direction that gets a gate routed around, H19's class). The director's WALL is a TEST, not a comment: test_the_wall_holds gives the same new module and the same index two honest records -- 'extended it' and 'kept it separate, different purposes' -- and requires BOTH to pass, so the gate can never start deciding. G6 is the only guard with an independent source: it puts the record's 'nothing exists' claim back through the live index and refuses a claim the index contradicts, firing on the FALSE-EMPTINESS direction only. Fail-closed four ways (unreadable message, unbuildable index, unknown/unreadable mode word, unreadable git state); absent mode file means gate, so it cannot be disabled by deleting something. SCOPE STATED not silent: modules only, function granularity deferred with reasons in docs/design/WRITE_TIME_GATE.md. Self-proof: this atom's own landing commit carries its own REUSE record and is the first commit the gate checked."
   origin_note: "The ONLY immediate behaviour change in the whole programme (director, section 5) -- so it is the step that actually pays, and the index without it is a demo. Director's own words carry a WALL the mechanism must respect: 'know, then choose -- FORCED REUSE THAT COUPLES TWO PURPOSES IS THE MIRROR ERROR OF DUPLICATION AND IS EQUALLY A DEFECT.' A gate that mechanically refuses a new module is therefore WRONG; the gate must compel the LOOK and the RECORD, never the reuse decision itself. Evidence class for the ecosystem question, named by the director: the from-scratch working-day calculator of 2026-08-03 built while `holidays`/`workalendar` exist, and the BST/UTC settlement block the same day. Extends DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28 from primitives to all capability. Dependency discipline: deterministic decade replays mean every new library is pinned and its determinism stated."
 - id: AO3_join_test_tier
   title: "Tests that watch the seams"

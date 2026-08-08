@@ -1,0 +1,17 @@
+#!/bin/sh
+# WRITE-TIME REUSE GATE (AO2, 2026-08-08, DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05 step MAP):
+# a commit that ADDS a new capability module must carry a REUSE record saying what the capability
+# index answered and, under the three ruled part classes, what the ecosystem answered. The director
+# names this "the only immediate behaviour change" in the programme; AO1's index is a demo until
+# this spends it.
+#
+# WHY commit-msg AND NOT pre-commit: the message does not exist when pre-commit runs (git writes it
+# at prepare-commit-msg, afterwards), so a pre-commit reading the record would read the PREVIOUS
+# commit's message and pass -- fail-open, and silently.
+#
+# It refuses a missing RECORD, never a decision to write new code: forced reuse that couples two
+# purposes is the mirror error of duplication and is equally a defect (director's wall). A commit
+# adding no new .py under a code root is never touched, in any state. De-fang a false positive by
+# writing 'warn' to tools/write_time_gate.mode -- a deliberate one-line diff, never automatic.
+# R15-proven both ways in tests/tools/test_write_time_gate.py (8 source mutations).
+python3 tools/write_time_gate.py "$1" || exit 1
