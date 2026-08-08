@@ -2261,7 +2261,7 @@
   couples_with: [D5_account_hierarchy_payments, W2_11_payment_behaviour_source]
   evidence: [docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 6
+  simplifications_count: 9
 - id: D6_payment_ageing_gap_validity
   name: "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity."
   lane: D_billing_metering

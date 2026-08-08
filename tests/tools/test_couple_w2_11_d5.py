@@ -109,10 +109,109 @@ def test_dd_channel_never_leaks_non_dd_but_reconciliation_detects_it():
     result = pair.measure(_N, seed=_SEED)
     stats = result["stats"]
     assert stats["n_true_non_dd_failures"] > 0, "population shape didn't exercise the blind spot"
+    # VACUITY GUARD (2026-08-08 HARDEN, R15 fail-silent). The leak witness below
+    # is an `== 0` assertion, which a DEAD DD channel satisfies just as happily
+    # as a clean one. Without this line the whole test passes while the organ it
+    # claims to watch observes nothing at all -- proven by
+    # test_leak_witness_is_vacuous_without_its_channel_guard.
+    assert stats["n_flagged_via_dd_channel"] > 0, "DD-failure channel observed nothing -- leak witness would be vacuous"
     # LEAK witness: a non-DD case reaching belief via the DD-failure channel.
     assert stats["n_flagged_non_dd_failures"] == 0
     # CARVE-OUT witness: reconciliation legitimately detects non-DD misses.
     assert stats["n_flagged_non_dd_via_reconciliation"] > 0
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-08 HARDEN (R15 fail-silent). Three controls in this module were
+# satisfiable while the thing they watch was dead or disconnected. Each is
+# proven below to FIRE on its own named defect, per R15 -- a control that
+# cannot fail is worse than none.
+# ---------------------------------------------------------------------------
+
+def _dd_channel_dead(monkeypatch):
+    """Named defect #1: the DD-failure observation channel goes completely dark
+    (a renamed field, a mis-set recency window, a broken adapter emit). The
+    company observes NO rail failures at all."""
+    import dataclasses
+
+    original = PaymentObservationConsumer.snapshot
+
+    def blind(self, *args, **kwargs):
+        snap = original(self, *args, **kwargs)
+        try:
+            snap.recent_dd_failures = []
+        except Exception:  # frozen dataclass
+            snap = dataclasses.replace(snap, recent_dd_failures=[])
+        return snap
+
+    monkeypatch.setattr(PaymentObservationConsumer, "snapshot", blind)
+
+
+def test_leak_witness_is_vacuous_without_its_channel_guard(monkeypatch):
+    """The `n_flagged_non_dd_failures == 0` leak witness passes just as happily
+    when the DD channel observes NOTHING as when it observes cleanly. Proves the
+    vacuity guard added to test_dd_channel_never_leaks_non_dd_but_reconciliation
+    _detects_it is load-bearing, not decoration."""
+    _dd_channel_dead(monkeypatch)
+    stats = pair.measure(_N, seed=_SEED)["stats"]
+
+    # The bare leak witness is still perfectly happy -- that is the defect.
+    assert stats["n_flagged_non_dd_failures"] == 0
+    assert stats["n_true_non_dd_failures"] > 0
+    assert stats["n_flagged_non_dd_via_reconciliation"] > 0
+    # ...and ONLY the vacuity guard catches it.
+    assert stats["n_flagged_via_dd_channel"] == 0, (
+        "mutation did not actually kill the DD channel"
+    )
+
+
+def test_dd_channel_contributes_no_unique_detections_and_headline_is_insensitive(monkeypatch):
+    """CHARACTERIZATION of a measured limit, not an aspiration (R12: reported,
+    never tuned). `flagged_set` is a UNION, so the headline DETECTION gap only
+    moves for detections a channel makes UNIQUELY. Today the DD channel makes
+    none: every rail failure is also a cash shortfall reconciliation sees. The
+    consequence -- deleting the entire DD channel leaves the published gap
+    bit-identical -- is asserted here so that if the channel ever does start
+    contributing, this test fires and the module's `channel_contribution` note
+    must be re-derived rather than silently rotting."""
+    baseline = pair.measure(_N, seed=_SEED)
+    assert baseline["stats"]["n_flagged_via_dd_channel"] > 0
+    assert baseline["stats"]["n_flagged_via_dd_channel_only"] == 0
+    assert baseline["stats"]["n_flagged_via_reconciliation_only"] > 0
+
+    _dd_channel_dead(monkeypatch)
+    without = pair.measure(_N, seed=_SEED)
+
+    assert without["detection"].gap == baseline["detection"].gap, (
+        "the DD channel now moves the headline gap -- update the module's "
+        "channel_contribution note; it no longer describes the measurement"
+    )
+
+
+def test_join_witnesses_fire_on_a_key_convention_drift():
+    """Named defect #3: the belief-side observations are joined back to truth by
+    KEY (`value_date` -> due date, `invoice_ref`/`reference` -> the harness's
+    invoice_ref) and every join is a `.get()` whose miss silently DROPS the
+    observation. A drift in either convention would push the measured gap toward
+    the no-skill baseline with nothing firing. Mutate the truth-side keys and
+    assert the witnesses -- not the gap -- are what notice."""
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=13)
+
+    clean = pair.score_triad(records, consumer, as_of)["stats"]
+    assert clean["n_unjoined_dd_failures"] == 0
+    assert clean["n_unjoined_collection_misses"] == 0
+    assert clean["n_ageing_refs_matched"] > 0
+
+    import datetime as _dt
+
+    for r in records:
+        r.due_date = r.due_date + _dt.timedelta(days=1)   # value_date no longer lines up
+        r.invoice_ref = r.invoice_ref + "::drifted"       # reference convention changed
+
+    drifted = pair.score_triad(records, consumer, as_of)["stats"]
+    assert drifted["n_unjoined_dd_failures"] > 0, "dd-failure join drift went unwitnessed"
+    assert drifted["n_unjoined_collection_misses"] > 0, "collection-miss join drift went unwitnessed"
+    assert drifted["n_ageing_refs_matched"] == 0, "ageing join drift went unwitnessed"
 
 
 # ---------------------------------------------------------------------------

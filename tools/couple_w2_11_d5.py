@@ -396,6 +396,16 @@ def score_triad(
     n_flagged_non_dd_via_dd_channel = 0   # the LEAK witness: must stay 0
     n_flagged_non_dd_via_reconciliation = 0  # the carve-out witness: expected > 0
     detection_latency_days: List[int] = []  # latency of each detected miss (ruling §1)
+    # JOIN WITNESSES (R15 fail-silent, 2026-08-08 HARDEN). Every belief-side
+    # observation below is joined back to a truth case by a KEY (`value_date` ->
+    # due date, `invoice_ref`/`reference` -> the harness's own invoice_ref). A
+    # `.get()` miss silently DROPS the observation -- so a drift in either key
+    # convention would push the measured gap toward the no-skill baseline with
+    # nothing firing. Count the misses and the ageing-side matches so the
+    # vacuous case is distinguishable from the honest one.
+    n_unjoined_dd_failures = 0
+    n_unjoined_collection_misses = 0
+    n_ageing_refs_matched = 0
 
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
@@ -407,11 +417,15 @@ def score_triad(
             p = due_to_period.get(dd_fail.value_date)
             if p is not None:
                 flagged_via_dd_channel.add((cid, p))
+            else:
+                n_unjoined_dd_failures += 1
         for miss in snapshot.detected_collection_misses:
             p = ref_to_period.get(miss.invoice_ref)
             if p is not None:
                 flagged_via_reconciliation.add((cid, p))
                 detection_latency_days.append(miss.days_latency)
+            else:
+                n_unjoined_collection_misses += 1
 
         n_unresolved_true = sum(1 for r in periods if r.result == "failed")
         n_hardship_true = sum(
@@ -431,7 +445,15 @@ def score_triad(
             else:
                 true_ageing_labels.append("current")
 
+            # An absent ref is the HONEST default for a settled invoice (it
+            # leaves the open-item ageing entirely), so a miss cannot be an
+            # error on its own -- but a TOTAL miss (key-convention drift) would
+            # read as "the company believes everything is current" and inflate
+            # the ageing gap silently. `n_ageing_refs_matched` is the vacuity
+            # witness that tells those two apart.
             ai = aged_by_ref.get(r.invoice_ref)
+            if ai is not None:
+                n_ageing_refs_matched += 1
             belief_ageing_labels.append(ai.bucket if ai is not None else "current")
 
     flagged_set = flagged_via_dd_channel | flagged_via_reconciliation
@@ -501,6 +523,27 @@ def score_triad(
         "n_flagged_non_dd_via_reconciliation": n_flagged_non_dd_via_reconciliation,
         "n_flagged_via_dd_channel": len(flagged_via_dd_channel),
         "n_flagged_via_reconciliation": len(flagged_via_reconciliation),
+        # CHANNEL-CONTRIBUTION witnesses (R15 fail-silent, 2026-08-08 HARDEN).
+        # `flagged_set` is a UNION, so a channel that detects nothing the other
+        # channel does not already detect moves the headline detection gap by
+        # EXACTLY ZERO. Measured (seeds 7/11/23, 400 customers):
+        # `n_flagged_via_dd_channel_only == 0` every time -- the DD-observation
+        # channel is currently SUBSUMED by expected-collection reconciliation
+        # for this metric, so the published detection gap is reconciliation-
+        # determined alone. That is a measured finding reported honestly, not a
+        # defect to tune away (R12): a rail failure necessarily means the cash
+        # did not arrive, so reconciliation sees the same shortfall. What the
+        # DD channel really buys is EARLIER detection, which pure set-membership
+        # cannot express -- registered, not papered over.
+        "n_flagged_via_dd_channel_only": len(flagged_via_dd_channel - flagged_via_reconciliation),
+        "n_flagged_via_reconciliation_only": len(flagged_via_reconciliation - flagged_via_dd_channel),
+        # JOIN witnesses -- see the block where they are accumulated. The two
+        # unjoined counts must stay 0 (a dropped observation is a silently
+        # inflated gap); `n_ageing_refs_matched` must stay > 0 (a zero would
+        # mean the ageing belief joined to nothing at all).
+        "n_unjoined_dd_failures": n_unjoined_dd_failures,
+        "n_unjoined_collection_misses": n_unjoined_collection_misses,
+        "n_ageing_refs_matched": n_ageing_refs_matched,
         # Detection LATENCY distribution (ruling §1: register the lag, do not
         # compress it to zero). Days between an invoice's due date and the
         # as_of at which reconciliation first observed the shortfall.
@@ -516,6 +559,18 @@ def score_triad(
             "mis-allocation, and partial payments. n_flagged_non_dd_failures (the "
             "DD-channel leak witness) stays 0; n_flagged_non_dd_via_reconciliation "
             "is the carve-out working."
+        ),
+        "channel_contribution": (
+            "2026-08-08 HARDEN finding (R15 fail-silent, measured not asserted): "
+            "the DD-observation channel contributes ZERO unique detections -- "
+            "n_flagged_via_dd_channel_only == 0 across seeds 7/11/23 -- so the "
+            "published DETECTION gap is determined by expected-collection "
+            "reconciliation alone, and killing the DD channel outright leaves the "
+            "headline number bit-identical. Structurally reasonable (a rail "
+            "failure means the cash did not arrive, which reconciliation also "
+            "sees) but it means set-membership detection is blind to the only "
+            "thing the DD channel actually buys: EARLIER detection. Reported as a "
+            "measured limit of this metric, never tuned away (R12)."
         ),
         "allocation": (
             "attempted, honestly dropped: misapplication_gap's no-skill "
