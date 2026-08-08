@@ -2252,17 +2252,31 @@
   lane: H_harness
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: build
-  blocked_reason: coupled_triad_measured
-  block_reason: "Coupled-triad harness leg; blocked until the coupled-triad belief-vs-truth gap is measured (coupled_triad_measured) -- the world/company legs must land first."
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
+  pending_lane_move: D
   couples_with: [D5_account_hierarchy_payments, W2_11_payment_behaviour_source]
   evidence: [docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 5
+  simplifications_count: 6
+- id: D6_payment_ageing_gap_validity
+  name: "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity."
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: discover
+  dial_inherited: 3
+  provenance: proposal
+  couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source]
+  evidence: ['docs/design/simplifications/H27_payment_belief_gap.yaml']
+  file_scope: ['tools/couple_w2_11_d5.py', 'background/gap_metric.py']
+  simplifications_count: 0
+  origin_note: "Surfaced 2026-08-08 during the H27 L0->L2 self-certification and QUEUED rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE). R12 WALL: this atom resolves whether the number MEANS anything; it may never tune the gap toward a nicer value. If the answer is 'genuine failure mode', the gap stays at 1.15 and that is the finding. Id D6 chosen as the first free D number -- deliberately not another bare 'D_' id, per the collision classes measured in WORKER_MINTED_THREE_RULINGS_WORK_BLOCK_DEFECT_2026-08-08.md."
 - id: GAP1_gap_registers_as_mint_sources
   name: "Gap registers as planner mint sources: an INDEPENDENT reader emits the open-item residue from all 8 published gap registers, and a `gap_register` level in authorized_set_enumeration() makes that residue drawable -- so a rest/saturation claim is impossible while any published register holds an open, un-triaged item."
   lane: H_harness
