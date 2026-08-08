@@ -2259,9 +2259,12 @@
   provenance: proposal
   pending_lane_move: D
   couples_with: [D5_account_hierarchy_payments, W2_11_payment_behaviour_source]
-  evidence: [docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md]
+  depends_on: [D7_ageing_gap_metric_reshape]
+  evidence: [docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md, 'tests/tools/test_couple_w2_11_d5.py', 'docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md']
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   simplifications_count: 9
+  harden_note: "HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing."
+  level_hold_note: "HELD AT L2, NOT PROMOTED TO L3 (2026-08-08 tick, self-refill drew this 2->3 and the honest answer is no). L3 means Expert Hour says 'this is real'. Two of this scorer's THREE published dimensions cannot carry that claim today: the AGEING dimension publishes background.gap_metric.misapplication_gap, which the D6 DISCOVER proved is a metric-shape defect and NOT EVIDENCE (a company finding 100% of real arrears at a 1.5% false-positive rate scores 1.50; holding company behaviour literally fixed and moving only prevalence swings the score 3.00->0.15) -- D6 closed that at the CLASS by stamping the caveat at source, but a disclaimed figure is a disclaimed figure, and D7_ageing_gap_metric_reshape is the atom that gives the dimension a shape that can be believed; and the DETECTION headline is single-channel-determined per harden_note above. depends_on D7 added so this is MECHANISED rather than exhorted -- the draw can no longer offer this atom a 2->3 it cannot honestly take, which is the churn that produced this tick. Reversal is one line: drop the depends_on when D7 lands. NOT a wall, and NOT a reason to tune the ageing number (R12)."
 - id: D6_payment_ageing_gap_validity
   name: "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity."
   lane: D_billing_metering
@@ -3383,3 +3386,169 @@
   blocked_on: null
   simplifications_count: 3
   evidence: [docs/staging/WORKER_FINDING_DEAD_FORK_RESCUE_AUDIT_2026-08-03.md]
+
+# ---------------------------------------------------------------------------
+# DIRECTOR PROGRAMME "Architected out, organic in" (ratified 2026-08-05,
+# docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md). Absorbed into
+# the map 2026-08-08 -- the programme had sat 3 days CONSUMED (staged, read) but
+# not ABSORBED (no atom, so not drawable): the R17 defect the ruling itself warns
+# about. Order MAP -> NET -> KNIFE -> RHYTHM is RULED and strict; it is carried
+# here by depends_on, not by prose, so the draw cannot take a KNIFE pass before
+# the NET that protects it. Titles/gain follow the plain-words naming law
+# (DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05 Ruling 2).
+# Several of these belong to the ruled OPS lane, which does not exist on the map
+# yet; filed H_harness with pending_lane_move, as H27 does.
+# ---------------------------------------------------------------------------
+- id: AO1_capability_index
+  title: "The list of what we already have"
+  gain: "A builder can find an existing capability in seconds, so the cheapest move stops being 'write it again'."
+  name: "MAP step 1 -- the reuse surface: one DERIVED row per capability (plain words, status, evidence, empty rows visible) covering the code that exists, per ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04. Derived, never hand-maintained: a hand-written index rots into a second thing to keep in sync and would itself be the duplication the programme exists to kill."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md', 'docs/staging/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md']
+  file_scope: ['tools/capability_index.py', 'tests/tools/test_capability_index.py', 'docs/design/CAPABILITY_INDEX.md']
+  origin_note: "Programme step MAP, the lowest-risk step and the safety condition for every later one (derived artefact, no behaviour change). R15 IS THE HARD PART, not the derivation: an index is a textbook FAIL-OPEN control -- it passes silently when it under-reports, and an index that misses a capability actively CAUSES the duplicate build it exists to prevent. It therefore needs a vacuity guard (an index that resolves to zero/near-zero rows must FAIL, not read 'nothing to reuse') and a mutation proving a KNOWN-EXISTING capability going missing makes it fire. The edge-integrity addendum (2026-08-06) is filed as this atom's precondition by its own author -- read it before designing the derivation, not after. Do not let this become a demo: the index's SECOND job (the write-time gate, AO2) is the one the director named as the point."
+- id: AO2_write_time_reuse_gate
+  title: "Check before you build"
+  gain: "New code gets written only when nothing existing fits -- and the reason is on the record either way."
+  name: "MAP step 2 -- the write-time gate: before a new module/function, consult the index and either extend what exists or RECORD IN THE COMMIT why not. Asks TWO questions, not one -- 'do we already have this?' (the index) and 'does the ecosystem already have this?' under the three ruled part classes: CATALOGUE parts (calendars, timezones, money arithmetic, statistical fitting, solvers) always taken from mature libraries; CUSTOM tooling (GB market mechanics, licence conditions, behavioural archetypes, the wall, the harness) always built, because it is the product; SUBSYSTEMS (dispatch, ledgers) may be custom only with a recorded build-vs-buy note naming the library evaluated and why rejected -- silence is a gap."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO1_capability_index]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
+  file_scope: ['tools/write_time_gate.py', 'tests/tools/test_write_time_gate.py']
+  origin_note: "The ONLY immediate behaviour change in the whole programme (director, section 5) -- so it is the step that actually pays, and the index without it is a demo. Director's own words carry a WALL the mechanism must respect: 'know, then choose -- FORCED REUSE THAT COUPLES TWO PURPOSES IS THE MIRROR ERROR OF DUPLICATION AND IS EQUALLY A DEFECT.' A gate that mechanically refuses a new module is therefore WRONG; the gate must compel the LOOK and the RECORD, never the reuse decision itself. Evidence class for the ecosystem question, named by the director: the from-scratch working-day calculator of 2026-08-03 built while `holidays`/`workalendar` exist, and the BST/UTC settlement block the same day. Extends DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28 from primitives to all capability. Dependency discipline: deterministic decade replays mean every new library is pinned and its determinism stated."
+- id: AO3_join_test_tier
+  title: "Tests that watch the seams"
+  gain: "The parts-pass-system-fails failure -- the one behind every serious break so far -- gets caught before a refactor causes it."
+  name: "NET step 1 -- the five system tests from ADVISOR_FINDINGS_MISSING_TEST_TIER_2026-08-04: work loop, physical chain, money chain, market chain, customer lifecycle. Rationale (director): every serious failure to date has been parts-pass-system-fails, and those are exactly the failures refactoring causes. NO STRUCTURAL REFACTOR LANDS BEFORE THE JOINS IT CROSSES ARE WATCHED -- this is the safety condition on KNIFE, not a parallel nicety."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO1_capability_index]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_FINDINGS_MISSING_TEST_TIER_2026-08-04.md']
+  file_scope: ['tests/system/', 'docs/design/JOIN_TEST_TIER.md']
+  origin_note: "Blast radius MEDIUM, and the director pre-ruled the mitigation: join tests may be brittle at first and a red join test blocks publish, so FIRST LANDING IS REPORT-ONLY, promoted to gating after a stable week. Land it report-only even if it looks green on day one -- the promotion delay is the director's, not a judgement call. R15: a join test that passes when the chain it spans is disconnected is the fail-open shape to mutation-hunt here; each of the five needs a proof it fires when its own join is cut. Depends on AO1 so the five are written against a known inventory rather than rediscovering the chains by hand."
+- id: AO4_scale_constraints_executable
+  title: "The scale rules become real checks"
+  gain: "Five production-readiness constraints stop being aspirations and start failing when they are broken."
+  name: "NET step 2 -- make canon's standing production-readiness constraints EXECUTABLE (PRODUCTION_READINESS_SCALE_ADDENDUM.md C-S1..C-S5): event-arrival tolerance, idempotency + deterministic replay incl. RNG substream discipline, asynchronous wall contracts, persistence behind the event-log interface, declared time-scale invariance. Each constraint gets a standing check, OR IS LISTED AS NOT-MECHANISABLE RATHER THAN DROPPED. Same report-only-first, gate-after-a-stable-week promotion as the join tests."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO3_join_test_tier]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_FINDINGS_STRUCTURAL_AUDIT_2026-08-04.md', 'docs/staging/in_progress/PRODUCTION_READINESS_SCALE_ADDENDUM.md']
+  origin_note: "These constraints are currently ASPIRATIONAL and there is MEASURED DRIFT the director cites by name: the billing ledger existing as two identical 2.3MB copies (FINDING 2, ADVISOR_FINDINGS_STRUCTURAL_AUDIT_2026-08-04) is the persistence constraint C-S4 not holding TODAY. So this is not a speculative guard -- one of the five is already breached and the check should fail on landing. That is the correct outcome, not a reason to soften the check (R12). The 'listed as not-mechanisable' escape is a real option but it must be an explicit written list, never silence -- an unmechanised constraint that is simply not mentioned is the prose-only decay MAKE_IT_STICK forbids."
+  file_scope: ['tests/system/', 'docs/design/SCALE_CONSTRAINT_CHECKS.md']
+- id: AO5_hotspot_consolidation
+  title: "Cut the four known tangles"
+  gain: "The worst-tangled modules get untangled one at a time, without changing what the company does."
+  name: "KNIFE -- hotspot consolidation, NEVER uniform. Targets are ALREADY NAMED by the July dependency analysis and are explicitly not to be re-derived: (1) the reporting module (~9k lines, mutual-import cycle with the main run), (2) the customer module straddling the wall, (3) the 100+ SIM->company crossings bypassing the empty seam, (4) the ~320 zero-import company modules, candidates for wiring or retirement -- ARCHIVE, NEVER DELETE. Each move: behaviour-preserving, test-protected, ONE HOTSPOT PER PASS; each pass is its own sized draw."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO3_join_test_tier, AO4_scale_constraints_executable]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
+  file_scope: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
+  origin_note: "BLAST RADIUS HIGH -- the hotspots include MONEY PATHS. The director pre-ruled all four mitigations and they are walls, not preferences: sequence position (after NET, hence the depends_on above), one hotspot per pass, behaviour-preserving moves ONLY, and byte-identical output checks where they exist (established pattern). The Epoch-3 adapter programme is the BOUNDARY half of this knife and is deliberately NOT duplicated here -- check it before touching target (3), the SIM->company crossings, or two lanes will cut the same seam. file_scope is the planning doc only: each pass mints its OWN atom with its own real file_scope, because a shared file_scope across four high-risk refactors is exactly the concurrency hazard the three-lanes rule exists to prevent."
+- id: AO6_consolidation_rhythm
+  title: "Tidying becomes a standing duty"
+  gain: "Duplicates and orphans get cleared every epoch instead of accumulating until the next big audit."
+  name: "RHYTHM (permanent) -- canon already prunes the harness and advisor memory at epoch boundaries; extend the SAME duty to code. Every epoch close includes a consolidation pass: duplicates found, orphans wired or retired, TARGET_DESIGN.md updated. Organic growth between boundaries; deliberate pruning at them."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO1_capability_index, AO7_target_design_doc]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
+  file_scope: ['.claude/skills/phase-close/SKILL.md', 'docs/design/CONSOLIDATION_RHYTHM.md']
+  origin_note: "This is the step that decides whether the whole programme decays. MAKE_IT_STICK is directly on point: 'every rule that DECAYED was an exhortation; every rule that HELD was a MECHANISM.' An epoch-close consolidation pass that lives only as prose in a checklist WILL evaporate exactly as the earlier exhortations did -- so it must land as an enforced epoch-boundary mechanism (a check that FAILS an epoch close lacking its consolidation record), not as another line in a skill file. The standing orphan query from ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06 is this atom's natural instrument."
+- id: AO7_target_design_doc
+  title: "The architecture we would build today"
+  gain: "Every cleanup pass has a direction to move toward, and the distance left to travel is visible."
+  name: "docs/design/TARGET_DESIGN.md -- the architecture we would build today knowing what we now know. A DIRECTION, NOT A REWRITE MANDATE: the codebase encodes hundreds of fixed defects each protected by a test, and a rewrite discards exactly that value. Every KNIFE pass and every RHYTHM pass either moves the code one step toward the target or AMENDS THE TARGET WITH REASONS. Delta between target and actual is REPORTED, NOT HIDDEN."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO1_capability_index]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
+  file_scope: ['docs/design/TARGET_DESIGN.md']
+  origin_note: "Director's framing: 'drawing the map of A to B is easier once you got there.' The failure mode to design against is a target document that becomes an aspirational wish-list nobody measures against -- the REPORTED DELTA is the load-bearing half, not the target prose. Depends on AO1 because a target design written without knowing what already exists would re-derive the inventory by hand and get it wrong. Feeds AO6, which is what keeps it current."
+- id: AO8_board_batteries_executable
+  title: "Paid-for expert reviews become standing checks"
+  gain: "External judgement already bought stops sitting inert in prose and starts failing when the company drifts from it."
+  name: "Board scaling 3a -- the disqualification batteries already purchased (Specs 001-006 plus the five 2026-08-04 scope briefs: electricity, gas, carbon, CFD/assets, industry boundary, and the 2026-08-07 additions change-of-tenancy, non-commodity cost stack, prepayment estate) are PROSE. Convert each testable line into a standing check that runs with the suite; lines that cannot be mechanised are LISTED AS SUCH, NOT DROPPED."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_ELECTRICITY_2026-08-04.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_GAS_2026-08-04.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_CARBON_2026-08-04.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_CFD_AND_ASSETS_2026-08-04.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_INDUSTRY_BOUNDARY_2026-08-04.md']
+  file_scope: ['tests/domain/', 'docs/design/BATTERY_CONVERSION.md']
+  origin_note: "Independent of the MAP->NET->KNIFE chain (hence no depends_on) -- it consumes already-purchased external judgement and touches no structure, so it can run alongside. 'External judgement already paid for stops sitting inert' is the director's own justification and also describes the eight scope briefs sitting unprocessed in staging as this was minted. R10 relevance: these batteries are the natural home for absurdity-class invariants, so a converted line should extend the invariant/obligations library rather than becoming a one-off assert. Watch the FAIL-OPEN shape: a battery line converted into a check that silently skips when its data is absent is worse than leaving it as prose, because it reads as covered."
+- id: AO9_blind_review_by_restricted_context
+  title: "Blind review without the human courier"
+  gain: "The reviews that work because the reviewer cannot see the code can run often, instead of only when someone hand-carries them."
+  name: "Board scaling 3b/3c -- replace the manual cut-and-paste blind board with blindness BY CONSTRUCTION: a fresh-context agent given ONLY the plain-words capability description and the domain (never code, design docs, or prior findings) produces the practitioner battery. The transcript of what the reviewer was shown is COMMITTED ALONGSIDE THE FINDINGS so the blindness is auditable. Carries the director's stated honest limit (3c): restricted context gives BLINDNESS, NOT INDEPENDENCE -- the reviewer is the same model family; genuinely external review stays reserved for the few highest-stakes verdicts per epoch, at the director's choosing. MUST RECONCILE WITH COLD_EYES_PROTOCOL.md -- one mechanism, not two beside each other."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO1_capability_index]
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/in_progress/COLD_EYES_PROTOCOL.md']
+  file_scope: ['.claude/skills/cold-eyes-walk/SKILL.md', 'tools/blind_review.py', 'tests/tools/test_blind_review.py']
+  origin_note: "The director named the reconciliation with COLD_EYES_PROTOCOL.md as the worker's job and as a ONE-MECHANISM requirement -- shipping this beside the existing cold-eyes skill is a failure of the atom, not a follow-up. Depends on AO1 because 'the plain-words capability description' the reviewer is shown IS a capability-index row; without the index this hand-writes the input and the blindness stops being auditable. R15/outcome-testing (the doctrine's own carve-out for LLM judges): blindness must be PROVEN by construction, not asserted -- if the committed transcript is the only evidence, a mutation that leaks code into the reviewer's context must be shown to be detectable from that transcript. 3c is a WALL: this atom may never be described as delivering independence."

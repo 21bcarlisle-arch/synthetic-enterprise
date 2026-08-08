@@ -1,3 +1,44 @@
+<!-- SUPERVISOR_DRAW: available -->
+> **[IN-PROGRESS — 2026-08-08 worker tick] ABSORBED INTO THE MAP. §4 DEFECT: this programme arrived
+> with NO "WORK THIS CREATES" block** — verified, not assumed: `supervisor.work_this_creates_deliverables()`
+> returns `[]` for this file. That is why it sat **three days CONSUMED but not ABSORBED** (staged and read,
+> but no atom, therefore not drawable) — the exact R17 failure the programme itself is about.
+>
+> **Done this tick — 9 atoms minted into `docs/design/maturity_map.yaml`** (203 atoms total, no id
+> collisions, every `depends_on` resolves):
+>
+> | Atom | Programme step | Drawable now? |
+> |---|---|---|
+> | `AO1_capability_index` | MAP — the reuse surface | **YES** |
+> | `AO2_write_time_reuse_gate` | MAP — the write-time gate (index + ecosystem, 3 part classes) | after AO1 L1 |
+> | `AO3_join_test_tier` | NET — the five system tests | after AO1 L1 |
+> | `AO4_scale_constraints_executable` | NET — C-S1..C-S5 made executable | after AO3 |
+> | `AO5_hotspot_consolidation` | KNIFE — the four named hotspots | after NET |
+> | `AO6_consolidation_rhythm` | RHYTHM — consolidation as epoch duty | after AO1+AO7 |
+> | `AO7_target_design_doc` | §2 — `docs/design/TARGET_DESIGN.md` | after AO1 L1 |
+> | `AO8_board_batteries_executable` | §3a — batteries become checks | **YES** (independent) |
+> | `AO9_blind_review_by_restricted_context` | §3b/3c — blindness by construction | after AO1 L1 |
+>
+> **The ruled order is MECHANISED, not exhorted.** MAP→NET→KNIFE→RHYTHM is carried by `depends_on`, so
+> the draw *cannot* take a KNIFE pass before the NET that protects it. Proven against the live
+> `supervisor._dependencies_met` gate rather than asserted: with nothing built, only AO1 and AO8 are
+> drawable and AO5 is blocked; simulating AO1→L1 opens AO2/AO3/AO7/AO9 and AO5 **stays blocked**.
+> Titles + gain statements follow the plain-words naming law (`DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05`
+> Ruling 2). Retrofitting titles to the other 194 atoms is that ruling's own work, not this one's.
+>
+> **OPEN SUB-ITEMS (this file stays here until they close):**
+> 1. **Nothing is BUILT yet** — all nine sit at level 0. This tick made the programme *drawable*, which
+>    is the thing three days of staging did not. AO1 and AO8 are the open draws.
+> 2. **The author's own WORK THIS CREATES block is still owed** (same ask as the three rulings in
+>    `WORKER_MINTED_THREE_RULINGS_WORK_BLOCK_DEFECT_2026-08-08.md`). **UNBLOCKS ON:** the block arriving —
+>    then diff it against the nine atoms above; anything in the author's block and absent here is a gap
+>    in the worker's reading, not a change of scope.
+> 3. **`AO9` must RECONCILE with `COLD_EYES_PROTOCOL.md`** (in_progress/) — the director required ONE
+>    mechanism, so shipping it beside the existing cold-eyes skill fails the atom.
+>
+> Moved out of the staging root so the scanner reflects **minted + drawable** rather than "unprocessed".
+> Not silently absorbed, and not written back into this file as if the author had enumerated it.
+
 # [DIRECTOR-PROGRAMME] — Architected out, organic in (2026-08-05)
 
 **Type:** Programme statement. Director-commissioned, director-ratified 2026-08-05. Amended same day (director): build-vs-buy added to the write-time gate; standing production-readiness constraints added to NET as executable checks. Problems and outcomes; mechanisms are the worker's to design.

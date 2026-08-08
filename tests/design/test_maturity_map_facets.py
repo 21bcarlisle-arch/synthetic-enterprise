@@ -77,6 +77,29 @@ REVIEWED_CLOSE_TO_LEARN = {
     # whether a published fidelity figure means what the surface says it means -- the same
     # close_to_learn class as its G-fidelity and H-harness siblings.
     "D9_worse_than_blind_chip_is_metric_blind",
+    # 2026-08-08 reviewed (worker tick, absorbing DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05
+    # into the map). Classified on their merits, not to clear the gate -- and the gate firing on
+    # all nine at once is this control working exactly as designed: a programme absorbed in one
+    # go is precisely when the dumping-ground default would slip in unnoticed.
+    # The programme is "organic in, architected out" -- MAP (capability index + write-time reuse
+    # gate) -> NET (join-test tier + executable scale constraints) -> KNIFE (hotspot
+    # consolidation) -> RHYTHM (consolidation as a standing epoch duty), plus the target-design
+    # document and the two board-scaling atoms. Every one of them acts on HOW THE MACHINE BUILDS
+    # ITSELF -- reuse surfaces, test tiers, refactor sequencing, review construction. Not one
+    # moves a revenue flow, prices anything, bills anything or settles anything; none could be
+    # honestly filed under meter_to_cash, price_to_bill or wholesale_to_price without inventing a
+    # customer it does not touch. What they measure is whether the codebase can be described,
+    # demonstrated and trusted -- the same close_to_learn class as all 52 of their H_harness
+    # siblings and as G's fidelity-method atoms.
+    "AO1_capability_index",
+    "AO2_write_time_reuse_gate",
+    "AO3_join_test_tier",
+    "AO4_scale_constraints_executable",
+    "AO5_hotspot_consolidation",
+    "AO6_consolidation_rhythm",
+    "AO7_target_design_doc",
+    "AO8_board_batteries_executable",
+    "AO9_blind_review_by_restricted_context",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle
