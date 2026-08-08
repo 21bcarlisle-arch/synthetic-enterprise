@@ -1,5 +1,33 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T18:10:05Z
+Last updated: 2026-08-08T18:24:00Z
+
+**D6_payment_ageing_gap_validity (2026-08-08, `15f44e022`) — the defect belongs to the METRIC, so it
+was closed at the CLASS. L0→L2, self-certified.** The DISCOVER had already answered D6's question: the
+live ageing gap of 1.1538 is a metric-shape defect, with a real Clayton's-Case misdating hiding under it.
+What that implied under **R10** is what this level records — the prevalence defect is a property of
+`background.gap_metric.misapplication_gap` **itself** (majority-class normalisation makes `gap` a joint
+statement about the company AND the world's class balance), so it lands on **every** call site, not just
+the ageing dimension where it was found. **Stamped at source:** the caveat rides in `components`
+(`normalisation` / `minority_class_share` / `prevalence_caveat`), *not* in `note` — both live callers
+replace `note`, so a note-borne caveat would have been silently dropped. **R11 to the rendered value:** it
+travels to_ledger_entry → `coupled_gap_ledger.json` → `site/data/proof.json` and renders as visible text
+in the Proof panel HTML produced by the page's own JS against live data. **The second call site was
+audited by measurement, not argument:** on W2_9 ↔ C11, holding C11's misrecording channel fixed and moving
+only the world's business share 2%→40% moves the company's own error rate 0.0210→0.0365 while the
+published gap moves **1.0000→0.0905** — at a 2% share that pair would read *"no better than blind"* on its
+**lowest** error rate. **R12 clean:** W2_9 re-measured to the identical `0.2290836653386454` — the closure
+relabelled a number, it did not move one. **R10 mechanism, not exhortation:**
+`tests/test_gap_metric_misapplication_class.py` registers every live call site by AST scan, so a **new**
+caller fails rather than silently publishing an uncaveated figure; vacuity guards on both the scan and the
+ledger sweep. **R15 mutation-proven three ways**, each restoring green: remove the stamp → tests 1+2 fail;
+make the metric prevalence-invariant → test 4 fails (the documented signal that D7's reshape landed); add
+an unregistered caller → test 3 fails. Test 5 fired *for real* on the uncaveated W2_9 ledger entry before
+it was re-measured. Also fixed: the published disclaimer named atom **`D6a`, which does not exist** — it
+now names `D7_ageing_gap_metric_reshape`. Found and **queued, not fixed on sight**:
+`D9_worse_than_blind_chip_is_metric_blind` — the Proof panel renders **any** gap>1 as the red chip
+"worse_than_blind", valid for `detection_gap` but refuted for `misapplication_gap`; latent today (W2_9
+reads 0.2291), four consumers, outside D6's file_scope. Not L3: no HARDEN/Expert-Hour, and D7 will replace
+the characterized behaviour.
 
 **H30_sim_runner_discards_child_stderr (2026-08-08, `de2c3d7d8`) — the machine can now say WHY it
 failed. L0→L2, self-certified.** The sim red loop that cost the director attention this morning logged
@@ -661,10 +689,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (620s / 10 min):
-- Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
-- Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
+**Latest simulation results (2016–2025)** — auto-processed (579s / 10 min):
+- Net margin: £1,525,298.63 | Gross: £6,468,266.50 | Capital: £51,397
+- Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,502,140
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -773,6 +801,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1407.0h across 61 sized atom(s) (9 of 70 below-target atoms still unsized).
+- Remaining effort: ~1441.1h across 61 sized atom(s) (9 of 70 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
