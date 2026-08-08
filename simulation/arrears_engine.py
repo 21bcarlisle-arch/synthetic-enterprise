@@ -59,6 +59,18 @@ _CORP_BACS_ON_TIME_PROB = 0.92
 _CORP_BACS_LATE_PROB = 0.073
 _CORP_BACS_DISPUTE_PROB = 0.007
 _CORP_LATE_DAYS = (14, 45)
+
+#: The corporate payment rails. A segment reaching one of these is a business
+#: customer, but WHICH business segment still decides the outcome model --
+#: I&C and SME are not interchangeable (see `payment_outcome`).
+_CORPORATE_METHODS = ("bacs", "chaps")
+
+#: The segments billed on the I&C corporate outcome model. Restored 2026-08-08
+#: after an abandoned in-flight refactor (W2_sme_segment_case_normalisation)
+#: deleted this definition while leaving both use sites below referring to it,
+#: which made every simulation run die with `NameError: _IC_SEGMENTS` ~180s in.
+#: The lower-case "ic" alias is load-bearing at the `payment_method` call site;
+#: do not narrow it without migrating both readers together.
 _IC_SEGMENTS = ("ic", "I&C")
 
 # Phase [debt-branch] -- post-write-off DCA placement / recovery / sale.
@@ -267,7 +279,7 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     communication style (simulation/nudge_physics.py::
     tone_effectiveness_multiplier, hidden from the company) nudges their
     overall on-time probability. Cabinet Office/BIT anchor: +3 to +10pp."""
-    if method in ("bacs", "chaps"):
+    if method in _CORPORATE_METHODS:
         if segment in _IC_SEGMENTS:
             r = rng.random()
             if r < _CORP_BACS_ON_TIME_PROB:
