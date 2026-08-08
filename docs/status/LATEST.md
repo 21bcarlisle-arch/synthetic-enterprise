@@ -1,5 +1,31 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T23:07:52Z
+Last updated: 2026-08-08T23:24:02Z
+
+**FUT1_attach_forward_hook (2026-08-09, `641a87ae2`) — forward discovery now has an address.
+L0→L2, self-certified.** Deliverable #2 of the futures ruling: a finding or DISCOVER mint declares
+what it advances by putting **one line in its own body** — `**Advances:** EP16_anchored_generators,
+EP17_varied_population_draw — why`. The ledger is **derived from those docs on every read** and
+stored nowhere by hand (`background/forward_attachment_register.py`); delete the declaration and the
+row disappears, which is the test rather than the claim. Two renderings: the generated
+`docs/design/FORWARD_ATTACHMENT_LEDGER.md` (its `--check` fails when it and the docs disagree) and a
+per-atom `N BUILT TOWARD` badge on every view of the project map, sources on hover.
+**R15 on the defect the atom's own origin note named** — *"a ledger that renders whatever it is
+told"*: `verify_rendering()` parses the rendering back to (atom, source) pairs and compares against
+a fresh derivation. Proven both ways — mutating that control to `return []` fails 3 tests
+(fabricated row, dropped row, re-attributed row); unmutated, 19 pass, each mutation test asserting
+the honest derivation is non-empty first so the empty-agrees-with-empty vacuity cannot carry it.
+Parse anomalies are loud, never silent drops: `unknown_atom` / `malformed_token` /
+`empty_declaration`, exit non-zero; the payload is bounded to its own line so a declaration cannot
+swallow the document.
+**WORK-THIS-CREATES #5 done — the first three entries are real, not fixtures:** the heat-pump anchor
+(`WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08`) → `EP16_anchored_generators` +
+`EP17_varied_population_draw`; the Clayton misdating (`D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER`) →
+`EP4_collections_journey`. Both attach by declaring **in the finding itself**, so they re-derive.
+19 + 30 + 19 tests green (register / project door incl. 2 new render+independence tests / map
+facets), epistemic verifier PASS, 5,437 docs scanned in 1.2s with 0 violations.
+**Not claimed:** three entries is three; no gate wires `--check` into pre-commit yet (hence L2, not
+L3), and FUT2 (pull-forward proposal, stops at the director) and FUT3 (blocked-atom visibility)
+remain L0 and untouched.
 
 **THE FUTURES GO ON THE MAP (2026-08-08) — 23 atoms minted from
 `DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08`. Map 206 → 229.** The ruling's diagnosis,
@@ -921,7 +947,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1035,6 +1061,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1529.9h across 62 sized atom(s) (9 of 71 below-target atoms still unsized).
+- Remaining effort: ~1811.8h across 81 sized atom(s) (13 of 94 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
