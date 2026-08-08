@@ -1,5 +1,32 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T20:37:56Z
+Last updated: 2026-08-08T22:50:45Z
+
+**D7_ageing_gap_metric_reshape (2026-08-08, `3af46d145`) — the ageing number stops being one number.
+L0→L2, self-certified.** The single prevalence-normalised ageing scalar the D6 DISCOVER refuted is
+RETIRED, not re-labelled: `background.gap_metric.ageing_gap` reports `understated_arrears_rate`
+(misses / truly-overdue), `overstated_arrears_rate` (false ageings / truly-current — the
+wrongful-dunning exposure) and an ABSOLUTE `mean_bucket_displacement` with no divisor at all.
+`misapplication_gap` is untouched and keeps its remaining legitimate caller, W2_9↔C11.
+**All three D6 defects answered on the same oracle rows:** finds-all-arrears went from 1.5000
+"worse than no-skill" to understated 0.0000 / overstated 0.0150; off-by-one and stone-blind went
+from 1.0000 == 1.0000 to 1.0 vs 3.0 buckets; the prevalence sweep went from 3.00→0.15 with the
+company held FIXED to exactly flat on all three.
+**And the decomposition immediately said something the scalar could not.** Live, 400 customers:
+the retired figure read 0.8043; the reshape reads understated 0.0725 (10 misses of 138
+truly-overdue) against overstated 0.0951 (101 false ageings of 1062 truly-current). This company
+wrongly ages **ten times more settled invoices than it misses real arrears** — the wrongful-dunning
+direction is the larger half, and one number had it buried inside a denominator normed on the other
+class. R12: a diagnostic, not a target.
+**R15, four named mutants**, each REQUIRED to fail the assertion the real measures pass — including
+`_MUTANT_ordinal_over_no_skill`, the trap the D6 DISCOVER caught in its own draft (ordinal
+numerator, prevalence divisor, defect fully intact). Plus fail-loud on an unrankable bucket label
+and vacuity reported as `None`, never 0.0. 535 tests green; epistemic verifier PASS.
+**Not claimed:** L3 (no Expert Hour); Defect 3 is fixed on shape and still latent live
+(`wrong_bucket == 0`); the live 1.1538 is still not reproduced in detail.
+**H27 half-released:** its `depends_on` moves off the satisfied D7 onto a newly minted
+`D10_detection_headline_is_single_channel` — the union-blindness finding that had been living only
+in prose. A hold must never outlive its cause, and must never be dropped while a real second cause
+stands.
 
 **AO9_blind_review_by_restricted_context (2026-08-08, `c9ec19dcd`) — the blind board loses its human
 courier. L0→L2, self-certified.** Board scaling §3b/3c. The director named why the blind board worked:
@@ -860,10 +887,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
-- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
+**Latest simulation results (2016–2025)** — auto-processed (518s / 9 min):
+- Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -974,6 +1001,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1712.8h across 66 sized atom(s) (9 of 75 below-target atoms still unsized).
+- Remaining effort: ~1529.9h across 62 sized atom(s) (9 of 71 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
