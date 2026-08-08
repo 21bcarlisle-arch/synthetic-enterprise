@@ -24,11 +24,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block_sudo.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/block_sudo.py"
           },
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block_unevidenced_claim.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/block_unevidenced_claim.py"
           }
         ]
       },
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block_point_in_time_read.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/block_point_in_time_read.py"
           }
         ]
       },
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/lane_wall_hook.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/lane_wall_hook.py"
           }
         ]
       }
@@ -56,11 +56,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/log_director_input.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/log_director_input.py"
           },
           {
             "type": "command",
-            "command": "python3 .claude/hooks/stamp_human_presence.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/stamp_human_presence.py"
           }
         ]
       }
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/log_instructions_loaded.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/log_instructions_loaded.py"
           }
         ]
       }
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/pull_next_work.py",
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/pull_next_work.py",
             "timeout": 600
           }
         ]

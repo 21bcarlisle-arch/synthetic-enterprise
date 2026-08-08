@@ -64,3 +64,36 @@ file_scope `['tools/write_time_gate.py', 'tests/tools/test_write_time_gate.py']`
    emptiness claim).
 3. Decide whether the REUSE block's position should be enforced or freed — freed is better, since a
    position rule nobody can see is the next false refusal.
+
+---
+
+## ADDENDUM — SECOND INSTANCE, same day, and it widens the class (2026-08-08, AO8 tick)
+
+Hit again while landing `AO8_board_batteries_executable` (`tools/build_battery_register.py`).
+Same root cause, but this instance shows the class is **wider than "long commit messages"**:
+
+1. **The swallow also happens inside a source FILE, not just a commit message.** The record was
+   placed in the module docstring — the obvious place, and where a reader looks for it. `INDEX:`
+   then absorbed the module's entire body, including a `DISPOSITIONS` table of 76 reasons, many of
+   which legitimately begin "No carbon-intensity series…", "No LNG cargo model…". G6 fired on those.
+   Observed: parsed `INDEX` field ran past the record to EOF; the record's own INDEX line was
+   ~380 chars.
+
+2. **The documented workaround does not generalise.** The finding above says "place the REUSE block
+   last in the message." For a module record there is no "last" that works: a trailing `# REUSE:`
+   comment block is **not recognised at all**, because `_FIELD` anchors on `^\s*(REUSE|…)` and a
+   `#` precedes the head. So the only working position for a module's record is the end of its
+   commit message — which is the one place a future reader of that module will never look.
+
+3. This is now **two refusals in two ticks**, both false positives, both costing a diagnosis cycle.
+   Per R3 (two-strike redesign) the position convention should not be patched a third time: bound
+   the field, and let the record live where it is readable.
+
+**Amends "The fix, when drawn" above:** the fix must also decide whether `# `-prefixed record lines
+are recognised, so a module can carry its own reuse record in its own docstring or header. Fixing
+only `parse_records`' bounding leaves instance 2 half-broken — the record would parse correctly but
+still have to live in the commit message to be seen at all.
+
+Still not fixed on sight, same reasoning as above: editing the gate that just refused my own commit
+is the route-around shape even when the diagnosis is right. Worked around identically (record last
+in the commit message), and the module's docstring now says where its record actually is.

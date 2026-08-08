@@ -53,6 +53,11 @@ CONTROL_TESTS = [
     # matters. It also fails rc=2 if a declared daemon moves outside the
     # scanned root, so this is where a coverage hole surfaces. ~0.3s.
     "tests/tools/test_child_stderr_guard.py",
+    # AO8 (2026-08-08). A mechanised battery line rots when work ELSEWHERE
+    # renames or deletes the check it names. Per-file selection would fire this
+    # when the register is edited (needs it least) and stay silent then (the
+    # case it exists for). Also catches a stale status block. ~0.3s.
+    "tests/domain/test_battery_register_integrity.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own
