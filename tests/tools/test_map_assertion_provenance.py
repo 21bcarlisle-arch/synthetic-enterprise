@@ -1,0 +1,416 @@
+"""AO11 — tests for the map-assertion provenance clocks.
+
+Every fixture here is a REAL git repository with REAL commits made at
+controlled times. Nothing about `git blame` or `git log` is mocked, because
+the whole tool is an assertion about what git history says: a mocked git would
+prove only that the mock returns what the test told it to — the tautology
+pattern, dressed as coverage.
+
+R15 is the organising principle. A staleness report that silently finds
+nothing looks exactly like a healthy map, so the tests that matter are the
+ones that MUTATE the source and prove each guard goes red on its own named
+defect, then green again on restore.
+"""
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from tools import map_assertion_provenance as mp  # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# Fixture: a real repo whose history we control to the second
+# ---------------------------------------------------------------------------
+
+def _git(repo: Path, *args: str, when: str | None = None) -> str:
+    env = None
+    if when:
+        import os
+        env = dict(os.environ, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
+    proc = subprocess.run(["git", "-C", str(repo)] + list(args),
+                          capture_output=True, text=True, env=env, check=True)
+    return proc.stdout
+
+
+def _write_map(repo: Path, atoms: list[dict]) -> None:
+    p = repo / mp.MAP_PATH
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(yaml.safe_dump(atoms, sort_keys=False, default_flow_style=False),
+                 encoding="utf-8")
+
+
+@pytest.fixture()
+def repo(tmp_path: Path) -> Path:
+    r = tmp_path / "repo"
+    r.mkdir()
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@example.com")
+    _git(r, "config", "user.name", "T")
+    return r
+
+
+def _commit(repo: Path, when: str, message: str = "c") -> None:
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", message, when=when)
+
+
+def _atom(atom_id: str, level: int, scope: list[str], name: str = "n",
+          note: str = "z", **extra) -> dict:
+    # Prose sits on BOTH sides of `level_current`, as it does in the real map
+    # (`name`/`title` above, `origin_note` below). That layout is load-bearing for
+    # the prose test: a block-granular blame could date the claim by the first line
+    # of the block, the last, or the newest of them, and a fixture whose prose sits
+    # on only one side lets two of those three strategies pass unnoticed. It did —
+    # this test SURVIVED its own mutation twice before the fixture was fixed.
+    return {"id": atom_id, "name": name, "lane": "H_harness", "level_current": level,
+            "file_scope": scope, **extra, "note": note}
+
+
+EARLY = "2026-01-01T00:00:00+0000"
+MIDDLE = "2026-02-01T00:00:00+0000"
+LATE = "2026-03-01T00:00:00+0000"
+
+
+def _rows(repo: Path) -> dict[str, dict]:
+    return {r["atom"]: r for r in mp.build_rows(repo)}
+
+
+# ---------------------------------------------------------------------------
+# The three clocks
+# ---------------------------------------------------------------------------
+
+def test_the_three_clocks_are_derived_from_real_history(repo: Path):
+    """asserted_at from the map's own line, artefacts_moved_at from the code."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"])])
+    _commit(repo, EARLY)
+
+    (repo / "tools" / "thing.py").write_text("x = 2\n", encoding="utf-8")
+    _commit(repo, LATE, "artefact moves")
+
+    row = _rows(repo)["A"]
+    assert row["asserted_at"] < row["artefacts_moved_at"], row
+    # The two clocks came from different files, which is the whole point.
+    assert row["status"] == mp.STALE
+    assert row["stale_days"] == pytest.approx(59.0, abs=1.0)
+
+
+def test_prose_edits_do_not_reset_the_assertion_clock(repo: Path):
+    """The clock is on the `level_current` line, not the atom block.
+
+    If touching any field in the block re-dated the claim, then adding an
+    evidence string would silently mark a years-old level as freshly asserted —
+    the assertion would launder itself clean every time somebody wrote a note.
+    """
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"], name="first wording",
+                            note="first note")])
+    _commit(repo, EARLY)
+
+    (repo / "tools" / "thing.py").write_text("x = 2\n", encoding="utf-8")
+    _commit(repo, MIDDLE, "artefact moves")
+
+    asserted_before = _rows(repo)["A"]["asserted_at"]
+    # Rewrite every prose line in the block, above and below the level line, leaving
+    # the level itself untouched. Any block-granular blame re-dates the claim here.
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"],
+                            name="a much longer and quite different wording",
+                            note="a much longer and quite different note")])
+    _commit(repo, LATE, "prose only")
+
+    row = _rows(repo)["A"]
+    assert row["asserted_at"] == asserted_before, "prose edit re-dated the level claim"
+    assert row["status"] == mp.STALE, "a prose edit laundered a stale cell clean"
+
+
+def test_a_level_change_does_reset_the_assertion_clock(repo: Path):
+    """The mirror of the above: changing the claim IS a new assertion."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 1, ["tools/thing.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools" / "thing.py").write_text("x = 2\n", encoding="utf-8")
+    _commit(repo, MIDDLE, "artefact moves")
+
+    assert _rows(repo)["A"]["status"] == mp.STALE
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"])])
+    _commit(repo, LATE, "level moves")
+    assert _rows(repo)["A"]["status"] == mp.CURRENT
+
+
+# ---------------------------------------------------------------------------
+# The contradiction class -- and its mirror error
+# ---------------------------------------------------------------------------
+
+def test_contradicted_fires_on_the_dd_shape(repo: Path):
+    """L0 cell, every artefact it names committed AFTER the claim.
+
+    This is the instance the atom exists for: the DD cell read level 0 with no
+    ledger entry while all six sub-parts were built, committed and live.
+    """
+    _write_map(repo, [_atom("DD", 0, ["company/dd.py"])])
+    _commit(repo, EARLY)
+
+    (repo / "company").mkdir()
+    (repo / "company" / "dd.py").write_text("built = True\n", encoding="utf-8")
+    _commit(repo, LATE, "the work lands, the cell still reads 0")
+
+    row = _rows(repo)["DD"]
+    assert row["status"] == mp.CONTRADICTED
+    assert row["scope_exclusive"] is True
+
+
+def test_contradicted_does_not_fire_when_artefacts_predate_the_claim(repo: Path):
+    """The mirror error, and it is the same weight as missing a real one.
+
+    Most L0 cells name files that ALREADY EXIST, because the work is to change
+    them. Reading those as "already built" reported four live, unstarted atoms
+    as contradictions on the first real run.
+    """
+    (repo / "tools").mkdir()
+    (repo / "tools" / "existing.py").write_text("x = 1\n", encoding="utf-8")
+    _commit(repo, EARLY, "the file this atom intends to CHANGE already exists")
+
+    _write_map(repo, [_atom("NEW", 0, ["tools/existing.py"])])
+    _commit(repo, LATE, "atom minted against it")
+
+    assert _rows(repo)["NEW"]["status"] == mp.CURRENT
+
+
+def test_shared_scope_is_marked_so_a_confound_cannot_pass_as_evidence(repo: Path):
+    """Two atoms claiming one file: neither can be dated by it alone."""
+    _write_map(repo, [_atom("A", 0, ["tools/shared.py"]),
+                      _atom("B", 0, ["tools/shared.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools").mkdir()
+    (repo / "tools" / "shared.py").write_text("x = 1\n", encoding="utf-8")
+    _commit(repo, LATE, "moved -- but for which atom?")
+
+    rows = _rows(repo)
+    assert rows["A"]["status"] == mp.CONTRADICTED
+    assert rows["A"]["scope_exclusive"] is False
+    assert rows["B"]["scope_exclusive"] is False
+
+
+# ---------------------------------------------------------------------------
+# The recorded clock, and what its release actually does (R11: no orphan transitions)
+# ---------------------------------------------------------------------------
+
+def test_recording_a_verification_clears_stale(repo: Path):
+    """The release has a tested effect: verifying a cell makes it CURRENT."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools" / "thing.py").write_text("x = 2\n", encoding="utf-8")
+    _commit(repo, LATE, "artefact moves")
+
+    assert _rows(repo)["A"]["status"] == mp.STALE
+    mp.record_verification("A", "checked by hand", repo=repo, now=4.2e9)
+    row = _rows(repo)["A"]
+    assert row["status"] == mp.CURRENT
+    assert row["verified_at"] == 4.2e9
+
+
+def test_the_existing_self_certification_ledger_counts_as_a_verification(repo: Path):
+    """A level self-certified with evidence IS a check, and is already on disk.
+
+    Ignoring it would report every just-certified atom as never-verified and
+    bury the real stale cells under noise.
+    """
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools" / "thing.py").write_text("x = 2\n", encoding="utf-8")
+    _commit(repo, LATE)
+
+    gate = repo / mp.GATE_LEDGER_PATH
+    gate.parent.mkdir(parents=True, exist_ok=True)
+    gate.write_text(json.dumps({"atom": "A", "action": "LEVEL_UP_SELF_CERTIFIED",
+                                "level": 2, "ts": 4.2e9}) + "\n", encoding="utf-8")
+    assert _rows(repo)["A"]["status"] == mp.CURRENT
+
+
+def test_a_malformed_ledger_line_loses_its_own_evidence_not_the_ledger(repo: Path):
+    led = repo / mp.LEDGER_PATH
+    led.parent.mkdir(parents=True, exist_ok=True)
+    led.write_text("{not json\n" + json.dumps({"atom": "A", "ts": 99.0}) + "\n",
+                   encoding="utf-8")
+    assert mp.verification_times(repo) == {"A": 99.0}
+
+
+def test_record_refuses_a_timestamp_with_no_statement_of_what_was_checked(repo: Path,
+                                                                         monkeypatch):
+    monkeypatch.setattr(mp, "REPO", repo)
+    assert mp.main(["--record", "A"]) == 2
+    assert not (repo / mp.LEDGER_PATH).exists()
+
+
+# ---------------------------------------------------------------------------
+# R15 -- NOT-FRESH-BY-DEFAULT: a cell nobody can check must never read as checked
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("scope,expected", [
+    ([], mp.NO_ARTEFACTS),
+    (["docs/design"], mp.DIRECTORY_SCOPE),
+    ([mp.MAP_PATH], mp.TAUTOLOGICAL),
+])
+def test_unverifiable_scopes_are_never_current(repo: Path, scope, expected):
+    (repo / "docs" / "design").mkdir(parents=True)
+    (repo / "docs" / "design" / "d.md").write_text("x\n", encoding="utf-8")
+    _write_map(repo, [_atom("A", 2, scope)])
+    _commit(repo, EARLY)
+
+    row = _rows(repo)["A"]
+    assert row["status"] == expected
+    assert row["status"] in mp.UNVERIFIABLE
+    assert row["status"] != mp.CURRENT
+
+
+def test_untracked_artefacts_are_unverifiable_not_current(repo: Path):
+    """On disk but never committed: no clock exists, so nothing can be claimed.
+
+    An untracked build passing as verified is a real class in this repo's
+    history — twice.
+    """
+    _write_map(repo, [_atom("A", 2, ["tools/thing.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")  # never committed
+
+    row = _rows(repo)["A"]
+    assert row["status"] == mp.UNTRACKED_ARTEFACTS
+    assert row["status"] in mp.UNVERIFIABLE
+
+
+def test_a_level_2_claim_whose_artefacts_do_not_exist_is_reported(repo: Path):
+    _write_map(repo, [_atom("A", 2, ["tools/never_written.py"])])
+    _commit(repo, EARLY)
+    assert _rows(repo)["A"]["status"] == mp.MISSING_ARTEFACTS
+
+
+# ---------------------------------------------------------------------------
+# R15 -- MUTATION PROOFS: each guard must go red on its own named defect
+# ---------------------------------------------------------------------------
+
+def test_vacuity_guard_fires_when_the_map_parse_collapses():
+    """Mutation: a parse yielding near-zero cells must FAIL, not read clean."""
+    few = [{"atom": "A", "level_current": 2, "status": mp.CURRENT, "asserted_at": 1.0,
+            "verified_at": None, "artefacts_moved_at": 2.0, "scope_claims_map": False,
+            "scope_exclusive": True}]
+    findings = mp.integrity_findings(few)
+    assert any("VACUITY" in f and "floor" in f for f in findings), findings
+
+    healthy = [dict(few[0], atom="A%d" % i) for i in range(mp.ATOM_FLOOR + 1)]
+    assert mp.integrity_findings(healthy) == []
+
+
+def test_vacuity_guard_fires_when_the_blame_join_breaks(repo: Path, monkeypatch):
+    """Mutation: break the line->atom join. Zero stale cells must not read clean.
+
+    This is the 1557/1557-passed-while-the-field-was-absent shape: with no
+    asserted_at anywhere, every cell would fall back to a 0.0 clock and the
+    report would look healthy.
+    """
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A%d" % i, 2, ["tools/thing.py"])
+                      for i in range(mp.ATOM_FLOOR + 1)])
+    _commit(repo, EARLY)
+
+    assert not any("blame join" in f for f in mp.integrity_findings(mp.build_rows(repo)))
+
+    monkeypatch.setattr(mp, "assertion_lines", lambda text: {})
+    findings = mp.integrity_findings(mp.build_rows(repo))
+    assert any("blame join is" in f for f in findings), findings
+
+
+def test_vacuity_guard_fires_when_the_commit_time_pass_breaks(repo: Path, monkeypatch):
+    """Mutation: an empty path->date map means nothing can EVER be found stale."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    _write_map(repo, [_atom("A%d" % i, 2, ["tools/thing.py"])
+                      for i in range(mp.ATOM_FLOOR + 1)])
+    _commit(repo, EARLY)
+
+    monkeypatch.setattr(mp, "path_commit_times", lambda r: {})
+    findings = mp.integrity_findings(mp.build_rows(repo))
+    assert any("commit-time" in f for f in findings), findings
+
+
+def test_independence_guard_fires_when_a_cell_is_dated_against_the_map(repo: Path):
+    """Mutation: classify a map-claiming cell as ordinary. The tautology must be caught.
+
+    Its two clocks would then share one source, so the answer would be
+    guaranteed by construction rather than measured.
+    """
+    rows = [{"atom": "A%d" % i, "level_current": 2, "status": mp.CURRENT,
+             "asserted_at": 1.0, "verified_at": None, "artefacts_moved_at": 2.0,
+             "scope_claims_map": False, "scope_exclusive": True}
+            for i in range(mp.ATOM_FLOOR + 1)]
+    assert mp.integrity_findings(rows) == []
+
+    rows[0]["scope_claims_map"] = True  # dated against the file it asserts
+    findings = mp.integrity_findings(rows)
+    assert any("INDEPENDENCE" in f for f in findings), findings
+
+    rows[0]["status"] = mp.TAUTOLOGICAL  # correctly quarantined -> silent again
+    assert mp.integrity_findings(rows) == []
+
+
+def test_every_cell_unverifiable_is_itself_a_finding():
+    """No comparison actually made is not a clean report."""
+    rows = [{"atom": "A%d" % i, "level_current": 2, "status": mp.NO_ARTEFACTS,
+             "asserted_at": 1.0, "verified_at": None, "artefacts_moved_at": None,
+             "scope_claims_map": False, "scope_exclusive": False}
+            for i in range(mp.ATOM_FLOOR + 1)]
+    assert any("every cell is unverifiable" in f for f in mp.integrity_findings(rows))
+
+
+def test_git_unavailable_raises_rather_than_reporting_nothing_stale(tmp_path: Path):
+    """FAIL-SILENT: an unavailable check is a FAILED check.
+
+    A non-repo must not yield an empty, therefore clean-looking, report.
+    """
+    not_a_repo = tmp_path / "bare"
+    (not_a_repo / "docs" / "design").mkdir(parents=True)
+    (not_a_repo / mp.MAP_PATH).write_text(yaml.safe_dump([_atom("A", 2, [])]),
+                                          encoding="utf-8")
+    with pytest.raises(RuntimeError):
+        mp.build_rows(not_a_repo)
+
+
+def test_cli_reports_could_not_run_instead_of_a_clean_exit(tmp_path: Path,
+                                                           monkeypatch, capsys):
+    monkeypatch.setattr(mp, "REPO", tmp_path)
+    assert mp.main([]) == 2
+    assert "COULD NOT RUN" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# The live map -- the tool must actually run against the real repo
+# ---------------------------------------------------------------------------
+
+def test_the_live_map_parses_and_carries_no_integrity_findings():
+    rows = mp.build_rows()
+    assert len(rows) >= mp.ATOM_FLOOR
+    assert mp.integrity_findings(rows) == []
+    assert {r["status"] for r in rows} <= set(mp.STATUS_ORDER)
+
+
+def test_the_live_map_has_cells_on_both_sides_of_every_clock():
+    """A report where nothing is current, or nothing is stale, is not measuring."""
+    rows = mp.build_rows()
+    assert mp.by_status(rows, mp.CURRENT), "no cell is current -- the clock is stuck"
+    assert mp.by_status(rows, mp.STALE), "no cell is stale -- the comparison is inert"
