@@ -110,6 +110,25 @@ PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so
 PUBLISH_GATE_COOLDOWN_SECONDS = 60 * 60     # re-arm: at most one alert NTFY per hour while it stays wedged
 PUBLISH_GATE_ITEM_ID = "publish_gate_wedged"
 
+# ── EPISODE MEMORY + ALARM→DIAL (2026-08-09, DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH) ──
+# The census that produced this: 10 wedge alarms on 2026-08-08 across a SEVEN-HOUR live
+# episode, and 150 in the mirror lifetime including an unbroken hourly wall across Aug 1-3.
+# Every one of them was TRUE and every one described a 60-minute window, so a seven-hour
+# episode narrated itself, ten times, as a fresh hour. Two properties close that:
+#
+#   (a) EPISODE MEMORY -- the alarm carries `wedge_since` (already persisted, never
+#       surfaced), `episode_failures` (the whole streak, NOT the window-trimmed `failures`
+#       list) and `markers_pending` (run_complete markers piling up unpublished). A reader
+#       can then tell hour one from hour seven without correlating ten pages by hand.
+#   (b) ALARM->DIAL -- the alarm ENUMERATES the filed findings sitting unactioned in
+#       docs/staging/ and persists them to the state file, where the supervisor's RUNG-1
+#       unwedge draw reads them back and names them as the work. On 2026-08-08 the cure for
+#       this exact wedge sat filed as WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD while the
+#       chronic red lost every draw to feature work. An alarm that only addresses the
+#       director cannot raise its own cure's priority; this one does.
+PUBLISH_GATE_FINDING_GLOB = "WORKER_FINDING_*.md"
+PUBLISH_GATE_MAX_CITED_FINDINGS = 8   # bounded: an alarm is a page, not a directory listing
+
 # ── Publish-gate BLOCKING SCOPE (R10 class closure, 2026-07-18) ───────────────
 # The overnight wedge (2026-07-16, TONIGHT_FIXES.md Item 4 + follow-up L166-171)
 # had a STRUCTURAL root, not just the watchdog import bug that triggered it: the
@@ -419,10 +438,12 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
 
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background.tree_lock import tree_lock  # noqa: E402
 from background.child_diagnostics import (  # noqa: E402  (H30)
-    STDERR_TAIL_LINES, failure_detail, stderr_tail,
+    STDERR_TAIL_LINES,
+    failure_detail,
+    stderr_tail,
 )
+from background.tree_lock import tree_lock  # noqa: E402
 
 
 @contextmanager
@@ -1707,28 +1728,90 @@ def _read_publish_gate_state():
         # the oldest surviving `failures`/`alerted_at` timestamp below 60 min for a live wedge) --
         # the exact reason the prose rule was consumed-not-absorbed twice.
         st.setdefault("wedge_since", None)
+        # EPISODE MEMORY: the whole-streak failure count. `failures` above is trimmed to the
+        # 1h window, so it can never describe an episode longer than the window -- that is
+        # precisely how seven hours read as ten fresh hours. Defaults to the in-window count
+        # for a state file written before this field existed (never to 0, which would
+        # UNDER-report a live episode -- the fail-open direction).
+        st.setdefault("episode_failures", len(st.get("failures") or []))
+        st.setdefault("cited_findings", [])
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
-        return {"failures": [], "alerted_at": None, "wedge_since": None, "state_unavailable": True}
+        return {"failures": [], "alerted_at": None, "wedge_since": None,
+                "episode_failures": 0, "cited_findings": [], "state_unavailable": True}
 
 
 def _write_publish_gate_state(state):
     out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at"),
-           "wedge_since": state.get("wedge_since")}
+           "wedge_since": state.get("wedge_since"),
+           "episode_failures": state.get("episode_failures", 0),
+           "cited_findings": state.get("cited_findings", [])}
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
 
 
-def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_fn):
+def pending_run_complete_markers(staging_dir=None):
+    """How many run_complete markers are queued unpublished RIGHT NOW.
+
+    Read off the real staging directory, never off the gate's own state -- the count is
+    the wedge's CONSEQUENCE measured independently of its cause (R15 anti-tautology), so a
+    gate-state file that lies cannot make the backlog look small. An unreadable staging
+    directory returns None ("unknown"), never 0: zero and unknown are opposite facts."""
+    sd = Path(staging_dir) if staging_dir is not None else STAGING_DIR
+    try:
+        return len(list(sd.glob("run_complete_*.md")))
+    except OSError:
+        return None
+
+
+def filed_findings(staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FINDINGS):
+    """Worker findings sitting UNACTIONED in docs/staging/ — the alarm's own work list.
+
+    Only the scanned ROOT counts: a finding moved to done/ has been dispositioned and is no
+    longer a candidate cure. Newest first (the cure for today's wedge was filed today), and
+    bounded — a page that lists thirty files is read as noise, which is the failure mode
+    this whole mechanism exists to cure. Never raises: an alarm must go out even if this
+    enumeration cannot."""
+    sd = Path(staging_dir) if staging_dir is not None else STAGING_DIR
+    try:
+        docs = [p for p in sd.glob(PUBLISH_GATE_FINDING_GLOB) if p.is_file()]
+    except OSError:
+        return []
+    docs.sort(key=lambda p: (-p.stat().st_mtime, p.name))
+    return [p.name for p in docs[:limit]]
+
+
+def _episode_phrase(wedge_since, episode_failures, now):
+    """One line of EPISODE memory: how long, how many, since when. Degrades to an explicit
+    'unknown' rather than to a plausible-looking zero — an under-stated episode is exactly
+    the defect being fixed."""
+    if not isinstance(wedge_since, (int, float)):
+        return "EPISODE: start time unrecorded (this alarm cannot bound the episode)."
+    age_min = int(max(0.0, now - float(wedge_since)) // 60)
+    since_iso = datetime.fromtimestamp(float(wedge_since), timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
+    return ("EPISODE: wedged since {} -- {}h{:02d}m and {} consecutive failures in THIS "
+            "episode (not a fresh hour).").format(
+                since_iso, age_min // 60, age_min % 60, episode_failures)
+
+
+def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_fn,
+                             *, wedge_since=None, episode_failures=0, now=None,
+                             cited=None, markers_pending=None):
+    now = time.time() if now is None else float(now)
     window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
     n = len(recent)
     detail = _gate_failure_label(kind)
     count_phrase = "an unknown number of" if unavailable else str(n)
+    cited = list(cited if cited is not None else filed_findings())
+    markers = markers_pending if markers_pending is not None else pending_run_complete_markers()
+    markers_phrase = "unknown (staging unreadable)" if markers is None else str(markers)
     what = ("The run-complete PUBLISH GATE has failed {} time(s) in a row within the "
             "last {} min -- the site/report pipeline is WEDGED and run_complete markers "
-            "are piling up unpublished. Latest cause: {} (rc={}, git={}).").format(
-                count_phrase, window_min, detail, rc, git_hash)
+            "are piling up unpublished. Latest cause: {} (rc={}, git={}). {} "
+            "Markers pending: {}.").format(
+                count_phrase, window_min, detail, rc, git_hash,
+                _episode_phrase(wedge_since, episode_failures, now), markers_phrase)
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
@@ -1736,6 +1819,10 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
            "lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
            "NOT a code bug; rc>0 means run the fast suite locally to find the regression. "
            "The alarm clears automatically on the next clean publish.")
+    if cited:
+        how += (" FILED FINDINGS ALREADY HOLDING SUSPECTS -- draw these BEFORE any feature "
+                "work; a chronic red on the publish surface self-prioritises its own cure: "
+                + ", ".join(cited) + ".")
     why = ("A silently-wedged publish gate stops the live site and report updating with "
            "NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).")
     msg = "[ACTION NEEDED] {}\nWhat: {}\nHow: {}\nWhy: {}".format(PUBLISH_GATE_ITEM_ID, what, how, why)
@@ -1780,16 +1867,30 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # long wedge's true age stays measurable. Cleared to None by record_publish_gate_success.
         prev_wedge_since = state.get("wedge_since")
         wedge_since = prev_wedge_since if isinstance(prev_wedge_since, (int, float)) else now
+        # EPISODE MEMORY: counts the whole streak, so it keeps rising after the window trim
+        # drops older entries from `failures`. Cleared only by record_publish_gate_success.
+        prev_episode = state.get("episode_failures")
+        episode_failures = (int(prev_episode) if isinstance(prev_episode, int) else count - 1) + 1
         threshold_met = unavailable or count >= PUBLISH_GATE_FAILURE_THRESHOLD
         last_alert = state.get("alerted_at")
         armed = last_alert is None or (now - float(last_alert)) >= PUBLISH_GATE_COOLDOWN_SECONDS
         fired = False
         alerted_at = last_alert
+        cited = state.get("cited_findings") or []
         if threshold_met and armed:
-            _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn)
+            # ALARM->DIAL: re-enumerated at FIRE time (a finding filed since the last page is
+            # the likeliest cure) and persisted, because the supervisor's RUNG-1 unwedge draw
+            # reads the state file, not the NTFY.
+            cited = filed_findings()
+            _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn,
+                                     wedge_since=wedge_since, episode_failures=episode_failures,
+                                     now=now, cited=cited)
             alerted_at = now
             fired = True
-        _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at, "wedge_since": wedge_since})
+        _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at,
+                                   "wedge_since": wedge_since,
+                                   "episode_failures": episode_failures,
+                                   "cited_findings": cited})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
         return {"count": count, "kind": kind, "threshold_met": threshold_met, "fired": fired}
@@ -1807,7 +1908,8 @@ def record_publish_gate_success(*, now=None):
         if PUBLISH_GATE_STATE_FILE.exists():
             prev = _read_publish_gate_state()
             had_state = bool(prev.get("failures")) or prev.get("alerted_at") is not None
-        _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None})
+        _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
+                                   "episode_failures": 0, "cited_findings": []})
         if had_state:
             log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
             try:
@@ -2029,7 +2131,7 @@ def _process(marker_path_str):
     log("Generating run insights (so-what layer)")
     run_insights = None
     try:
-        from tools.generate_insights import generate_insights, save_insights, append_run_history
+        from tools.generate_insights import append_run_history, generate_insights, save_insights
         run_insights = generate_insights(data, git_hash)
         save_insights(run_insights, RUN_INSIGHTS_PATH)
         append_run_history(run_insights, RUN_HISTORY_PATH)
@@ -2145,7 +2247,8 @@ def _process(marker_path_str):
     # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
     try:
         import json as _json
-        from background.agent_status import update_sim_metrics, STATUS_FILE
+
+        from background.agent_status import STATUS_FILE, update_sim_metrics
         _existing = _json.loads(STATUS_FILE.read_text()) if STATUS_FILE.exists() else {}
         update_sim_metrics(
             phase=_existing.get("phase", 0),

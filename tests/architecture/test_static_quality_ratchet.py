@@ -115,9 +115,28 @@ BASELINE_DATE = "2026-08-06"
 # (or delete the entry when it hits 0). Never RAISE a count or ADD a code to
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
+# SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-09  I001 1392 -> 1388, F401 280 -> 279  (E402 back to 194, unchanged)
+#     The ratchet went RED at pristine HEAD between 2026-08-06 and 2026-08-08
+#     (E402 201, F401 281, I001 1396) and wedged the publish gate for ~7 hours:
+#     process_run_complete rc=1 on ten consecutive run_complete markers. The
+#     regression was bisected by diffing `ruff check --output-format=json` on
+#     `git archive` extractions of the freeze commit (47fea05c2) and HEAD, then
+#     fixed at source per the ratchet's stated remedy — never by raising a count:
+#       E402  tests/simulation/test_arrears_engine.py (2, REPO_ROOT moved below
+#             the import block), tools/couple_supply_start.py (5, already fixed
+#             in the working tree by in-flight work) -> back to the 194 baseline.
+#       F401  tools/target_design_delta.py (unused `os`; `RatchetUnavailable`
+#             imported but only named in a comment) -> 2 fixed, and one earlier
+#             fix in tools/generate_billing_ledger.py had already landed
+#             un-recorded, so the floor drops to 279 rather than back to 280.
+#       I001  background/process_run_complete.py, tools/generate_maturity_map_data.py,
+#             tests/tools/test_map_assertion_provenance.py, tools/couple_supply_start.py
+#             -> `ruff --select I001 --fix`, floor drops to 1388.
+#
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392
-#   F401 unused-import .................  280
+#   I001 unsorted-imports .............. 1392  (now 1388)
+#   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194
 #   F841 unused-variable ...............  130
 #   E741 ambiguous-variable-name .......  108
@@ -130,8 +149,8 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1392,
-    "F401": 280,
+    "I001": 1388,
+    "F401": 279,
     "E402": 194,
     "F841": 130,
     "E741": 108,
@@ -150,7 +169,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2421
+RUFF_BASELINE_TOTAL = 2416  # was 2421 at the 08-06 freeze; -5 per the shrink log above
 
 
 # --------------------------------------------------------------------------
@@ -401,17 +420,22 @@ def test_mutation_ruff_new_code_reds_only_new_check():
 
 # --- ruff: an existing code regresses above baseline ---
 def test_mutation_ruff_regression_reds_only_exceeds_check():
-    mutated = _merge(RUFF_BASELINE, {"F401": 1})  # 280 -> 281
-    assert keys_exceeding_baseline(RUFF_BASELINE, mutated) == {"F401": (280, 281)}
+    # The mutation is stated RELATIVE to the baseline, not against a copied
+    # literal: a shrink (see the shrink log) must not be able to silently
+    # invalidate the proof, and a pinned number here would do exactly that.
+    f401 = RUFF_BASELINE["F401"]
+    mutated = _merge(RUFF_BASELINE, {"F401": 1})  # one new unused import
+    assert keys_exceeding_baseline(RUFF_BASELINE, mutated) == {"F401": (f401, f401 + 1)}
     assert not new_keys(RUFF_BASELINE, mutated)
     assert not stale_keys(RUFF_BASELINE, mutated)
 
 
 # --- ruff: a fixed code leaves a stale (un-shrunk) baseline entry ---
 def test_mutation_ruff_stale_reds_only_stale_check():
+    f401 = RUFF_BASELINE["F401"]
     mutated = dict(RUFF_BASELINE)
-    mutated["F401"] = 279  # one unused import removed but baseline not shrunk
-    assert stale_keys(RUFF_BASELINE, mutated) == {"F401": (280, 279)}
+    mutated["F401"] = f401 - 1  # one unused import removed but baseline not shrunk
+    assert stale_keys(RUFF_BASELINE, mutated) == {"F401": (f401, f401 - 1)}
     assert not keys_exceeding_baseline(RUFF_BASELINE, mutated)
     assert not new_keys(RUFF_BASELINE, mutated)
 
@@ -435,7 +459,10 @@ def test_mutation_ruff_ondisk_violation_is_detected_and_reds_only_new_violation(
     assert set(tmp_counts) == {"F401"}, f"tmp file should yield only F401, got {tmp_counts}"
     # 2) Landed on the real tree, it reds EXACTLY the exceeds-baseline check.
     mutated = _merge(RUFF_BASELINE, tmp_counts)
-    assert keys_exceeding_baseline(RUFF_BASELINE, mutated) == {"F401": (280, 281)}
+    f401 = RUFF_BASELINE["F401"]
+    assert keys_exceeding_baseline(RUFF_BASELINE, mutated) == {
+        "F401": (f401, f401 + tmp_counts["F401"])
+    }
     assert not new_keys(RUFF_BASELINE, mutated)
     assert not stale_keys(RUFF_BASELINE, mutated)
 

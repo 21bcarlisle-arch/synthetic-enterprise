@@ -13,27 +13,27 @@ from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-
 from simulation.arrears_engine import (
     FUEL_POVERTY_DD_FAIL_MULTIPLIER,
-    bill_substream,
     FUEL_POVERTY_ON_TIME_MULTIPLIER,
     _fuel_poor_for_bill,
     _tone_for_bill,
     apply_debt_recovery,
     apply_emergent_bad_debt,
     arrears_stages,
-    opening_arrears_stage,
+    bill_substream,
     compute_debt_recovery,
     compute_emergent_bad_debt,
     debt_archetype,
     ic_arrears_stages,
+    opening_arrears_stage,
     payment_method,
     payment_outcome,
     stress_for_year,
 )
 from tools.generate_billing_ledger import generate as generate_ledger
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _bill(cid, period_end, amount, segment="resi"):
@@ -435,7 +435,8 @@ def test_payment_outcome_matched_tone_increases_on_time_rate():
     higher on-time-or-better rate when a MATCHED tone is applied to
     susceptible customers than with no tone at all."""
     import random
-    from simulation.nudge_physics import tone_susceptibility_for, ToneSusceptibility
+
+    from simulation.nudge_physics import ToneSusceptibility, tone_susceptibility_for
 
     n = 2000
     successes_no_tone = 0

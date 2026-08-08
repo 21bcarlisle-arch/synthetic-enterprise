@@ -126,15 +126,16 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
-from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS
-
-from company.compliance.domain_invariants import (
+from background.gap_metric import prediction_gap, write_gap_entry  # noqa: E402
+from company.compliance.domain_invariants import (  # noqa: E402
     check_supply_start_not_before_first_observable,
 )
-from company.crm.lifecycle_tracker import CustomerLifecycle, LifecycleStage
-from company.crm.supply_start import derive_supply_start
-
-from background.gap_metric import prediction_gap, write_gap_entry
+from company.crm.lifecycle_tracker import (  # noqa: E402
+    CustomerLifecycle,
+    LifecycleStage,
+)
+from company.crm.supply_start import derive_supply_start  # noqa: E402
+from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS  # noqa: E402
 
 WORLD_ATOM_ID = "WORLD_recontracting_relationship_start"
 TWIN_ATOM_ID = "C_supply_start_semantic_separation"

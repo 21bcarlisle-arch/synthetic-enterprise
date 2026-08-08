@@ -20,6 +20,7 @@ import yaml
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
 from background.forward_attachment_register import attachments_by_atom  # noqa: E402
+
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 OUT_PATH = PROJECT / "site" / "data" / "maturity_map.json"
 # ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13): the anti-livelock stall

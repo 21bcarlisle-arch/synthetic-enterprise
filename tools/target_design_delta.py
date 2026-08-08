@@ -59,7 +59,6 @@ from __future__ import annotations
 import argparse
 import ast
 import json
-import os
 import re
 import subprocess
 import sys
@@ -262,7 +261,7 @@ def probe_modules_over_line_cap(project_dir: Path) -> tuple[int, int, list[str]]
     """Count modules past MONOLITH_LINES, using SP3's census so line counting cannot diverge."""
     try:
         sys.path.insert(0, str(project_dir))
-        from tools.size_ratchet import RatchetUnavailable, census_at
+        from tools.size_ratchet import census_at
     except ImportError as exc:
         raise ProbeUnavailable(f"SP3 size census unavailable: {exc}") from exc
     try:

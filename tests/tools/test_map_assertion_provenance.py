@@ -25,7 +25,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools import map_assertion_provenance as mp  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Fixture: a real repo whose history we control to the second
 # ---------------------------------------------------------------------------

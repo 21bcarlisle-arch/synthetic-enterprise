@@ -148,3 +148,72 @@ def test_malformed_state_is_silent_not_raising(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "_current_head_hash", lambda: "H")
     # never raises into the draw ladder
     assert supervisor._publish_gate_wedge_active(now=1_800_000_000.0) is None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ALARM → DIAL — the draw names the alarm's own filed cure
+# (2026-08-09, DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH, draw 2b)
+#
+# The named defect: on 2026-08-08 the cure for a 7h wedge sat filed as
+# WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD while the wedge alarm fired ten times and
+# addressed only the director. RUNG 1 is already priority zero, so lifting the filed
+# finding INTO this message is what "the alarm raises its own cure's draw priority"
+# means mechanically: the finding stops competing with feature work in the staging
+# backlog and becomes the priority-zero instruction.
+#
+# Both ways: cited findings must APPEAR, and a state with none must not emit an empty
+# citation clause (a control that always prints its own success text cannot fail).
+# ══════════════════════════════════════════════════════════════════════════════
+
+def test_draw_names_the_filed_findings_the_alarm_cited(tmp_path, monkeypatch):
+    now = 1_800_000_000.0
+    state = _wedged_state(now)
+    state["cited_findings"] = [
+        "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md",
+        "WORKER_FINDING_RELATIVE_HOOK_PATHS_WEDGE_SESSION_2026-08-08.md",
+    ]
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "FILED FINDINGS ALREADY HOLDING THE SUSPECTS" in msg
+    assert "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md" in msg
+    assert "draw these FIRST" in msg
+
+
+def test_mutation_no_cited_findings_no_citation_clause(tmp_path, monkeypatch):
+    """Strip the citation and the clause must VANISH — otherwise the draw would always
+    claim to have a cure in hand, which is the fail-open shape."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now))  # no cited_findings key at all
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "FILED FINDINGS" not in msg
+
+
+def test_malformed_citation_never_breaks_the_draw(tmp_path, monkeypatch):
+    now = 1_800_000_000.0
+    state = _wedged_state(now)
+    state["cited_findings"] = "not-a-list"
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg and "FILED FINDINGS" not in msg
+
+
+def test_draw_carries_episode_memory_when_it_exceeds_the_window(tmp_path, monkeypatch):
+    """The draw, like the alarm, must not narrate hour seven as a fresh hour."""
+    now = 1_800_000_000.0
+    state = _wedged_state(now, n=6)
+    state["episode_failures"] = 42
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert "EPISODE: 42 consecutive failures" in msg and "not a fresh hour" in msg
+
+
+def test_mutation_episode_equal_to_window_adds_no_episode_clause(tmp_path, monkeypatch):
+    """A genuinely fresh wedge (episode == window) must NOT gain the escalating language —
+    the clause has to be able to be absent or it says nothing when present."""
+    now = 1_800_000_000.0
+    state = _wedged_state(now, n=6)
+    state["episode_failures"] = 6
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "EPISODE:" not in msg

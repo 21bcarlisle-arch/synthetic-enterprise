@@ -2892,6 +2892,24 @@ def _publish_gate_wedge_active(
     last_reason = ""
     if isinstance(failures[-1], dict):
         last_reason = str(failures[-1].get("reason", ""))
+    # ALARM->DIAL (2026-08-09, DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH draw 2b): the alarm
+    # enumerated the findings filed against this wedge into the state file; the draw names them
+    # as the work. This is what "an alarm raises its own cure's draw priority" means concretely --
+    # RUNG 1 is already priority zero, so a finding named here has been lifted out of the staging
+    # backlog (where it loses to feature work, as the cure for the 7h episode of 2026-08-08 did)
+    # and into the highest rung of the ladder. Bounded and defensive: a malformed list is ignored.
+    cited = state.get("cited_findings")
+    cited = [str(f) for f in cited][:8] if isinstance(cited, list) else []
+    cure_clause = (
+        " FILED FINDINGS ALREADY HOLDING THE SUSPECTS -- draw these FIRST, before any product or "
+        "HARDEN work, and dispose of each (fix, or re-freeze with provenance): "
+        + ", ".join(cited) + "."
+    ) if cited else ""
+    episode = state.get("episode_failures")
+    episode_clause = (
+        f" EPISODE: {episode} consecutive failures since the wedge began -- this is not a fresh hour."
+        if isinstance(episode, int) and episode > len(failures) else ""
+    )
     return (
         "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
         "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
@@ -2901,7 +2919,7 @@ def _publish_gate_wedge_active(
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
-        f"cause. Last recorded failure: {last_reason}"
+        f"cause.{episode_clause}{cure_clause} Last recorded failure: {last_reason}"
     )
 
 
