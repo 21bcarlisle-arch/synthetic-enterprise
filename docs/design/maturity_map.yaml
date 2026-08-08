@@ -3553,3 +3553,44 @@
   evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/in_progress/COLD_EYES_PROTOCOL.md']
   file_scope: ['.claude/skills/cold-eyes-walk/SKILL.md', 'tools/blind_review.py', 'tests/tools/test_blind_review.py']
   origin_note: "The director named the reconciliation with COLD_EYES_PROTOCOL.md as the worker's job and as a ONE-MECHANISM requirement -- shipping this beside the existing cold-eyes skill is a failure of the atom, not a follow-up. Depends on AO1 because 'the plain-words capability description' the reviewer is shown IS a capability-index row; without the index this hand-writes the input and the blindness stops being auditable. R15/outcome-testing (the doctrine's own carve-out for LLM judges): blindness must be PROVEN by construction, not asserted -- if the committed transcript is the only evidence, a mutation that leaks code into the reviewer's context must be shown to be detectable from that transcript. 3c is a WALL: this atom may never be described as delivering independence."
+
+# ---------------------------------------------------------------------------
+# Minted 2026-08-08 (worker tick, at AO1 close). Two items that were RULED but
+# had NO ATOM, so they were undrawable and therefore invisible -- the same R17
+# defect that left the parent programme consumed-not-absorbed for three days.
+# Found by dispositioning the two staged docs AO1 consumed, not by a sweep.
+# ---------------------------------------------------------------------------
+- id: AO10_exhaust_separated_from_record
+  title: "Stop filing the machine's heartbeat with the governance"
+  gain: "The instruction record becomes readable again, because 78 instructions stop being buried under ~4,300 run markers."
+  name: "ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04 section 4, the ONE item of that proposal's four with no home in the map: docs/staging/done/ holds ~4,909 files of which ~4,299 are run-completion markers and 78 are director/advisor instructions. Operational exhaust moves to its own location with a RETENTION POLICY; instructions and rulings are kept. The volume was never the problem -- the filing is."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: advisor_proposal
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/in_progress/ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md']
+  file_scope: ['background/staging_archive_policy.py', 'tests/background/test_staging_archive_policy.py']
+  origin_note: "ARCHIVE, NEVER DELETE is a standing rule and binds here hardest: this atom moves ~4,300 files, so a bug is a mass loss of the run record rather than a tidy-up gone slightly wrong. Do it as a MOVE with the old path recorded, never an rm, and prove the count before equals the count after. R15 shape to hunt: a retention policy that silently drops an INSTRUCTION misclassified as exhaust -- the classifier must be shown to fire on a real director doc, not just on run_complete_*.md. Note the mirror risk to the whole point: 78 instructions is a manageable record and 4,909 is an impenetrable one, but a policy that makes the exhaust UNFINDABLE has only moved the impenetrability."
+- id: AO11_map_assertion_provenance
+  title: "Every map cell says when it was last checked"
+  gain: "A stale level becomes a query instead of a discovery someone happens to make weeks later."
+  name: "ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06 item A2, which AO1 deliberately did NOT absorb: a map assertion should carry WHEN IT WAS MADE and WHEN IT WAS LAST VERIFIED against the artefacts it claims. A cell reading L0 while its artefacts on disk say L2 is a validity-window failure -- an assertion true when written and silently false now, with nothing recording either date."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: advisor_addendum
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/in_progress/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md']
+  file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
+  origin_note: "This is the STALE-CELL CLASS, not a tidy-up -- the addendum's own words, and the most recent instance is the DD cell reading level 0 with no ledger entry while all six sub-parts were built, committed and live. The company layer is already bitemporal (company/**/bitemporal_event_log.py, valid-time and transaction-time); the governance layer that steers it is not. Reuse of that primitive is the obvious candidate AND the obvious trap -- the parent programme's own wall says forced reuse that couples two purposes is the mirror error of duplication, so check whether it fits before taking it, and record the answer either way (that check is exactly what AO2's gate is for). NOT delivered by AO1: the index makes no assertions to timestamp, because it re-derives on every query. Additive by design -- assert nothing the draw reads until proven, per the addendum's own mitigation."

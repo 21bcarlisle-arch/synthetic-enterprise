@@ -27,8 +27,12 @@
 > Ruling 2). Retrofitting titles to the other 194 atoms is that ruling's own work, not this one's.
 >
 > **OPEN SUB-ITEMS (this file stays here until they close):**
-> 1. **Nothing is BUILT yet** — all nine sit at level 0. This tick made the programme *drawable*, which
->    is the thing three days of staging did not. AO1 and AO8 are the open draws.
+> 1. ~~**Nothing is BUILT yet**~~ — **AO1 (MAP step 1) is BUILT, L0→L2, 2026-08-08** (`7e5a727d4`,
+>    `tools/capability_index.py`, 24 tests, five R15 source mutations each firing its own guard;
+>    837 rows, 268 orphans of which 260 in `company/`). Addendum A1 is answered by construction —
+>    the index never reads `maturity_map.yaml`, so no field sweep touched the draw. **Open draws now:
+>    AO8** (still untouched, independent) **and AO2/AO3/AO7/AO9**, which AO1 unblocks. The index is a
+>    demo until AO2 spends it — the director's own framing, so AO2 is the next MAP draw, not a later one.
 > 2. **The author's own WORK THIS CREATES block is still owed** (same ask as the three rulings in
 >    `WORKER_MINTED_THREE_RULINGS_WORK_BLOCK_DEFECT_2026-08-08.md`). **UNBLOCKS ON:** the block arriving —
 >    then diff it against the nine atoms above; anything in the author's block and absent here is a gap

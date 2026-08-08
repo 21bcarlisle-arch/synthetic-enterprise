@@ -100,6 +100,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     "AO7_target_design_doc",
     "AO8_board_batteries_executable",
     "AO9_blind_review_by_restricted_context",
+    # 2026-08-08 reviewed (worker tick, minted at AO1 close from the two ruled items that had no
+    # atom). Same class as their AO siblings above and classified on their merits: AO10 moves
+    # ~4,300 run markers out of the instruction record so governance is readable -- filing, not a
+    # revenue flow; AO11 puts an assertion date and a last-verified date on map cells so a stale
+    # level is a query rather than a discovery -- registry integrity, and it touches no customer,
+    # price or settlement. Filing either under meter_to_cash or price_to_bill would invent a
+    # customer neither goes near.
+    "AO10_exhaust_separated_from_record",
+    "AO11_map_assertion_provenance",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle

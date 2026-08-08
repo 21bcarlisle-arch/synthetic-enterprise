@@ -1,3 +1,28 @@
+<!-- SUPERVISOR_DRAW: available -->
+> **[IN-PROGRESS — 2026-08-08 worker tick] A1 and A3 DISCHARGED for MAP; A2 STILL OPEN.**
+>
+> **A1 (degraded edges are MAP's precondition) — answered BY CONSTRUCTION, not by a field sweep.**
+> `tools/capability_index.py` **never reads `maturity_map.yaml`**: every row derives from source on
+> disk. The 48 multiply-claimed files, the directory-level scope claims and the four prose
+> `depends_on` values therefore cannot degrade it, and **nothing the draw reads was touched** — which
+> is the outcome this addendum's own risk section asks for ("report before edit"; probable failure =
+> "A1 read as licence for a large field-normalisation sweep across 185 atoms"). The degraded fields
+> remain degraded; that is a real finding still owed to whoever owns the map's own integrity, and it
+> is **no longer MAP's blocker**.
+>
+> **A3 (the gate cannot ask "is this still wired?") — DELIVERED** as `--orphans`: 268 rows nothing
+> imports and no command runs, 260 of them in `company/`. Mutation-proven both ways. It counts
+> **references by path** as callers, because the first run called a live `exec(open(...))`-invoked
+> dispatcher an orphan — reporting a working mechanism as dead is how a retirement pass deletes
+> something load-bearing, so the false-orphan reading is a defect of the same weight as the miss.
+>
+> **OPEN SUB-ITEM (this file stays here until it closes):**
+> 1. **A2 — temporal provenance on map assertions** (when was this cell asserted, when was it last
+>    checked against its artefacts). **Not addressed by AO1 and deliberately so:** the index makes no
+>    assertions to timestamp — it re-derives on every query, so "when was this last verified" is
+>    answered by *now*. A2 belongs to whatever continues to *assert* levels, i.e. the map and the
+>    ledger, and **has no atom yet**. Mint it against the map's own integrity, not against MAP.
+
 # [ADVISOR-ADDENDUM] — Edge integrity as MAP's precondition (2026-08-06)
 
 **Amends:** `DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md`. Does not supersede it: the goal, the

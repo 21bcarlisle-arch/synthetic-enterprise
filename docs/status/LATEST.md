@@ -1,5 +1,34 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T19:10:33Z
+Last updated: 2026-08-08T19:16:17Z
+
+**AO1_capability_index (2026-08-08, `7e5a727d4`+`d96b1d45b`) — MAP step 1 of the director's
+ARCHITECTED-OUT programme. The reuse surface, derived. L0→L2, self-certified.**
+`tools/capability_index.py` answers *"do we already have this?"* in ~3s over **837 production
+modules** — 490 wired, 57 entrypoint, **268 orphan**, 97 unnamed, 67 with no test evidence. Every
+field derived from source at query time (plain words = the module docstring; status from real import
+**and by-path** edges; evidence = the tests that import it; demo = how you'd see it), so there is **no
+committed artefact to drift** — a hand-written index would itself be the duplication the programme
+exists to kill. **Addendum A1 answered BY CONSTRUCTION:** the index never reads `maturity_map.yaml`,
+so the degraded `file_scope`/`depends_on` fields cannot degrade it — **no 185-atom field sweep, and
+nothing the draw reads was touched**, which the addendum's own risk section names as the probable
+failure. **A3 delivered as `--orphans`:** 268, of which **260 sit in `company/`**, corroborating July's
+KNIFE target (~320 zero-import company modules) from an independent derivation. **R15 was the hard
+part, as the atom said** — an index that under-reports doesn't look broken, it looks like a small
+codebase, and the builder who reads "nothing to reuse" then writes the duplicate, so a wrong index is
+**worse than none**. Five source mutations, each proving its own guard fires: vacuity floor,
+**tautology** (the coverage oracle is `git ls-files`, *not* the walk the rows come from),
+unparsed-not-skipped, fail-silent oracle, name-only matching. **The floor mutation initially left all
+23 tests GREEN** — the test asserted a `VACUITY` tag the per-root guard *also* emits: union-metric
+blindness **inside an R15 test**, found only by mutating the source, now witnessed alone.
+**Two real defects the first run exposed, both fixed:** `--find "working day"` returned **0 rows** for
+`company/compliance/working_days.py` — the exact capability whose duplicate the director cites as
+evidence, i.e. the fail-open that *causes* the duplicate rather than preventing it; and a live
+dispatcher invoked by path (`exec(open(...))`) read as an **orphan**, the false-orphan reading that
+gets a working mechanism retired. **Write-time gate applied to its own build:**
+`generate_capabilities_json.py` **not** extended, for cause (12 hand-authored brand cards for a public
+page; coupling that to a build-time developer query is the coupling error the director weighs equal to
+duplication). 24 tests. Not L3: no HARDEN/Expert-Hour, and the index is a *demo* until **AO2** — the
+write-time gate — spends it; AO2/AO3/AO7/AO9 are drawable now.
 
 **H31_secret_scrub_test_leaks_wake_key (2026-08-08, `72d33f7da`) — the suite's verdict depended on
 collection order, so the fix went at the CLASS. L0→L2, self-certified.**
@@ -719,7 +748,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
@@ -832,6 +861,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1806.8h across 69 sized atom(s) (9 of 78 below-target atoms still unsized).
+- Remaining effort: ~1761.1h across 68 sized atom(s) (9 of 77 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

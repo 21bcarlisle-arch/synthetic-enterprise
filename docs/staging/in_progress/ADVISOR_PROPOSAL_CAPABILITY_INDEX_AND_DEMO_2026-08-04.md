@@ -1,3 +1,30 @@
+<!-- SUPERVISOR_DRAW: available -->
+> **[IN-PROGRESS — 2026-08-08 worker tick] §1 BUILT; §2, §3, §4 STILL OPEN.**
+>
+> **§1 the capability index — DELIVERED** as atom `AO1_capability_index`, L0→L2
+> (`7e5a727d4`, `tools/capability_index.py`, `docs/design/CAPABILITY_INDEX.md`, 24 tests).
+> Derived, never hand-authored: 837 rows over the code that exists, ~3s, no committed artefact to
+> drift. The proposal's four questions are the row's four fields, and **the empty rows are visible
+> by construction** as it asked — 97 unnamed capabilities, 268 orphans, 67 with no test evidence.
+>
+> **One departure from the proposal, stated rather than absorbed silently.** §1 suggests deriving
+> capability identity "from the atom or module under test", i.e. **from the tests**. The delivery
+> derives from **source modules**, using tests only as the `evidence` column. Reason: an index keyed
+> on the test suite can only ever show capability that is *already tested*, so the most valuable row
+> the proposal names — the capability with nothing proving it — is exactly the row that shape cannot
+> produce. Deriving from source makes absence visible; deriving from tests makes absence invisible.
+>
+> **OPEN SUB-ITEMS (this file stays here until they close):**
+> 1. **§2 the demo** — a test run with visible output, five suggested loops. Not started. Closest
+>    map atom is `AO3_join_test_tier` (the five system tests), now drawable; the demo is the
+>    *visible-output* half of those same five and should be built with them, not beside them.
+> 2. **§3 the blind check** — batteries executable (`AO8`, drawable, untouched) and blind-by-restricted-
+>    context (`AO9`, which must reconcile with `COLD_EYES_PROTOCOL.md`, one mechanism not two).
+> 3. **§4 separate the exhaust from the record** — `docs/staging/done/` holds ~4,900 files of which
+>    ~4,300 are run-completion markers. **No atom exists for this yet**; it is the one item of the
+>    four with no home in the map, which is precisely how work goes invisible (the R17 defect this
+>    programme's own absorption hit). Mint it or rule it out — do not leave it here unowned.
+
 # [ADVISOR-PROPOSAL] — How an outsider would assess this, and what that implies we should build (2026-08-04)
 
 **Type:** [PROPOSAL]. Findings and a suggested shape; the mechanism is yours. Refute freely.
