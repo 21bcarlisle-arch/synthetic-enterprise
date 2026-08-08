@@ -5,14 +5,14 @@
       "belief_form": "EPC register prior HLC (kW/K), company-side",
       "belief_source": "EPC register prior only",
       "bias_model": -0.020561,
-      "inference_improvement": -0.03229870531557044,
+      "inference_improvement": -0.027650067514514293,
       "mae_model": 0.020561,
       "mae_noskill": 0.100365,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
-        "forgone_annual_kg_co2e": 2284.140925271511,
-        "forgone_lifetime_gbp": 82.5184175562863,
-        "gbp_per_tonne_co2e": 36.12667530418575,
+        "forgone_annual_kg_co2e": 2284.4223144141847,
+        "forgone_lifetime_gbp": 83.26773850398968,
+        "gbp_per_tonne_co2e": 36.450238635207334,
         "misrank_rate": 0.1
       },
       "money_consequence_inferred": {
@@ -28,11 +28,11 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.1212917718426174,
+            "value": 0.12479629309514974,
             "verdict": "fail"
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.37890974881114486,
+            "value": 0.3295154116078919,
             "verdict": "pass"
           },
           "L1.3_away_days_per_year": {
@@ -40,7 +40,7 @@
             "verdict": "pass"
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.08719078153788064,
+            "value": 0.07934169285065529,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
@@ -48,25 +48,24 @@
             "verdict": "pass"
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.3438714866476657,
+            "value": 0.338882112539023,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06525978363847919,
+            "value": 0.06044601286685289,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
-            "value": 0.40733295826496724,
-            "verdict": "fail"
+            "value": 1.022342082344912,
+            "verdict": "pass"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7125775991177365,
+            "value": 1.7319747665390262,
             "verdict": "unvalidated"
           }
         },
         "failed_levels": [
-          "L1",
-          "L2"
+          "L1"
         ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
@@ -75,11 +74,11 @@
     },
     "g0": 0.10036526959999999,
     "gap": 0.2048599389205446,
-    "measured_at": "2026-08-03T15:28:24.683032+00:00",
+    "measured_at": "2026-08-08T20:54:49.205197+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.02056082299999999,
-    "run_git_commit": "381b0f2c08d7317acadc09c3d2042b841e009d40",
+    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -87,15 +86,15 @@
     "components": {
       "belief_form": "C14 posterior HLC (kW/K): EPC prior shrunk toward meter evidence",
       "belief_source": "C14 posterior (EPC + meter evidence)",
-      "bias_model": -0.001963,
-      "inference_improvement": -0.03229870531557044,
-      "mae_model": 0.023802,
+      "bias_model": -0.001363,
+      "inference_improvement": -0.027650067514514293,
+      "mae_model": 0.023336,
       "mae_noskill": 0.100365,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
-        "forgone_annual_kg_co2e": 2284.140925271511,
-        "forgone_lifetime_gbp": 82.5184175562863,
-        "gbp_per_tonne_co2e": 36.12667530418575,
+        "forgone_annual_kg_co2e": 2284.4223144141847,
+        "forgone_lifetime_gbp": 83.26773850398968,
+        "gbp_per_tonne_co2e": 36.450238635207334,
         "misrank_rate": 0.1
       },
       "money_consequence_inferred": {
@@ -111,11 +110,11 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.1212917718426174,
+            "value": 0.12479629309514974,
             "verdict": "fail"
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.37890974881114486,
+            "value": 0.3295154116078919,
             "verdict": "pass"
           },
           "L1.3_away_days_per_year": {
@@ -123,7 +122,7 @@
             "verdict": "pass"
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.08719078153788064,
+            "value": 0.07934169285065529,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
@@ -131,25 +130,24 @@
             "verdict": "pass"
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.3438714866476657,
+            "value": 0.338882112539023,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06525978363847919,
+            "value": 0.06044601286685289,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
-            "value": 0.40733295826496724,
-            "verdict": "fail"
+            "value": 1.022342082344912,
+            "verdict": "pass"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7125775991177365,
+            "value": 1.7319747665390262,
             "verdict": "unvalidated"
           }
         },
         "failed_levels": [
-          "L1",
-          "L2"
+          "L1"
         ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
@@ -157,12 +155,12 @@
       }
     },
     "g0": 0.10036526959999999,
-    "gap": 0.23715864423611505,
-    "measured_at": "2026-08-03T15:28:24.683032+00:00",
+    "gap": 0.2325100064350589,
+    "measured_at": "2026-08-08T20:54:49.205197+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
-    "raw_gap": 0.02380249126672817,
-    "run_git_commit": "381b0f2c08d7317acadc09c3d2042b841e009d40",
+    "raw_gap": 0.02333592948055242,
+    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -382,11 +380,11 @@
     },
     "g0": 31.0,
     "gap": 0.5806451612903226,
-    "measured_at": "2026-08-08T18:16:15.409341+00:00",
+    "measured_at": "2026-08-08T20:49:33.363386+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.2903 [NOT EVIDENCE -- the ageing dimension's normalisation is the wrong shape and its value is uninterpretable: prevalence alone moves it twentyfold with company behaviour held fixed, and >1 does NOT mean worse-than-no-skill. Proven in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom D6a. Do not cite this figure as fidelity]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.2903 [NOT EVIDENCE -- the ageing dimension's normalisation is the wrong shape and its value is uninterpretable: prevalence alone moves it twentyfold with company behaviour held fixed, and >1 does NOT mean worse-than-no-skill. Proven in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom D7_ageing_gap_metric_reshape. Do not cite this figure as fidelity]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
     "raw_gap": 18.0,
-    "run_git_commit": "c9f4a65fb235ebe33ffad1fd675a9ee8904929aa",
+    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {

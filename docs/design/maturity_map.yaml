@@ -3088,7 +3088,7 @@
   couples_with: [C14_thermal_parameter_inference]
   file_scope: [docs/design, simulation/premise_trace.py, tests/simulation/test_premise_trace.py]
   depends_on: [W1_11_fabric_physics_core, W1_5_premise_demand_shape]
-  simplifications_count: 6
+  simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the actual half-hourly consumption of a real street: every house a different age, fabric, boiler, thermostat setting and family, so no two traces look alike and the street total is far smoother than any single house"
   evidence: [docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md, docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md, docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md, simulation/premise_trace.py, tests/simulation/test_premise_trace.py]
