@@ -1,4 +1,27 @@
 <!-- SUPERVISOR_DRAW: available -->
+> **PARKED IN_PROGRESS 2026-08-08 (later tick). Sub-item 2 is CLOSED; 1 and 3 are the open half.**
+>
+> **Done — sub-item 2, the `premise_trace` orphan is disposed.** Owning atom identified by exact
+> `file_scope` match: `W1_12_premise_trace_generator`. ADOPTED and committed as `46422b0d6`
+> (pushed; `origin/main` verified at that SHA), attributed as an adoption, not as this tick's build.
+> It did **not** verify clean: the orphan regressed `test_the_verdict_is_WORST_CELL_not_an_average`,
+> which passes at HEAD (checked in a detached worktree). Diagnosed rather than patched — the verdict
+> logic is correct; `_smooth` cannot out-run the natural spread of the more diverse population the
+> atom now produces, and the fixture's own discrimination guard passed for the wrong reason. Repaired
+> with a dominating mutation (`_flatten_within_day`) plus an explicit argmin assertion, R15
+> mutation-tested both ways. Level HELD at L2 — the generator is still not wired into the demand
+> path and the COUPLED_TRIAD gap vs `C14_thermal_parameter_inference` is unmeasured.
+>
+> **Blocking sub-item — 1, the tick-exit check.** This is the CLASS fix (R10) and the only thing that
+> stops the next instance; sub-item 2 was the third instance found by accident. It is prose-only right
+> now, which by MAKE_IT_STICK means it will evaporate. **What unblocks it:** a mechanism in
+> `background/` that, before a bounded invocation exits, reports uncommitted tracked changes outside
+> the tick's own `file_scope` — whose atom they match, whether their tests pass, whether a level move
+> is recorded — and REPORTS only, never auto-commits. Sub-item 3 (the `maturity_map.yaml` contention
+> note, relates to unbuilt `H9_map_write_serialisation`) rides with it.
+>
+> Left here deliberately so the draw re-surfaces the unbuilt half. Do not bulk-archive to silence it.
+
 # [WORKER-FINDING] Green work is dying uncommitted in the shared tree (2026-08-08, AO2 tick)
 
 **Class:** work-at-risk. **Found by:** the 21:04 tick, while committing `AO2_write_time_reuse_gate`.
