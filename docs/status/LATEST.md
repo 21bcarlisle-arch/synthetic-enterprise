@@ -1,5 +1,30 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-03T20:56:00Z
+Last updated: 2026-08-08T18:10:05Z
+
+**H30_sim_runner_discards_child_stderr (2026-08-08, `de2c3d7d8`) — the machine can now say WHY it
+failed. L0→L2, self-certified.** The sim red loop that cost the director attention this morning logged
+`rc=1` eight times and nothing else: `run_simulation()` launched the child with fd 2 inherited, and under
+a daemon that fd is a socket, so the traceback — a one-line `NameError` — was destroyed as it was written.
+**Closed at the CLASS, not the instance (R10):** `tools/child_stderr_guard.py` AST-flags any launch site
+under `background/` that reports a child's FAILURE to a human while discarding its stderr. It found
+**eleven**, all fixed, **none exempted** (`EXEMPT` is empty): `sim_runner` (both), `background_worker`'s
+leftover-marker sweep, `process_run_complete`'s git add/commit/push and its liveness publish,
+`executor_governor`'s map fold. The guard is **invoked, not merely present** — wired into
+`pre_commit_test_gate.CONTROL_TESTS`, so it runs on any code change rather than only when the guard itself
+is edited. **Its scope is proven, not asserted:** `uncovered_declared_entrypoints()` reads
+`background/process_manifest.yaml` and returns rc=2 if any declared non-retired daemon's entrypoint sits
+outside the scanned root — a coverage hole is a failure, never a pass, which is what stops the
+`background/`-only scope from being a silent exclusion. **R15 both ways:** the real NameError shape as a
+source fixture turns it red, as do `check=True`-without-capture and explicit `stderr=DEVNULL`; deleting
+`stderr=PIPE` from `run_simulation` turns the LIVE guard red (`sim_runner.py:84`) and fails 4 behavioural
+tests; restored, all green. **Verified at runtime, not only in source:** a real failing child through the
+new kwargs renders `NameError: name '_IC_SEGMENTS' is not defined` as the NTFY headline and the full
+traceback in the log tail. **R2 honoured:** `sim-runner` and `background-worker` were restarted (pids
+247602/247604, started 19:09:17 against a file written 18:59) — committed was not running. Sits at
+`loop_stage: harden`, not L3: no Expert Hour, and the coverage check has only ever met a fixture manifest.
+Found in passing and **queued, not fixed on sight**: `H31_secret_scrub_test_leaks_wake_key` — a
+finally-reload that runs before monkeypatch restores the env, leaving `WAKE_HMAC_KEY` unset process-wide
+so 4 signing tests pass or fail on collection order (reproduced with H30's files uninvolved).
 
 **DD_seasonal_cashflow_physics (2026-08-03, `e99debe6d`) — the parked residual was waiting on a
 mechanism that has never had a caller. L0→L2, recorded.** The cell read level 0 with **no ledger entry
@@ -636,7 +661,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (510s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (620s / 10 min):
 - Net margin: £1,523,089.20 | Gross: £6,466,004.45 | Capital: £51,380
 - Treasury: £2,466,636 → £3,900,164 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,277,938.85 | Net after CTS: £1,499,930
@@ -740,14 +765,14 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
 - (T3_inherence) [unanswered >24h] If `SE_NTFY_TOPIC` was never set, then paging was never configured in the first place — so on what basis is this being reported as NTFY "going down" (an outage) rather than a feature that was simply never enabled, and what does either state have to do with the company entering administration?
 - (T3_inherence) [unanswered >24h] If the run_complete wedge is marked RESOLVED only because its markers were cleared, but the RED publish gate causing it stems from the two site wedges (ntfy sends failing and staging_watcher DOWN) that you list as still unfixed, what stops the same 31-marker saturation from re-accumulating the moment the next run completes?
-- (T3_inherence) When "the fabric physics now has a seam into the path the company settles on," does that seam let the physics constrain the company's chosen path (a modelling fix), or does it let the chosen path feed back and alter the physics — i.e. can the optimiser now move the simulated world's ground truth to make its own enterprise value or survival numbers look better?
-- (T3_inherence) In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
-- (T3_inherence) What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
-- (T3_inherence) What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
+- (T3_inherence) [unanswered >24h] When "the fabric physics now has a seam into the path the company settles on," does that seam let the physics constrain the company's chosen path (a modelling fix), or does it let the chosen path feed back and alter the physics — i.e. can the optimiser now move the simulated world's ground truth to make its own enterprise value or survival numbers look better?
+- (T3_inherence) [unanswered >24h] In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
+- (T3_inherence) [unanswered >24h] What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
+- (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1321.2h across 55 sized atom(s) (9 of 64 below-target atoms still unsized).
+- Remaining effort: ~1407.0h across 61 sized atom(s) (9 of 70 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
