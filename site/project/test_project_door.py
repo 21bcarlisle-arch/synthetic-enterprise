@@ -408,3 +408,39 @@ def test_at_least_one_claim_evidence_link():
     # method track record). At least one such evidence link must be present.
     assert 'href="../method/' in text or 'href="../proof/' in text, \
         "no claim->evidence link to an evidence door found"
+
+
+# ---------------------------------------------------------------------------
+# FUT1 (DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §2): the accretion
+# ledger is VISIBLE on the map -- a future atom shows what has already been
+# built toward it. R11 to the rendered pixel; R15 independence below.
+# ---------------------------------------------------------------------------
+def test_forward_attachment_badge_renders_for_an_accreted_atom():
+    d = _live()
+    accreted = [a for a in d["maturity_map"]["atoms"] if a.get("forward_attachments")]
+    assert accreted, "fixture precondition: at least one atom has a forward attachment"
+    out = _render(d)
+    body = out["mm-view-body"]["innerHTML"]
+    a = accreted[0]
+    assert f"{len(a['forward_attachments'])} BUILT TOWARD" in body
+    # The hover carries the provenance -- the source doc, not just a count.
+    assert a["forward_attachments"][0]["source"] in body
+
+
+def test_forward_attachment_badge_is_independent_of_render():
+    """R15: the badge follows the DATA. A count nobody derived must not appear, and a
+    count that changes must move the pixel -- otherwise the badge is a hard-coded prop."""
+    d = _live()
+    target = next(a for a in d["maturity_map"]["atoms"] if a.get("forward_attachments"))
+    target["forward_attachments"] = [
+        {"source": "docs/staging/SENTINEL_888X.md", "date": "2026-01-01", "kind": "finding", "note": "x"},
+        {"source": "docs/staging/SENTINEL_889X.md", "date": "2026-01-02", "kind": "finding", "note": "y"},
+    ]
+    body = _render(d)["mm-view-body"]["innerHTML"]
+    assert "2 BUILT TOWARD" in body
+    assert "SENTINEL_888X" in body
+    # And an atom with no attachments carries no badge.
+    d2 = _live()
+    for a in d2["maturity_map"]["atoms"]:
+        a["forward_attachments"] = []
+    assert "BUILT TOWARD" not in _render(d2)["mm-view-body"]["innerHTML"]

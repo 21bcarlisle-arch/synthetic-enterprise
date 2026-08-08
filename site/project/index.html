@@ -619,8 +619,18 @@ function renderMMView(){
 function mmAtomRow(a){
   var lvlText=(a.level_current!=null&&a.level_target!=null)?("L"+a.level_current+" → L"+a.level_target):"--";
   var loopColor=MM_LOOP_COLOR[a.loop_stage]||"muted";
+  // FUT1 (futures ruling 2026-08-08 §2): a future atom accretes a VISIBLE ledger of what has
+  // already been built toward it. The badge counts the findings/DISCOVER mints that declared
+  // they advance this atom; hover lists them. Full ledger: docs/design/FORWARD_ATTACHMENT_LEDGER.md
+  var fa=a.forward_attachments||[];
+  var faBadge="";
+  if(fa.length){
+    var srcs=fa.map(function(e){return (e.date||"")+" "+e.source;}).join("\n");
+    faBadge='<span title="Built toward this already:\n'+srcs.replace(/"/g,"&quot;")+'">'+
+      mmBadge(fa.length+" BUILT TOWARD","blue")+'</span>';
+  }
   return '<div class="mm-atom-row"><span>'+a.name+'</span><span>'+lvlText+' '+
-    mmBadge((a.loop_stage||"?").toUpperCase(),loopColor)+
+    mmBadge((a.loop_stage||"?").toUpperCase(),loopColor)+faBadge+
     (a.at_target?mmBadge("AT TARGET","green"):"")+'</span></div>';
 }
 

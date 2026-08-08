@@ -12,11 +12,14 @@ since that table is prose in the .md, not structured in the .yaml) and lets
 the site's own JS group/toggle between views client-side.
 """
 import json
+import sys
 from pathlib import Path
 
 import yaml
 
 PROJECT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT))
+from background.forward_attachment_register import attachments_by_atom  # noqa: E402
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 OUT_PATH = PROJECT / "site" / "data" / "maturity_map.json"
 # ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13): the anti-livelock stall
@@ -112,6 +115,12 @@ def generate():
     if not isinstance(atoms, list):
         return False
     stall_state = _load_stall_state()
+    # FUT1 (DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §2): what has already been
+    # built toward each (mostly future, mostly blocked) atom, DERIVED at generation time
+    # from the `**Advances:**` declarations in the findings themselves -- same read-only
+    # merge discipline as the stall tracker above, and the same reason: never write a
+    # derived field back into the hand-curated YAML.
+    attachments = attachments_by_atom()
 
     out_atoms = []
     for a in atoms:
@@ -140,6 +149,10 @@ def generate():
                 and a["level_current"] >= a["level_target"],
             "stalled": bool(stall_entry.get("stalled")),
             "stall_consecutive_unchanged": stall_entry.get("consecutive_unchanged"),
+            "forward_attachments": [
+                {"source": e["source"], "date": e["date"], "kind": e["kind"], "note": e["note"]}
+                for e in attachments.get(a.get("id"), [])
+            ],
         })
 
     data = {

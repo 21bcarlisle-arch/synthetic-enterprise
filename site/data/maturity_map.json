@@ -16,8 +16,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 22
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D3_catchup_rebilling",
@@ -36,7 +37,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D1_bill_correctness",
@@ -55,7 +57,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D2_three_clocks",
@@ -74,7 +77,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_reveal_over_time",
@@ -92,8 +96,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_2_generate_futures",
@@ -113,8 +118,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B1_margin_bridge",
@@ -133,7 +139,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B2_opex_cost_to_serve",
@@ -152,7 +159,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B3_hedge_tariff_alignment",
@@ -171,7 +179,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B4_competitor_field",
@@ -191,8 +200,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B5_regional_basis_risk",
@@ -214,8 +224,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C1_segment_layers",
@@ -234,7 +245,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C2_discovery_through_interfaces",
@@ -252,8 +264,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -272,7 +285,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "E1_ledger_double_entry",
@@ -291,7 +305,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "E2_revenue_reconciliation",
@@ -310,7 +325,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "E3_accrual_restatement",
@@ -329,7 +345,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F1_epistemic_verifier",
@@ -348,7 +365,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F2_sanity_daemon",
@@ -367,7 +385,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F3_obligations_register",
@@ -386,7 +405,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G1_test_progression_metrics",
@@ -405,7 +425,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G2_event_log_shared_with_spine",
@@ -426,7 +447,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_1_archetype_layers",
@@ -445,7 +467,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_2_population_draw",
@@ -465,8 +488,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_3_competitor_field",
@@ -485,7 +509,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_4_household_budget",
@@ -507,8 +532,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_5_life_event_stream",
@@ -528,8 +554,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_6_sme_distress_twin",
@@ -551,8 +578,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_7_willingness_classification",
@@ -574,8 +602,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_8_self_rationing",
@@ -597,8 +626,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_9_segment_debt_tnc",
@@ -620,8 +650,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_10_dd_attribution_confound",
@@ -643,8 +674,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_12_change_of_tenancy_debt_physics",
@@ -664,8 +696,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -687,8 +720,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -708,8 +742,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 81
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -728,7 +763,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W3_2_settlement_timetable",
@@ -748,8 +784,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W4_1_typed_adapters",
@@ -768,7 +805,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W4_2_verifier_timing_extension",
@@ -786,8 +824,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A1_learn_loop_chair",
@@ -805,8 +844,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A2_decision_rights_register",
@@ -824,8 +864,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A3_approval_interface",
@@ -845,8 +886,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 30
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A4_sim_approver",
@@ -866,8 +908,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -886,7 +929,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H7_skills_and_rules",
@@ -905,7 +949,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H1_supervisor_turn_granting",
@@ -924,7 +969,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H2_tree_lock_concurrency",
@@ -943,7 +989,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W5_1_banking_payment_rails",
@@ -965,7 +1012,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D_payments_maturity_audit",
@@ -984,7 +1032,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C4_adoption_physics",
@@ -1006,8 +1055,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 38
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C5_key_moment_conversion",
@@ -1028,8 +1078,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -1050,8 +1101,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 33
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
@@ -1070,7 +1122,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H4_go_live_nfr_register",
@@ -1092,7 +1145,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H8_harness_bootstrap_dr",
@@ -1112,8 +1166,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 51
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F4_company_internal_authz",
@@ -1131,8 +1186,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 41
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H5_security_profiles",
@@ -1151,7 +1207,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F5_ofgem_licence_readiness",
@@ -1171,8 +1228,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 27
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -1193,8 +1251,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 69
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H9_map_write_serialisation",
@@ -1212,8 +1271,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE1_expert_doors",
@@ -1231,8 +1291,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1250,8 +1311,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3401
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1269,8 +1331,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3069
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE_EH3_figure_reconciliation_and_periods",
@@ -1288,8 +1351,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3396
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS_run_marker_sweep_livelock",
@@ -1307,8 +1371,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 83
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H10_worktree_isolation",
@@ -1326,8 +1391,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 38
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "ARCH1_internal_seams",
@@ -1345,8 +1411,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G3_method_ip_worktree_retro",
@@ -1364,8 +1431,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 72
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H11_naive_organ",
@@ -1383,8 +1451,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 194
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "BRAND1_identity_system",
@@ -1402,8 +1471,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F5_vat_control_independent_signal",
@@ -1421,8 +1491,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F6_bill_integrity_structural",
@@ -1440,8 +1511,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F7_obligations_register_coverage",
@@ -1459,8 +1531,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 17
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H12_mutation_test_controls",
@@ -1478,8 +1551,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 157
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F8_control_gap_fixes_kl4_kl8",
@@ -1497,8 +1571,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A6_coupled_triad_gap_metric",
@@ -1516,8 +1591,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 123
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C9_cantpay_wontpay_classifier",
@@ -1540,8 +1616,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C10_self_rationing_detection",
@@ -1564,8 +1641,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C7_life_event_detection",
@@ -1588,8 +1666,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C6_affordability_inference",
@@ -1613,8 +1692,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C12_channel_attribution_analytics",
@@ -1637,8 +1717,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C8_sme_credit_risk",
@@ -1661,8 +1742,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C11_segment_debt_policy",
@@ -1685,8 +1767,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H14_judge_validation",
@@ -1706,8 +1789,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 340
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A7_harm_cost_weights_decision",
@@ -1728,7 +1812,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_3_national_weather_signal",
@@ -1748,8 +1833,9 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_4_regional_weather_field",
@@ -1769,8 +1855,9 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_5_premise_demand_shape",
@@ -1792,8 +1879,9 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 17
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_6_physics_price_signal",
@@ -1813,8 +1901,9 @@
       ],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C13_weather_normalisation",
@@ -1838,8 +1927,9 @@
       ],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_7_renewable_capacity_trends",
@@ -1859,8 +1949,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 94
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1882,8 +1973,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 31
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1903,8 +1995,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 71
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -1924,8 +2017,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H15_publish_gate_failure_alert",
@@ -1943,8 +2037,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H16_idle_detection_stability_gate",
@@ -1962,8 +2057,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A8_experiment_loop_speed",
@@ -1983,8 +2079,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -2005,8 +2102,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G4_unified_failure_register",
@@ -2024,8 +2122,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H18_harness_self_mutation_audit",
@@ -2043,8 +2142,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -2062,8 +2162,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 27
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G5_effort_sizing_discipline",
@@ -2081,8 +2182,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G6_method_lens_audit",
@@ -2100,8 +2202,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H19_escalation_ntfy_route_around",
@@ -2120,7 +2223,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G7_wip_cycle_time_dashboard",
@@ -2138,8 +2242,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G8_constraint_identification_ritual",
@@ -2158,7 +2263,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G9_error_budget_toil_tracking",
@@ -2176,8 +2282,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G10_definition_of_ready_gate",
@@ -2195,8 +2302,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H20_parallel_maintenance_lane",
@@ -2215,7 +2323,8 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G11_activity_cost_utilisation",
@@ -2236,8 +2345,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H21_self_contained_escalation",
@@ -2255,8 +2365,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H22_scheduled_housekeeping",
@@ -2276,8 +2387,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H23_frame_saturation_draw_marker",
@@ -2296,7 +2408,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_operational_layer_rebuild",
@@ -2314,8 +2427,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -2335,8 +2449,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -2354,8 +2469,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_governance_refusal_mutation_test",
@@ -2375,8 +2491,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
@@ -2394,8 +2511,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H_draw_excludes_external_blocked_atoms",
@@ -2414,7 +2532,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D5_account_hierarchy_payments",
@@ -2432,8 +2551,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "E4_supplier_reporting_standard",
@@ -2451,8 +2571,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 39
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "E5_carbon_three_ledger",
@@ -2470,8 +2591,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2489,8 +2611,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2508,8 +2631,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 18
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2527,8 +2651,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 19
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2546,8 +2671,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2565,8 +2691,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H28_precommit_gate_ambient_cwd_git_discovery",
@@ -2584,8 +2711,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H27_phone_act_channel",
@@ -2603,8 +2731,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2624,8 +2753,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2646,8 +2776,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H27_payment_belief_gap",
@@ -2670,8 +2801,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D6_payment_ageing_gap_validity",
@@ -2692,8 +2824,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 157
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D7_ageing_gap_metric_reshape",
@@ -2716,8 +2849,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D8_ambiguous_remittance_misdating",
@@ -2740,8 +2874,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D10_detection_headline_is_single_channel",
@@ -2762,8 +2897,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D9_worse_than_blind_chip_is_metric_blind",
@@ -2786,8 +2922,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 117
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "GAP1_gap_registers_as_mint_sources",
@@ -2806,7 +2943,8 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G1_fidelity_grid_scorer",
@@ -2824,8 +2962,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G2_fidelity_evidence_ledger",
@@ -2843,8 +2982,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "G3_fidelity_inspection_chain",
@@ -2862,8 +3002,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "A_scope_of_need_scoring_frame",
@@ -2883,8 +3024,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D_cascade_correlation_estimation",
@@ -2904,8 +3046,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 102
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F1a_sim_customer_response",
@@ -2927,8 +3070,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 84
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F1b_company_comms",
@@ -2950,8 +3094,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 126
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2975,8 +3120,9 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 122
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2996,8 +3142,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3632
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D_opening_dd_seasonal_sizing",
@@ -3015,8 +3162,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 23
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -3036,8 +3184,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -3055,8 +3204,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2747
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -3076,8 +3226,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -3095,8 +3246,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 52
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3117,8 +3269,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "CA4_cohort_activation_sequencing_verdict",
@@ -3136,8 +3289,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 46
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "CA1_cohort_assignment_live",
@@ -3155,8 +3309,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "CA2_coverage_report_realised_cohort",
@@ -3174,8 +3329,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "CA3_segmentation_untestable_ledger_marking",
@@ -3193,8 +3349,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 65
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SPINE_1_scenario_world_state",
@@ -3213,7 +3370,8 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SPINE_3_gas_storage_crisis_regime",
@@ -3233,8 +3391,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B6_collateral_cash_death_loop",
@@ -3254,8 +3413,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H29_import_time_env_capture_test_isolation",
@@ -3273,8 +3433,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 45
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_16_payment_outcome_rng_substream_isolation",
@@ -3294,8 +3455,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 26
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H30_sim_runner_discards_child_stderr",
@@ -3313,8 +3475,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H31_secret_scrub_test_leaks_wake_key",
@@ -3332,8 +3495,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B3_published_forecast_error_horizons",
@@ -3351,8 +3515,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 96
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B4_traded_product_ladder",
@@ -3370,8 +3535,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 92
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B5_shaped_cost_benchmark_value_add",
@@ -3391,8 +3557,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 89
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B7_customer_state_layer_moves_and_shocks",
@@ -3410,8 +3577,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B8_discovered_price_sensitivity_holdout",
@@ -3429,8 +3597,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B10_competitor_switching_response",
@@ -3448,8 +3617,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 137
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "B11_evolutionary_tournament_harness",
@@ -3469,8 +3639,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15370
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3490,8 +3661,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 49
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_11_fabric_physics_core",
@@ -3511,8 +3683,9 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 63
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_12_premise_trace_generator",
@@ -3535,8 +3708,9 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3556,8 +3730,9 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C14_thermal_parameter_inference",
@@ -3579,8 +3754,9 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 81
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H_GAP_fabric_belief_truth_gap",
@@ -3604,8 +3780,9 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 171
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SP2_1_working_day_calculator",
@@ -3623,8 +3800,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 68
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3642,8 +3820,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 71
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3661,8 +3840,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3680,8 +3860,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 72
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3699,8 +3880,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W3_1b_intra_year_price_cap_granularity",
@@ -3718,8 +3900,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3737,8 +3920,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 31
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_non_dd_miss_vocabulary",
@@ -3758,8 +3942,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 19
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_sme_segment_case_normalisation",
@@ -3777,8 +3962,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 29
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "W2_15_segment_case_sensitivity_siblings",
@@ -3798,8 +3984,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 44
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3817,8 +4004,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C_supply_start_consumer_routing",
@@ -3838,8 +4026,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "C15_supply_start_observable_floor",
@@ -3859,8 +4048,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3878,8 +4068,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "D_printed_figure_rederivation",
@@ -3899,8 +4090,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "H_stop_control_gap_characterisation",
@@ -3918,8 +4110,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 53
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3937,8 +4130,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 227
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "OPS_stall_class_register_adoption",
@@ -3956,8 +4150,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO1_capability_index",
@@ -3975,8 +4170,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO2_write_time_reuse_gate",
@@ -3996,8 +4192,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO3_join_test_tier",
@@ -4017,8 +4214,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 34
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO4_scale_constraints_executable",
@@ -4038,8 +4236,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO5_hotspot_consolidation",
@@ -4061,7 +4260,8 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO6_consolidation_rhythm",
@@ -4082,8 +4282,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO7_target_design_doc",
@@ -4103,8 +4304,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 34
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO8_board_batteries_executable",
@@ -4122,8 +4324,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 25
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO9_blind_review_by_restricted_context",
@@ -4143,8 +4346,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO10_exhaust_separated_from_record",
@@ -4162,8 +4366,9 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 48
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     },
     {
       "id": "AO11_map_assertion_provenance",
@@ -4181,8 +4386,523 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP1_clv_three_horizon",
+      "name": "Three-horizon customer lifetime value: contract-term, tenure-expected, and portfolio-cohort. The company's OWN estimate assembled from observables (onboarding, flow events, payment behaviour, cost-to-serve) -- never a read of SIM truth -- so it is allowed to be wrong and the gap is the score. Named in DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 \u00a71 as an Epoch-2 floor item; no atom on the map touches CLV today.",
+      "lane": "B_commercial",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP2_variance_learning_loop",
+      "name": "The learning half of close_to_learn: the ex-post bridge decomposing expected-vs-realised per cohort as true-ups land, and the loop that feeds that decomposition back into the company's forward estimates. THE_VALUE_CYCLE_FRAMING C3 states the target directly -- 'margin volatility becomes explained variance or a defect'. Named in the ruling \u00a71 as an Epoch-2 floor item.",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP5_settlement_true_ups"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP3_pricing_engine_late_truth",
+      "name": "The pricing engine: ex-ante cost stack (wholesale, losses, network, policy, cost-to-serve, bad debt, capital) plus an explicit margin decision, priced against ESTIMATED costs and then reconciled as true-ups arrive. EPOCH2_EVIDENCE Q1 tested the director's suspicion that prices are back-calculated rather than decided; this atom is the answer's build half. Named in the ruling \u00a71 as an Epoch-2 floor item.",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP4_collections_journey",
+      "name": "The end-to-end collections journey: missed payment, reminder, dunning ladder, payment arrangement, vulnerability hold, debt provision, and the exits (cured, arrangement, disconnection-equivalent, write-off). The D-lane ageing work has measured the company's BELIEF about arrears (D6/D7: wrongful-dunning exposure is ~10x the miss rate); this atom is the journey those measures are about. Named in the ruling \u00a71 as an Epoch-2 floor item.",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
+          "date": "2026-08-08",
+          "kind": "discover",
+          "note": "Clayton's-Case appropriation of unreferenced payments misdates debt while leaving the balance exactly right, so the collections road from missed payment to resolution is walked against wrong dates; the wrongful-dunning exposure this creates"
+        }
+      ]
+    },
+    {
+      "id": "EP5_settlement_true_ups",
+      "name": "Settlement true-ups on the real industry timetable -- SF to R1 through to RF at 14 months -- landing as corrections on the bitemporal ledger, restating cohort margin and carrying unbilled income as the audited judgement it really is. THE_VALUE_CYCLE_FRAMING C2 (three clocks). Named in the ruling \u00a71 as an Epoch-2 floor item. W3_2_settlement_timetable exists and is SATURATED, but it is the WORLD's timetable; this is the COMPANY's ledger coping with it.",
+      "lane": "E_finance_treasury",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W3_2_settlement_timetable"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP6_wall_protocol_typing",
+      "name": "Protocol typing of the wall: every SIM/company boundary crossing becomes a typed, versioned message with an explicit request/response separation in time, so a mock counterparty and a real one are indistinguishable to the company. The wall IS the go-live seam. Named in the ruling \u00a71 as an Epoch-3 floor item. W4_1_typed_adapters (SATURATED) built the adapter PATTERN; this is the protocol layer every named adapter below plugs into.",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP7_adapter_elexon_insights",
+      "name": "Adapter for the Elexon Insights Solution (bmrs.elexon.co.uk): REST for the full BMRS catalogue -- imbalance volumes, pricing stacks, dynamic BMU data, demand -- plus IRIS real-time push and the Data Archive. Access class OPEN NOW, zero accession cost. Indicative settlement prices land ~15 min after each settlement period with a D+1 refresh; Settlement messages give early warnings on calculation accuracy. Advisor research verified live 2026-08-05.",
+      "lane": "W4_the_wall",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP8_adapter_dcc_duis",
+      "name": "Adapter for DCC smart-metering service requests in DUIS shapes (e.g. read billing registers). Access class GATED: direct access requires SEC accession, SMKI certification and CIO/UIT testing, with no public sandbox. This adapter stays MOCKED until accession -- the deliverable is that it is mocked AS the real DUIS request/response message formats, so the eventual swap is transport-only.",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP9_adapter_n3rgy_consented_metering",
+      "name": "Adapter for a DCC Other User consented-metering API (n3rgy, with Hildebrand/Glow as the alternate): live AND sandbox services, auth by IHD MAC/CIN, registration by MPAN/MPRN. Access class SANDBOX NOW. Fidelity gold the SIM should reproduce, verified 2026-08-05: the supplier pull is ONCE DAILY PER METER, returning a midnight index read plus a half-hourly usage file -- and missing days STAY MISSING unless re-requested.",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP10_adapter_uk_link_xoserve",
+      "name": "Adapter for the Xoserve/CDSP UK Link suite under the UNC. Access class GATED via the Data Services Contract / UK Link User Agreement, but the APIs are real and named: Supply Point Switching, Supply Point Enquiry, Meter Asset Enquiry (via RECCo), Supply Point Quantities (Shippers only). Fidelity nuggets verified 2026-08-05: meter read classes 1-4 with cadences from daily to annual, and UIG (unidentified gas, per LDZ per gas day) as a real reconciliation residue the gas plumbing should be able to produce.",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP11_adapter_gocardless_bacs",
+      "name": "Adapter for Direct Debit collection: GoCardless bureau route (full free sandbox at manage-sandbox.gocardless.com; mandate and payment lifecycle via Billing Requests; webhook events for confirmations, failures, cancellations), shaped so direct Bacs (SUN via sponsoring bank, Bacstel-IP) is a later transport swap. Verified timing physics: UK collection confirms ~4-5 working days after charge creation. The Bacs report set IS the unhappy-path spec -- ADDACS (mandate amendments/cancellations), ARUDD (returned unpaids with reason codes), AUDDIS (lodgement failures), AWACS (account switches) -- each report a generator of SIM events.",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [
+        "W5_1_banking_payment_rails"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP12_adapter_css_rec_switching",
+      "name": "Adapter for switching flows: electricity CSS (operated by DCC) and gas Supply Point Switching, both administered through RECCo under the REC Data Access Matrix, with eligibility confirmed by the REC Code Manager. Access class GATED; the adapter stays mocked, shaped to REC message flows. B10_competitor_switching_response models the company's RESPONSE to switching; this is the industry PROCESS that switching actually runs through.",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP13_adapter_carbon_intensity",
+      "name": "Adapter for the NESO Carbon Intensity API (carbonintensity.org.uk): free, no key, national and regional actual and forecast gCO2/kWh. Access class OPEN NOW. Regional intensity multiplied by half-hourly usage is the abatement ledger's ground truth. Feeds E5_carbon_three_ledger, which today has no real feed behind it.",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP14_adapter_published_cost_stack",
+      "name": "File-ingest adapters, not REST clients, for the published cost stack: the Ofgem price cap level and full annex model (spreadsheets each period), DNO DUoS via CDCM tariff spreadsheets, TNUoS via NESO publications, and BSUoS as reformed under NESO. Access class OPEN, spreadsheet-shaped. These feed the non-commodity cost stack that the advisor's scope brief puts in ~\u00a34.9M reconciliation-gap territory.",
+      "lane": "W4_the_wall",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP15_forecast_feed",
+      "name": "The weather and market forecast feed: a point-in-time-safe forward view (weather forecast, forward curve, demand outlook) delivered through the wall as an as-of-bound observable, so the company can plan without the future being readable. Named in the ruling \u00a71 as an Epoch-3 floor item. B3_published_forecast_error_horizons measures forecast ERROR; this is the feed whose error that atom measures.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP6_wall_protocol_typing"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP16_anchored_generators",
+      "name": "Anchored generators: synthetic but externally-calibrated worlds (weather, price, demand, population) whose generating parameters stay tethered to real observed distributions, so a generated 2031 is a plausible world rather than an invented one. Named in the ruling \u00a71 as an Epoch-4 floor item. W1_2_generate_futures (SATURATED) generates forward CURVES; this is the whole-world generator with its anchoring discipline.",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
+          "date": "2026-08-08",
+          "kind": "finding",
+          "note": "the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered."
+        }
+      ]
+    },
+    {
+      "id": "EP17_varied_population_draw",
+      "name": "Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling \u00a71 as an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation across runs.",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP16_anchored_generators"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
+          "date": "2026-08-08",
+          "kind": "finding",
+          "note": "the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered."
+        }
+      ]
+    },
+    {
+      "id": "EP18_enterprise_value_fitness",
+      "name": "Enterprise value as the fitness function of the evolutionary tournament: companies survive or die on a valuation built from their own audited results, not on margin or growth alone. Named in the ruling \u00a71 as an Epoch-4 floor item. A5_tournament_fitness_mortality (L0, FRAME exists) and B11_evolutionary_tournament_harness (L0) are already on the map for the tournament MECHANISM; this atom is specifically the fitness DEFINITION they select on, which neither currently fixes.",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "A5_tournament_fitness_mortality",
+        "EP17_varied_population_draw"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP19_counterparty_qualification_paths",
+      "name": "The qualification path for every gated counterparty, as a tracked register: SEC accession + SMKI + CIO/UIT (DCC), REC/RECCo eligibility via the Code Manager (CSS and switching), the Data Services Contract / UK Link User Agreement (Xoserve/CDSP), and a sponsoring bank + Service User Number (direct Bacs). The advisor's research observes that every gated counterparty names its own qualification path, so 'the Epoch-5 checklist is writing itself'.",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "EP20_go_live_cutover_analysis",
+      "name": "Go-live analysis stubs: the cutover analysis for swapping each mocked adapter to its real transport -- ordering, dual-run/reconciliation period, rollback, and the failure modes that only appear when a real counterparty is on the other end. Named in the ruling \u00a71 as the Epoch-5 floor item. H4_go_live_nfr_register (L1) holds the NON-FUNCTIONAL requirements and H8_harness_bootstrap_dr the DR bootstrap; neither covers the cutover itself.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "EP19_counterparty_qualification_paths"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "FUT1_attach_forward_hook",
+      "name": "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 \u00a72, WORK-THIS-CREATES #2 and #5: any finding or DISCOVER mint may DECLARE which future atoms it advances, and each future atom accretes a visible ledger of what has already been built toward it. The mechanism is the worker's; the property is mandatory. Acceptance includes #5 -- the two forward-findings of 2026-08-08 (the heat-pump anchor and the Clayton misdating) retro-attached as the first ledger entries.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "verify",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "FUT2_pull_forward_proposal",
+      "name": "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 \u00a73, WORK-THIS-CREATES #3: dials and the planner may PROPOSE unblocking a ripe future atom, with its accretion ledger as the case. Unblocking is a true door -- the proposal path must be wired to STOP at the director and must never proceed on silence, which is a deliberate exception to the standing propose-then-proceed default.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "FUT1_attach_forward_hook"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "FUT3_blocked_atom_visibility",
+      "name": "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 \u00a74, WORK-THIS-CREATES #4: blocked atoms are invisible to the DRAW but must be visible to the target-design deltas and the staleness clocks -- confirmed, not assumed. Verification target, measured at mint on 2026-08-08: lane weights were 82 harness vs 7 commercial across 206 atoms, with zero atoms touching CLV, named counterparty adapters or a forecast feed.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -4265,7 +4985,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 206,
+  "total_atoms": 229,
   "epoch2_movements": [
     {
       "id": "M1",

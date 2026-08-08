@@ -3,6 +3,7 @@
 **Atom:** `D6_payment_ageing_gap_validity` (lane D_billing_metering, epoch 3, dial 3)
 **Stage:** DISCOVER — closed 2026-08-08
 **Couples with:** `H27_payment_belief_gap`, `W2_11_payment_behaviour_source`
+**Advances:** EP4_collections_journey — Clayton's-Case appropriation of unreferenced payments misdates debt while leaving the balance exactly right, so the collections road from missed payment to resolution is walked against wrong dates; the wrongful-dunning exposure this creates is measured (D7) before any journey is built on top of it.
 **Question as filed:** the live coupled-triad reports an ageing gap of **1.1538** — above 1.0,
 i.e. the company's debt-ageing belief scores *worse than the baseline the metric norms against*.
 Genuine company failure mode, or metric-shape defect?

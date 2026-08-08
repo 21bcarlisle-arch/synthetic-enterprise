@@ -1,6 +1,7 @@
 # [WORKER-FINDING] W1_12 stays L2: the last red cell is a heat-pump home, and the band judging it was derived from gas homes (2026-08-08)
 
 **Drawn work:** `W1_12_premise_trace_generator`, L2 -> L3 (lane `W1_market_weather`, dial 3).
+**Advances:** EP16_anchored_generators, EP17_varied_population_draw — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
 **Outcome: the level did NOT move. W1_12 remains at L2**, on a measured red cell, not on a hunch.
 **Every number below is `observed-with-evidence`** — re-measured this tick at HEAD `e492096d4`
 via `python3 tools/couple_fabric.py --write-ledger`, not read from the previous ledger row.
