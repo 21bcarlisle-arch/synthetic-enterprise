@@ -1,5 +1,46 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T20:18:29Z
+Last updated: 2026-08-08T20:37:56Z
+
+**AO9_blind_review_by_restricted_context (2026-08-08, `c9ec19dcd`) — the blind board loses its human
+courier. L0→L2, self-certified.** Board scaling §3b/3c. The director named why the blind board worked:
+not the courier, not a better reviewer — **what the reviewer could not see**. The courier was only the
+enforcement, and it is why the board ran a handful of times. `tools/blind_review.py` replaces the
+courier and nothing else.
+**Blindness by construction, not by promise.** The packet is *assembled* from a two-field whitelist —
+the plain-words capability description (an AO1 index row) plus the domain — so there is no seam
+through which build context arrives. The capability id is deliberately **withheld from what the
+reviewer sees**: a module path is a map of the implementation, so naming the subject would undo the
+blindfold in the act of applying it. That exact text is stored **verbatim in the same record as the
+battery it produced**, with a digest — transcript and verdict cannot be separated, because they are
+one record.
+**The audit can DISAGREE with the record.** `--audit` re-derives the blindfold verdict from the stored
+transcript and never reads what the record says about itself: a forged record carrying `leaks: []`
+over a transcript full of source is still caught. The load-bearing proof is that removing the
+`SOURCE_CODE` rule makes the **same** transcript audit clean — without it, "a finding appeared" would
+not distinguish the guard working from something incidental in the fixture. 36 tests; 8 leak classes
+each mutation-proven on its own named defect, plus a reachability test that no rule is dead and a
+false-positive guard (a blindfold that fires on *three-phase supply* gets switched off within a week).
+Fail-open answered both ways: an empty or missing transcript is a **finding**, and an empty ledger
+prints *"an empty pass, not a clean one."* Fail-silent: an unparseable ledger returns rc 2, never rc 0.
+**3c is a WALL and it lives in the data.** Restricted context gives **BLINDNESS, NOT INDEPENDENCE** —
+the reviewer is the same model family. Every record carries `independence: false` and the audit fails
+any record claiming otherwise, so the limit cannot be quietly dropped from prose. Genuinely external
+review stays the director's, for the few highest-stakes verdicts per epoch.
+**ONE MECHANISM, as required** — shipping beside the existing cold-eyes skill would have failed the
+atom. `.claude/skills/cold-eyes-walk/SKILL.md` now **owns** the tool: same five steps, two subjects —
+a rendered artefact (blindfold = the URL) and a capability (blindfold = this tool). A test fails if any
+other skill grows a rival blind-review path.
+**Live run, 840 index rows:** 383 blind-safe as derived, 339 refused with a named reason, 118 with no
+description. A control that can both pass and fail. `PHASE_LABEL` — now the largest single refusal
+cause — was found by *running* the tool, not reasoning about it: *"Direct Debit Mandate Register
+(Phase GD)"* passed every other rule.
+**NOT CLAIMED:** no fresh-context battery is recorded yet; the ledger is empty and the tool says so
+rather than implying coverage. Recording a battery written by the builder who has read the code is
+precisely the defect this atom exists to prevent. First live blind run is the next draw.
+**AO2 caught this commit three times** — G1, then G6 correctly, then G6 as a **false positive**: the
+`INDEX:` field has no terminator, so it swallowed the message body and matched "nothing" 1,200
+characters away in unrelated prose. Queued as a finding for AO2's owner (`c1a13ae9f`), not patched on
+sight — editing a gate to pass your own commit is the route-around shape even when the diagnosis holds.
 
 **AO2_write_time_reuse_gate (2026-08-08, `b9f1dc5e0`) — a new capability module can no longer land
 without the record of the look. L0→L2, self-certified.** MAP step 2, and §5's *"only immediate
@@ -819,7 +860,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (506s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -933,6 +974,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1804.2h across 68 sized atom(s) (9 of 77 below-target atoms still unsized).
+- Remaining effort: ~1712.8h across 66 sized atom(s) (9 of 75 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
