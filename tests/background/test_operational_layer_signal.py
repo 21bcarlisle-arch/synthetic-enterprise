@@ -80,9 +80,39 @@ def _marker_expr(argv):
 def test_operational_layer_argv_is_marker_complement_of_content_gate():
     op_argv = prc.operational_layer_pytest_argv()
     gate_argv = prc.publish_gate_pytest_argv()
-    assert _marker_expr(op_argv) == "operational"
-    assert _marker_expr(gate_argv) == "not operational"
+    assert _marker_expr(op_argv) == "operational or join_report_only"
+    assert _marker_expr(gate_argv) == "not operational and not join_report_only"
     assert op_argv != gate_argv
+
+
+def test_no_marker_is_deselected_by_BOTH_lanes():
+    """The property the pair of constants exists to hold, checked as a PROPERTY
+    rather than as two hardcoded strings agreeing with each other.
+
+    Deselected from the content gate must never mean covered by no gate at all
+    (R11, no orphan transitions). Evaluate both marker expressions over every
+    combination of the markers they mention: each combination must be selected by
+    at least one lane. Adding a third deselected class to the content gate without
+    widening this signal fails here, which is exactly what happened when the join
+    tier landed (AO3_join_test_tier, 2026-08-08).
+    """
+    import itertools
+    import re
+
+    gate = prc.PUBLISH_GATE_MARKER_EXPR
+    op = prc.OPERATIONAL_LAYER_MARKER_EXPR
+    markers = sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", gate + " " + op)) - {"not", "and", "or"})
+    assert markers, "no markers found in either expression — the census is vacuous"
+
+    uncovered = []
+    for combo in itertools.product([False, True], repeat=len(markers)):
+        env = dict(zip(markers, combo))
+        if not (eval(gate, {"__builtins__": {}}, env) or eval(op, {"__builtins__": {}}, env)):
+            uncovered.append({m: v for m, v in env.items()})
+    assert uncovered == [], (
+        "a test carrying these markers would be deselected by the content gate AND by the "
+        f"operational-layer signal — covered by NO gate: {uncovered}"
+    )
 
 
 # ── green result: no page ────────────────────────────────────────────────────
@@ -237,9 +267,9 @@ def test_persistent_red_never_touches_publish_gate_state_or_scope(sent):
     # The content gate's own state file was never created/touched by this signal.
     assert not prc.PUBLISH_GATE_STATE_FILE.exists()
     # The content gate's blocking scope is untouched.
-    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational"
+    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only"
     gate_argv = prc.publish_gate_pytest_argv()
-    assert _marker_expr(gate_argv) == "not operational"
+    assert _marker_expr(gate_argv) == "not operational and not join_report_only"
 
 
 def test_persistent_red_does_not_block_a_simulated_content_publish(sent):

@@ -42,6 +42,18 @@ def pytest_configure(config):
         "generates a published surface (LATEST.md, dashboard, report, site data, atom levels), "
         "or enforces a safety WALL, must NOT carry this marker -- it must stay blocking.",
     )
+    config.addinivalue_line(
+        "markers",
+        "join_report_only: AO3_join_test_tier -- a SYSTEM/join test (tests/system/**) "
+        "watching one of the five chain seams. The director pre-ruled the first landing "
+        "REPORT-ONLY: join tests may be brittle at first and a red one would otherwise "
+        "block publish, so the publish gate runs `-m 'not operational and not "
+        "join_report_only'` and a red join test can ALARM but never wedge the live site. "
+        "CONTAINED to tests/system/ -- this marker must never appear on a module outside "
+        "that tier (it would silence a blocking content test), enforced by "
+        "tests/system/test_report_only_landing.py. Removed from the gate's marker "
+        "expression once the tier has run a stable week -- see docs/design/JOIN_TEST_TIER.md.",
+    )
 
 
 # ── OPS1 sub-step 7 — test/isolation boundary (§2.4): test code CANNOT touch production ──────

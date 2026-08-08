@@ -97,8 +97,14 @@ def _is_marked_operational(module_stem):
 def test_gate_argv_selects_by_operational_marker_not_directory():
     argv = prc.publish_gate_pytest_argv("tests/")
     # marker-based deselection is present ...
-    assert "-m" in argv and "not operational" in argv
-    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational"
+    # 2026-08-08 (AO3_join_test_tier): the expression gained a SECOND, temporary
+    # conjunct -- `not join_report_only`, the report-only landing of the join tier
+    # (docs/design/JOIN_TEST_TIER.md §3). Asserted as an exact equality rather than
+    # a substring so a third conjunct cannot be added silently: widening what the
+    # publish gate ignores must always break this test and be argued for.
+    assert "-m" in argv and prc.PUBLISH_GATE_MARKER_EXPR in argv
+    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only"
+    assert "not operational" in prc.PUBLISH_GATE_MARKER_EXPR
     # ... and the blunt directory ignore (the fail-open we rejected) is GONE.
     assert "--ignore=tests/background" not in argv
     assert "--ignore=tests/hooks" not in argv
@@ -121,9 +127,10 @@ def test_run_fast_tests_emits_the_marker_deselection(tmp_path, monkeypatch):
     assert prc.run_fast_tests("deadbeef") == (True, False)
     argv = captured["argv"]
     # argv[1:3] is the `python -m pytest` launcher; the marker filter is a
-    # SEPARATE `-m "not operational"` pair -- assert that pair is present.
-    assert "not operational" in argv
-    assert argv[argv.index("not operational") - 1] == "-m"
+    # SEPARATE `-m <expr>` pair -- assert that pair is present.
+    assert prc.PUBLISH_GATE_MARKER_EXPR in argv
+    assert argv[argv.index(prc.PUBLISH_GATE_MARKER_EXPR) - 1] == "-m"
+    assert "not operational" in prc.PUBLISH_GATE_MARKER_EXPR
 
 
 def test_heavy_integration_files_still_ignored_for_speed():

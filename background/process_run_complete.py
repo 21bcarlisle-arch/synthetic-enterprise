@@ -147,7 +147,19 @@ PUBLISH_GATE_HEAVY_IGNORES = [
 ]
 # Deselect the daemon-lifecycle layer by MARKER (see @pytest.mark.operational,
 # registered in tests/conftest.py). Keyed on what a test validates, not its path.
-PUBLISH_GATE_MARKER_EXPR = "not operational"
+#
+# `join_report_only` (2026-08-08, AO3_join_test_tier) is the SECOND deselected
+# class and is deliberately TEMPORARY. The director pre-ruled the join tier's
+# first landing report-only -- join tests may be brittle at first, and a red one
+# would otherwise wedge the live-site publish -- so tests/system/** alarms but
+# cannot block. Drop this conjunct once the tier has run a stable week; the delay
+# is the director's, not a judgement call (docs/design/JOIN_TEST_TIER.md §3).
+#
+# Adding a deselected class opens a fail-open channel by construction: any content
+# test could be silenced by taking the marker. Closed by CONTAINMENT -- no module
+# outside tests/system/ may carry it (tests/system/test_report_only_landing.py,
+# mutation-proven both ways).
+PUBLISH_GATE_MARKER_EXPR = "not operational and not join_report_only"
 
 
 def publish_gate_pytest_argv(test_root="tests/"):
@@ -192,7 +204,15 @@ def publish_gate_pytest_argv(test_root="tests/"):
 # gate publishes, and a red result here can never touch content_gate_pytest_
 # argv's own -m expression or PUBLISH_GATE_STATE_FILE. Purely observational.
 OPERATIONAL_LAYER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".operational_layer_signal.json"
-OPERATIONAL_LAYER_MARKER_EXPR = "operational"
+# The TRUE complement of PUBLISH_GATE_MARKER_EXPR, and it has to stay true: this
+# signal exists because "deselected from the content gate" must never mean
+# "covered by NO gate" (R11, no orphan transitions). When the join tier joined the
+# deselected set (2026-08-08, AO3_join_test_tier) this expression had to widen with
+# it -- `not (A and B)` is `(not A) or (not B)` -- or tests/system/** would have
+# been dropped from the content gate AND never picked up here, which is strictly
+# worse than leaving it blocking. Drops back to plain "operational" when the join
+# tier is promoted out of report-only (docs/design/JOIN_TEST_TIER.md §3).
+OPERATIONAL_LAYER_MARKER_EXPR = "operational or join_report_only"
 OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS = 60 * 60   # hourly -- suite is slow; deadman cycles every 5min
 OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD = 2       # consecutive red checks before paging (no single-flake page)
 OPERATIONAL_LAYER_RE_ESCALATE_SECONDS = 60 * 60      # re-page hourly while red persists (matches deadman cadence)
