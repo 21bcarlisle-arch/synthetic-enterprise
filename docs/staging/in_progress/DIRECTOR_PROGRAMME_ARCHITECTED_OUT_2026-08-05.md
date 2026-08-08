@@ -33,6 +33,24 @@
 >    the index never reads `maturity_map.yaml`, so no field sweep touched the draw. **Open draws now:
 >    AO8** (still untouched, independent) **and AO2/AO3/AO7/AO9**, which AO1 unblocks. The index is a
 >    demo until AO2 spends it — the director's own framing, so AO2 is the next MAP draw, not a later one.
+>
+>    **[2026-08-08, later ticks] AO8 and AO7 are now BUILT too.** AO8 L0→L2 (`008df0306`): 76 battery
+>    lines registered, 3 running; the mutation pass caught one check that could not fail. AO7 L0→L2
+>    (§2, this tick): `docs/design/TARGET_DESIGN.md` + `tools/target_design_delta.py` + 36 tests —
+>    7 targets, each with a probe, **1 met**. The anti-wish-list property is structural, not
+>    exhortative: a target naming an unimplemented probe is rc 2, so aspirational prose cannot be
+>    written into the document. Per §2 the delta is REPORTED and does not gate (R12) — the gate is
+>    on measurability. Its mutation pass also caught two guards that could not fail, both now closed.
+>    **MAP is COMPLETE — verified against the live map, not from this file's own history.** AO2 (the
+>    write-time reuse gate) is L2 and RUNNING: it refused this very commit for a missing REUSE record
+>    on `tools/target_design_delta.py`, which is the index being *spent* rather than demoed, and is
+>    the strongest evidence available that the gate is real. AO9 and AO11 are L2 as well. An earlier
+>    draft of this note called AO2 and AO9 unbuilt; that was read from this document's own stale
+>    prose instead of `maturity_map.yaml`, and the gate firing is what caught it — the same
+>    consumed-not-absorbed error §4 is about, committed inside the note recording it.
+>    **Remaining unbuilt: AO3/AO4** (NET — now the next draws), **AO5** (KNIFE, still correctly
+>    blocked behind NET), **AO6** (RHYTHM, which AO7 now unblocks and which is what keeps the target
+>    document current), **AO10**.
 > 2. **The author's own WORK THIS CREATES block is still owed** (same ask as the three rulings in
 >    `WORKER_MINTED_THREE_RULINGS_WORK_BLOCK_DEFECT_2026-08-08.md`). **UNBLOCKS ON:** the block arriving —
 >    then diff it against the nine atoms above; anything in the author's block and absent here is a gap
