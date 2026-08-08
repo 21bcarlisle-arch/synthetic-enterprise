@@ -12,13 +12,57 @@ was not superior capability — same model — it was VANTAGE (cold context, aud
 artefact-only). This skill institutionalises that vantage as a repeatable role, upgrading the
 existing Expert-Hour simulation and fresh-context evaluator with a stricter blindfold.
 
+## Two subjects, one protocol
+
+The protocol below is the SAME five steps whichever subject is under review. What changes is what
+the blindfold is made of:
+
+| Subject | The blindfold | Enforcement |
+|---|---|---|
+| A **rendered artefact** — a page, a door, a headline figure | the deployed URL/screenshot is all the reviewer gets | the fork sees only the artefact |
+| A **capability** — a maturity-map atom, a module's job | the plain-words capability description + the domain, nothing else | **mechanised: `tools/blind_review.py`** |
+
+The capability case used to be the manual blind board: a human cut and pasted the description into a
+fresh context and carried the answers back. The director named the property that made it work — *what
+the reviewer could not see*, never the courier — and the courier is why it ran only a handful of
+times. `tools/blind_review.py` replaces the courier and nothing else.
+
+```
+python3 tools/blind_review.py --packet <capability>        # the exact text to hand a fresh fork
+python3 tools/blind_review.py --record <capability> \
+        --battery-file battery.json --at <timestamp>       # transcript + battery, one record
+python3 tools/blind_review.py --audit                      # re-derive blindness from the transcripts
+```
+
+Run the packet through a **fresh fork that receives the packet and nothing else** — not this
+session's history, not the diff, not this file. The tool **refuses** to render a packet whose
+description carries a path, a module name, a phase or an earlier verdict; that refusal is the
+mechanism working, and the answer is `--plain-words "<blind-safe restatement>"`, which is recorded as
+`restated` so the substitution stays visible to an auditor.
+
+**Do not build a separate blind-review skill.** This file is the one protocol; the tool is its
+enforced blindfold at the one step that previously ran on the honour system.
+
+## The honest limit (director, 2026-08-05, §3c — a WALL, not a caveat)
+
+**Restricted context gives BLINDNESS, NOT INDEPENDENCE.** The reviewer is the same model family as
+the builder, so shared priors and shared blind spots survive the blindfold intact. A cold-eyes pass
+— manual or mechanised — may never be reported as an independent verdict. Genuinely external review
+(the director relaying to a different model or a human) stays reserved for the few highest-stakes
+verdicts per epoch, at his choosing; this narrows the manual channel to where it is irreplaceable
+rather than eliminating it. Every recorded review carries `independence: false` in the data, and
+`--audit` fails any record claiming otherwise.
+
 ## The protocol (for every Expert-Hour walk and every Door/page close)
 
-1. **Fresh instance, hard blindfold:** the reviewer sees ONLY the deployed rendered artefact
-   (URL/screenshot), never the build context, diffs, or intentions. Epistemic wall applied to
-   review itself: the grader must not see inside the build. (This is why `context: fork` is set on
-   this skill — run it in a forked subagent that only receives the artefact, not this session's
-   own conversation history.)
+1. **Fresh instance, hard blindfold:** the reviewer sees ONLY the subject — the deployed rendered
+   artefact (URL/screenshot), or for a capability the assembled packet — never the build context,
+   diffs, or intentions. Epistemic wall applied to review itself: the grader must not see inside the
+   build. (This is why `context: fork` is set on this skill — run it in a forked subagent that only
+   receives the subject, not this session's own conversation history.) For a capability, this step is
+   no longer a promise: the packet is assembled from a two-field whitelist and stored verbatim beside
+   the battery it produced, so the blindfold is auditable after the fact by anyone, from the record
+   alone.
 2. **Priors before pixels:** before viewing, the reviewer states expected sane ranges for the figure
    classes it's about to see (e.g. "incumbent opex per household: £X-Y") — THEN it looks. Any
    displayed figure outside its own stated prior is a finding. This forces the plausibility
