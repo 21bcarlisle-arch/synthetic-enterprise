@@ -582,6 +582,87 @@ BILL_PERIOD_TEMPORAL_SANE = StructuralInvariant(
     source="Basic biller temporal sanity -- dates make sense (INVARIANT_LIBRARY_REDTEAM.md gap 4; R10)",
 )
 
+SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE = StructuralInvariant(
+    id="supply_start_not_before_first_observable",
+    description=(
+        "A CRM account's recorded supply_start must not predate the earliest "
+        "thing we ever observed about that account (its acquisition/registration "
+        "event, first meter read, or first issued bill). Named defect: a "
+        "re-contracted successor account had the PREDECESSOR's term anchor "
+        "written into its supply_start column, stamping a relationship start "
+        "~5 years before the customer existed and inflating every tenure-derived "
+        "figure downstream. This closes the CLASS, not the instance: any account, "
+        "any run, whose supply_start predates its own first observable FAILS. "
+        "An explicitly UNKNOWN (None) supply_start PASSES -- an honest absence "
+        "cannot claim a phantom tenure, and it is the required answer where the "
+        "real date is unrecoverable. A record with NO observables at all FAILS: "
+        "an unavailable check is a failed check, never a green one (R15 "
+        "fail-open), as does a record missing the supply_start key entirely or "
+        "carrying an unparseable date."
+    ),
+    source=(
+        "CRM relationship-start truth -- coldwalk:c1_2_successor_acquisition_date_mismatch "
+        "(adjudicated-real 2026-07-12); R10 class closure for "
+        "C_supply_start_semantic_separation"
+    ),
+)
+
+#: Observable fields a CRM account record may carry, any of which bounds the
+#: earliest point we knew the account existed. Deliberately a fixed keyset: a
+#: caller cannot pass an empty/unknown key and have the check quietly pass.
+_SUPPLY_START_OBSERVABLE_FIELDS = (
+    "acquisition_event_date",
+    "first_meter_read_date",
+    "first_issued_bill_date",
+)
+
+
+def check_supply_start_not_before_first_observable(record: dict) -> bool:
+    """SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE enforcement.
+
+    Input is a CRM account record dict carrying `supply_start` plus whichever of
+    `_SUPPLY_START_OBSERVABLE_FIELDS` are known. Passes iff supply_start is on
+    or after the earliest known observable, or is explicitly UNKNOWN.
+
+    R15 independence: this predicate re-derives the bound from the observables
+    directly and deliberately does NOT import `company.crm.supply_start`. The
+    checker must not borrow its answer from the code it audits -- if the
+    derivation rule regresses, this must still fire.
+
+    Fail-closed cases, each a fail-open pattern this control exists to resist:
+      * `supply_start` key ABSENT -> False (a record that never declares the
+        field is malformed; only an explicit None counts as honest UNKNOWN).
+      * no observables present, or all None -> False (nothing to check against
+        is a FAILED check, not a passed one).
+      * any observable present but unparseable/non-string -> False.
+      * `supply_start` present but unparseable -> False.
+    """
+    if "supply_start" not in record:
+        return False  # fail closed: the field must be declared, even as UNKNOWN
+
+    earliest = None
+    for field in _SUPPLY_START_OBSERVABLE_FIELDS:
+        raw = record.get(field)
+        if raw is None:
+            continue
+        try:
+            observed = date.fromisoformat(raw)
+        except (ValueError, TypeError):
+            return False  # fail closed: a corrupt observable is not a pass
+        if earliest is None or observed < earliest:
+            earliest = observed
+    if earliest is None:
+        return False  # fail closed: an unavailable check is a failed check
+
+    supply_start = record["supply_start"]
+    if supply_start is None:
+        return True  # honest UNKNOWN -- no phantom tenure is being claimed
+    try:
+        started = date.fromisoformat(supply_start)
+    except (ValueError, TypeError):
+        return False  # fail closed: unparseable date
+    return started >= earliest
+
 
 # --- Segment debt T&C (atom C11_segment_debt_policy; world twin W2_9) ---
 #
@@ -732,6 +813,7 @@ ALL_INVARIANTS: list = [
     DEBT_NO_DOMESTIC_LATE_CHARGES,
     DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED,
     PAYMENT_CHANNEL_DD_CONSISTENCY,
+    SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE,
 ]
 
 

@@ -2,7 +2,27 @@
 
 **Finding:** `coldwalk:c1_2_successor_acquisition_date_mismatch` (adjudicated-real, ledger 2026-07-12).
 **Mint spec:** `docs/staging/PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md`.
-**Stage:** DISCOVER (self-drawable). No production code changed here; BUILD half is `blocked_on director_level_up`.
+**Stage:** DISCOVER — **CLOSED, and its BUILD half is PARTLY LANDED (2026-08-03).** The `director_level_up`
+block named below was an act abolished 2026-07-29 and swept 2026-08-03; it is gone, not waiting.
+
+> **BUILD STATUS, 2026-08-03 (worker tick).** The **CRM/definitional half is BUILT L0->L2** as map atom
+> `C_supply_start_semantic_separation`: `company/crm/supply_start.py` separates the two meanings,
+> `customer_registry` gained a `term_anchor_date` column and a NULLABLE `supply_start` (so UNKNOWN is
+> representable), and a successor with no activation observable is recorded **UNKNOWN** rather than
+> back-dated — §BUILD-sketch step 2 as designed, except that the sketch's fallback of "`acquisition_date`
+> unchanged for a record with `successor_of is None`" is kept while the *successor* fallback is UNKNOWN,
+> not the anchor. §BUILD-sketch step 4's R10 guard is registered as
+> `SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE` in `company/compliance/domain_invariants.py`, R15-proven on
+> five mutations. Both R15 shapes in §R15 below were built and both fire.
+>
+> **§BUILD-sketch step 3 (routing the B/C consumers) is NOT DONE and the 11-row consumer table below is
+> therefore STILL ACCURATE as a description of live behaviour** — rows 5-11 remain LIVE-wrong today, and
+> `poesys.net` still renders C1_2 as "Customer since 2016-01-01". That half is minted separately as
+> `C_supply_start_consumer_routing`. The §R11 render-verification below belongs to *that* atom and has
+> **not** been performed; the built half changed nothing user-visible.
+>
+> One claim below was checked and held on real disk: `seed_from_customers` still has no production caller
+> (grep, 2026-08-03), so the registry defect closed here was genuinely definitional/latent.
 **Author:** worker (RUNG-7 DISCOVER half). Evidence-first, every claim cites file:line + a fetched value.
 
 ---

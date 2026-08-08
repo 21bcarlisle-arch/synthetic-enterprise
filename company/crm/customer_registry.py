@@ -10,6 +10,13 @@ Synthetic contact details are generated deterministically from account ID.
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Mapping, Optional
+
+from company.crm.supply_start import (
+    derive_supply_start,
+    derive_term_anchor,
+    migrate_legacy_supply_start,
+)
 
 DEFAULT_DB_PATH = Path("company/data/registry.db")
 
@@ -76,28 +83,87 @@ def _conn(db_path: Path):
         conn.close()
 
 
+# `supply_start` is deliberately NULLABLE: NULL means UNKNOWN -- we do not know
+# when this customer's supply with us began. `term_anchor_date` carries the
+# renewal-grid anchor that `supply_start` used to be silently overwritten with.
+# See company/crm/supply_start.py for why the two are separate.
+_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS customers (
+        account_id       TEXT PRIMARY KEY,
+        customer_type    TEXT NOT NULL,  -- residential / SME
+        fuel_type        TEXT NOT NULL,  -- electricity / gas / dual
+        supply_start     TEXT,           -- real relationship start; NULL = UNKNOWN
+        term_anchor_date TEXT NOT NULL,  -- 365-day renewal grid anchor
+        status           TEXT NOT NULL DEFAULT 'active',  -- active / churned / pending
+        tariff_type      TEXT NOT NULL DEFAULT 'fixed',
+        contact_name     TEXT,
+        address          TEXT,
+        email            TEXT,
+        mpan             TEXT,
+        mprn             TEXT,
+        smart_meter      INTEGER NOT NULL DEFAULT 0,  -- 0/1 bool
+        segment          TEXT NOT NULL,
+        successor_of     TEXT,
+        created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+"""
+
+_COLUMNS = (
+    "account_id, customer_type, fuel_type, supply_start, term_anchor_date, status, "
+    "tariff_type, contact_name, address, email, mpan, mprn, smart_meter, segment, "
+    "successor_of"
+)
+
+
+def _table_columns(conn, table: str) -> list[str]:
+    return [r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+
+
+def _migrate_legacy_schema(conn) -> int:
+    """Split the legacy single-date `supply_start` column in place.
+
+    A pre-separation registry has one date column, fed from `acquisition_date`
+    -- i.e. it actually held the term anchor. SQLite cannot drop a NOT NULL
+    constraint in place, so the table is rebuilt. The per-row split rule lives
+    in `supply_start.migrate_legacy_supply_start` (successors become UNKNOWN
+    rather than keeping the predecessor's date). Returns rows migrated.
+    """
+    columns = _table_columns(conn, "customers")
+    if not columns or "term_anchor_date" in columns:
+        return 0  # fresh DB, or already migrated
+
+    legacy = conn.execute(
+        "SELECT account_id, supply_start, successor_of FROM customers"
+    ).fetchall()
+    conn.execute("DROP INDEX IF EXISTS idx_status")
+    conn.execute("DROP INDEX IF EXISTS idx_segment")
+    conn.execute("ALTER TABLE customers RENAME TO customers_legacy")
+    conn.execute(_SCHEMA)
+    conn.execute("""
+        INSERT INTO customers
+            (account_id, customer_type, fuel_type, supply_start, term_anchor_date,
+             status, tariff_type, contact_name, address, email, mpan, mprn,
+             smart_meter, segment, successor_of, created_at)
+        SELECT account_id, customer_type, fuel_type, supply_start, supply_start,
+               status, tariff_type, contact_name, address, email, mpan, mprn,
+               smart_meter, segment, successor_of, created_at
+        FROM customers_legacy
+    """)
+    for row in legacy:
+        conn.execute(
+            "UPDATE customers SET supply_start = ? WHERE account_id = ?",
+            (migrate_legacy_supply_start(row["supply_start"], row["successor_of"]),
+             row["account_id"]),
+        )
+    conn.execute("DROP TABLE customers_legacy")
+    return len(legacy)
+
+
 def create_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
-    """Create the customer registry schema. Idempotent."""
+    """Create the customer registry schema, migrating a legacy DB. Idempotent."""
     with _conn(db_path) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS customers (
-                account_id      TEXT PRIMARY KEY,
-                customer_type   TEXT NOT NULL,  -- residential / SME
-                fuel_type       TEXT NOT NULL,  -- electricity / gas / dual
-                supply_start    TEXT NOT NULL,
-                status          TEXT NOT NULL DEFAULT 'active',  -- active / churned / pending
-                tariff_type     TEXT NOT NULL DEFAULT 'fixed',
-                contact_name    TEXT,
-                address         TEXT,
-                email           TEXT,
-                mpan            TEXT,
-                mprn            TEXT,
-                smart_meter     INTEGER NOT NULL DEFAULT 0,  -- 0/1 bool
-                segment         TEXT NOT NULL,
-                successor_of    TEXT,
-                created_at      TEXT NOT NULL DEFAULT (datetime('now'))
-            )
-        """)
+        _migrate_legacy_schema(conn)
+        conn.execute(_SCHEMA)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON customers(status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_segment ON customers(segment)")
 
@@ -106,10 +172,22 @@ def _customer_type(segment: str) -> str:
     return "SME" if segment == "SME" else "residential"
 
 
-def seed_from_customers(customers: list[dict], db_path: Path = DEFAULT_DB_PATH) -> int:
+def seed_from_customers(
+    customers: list[dict],
+    db_path: Path = DEFAULT_DB_PATH,
+    activation_by_account: Optional[Mapping[str, str]] = None,
+) -> int:
     """Insert customer records from the simulation's customer list.
 
     Skips records that already exist (INSERT OR IGNORE). Returns count inserted.
+
+    `activation_by_account` maps account_id -> ISO activation date, sourced from
+    the observable acquisition/registration event stream. It is what a real CRM
+    records supply-start from. Accounts absent from it fall back to the rules in
+    `company.crm.supply_start.derive_supply_start` -- which resolve a successor
+    with no activation observable to UNKNOWN (NULL), never to the term anchor.
+    Per C-S1 the mapping need not be complete: it is read per account, so a late
+    or out-of-order activation event simply arrives on a later seed.
     """
     create_schema(db_path)
     inserted = 0
@@ -123,14 +201,14 @@ def seed_from_customers(customers: list[dict], db_path: Path = DEFAULT_DB_PATH) 
             loc = c.get("location", {})
             addr = _address(loc, c.get("home_type", ""))
             email = f"{cid.lower().replace('_', '')}@synthetic-supplier.co.uk"
-            cursor = conn.execute("""
-                INSERT OR IGNORE INTO customers
-                    (account_id, customer_type, fuel_type, supply_start, status,
-                     tariff_type, contact_name, address, email, mpan, mprn,
-                     smart_meter, segment, successor_of)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            cursor = conn.execute(f"""
+                INSERT OR IGNORE INTO customers ({_COLUMNS})
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, (
-                cid, ctype, fuel, c.get("acquisition_date", "2016-01-01"), "active",
+                cid, ctype, fuel,
+                derive_supply_start(c, activation_by_account),
+                derive_term_anchor(c),
+                "active",
                 c.get("contract_type", "fixed_1yr").replace("_1yr", ""),
                 _contact_name(cid), addr, email,
                 _mpan(cid), _mprn(cid) if commodity in ("gas", "dual") else None,
