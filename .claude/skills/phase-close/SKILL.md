@@ -54,3 +54,24 @@ level ladder). Concretely:
 - Every level-up entry names: what was built, what evidence proves it (with real numbers, not
   placeholders), and what the NEXT level still requires — so the next reader never has to re-derive
   the gap from scratch.
+
+## Epoch close — the consolidation pass (AO6)
+
+An epoch close carries one extra duty beyond the per-atom bar above: the **consolidation pass**
+(`docs/design/CONSOLIDATION_RHYTHM.md`). Duplicates found, orphans wired or retired, the
+target-design document updated — organic growth between boundaries, deliberate pruning at them.
+
+**This line is a pointer, not the mechanism.** The duty is enforced by
+`tools/consolidation_rhythm.py --gate` in pre-commit: a commit moving an epoch from open to closed
+without a committed pass record in `docs/observability/consolidation_ledger.jsonl` is REFUSED. If
+this section ever contradicts the gate, the gate is right.
+
+```
+python3 tools/consolidation_rhythm.py --report                  # standing census, any time
+python3 tools/consolidation_rhythm.py --record --epoch N \
+        --dispositions passes.json                              # record the pass, then stage it
+```
+
+Each orphan that appeared since the baseline needs one disposition: `retired` (file gone), `wired`
+(has a caller now), or `kept` (deliberate, with a named reason). Keeping everything is a legitimate
+pass — R12: this checks that the pass happened, never how much was pruned.

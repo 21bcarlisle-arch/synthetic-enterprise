@@ -61,6 +61,19 @@ python3 tools/moap_coherence_gate.py || exit 1
 # predicate (no re-implementation). R15-proven both ways in tests/tools/test_ruling_archive_question_gate.py.
 python3 tools/ruling_archive_question_gate.py || exit 1
 
+# CONSOLIDATION RHYTHM (AO6, 2026-08-08, DIRECTOR_PROGRAMME_ARCHITECTED_OUT §RHYTHM): "every epoch
+# close includes a consolidation pass -- duplicates found, orphans wired or retired". The atom's own
+# origin_note rules out the obvious implementation: "an epoch-close consolidation pass that lives
+# only as prose in a checklist WILL evaporate exactly as the earlier exhortations did." So the duty
+# is a GATE. An epoch is CLOSED when every one of its maturity-map atoms has reached its target --
+# read from the map, never declared -- and a commit that moves an epoch from open to closed without
+# a COMMITTED pass record in docs/observability/consolidation_ledger.jsonl is REFUSED. Fires only on
+# that transition (a map edit closing nothing pays nothing), and only when the map is staged.
+# R12: it checks that the pass HAPPENED and never scores how much was pruned -- a pass that
+# deliberately keeps every orphan, with reasons, is rc 0, and no orphan count can turn this red.
+# R15-proven both ways in tests/tools/test_consolidation_rhythm.py (9 source mutations).
+python3 tools/consolidation_rhythm.py --gate || exit 1
+
 # SIZE + CLONE RATCHET (SP3, 2026-08-03, DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS §3):
 # a monotonic ceiling on module size and cross-file structural duplication, so structural debt
 # drains as a SIDE-EFFECT of ordinary work and never needs a remediation sprint. Four rules: no
