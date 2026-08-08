@@ -78,3 +78,31 @@ branches**, and the unmerged-work draw guard reads **git reality for branches** 
    Relates to `H9_map_write_serialisation`, still unbuilt.
 
 *Queued, not fixed on sight, per SELF_INTERRUPT_DISCIPLINE — the machine was not blocked.*
+
+---
+
+## ADDENDUM (2026-08-08, the adopting tick) — a FOURTH instance, and it is worse
+
+Having disposed of sub-item 2, this tick ran sub-item 1's check BY HAND, once, before exiting — which
+is the whole argument for mechanising it. It found more (observed-with-evidence, R9):
+
+* **`company/billing/credit_balance_control.py` is UNTRACKED**, with `tests/company/billing/
+  test_credit_balance_control.py` likewise untracked. **14 passed.** Untracked is the *worse* shape of
+  this class: it is invisible to `git diff`, so every review that looks at the diff sees a clean tree,
+  and the local suite is green *because the file is there* — the "untracked build passes local-green"
+  pattern that has now bitten this project a third time. Plausibly the build behind
+  `ADVISOR_RESEARCH_CREDIT_BALANCES_2026-08-04.md`, still in staging.
+* Modified and green alongside it: `tests/company/billing/test_direct_debit_characterization.py`,
+  `test_invoice_characterization.py`, `tests/tools/test_generate_billing_ledger.py` (**182 passed**
+  together), plus `tools/couple_supply_start.py`, `tests/tools/test_generate_billing_ledger_pw.py`,
+  `tests/company/pricing/test_thermal_inference.py`, `site/customers/test_customers_door.py`.
+
+**NOT adopted, deliberately.** This finding's own sub-item 1 says *report, never auto-commit* — and
+adopting a company-layer build without identifying its owning atom, running the epistemic verifier on
+it, and checking it against the money-core characterization work in staging would be the mirror
+defect. It is reported here so the next tick draws it as work rather than discovering it by accident.
+
+**This raises the count to four instances in two days, and moves sub-item 1 from "should" to the
+class fix that is overdue** (R10: an absurdity-class defect may not be closed with an instance fix).
+The check must cover UNTRACKED files, not just modified ones — the instance found today would have
+been missed by a `git diff`-only implementation.
