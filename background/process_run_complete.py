@@ -197,6 +197,48 @@ OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS = 60 * 60   # hourly -- suite is slow; 
 OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD = 2       # consecutive red checks before paging (no single-flake page)
 OPERATIONAL_LAYER_RE_ESCALATE_SECONDS = 60 * 60      # re-page hourly while red persists (matches deadman cadence)
 OPERATIONAL_LAYER_TRANSITION_KEY = "operational_layer_signal"
+OPERATIONAL_LAYER_DIGEST_MAX_LINES = 12              # failure lines carried into the log + RED page (R5 payload)
+
+# R5 THE ALERT MUST CARRY ITS OWN DIAGNOSTIC PAYLOAD (2026-08-08, worker tick).
+# This signal paged RED four times carrying `rc=1` and nothing else, because the
+# runner discarded the subprocess's output -- so every page said "something under
+# `-m operational` failed, go look" and a whole diagnostic tick was spent
+# rediscovering a cause the failing run had already printed. Identical in class to
+# the sim_runner finding of the same day (WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE):
+# a monitor whose only artefact is a return code cannot satisfy R5, however
+# correct its transition logic is.
+_OPERATIONAL_LAYER_NO_OUTPUT = "(no output captured from the run -- cause unavailable)"
+
+
+def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_MAX_LINES):
+    """The failing-run payload carried into the log and the RED page.
+
+    Prefers pytest's own `short test summary info` FAILED/ERROR lines (the
+    densest naming of the defect); falls back to the tail of combined output
+    when that section is absent (a collection error, an interpreter crash, a
+    timeout). FAIL-LOUD, never fail-silent (R15): when no output is available
+    at all -- an injected runner that returns only a returncode, a killed
+    process -- it returns an explicit "cause unavailable" marker rather than
+    an empty string that would read in the page as "nothing to report"."""
+    chunks = []
+    for attr in ("stdout", "stderr"):
+        val = getattr(result, attr, None)
+        if isinstance(val, bytes):
+            val = val.decode("utf-8", "replace")
+        if isinstance(val, str) and val.strip():
+            chunks.append(val)
+    if not chunks:
+        return _OPERATIONAL_LAYER_NO_OUTPUT
+
+    lines = [ln.rstrip() for ln in "\n".join(chunks).splitlines() if ln.strip()]
+    summary = [ln for ln in lines if ln.startswith(("FAILED", "ERROR"))]
+    picked = summary[:max_lines] if summary else lines[-max_lines:]
+    if not picked:
+        return _OPERATIONAL_LAYER_NO_OUTPUT
+    omitted = len(summary) - len(picked) if summary else 0
+    if omitted > 0:
+        picked = picked + ["... and {} more failing test(s)".format(omitted)]
+    return "\n".join(picked)
 
 
 def operational_layer_pytest_argv(test_root="tests/"):
@@ -289,10 +331,15 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
 
         if runner is None:
             def runner(argv):
-                return subprocess.run(argv, cwd=str(PROJECT_DIR), timeout=1800)
+                # capture_output so a red can NAME its cause (R5): without it the
+                # subprocess inherits fd 1/2 and the only artefact identifying the
+                # failure is written to the daemon's stream and lost unread.
+                return subprocess.run(argv, cwd=str(PROJECT_DIR), timeout=1800,
+                                      capture_output=True, text=True)
         result = runner(operational_layer_pytest_argv())
         rc = getattr(result, "returncode", None)
         is_green = (rc == 0)
+        digest = "" if is_green else operational_layer_failure_digest(result)
 
         consecutive_red = int(state.get("consecutive_red") or 0)
         consecutive_green = int(state.get("consecutive_green") or 0)
@@ -323,19 +370,19 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
                     "(`pytest -m operational`, deselected from the content publish gate so it can "
                     "never wedge the live site) has been RED for {} consecutive check(s) (rc={}). "
                     "This does NOT affect the published site/report -- it is a daemon-lifecycle "
-                    "test regression. Check tests/ for @pytest.mark.operational failures directly."
-                    .format(consecutive_red, rc),
+                    "test regression. Failing tests:\n{}"
+                    .format(consecutive_red, rc, digest),
                     kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY, state="RED",
                     re_escalate_after=OPERATIONAL_LAYER_RE_ESCALATE_SECONDS,
                 )
                 paged = True
-                log_fn("Operational-layer signal: RED, persistent ({} consecutive) -- paged".format(
-                    consecutive_red))
+                log_fn("Operational-layer signal: RED, persistent ({} consecutive) -- paged; "
+                       "failing:\n{}".format(consecutive_red, digest))
             else:
                 log_fn(
                     "Operational-layer signal: red (consecutive_red={}, below persistent threshold "
-                    "{}) -- logged, not paged (single flake)".format(
-                        consecutive_red, OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD))
+                    "{}) -- logged, not paged (single flake); failing:\n{}".format(
+                        consecutive_red, OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD, digest))
 
         _write_operational_layer_state({
             "last_run_ts": now,
@@ -344,7 +391,7 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
             "consecutive_green": consecutive_green,
         })
         return {"ran": True, "green": is_green, "rc": rc, "consecutive_red": consecutive_red,
-                "consecutive_green": consecutive_green, "paged": paged}
+                "consecutive_green": consecutive_green, "paged": paged, "digest": digest}
     except Exception as exc:
         log_fn("Operational-layer signal check error (swallowed): {}".format(exc))
         return {"ran": False, "reason": "error", "error": str(exc)}

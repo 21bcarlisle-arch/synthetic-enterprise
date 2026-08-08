@@ -255,3 +255,123 @@ def test_persistent_red_does_not_block_a_simulated_content_publish(sent):
     gate_state = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
     assert gate_state["failures"] == []
     assert gate_state["alerted_at"] is None
+
+
+# ── R5: THE RED PAGE MUST CARRY ITS OWN DIAGNOSTIC PAYLOAD ───────────────────
+# Added 2026-08-08 (worker tick) after this signal paged RED four consecutive
+# times carrying `rc=1` and nothing else. The transition logic above was
+# correct throughout -- and still a whole diagnostic tick was spent
+# rediscovering a cause the failing run had already printed and the runner
+# discarded. R5 says an alert carries its diagnostic payload; these prove this
+# one now CAN, and prove the ways it must not silently appear to.
+
+_PYTEST_RED_OUTPUT = """\
+tests/background/test_daemon_lifecycle.py .F                             [ 50%]
+=========================== short test summary info ============================
+FAILED tests/background/test_daemon_lifecycle.py::test_process_set_reconciles
+ERROR tests/background/test_capability.py::test_capability_manifest_present
+1 failed, 1 error, 400 passed in 61.20s
+"""
+
+
+class _OutputRunner:
+    """Runner stub that behaves like the REAL capture_output=True subprocess:
+    carries the child's streams, not just a return code."""
+    def __init__(self, rc, stdout="", stderr=""):
+        self.rc = rc
+        self.stdout = stdout
+        self.stderr = stderr
+        self.argv_seen = []
+
+    def __call__(self, argv):
+        self.argv_seen.append(argv)
+        return type("Result", (), {"returncode": self.rc, "stdout": self.stdout,
+                                   "stderr": self.stderr})()
+
+
+def _run_with_output(rc, now, stdout="", stderr=""):
+    return prc.run_operational_layer_signal(
+        now=now, runner=_OutputRunner(rc, stdout, stderr), force=True)
+
+
+def test_red_page_names_the_failing_tests_not_just_the_return_code(sent):
+    """THE DEFECT THIS CONTROL EXISTS FOR: a page that says only `rc=1`."""
+    _run_with_output(rc=1, now=0, stdout=_PYTEST_RED_OUTPUT)
+    _run_with_output(rc=1, now=10, stdout=_PYTEST_RED_OUTPUT)   # persistent -> pages
+    assert len(sent) == 1
+    page = sent[0]
+    # The specific failing tests are NAMED in the page a human receives.
+    assert "test_process_set_reconciles" in page
+    assert "test_capability_manifest_present" in page
+    # ERROR lines count as failures too, not just FAILED.
+    assert "ERROR tests/background/test_capability.py" in page
+
+
+def test_digest_prefers_the_failure_summary_over_incidental_tail_noise():
+    result = type("R", (), {"returncode": 1, "stdout": _PYTEST_RED_OUTPUT, "stderr": ""})()
+    digest = prc.operational_layer_failure_digest(result)
+    assert digest.startswith("FAILED tests/background/test_daemon_lifecycle.py")
+    # Progress/among-noise lines are excluded when a real summary section exists.
+    assert "[ 50%]" not in digest
+    assert "400 passed" not in digest
+
+
+def test_digest_falls_back_to_the_tail_when_there_is_no_summary_section():
+    """A collection error or interpreter crash prints no `short test summary
+    info` -- the payload must still carry something actionable, not go blank."""
+    crash = "Traceback (most recent call last):\n  ImportError: no module named sim\n"
+    result = type("R", (), {"returncode": 2, "stdout": "", "stderr": crash})()
+    digest = prc.operational_layer_failure_digest(result)
+    assert "ImportError: no module named sim" in digest
+
+
+def test_digest_is_bounded_and_says_how_many_it_omitted():
+    many = "=== short test summary info ===\n" + "".join(
+        "FAILED tests/background/test_x.py::test_{}\n".format(i) for i in range(40))
+    result = type("R", (), {"returncode": 1, "stdout": many, "stderr": ""})()
+    digest = prc.operational_layer_failure_digest(result)
+    lines = digest.splitlines()
+    # Bounded (an NTFY is not a log file) ...
+    assert len(lines) == prc.OPERATIONAL_LAYER_DIGEST_MAX_LINES + 1
+    # ... but never SILENTLY bounded: truncation is stated, so a reader cannot
+    # mistake 12 shown for 12 total.
+    assert lines[-1] == "... and 28 more failing test(s)"
+
+
+def test_absent_output_fails_LOUD_not_silent(sent):
+    """FAIL-SILENT is the killer pattern here (R15): if the child produced no
+    capturable output, the page must SAY the cause is unavailable rather than
+    render an empty 'Failing tests:' section that reads as 'nothing to report'."""
+    _run(rc=1, now=0)          # _Runner exposes returncode ONLY -- no streams
+    _run(rc=1, now=10)
+    assert len(sent) == 1
+    assert "cause unavailable" in sent[0]
+
+
+def test_green_page_carries_no_failure_payload(sent):
+    """The digest must not leak into the RECOVERED page: a green run has no
+    failing tests to name, and a stale payload there would be a false report."""
+    _run_with_output(rc=1, now=0, stdout=_PYTEST_RED_OUTPUT)
+    _run_with_output(rc=1, now=10, stdout=_PYTEST_RED_OUTPUT)   # persistent red, pages
+    res = _run_with_output(rc=0, now=20)                        # recovery, pages
+    assert res["digest"] == ""
+    assert len(sent) == 2
+    assert "FAILED" not in sent[1]
+
+
+def test_the_real_runner_actually_captures_output(monkeypatch):
+    """INDEPENDENCE (R15 tautology guard): every test above feeds the digest
+    through an injected stub, which would keep passing even if the production
+    runner still discarded the child's streams -- the exact defect being
+    fixed. This asserts the DEFAULT runner (runner=None) invokes subprocess
+    with capture_output, so the stubs above are testing a reachable path."""
+    seen = {}
+
+    def _fake_subprocess_run(argv, **kwargs):
+        seen.update(kwargs)
+        return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    monkeypatch.setattr(prc.subprocess, "run", _fake_subprocess_run)
+    prc.run_operational_layer_signal(now=0, runner=None, force=True)
+    assert seen.get("capture_output") is True
+    assert seen.get("text") is True
