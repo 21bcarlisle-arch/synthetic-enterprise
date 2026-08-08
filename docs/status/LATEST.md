@@ -1,5 +1,36 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T19:33:22Z
+Last updated: 2026-08-08T20:18:29Z
+
+**AO2_write_time_reuse_gate (2026-08-08, `b9f1dc5e0`) — a new capability module can no longer land
+without the record of the look. L0→L2, self-certified.** MAP step 2, and §5's *"only immediate
+behaviour change"* in the whole architected-out programme: AO1 made looking cheap, but nothing yet
+changed the price of **not** looking — which is why the director calls the index a demo until this
+spends it. `tools/write_time_gate.py`, wired **live** at `tools/git-hooks/commit-msg` (`core.hooksPath`
+already points there, so it is running, not merely committed). A commit adding a new `.py` under a
+code root must carry a `REUSE:` block answering **both** ruled questions — *do we already have this?*
+(the index terms, quoted) and *does the ecosystem already have this?* (the class: **CATALOGUE** names
+the library it stands on, **CUSTOM** is the product and owes no note, **SUBSYSTEM** owes the
+build-vs-buy note naming what was evaluated and why rejected — silence is a gap).
+**The director's wall is a test, not a comment.** `test_the_wall_holds` gives the same new module and
+the same index two honest records — *"extended it"* and *"kept it separate, different purposes"* —
+and requires **both** to pass. The gate compels the look and the record, never the decision; forced
+reuse that couples two purposes is the mirror error of duplication.
+**Proven live, both directions, on real commits:** a test commit adding a recordless module was
+**REFUSED** by the running hook (`G1`, HEAD unchanged); AO2's own commit — which adds a new module —
+**passed carrying its own record**. 41 tests; **8 source mutations**, each breaking one guard alone
+(G1 record, G2 class, G3 catalogue-without-library, G4 build-vs-buy, G5 index terms, G6
+index-contradiction) plus **two on the detector rather than the guards**, because a gate whose
+detector never fires passes every test while checking nothing. G6 is the only guard with an
+independent source: it puts the record's *"nothing exists"* claim back through the live index and
+refuses a claim the index contradicts. Fail-closed four ways; an absent mode file means **gate**, so
+it cannot be disabled by deleting something. Scope is **stated, not silent** — modules only, function
+granularity deferred with reasons in `docs/design/WRITE_TIME_GATE.md`.
+
+**W2_16_payment_outcome_rng_substream_isolation (2026-08-08, `14e00c2ba`) — adopted, not authored.**
+Found complete, green and **uncommitted** in the shared tree while committing AO2; the authoring
+tick's last write was 20:45 and its process was gone. Verified before adopting (bill_substream is
+real, all four consumers migrated, 77 tests pass), committed with honest attribution, and its level
+move recorded as an **adoption** so the ledger does not read as if this tick built it.
 
 **AO11_map_assertion_provenance (2026-08-08, `e3f5b0c5b`+`220efe7da`) — the map's own cells now
 carry when they were claimed and when anyone last looked. L0→L2, self-certified.**
@@ -788,10 +819,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (522s / 9 min):
-- Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
+**Latest simulation results (2016–2025)** — auto-processed (506s / 8 min):
+- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -897,10 +928,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
 - (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
 - (T3_inherence) Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
+- (T3_inherence) What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1852.5h across 70 sized atom(s) (9 of 79 below-target atoms still unsized).
+- Remaining effort: ~1804.2h across 68 sized atom(s) (9 of 77 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
