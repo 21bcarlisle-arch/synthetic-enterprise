@@ -3035,16 +3035,16 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
   loop_stage: harden
   dial_inherited: 3
   provenance: proposal
-  file_scope: [company/crm/supply_start.py, company/crm/customer_registry.py, company/compliance/domain_invariants.py, tests/company/crm/test_supply_start_separation.py]
+  file_scope: [company/crm/supply_start.py, company/crm/customer_registry.py, company/compliance/domain_invariants.py, tests/company/crm/test_supply_start_separation.py, tools/couple_supply_start.py, tests/tools/test_couple_supply_start.py]
   depends_on: []
   blocked_on: null
-  simplifications_count: 8
-  evidence: [docs/design/SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md, docs/staging/in_progress/PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md, company/crm/supply_start.py, company/crm/customer_registry.py, company/compliance/domain_invariants.py, tests/company/crm/test_supply_start_separation.py]
+  simplifications_count: 10
+  evidence: [docs/design/SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md, docs/staging/in_progress/PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md, company/crm/supply_start.py, company/crm/customer_registry.py, company/compliance/domain_invariants.py, tests/company/crm/test_supply_start_separation.py, tools/couple_supply_start.py, tests/tools/test_couple_supply_start.py, docs/observability/coupled_gap_ledger.json]
 - id: C_supply_start_consumer_routing
   name: "Route the tenure/cohort/render consumers off the term anchor and onto the separated supply_start -- the LIVE half of the semantic separation, which moves published figures"
   lane: C_customer_ops
@@ -3060,6 +3060,21 @@
   blocked_on: null
   simplifications_count: 2
   evidence: [docs/design/SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md]
+- id: C15_supply_start_observable_floor
+  name: "derive_supply_start must not emit a start that predates the account's own first observable -- the derivation and the invariant the same atom registered as law currently disagree"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/crm/supply_start.py, tests/company/crm/test_supply_start_separation.py]
+  depends_on: [C_supply_start_semantic_separation]
+  blocked_on: null
+  simplifications_count: 3
+  evidence: [tools/couple_supply_start.py, tests/tools/test_couple_supply_start.py, docs/observability/coupled_gap_ledger.json]
 - id: D_money_boundary_reconciliation
   name: "Bill boundary-reconciliation fix: make rounded line items sum to the printed total (37.0% of bills currently do not), the [ACT] recommendation returned by the money-representation DISCOVER"
   lane: D_billing_metering

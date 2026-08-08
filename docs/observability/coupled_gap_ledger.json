@@ -5,14 +5,14 @@
       "belief_form": "EPC register prior HLC (kW/K), company-side",
       "belief_source": "EPC register prior only",
       "bias_model": -0.020561,
-      "inference_improvement": -0.03485122498061882,
+      "inference_improvement": -0.03229870531557044,
       "mae_model": 0.020561,
       "mae_noskill": 0.100365,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
-        "forgone_annual_kg_co2e": 2313.9489887715818,
-        "forgone_lifetime_gbp": 161.8953479483207,
-        "gbp_per_tonne_co2e": 69.96495978689096,
+        "forgone_annual_kg_co2e": 2284.140925271511,
+        "forgone_lifetime_gbp": 82.5184175562863,
+        "gbp_per_tonne_co2e": 36.12667530418575,
         "misrank_rate": 0.1
       },
       "money_consequence_inferred": {
@@ -28,11 +28,11 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.11986853745551919,
+            "value": 0.1212917718426174,
             "verdict": "fail"
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.37894397827992987,
+            "value": 0.37890974881114486,
             "verdict": "pass"
           },
           "L1.3_away_days_per_year": {
@@ -40,7 +40,7 @@
             "verdict": "pass"
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.08727144283958961,
+            "value": 0.08719078153788064,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
@@ -48,11 +48,11 @@
             "verdict": "pass"
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.34308097030723966,
+            "value": 0.3438714866476657,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06189294382557433,
+            "value": 0.06525978363847919,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
@@ -60,7 +60,7 @@
             "verdict": "fail"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7153778902140424,
+            "value": 1.7125775991177365,
             "verdict": "unvalidated"
           }
         },
@@ -75,11 +75,11 @@
     },
     "g0": 0.10036526959999999,
     "gap": 0.2048599389205446,
-    "measured_at": "2026-08-03T15:00:19.878047+00:00",
+    "measured_at": "2026-08-03T15:28:24.683032+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.02056082299999999,
-    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
+    "run_git_commit": "381b0f2c08d7317acadc09c3d2042b841e009d40",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -87,15 +87,15 @@
     "components": {
       "belief_form": "C14 posterior HLC (kW/K): EPC prior shrunk toward meter evidence",
       "belief_source": "C14 posterior (EPC + meter evidence)",
-      "bias_model": -0.00153,
-      "inference_improvement": -0.03485122498061882,
-      "mae_model": 0.024059,
+      "bias_model": -0.001963,
+      "inference_improvement": -0.03229870531557044,
+      "mae_model": 0.023802,
       "mae_noskill": 0.100365,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc.",
-        "forgone_annual_kg_co2e": 2313.9489887715818,
-        "forgone_lifetime_gbp": 161.8953479483207,
-        "gbp_per_tonne_co2e": 69.96495978689096,
+        "forgone_annual_kg_co2e": 2284.140925271511,
+        "forgone_lifetime_gbp": 82.5184175562863,
+        "gbp_per_tonne_co2e": 36.12667530418575,
         "misrank_rate": 0.1
       },
       "money_consequence_inferred": {
@@ -111,11 +111,11 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.11986853745551919,
+            "value": 0.1212917718426174,
             "verdict": "fail"
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.37894397827992987,
+            "value": 0.37890974881114486,
             "verdict": "pass"
           },
           "L1.3_away_days_per_year": {
@@ -123,7 +123,7 @@
             "verdict": "pass"
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.08727144283958961,
+            "value": 0.08719078153788064,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
@@ -131,11 +131,11 @@
             "verdict": "pass"
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.34308097030723966,
+            "value": 0.3438714866476657,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06189294382557433,
+            "value": 0.06525978363847919,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
@@ -143,7 +143,7 @@
             "verdict": "fail"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7153778902140424,
+            "value": 1.7125775991177365,
             "verdict": "unvalidated"
           }
         },
@@ -157,12 +157,12 @@
       }
     },
     "g0": 0.10036526959999999,
-    "gap": 0.23971116390116343,
-    "measured_at": "2026-08-03T15:00:19.878047+00:00",
+    "gap": 0.23715864423611505,
+    "measured_at": "2026-08-03T15:28:24.683032+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
-    "raw_gap": 0.024058675591070052,
-    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
+    "raw_gap": 0.02380249126672817,
+    "run_git_commit": "381b0f2c08d7317acadc09c3d2042b841e009d40",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -372,21 +372,21 @@
   "W2_11_payment_behaviour_source": {
     "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
     "components": {
-      "caught": 4,
-      "flagged_size": 5,
-      "miss_rate": 0.2,
-      "missed": 1,
-      "missed_harm": 1.0,
-      "total_harm": 5.0,
-      "truth_size": 5
+      "caught": 17,
+      "flagged_size": 40,
+      "miss_rate": 0.564103,
+      "missed": 22,
+      "missed_harm": 22.0,
+      "total_harm": 39.0,
+      "truth_size": 39
     },
-    "g0": 5.0,
-    "gap": 0.2,
-    "measured_at": "2026-08-03T15:03:19.210735+00:00",
+    "g0": 39.0,
+    "gap": 0.5641025641025641,
+    "measured_at": "2026-08-03T20:40:43.080602+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.0714, ageing 0.4000; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
-    "raw_gap": 1.0,
-    "run_git_commit": "3c96beac63dd09b7099a99a05fd77c6de5c87b31",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.1538; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 22.0,
+    "run_git_commit": "2546a4a0bb9a2a12da4965a58a64df2fcab618ee",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
@@ -529,5 +529,85 @@
     "raw_gap": 0.023,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C11_segment_debt_policy"
+  },
+  "WORLD_recontracting_relationship_start": {
+    "baseline": "no-skill = predict the climatological mean truth (8.010); MAE_noskill=1.9037",
+    "components": {
+      "as_of": "2025-12-31",
+      "bias_model": 1.207506,
+      "mae_model": 1.207506,
+      "mae_noskill": 1.903738,
+      "n": 24,
+      "n_accounts": 24,
+      "n_recontracted": 6,
+      "naive_confident_wrong": 6,
+      "naive_gap": 0.6342817765083042,
+      "naive_mae_years": 1.207506,
+      "naive_max_phantom_years": 6.995209,
+      "naive_mean_phantom_years": 4.830025,
+      "naive_unknown_share": 0.0,
+      "prior": 8.010153,
+      "regime_sweep": [
+        {
+          "activation_capture": 1.0,
+          "link_capture": 1.0,
+          "naive_caught_by_guard": 6,
+          "naive_confident_wrong": 6,
+          "naive_gap": 0.6342817765083042,
+          "naive_phantoms": 6,
+          "regime": "full_observability",
+          "separated_caught_by_guard": 0,
+          "separated_confident_wrong": 0,
+          "separated_gap": 0.0,
+          "separated_mean_phantom_years": 0.0,
+          "separated_phantoms": 0,
+          "separated_unknown_share": 0.0
+        },
+        {
+          "activation_capture": 0.0,
+          "link_capture": 1.0,
+          "naive_caught_by_guard": 6,
+          "naive_confident_wrong": 6,
+          "naive_gap": 0.6342817765083042,
+          "naive_phantoms": 6,
+          "regime": "activation_lost_link_kept",
+          "separated_caught_by_guard": 0,
+          "separated_confident_wrong": 0,
+          "separated_gap": 0.4113843142346372,
+          "separated_mean_phantom_years": 0.0,
+          "separated_phantoms": 0,
+          "separated_unknown_share": 0.25
+        },
+        {
+          "activation_capture": 0.0,
+          "link_capture": 0.0,
+          "naive_caught_by_guard": 6,
+          "naive_confident_wrong": 6,
+          "naive_gap": 0.6342817765083042,
+          "naive_phantoms": 6,
+          "regime": "activation_lost_link_lost",
+          "separated_caught_by_guard": 6,
+          "separated_confident_wrong": 6,
+          "separated_gap": 0.6342817765083042,
+          "separated_mean_phantom_years": 4.830025,
+          "separated_phantoms": 6,
+          "separated_unknown_share": 0.0
+        }
+      ],
+      "separated_confident_wrong": 0,
+      "separated_gap": 0.0,
+      "separated_mae_years": 0.0,
+      "separated_max_phantom_years": 0.0,
+      "separated_mean_phantom_years": 0.0,
+      "separated_unknown_share": 0.0
+    },
+    "g0": 1.9037379268385433,
+    "gap": 0.6342817765083042,
+    "measured_at": "2026-08-08T14:29:19+00:00",
+    "metric": "prediction",
+    "note": "PHANTOM TENURE on a re-contracted customer. Truth = the term boundary the home-move win actually landed on (world answer key); the company's LIVE belief reads the predecessor's genesis anchor out of `acquisition_date`, so every re-contracted account reads as though the relationship never restarted. The headline gap is that LIVE belief -- the mechanism that fixes it (C_supply_start_semantic_separation) is BUILT but not yet ROUTED to the 7 live consumers (C_supply_start_consumer_routing), so the published tenure, cohort and 'Customer since' figures still carry the phantom. `separated_*` is the counterfactual once routed; the regime sweep shows where the world still defeats the built mechanism -- losing the activation event costs COVERAGE (honest UNKNOWN), but losing the `successor_of` link as well makes it CONFIDENTLY WRONG again, because the no-successor rung hands back the anchor. DEFENCE IN DEPTH: `*_caught_by_guard` is how many of those phantoms this atom's R10 class guard (SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE) rejects anyway, from the account's own meter reads and bills -- observables that cannot go missing the way the registration paperwork can.",
+    "raw_gap": 1.2075062742413873,
+    "run_git_commit": "d4e8aa21bd524cf582e65bb89be6176d6bc73e3a",
+    "twin_atom_id": "C_supply_start_semantic_separation"
   }
 }
