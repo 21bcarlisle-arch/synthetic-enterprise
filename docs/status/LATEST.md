@@ -1,5 +1,39 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T22:50:45Z
+Last updated: 2026-08-08T23:07:52Z
+
+**THE FUTURES GO ON THE MAP (2026-08-08) — 23 atoms minted from
+`DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08`. Map 206 → 229.** The ruling's diagnosis,
+re-measured before writing: no atom's id touched CLV, a named counterparty adapter, or a forecast
+feed — "not blindness; homelessness". Deliverable #1 is DONE: **EP1–EP20**, the Epoch-2→5
+commitment sets, derived from canon (THE_VALUE_CYCLE_FRAMING, the 2026-08-05 counterparty-API
+research, the gas/carbon/cost-stack scope briefs). EP1–EP5 the commercial brain (three-horizon CLV,
+variance learning loop, pricing engine, collections journey, settlement true-ups); EP6–EP15 the wall
+as real transport (protocol typing + Elexon/IRIS, DCC DUIS, n3rgy, UK Link/Xoserve, GoCardless/Bacs,
+CSS/REC, Carbon Intensity, published cost stack, forecast feed); EP16–EP18 generated worlds and
+selection; EP19–EP20 go-live. Deliverables #2–#5 have drawable atoms (**FUT1** attach-forward hook
+carrying #5 as its acceptance test, **FUT2** pull-forward proposal path, **FUT3** blocked-atom
+visibility).
+**Already covered, not re-minted:** the tournament mechanism (`A5_tournament_fitness_mortality`,
+`B11_evolutionary_tournament_harness`), the adapter pattern (`W4_1_typed_adapters`, SATURATED), the
+single-run population draw (`W2_2_population_draw`), and the go-live NFR/licence/DR set (`H4`, `F5`,
+`H8`, `F4`). EP18 is the fitness *definition* those tournament atoms select on, which neither fixes.
+**The draw is unchanged, proven not asserted:** `_maturity_map_draw_concurrent()` before vs after is
+identical bar FUT1/FUT3 — zero removals, and no EP atom entered the BUILD queue.
+**Three departures from the ruling's literal wording, reported for see-and-correct** (all recorded
+in the map header, none made silently): (1) the E2 gate it names, EPOCH2_EVIDENCE_PASS, was already
+DELIVERED 2026-07-09 — writing it into a block field would manufacture a phantom gate; (2) no atom
+carries `blocked_on`, because the ruling's own §3 wording ("the director opens the epoch") is
+*ignored* by the live `_names_abolished_permission_block` predicate, and `blocked_on` must anyway be
+a list of atom ids — all 20 are `loop_stage: idle`, this map's established form for a future epoch
+(zero of the 206 prior atoms carried a block; all 9 epoch-4/5 atoms were already idle); (3) prefix
+`EP`, not `E`, which is lane-E finance.
+**FUT3 half-answered at mint by running both readers.** The staleness clock PASSES — 205 → 229
+cells, blocked atoms fully visible. The target-design delta does NOT read the map at all: its seven
+targets scan 843 tree modules. So the ruling's "82-vs-7 becomes a measured dial" is genuinely
+unbuilt, and is now FUT3's work. Re-measured after the mint: 229 atoms, H_harness 86 vs B_commercial
+9 — filing the futures does not fix the imbalance, it makes it countable. R12: a diagnostic.
+**Not claimed:** no EP atom is built, framed or above L0; FUT1–FUT3 are L0 and unbuilt; 119 design/
+disposition tests green, but nothing user-visible changed, so no R11.
 
 **D7_ageing_gap_metric_reshape (2026-08-08, `3af46d145`) — the ageing number stops being one number.
 L0→L2, self-certified.** The single prevalence-normalised ageing scalar the D6 DISCOVER refuted is
@@ -887,10 +921,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (518s / 9 min):
-- Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->

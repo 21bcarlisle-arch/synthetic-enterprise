@@ -3656,3 +3656,473 @@
   evidence: ['docs/staging/in_progress/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md', 'tools/map_assertion_provenance.py (three clocks per cell: asserted_at from git blame of the cell''s OWN level_current line, artefacts_moved_at from the newest commit touching its file_scope, verified_at from the append-only ledgers)', 'tests/tools/test_map_assertion_provenance.py (24 tests green, every fixture a real git repo with controlled commit times -- no mocked git, because a mocked git would only prove the mock returns what the test told it to)', '2026-08-08 first live run, 205 cells: 4 CONTRADICTED, 59 STALE, 2 TAUTOLOGICAL, 66 DIRECTORY_SCOPE, 1 UNTRACKED_ARTEFACTS, 48 NO_ARTEFACTS, 25 CURRENT, ~1.5s. Findings QUEUED not swept, per SELF_INTERRUPT_DISCIPLINE and the addendum''s own warning that a 185-atom field sweep is the probable failure.']
   file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
   origin_note: "This is the STALE-CELL CLASS, not a tidy-up -- the addendum's own words, and the most recent instance is the DD cell reading level 0 with no ledger entry while all six sub-parts were built, committed and live. The company layer is already bitemporal (company/**/bitemporal_event_log.py, valid-time and transaction-time); the governance layer that steers it is not. Reuse of that primitive is the obvious candidate AND the obvious trap -- the parent programme's own wall says forced reuse that couples two purposes is the mirror error of duplication, so check whether it fits before taking it, and record the answer either way (that check is exactly what AO2's gate is for). NOT delivered by AO1: the index makes no assertions to timestamp, because it re-derives on every query. Additive by design -- assert nothing the draw reads until proven, per the addendum's own mitigation."
+
+# ===========================================================================
+# THE FUTURES GO ON THE MAP -- E2..E5 commitment sets
+# Minted 2026-08-08 (worker tick) from DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_
+# 2026-08-08 §1. The ruling's diagnosis, re-measured on this file before
+# writing: 206 atoms, lane weights 82 harness vs 7 commercial, and no atom
+# whose id touches CLV, a named counterparty adapter, or a forecast feed.
+# Discovery reaches forward daily and had nowhere to file it -- "not blindness;
+# homelessness". These atoms are the addresses.
+#
+# THREE FILING DECISIONS, all departures from the ruling's literal wording, all
+# recorded here rather than made silently (the ruling's see-and-correct clause
+# excludes the GATES, so each is reported to the director rather than settled):
+#
+# 1. THE E2 GATE THE RULING NAMES IS ALREADY SATISFIED. The ruling puts Epoch-2
+#    "behind the ruled EVIDENCE_PASS" -- but that pass was DELIVERED on
+#    2026-07-09 (`docs/design/EPOCH2_EVIDENCE.md`, 6 verdicts;
+#    `docs/staging/done/EPOCH2_EVIDENCE_PASS.md` archived; recorded in
+#    phase-history and PROJECT_OVERVIEW). Writing a satisfied gate into a block
+#    field would manufacture a permanent phantom gate -- precisely the
+#    abolished-block stale-cell class that has already cost this project weeks.
+#
+# 2. NO ATOM HERE CARRIES `blocked_on`; ALL TWENTY ARE `loop_stage: idle`.
+#    Three findings forced this, each measured rather than assumed:
+#    (a) the ruling's own §3 wording is self-defeating as a block. Fed to the
+#        live predicate, `supervisor._names_abolished_permission_block("the
+#        director opens the epoch")` returns True (the `director opens` token),
+#        so `_is_externally_blocked` would IGNORE it and drop 15 unbuildable
+#        future atoms straight into the BUILD queue.
+#    (b) a releaser-token block cannot be expressed at all:
+#        `test_maturity_map_contract.py::check_edges` requires `blocked_on` to
+#        be a LIST OF EXISTING ATOM IDS, and an epoch gate is not an atom. The
+#        two contracts are mutually satisfiable only for dependency blocks.
+#    (c) `idle` is this map's established and doctrine-sanctioned way to say
+#        "future epoch": ZERO of the 206 pre-existing atoms carry a `blocked_on`
+#        and all 9 epoch-4/5 atoms are already idle, while CLAUDE.md's
+#        epoch-gating rule states outright that an idle atom is parked FOR BUILD
+#        ONLY and remains DISCOVER/FRAME-workable now.
+#    `idle` delivers every operative property the ruling asked for: invisible to
+#    the BUILD draw (proven -- the concurrent draw is byte-identical before and
+#    after, bar this mint's own three machinery atoms), visible to the staleness
+#    clocks (proven -- map_assertion_provenance went 205 -> 229 cells), and open
+#    to forward discovery (§2). What it does NOT give is a mechanical stop at
+#    the director; that is FUT2's job, where the ruling put it, and where it can
+#    actually be R15-tested. The epoch gate is stated in `block_reason` on every
+#    E3-E5 atom and reads as R13 CURRICULUM authorship -- which is why it
+#    survives the 2026-07-29 permission rip-out, and how it must stay worded.
+#
+# 3. THE PREFIX IS `EP`, NOT `E`. `E` is lane-E (finance/treasury) and
+#    E2_revenue_reconciliation, E3_accrual_restatement,
+#    E4_supplier_reporting_standard and E5_carbon_three_ledger are real atoms in
+#    it -- the first draft collided with all four and the id-grammar contract
+#    caught it ("renumber, do NOT extend the allowlist").
+# ===========================================================================
+
+# --- EPOCH 2: the commercial brain (idle -- BUILD-parked, DISCOVER/FRAME-open)
+- id: EP1_clv_three_horizon
+  title: "What a customer is worth, on three horizons"
+  gain: "Acquisition, retention and tariff decisions get a value number to argue with instead of a margin snapshot."
+  name: "Three-horizon customer lifetime value: contract-term, tenure-expected, and portfolio-cohort. The company's OWN estimate assembled from observables (onboarding, flow events, payment behaviour, cost-to-serve) -- never a read of SIM truth -- so it is allowed to be wrong and the gap is the score. Named in DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §1 as an Epoch-2 floor item; no atom on the map touches CLV today."
+  lane: B_commercial
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C4: customers are discovered, not read)']
+  file_scope: []
+  origin_note: "Activity-based pricing is a standing CLAUDE.md constraint -- flat margin makes some customers net-negative -- so a CLV that ignores cost-to-serve at the customer level reproduces the exact error the constraint names. R12 applies hard here: CLV is a DIAGNOSTIC, never a target, and no pricing or retention lever may be tuned to raise it. Coupled-triad shape when built: COMPANY estimates through the wall, HARNESS measures the estimate against SIM realised value."
+- id: EP2_variance_learning_loop
+  title: "Expected minus realised, fed back into belief"
+  gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
+  name: "The learning half of close_to_learn: the ex-post bridge decomposing expected-vs-realised per cohort as true-ups land, and the loop that feeds that decomposition back into the company's forward estimates. THE_VALUE_CYCLE_FRAMING C3 states the target directly -- 'margin volatility becomes explained variance or a defect'. Named in the ruling §1 as an Epoch-2 floor item."
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP5_settlement_true_ups']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C3: the pricing organ meets late truth)']
+  file_scope: []
+  origin_note: "The R13 wall is the danger: a learning loop that closes over BOTH sides -- adjusting the company's belief AND the world it is measured against -- is a goal-seek wearing a feedback loop. The loop may only move COMPANY belief. R12: variance is a diagnostic; shrinking it is not the objective, explaining it is. Depends on true-ups because a variance loop with nothing late to learn from is vacuous."
+- id: EP3_pricing_engine_late_truth
+  title: "Prices decided ex-ante, then met by late cost truth"
+  gain: "Tariffs stop being back-calculated and become a decision with an owner, inputs and an audit trail."
+  name: "The pricing engine: ex-ante cost stack (wholesale, losses, network, policy, cost-to-serve, bad debt, capital) plus an explicit margin decision, priced against ESTIMATED costs and then reconciled as true-ups arrive. EPOCH2_EVIDENCE Q1 tested the director's suspicion that prices are back-calculated rather than decided; this atom is the answer's build half. Named in the ruling §1 as an Epoch-2 floor item."
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/EPOCH2_EVIDENCE.md (Q1, pricing verdict)', 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C3)']
+  file_scope: []
+  origin_note: "Portability constraint binds at design time, not on remediation: product must be first-class wherever fuel is one, and the cost stack keyed by REGIME rather than implicitly Ofgem, or a second market never fits behind this seam. The intra-year price cap (W3_1b) is a live constraint the engine must price INSIDE, not around. R12: the cap is a binding constraint, never a target to approach."
+- id: EP4_collections_journey
+  title: "The whole road from missed payment to resolution"
+  gain: "Debt stops being a balance and becomes a journey with decisions, costs and outcomes at each step."
+  name: "The end-to-end collections journey: missed payment, reminder, dunning ladder, payment arrangement, vulnerability hold, debt provision, and the exits (cured, arrangement, disconnection-equivalent, write-off). The D-lane ageing work has measured the company's BELIEF about arrears (D6/D7: wrongful-dunning exposure is ~10x the miss rate); this atom is the journey those measures are about. Named in the ruling §1 as an Epoch-2 floor item."
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md']
+  file_scope: []
+  origin_note: "This is the atom where an absurdity-class defect is most likely and most expensive: dunning a customer who has paid is a real-world harm with a real-world regulator behind it, and D7 already measured that exposure at ten times the miss rate. R10 therefore binds -- any defect found here is closed by extending the obligations register so the CLASS fails automatically, never by fixing the instance. Vulnerability handling is an obligation, not a feature flag."
+- id: EP5_settlement_true_ups
+  title: "Cost truth arriving fourteen months late, and landing properly"
+  gain: "The ledger restates on the real timetable instead of pretending the first number was the answer."
+  name: "Settlement true-ups on the real industry timetable -- SF to R1 through to RF at 14 months -- landing as corrections on the bitemporal ledger, restating cohort margin and carrying unbilled income as the audited judgement it really is. THE_VALUE_CYCLE_FRAMING C2 (three clocks). Named in the ruling §1 as an Epoch-2 floor item. W3_2_settlement_timetable exists and is SATURATED, but it is the WORLD's timetable; this is the COMPANY's ledger coping with it."
+  lane: E_finance_treasury
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: ['W3_2_settlement_timetable']
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C2: three clocks)']
+  file_scope: []
+  origin_note: "R14 is the acceptance surface: every figure this atom restates must carry its clock (settled/billed/banked), and a restatement that silently replaces a published number rather than superseding it is the defect. C-S1 event-arrival tolerance binds -- true-ups arrive singly, late and out of order by nature, so any logic assuming batch completeness is wrong at birth rather than wrong at scale. Coupled to the world's timetable atom: the world defeats the derivation or the pair is not done."
+
+# --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
+- id: EP6_wall_protocol_typing
+  title: "The wall stops being calls and becomes messages"
+  gain: "Go-live becomes a transport swap instead of a redesign, because the message shapes were right all along."
+  name: "Protocol typing of the wall: every SIM/company boundary crossing becomes a typed, versioned message with an explicit request/response separation in time, so a mock counterparty and a real one are indistinguishable to the company. The wall IS the go-live seam. Named in the ruling §1 as an Epoch-3 floor item. W4_1_typed_adapters (SATURATED) built the adapter PATTERN; this is the protocol layer every named adapter below plugs into."
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13): which epoch the company lives through is the director's to author. Epoch-3 commitment set per DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §1; the planner may PROPOSE pull-forward with the accretion ledger as its case (§3), never proceed on silence."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md', 'docs/design/GO_LIVE_SEAM_AND_INTERNAL_SEAMS_DESIGN.md']
+  origin_note: "C-S3 (asynchronous wall contracts: request and response are separate events in time, never same-step) is the whole point and the thing most likely to be quietly dropped, because same-step is easier and works until it doesn't. The SIMPLICITY GUARD binds equally hard: no adapters-for-future-adapters, no protocol cathedral -- the wall already provides the seam. Gates every named adapter below."
+  file_scope: []
+- id: EP7_adapter_elexon_insights
+  title: "Elexon Insights and IRIS, for real"
+  gain: "The settlement and market data the SIM already fakes arrives from the actual platform, on the actual cadence."
+  name: "Adapter for the Elexon Insights Solution (bmrs.elexon.co.uk): REST for the full BMRS catalogue -- imbalance volumes, pricing stacks, dynamic BMU data, demand -- plus IRIS real-time push and the Data Archive. Access class OPEN NOW, zero accession cost. Indicative settlement prices land ~15 min after each settlement period with a D+1 refresh; Settlement messages give early warnings on calculation accuracy. Advisor research verified live 2026-08-05."
+  lane: W4_the_wall
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md']
+  origin_note: "CLAUDE.md already records that the legacy Elexon wrappers are partly stale after the Insights migration -- so this adapter has an existing implementation to reconcile against, not a greenfield. Tier 1 of the research's build order (integrate now, real data), which makes it the most pull-forward-ripe atom in E3. ECVN trading submission is NOT in scope: it consults on an API for June 2027, so the trading path stays legacy-shaped and swappable."
+  file_scope: []
+- id: EP8_adapter_dcc_duis
+  title: "Smart metering as DUIS service requests"
+  gain: "The mocked meter path is shaped like the real one, so accession is paperwork rather than a rebuild."
+  name: "Adapter for DCC smart-metering service requests in DUIS shapes (e.g. read billing registers). Access class GATED: direct access requires SEC accession, SMKI certification and CIO/UIT testing, with no public sandbox. This adapter stays MOCKED until accession -- the deliverable is that it is mocked AS the real DUIS request/response message formats, so the eventual swap is transport-only."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md']
+  origin_note: "An atom whose honest target is a MOCK invites the fail-open shape: a mock that passes because nothing checks it against the real message schema. The exit criterion must therefore be schema-shaped (a DUIS message the real interface would accept), not behaviour-shaped. Its sibling EP9_adapter_n3rgy_consented_metering is the pre-accession route that CAN be exercised for real -- build them as one message model with two transports, or the mock has no oracle."
+  file_scope: []
+- id: EP9_adapter_n3rgy_consented_metering
+  title: "Real meter data today, via a DCC Other User"
+  gain: "The metering path gets exercised against a live external system years before accession."
+  name: "Adapter for a DCC Other User consented-metering API (n3rgy, with Hildebrand/Glow as the alternate): live AND sandbox services, auth by IHD MAC/CIN, registration by MPAN/MPRN. Access class SANDBOX NOW. Fidelity gold the SIM should reproduce, verified 2026-08-05: the supplier pull is ONCE DAILY PER METER, returning a midnight index read plus a half-hourly usage file -- and missing days STAY MISSING unless re-requested."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md']
+  origin_note: "The 'missing days stay missing unless re-requested' behaviour is the valuable part and the part most likely to be smoothed away -- it is a permanent hole in the company's evidence unless the company notices and asks again, which is exactly the sort of thing a real supplier gets wrong. Build the gap, then let the company be wrong about it. C-S1 event-arrival tolerance is not optional here; it is the counterparty's actual contract."
+  file_scope: []
+- id: EP10_adapter_uk_link_xoserve
+  title: "Gas, through UK Link"
+  gain: "The gas half of the book gets the same industry-systems reality the electricity half has."
+  name: "Adapter for the Xoserve/CDSP UK Link suite under the UNC. Access class GATED via the Data Services Contract / UK Link User Agreement, but the APIs are real and named: Supply Point Switching, Supply Point Enquiry, Meter Asset Enquiry (via RECCo), Supply Point Quantities (Shippers only). Fidelity nuggets verified 2026-08-05: meter read classes 1-4 with cadences from daily to annual, and UIG (unidentified gas, per LDZ per gas day) as a real reconciliation residue the gas plumbing should be able to produce."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_GAS_2026-08-04.md']
+  origin_note: "UIG is the item to build first and the reason this atom is worth more than an adapter: an unallocated-gas residue per LDZ per gas day is a cost the company must absorb without ever being told whose it was, which is a genuine belief-vs-truth gap rather than a plumbing detail. Project Trident is mid-flight modernisation, so expect surface churn -- schema-drift tolerance is a requirement, not a nicety. Reads the ADVISOR_SCOPE_BRIEF_GAS staging doc as its domain input."
+  file_scope: []
+- id: EP11_adapter_gocardless_bacs
+  title: "Direct Debit against a real sandbox"
+  gain: "The money path -- mandates, collections, failures -- runs end to end against an external system before any bank relationship exists."
+  name: "Adapter for Direct Debit collection: GoCardless bureau route (full free sandbox at manage-sandbox.gocardless.com; mandate and payment lifecycle via Billing Requests; webhook events for confirmations, failures, cancellations), shaped so direct Bacs (SUN via sponsoring bank, Bacstel-IP) is a later transport swap. Verified timing physics: UK collection confirms ~4-5 working days after charge creation. The Bacs report set IS the unhappy-path spec -- ADDACS (mandate amendments/cancellations), ARUDD (returned unpaids with reason codes), AUDDIS (lodgement failures), AWACS (account switches) -- each report a generator of SIM events."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3). NOTE: the SANDBOX is free and involves no real money and no real people; a move to direct Bacs (sponsoring bank, SUN) would touch reserved class 1 and is deliberately NOT in this atom's scope."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: ['W5_1_banking_payment_rails']
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md']
+  origin_note: "The four Bacs reports are the highest-value part and the reason this outranks a happy-path payments adapter: the D-lane has spent weeks measuring the company's belief about arrears, and ADDACS/ARUDD/AUDDIS/AWACS are exactly the events that make that belief wrong in reality (a cancelled mandate the company has not yet heard about is an arrears record that is false at source). Couples to the existing W5 rails simulator, which is the SIM half. The one-way-door boundary is stated in blocked_on on purpose: sandbox yes, sponsoring bank no."
+  file_scope: []
+- id: EP12_adapter_css_rec_switching
+  title: "Switching under the REC"
+  gain: "Gaining and losing customers becomes an industry process with its own failure modes, not a state change."
+  name: "Adapter for switching flows: electricity CSS (operated by DCC) and gas Supply Point Switching, both administered through RECCo under the REC Data Access Matrix, with eligibility confirmed by the REC Code Manager. Access class GATED; the adapter stays mocked, shaped to REC message flows. B10_competitor_switching_response models the company's RESPONSE to switching; this is the industry PROCESS that switching actually runs through."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_CHANGE_OF_TENANCY_2026-08-07.md']
+  origin_note: "Erroneous transfers, objections and failed switches are the substance -- a switching adapter that only models successful switches has modelled the easy half and left out every case that generates a complaint, a credit balance and a regulatory obligation. Interacts with W2_12_change_of_tenancy_debt_physics, where a switch and a tenancy change look identical from the company's side until they don't."
+  file_scope: []
+- id: EP13_adapter_carbon_intensity
+  title: "Carbon from the actual grid, half-hour by half-hour"
+  gain: "The carbon ledger gets ground truth from day one instead of a factor table."
+  name: "Adapter for the NESO Carbon Intensity API (carbonintensity.org.uk): free, no key, national and regional actual and forecast gCO2/kWh. Access class OPEN NOW. Regional intensity multiplied by half-hourly usage is the abatement ledger's ground truth. Feeds E5_carbon_three_ledger, which today has no real feed behind it."
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_CARBON_2026-08-04.md', 'docs/design/CARBON_NOT_A_TARGET_CONSTRAINT.md']
+  origin_note: "CARBON_NOT_A_TARGET_CONSTRAINT already governs this lane and binds here: an intensity feed makes a carbon number cheap to publish and therefore cheap to optimise toward, which is exactly what that constraint forbids (R12). The forecast/actual split is the fidelity prize -- the company acts on the FORECAST and is settled against the ACTUAL, which is a belief-vs-truth gap available for free from a public API."
+  file_scope: []
+- id: EP14_adapter_published_cost_stack
+  title: "The non-commodity stack, parsed from what is actually published"
+  gain: "Network and policy costs stop being parameters and start being documents that change under the company."
+  name: "File-ingest adapters, not REST clients, for the published cost stack: the Ofgem price cap level and full annex model (spreadsheets each period), DNO DUoS via CDCM tariff spreadsheets, TNUoS via NESO publications, and BSUoS as reformed under NESO. Access class OPEN, spreadsheet-shaped. These feed the non-commodity cost stack that the advisor's scope brief puts in ~£4.9M reconciliation-gap territory."
+  lane: W4_the_wall
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md', 'docs/staging/ADVISOR_SCOPE_BRIEF_NONCOMMODITY_COST_STACK_2026-08-07.md']
+  origin_note: "Schema-drift tolerance is the requirement that makes this real: a published spreadsheet whose columns move between periods is the normal case, not the edge case, and a parser that fails silently on a moved column produces a cost stack that is confidently wrong. Fail-LOUD on an unparseable publication (R15: an unavailable input is a failed input, never a zero). Regulation-commons doctrine applies -- the TEXT is readable by every lane; the company's READING of it stays its own and is allowed to be wrong."
+  file_scope: []
+- id: EP15_forecast_feed
+  title: "A forward view the company is allowed to have"
+  gain: "Hedging and pricing get a legitimate forecast to be wrong with, instead of a blindfold or a leak."
+  name: "The weather and market forecast feed: a point-in-time-safe forward view (weather forecast, forward curve, demand outlook) delivered through the wall as an as-of-bound observable, so the company can plan without the future being readable. Named in the ruling §1 as an Epoch-3 floor item. B3_published_forecast_error_horizons measures forecast ERROR; this is the feed whose error that atom measures."
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP6_wall_protocol_typing']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/B3_PUBLISHED_FORECAST_ERROR_HORIZONS_FRAME.md']
+  origin_note: "This is the highest-risk atom on the map for the Point-in-Time Blindfold, because a forecast feed is the ONE legitimate channel through which future-dated data crosses the wall -- and the hedge-foresight bug (a point-in-time volatility-calc leak) is the precedent for how that goes wrong. The design constraint is that a forecast is a POINT-IN-TIME ARTEFACT: what was forecast, as of when, with its error unknown at the time. A feed that quietly serves the realised outturn as a forecast is the same bug with a new name. Build the leak test before the feed."
+  file_scope: []
+
+# --- EPOCH 4: generated worlds and selection (blocked -- R13 curriculum)
+- id: EP16_anchored_generators
+  title: "Generated worlds that stay tethered to reality"
+  gain: "The company can be tested against worlds that never happened without those worlds becoming fiction."
+  name: "Anchored generators: synthetic but externally-calibrated worlds (weather, price, demand, population) whose generating parameters stay tethered to real observed distributions, so a generated 2031 is a plausible world rather than an invented one. Named in the ruling §1 as an Epoch-4 floor item. W1_2_generate_futures (SATURATED) generates forward CURVES; this is the whole-world generator with its anchoring discipline."
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md']
+  origin_note: "R13 is the entire design constraint, not a side note: the BASELINE world may change only for fidelity-to-reality reasons decided BLIND to company P&L, and the CURRICULUM (which generated worlds the company actually lives through) is the director's, named and versioned. This atom builds the generator; it may never choose the worlds. A generator whose parameters drift in response to company results is the goal-seek failure the whole rule exists to prevent, and the agent controls both sides of that wall."
+  file_scope: []
+- id: EP17_varied_population_draw
+  title: "A different cast every run"
+  gain: "The company stops memorising its customers and has to cope with a population it did not choose."
+  name: "Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation across runs."
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation)."
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['EP16_anchored_generators']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C4)', 'docs/design/EPOCH2_EVIDENCE.md (Q6, fixed population)']
+  origin_note: "C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population draw shares a stream with anything else, adding one customer shifts every other subsystem's outputs and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed. Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run variation."
+  file_scope: []
+- id: EP18_enterprise_value_fitness
+  title: "Enterprise value as the thing being selected for"
+  gain: "Strategies compete on what a buyer would pay, not on a proxy the company chose for itself."
+  name: "Enterprise value as the fitness function of the evolutionary tournament: companies survive or die on a valuation built from their own audited results, not on margin or growth alone. Named in the ruling §1 as an Epoch-4 floor item. A5_tournament_fitness_mortality (L0, FRAME exists) and B11_evolutionary_tournament_harness (L0) are already on the map for the tournament MECHANISM; this atom is specifically the fitness DEFINITION they select on, which neither currently fixes."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 2
+  provenance: director_ruling
+  depends_on: ['A5_tournament_fitness_mortality', 'EP17_varied_population_draw']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md', 'docs/design/B11_EVOLUTIONARY_TOURNAMENT_HARNESS_FRAME.md']
+  origin_note: "A fitness function is the one place in this project where R12's anti-goal-seek rule is deliberately INVERTED -- selection pressure is the point -- which makes it the place where a badly-chosen measure does the most damage, since every surviving strategy will have been shaped by it. That asymmetry is why the definition is its own atom rather than a parameter inside the harness. It is also why it must be director-authored curriculum: an agent that both writes the fitness function and runs the tournament is grading its own exam."
+  file_scope: []
+
+# --- EPOCH 5: go-live (blocked -- R13 curriculum)
+- id: EP19_counterparty_qualification_paths
+  title: "The accession checklist, per counterparty"
+  gain: "Go-live stops being a date and becomes a list of named qualifications with owners."
+  name: "The qualification path for every gated counterparty, as a tracked register: SEC accession + SMKI + CIO/UIT (DCC), REC/RECCo eligibility via the Code Manager (CSS and switching), the Data Services Contract / UK Link User Agreement (Xoserve/CDSP), and a sponsoring bank + Service User Number (direct Bacs). The advisor's research observes that every gated counterparty names its own qualification path, so 'the Epoch-5 checklist is writing itself'."
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 5
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-5 commitment set (ruling §1); pull-forward is proposal-only (§3). Separately, ACTING on any of these paths means contacting real organisations and spending real money -- reserved classes 1 and 2 -- so this atom's ceiling is the register, never the application."
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md']
+  origin_note: "Deliberately a REGISTER and not an action: the atom's whole value is that the qualification paths are known and costed before anyone commits, and its whole risk is that building it looks like permission to start one. The boundary is written into blocked_on rather than left to judgement. F5_ofgem_licence_readiness is the sibling covering the licence itself; this covers the industry-systems side, and the two should share one register rather than grow two."
+  file_scope: []
+- id: EP20_go_live_cutover_analysis
+  title: "What actually happens on the day"
+  gain: "The transport swap the whole wall was built for gets analysed before it is attempted."
+  name: "Go-live analysis stubs: the cutover analysis for swapping each mocked adapter to its real transport -- ordering, dual-run/reconciliation period, rollback, and the failure modes that only appear when a real counterparty is on the other end. Named in the ruling §1 as the Epoch-5 floor item. H4_go_live_nfr_register (L1) holds the NON-FUNCTIONAL requirements and H8_harness_bootstrap_dr the DR bootstrap; neither covers the cutover itself."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 5
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  block_reason: "director-reserved curriculum sequencing (R13). Epoch-5 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: ['EP19_counterparty_qualification_paths']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', 'docs/design/GO_LIVE_SEAM_AND_INTERNAL_SEAMS_DESIGN.md']
+  origin_note: "The Hardened security profile (container, unreadable credentials, audit, RBAC) is already filed as an Epoch-5 go-live NFR blocker and belongs in this analysis's dependency list rather than being rediscovered on the day. The honest thing this atom must produce is the list of failure modes that CANNOT be rehearsed against a mock -- because that list is the real argument for how long the dual-run period has to be, and it is the thing a cutover plan written from the mock side will silently omit."
+  file_scope: []
+
+# --- The ruling's own machinery (drawable now -- deliverables 2, 3 and 4)
+- id: FUT1_attach_forward_hook
+  title: "A finding can say what future it advances"
+  gain: "Forward discovery accretes onto the atom it serves instead of scattering into whichever lane caught it."
+  name: "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §2, WORK-THIS-CREATES #2 and #5: any finding or DISCOVER mint may DECLARE which future atoms it advances, and each future atom accretes a visible ledger of what has already been built toward it. The mechanism is the worker's; the property is mandatory. Acceptance includes #5 -- the two forward-findings of 2026-08-08 (the heat-pump anchor and the Clayton misdating) retro-attached as the first ledger entries."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md']
+  file_scope: []
+  origin_note: "WORK-THIS-CREATES #5 is folded in here as this atom's acceptance test rather than minted separately, and that is a judgement worth stating: a hook with zero entries is the vacuity fail-open shape R15 names, so 'the mechanism exists' and 'two real findings are attached through it' are not separable claims. The R15 shape to hunt is a ledger that renders whatever it is told -- the attachment must be re-derivable from the finding, not merely stored. Simplicity guard: this is a declared field plus a rendering, not a graph database."
+- id: FUT2_pull_forward_proposal
+  title: "Ripe futures get proposed, never self-opened"
+  gain: "A future atom that has quietly accumulated its groundwork surfaces as a case, and stops at the door."
+  name: "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §3, WORK-THIS-CREATES #3: dials and the planner may PROPOSE unblocking a ripe future atom, with its accretion ledger as the case. Unblocking is a true door -- the proposal path must be wired to STOP at the director and must never proceed on silence, which is a deliberate exception to the standing propose-then-proceed default."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['FUT1_attach_forward_hook']
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md']
+  file_scope: []
+  origin_note: "This atom sits directly against THE STANDARD's 'silence is validation' default, and the ruling overrides it for exactly this act -- so the R15 mutation that matters is the one proving the path CANNOT proceed on silence (a timeout that unblocks is the failure, and it is the failure that would be written by default, since propose-then-proceed is what every other path in this codebase does). Note the surrounding law: the epoch gate is R13 CURRICULUM authorship, not build permission, which is why it survives the 2026-07-29 rip-out -- do not let it be re-implemented as a permission gate, and do not let it grow a second channel or ceremony."
+- id: FUT3_blocked_atom_visibility
+  title: "Blocked does not mean forgotten"
+  gain: "The 82-vs-7 lane imbalance becomes a measured dial instead of a thing someone notices."
+  name: "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §4, WORK-THIS-CREATES #4: blocked atoms are invisible to the DRAW but must be visible to the target-design deltas and the staleness clocks -- confirmed, not assumed. Verification target, measured at mint on 2026-08-08: lane weights were 82 harness vs 7 commercial across 206 atoms, with zero atoms touching CLV, named counterparty adapters or a forecast feed."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md']
+  file_scope: []
+  origin_note: "The specific risk this atom must disprove is that the blocked-atom exclusion is implemented once and reused everywhere -- supervisor._is_externally_blocked drops blocked atoms from EVERY draw, and if the target-design and staleness readers share that filter, the futures become invisible to precisely the surfaces the ruling wants them visible on, which would make the whole minting exercise a no-op that looks fine. Verify by reading the actual readers (AO7 target-design, AO11 map_assertion_provenance) against the newly-blocked ids, not by inspecting the draw."

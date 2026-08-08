@@ -109,6 +109,51 @@ REVIEWED_CLOSE_TO_LEARN = {
     # customer neither goes near.
     "AO10_exhaust_separated_from_record",
     "AO11_map_assertion_provenance",
+    # 2026-08-08 reviewed (worker tick, minting the EP1-EP20 commitment sets (epochs 2-5) from
+    # DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08). Classified on their merits, not to clear
+    # the gate -- and as with the AO batch, the gate firing on eleven at once is this control doing
+    # exactly its job: a commitment set minted in one go is precisely when the dumping-ground default
+    # would slip in unnoticed. The other twelve atoms of that mint are NOT here, because they carry
+    # honest revenue-flow streams (collections and the metering/payments/switching adapters are
+    # meter_to_cash; pricing, settlement true-ups, the cost-stack and forecast feeds and Elexon are
+    # wholesale_to_price) -- which is the check that this list is a classification and not a bucket.
+    #
+    # EP1_clv_three_horizon: a VALUATION the company forms about a customer. It bills nothing, prices
+    # nothing and settles nothing; filing it under price_to_bill would invent a bill it never issues.
+    # What it measures is whether the company's belief about customer value survives contact with
+    # realised value -- close_to_learn by definition.
+    # EP2_variance_learning_loop: literally the "learn" half of the stream's name -- expected-minus-
+    # realised decomposed per cohort and fed back into belief. No candidate alternative exists.
+    "EP1_clv_three_horizon",
+    "EP2_variance_learning_loop",
+    # EP6_wall_protocol_typing: the-wall architecture, the same class as W4_1_typed_adapters (already
+    # close_to_learn above). It moves no money; it decides the message shapes money later moves in.
+    # EP13_adapter_carbon_intensity: an emissions-intensity feed. Carbon is measured and reported here,
+    # never charged -- CARBON_NOT_A_TARGET_CONSTRAINT governs the lane -- so there is no revenue flow
+    # to file it under, and its sibling E5_carbon_three_ledger sits in the same class.
+    "EP6_wall_protocol_typing",
+    "EP13_adapter_carbon_intensity",
+    # EP16_anchored_generators: world-generation METHOD with its calibration discipline (R13 baseline).
+    # It builds the worlds the company is measured in; it is on the far side of the wall from every
+    # revenue flow, and the same class as its G-fidelity siblings.
+    # EP18_enterprise_value_fitness: the tournament's selection criterion -- the same close_to_learn
+    # class as A5_tournament_fitness_mortality and B11_evolutionary_tournament_harness above, and for
+    # the same reason: it scores companies, it does not bill customers.
+    "EP16_anchored_generators",
+    "EP18_enterprise_value_fitness",
+    # EP19_counterparty_qualification_paths / EP20_go_live_cutover_analysis: go-live readiness, the same
+    # class as H4_go_live_nfr_register above. Both are registers and analyses about whether the
+    # machine can be trusted to run for real; neither touches a customer, a price or a settlement.
+    "EP19_counterparty_qualification_paths",
+    "EP20_go_live_cutover_analysis",
+    # FUT1/FUT2/FUT3: the ruling's own machinery -- an attach-hook so findings can name the future
+    # they advance, a proposal path for pull-forward, and a visibility check that blocked atoms stay
+    # legible to the clocks. All three act on HOW THE MACHINE PLANS ITSELF, the same class as their
+    # AO and H_harness siblings. None could be filed under a revenue stream without inventing a
+    # customer it does not go near.
+    "FUT1_attach_forward_hook",
+    "FUT2_pull_forward_proposal",
+    "FUT3_blocked_atom_visibility",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle
@@ -378,6 +423,15 @@ KNOWN_RELEASER_TOKENS = (
     "watching_brief",           # a director-rejected item parked in the forward-discovery register
     "forward_register",         # ditto -- released when the director re-opens it from the register
 )
+# NOT ADDED 2026-08-08, and the reason is worth keeping: minting the EP2-EP5 commitment sets
+# (DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08) looked like it needed an `epoch_unblock`
+# releaser, and one was drafted here. It was removed on finding that a releaser-token block is
+# unexpressible: test_maturity_map_contract.py::check_edges requires `blocked_on` to be a LIST OF
+# EXISTING ATOM IDS, so the only block this map can represent is a dependency on another atom. The
+# commitment sets are parked `loop_stage: idle` instead -- the way all 9 pre-existing epoch-4/5
+# atoms are parked, and the way CLAUDE.md's epoch-gating rule describes ("parked for BUILD only").
+# A token added here with no atom resolving through it would have been an orphan constant that
+# nothing compares -- a control that cannot fail.
 
 
 def _is_blocked(blocked_on) -> bool:
