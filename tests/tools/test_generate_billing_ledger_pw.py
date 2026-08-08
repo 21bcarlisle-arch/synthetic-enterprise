@@ -77,10 +77,41 @@ def test_ic_bacs_late_success_has_positive_days():
     assert late_found
 
 
-def test_non_ic_bacs_still_always_success():
+def test_sme_bacs_is_no_longer_always_success():
+    """UPDATED 2026-08-08 (W2_sme_segment_case_normalisation).
+
+    This test used to be `test_non_ic_bacs_still_always_success` and asserted
+    that an SME on bacs ALWAYS succeeds with days == 0. That was a
+    characterization of a DEFECT, not a contract: SME was absent from the I&C
+    tuple, so it fell through `payment_outcome`'s corporate arm to a bare
+    ("success", 0) and could never be late, fail or dispute. Pinning it made
+    the missing SME outcome model look intentional.
+
+    SME now has its own Ofgem-D6/DBT-anchored model, so the correct assertion
+    is the opposite one. Full coverage lives in
+    tests/simulation/test_segment_case_normalisation.py; this keeps the
+    ledger-side reader honest about which contract it depends on.
+    """
+    rng = random.Random(42)
+    outcomes = [_payment_outcome("bacs", "HIGH", rng, "SME", False, None, "SME%03d" % i)
+                for i in range(2000)]
+    assert any(o != "success" or d > 0 for o, d in outcomes), (
+        "SME bills are all on-time successes again -- the corporate fall-through "
+        "that deletes SME bad debt has come back"
+    )
+
+
+def test_a_non_business_segment_on_a_corporate_rail_still_succeeds():
+    """The fall-through arm itself, which is unreachable by construction.
+
+    `payment_method` only returns bacs/chaps for a business segment, so a resi
+    bill on bacs cannot occur in a real run. The arm is retained so an
+    unforeseen caller degrades exactly as it always has, and this pins that
+    degradation rather than leaving it undescribed.
+    """
     rng = random.Random(42)
     for _ in range(200):
-        outcome, days = _payment_outcome("bacs", "HIGH", rng, "sme")
+        outcome, days = _payment_outcome("bacs", "HIGH", rng, "resi")
         assert outcome == "success"
         assert days == 0
 
