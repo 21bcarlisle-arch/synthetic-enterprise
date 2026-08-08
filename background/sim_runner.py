@@ -33,6 +33,9 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
+from background.child_diagnostics import (  # noqa: E402
+    STDERR_TAIL_LINES, failure_detail, stderr_tail,
+)
 
 
 def log(msg: str) -> None:
@@ -72,6 +75,12 @@ def run_simulation() -> bool:
 
     t0 = time.monotonic()
     try:
+        # H30 (2026-08-08): stderr is CAPTURED, not inherited. When this runner
+        # is started by a daemon, fd 2 points at a socket nobody reads, so every
+        # traceback the child wrote was discarded -- eight consecutive failures
+        # reported `rc=1` and nothing else. stdout stays inherited on purpose:
+        # it is the child's progress output, it is large, and it is not what
+        # identifies a failure.
         result = subprocess.run(
             [
                 sys.executable, "-m", "saas.reporting.annual_report",
@@ -80,19 +89,32 @@ def run_simulation() -> bool:
             ],
             cwd=str(PROJECT_DIR),
             timeout=7200,
+            stderr=subprocess.PIPE,
+            text=True,
         )
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
         elapsed = time.monotonic() - t0
-        log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying")
-        notify(f"[SIM] Run timed out after {elapsed:.0f}s — check sim-runner-log.md", kind="real_alarm")
-        update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s")
+        # A timed-out child still wrote to stderr before it was killed, and
+        # TimeoutExpired carries what was read so far. That partial output is
+        # usually where it got stuck.
+        tail = stderr_tail(exc.stderr)
+        log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying"
+            + (f"\n  child stderr (last lines before kill):\n{tail}" if tail
+               else "\n  child stderr: nothing captured before the kill"))
+        notify(f"[SIM] Run timed out after {elapsed:.0f}s — {failure_detail(exc.stderr)} "
+               f"(full tail in sim-runner-log.md)", kind="real_alarm")
+        update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s: {failure_detail(exc.stderr)}")
         return False
     elapsed = time.monotonic() - t0
 
     if result.returncode != 0 or not out_json.exists():
-        log(f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s")
-        notify(f"[SIM] Run FAILED after {elapsed:.0f}s — check sim-runner-log.md", kind="real_alarm")
-        update_agent_status("sim-runner", status="error", last_action=f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s", anomaly=f"Exit code {result.returncode}")
+        tail = stderr_tail(getattr(result, "stderr", None))
+        log(f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s"
+            + (f"\n  child stderr (last {STDERR_TAIL_LINES} lines):\n{tail}" if tail
+               else "\n  child stderr: EMPTY — the child died without writing a diagnostic"))
+        notify(f"[SIM] Run FAILED after {elapsed:.0f}s — {failure_detail(getattr(result, 'stderr', None))} "
+               f"(full tail in sim-runner-log.md)", kind="real_alarm")
+        update_agent_status("sim-runner", status="error", last_action=f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s", anomaly=f"Exit code {result.returncode}: {failure_detail(getattr(result, 'stderr', None))}")
         return False
 
     size_kb = out_json.stat().st_size / 1024
@@ -166,6 +188,8 @@ def auto_process_marker(marker):
             [sys.executable, str(processor), str(marker)],
             cwd=str(PROJECT_DIR),
             timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
+            stderr=subprocess.PIPE,  # H30: same defect as run_simulation's, same file
+            text=True,
         )
         rc = proc_result.returncode
         if rc == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
@@ -174,7 +198,11 @@ def auto_process_marker(marker):
         elif rc == 0:
             log('Auto-processed run complete marker')
         else:
-            log('Auto-process failed (rc={}) -- marker left for background_worker'.format(rc))
+            tail = stderr_tail(getattr(proc_result, 'stderr', None))
+            log('Auto-process failed (rc={}) -- marker left for background_worker{}'.format(
+                rc,
+                '\n  publisher stderr (last {} lines):\n{}'.format(STDERR_TAIL_LINES, tail)
+                if tail else '\n  publisher stderr: EMPTY'))
         # H15 (2026-08-03): feed THIS path's outcome into the publish-gate wedge
         # detector too. This is the path that actually publishes in the steady
         # state, and it fed the detector NOTHING -- only
@@ -186,8 +214,11 @@ def auto_process_marker(marker):
         # defensive and treats rc=75 as evidence of nothing.
         _record_publish_gate_outcome(marker, rc)
         return rc
-    except subprocess.TimeoutExpired:
-        log('Auto-process timed out after 1200s -- marker left for background_worker')
+    except subprocess.TimeoutExpired as exc:
+        tail = stderr_tail(exc.stderr)
+        log('Auto-process timed out after 1200s -- marker left for background_worker{}'.format(
+            '\n  publisher stderr before the kill:\n{}'.format(tail) if tail
+            else '\n  publisher stderr: nothing captured before the kill'))
         # A timeout IS a publish failure (the marker stays unpublished), and it
         # is exactly how the 4-day 2026-07-25 blackout presented. rc=None would
         # be ambiguous, so report the timeout as a distinct non-zero code

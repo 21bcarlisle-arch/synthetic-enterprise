@@ -16,8 +16,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 22
     },
     {
       "id": "D3_catchup_rebilling",
@@ -92,8 +92,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_2_generate_futures",
@@ -113,8 +113,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 21
     },
     {
       "id": "B1_margin_bridge",
@@ -191,8 +191,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "B5_regional_basis_risk",
@@ -214,8 +214,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "C1_segment_layers",
@@ -252,8 +252,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -465,8 +465,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_3_competitor_field",
@@ -507,8 +507,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_5_life_event_stream",
@@ -528,8 +528,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "W2_6_sme_distress_twin",
@@ -551,8 +551,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "W2_7_willingness_classification",
@@ -574,8 +574,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W2_8_self_rationing",
@@ -597,8 +597,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "W2_9_segment_debt_tnc",
@@ -620,8 +620,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W2_10_dd_attribution_confound",
@@ -643,8 +643,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_12_change_of_tenancy_debt_physics",
@@ -664,8 +664,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -687,8 +687,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -708,8 +708,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 81
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -748,8 +748,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "W4_1_typed_adapters",
@@ -786,8 +786,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "A1_learn_loop_chair",
@@ -805,8 +805,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "A2_decision_rights_register",
@@ -824,8 +824,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "A3_approval_interface",
@@ -845,8 +845,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "A4_sim_approver",
@@ -866,8 +866,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -1006,8 +1006,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 38
     },
     {
       "id": "C5_key_moment_conversion",
@@ -1028,8 +1028,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -1050,8 +1050,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 33
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
@@ -1112,8 +1112,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 51
     },
     {
       "id": "F4_company_internal_authz",
@@ -1131,8 +1131,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 41
     },
     {
       "id": "H5_security_profiles",
@@ -1171,8 +1171,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -1193,8 +1193,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 69
     },
     {
       "id": "H9_map_write_serialisation",
@@ -1212,8 +1212,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SITE1_expert_doors",
@@ -1231,8 +1231,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1250,8 +1250,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3401
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1269,8 +1269,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3069
     },
     {
       "id": "SITE_EH3_figure_reconciliation_and_periods",
@@ -1288,8 +1288,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3396
     },
     {
       "id": "OPS_run_marker_sweep_livelock",
@@ -1307,8 +1307,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 83
     },
     {
       "id": "H10_worktree_isolation",
@@ -1326,8 +1326,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 38
     },
     {
       "id": "ARCH1_internal_seams",
@@ -1345,8 +1345,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "G3_method_ip_worktree_retro",
@@ -1364,8 +1364,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 72
     },
     {
       "id": "H11_naive_organ",
@@ -1383,8 +1383,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 194
     },
     {
       "id": "BRAND1_identity_system",
@@ -1402,8 +1402,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "F5_vat_control_independent_signal",
@@ -1421,8 +1421,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "F6_bill_integrity_structural",
@@ -1440,8 +1440,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "F7_obligations_register_coverage",
@@ -1459,8 +1459,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "H12_mutation_test_controls",
@@ -1478,8 +1478,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 157
     },
     {
       "id": "F8_control_gap_fixes_kl4_kl8",
@@ -1497,8 +1497,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "A6_coupled_triad_gap_metric",
@@ -1516,8 +1516,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 123
     },
     {
       "id": "C9_cantpay_wontpay_classifier",
@@ -1540,8 +1540,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "C10_self_rationing_detection",
@@ -1564,8 +1564,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C7_life_event_detection",
@@ -1588,8 +1588,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "C6_affordability_inference",
@@ -1613,8 +1613,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "C12_channel_attribution_analytics",
@@ -1637,8 +1637,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "C8_sme_credit_risk",
@@ -1661,8 +1661,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C11_segment_debt_policy",
@@ -1685,8 +1685,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "H14_judge_validation",
@@ -1706,8 +1706,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 340
     },
     {
       "id": "A7_harm_cost_weights_decision",
@@ -1748,8 +1748,8 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "W1_4_regional_weather_field",
@@ -1769,8 +1769,8 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_5_premise_demand_shape",
@@ -1792,8 +1792,8 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "W1_6_physics_price_signal",
@@ -1813,8 +1813,8 @@
       ],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "C13_weather_normalisation",
@@ -1838,8 +1838,8 @@
       ],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "W1_7_renewable_capacity_trends",
@@ -1859,8 +1859,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 94
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1882,8 +1882,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 31
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1903,8 +1903,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 71
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -1924,8 +1924,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "H15_publish_gate_failure_alert",
@@ -1943,8 +1943,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "H16_idle_detection_stability_gate",
@@ -1962,8 +1962,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "A8_experiment_loop_speed",
@@ -1983,8 +1983,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -2005,8 +2005,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "G4_unified_failure_register",
@@ -2024,8 +2024,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "H18_harness_self_mutation_audit",
@@ -2043,8 +2043,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -2062,8 +2062,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "G5_effort_sizing_discipline",
@@ -2081,8 +2081,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "G6_method_lens_audit",
@@ -2100,8 +2100,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 43
     },
     {
       "id": "H19_escalation_ntfy_route_around",
@@ -2138,8 +2138,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "G8_constraint_identification_ritual",
@@ -2158,7 +2158,7 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "G9_error_budget_toil_tracking",
@@ -2176,8 +2176,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "G10_definition_of_ready_gate",
@@ -2195,8 +2195,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H20_parallel_maintenance_lane",
@@ -2215,7 +2215,7 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "G11_activity_cost_utilisation",
@@ -2236,8 +2236,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "H21_self_contained_escalation",
@@ -2255,8 +2255,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H22_scheduled_housekeeping",
@@ -2276,8 +2276,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H23_frame_saturation_draw_marker",
@@ -2296,7 +2296,7 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "OPS1_operational_layer_rebuild",
@@ -2314,8 +2314,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -2335,8 +2335,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -2354,8 +2354,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "OPS1_governance_refusal_mutation_test",
@@ -2375,8 +2375,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
@@ -2394,8 +2394,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H_draw_excludes_external_blocked_atoms",
@@ -2414,7 +2414,7 @@
       "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "D5_account_hierarchy_payments",
@@ -2432,8 +2432,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "E4_supplier_reporting_standard",
@@ -2451,8 +2451,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 39
     },
     {
       "id": "E5_carbon_three_ledger",
@@ -2470,8 +2470,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2489,8 +2489,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2508,8 +2508,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 18
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2527,8 +2527,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2546,8 +2546,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2565,8 +2565,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "H28_precommit_gate_ambient_cwd_git_discovery",
@@ -2584,8 +2584,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "H27_phone_act_channel",
@@ -2603,8 +2603,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 43
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2624,8 +2624,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2646,8 +2646,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "H27_payment_belief_gap",
@@ -2668,8 +2668,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "D6_payment_ageing_gap_validity",
@@ -2690,11 +2690,11 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 153
     },
     {
-      "id": "D6a_ageing_gap_metric_reshape",
+      "id": "D7_ageing_gap_metric_reshape",
       "name": "Reshape the coupled-triad AGEING dimension: retire the single prevalence-normalised scalar and report the two error directions on their OWN denominators (understated_arrears_rate = misses/n_truly_overdue; overstated_arrears_rate = false_ageings/n_truly_current, the wrongful-dunning exposure) plus an ABSOLUTE mean_bucket_displacement. TRAP, mutation-caught during D6 DISCOVER: any normaliser whose denominator counts the truth's class balance re-imports the prevalence defect whatever the numerator's shape -- ordinal displacement over a no-skill baseline reproduces the same twentyfold swing exactly. The ordinal severity carries no denominator at all.",
       "lane": "D_billing_metering",
       "value_stream": "meter_to_cash",
@@ -2718,7 +2718,7 @@
       "stall_consecutive_unchanged": null
     },
     {
-      "id": "D6b_ambiguous_remittance_misdating",
+      "id": "D8_ambiguous_remittance_misdating",
       "name": "Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferenced non-DD credits cross the W4_4 seam with correlation_id stripped to None, forcing AccountLedger.allocate's oldest-first fallback, so the company's balance is exactly right while its ageing report is materially misdated -- the real-world driver of wrongful dunning, wrong statutory-interest accrual and misstated bad-debt provisioning. Blocked on D6a giving the dimension a shape that can carry the finding.",
       "lane": "D_billing_metering",
       "value_stream": "meter_to_cash",
@@ -2730,7 +2730,7 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
-        "D6a_ageing_gap_metric_reshape"
+        "D7_ageing_gap_metric_reshape"
       ],
       "couples_with": [
         "D5_account_hierarchy_payments",
@@ -2776,8 +2776,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "G2_fidelity_evidence_ledger",
@@ -2795,8 +2795,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "G3_fidelity_inspection_chain",
@@ -2814,8 +2814,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "A_scope_of_need_scoring_frame",
@@ -2835,8 +2835,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "D_cascade_correlation_estimation",
@@ -2856,8 +2856,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 102
     },
     {
       "id": "F1a_sim_customer_response",
@@ -2879,8 +2879,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 84
     },
     {
       "id": "F1b_company_comms",
@@ -2902,8 +2902,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 126
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2927,8 +2927,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 122
     },
     {
       "id": "W1_6b_merit_order_reconstruction",
@@ -2948,8 +2948,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3632
     },
     {
       "id": "D_opening_dd_seasonal_sizing",
@@ -2967,8 +2967,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 23
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2988,8 +2988,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "SITE_evidence_pages_behind_nodes",
@@ -3007,8 +3007,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2747
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -3028,8 +3028,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "HX2_stall_set_coverage_verdict",
@@ -3047,8 +3047,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 52
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3069,8 +3069,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "CA4_cohort_activation_sequencing_verdict",
@@ -3088,8 +3088,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 46
     },
     {
       "id": "CA1_cohort_assignment_live",
@@ -3107,8 +3107,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "CA2_coverage_report_realised_cohort",
@@ -3126,8 +3126,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "CA3_segmentation_untestable_ledger_marking",
@@ -3145,8 +3145,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 65
     },
     {
       "id": "SPINE_1_scenario_world_state",
@@ -3185,8 +3185,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "B6_collateral_cash_death_loop",
@@ -3206,8 +3206,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "H29_import_time_env_capture_test_isolation",
@@ -3219,6 +3219,65 @@
       "level_current": 0,
       "level_target": 2,
       "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 45
+    },
+    {
+      "id": "W2_16_payment_outcome_rng_substream_isolation",
+      "name": "arrears_engine draws every customer's payment outcome from ONE shared Random(seed), so improving any segment's model silently rewrites every later customer's history -- measured: the SME fix moved resi C7's undischarged credit from 1224 days to 32",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_sme_segment_case_normalisation"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
+    },
+    {
+      "id": "H30_sim_runner_discards_child_stderr",
+      "name": "background/sim_runner.py::run_simulation calls subprocess.run with no capture_output, so the child's traceback goes to an inherited fd (a socket) and is lost -- eight consecutive failures logged rc=1 and nothing else, and the director had to spend attention flagging a loop nobody could diagnose",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9
+    },
+    {
+      "id": "H31_secret_scrub_test_leaks_wake_key",
+      "name": "tests/background/test_model_facing_secret_scrub.py reloads background.ntfy_utils inside a finally block, which runs BEFORE monkeypatch restores the env -- so WAKE_HMAC_KEY is left None for every later test in the same process, and four test_ntfy_utils signing tests fail purely on collection order",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -3244,8 +3303,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 96
     },
     {
       "id": "B4_traded_product_ladder",
@@ -3263,8 +3322,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 92
     },
     {
       "id": "B5_shaped_cost_benchmark_value_add",
@@ -3284,8 +3343,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 89
     },
     {
       "id": "B7_customer_state_layer_moves_and_shocks",
@@ -3303,8 +3362,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "B8_discovered_price_sensitivity_holdout",
@@ -3322,8 +3381,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "B10_competitor_switching_response",
@@ -3341,8 +3400,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 137
     },
     {
       "id": "B11_evolutionary_tournament_harness",
@@ -3362,8 +3421,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 15370
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3383,8 +3442,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 49
     },
     {
       "id": "W1_11_fabric_physics_core",
@@ -3404,8 +3463,8 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 63
     },
     {
       "id": "W1_12_premise_trace_generator",
@@ -3429,7 +3488,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3449,8 +3508,8 @@
       "couples_with": [],
       "chain": "weather_cascade",
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "C14_thermal_parameter_inference",
@@ -3472,8 +3531,8 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 81
     },
     {
       "id": "H_GAP_fabric_belief_truth_gap",
@@ -3497,8 +3556,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 171
     },
     {
       "id": "SP2_1_working_day_calculator",
@@ -3516,8 +3575,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 68
     },
     {
       "id": "SP2_2_rng_substream_primitive",
@@ -3535,8 +3594,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 71
     },
     {
       "id": "SP3_size_and_clone_ratchet",
@@ -3554,8 +3613,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "SP4_owned_quantity_registry_gate",
@@ -3573,8 +3632,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 72
     },
     {
       "id": "SP5_shared_primitive_ensuring_activity",
@@ -3592,8 +3651,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "W3_1b_intra_year_price_cap_granularity",
@@ -3611,8 +3670,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 55
     },
     {
       "id": "W2_payment_channel_dd_consistency_invariant",
@@ -3630,8 +3689,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 31
     },
     {
       "id": "W2_non_dd_miss_vocabulary",
@@ -3651,8 +3710,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "W2_sme_segment_case_normalisation",
@@ -3661,17 +3720,38 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 29
+    },
+    {
+      "id": "W2_15_segment_case_sensitivity_siblings",
+      "name": "The segment-case class has a second shape the guard cannot see statically: a CANONICAL literal compared case-sensitively (sme_distress raises on a lower-case 'sme'), plus three rival segment vocabularies nobody reconciles",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "discover",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_sme_segment_case_normalisation"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3689,8 +3769,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C_supply_start_consumer_routing",
@@ -3710,8 +3790,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "C15_supply_start_observable_floor",
@@ -3720,9 +3800,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3730,9 +3810,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "D_money_boundary_reconciliation",
@@ -3750,8 +3830,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "D_printed_figure_rederivation",
@@ -3771,8 +3851,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 55
     },
     {
       "id": "H_stop_control_gap_characterisation",
@@ -3790,8 +3870,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 53
     },
     {
       "id": "SITE_director_window_delta_view",
@@ -3809,8 +3889,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 227
     },
     {
       "id": "OPS_stall_class_register_adoption",
@@ -3828,8 +3908,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 55
     }
   ],
   "lanes": {
@@ -3912,7 +3992,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 189,
+  "total_atoms": 193,
   "epoch2_movements": [
     {
       "id": "M1",

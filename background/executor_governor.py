@@ -305,6 +305,7 @@ def _default_fold() -> list[str]:
                 subprocess.run(
                     ["git", "add", "--", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
                     check=True,
+                    capture_output=True,  # H30: else CalledProcessError arrives empty
                 )
                 subprocess.run(
                     ["git", "commit", "-m", f"Fold atom_status inbox -> map (F1): {', '.join(folded)}"],
@@ -313,7 +314,16 @@ def _default_fold() -> list[str]:
                 )
         return folded
     except Exception as exc:  # noqa: BLE001 — fold failure must not crash the loop; F2 catches it
-        build_executor.log(f"fold step errored -> leaving inbox at rest for F2 to catch: {exc}")
+        # H30: `str(CalledProcessError)` names the command and the code, never
+        # what git actually said, so a fold blocked by (say) a lock or a hook
+        # read identically to one blocked by a malformed inbox.
+        from background.child_diagnostics import stderr_tail
+
+        detail = stderr_tail(getattr(exc, "stderr", None))
+        build_executor.log(
+            f"fold step errored -> leaving inbox at rest for F2 to catch: {exc}"
+            + (f"\n  child stderr:\n{detail}" if detail else "")
+        )
         return []
 
 

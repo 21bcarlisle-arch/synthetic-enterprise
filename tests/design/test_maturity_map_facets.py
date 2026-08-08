@@ -62,6 +62,13 @@ REVIEWED_CLOSE_TO_LEARN = {
     # already on the record: eight failures over ~60 minutes produced no diagnosable evidence and
     # the root cause (a one-line NameError) needed a manual re-run to see.
     "H30_sim_runner_discards_child_stderr",
+    # 2026-08-08 reviewed (worker tick, found while running tests/background/ + tests/tools/
+    # together for H30). Classified on its merits, not to clear the gate: H31 is a TEST-ISOLATION
+    # atom -- one test leaves WAKE_HMAC_KEY unset process-wide, so four signing tests pass or fail
+    # on collection order alone. It moves no money; what it measures is whether the suite's verdict
+    # means anything, which is the same close_to_learn class as H29 (its near-identical sibling:
+    # both are import-time env capture defeated by reload/teardown ordering).
+    "H31_secret_scrub_test_leaks_wake_key",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle

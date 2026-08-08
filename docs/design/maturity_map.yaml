@@ -2769,12 +2769,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
-  file_scope: [background/sim_runner.py, tests/background/test_sim_runner.py]
+  file_scope: [background/sim_runner.py, background/child_diagnostics.py, background/background_worker.py,
+               background/process_run_complete.py, background/executor_governor.py,
+               tools/child_stderr_guard.py, tests/background/test_sim_runner_stderr_capture.py,
+               tests/tools/test_child_stderr_guard.py]
   depends_on: []
   blocked_on: null
   simplifications_count: 0
@@ -2789,6 +2792,51 @@
     and put them in the failure NTFY. Note the cost this already imposed -- the root cause turned out
     to be a one-line NameError that took a manual re-run to see, because the traceback was written to
     a socket and discarded unread.
+
+    BUILT 2026-08-08, L0 -> L2. Not closed as an instance fix (R10): the guard
+    tools/child_stderr_guard.py flags ANY launch site under background/ that reports a child's failure
+    to a human while discarding its stderr, so the class fails at commit time. It found ELEVEN sites,
+    all fixed, none exempted -- sim_runner (both), background_worker's leftover sweep,
+    process_run_complete's git add/commit/push + liveness publish, executor_governor's map fold.
+    Scope is proven, not asserted: the guard reads background/process_manifest.yaml and returns rc 2
+    if any declared non-retired daemon's entrypoint sits outside the scanned root.
+    R15 both ways -- the 2026-08-08 NameError traceback as a source fixture turns the guard red and
+    the behavioural test red when stderr=PIPE is removed; both go green with it. Live smoke: a real
+    failing child's "NameError: name '_IC_SEGMENTS' is not defined" now appears in the log tail AND
+    as the NTFY headline, where the incident had only "rc=1".
+    NOT at L3, and loop_stage is harden: no HARDEN/Expert-Hour pass, and the guard has never run
+    against a REAL new daemon landing outside background/ -- only against a fixture manifest.
+- id: H31_secret_scrub_test_leaks_wake_key
+  name: "tests/background/test_model_facing_secret_scrub.py reloads background.ntfy_utils inside a finally block, which runs BEFORE monkeypatch restores the env -- so WAKE_HMAC_KEY is left None for every later test in the same process, and four test_ntfy_utils signing tests fail purely on collection order"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [tests/background/test_model_facing_secret_scrub.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a test that leaves a global credential unset for everything that runs after it -- the suite's verdict then depends on collection order, so a green run proves nothing about the code."
+  evidence: [tests/background/test_model_facing_secret_scrub.py, tests/background/test_ntfy_utils.py]
+  notes: >-
+    Found 2026-08-08 while running tests/background/ + tests/tools/ together for H30 (queued, not
+    fixed on sight -- SELF-INTERRUPT DISCIPLINE). REPRODUCED to two files, so this is observed, not
+    inferred: `pytest tests/background/test_model_facing_secret_scrub.py
+    tests/background/test_ntfy_utils.py` = 4 failed; test_ntfy_utils.py alone = 24 passed.
+    Mechanism: `test_worker_env_forgery_is_structurally_impossible` scrubs the env, reloads
+    background.ntfy_utils to re-read WAKE_HMAC_KEY, then reloads again in `finally` to "restore
+    module state for other tests" -- but pytest restores monkeypatched env AFTER the function
+    returns, so that second reload re-reads the SCRUBBED env and pins WAKE_HMAC_KEY=None
+    process-wide. Same class as the 2026-07 finally-reload/monkeypatch-teardown ordering defect,
+    recurring at a new site, which suggests the CLASS closure (an autouse fixture or a
+    reload-safe accessor) rather than another instance fix. Nothing to do with H30's change; the
+    four failures reproduce with H30's files uninvolved.
+
 - id: B3_published_forecast_error_horizons
   name: "Published forecast feed at multiple horizons with realistic, delivery-converging error: the company receives forecasts (demand/wind/price) at >=2 horizons whose error is non-zero and shrinks by a calibrated schedule as delivery approaches, so its own naive 120-day belief can be measured against a real wall on the future. BACKLOG.md B3 (Wave B)."
   lane: W1_market_weather

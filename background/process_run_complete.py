@@ -400,6 +400,9 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.tree_lock import tree_lock  # noqa: E402
+from background.child_diagnostics import (  # noqa: E402  (H30)
+    STDERR_TAIL_LINES, failure_detail, stderr_tail,
+)
 
 
 @contextmanager
@@ -1368,13 +1371,15 @@ def git_commit_push(git_hash, net_margin):
     # unrelated auto-process commit message).
     with tree_lock():
         try:
-            subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=120)
+            subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=120,
+                           stderr=subprocess.PIPE, text=True)  # H30
             # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
             # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
             # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
             # was folded this cycle.
             subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
-                            "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=120)
+                            "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=120,
+                           stderr=subprocess.PIPE, text=True)  # H30
             # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
             # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
             # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
@@ -1384,8 +1389,14 @@ def git_commit_push(git_hash, net_margin):
             # The cap was set when the hooks were trivial and quietly became a
             # publish-blocker as the suite grew: the deadline is now a property of how many
             # tests exist, not of whether the commit is healthy.
+            # H30 (2026-08-08): BOTH streams, because the diagnostic here is the
+            # pre-commit HOOK CHAIN's output (a gate refusal, a failing test),
+            # which the hooks split across stdout and stderr. Without it,
+            # "Nothing to commit or commit failed" below is unfalsifiable: a
+            # clean no-op and a gate rejection produce the identical log line.
             result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR),
-                                    timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS)
+                                    timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                                    capture_output=True, text=True)
         except subprocess.TimeoutExpired as exc:
             # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:
             # "sim_runner TimeoutExpired must be caught -- uncaught exception kills the
@@ -1395,13 +1406,22 @@ def git_commit_push(git_hash, net_margin):
             # and the diagnosis pointed at the test suite for hours. A slow hook chain
             # must degrade to "retry next cycle", never take the pipeline down, and must
             # say SO in the log.
+            _tail = stderr_tail(exc.stderr) or stderr_tail(exc.stdout)
             log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
                 "deadline. Nothing committed; retrying next cycle. If this repeats, the "
-                "hook chain (not the run) is the cause.".format(
-                    GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__))
+                "hook chain (not the run) is the cause.{}".format(
+                    GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__,
+                    "\n  hook output before the kill (names the SLOW hook):\n{}".format(_tail)
+                    if _tail else "\n  hook output: nothing captured before the kill"))
             return False
         if result.returncode != 0:
-            log("Nothing to commit or commit failed")
+            # H30: which of the two it was is now IN the log, not inferred.
+            _tail = (stderr_tail(getattr(result, "stderr", None))
+                     or stderr_tail(getattr(result, "stdout", None)))
+            log("Nothing to commit or commit failed (rc={}){}".format(
+                result.returncode,
+                "\n  git/hook output (last {} lines):\n{}".format(STDERR_TAIL_LINES, _tail)
+                if _tail else "\n  git said nothing -- consistent with an empty index"))
             return False
 
         if not _push_due():
@@ -1421,8 +1441,12 @@ def git_commit_push(git_hash, net_margin):
         # (the real remote, not the local tracking ref). _record_push_time fires
         # ONLY on a VERIFIED advance; a phantom logs LOUD and leaves the throttle
         # untouched so the NEXT cycle retries immediately instead of deferring.
+        # H30: git reports auth failure, a rejected non-fast-forward and a dead
+        # remote ALL on stderr, and this alert previously carried only `rc=1`
+        # for every one of them -- the three have completely different fixes.
         push = subprocess.run(["git", "push", "origin", "HEAD:main"],
-                              cwd=str(PROJECT_DIR), timeout=60)
+                              cwd=str(PROJECT_DIR), timeout=60,
+                              stderr=subprocess.PIPE, text=True)
         local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
                                     capture_output=True, text=True, timeout=15).stdout.strip()
         remote_head = ""
@@ -1437,14 +1461,19 @@ def git_commit_push(git_hash, net_margin):
             return True
         from background.notify import notify
         notify(
-            "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}) -- publish pipeline "
+            "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}) -- {} -- publish pipeline "
             "commits are stacking LOCALLY and the advisor bridge is blind. NOT recording a push "
             "time; next cycle retries. If this repeats, the remote-tracking ref or auth is the "
-            "cause.".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9]),
+            "cause.".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
+                            failure_detail(getattr(push, "stderr", None))),
             kind="real_alarm",
         )
+        _tail = stderr_tail(getattr(push, "stderr", None))
         log("PUSH did NOT advance origin (rc={}, origin={}, head={}) -- throttle left untouched, "
-            "will retry next cycle".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9]))
+            "will retry next cycle{}".format(
+                push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
+                "\n  git push stderr:\n{}".format(_tail) if _tail
+                else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
         return False
 
 
@@ -1549,16 +1578,27 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     msg = ("chore(liveness): publish heartbeat while sim output unchanged (git={}) -- "
            "decouples published liveness from content-change (Fault#1 2026-07-25)".format(git_hash))
     with tree_lock():
-        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
+        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30,
+                       stderr=subprocess.PIPE, text=True)  # H30
         # Commit ONLY these paths (never the whole index): a concurrent publisher's
         # staged files must not be swept into a liveness commit.
         result = subprocess.run(["git", "commit", "-m", msg, "--"] + files,
-                                cwd=str(PROJECT_DIR), timeout=30)
+                                cwd=str(PROJECT_DIR), timeout=30,
+                                capture_output=True, text=True)  # H30
         if result.returncode != 0:
-            # Heartbeat byte-identical to the committed copy -> nothing to commit. Fine.
+            # Heartbeat byte-identical to the committed copy -> nothing to commit,
+            # which is the EXPECTED case and stays quiet. H30: anything else --
+            # a gate refusal, a lock, a broken index -- now says what it was,
+            # instead of being silently absorbed by the same early return.
+            _tail = (stderr_tail(getattr(result, "stderr", None))
+                     or stderr_tail(getattr(result, "stdout", None)))
+            if _tail and "nothing to commit" not in _tail.lower():
+                log("Liveness heartbeat commit FAILED (rc={}) -- not the usual "
+                    "nothing-to-commit:\n{}".format(result.returncode, _tail))
             return False
         push = subprocess.run(["git", "push", "origin", "HEAD:main"],
-                              cwd=str(PROJECT_DIR), timeout=60)
+                              cwd=str(PROJECT_DIR), timeout=60,
+                              stderr=subprocess.PIPE, text=True)  # H30
         local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
                                     capture_output=True, text=True, timeout=15).stdout.strip()
         remote_head = ""
@@ -1573,9 +1613,12 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
             log("Liveness heartbeat published to origin (sim output unchanged, "
                 "published-liveness decoupled from content-change).")
             return True
+        _tail = stderr_tail(getattr(push, "stderr", None))
         log("Liveness heartbeat push did NOT advance origin (rc={}, origin={}, head={}) -- "
-            "throttle untouched, retry next cycle.".format(
-                push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+            "throttle untouched, retry next cycle.{}".format(
+                push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9],
+                "\n  git push stderr:\n{}".format(_tail) if _tail
+                else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
         return False
 
 

@@ -44,6 +44,15 @@ CONTROL_TESTS = [
     # and stay silent when someone adds `segment == "sme"` to a brand-new sim
     # module, which is the case the guard exists to catch. ~0.2s.
     "tests/tools/test_segment_case_guard.py",
+    # R10 class closure for H30_sim_runner_discards_child_stderr (2026-08-08).
+    # Same reasoning, different class: `test_the_live_background_tree_is_clean`
+    # scans EVERY file under background/ for a daemon that reports a child's
+    # failure while discarding its stderr. Per-file selection would fire when
+    # `tools/child_stderr_guard.py` is edited and stay silent when a brand-new
+    # daemon lands with an uncaptured launch -- which is the only case that
+    # matters. It also fails rc=2 if a declared daemon moves outside the
+    # scanned root, so this is where a coverage hole surfaces. ~0.3s.
+    "tests/tools/test_child_stderr_guard.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

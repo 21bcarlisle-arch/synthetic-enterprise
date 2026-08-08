@@ -16,6 +16,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# Stdlib-only helper (H30) -- safe at module scope, unlike the publish pipeline.
+from background.child_diagnostics import STDERR_TAIL_LINES, stderr_tail  # noqa: E402
+
 PEAK_START = 16  # 4pm GMT
 PEAK_END = 19    # 7pm GMT
 CHECK_INTERVAL_MINUTES = 30
@@ -270,6 +273,12 @@ def process_leftover_run_markers():
             [sys.executable, str(processor), str(marker)],
             cwd=str(Path(__file__).resolve().parent.parent),
             timeout=900,
+            # H30 (2026-08-08): this sweep is the SAFETY NET for every skipped
+            # marker, so "Failed to process (rc=N)" with no payload is the one
+            # log line a backlog diagnosis starts from. Capture what the
+            # publisher actually said.
+            stderr=subprocess.PIPE,
+            text=True,
         )
         if result.returncode == EXIT_LOCK_SKIPPED:
             # NOT processed -- another instance holds the run lock and the
@@ -281,7 +290,10 @@ def process_leftover_run_markers():
         elif result.returncode == 0:
             log(f"Processed {marker.name}")
         else:
-            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle")
+            tail = stderr_tail(getattr(result, "stderr", None))
+            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle"
+                + (f"\n  publisher stderr (last {STDERR_TAIL_LINES} lines):\n{tail}" if tail
+                   else "\n  publisher stderr: EMPTY"))
         # H15_publish_gate_failure_alert: feed every processing outcome into the
         # publish-gate wedge detector. This sweep is the recurring caller that
         # actually manifests a silent wedge -- process_run_complete returns
