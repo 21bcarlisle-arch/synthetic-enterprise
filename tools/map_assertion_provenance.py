@@ -263,6 +263,49 @@ def _scope_paths(atom: dict) -> list[str]:
     return [str(s).strip().strip("'\"") for s in scope if str(s).strip()]
 
 
+def _last_checked(asserted_at: float | None, verified_at: float | None) -> float:
+    """The later of the two moments anybody looked. 0.0 means nobody ever did."""
+    return max([t for t in (asserted_at, verified_at) if t is not None] or [0.0])
+
+
+def _classify(*, level, scope: list[str], dir_claims: list[str], claims_the_map: bool,
+              existing: list[str], dated: dict[str, float], last_checked: float) -> str:
+    """One cell's status. The ladder is ordered by what can be KNOWN, worst first.
+
+    Everything above the final branch is a cell that cannot be checked at all, and
+    each is its own status rather than a quiet pass — a cell nobody can check must
+    never read like a cell somebody checked.
+    """
+    if claims_the_map:
+        return TAUTOLOGICAL  # dated against the file it asserts: the answer would be free
+    if dir_claims:
+        # A directory claim makes ownership unanswerable, so it cannot date a claim
+        # either -- `docs/design` is claimed by 31 atoms and moves daily.
+        return DIRECTORY_SCOPE
+    if not scope:
+        return NO_ARTEFACTS
+    if isinstance(level, int) and level >= 2 and not existing:
+        return MISSING_ARTEFACTS
+    if not dated:
+        # On disk but never committed, or named but never created. An L0 cell naming
+        # files that do not exist yet is simply un-started, not a defect.
+        return UNTRACKED_ARTEFACTS if existing else NO_ARTEFACTS
+
+    moved_since = max(dated.values()) > last_checked
+    # The DD shape: the cell says NOTHING IS BUILT, yet every artefact it names is
+    # committed AND landed after the claim was last checked.
+    #
+    # The ordering is what makes this a defect rather than a normal atom. Most L0
+    # cells name files that already exist because the work is to CHANGE them --
+    # reading those as "already built" would report live, unstarted work as a
+    # contradiction, which is the same weight of error as missing a real one. Four of
+    # the nine cells the first run flagged were exactly that, and the artefact date
+    # PRECEDED the assertion in every one of them.
+    if level == 0 and len(dated) == len(scope) and moved_since:
+        return CONTRADICTED
+    return STALE if moved_since else CURRENT
+
+
 def build_rows(repo: Path | None = None, atoms: list[dict] | None = None) -> list[dict]:
     """One row per map cell, carrying its three clocks and a status."""
     import yaml  # local: the tool is importable for tests without a yaml at import time
@@ -307,35 +350,9 @@ def build_rows(repo: Path | None = None, atoms: list[dict] | None = None) -> lis
         dated = {s: commits[s] for s in scope if s in commits}
         artefacts_moved_at = max(dated.values()) if dated else None
 
-        if claims_the_map:
-            status = TAUTOLOGICAL
-        elif dir_claims:
-            status = DIRECTORY_SCOPE
-        elif not scope:
-            status = NO_ARTEFACTS
-        elif isinstance(level, int) and level >= 2 and not existing:
-            status = MISSING_ARTEFACTS
-        elif not dated:
-            # On disk but never committed, or named but never created. An L0 cell
-            # naming files that do not exist yet is simply un-started, not a defect.
-            status = UNTRACKED_ARTEFACTS if existing else NO_ARTEFACTS
-        else:
-            last_checked = max([t for t in (asserted_at, verified_at) if t is not None] or [0.0])
-            moved_since = artefacts_moved_at > last_checked
-            # The DD shape: the cell says NOTHING IS BUILT, yet every artefact it
-            # names is committed AND landed after the claim was last checked.
-            #
-            # The ordering is what makes this a defect rather than a normal atom.
-            # Most L0 cells name files that already exist because the work is to
-            # CHANGE them -- reading those as "already built" would report live,
-            # unstarted work as a contradiction, which is the same weight of error
-            # as missing a real one. Four of the nine cells the first run flagged
-            # were exactly that, and the artefact date PRECEDED the assertion in
-            # every one of them.
-            if level == 0 and len(dated) == len(scope) and moved_since:
-                status = CONTRADICTED
-            else:
-                status = STALE if moved_since else CURRENT
+        status = _classify(level=level, scope=scope, dir_claims=dir_claims,
+                           claims_the_map=claims_the_map, existing=existing, dated=dated,
+                           last_checked=_last_checked(asserted_at, verified_at))
 
         rows.append({
             "atom": atom_id,
@@ -352,9 +369,8 @@ def build_rows(repo: Path | None = None, atoms: list[dict] | None = None) -> lis
             # False means some other atom's work can move this cell's clock, so the
             # status is a prompt to look rather than evidence about this cell.
             "scope_exclusive": bool(scope) and all(claimants.get(s, 0) == 1 for s in scope),
-            "stale_days": (round((artefacts_moved_at - max(
-                [t for t in (asserted_at, verified_at) if t is not None] or [0.0])) / DAY, 1)
-                if status == STALE else None),
+            "stale_days": (round((artefacts_moved_at - _last_checked(asserted_at, verified_at))
+                                 / DAY, 1) if status == STALE else None),
         })
     return rows
 
@@ -461,6 +477,12 @@ def main(argv: list[str] | None = None) -> int:
         for f in findings:
             print("  " + f, file=sys.stderr)
 
+    rc = _dispatch(args, rows, findings)
+    return rc if rc else (1 if findings else 0)
+
+
+def _dispatch(args, rows: list[dict], findings: list[str]) -> int:
+    """Print whichever query was asked for. Returns non-zero only on a bad query."""
     if args.json:
         print(json.dumps({"rows": rows, "integrity_findings": findings,
                           "row_count": len(rows)}, indent=2))
@@ -492,7 +514,7 @@ def main(argv: list[str] | None = None) -> int:
               % (len(rows), ", ".join("%d %s" % (counts[s], s) for s in STATUS_ORDER if counts[s])))
         print("query it: --stale | --contradicted | --unverifiable | --atom ID | --json")
 
-    return 1 if findings else 0
+    return 0
 
 
 if __name__ == "__main__":
