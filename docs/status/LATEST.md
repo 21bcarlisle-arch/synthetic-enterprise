@@ -1,5 +1,35 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T18:24:00Z
+Last updated: 2026-08-08T18:46:34Z
+
+**H31_secret_scrub_test_leaks_wake_key (2026-08-08, `72d33f7da`) — the suite's verdict depended on
+collection order, so the fix went at the CLASS. L0→L2, self-certified.**
+`test_model_facing_secret_scrub.py` restored `background.ntfy_utils` with `importlib.reload` inside a
+`finally:`. That runs while the test function is still on the stack; **monkeypatch restores `os.environ`
+in a fixture finalizer that runs afterwards** — so the restoring reload re-read the still-scrubbed env,
+restored nothing, and pinned `WAKE_HMAC_KEY=None` process-wide. Four `test_ntfy_utils.py` signing tests
+failed on collection order alone: **the victims red, the culprit green**, which is exactly why this read
+as "import order" and sent diagnosis at the wrong target. **Second instance of the class** (H29 was the
+first), so an instance fix alone is not a closure (**R3/R10**). *Instance:* `monkeypatch.undo()` before
+the restoring reload. *Class:* `tests/background/env_constant_sync.py` **AST-derives** the registry of
+every top-level `X = os.environ.get(...)`-shaped constant in `background/*.py`, and a
+`pytest_runtest_teardown(trylast=True)` hook in `tests/background/conftest.py` checks all of them after
+every test — failing the **culprit by nodeid** and **repairing** the constant so later tests stop
+depending on collection order. **Derived, not enumerated**, so tomorrow's constant is covered without
+anyone remembering the file. The `trylast` position is the only reliable "after monkeypatch" hook and was
+**verified empirically** in a scratch dir outside the repo, not assumed. **R15 both directions on the LIVE
+hook, by mutation:** reintroduce the finally-reload → `ERROR at teardown of
+test_worker_env_forgery_is_structurally_impossible` with the `STALE ENV CONSTANT` payload and **33 passed**
+(the four former victims now *green*, via the repair); restore the fix → 33 passed, guard silent.
+**Vacuity guarded** — the registry is asserted non-empty *and* to contain
+`background.ntfy_utils.WAKE_HMAC_KEY`, plus an independent grep-vs-AST cross-check, so a scanner that
+quietly matched nothing cannot pass. Original repro: **was 4 failed, now 33 passed**; full
+`tests/background/` **1971 passed, 1 skipped, rc=0** — no false positives. **Two things the class closure
+surfaced that the instance report had not:** a *second* leaked constant nobody had named
+(`ntfy_utils.NTFY_TOPIC`), and — **self-caught during the mutation run** — the first draft printed the
+live `SE_NTFY_TOPIC` **value** into pytest output, i.e. a guard over the wake-key scrub that would itself
+leak the signing key into CI logs; values now redact to `<str len=N #sha8>`, pinned by a test. Not L3: no
+HARDEN/Expert-Hour, and wrapped reads like `Path(os.environ.get(...))` stay unguarded **by design** —
+broad-and-noisy guards get silenced.
 
 **D6_payment_ageing_gap_validity (2026-08-08, `15f44e022`) — the defect belongs to the METRIC, so it
 was closed at the CLASS. L0→L2, self-certified.** The DISCOVER had already answered D6's question: the
@@ -689,7 +719,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (579s / 10 min):
+**Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
 - Net margin: £1,525,298.63 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,502,140
@@ -801,6 +831,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1441.1h across 61 sized atom(s) (9 of 70 below-target atoms still unsized).
+- Remaining effort: ~1395.3h across 60 sized atom(s) (9 of 69 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
