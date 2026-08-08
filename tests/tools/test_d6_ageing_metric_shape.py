@@ -4,7 +4,7 @@ normalisation is the wrong shape, so its output (live: 1.1538) is not evidence.
 These tests pin the CURRENT, DEFECTIVE behaviour of
 `background.gap_metric.misapplication_gap` as used for the ageing dimension by
 `tools.couple_w2_11_d5.score_triad`. They are deliberately written to FAIL when
-the metric is reshaped (atom `D6a_ageing_gap_metric_reshape`) -- that failure is
+the metric is reshaped (atom `D7_ageing_gap_metric_reshape`) -- that failure is
 the signal that the fix landed, at which point these are replaced by tests of the
 new measures, not "repaired".
 

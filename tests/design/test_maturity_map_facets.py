@@ -69,6 +69,14 @@ REVIEWED_CLOSE_TO_LEARN = {
     # means anything, which is the same close_to_learn class as H29 (its near-identical sibling:
     # both are import-time env capture defeated by reload/teardown ordering).
     "H31_secret_scrub_test_leaks_wake_key",
+    # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
+    # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
+    # verdict "worse than blind" from the number alone, a reading D6 refuted for
+    # misapplication_gap (there >1 means the minority class is small, not that the company is
+    # worse than blind). It moves no money and touches no revenue flow; what it measures is
+    # whether a published fidelity figure means what the surface says it means -- the same
+    # close_to_learn class as its G-fidelity and H-harness siblings.
+    "D9_worse_than_blind_chip_is_metric_blind",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle

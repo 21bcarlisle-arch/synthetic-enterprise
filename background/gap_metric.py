@@ -385,6 +385,28 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
 # (e) Misapplication gap -- wrong-CLASS applied vs the answer key (W2_9)
 # ---------------------------------------------------------------------------
 
+# D6 CLASS FINDING (2026-08-08, docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md).
+# The majority-class normaliser below makes `gap` a joint statement about the
+# company AND the world's class balance -- g0 IS the minority share, so holding
+# the company literally fixed and moving prevalence swings the score an order of
+# magnitude, and gap>1 does NOT mean worse-than-no-skill. That is a property of
+# THIS FUNCTION, so it lands on every call site, not just the ageing dimension
+# where it was found. Until `D7_ageing_gap_metric_reshape` lands, the caveat is
+# STAMPED INTO EVERY RESULT'S COMPONENTS (R10: the class fails automatically, not
+# the instance). Components -- unlike `note`, which callers override -- travel
+# through `to_ledger_entry` into the gap ledger and on to site/data/proof.json,
+# so a consumer of a published misapplication figure cannot miss it.
+MISAPPLICATION_PREVALENCE_CAVEAT: str = (
+    "NOT EVIDENCE ON ITS OWN -- this gap is normalised to the majority-class "
+    "baseline, so g0 is the minority-class share: prevalence alone moves the "
+    "score an order of magnitude with company behaviour held fixed, and gap>1 "
+    "does not mean worse-than-no-skill. Read raw_gap (the company's own error "
+    "rate) and the directional components instead. Proven in docs/design/"
+    "D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom "
+    "D7_ageing_gap_metric_reshape."
+)
+
+
 def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
                        *, positive_class=None) -> GapResult:
     """Categorical misapplication gap (formula e): the fraction of cases where
@@ -451,6 +473,13 @@ def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
         components["positive_class"] = str(positive_class)
         components["wrongly_applied"] = wrongly_applied
         components["wrongly_withheld"] = wrongly_withheld
+
+    # D6: the caveat rides in components so it survives a caller replacing
+    # `note`, and so the minority share the score is really keyed to is stated
+    # as a number rather than left implicit inside g0.
+    components["normalisation"] = "majority-class prevalence"
+    components["minority_class_share"] = round(g0, 6)
+    components["prevalence_caveat"] = MISAPPLICATION_PREVALENCE_CAVEAT
 
     baseline = (
         f"no-skill applier: always apply the majority class {majority!r} "

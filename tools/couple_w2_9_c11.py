@@ -50,7 +50,11 @@ from simulation.segment_debt_obligation import (
 
 from company.compliance.segment_debt_policy import select_debt_terms
 
-from background.gap_metric import misapplication_gap, write_gap_entry
+from background.gap_metric import (
+    MISAPPLICATION_PREVALENCE_CAVEAT,
+    misapplication_gap,
+    write_gap_entry,
+)
 
 WORLD_ATOM_ID = "W2_9_segment_debt_tnc"
 TWIN_ATOM_ID = "C11_segment_debt_policy"
@@ -160,7 +164,13 @@ def measure(n_customers: int = 5000):
         "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true "
         "segment vs C11 applied-from-observed segment); a compliance/fairness "
         "gap driven by real onboarding segment misclassification, normalised to "
-        "a blind majority-class applier."
+        "a blind majority-class applier. "
+        + MISAPPLICATION_PREVALENCE_CAVEAT
+        + " Measured on this pair (2026-08-08, D6 class audit): holding C11's "
+        "misrecording channel fixed and moving only the world's business-segment "
+        "share 2%->40% moves the company's own error rate 0.0210->0.0365 while "
+        "this normalised gap moves 1.0000->0.0905. At a 2% business share the "
+        "pair would read 'no better than blind' on its LOWEST error rate."
     )
     return result, stats
 

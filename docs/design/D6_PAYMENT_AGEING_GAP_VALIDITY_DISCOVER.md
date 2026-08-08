@@ -152,7 +152,7 @@ so with the company held fixed it reproduces the same twentyfold swing (3.0000, 
 | `mean_bucket_displacement` ✅ | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
 
 **Any normaliser whose denominator counts the truth's class balance re-imports Defect 2**,
-whatever the numerator's shape. The rule for D6a: each measure's denominator must be the
+whatever the numerator's shape. The rule for D7_ageing_gap_metric_reshape: each measure's denominator must be the
 population that measure is *about*, and the ordinal severity carries no denominator at all.
 
 The headline for a *dating* dimension should be **date displacement of debt**, not a
@@ -185,10 +185,10 @@ is disclaimed, which is what R14/R11 require of a published number whose basis h
 
 ## Follow-on work
 
-* `D6a_ageing_gap_metric_reshape` (BUILD) — replace the ageing dimension in `score_triad` with
+* `D7_ageing_gap_metric_reshape` (BUILD) — replace the ageing dimension in `score_triad` with
   the three measures above; retire the single scalar; R15 mutation test per measure.
-* `D6b_ambiguous_remittance_misdating` (BUILD, couples W2_11 ↔ D5) — report the Clayton's-Case
-  date displacement as the company-failure finding in its own right, once D6a gives it a shape.
+* `D8_ambiguous_remittance_misdating` (BUILD, couples W2_11 ↔ D5) — report the Clayton's-Case
+  date displacement as the company-failure finding in its own right, once D7_ageing_gap_metric_reshape gives it a shape.
 
 Both are minted rather than fixed on sight, per SELF-INTERRUPT DISCIPLINE: the machine is not
 blocked, and the metric replacement is a design change that deserves its own build, not a patch
