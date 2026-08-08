@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-08T18:46:34Z
+Last updated: 2026-08-08T19:10:33Z
 
 **H31_secret_scrub_test_leaks_wake_key (2026-08-08, `72d33f7da`) — the suite's verdict depended on
 collection order, so the fix went at the CLASS. L0→L2, self-certified.**
@@ -720,9 +720,9 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 ---
 
 **Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
-- Net margin: £1,525,298.63 | Gross: £6,468,266.50 | Capital: £51,397
+- Net margin: £1,526,792.75 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,502,140
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,634
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -827,10 +827,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
 - (T3_inherence) [unanswered >24h] What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
 - (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
+- (T3_inherence) Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1395.3h across 60 sized atom(s) (9 of 69 below-target atoms still unsized).
+- Remaining effort: ~1806.8h across 69 sized atom(s) (9 of 78 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

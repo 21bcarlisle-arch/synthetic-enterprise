@@ -3406,14 +3406,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: director_programme
   depends_on: []
   couples_with: []
-  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md', 'docs/staging/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md']
+  evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md', 'docs/staging/ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md', 'docs/staging/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md', 'tools/capability_index.py', 'tests/tools/test_capability_index.py', 'docs/design/CAPABILITY_INDEX.md']
+  build_note: "L0->L2 2026-08-08. 837 rows derived from source in ~3s; 24 tests. A1 answered BY CONSTRUCTION -- the index never reads maturity_map.yaml, so it cannot inherit the degraded file_scope/depends_on fields, and no 185-atom field sweep was needed. A3 answered by --orphans (268 orphans, 260 of them in company/, corroborating the July KNIFE target from an independent derivation). R15: five source mutations run, each proving its own guard fires -- vacuity floor, tautology (coverage oracle is `git ls-files`, NOT the walk the rows come from), unparsed-not-skipped, fail-silent oracle. The floor mutation initially left all 23 tests GREEN because the test asserted a VACUITY tag the per-root guard also emits: union-metric blindness INSIDE an R15 test, found only by mutating the source, now witnessed alone. Two real defects the first run exposed and fixed: `--find 'working day'` returned 0 rows for company/compliance/working_days.py (the fail-open that CAUSES the duplicate), and a path-invoked live dispatcher read as an orphan (the false-orphan reading that gets a working mechanism retired)."
   file_scope: ['tools/capability_index.py', 'tests/tools/test_capability_index.py', 'docs/design/CAPABILITY_INDEX.md']
   origin_note: "Programme step MAP, the lowest-risk step and the safety condition for every later one (derived artefact, no behaviour change). R15 IS THE HARD PART, not the derivation: an index is a textbook FAIL-OPEN control -- it passes silently when it under-reports, and an index that misses a capability actively CAUSES the duplicate build it exists to prevent. It therefore needs a vacuity guard (an index that resolves to zero/near-zero rows must FAIL, not read 'nothing to reuse') and a mutation proving a KNOWN-EXISTING capability going missing makes it fire. The edge-integrity addendum (2026-08-06) is filed as this atom's precondition by its own author -- read it before designing the derivation, not after. Do not let this become a demo: the index's SECOND job (the write-time gate, AO2) is the one the director named as the point."
 - id: AO2_write_time_reuse_gate
