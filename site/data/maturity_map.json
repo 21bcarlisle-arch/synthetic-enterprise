@@ -2656,12 +2656,82 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "D5_account_hierarchy_payments",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D6_payment_ageing_gap_validity",
+      "name": "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D6a_ageing_gap_metric_reshape",
+      "name": "Reshape the coupled-triad AGEING dimension: retire the single prevalence-normalised scalar and report the two error directions on their OWN denominators (understated_arrears_rate = misses/n_truly_overdue; overstated_arrears_rate = false_ageings/n_truly_current, the wrongful-dunning exposure) plus an ABSOLUTE mean_bucket_displacement. TRAP, mutation-caught during D6 DISCOVER: any normaliser whose denominator counts the truth's class balance re-imports the prevalence defect whatever the numerator's shape -- ordinal displacement over a no-skill baseline reproduces the same twentyfold swing exactly. The ordinal severity carries no denominator at all.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D6_payment_ageing_gap_validity"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D6b_ambiguous_remittance_misdating",
+      "name": "Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferenced non-DD credits cross the W4_4 seam with correlation_id stripped to None, forcing AccountLedger.allocate's oldest-first fallback, so the company's balance is exactly right while its ageing report is materially misdated -- the real-world driver of wrongful dunning, wrong statutory-interest accrual and misstated bad-debt provisioning. Blocked on D6a giving the dimension a shape that can carry the finding.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D6a_ageing_gap_metric_reshape"
+      ],
       "couples_with": [
         "D5_account_hierarchy_payments",
         "W2_11_payment_behaviour_source"
@@ -3842,7 +3912,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 186,
+  "total_atoms": 189,
   "epoch2_movements": [
     {
       "id": "M1",
