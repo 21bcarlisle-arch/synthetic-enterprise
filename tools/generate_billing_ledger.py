@@ -24,6 +24,7 @@ from pathlib import Path
 
 from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS,
+    bill_substream as _bill_substream,
     stress_for_year as _stress_for_year,
     payment_method as _payment_method,
     payment_outcome as _payment_outcome,
@@ -181,7 +182,17 @@ def generate(run_json_path=None, out_path=None):
         Path(out_path).write_text(json.dumps(result, indent=2))
         return result
 
-    rng = random.Random(42)
+    # C-S2 (W2_16): each bill's payment outcome is drawn from its OWN named
+    # substream, keyed by (customer_id, period_end) -- see
+    # `arrears_engine.bill_substream`. This function does NOT visit the same
+    # bills as `compute_emergent_bad_debt`: it excludes held bills (the
+    # validation gate above) and skips the outcome draw entirely for credit
+    # invoices. Under the previous single shared `random.Random(42)` those two
+    # legitimate differences silently offset this stream from the P&L's,
+    # disagreeing on the failed/dispute decision for 42 of 1557 real bills.
+    # Per-bill substreams make the two agree without either having to iterate
+    # in lockstep with the other.
+    _outcome_seed = 42
     held_reads: list[BillValidationResult] = []
     held_money: list[BillValidationResult] = []
     invoices_by_cid = {}
@@ -223,7 +234,8 @@ def generate(run_json_path=None, out_path=None):
             method = _payment_method(segment, amount, cid, commodity)
             _tone = _tone_for_bill(method, cid, period_end)
             outcome, days_late = _payment_outcome(
-                method, stress, rng, segment, _fuel_poor_for_bill(method, cid), _tone, cid,
+                method, stress, _bill_substream(_outcome_seed, cid, period_end, commodity),
+                segment, _fuel_poor_for_bill(method, cid), _tone, cid,
             )
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,

@@ -10,10 +10,39 @@ arrears case eventually resolve or get written off" -- consumed by both:
     for simulated payment behaviour).
 
 Before this phase these were two independently-calibrated RNG-driven models
-that happened to use similar probabilities. Moving the primitives here and
-having both callers iterate the same `bills` in the same sorted order with a
-single seeded RNG means they draw the identical sequence of outcomes -- the
-ledger and the P&L bad debt figure are now provably the same source of truth.
+that happened to use similar probabilities. Moving the primitives here made
+them one model; what makes the ledger and the P&L bad-debt figure the same
+source of truth is that every consumer resolves a given bill's outcome to the
+same value.
+
+RNG SUBSTREAM ISOLATION (C-S2, W2_16, 2026-08-08). That agreement used to rest
+on every consumer advancing ONE shared `random.Random(seed)` over the same
+`bills` in the same sorted order -- so a bill's outcome depended on how many
+draws every alphabetically-earlier bill happened to consume. Two things were
+wrong with it:
+
+  - It was FRAGILE: improving any one segment's model silently rewrote every
+    later customer's history (the W2_sme_segment_case_normalisation fix moved
+    resi C7's longest undischarged credit from 1224 days to 32 -- C5/C6 sort
+    before C7 and changed their draw count). A baseline that moves whenever an
+    unrelated segment improves is one no control can rest on.
+  - It was already BROKEN: lockstep is an obligation every consumer had to
+    hand-maintain, and `tools.generate_billing_ledger` does not -- it skips
+    `payment_outcome` entirely for credit invoices (`amount <= 0`). The real
+    run has 24 such bills, the first at sorted index 138 of 1557, so the
+    ledger and the P&L drew from streams offset from each other across the
+    remaining 91% of bills, and disagreed on the failed/dispute decision for
+    42 of them. "Provably the same source of truth" was false.
+
+So a bill's outcome is now drawn from its OWN named, sha256-seeded substream,
+keyed by `(customer_id, period_end, commodity)` -- `bill_substream()`. The
+outcome is a
+pure function of (seed, customer_id, period_end): independent of iteration
+order, of how many bills precede it, and of how many draws any other bill or
+subsystem consumes. Every consumer therefore agrees BY CONSTRUCTION rather
+than by discipline, and a consumer that legitimately skips bills (the ledger's
+credit invoices) or filters them (its held-bill validation gate) can no longer
+desynchronise anything.
 
 Payment method / outcome probabilities:
   I&C / SME (BACS/CHAPS) -- 92% on-time, 7.3% late, 0.7% formal dispute.
@@ -46,6 +75,7 @@ load-bearing precision).
 """
 from __future__ import annotations
 
+import hashlib
 import random
 from datetime import date, timedelta
 
@@ -57,6 +87,63 @@ from simulation.segment_vocabulary import (
 from simulation.sme_payment_behaviour import sme_payment_outcome
 
 PAYMENT_TERMS_DAYS = 14
+
+#: This subsystem's own RNG namespace (C-S2). Baked into every derived seed so
+#: a substream here can never collide with an identically-named substream in
+#: another subsystem, even at the same base seed.
+STREAM_NAMESPACE = "W2_16_payment_outcome"
+
+#: Substream name for the per-bill payment-outcome draw. A future mechanism in
+#: this module gets its outcome by ADDING a name here, never by threading an
+#: extra draw through this one -- that is what keeps existing outputs stable.
+_PAYMENT_OUTCOME_SUBSTREAM = "payment_outcome"
+
+
+def _substream(base_seed: int, name: str) -> random.Random:
+    """Return an ISOLATED ``random.Random`` for a named mechanism substream.
+
+    Seed is a STABLE sha256 of ``W2_16_payment_outcome::<name>::<base_seed>``
+    (never Python's per-process-salted ``hash()``), so the same (base_seed,
+    name) yields the same stream in every process -- the hard C-S2 replay
+    requirement. Each name seeds an independent generator; a draw here can
+    never consume from, or shift, any other substream of this or any other
+    subsystem.
+    """
+    key = f"{STREAM_NAMESPACE}::{name}::{base_seed}".encode("utf-8")
+    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
+    return random.Random(seed_int)
+
+
+def bill_substream(base_seed: int, customer_id: str, period_end: str,
+                   commodity: str) -> random.Random:
+    """The payment-outcome substream for ONE bill, keyed by the bill's own
+    identity rather than by its position in an iteration.
+
+    PUBLIC by design: it is the contract every consumer of this engine's
+    payment outcomes (`compute_emergent_bad_debt`, `compute_debt_recovery`,
+    `tools.generate_billing_ledger`, `simulation.dd_collection_book`) uses to
+    resolve a bill. Because the stream is a pure function of
+    ``(base_seed, customer_id, period_end, commodity)``, those consumers agree
+    on a bill without iterating it in the same order, without visiting the same
+    set of bills, and without consuming the same number of draws -- the
+    lockstep obligation the shared-stream design imposed on each of them is
+    gone.
+
+    `commodity` is REQUIRED, deliberately with no default. It is part of a
+    bill's identity: today gas is modelled as its own account (`C1g` beside
+    `C1`), so `(customer_id, period_end)` alone is unique across all 1557 real
+    bills -- but the moment one account is billed for both fuels in the same
+    period, a defaulted/omitted commodity would silently collapse those two
+    bills onto ONE stream and tie their outcomes together. That is precisely
+    the silent coupling this atom exists to remove, so an un-migrated caller
+    fails loudly here instead (the same reasoning that made `method` required
+    in `arrears_stages`).
+    """
+    return _substream(
+        base_seed,
+        f"{_PAYMENT_OUTCOME_SUBSTREAM}::{customer_id}::{period_end}::{commodity}",
+    )
+
 
 _DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
 _ON_TIME_PROB = {"LOW": 0.92, "MODERATE": 0.50, "HIGH": 0.10}
@@ -420,11 +507,15 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
     """Run the shared payment/arrears model over `bills` and return real,
     emergent bad debt: GBP written off, keyed by (customer_id, write_off_year).
 
-    Iterates `bills` in the exact sorted order and RNG seed that
-    `tools.generate_billing_ledger.generate()` uses, so a case that reaches
-    WRITTEN_OFF here reaches WRITTEN_OFF there too, for the same GBP amount.
+    Resolves each bill from its own `bill_substream(seed, cid, period_end,
+    commodity)`,
+    the same substream `tools.generate_billing_ledger.generate()` resolves it
+    from, so a case that reaches WRITTEN_OFF here reaches WRITTEN_OFF there
+    too, for the same GBP amount. That agreement no longer depends on the two
+    visiting the same bills in the same order (it previously did, and the
+    ledger's credit-invoice skip broke it for 42 bills -- see module docstring).
+    The sort is retained only for deterministic accumulation order.
     """
-    rng = random.Random(seed)
     result: dict[tuple[str, int], float] = {}
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
@@ -438,7 +529,9 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
         outcome, _days_late = payment_outcome(
-            method, stress, rng, segment, _fuel_poor_for_bill(method, cid),
+            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
+            segment,
+            _fuel_poor_for_bill(method, cid),
             _tone_for_bill(method, cid, period_end), cid,
         )
 
@@ -504,18 +597,19 @@ def apply_emergent_bad_debt(all_records: list[dict], emergent_by_customer_year: 
 
 def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[str],
                            seed: int = 42) -> dict[tuple[str, int], float]:
-    """Run the shared payment/arrears model over `bills` (same sorted order
-    and seed as compute_emergent_bad_debt(), so the two line up on the exact
-    same set of written-off cases) and return real DCA-recovered / debt-sale
-    proceeds, keyed by (customer_id, year of the RECOVERED/SOLD stage --
-    NOT the write-off year).
+    """Run the shared payment/arrears model over `bills` (resolving each bill
+    from the same `bill_substream(seed, cid, period_end, commodity)`
+    compute_emergent_bad_debt()
+    resolves it from, so the two line up on the exact same set of written-off
+    cases -- by construction now, not by iterating in lockstep) and return real
+    DCA-recovered / debt-sale proceeds, keyed by (customer_id, year of the
+    RECOVERED/SOLD stage -- NOT the write-off year).
 
     debt_archetype() is computed from behavioral[cid]["income_stress_trajectory"]
     at the write-off year, to decide which terminal stage (RECOVERED vs SOLD)
     applies and what the proceeds are -- SIM-side only, never exposed past
     this module's own note text.
     """
-    rng = random.Random(seed)
     result: dict[tuple[str, int], float] = {}
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
@@ -530,7 +624,9 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
         stress = stress_for_year(beh, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
         outcome, _days_late = payment_outcome(
-            method, stress, rng, segment, _fuel_poor_for_bill(method, cid),
+            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
+            segment,
+            _fuel_poor_for_bill(method, cid),
             _tone_for_bill(method, cid, period_end), cid,
         )
 

@@ -6,12 +6,18 @@ run_output records (via apply_emergent_bad_debt) is provably the same
 figure the per-customer billing ledger reports as WRITTEN_OFF, because both
 draw from the same deterministic engine over the same bills.
 """
+import subprocess
+import sys
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 from simulation.arrears_engine import (
     FUEL_POVERTY_DD_FAIL_MULTIPLIER,
+    bill_substream,
     FUEL_POVERTY_ON_TIME_MULTIPLIER,
     _fuel_poor_for_bill,
     _tone_for_bill,
@@ -513,3 +519,169 @@ def test_the_collections_cascade_after_the_opening_stage_is_method_independent()
     sc = arrears_stages(100.0, date(2022, 1, 1), False, method='standard_credit')
     assert [s['stage'] for s in dd[1:]] == [s['stage'] for s in sc[1:]]
     assert [s['date'] for s in dd] == [s['date'] for s in sc]
+
+
+# ---------------------------------------------------------------------------
+# W2_16 -- C-S2 RNG substream isolation for the per-bill payment outcome.
+#
+# Before this atom every consumer advanced ONE shared random.Random(seed) over
+# the bills in sorted order, so a bill's outcome depended on how many draws
+# every alphabetically-earlier bill consumed. These tests pin the property that
+# replaced it: a bill's outcome is a pure function of its own identity.
+# ---------------------------------------------------------------------------
+
+def _credit_bill(cid, period_end):
+    """A REAL credit invoice's shape (modelled on C1g 2021-07-31 in
+    docs/reports/run_output_latest.json): every line item positive, the total
+    driven negative by an overcharge catch-up adjustment. That shape matters --
+    it passes the pre-bill validation gate, so it reaches the ledger, where
+    `generate()` skips the payment-outcome draw for it. Under the old shared
+    stream that skip is exactly what offset the ledger from the P&L.
+    """
+    ps = (date.fromisoformat(period_end) - timedelta(days=30)).isoformat()
+    return {
+        "customer_id": cid, "period_start": ps, "period_end": period_end,
+        "total_consumption_kwh": 382.19, "commodity_amount_gbp": 10.72,
+        "non_commodity_amount_gbp": 4.59, "standing_charge_gbp": 8.06,
+        "vat_gbp": 1.17, "total_amount_gbp": -21.95,
+        "average_unit_rate_gbp_per_mwh": 28.05, "clarity_score": 0.5,
+        "bill_shock_pct": None, "segment": "resi", "commodity": "gas",
+        "days_in_period": 30, "standing_charge_gbp_per_day": 0.26,
+        "billing_basis": "actual", "catchup_applied": True,
+        "catchup_adjustment_gbp": -46.49, "catchup_direction": "overcharge",
+    }
+
+
+def _outcome_for(bill, behavioral, seed=42):
+    """Resolve one bill exactly as the engine's consumers do."""
+    cid, period_end = bill["customer_id"], bill["period_end"]
+    segment = bill.get("segment", "resi")
+    method = payment_method(segment, bill["total_amount_gbp"], cid, bill.get("commodity", "electricity"))
+    stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
+    return payment_outcome(
+        method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
+        segment, _fuel_poor_for_bill(method, cid), _tone_for_bill(method, cid, period_end), cid,
+    )
+
+
+def _stress_beh(cid, years, level="high"):
+    return {cid: {"income_stress_trajectory": [{"year": y, "stress": level} for y in years]}}
+
+
+def test_bill_outcome_does_not_depend_on_iteration_order():
+    """The property the shared stream could not offer: resolving the bills in a
+    different order must not change a single outcome."""
+    bills = [_bill(f"C{c}", f"2022-{m:02d}-28", 200.0) for c in range(1, 8) for m in range(1, 13)]
+    beh = _stress_beh("C1", [2022])
+    forward = {(b["customer_id"], b["period_end"]): _outcome_for(b, beh) for b in bills}
+    backward = {(b["customer_id"], b["period_end"]): _outcome_for(b, beh) for b in reversed(bills)}
+    assert forward == backward
+
+
+def test_improving_one_segments_model_cannot_rewrite_another_customers_history():
+    """THE defect W2_16 names, in miniature. Removing C2/C3's bills entirely --
+    the crudest possible stand-in for "their model changed how many draws they
+    consume" -- must leave every OTHER customer's outcome untouched.
+
+    Measured instance this pins: the W2_sme_segment_case_normalisation fix moved
+    resi C7's longest undischarged credit from 1224 days to 32, purely because
+    SME customers sort earlier and changed their draw count.
+    """
+    bills = [_bill(f"C{c}", f"2022-{m:02d}-28", 200.0) for c in range(1, 8) for m in range(1, 13)]
+    beh = _stress_beh("C1", [2022])
+    full = {(b["customer_id"], b["period_end"]): _outcome_for(b, beh) for b in bills}
+
+    survivors = [b for b in bills if b["customer_id"] not in ("C2", "C3")]
+    reduced = {(b["customer_id"], b["period_end"]): _outcome_for(b, beh) for b in survivors}
+
+    assert reduced, "vacuity guard: the reduced set must still contain bills"
+    assert len(reduced) < len(full), "vacuity guard: bills must actually have been removed"
+    assert all(reduced[k] == full[k] for k in reduced)
+
+
+def test_ledger_and_pl_agree_on_written_off_cases_when_a_credit_invoice_is_present(tmp_path):
+    """The regression that the pre-W2_16 acceptance test could not catch.
+
+    `test_emergent_bad_debt_matches_billing_ledger_written_off` above passed
+    throughout the defect's life only because its fixture contains no credit
+    invoice -- with no skipped draw the two streams never drifted apart, so a
+    green result there was fail-open evidence. Adding ONE real-shaped credit
+    invoice EARLY in sorted order is what desynchronised the real run (24 such
+    bills, first at sorted index 138 of 1557, 42 failed/dispute decisions
+    disagreeing between the ledger and the P&L).
+    """
+    bills = [_credit_bill("C0", "2022-01-31")]
+    bills += [_bill("C1", f"202{2 + i // 12}-{(i % 12) + 1:02d}-28", 200.0, "resi") for i in range(24)]
+    bills += [_bill("C_IC1", f"202{2 + i // 12}-{(i % 12) + 1:02d}-28", 9000.0, "I&C") for i in range(24)]
+    beh = _stress_beh("C1", [2022, 2023])
+    churned = {"C1", "C_IC1"}
+
+    emergent = compute_emergent_bad_debt(bills, beh, churned)
+    assert emergent, "vacuity guard: the fixture must actually produce written-off cases"
+
+    run_json = tmp_path / "run.json"
+    run_json.write_text(__import__("json").dumps({
+        "bills": bills, "per_customer_behavioral": beh,
+        "churned_billing_accounts": sorted(churned),
+    }))
+    ledger = generate_ledger(run_json, tmp_path / "ledger.json")
+
+    ledger_writeoffs_by_year: dict[tuple, float] = {}
+    for cid, cust in ledger["customers"].items():
+        for case in cust["arrears_history"]:
+            stages = {s["stage"]: s["date"] for s in case["stages"]}
+            if "WRITTEN_OFF" in stages:
+                key = (cid, int(stages["WRITTEN_OFF"][:4]))
+                ledger_writeoffs_by_year[key] = ledger_writeoffs_by_year.get(key, 0.0) + case["arrears_gbp"]
+
+    assert ledger_writeoffs_by_year == emergent
+
+
+def test_bill_substream_is_stable_across_processes():
+    """C-S2 replay: the seed must come from sha256, never Python's
+    per-process-salted hash(). Pinning a literal value is what makes a switch
+    to hash()-derived seeding fail here rather than silently break replay
+    between processes."""
+    drawn = bill_substream(42, "C1", "2022-01-28", "electricity").random()
+    expected = subprocess.run(
+        [sys.executable, "-c",
+         "import sys; sys.path.insert(0, '.');"
+         "from simulation.arrears_engine import bill_substream;"
+         "print(repr(bill_substream(42, 'C1', '2022-01-28', 'electricity').random()))"],
+        capture_output=True, text=True, cwd=REPO_ROOT, check=True,
+    ).stdout.strip()
+    assert repr(drawn) == expected
+
+
+def test_each_bill_gets_a_distinct_substream():
+    """Two bills sharing a stream would reintroduce the coupling by the back
+    door -- one bill's draws would shift the other's."""
+    seen = {
+        (cid, pe, fuel): bill_substream(42, cid, pe, fuel).random()
+        for cid in ("C1", "C2", "C10")
+        for pe in ("2022-01-28", "2022-02-28", "2022-01-29")
+        for fuel in ("electricity", "gas")
+    }
+    assert len(set(seen.values())) == len(seen)
+
+
+def test_substream_key_components_cannot_be_confused():
+    """The (customer_id, period_end) pair is joined with a separator, so no
+    two different pairs can collide into one key by concatenation."""
+    assert (bill_substream(42, "C1", "2022-01-28", "electricity").random()
+            != bill_substream(42, "C12", "022-01-28", "electricity").random())
+    assert (bill_substream(42, "C1", "2022-01-28", "electricity").random()
+            != bill_substream(43, "C1", "2022-01-28", "electricity").random())
+    # The dual-fuel collision `commodity` exists to prevent: one account, one
+    # period, two meters must never share a payment-outcome stream.
+    assert (bill_substream(42, "C1", "2022-01-28", "electricity").random()
+            != bill_substream(42, "C1", "2022-01-28", "gas").random())
+
+
+def test_commodity_is_a_required_substream_key_component():
+    """Same reasoning as `method` on arrears_stages: a default would let an
+    un-migrated caller silently collapse an account's gas and electricity bills
+    for one period onto a single stream, tying their outcomes together -- the
+    exact silent coupling this atom removes. It must fail loudly instead."""
+    with pytest.raises(TypeError):
+        bill_substream(42, "C1", "2022-01-28")

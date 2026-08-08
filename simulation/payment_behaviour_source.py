@@ -27,16 +27,27 @@ model would create exactly the two-independently-calibrated-models problem
 that existing core in three things it does not yet have, all requested by the
 W2_11 FRAME:
 
-  1. C-S2 RNG SUBSTREAM ISOLATION -- `arrears_engine`'s own batch functions
-     advance ONE shared `random.Random(seed)` across bills in population
-     iteration order (fine for its original purpose: a population-level
-     ledger/P&L reconciliation run once). This module instead gives EVERY
-     customer, and every period within a customer's history, its OWN named
-     seeded substream, so a per-customer/per-period draw here can never shift
-     any other subsystem's sequence, any other customer's sequence, or any
-     other period's sequence -- the hard C-S2 requirement for a generator
-     that other code (the future W4_4 seam, H27's gap harness) will call
-     per-customer, out of population order, on demand.
+  1. C-S2 RNG SUBSTREAM ISOLATION -- this module gives EVERY customer, and
+     every period within a customer's history, its OWN named seeded substream,
+     so a per-customer/per-period draw here can never shift any other
+     subsystem's sequence, any other customer's sequence, or any other
+     period's sequence -- the hard C-S2 requirement for a generator that other
+     code (the future W4_4 seam, H27's gap harness) will call per-customer,
+     out of population order, on demand.
+
+     CORRECTION (2026-08-08, W2_16). This bullet used to say `arrears_engine`'s
+     batch functions advance ONE shared `random.Random(seed)` across bills in
+     population iteration order, and that this was "fine for its original
+     purpose: a population-level ledger/P&L reconciliation run once". The
+     second half was WRONG on its own terms and is withdrawn -- the shared
+     stream had already broken the very reconciliation it was called fine for.
+     Lockstep was an obligation each of four consumers had to hand-maintain,
+     and `tools.generate_billing_ledger` did not: it skips the outcome draw for
+     credit invoices, so the ledger and the P&L drew from offset streams and
+     disagreed on 42 of 1557 real bills. `arrears_engine` now draws each bill
+     from its own `bill_substream(seed, cid, period_end, commodity)`, i.e. it
+     has the same isolation property this module has, and the two modules'
+     substream discipline no longer differ in kind.
   2. DD-FAILURE REASON (insufficient-funds vs cancelled/other) -- arrears_engine
      returns success/failed/dispute with no "why". This module adds the reason
      split, anchored to the SAME real Bacs ARUDD dominant-code fact

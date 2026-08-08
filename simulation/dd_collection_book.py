@@ -66,7 +66,8 @@ rather than re-asserting the original (partly wrong) reasoning:
   arrears/bad-debt outcomes" reasoning that had left this open twice before
   -- it conflated two independent things. payment_outcome()'s success/fail
   decision (compute_emergent_bad_debt()'s own ground truth) is drawn from
-  the shared `rng` BEFORE any date logic runs and takes no date as an input
+  the bill's own `bill_substream(seed, cid, period_end, commodity)` BEFORE
+  any date logic runs and takes no date as an input
   at all -- gating a collection's own due_date can never change which bills
   succeed or fail. And this module's own dates feed nothing but a business-
   surface rendering (extract_dd_rails()) -- never the ledger/cash-timing
@@ -153,8 +154,8 @@ from company.billing.direct_debit import (
     staggered_payment_day,
 )
 from simulation.arrears_engine import (
-    PAYMENT_TERMS_DAYS, payment_method, payment_outcome, stress_for_year,
-    _fuel_poor_for_bill, _tone_for_bill,
+    PAYMENT_TERMS_DAYS, bill_substream, payment_method, payment_outcome,
+    stress_for_year, _fuel_poor_for_bill, _tone_for_bill,
 )
 from simulation.bacs_rails import (
     ARUDD_REASON_CODES, resolve_submission, submit_amendment,
@@ -178,18 +179,18 @@ def build_dd_collection_book(
     seed: int = 42,
 ) -> DirectDebitBook:
     """Build a DirectDebitBook populated with real, Bacs-rails-timed
-    collection attempts for every direct_debit-method bill. Same sorted
-    order and RNG seed as compute_emergent_bad_debt() -- the resulting
-    success/failure pattern matches the real ground truth exactly, this
-    just adds the missing rails-timing/reason-code layer around it."""
-    rng = random.Random(seed)
+    collection attempts for every direct_debit-method bill. Resolves each
+    bill from the same per-bill substream compute_emergent_bad_debt() uses
+    (`arrears_engine.bill_substream`, C-S2) -- the resulting success/failure
+    pattern matches the real ground truth exactly, this just adds the missing
+    rails-timing/reason-code layer around it."""
     # Separate, independently-seeded RNG for bacs_rails' own lag-day
-    # randomization (resolve_submission()'s `rng` arg) -- deliberately NOT
-    # the same `rng` instance payment_outcome() draws from. Sharing one
-    # stream would advance `rng`'s state by extra draws compute_emergent_
-    # bad_debt() never makes, desyncing every outcome AFTER the first
-    # resolved DD bill from the real ground truth this function is
-    # supposed to mirror exactly.
+    # randomization (resolve_submission()'s `rng` arg) -- deliberately NOT a
+    # payment-outcome substream. Keeping the rails draws on their own stream
+    # is what stops a rails-timing change from moving a payment outcome; the
+    # converse (extra rails draws desyncing outcomes) is now structurally
+    # impossible, since each bill's outcome is keyed by its own identity
+    # rather than by the state of a stream this loop shares.
     rails_rng = random.Random(seed + 1)
     book = DirectDebitBook()
     monthly_amount_by_customer = monthly_amount_by_customer or {}
@@ -219,18 +220,22 @@ def build_dd_collection_book(
         year = int(period_end[:4])
 
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        # Advance the SAME rng the SAME number of times regardless of
-        # method, so every later bill's payment_outcome() draw stays
-        # identical to compute_emergent_bad_debt()'s own sequence -- only
-        # direct_debit bills get a DD collection record, but every bill
-        # must still consume the RNG in lockstep.
-        stress = stress_for_year(behavioral.get(cid) or {}, year)
-        outcome, _days_late = payment_outcome(
-            method, stress, rng, segment, _fuel_poor_for_bill(method, cid),
-            _tone_for_bill(method, cid, period_end), cid,
-        )
+        # A non-DD bill can now be skipped BEFORE drawing its outcome: the
+        # draw is keyed by (cid, period_end), so not making it cannot shift
+        # any other bill's result. Under the old shared stream this loop had
+        # to draw for every bill purely to stay in lockstep with
+        # compute_emergent_bad_debt() -- an obligation each of the four
+        # consumers had to hand-maintain, and one of them (the billing ledger)
+        # did not.
         if method != "direct_debit":
             continue
+        stress = stress_for_year(behavioral.get(cid) or {}, year)
+        outcome, _days_late = payment_outcome(
+            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
+            segment,
+            _fuel_poor_for_bill(method, cid),
+            _tone_for_bill(method, cid, period_end), cid,
+        )
 
         issue_date = date.fromisoformat(period_end)
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
@@ -265,7 +270,7 @@ def build_dd_collection_book(
             # bill's own collection due_date is now genuinely gated on the
             # mandate's own AUDDIS confirmation, pushed out if it would
             # otherwise land first. Safe by construction: payment_outcome()'s
-            # success/fail decision (above, from the shared `rng`) is
+            # success/fail decision (above, from this bill's own substream) is
             # entirely date-independent, so this never changes WHICH bills
             # succeed or fail, only the observed collection date for a
             # brand-new mandate's very first bill -- and this module's own

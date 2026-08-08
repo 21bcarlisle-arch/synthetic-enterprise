@@ -286,13 +286,16 @@ class TestOutcomeSequenceMatchesGroundTruth:
         # actually recorded.
         import random
         from simulation.arrears_engine import _fuel_poor_for_bill, _tone_for_bill
-        rng = random.Random(42)
+        from simulation.arrears_engine import bill_substream
         expected_outcomes = []
         for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
             year = int(bill["period_end"][:4])
             stress = stress_for_year(behavioral.get("C1") or {}, year)
             outcome, _ = payment_outcome(
-                "direct_debit", stress, rng, "resi",
+                "direct_debit", stress,
+                bill_substream(42, "C1", bill["period_end"],
+                               bill.get("commodity", "electricity")),
+                "resi",
                 _fuel_poor_for_bill("direct_debit", "C1"),
                 _tone_for_bill("direct_debit", "C1", bill["period_end"]), "C1",
             )
@@ -328,13 +331,16 @@ class TestOutcomeSequenceMatchesGroundTruth:
         ]
         behavioral = {"C1": {"income_stress_trajectory": [{"year": 2020, "stress": "HIGH"}]}}
 
-        rng = random.Random(42)
+        from simulation.arrears_engine import bill_substream
         expected_outcomes = []
         for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
             year = int(bill["period_end"][:4])
             stress = stress_for_year(behavioral.get("C1") or {}, year)
             outcome, _ = payment_outcome(
-                "direct_debit", stress, rng, "resi",
+                "direct_debit", stress,
+                bill_substream(42, "C1", bill["period_end"],
+                               bill.get("commodity", "electricity")),
+                "resi",
                 _fuel_poor_for_bill("direct_debit", "C1"),
                 _tone_for_bill("direct_debit", "C1", bill["period_end"]), "C1",
             )
