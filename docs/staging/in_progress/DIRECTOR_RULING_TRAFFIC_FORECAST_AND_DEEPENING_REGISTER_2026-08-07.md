@@ -52,3 +52,10 @@
 TARGET_DESIGN consumes both tables as its load section. The write-time gate adds the scale question for load-bearing seams. KNIFE's tie-breaker — *the graph proposes, the forecast disposes* — now has a forecast to dispose with. Deepening-register rows are interface commitments, not implementations: building any row's internals ahead of need remains the ghost-suburb failure, not compliance.
 
 — Ruled 2026-08-07; staged by the advisor. Revisable only by a later director ruling.
+
+## WORK THIS CREATES (canonical, advisor-supplied 2026-08-08, written blind to the worker's minted list — diff freely)
+1. TARGET_DESIGN's load section authored from Table A, arteries and magnitudes verbatim, GL/BE/DC framing preserved.
+2. The write-time gate gains the scale question — "does this die at 10^5?" — as a mechanised check on load-bearing seams, not prose.
+3. Each deepening-register row filed as a seam atom with a Birth Certificate: interface commitment wide, internals village-simple, ghost-suburb clause quoted.
+4. The 10k probe wired to the forecast: measured values land beside Table A predictions, confirm-or-refute recorded.
+5. KNIFE's tie-breaker made executable: the graph proposes, this forecast disposes — cited by the gate, not by folklore.

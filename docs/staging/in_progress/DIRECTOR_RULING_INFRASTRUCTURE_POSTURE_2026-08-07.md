@@ -37,3 +37,13 @@ Director's words: *"I want to actually use it. Not just DR. As per this week."* 
 - **Primary target: Oracle Always Free** (£0 forever once landed; the saved stack/VCN/keys from tonight are its ingredients). **Interim-or-fallback: Hetzner** — if Oracle's queue outlasts patience or the director prefers certainty, an 8 GB-class box (~€7–13/mo post-June-reset) becomes the seat by the same ceremony; 4 GB (€5.49–5.99) is workable-but-tight for full suite runs.
 - **DR inverts and improves:** once the seat is cloud-resident, the standby becomes a snapshot of the cloud seat (pennies) — and the PC itself is a warm second fallback. Cut-over capability is now bidirectional by construction.
 - **The PC's permanent role:** the director's desk machine plus opportunistic GPU garnish when powered — nothing load-bearing. The week's failure class (seat dies with the house) is retired structurally.
+
+## WORK THIS CREATES (canonical, advisor-supplied 2026-08-08, written blind to the worker's minted list — diff freely)
+1. Organ re-pointing: dispatcher/classifiers to Haiku-class API; adversarial organs to restricted-context Claude; the CLAUDE.md model-routing lines corrected in the same change (they become false the moment this lands).
+2. A GPU-opportunistic job class: clustering/curve-fit/batch work runs only when the PC is on, never load-bearing.
+3. The seat bootstrap script, versioned in-repo: fresh Ubuntu to seat-ready minus secrets.
+4. The automated Oracle A1 acquisition loop (retry until capacity; stop on success; alert the director).
+5. The Class-A cut-over procedure as an executable checklist, marker-move at its centre; the Class-B dead-box variant beside it.
+6. The timed dead-box drill, run once, duration recorded — the proven-failure field.
+7. Post-cutover DR inversion: snapshot-of-cloud-seat + PC-as-warm-fallback documented.
+8. SE_SEAT=foreign set in the poesys cloud environment (director clicks, worker verifies from a session).

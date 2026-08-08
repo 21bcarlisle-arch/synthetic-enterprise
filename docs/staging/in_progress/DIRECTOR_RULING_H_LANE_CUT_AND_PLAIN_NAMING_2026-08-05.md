@@ -46,3 +46,10 @@ Director ruling, general in scope: **he is out of the loop by default, in it onl
 Ordinary map maintenance — no epoch blocking, no runtime blast radius, fully reversible. Interacts with, and does not duplicate, MAP + the write-time gate in `DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md`: the capability index and the map now share one naming discipline.
 
 — Ruled 2026-08-05; staged, then amended same day to remove approval loops; machine offline throughout.
+
+## WORK THIS CREATES (canonical, advisor-supplied 2026-08-08, written blind to the worker's minted list — diff freely)
+1. A single id/number registry: one authority, collision-free, every atom and lane; validator extended so a colliding or unregistered id cannot merge.
+2. The H-lane dissolution map: every H atom dispatched to Build Engine or its subject lane, verification atoms redistributed to the lanes they verify; no orphan left unmapped.
+3. Two charters: Build Engine and Running the Machine (OPS), each with scope, non-goals, and the posture shelf it owns.
+4. The plain-words naming pass: every atom and lane renamed per the law, old names redirected, map regenerated.
+5. The registry wired into the promotion path so future mints cannot bypass it.

@@ -1,0 +1,3 @@
+# [ADVISOR-POINTER] — Publish-gate wedge: check the known red first (2026-08-08)
+
+The 15:41 UTC publish_gate_wedged alarm (rc=1 at 02db1b2) is very likely the KNOWN, DELIBERATE mypy-census red meeting its first publish attempt: the merged guard week drifted 44 modules by exactly +1 (551→595) and the baseline was intentionally left for the wake. The prepared 30-second fix, already registered in the v4 incident note's wake register: annotate background/_seat.py so the census returns to 551 (preferred, shrink-not-grow); alternative, re-freeze at 595. Falsifiability: if the fast suite's failure is NOT test_mypy_baseline_matches_frozen_census, disregard this pointer entirely and hunt normally. — Advisor, 16:5x BST.
