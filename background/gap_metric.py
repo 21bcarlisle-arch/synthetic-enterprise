@@ -527,6 +527,65 @@ AGEING_HEADLINE_UNITS: str = (
 )
 
 
+def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
+                   order: Sequence) -> dict:
+    """The MEASUREMENT half of `ageing_gap`: validate the inputs and count, with
+    no packaging, no rounding and no prose. Split out from `ageing_gap` (which
+    assembles the GapResult) so the arithmetic can be read and tested without the
+    ledger-shaping around it -- and because the numbers, not the presentation, are
+    the thing under R15 mutation in `tests/tools/test_d7_ageing_measures.py`.
+
+    Returns the raw measures UNROUNDED. `None` (never 0.0) where a denominator is
+    empty -- see `ageing_gap`'s docstring for why vacuity must not read as perfect.
+    """
+    truth = list(truth_labels)
+    belief = list(belief_labels)
+    if not truth:
+        raise ValueError("ageing_gap: empty population")
+    if len(truth) != len(belief):
+        raise ValueError("truth_labels and belief_labels must be the same length")
+
+    rank = {b: i for i, b in enumerate(order)}
+    unknown = sorted({str(x) for x in truth + belief if x not in rank})
+    if unknown:
+        raise ValueError(
+            f"ageing_gap: labels outside the ordered bucket space {list(order)}: "
+            f"{unknown} -- an unknown bucket cannot be ranked, and scoring it as "
+            "displacement 0 would make a vocabulary drift read as perfect dating "
+            "(R15 fail-open)."
+        )
+
+    current = order[0]
+    n = len(truth)
+    n_truly_overdue = sum(1 for t in truth if t != current)
+    n_truly_current = n - n_truly_overdue
+
+    misses = sum(1 for t, b in zip(truth, belief) if t != current and b == current)
+    false_ageings = sum(1 for t, b in zip(truth, belief) if t == current and b != current)
+    wrong_bucket = sum(
+        1 for t, b in zip(truth, belief)
+        if t != current and b != current and t != b
+    )
+    displacements = [
+        abs(rank[b] - rank[t]) for t, b in zip(truth, belief) if t != current
+    ]
+
+    return {
+        "n": n,
+        "n_truly_overdue": n_truly_overdue,
+        "n_truly_current": n_truly_current,
+        "misses": misses,
+        "false_ageings": false_ageings,
+        "wrong_bucket": wrong_bucket,
+        "understated_arrears_rate": (misses / n_truly_overdue) if n_truly_overdue else None,
+        "overstated_arrears_rate": (false_ageings / n_truly_current) if n_truly_current else None,
+        "mean_bucket_displacement": (
+            sum(displacements) / len(displacements) if displacements else None
+        ),
+        "max_bucket_displacement": max(displacements) if displacements else None,
+    }
+
+
 def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
                *, bucket_order: Sequence = AGEING_BUCKET_ORDER) -> GapResult:
     """Debt-DATING measures for an ORDERED ageing space (formula g).
@@ -565,69 +624,21 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     dating. VACUITY IS EXPLICIT, not zero: with no truly-overdue invoices the two
     overdue-denominated measures are `None`, not 0.0, and so is `gap`.
     """
-    truth = list(truth_labels)
-    belief = list(belief_labels)
-    if not truth:
-        raise ValueError("ageing_gap: empty population")
-    if len(truth) != len(belief):
-        raise ValueError("truth_labels and belief_labels must be the same length")
-
     order = list(bucket_order)
-    rank = {b: i for i, b in enumerate(order)}
-    unknown = sorted({str(x) for x in truth + belief if x not in rank})
-    if unknown:
-        raise ValueError(
-            f"ageing_gap: labels outside the ordered bucket space {order}: {unknown} "
-            "-- an unknown bucket cannot be ranked, and scoring it as displacement 0 "
-            "would make a vocabulary drift read as perfect dating (R15 fail-open)."
-        )
-
-    current = order[0]
-    n = len(truth)
-    n_truly_overdue = sum(1 for t in truth if t != current)
-    n_truly_current = n - n_truly_overdue
-
-    misses = sum(1 for t, b in zip(truth, belief) if t != current and b == current)
-    false_ageings = sum(1 for t, b in zip(truth, belief) if t == current and b != current)
-    wrong_bucket = sum(
-        1 for t, b in zip(truth, belief)
-        if t != current and b != current and t != b
-    )
-
-    displacements = [
-        abs(rank[b] - rank[t]) for t, b in zip(truth, belief) if t != current
-    ]
-    mean_disp: Optional[float] = (
-        sum(displacements) / len(displacements) if displacements else None
-    )
-    max_disp: Optional[int] = max(displacements) if displacements else None
-
-    understated: Optional[float] = (
-        misses / n_truly_overdue if n_truly_overdue else None
-    )
-    overstated: Optional[float] = (
-        false_ageings / n_truly_current if n_truly_current else None
-    )
+    measured = _ageing_counts(truth_labels, belief_labels, order)
+    mean_disp = measured["mean_bucket_displacement"]
 
     def _r(x: Optional[float]) -> Optional[float]:
         return None if x is None else round(x, 6)
 
-    components = {
-        "n": n,
-        "n_truly_overdue": n_truly_overdue,
-        "n_truly_current": n_truly_current,
-        "misses": misses,
-        "false_ageings": false_ageings,
-        "wrong_bucket": wrong_bucket,
-        "understated_arrears_rate": _r(understated),
-        "overstated_arrears_rate": _r(overstated),
-        "mean_bucket_displacement": _r(mean_disp),
-        "max_bucket_displacement": max_disp,
-        "bucket_order": order,
-        "headline_units": AGEING_HEADLINE_UNITS,
-        "normalisation": AGEING_NO_NORMALISER_REASON,
-    }
-    if n_truly_overdue == 0:
+    components = dict(measured)
+    for key in ("understated_arrears_rate", "overstated_arrears_rate",
+                "mean_bucket_displacement"):
+        components[key] = _r(components[key])
+    components["bucket_order"] = order
+    components["headline_units"] = AGEING_HEADLINE_UNITS
+    components["normalisation"] = AGEING_NO_NORMALISER_REASON
+    if measured["n_truly_overdue"] == 0:
         components["vacuity"] = (
             "NO truly-overdue invoices in this population: the two "
             "overdue-denominated measures are UNDEFINED (None), not 0.0. A "
