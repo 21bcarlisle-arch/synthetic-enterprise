@@ -382,11 +382,11 @@
     },
     "g0": 39.0,
     "gap": 0.5641025641025641,
-    "measured_at": "2026-08-03T20:40:43.080602+00:00",
+    "measured_at": "2026-08-08T16:53:01.884497+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.1538; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.1538 [NOT EVIDENCE -- the ageing dimension's normalisation is the wrong shape and its value is uninterpretable: prevalence alone moves it twentyfold with company behaviour held fixed, and >1 does NOT mean worse-than-no-skill. Proven in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom D6a. Do not cite this figure as fidelity]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
     "raw_gap": 22.0,
-    "run_git_commit": "2546a4a0bb9a2a12da4965a58a64df2fcab618ee",
+    "run_git_commit": "7da1f9d2a950eb318db3944125dab098b11f5cac",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
@@ -586,12 +586,12 @@
           "naive_gap": 0.6342817765083042,
           "naive_phantoms": 6,
           "regime": "activation_lost_link_lost",
-          "separated_caught_by_guard": 6,
-          "separated_confident_wrong": 6,
-          "separated_gap": 0.6342817765083042,
-          "separated_mean_phantom_years": 4.830025,
-          "separated_phantoms": 6,
-          "separated_unknown_share": 0.0
+          "separated_caught_by_guard": 0,
+          "separated_confident_wrong": 0,
+          "separated_gap": 0.4113843142346372,
+          "separated_mean_phantom_years": 0.0,
+          "separated_phantoms": 0,
+          "separated_unknown_share": 0.25
         }
       ],
       "separated_confident_wrong": 0,
@@ -603,11 +603,11 @@
     },
     "g0": 1.9037379268385433,
     "gap": 0.6342817765083042,
-    "measured_at": "2026-08-08T14:29:19+00:00",
+    "measured_at": "2026-08-08T16:50:30+00:00",
     "metric": "prediction",
     "note": "PHANTOM TENURE on a re-contracted customer. Truth = the term boundary the home-move win actually landed on (world answer key); the company's LIVE belief reads the predecessor's genesis anchor out of `acquisition_date`, so every re-contracted account reads as though the relationship never restarted. The headline gap is that LIVE belief -- the mechanism that fixes it (C_supply_start_semantic_separation) is BUILT but not yet ROUTED to the 7 live consumers (C_supply_start_consumer_routing), so the published tenure, cohort and 'Customer since' figures still carry the phantom. `separated_*` is the counterfactual once routed; the regime sweep shows where the world still defeats the built mechanism -- losing the activation event costs COVERAGE (honest UNKNOWN), but losing the `successor_of` link as well makes it CONFIDENTLY WRONG again, because the no-successor rung hands back the anchor. DEFENCE IN DEPTH: `*_caught_by_guard` is how many of those phantoms this atom's R10 class guard (SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE) rejects anyway, from the account's own meter reads and bills -- observables that cannot go missing the way the registration paperwork can.",
     "raw_gap": 1.2075062742413873,
-    "run_git_commit": "d4e8aa21bd524cf582e65bb89be6176d6bc73e3a",
+    "run_git_commit": "7da1f9d2a950eb318db3944125dab098b11f5cac",
     "twin_atom_id": "C_supply_start_semantic_separation"
   }
 }

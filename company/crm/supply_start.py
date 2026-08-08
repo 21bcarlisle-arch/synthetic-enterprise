@@ -29,6 +29,31 @@ observable exists and the record's own anchor is known to be someone else's
 started. That is recorded as `None`/NULL, never silently back-filled from the
 anchor: a fabricated tenure is worse than an absent one, and back-filling is
 the exact shape of a Historical Ground Truth breach.
+
+**The observable floor (atom C15) — why the `successor_of` test was not enough.**
+That test reads *paperwork*, which can go missing; when it does, a successor is
+indistinguishable from a base customer and the anchor rule emits the
+predecessor's genesis date — the phantom above, returning through a different
+door. This atom's registered law
+(`SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE`) is instead stated against what
+cannot go missing: a supply start can never predate the earliest thing we ever
+observed about the account, because a supplier that is not reading the meter is
+not supplying. The derivation disagreed with that law — measurably, on the real
+population — so it now carries the same floor (`_not_before_first_observable`).
+
+Two deliberate asymmetries with the auditing invariant, both load-bearing:
+
+- *Absent observables do not constrain the derivation* (the registry-seeding
+  path, whose records carry none): nothing observed means nothing contradicted.
+  The auditor instead FAILS such a record, because an unavailable check is a
+  failed check (R15) — a statement about a record it must judge, not about what
+  may be derived.
+- *This module must not import the checker.* Borrowing the auditor's predicate
+  would make the audit tautological: the guard could never again fire on this
+  derivation, including when the derivation is wrong (R15 killer pattern 1). The
+  two agree because both are right, not because one asks the other, and
+  `test_the_floor_and_the_invariant_read_the_same_observables` fails if their
+  keysets drift.
 """
 
 import datetime as dt
@@ -54,6 +79,61 @@ def _parse_iso_date(value: str, field: str) -> dt.date:
         return dt.date.fromisoformat(value)
     except ValueError as exc:
         raise ValueError(f"{field} is not a valid ISO date: {value!r}") from exc
+
+
+#: Fields on a CRM account record that each bound the earliest point we knew the
+#: account existed. Any one of them is enough to floor a derived supply start.
+#: Kept as a fixed tuple, and deliberately a SEPARATE declaration from the
+#: auditing invariant's own list -- see the module docstring on why this module
+#: must not import the checker. Drift between the two is a test failure, not a
+#: silent divergence.
+OBSERVABLE_FLOOR_FIELDS = (
+    "acquisition_event_date",
+    "first_meter_read_date",
+    "first_issued_bill_date",
+)
+
+
+def _observable_floor(customer: Mapping) -> Optional[dt.date]:
+    """The earliest date this account was ever observed, or None if never.
+
+    None means "no observable on this record", which imposes no constraint --
+    not "the check passed". A field that is present but malformed raises, in
+    keeping with the rest of this module: a corrupt observable must not quietly
+    become an absent one, because that would turn the floor off exactly when the
+    data is least trustworthy.
+    """
+    earliest: Optional[dt.date] = None
+    for field in OBSERVABLE_FLOOR_FIELDS:
+        raw = customer.get(field)
+        if raw is None:
+            continue
+        observed = _parse_iso_date(raw, field)
+        if earliest is None or observed < earliest:
+            earliest = observed
+    return earliest
+
+
+def _not_before_first_observable(
+    candidate: Optional[str],
+    customer: Mapping,
+) -> Optional[str]:
+    """`candidate`, unless the account's own observables contradict it.
+
+    A start earlier than something we already observed about the account is not
+    a start we can have witnessed, whatever rule produced it. Such a candidate
+    is dropped to UNKNOWN rather than clamped -- the observables bound the true
+    start from ABOVE, so the floor tells us the candidate is wrong without
+    telling us what is right.
+    """
+    if candidate is None:
+        return None
+    floor = _observable_floor(customer)
+    if floor is None:
+        return candidate
+    if _parse_iso_date(candidate, "derived supply_start") < floor:
+        return None
+    return candidate
 
 
 def derive_term_anchor(customer: Mapping) -> str:
@@ -89,12 +169,20 @@ def derive_supply_start(
     A record with no `acquisition_date` at all also resolves to ``None`` rather
     than to `DEFAULT_TERM_ANCHOR`: that default is an anchor convention, and
     stamping it as a relationship start would invent a tenure.
+
+    **Every branch is then floored** at the account's own earliest observable,
+    so no rule here can emit a start that predates something we already saw.
+    That is what catches step 2 when the `successor_of` link went missing: the
+    only remaining evidence that the anchor is someone else's is that we were
+    reading this account's meter years after the date it claims. It applies to
+    step 1 too -- an activation event contradicting a meter read means the
+    observables disagree, and two conflicting facts do not license picking one.
     """
     account_id = customer.get("customer_id")
     activation = (activation_by_account or {}).get(account_id)
     if activation is not None:
         _parse_iso_date(activation, f"activation date for {account_id}")
-        return activation
+        return _not_before_first_observable(activation, customer)
 
     if customer.get("successor_of"):
         return None
@@ -103,7 +191,7 @@ def derive_supply_start(
     if not acquisition_date:
         return None
     _parse_iso_date(acquisition_date, "acquisition_date")
-    return acquisition_date
+    return _not_before_first_observable(acquisition_date, customer)
 
 
 def migrate_legacy_supply_start(

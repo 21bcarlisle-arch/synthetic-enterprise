@@ -31,7 +31,6 @@ import pytest
 from background import coupled_triad as ct
 from tools import couple_supply_start as run
 
-
 AS_OF = run.DEFAULT_AS_OF
 
 
@@ -112,24 +111,29 @@ def test_withholding_the_registration_event_actually_bites():
         assert derived != account.true_relationship_start
 
 
-def test_the_metering_observable_is_present_and_the_derivation_ignores_it():
-    """A NAMED, MEASURED FINDING -- recorded, not fixed on sight (SELF-INTERRUPT
-    DISCIPLINE), and minted as its own atom.
+def test_the_metering_observable_is_present_and_the_derivation_honours_it():
+    """THE FINDING ABOVE, NOW CLOSED (atom C15_supply_start_observable_floor).
 
     `first_meter_read_date` is a legitimate observable that the world hands over and
     that does NOT go missing with the registration paperwork: a supplier that is not
-    reading the meter is not supplying. `derive_supply_start`'s middle rung
-    nonetheless hands back an `acquisition_date` that predates it -- emitting a value
-    that violates `SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE`, the very invariant this
-    same atom registered as law. The guard catches it downstream (below), so nothing
-    published is wrong; but the derivation and the invariant disagree, and this test
-    pins that disagreement so it cannot quietly persist as an unnoticed assumption."""
+    reading the meter is not supplying. `derive_supply_start`'s middle rung used to
+    hand back an `acquisition_date` that predated it -- emitting a value that
+    violated `SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE`, the very invariant this same
+    atom registered as law. That disagreement was recorded rather than fixed on sight
+    (SELF-INTERRUPT DISCIPLINE) and minted as its own atom; the derivation now floors
+    every branch at the account's own earliest observable, so it can no longer emit a
+    date its own registered law rejects.
+
+    Vacuity-guarded: the pre-C15 rule is applied alongside and MUST still contradict,
+    otherwise this regime has stopped exercising the defect and a green result here
+    would mean nothing."""
     world = run.draw_recontracting_world(AS_OF)
     regime = next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_lost")
     records, activations = run.observables_for(world, regime)
     by_id = {a.account_id: a for a in world}
 
     contradicted = 0
+    would_have_contradicted = 0
     for record in records:
         account = by_id[record["customer_id"]]
         if not account.is_recontracted:
@@ -138,8 +142,12 @@ def test_the_metering_observable_is_present_and_the_derivation_ignores_it():
         derived = run.derive_supply_start(record, activations)
         if derived is not None and derived < record["first_meter_read_date"]:
             contradicted += 1
+        # The rule as it stood before the floor: no link -> emit the own anchor.
+        if record["acquisition_date"] < record["first_meter_read_date"]:
+            would_have_contradicted += 1
 
-    assert contradicted > 0
+    assert would_have_contradicted > 0, "regime no longer exercises the defect"
+    assert contradicted == 0
 
 
 # ---------------------------------------------------------------------------
@@ -205,39 +213,73 @@ def test_losing_the_activation_costs_coverage_not_truth():
     assert row["separated"].gap > 0.0
 
 
-def test_losing_the_link_as_well_defeats_the_mechanism_entirely():
-    """THE NAMED DEFEAT. `derive_supply_start`'s middle rung says "no `successor_of`,
-    so this record's own `acquisition_date` is its start" -- so when the predecessor
-    link is lost too, it hands back the anchor and is CONFIDENTLY WRONG again. The
-    atom's protection is contingent on the linkage observable, and this asserts that
-    contingency out loud rather than leaving it implied."""
+def test_losing_the_link_as_well_degrades_to_unknown_not_confidently_wrong():
+    """THE NAMED DEFEAT, NOW CLOSED (atom C15_supply_start_observable_floor).
+
+    The middle rung used to say "no `successor_of`, so this record's own
+    `acquisition_date` is its start" -- so when the predecessor link was lost too it
+    handed back the anchor and was CONFIDENTLY WRONG again, buying nothing over the
+    pre-fix company. The atom's protection was contingent on a piece of paperwork.
+
+    It no longer is: the floor is stated against the meter read, which does not go
+    missing, so losing the link now costs ABSTENTION rather than a phantom. The
+    failure mode moved from confidently-wrong to honestly-unknown, which is the whole
+    doctrine of this module (a fabricated tenure is worse than an absent one)."""
     world = run.draw_recontracting_world(AS_OF)
     regime = next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_lost")
     row = run.measure_regime(world, regime, AS_OF)
 
     n_recontracted = sum(1 for a in world if a.is_recontracted)
-    assert row["separated"].n_unknown == 0
-    assert row["separated"].n_confident_wrong == n_recontracted
-    assert row["separated"].mean_phantom_years > 1.0
-    # no better than the pre-fix company: the DERIVATION buys nothing here
-    assert row["separated"].gap == pytest.approx(row["naive"].gap)
+    assert row["separated"].n_unknown == n_recontracted
+    assert row["separated"].n_confident_wrong == 0
+    assert row["separated"].mean_phantom_years == 0.0
+    # ... and it is now strictly better than the pre-fix company, which is what the
+    # derivation failed to buy here before.
+    assert row["separated"].gap < row["naive"].gap
+
+
+def test_the_floor_makes_the_degradable_link_redundant():
+    """The structural consequence, asserted rather than left to be noticed: because
+    the floor reads an observable that survives the loss of the paperwork, losing the
+    `successor_of` link on top of the activation event now costs NOTHING. The two
+    degraded regimes measure identically.
+
+    This is the property that makes the mechanism robust rather than lucky -- if a
+    future change reintroduces a dependence on the link, these two rows separate."""
+    world = run.draw_recontracting_world(AS_OF)
+    kept = run.measure_regime(
+        world, next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_kept"), AS_OF)
+    lost = run.measure_regime(
+        world, next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_lost"), AS_OF)
+
+    assert lost["separated"].gap == pytest.approx(kept["separated"].gap)
+    assert lost["separated"].n_unknown == kept["separated"].n_unknown
+    assert lost["separated"].n_confident_wrong == kept["separated"].n_confident_wrong == 0
 
 
 # ---------------------------------------------------------------------------
 # Defence in depth -- the R10 class guard is a genuine second line
 # ---------------------------------------------------------------------------
 
-def test_the_class_guard_catches_every_phantom_the_derivation_lets_through():
-    """The derivation is defeated when both observables go missing -- but the atom
-    is not. `SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE` re-derives the bound from the
+def test_the_class_guard_catches_every_phantom_the_live_belief_produces():
+    """`SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE` re-derives the bound from the
     account's own meter reads and bills, which do not vanish with the paperwork, so
-    every phantom is REJECTED rather than published."""
+    every phantom is REJECTED rather than published.
+
+    Measured on the LIVE/NAIVE belief deliberately. Since C15 the derivation emits no
+    phantoms at all, so asserting the guard's catch rate on the *separated* channel
+    would be vacuous -- 0 caught out of 0 produced passes any guard, including a
+    guard that has stopped working. The naive channel still produces real phantoms
+    (it reads `acquisition_date` straight), so it is the channel on which this
+    control can still be seen to FIRE. The separated channel is asserted for what it
+    now is: nothing to catch."""
     world = run.draw_recontracting_world(AS_OF)
     regime = next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_lost")
     row = run.measure_regime(world, regime, AS_OF)
 
-    assert row["separated_phantoms"] > 0
-    assert row["separated_caught_by_guard"] == row["separated_phantoms"]
+    assert row["naive_phantoms"] > 0
+    assert row["naive_caught_by_guard"] == row["naive_phantoms"]
+    assert row["separated_phantoms"] == 0
 
 
 def test_the_class_guard_also_catches_the_live_companys_phantoms():
@@ -262,8 +304,13 @@ def test_mutation_a_guard_that_cannot_fail_is_detected(monkeypatch):
     regime = next(r for r in run.SWEEP_REGIMES if r.name == "activation_lost_link_lost")
     row = run.measure_regime(world, regime, AS_OF)
 
-    assert row["separated_phantoms"] > 0
-    assert row["separated_caught_by_guard"] == 0
+    # Measured on the naive channel for the same reason as the test above: since C15
+    # the separated channel produces no phantoms, so a collapse to zero there would
+    # be indistinguishable from the healthy state and this mutation would go
+    # undetected. Here the count is non-zero when the guard works and zero when it
+    # has been made unable to fail.
+    assert row["naive_phantoms"] > 0
+    assert row["naive_caught_by_guard"] == 0
 
 
 # ---------------------------------------------------------------------------

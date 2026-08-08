@@ -342,6 +342,7 @@ def test_class_guard_does_not_import_the_code_it_audits():
     not a dependency, and matching on one would make this fail for the wrong
     reason (it did, on first run)."""
     import ast
+
     import company.compliance.domain_invariants as inv
 
     tree = ast.parse(open(inv.__file__).read())
@@ -405,3 +406,205 @@ def test_guard_is_clock_free_and_replay_safe():
     assert check_supply_start_not_before_first_observable({
         "supply_start": future, "acquisition_event_date": future,
     })
+
+
+# --- C15: the observable floor ----------------------------------------------
+#
+# The section above proves the derivation stops borrowing the anchor when it can
+# SEE that the account is a successor. This section covers the case it could not
+# see: the `successor_of` link is paperwork, and when it goes missing a successor
+# is indistinguishable from a base customer, so the anchor rule fires and the
+# phantom returns through a different door. The registered law for this atom is
+# stated against observables that cannot go missing, and it disagreed with the
+# derivation on the real population until the floor was added.
+#
+# R15 -- the mutation this section must fire on:
+#   3. drop the floor (emit the anchor unchecked) -> the class test below FAILS,
+#      and `test_mutation_removing_the_floor_reinstates_the_phantom` shows the
+#      guard firing on the unfloored value, so the control is proven able to fail.
+
+_LOST_LINK_SUCCESSOR = {
+    # The C1_2 shape again, but with the re-contract link NOT recorded. On
+    # paperwork alone this is a base customer whose relationship began 2016.
+    "customer_id": "C1_2",
+    "successor_of": None,
+    "acquisition_date": _ANCHOR,
+    # What cannot go missing: we were reading this account's meter in 2020, and
+    # billed it a cycle later. Both are independent of the lost registration.
+    "first_meter_read_date": _REAL_ACTIVATION,
+    "first_issued_bill_date": "2021-01-29",
+}
+
+
+def _unfloored(customer):
+    """The pre-C15 rule, re-implemented here as the MUTATION under test.
+
+    This is exactly what `derive_supply_start` did before the floor: trust the
+    `successor_of` link, and otherwise emit the record's own anchor. Kept as a
+    local re-implementation rather than a monkeypatch so the mutation is visible
+    in the test file and cannot silently stop being a mutation.
+    """
+    if customer.get("successor_of"):
+        return None
+    return customer.get("acquisition_date") or None
+
+
+def test_lost_link_and_lost_activation_is_unknown_not_the_predecessors_anchor():
+    """THE C15 finding. No activation event, no `successor_of` link -- the two
+    pieces of registration paperwork -- but the account's own meter read says we
+    first saw it in 2020. Emitting the 2016 anchor would claim ~5 years of
+    tenure that nobody witnessed, which is the original defect verbatim."""
+    assert derive_supply_start(_LOST_LINK_SUCCESSOR) is None
+
+
+def test_mutation_removing_the_floor_reinstates_the_phantom():
+    """R15: proves the floor is load-bearing and the guard can still fail.
+
+    The mutation emits the anchor; the INDEPENDENT class guard rejects it. If
+    this ever passes, the floor has stopped being what prevents the phantom and
+    the test above has gone vacuous."""
+    mutated = _unfloored(_LOST_LINK_SUCCESSOR)
+    assert mutated == _ANCHOR, "the mutation must actually reproduce the old rule"
+    assert not check_supply_start_not_before_first_observable(
+        {**_LOST_LINK_SUCCESSOR, "supply_start": mutated}
+    )
+    # ... and the shipped derivation's answer passes the same guard.
+    assert check_supply_start_not_before_first_observable(
+        {**_LOST_LINK_SUCCESSOR,
+         "supply_start": derive_supply_start(_LOST_LINK_SUCCESSOR)}
+    )
+
+
+def test_derivation_never_contradicts_its_own_registered_law_on_the_population():
+    """R10 class closure, at population scale: across every degradation regime,
+    NOTHING the derivation emits is rejected by the invariant the same atom
+    registered as law. This is the check that was failing before C15.
+
+    Vacuity guarded twice: the population must be non-empty, and the pre-fix
+    rule must actually produce violations on it -- otherwise a green result here
+    would mean "the defect was never exercised", not "the defect is fixed"."""
+    from tools.couple_supply_start import (
+        ObservableRegime,
+        draw_recontracting_world,
+        guard_flags,
+        observables_for,
+    )
+
+    world = draw_recontracting_world()
+    regimes = [
+        ObservableRegime("full", 1.0, 1.0),
+        ObservableRegime("half_both", 0.5, 0.5),
+        ObservableRegime("no_paperwork", 0.0, 0.0),
+        ObservableRegime("activation_only", 0.5, 0.0),
+        ObservableRegime("link_only", 0.0, 0.5),
+    ]
+
+    checked = 0
+    violations = []
+    would_have_violated = 0
+    for regime in regimes:
+        records, activations = observables_for(world, regime)
+        for record in records:
+            checked += 1
+            if guard_flags(record, derive_supply_start(record, activations)):
+                violations.append((regime.name, record["customer_id"]))
+            if guard_flags(record, _unfloored(record)):
+                would_have_violated += 1
+
+    assert checked > 0, "empty population -- the control checked nothing"
+    assert would_have_violated > 0, (
+        "the population never exercises the defect, so a pass here is vacuous"
+    )
+    assert violations == [], violations
+
+
+def test_the_floor_and_the_invariant_read_the_same_observables():
+    """Drift guard for the two deliberately-separate keysets.
+
+    The derivation must not import the checker (that would make the audit
+    tautological), so the observable list exists twice. This is the seam where
+    that duplication could rot: adding an observable to one side only would
+    leave a bound the other never applies."""
+    from company.compliance.domain_invariants import _SUPPLY_START_OBSERVABLE_FIELDS
+    from company.crm.supply_start import OBSERVABLE_FLOOR_FIELDS
+
+    assert set(OBSERVABLE_FLOOR_FIELDS) == set(_SUPPLY_START_OBSERVABLE_FIELDS)
+
+
+def test_the_derivation_does_not_import_the_checker():
+    """R15 independence, the other direction. If the derivation asked the
+    auditor for its answer, the auditor could never again fire on the
+    derivation -- the guard would be validating its own output."""
+    import ast
+
+    import company.crm.supply_start as mod
+
+    tree = ast.parse(open(mod.__file__).read())
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            imported.add(node.module or "")
+            imported.update(f"{node.module or ''}.{a.name}" for a in node.names)
+
+    assert not any("domain_invariants" in m for m in imported), sorted(imported)
+    assert not hasattr(mod, "check_supply_start_not_before_first_observable")
+
+
+def test_absent_observables_do_not_constrain_the_derivation():
+    """The registry-seeding path: records carry no observable fields at all, so
+    there is nothing to contradict and the ordinary rules stand. The auditor
+    takes the stricter line on such a record (an unavailable check is a failed
+    check) -- that asymmetry is deliberate, not an oversight."""
+    assert derive_supply_start(_BASE) == _ANCHOR
+    assert not any(f in _BASE for f in
+                   ("acquisition_event_date", "first_meter_read_date",
+                    "first_issued_bill_date"))
+
+
+def test_a_consistent_base_customer_keeps_its_date():
+    """No-regression: the floor only bites on a contradiction. Where the anchor
+    agrees with the observables -- every genuine base customer -- the derived
+    value is unchanged."""
+    consistent = {**_BASE,
+                  "first_meter_read_date": _ANCHOR,
+                  "first_issued_bill_date": "2016-01-31"}
+    assert derive_supply_start(consistent) == _ANCHOR
+
+
+def test_an_activation_event_contradicting_a_meter_read_is_unknown():
+    """The floor applies to the activation branch too. Two observables that
+    disagree do not license picking one: a registration event predating the
+    first meter read means we cannot say which is the start."""
+    contradictory = {
+        "customer_id": "C9",
+        "acquisition_date": "2019-01-01",
+        "first_meter_read_date": "2019-01-01",
+    }
+    assert derive_supply_start(
+        contradictory, {"C9": "2017-06-01"}
+    ) is None
+    # Sanity: the same call with a non-contradictory activation still returns it.
+    assert derive_supply_start(
+        contradictory, {"C9": "2019-06-01"}
+    ) == "2019-06-01"
+
+
+def test_a_contradicted_candidate_is_dropped_not_clamped():
+    """Pins the design choice. The observables bound the true start from ABOVE,
+    so clamping to the first meter read would assert a start we did not witness
+    -- swapping an overstated tenure for an understated one. UNKNOWN is the only
+    answer the evidence supports."""
+    derived = derive_supply_start(_LOST_LINK_SUCCESSOR)
+    assert derived is None
+    assert derived != _LOST_LINK_SUCCESSOR["first_meter_read_date"]
+
+
+def test_a_malformed_observable_raises_rather_than_disabling_the_floor():
+    """Fail-loud, matching the rest of the module: a corrupt observable must not
+    degrade into an absent one, which would switch the floor off precisely when
+    the record is least trustworthy (R15 fail-open)."""
+    with pytest.raises(ValueError, match="first_meter_read_date"):
+        derive_supply_start({**_LOST_LINK_SUCCESSOR,
+                             "first_meter_read_date": "not-a-date"})
