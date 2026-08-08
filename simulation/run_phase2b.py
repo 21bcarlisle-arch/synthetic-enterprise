@@ -89,6 +89,7 @@ from tools.credit_adapters import get_credit_bureau_adapter
 from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
+from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.live_payment_triad import LivePaymentTriad
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from simulation.demand_model import build_demand_shape, solar_generation_shape
@@ -2521,7 +2522,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 f"detection={_det.gap} (true failures {_triad_result['stats']['n_true_failures']}, "
                 f"flagged {_triad_result['stats']['n_flagged_failures']}, "
                 f"non-DD blind {_triad_result['stats']['n_true_non_dd_failures']}); "
-                f"belief={_triad_result['belief'].gap:.4f} ageing={_triad_result['ageing'].gap:.4f}"
+                f"belief={_triad_result['belief'].gap:.4f} "
+                # D7: never print the ageing figure as a bare scalar -- it is a
+                # bucket displacement with no baseline, and the bare form is how
+                # the retired one got mis-read as a normalised score.
+                f"{_format_ageing_summary(_triad_result['ageing'])}"
             )
             # WIRE the SAME live belief-vs-truth signal into the G1/G2/G3
             # fidelity machinery (background.live_fidelity_evidence). This is the

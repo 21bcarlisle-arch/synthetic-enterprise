@@ -60,14 +60,22 @@ METRIC CHOICE per dimension (design section 1.4, "pick the shape that fits"):
     different-coverage inputs -- the R15 independence pattern the W2_9<->C11
     pair already established, not a tautology (the rule is not re-deriving
     its own answer from its own inputs).
-  * ageing -> `misapplication_gap` (formula e). Per invoice, the TRUE 30/60/
-    90+ bucket (`company.billing.arrears_engine.age_bucket`, applied to the
-    true "did this genuinely resolve by as_of" fact) vs the BELIEF bucket
-    read off the company's own open-item ageing
+  * ageing -> `ageing_gap` (formula g, atom D7_ageing_gap_metric_reshape).
+    Per invoice, the TRUE 30/60/90+ bucket (`company.billing.arrears_engine.
+    age_bucket`, applied to the true "did this genuinely resolve by as_of"
+    fact) vs the BELIEF bucket read off the company's own open-item ageing
     (`PaymentObservationConsumer.snapshot().aged_items`). Both sides use the
-    IDENTICAL bucket function -- the bucket SET is small and shared
-    (current/30-60/60-90/90+), which is what makes a majority-class baseline
-    meaningful here (unlike allocation, see below).
+    IDENTICAL bucket function.
+    THIS DIMENSION USED `misapplication_gap` AND NO LONGER DOES. The D6
+    DISCOVER (docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md) refuted
+    that shape three ways against the unchanged criterion: gap>1 did NOT mean
+    worse-than-no-skill; prevalence alone swung the score twentyfold with the
+    company held literally fixed; and a Hamming error rate is blind to bucket
+    ORDER (believing a 90+ debt is 60-90 scored the same as not seeing it).
+    The buckets are ORDERED, so the dimension now reports date DISPLACEMENT
+    plus the two error directions on their own denominators -- understated
+    (debt believed settled) and overstated (the wrongful-dunning exposure) --
+    and carries no prevalence-shaped baseline at all.
   * allocation -- ATTEMPTED, HONESTLY DROPPED (see module note "ON
     ALLOCATION" below): `misapplication_gap`'s no-skill baseline needs a
     SMALL shared label space; a per-invoice `invoice_ref` is effectively
@@ -142,9 +150,10 @@ from company.billing.payment_observation_consumer import PaymentObservationConsu
 
 from background.gap_metric import (
     GapResult,
+    ageing_gap,
     belief_gap,
     detection_gap,
-    misapplication_gap,
+    format_ageing_summary,
     write_gap_entry,
 )
 
@@ -488,12 +497,16 @@ def score_triad(
         "different-coverage inputs."
     )
 
-    age = misapplication_gap(true_ageing_labels, belief_ageing_labels)
+    age = ageing_gap(true_ageing_labels, belief_ageing_labels)
     age.note = (
         "per-invoice 30/60/90+ ageing bucket: truth (resolved-by-as_of fact) vs "
         "D5's own open-item ageing belief; picks up both the raw non-payment "
         "signal and any allocation cross-contamination from the ambiguous-"
-        "remittance non-DD population (see module 'ON ALLOCATION' note)."
+        "remittance non-DD population (see module 'ON ALLOCATION' note). "
+        "D7 RESHAPE (2026-08-08): three measures on their own denominators, NOT "
+        "one prevalence-normalised scalar -- headline `gap` is mean bucket "
+        "DISPLACEMENT (buckets, no baseline); read understated_arrears_rate and "
+        "overstated_arrears_rate (the wrongful-dunning exposure) in components."
     )
 
     n_customers = len(by_customer)
@@ -783,9 +796,13 @@ def main() -> None:
     print(f"  flagged failures (belief) : {stats['n_flagged_failures']}"
           f"  (non-DD leaked: {stats['n_flagged_non_dd_failures']})")
 
-    for name in ("detection", "belief", "ageing"):
+    for name in ("detection", "belief"):
         r: GapResult = result[name]
         print(f"  [{name}] raw_gap={r.raw_gap:.4f}  g0={r.g0:.4f}  GAP={r.gap}")
+    # Ageing is NOT a g0-normalised score (D7) -- printing it in the same
+    # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
+    # read as one. Its three measures print with their units instead.
+    print(f"  [ageing] {format_ageing_summary(result['ageing'])}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
 
@@ -804,7 +821,7 @@ def main() -> None:
             "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment "
             "failures the company never observes through the seam -- the "
             "no-remittance blind spot). Companion per-dimension gaps: belief "
-            f"{result['belief'].gap:.4f}, ageing {result['ageing'].gap:.4f}; "
+            f"{result['belief'].gap:.4f}, {format_ageing_summary(result['ageing'])}; "
             "allocation honestly dropped (metric-shape mismatch). R12: diagnostic, "
             "not a target."
         )

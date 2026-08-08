@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -2315,7 +2315,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -2376,7 +2376,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
@@ -2661,7 +2661,9 @@
       "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [],
+      "depends_on": [
+        "D10_detection_headline_is_single_channel"
+      ],
       "couples_with": [
         "D5_account_hierarchy_payments",
         "W2_11_payment_behaviour_source"
@@ -2669,7 +2671,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "D6_payment_ageing_gap_validity",
@@ -2678,7 +2680,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2689,9 +2691,9 @@
         "W2_11_payment_behaviour_source"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 153
+      "stall_consecutive_unchanged": 157
     },
     {
       "id": "D7_ageing_gap_metric_reshape",
@@ -2700,7 +2702,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2713,13 +2715,13 @@
         "W2_11_payment_behaviour_source"
       ],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 43
     },
     {
       "id": "D8_ambiguous_remittance_misdating",
-      "name": "Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferenced non-DD credits cross the W4_4 seam with correlation_id stripped to None, forcing AccountLedger.allocate's oldest-first fallback, so the company's balance is exactly right while its ageing report is materially misdated -- the real-world driver of wrongful dunning, wrong statutory-interest accrual and misstated bad-debt provisioning. Blocked on D6a giving the dimension a shape that can carry the finding.",
+      "name": "Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferenced non-DD credits cross the W4_4 seam with correlation_id stripped to None, forcing AccountLedger.allocate's oldest-first fallback, so the company's balance is exactly right while its ageing report is materially misdated -- the real-world driver of wrongful dunning, wrong statutory-interest accrual and misstated bad-debt provisioning. Blocked on D7_ageing_gap_metric_reshape giving the dimension a shape that can carry the finding.",
       "lane": "D_billing_metering",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
@@ -2738,8 +2740,54 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "D10_detection_headline_is_single_channel",
+      "name": "The published DETECTION headline of the W2_11<->D5 triad is insensitive to the entire DD-observation channel: `flagged_set` is a UNION and n_flagged_via_dd_channel_only == 0 across seeds 7/11/23, so deleting the DD channel outright leaves the number bit-identical. Set-membership detection is structurally blind to the only thing that channel buys -- EARLIER detection. Give the dimension a shape that can see latency (the latency distribution is already measured and discarded into a summary), or state in the published note that the headline is reconciliation-determined alone.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "D9_worse_than_blind_chip_is_metric_blind",
+      "name": "The Proof-door coupled-gap panel renders ANY gap>1 as the red chip 'worse_than_blind' (tools/generate_proof_data.py::_coupled_gaps, mirrored in background/sanity_daemon.py and the site panel). For detection_gap that reading is valid; for misapplication_gap the D6 DISCOVER refuted it -- >1 there means the minority-class share is small, not that the company is worse than blind. The renderer must read the METRIC, not just the number, before printing a red verdict on a public surface.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D6_payment_ageing_gap_validity"
+      ],
+      "couples_with": [
+        "W2_9_segment_debt_tnc",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 117
     },
     {
       "id": "GAP1_gap_registers_as_mint_sources",
@@ -3235,7 +3283,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 2,
@@ -3245,9 +3293,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stall_consecutive_unchanged": 26
     },
     {
       "id": "H30_sim_runner_discards_child_stderr",
@@ -3275,17 +3323,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "B3_published_forecast_error_horizons",
@@ -3487,8 +3535,8 @@
       ],
       "chain": "weather_cascade",
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "W1_13_high_tail_gas_anchor",
@@ -3751,7 +3799,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 44
     },
     {
       "id": "C_supply_start_semantic_separation",
@@ -3791,7 +3839,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C15_supply_start_observable_floor",
@@ -3910,6 +3958,231 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 55
+    },
+    {
+      "id": "AO1_capability_index",
+      "name": "MAP step 1 -- the reuse surface: one DERIVED row per capability (plain words, status, evidence, empty rows visible) covering the code that exists, per ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04. Derived, never hand-maintained: a hand-written index rots into a second thing to keep in sync and would itself be the duplication the programme exists to kill.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "AO2_write_time_reuse_gate",
+      "name": "MAP step 2 -- the write-time gate: before a new module/function, consult the index and either extend what exists or RECORD IN THE COMMIT why not. Asks TWO questions, not one -- 'do we already have this?' (the index) and 'does the ecosystem already have this?' under the three ruled part classes: CATALOGUE parts (calendars, timezones, money arithmetic, statistical fitting, solvers) always taken from mature libraries; CUSTOM tooling (GB market mechanics, licence conditions, behavioural archetypes, the wall, the harness) always built, because it is the product; SUBSYSTEMS (dispatch, ledgers) may be custom only with a recorded build-vs-buy note naming the library evaluated and why rejected -- silence is a gap.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO1_capability_index"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
+    },
+    {
+      "id": "AO3_join_test_tier",
+      "name": "NET step 1 -- the five system tests from ADVISOR_FINDINGS_MISSING_TEST_TIER_2026-08-04: work loop, physical chain, money chain, market chain, customer lifecycle. Rationale (director): every serious failure to date has been parts-pass-system-fails, and those are exactly the failures refactoring causes. NO STRUCTURAL REFACTOR LANDS BEFORE THE JOINS IT CROSSES ARE WATCHED -- this is the safety condition on KNIFE, not a parallel nicety.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO1_capability_index"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 34
+    },
+    {
+      "id": "AO4_scale_constraints_executable",
+      "name": "NET step 2 -- make canon's standing production-readiness constraints EXECUTABLE (PRODUCTION_READINESS_SCALE_ADDENDUM.md C-S1..C-S5): event-arrival tolerance, idempotency + deterministic replay incl. RNG substream discipline, asynchronous wall contracts, persistence behind the event-log interface, declared time-scale invariance. Each constraint gets a standing check, OR IS LISTED AS NOT-MECHANISABLE RATHER THAN DROPPED. Same report-only-first, gate-after-a-stable-week promotion as the join tests.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO3_join_test_tier"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 7
+    },
+    {
+      "id": "AO5_hotspot_consolidation",
+      "name": "KNIFE -- hotspot consolidation, NEVER uniform. Targets are ALREADY NAMED by the July dependency analysis and are explicitly not to be re-derived: (1) the reporting module (~9k lines, mutual-import cycle with the main run), (2) the customer module straddling the wall, (3) the 100+ SIM->company crossings bypassing the empty seam, (4) the ~320 zero-import company modules, candidates for wiring or retirement -- ARCHIVE, NEVER DELETE. Each move: behaviour-preserving, test-protected, ONE HOTSPOT PER PASS; each pass is its own sized draw.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO3_join_test_tier",
+        "AO4_scale_constraints_executable"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "AO6_consolidation_rhythm",
+      "name": "RHYTHM (permanent) -- canon already prunes the harness and advisor memory at epoch boundaries; extend the SAME duty to code. Every epoch close includes a consolidation pass: duplicates found, orphans wired or retired, TARGET_DESIGN.md updated. Organic growth between boundaries; deliberate pruning at them.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO1_capability_index",
+        "AO7_target_design_doc"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
+    },
+    {
+      "id": "AO7_target_design_doc",
+      "name": "docs/design/TARGET_DESIGN.md -- the architecture we would build today knowing what we now know. A DIRECTION, NOT A REWRITE MANDATE: the codebase encodes hundreds of fixed defects each protected by a test, and a rewrite discards exactly that value. Every KNIFE pass and every RHYTHM pass either moves the code one step toward the target or AMENDS THE TARGET WITH REASONS. Delta between target and actual is REPORTED, NOT HIDDEN.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO1_capability_index"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 34
+    },
+    {
+      "id": "AO8_board_batteries_executable",
+      "name": "Board scaling 3a -- the disqualification batteries already purchased (Specs 001-006 plus the five 2026-08-04 scope briefs: electricity, gas, carbon, CFD/assets, industry boundary, and the 2026-08-07 additions change-of-tenancy, non-commodity cost stack, prepayment estate) are PROSE. Convert each testable line into a standing check that runs with the suite; lines that cannot be mechanised are LISTED AS SUCH, NOT DROPPED.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 25
+    },
+    {
+      "id": "AO9_blind_review_by_restricted_context",
+      "name": "Board scaling 3b/3c -- replace the manual cut-and-paste blind board with blindness BY CONSTRUCTION: a fresh-context agent given ONLY the plain-words capability description and the domain (never code, design docs, or prior findings) produces the practitioner battery. The transcript of what the reviewer was shown is COMMITTED ALONGSIDE THE FINDINGS so the blindness is auditable. Carries the director's stated honest limit (3c): restricted context gives BLINDNESS, NOT INDEPENDENCE -- the reviewer is the same model family; genuinely external review stays reserved for the few highest-stakes verdicts per epoch, at the director's choosing. MUST RECONCILE WITH COLD_EYES_PROTOCOL.md -- one mechanism, not two beside each other.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO1_capability_index"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 12
+    },
+    {
+      "id": "AO10_exhaust_separated_from_record",
+      "name": "ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04 section 4, the ONE item of that proposal's four with no home in the map: docs/staging/done/ holds ~4,909 files of which ~4,299 are run-completion markers and 78 are director/advisor instructions. Operational exhaust moves to its own location with a RETENTION POLICY; instructions and rulings are kept. The volume was never the problem -- the filing is.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 48
+    },
+    {
+      "id": "AO11_map_assertion_provenance",
+      "name": "ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06 item A2, which AO1 deliberately did NOT absorb: a map assertion should carry WHEN IT WAS MADE and WHEN IT WAS LAST VERIFIED against the artefacts it claims. A cell reading L0 while its artefacts on disk say L2 is a validity-window failure -- an assertion true when written and silently false now, with nothing recording either date.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     }
   ],
   "lanes": {
@@ -3992,7 +4265,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 193,
+  "total_atoms": 206,
   "epoch2_movements": [
     {
       "id": "M1",

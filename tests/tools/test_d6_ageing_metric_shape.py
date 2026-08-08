@@ -1,15 +1,20 @@
 """CHARACTERIZATION tests for the D6 finding: the coupled-triad AGEING dimension's
 normalisation is the wrong shape, so its output (live: 1.1538) is not evidence.
 
-These tests pin the CURRENT, DEFECTIVE behaviour of
-`background.gap_metric.misapplication_gap` as used for the ageing dimension by
-`tools.couple_w2_11_d5.score_triad`. They are deliberately written to FAIL when
-the metric is reshaped (atom `D7_ageing_gap_metric_reshape`) -- that failure is
-the signal that the fix landed, at which point these are replaced by tests of the
-new measures, not "repaired".
+These tests pin the behaviour of `background.gap_metric.misapplication_gap` that
+made it the wrong shape for the ageing dimension.
+
+STATUS 2026-08-08: the reshape LANDED (`D7_ageing_gap_metric_reshape`). The
+ageing dimension now uses `background.gap_metric.ageing_gap` and the last test in
+this file is inverted to prove it left. The three defect tests stay, and stay
+green, because `misapplication_gap` is UNCHANGED -- it still scores the W2_9<->C11
+segment-debt pair, so these three are a live record of what that metric does to
+whoever calls it, not a historical note. The measures that replaced it, and the
+mutants proving they measure, are in `tests/tools/test_d7_ageing_measures.py`.
 
 Verdict + evidence: docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md
-Re-runnable oracle:  tools/d6_ageing_metric_oracle.py
+Re-runnable oracle:  tools/d6_ageing_metric_oracle.py (now prints BOTH criteria
+                     over the same rows, old above new)
 
 R15 note: each test's expected value comes from an INDEPENDENT reading of what the
 company did (found all arrears / off by one bucket / behaviour held fixed), never
@@ -95,16 +100,29 @@ def test_defect_3_metric_is_blind_to_bucket_ORDER():
     )
 
 
-def test_the_ageing_dimension_still_routes_through_this_metric():
-    """Guard against the finding silently detaching from the code it is about: if
-    `score_triad` stops scoring ageing with `misapplication_gap`, the tests above
-    are no longer characterizing anything live and must be revisited."""
+def test_the_ageing_dimension_has_LEFT_this_metric():
+    """The D7 reshape landed (2026-08-08), so this test is INVERTED from what it
+    was: the ageing dimension must no longer route through `misapplication_gap`.
+
+    Its predecessor asserted the opposite -- that ageing DID route through this
+    metric -- and was written to fail the moment the reshape landed. It did; this
+    is the replacement, not a repair. The three defects above stay as live
+    characterization because `misapplication_gap` itself is UNCHANGED and still
+    scores the W2_9<->C11 segment-debt pair: they now document why the ageing
+    dimension left, and they will fail loudly if anyone ever "fixes" the metric
+    in place under those other callers (see MISAPPLICATION_PREVALENCE_CAVEAT,
+    which is stamped into every one of its results).
+    """
     import inspect
 
     from tools import couple_w2_11_d5
 
     src = inspect.getsource(couple_w2_11_d5.score_triad)
-    assert "misapplication_gap(true_ageing_labels, belief_ageing_labels)" in src, (
-        "ageing no longer scored by misapplication_gap -- re-read "
-        "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md before editing these tests"
+    assert "misapplication_gap(true_ageing_labels" not in src, (
+        "the retired prevalence-normalised scalar is back on the ageing dimension"
+    )
+    assert "ageing_gap(true_ageing_labels, belief_ageing_labels)" in src, (
+        "ageing is scored by neither metric -- re-read docs/design/"
+        "D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and tests/tools/"
+        "test_d7_ageing_measures.py"
     )

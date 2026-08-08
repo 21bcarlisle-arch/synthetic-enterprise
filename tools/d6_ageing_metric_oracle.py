@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import List, Sequence, Tuple
 
-from background.gap_metric import misapplication_gap
+from background.gap_metric import ageing_gap, misapplication_gap
 
 N_CURRENT = 1000
 N_OVERDUE = 10
@@ -75,6 +75,24 @@ def main() -> None:
         print(f"{name:<52} n={g.components['n']:5d} truly_overdue={n_overdue:4d} "
               f"n_wrong={g.components['n_wrong']:4d} GAP={g.gap:7.4f}   "
               f"[independently: {expected}]")
+
+    # D7 (2026-08-08): the SAME rows through the replacement. Kept in the same
+    # script deliberately -- the before/after has to be readable side by side or
+    # nobody can check that the reshape actually answered the oracle rather than
+    # producing a different number that happens to look nicer.
+    print("\nD7 REPLACEMENT -- background.gap_metric.ageing_gap "
+          "(three measures, each on its own denominator)\n")
+    for name, truth, belief, expected in oracle_rows():
+        a = ageing_gap(list(truth), list(belief))
+        c = a.components
+        print(f"{name:<52} understated={_fmt(c['understated_arrears_rate'])} "
+              f"overstated={_fmt(c['overstated_arrears_rate'])} "
+              f"displacement={_fmt(c['mean_bucket_displacement'])} buckets   "
+              f"[independently: {expected}]")
+
+
+def _fmt(v) -> str:
+    return "  undef" if v is None else f"{v:6.4f}"
 
 
 if __name__ == "__main__":

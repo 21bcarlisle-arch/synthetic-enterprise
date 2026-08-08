@@ -76,7 +76,7 @@ from company.billing.account_ledger import (
 )
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 
-from background.gap_metric import GapResult, write_gap_entry
+from background.gap_metric import GapResult, format_ageing_summary, write_gap_entry
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
@@ -248,14 +248,13 @@ class LivePaymentTriad:
             "DD/non-DD failure DETECTION gap (fraction of true payment failures "
             "the company never observes through the seam -- the no-remittance "
             "blind spot). Companion per-dimension gaps: belief "
-            f"{result['belief'].gap:.4f}, ageing {result['ageing'].gap:.4f} "
-            "[NOT EVIDENCE -- the ageing dimension's normalisation is the wrong "
-            "shape and its value is uninterpretable: prevalence alone moves it "
-            "twentyfold with company behaviour held fixed, and >1 does NOT mean "
-            "worse-than-no-skill. Proven in docs/design/"
-            "D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom "
-            "D7_ageing_gap_metric_reshape. "
-            "Do not cite this figure as fidelity]; "
+            f"{result['belief'].gap:.4f}; "
+            f"{format_ageing_summary(result['ageing'])} "
+            "[D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing "
+            "scalar that used to sit here (live 1.1538) was refuted in "
+            "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is "
+            "RETIRED, not re-labelled. The three measures above each carry the "
+            "denominator they are about; the displacement carries none at all]; "
             "allocation honestly dropped (metric-shape mismatch). R12: diagnostic, "
             "not a target."
         )

@@ -183,10 +183,58 @@ is disclaimed, which is what R14/R11 require of a published number whose basis h
   fails — which is how the trap above was caught. The 5th test (`..._still_routes_through_this_metric`)
   correctly stays green in both: `score_triad` is untouched by a mutation of the metric alone.
 
+---
+
+## D7 LANDED — 2026-08-08 (this doc is no longer a hypothesis)
+
+`background.gap_metric.ageing_gap` replaced the ageing dimension in `score_triad`.
+`misapplication_gap` is UNCHANGED and still scores W2_9↔C11; only the ageing caller left.
+
+The same oracle rows, both criteria (`PYTHONPATH=. python3 tools/d6_ageing_metric_oracle.py`
+now prints the old table above the new one):
+
+| Case | retired scalar | understated | overstated | displacement |
+|---|---|---|---|---|
+| A perfect | 0.0000 ✅ | 0.0000 | 0.0000 | 0.0000 |
+| B no-skill | 1.0000 ✅ | 1.0000 | 0.0000 | 3.0000 |
+| C finds all, 1.5% FP | **1.5000 ❌** | 0.0000 | 0.0150 | 0.0000 |
+| E off by ONE bucket | **1.0000 ❌** | 0.0000 | 0.0000 | **1.0000** |
+| E' totally blind | 1.0000 | 1.0000 | 0.0000 | **3.0000** |
+| D prevalence 0.50%→9.09%, company FIXED | **3.00→0.15 ❌** | 0.0000 flat | 0.0150 flat | 0.0000 flat |
+
+All three defects answered: C now beats B on every axis it is better on and pays for its false
+alarms only on the axis they belong to (D1); the sweep is exactly flat (D2); off-by-one is 1
+bucket and blind is 3 (D3).
+
+**On the live population** (`tools/couple_w2_11_d5.py --customers 400 --seed 7`): the retired
+scalar reads **0.8043** on this population; the reshape reads **understated 0.0725** (10 misses
+of 138 truly-overdue), **overstated 0.0951** (101 false ageings of 1062 truly-current),
+**displacement 0.123 buckets**. The decomposition immediately says something the scalar could
+not: this company's *wrongful-dunning* exposure is larger than its miss rate — 101 truly-settled
+invoices believed in arrears against 10 real arrears believed settled. That is the direction a
+real supplier gets complained about and fined for, and the old single number had it buried
+inside a denominator normed on the other class.
+
+**R15, four mutants, `tests/tools/test_d7_ageing_measures.py`.** Each property is asserted
+against the real measures AND against a named mutant that breaks exactly it, with the assertion
+*required* to fail on the mutant: `_MUTANT_ordinal_over_no_skill` (the trap this doc caught in
+its own draft), `_MUTANT_displacement_over_whole_population` (milder same mistake — denominator
+is n), `_MUTANT_understated_over_population` (`misses/n`), `_MUTANT_hamming_not_ordinal`
+(Defect 3 restored). Plus fail-loud on an unrankable bucket label, and vacuity reported as
+`None` rather than 0.0 when a population has no truly-overdue invoices.
+
+**Not claimed.** The live 1.1538 is still not reproduced in detail (see Limits above) — the
+reshape did not need it and does not explain it. Defect 3 remains latent in live populations
+(`wrong_bucket == 0` on the 400-customer run): it is fixed on shape grounds, and the
+displacement measure now *would* show it if it started.
+
 ## Follow-on work
 
-* `D7_ageing_gap_metric_reshape` (BUILD) — replace the ageing dimension in `score_triad` with
-  the three measures above; retire the single scalar; R15 mutation test per measure.
+* ~~`D7_ageing_gap_metric_reshape` (BUILD)~~ — **DONE 2026-08-08**, see above.
+* **Open, unbuilt:** whether W2_9↔C11 should also leave `misapplication_gap`. The ordered-space
+  fix does NOT transfer — obligation classes are unordered, so there is no displacement to
+  report there. Defects 1 and 2 still apply to that pair and are carried openly by the stamped
+  caveat; that is a real remaining exposure, not a closed one.
 * `D8_ambiguous_remittance_misdating` (BUILD, couples W2_11 ↔ D5) — report the Clayton's-Case
   date displacement as the company-failure finding in its own right, once D7_ageing_gap_metric_reshape gives it a shape.
 

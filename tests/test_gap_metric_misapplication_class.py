@@ -19,10 +19,21 @@ AGEING call site. This file closes the CLASS:
 Verdict + evidence: docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md
 
 These are CHARACTERIZATION tests of a defect that is being carried openly, not
-of desired behaviour. When `D7_ageing_gap_metric_reshape` lands, tests 1-3 and 5
-should be re-pointed at the replacement measures and test 4 should FAIL -- that
-failure is the signal that the reshape actually removed the prevalence
-dependence, and it must not be "repaired" by loosening the bound.
+of desired behaviour.
+
+WHAT D7 ACTUALLY DID (2026-08-08) -- this paragraph replaces the prediction that
+stood here, which guessed wrong and would now mislead. It expected D7 to reshape
+`misapplication_gap` itself, so that test 4 (the W2_9<->C11 prevalence swing)
+would FAIL and tests 1-3/5 would be re-pointed. It did not: D7 moved the AGEING
+dimension OFF this metric onto `background.gap_metric.ageing_gap` and left the
+function untouched for its remaining legitimate caller, the W2_9<->C11
+segment-debt pair. So every test here still passes and still means what it said:
+the class defect is still real, still carried openly, still stamped into every
+result. Do NOT "repair" test 4 -- it is measuring a live metric that a live pair
+still publishes through. Test 6 is the new leg: it holds the departed call site
+struck off. Whether W2_9<->C11 should ALSO leave this shape is a separate, open
+question and its own atom -- an ordered-space fix does not transfer to an
+unordered obligation-class space for free.
 """
 from __future__ import annotations
 
@@ -42,11 +53,22 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # The live (non-test) modules permitted to call `misapplication_gap`. Adding a
 # call site is a deliberate act: register it here AND satisfy yourself that the
 # consumer of its number understands the caveat above.
+#
+# The register is checked as a SUBSET (`found <= KNOWN_CALL_SITES`), so a
+# DEPARTED call site left listed here would never fail anything -- it would just
+# quietly overstate this metric's reach. `tools/couple_w2_11_d5.py` (the ageing
+# dimension, D6's origin) left on 2026-08-08 when D7 replaced it with
+# `ageing_gap`, so it is struck from the register rather than kept as a stale
+# entry; `test_6` below pins that it really is gone.
 KNOWN_CALL_SITES = {
     "background/gap_metric.py",       # the definition itself
-    "tools/couple_w2_11_d5.py",       # ageing dimension (D6's origin)
     "tools/couple_w2_9_c11.py",       # segment debt T&C
     "tools/d6_ageing_metric_oracle.py",  # the D6 oracle, by design
+}
+
+# Modules that USED to call it and must not come back without a deliberate act.
+DEPARTED_CALL_SITES = {
+    "tools/couple_w2_11_d5.py": "ageing dimension -> background.gap_metric.ageing_gap (D7, 2026-08-08)",
 }
 
 # Directories scanned for call sites. `tests/` is excluded on purpose: a test
@@ -101,9 +123,8 @@ def test_2_the_caveat_reaches_the_published_shape_even_when_note_is_replaced():
     )
 
 
-def test_3_every_live_call_site_is_registered():
-    """R10 -- a NEW call site fails here rather than silently publishing an
-    uncaveated prevalence-normalised figure."""
+def _scan_call_sites() -> set:
+    """Every non-test module under `_SCANNED_DIRS` that calls the metric."""
     found = set()
     for d in _SCANNED_DIRS:
         root = REPO_ROOT / d
@@ -123,6 +144,13 @@ def test_3_every_live_call_site_is_registered():
                     name = getattr(fn, "id", None) or getattr(fn, "attr", None)
                     if name == "misapplication_gap":
                         found.add(rel)
+    return found
+
+
+def test_3_every_live_call_site_is_registered():
+    """R10 -- a NEW call site fails here rather than silently publishing an
+    uncaveated prevalence-normalised figure."""
+    found = _scan_call_sites()
 
     # Vacuity guard: an AST walk that finds nothing would "pass" the subset
     # assertion below while proving nothing at all.
@@ -207,3 +235,24 @@ def test_5_published_misapplication_entries_are_caveated():
         f"published prevalence-normalised gap(s) with no caveat: {uncaveated} -- "
         "re-run the pair's runner so the stamped caveat reaches the ledger"
     )
+
+
+def test_6_a_departed_call_site_has_not_come_back():
+    """The register is a SUBSET check, so striking a departed caller off it can
+    never fail on its own -- and a silent return would put the prevalence-
+    normalised scalar back on a dimension that was deliberately moved off it.
+    This is the assertion that makes the strike-off mean something.
+
+    R15 vacuity guard: the departed path must still EXIST, or this test would
+    pass forever on a renamed/deleted file while proving nothing."""
+    found = _scan_call_sites()
+    for rel, where_it_went in DEPARTED_CALL_SITES.items():
+        assert (REPO_ROOT / rel).is_file(), (
+            f"{rel} no longer exists -- this guard is now vacuous; re-point or "
+            "delete it with the reason recorded"
+        )
+        assert rel not in found, (
+            f"{rel} calls misapplication_gap again. It was moved OFF this metric: "
+            f"{where_it_went}. Read docs/design/"
+            "D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md before re-adding it."
+        )

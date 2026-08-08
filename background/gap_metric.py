@@ -37,6 +37,12 @@ METRIC FAMILIES (design section 1.4), all implemented here:
     (b) attribution     -- |d_naive - d_true| / |d_naive|, the DD confound (W2_10)
     (c) belief          -- total-variation distance TV(belief, truth) (W2_2/budget)
     (d) detection       -- detection-rate + false-negative-harm (W2_8 self-rationing)
+    (e) misapplication  -- wrong-CLASS applied vs the answer key (W2_9)
+    (f) prediction      -- continuous MAE vs a climatological baseline (W1_6)
+    (g) ageing          -- ORDERED bucket displacement, DELIBERATELY un-normalised
+                           (D7). The one family that does NOT divide by a g0: on
+                           an ordered space every prevalence-shaped baseline
+                           re-imports the D6 defect (AGEING_NO_NORMALISER_REASON).
 
 R13 CURRICULUM (director-authored, NEVER agent-tuned toward a gap number). The
 harm-cost weights below are the director-signed 8:1 ratio. They are read as a
@@ -489,6 +495,190 @@ def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
         raw_gap, g0, baseline, "misapplication", components=components,
         note="fraction of accounts on the wrong-class T&C, normalised to the "
              "blind majority-class applier",
+    )
+
+
+# ---------------------------------------------------------------------------
+# (g) Ageing measures -- an ORDERED bucket space, deliberately UN-normalised
+#     (atom D7_ageing_gap_metric_reshape, from the D6 DISCOVER verdict)
+# ---------------------------------------------------------------------------
+
+# The company's own ageing vocabulary (`company.billing.arrears_engine.age_bucket`),
+# in ORDER. Redeclared here rather than imported: `background/` is harness code and
+# must not take a company import for a constant. `test_d7_ageing_measures.py` pins
+# the two against each other so a drift on either side fails loudly.
+AGEING_BUCKET_ORDER: tuple = ("current", "30-60", "60-90", "90+")
+
+AGEING_NO_NORMALISER_REASON: str = (
+    "NO NORMALISER, DELIBERATELY. Each measure's denominator is the population "
+    "that measure is ABOUT (misses over the truly-overdue; false ageings over the "
+    "truly-current) and the ordinal severity carries no denominator at all. Any "
+    "denominator that counts the TRUTH's class balance -- majority-class share, "
+    "no-skill displacement, anything prevalence-shaped -- re-imports the D6 defect "
+    "whatever the numerator's shape (mutation-measured: it reproduces the same "
+    "twentyfold swing with company behaviour held literally fixed). See "
+    "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md."
+)
+
+AGEING_HEADLINE_UNITS: str = (
+    "BUCKETS of ordinal displacement (0 = dated right, 3 = a 90+ debt believed "
+    "current). NOT a [0,1] no-skill ratio -- do not read 1.0 here as 'no better "
+    "than blind'; there is no baseline in this number."
+)
+
+
+def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
+               *, bucket_order: Sequence = AGEING_BUCKET_ORDER) -> GapResult:
+    """Debt-DATING measures for an ORDERED ageing space (formula g).
+
+    Replaces the single prevalence-normalised scalar the ageing dimension used to
+    borrow from `misapplication_gap` (atom `D7_ageing_gap_metric_reshape`). That
+    scalar was refuted three ways in the D6 DISCOVER: gap>1 did not mean
+    worse-than-no-skill, prevalence alone moved it twentyfold with the company
+    held fixed, and a Hamming error rate is blind to bucket ORDER. Three measures
+    replace it, each with the denominator it is actually about:
+
+        understated_arrears_rate = misses        / n_truly_overdue
+        overstated_arrears_rate  = false_ageings / n_truly_current
+        mean_bucket_displacement = mean |rank(belief) - rank(truth)|
+                                   over the TRULY-OVERDUE invoices, absolute
+
+    * **understated** -- debt the company believes settled. What a real supplier
+      under-provisions for and never chases.
+    * **overstated** -- the WRONGFUL-DUNNING exposure: truly-current invoices the
+      company believes are in arrears. The old ratio hid this inside a
+      denominator normed on the *other* class.
+    * **mean_bucket_displacement** -- the ORDINAL severity, which is what a dating
+      dimension is really about. Distinguishes off-by-one from stone-blind, which
+      an error rate cannot. Reported ABSOLUTE, in buckets, with NO baseline
+      (see `AGEING_NO_NORMALISER_REASON` -- the ratio version was drafted, mutated,
+      and rejected for re-importing the very defect this atom exists to remove).
+
+    `GapResult.gap` carries the mean displacement as the dimension's headline
+    (a dating dimension's headline is date displacement, not a classification
+    rate) and `g0` is 0.0 because there IS no baseline -- `baseline` says so in
+    words so a ledger reader cannot mistake it for a normalised score.
+
+    FAIL LOUD, never fail-open (R15): an empty population, a length mismatch, or a
+    label outside `bucket_order` RAISES. A silently-tolerated unknown label would
+    score as displacement 0 -- a bucket-vocabulary drift would then read as perfect
+    dating. VACUITY IS EXPLICIT, not zero: with no truly-overdue invoices the two
+    overdue-denominated measures are `None`, not 0.0, and so is `gap`.
+    """
+    truth = list(truth_labels)
+    belief = list(belief_labels)
+    if not truth:
+        raise ValueError("ageing_gap: empty population")
+    if len(truth) != len(belief):
+        raise ValueError("truth_labels and belief_labels must be the same length")
+
+    order = list(bucket_order)
+    rank = {b: i for i, b in enumerate(order)}
+    unknown = sorted({str(x) for x in truth + belief if x not in rank})
+    if unknown:
+        raise ValueError(
+            f"ageing_gap: labels outside the ordered bucket space {order}: {unknown} "
+            "-- an unknown bucket cannot be ranked, and scoring it as displacement 0 "
+            "would make a vocabulary drift read as perfect dating (R15 fail-open)."
+        )
+
+    current = order[0]
+    n = len(truth)
+    n_truly_overdue = sum(1 for t in truth if t != current)
+    n_truly_current = n - n_truly_overdue
+
+    misses = sum(1 for t, b in zip(truth, belief) if t != current and b == current)
+    false_ageings = sum(1 for t, b in zip(truth, belief) if t == current and b != current)
+    wrong_bucket = sum(
+        1 for t, b in zip(truth, belief)
+        if t != current and b != current and t != b
+    )
+
+    displacements = [
+        abs(rank[b] - rank[t]) for t, b in zip(truth, belief) if t != current
+    ]
+    mean_disp: Optional[float] = (
+        sum(displacements) / len(displacements) if displacements else None
+    )
+    max_disp: Optional[int] = max(displacements) if displacements else None
+
+    understated: Optional[float] = (
+        misses / n_truly_overdue if n_truly_overdue else None
+    )
+    overstated: Optional[float] = (
+        false_ageings / n_truly_current if n_truly_current else None
+    )
+
+    def _r(x: Optional[float]) -> Optional[float]:
+        return None if x is None else round(x, 6)
+
+    components = {
+        "n": n,
+        "n_truly_overdue": n_truly_overdue,
+        "n_truly_current": n_truly_current,
+        "misses": misses,
+        "false_ageings": false_ageings,
+        "wrong_bucket": wrong_bucket,
+        "understated_arrears_rate": _r(understated),
+        "overstated_arrears_rate": _r(overstated),
+        "mean_bucket_displacement": _r(mean_disp),
+        "max_bucket_displacement": max_disp,
+        "bucket_order": order,
+        "headline_units": AGEING_HEADLINE_UNITS,
+        "normalisation": AGEING_NO_NORMALISER_REASON,
+    }
+    if n_truly_overdue == 0:
+        components["vacuity"] = (
+            "NO truly-overdue invoices in this population: the two "
+            "overdue-denominated measures are UNDEFINED (None), not 0.0. A "
+            "vacuous population is not a perfect one."
+        )
+
+    baseline = (
+        "NONE -- absolute ordinal displacement in buckets "
+        f"{'/'.join(str(b) for b in order)}; there is no no-skill divisor here "
+        "and 1.0 does not mean 'no better than blind'."
+    )
+    return GapResult(
+        metric="ageing",
+        gap=(None if mean_disp is None else float(mean_disp)),
+        raw_gap=float(mean_disp) if mean_disp is not None else 0.0,
+        g0=0.0,
+        baseline=baseline,
+        components=components,
+        note=(
+            "debt DATE displacement (buckets) over the truly-overdue population, "
+            "with the two error directions reported separately on their own "
+            "denominators: understated_arrears_rate (debt believed settled) and "
+            "overstated_arrears_rate (the wrongful-dunning exposure). R12: all "
+            "three are diagnostics, never targets."
+        ),
+    )
+
+
+def format_ageing_summary(result: GapResult) -> str:
+    """Render an `ageing_gap` result for a log line / ledger note as THREE
+    measures with their units, never as a bare scalar.
+
+    This is the D7 anti-decay mechanism, not decoration: the old dimension went
+    wrong the moment a bare `ageing 1.1538` could be read as a normalised score,
+    so no consumer of this module prints the headline without its unit and its
+    two directional rates beside it. Handles the vacuous population (`None`
+    measures) without pretending it scored zero."""
+    c = result.components
+
+    def _num(key: str, fmt: str) -> str:
+        v = c.get(key)
+        return "undefined (no such population)" if v is None else format(v, fmt)
+
+    return (
+        "ageing displacement " + _num("mean_bucket_displacement", ".3f")
+        + " buckets [no baseline; not a 0-1 ratio]"
+        + " (understated_arrears_rate " + _num("understated_arrears_rate", ".4f")
+        + " over " + str(c.get("n_truly_overdue")) + " truly-overdue"
+        + ", overstated_arrears_rate " + _num("overstated_arrears_rate", ".4f")
+        + " over " + str(c.get("n_truly_current")) + " truly-current"
+        + " = the wrongful-dunning exposure)"
     )
 
 
