@@ -340,10 +340,12 @@ def _is_namespace_only(tree: ast.Module | None) -> bool:
     return not body
 
 
-def build_rows(root: Path | None = None) -> list[dict]:
-    """The index: one row per production module, every field derived from source."""
-    base = root or ROOT
-    rels = source_files(base)
+#: A row's note when its file holds no code at all.
+NAMESPACE_ONLY = "namespace only -- no code in this file"
+
+
+def _seed_rows(rels: list[str]) -> tuple[dict[str, dict], dict[str, str], list[str]]:
+    """One empty row per source file, keyed by module and by path."""
     by_module: dict[str, dict] = {}
     by_path: dict[str, str] = {}
     order: list[str] = []
@@ -351,22 +353,17 @@ def build_rows(root: Path | None = None) -> list[dict]:
         mod = module_name(rel)
         if mod in by_module:  # two files claiming one dotted name; keep both visible
             mod = mod + " (" + rel + ")"
-        row = {
-            "module": mod,
-            "path": rel,
-            "plain_words": None,
-            "status": "orphan",
-            "callers": [],
-            "evidence": [],
-            "demo": [],
-            "search_blob": "",
-            "note": None,
+        by_module[mod] = {
+            "module": mod, "path": rel, "plain_words": None, "status": "orphan",
+            "callers": [], "evidence": [], "demo": [], "search_blob": "", "note": None,
         }
-        by_module[mod] = row
         by_path[rel] = mod
         order.append(mod)
+    return by_module, by_path, order
 
-    known = set(by_module)
+
+def _read_sources(base: Path, by_module: dict[str, dict], order: list[str]) -> tuple[dict, dict]:
+    """Parse every row's file, filling the fields that come from the file alone."""
     trees: dict[str, ast.Module | None] = {}
     texts: dict[str, str] = {}
     for mod in order:
@@ -387,12 +384,20 @@ def build_rows(root: Path | None = None) -> list[dict]:
         row["is_entrypoint"] = _is_entrypoint(tree)
         row["search_blob"] = _searchable(row["path"], ast.get_docstring(tree))
         if row["path"].endswith("__init__.py") and _is_namespace_only(tree):
-            row["note"] = "namespace only -- no code in this file"
+            row["note"] = NAMESPACE_ONLY
+    return trees, texts
 
-    # production edges: real imports, PLUS references by path. A module launched
-    # as `subprocess.run(["python3", "tools/x.py"])` or exec'd from a path string
-    # has a genuine caller that no import graph can see, and calling it an orphan
-    # is the false-orphan reading that would get a live mechanism retired.
+
+def _wire_edges(base: Path, by_module: dict[str, dict], by_path: dict[str, str],
+                order: list[str], trees: dict, texts: dict) -> None:
+    """Caller and evidence edges: real imports, PLUS references by path.
+
+    A module launched as `subprocess.run(["python3", "tools/x.py"])` or exec'd
+    from a path string has a genuine caller that no import graph can see, and
+    calling it an orphan is the false-orphan reading that would get a live
+    mechanism retired.
+    """
+    known = set(by_module)
     for mod in order:
         tree = trees.get(mod)
         if tree is not None:
@@ -401,7 +406,6 @@ def build_rows(root: Path | None = None) -> list[dict]:
         for target in _path_references(texts.get(mod, ""), by_path, mod):
             by_module[target]["callers"].append(mod + " (by path)")
 
-    # evidence edges, from the tests that import it or drive it by path
     for rel in test_files(base):
         tree, _err = _parse(base / rel)
         if tree is not None:
@@ -414,6 +418,9 @@ def build_rows(root: Path | None = None) -> list[dict]:
         for target in _path_references(text, by_path, None):
             by_module[target]["evidence"].append(rel)
 
+
+def _finalise(by_module: dict[str, dict], order: list[str], texts: dict) -> None:
+    """Derive status and demo channels once every edge is known."""
     for mod in order:
         row = by_module[mod]
         row["callers"] = sorted(set(row["callers"]))
@@ -424,12 +431,20 @@ def build_rows(root: Path | None = None) -> list[dict]:
             row["status"] = "wired"
         elif row.get("is_entrypoint"):
             row["status"] = "entrypoint"
-        elif row["note"] == "namespace only -- no code in this file":
+        elif row["note"] == NAMESPACE_ONLY:
             row["status"] = "package"
         else:
             row["status"] = "orphan"
         row["demo"] = _demo_channels(texts.get(mod, ""), row)
 
+
+def build_rows(root: Path | None = None) -> list[dict]:
+    """The index: one row per production module, every field derived from source."""
+    base = root or ROOT
+    by_module, by_path, order = _seed_rows(source_files(base))
+    trees, texts = _read_sources(base, by_module, order)
+    _wire_edges(base, by_module, by_path, order, trees, texts)
+    _finalise(by_module, order, texts)
     return [by_module[m] for m in order]
 
 
