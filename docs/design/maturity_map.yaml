@@ -2827,18 +2827,18 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
-  file_scope: [tests/background/test_model_facing_secret_scrub.py]
+  file_scope: [tests/background/test_model_facing_secret_scrub.py, tests/background/env_constant_sync.py, tests/background/conftest.py, tests/background/test_env_constant_sync_guard.py]
   depends_on: []
   blocked_on: null
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a test that leaves a global credential unset for everything that runs after it -- the suite's verdict then depends on collection order, so a green run proves nothing about the code."
-  evidence: [tests/background/test_model_facing_secret_scrub.py, tests/background/test_ntfy_utils.py]
+  evidence: [tests/background/test_model_facing_secret_scrub.py, tests/background/test_ntfy_utils.py, tests/background/env_constant_sync.py, tests/background/test_env_constant_sync_guard.py]
   notes: >-
     Found 2026-08-08 while running tests/background/ + tests/tools/ together for H30 (queued, not
     fixed on sight -- SELF-INTERRUPT DISCIPLINE). REPRODUCED to two files, so this is observed, not
@@ -2852,6 +2852,32 @@
     recurring at a new site, which suggests the CLASS closure (an autouse fixture or a
     reload-safe accessor) rather than another instance fix. Nothing to do with H30's change; the
     four failures reproduce with H30's files uninvolved.
+
+    L0->L2 2026-08-08. CLOSED AT THE CLASS as the notes above demanded, not at the instance.
+    Instance: `monkeypatch.undo()` before the restoring reload. Class: a new AST-DERIVED registry
+    (tests/background/env_constant_sync.py) scans background/*.py for every top-level assignment
+    whose RHS is directly an env read, and a `pytest_runtest_teardown(trylast=True)` hook in
+    tests/background/conftest.py checks all of them after each test -- failing the CULPRIT by name
+    and REPAIRING the constant so victims stop depending on collection order. Derived, not
+    enumerated, so a constant added tomorrow is covered without anyone remembering this file.
+    Ordering claim VERIFIED empirically in a scratch dir outside the repo (trylast teardown runs
+    after monkeypatch's finalizer), not assumed.
+    R15 both directions on the LIVE hook, by mutation: reintroduce the finally-reload ->
+    "ERROR at teardown of test_worker_env_forgery_is_structurally_impossible" + STALE ENV CONSTANT
+    payload, and 33 passed (the four victims now GREEN because of the repair -- previously the
+    victims failed and the culprit passed, the misdirection that made this read as "import order").
+    Restore the fix -> 33 passed, guard silent. Vacuity guarded: the registry is asserted non-empty
+    AND to contain background.ntfy_utils.WAKE_HMAC_KEY, plus an independent grep-vs-AST
+    cross-check, so a scanner that quietly matched nothing cannot pass.
+    The class guard found a SECOND leaked constant the original report never named
+    (background.ntfy_utils.NTFY_TOPIC) -- evidence the class closure was the right shape.
+    SELF-CAUGHT during the mutation run: the first draft printed the live SE_NTFY_TOPIC VALUE into
+    pytest output -- a guard over the wake-key scrub that would itself leak the signing key into
+    CI logs. Values are now redacted to `<str len=N #sha8>` (distinct values stay distinct), pinned
+    by test_describe_never_prints_the_secret_it_guards.
+    NOT above L2: no HARDEN/Expert-Hour pass, and the scan is deliberately narrow -- it registers
+    only DIRECT env reads with literal defaults, so a wrapped read (Path(os.environ.get(...)))
+    remains unguarded by design (broad-and-noisy guards get silenced). Widening it is the L3 work.
 
 - id: B3_published_forecast_error_horizons
   name: "Published forecast feed at multiple horizons with realistic, delivery-converging error: the company receives forecasts (demand/wind/price) at >=2 horizons whose error is non-zero and shrinks by a calibrated schedule as delivery approaches, so its own naive 120-day belief can be measured against a real wall on the future. BACKLOG.md B3 (Wave B)."

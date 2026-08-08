@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 
 from background import supervisor
+from tests.background import env_constant_sync as _env_sync
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _GIT_DIR = REPO_ROOT / ".git"
@@ -176,3 +177,49 @@ def _this_test_may_not_commit_to_the_real_repo(request):
     before = _real_repo_head()
     yield
     _assert_head_unmoved(before, request.node.nodeid)
+
+
+# ── THE STALE-ENV-CONSTANT TRIPWIRE (H31) ────────────────────────────────────────────────────
+# WHAT THIS CATCHES. A test that leaves a module-level env-derived constant (e.g.
+# `background.ntfy_utils.WAKE_HMAC_KEY`) out of sync with os.environ poisons every later test in
+# the process: four test_ntfy_utils.py signing tests failed purely on collection order while the
+# test that broke them stayed green. Full rationale, and the AST-derived registry that makes this
+# a CLASS guard rather than a list that decays, live in tests/background/env_constant_sync.py.
+#
+# WHY A HOOK AND NOT A FIXTURE. The defect IS a teardown-ordering defect, so the check must run
+# after ALL fixture finalizers -- crucially after `monkeypatch` restores os.environ, since the
+# expected value is computed FROM os.environ. A fixture finalizer's position relative to the
+# test's own monkeypatch depends on setup order; `pytest_runtest_teardown(trylast=True)` is
+# unambiguously last, because the internal impl that runs fixture finalizers is an ordinary
+# hookimpl that trylast sorts behind. Verified empirically, not assumed.
+#
+# BASELINE-RELATIVE. Divergences already present when the session starts are recorded once and
+# never re-reported, so a pre-existing oddity in the checkout cannot fail an unrelated test. Only
+# a divergence a test INTRODUCES is attributed to it.
+
+_ENV_CONSTANT_REGISTRY = _env_sync.build_registry()
+_ENV_CONSTANT_BASELINE_BAD: set[str] = {
+    c.dotted for c, _a, _e in _env_sync.diverged(_ENV_CONSTANT_REGISTRY)
+}
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_teardown(item, nextitem):
+    """Fail the test that desynchronised a module env constant -- and repair it, so the
+    cascade stops here rather than reddening whatever happens to be collected next."""
+    offenders = [
+        (c, actual, expected)
+        for c, actual, expected in _env_sync.diverged(_ENV_CONSTANT_REGISTRY)
+        if c.dotted not in _ENV_CONSTANT_BASELINE_BAD
+    ]
+    if not offenders:
+        return
+    for const, _actual, _expected in offenders:
+        _env_sync.repair(const)  # later tests must not inherit this
+    pytest.fail(
+        "{}\n\n{}".format(
+            item.nodeid,
+            "\n\n".join(_env_sync.describe(c, a, e) for c, a, e in offenders),
+        ),
+        pytrace=False,
+    )

@@ -86,7 +86,14 @@ def test_worker_env_forgery_is_structurally_impossible(monkeypatch):
             nu.sign_wake_message("RULING:BUILD_OPEN:X")   # no key -> cannot forge
         assert nu.verify_wake_message("t|0|deadbeef") is None  # no key -> fail-closed
     finally:
-        importlib.reload(nu)  # restore module state for other tests
+        # H31: `monkeypatch.undo()` FIRST, then reload. A `finally:` block runs while this
+        # function is still on the stack, but monkeypatch restores os.environ in a fixture
+        # FINALIZER that runs later -- so reloading here without the explicit undo re-reads the
+        # still-scrubbed env, restores nothing, and leaves WAKE_HMAC_KEY None for every later
+        # test in the process (four test_ntfy_utils.py signing tests failed on collection order
+        # alone). The class guard that catches any recurrence is in conftest.py.
+        monkeypatch.undo()
+        importlib.reload(nu)  # now re-reads the RESTORED env
 
 
 # ── the rest of the class: build_executor, director_twin, worker_seat ──────────
