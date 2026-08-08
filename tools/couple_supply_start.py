@@ -504,6 +504,50 @@ def regime_sweep(world: Sequence[WorldAccount], as_of: str = DEFAULT_AS_OF) -> l
     return [measure_regime(world, regime, as_of) for regime in SWEEP_REGIMES]
 
 
+def _sweep_row(row: dict) -> dict:
+    """One regime's line in the ledger `components`. Both beliefs are reported per
+    regime, and phantoms are reported separately from guard catches, so a reader can
+    see whether a bad answer was PUBLISHED or merely produced and then rejected."""
+    naive, separated = row["naive"], row["separated"]
+    return {
+        "regime": row["regime"],
+        "activation_capture": row["activation_capture"],
+        "link_capture": row["link_capture"],
+        "separated_gap": separated.gap,
+        "separated_unknown_share": round(separated.unknown_share, 6),
+        "separated_confident_wrong": separated.n_confident_wrong,
+        "separated_mean_phantom_years": round(separated.mean_phantom_years, 6),
+        "separated_phantoms": row["separated_phantoms"],
+        "separated_caught_by_guard": row["separated_caught_by_guard"],
+        "naive_gap": naive.gap,
+        "naive_confident_wrong": naive.n_confident_wrong,
+        "naive_phantoms": row["naive_phantoms"],
+        "naive_caught_by_guard": row["naive_caught_by_guard"],
+    }
+
+
+#: What the published gap MEANS. Kept beside the measurement it describes, because a
+#: ledger number a later reader cannot interpret is a number they will misread.
+HEADLINE_NOTE = (
+    "PHANTOM TENURE on a re-contracted customer. Truth = the term boundary the "
+    "home-move win actually landed on (world answer key); the company's LIVE "
+    "belief reads the predecessor's genesis anchor out of `acquisition_date`, so "
+    "every re-contracted account reads as though the relationship never restarted. "
+    "The headline gap is that LIVE belief -- the mechanism that fixes it "
+    "(C_supply_start_semantic_separation) is BUILT but not yet ROUTED to the 7 "
+    "live consumers (C_supply_start_consumer_routing), so the published tenure, "
+    "cohort and 'Customer since' figures still carry the phantom. `separated_*` is "
+    "the counterfactual once routed; the regime sweep shows where the world still "
+    "defeats the built mechanism -- losing the activation event costs COVERAGE "
+    "(honest UNKNOWN), but losing the `successor_of` link as well makes it "
+    "CONFIDENTLY WRONG again, because the no-successor rung hands back the anchor. "
+    "DEFENCE IN DEPTH: `*_caught_by_guard` is how many of those phantoms this "
+    "atom's R10 class guard (SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE) rejects "
+    "anyway, from the account's own meter reads and bills -- observables that "
+    "cannot go missing the way the registration paperwork can."
+)
+
+
 def measure(as_of: str = DEFAULT_AS_OF):
     """The coupled measurement. Returns (GapResult, extras).
 
@@ -528,44 +572,9 @@ def measure(as_of: str = DEFAULT_AS_OF):
         "as_of": as_of,
         "n_accounts": len(world),
         "n_recontracted": sum(1 for a in world if a.is_recontracted),
-        "regime_sweep": [
-            {
-                "regime": row["regime"],
-                "activation_capture": row["activation_capture"],
-                "link_capture": row["link_capture"],
-                "separated_gap": row["separated"].gap,
-                "separated_unknown_share": round(row["separated"].unknown_share, 6),
-                "separated_confident_wrong": row["separated"].n_confident_wrong,
-                "separated_mean_phantom_years": round(
-                    row["separated"].mean_phantom_years, 6),
-                "separated_phantoms": row["separated_phantoms"],
-                "separated_caught_by_guard": row["separated_caught_by_guard"],
-                "naive_gap": row["naive"].gap,
-                "naive_confident_wrong": row["naive"].n_confident_wrong,
-                "naive_phantoms": row["naive_phantoms"],
-                "naive_caught_by_guard": row["naive_caught_by_guard"],
-            }
-            for row in sweep
-        ],
+        "regime_sweep": [_sweep_row(row) for row in sweep],
     })
-    result.note = (
-        "PHANTOM TENURE on a re-contracted customer. Truth = the term boundary the "
-        "home-move win actually landed on (world answer key); the company's LIVE "
-        "belief reads the predecessor's genesis anchor out of `acquisition_date`, so "
-        "every re-contracted account reads as though the relationship never restarted. "
-        "The headline gap is that LIVE belief -- the mechanism that fixes it "
-        "(C_supply_start_semantic_separation) is BUILT but not yet ROUTED to the 7 "
-        "live consumers (C_supply_start_consumer_routing), so the published tenure, "
-        "cohort and 'Customer since' figures still carry the phantom. `separated_*` is "
-        "the counterfactual once routed; the regime sweep shows where the world still "
-        "defeats the built mechanism -- losing the activation event costs COVERAGE "
-        "(honest UNKNOWN), but losing the `successor_of` link as well makes it "
-        "CONFIDENTLY WRONG again, because the no-successor rung hands back the anchor. "
-        "DEFENCE IN DEPTH: `*_caught_by_guard` is how many of those phantoms this "
-        "atom's R10 class guard (SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE) rejects "
-        "anyway, from the account's own meter reads and bills -- observables that "
-        "cannot go missing the way the registration paperwork can."
-    )
+    result.note = HEADLINE_NOTE
 
     extras = {
         "world": world,
