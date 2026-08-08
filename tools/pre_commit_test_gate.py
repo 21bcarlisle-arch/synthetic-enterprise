@@ -36,6 +36,14 @@ CONTROL_TESTS = [
     "tests/background/test_deadmans_switch.py",
     "tests/background/test_status_honesty.py",
     "tests/hooks/test_pull_next_work.py",
+    # R10 class closure for W2_sme_segment_case_normalisation (2026-08-08). Its
+    # own `test_the_real_simulation_tree_is_clean` scans EVERY file under
+    # simulation/ for a non-canonical segment literal, so it has to run on any
+    # code change -- not only when the guard itself is edited. Per-file test
+    # selection would fire the guard when `tools/segment_case_guard.py` changes
+    # and stay silent when someone adds `segment == "sme"` to a brand-new sim
+    # module, which is the case the guard exists to catch. ~0.2s.
+    "tests/tools/test_segment_case_guard.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

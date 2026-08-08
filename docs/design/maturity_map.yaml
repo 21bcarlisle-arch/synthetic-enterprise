@@ -2724,6 +2724,71 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a service that reads a secret into a constant at boot and is then impossible to rotate without a restart -- the same import-time-capture bug shape, where the test suite is the first place it shows up."
   evidence: [background/ntfy_utils.py, tests/background/test_ntfy_utils.py, tests/background/test_model_facing_secret_scrub.py, tests/conftest.py, background/director_input_log.py, background/file_api.py, docs/design/H29_IMPORT_TIME_ENV_CAPTURE_FRAME.md]
+- id: W2_16_payment_outcome_rng_substream_isolation
+  name: "arrears_engine draws every customer's payment outcome from ONE shared Random(seed), so improving any segment's model silently rewrites every later customer's history -- measured: the SME fix moved resi C7's undischarged credit from 1224 days to 32"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: proposal
+  file_scope: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, simulation/payment_behaviour_source.py, tools/generate_billing_ledger.py, tests/simulation/test_arrears_engine.py]
+  depends_on: [W2_sme_segment_case_normalisation]
+  blocked_on: null
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a risk system where refining one desk's model reprices every other desk's book, because they all pull from one random seed -- so no baseline survives any improvement and nobody can tell a real change from a reshuffle."
+  evidence: [simulation/arrears_engine.py, simulation/sme_payment_behaviour.py, docs/staging/done/WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE_2026-08-08.md]
+  notes: >-
+    Queued 2026-08-08 from the W2_sme_segment_case_normalisation build, with a CONTROLLED measurement
+    rather than a suspicion. compute_emergent_bad_debt/compute_debt_recovery create one
+    random.Random(seed) OUTSIDE the bill loop and iterate bills sorted by (customer_id, period_end),
+    so the draws any customer receives depend on how many draws every alphabetically-earlier customer
+    consumed. C-S2 requires each subsystem to draw from its OWN named seeded substream precisely so
+    "a new draw never shifts another's outputs"; this predates the SME atom (I&C already draws from
+    the shared stream) and was not introduced by it.
+    MEASURED, by regenerating the ledger twice in-process with ONLY the SME routing swapped:
+    with the fix, resi C7's longest undischarged credit is 32 days / -109.19; without it, 1224 days /
+    -202.27. C5/C6 (SME) sort before C7, so their changed draw-count shifted C7. Nothing about C7 is
+    wrong -- it is a different valid draw -- but a baseline that moves whenever an unrelated segment
+    improves is one no control can rest on.
+    CROSS-WORKER IMPACT, flagged not swallowed: the untracked
+    tests/company/billing/test_credit_balance_control.py asserts C7 holds a MULTI-YEAR credit
+    (days > 365) as the real-world exemplar its R15 control fires on. That premise dies at the next
+    ledger regeneration. The committed ledger still has 1224 days, so the test passes at HEAD today;
+    it will go red the first time a publish regenerates docs/state/billing_ledger.json. That control
+    needs either a synthetic fixture for its exemplar or a different named account.
+    Fix shape: give sme_payment_outcome (and ultimately the I&C and resi arms) a per-(customer, bill)
+    substream so a bill's outcome depends only on that bill, making non-SME customers byte-identical
+    across segment-model changes. Needs a bill discriminator threaded to payment_outcome -- every
+    call site already has period_end/period_index in scope.
+- id: H30_sim_runner_discards_child_stderr
+  name: "background/sim_runner.py::run_simulation calls subprocess.run with no capture_output, so the child's traceback goes to an inherited fd (a socket) and is lost -- eight consecutive failures logged rc=1 and nothing else, and the director had to spend attention flagging a loop nobody could diagnose"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [background/sim_runner.py, tests/background/test_sim_runner.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a production job whose only failure artefact is an exit code -- the on-call engineer knows it broke and can never know why, so every incident starts from zero."
+  evidence: [background/sim_runner.py, docs/staging/done/WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE_2026-08-08.md]
+  notes: >-
+    Registered 2026-08-08 from the WORKER_FINDING that diagnosed the sim red loop, so the finding's
+    own queued class defect is not lost when the doc is archived (R17: consumed is not absorbed).
+    R5 says an alert carries its diagnostic payload; this one structurally cannot. Suggested shape
+    from the finding: capture stderr, tee the last N lines into docs/observability/sim-runner-log.md,
+    and put them in the failure NTFY. Note the cost this already imposed -- the root cause turned out
+    to be a one-line NameError that took a manual re-run to see, because the traceback was written to
+    a socket and discarded unread.
 - id: B3_published_forecast_error_horizons
   name: "Published forecast feed at multiple horizons with realistic, delivery-converging error: the company receives forecasts (demand/wind/price) at >=2 horizons whose error is non-zero and shrinks by a calibrated schedule as delivery approaches, so its own naive 120-day belief can be measured against a real wall on the future. BACKLOG.md B3 (Wave B)."
   lane: W1_market_weather
@@ -3064,16 +3129,48 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 2
   provenance: proposal
-  file_scope: [simulation/arrears_engine.py, simulation/payment_behaviour_source.py, tests/simulation]
+  file_scope: [simulation/arrears_engine.py, simulation/payment_behaviour_source.py, simulation/segment_vocabulary.py, simulation/sme_payment_behaviour.py, tools/segment_case_guard.py, tools/generate_billing_ledger.py, tools/pre_commit_test_gate.py, tests/simulation/test_segment_case_normalisation.py, tests/tools/test_segment_case_guard.py]
   depends_on: []
   blocked_on: null
   simplifications_count: 2
-  evidence: [docs/design/PAYMENT_CHANNEL_DD_CONSISTENCY_DISCOVER.md, simulation/arrears_engine.py]
+  evidence: [docs/design/PAYMENT_CHANNEL_DD_CONSISTENCY_DISCOVER.md, simulation/arrears_engine.py, simulation/segment_vocabulary.py, simulation/sme_payment_behaviour.py, tools/segment_case_guard.py, tests/simulation/test_segment_case_normalisation.py, tests/tools/test_segment_case_guard.py, docs/staging/done/WORKER_FINDING_SIM_RED_LOOP_ROOT_CAUSE_2026-08-08.md]
+- id: W2_15_segment_case_sensitivity_siblings
+  name: "The segment-case class has a second shape the guard cannot see statically: a CANONICAL literal compared case-sensitively (sme_distress raises on a lower-case 'sme'), plus three rival segment vocabularies nobody reconciles"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: discover
+  dial_inherited: 2
+  provenance: proposal
+  file_scope: [simulation/sme_distress.py, simulation/segment_debt_obligation.py, simulation/segment_vocabulary.py]
+  depends_on: [W2_sme_segment_case_normalisation]
+  blocked_on: null
+  simplifications_count: 0
+  evidence: [simulation/sme_distress.py, simulation/segment_debt_obligation.py, tools/segment_case_guard.py]
+  notes: >-
+    Queued per SELF-INTERRUPT DISCIPLINE from the W2_sme_segment_case_normalisation build
+    (2026-08-08), NOT fixed on sight -- out of that atom's file_scope and needs its own analysis.
+    LATENT, not live: every current caller passes a canonical spelling, so nothing is mis-billed
+    today. Three findings. (1) simulation/sme_distress.py:112 BUSINESS_SEGMENTS = ("SME","I&C") is
+    compared case-SENSITIVELY at :212, and :351 RAISES on a non-match -- so a lower-case "sme"
+    would crash the twin rather than mis-route it. tools/segment_case_guard.py CANNOT catch this
+    shape: the literals are canonical, so there is nothing non-canonical to flag; the defect is in
+    the comparison, which needs dataflow the AST scan does not do. Say so rather than let the
+    guard's green read as coverage it does not have. (2) simulation/segment_debt_obligation.py
+    keeps its own case-insensitive label sets (_norm lower-cases first, so it is correct by
+    construction and deliberately exempt) and EMITS 'resi'/'sme'/'iandc' as the company's OBSERVED
+    vocabulary. (3) 'iandc' is not an alias in segment_vocabulary._ALIASES, so normalise_segment
+    raises on it -- fine while the two vocabularies stay apart, a silent trap the moment anyone
+    pipes one into the other. The DISCOVER question is whether these are one vocabulary or three,
+    and the honest answer may be three (world-true / company-observed / cohort) that must never be
+    coerced -- in which case the work is a named seam, not a merge.
 - id: C_supply_start_semantic_separation
   name: "Separate supply_start (the real relationship start) from the term-schedule anchor in the CRM, so a re-contracted customer's tenure stops resetting"
   lane: C_customer_ops

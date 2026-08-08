@@ -49,6 +49,13 @@ from __future__ import annotations
 import random
 from datetime import date, timedelta
 
+from simulation.segment_vocabulary import (
+    INDUSTRIAL_AND_COMMERCIAL,
+    SME,
+    normalise_segment,
+)
+from simulation.sme_payment_behaviour import sme_payment_outcome
+
 PAYMENT_TERMS_DAYS = 14
 
 _DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
@@ -65,13 +72,18 @@ _CORP_LATE_DAYS = (14, 45)
 #: I&C and SME are not interchangeable (see `payment_outcome`).
 _CORPORATE_METHODS = ("bacs", "chaps")
 
-#: The segments billed on the I&C corporate outcome model. Restored 2026-08-08
-#: after an abandoned in-flight refactor (W2_sme_segment_case_normalisation)
-#: deleted this definition while leaving both use sites below referring to it,
-#: which made every simulation run die with `NameError: _IC_SEGMENTS` ~180s in.
-#: The lower-case "ic" alias is load-bearing at the `payment_method` call site;
-#: do not narrow it without migrating both readers together.
-_IC_SEGMENTS = ("ic", "I&C")
+#: Segment identity is decided by `simulation.segment_vocabulary`, never by a
+#: string literal compared here (W2_sme_segment_case_normalisation, completed
+#: 2026-08-08). The tuple this replaces -- `_IC_SEGMENTS = ("ic", "I&C")` --
+#: was case-SENSITIVE, so a real I&C bill spelled "IC" (the spelling
+#: `saas/smart_meter_rollout` uses) matched nothing and was billed as a
+#: household; the same defect routed every "SME" bill to the residential rail.
+#: Both readers below (`payment_method`, `payment_outcome`) are migrated
+#: together and route through the normaliser -- the previous attempt deleted
+#: this definition while leaving the readers pointing at it, which killed every
+#: run with `NameError: _IC_SEGMENTS` ~180s in. `tools/segment_case_guard.py`
+#: fails the commit if a raw segment literal is reintroduced anywhere in
+#: `simulation/`, which is what closes the CLASS rather than this instance.
 
 # Phase [debt-branch] -- post-write-off DCA placement / recovery / sale.
 # Figures sourced/caveated in docs/market_research/ASSUMPTIONS.md "Customer &
@@ -213,9 +225,10 @@ def payment_method(segment: str, amount_gbp: float, customer_id: str | None = No
     docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology"
     section: payment_method() was segment-aware but not archetype-aware
     within resi)."""
-    if segment in _IC_SEGMENTS:
+    canonical = normalise_segment(segment)
+    if canonical == INDUSTRIAL_AND_COMMERCIAL:
         return "chaps" if amount_gbp >= 10000 else "bacs"
-    if segment == "sme":
+    if canonical == SME:
         return "bacs"
     if customer_id is not None:
         from simulation.household_segments import payment_channel_for_customer
@@ -280,7 +293,8 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     tone_effectiveness_multiplier, hidden from the company) nudges their
     overall on-time probability. Cabinet Office/BIT anchor: +3 to +10pp."""
     if method in _CORPORATE_METHODS:
-        if segment in _IC_SEGMENTS:
+        canonical = normalise_segment(segment)
+        if canonical == INDUSTRIAL_AND_COMMERCIAL:
             r = rng.random()
             if r < _CORP_BACS_ON_TIME_PROB:
                 return ("success", 0)
@@ -288,6 +302,18 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
                 return ("success", rng.randint(*_CORP_LATE_DAYS))
             else:
                 return ("dispute", 0)
+        if canonical == SME:
+            # SME is NOT I&C. Before this branch existed, an SME bill reaching
+            # the corporate rail fell through to the bare `("success", 0)`
+            # below -- it could never be late, fail, or dispute -- so merely
+            # fixing the case bug would have DELETED SME bad debt rather than
+            # fixed it. `sme_payment_behaviour` is the separately-anchored
+            # outcome model (Ofgem D6 2025 hardship tiers, DBT 2024 aggregate
+            # late rate) that has to exist for the case fix to be safe.
+            return sme_payment_outcome(rng, customer_id)
+        # Unreachable by construction: `payment_method` only returns a
+        # corporate method for a business segment. Left as-is rather than
+        # raised, so an unforeseen caller degrades exactly as it always has.
         return ("success", 0)
     dd_fail_prob = _DD_FAILURE_PROB.get(stress, 0.03)
     on_time_prob = _ON_TIME_PROB.get(stress, 0.92)

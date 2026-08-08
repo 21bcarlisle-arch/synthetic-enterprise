@@ -54,6 +54,14 @@ REVIEWED_CLOSE_TO_LEARN = {
     # measures whether the harness can be TRUSTED -- no revenue movement -- putting it in exactly
     # the same close_to_learn class as all 52 of its H_harness siblings.
     "H29_import_time_env_capture_test_isolation",
+    # 2026-08-08 reviewed (worker tick, registered from the WORKER_FINDING that diagnosed the sim
+    # red loop). Classified on its merits, not to clear the gate: H30 is a DIAGNOSABILITY atom --
+    # sim_runner discards its child's stderr, so a failing run's only artefact is an exit code. It
+    # moves no money and touches no revenue flow; what it measures is whether the machine can say
+    # WHY it failed, which is the same close_to_learn class as its H_harness siblings. The cost is
+    # already on the record: eight failures over ~60 minutes produced no diagnosable evidence and
+    # the root cause (a one-line NameError) needed a manual re-run to see.
+    "H30_sim_runner_discards_child_stderr",
     # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
     # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
     # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle

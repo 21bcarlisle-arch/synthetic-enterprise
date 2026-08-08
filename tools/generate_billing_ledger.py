@@ -36,7 +36,6 @@ from simulation.arrears_engine import (
     _CORP_BACS_LATE_PROB,
     _CORP_BACS_DISPUTE_PROB,
     _CORP_LATE_DAYS,
-    _IC_SEGMENTS,
     _DD_FAILURE_PROB,
     _ON_TIME_PROB,
     _LATE_DAYS,

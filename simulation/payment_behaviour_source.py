@@ -127,6 +127,7 @@ from datetime import date, timedelta
 from typing import Optional, Sequence
 
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
+from simulation.segment_vocabulary import is_business
 
 STREAM_NAMESPACE = "W2_11_payment_behaviour_source"
 
@@ -288,7 +289,12 @@ def generate_payment_event(
     base_seed = _base_seed_for(customer_id, seed)
     rng = _period_substream(base_seed, _PERIOD_SUBSTREAM_BASE, period_index)
 
-    core_method = "bacs" if segment in ("ic", "I&C", "sme") else "direct_debit"
+    # Business segments bill on a corporate rail. Routed through the shared
+    # normaliser rather than a literal tuple: the tuple this replaces --
+    # `("ic", "I&C", "sme")` -- was case-sensitive, so the canonical "SME" and
+    # "I&C" spellings `saas/customers.py` actually stores matched only by
+    # accident (W2_sme_segment_case_normalisation).
+    core_method = "bacs" if is_business(segment) else "direct_debit"
     # arrears_engine's stress-keyed dicts are upper-cased ("LOW"/"MODERATE"/
     # "HIGH"); household_demand.income_stress_trajectory() emits lower-case
     # IncomeStress.value strings ("low"/"moderate"/"high") -- normalise here

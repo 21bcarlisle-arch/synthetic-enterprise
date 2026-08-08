@@ -1,0 +1,161 @@
+"""R15 mutation proof for `tools/segment_case_guard.py`.
+
+R15: no control counts as evidence unless a MUTATION TEST proves it fires on
+its own named defect. The guard's named defect is "a segment string compared
+in a non-canonical case somewhere in `simulation/`", so the tests below
+reintroduce exactly the two literals that caused the original mis-billing and
+assert the guard goes red.
+
+The three killer patterns are each tested explicitly:
+
+  TAUTOLOGY   -- the guard derives canonical spellings from
+                 `segment_vocabulary`, and the fixtures below are written as
+                 raw source text, so the check is not comparing a value to
+                 itself.
+  FAIL-OPEN   -- a missing root, an unparseable file, and an empty scan must
+                 all FAIL (rc=2), not pass with "no violations found".
+  FAIL-SILENT -- rc=2 is distinct from rc=0, so a caller cannot mistake "the
+                 guard could not run" for "the guard passed".
+
+Every fixture is written into a tmp_path, never into the real tree -- a
+mutation test that edits the repo and restores it can lose an unrelated
+in-flight edit.
+"""
+from __future__ import annotations
+
+import textwrap
+
+import pytest
+
+from tools.segment_case_guard import main, scan
+
+
+def _write(tmp_path, name, source):
+    path = tmp_path / name
+    path.write_text(textwrap.dedent(source), encoding="utf-8")
+    return path
+
+
+class TestFiresOnItsOwnDefect:
+    """MUTATION: reintroduce the real defect, assert the guard goes red."""
+
+    def test_fires_on_the_original_arrears_engine_comparison(self, tmp_path):
+        # The exact line that mis-billed C5 and C6 for the whole history.
+        _write(tmp_path, "mutated.py", '''
+            def payment_method(segment, amount_gbp):
+                if segment == "sme":
+                    return "bacs"
+                return "direct_debit"
+        ''')
+        messages, scanned = scan(tmp_path, tmp_path)
+        assert scanned == 1
+        assert len(messages) == 1
+        assert '"sme"' in messages[0] or "'sme'" in messages[0]
+        assert "SME" in messages[0], "the message must name the canonical spelling"
+
+    def test_fires_on_the_original_payment_behaviour_source_tuple(self, tmp_path):
+        _write(tmp_path, "mutated.py", '''
+            def core(segment):
+                return "bacs" if segment in ("ic", "I&C", "sme") else "direct_debit"
+        ''')
+        messages, _ = scan(tmp_path, tmp_path)
+        # "ic" and "sme" are non-canonical; "I&C" is canonical and must NOT
+        # be flagged -- a guard that fires on correct code gets switched off.
+        assert len(messages) == 2, messages
+
+    def test_fires_on_the_ic_segments_constant_coming_back(self, tmp_path):
+        _write(tmp_path, "mutated.py", '_IC_SEGMENTS = ("ic", "I&C")\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert len(messages) == 1, messages
+        assert "ic" in messages[0]
+
+    def test_fires_on_the_same_constant_under_an_innocent_name(self, tmp_path):
+        """The guard's own first fail-open: keying on the NAME.
+
+        `_IC_SEGMENTS` would have been caught by a name-based rule; the
+        identical hazard called `_RAILS` would not. Contents, not name.
+        """
+        _write(tmp_path, "mutated.py", '_RAILS = ("ic", "I&C")\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert len(messages) == 1, messages
+
+    def test_fires_on_a_lowercase_ic_spelling(self, tmp_path):
+        _write(tmp_path, "mutated.py", 'x = seg == "i&c"\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert len(messages) == 1
+        assert "I&C" in messages[0]
+
+
+class TestDoesNotFireOnCorrectCode:
+    """A control with no false-negative AND no false-positive story is theatre."""
+
+    def test_canonical_comparisons_pass(self, tmp_path):
+        _write(tmp_path, "clean.py", '''
+            RESIDENTIAL = "resi"
+            def f(segment):
+                if segment == "resi":
+                    return 1
+                if segment in ("SME", "I&C"):
+                    return 2
+                return 3
+        ''')
+        messages, scanned = scan(tmp_path, tmp_path)
+        assert scanned == 1
+        assert messages == []
+
+    def test_normaliser_based_code_passes(self, tmp_path):
+        _write(tmp_path, "clean.py", '''
+            from simulation.segment_vocabulary import SME, normalise_segment
+            def f(segment):
+                return normalise_segment(segment) == SME
+        ''')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert messages == []
+
+    def test_a_different_vocabulary_is_not_flagged(self, tmp_path):
+        """A collection carrying non-alias members is a different vocabulary
+        with its own normalisation (e.g. `segment_debt_obligation`'s label
+        sets, which lower-case their input before matching), not a
+        re-spelling of this one."""
+        _write(tmp_path, "clean.py", '_SME_LABELS = {"sme", "small_business", "microbusiness"}\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert messages == []
+
+    def test_the_real_simulation_tree_is_clean(self):
+        """The live assertion -- the class is actually closed right now."""
+        assert main([]) == 0
+
+
+class TestCannotFailOpen:
+    """FAIL-OPEN / FAIL-SILENT: not-run must never read as passed."""
+
+    def test_missing_root_is_a_failure_not_a_pass(self, tmp_path):
+        missing = tmp_path / "does_not_exist"
+        with pytest.raises(FileNotFoundError):
+            scan(missing, tmp_path)
+        assert main(["--root", str(missing)]) == 2
+
+    def test_empty_scan_is_a_failure_not_a_pass(self, tmp_path):
+        """The vacuity guard: 0 violations over 0 files proves nothing."""
+        empty = tmp_path / "empty"
+        empty.mkdir()
+        messages, scanned = scan(empty, tmp_path)
+        assert (messages, scanned) == ([], 0)
+        assert main(["--root", str(empty)]) == 2, (
+            "an empty scan reported success -- that is the vacuity fail-open"
+        )
+
+    def test_unparseable_file_is_a_failure_not_a_skip(self, tmp_path):
+        _write(tmp_path, "broken.py", "def f(:\n")
+        with pytest.raises(SyntaxError):
+            scan(tmp_path, tmp_path)
+        assert main(["--root", str(tmp_path)]) == 2, (
+            "a syntax error was skipped -- a violation could hide behind it"
+        )
+
+    def test_violation_and_could_not_run_are_distinguishable(self, tmp_path):
+        _write(tmp_path, "mutated.py", 'x = seg == "sme"\n')
+        assert main(["--root", str(tmp_path)]) == 1
+        # rc=1 (found a violation) and rc=2 (could not run) must not collide,
+        # or a caller checking `rc != 0` learns nothing about which happened.
+        assert main(["--root", str(tmp_path / "nope")]) == 2

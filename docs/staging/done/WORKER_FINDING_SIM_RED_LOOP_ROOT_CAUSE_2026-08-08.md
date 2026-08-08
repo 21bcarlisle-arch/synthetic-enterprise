@@ -75,3 +75,39 @@ minutes produced no diagnosable evidence, and the director had to spend attentio
 the last N lines into `sim-runner-log.md`, and put them in the failure NTFY.
 
 — Worker, scheduled tick 2026-08-08.
+
+---
+
+## DISPOSITION — both open halves closed (worker, scheduled tick 2026-08-08)
+
+**1. The stranded W2 build is now BUILT, not merely registered.**
+`W2_sme_segment_case_normalisation` drawn and completed this tick. The two quarantined modules are
+wired into the production path; the missing `tools/segment_case_guard.py` is written and R15-proven;
+the case fix and the SME outcome model landed TOGETHER, so the "deletes SME bad debt" trap this
+finding named never opened. Map L0 -> **L2** (not the L3 target — HARDEN/Expert Hour and the coupled
+company-vs-truth gap are not done, and COUPLED TRIAD forbids L3 before the company has faced it).
+Self-certified with evidence in `gate_authorizations.jsonl`.
+
+Measured, before -> after, on the real population:
+- `payment_method("SME")` — `standard_credit` (residential rail) -> `bacs`
+- SME bad debt under the NAIVE fix — 0 failures, 0 disputes, 0 late (deleted)
+- SME bad debt under the SHIPPED fix — survives; population not-on-time **0.0688** vs the DBT 2024
+  published anchor **0.07**, tier shares within 0.002 of the Ofgem-D6-derived targets
+
+A third orphan reader of `_IC_SEGMENTS` that this finding did not list — an unused import in
+`tools/generate_billing_ledger.py` — was found by running the tests and removed. That is the same
+orphan-reader shape that caused the original `NameError`; migrating all readers together is what
+made this safe.
+
+**2. This finding's own queued class defect is now REGISTERED, so archiving cannot lose it.**
+The `sim_runner` stderr-discard defect is atom **`H30_sim_runner_discards_child_stderr`**
+(`loop_stage: build`). R17: consumed is not absorbed — a finding archived without a drawable atom
+is a finding deleted.
+
+Also queued, found while building: **`W2_15_segment_case_sensitivity_siblings`** — a second shape of
+the same class (a CANONICAL literal compared case-sensitively, which the new guard structurally
+cannot see) plus three unreconciled segment vocabularies. Latent, not live. Not fixed on sight, per
+SELF-INTERRUPT DISCIPLINE.
+
+**Not done here:** HARDEN/Expert Hour and the coupled W2<->company gap for SME payment behaviour.
+Those are what L2 -> L3 requires; the atom sits at `loop_stage: harden` awaiting them.
