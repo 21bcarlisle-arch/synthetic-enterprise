@@ -388,14 +388,36 @@ def test_ic_balance_zero(tmp_path):
 
 
 def test_churned_arrears_written_off(tmp_path):
-    bills = [_bill("C7", "2022-10-31", 250.0, "resi")]
+    """A churned customer's arrears case must reach WRITTEN_OFF.
+
+    Rewritten 2026-08-08 (W2_16). Two independent fail-open defects, both
+    exposed when the per-bill RNG substream change moved this fixture's draws:
+
+    1. VACUITY -- the assertion sat behind `if arrears_case_count > 0`, and the
+       single-bill fixture only fails its payment on a 35% DD-failure draw. With
+       the new draw the count went to 0 and the test passed asserting NOTHING.
+       Twelve bills now make at least one arrears case near-certain, and the
+       count is asserted rather than used as a silent precondition.
+    2. A STALE ASSERTION the vacuity was hiding -- it required WRITTEN_OFF to be
+       the LAST stage, which stopped being true when the post-write-off DCA
+       branch landed (the cascade now continues PLACED_WITH_DCA -> RECOVERED |
+       SOLD). What this test actually means to pin is that the case REACHES
+       write-off, so it looks for the stage rather than for the terminal slot.
+    """
+    bills = [_bill("C7", f"2022-{month:02d}-28", 250.0, "resi") for month in range(1, 13)]
     beh = {"C7": {"income_stress_trajectory": [{"year": 2022, "stress": "high"}]}}
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run(bills, beh=beh, churned=["C7"])))
     result = generate(rj, tmp_path / "l.json")
     cust = result["customers"]["C7"]
-    if cust["arrears_case_count"] > 0:
-        assert cust["arrears_history"][0]["stages"][-1]["stage"] == "WRITTEN_OFF"
+
+    assert cust["arrears_case_count"] > 0, (
+        "vacuity guard: the fixture must actually open an arrears case, or this "
+        "test asserts nothing about write-off at all"
+    )
+    for case in cust["arrears_history"]:
+        stages = [s["stage"] for s in case["stages"]]
+        assert "WRITTEN_OFF" in stages, stages
 
 
 # --- ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1: displayed usage derived from

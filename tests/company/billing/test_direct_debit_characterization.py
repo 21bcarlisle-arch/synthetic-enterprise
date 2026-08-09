@@ -82,8 +82,14 @@ def test_next_collection_with_the_default_payment_day_zero_raises():
     DirectDebitMandate meaning "not a staggered mandate", but passing it to this
     function crashes — `d.day <= 0` is False, so it takes the roll-forward branch
     and calls `date.replace(day=0)`. Callers are protected only by an `if
-    m.payment_day:` guard at each call site, not by the function itself."""
-    with pytest.raises(ValueError, match="day is out of range"):
+    m.payment_day:` guard at each call site, not by the function itself.
+
+    The characterized behaviour is "it raises ValueError on the day-of-month", NOT
+    CPython's exact wording, which is an implementation detail that MOVED: 3.12 says
+    "day is out of range for month", 3.14 says "day 0 must be in range 1..30 for month
+    4 in year 2024". Pinning the 3.12 string reds this test on the resident 3.14 host,
+    so the regex accepts either (2026-08-08)."""
+    with pytest.raises(ValueError, match=r"day (is out of range|0 must be in range)"):
         next_collection_on_day("2024-03-20", 0)
 
 
@@ -91,9 +97,11 @@ def test_next_collection_does_not_validate_the_1_to_28_cap_it_relies_on():
     """SURPRISE (boundary class): the docstring justifies skipping short-month
     clamping by asserting payment_day is capped at 28, but the function never
     checks. Day 31 works in January and raises in April — the invariant is
-    assumed, not enforced, so a bad value fails late and only in some months."""
+    assumed, not enforced, so a bad value fails late and only in some months.
+
+    Interpreter-agnostic on the message, for the reason given above."""
     assert next_collection_on_day("2024-01-05", 31) == "2024-01-31"
-    with pytest.raises(ValueError, match="day is out of range"):
+    with pytest.raises(ValueError, match=r"day (is out of range|31 must be in range)"):
         next_collection_on_day("2024-04-05", 31)
 
 

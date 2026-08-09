@@ -117,7 +117,25 @@ def test_a_non_business_segment_on_a_corporate_rail_still_succeeds():
 
 
 def test_ic_dispute_invoice_status_is_disputed(tmp_path):
-    bills = [_ic_bill("C_IC1", "2022-03-31", 8000.0)] * 500
+    """An I&C dispute (0.7% of corporate-rail bills) renders as `disputed`.
+
+    The fixture was 500 copies of ONE bill (`[_ic_bill(...)] * 500` -- the same
+    identity 500 times). That only ever produced a dispute because the old
+    shared RNG handed each copy a different draw purely by position. Since
+    W2_16 a bill's outcome is a pure function of its identity, so 500 copies of
+    one bill correctly resolve 500 identical ways -- the fixture stopped
+    modelling 500 invoices and started modelling one, repeated.
+
+    Now 500 genuinely distinct monthly bills, which is what "enough invoices for
+    a 0.7% event to appear" actually requires.
+    """
+    bills = [
+        _ic_bill("C_IC1", f"{1600 + i // 12:04d}-{i % 12 + 1:02d}-28", 8000.0)
+        for i in range(500)
+    ]
+    assert len({(b["customer_id"], b["period_end"]) for b in bills}) == 500, (
+        "fixture guard: the bills must be distinct invoices, not one repeated"
+    )
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run(bills)))
     result = generate(rj, tmp_path / "l.json")

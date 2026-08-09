@@ -56,18 +56,42 @@ from company.billing.invoice import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_DB_DIR = REPO_ROOT / DEFAULT_DB_PATH.parent  # company/data — must never appear
+DEFAULT_DB_DIR = REPO_ROOT / DEFAULT_DB_PATH.parent   # company/data
+DEFAULT_DB_FILE = REPO_ROOT / DEFAULT_DB_PATH         # company/data/invoices.db
+
+
+def _default_db_fingerprint():
+    """Everything about the REAL invoice DB a test in this file could disturb:
+    whether its directory exists, whether the DB exists, and — if it does — its
+    exact size and mtime. Compared before/after, so creating the directory,
+    creating the DB, or WRITING to an existing one all fail."""
+    dir_exists = DEFAULT_DB_DIR.exists()
+    if not DEFAULT_DB_FILE.exists():
+        return (dir_exists, False, None, None)
+    st = DEFAULT_DB_FILE.stat()
+    return (dir_exists, True, st.st_size, st.st_mtime_ns)
 
 
 @pytest.fixture(autouse=True)
 def _never_touch_the_default_db():
-    """HARD RULE guard: no test in this file may create the real invoice DB or its
-    parent directory. `_conn` mkdirs the parent, so an accidental default-arg call
-    would silently materialise `company/data/` in the working tree. Asserted on both
-    sides so a leak is attributed to the test that caused it, not the next one."""
-    assert not DEFAULT_DB_DIR.exists(), f"{DEFAULT_DB_DIR} existed BEFORE the test"
+    """HARD RULE guard: no test in this file may create OR MODIFY the real invoice
+    DB or its parent directory. `_conn` mkdirs the parent, so an accidental
+    default-arg call would silently materialise `company/data/` in the working tree.
+
+    Asserted as a before/after FINGERPRINT rather than "the directory must not
+    exist" (2026-08-08). The absence form was a false positive that wedged the
+    publish gate: `company/data/` is gitignored RUNTIME state and legitimately
+    exists on the live machine (it holds `service_log.db`, written by a running
+    daemon), so the guard reddened on a healthy tree and blamed a test that had
+    done nothing. Fingerprinting is strictly STRONGER — the old form could not
+    see a write to an already-existing DB, this one does — and it still attributes
+    a leak to the test that caused it."""
+    before = _default_db_fingerprint()
     yield
-    assert not DEFAULT_DB_DIR.exists(), f"{DEFAULT_DB_DIR} was created BY the test"
+    assert _default_db_fingerprint() == before, (
+        f"a test in this file created or modified the REAL invoice DB "
+        f"({DEFAULT_DB_FILE}); every call must be given an explicit tmp_path DB"
+    )
 
 
 @pytest.fixture
@@ -1007,9 +1031,14 @@ def test_control_source_answers_zero_rather_than_failing_on_an_empty_store(db):
 def test_control_source_default_constructor_binds_the_default_path_without_touching_it():
     """Constructing the adapter is pure — it only stores the path. No connection is
     opened until an accessor is called, which is why this assertion is safe under the
-    tmp-path-only rule."""
+    tmp-path-only rule.
+
+    Purity is asserted as "the real DB is byte-for-byte untouched by constructing
+    the adapter", not "company/data does not exist" — that directory is gitignored
+    runtime state and legitimately exists on the live machine (2026-08-08)."""
+    before = _default_db_fingerprint()
     assert InvoiceControlSource().db_path == DEFAULT_DB_PATH
-    assert not DEFAULT_DB_DIR.exists()
+    assert _default_db_fingerprint() == before
 
 
 def test_two_control_sources_on_two_paths_are_fully_isolated(db, db2):

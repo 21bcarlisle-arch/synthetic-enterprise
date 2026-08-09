@@ -568,20 +568,80 @@ def test_daily_reads_recover_the_true_hlc_across_the_gas_panel(panel, published_
     assert max(gaps.values()) < 0.15, gaps
 
 
-def test_meter_evidence_beats_the_certificate_alone(panel, published_weather):
-    """Why a supplier bothers reading meters. The relationship — evidence
-    improves on paper — is asserted; no specific improvement is pinned."""
-    improved = 0
+_MATERIALLY_WRONG_PRIOR = 0.05
+"""A certificate within 5% of the truth is already a good answer. Demanding that
+meter evidence improve on it is not a claim about meter evidence — it is a coin
+flip on the fourth decimal place."""
+
+
+def test_meter_evidence_beats_the_certificate_WHERE_THE_CERTIFICATE_IS_WRONG(
+    panel, published_weather
+):
+    """Why a supplier bothers reading meters, stated as the claim it actually is.
+
+    SPLIT FROM a single `improved >= len(panel) - 1` counter on 2026-08-08. That
+    counter conflated two different things and, because it allowed exactly one
+    failure, spent its whole allowance hiding a real defect — see the pinned
+    degradation below. It was also passing on a knife edge: `gas-semi-1965`
+    counted as "improved" by 0.0007 of relative gap on a prior already accurate
+    to 2.3%, so any change anywhere in the world could flip it, and a W1_12
+    fidelity fix duly did.
+
+    The claim worth making is this one: where the certificate is MATERIALLY
+    wrong, reading the meter must fix it.
+    """
+    checked = 0
     for entry in panel:
         belief = believe(entry, published_weather)
         truth = actual_hlc(entry)
-        if ti.relative_gap(belief.hlc_kw_per_k, truth) < ti.relative_gap(
-            belief.prior.hlc_kw_per_k, truth
-        ):
-            improved += 1
-    assert improved >= len(panel) - 1, (
-        f"meter evidence improved only {improved}/{len(panel)} beliefs"
+        prior_gap = ti.relative_gap(belief.prior.hlc_kw_per_k, truth)
+        if prior_gap < _MATERIALLY_WRONG_PRIOR:
+            continue
+        checked += 1
+        assert ti.relative_gap(belief.hlc_kw_per_k, truth) < prior_gap, (
+            f"{entry[0]}: the certificate is {prior_gap:.1%} wrong and meter "
+            "evidence failed to improve on it"
+        )
+    assert checked >= 3, (
+        f"only {checked} panel premises have a materially wrong certificate — "
+        "this test would be near-vacuous; widen the panel rather than trust it"
     )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "PRE-EXISTING DEFECT, isolated and measured 2026-08-08. `ashp-semi-1981` "
+        "is the one HEAT-PUMP premise on the panel, so its space heating is in "
+        "the ELECTRICITY read: the inference must separate heating from a "
+        "non-heating baseline it cannot see, and it does not. Its EPC prior is "
+        "0.4% from truth and meter evidence takes the belief to 25.5% — the "
+        "evidence makes a good answer sixty times worse. "
+        "OLDER THAN THE W1_12 WORK THAT SURFACED IT: reverting BOTH 2026-08-08 "
+        "generator changes (routine offset clamped to zero, switched banks "
+        "restored to their continuous expectation) leaves it at 25.7%, so the "
+        "world change is not the cause — it merely stopped the "
+        "`improved >= len(panel) - 1` slack from absorbing it. "
+        "STRICT so the fix cannot land unnoticed. Queued as company-side work on "
+        "C14: the gas panel is unaffected and stays green."
+    ),
+)
+def test_meter_evidence_never_MATERIALLY_DEGRADES_a_good_certificate(
+    panel, published_weather
+):
+    """The other half of the split: evidence may fail to help, but it must not
+    take a premise whose certificate was right and make it badly wrong."""
+    for entry in panel:
+        belief = believe(entry, published_weather)
+        truth = actual_hlc(entry)
+        prior_gap = ti.relative_gap(belief.prior.hlc_kw_per_k, truth)
+        if prior_gap >= _MATERIALLY_WRONG_PRIOR:
+            continue
+        assert ti.relative_gap(belief.hlc_kw_per_k, truth) < _MATERIALLY_WRONG_PRIOR, (
+            f"{entry[0]}: certificate was {prior_gap:.1%} from truth; meter "
+            f"evidence moved the belief to "
+            f"{ti.relative_gap(belief.hlc_kw_per_k, truth):.1%}"
+        )
 
 
 def test_the_confidence_band_actually_covers_the_truth(panel, published_weather):
