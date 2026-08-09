@@ -46,6 +46,19 @@ reproducible run-to-run. This module makes no clock/random draw of its own;
 write time and passed straight through to `write_gap_entry` (which never calls a
 clock).
 
+THE AMBIGUOUS-REMITTANCE COUNTERFACTUAL (atom D8, 2026-08-09). This module
+carries a SECOND, shadow company -- an identical `LedgerBook` +
+`PaymentObservationConsumer` fed the identical wall responses with ONE field
+changed: every credit carries its invoice remittance reference. The WORLD is
+held literally fixed (same events, same failures, same clearing dates, same
+ARUDD lag draws -- the adapter's substream is keyed on `(customer_id,
+period_index)` alone, so re-emitting the same event cannot move a date); the
+only difference is whether the cash is ATTRIBUTABLE when it lands. The
+DIFFERENCE between the two companies' measures is therefore what the
+ambiguous-remittance channel costs, measured rather than argued. See
+`attribute_to_ambiguous_remittance` for the guards that keep it a
+counterfactual rather than a second world.
+
 RECENCY-WINDOW NOTE: the consumer is constructed with a run-spanning
 `dd_failure_window_days` (`_RUN_SPANNING_WINDOW_DAYS`). The DETECTION headline
 (the ledger entry) reads `snapshot().recent_dd_failures`, which is NOT
@@ -74,7 +87,10 @@ from company.billing.account_ledger import (
     LedgerEvent,
     LedgerEventType,
 )
-from company.billing.payment_observation_consumer import PaymentObservationConsumer
+from company.billing.payment_observation_consumer import (
+    DEFAULT_RECONCILIATION_GRACE_DAYS,
+    PaymentObservationConsumer,
+)
 
 from background.gap_metric import (
     GapResult,
@@ -105,6 +121,278 @@ def _period_index_for(due_date: date) -> int:
     return due_date.year * 12 + (due_date.month - 1)
 
 
+def _counterfactual_correlation_id(invoice_ref: str, actual_correlation_id: str) -> str:
+    """The reference the shadow company's credit carries (D8): the INVOICE ref,
+    always -- a world in which every remittance advice says which invoice it
+    pays. A single named seam for the counterfactual so an R15 mutation can
+    replace it with the ambiguous reference and prove the attribution collapses
+    to zero (a counterfactual identical to the actual measures nothing)."""
+    return invoice_ref
+
+
+# The measures the D8 finding is ABOUT, each already published on its own
+# denominator by D7 (ageing) and D11 (detection). Attribution is a plain
+# subtraction on each -- no normaliser, no share-of-total ratio: a denominator
+# counting the truth's class balance is the exact trap D7's own mutation caught,
+# and a ratio here would re-import it through the back door.
+_ATTRIBUTED_MEASURES = (
+    ("ageing", "mean_bucket_displacement",
+     "buckets of debt-DATE displacement over the truly-overdue invoices"),
+    ("ageing", "overstated_arrears_rate",
+     "truly-current invoices believed in arrears -- the WRONGFUL-DUNNING exposure"),
+    ("ageing", "understated_arrears_rate",
+     "truly-overdue invoices believed settled -- debt never chased, under-provisioned"),
+    ("detection", "missed_failure_rate",
+     "truly-failed invoices the company does not hold flagged -- the WRONGFUL "
+     "NON-PURSUIT twin: a real arrears case that disappears from the arrears view"),
+    ("detection", "false_flag_rate",
+     "never-flaggable invoices wrongly flagged"),
+)
+
+def unpursued_arrears(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    ever_flagged: set,
+    as_of: date,
+    *,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+) -> dict:
+    """WRONGFUL NON-PURSUIT: truly-failed invoices the company DID detect and
+    then STOPPED holding in its arrears view (atom D8, the half D10 widened this
+    atom to).
+
+    WHY THIS MEASURE HAS TO EXIST SEPARATELY, and it is not a duplicate of the
+    detection headline. D11 made that headline's population EVER-FLAGGED, and
+    rightly: a detection is a fact about the day it happened. But the exact
+    consequence THIS atom reports is the company later UN-knowing it -- a failed
+    invoice going quiet when a later ambiguous credit lands on it oldest-first --
+    and an ever-flagged population is, by construction, blind to that. Measured:
+    after D11 the detection dimension's `missed_failure_rate` is 0.0000 both with
+    and without the ambiguous channel, so the finding is invisible on every
+    published surface unless something asks the question directly. This asks it.
+
+    The denominator is the population the question is ABOUT (D7's rule): the
+    truly-failed cases the company ACTUALLY DETECTED, since a case never detected
+    cannot be un-detected. It does not count the truth's class balance.
+
+    The company's arrears view is read from its OWN organ
+    (`expected_collection_misses` at `as_of`), never re-derived here -- a harness
+    copy of the rule could not fail if the organ's rule changed (R15
+    independence)."""
+    by_account: dict = {}
+    for r in records:
+        by_account.setdefault(r.account_id, {})[r.invoice_ref] = (r.customer_id, r.period_index)
+
+    still_flagged: set = set()
+    for account_id, ref_to_case in by_account.items():
+        for m in consumer.expected_collection_misses(
+            account_id, as_of=as_of, grace_days=reconciliation_grace_days,
+            payment_terms_days=payment_terms_days,
+        ):
+            case = ref_to_case.get(m.invoice_ref)
+            if case is not None:
+                still_flagged.add(case)
+
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    detected = truth & ever_flagged
+    unpursued = detected - still_flagged
+    return {
+        "n_true_failures": len(truth),
+        "n_ever_detected": len(detected),
+        "n_unpursued": len(unpursued),
+        # Vacuity is explicit: with nothing detected there is nothing that could
+        # have been un-detected, and 0.0 would read as "the company never loses
+        # an arrears case" (the D7 rule).
+        "unpursued_arrears_rate": (
+            round(len(unpursued) / len(detected), 6) if detected else None),
+    }
+
+
+_SAME_WORLD_KEYS = (
+    "n_cases", "n_customers", "n_true_failures",
+    "n_true_dd_failures", "n_true_non_dd_failures",
+)
+
+
+def attribute_to_ambiguous_remittance(
+    actual: dict,
+    counterfactual: dict,
+    *,
+    n_ambiguous_records: int,
+    n_ambiguous_credits: int,
+    actual_balance_gbp: float,
+    counterfactual_balance_gbp: float,
+    extra_measures: Optional[dict] = None,
+) -> dict:
+    """ATTRIBUTE the company's debt-dating and arrears-detection error to the
+    ambiguous-remittance channel, by subtracting a remittance-complete shadow
+    company from the real one (atom `D8_ambiguous_remittance_misdating`).
+
+    THE FINDING THIS EXISTS TO REPORT. Unreferenced non-DD credits cross the
+    W4_4 seam with no invoice reference, so `AccountLedger.allocate` falls back
+    to oldest-first -- Clayton's Case, the English default rule a real supplier's
+    cash-allocation actually follows. The consequence is NOT a wrong balance: the
+    company's money is exactly right to the penny. It is that the money is
+    attached to the WRONG INVOICES, which is what a real supplier is fined and
+    sued over -- wrongful dunning of a customer who paid, statutory interest
+    accrued from the wrong date, bad-debt provisioning off a fictional ageing
+    profile, and (D10's widening of this atom) a genuinely failed invoice going
+    QUIET when a later ambiguous payment lands on it, so the arrears case
+    disappears from the view that would have pursued it.
+
+    WHY A COUNTERFACTUAL AND NOT A CORRELATION. "Non-DD accounts age worse" is
+    not attribution: non-DD customers also fail more often, so the channels are
+    confounded in the raw numbers. Holding the WORLD literally fixed and moving
+    only whether the credit is attributable removes the confound by construction.
+
+    THREE GUARDS, because a counterfactual is the easiest control in this repo to
+    make un-failable (R15):
+
+    * SAME WORLD -- if the shadow population differs from the real one in case
+      count, customer count or any truth count, the "counterfactual" changed the
+      world and the subtraction is meaningless. RAISES; there is no honest
+      degraded answer.
+    * THE MONEY IS UNCHANGED -- the premise of the whole finding is that the
+      balance is right while the dates are wrong. If the two portfolios' balances
+      differ, that premise is FALSE on this population and every attributed
+      figure is blanked with `premise_violated` set, rather than published. This
+      is fail-CLOSED, not fail-loud, deliberately: it runs inside a live
+      run_phase2b, and a diagnostic must not be able to kill the run it measures.
+    * VACUITY -- with no ambiguous credit in the population the two companies are
+      the same company, so every delta is trivially 0.0. Zero would then read as
+      "measured, and the channel costs nothing", which is a lie about a
+      measurement that never happened. Reported as `None` with a `vacuity`
+      string (the D7 rule).
+
+    R12: this is a DIAGNOSTIC. Nothing here may be tuned, and the honest answer
+    includes a delta of zero on a live channel -- which would itself be the
+    finding refuted, not a failure.
+    """
+    a_stats, c_stats = actual["stats"], counterfactual["stats"]
+    divergent = {
+        k: (a_stats.get(k), c_stats.get(k))
+        for k in _SAME_WORLD_KEYS if a_stats.get(k) != c_stats.get(k)
+    }
+    if divergent:
+        raise ValueError(
+            "D8 attribution: the remittance counterfactual is not the SAME "
+            f"WORLD as the actual -- {divergent} (actual, counterfactual). Only "
+            "the invoice reference on a credit may differ; a differing truth "
+            "count means the shadow company was fed a different population, and "
+            "subtracting one from the other would attribute the difference "
+            "between two worlds to the remittance channel."
+        )
+
+    balance_delta = round(counterfactual_balance_gbp - actual_balance_gbp, 2)
+    premise_violated = None
+    if balance_delta != 0.0:
+        premise_violated = (
+            "THE MONEY MOVED. This finding's premise is that the balance is "
+            f"exactly right while the dates are wrong, but the shadow portfolio "
+            f"balance differs by GBP {balance_delta:+.2f}. Restoring a remittance "
+            "reference re-ALLOCATES cash, it can never create or destroy any, so "
+            "a non-zero delta means the counterfactual changed something other "
+            "than attributability. No attributed figure is published from a "
+            "population whose premise is false."
+        )
+
+    vacuity = None
+    if n_ambiguous_credits == 0:
+        vacuity = (
+            "NO ambiguous credit landed in this population, so the shadow "
+            "company IS the company: every delta below is trivially zero and "
+            "measures NOTHING. Reported as undefined (None), never 0.0 -- a "
+            "channel that was not exercised is not a channel that costs nothing."
+        )
+
+    pairs = [
+        (f"{dimension}.{key}",
+         actual[dimension].components.get(key),
+         counterfactual[dimension].components.get(key),
+         meaning)
+        for dimension, key, meaning in _ATTRIBUTED_MEASURES
+    ]
+    for name, pair in (extra_measures or {}).items():
+        pairs.append((name, pair["actual"], pair["remittance_complete"], pair["meaning"]))
+
+    measures: dict = {}
+    for name, a_val, c_val, meaning in pairs:
+        if vacuity or premise_violated or a_val is None or c_val is None:
+            attributed = None
+        else:
+            attributed = round(float(a_val) - float(c_val), 6)
+        measures[name] = {
+            "actual": a_val,
+            "remittance_complete": c_val,
+            "attributed": attributed,
+            "meaning": meaning,
+        }
+
+    return {
+        "counterfactual": (
+            "the SAME world -- same payment outcomes, same clearing dates, same "
+            "bills -- observed by a company whose every credit carries its "
+            "invoice remittance reference, so `AccountLedger.allocate` never "
+            "falls back to oldest-first. `attributed` = actual minus that."
+        ),
+        "n_ambiguous_records": n_ambiguous_records,
+        "n_ambiguous_credits": n_ambiguous_credits,
+        "balance_gbp_actual": round(actual_balance_gbp, 2),
+        "balance_gbp_remittance_complete": round(counterfactual_balance_gbp, 2),
+        "balance_gbp_delta": balance_delta,
+        "measures": measures,
+        "vacuity": vacuity,
+        "premise_violated": premise_violated,
+        "normalisation": (
+            "NONE. Each figure is a difference in the measure's own units on the "
+            "measure's own denominator (D7's rule). There is deliberately no "
+            "'share of the total error' ratio: its denominator would count the "
+            "truth's class balance, which is the defect D7 exists to remove."
+        ),
+    }
+
+
+def format_remittance_attribution_summary(attribution: dict) -> str:
+    """Render the D8 attribution for a log line / published ledger note.
+
+    Same anti-decay mechanism as `format_ageing_summary` /
+    `format_detection_summary`: the numbers are INTERPOLATED from the
+    measurement, so a sentence cannot outlive the figure it describes, and the
+    undefined cases say so in words instead of printing a confident 0.0000."""
+    if attribution.get("premise_violated"):
+        return "ambiguous-remittance attribution NOT PUBLISHED -- " + attribution["premise_violated"]
+    if attribution.get("vacuity"):
+        return "ambiguous-remittance attribution UNDEFINED -- " + attribution["vacuity"]
+
+    def _fmt(key: str, unit: str) -> str:
+        m = attribution["measures"][key]
+        att = m["attributed"]
+        if att is None:
+            return f"{key} undefined (no such population)"
+        return (
+            f"{key} {m['actual']} vs {m['remittance_complete']} "
+            f"remittance-complete -> {att:+.4f} {unit} attributable"
+        )
+
+    return (
+        "AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): "
+        f"{attribution['n_ambiguous_credits']} credit(s) landed with no invoice "
+        f"reference out of {attribution['n_ambiguous_records']} unreferenced "
+        "record(s); the company's MONEY is unaffected by every penny "
+        f"(portfolio balance GBP {attribution['balance_gbp_actual']:.2f} both ways, "
+        f"delta {attribution['balance_gbp_delta']:+.2f}) while its DATES are not: "
+        + "; ".join((
+            _fmt("ageing.mean_bucket_displacement", "buckets"),
+            _fmt("ageing.overstated_arrears_rate", "wrongful-dunning rate"),
+            _fmt("ageing.understated_arrears_rate", "debt-believed-settled rate"),
+            _fmt("arrears_view.unpursued_arrears_rate", "wrongful-non-pursuit rate"),
+        ))
+        + ". Read as: what the no-remittance channel COSTS this company, holding "
+        "the world literally fixed. R12: a diagnostic, never a target."
+    )
+
+
 class LivePaymentTriad:
     """Accumulates the live coupled triad across one run_phase2b invocation.
 
@@ -126,6 +414,17 @@ class LivePaymentTriad:
             ledger_book=self._ledger_book,
             dd_failure_window_days=dd_failure_window_days,
         )
+        # THE D8 SHADOW COMPANY: identical construction, fed the identical
+        # observations with the invoice remittance reference restored. Never
+        # read by anything company-side -- it exists only so the harness can
+        # subtract one company from the other (module docstring).
+        self._cf_ledger_book = LedgerBook()
+        self._cf_consumer = PaymentObservationConsumer(
+            ledger_book=self._cf_ledger_book,
+            dd_failure_window_days=dd_failure_window_days,
+        )
+        self._n_ambiguous_records = 0
+        self._n_ambiguous_credits = 0
         self._records: List[PeriodRecord] = []
         # persistent per-customer method archetype cache (drawn once, C-S2)
         self._method_cache: dict = {}
@@ -180,7 +479,7 @@ class LivePaymentTriad:
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the
         # company's isolated ledger, never the run's main treasury ledger.
-        self._ledger_book.post(LedgerEvent(
+        bill = LedgerEvent(
             event_id=f"bill:{customer_id}:{period_index}",
             account_id=account_id,
             event_type=LedgerEventType.BILL_DEBIT,
@@ -188,7 +487,13 @@ class LivePaymentTriad:
             valid_time=issue_date,
             transaction_time=datetime.combine(issue_date, time(0, 0)),
             invoice_ref=invoice_ref,
-        ))
+        )
+        self._ledger_book.post(bill)
+        # The shadow company is billed IDENTICALLY (D8): the counterfactual is
+        # about what the company can attribute the CASH to, never about what it
+        # invoiced. Posting a different bill set here would make the two books
+        # incomparable in exactly the way the attribution guards look for.
+        self._cf_ledger_book.post(bill)
 
         # DD payments carry a period-specific remittance (correlation_id ==
         # invoice_ref -> remittance-directed allocation matches the invoice).
@@ -204,6 +509,31 @@ class LivePaymentTriad:
 
         for response in emit_wall_responses(event, seam_input):
             self._consumer.observe(response)
+
+        # ---- D8 counterfactual: the SAME event, remittance-complete --------
+        # `correlation_id` is what the adapter puts in `RemittanceAdvice.
+        # bank_reference`, and that reference is the ONLY thing standing between
+        # `AccountLedger.allocate`'s remittance-directed path and its
+        # oldest-first fallback. Re-emitting the identical event with the
+        # invoice reference restored therefore isolates exactly one variable.
+        # (Determinism: the adapter's lag draw is keyed on (customer_id,
+        # period_index) under its own substream, so this second emission returns
+        # the same dates -- proven, not assumed, by
+        # test_counterfactual_differs_only_in_the_reference.)
+        cf_correlation_id = _counterfactual_correlation_id(invoice_ref, correlation_id)
+        if correlation_id != invoice_ref:
+            self._n_ambiguous_records += 1
+            if event.result == "success":
+                # A credit that actually LANDED unattributable -- the only kind
+                # that can displace an allocation. An ambiguous reference on a
+                # payment that never arrived costs nothing, and counting it
+                # would inflate the population the finding rests on.
+                self._n_ambiguous_credits += 1
+        for cf_response in emit_wall_responses(
+            event,
+            SeamAdapterInput(account_id=account_id, correlation_id=cf_correlation_id),
+        ):
+            self._cf_consumer.observe(cf_response)
 
         self._records.append(PeriodRecord(
             customer_id=customer_id, period_index=period_index,
@@ -228,7 +558,49 @@ class LivePaymentTriad:
             return None
         if as_of is None:
             as_of = max(r.due_date for r in self._records) + timedelta(days=AS_OF_BUFFER_DAYS)
-        return score_triad(self._records, self._consumer, as_of)
+        result = score_triad(self._records, self._consumer, as_of)
+        result["remittance_attribution"] = self._attribute_remittance(result, as_of)
+        return result
+
+    def _attribute_remittance(self, actual: dict, as_of: date) -> dict:
+        """Score the SHADOW company through the SAME scorer and subtract (D8).
+
+        The scorer is `score_triad` itself, not a bespoke re-derivation: a second
+        implementation of the ageing/detection measures would be asserting a copy
+        against a copy, the tautology R15 names first and the one this repo has
+        already caught twice inside its own R15 tests. The TRUTH passed to both
+        calls is the identical `self._records` -- the world did not change, only
+        what the company could attribute the cash to."""
+        counterfactual = score_triad(self._records, self._cf_consumer, as_of)
+        a_unpursued = unpursued_arrears(
+            self._records, self._consumer, actual["sets"]["flagged"], as_of)
+        c_unpursued = unpursued_arrears(
+            self._records, self._cf_consumer, counterfactual["sets"]["flagged"], as_of)
+        attribution = attribute_to_ambiguous_remittance(
+            actual, counterfactual,
+            n_ambiguous_records=self._n_ambiguous_records,
+            n_ambiguous_credits=self._n_ambiguous_credits,
+            actual_balance_gbp=self._ledger_book.portfolio_balance_gbp(as_of),
+            counterfactual_balance_gbp=self._cf_ledger_book.portfolio_balance_gbp(as_of),
+            extra_measures={
+                "arrears_view.unpursued_arrears_rate": {
+                    "actual": a_unpursued["unpursued_arrears_rate"],
+                    "remittance_complete": c_unpursued["unpursued_arrears_rate"],
+                    "meaning": (
+                        "truly-failed invoices the company DETECTED and then "
+                        "stopped holding in its arrears view by as_of -- a real "
+                        "arrears case that disappears from the view that would "
+                        "have pursued it. The detection headline is EVER-FLAGGED "
+                        "(D11) and structurally cannot see this; it is measured "
+                        "here or nowhere."
+                    ),
+                },
+            },
+        )
+        attribution["unpursued_counts"] = {
+            "actual": a_unpursued, "remittance_complete": c_unpursued,
+        }
+        return attribution
 
     def measure_and_write(
         self,
@@ -291,9 +663,15 @@ class LivePaymentTriad:
             "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is "
             "RETIRED, not re-labelled. The three measures above each carry the "
             "denominator they are about; the displacement carries none at all]; "
-            "allocation honestly dropped (metric-shape mismatch). R12: diagnostic, "
-            "not a target."
+            "allocation honestly dropped (metric-shape mismatch). "
+            f"{format_remittance_attribution_summary(result['remittance_attribution'])} "
+            "R12: diagnostic, not a target."
         )
+        # The attribution travels as STRUCTURE too, not only as a sentence:
+        # components survive a caller replacing `note` (the D6 lesson -- both
+        # live callers do exactly that) and carry through to_ledger_entry ->
+        # coupled_gap_ledger.json -> the Proof door.
+        headline.components["remittance_attribution"] = result["remittance_attribution"]
         measured_at = datetime.now(timezone.utc).isoformat()
         write_gap_entry(
             WORLD_ATOM_ID, TWIN_ATOM_ID, headline,

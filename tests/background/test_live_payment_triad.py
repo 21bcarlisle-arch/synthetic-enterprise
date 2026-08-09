@@ -292,3 +292,237 @@ def test_live_over_flagging_decomposes_and_is_not_all_wrongful():
     assert (comp["truth_size"] + comp["n_negatives"] + comp["n_excluded"]
             == comp["universe_size"]), "the three populations must partition the universe"
     assert 0.0 < result["stats"]["false_flag_rate_over_truly_current"] < 1.0
+
+
+# ---------------------------------------------------------------------------
+# ATOM D8 -- the ambiguous-remittance counterfactual.
+#
+# The finding: unreferenced non-DD credits cross the seam with no invoice
+# reference, so allocation falls back oldest-first (Clayton's Case) and the
+# company's MONEY stays exactly right while its DATES do not. These tests hold
+# the attribution to the standard of a control that can fail (R15): a
+# counterfactual is the easiest thing in this repo to make un-failable, because
+# subtracting a company from itself always yields a tidy zero and subtracting a
+# DIFFERENT WORLD always yields an impressive number.
+# ---------------------------------------------------------------------------
+
+def test_d8_the_money_is_right_and_the_dates_are_not():
+    """The finding, as two numbers on the same population."""
+    attr = _build_triad().measure()["remittance_attribution"]
+
+    assert attr["n_ambiguous_credits"] > 0, (
+        "no ambiguous credit landed -- the channel this atom is about was never "
+        "exercised, so everything below would be vacuous"
+    )
+    assert attr["vacuity"] is None and attr["premise_violated"] is None
+
+    # THE MONEY. Not approximately: to the penny, both ways.
+    assert attr["balance_gbp_delta"] == 0.0
+    assert attr["balance_gbp_actual"] == attr["balance_gbp_remittance_complete"]
+
+    # THE DATES. The channel is the whole of the debt-date displacement on this
+    # population -- with remittance restored the company dates every overdue
+    # invoice exactly right.
+    disp = attr["measures"]["ageing.mean_bucket_displacement"]
+    assert disp["actual"] > 0.0
+    assert disp["remittance_complete"] == 0.0
+    assert disp["attributed"] == disp["actual"]
+
+
+def test_d8_the_counterfactual_discriminates_rather_than_charging_everything():
+    """A counterfactual that explained 100% of every measure would be a rubber
+    stamp. This one must leave a residual somewhere, because there IS a residual:
+    a truly-current invoice can also be believed overdue simply because the cash
+    has not arrived yet (detection LATENCY), which no remittance reference fixes."""
+    attr = _build_triad().measure()["remittance_attribution"]
+    over = attr["measures"]["ageing.overstated_arrears_rate"]
+
+    assert over["attributed"] > 0.0, "the channel contributes nothing at all -- re-derive"
+    assert over["remittance_complete"] > 0.0, (
+        "the counterfactual charges the ENTIRE wrongful-dunning exposure to the "
+        "remittance channel. Payment latency alone overstates arrears and no "
+        "invoice reference cures it, so a zero here means the shadow company is "
+        "not the same world"
+    )
+    assert over["attributed"] < over["actual"]
+
+
+def test_d8_wrongful_non_pursuit_is_measured_where_the_headline_cannot_see_it():
+    """D10 widened this atom: the same seam defect makes a REAL arrears case
+    vanish from the company's arrears view. D11 then made the detection headline
+    EVER-FLAGGED -- correctly, a detection is a fact about the day it happened --
+    which leaves that headline structurally blind to the company later UN-knowing
+    it. This asserts both halves: the headline cannot see it, and the atom's own
+    measure can."""
+    attr = _build_triad().measure()["remittance_attribution"]
+
+    headline = attr["measures"]["detection.missed_failure_rate"]
+    assert headline["attributed"] == 0.0, (
+        "the ever-flagged detection headline moved under the remittance "
+        "counterfactual -- if that is real, this test's premise (and D11's) needs "
+        "re-deriving; until then it is the reason the measure below has to exist"
+    )
+
+    unpursued = attr["measures"]["arrears_view.unpursued_arrears_rate"]
+    counts = attr["unpursued_counts"]["actual"]
+    assert counts["n_ever_detected"] > 0, "vacuous: nothing was ever detected"
+    assert counts["n_unpursued"] > 0, (
+        "no detected arrears case was lost again -- the mechanism D10 observed "
+        "case by case no longer reproduces"
+    )
+    assert unpursued["remittance_complete"] == 0.0, (
+        "restoring the remittance reference must eliminate wrongful non-pursuit "
+        "entirely: oldest-first fallback is the only thing that moves a credit "
+        "onto a failed invoice here"
+    )
+    assert unpursued["attributed"] == unpursued["actual"] > 0.0
+
+
+def test_d8_counterfactual_differs_from_the_actual_in_the_REFERENCE_ONLY():
+    """The load-bearing premise: the shadow company lives in the SAME world.
+
+    Asserted at the seam itself, field by field, rather than trusted. If the
+    second emission moved a clearing date or an ARUDD lag draw, every attributed
+    figure above would be charging the remittance channel for a different world."""
+    import dataclasses
+
+    from simulation.payment_behaviour_source import generate_payment_event
+    from simulation.payment_seam_adapter import SeamAdapterInput, emit_wall_responses
+
+    n_compared = 0
+    for i in range(60):
+        cid = f"RESI{i:05d}"
+        for p in range(3):
+            due = date(2020, p + 1, 28)
+            event = generate_payment_event(
+                cid, p, due, 120.0, "high", "standing_order", segment="resi")
+            actual = emit_wall_responses(event, SeamAdapterInput(
+                account_id=f"ACC-{cid}", correlation_id=f"{cid}::p{p}::ambiguous"))
+            shadow = emit_wall_responses(event, SeamAdapterInput(
+                account_id=f"ACC-{cid}", correlation_id=f"{cid}::{p}"))
+            assert len(actual) == len(shadow)
+            for a, s in zip(actual, shadow):
+                assert a.observed_at == s.observed_at, "the counterfactual moved a REPORT date"
+                assert a.valid_time == s.valid_time, "the counterfactual moved a VALUE date"
+                assert a.status == s.status
+                if a.payload is None:
+                    assert s.payload is None
+                    continue
+                a_fields = dataclasses.asdict(a.payload)
+                s_fields = dataclasses.asdict(s.payload)
+                differing = {k for k in a_fields if a_fields[k] != s_fields[k]}
+                assert differing <= {"bank_reference"}, (
+                    f"the counterfactual changed {differing - {'bank_reference'}} "
+                    "-- it may only change which invoice the cash says it pays"
+                )
+                n_compared += 1
+    assert n_compared > 0, "vacuous: no payload was ever compared"
+
+
+def test_R15_MUTANT_a_counterfactual_identical_to_the_actual_measures_nothing(monkeypatch):
+    """MUTATION: make the shadow company carry the SAME ambiguous reference --
+    i.e. no counterfactual at all. Every attributed figure must collapse to
+    exactly 0.0, and the assertions in the tests above must therefore fail.
+
+    This is the named defect the whole construct can die of: a counterfactual
+    that quietly stopped differing would publish 'the remittance channel costs
+    nothing' with total confidence and never fire."""
+    baseline = _build_triad().measure()["remittance_attribution"]
+    assert baseline["measures"]["ageing.mean_bucket_displacement"]["attributed"] > 0.0
+
+    monkeypatch.setattr(
+        lpt, "_counterfactual_correlation_id",
+        lambda invoice_ref, actual_correlation_id: actual_correlation_id,
+    )
+    mutated = _build_triad().measure()["remittance_attribution"]
+
+    # The population is untouched -- only the shadow's reference changed.
+    assert mutated["n_ambiguous_credits"] == baseline["n_ambiguous_credits"] > 0
+    for name, m in mutated["measures"].items():
+        assert m["attributed"] == 0.0, (
+            f"{name} still attributes {m['attributed']} to a channel the "
+            "counterfactual no longer removes"
+        )
+        assert m["actual"] == m["remittance_complete"], name
+
+
+def test_R15_MUTANT_a_shadow_fed_a_different_population_RAISES():
+    """MUTATION: the 'counterfactual' is scored over a different world.
+
+    The subtraction would then attribute the difference between two populations
+    to the remittance channel -- the most flattering possible error, and one no
+    reader of the published figure could detect. It must raise, not degrade: there
+    is no honest partial answer from two different worlds."""
+    triad = _build_triad()
+    actual = triad.measure()
+    shadow = _build_triad().measure()
+    shadow["stats"]["n_true_failures"] = actual["stats"]["n_true_failures"] + 1
+
+    with pytest.raises(ValueError, match="SAME WORLD"):
+        lpt.attribute_to_ambiguous_remittance(
+            actual, shadow,
+            n_ambiguous_records=10, n_ambiguous_credits=5,
+            actual_balance_gbp=100.0, counterfactual_balance_gbp=100.0,
+        )
+
+
+def test_R15_MUTANT_a_moved_balance_blanks_every_figure():
+    """MUTATION: the shadow portfolio's balance differs.
+
+    Re-allocating cash can never create or destroy any, so a non-zero delta means
+    the counterfactual changed something other than attributability -- and the
+    finding's own premise ('the balance is exactly right') is then false on this
+    population. Fail CLOSED: publish nothing, say why. Not fail-loud: this runs
+    inside a live run_phase2b and a diagnostic may not kill the run it measures."""
+    triad = _build_triad()
+    actual = triad.measure()
+    shadow = _build_triad().measure()
+
+    blanked = lpt.attribute_to_ambiguous_remittance(
+        actual, shadow,
+        n_ambiguous_records=264, n_ambiguous_credits=160,
+        actual_balance_gbp=56160.0, counterfactual_balance_gbp=56159.99,
+    )
+    assert blanked["premise_violated"] and "THE MONEY MOVED" in blanked["premise_violated"]
+    assert all(m["attributed"] is None for m in blanked["measures"].values())
+    assert "NOT PUBLISHED" in lpt.format_remittance_attribution_summary(blanked)
+
+
+def test_R15_MUTANT_an_unexercised_channel_reports_undefined_not_zero(monkeypatch):
+    """MUTATION: an all-Direct-Debit population. Every credit already carries its
+    invoice reference, so the shadow company IS the company and every delta is
+    trivially 0.0. Publishing 0.0 would claim the channel was measured and found
+    harmless. It must say undefined instead (the D7 vacuity rule)."""
+    monkeypatch.setattr(lpt, "generate_payment_method", lambda cid, fuel=None: "direct_debit")
+    attr = _build_triad().measure()["remittance_attribution"]
+
+    assert attr["n_ambiguous_credits"] == 0
+    assert attr["vacuity"] and "not a channel that costs nothing" in attr["vacuity"]
+    assert all(m["attributed"] is None for m in attr["measures"].values())
+    assert "UNDEFINED" in lpt.format_remittance_attribution_summary(attr)
+
+
+def test_d8_attribution_is_published_as_structure_and_as_a_sentence(tmp_path):
+    """R11-shaped: the finding is only reported if it reaches the surface a
+    reader sees. It travels twice -- in `components` (which survives a caller
+    replacing `note`, the D6 lesson) and interpolated into the note itself."""
+    triad = _build_triad()
+    ledger = tmp_path / "coupled_gap_ledger.json"
+    result = triad.measure_and_write(run_git_commit="0" * 40, ledger_path=ledger)
+
+    entry = result["detection"].components["remittance_attribution"]
+    assert entry["measures"]["ageing.mean_bucket_displacement"]["attributed"] > 0.0
+
+    note = result["detection"].note
+    assert "AMBIGUOUS-REMITTANCE ATTRIBUTION (D8" in note
+    disp = entry["measures"]["ageing.mean_bucket_displacement"]["attributed"]
+    assert f"{disp:+.4f} buckets attributable" in note, (
+        "the published sentence is not interpolated from the measurement -- a "
+        "typed-in number outlives the figure it describes"
+    )
+
+    import json
+    written = json.loads(ledger.read_text())
+    assert "AMBIGUOUS-REMITTANCE ATTRIBUTION" in json.dumps(written), (
+        "the attribution did not reach the ledger the Proof door reads"
+    )
