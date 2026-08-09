@@ -13,9 +13,14 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 
 from collections import defaultdict
 
+from company.interfaces.supply_book import registered_supply_points
 from saas.customer_reaction import score_experience_signals
-from saas.customers import CUSTOMERS
 from simulation.run_phase2b import main as run_phase2b
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 
 def _bill_shock_events(signals, year_prefixes):

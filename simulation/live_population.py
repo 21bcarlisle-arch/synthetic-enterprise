@@ -47,7 +47,12 @@ claim the whole pipeline is SYN-ready.
 import os
 from typing import List, Optional
 
-from saas.customers import CUSTOMERS
+from company.interfaces.supply_book import registered_supply_points
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 # Director-reserved activation flag (R13 curriculum). Default OFF.
 _ACTIVATION_ENV = "SE_DRAW_POPULATION"

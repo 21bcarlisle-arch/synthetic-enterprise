@@ -15,9 +15,9 @@ like against real historical wholesale data.
 from collections import defaultdict
 from datetime import date, timedelta
 
+from company.interfaces.supply_book import settlement_input as customer_to_settlement_input
 from saas.clv_seed import build_clv_seed
 from saas.customer_reaction import score_dissatisfaction
-from saas.customers import customer_to_settlement_input
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.profile_class_1 import load_pc1_shape

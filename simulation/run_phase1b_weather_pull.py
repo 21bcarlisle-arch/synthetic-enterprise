@@ -6,8 +6,13 @@ deliverable 3 ("store it, do not correlate yet").
 
 import os
 
-from saas.customers import CUSTOMERS
+from company.interfaces.supply_book import registered_supply_points
 from sim.weather_ingestor import get_daily_weather, write_weather_csv
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 PULL_START = "2016-01-01"
 PULL_END = "2025-06-07"

@@ -21,22 +21,33 @@ follow-up.
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 
 Phase 5b: this script is also the single entry point for the combined
-2b+4b+4c run output used by `saas/reporting/annual_report.py`. Rather than
+2b+4b+4c run output that the annual report is built from. Rather than
 have `run_phase4b_on_phase2b.py` call `run_phase2b()` a second time (a
 separate, non-deterministic ~100-minute run with different committee
 decisions), `main()` here runs Phase 2b once and feeds the same
 `all_records`/`CUSTOMERS` through the 4b customer-value builders
 (`cost_to_serve`, `churn_model`, `home_move_win_rate`, `enterprise_value`)
-as well as the 4c billing-experience builders. `--save-json` persists the
-reduced report data (via `saas.reporting.annual_report.extract_report_data`)
-to `docs/reports/run_output_latest.json` plus a versioned copy stamped with
-the current git commit and timestamp.
+as well as the 4c billing-experience builders.
+
+KNIFE pass 1 (2026-08-09): this module is a pure LIBRARY — it has no CLI and
+no `__main__` block. `main()` runs the pipeline and returns its output dict;
+persisting the reduced report data and writing the run markers is the job of
+`tools/run_phase4c_pipeline.py` (CLI: `python3 -m tools.run_phase4c_pipeline
+--save-json`), which sits above both layers. The lazy
+`saas.reporting.annual_report` import that used to live at the bottom of this
+file existed only to work around the import cycle that pass removed.
+
+SCOPE OF THAT CUT, stated precisely because the honest boundary matters: pass 1
+removed the ONE `saas.reporting` edge, which is the edge that closed the
+reporting import CYCLE. This module still imports 14 company-side packages
+directly (`saas.bill_generator`, `saas.customers`, `company.billing.*`, …) —
+they are class-(b) crossings in `LEGACY_SIM_READS_COMPANY` and remain the
+densest such source in the codebase. Paying those down is KNIFE passes 2 and 3,
+not this one. Do NOT read "pure library" as "wall-clean": it is cycle-free and
+composition-free, nothing more.
 """
 
-import json
-import subprocess
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime
 
 import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
@@ -60,7 +71,12 @@ from saas.bill_generator import (
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
-from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS, get_customer
+from company.interfaces.supply_book import (
+    acquired_supply_points,
+    registered_point as get_customer,
+    registered_supply_points,
+    successor_supply_points,
+)
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
 from saas.ledger import build_ledger, derive_pnl, ledger_summary, make_cost_to_serve_event
@@ -83,6 +99,13 @@ from simulation.run_phase2b import main as run_phase2b
 from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
 
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+ACQUIRED_CUSTOMERS = acquired_supply_points()
+CUSTOMERS = registered_supply_points()
+SUCCESSOR_CUSTOMERS = successor_supply_points()
+
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
 
 
@@ -94,8 +117,9 @@ def _get_all_customers() -> list[dict]:
     """
     return CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
 
-RUN_OUTPUT_LATEST_PATH = Path("docs/reports/run_output_latest.json")
-RUN_OUTPUT_VERSIONED_DIR = Path("docs/reports")
+# `RUN_OUTPUT_LATEST_PATH` / `RUN_OUTPUT_VERSIONED_DIR` moved to
+# `tools/run_annual_report.py` with `save_run_output_json()` — where a run's
+# REPORT data is persisted is a reporting concern, not the run module's.
 
 
 def _billing_month(settlement_date: str) -> str:
@@ -788,95 +812,11 @@ def main(report_end: str | None = None, policy=None):
     }
 
 
-def _git_commit_hash() -> str:
-    try:
-        return subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
-    except Exception:
-        return "unknown"
-
-
-def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
-    """Reduce `run_output` via `annual_report.extract_report_data()` and
-    persist it to `docs/reports/run_output_latest.json` plus a versioned
-    copy stamped with the current git commit hash and UTC timestamp.
-
-    Returns (latest_path, versioned_path). Imported lazily to avoid a
-    circular import (`annual_report` imports `main` from this module).
-    """
-    from saas.reporting.annual_report import extract_report_data
-
-    data = extract_report_data(run_output)
-    commit_hash = _git_commit_hash()
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    data["_cache_meta"] = {
-        "git_commit": commit_hash,
-        "generated_at_utc": timestamp,
-    }
-
-    RUN_OUTPUT_VERSIONED_DIR.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(data, indent=2)
-
-    RUN_OUTPUT_LATEST_PATH.write_text(payload)
-    versioned_path = RUN_OUTPUT_VERSIONED_DIR / f"run_output_{commit_hash}_{timestamp}.json"
-    versioned_path.write_text(payload)
-
-    return RUN_OUTPUT_LATEST_PATH, versioned_path
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Run the combined Phase 2b+4b+4c pipeline")
-    parser.add_argument(
-        "--save-json", action="store_true",
-        help="Persist the reduced report data to docs/reports/run_output_latest.json "
-        "plus a versioned copy stamped with the git commit hash and timestamp",
-    )
-    args = parser.parse_args()
-
-    _staging_dir = Path("docs/staging")
-    _staging_dir.mkdir(parents=True, exist_ok=True)
-    _run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    _pending_marker = _staging_dir / f"run_pending_{_run_ts}.md"
-    _pending_marker.write_text(
-        f"# Run in progress — action required on completion\n\n"
-        f"Started: {_run_ts}\n\n"
-        "When this run finishes: regenerate the annual report (`make report` or "
-        "`python3 -m saas.reporting.annual_report --from-json docs/reports/run_output_latest.json`), "
-        "update LATEST.md with key figures, commit, push to GitHub, and send NTFY digest.\n\n"
-        "Delete this file once done.\n"
-    )
-
-    try:
-        output = main()
-
-        if args.save_json:
-            latest_path, versioned_path = save_run_output_json(output)
-            print(f"\nSaved report data to {latest_path} and {versioned_path}")
-
-        # Write a completion marker so the next session knows results are ready to publish
-        _complete_marker = _staging_dir / f"run_complete_{_run_ts}.md"
-        _complete_marker.write_text(
-            f"# Run complete — publish results\n\n"
-            f"Completed: {datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}\n"
-            f"Output: {latest_path if args.save_json else 'not saved (no --save-json)'}\n\n"
-            "Action: regenerate annual report, update LATEST.md, commit, push, send NTFY.\n\n"
-            "Delete this file once done.\n"
-        )
-        _pending_marker.unlink(missing_ok=True)
-
-    except Exception as exc:
-        import traceback
-
-        from background.ntfy_utils import send_ntfy
-        err_summary = f"{type(exc).__name__}: {exc}"
-        send_ntfy(
-            f"Run FAILED at save/extract step: {err_summary}\n"
-            "Sim itself may have completed — check phase*_run.log",
-            headers={"X-Priority": "5", "X-Tags": "rotating_light"},
-        )
-        traceback.print_exc()
-        raise
+# `_git_commit_hash()`, `save_run_output_json()` and the `--save-json` CLI that
+# used to live here moved to `tools/run_annual_report.py` and
+# `tools/run_phase4c_pipeline.py` (KNIFE pass 1, 2026-08-09). Reducing this
+# module's output through `saas.reporting.annual_report.extract_report_data`
+# was the return edge that closed the reporting import cycle; a composition of
+# the two layers belongs above both of them, not inside the run module. This
+# module is now a pure library — `main()` runs the pipeline and returns its
+# output dict.

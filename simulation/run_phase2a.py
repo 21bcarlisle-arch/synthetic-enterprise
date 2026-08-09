@@ -43,7 +43,12 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
-from saas.customers import CUSTOMERS, get_customer
+from company.interfaces.supply_book import (
+    registered_point as get_customer,
+)
+from company.interfaces.supply_book import (
+    registered_supply_points,
+)
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.hedging_strategy import evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
@@ -55,6 +60,11 @@ from simulation.hedged_settlement import run_hedged_term
 from simulation.portfolio_pnl import build_portfolio_pnl
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"

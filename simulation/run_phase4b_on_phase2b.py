@@ -19,11 +19,16 @@ neutral baseline.
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+from company.interfaces.supply_book import registered_supply_points
 from saas.churn_model import build_churn_risk
 from saas.cost_to_serve import build_cost_to_serve
-from saas.customers import CUSTOMERS
 from saas.enterprise_value import build_enterprise_value
 from simulation.run_phase2b import main as run_phase2b
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 PRICE_DIFFERENTIAL_PCT = 0.0
 

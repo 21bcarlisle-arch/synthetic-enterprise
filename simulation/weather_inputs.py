@@ -15,7 +15,12 @@ This module is pure I/O plus small pure helpers: no settlement logic.
 import csv
 from datetime import date, timedelta
 
-from saas.customers import CUSTOMERS
+from company.interfaces.supply_book import registered_supply_points
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+CUSTOMERS = registered_supply_points()
 
 WEATHER_DATA_DIR = "sim/weather_data"
 

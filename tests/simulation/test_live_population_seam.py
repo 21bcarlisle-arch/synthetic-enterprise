@@ -9,6 +9,7 @@ activation reverts exactly to the static book (mutation both-ways), and that
 the epistemic wall holds (the drawn ground-truth `cohort` never surfaces).
 """
 
+import ast
 import dataclasses
 import importlib
 
@@ -17,6 +18,11 @@ import pytest
 from saas.customers import CUSTOMERS
 from simulation import live_population as lp
 from simulation.population_draw import Cohort
+
+# The sanctioned crossing package, taken from the ratchet that DEFINES it rather
+# than re-declared here -- two copies of a wall constant drift, and the drifting
+# copy is always the one nobody is looking at.
+from tests.architecture.test_epistemic_wall_ratchet import SEAM_PACKAGE
 
 # Cohort dataclass fields that are DELIBERATELY OBSERVABLE (carried in the saas
 # dict / public at enrolment): `region` is a public observable, `customer_id` is
@@ -234,11 +240,94 @@ def test_to_customer_dict_never_emits_a_hidden_cohort_field():
         assert not leaked, f"to_customer_dict leaked hidden cohort field(s): {leaked}"
 
 
-def test_seam_module_does_not_import_company():
-    """Wall hygiene: the seam bridges sim<->saas only; it must not import any
-    company logic (that would be a discovery-side read of a supply-side book)."""
+def _company_imports_in(source: str) -> set:
+    """Every `company.*` module imported by `source`, extracted by AST.
+
+    AST, not a substring scan: the previous form asserted `"from company" not in
+    text`, which is the one-syntactic-form class -- it read the DOCSTRING as well
+    as the code, missed `importlib.import_module("company...")` entirely, and
+    could not tell the sanctioned seam package from company decisioning logic.
+
+    Takes SOURCE, not the module path, so the extractor can be proven non-vacuous
+    against a fixture. Deriving that proof from the live module instead would make
+    it a vacuity guard that requires a LIVE DEBT: it would demand the seam keep
+    importing `supply_book` forever and would fire falsely the day a later pass
+    legitimately removes that import.
+    """
+    tree = ast.parse(source)
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            found.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            found.add(node.module)
+    return {m for m in found if m == "company" or m.startswith("company.")}
+
+
+def _seam_module_source() -> str:
     src = importlib.util.find_spec("simulation.live_population").origin
     with open(src, "r", encoding="utf-8") as fh:
-        text = fh.read()
-    assert "import company" not in text
-    assert "from company" not in text
+        return fh.read()
+
+
+def _company_logic_offenders(modules) -> set:
+    """The company imports that are NOT the sanctioned crossing surface."""
+    return {m for m in modules
+            if not (m == SEAM_PACKAGE or m.startswith(SEAM_PACKAGE + "."))}
+
+
+def test_seam_module_imports_company_only_through_the_sanctioned_seam():
+    """Wall hygiene: the seam must not import company LOGIC -- a discovery-side
+    read of a supply-side book.
+
+    It MAY import `company.interfaces.*`. That package is the declared crossing
+    surface in either direction (`tests/architecture/test_epistemic_wall_ratchet.py`
+    ::SEAM_PACKAGE), and KNIFE pass 2 deliberately routed sixteen `simulation/`
+    roster reads through `company.interfaces.supply_book` to replace sixteen
+    undeclared `from saas.customers import CUSTOMERS` crossings. Forbidding it
+    here would have forbidden the very surface the wall sanctions -- which is
+    exactly what wedged the publish gate on 2026-08-09.
+    """
+    offenders = _company_logic_offenders(_company_imports_in(_seam_module_source()))
+    assert not offenders, (
+        "simulation/live_population.py imports company logic outside the "
+        f"sanctioned seam `{SEAM_PACKAGE}`: {sorted(offenders)}"
+    )
+
+
+def test_the_company_import_guard_can_fail():
+    """R15 both-ways: the guard above is only evidence if it FIRES on its own
+    named defect. Proven on FIXTURE sources, so the proof stays valid however the
+    real seam's imports later change.
+
+    The extractor half matters as much as the predicate half: the assertion this
+    replaced was a substring scan, which the module's own docstring could satisfy.
+    """
+    # 1. EXTRACTOR: it sees real imports in both syntactic forms, and is not
+    #    fooled by the word "company" appearing in prose.
+    assert _company_imports_in(
+        '"""A docstring that says: from company.analytics import everything."""\n'
+        "import os\n"
+    ) == set(), "prose mentioning an import must not count as one"
+    assert _company_imports_in("import company.analytics.cohort_discovery\n") == {
+        "company.analytics.cohort_discovery"
+    }
+    assert _company_imports_in(
+        "from company.interfaces.supply_book import registered_supply_points\n"
+    ) == {"company.interfaces.supply_book"}
+
+    # 2. PREDICATE: company LOGIC is rejected, the sanctioned crossing survives.
+    assert _company_logic_offenders({"company.analytics.cohort_discovery"}) == {
+        "company.analytics.cohort_discovery"
+    }
+    assert _company_logic_offenders({"company"}) == {"company"}
+    assert _company_logic_offenders({"company.interfaces.supply_book"}) == set()
+
+    # 3. COMPOSED, on a source that is a real defect: the guard fires end-to-end.
+    defect = (
+        "from company.interfaces.supply_book import registered_supply_points\n"
+        "import company.analytics.cohort_discovery\n"
+    )
+    assert _company_logic_offenders(_company_imports_in(defect)) == {
+        "company.analytics.cohort_discovery"
+    }

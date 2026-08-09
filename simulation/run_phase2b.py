@@ -28,12 +28,12 @@ from company.pricing.tariff_engine import (
     compute_portfolio_premium,
 )
 from saas.customer_reaction import _billing_account_id
-from saas.customers import (
-    ACQUIRED_CUSTOMERS,
-    CUSTOMERS,
-    SUCCESSOR_CUSTOMERS,
-    get_customer,
-    make_acquired_customer,
+from company.interfaces.supply_book import (
+    acquired_supply_points,
+    register_acquired_point as make_acquired_customer,
+    registered_point as get_customer,
+    registered_supply_points,
+    successor_supply_points,
 )
 from saas.growth_mandate import (
     COST_PER_ACQUISITION,
@@ -156,6 +156,13 @@ from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.household_demand import HouseholdDemandRegister
+
+# The supply book, bound once at import: the seam hands back the LIVE roster
+# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
+# to the acquired book is visible here exactly as it was before KNIFE pass 2.
+ACQUIRED_CUSTOMERS = acquired_supply_points()
+CUSTOMERS = registered_supply_points()
+SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
