@@ -1,5 +1,39 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T06:40:01Z
+Last updated: 2026-08-09T09:32:32Z
+**H27_payment_belief_gap — Expert Hour #2 ran on the corrected instrument, as the last release
+demanded. Held at L2 again, and this time the reason is that the instrument publishes ONE named
+quantity as TWO different numbers.**
+"The wrongful-dunning exposure" prints **twice in one output block** — detection's `false_flag_rate`
+**0.0269** (21 of 782) and ageing's `overstated_arrears_rate` **0.0951** (101 of 1062), 3.5× apart —
+while `background/gap_metric.py` asserted in prose that they were "literally the same numerator".
+**Measured case by case, they share SEVEN cases.**
+**Why, and it is not arbitrary.** The denominators sit in exact containment (`1062 == 782 + 280`):
+D11 established that a payment arriving past its grace date really *was* unpaid past grace, so the
+flag was **correct**, and applied that exclusion to the **detection dimension only**. **94 of
+ageing's 101 land inside the excluded band** — 93% of one dimension's published exposure is composed
+of cases the sibling dimension of the same instrument holds the company was **right** about.
+Reproduced at seeds 7/11/23 and two grace windows.
+**Second finding — the sibling publish path was left behind, again.** The CLI `--write-ledger` branch
+still overwrote the measured note with the **refuted** "fraction of true payment failures the company
+never observes — the no-remittance blind spot" sentence, into the **same bare ledger key** the Proof
+door reads. The live path was corrected on 2026-08-09; this one was left behind **and had no test at
+all**. It now appends rather than clobbers, under the test it never had.
+**R10 class closure.** `SHARED_QUANTITY_CONTRACT` — lifted into its own module, because a class
+register living inside the one triad that tripped the defect is how the previous ones ended up
+triad-local — plus a control that derives both sides from the **two scorers' own components** (no
+recomputation), measures the containment **across seeds and grace windows**, requires an undeclared
+divergence to **name an owning atom**, and sweeps the **rendered** summaries so an unregistered
+publisher fails. R15 both ways: two register lies, a de-registered emitter, and a missing dimension
+**raises**. The containment is declared **exact** so that D16 landing *breaks its own declaration*.
+**R12:** no published number moved — detection balanced error stays **0.0134**, ageing unchanged.
+**The queue did not shrink.** `depends_on → D16_ageing_negative_population_is_unexcluded` (minted);
+D16 is drawable and the draw points at it, verified against `supervisor`'s own `_dependencies_met`.
+**Method note.** The first version of the CLI test banned the substring `"never observes"` — and
+**failed on the honest sentence that negates it**. It now tests the claim, not the words.
+**Evidence.** 55 tests in `test_couple_w2_11_d5.py`; 106 across the triad, `gap_metric` and
+live-triad suites; **2,147 passed / 4 skipped / 2 xfailed** across `tests/tools`; ruff on the touched
+files **7 → 5** vs a pristine HEAD extract (zero added).
+
 **FUT3_blocked_atom_visibility — L0→L2, self-certified. The ruling said blocked atoms stay
 visible to the deltas and the clocks. One of those two readers does not read the map at all —
 and the property it was supposed to carry is now the thing that proves the mint was not a no-op.**
@@ -1267,7 +1301,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1382,6 +1416,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1741.3h across 73 sized atom(s) (13 of 86 below-target atoms still unsized).
+- Remaining effort: ~1864.2h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
