@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-08-08 from current codebase.
+Last seeded: 2026-08-09 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -91,16 +91,30 @@ both in sync when either changes.
 
 | Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
 |---|---|---|---|---|---|
-| EPC band distribution (England 2022) | Not yet modelled in household.py | A/B 3.3%, C 44.8%, D 42.6%, E 6.8%, F 2.1%, G 0.5% | EHS 2022-23 Energy Chapter AT1_2 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
-| Property type distribution (England 2022) | Not yet modelled | Terraced 29%, semi-detached 25%, detached 17%, flat 21%, bungalow 8% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
-| Build era distribution (England 2022) | Not yet modelled | Pre-1919 20%, 1919-44 15%, 1945-64 18%, 1965-80 19%, 1981-90 7%, post-1990 21% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-06-27 | Gap — household.py not yet built |
-| Heating system: gas boiler % | Not modelled at property level | ~86% of homes gas-fired; heat pump ~0.8% (2022) rising to ~2% (2025) | EHS 2023-24 Low Carbon Tech AT4; EHS 2022-23 AT3_1 | 2026-06-27 | Gap — household.py not yet built |
+| EPC band distribution (England 2022) | `simulation/premise_population.py::PUBLISHED_EPC_BAND_SHARE`, drawn from a joint RAKED onto this marginal | A/B 3.3%, C 44.8%, D 42.6%, E 6.8%, F 2.1%, G 0.5% | EHS 2022-23 Energy Chapter AT1_2 (MHCLG, July 2024) | 2026-08-09 | ✓ OK — recovered to 0.10pp at n=20,000 (`test_published_marginals_are_recovered`). NOTE the published bands sum to 100.1%; the rounding is normalised EXPLICITLY and anything worse than rounding raises |
+| Property type distribution (England 2022) | `simulation/premise_population.py::PUBLISHED_PROPERTY_TYPE_SHARE` | Terraced 29%, semi-detached 25%, detached 17%, flat 21%, bungalow 8% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-08-09 | ⚠ Modelled with a DECLARED distortion — `PropertyType` has no BUNGALOW member, so bungalow 8% is folded into detached (nearest thermal signature). The drawn detached share is therefore 25% against a published 17% |
+| Build era distribution (England 2022) | `simulation/premise_population.py::PUBLISHED_BUILD_ERA_SHARE` | Pre-1919 20%, 1919-44 15%, 1945-64 18%, 1965-80 19%, 1981-90 7%, post-1990 21% | EHS 2022-23 AT1_5 (MHCLG, July 2024) | 2026-08-09 | ⚠ Modelled; the sim's era enum splits at 2000 and EHS at 1990, so the published post-1990 21% is split 30/70. ONLY THE SUM IS ANCHORED — the split is unpublished and the marginal control cannot validate it |
+| Heating system: gas boiler % | `simulation/premise_population.py::published_heating_weights()` | ~86% of homes gas-fired; heat pump ~0.8% (2022) rising to ~2% (2025) | EHS 2023-24 Low Carbon Tech AT4; EHS 2022-23 AT3_1 | 2026-08-09 | ⚠ Modelled over the REPRESENTABLE stock only — district heat (~2%) and oil/LPG (~3.2%) are EXCLUDED and renormalised away, not folded into gas (an oil-heated home has no gas meter to read). Combi/system 70:30 split is unanchored |
 | Solar PV penetration | Phase 50 smart_meter model only | 3.0% (2016) → 5.7% (2025) of UK households | DESNZ Solar PV Deployment April 2026, Table 1 cumulative count | 2026-06-27 | Gap — EHS 2023-24 confirms 5.9% (2023-24) |
-| EV adoption (resi) | Not modelled at property level | ~0.3% (2016) → ~7% (2025) of UK households | DfT licensed ULEV data; EHS 2023-24 AT3 (7.4% by 2023-24) | 2026-06-27 | Gap — household.py not yet built |
+| EV adoption (resi) | Not modelled at property level | ~0.3% (2016) → ~7% (2025) of UK households | DfT licensed ULEV data; EHS 2023-24 AT3 (7.4% by 2023-24) | 2026-06-27 | Gap — not drawn at PREMISE level (simulation/household.py exists; this attribute is not among the drawn dimensions) |
 | Smart meter penetration (resi elec) | Phase 50: 10% (2016) → 75% (2025) | DESNZ: 10.6% (2016) → 68.9% (2024) → est. 72-75% (2025) | DESNZ Q4 2024 Smart Meters Stats Table 5a | 2026-06-27 | ✓ OK — Phase 50 model well-calibrated |
-| EPC D vs C consumption uplift | Not modelled at property level | Metered: D uses ~20-30% more electricity, ~30-40% more gas than band C (same property type) | EHS 2022-23 AT1_6 (modelled cost: D +44% vs A/B/C avg); adjusted for prebound effect | 2026-06-27 | Gap — household.py not yet built |
-| Loft insulation rate | Not modelled at property level | ~67% of loft-eligible homes insulated (~58% of all homes) | DESNZ HEE Dec 2024; EHS AT_4_10 | 2026-06-27 | Gap — household.py not yet built |
-| Cavity wall insulation rate | Not modelled at property level | ~63% of cavity-eligible homes insulated (~38-40% of all homes) | DESNZ HEE Dec 2024 cumulative ECO installs + pre-ECO stock | 2026-06-27 | Gap — household.py not yet built |
+| EPC D vs C consumption uplift | Not modelled at property level | Metered: D uses ~20-30% more electricity, ~30-40% more gas than band C (same property type) | EHS 2022-23 AT1_6 (modelled cost: D +44% vs A/B/C avg); adjusted for prebound effect | 2026-06-27 | Gap — not drawn at PREMISE level (simulation/household.py exists; this attribute is not among the drawn dimensions) |
+| Loft insulation rate | Not modelled at property level | ~67% of loft-eligible homes insulated (~58% of all homes) | DESNZ HEE Dec 2024; EHS AT_4_10 | 2026-06-27 | Gap — not drawn at PREMISE level (simulation/household.py exists; this attribute is not among the drawn dimensions) |
+| Cavity wall insulation rate | Not modelled at property level | ~63% of cavity-eligible homes insulated (~38-40% of all homes) | DESNZ HEE Dec 2024 cumulative ECO installs + pre-ECO stock | 2026-06-27 | Gap — not drawn at PREMISE level (simulation/household.py exists; this attribute is not among the drawn dimensions) |
+
+## Stock-Representative Premise Population — the anchors and the ORACLE (2026-08-09, C14 L2→L3)
+
+The four rows above are the *marginals* the drawn joint is raked onto. Two further
+anchors do work the marginals cannot, and one of them is deliberately NOT a fitting
+target.
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| **EPC band × build era (the JOINT)** — used as an ORACLE, never a raking target | `simulation/premise_population.py::OLD_STOCK_MIN_SHARE_IN_BANDS_D_TO_G = 0.680`; the fitted joint measures **0.794**, the independent product of the same three marginals measures **0.520** | Pre-1930 dwellings: median EPC score 59 (band E) in England; **>80% rated in bands D-G**. Post-2011: median 84 (band B), 84% in band B | ONS, "Energy efficiency of housing in England and Wales: 2023", published 1 Nov 2023, coverage Apr 2013 – Mar 2023 (fetched 2026-08-09) | 2026-08-09 | ✓ OK — the bar is the published 0.80 diluted for the sim's wider era band (pre-1945, not pre-1930) under the most extreme admissible dilution, using only published numbers: 0.571×0.80 + 0.429×0.520 = 0.680. **The tilt magnitudes were not adjusted after the 0.794 was measured** |
+| EPC band × property type (direction only) | `_EPC_TILT_BY_PROPERTY_TYPE` — flats tilted toward better bands | Flats/maisonettes median EPC score 73 (band C); semi-detached lowest in England at 65 (band D) | ONS, same publication | 2026-08-09 | ⚠ DIRECTION anchored, MAGNITUDE not. Raking makes the magnitude matter only to the joint, never to the marginals |
+| EPC register coverage (certificate ABSENCE) | `EPC_COVERAGE_SHARE = 0.60`; ~40% of drawn premises have no certificate and fall back to a stock prior `is_actionable` refuses | ~60% of stock holds a certificate, biased toward transacting properties, up to 10 years stale | `docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md` (observed-in-report) | 2026-08-09 | ✓ OK — modelled. Lodgement dates drawn UNIFORMLY over the 10-year validity window, which OVERSTATES staleness (real lodgement is transaction-skewed recent); it is therefore not a flattering choice |
+| Daily-read share at the 2022 measurement window | `smart_read_share(2022) = 48.9%` → 48.9% daily / 25.6% monthly / 25.6% quarterly | Domestic smart penetration 10.6% (2016) → 68.9% (2024); ~90% of installed smart meters in smart mode | DESNZ Q4 2024 Smart Meters Statistics Table 5a (both already anchored in this document) | 2026-08-09 | ⚠ Derived by LINEAR INTERPOLATION between two anchored endpoints, stated as such. Clamped outside the anchored range rather than extrapolated. The monthly/quarterly split of the non-smart estate is unanchored |
+| Bedrooms by property type | `_BEDROOM_WEIGHTS_BY_PROPERTY_TYPE` | **NOT FOUND** — two searches found no published stock-wide bedroom marginal | — | 2026-08-09 | ❌ UNANCHORED PLACEHOLDER (R10), and it matters: bedrooms drive `fabric_physics.floor_area_m2`, which scales the heat-loss coefficient nearly linearly, so the LEVEL of every HLC figure measured on this population rests on an unpublished table. The RANKING between premises is far more robust to it |
 
 ## Heat-Pump Home Electricity Share — the L1.1 texture band anchor (2026-08-09, W1_12 DISCOVER)
 

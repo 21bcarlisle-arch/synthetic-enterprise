@@ -1,62 +1,71 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T02:54:07Z
-**C14_thermal_parameter_inference — the fabric belief now SPENDS MONEY, and the decision metric
-could not previously report a loss. Half the L2→L3 step built; LEVEL DELIBERATELY NOT MOVED.**
-This atom's own L2 record named two exit conditions: wire the belief into a live decision path, and
-measure the gap on the **population** rather than a hand-picked panel. The first is done. The second
-is not — the panel is 10 authored premises — so the level stays at **2** and the exit test is not
-renegotiated to fit what got built.
-**The defect, found by probing numbers rather than by review.** The only decision function the
-fabric triad had lived in the *harness that scores it*, and its choice set had **no do-nothing
-option**. A 0.08 kW/K flat using 4,000 kWh/yr at 7.4 p/kWh was recommended `time_shift` at a lifetime
-net value of **−£41** — spend £300 to save £259 — and the metric scored it as a **perfect decision**,
-because the truth arm picked the same value-destroying measure. A choice set that cannot say
-*"nothing here is worth doing"* cannot report the loss, and `money_consequence_inferred` had been
-sitting at `misrank 0.0, forgone £0.00` reading as good news.
-**What was built.** `company/pricing/fabric_intervention.py` — the first thing in this codebase that
-spends money on a thermal belief. It reads the two C14 properties that until now were computed by
-nothing and read by nobody: `is_actionable` (refuses a stock prior however tight its band) and
-`interval_95` (refuses a winner that dies at the pessimistic end of the company's *own* uncertainty).
-The harness now calls the company's rule **twice** — once on the belief, once on the SIM truth only
-it can see — same rule, same catalogue, so the only difference between the arms is the belief.
-**The wall forced a better model.** The harness had made the belief matter by scaling the company's
-demand estimate by `belief / truth`, which cannot live in company code even in principle because it
-needs the truth. The company instead attributes part of its own bill to fabric (`HLC × degree days ×
-24`, capped at the bill, at the 15.5 °C published UK base), so insulation saves a share of the
-**fabric** portion, never of the bill — more physical, and consequential without contrivance.
-**The measurement disagrees with itself, and both halves are published.** The C14 posterior is
-**worse** than the register at predicting fabric (gap **0.2325** vs **0.2049**, improvement −0.0277)
-and **better** at deciding what to do about it — **£16,261 forgone against £41,586, a 61% reduction**
-— because narrowing the uncertainty converts refusals into correct actions. Reporting either number
-alone would be a lie in one direction or the other. Three outcomes are now counted separately
-(bought-wrong, declined-where-value-existed, value-destroying) because they cost different things and
-a metric counting only wrong purchases scores a company that never acts as flawless. Both new
-counters are R15-proven to fire — a counter only ever observed at zero cannot be told from one that
-cannot count.
-**Three weaker-than-they-read controls corrected in passing.** (1) The carbon-invariance test guarded
-on the *count* of misranked premises, not on *which* — two flipping opposite ways keeps the count and
-changes every kWh, which is exactly what happened; it now asserts the decision **vector**, computed
-independently of the metric it checks. (2) *"The money consequence scales **linearly** with the unit
-rate"* was **false** — capex does not move with price and does not cancel, so the relationship is
-**affine**; doc, printout and test all now say so. (3) The decision fixtures were priced at 25 p/kWh,
-an *electricity* rate at which the heat pump wins on delivered efficiency whatever the fabric — a
-belief 85% low cost exactly nothing and every fabric test below it was vacuous. That saturation is
-now its own standing test, in both directions.
-**R15 found something the design had not.** Guards 2 and 3 **overlap**: a winner negative at the
-estimate is negative at the pessimistic bound too, so removing the do-nothing option does *not*
-resurrect the loss-making sale, and a mutation test asserting it would have been simply false.
-Recorded rather than tidied — **"the outcome did not change under mutation" is not evidence a guard
-is inert** — and each guard is instead shown firing *alone*, on an input the other cannot refuse.
-**Evidence.** 871 passed, 3 xfailed (`tests/company/pricing` incl. 34 new, `test_premise_two_level`
-96, `test_couple_fabric`, `test_premise_trace`); `epistemic_verifier` **PASS**; wall ratchet 12
-passed; ledger rewritten at HEAD by `tools/couple_fabric.py --write-ledger`.
-**What L3 still needs, now precisely located.** The population. The panel's composition was *chosen*
-to span the stock, so no result on it separates the company's skill from the panel designer's taste.
-The anchors already exist in `ASSUMPTIONS.md` (EHS 2022-23 AT1_5 property-type and build-era, AT1_2
-EPC bands, AT3_1/AT4 heating systems — all four rows still marked *"Gap — household.py not yet
-built"*). `simulation/population_draw.py` cannot serve: `SyntheticCustomer` carries no
-`home_type`/`epc_rating`/`bedrooms`, so `make_household` defaults every draw to the same
-`suburban_semi` and the population would be clones.
+Last updated: 2026-08-09T03:13:00Z
+**C14_thermal_parameter_inference — L2→L3, self-certified. The exit test was the POPULATION, and
+the population changed the answer: both headline numbers from twelve hours ago were artefacts of a
+panel somebody chose.**
+Last tick built the *decision* half of this step and deliberately refused the level, because the atom's
+own L2 record named two exit conditions and only one was met. The second — measure the gap on a
+population rather than a hand-picked panel — is now met, so the level moves.
+**The recorded blocker was real, and it is now pinned as an executable fact rather than a sentence.**
+`SyntheticCustomer` carries no `home_type`/`epc_rating`/`bedrooms`, so `make_household` defaults every
+draw to the same `suburban_semi`: `test_the_recorded_clone_defect_is_what_this_draw_replaces` asserts
+that 200 such records occupy **exactly one cell**. That is a worse instrument than the panel, not a
+better one, which is why the population had to be built rather than borrowed.
+**How the population is composed, and which part is anchored.** Three published EHS marginals exist
+(property type AT1_5, build era AT1_5, EPC band AT1_2); the **joint does not**, and crossing them
+independently puts post-2000 detached houses in band G. So a seed joint is formed from *directional*
+tilts — older stock rates worse, flats better than houses of the same age, both directions published
+and neither magnitude — then **raked** onto all three marginals, which confines the unanchored
+magnitudes to the joint and never lets them touch the marginals. Recovered to **0.10pp at n=20,000**.
+**The control that can fail is not the marginal one.** Raking to marginals is free to destroy a
+conditional, so the ONS 2023 statement (*pre-1930 dwellings: >80% in bands D–G, median score 59*) is
+held out as an **oracle** and never fitted. The bar is **0.680** — the published 0.80 diluted for the
+sim's wider pre-1945 era band under the most extreme admissible dilution, using published numbers
+only. The fitted joint measures **0.794**; the *independent product of the same three marginals*
+measures **0.520** and fails by 16 points, which is what makes it a test rather than a formality. The
+tilt magnitudes were not adjusted after 0.794 was known, and the source says so next to the constant.
+**Published shares do not sum to 1, and that is not a rounding detail.** EHS AT1_2's EPC bands sum to
+**100.1%**; three mutually inconsistent margins have no joint fitting all three, and IPF cycles
+forever rather than converging — observed on the first run at a 2.9e-4 residual. Normalisation is now
+explicit and **bounded**: anything further from 1 than publication rounding **raises**, so a wrong
+share cannot be laundered by the code path that absorbs a rounded one.
+**The measured result, four independent population seeds at n=200, same weather, window and rate as
+the panel run.** EPC-vs-actual gap **0.427 / 0.457 / 0.480 / 0.449** against the panel's **0.2049** —
+**the panel understated the register's error by ~2.2×**. And the *sign* of the prediction result
+**flipped**: the panel said the C14 posterior was **worse** than the register (−0.0277); on drawn
+populations it is **better in all four seeds** (+0.0218 / +0.0509 / +0.0585 / +0.0533). The decision
+benefit survives but shrinks honestly — **£451k / £422k / £415k / £402k forgone on the inferred
+belief against £548k / £614k / £568k / £604k on the register, a 27–33% reduction where the panel
+reported 61%**. Yesterday's finding *"the posterior is worse at predicting fabric and better at
+deciding"* is **half withdrawn**: the second half holds; the first half was composition.
+**What the population found that a panel cannot — recorded, queued, and deliberately not fixed.**
+(1) The two-level realism test is **green at n=10/25 and red at n=50/100/200 on the same generator,
+weather and seed**, because every L1 cell is a **worst-of-N** statistic and a worst-of-N is monotone
+in N by construction — the bands encode *"no home in ten may exceed this"*. **W1_12's L3 rests on a
+green two-level test measured on that same 10-home panel**; whether it survives at population scale
+is now an open question, claimed neither way. (2) The L1.1 texture band conditions on the binary
+`is_gas_heated`, but the drawn population contains **resistive electric homes for the first time**
+(9 of 200, roughly what England has) and the electric band's own derivation is *heat-pump* arithmetic
+(SPFH4 2.78). A storage heater has an SPF of ~1.0, so P0197 is failed at 0.0414 by a threshold
+derived for a different machine — the 2026-08-08 gas-shaped-band defect recurring one subpopulation
+over, i.e. an **R10 class miss**: the band is keyed on a boolean where the physics is keyed on a
+delivered-efficiency ratio. **Neither band was touched and no cell was marked UNVALIDATED** — either
+would have turned the suite green in one edit, which is why neither was the move (R12).
+**One consequence deferred on purpose, and named so it is not lost.** `coupled_gap_ledger.json` still
+carries the *panel* measurement. Writing the population run would also persist a **red** two-level
+verdict whose redness is the control artefact above, into a ledger the Proof door renders — so the
+ledger's rows are unchanged rather than silently wrong, and the population run becomes the standing
+measurement once the worst-of-N control is restated.
+**Evidence.** 909 passed, 3 xfailed (`test_premise_population` 31 new, `test_couple_fabric` 20 incl.
+5 new, `test_premise_trace`, `test_premise_two_level`, `tests/company/pricing`); `epistemic_verifier`
+**PASS** (535 files); **R15 with a real source mutation** (`_weighted_choice`: `x = rng.random()*total`
+→ `x = 0.0`) firing 7 named tests, baseline restored green; monkeypatch mutations fire the marginal
+control and the oracle separately — flattening the era tilt still fits all three marginals *exactly*
+and still fails the oracle, which is the whole argument for holding it out.
+**The largest open simplification, stated rather than discovered later.** Bedrooms are an **unanchored
+placeholder** — two searches found no published stock-wide bedroom marginal — and they drive floor
+area, which scales the heat-loss coefficient nearly linearly. So the **level** of every pound figure
+above rests on an unpublished table; the **ranking** does not, which is what the findings lean on.
 
 **W1_12_premise_trace_generator — the last red cell was the BAND, not the generator, and the band
 was gas-shaped. L2→L3 (2026-08-09, `d9ae87986`), self-certified.** Last tick DECLINED this
@@ -1138,7 +1147,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (529s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (505s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1252,6 +1261,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1657.9h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
+- Remaining effort: ~1655.9h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

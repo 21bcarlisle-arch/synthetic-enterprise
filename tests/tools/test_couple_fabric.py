@@ -116,7 +116,7 @@ def test_the_company_receives_NO_fabric_parameter(panel, weather):
     temperature and a certificate ALONE. This is the wall, exercised rather than
     declared: the arguments are built here from scratch and the truth is never
     among them."""
-    premise_id, household, trace, commodity, cadence = panel[1]
+    premise_id, household, trace, commodity, cadence, _lodged = panel[1]
     reads = cf._reads_from_trace(
         trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
     )
@@ -146,7 +146,7 @@ def test_meter_reads_are_CUMULATIVE_and_only_at_the_premises_own_cadence(panel):
     """A supplier holds a running register total at the cadence its meter
     reports. Handing over daily reads for a quarterly-billed premise would
     flatter the company with evidence it does not have."""
-    for premise_id, _household, trace, commodity, cadence in panel:
+    for premise_id, _household, trace, commodity, cadence, _lodged in panel:
         reads = cf._reads_from_trace(
             trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
         )
@@ -368,3 +368,83 @@ def test_a_DIFFERENT_seed_moves_the_world_but_the_panel_still_measures(weather):
     other, _ = cf.observe(cf.build_panel(weather, seed=99, limit=8), weather)
     assert fgl.epc_vs_actual_gap(other).gap > 0.0
     assert all(o.actual_hlc_kw_per_k > 0.0 for o in other)
+
+
+# ===========================================================================
+# §5 THE DRAWN POPULATION — C14's L3 exit condition
+#
+# The panel above is composed to span the stock, which is the honest thing to do
+# with ten homes and the exact thing that stops ten homes being a finding about a
+# book. These tests are about the population NOBODY CHOSE.
+# ===========================================================================
+
+
+@pytest.fixture(scope="module")
+def drawn(weather):
+    """Small on purpose: these assert the PATH and the WALL, not the numbers.
+    The measured population result is 200 premises and lives in the atom's
+    evidence, not in a unit test that has to run on every commit."""
+    return cf.build_drawn_population(weather, n=12, seed=17, population_seed=17)
+
+
+def test_the_drawn_population_is_not_the_authored_panel(drawn, panel):
+    """A `--population` run that silently fell back to the panel would report a
+    population result computed on a chosen population — the precise failure this
+    build exists to remove."""
+    assert {entry[0] for entry in drawn}.isdisjoint({entry[0] for entry in panel})
+    cells = {
+        (entry[1].property_type, entry[1].build_era, entry[1].insulation) for entry in drawn
+    }
+    assert len(cells) > 1, "the drawn population collapsed to one cell"
+
+
+def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
+    """The wall is a property of the seam, not of the ten homes it was first
+    exercised on. Same assertion as §2, on a premise nobody wrote down."""
+    premise_id, household, trace, commodity, cadence, lodged = drawn[0]
+    reads = cf._reads_from_trace(
+        trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
+    )
+    published = [
+        ti.PublishedWeatherDay(d.date, d.weather.temperature_mean_c) for d in weather
+    ]
+    belief = ti.infer_thermal_parameters(
+        premise_id=premise_id,
+        reads=reads,
+        weather=published,
+        certificate=cf._certificate_for(trace, household, lodged),
+        as_of=cf.AS_OF,
+        property_type_hint=cf._EPC_PROPERTY_TYPE[household.property_type],
+        main_heating_fuel="mains gas" if household.is_gas_heated else "air source heat pump",
+    )
+    assert belief.hlc_kw_per_k > 0.0
+
+
+def test_a_drawn_population_measures_a_gap_end_to_end(drawn, weather):
+    """The orphan-transition rule (R11) applied to the new path: the population
+    flag must reach a NUMBER, not merely construct premises."""
+    observations, detail = cf.observe(drawn, weather)
+    assert len(observations) == len(drawn) == len(detail)
+    assert fgl.epc_vs_actual_gap(observations).gap > 0.0
+    assert fgl.inferred_vs_actual_gap(observations).gap > 0.0
+
+
+def test_the_drawn_population_contains_premises_with_NO_certificate(drawn):
+    """EPC absence is one of the three error sources C14 models. If a drawn
+    population never produced one, the stock-prior branch would be exercised by
+    the authored panel alone — i.e. by a hand-placed `None`."""
+    assert any(entry[5] is None for entry in drawn)
+
+
+def test_population_and_premises_flags_are_mutually_exclusive():
+    """Two different populations quietly resolved one way would let a run label
+    itself with a composition it did not use."""
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "tools/couple_fabric.py", "--population", "5", "--premises", "3"],
+        cwd=str(cf.PROJECT_DIR), capture_output=True, text=True,
+    )
+    assert result.returncode != 0
+    assert "pick one" in result.stderr

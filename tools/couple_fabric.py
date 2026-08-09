@@ -68,6 +68,7 @@ from background import fabric_gap_ledger as fgl  # noqa: E402
 from company.pricing import fabric_intervention as fi  # noqa: E402
 from company.pricing import thermal_inference as ti  # noqa: E402
 from simulation import fabric_physics as fp  # noqa: E402
+from simulation import premise_population as ppop  # noqa: E402
 from simulation import premise_trace as pt  # noqa: E402
 from simulation.household import (  # noqa: E402
     BoilerAge,
@@ -262,21 +263,55 @@ def load_weather():
     return pt.load_trace_weather(SITE, start=WINDOW_START, end=WINDOW_END)
 
 
+def _trace_for(premise_id, household, weather, *, seed):
+    return pt.generate_premise_trace(
+        premise_id=premise_id,
+        household=household,
+        weather=weather,
+        seed=seed,
+        latitude_deg=fp.latitude_for_weather_site(SITE),
+    )
+
+
 def build_panel(weather, *, seed: int = 17, limit: int | None = None):
     """Generate the WORLD side once: truth traces off the real weather archive."""
     specs = PANEL[:limit] if limit else PANEL
     out = []
     for premise_id, ptype, era, insulation, bedrooms, people, heating, cadence in specs:
         household = _household(premise_id, ptype, era, insulation, bedrooms, people, heating)
-        trace = pt.generate_premise_trace(
-            premise_id=premise_id,
-            household=household,
-            weather=weather,
-            seed=seed,
-            latitude_deg=fp.latitude_for_weather_site(SITE),
-        )
+        trace = _trace_for(premise_id, household, weather, seed=seed)
         commodity = "electricity" if heating == HeatingSystem.HEAT_PUMP_AIR else "gas"
-        out.append((premise_id, household, trace, commodity, cadence))
+        out.append((premise_id, household, trace, commodity, cadence, _LODGED.get(premise_id)))
+    return out
+
+
+def build_drawn_population(weather, *, n: int, seed: int = 17, population_seed: int = 17):
+    """The SAME world side, on a population NOBODY CHOSE.
+
+    `simulation.premise_population` draws property type, build era and EPC band
+    from a joint raked onto published EHS marginals, then heating system, meter
+    cadence and EPC lodgement from their own published shares. The panel above
+    was composed to span the stock, which is the honest thing to do with ten
+    homes and the exact thing that stops ten homes being a finding about a book:
+    a result on a chosen population cannot be separated from the chooser's taste.
+
+    Whatever this returns is BASELINE fidelity, fixed blind to company P&L (R13).
+    Nothing in `simulation.premise_population` may be adjusted because the gap
+    measured on it came out unflattering — that would be goal-seeking (R12) with
+    extra steps.
+    """
+    population = ppop.draw_premise_population(n, base_seed=population_seed, as_of=AS_OF)
+    out = []
+    for premise in population:
+        trace = _trace_for(premise.premise_id, premise.household, weather, seed=seed)
+        out.append((
+            premise.premise_id,
+            premise.household,
+            trace,
+            premise.commodity,
+            premise.meter_cadence_days,
+            premise.epc_lodged,
+        ))
     return out
 
 
@@ -301,8 +336,8 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     hdd_by_day = ti.heating_degree_days(published, DEGREE_DAY_BASE_C)
     annual_degree_days = sum(hdd_by_day.values()) / len(hdd_by_day) * 365.25
     observations, detail = [], []
-    for premise_id, household, trace, commodity, cadence in panel:
-        certificate = _certificate_for(trace, household, _LODGED.get(premise_id))
+    for premise_id, household, trace, commodity, cadence, lodged in panel:
+        certificate = _certificate_for(trace, household, lodged)
         belief = ti.infer_thermal_parameters(
             premise_id=premise_id,
             reads=_reads_from_trace(
@@ -342,7 +377,7 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
             {
                 "premise_id": premise_id,
                 "meter_cadence_days": cadence,
-                "certificate": "none" if certificate is None else str(_LODGED[premise_id]),
+                "certificate": "none" if certificate is None else str(lodged),
                 "actual": actual,
                 "epc": belief.prior.hlc_kw_per_k,
                 "inferred": belief.hlc_kw_per_k,
@@ -400,6 +435,11 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=17)
     ap.add_argument("--premises", type=int, default=None,
                     help="limit the panel (default: the whole panel)")
+    ap.add_argument("--population", type=int, default=None,
+                    help="measure on N premises DRAWN from published stock marginals "
+                         "instead of the authored panel (the C14 L3 exit condition)")
+    ap.add_argument("--population-seed", type=int, default=17,
+                    help="base seed for the population draw (C-S2 substream key)")
     ap.add_argument("--unit-rate", type=float, default=DEFAULT_UNIT_RATE_P_PER_KWH,
                     help="p/kWh used to price the money consequence (DIAGNOSTIC)")
     ap.add_argument("--write-ledger", action="store_true",
@@ -410,7 +450,17 @@ def main() -> None:
     args = ap.parse_args()
 
     weather = load_weather()
-    panel = build_panel(weather, seed=args.seed, limit=args.premises)
+    if args.population:
+        if args.premises:
+            # Two mutually exclusive populations silently resolved one way would
+            # let a run label itself with the composition it did not use.
+            ap.error("--population and --premises name different populations; pick one")
+        panel = build_drawn_population(
+            weather, n=args.population, seed=args.seed,
+            population_seed=args.population_seed,
+        )
+    else:
+        panel = build_panel(weather, seed=args.seed, limit=args.premises)
     observations, detail = observe(panel, weather, unit_rate_p_per_kwh=args.unit_rate)
     result = two_level(panel, weather)
 
@@ -421,8 +471,16 @@ def main() -> None:
     money_inferred = fgl.money_consequence(
         observations, unit_rate_p_per_kwh=args.unit_rate, belief="inferred")
 
+    composition = (
+        f"DRAWN from published stock marginals (n={args.population}, "
+        f"population_seed={args.population_seed})"
+        if args.population
+        else f"AUTHORED panel ({len(observations)} premises, composed to span the stock)"
+    )
+
     if args.json:
         print(json.dumps({
+            "population": composition,
             "epc_vs_actual_gap": epc.gap,
             "inferred_vs_actual_gap": inferred.gap,
             "inference_improvement": epc.gap - inferred.gap,
@@ -437,13 +495,21 @@ def main() -> None:
         print(f"  window                    : {WINDOW_START} -> {WINDOW_END}"
               f"  ({len(weather)} days, real Open-Meteo archive)")
         print(f"  premises                  : {len(observations)}")
+        print(f"  population                : {composition}")
         print()
+        # A 200-row table is not read; the whole point of a population is the
+        # aggregate. The head is printed so a reader can still see individual
+        # rows, and the truncation is STATED rather than silent.
+        shown = detail if len(detail) <= 12 else detail[:12]
         print("  premise  cadence  cert        actual    EPC    inferred   sd   actionable")
-        for d in detail:
+        for d in shown:
             print(f"  {d['premise_id']:<8} {d['meter_cadence_days']:>4}d  "
                   f"{d['certificate']:<11} {d['actual']:.4f}  {d['epc']:.4f}  "
                   f"{d['inferred']:.4f}  {d['relative_sd']:.3f}  "
                   f"{'yes' if d['is_actionable'] else 'NO':>3}  ({d['basis']})")
+        if len(shown) < len(detail):
+            print(f"  ... {len(detail) - len(shown)} further premises not printed"
+                  " (all of them are in --json and in every figure below)")
         print()
         print(f"  EPC-vs-actual gap         : {epc.gap:.4f}"
               "   (1.0 = no better than the stock mean)")
