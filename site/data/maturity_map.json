@@ -1291,8 +1291,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -2427,8 +2427,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     },
     {
@@ -2800,7 +2800,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -2933,7 +2933,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2945,9 +2945,9 @@
         "W2_5_life_event_stream"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 70,
       "forward_attachments": [
         {
           "source": "docs/staging/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md",
@@ -2956,6 +2956,79 @@
           "note": ""
         }
       ]
+    },
+    {
+      "id": "D13_self_rationing_negative_population_discover",
+      "name": "The W2_5<->C7 and W2_8<->C10 self-rationing detection dimensions are still RECALL ONLY -- a company that flagged EVERY household scores each a perfect 0.0. They cannot be fixed the way D12 fixed the payment cell grid, because `detection_measures` needs the cases a flag would be WRONG on and 'a household that is not self-rationing' is a continuum the harness labels by THRESHOLD, so that denominator is a modelling choice rather than a set already in hand. DISCOVER whether a settled-fact negative population exists for self-rationing at all -- and accept 'no second direction is publishable here' as a legitimate finding.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 1,
+      "loop_stage": "discover",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_8_self_rationing",
+        "W2_5_life_event_stream"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 32,
+      "forward_attachments": []
+    },
+    {
+      "id": "D14_w2_8_needs_negative_drops",
+      "name": "W2_8's world contains NO hard negatives: 0 of 3752 non-rationers have any consumption drop at all (the not-onset branch returns observed == healthy exactly) and 0 are flaggable under any weather factor, so the false-flag rate is 0.0000 for ANY drop-based detector -- a property of the WORLD published as if it were detector precision. The W2_8<->C10 second direction cannot honestly publish until the world emits non-rationers who DO drop: a house move, an efficiency retrofit, a vacancy, a mild-winter behavioural cut. WORLD-first, not a metric fix. Also fix here, not before: couple_w2_8_c10.py's false_positive_rate divides by n_customers - len(truth_set), sweeping the 56 truly-rationing-but-above-floor households (the NEITHER set) into the negatives -- the D11 denominator defect, in shipped code, currently costing 0.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D13_self_rationing_negative_population_discover"
+      ],
+      "couples_with": [
+        "W2_8_self_rationing",
+        "C10_self_rationing_detection"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "D15_w2_5_false_flag_direction_r13_choice",
+      "name": "W2_5<->C7 CAN publish a false-flag rate -- its negative is settled (income_stress LOW at both year ends, a discrete state, not a threshold) -- but the exclusion boundary swings the measured rate x2.88 with company behaviour literally fixed: naive 0.1661 / exclude-carried-HIGH 0.1491 / LOW-both-ends 0.0576. The swing is driven by income_stress PERSISTENCE: 2772 instances (14.7% of the naive denominator) are years with no distress EVENT but carried-in distress, where a C7 flag is CORRECT. Publish the second direction on the settled negative, and put the three-way exclusion to the director as an R13 curriculum call with all three rates on the table -- never chosen by the agent that benefits from the atom closing.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D13_self_rationing_negative_population_discover"
+      ],
+      "couples_with": [
+        "W2_5_life_event_stream",
+        "C7_life_event_detection"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
     },
     {
       "id": "D10_detection_headline_is_single_channel",
@@ -3002,7 +3075,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 535,
+      "stall_consecutive_unchanged": 597,
       "forward_attachments": []
     },
     {
@@ -3773,9 +3846,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 3,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "harden",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3786,7 +3859,7 @@
         "C14_thermal_parameter_inference"
       ],
       "chain": "weather_cascade",
-      "at_target": true,
+      "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 3,
       "forward_attachments": []
@@ -3867,7 +3940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     },
     {
@@ -4059,9 +4132,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "discover",
+      "loop_stage": "harden",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -4069,9 +4142,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 193,
+      "stall_consecutive_unchanged": 209,
       "forward_attachments": []
     },
     {
@@ -4113,7 +4186,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -4346,7 +4419,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 33,
+      "stall_consecutive_unchanged": 69,
       "forward_attachments": []
     },
     {
@@ -4493,7 +4566,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 81,
+      "stall_consecutive_unchanged": 92,
       "forward_attachments": []
     },
     {
@@ -4515,7 +4588,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 72,
+      "stall_consecutive_unchanged": 83,
       "forward_attachments": []
     },
     {
@@ -4535,7 +4608,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 73,
+      "stall_consecutive_unchanged": 83,
       "forward_attachments": []
     },
     {
@@ -4555,7 +4628,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 67,
+      "stall_consecutive_unchanged": 77,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4584,7 +4657,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80,
+      "stall_consecutive_unchanged": 95,
       "forward_attachments": []
     },
     {
@@ -4604,7 +4677,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 65,
+      "stall_consecutive_unchanged": 73,
       "forward_attachments": []
     },
     {
@@ -4626,7 +4699,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 59,
+      "stall_consecutive_unchanged": 66,
       "forward_attachments": []
     },
     {
@@ -4648,7 +4721,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 79,
+      "stall_consecutive_unchanged": 90,
       "forward_attachments": []
     },
     {
@@ -4670,7 +4743,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 58,
+      "stall_consecutive_unchanged": 71,
       "forward_attachments": []
     },
     {
@@ -4692,7 +4765,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 62,
+      "stall_consecutive_unchanged": 78,
       "forward_attachments": []
     },
     {
@@ -4716,7 +4789,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80,
+      "stall_consecutive_unchanged": 92,
       "forward_attachments": []
     },
     {
@@ -4738,7 +4811,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 70,
+      "stall_consecutive_unchanged": 87,
       "forward_attachments": []
     },
     {
@@ -4760,7 +4833,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 67,
+      "stall_consecutive_unchanged": 78,
       "forward_attachments": []
     },
     {
@@ -4782,7 +4855,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63,
+      "stall_consecutive_unchanged": 68,
       "forward_attachments": []
     },
     {
@@ -4824,7 +4897,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 79,
+      "stall_consecutive_unchanged": 89,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -4859,7 +4932,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 81,
+      "stall_consecutive_unchanged": 94,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -4909,7 +4982,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 18,
+      "stall_consecutive_unchanged": 21,
       "forward_attachments": []
     },
     {
@@ -4931,7 +5004,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 26,
+      "stall_consecutive_unchanged": 28,
       "forward_attachments": []
     },
     {
@@ -4983,17 +5056,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "verify",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 214,
+      "stall_consecutive_unchanged": 234,
       "forward_attachments": []
     }
   ],
@@ -5077,7 +5150,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 231,
+  "total_atoms": 234,
   "epoch2_movements": [
     {
       "id": "M1",
