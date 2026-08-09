@@ -5,7 +5,7 @@ from pathlib import Path
 from starlette.testclient import TestClient
 
 from company.portal.app import app, _load_spot_prices
-from company.market.price_feed import publish_feed
+from company.interfaces.market_feed_publication import publish_feed
 
 
 @pytest.fixture

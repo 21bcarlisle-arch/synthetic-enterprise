@@ -111,17 +111,13 @@ class PriceFeed:
         }
 
 
-def publish_feed(
-    prices: list[dict],
-    output_path: Path = DEFAULT_FEED_PATH,
-    published_at: str | None = None,
-) -> None:
-    """Write a price feed JSON file. Called by the SIM pipeline after each run.
-
-    prices: list of {"fuel": str, "period": str, "price_gbp_per_mwh": float}
-    """
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    ts = published_at or datetime.now(timezone.utc).isoformat()
-    payload = {"published_at": ts, "prices": prices}
-    with open(output_path, "w") as f:
-        json.dump(payload, f, indent=2)
+# `publish_feed` MOVED 2026-08-09 to `company/interfaces/market_feed_publication.py`
+# (KNIFE pass 3, design B8_market_feed_is_the_observable). It is the world-facing
+# INTAKE surface, so it belongs on the sanctioned seam where a legitimate
+# world-publishes-to-company crossing is legible as such; this module is the
+# company's own READER of the resulting file and keeps its two company-side
+# consumers (market.rate_comparison, portal.app).
+#
+# Deliberately NOT re-exported from here. A re-export would leave the old
+# non-seam import path working, so the crossing this pass cut could silently
+# reappear at the surface that is not the seam — which is the whole defect.

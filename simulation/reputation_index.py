@@ -3,6 +3,28 @@
 The CTO Architecture Guidance mandates the GRI as a first-class behavioral
 physics entity. High GRI = Activation Energy multiplier > 1 (customers forgive
 minor friction). Low GRI = multiplier < 1 (portfolio-wide churn acceleration).
+
+WHICH SIDE OF THE WALL (moved from `company/core/` 2026-08-09, KNIFE pass 3,
+design B1_behavioural_physics_is_misfiled)
+---------------------------------------------------------------------------
+The market's real regard for the supplier is a fact about the WORLD, not the
+supplier's belief about it — "behavioral physics", as the paragraph above says
+in its own words. Filed company-side it made six SIM modules reach across the
+epistemic wall to read their own physics.
+
+The move was safe by MEASUREMENT, not by argument, and both halves were checked
+before it was made: this module had ZERO company-side importers (only
+`simulation/`), so no company-reads-sim edge could be created by moving it; and
+it imports nothing but the stdlib, so no sim-reads-company edge could be created
+either. Both sides of the wall are walked by `tools/epistemic_wall.py`, so
+nothing is hidden by the relocation — see
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §2b for why moving a file
+somewhere the walker does NOT look would have been laundering rather than a cut.
+
+What the COMPANY legitimately holds is its own MEASUREMENT of reputation — an
+NPS/complaints-derived estimate that is allowed to be wrong. That gap between
+the world's GRI and the company's estimate of it is the quantity the coupled
+triad exists to score, and it only exists while these two live apart.
 """
 from __future__ import annotations
 

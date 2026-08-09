@@ -18,6 +18,24 @@ UK energy market calibration:
 - Complaint AE: 30-50 points (lower barrier)
 - PPM customer AE: +20 adjustment (higher inertia, often vulnerable)
 - Loyal 3+ year customers: +15 inertia adjustment
+
+WHICH SIDE OF THE WALL (moved from `company/core/` 2026-08-09, KNIFE pass 3,
+design B1_behavioural_physics_is_misfiled)
+---------------------------------------------------------------------------
+Status-quo bias is a property of the CUSTOMER, not of the supplier's model of
+the customer — the guidance quoted above literally says "assign each agent an
+Activation_Energy variable". Filed company-side it made the SIM reach across the
+epistemic wall to read its own physics.
+
+Safe by MEASUREMENT: zero company-side importers before the move, stdlib-only
+imports, so the relocation creates no crossing in either direction. Both sides
+are walked; see `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §2b for why
+a move to an UNWALKED directory would have been laundering, not a cut.
+
+The COMPANY never sees an agent's AE. What it may hold is an estimate of
+switching propensity built from observables (tenure, tariff position, contact
+history) — an estimate that is allowed to be wrong, which is exactly the gap the
+coupled triad measures.
 """
 from __future__ import annotations
 

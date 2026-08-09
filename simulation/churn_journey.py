@@ -31,9 +31,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Optional
 
-from company.core.activation_energy import ActionType, ActivationEnergyProfile
-from company.core.reputation_index import GlobalReputationIndex
-from company.core.resentment_ledger import (
+from simulation.activation_energy import ActionType, ActivationEnergyProfile
+from simulation.reputation_index import GlobalReputationIndex
+from simulation.resentment_ledger import (
     CustomerResentmentState,
     FrictionEventType,
     ResentmentLedger,

@@ -25,6 +25,25 @@ Friction event types with calibrated scores:
 - COMPLAINT_RESOLVED_WELL: -5 (reduces resentment)
 
 Decay rate: -1 point per month (forgetting curve).
+
+WHICH SIDE OF THE WALL (moved from `company/core/` 2026-08-09, KNIFE pass 3,
+design B1_behavioural_physics_is_misfiled)
+---------------------------------------------------------------------------
+A customer's accumulated resentment stock is a fact about the WORLD — the
+guidance quoted above calls it an emotional accumulator carried by the agent,
+not a number the supplier holds. Filed company-side it made the SIM reach across
+the epistemic wall to read its own physics.
+
+Safe by MEASUREMENT: zero company-side importers before the move (so no
+company-reads-sim edge is created), stdlib-only imports (so no sim-reads-company
+edge is created). Both sides are walked, so nothing is hidden — the rule that
+separates a cut from laundering is in
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §2b.
+
+What the COMPANY legitimately holds is the FRICTION IT CAUSED and the signals it
+observes (complaints, calls, failed payments) — never the stock itself, and never
+the threshold. It is allowed to be wrong about who is close to leaving; that
+error is the belief-vs-truth gap the coupled triad scores.
 """
 from __future__ import annotations
 

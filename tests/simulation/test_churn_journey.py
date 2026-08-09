@@ -8,9 +8,9 @@ import datetime as dt
 
 import pytest
 
-from company.core.activation_energy import ActionType, ActivationEnergyProfile
-from company.core.reputation_index import GlobalReputationIndex
-from company.core.resentment_ledger import FrictionEventType
+from simulation.activation_energy import ActionType, ActivationEnergyProfile
+from simulation.reputation_index import GlobalReputationIndex
+from simulation.resentment_ledger import FrictionEventType
 from simulation.churn_journey import ChurnJourneyRegister, ChurnJourneyState
 
 

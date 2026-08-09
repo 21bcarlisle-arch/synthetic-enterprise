@@ -168,9 +168,20 @@ BASELINE_DATE = "2026-08-06"
 #             *pristine* tree still red-ed `test_ruff_no_stale_baseline_entries`.
 #             Fixing only the working tree would have left the gate wedged.
 #     Floor drops to 1386, which is now HEAD and working tree alike.
+#   2026-08-09  I001 1386 -> 1385  (KNIFE pass 3, the first cuts)
+#     Design B1 moved three behavioural-physics modules from `company/core/` to
+#     `simulation/`. Renaming the import changed its ALPHABETICAL position, so
+#     three unit-test modules that sorted clean at the old path sorted dirty at
+#     the new one (working tree 1388). Fixed at source on exactly those three
+#     (`ruff --select I001 --fix`), per the ratchet's stated remedy — the count
+#     then landed at 1385 rather than back at 1386, because one of the three was
+#     ALREADY an offender under its old name and the move happened to fix it.
+#     The floor therefore SHRINKS by one: a drop caused sideways is still a drop,
+#     and leaving it unrecorded is the exact stale-entry failure the 2026-08-09
+#     episode-3 note above describes, which wedged the publish gate for hours.
 #
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392  (now 1386)
+#   I001 unsorted-imports .............. 1392  (now 1385)
 #   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194  (now  193)
 #   F841 unused-variable ...............  130
@@ -184,7 +195,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1386,
+    "I001": 1385,
     "F401": 279,
     "E402": 193,
     "F841": 130,
@@ -204,7 +215,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2412  # was 2421 at the 08-06 freeze; -9 per the shrink log above
+RUFF_BASELINE_TOTAL = 2411  # was 2421 at the 08-06 freeze; -10 per the shrink log above
 
 
 # --------------------------------------------------------------------------

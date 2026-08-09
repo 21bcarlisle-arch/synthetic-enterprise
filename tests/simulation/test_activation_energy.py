@@ -1,8 +1,14 @@
 """Tests for Activation Energy Model (Phase ED)."""
 import pytest
-from company.core.activation_energy import (
-    ActionType, ActivationEnergyProfile, ActivationEnergyRegister,
-    _BASE_AE, _TENURE_INERTIA_PER_YEAR, _PPM_AE_UPLIFT, _GOOD_RESOLUTION_AE_REDUCTION,
+
+from simulation.activation_energy import (
+    _BASE_AE,
+    _GOOD_RESOLUTION_AE_REDUCTION,
+    _PPM_AE_UPLIFT,
+    _TENURE_INERTIA_PER_YEAR,
+    ActionType,
+    ActivationEnergyProfile,
+    ActivationEnergyRegister,
 )
 
 

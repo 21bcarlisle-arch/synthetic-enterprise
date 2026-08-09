@@ -86,7 +86,7 @@ from simulation.churn_journey import ChurnJourneyRegister
 from simulation.acquisition_funnel import run_acquisition_funnel
 from tools.acquisition_funnel_port import AcquisitionFunnelMessage
 from tools.credit_adapters import get_credit_bureau_adapter
-from company.core.resentment_ledger import FrictionEventType
+from simulation.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
@@ -114,7 +114,7 @@ from simulation.feedback_survey import (
 )
 from company.crm.nps_tracker import NPSTracker
 from company.crm.complaints import ComplaintBook, ComplaintCategory
-from company.core.reputation_index import ReputationEventType
+from simulation.reputation_index import ReputationEventType
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from company.market.ic_flexibility_revenue import ICFlexibilityRevenueBook

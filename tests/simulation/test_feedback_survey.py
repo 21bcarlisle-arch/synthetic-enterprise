@@ -19,7 +19,7 @@ from simulation.feedback_survey import (
     dispatch_complaint_and_resolution,
 )
 from simulation.household import IncomeStress
-from company.core.reputation_index import ReputationEventType
+from simulation.reputation_index import ReputationEventType
 
 
 def test_response_propensity_is_u_shaped():

@@ -27,7 +27,7 @@ import random
 from dataclasses import dataclass
 from typing import Optional
 
-from company.core.reputation_index import ReputationEventType
+from simulation.reputation_index import ReputationEventType
 from simulation.household import IncomeStress
 
 # --- Survey response propensity -------------------------------------------

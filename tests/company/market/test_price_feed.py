@@ -6,7 +6,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import tempfile
 
-from company.market.price_feed import PriceFeed, SpotPrice, publish_feed
+from company.interfaces.market_feed_publication import publish_feed
+from company.market.price_feed import PriceFeed, SpotPrice
 
 
 def _write_feed(tmp_path: Path, prices: list[dict], published_at: str) -> Path:

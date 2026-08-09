@@ -60,6 +60,18 @@ def run(doc: str = CLEAN_DOC, live=None):
     return wcd.reconcile(rows, designs, LIVE if live is None else live)[0]
 
 
+def partition_gap(rows, report) -> int:
+    """Rows MINUS (live crossings + cut rows). Zero iff the register is complete.
+
+    The population invariant behind the live-register test, extracted so it can
+    be mutation-proven on fixtures instead of asserted only against the real
+    tree — where it can be exercised in exactly one state (today's) and cannot
+    be made to fail on purpose.
+    """
+    cut = sum(1 for r in rows if r.disposition == "cut")
+    return report["rows"] - (report["measured_crossings"] + cut)
+
+
 def only(findings, needle: str):
     """Exactly one finding, and it is the named one."""
     assert len(findings) == 1, f"expected exactly one finding, got {findings}"
@@ -389,7 +401,56 @@ def test_the_live_register_examines_every_live_crossing():
     measured = wcd.measure_crossings()
     findings, report = wcd.reconcile(rows, designs, measured)
     assert findings == [], f"the live register has unexamined edges: {findings}"
-    assert report["rows"] == report["measured_crossings"]
+
+    # REPAIRED 2026-08-09, at the STATISTIC rather than the threshold. This used
+    # to read `report["rows"] == report["measured_crossings"]`, which holds only
+    # while ZERO edges have been cut — a control that dies exactly when the
+    # codebase reaches its goal state, the same defect this pass already repaired
+    # in the KNIFE ledger's own mutation fixtures. The first seven cuts reddened
+    # it (88 rows vs 81 live) for doing precisely what it exists to encourage.
+    #
+    # The invariant that actually holds, and holds forever: a cut row is KEPT
+    # (deleting it is how a re-entry becomes invisible), so rows partition into
+    # exactly the live edges plus the cut ones. `reconcile` has already proven
+    # each `cut` row absent from the tree and each live edge present, so this is
+    # a population check on top of that, not a second opinion about the same
+    # thing.
+    assert partition_gap(rows, report) == 0, (
+        f"{report['rows']} rows != {report['measured_crossings']} live + "
+        f"{sum(1 for r in rows if r.disposition == 'cut')} cut — a row was "
+        "deleted rather than ruled `cut`, which is how a re-entry becomes "
+        "invisible"
+    )
+
+
+def test_the_partition_invariant_holds_on_the_clean_fixture():
+    """Vacuity guard: the invariant must PASS on a register with a cut in it.
+
+    The clean fixture is 3 rows = 2 live + 1 cut, i.e. the exact shape that broke
+    the old `rows == measured` assertion. If this ever needed the cut count to be
+    zero, the mutation proof below would be measuring nothing.
+    """
+    rows, designs = wcd.parse_register(CLEAN_DOC)
+    _, report = wcd.reconcile(rows, designs, LIVE)
+    assert sum(1 for r in rows if r.disposition == "cut") == 1
+    assert partition_gap(rows, report) == 0
+
+
+def test_the_partition_invariant_reds_when_a_live_row_is_deleted():
+    """R15 mutation: delete a LIVE edge's row instead of ruling it.
+
+    This is the failure the invariant exists to catch and the one `reconcile`
+    alone would only half-catch — it reports the unruled edge, but nothing would
+    notice that the register's own population had silently shrunk.
+    """
+    mutated = CLEAN_DOC.replace(
+        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n",
+        "",
+    )
+    assert mutated != CLEAN_DOC, "the mutation did not apply"
+    rows, designs = wcd.parse_register(mutated)
+    _, report = wcd.reconcile(rows, designs, LIVE)
+    assert partition_gap(rows, report) == -1
 
 
 def test_the_live_register_is_not_vacuous():

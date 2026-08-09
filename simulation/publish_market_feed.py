@@ -5,12 +5,19 @@ make the M3 market data feed live with the most recent market prices.
 
 Architecture: SIM layer reads raw market data and writes the feed file.
 Company layer (PriceFeed) reads the file — no direct SIM imports needed.
+
+The publication call crosses the wall at the SANCTIONED SEAM
+(`company.interfaces.market_feed_publication`), not into `company/market/`
+internals — KNIFE pass 3, design B8_market_feed_is_the_observable. The direction
+here was always right (the world publishes prices, the supplier observes them);
+what was wrong was that the entry point sat inside a company module, making a
+legitimate crossing indistinguishable from an illegitimate one.
 """
 import csv
 import json
 from pathlib import Path
 
-from company.market.price_feed import publish_feed
+from company.interfaces.market_feed_publication import publish_feed
 
 SSP_CACHE = Path("sim/cache/elexon_ssp_full.json")
 NBP_CSV = Path("sim/gas_data/nbp_sap.csv")

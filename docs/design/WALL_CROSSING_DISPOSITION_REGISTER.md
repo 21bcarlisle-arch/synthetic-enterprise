@@ -144,19 +144,6 @@ re-pointed or moved with it; `run_phase2b` carries 135 referrers outside `simula
 mechanical rename lands in its own commit, separate from any behaviour question.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B1_behavioural_physics_is_misfiled
-6 edges. `company/core/reputation_index.py`, `company/core/resentment_ledger.py` and
-`company/core/activation_energy.py` are world physics filed on the company side. Their own
-docstrings call them "behavioral physics" and "assign each agent" a variable; a customer's
-resentment stock, status-quo bias and the market's real regard for the supplier are facts about
-the world, not the supplier's beliefs about it. Cut: move all three to the SIM side. The
-objection that blocked the analogous move in pass 2 (it would re-open class (a), which pass 1
-drove to zero) does not apply here and this is measured, not argued: all three modules have
-ZERO company-side importers, so no class-(a) edge can be created by the move. What the company
-legitimately holds afterwards is its own MEASUREMENT of reputation — an NPS/complaints-derived
-estimate that may be wrong, which is the belief-vs-truth gap the coupled triad exists to score.
-WALL-CROSSING-DESIGN -->
-
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
 5 edges, and the most serious inversion in the register. `simulation.customer_events` imports
 the company's own churn model, its customer-reaction model and its home-move win rates in order
@@ -221,7 +208,40 @@ DECISION moves to the company layer; the world keeps the renewal EVENT (a contra
 term end) and receives the resulting offer through the seam.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B8_market_feed_is_the_observable
+---
+
+## 3a. Cuts EXECUTED — the designs that are no longer plans
+
+These two were designs in §3 until 2026-08-09, when they were carried out. They are recorded
+here rather than deleted, and they are deliberately OUTSIDE the `WALL-CROSSING-DESIGN` markers:
+`tools/wall_crossing_dispositions.py` rules that a design block no *owed* row references is "a
+plan for nothing" (rc 2), which is what a completed design becomes. The rationale is worth
+keeping; the plan is not. Each edge's `reason=` in §4 states how it died, and the walker — never
+the claim — is what proves it.
+
+### B1_behavioural_physics_is_misfiled — EXECUTED 2026-08-09 (6 edges)
+
+6 edges. `company/core/reputation_index.py`, `company/core/resentment_ledger.py` and
+`company/core/activation_energy.py` are world physics filed on the company side. Their own
+docstrings call them "behavioral physics" and "assign each agent" a variable; a customer's
+resentment stock, status-quo bias and the market's real regard for the supplier are facts about
+the world, not the supplier's beliefs about it. Cut: move all three to the SIM side. The
+objection that blocked the analogous move in pass 2 (it would re-open class (a), which pass 1
+drove to zero) does not apply here and this is measured, not argued: all three modules have
+ZERO company-side importers, so no class-(a) edge can be created by the move. What the company
+legitimately holds afterwards is its own MEASUREMENT of reputation — an NPS/complaints-derived
+estimate that may be wrong, which is the belief-vs-truth gap the coupled triad exists to score.
+
+**As executed:** all three modules moved to `simulation/` (the other WALKED side, so nothing is
+hidden), importers in `churn_journey`, `feedback_survey` and `run_phase2b` re-pointed, unit tests
+moved with them. The zero-company-side-importers claim was re-measured immediately before the
+move, not taken from the ruling; the second half of the safety check — that all three modules
+import nothing but the stdlib, so the move could not create a `sim -> company` edge in the other
+direction — was measured at the same time. `run_phase2b` keeps its composition problem: 65 other
+edges there are still owed to `A_composition_lift`.
+
+### B8_market_feed_is_the_observable — EXECUTED 2026-08-09 (1 edge)
+
 1 edge, and the only one where the DIRECTION is already right. `simulation.publish_market_feed`
 calls `company.market.price_feed.publish_feed` — the world publishing the market data the
 company then observes, which is exactly how a real supplier learns prices. The defect is
@@ -232,11 +252,25 @@ the published SEAM_PACKAGE rule. Note that `company.market.price_feed` has two c
 consumers (`market.rate_comparison`, `portal.app`), so the module stays where it is and only
 the world-facing publication surface relocates. This is the cheapest cut in the register and it
 is a genuine one — the seam package is walked, so nothing is hidden by the move.
-WALL-CROSSING-DESIGN -->
+
+**As executed:** `publish_feed` moved to `company/interfaces/market_feed_publication.py`;
+`company/market/price_feed.py` keeps `PriceFeed` and its two company-side consumers, and
+deliberately does NOT re-export the moved function — a re-export would have kept the non-seam
+import path alive, which is precisely the defect. The two test modules that imported it were
+re-pointed at the seam. The honest limit is recorded in the new module's docstring: this narrows
+WHERE the crossing happens, not WHAT crosses; typing the payload as a versioned message is owed
+to `EP7_adapter_elexon_insights` (level 0 / idle when this cut was made — coordination wall
+checked first, as the atom's origin_note requires).
 
 ---
 
-## 4. The register — all 88 live crossings
+## 4. The register — all 88 examined crossings, 81 of them still live
+
+88 was the count when every crossing was ruled on (2026-08-09, step 2). Seven have since been
+CUT (§3a), so the tree carries 81 and this section carries 88 rows: a cut row is not deleted,
+because a deleted row is how a re-entry becomes invisible. The live count is not maintained by
+hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
+the two numbers disagreeing is itself the failure the tool exists to raise.
 
 Read by `tools/wall_crossing_dispositions.py`. Rows state the RULING; the walker states what
 EXISTS; a mismatch can only be closed by making the ruling true. There is deliberately **no
@@ -245,12 +279,12 @@ R15 names, and it would rot silently besides. Locations come from the walker, on
 
 <!-- WALL-CROSSING-EDGES
 # --- B1_behavioural_physics_is_misfiled ---
-edge: simulation.churn_journey -> company.core.activation_energy | disposition=owed | design=B1_behavioural_physics_is_misfiled
-edge: simulation.churn_journey -> company.core.reputation_index | disposition=owed | design=B1_behavioural_physics_is_misfiled
-edge: simulation.churn_journey -> company.core.resentment_ledger | disposition=owed | design=B1_behavioural_physics_is_misfiled
-edge: simulation.feedback_survey -> company.core.reputation_index | disposition=owed | design=B1_behavioural_physics_is_misfiled
-edge: simulation.run_phase2b -> company.core.reputation_index | disposition=owed | design=B1_behavioural_physics_is_misfiled
-edge: simulation.run_phase2b -> company.core.resentment_ledger | disposition=owed | design=B1_behavioural_physics_is_misfiled
+edge: simulation.churn_journey -> company.core.activation_energy | disposition=cut | reason=B1 executed 2026-08-09 — module moved to `simulation/activation_energy.py`; the importer now reads its own side. Safe by measurement: zero company-side importers, stdlib-only imports, so no edge is created in either direction.
+edge: simulation.churn_journey -> company.core.reputation_index | disposition=cut | reason=B1 executed 2026-08-09 — module moved to `simulation/reputation_index.py`. The world holds the GRI; the company keeps only its NPS/complaints-derived ESTIMATE, which is allowed to be wrong.
+edge: simulation.churn_journey -> company.core.resentment_ledger | disposition=cut | reason=B1 executed 2026-08-09 — module moved to `simulation/resentment_ledger.py`. The resentment stock is a fact about the customer; the company holds only the friction it caused and the signals it observes.
+edge: simulation.feedback_survey -> company.core.reputation_index | disposition=cut | reason=B1 executed 2026-08-09 — same move; the survey writes reputation events to the world-side index it belongs to instead of reaching across the wall.
+edge: simulation.run_phase2b -> company.core.reputation_index | disposition=cut | reason=B1 executed 2026-08-09 — the shape-A file keeps its composition problem (65 other edges), but THIS edge died with the module move, which is why §2 ruled it B1 rather than A.
+edge: simulation.run_phase2b -> company.core.resentment_ledger | disposition=cut | reason=B1 executed 2026-08-09 — as above: killed by the B1 module move, not by the composition lift still owed on this file.
 # --- B2_company_brain_decides_the_world ---
 edge: simulation.customer_events -> company.crm.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.customer_events -> saas.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
@@ -274,7 +308,7 @@ edge: simulation.renewals -> company.governance.decision_rights | disposition=ow
 edge: simulation.renewals -> company.pricing.tariff_engine | disposition=owed | design=B7_renewal_is_a_company_decision
 edge: simulation.renewals -> saas.tariff_pricing | disposition=owed | design=B7_renewal_is_a_company_decision
 # --- B8_market_feed_is_the_observable ---
-edge: simulation.publish_market_feed -> company.market.price_feed | disposition=owed | design=B8_market_feed_is_the_observable
+edge: simulation.publish_market_feed -> company.market.price_feed | disposition=cut | reason=B8 executed 2026-08-09 — `publish_feed` moved to `company/interfaces/market_feed_publication.py`, so the (legitimate) world-publishes-prices crossing now lands on the walked seam package and is exempt by the published SEAM rule. Deliberately NOT re-exported from `company/market/price_feed.py`, which would have left the non-seam path alive.
 # --- A_composition_lift ---
 edge: simulation.run_phase0b -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase0c -> saas.clv_seed | disposition=owed | design=A_composition_lift

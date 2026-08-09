@@ -1,12 +1,17 @@
 """Tests for Customer Resentment Ledger (Phase EA)."""
 import datetime as dt
-import pytest
-from company.core.resentment_ledger import (
-    FrictionEventType, FrictionEvent, CustomerResentmentState,
-    ResentmentLedger,
-    _BASE_FRICTION_SCORES, _DEFAULT_CHURN_THRESHOLD, _MONTHLY_DECAY_RATE,
-)
 
+import pytest
+
+from simulation.resentment_ledger import (
+    _BASE_FRICTION_SCORES,
+    _DEFAULT_CHURN_THRESHOLD,
+    _MONTHLY_DECAY_RATE,
+    CustomerResentmentState,
+    FrictionEvent,
+    FrictionEventType,
+    ResentmentLedger,
+)
 
 DATE = dt.date(2024, 6, 15)
 PAST = dt.date(2024, 1, 1)   # 5 months before DATE

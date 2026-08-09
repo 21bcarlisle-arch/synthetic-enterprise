@@ -1,12 +1,17 @@
 """Tests for Global Reputation Index (Phase EB)."""
 import datetime as dt
-import pytest
-from company.core.reputation_index import (
-    ReputationBand, ReputationEventType, ReputationEvent,
-    GlobalReputationIndex,
-    _GRI_IMPACT, _GRI_BASELINE, _ACTIVATION_ENERGY_MULTIPLIER,
-)
 
+import pytest
+
+from simulation.reputation_index import (
+    _ACTIVATION_ENERGY_MULTIPLIER,
+    _GRI_BASELINE,
+    _GRI_IMPACT,
+    GlobalReputationIndex,
+    ReputationBand,
+    ReputationEvent,
+    ReputationEventType,
+)
 
 DATE = dt.date(2024, 6, 15)
 PREV = dt.date(2024, 1, 1)
