@@ -1110,6 +1110,57 @@ def test_red_publish_gate_logs_the_blocking_test_node_ids(monkeypatch, tmp_path)
     assert "test_thing.py::test_other" in text, "ERROR lines count as blocking too"
 
 
+def test_a_timed_out_publish_gate_blocks_the_commit(monkeypatch, tmp_path):
+    """R15: an unavailable check is a FAILED check. A gate that did not FINISH cannot
+    authorise a publish.
+
+    The named defect, observed live on 2026-08-09: the suite takes ~613s and the timeout was
+    600s, so the gate timed out on essentially every cycle and the timeout branch returned
+    `True` ("resource constraint, not a test failure"). That walked the full success path --
+    marker archived, commit attempted, and the publish-gate outcome recorded as rc=0, which
+    CLEARS wedge_since/episode_failures and re-arms the alarm. A gate that never ran was
+    silently disarming the alarm whose whole job is to say it never ran.
+
+    MUTATION: restore `return True, True` in the TimeoutExpired branch and this fails."""
+    log_path = tmp_path / "gate-log.md"
+    monkeypatch.setattr(prc, "LOG_FILE", log_path)
+    last_tested = tmp_path / ".last_tested_hash"
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", last_tested)
+
+    def fake_run(argv, **kwargs):
+        raise prc.subprocess.TimeoutExpired(cmd=argv, timeout=kwargs.get("timeout"))
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    passed, timed_out = prc.run_fast_tests("deadbeef")
+
+    assert timed_out is True
+    assert passed is False, (
+        "a timed-out gate must BLOCK the publish -- returning True archives the marker, "
+        "publishes unverified content, and clears the wedge alarm's episode memory"
+    )
+    assert not last_tested.exists(), (
+        "a gate that did not finish must not stamp .last_tested_hash -- that hash is the "
+        "INDEPENDENT signal the supervisor's wedge draw cross-checks against"
+    )
+    assert "NOT committing" in log_path.read_text()
+
+
+def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
+    """The timeout must be generous enough that hitting it is an ANOMALY, not the norm.
+
+    The 600s timeout was BELOW the suite's own measured runtime (612.94s for 22,525 tests),
+    so the gate could not pass -- it could only time out. A timeout that the healthy case
+    exceeds is not a safety bound, it is a coin flip.
+
+    MUTATION: set GATE_SUITE_TIMEOUT_SECONDS back to 600 and this fails."""
+    MEASURED_SUITE_SECONDS = 613
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS > MEASURED_SUITE_SECONDS * 2, (
+        f"gate timeout {prc.GATE_SUITE_TIMEOUT_SECONDS}s leaves too little headroom over the "
+        f"~{MEASURED_SUITE_SECONDS}s the suite actually takes; a routine timeout is now a "
+        "publish BLOCK, so the bound must clear the healthy case comfortably"
+    )
+
+
 def test_red_publish_gate_captures_output_rather_than_discarding_it(monkeypatch, tmp_path):
     """The gate must actually CAPTURE pytest's output.
 

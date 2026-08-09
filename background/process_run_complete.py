@@ -174,11 +174,23 @@ PUBLISH_GATE_HEAVY_IGNORES = [
 # cannot block. Drop this conjunct once the tier has run a stable week; the delay
 # is the director's, not a judgement call (docs/design/JOIN_TEST_TIER.md §3).
 #
+# `scale_report_only` (2026-08-09, AO4_scale_constraints_executable) is the THIRD,
+# on the same terms and for the same reason: the five production-readiness
+# constraints (C-S1..C-S5) land as checks that MEASURE the tree as it is, and two
+# of them are red on arrival by design -- one of them is the money-in-duplicate
+# drift the director cites by name. Softening a check because it went red on
+# landing would be R12. Deselecting it is how a truthful red alarms without
+# wedging the live site. It carries its OWN marker rather than reusing the join
+# tier's so the two tiers promote on their own stable weeks -- one marker would
+# mean promoting either promotes both.
+#
 # Adding a deselected class opens a fail-open channel by construction: any content
 # test could be silenced by taking the marker. Closed by CONTAINMENT -- no module
-# outside tests/system/ may carry it (tests/system/test_report_only_landing.py,
+# outside tests/system/ may carry either (tests/system/test_report_only_landing.py,
 # mutation-proven both ways).
-PUBLISH_GATE_MARKER_EXPR = "not operational and not join_report_only"
+PUBLISH_GATE_MARKER_EXPR = (
+    "not operational and not join_report_only and not scale_report_only"
+)
 
 
 def publish_gate_pytest_argv(test_root="tests/"):
@@ -230,8 +242,12 @@ OPERATIONAL_LAYER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".operat
 # it -- `not (A and B)` is `(not A) or (not B)` -- or tests/system/** would have
 # been dropped from the content gate AND never picked up here, which is strictly
 # worse than leaving it blocking. Drops back to plain "operational" when the join
-# tier is promoted out of report-only (docs/design/JOIN_TEST_TIER.md §3).
-OPERATIONAL_LAYER_MARKER_EXPR = "operational or join_report_only"
+# tier is promoted out of report-only (docs/design/JOIN_TEST_TIER.md §3), and it
+# widened again for the scale tier on the same rule (2026-08-09,
+# AO4_scale_constraints_executable) -- a deselected marker that is not also added
+# HERE orphans the tier it deselects, which is the whole defect this expression
+# exists to prevent (`feedback_deselecting_a_marker_orphans_the_tier`).
+OPERATIONAL_LAYER_MARKER_EXPR = "operational or join_report_only or scale_report_only"
 OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS = 60 * 60   # hourly -- suite is slow; deadman cycles every 5min
 OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD = 2       # consecutive red checks before paging (no single-flake page)
 OPERATIONAL_LAYER_RE_ESCALATE_SECONDS = 60 * 60      # re-page hourly while red persists (matches deadman cadence)
@@ -729,7 +745,7 @@ def run_fast_tests(git_hash: str):
             publish_gate_pytest_argv("tests/"),
             cwd=str(PROJECT_DIR),
             env=full_env,
-            timeout=600,
+            timeout=GATE_SUITE_TIMEOUT_SECONDS,
             capture_output=True,
             text=True,
             errors="replace",
@@ -740,10 +756,35 @@ def run_fast_tests(git_hash: str):
             _log_gate_failure_payload(result)
         return result.returncode == 0, False
     except subprocess.TimeoutExpired:
-        # Timeout is a resource constraint, not a test failure — warn but don't block commit
-        log("Fast test suite timed out (>600s) — committing anyway with warning")
-        return True, True
+        # R15 FAIL-OPEN, closed 2026-08-09. This branch used to `return True, True` on the
+        # reasoning that "timeout is a resource constraint, not a test failure". Two things
+        # were wrong with that, both observed live during the second publish wedge:
+        #
+        #   1. The suite takes ~613s (measured: 22,525 passed in 612.94s) against what was a
+        #      600s timeout, so it did not time out under load -- it timed out ROUTINELY. The
+        #      gate could not pass; it could only time out and then publish unverified.
+        #   2. A timeout returning True walks the whole success path: the marker is archived,
+        #      the commit is attempted, and -- the part that mattered -- the publish-gate
+        #      outcome is recorded as rc=0, which CLEARS wedge_since/episode_failures and
+        #      re-arms the alarm. So a gate that never ran silently disarmed the alarm that
+        #      exists to say it never ran. Markers were consumed and archived with nothing
+        #      published, which is strictly worse than a wedge: a wedge at least alarms.
+        #
+        # R15 is explicit that an unavailable check is a FAILED check, and the safe direction
+        # for a check that cannot answer is "do not publish". So a timeout now BLOCKS, and the
+        # timeout is generous enough (3x the measured runtime) that hitting it is a real
+        # anomaly worth wedging on rather than the normal case.
+        log("Fast test suite timed out (>{}s) -- NOT committing. R15: an unavailable check is "
+            "a FAILED check; a gate that did not finish cannot authorise a publish."
+            .format(GATE_SUITE_TIMEOUT_SECONDS))
+        return False, True
 
+
+# Publish-gate suite timeout. Was 600s, which the suite itself exceeded (612.94s measured on
+# 2026-08-09 for 22,525 tests), so the gate timed out on essentially every cycle. 3x the measured
+# runtime: enough headroom that a timeout means something is genuinely wrong (a hang, a runaway
+# fixture, a box under extreme load) rather than "the suite is its normal size".
+GATE_SUITE_TIMEOUT_SECONDS = 1800
 
 # Bound on how much of a red gate's output reaches the log (chars).
 GATE_FAILURE_TAIL_CHARS = 4000
