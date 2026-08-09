@@ -106,3 +106,48 @@ defect. It is reported here so the next tick draws it as work rather than discov
 class fix that is overdue** (R10: an absurdity-class defect may not be closed with an instance fix).
 The check must cover UNTRACKED files, not just modified ones — the instance found today would have
 been missed by a `git diff`-only implementation.
+
+---
+
+## FOURTH INSTANCE, 2026-08-09 — same file, and a WORSE variant this finding does not yet cover
+
+Found by the W1_12 scheduled tick. `simulation/premise_trace.py` was orphaned **again** — the file
+sub-item 2 above already adopted once (`46422b0d6`). Different work this time: the entire
+cold-appliance/room coupling (`cold_appliance_kwh` field, `duty_at_room_temperature`, the
+separability netting and its controls). Adopted and committed this tick as `6828f999f`, pushed,
+`origin/main` verified at that SHA.
+
+**The variant that is new, and that raises the severity of blocking sub-item 1:**
+
+The three instances above were *work at risk* — green code that would be silently lost. This one
+had already been **written into the committed record**. `docs/design/maturity_map.yaml` at HEAD
+described the coupling in the past tense, in detail, with test counts — while `premise_trace.py`
+at HEAD contained none of it. The map asserted a mechanism git did not contain.
+
+That is strictly worse than losing the work, in two ways:
+
+1. **Reconstruct-from-repo-alone silently fails.** The IaC test in CLAUDE.md's operational-layer
+   rule is that the repo alone rebuilds the system. Here the repo alone rebuilds a system whose
+   own records claim a defect is fixed when it is not. Nothing fails loudly; the L1.5 artefact
+   just comes back.
+2. **A downstream finding inherited the false premise.** `WORKER_FINDING_FABRIC_WORST_VALUE_PIN_DRIFTED`
+   cleared HEAD on the reasoning *"no fabric source file is dirty in the working tree, so the
+   failure reproduces at HEAD"* and guessed a commit. Both were wrong — the dirty file was the
+   generator, one layer upstream of the statistic, in a subsystem the failing test never names.
+   The dirty tree did not just risk work; it produced a **wrong published diagnosis**.
+
+**What this does to sub-item 1.** The proposed exit check ("report uncommitted tracked changes
+outside the tick's own file_scope") would have caught this — but the higher-value check is the
+*converse*, and it is cheap: **a level/evidence row naming a mechanism that does not exist at
+HEAD**. Sub-item 2's own adoption of this same file did not prevent a recurrence one day later,
+which is the two-strike signal (R3) that the per-instance adoption is not the fix. Still prose;
+still, by MAKE_IT_STICK, still evaporating.
+
+**Also still orphaned in the tree right now, untouched by this tick** (a fifth instance, left
+deliberately rather than swept into an unrelated commit): the C-S scale-constraint work —
+untracked `tests/system/scale_constraints.py`, `tests/system/test_scale_constraints.py`,
+`tests/system/test_scale_constraint_mutation.py`, `docs/design/SCALE_CONSTRAINT_CHECKS.md`,
+`docs/design/TIME_SCALE_INVARIANCE_REGISTER.yaml`, plus modified `tests/conftest.py`,
+`tests/background/test_operational_layer_signal.py`, `tests/background/test_publish_gate_scope.py`,
+`tests/system/test_report_only_landing.py`. Not verified, not adopted — it is a different atom's
+`file_scope` and adopting it blind is how in-flight work gets swept.
