@@ -117,11 +117,14 @@ def test_the_ageing_dimension_has_LEFT_this_metric():
 
     from tools import couple_w2_11_d5
 
+    # Whitespace-insensitive since D16 made the call multi-line -- see the twin
+    # of this control in tests/tools/test_d7_ageing_measures.py.
     src = inspect.getsource(couple_w2_11_d5.score_triad)
+    compact = "".join(src.split())
     assert "misapplication_gap(true_ageing_labels" not in src, (
         "the retired prevalence-normalised scalar is back on the ageing dimension"
     )
-    assert "ageing_gap(true_ageing_labels, belief_ageing_labels)" in src, (
+    assert "ageing_gap(true_ageing_labels,belief_ageing_labels," in compact, (
         "ageing is scored by neither metric -- re-read docs/design/"
         "D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and tests/tools/"
         "test_d7_ageing_measures.py"

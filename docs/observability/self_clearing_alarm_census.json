@@ -1,0 +1,3798 @@
+{
+  "classifiers": {
+    "alarm_lexicon": "alarm|alert|notify|ntfy|escalat|severity|episode|digest|wedge|page_|_page|stale|draw",
+    "failure_lexicon": "fail|error|regress|wedge|stall|stuck|breach|violat|_red|red_|kill|timeout|degrade|missing",
+    "note": "writer/reader membership is derived by AST + call-graph closure; FAILURE and ALARM membership are derived classifiers over these recorded rules, and each hit carries the reason it was tagged.",
+    "notifiers": [
+      "_fire_publish_gate_alert",
+      "notify",
+      "register_item",
+      "send_ntfy"
+    ]
+  },
+  "functions_scanned": 2372,
+  "hits": [
+    ".atom_stall_tracker.json",
+    ".boot_announced",
+    ".daily_self_note_last_date",
+    ".dispatcher_seen.json",
+    ".harden_cooldown.json",
+    ".last_processed_fingerprint.json",
+    ".last_push_time.json",
+    ".last_tested_hash",
+    ".maintenance_reminder_sent.json",
+    ".notify_transitions.json",
+    ".ntfy_responder_seen_hashes.json",
+    ".ntfy_responder_since.json",
+    ".operational_layer_signal.json",
+    ".origin_staging_sync.json",
+    ".publish_gate_state.json",
+    ".reconcile_watch_state.json",
+    ".retro_cadence_ntfy_state.json",
+    ".run_marker_sweep_state.json",
+    ".sanity_daemon_last_digest_date",
+    ".sent_ntfy_ids.json",
+    ".staging_watcher_seen.json",
+    ".supervisor_idle_turn_count.json",
+    ".supervisor_map_exhausted_state.json",
+    ".supervisor_stuck_state.json",
+    "agent_status.json",
+    "live_decisions_log.jsonl",
+    "run_history.json",
+    "run_output_latest.json"
+  ],
+  "scan_roots": [
+    "background",
+    "tools"
+  ],
+  "state_paths": {
+    ".atom_stall_tracker.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/blocked_atom_visibility.py::draw_offers",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::publish",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::_idle_discover_frame_draw_concurrent",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_is_atom_stalled",
+          "why": "called from _maturity_map_draw_concurrent"
+        },
+        {
+          "fn": "background/supervisor.py::_load_atom_stall_state",
+          "why": "called from _record_atom_draw_and_check_stall"
+        },
+        {
+          "fn": "background/supervisor.py::_maturity_map_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_maturity_map_draw_concurrent",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_record_atom_draw_and_check_stall",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_site_lane_draw_concurrent",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::authorized_set_enumeration_line",
+          "why": "called from _self_refill_draw"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::_record_atom_draw_and_check_stall",
+          "why": "name matches the failure lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_save_atom_stall_state",
+          "why": "name matches the failure lexicon"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/blocked_atom_visibility.py::build_report",
+        "background/blocked_atom_visibility.py::draw_offers",
+        "background/blocked_atom_visibility.py::main",
+        "background/blocked_atom_visibility.py::park_exclusion_status",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::r17_status",
+        "background/daily_self_note.py::render_note",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_idle_discover_frame_draw_concurrent",
+        "background/supervisor.py::_is_atom_stalled",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_load_atom_stall_state",
+        "background/supervisor.py::_maturity_map_draw",
+        "background/supervisor.py::_maturity_map_draw_concurrent",
+        "background/supervisor.py::_record_atom_draw_and_check_stall",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::_site_lane_draw_concurrent",
+        "background/supervisor.py::authorized_set_enumeration",
+        "background/supervisor.py::authorized_set_enumeration_line",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::_enumeration_line",
+        "background/worker_tick.py::run_tick",
+        "tools/generate_maturity_map_data.py::_load_stall_state",
+        "tools/generate_maturity_map_data.py::generate"
+      ],
+      "writers": [
+        "background/blocked_atom_visibility.py::build_report",
+        "background/blocked_atom_visibility.py::draw_offers",
+        "background/blocked_atom_visibility.py::main",
+        "background/blocked_atom_visibility.py::park_exclusion_status",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::r17_status",
+        "background/daily_self_note.py::render_note",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_idle_discover_frame_draw_concurrent",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_maturity_map_draw",
+        "background/supervisor.py::_maturity_map_draw_concurrent",
+        "background/supervisor.py::_record_atom_draw_and_check_stall",
+        "background/supervisor.py::_save_atom_stall_state",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::_site_lane_draw_concurrent",
+        "background/supervisor.py::authorized_set_enumeration",
+        "background/supervisor.py::authorized_set_enumeration_line",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::_enumeration_line",
+        "background/worker_tick.py::run_tick"
+      ]
+    },
+    ".autonomous_pane_state.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/autonomous_runner.py::idle_seconds",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/autonomous_runner.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/autonomous_runner.py::idle_seconds",
+        "background/autonomous_runner.py::main"
+      ],
+      "writers": [
+        "background/autonomous_runner.py::idle_seconds",
+        "background/autonomous_runner.py::main"
+      ]
+    },
+    ".boot_announced": {
+      "alarm_readers": [
+        {
+          "fn": "background/boot_announce.py::announce",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/boot_announce.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/boot_announce.py::announce",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/boot_announce.py::already_announced_this_boot",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main"
+      ],
+      "writers": [
+        "background/boot_announce.py::_mark_announced",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main"
+      ]
+    },
+    ".build_executor_enabled": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/worker_tick.py::autonomy_enabled",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": []
+    },
+    ".build_in_progress.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/blocked_atom_visibility.py::draw_offers",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::publish",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::_build_in_progress_ids",
+          "why": "called from _maturity_map_draw_concurrent"
+        },
+        {
+          "fn": "background/supervisor.py::_maturity_map_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_maturity_map_draw_concurrent",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_site_lane_draw_concurrent",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::authorized_set_enumeration_line",
+          "why": "called from _self_refill_draw"
+        },
+        {
+          "fn": "background/supervisor.py::check_map_exhausted_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::diagnose_map_blocked_set",
+          "why": "called from check_map_exhausted_escalation"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/blocked_atom_visibility.py::build_report",
+        "background/blocked_atom_visibility.py::draw_offers",
+        "background/blocked_atom_visibility.py::main",
+        "background/blocked_atom_visibility.py::park_exclusion_status",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::r17_status",
+        "background/daily_self_note.py::render_note",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_build_in_progress_ids",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_maturity_map_draw",
+        "background/supervisor.py::_maturity_map_draw_concurrent",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::_site_lane_draw_concurrent",
+        "background/supervisor.py::authorized_set_enumeration",
+        "background/supervisor.py::authorized_set_enumeration_line",
+        "background/supervisor.py::build_atom_hold_reasons",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::diagnose_map_blocked_set",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::_enumeration_line",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": []
+    },
+    ".daemon_boot": {
+      "alarm_readers": [
+        {
+          "fn": "background/health_check.py::main",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/boot_sha.py::read_boot_sha",
+        "background/health_check.py::main",
+        "background/health_check.py::run_health_check",
+        "background/process_reconciler.py::evaluate_boot_sha_drift"
+      ],
+      "writers": [
+        "background/boot_sha.py::stamp"
+      ]
+    },
+    ".daily_self_note_last_date": {
+      "alarm_readers": [
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/daily_self_note.py::publish",
+          "why": "writes the path and raises the alarm in the same path (calls a notifier directly)"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::already_ran_today",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::run"
+      ],
+      "writers": [
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run"
+      ]
+    },
+    ".dispatcher_seen.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/dispatcher.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/dispatcher.py::check_once",
+          "why": "writes the path and raises the alarm in the same path (reaches notifier notify)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/dispatcher.py::_load_seen",
+        "background/dispatcher.py::main"
+      ],
+      "writers": [
+        "background/dispatcher.py::_save_seen",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main"
+      ]
+    },
+    ".force_republish_once": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "writes the path and raises the alarm in the same path (calls a notifier directly)"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "writes the path and raises the alarm in the same path (reaches notifier notify)"
+        }
+      ],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main"
+      ]
+    },
+    ".fork_reap_held": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::_check_fork_lifecycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/fork_reconciler.py::evaluate_fork_lifecycle",
+        "background/fork_reconciler.py::held_branches"
+      ],
+      "writers": []
+    },
+    ".frozen_baseline_refresh.lock": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/run_frozen_baseline.py::generate"
+      ]
+    },
+    ".gate_tokens": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/conversation_gap_ledger.py::_train_estimator",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/conversation_gap_ledger.py::outcome_uplift_vs_control",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/file_api.py::respond",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/conversation_gap_ledger.py::_train_estimator",
+        "background/conversation_gap_ledger.py::main",
+        "background/conversation_gap_ledger.py::measure",
+        "background/conversation_gap_ledger.py::outcome_uplift_vs_control",
+        "background/conversation_gap_ledger.py::record_gap",
+        "background/conversation_gap_ledger.py::retro_gap_line",
+        "background/file_api.py::respond"
+      ],
+      "writers": [
+        "background/conversation_gap_ledger.py::_train_estimator",
+        "background/conversation_gap_ledger.py::main",
+        "background/conversation_gap_ledger.py::measure",
+        "background/conversation_gap_ledger.py::outcome_uplift_vs_control",
+        "background/conversation_gap_ledger.py::record_gap",
+        "background/conversation_gap_ledger.py::retro_gap_line",
+        "background/file_api.py::generate_gate_token",
+        "background/file_api.py::respond"
+      ]
+    },
+    ".harden_cooldown.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::_load_harden_cooldown",
+          "why": "called from _rule0_harden_draw"
+        },
+        {
+          "fn": "background/supervisor.py::_rule0_harden_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::record_harden_pass",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_load_harden_cooldown",
+        "background/supervisor.py::_rule0_harden_draw",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::record_harden_pass",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/supervisor.py::record_harden_pass"
+      ]
+    },
+    ".last_processed_fingerprint.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_read_last_fingerprint",
+        "background/process_run_complete.py::main"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_write_last_fingerprint",
+        "background/process_run_complete.py::main"
+      ]
+    },
+    ".last_push_time.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::git_commit_push",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/process_run_complete.py::git_commit_push",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_push_due",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_record_push_time",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main"
+      ]
+    },
+    ".last_tested_hash": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/stall_class_register.py::detect_publish_gate_wedge",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_publish_gate_wedge_active",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/process_run_complete.py::run_fast_tests",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::run_fast_tests",
+        "background/stall_class_register.py::detect_publish_gate_wedge",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_publish_gate_wedge_active",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::run_fast_tests"
+      ]
+    },
+    ".maintenance_reminder_sent.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/staging_watcher.py::check_monthly_maintenance",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/staging_watcher.py::_load_maintenance_state",
+        "background/staging_watcher.py::check_monthly_maintenance",
+        "background/staging_watcher.py::main"
+      ],
+      "writers": [
+        "background/staging_watcher.py::_save_maintenance_state",
+        "background/staging_watcher.py::check_monthly_maintenance",
+        "background/staging_watcher.py::main"
+      ]
+    },
+    ".notify_transitions.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/background_worker.py::_check_zero_progress",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/background_worker.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::process_leftover_run_markers",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/boot_announce.py::announce",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/boot_announce.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::publish",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_fork_lifecycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_open_mint_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_pull_loop_transport",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_repo_not_bare",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_status_honesty",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_worktree_reconcile",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_reping_open_action_needed_items",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/director_twin.py::route_blocking_decision",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/discovery_agent.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/discovery_agent.py::run_discovery_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/dispatcher.py::check_once",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::route_message",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/executor_governor.py::_alert_wall",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/executor_governor.py::_default_fold",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/health_check.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/notify.py::_read_transitions",
+          "why": "called from notify"
+        },
+        {
+          "fn": "background/notify.py::clear_transition",
+          "why": "called from _check_open_mint_escalation"
+        },
+        {
+          "fn": "background/notify.py::notify",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/ntfy_responder.py::check_once",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::_fire_publish_gate_alert",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::git_commit_push",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::maybe_ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_failure",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/reconcile_watch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/reconcile_watch.py::run",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/retro_cadence_check.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sanity_daemon.py::_digest",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/sanity_daemon.py::_maybe_send_daily_digest",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::auto_process_marker",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sim_runner.py::run_simulation",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/staging_watcher.py::check_once",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/staging_watcher.py::ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/staging_watcher.py::sweep_stale_instruction_docs",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_check_stuck_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::check_map_exhausted_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/tree_lock.py::assert_repo_not_bare",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/tree_lock.py::tree_lock",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/notify.py::clear_transition",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/notify.py::notify",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::_check_open_mint_escalation",
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::_check_repo_not_bare",
+        "background/deadmans_switch.py::_check_status_honesty",
+        "background/deadmans_switch.py::_check_worktree_reconcile",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_twin.py::route_blocking_decision",
+        "background/discovery_agent.py::main",
+        "background/discovery_agent.py::run_discovery_cycle",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/dispatcher.py::route_message",
+        "background/executor_governor.py::_alert_wall",
+        "background/executor_governor.py::_default_fold",
+        "background/health_check.py::main",
+        "background/notify.py::_read_transitions",
+        "background/notify.py::clear_transition",
+        "background/notify.py::notify",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::maybe_ntfy",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run",
+        "background/retro_cadence_check.py::main",
+        "background/sanity_daemon.py::_digest",
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::ntfy",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::ntfy",
+        "background/supervisor.py::run_cycle",
+        "background/tree_lock.py::assert_repo_not_bare",
+        "background/tree_lock.py::tree_lock"
+      ],
+      "writers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::_check_open_mint_escalation",
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::_check_repo_not_bare",
+        "background/deadmans_switch.py::_check_status_honesty",
+        "background/deadmans_switch.py::_check_worktree_reconcile",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_twin.py::route_blocking_decision",
+        "background/discovery_agent.py::main",
+        "background/discovery_agent.py::run_discovery_cycle",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/dispatcher.py::route_message",
+        "background/executor_governor.py::_alert_wall",
+        "background/executor_governor.py::_default_fold",
+        "background/health_check.py::main",
+        "background/notify.py::_write_transitions",
+        "background/notify.py::clear_transition",
+        "background/notify.py::notify",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::maybe_ntfy",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run",
+        "background/retro_cadence_check.py::main",
+        "background/sanity_daemon.py::_digest",
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::ntfy",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::ntfy",
+        "background/supervisor.py::run_cycle",
+        "background/tree_lock.py::assert_repo_not_bare",
+        "background/tree_lock.py::tree_lock"
+      ]
+    },
+    ".ntfy_responder.lock": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "writes the path and raises the alarm in the same path (reaches notifier notify)"
+        }
+      ],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/ntfy_responder.py::acquire_singleton_lock",
+        "background/ntfy_responder.py::main"
+      ]
+    },
+    ".ntfy_responder_seen_hashes.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/ntfy_responder.py::_load_seen_hashes",
+        "background/ntfy_responder.py::main"
+      ],
+      "writers": [
+        "background/ntfy_responder.py::_save_seen_hashes",
+        "background/ntfy_responder.py::main"
+      ]
+    },
+    ".ntfy_responder_since.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/ntfy_responder.py::_load_since",
+        "background/ntfy_responder.py::main"
+      ],
+      "writers": [
+        "background/ntfy_responder.py::_save_since",
+        "background/ntfy_responder.py::main"
+      ]
+    },
+    ".open_agenda.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/supervisor.py::_check_stuck_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_stuck_episode_key",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_stuck_key",
+          "why": "called from _stuck_episode_key"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/agenda.py::load_agenda",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::_stuck_episode_key",
+        "background/supervisor.py::_stuck_key",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/agenda.py::clear_agenda",
+        "background/agenda.py::set_agenda"
+      ]
+    },
+    ".operational_layer_signal.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::_operational_red_persistent_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_write_operational_layer_state",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/process_run_complete.py::run_operational_layer_signal",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/deadmans_switch.py::_check_operational_layer_signal",
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/process_run_complete.py::_read_operational_layer_state",
+        "background/process_run_complete.py::_write_operational_layer_state",
+        "background/process_run_complete.py::run_operational_layer_signal",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_operational_red_persistent_draw",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/deadmans_switch.py::_check_operational_layer_signal",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/process_run_complete.py::_write_operational_layer_state",
+        "background/process_run_complete.py::run_operational_layer_signal"
+      ]
+    },
+    ".ops.lock": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/backup_company_data.py::backup_once",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::_check_open_mint_escalation",
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::_check_repo_not_bare",
+        "background/deadmans_switch.py::_check_status_honesty",
+        "background/deadmans_switch.py::_check_worktree_reconcile",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_input_log.py::append_entry",
+        "background/director_input_log.py::classify_and_log_message",
+        "background/director_twin.py::route_blocking_decision",
+        "background/discovery_agent.py::main",
+        "background/discovery_agent.py::run_discovery_cycle",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/dispatcher.py::route_message",
+        "background/executor_governor.py::_alert_wall",
+        "background/executor_governor.py::_default_fold",
+        "background/health_check.py::main",
+        "background/notify.py::notify",
+        "background/ntfy_mirror.py::append_mirror_entry",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/ntfy_utils.py::send_ntfy",
+        "background/ops_repo.py::ops_tree_lock",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::generate_dashboard_json",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::maybe_ntfy",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run",
+        "background/retro_cadence_check.py::main",
+        "background/sanity_daemon.py::_digest",
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::ntfy",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::ntfy",
+        "background/supervisor.py::run_cycle",
+        "background/tree_lock.py::assert_repo_not_bare",
+        "background/tree_lock.py::tree_lock",
+        "tools/run_phase4c_pipeline.py::cli"
+      ]
+    },
+    ".origin_staging_sync.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/supervisor.py::_sync_origin_staging",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::_sync_origin_staging",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/supervisor.py::_sync_origin_staging",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/supervisor.py::_sync_origin_staging",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ]
+    },
+    ".planner_rest_with_proof.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::_planner_rest_proof_fresh",
+          "why": "called from _planner_rung_draw"
+        },
+        {
+          "fn": "background/supervisor.py::_planner_rung_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_planner_rest_proof_fresh",
+        "background/supervisor.py::_planner_rung_draw",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/supervisor.py::write_planner_rest_proof"
+      ]
+    },
+    ".process_run_complete.lock": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "writes the path and raises the alarm in the same path (reaches notifier notify)"
+        }
+      ],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/process_run_complete.py::_run_lock",
+        "background/process_run_complete.py::main"
+      ]
+    },
+    ".publish_gate_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/background_worker.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::process_leftover_run_markers",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_failure",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::auto_process_marker",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sim_runner.py::run_simulation",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/stall_class_register.py::detect_publish_gate_wedge",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_publish_gate_wedge_active",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_self_refill_draw",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::find_work",
+          "why": "called from _draw"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/worker_tick.py::_draw",
+          "why": "name matches the alarm lexicon"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_write_publish_gate_state",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_failure",
+          "why": "name matches the failure lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_success",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/deadmans_switch.py::_rest_is_proven_legitimate",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/process_run_complete.py::_read_publish_gate_state",
+        "background/process_run_complete.py::_write_publish_gate_state",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/process_run_complete.py::record_publish_gate_success",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/stall_class_register.py::detect_publish_gate_wedge",
+        "background/supervisor.py::_is_drained_and_gated",
+        "background/supervisor.py::_publish_gate_wedge_active",
+        "background/supervisor.py::_self_refill_draw",
+        "background/supervisor.py::find_work",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/worker_tick.py::_draw",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/process_run_complete.py::_write_publish_gate_state",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/process_run_complete.py::record_publish_gate_success",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation"
+      ]
+    },
+    ".pull_loop_health.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::_check_pull_loop_transport",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/health_check.py::main",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/health_check.py::main",
+        "background/health_check.py::run_health_check",
+        "background/process_reconciler.py::evaluate_pull_loop",
+        "background/process_reconciler.py::read_pull_loop_health"
+      ],
+      "writers": []
+    },
+    ".rate_limits.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::render_note",
+        "background/daily_self_note.py::resource_inputs",
+        "background/daily_self_note.py::run"
+      ],
+      "writers": []
+    },
+    ".reconcile_watch_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/reconcile_watch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/reconcile_watch.py::run",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/reconcile_watch.py::run",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/reconcile_watch.py::_load_last",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run"
+      ],
+      "writers": [
+        "background/reconcile_watch.py::_save",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run"
+      ]
+    },
+    ".retro_cadence_ntfy_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/retro_cadence_check.py::_read_last_ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/retro_cadence_check.py::main",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/retro_cadence_check.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/retro_cadence_check.py::_read_last_ntfy",
+        "background/retro_cadence_check.py::main"
+      ],
+      "writers": [
+        "background/retro_cadence_check.py::_write_last_ntfy",
+        "background/retro_cadence_check.py::main"
+      ]
+    },
+    ".run_marker_sweep_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/background_worker.py::_check_zero_progress",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::process_leftover_run_markers",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/background_worker.py::_check_zero_progress",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/background_worker.py::_record_marker_published",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/background_worker.py::_remember_oldest_outcome",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_load_sweep_state",
+        "background/background_worker.py::_record_marker_published",
+        "background/background_worker.py::_remember_oldest_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers"
+      ],
+      "writers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_marker_published",
+        "background/background_worker.py::_remember_oldest_outcome",
+        "background/background_worker.py::_save_sweep_state",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers"
+      ]
+    },
+    ".sanctified_consoles.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/console_sanctity.py::prune",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/console_sanctity.py::sanctify",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/console_sanctity.py::unsanctify",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/console_sanctity.py::_load",
+        "background/console_sanctity.py::_main",
+        "background/console_sanctity.py::is_sanctified",
+        "background/console_sanctity.py::prune",
+        "background/console_sanctity.py::sanctified_pids",
+        "background/console_sanctity.py::sanctify",
+        "background/console_sanctity.py::unsanctify"
+      ],
+      "writers": [
+        "background/console_sanctity.py::_atomic_write",
+        "background/console_sanctity.py::_main",
+        "background/console_sanctity.py::prune",
+        "background/console_sanctity.py::sanctify",
+        "background/console_sanctity.py::unsanctify"
+      ]
+    },
+    ".sanity_daemon_last_digest_date": {
+      "alarm_readers": [
+        {
+          "fn": "background/sanity_daemon.py::_maybe_send_daily_digest",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/sanity_daemon.py::_maybe_send_daily_digest",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle"
+      ],
+      "writers": [
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle"
+      ]
+    },
+    ".scheduled_invocations_enabled": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/worker_tick.py::run_tick",
+        "background/worker_tick.py::scheduled_mode"
+      ],
+      "writers": []
+    },
+    ".sent_ntfy_ids.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/background_worker.py::_check_zero_progress",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/background_worker.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/background_worker.py::process_leftover_run_markers",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/boot_announce.py::announce",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/boot_announce.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::_run_git",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/daily_self_note.py::publish",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/daily_self_note.py::run",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_fork_lifecycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_open_mint_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_pull_loop_transport",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_repo_not_bare",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_status_honesty",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_check_worktree_reconcile",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::_reping_open_action_needed_items",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/director_twin.py::route_blocking_decision",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/discovery_agent.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/discovery_agent.py::run_discovery_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/dispatcher.py::check_once",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::route_message",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/executor_governor.py::_alert_wall",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/executor_governor.py::_default_fold",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/health_check.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/notify.py::notify",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/ntfy_responder.py::check_once",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/ntfy_utils.py::record_sent_id",
+          "why": "called from send_ntfy"
+        },
+        {
+          "fn": "background/ntfy_utils.py::send_ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::_fire_publish_gate_alert",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::git_commit_push",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::maybe_ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_failure",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/reconcile_watch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/reconcile_watch.py::run",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/retro_cadence_check.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sanity_daemon.py::_digest",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/sanity_daemon.py::_maybe_send_daily_digest",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::_record_publish_gate_outcome",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::auto_process_marker",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sim_runner.py::run_simulation",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/staging_watcher.py::check_once",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/staging_watcher.py::ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/staging_watcher.py::sweep_stale_instruction_docs",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_check_stuck_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::check_map_exhausted_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::ntfy",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/tree_lock.py::assert_repo_not_bare",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/tree_lock.py::tree_lock",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "tools/run_phase4c_pipeline.py::cli",
+          "why": "calls a notifier directly"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/ntfy_utils.py::record_sent_id",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/ntfy_utils.py::send_ntfy",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::_check_open_mint_escalation",
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::_check_repo_not_bare",
+        "background/deadmans_switch.py::_check_status_honesty",
+        "background/deadmans_switch.py::_check_worktree_reconcile",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_twin.py::route_blocking_decision",
+        "background/discovery_agent.py::main",
+        "background/discovery_agent.py::run_discovery_cycle",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/dispatcher.py::route_message",
+        "background/executor_governor.py::_alert_wall",
+        "background/executor_governor.py::_default_fold",
+        "background/health_check.py::main",
+        "background/notify.py::notify",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/ntfy_utils.py::record_sent_id",
+        "background/ntfy_utils.py::send_ntfy",
+        "background/ntfy_utils.py::was_sent_by_us",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::maybe_ntfy",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run",
+        "background/retro_cadence_check.py::main",
+        "background/sanity_daemon.py::_digest",
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::ntfy",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::ntfy",
+        "background/supervisor.py::run_cycle",
+        "background/tree_lock.py::assert_repo_not_bare",
+        "background/tree_lock.py::tree_lock",
+        "tools/run_phase4c_pipeline.py::cli"
+      ],
+      "writers": [
+        "background/background_worker.py::_check_zero_progress",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/boot_announce.py::announce",
+        "background/boot_announce.py::main",
+        "background/daily_self_note.py::_run_git",
+        "background/daily_self_note.py::main",
+        "background/daily_self_note.py::publish",
+        "background/daily_self_note.py::run",
+        "background/deadmans_switch.py::_check_drawable_undrawn_escalation",
+        "background/deadmans_switch.py::_check_fork_lifecycle",
+        "background/deadmans_switch.py::_check_open_mint_escalation",
+        "background/deadmans_switch.py::_check_pull_loop_transport",
+        "background/deadmans_switch.py::_check_repo_not_bare",
+        "background/deadmans_switch.py::_check_status_honesty",
+        "background/deadmans_switch.py::_check_worktree_reconcile",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_twin.py::route_blocking_decision",
+        "background/discovery_agent.py::main",
+        "background/discovery_agent.py::run_discovery_cycle",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/dispatcher.py::route_message",
+        "background/executor_governor.py::_alert_wall",
+        "background/executor_governor.py::_default_fold",
+        "background/health_check.py::main",
+        "background/notify.py::notify",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/ntfy_utils.py::record_sent_id",
+        "background/ntfy_utils.py::send_ntfy",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_refresh_published_liveness_on_skip",
+        "background/process_run_complete.py::git_commit_push",
+        "background/process_run_complete.py::main",
+        "background/process_run_complete.py::maybe_ntfy",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/reconcile_watch.py::main",
+        "background/reconcile_watch.py::run",
+        "background/retro_cadence_check.py::main",
+        "background/sanity_daemon.py::_digest",
+        "background/sanity_daemon.py::_maybe_send_daily_digest",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::ntfy",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::ntfy",
+        "background/supervisor.py::run_cycle",
+        "background/tree_lock.py::assert_repo_not_bare",
+        "background/tree_lock.py::tree_lock",
+        "tools/run_phase4c_pipeline.py::cli"
+      ]
+    },
+    ".staging_watcher_seen.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/staging_watcher.py::check_once",
+          "why": "writes the path and raises the alarm in the same path (calls a notifier directly)"
+        },
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/staging_watcher.py::load_seen",
+        "background/staging_watcher.py::main"
+      ],
+      "writers": [
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::save_seen"
+      ]
+    },
+    ".supervisor_idle_turn_count.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::_record_idle_turn",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/supervisor.py::_load_idle_turn_count",
+        "background/supervisor.py::_record_idle_turn",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ],
+      "writers": [
+        "background/supervisor.py::_record_idle_turn",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ]
+    },
+    ".supervisor_map_exhausted_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/supervisor.py::_load_map_exhausted_state",
+          "why": "called from check_map_exhausted_escalation"
+        },
+        {
+          "fn": "background/supervisor.py::check_map_exhausted_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::check_map_exhausted_escalation",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/supervisor.py::_load_map_exhausted_state",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ],
+      "writers": [
+        "background/supervisor.py::_save_map_exhausted_state",
+        "background/supervisor.py::check_map_exhausted_escalation",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ]
+    },
+    ".supervisor_stuck_state.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/supervisor.py::_check_stuck_escalation",
+          "why": "name matches the alarm lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_load_stuck_state",
+          "why": "called from _check_stuck_escalation"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/supervisor.py::_check_stuck_escalation",
+          "why": "name matches the failure lexicon"
+        },
+        {
+          "fn": "background/supervisor.py::_save_stuck_state",
+          "why": "name matches the failure lexicon"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::_load_stuck_state",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ],
+      "writers": [
+        "background/supervisor.py::_check_stuck_escalation",
+        "background/supervisor.py::_save_stuck_state",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ]
+    },
+    ".usage_pause.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/deadmans_switch.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/deadmans_switch.py::run_cycle",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/deadmans_switch.py::_usage_pause_active",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/supervisor.py::_pause_active_readonly",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle"
+      ],
+      "writers": []
+    },
+    ".worker_seat_status": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/worker_seat.py::_report",
+        "background/worker_seat.py::main"
+      ]
+    },
+    ".worker_tick.lock": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/worker_tick.py::run_tick",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/worker_tick.py::invocation_in_flight",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/worker_tick.py::_write_lock",
+        "background/worker_tick.py::run_tick"
+      ]
+    },
+    ".worker_tick_health.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/worker_tick.py::_write_health",
+        "background/worker_tick.py::run_tick"
+      ]
+    },
+    "MANIFEST.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/staging_archive_policy.py::_cli",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/staging_archive_policy.py::_cli",
+        "background/staging_archive_policy.py::read_manifest",
+        "background/staging_archive_policy.py::verify"
+      ],
+      "writers": [
+        "background/staging_archive_policy.py::_cli",
+        "background/staging_archive_policy.py::apply_sweep"
+      ]
+    },
+    "activity_cost.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_activity_cost_data.py::generate"
+      ]
+    },
+    "agent_status.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/discovery_agent.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::check_once",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/dispatcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/ntfy_responder.py::check_once",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/ntfy_responder.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sim_runner.py::main",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/sim_runner.py::run_simulation",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/agent_status.py::update_agent_status",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/agent_status.py::update_sim_metrics",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/autonomous_runner.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/background_worker.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/build_executor.py::_heartbeat",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/discovery_agent.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/dispatcher.py::check_once",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/ntfy_responder.py::check_once",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/sim_runner.py::run_simulation",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/staging_watcher.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/supervisor.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "tools/epistemic_verifier.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/agent_status.py::_load",
+        "background/agent_status.py::update_agent_status",
+        "background/agent_status.py::update_sim_metrics",
+        "background/autonomous_runner.py::main",
+        "background/background_worker.py::main",
+        "background/build_executor.py::_heartbeat",
+        "background/build_executor.py::run_once",
+        "background/discovery_agent.py::main",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/executor_governor.py::run_loop",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "background/sanity_daemon.py::main",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::main",
+        "background/supervisor.py::main",
+        "tools/epistemic_verifier.py::main",
+        "tools/executor_cli.py::main"
+      ],
+      "writers": [
+        "background/agent_status.py::update_agent_status",
+        "background/agent_status.py::update_sim_metrics",
+        "background/autonomous_runner.py::main",
+        "background/background_worker.py::main",
+        "background/build_executor.py::_heartbeat",
+        "background/build_executor.py::run_once",
+        "background/discovery_agent.py::main",
+        "background/dispatcher.py::check_once",
+        "background/dispatcher.py::main",
+        "background/executor_governor.py::run_loop",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "background/sanity_daemon.py::main",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::main",
+        "background/supervisor.py::main",
+        "tools/epistemic_verifier.py::main",
+        "tools/executor_cli.py::main"
+      ]
+    },
+    "bad_debt_reconciliation.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/bad_debt_reconciliation_run.py::run_from_run_output",
+        "background/bad_debt_reconciliation_run.py::write_report"
+      ]
+    },
+    "billing_ledger.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "tools/generate_customer_reaction_chain.py::generate",
+        "tools/generate_invoice_data.py::generate",
+        "tools/generate_payment_ledger_data.py::generate",
+        "tools/generate_portfolio_event_stream.py::generate"
+      ],
+      "writers": [
+        "tools/generate_billing_ledger.py::generate"
+      ]
+    },
+    "build_info.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_run_weather_data",
+        "background/process_run_complete.py::main",
+        "tools/fetch_weather_data.py::_load_build_phase",
+        "tools/fetch_weather_data.py::generate_weather_data",
+        "tools/generate_dashboard_data.py::_load_build_info",
+        "tools/generate_dashboard_data.py::generate",
+        "tools/generate_sim_data.py::_load_build_phase",
+        "tools/generate_sim_data.py::generate"
+      ],
+      "writers": []
+    },
+    "capabilities.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_capabilities_json.py::generate"
+      ]
+    },
+    "cascade_link_register.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/cascade_link_register.py::write_register"
+      ]
+    },
+    "case_studies.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_case_study_recommender.py::generate"
+      ]
+    },
+    "company.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_company_data.py::generate"
+      ]
+    },
+    "control_registry.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_proof_data.py::_control_killlist",
+        "tools/generate_proof_data.py::generate"
+      ],
+      "writers": []
+    },
+    "conversation_gap_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/conversation_gap_ledger.py::record_gap"
+      ]
+    },
+    "coupled_gap_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/coupled_triad.py::load_gap_ledger",
+        "tools/generate_proof_data.py::_coupled_gaps",
+        "tools/generate_proof_data.py::generate"
+      ],
+      "writers": []
+    },
+    "customer_sample.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_case_study_recommender.py::generate"
+      ],
+      "writers": [
+        "tools/generate_customer_sample.py::generate"
+      ]
+    },
+    "dashboard.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "tools/generate_portfolio_event_stream.py::generate",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "tools/generate_activity_cost_data.py::generate",
+        "tools/generate_capabilities_json.py::generate",
+        "tools/generate_method_data.py::generate",
+        "tools/generate_portfolio_event_stream.py::generate",
+        "tools/generate_proof_data.py::generate",
+        "tools/generate_saas_coverage_data.py::generate",
+        "tools/generate_wip_flow_data.py::generate"
+      ],
+      "writers": [
+        "tools/generate_dashboard_data.py::generate",
+        "tools/generate_portfolio_event_stream.py::generate"
+      ]
+    },
+    "dd_h_solvency_gap_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/dd_h_solvency_gap.py::record_gap"
+      ]
+    },
+    "decision_log.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/decision_log.py::count_since",
+        "background/decision_log.py::read_decision_log",
+        "tools/generate_decisions_data.py::derive_decisions",
+        "tools/generate_decisions_data.py::main",
+        "tools/size_ratchet_gate.py::active_overrides",
+        "tools/size_ratchet_gate.py::main",
+        "tools/size_ratchet_gate.py::run",
+        "tools/test_generate_decisions_data.py::test_count_and_fields_follow_injected_ledger",
+        "tools/test_generate_decisions_data.py::test_count_follows_ledger_size_change",
+        "tools/test_generate_decisions_data.py::test_empty_ledger_is_fail_closed",
+        "tools/test_generate_decisions_data.py::test_generated_at_stamp_shape",
+        "tools/test_generate_decisions_data.py::test_live_ledger_reads_via_background_decision_log",
+        "tools/test_generate_decisions_data.py::test_malformed_lines_are_skipped_not_fatal",
+        "tools/test_generate_decisions_data.py::test_missing_ledger_is_fail_closed"
+      ],
+      "writers": [
+        "background/decision_log.py::decide",
+        "background/decision_log.py::log_decision",
+        "tools/size_ratchet_override.py::main"
+      ]
+    },
+    "decisions.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_decisions_data.py::main"
+      ]
+    },
+    "director_delta.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_director_data.py::generate",
+        "tools/generate_director_data.py::main"
+      ]
+    },
+    "director_reserved.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/action_needed.py::_mirror_reserved_to_site",
+        "background/action_needed.py::clear_item",
+        "background/action_needed.py::confirm_and_resolve",
+        "background/action_needed.py::escalate_if_one_way_door",
+        "background/action_needed.py::mark_sent",
+        "background/action_needed.py::reconcile_staged_items",
+        "background/action_needed.py::register_item",
+        "background/action_needed.py::resolve_by_pin",
+        "background/action_needed.py::resolve_item",
+        "background/action_needed.py::save_register",
+        "background/background_worker.py::_record_publish_gate_outcome",
+        "background/background_worker.py::main",
+        "background/background_worker.py::process_leftover_run_markers",
+        "background/deadmans_switch.py::_reping_open_action_needed_items",
+        "background/deadmans_switch.py::main",
+        "background/deadmans_switch.py::run_cycle",
+        "background/director_twin.py::route_blocking_decision",
+        "background/executor_governor.py::_alert_wall",
+        "background/ntfy_responder.py::_write_to_staging",
+        "background/ntfy_responder.py::check_once",
+        "background/ntfy_responder.py::main",
+        "background/process_run_complete.py::_fire_publish_gate_alert",
+        "background/process_run_complete.py::record_publish_gate_failure",
+        "background/process_run_complete.py::record_publish_gate_outcome",
+        "background/process_run_complete.py::record_publish_gate_success",
+        "background/sim_runner.py::_record_publish_gate_outcome",
+        "background/sim_runner.py::auto_process_marker",
+        "background/sim_runner.py::main",
+        "background/sim_runner.py::run_simulation",
+        "background/staging_watcher.py::_cleared",
+        "background/staging_watcher.py::archive_from_rich",
+        "background/staging_watcher.py::check_once",
+        "background/staging_watcher.py::main",
+        "background/staging_watcher.py::sweep_answered_from_rich",
+        "background/staging_watcher.py::sweep_stale_instruction_docs",
+        "background/supervisor.py::main",
+        "background/supervisor.py::run_cycle",
+        "background/supervisor.py::surface_missing_work_block_defects"
+      ]
+    },
+    "director_twin.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_director_twin_data.py::main"
+      ]
+    },
+    "elexon_demand_full.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/cascade_link_register.py::_load_daily_demand",
+        "background/cascade_link_register.py::build_register",
+        "background/cascade_link_register.py::estimate_d4_demand_temp",
+        "background/cascade_link_register.py::write_register"
+      ],
+      "writers": []
+    },
+    "elexon_ssp_full.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_dashboard_data.py::generate",
+        "tools/generate_dashboard_data.py::load_spot_monthly",
+        "tools/generate_sim_data.py::_load_ssp",
+        "tools/generate_sim_data.py::generate",
+        "tools/live_market.py::_best_records",
+        "tools/live_market.py::_load_ssp_records",
+        "tools/live_market.py::build_live_forward_price",
+        "tools/live_market.py::fetch_spot_elec",
+        "tools/live_market.py::fetch_spot_gas",
+        "tools/live_market.py::get_market_summary",
+        "tools/market_adapters/frozen_2025.py::get_forward_price",
+        "tools/market_adapters/frozen_2025.py::get_spot_elec_gbp_per_mwh",
+        "tools/market_adapters/frozen_2025.py::get_spot_gas_gbp_per_mwh"
+      ],
+      "writers": []
+    },
+    "elexon_ssp_live_rolling.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/refresh_elexon_ssp_rolling.py::_load_rolling",
+        "background/refresh_elexon_ssp_rolling.py::refresh",
+        "tools/live_market.py::_best_records",
+        "tools/live_market.py::_load_ssp_records",
+        "tools/live_market.py::build_live_forward_price",
+        "tools/live_market.py::fetch_spot_elec",
+        "tools/live_market.py::fetch_spot_gas",
+        "tools/live_market.py::get_market_summary",
+        "tools/market_adapters/frozen_2025.py::get_forward_price",
+        "tools/market_adapters/frozen_2025.py::get_spot_elec_gbp_per_mwh",
+        "tools/market_adapters/frozen_2025.py::get_spot_gas_gbp_per_mwh"
+      ],
+      "writers": []
+    },
+    "evidence.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_evidence_data.py::generate",
+        "tools/generate_evidence_data.py::main"
+      ]
+    },
+    "fabric_settlement_gap.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/fabric_settlement_gap.py::main"
+      ]
+    },
+    "fidelity.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_fidelity_data.py::generate"
+      ]
+    },
+    "fidelity_evidence_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/fidelity_evidence_ledger.py::append_record",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/fidelity_evidence_ledger.py::append_record",
+        "background/gap_register_scan.py::register2_fidelity",
+        "background/harness_exit_criterion.py::_read_fidelity",
+        "background/harness_exit_criterion.py::content_advances",
+        "background/harness_exit_criterion.py::evaluate",
+        "background/harness_exit_criterion.py::summary_line"
+      ],
+      "writers": [
+        "background/fidelity_evidence_ledger.py::append_record"
+      ]
+    },
+    "gate_authorizations.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/gate_authorization.py::read_ledger",
+        "background/harness_exit_criterion.py::_read_ledger_strict",
+        "background/harness_exit_criterion.py::content_advances",
+        "background/harness_exit_criterion.py::evaluate",
+        "background/harness_exit_criterion.py::summary_line"
+      ],
+      "writers": [
+        "background/gate_authorization.py::_append_envelope",
+        "background/gate_authorization.py::record_level_correction_self_certified",
+        "background/gate_authorization.py::record_level_up_self_certified"
+      ]
+    },
+    "gate_wall_baseline.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/gate_authorization.py::load_baseline"
+      ],
+      "writers": []
+    },
+    "judge_validation.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_judge_validation_data.py::main"
+      ]
+    },
+    "live_decisions_log.jsonl": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "tools/run_live_decisions.py::append_decision_log",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "tools/run_live_decisions.py::run_decisions",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::generate_dashboard_json",
+        "background/process_run_complete.py::main",
+        "tools/generate_track_record_scorecard.py::_load_log",
+        "tools/generate_track_record_scorecard.py::generate",
+        "tools/run_live_decisions.py::append_decision_log",
+        "tools/run_live_decisions.py::run_decisions"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::generate_dashboard_json",
+        "background/process_run_complete.py::main",
+        "tools/run_live_decisions.py::append_decision_log",
+        "tools/run_live_decisions.py::run_decisions"
+      ]
+    },
+    "live_portfolio.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::generate_dashboard_json",
+        "background/process_run_complete.py::main",
+        "tools/generate_proof_data.py::_observed_portfolio",
+        "tools/generate_proof_data.py::_predictions_ledger",
+        "tools/generate_proof_data.py::generate",
+        "tools/generate_track_record_scorecard.py::_load_portfolio",
+        "tools/generate_track_record_scorecard.py::generate",
+        "tools/run_live_decisions.py::_load_portfolio",
+        "tools/run_live_decisions.py::run_decisions",
+        "tools/run_live_decisions.py::run_scenario_analysis"
+      ],
+      "writers": [
+        "tools/project_portfolio_to_2026.py::generate"
+      ]
+    },
+    "map_assertion_provenance.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/map_assertion_provenance.py::main",
+        "tools/map_assertion_provenance.py::record_verification"
+      ]
+    },
+    "margin_bridge.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_dashboard_data.py::_check_bridge_reconciles",
+        "tools/generate_dashboard_data.py::generate"
+      ],
+      "writers": [
+        "tools/generate_margin_bridge.py::generate"
+      ]
+    },
+    "market.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_market_data.py::generate"
+      ]
+    },
+    "maturity_map.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_maturity_map_data.py::generate"
+      ]
+    },
+    "method.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_method_data.py::generate"
+      ]
+    },
+    "open_question_register.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/open_question_register.py::all_tracked_questions",
+        "background/open_question_register.py::blocking_questions_for_ruling",
+        "background/open_question_register.py::load_dispositions",
+        "background/open_question_register.py::open_questions",
+        "tools/ruling_archive_question_gate.py::evaluate",
+        "tools/ruling_archive_question_gate.py::main"
+      ],
+      "writers": []
+    },
+    "phases.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "tools/generate_phases_json.py::generate",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "tools/generate_phases_json.py::_previously_published",
+        "tools/generate_phases_json.py::generate"
+      ],
+      "writers": [
+        "tools/generate_phases_json.py::generate"
+      ]
+    },
+    "population_anchoring.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/population_anchor.py::generate"
+      ]
+    },
+    "premise_demand.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_premise_demand_data.py::generate"
+      ]
+    },
+    "price_feed.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/live_market.py::_best_records",
+        "tools/live_market.py::_load_price_feed_records",
+        "tools/live_market.py::build_live_forward_price",
+        "tools/live_market.py::fetch_spot_elec",
+        "tools/live_market.py::fetch_spot_gas",
+        "tools/live_market.py::get_market_summary",
+        "tools/market_adapters/frozen_2025.py::get_forward_price",
+        "tools/market_adapters/frozen_2025.py::get_spot_elec_gbp_per_mwh",
+        "tools/market_adapters/frozen_2025.py::get_spot_gas_gbp_per_mwh"
+      ],
+      "writers": []
+    },
+    "proof.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_proof_data.py::generate"
+      ]
+    },
+    "provisional_plan.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_provisional_plan_data.py::main"
+      ]
+    },
+    "real_ssp_daily_mean.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/cascade_link_register.py::_load_daily_ssp_mean",
+        "background/cascade_link_register.py::build_register",
+        "background/cascade_link_register.py::estimate_d6_end_to_end",
+        "background/cascade_link_register.py::write_register"
+      ],
+      "writers": []
+    },
+    "regulatory.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_regulatory_data.py::main"
+      ]
+    },
+    "run_history.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "calls a notifier directly"
+        },
+        {
+          "fn": "background/process_run_complete.py::main",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "tools/generate_insights.py::append_run_history",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "tools/generate_dashboard_data.py::count_run_history_total",
+        "tools/generate_dashboard_data.py::extract_run_history",
+        "tools/generate_dashboard_data.py::generate",
+        "tools/generate_insights.py::append_run_history"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "tools/generate_insights.py::append_run_history"
+      ]
+    },
+    "run_insights.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/process_run_complete.py::_process",
+          "why": "writes the path and raises the alarm in the same path (calls a notifier directly)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "tools/generate_dashboard_data.py::extract_insights",
+        "tools/generate_dashboard_data.py::generate"
+      ],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::main",
+        "tools/generate_insights.py::save_insights"
+      ]
+    },
+    "run_ledger.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/run_manifest.py::read_ledger"
+      ],
+      "writers": [
+        "background/run_manifest.py::append_to_ledger"
+      ]
+    },
+    "run_output_latest.json": {
+      "alarm_readers": [
+        {
+          "fn": "background/sanity_daemon.py::main",
+          "why": "reaches notifier notify"
+        },
+        {
+          "fn": "background/sanity_daemon.py::run_cycle",
+          "why": "reaches notifier notify"
+        }
+      ],
+      "failure_writers": [
+        {
+          "fn": "tools/run_phase4c_pipeline.py::cli",
+          "why": "writes the path and raises the alarm in the same path (calls a notifier directly)"
+        }
+      ],
+      "hit": true,
+      "readers": [
+        "background/dd_h_solvency_gap.py::main",
+        "background/dd_h_solvency_gap.py::measure_from_run_output",
+        "background/dd_h_solvency_gap.py::record_gap",
+        "background/dd_h_solvency_gap.py::retro_gap_line",
+        "background/sanity_daemon.py::main",
+        "background/sanity_daemon.py::run_cycle",
+        "tools/generate_billing_ledger.py::generate",
+        "tools/generate_customer_consumption.py::generate",
+        "tools/generate_customer_data.py::generate",
+        "tools/generate_customer_reaction_chain.py::generate",
+        "tools/generate_customer_sample.py::generate",
+        "tools/generate_invoice_data.py::generate",
+        "tools/generate_margin_bridge.py::generate",
+        "tools/generate_portfolio_event_stream.py::generate",
+        "tools/population_anchor.py::generate",
+        "tools/project_portfolio_to_2026.py::generate",
+        "tools/run_live_decisions.py::_load_run_output"
+      ],
+      "writers": [
+        "tools/run_annual_report.py::save_run_output_json",
+        "tools/run_phase4c_pipeline.py::cli"
+      ]
+    },
+    "run_rotation_grid.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/run_rotation.py::load_grid",
+        "background/run_rotation.py::manifest_for_next_run",
+        "background/run_rotation.py::peek_next_cell",
+        "background/run_rotation.py::select_next_cell",
+        "background/run_rotation.py::worlds_visited_in_period"
+      ],
+      "writers": []
+    },
+    "saas_coverage.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_saas_coverage_data.py::generate"
+      ]
+    },
+    "sanity_adjudication_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/gap_register_scan.py::register6_sanity"
+      ],
+      "writers": []
+    },
+    "segmentation_curriculum_v1.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/run_manifest.py::_curriculum_version",
+        "background/run_manifest.py::build_manifest",
+        "background/run_rotation.py::manifest_for_next_run"
+      ],
+      "writers": []
+    },
+    "self_clearing_alarm_census.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/self_clearing_alarm_census.py::main",
+        "background/self_clearing_alarm_census.py::write_census"
+      ]
+    },
+    "self_clearing_alarm_dispositions.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/self_clearing_alarm_census.py::load_dispositions",
+        "background/self_clearing_alarm_census.py::main",
+        "background/self_clearing_alarm_census.py::undispositioned",
+        "background/self_clearing_alarm_census.py::unguarded_real_hits"
+      ],
+      "writers": []
+    },
+    "shared_primitive_census.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/shared_primitive_census.py::main",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/shared_primitive_census.py::record_standing_review",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/shared_primitive_census.py::write_census",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/shared_primitive_census.py::census_register_open",
+        "background/shared_primitive_census.py::generate",
+        "background/shared_primitive_census.py::main",
+        "background/shared_primitive_census.py::open_residue_counts",
+        "background/shared_primitive_census.py::record_standing_review",
+        "background/shared_primitive_census.py::shared_primitive_census_open",
+        "background/shared_primitive_census.py::write_census"
+      ],
+      "writers": [
+        "background/shared_primitive_census.py::main",
+        "background/shared_primitive_census.py::record_standing_review",
+        "background/shared_primitive_census.py::write_census"
+      ]
+    },
+    "sim_data.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_dashboard_data.py::_load_sim_window",
+        "tools/generate_dashboard_data.py::extract_financial",
+        "tools/generate_dashboard_data.py::generate"
+      ],
+      "writers": [
+        "tools/generate_sim_data.py::generate"
+      ]
+    },
+    "simplified.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_simplified_data.py::generate"
+      ]
+    },
+    "suppression_register.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/suppression_register.py::load_register",
+        "background/suppression_register.py::register_is_clean",
+        "background/suppression_register.py::validate_suppression_register"
+      ],
+      "writers": []
+    },
+    "system_status.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_system_status.py::generate"
+      ]
+    },
+    "test_execution_log.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_phases_json.py::generate",
+        "tools/test_execution_metric.py::cumulative_tests_executed"
+      ],
+      "writers": [
+        "tools/test_execution_metric.py::record_execution"
+      ]
+    },
+    "test_mix.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_test_mix_data.py::generate"
+      ]
+    },
+    "tick_heartbeat.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/worker_tick.py::_write_heartbeat",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/worker_tick.py::run_tick",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/worker_tick.py::_write_heartbeat",
+        "background/worker_tick.py::run_tick"
+      ],
+      "writers": [
+        "background/worker_tick.py::_write_heartbeat",
+        "background/worker_tick.py::run_tick"
+      ]
+    },
+    "token-usage-log.jsonl": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "background/token_proxy.py::_handle_usage_query",
+        "background/token_proxy.py::_read_log_lines",
+        "background/token_proxy.py::do_GET",
+        "background/token_proxy.py::query_and_print"
+      ],
+      "writers": [
+        "background/token_proxy.py::_log_usage",
+        "background/token_proxy.py::_proxy_messages",
+        "background/token_proxy.py::do_POST"
+      ]
+    },
+    "tokens.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/brand_compliance.py::load_tokens"
+      ],
+      "writers": []
+    },
+    "track_record_scorecard.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [
+        "tools/generate_method_data.py::_track_record",
+        "tools/generate_method_data.py::generate",
+        "tools/generate_proof_data.py::_predictions_ledger",
+        "tools/generate_proof_data.py::generate"
+      ],
+      "writers": [
+        "tools/generate_track_record_scorecard.py::generate"
+      ]
+    },
+    "trust_ledger.json": {
+      "alarm_readers": [],
+      "failure_writers": [
+        {
+          "fn": "background/trust_ledger.py::record_post_close_defect",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        },
+        {
+          "fn": "background/trust_ledger.py::record_verdict",
+          "why": "read-modify-writes its own state (a failure outcome overwrites the episode)"
+        }
+      ],
+      "hit": false,
+      "readers": [
+        "background/judge_validation.py::_main",
+        "background/judge_validation.py::record_close_verdict",
+        "background/trust_ledger.py::_load_ledger",
+        "background/trust_ledger.py::autonomy_level",
+        "background/trust_ledger.py::check_grader_capture_tell",
+        "background/trust_ledger.py::entries_for_class",
+        "background/trust_ledger.py::record_post_close_defect",
+        "background/trust_ledger.py::record_verdict"
+      ],
+      "writers": [
+        "background/judge_validation.py::_main",
+        "background/judge_validation.py::record_close_verdict",
+        "background/trust_ledger.py::_save_ledger",
+        "background/trust_ledger.py::record_post_close_defect",
+        "background/trust_ledger.py::record_verdict"
+      ]
+    },
+    "weather.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "background/process_run_complete.py::_process",
+        "background/process_run_complete.py::_run_weather_data",
+        "background/process_run_complete.py::main",
+        "tools/fetch_weather_data.py::generate_weather_data"
+      ]
+    },
+    "wip_flow.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_wip_flow_data.py::generate"
+      ]
+    },
+    "world.json": {
+      "alarm_readers": [],
+      "failure_writers": [],
+      "hit": false,
+      "readers": [],
+      "writers": [
+        "tools/generate_world_data.py::generate"
+      ]
+    }
+  }
+}

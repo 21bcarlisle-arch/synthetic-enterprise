@@ -32,6 +32,43 @@ _PIPELINE_OUTPUT_WRITERS = (
 )
 
 
+# A STUB THAT MODELS ONLY THE RETURN CODE IS LYING ABOUT THE REST (2026-08-09, R10 class
+# closure; the ~4.5h publish wedge, 41 consecutive gate failures).
+#
+# Every `subprocess.run` stub in this file was a bare `MagicMock()` with `returncode` set and
+# nothing else, so `.stdout` came back a MagicMock. That is not what `subprocess.run(...,
+# text=True)` returns. It cost nothing for as long as no production line READ a stdout these
+# stubs had not already special-cased -- and then `_head_checkout` started writing the output
+# of `git rev-parse HEAD` into the checkout's `.git/HEAD`, and three tests died with
+#
+#     TypeError: data must be str, not MagicMock
+#
+# which says nothing whatsoever about the code under test. The gate is `-x`, so that wedged
+# publishing for every caller.
+#
+# R10 forbids closing that at the instance. The population is open-ended: ANY future line that
+# reads a stdout no stub anticipated is the next instance, and the failure will again look like
+# a product bug rather than a fixture lying about a type. So the SUBJECT is fixed -- one shared
+# factory that honours the contract (`str` under text mode, `bytes` otherwise), with
+# `git rev-parse` answering in the shape of a real SHA. Per-command outputs a test actually
+# cares about are still set by that test, on top of this.
+#
+# Guarded by test_every_subprocess_stub_here_models_the_return_contract below, so a bare
+# `MagicMock()` stub reintroduced here fails immediately instead of years later, in the gate.
+_FAKE_HEAD_SHA = "0123456789abcdef0123456789abcdef01234567"
+
+
+def fake_completed(cmd, returncode=0, **kwargs):
+    """A type-correct stand-in for a `subprocess.run` result. See the note above."""
+    text = bool(kwargs.get("text") or kwargs.get("universal_newlines") or kwargs.get("encoding"))
+    out = _FAKE_HEAD_SHA + "\n" if list(cmd[:2]) == ["git", "rev-parse"] else ""
+    m = MagicMock()
+    m.returncode = returncode
+    m.stdout = out if text else out.encode()
+    m.stderr = "" if text else b""
+    return m
+
+
 @pytest.fixture(autouse=True)
 def _isolate_project_dir(tmp_path_factory, monkeypatch):
     """Point PROJECT_DIR -- and EVERY module path derived from it -- at a throwaway tree,
@@ -252,9 +289,7 @@ def test_main_success_flow(tmp_path, monkeypatch):
     marker, json_data = make_marker(tmp_path)
 
     def fake_run(cmd, **kwargs):
-        m = MagicMock()
-        m.returncode = 0
-        return m
+        return fake_completed(cmd, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
@@ -288,9 +323,7 @@ def _full_isolation_setup(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "LATEST_MD", latest_md)
 
     def fake_run(cmd, **kwargs):
-        m = MagicMock()
-        m.returncode = 0
-        return m
+        return fake_completed(cmd, **kwargs)
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
 
@@ -375,13 +408,9 @@ def test_main_returns_1_when_tests_fail(tmp_path, monkeypatch):
     call_count = [0]
 
     def fake_run(cmd, **kwargs):
-        m = MagicMock()
         call_count[0] += 1
-        if "pytest" in " ".join(str(a) for a in cmd):
-            m.returncode = 1
-        else:
-            m.returncode = 0
-        return m
+        failed = "pytest" in " ".join(str(a) for a in cmd)
+        return fake_completed(cmd, returncode=1 if failed else 0, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
@@ -524,9 +553,7 @@ def test_git_commit_push_defers_push_within_throttle_window(tmp_path, monkeypatc
 
     def fake_run(cmd, **kwargs):
         calls.append(cmd)
-        m = MagicMock()
-        m.returncode = 0
-        return m
+        return fake_completed(cmd, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
@@ -546,8 +573,7 @@ def test_git_commit_push_pushes_when_throttle_window_elapsed(tmp_path, monkeypat
 
     def fake_run(cmd, **kwargs):
         calls.append(cmd)
-        m = MagicMock()
-        m.returncode = 0
+        m = fake_completed(cmd, **kwargs)
         # Self-verifying push (2026-07-24 freeze fix): rev-parse HEAD and ls-remote
         # must report the SAME sha so _push_reached_origin confirms origin advanced.
         if cmd[:2] == ["git", "rev-parse"]:
@@ -577,8 +603,7 @@ def test_git_commit_push_does_not_record_on_phantom_push(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "notify", lambda *a, **k: None, raising=False)
 
     def fake_run(cmd, **kwargs):
-        m = MagicMock()
-        m.returncode = 0
+        m = fake_completed(cmd, **kwargs)
         if cmd[:2] == ["git", "rev-parse"]:
             m.stdout = "NEWlocalsha\n"
         elif cmd[:2] == ["git", "ls-remote"]:
@@ -600,9 +625,7 @@ def test_git_commit_push_no_push_recorded_if_commit_fails(tmp_path, monkeypatch)
     monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
 
     def fake_run(cmd, **kwargs):
-        m = MagicMock()
-        m.returncode = 1 if cmd[:2] == ["git", "commit"] else 0
-        return m
+        return fake_completed(cmd, returncode=1 if cmd[:2] == ["git", "commit"] else 0, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
@@ -782,9 +805,7 @@ def test_git_commit_push_commits_whole_generated_site_data_surface(tmp_path, mon
     def fake_run(cmd, **kwargs):
         if cmd[:2] == ["git", "add"]:
             added.extend(cmd[2:])
-        m = MagicMock()
-        m.returncode = 0
-        return m
+        return fake_completed(cmd, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
@@ -1312,3 +1333,63 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
     """
     measured_hook_chain_seconds = 30  # site_lane_gate broad branch, 2026-08-03
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= 5 * measured_hook_chain_seconds
+
+
+# --- R10 class closure for the ~4.5h publish wedge: the stub-contract guard -------------------
+# (see the fake_completed note at the top of this file for the incident)
+
+def test_fake_completed_models_the_subprocess_return_contract():
+    """The shared stub must return what `subprocess.run` actually returns.
+
+    MUTATION: make fake_completed return a bare `MagicMock()` and every assertion here
+    fails -- which is the whole point. The wedge happened because nothing checked this.
+    """
+    text = fake_completed(["git", "status"], text=True)
+    assert isinstance(text.stdout, str) and isinstance(text.stderr, str), (
+        "text=True promises str; a MagicMock here is the TypeError that wedged the gate"
+    )
+    raw = fake_completed(["git", "archive", "HEAD"])
+    assert isinstance(raw.stdout, bytes) and isinstance(raw.stderr, bytes), (
+        "without text=, subprocess.run returns bytes"
+    )
+    # The specific read that broke: `git rev-parse HEAD` -> written into .git/HEAD.
+    sha = fake_completed(["git", "rev-parse", "HEAD"], text=True).stdout.strip()
+    assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), (
+        "rev-parse must answer in the shape of a real SHA, not an empty string -- a "
+        "checkout pinned at '' is not a checkout of HEAD"
+    )
+    assert fake_completed(["git", "commit"], returncode=1, text=True).returncode == 1
+
+
+def test_every_subprocess_stub_here_models_the_return_contract():
+    """No stub in this file may build its own bare MagicMock result.
+
+    This is the class fix, not the instance fix (R10): the three tests that died were
+    only the stubs that happened to be on the new code path, and the next one is
+    whichever stub a future production read reaches first. Any `fake_*` helper that
+    mocks a subprocess result must go through fake_completed, which is contract-checked
+    above.
+
+    MUTATION: restore any of the converted stubs to `m = MagicMock(); m.returncode = 0`
+    and this fails, naming it.
+    """
+    import ast
+
+    tree = ast.parse(Path(__file__).read_text())
+    offenders = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if not node.name.startswith("fake_") or node.name == "fake_completed":
+            continue
+        called = {
+            c.func.id for c in ast.walk(node)
+            if isinstance(c, ast.Call) and isinstance(c.func, ast.Name)
+        }
+        if "MagicMock" in called and "fake_completed" not in called:
+            offenders.append("%s (line %d)" % (node.name, node.lineno))
+
+    assert not offenders, (
+        "these subprocess stubs build a bare MagicMock instead of using fake_completed, "
+        "so their .stdout is not the str/bytes subprocess.run promises: " + ", ".join(offenders)
+    )

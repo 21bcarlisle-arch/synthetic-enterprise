@@ -436,16 +436,39 @@ def test_zero_progress_alarm_fires_when_the_oldest_marker_never_moves(monkeypatc
 
 
 def test_zero_progress_alarm_resets_when_the_backlog_actually_moves(monkeypatch):
-    """The alarm must be able to be QUIET when things work, or it is noise."""
+    """The alarm must be able to be QUIET when things work, or it is noise.
+
+    PW4 CHANGED WHAT COUNTS AS "MOVES" HERE, and the old version of this test pinned the defect.
+    It drove a different oldest marker each cycle and asserted silence, on the reasoning that a
+    changing oldest name means the queue is draining. It does not: retiring a superseded marker
+    is a rename that needs no run lock and cannot be lock-skipped, so the name churns whether or
+    not the publish path works at all -- which is exactly how a running stall reset its own
+    counter. The intent of the test is preserved; the evidence is now a publish (rc == 0),
+    which is what the alarm's claim is actually about."""
     sent = []
     import background.ntfy_utils as nu
     monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "id")
 
     for i in range(background_worker.STALL_ALARM_CYCLES * 2):
-        # A different oldest marker each cycle == the queue is draining.
         assert background_worker._check_zero_progress(
             [Path(f"run_complete_2026080{i}T010000Z.md")]) is False
+        background_worker._record_marker_published(f"run_complete_2026080{i}T010000Z.md")
     assert sent == []
+
+
+def test_a_churning_oldest_name_alone_does_not_quieten_the_alarm(monkeypatch):
+    """The other half of the pair above (PW4): the SAME churn, WITHOUT any publish, must still
+    reach the alarm. Without this, the test above could be satisfied by a guard that simply never
+    fires, and the pair would prove nothing."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "id")
+
+    fired = [background_worker._check_zero_progress(
+             [Path(f"run_complete_2026080{i}T010000Z.md")])
+             for i in range(background_worker.STALL_ALARM_CYCLES * 2)]
+    assert any(fired), "a churning oldest name silenced a stall in which nothing published"
+    assert len(sent) == 1, "R5: one page per open episode"
 
 
 def test_zero_progress_alarm_is_not_fail_silent_when_ntfy_is_unavailable(monkeypatch):

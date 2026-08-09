@@ -54,6 +54,21 @@ def pytest_configure(config):
         "tests/system/test_report_only_landing.py. Removed from the gate's marker "
         "expression once the tier has run a stable week -- see docs/design/JOIN_TEST_TIER.md.",
     )
+    config.addinivalue_line(
+        "markers",
+        "scale_report_only: AO4_scale_constraints_executable -- a standing check for one "
+        "of the five production-readiness scale constraints C-S1..C-S5 (tests/system/**). "
+        "Same report-only landing as the join tier and for a sharper reason: these checks "
+        "MEASURE the tree as it is, and two are red on arrival by design (the "
+        "money-in-duplicate drift the director cites by name, and C-S3's same-step "
+        "residual). Softening a check because it went red would be R12, so the publish "
+        "gate deselects them instead: `-m 'not operational and not join_report_only and "
+        "not scale_report_only'`. The COMPLEMENT expression runs them, so a red still "
+        "alarms. CONTAINED to tests/system/ -- enforced by "
+        "tests/system/test_report_only_landing.py. Its own marker, not the join tier's, "
+        "so the two promote on their own stable weeks. See "
+        "docs/design/SCALE_CONSTRAINT_CHECKS.md.",
+    )
 
 
 # ── OPS1 sub-step 7 — test/isolation boundary (§2.4): test code CANNOT touch production ──────

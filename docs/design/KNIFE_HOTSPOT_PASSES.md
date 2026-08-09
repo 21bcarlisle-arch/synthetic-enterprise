@@ -156,6 +156,32 @@ delta against them (`-1 file` on reporting, `-2 files / 107→104 edges` on cros
 evidence a pass happened. Re-freezing after each pass would erase exactly the thing §2 requires
 be quoted at close.
 
+### 3b. Amendment after pass 2 (2026-08-09) — the overlap table is now empty, and so is (b)
+
+Pass 2 landed and the ledger failed on this document a second time, in the same way and for the
+same good reason: it declared customer↔crossings=16 and the tree now has **0**.
+
+|              | reporting | customer | crossings | orphans |
+|--------------|-----------|----------|-----------|---------|
+| **reporting**  | —       | 0        | 0         | 0       |
+| **customer**   | 0       | —        | 0         | 0       |
+| **crossings**  | 0       | 0        | —         | 0       |
+| **orphans**    | 0       | 0        | 0         | —       |
+
+**(b) is now discharged as well.** Hotspot 3 contained hotspot 2 through exactly the sixteen
+reachers; those are gone, so it contains nothing. The `customer_straddle` population has collapsed
+to the single file `saas/customers.py` with no reachers, which is the goal state for that hotspot,
+not a measurement failure — the probe still measures it, and a new SIM reacher would re-inflate it
+immediately.
+
+**Every hotspot is now disjoint from every other.** The serial constraint that governed passes 1–3
+is fully discharged. Pass 3 no longer *has* to run last; it runs next because it is the only wall
+work left, and its coordination wall with the Epoch-3 adapter programme (§4) is unchanged and
+still binding. **Do not read a table of zeros as "no constraints exist"** — re-run
+`python3 tools/knife_hotspot_measure.py` before drawing pass 3 rather than trusting this table,
+which is now on its third correction in one day. The correction rate is the point: three
+sequencing plans, three falsifications, all by the same probe.
+
 ---
 
 ## 4. The passes
@@ -218,6 +244,80 @@ after pass 1 has taken the return edge).
 source in the codebase. Pass 2 touches only its customer edges. Its remaining edges belong to
 pass 3, and pass 2 must not opportunistically take them.
 
+**LANDED 2026-08-09.** Ledger delta: `customer_straddle` 17 files / 16 edges → **1 file / 0 edges**;
+`wall_crossings` 104 → **88** edges, 31 → 23 files. All sixteen tuples deleted from
+`LEGACY_SIM_READS_COMPANY`. Full ratchet suite (12 tests) green, both mutation proofs included.
+The watch held: `run_phase2b`'s non-customer edges were left alone — it is still in the class-(b)
+allowlist with the rest of its edges, and the 88 that survive are pass 3's.
+
+*How it was cut.* The seam is `company/interfaces/supply_book.py` — **the supply book**: which
+meter points this supplier has registered. That framing is the whole of the design, and it is not
+a euphemism for a re-export. In GB a supplier registers against an MPAN in the central systems and
+the industry *learns* the point is on its book; the world knowing the registered population is
+real, and the sixteen `from saas.customers import CUSTOMERS` statements were the world reaching
+into the CRM to find out instead. Six names crossed (`CUSTOMERS`, `SUCCESSOR_CUSTOMERS`,
+`ACQUIRED_CUSTOMERS`, `get_customer`, `customer_to_settlement_input`, `make_acquired_customer`);
+they are now `registered_supply_points()`, `successor_supply_points()`, `acquired_supply_points()`,
+`registered_point()`, `settlement_input()`, `register_acquired_point()`.
+
+*Why routing through `company.interfaces` is not pass 1's refused move.* Pass 1 declined to route a
+dependency through `tools/`, because `tools/` is outside `WALL_DIRS` — the walker never looks
+there, so the edge would have vanished from the measurement rather than from the code. The
+opposite is true here: `company/interfaces/**` **is** walked, byte for byte as before, and its
+exemption is a published rule at the top of the ratchet (`SEAM_PACKAGE`) whose own doctrine string
+names this exact remedy — *"if this crossing is intentional and unavoidable, route it through the
+seam"*. The test of the difference is falsifiability, and it survives it: put
+`from saas.customers import CUSTOMERS` back into any SIM module today and
+`test_no_new_sim_reads_company` reds instantly, with no grandfathered tuple left for it to hide
+behind. That was not true yesterday.
+
+*Three honest caveats, recorded rather than smoothed:*
+1. **This routes the crossing; it does not remove the dependency.** The same records cross, at one
+   reviewable chokepoint instead of sixteen unreviewable ones. Anyone reading "16 → 0" as
+   decoupling is reading it wrong, which is why the seam's own docstring says so first.
+2. **The seam does not yet narrow the record to what industry can see.** A real registration
+   publishes identity, supply start, address, profile class, metering and EAC — not
+   `contract_type`, not the supplier's internal `segment` label. Narrowing is a behaviour change
+   and wall 3 forbids it in this pass; it is owed to pass 3 / the Epoch-3 adapter programme.
+3. **The dwelling truth is still filed on the wrong side.** `home_type`, `bedrooms` and
+   `epc_rating` are facts about a physical property living in company-side code. The clean fix —
+   move `saas/customers.py` to the SIM side — would re-open class (a), which pass 1 drove to zero,
+   so it is strictly worse and was rejected rather than overlooked.
+
+*Behaviour preservation, and the one place it was nearly lost.* The three rosters are **mutable
+module-level lists**: `run_phase2b` appends a registration to `ACQUIRED_CUSTOMERS` as each
+acquisition lands, and `_clear_acquired_customers()` clears it in place in test teardown. A seam
+returning a defensive copy would have severed both silently — green suite, wrong world. The
+accessors therefore return the live objects, callers bind once at import exactly as
+`from ... import` did, and the property is asserted directly (`is`-identity for all three rosters
+across all importable modules, plus an append and an in-place clear observed through
+`run_phase2b`) rather than inferred from the tests passing.
+
+*Wall 4 (byte-identical output): no comparable artefact, stated rather than substituted.* Pass 1
+had the annual report. This pass changes no rendering path, and the run that would produce a
+comparable artefact is the ~100-minute Phase 2b simulation. The evidence offered instead is the
+identity assertion above, which is the *stronger* check for this particular change — a copy is the
+only way this refactor could alter behaviour, and identity refutes it directly.
+
+*A third definition of "the seam" now has teeth, which strengthens pass 3's first step.* Pass 1
+queued a finding that `tools/epistemic_verifier.py`'s `APPROVED_ORCHESTRATION` still exempts the two
+edges it had just deleted. This pass makes the divergence structural rather than merely redundant:
+the verifier's `APPROVED_SEAM` is a **single file** (`company/interfaces/sim_interface`) while the
+ratchet's `SEAM_PACKAGE` is the **package** (`company.interfaces`). `supply_book.py` is the first
+seam module the two definitions disagree about. Nothing is broken today — the verifier passes,
+because `company/interfaces/` is separately in its `EXEMPT_PATHS`, so the file is exempt by a
+different clause than the one named "the approved seam". That is a control passing for a reason
+other than the one it states, and it is exactly what pass 3's shared-definition extraction is for.
+Recorded here so the extraction has a second concrete referent, not just the stale orchestration
+list.
+
+*Two pre-existing defects surfaced, QUEUED not fixed (SELF_INTERRUPT_DISCIPLINE):*
+`simulation/run_phase2a.py` and `simulation/run_phase2a_repriced.py` **do not import** — module
+scope does `sum(c["eac_kwh"] for c in CUSTOMERS)` and 12 of the 18 roster entries carry
+`eac_kwh: None`. Confirmed pre-existing by evaluating the same expression over the same object
+(the roster is one shared list, so HEAD's binding fails identically), and nothing in the tree
+imports either module. Filed as `WORKER_FINDING_TWO_UNIMPORTABLE_PHASE2A_MODULES_2026-08-09.md`.
+
 ### Pass 3 — `KNIFE3_wall_crossing_paydown` (size XL, must run last of the three)
 **Cut:** the remaining crossings, after 1 and 2 have taken theirs.
 **First step, before any cut:** lift `build_edges` / `company_reads_sim` / `sim_reads_company` out
@@ -228,8 +328,93 @@ error the MAP→NET→KNIFE sequence exists to prevent.
 **Coordination wall:** the Epoch-3 adapter programme is the BOUNDARY half of this knife and is not
 duplicated here. **Check it before starting pass 3** — two lanes cutting one seam is the failure
 this whole section is about.
-**Exit:** stated when the pass is drawn, against the count that survives passes 1 and 2 — not
-against today's 107, which will be stale by then.
+
+#### Drawn 2026-08-09. Coordination wall checked, first step LANDED, EXIT stated.
+
+**Coordination wall: clear.** All eight Epoch-3 adapter atoms (`EP7`–`EP14`) are `level_current: 0`,
+`loop_stage: idle`, `file_scope: []`. No lane is cutting this seam. Checked before the first edit,
+which is the order the wall specifies.
+
+**The count this pass is measured against: 88 edges across 23 files** (`python3
+tools/knife_hotspot_measure.py`, 2026-08-09 — class (a) is at zero and stays there). Not 107.
+
+##### First step — LANDED: one definition of "a crossing"
+
+`build_edges` / `company_reads_sim` / `sim_reads_company`, the perimeter and the seam now live in
+**`tools/epistemic_wall.py`**. Three consumers import it and keep only their own job: the ratchet
+GATES, the KNIFE ledger REPORTS, `tools/epistemic_verifier.py` SCANS at phase close over a wider
+(dynamic-import) reach. The dated allowlists stay in the ratchet — the definition is shared, the
+POLICY baseline is not, which is what lets a pass say "the walker was not edited" and mean it.
+Control: `tests/architecture/test_epistemic_wall_single_source.py` (15 tests), which asserts
+**object identity** rather than equal answers, because two identical copies of the walker compare
+equal on today's tree and are precisely the defect.
+
+Four things it turned up, none of which were visible from the prose:
+
+1. **The control failed on its first run and named its own author.** `tools/epistemic_wall.py`
+   ALREADY EXISTED — untracked, in no commit, imported by nothing: an earlier attempt at this same
+   extraction that died before it was wired up. The pass had written its own replacement.
+   Disposition per the standing rule for work a guard flags as unmerged: **adopt, do not rebuild**
+   — the found file is the survivor, the pass's copy was deleted, and the pass's additions (the
+   two shared predicates, the wiring, the control) went on top. The provenance is recorded in the
+   module's own docstring, because "a landed pass had half its code uncommitted" is a repeat class
+   here and the record is the only place the next reader sees the duplicate was resolved on purpose.
+2. **The stale orchestration carve-out is deleted** (`WORKER_FINDING_STALE_ORCHESTRATION_CARVE_OUT`,
+   queued by pass 1). `APPROVED_ORCHESTRATION` exempted exactly the two class-(a) edges pass 1 had
+   cut. A dead exemption is a **pre-authorised re-entry**; both imports now fire. And it was
+   PINNED GREEN — two assertions in `tests/controls/test_control_mutation.py` asserted the
+   exemption held, so the test suite was defending it. Those assertions are inverted, with the
+   reason in place.
+3. **A second, undocumented escape hatch went with it.** `APPROVED_SEAM` was consulted as a
+   SUBSTRING of the offending import LINE in the regex fallback — so `from simulation.household
+   import Household  # company/interfaces/sim_interface` cleared a real crossing by comment. Not a
+   seam exemption; a comment-shaped bypass. Deleted; the genuine source-side exemption is
+   `EXEMPT_PATHS`, now DERIVED from the shared `SEAM_PACKAGE` so it cannot drift from it again —
+   which was this extraction's second declared referent (§ pass 2, "a third definition of the seam
+   now has teeth").
+4. **Two of the ledger's own mutation proofs were RED at HEAD, and pass 2 is why.** They pinned
+   whichever real overlap the tree happened to carry; pass 2 cut the last sixteen, the overlap
+   table went to all zeros, and the guards died with "mutation source line is no longer in the live
+   plan". That is the anti-vacuity assert working *and* a design defect it exposed: **a control
+   whose fixture needs a LIVE instance of the defect dies exactly when the codebase reaches its
+   goal state** — and total disjointness IS the goal state here. Repaired at the statistic, not the
+   fixture: the overlap is now manufactured on the MEASURED side, so both guards keep proving the
+   same thing on a tree with no tangle left, plus a vacuity twin showing they are silent without
+   the injected defect.
+
+##### EXIT — stated now, as conditions, not as a number
+
+Pass 4 withdrew "the count falls" as an exit clause when its own measurement contradicted it. The
+same discipline applies here from the start (R12: the count is a diagnostic; LAW A: when a
+criterion and the evidence disagree, the criterion is wrong):
+
+- **Every one of the 88 surviving crossings carries a disposition.** Cut (the edge is gone, and its
+  tuple deleted from `LEGACY_SIM_READS_COMPANY`), or explicitly grandfathered with a named reason.
+  No edge survives *unexamined*. That is the clause that cannot be satisfied by moving a
+  measurement.
+- **Nothing is routed through a package the walker does not walk.** Pass 1's refused move stands.
+- **The walker is not edited in a cutting commit** — instrument and measured thing never move
+  together. The extraction above is deliberately its own commit, before any cut, with the ratchet's
+  frozen allowlists byte-unchanged, so the baseline is provably unmoved across it.
+- **Wall 4:** no byte-comparable artefact exists for the crossings (the comparable run is the
+  ~100-minute Phase 2b). Stated, not substituted with a weaker check — as pass 2 did.
+
+##### The decomposition the measurement forces — and it is NOT one shape
+
+The 88 survivors are two different problems wearing one name, and the split is the finding:
+
+| Shape | Edges | Files | What it actually is | The cut, by precedent |
+|---|---|---|---|---|
+| **A — composition roots inside `simulation/`** | **67** | 10 (`simulation/run_phase*.py`) | Not the simulated world. Scenario harnesses that compose a world AND a company and run them together. `run_phase2b.py` alone is 2,954 lines and 34 edges — the densest source in the codebase. | **Pass 1's cut.** A composition root belongs ABOVE both layers. This is the same "the coupling was never a reporting need, it was a composition" finding at ten times the scale. |
+| **B — world physics reading the company's brain** | **21** | 13 (`arrears_engine`, `churn_journey`, `customer_events`, `dd_*_book`, `hedged_settlement`, `feedback_survey`, …) | Genuine wall violations: the world reaching into company policy, the company's churn ceiling, its price-cap reading, its CPA. | **Pass 2's cut.** A designed seam per population, in the direction the world legitimately learns things. |
+
+Shape B is the smaller count and the harder work: each of the 21 is a wall-DESIGN question ("may
+the world know the supplier's cap reading?"), not a mechanical move, and cutting one badly is worse
+than leaving it measured. Shape A is bulk but has a proven template.
+
+**Status: the first step has landed; the cut has not started.** Recorded loudly rather than left
+implicit, because the orphaned duplicate found in finding (1) is what a silent partial pass looks
+like from the next draw.
 
 ### Pass 4 — `KNIFE4_orphan_disposition` (size L, position free)
 **Cut:** dispose of the 258 company-side orphans — wire or retire, **archive, never delete**.
@@ -294,7 +479,7 @@ probe: customer_straddle
 baseline_files: 17
 baseline_edges: 16
 baseline_lines: 496
-overlaps: reporting_monolith=0, wall_crossings=16, company_orphans=0
+overlaps: reporting_monolith=0, wall_crossings=0, company_orphans=0
 KNIFE-HOTSPOT -->
 
 <!-- KNIFE-HOTSPOT
@@ -302,7 +487,7 @@ hotspot: wall_crossings
 probe: wall_crossings
 baseline_files: 33
 baseline_edges: 107
-overlaps: reporting_monolith=0, customer_straddle=16, company_orphans=0
+overlaps: reporting_monolith=0, customer_straddle=0, company_orphans=0
 KNIFE-HOTSPOT -->
 
 <!-- KNIFE-HOTSPOT

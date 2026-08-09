@@ -44,6 +44,33 @@ def test_changed_test_file_maps_to_itself():
         ["tests/background/test_fork_reconciler.py"]
 
 
+def test_aspect_named_test_files_are_selected_not_just_the_exact_stem():
+    """R15, and it fires on THE defect that wedged publishing on 2026-08-09.
+
+    `simulation/live_population.py` is covered ONLY by `test_live_population_seam.py`. The gate
+    globbed the exact stem, mapped the module to zero tests, and let a change land that reddened
+    that very file on the next publish cycle. Asserted against the REAL repo layout rather than a
+    fixture, because the defect was precisely that the real layout disagreed with the glob.
+    """
+    selected = gate.tests_for("simulation/live_population.py")
+    assert "tests/simulation/test_live_population_seam.py" in selected, (
+        "the gate must select an aspect-named test file for the module it covers; "
+        f"got {selected}"
+    )
+
+
+def test_the_stem_glob_does_not_over_match_a_longer_module_name():
+    """The suffix widening must not make the mapping promiscuous: `test_<stem>_*.py` may only
+    match tests of THIS module, never tests of a DIFFERENT module that merely starts with the
+    same stem. Without this, a module named `foo` would drag in every `foo_bar` test and the
+    gate's cost would grow without bound."""
+    # `supervisor.py` must not pull in a test named for a different module entirely.
+    selected = gate.tests_for("background/supervisor.py")
+    assert all(
+        Path(t).name.startswith("test_supervisor") for t in selected
+    ), f"selection leaked past the supervisor stem: {selected}"
+
+
 def test_non_python_file_maps_to_no_tests():
     assert gate.tests_for("docs/status/LATEST.md") == []
     assert gate.tests_for("background/process_manifest.yaml") == []

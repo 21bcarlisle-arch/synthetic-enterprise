@@ -1,0 +1,127 @@
+{
+  "_doc": "PW2 -- the AUTHORED half of the self-clearing-alarm census. The hits are DERIVED by background/self_clearing_alarm_census.py (writer set intersected with reader set per state path, over background/ and tools/); this file records the judgement on each. A hit with no row here, or a 'benign' row with no reason, makes `--check` exit 1 -- so a newly-written control of this shape lands RED instead of joining the class quietly.",
+  "_verdicts": {
+    "real": "The path carries an EPISODE-SCOPED field -- an episode-start timestamp or a consecutive-failure counter -- that an alarm reads for SEVERITY, and a write that has not demonstrated the episode ended can shorten or reset it. Requires the append-or-monotonic guard (background/episode_monotonic.py).",
+    "benign": "The path carries no episode-scoped field, so no write can shorten an episode. A latest-value watermark, a once-per-period guard, a seen-set, or an append-only log. The reason is mandatory."
+  },
+  "_scope_note": "All 5 real hits are GUARDED as of 2026-08-09 (PW2 built the census and guarded .publish_gate_state.json, the instance the steer was about; PW4 chose the close condition for, and guarded, the remaining four). Each close condition is NAMED in its own module and INDEPENDENT of the state file it closes (R15 anti-tautology): a pytest pass count, a filesystem-derived work key, the maturity map's own level/stage, a publisher return code. They were deliberately not guarded in one pass -- 'what evidences an episode close' is a per-control judgement, and guarding by reflex with a condition nobody chose produces controls that can never clear, which is the accretion OPERATIONAL_COHERENCE_DESIGN_PASS forbids. `--check` now fails on a `real` row that is not `guarded` with a test citation that exists on disk, so the guard field cannot decay into prose nobody checks.",
+  "dispositions": {
+    ".publish_gate_state.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "THE INSTANCE. `wedge_since` + `episode_failures` are read by _episode_phrase and supervisor._publish_gate_wedge_active for alarm severity, and record_publish_gate_success cleared them on a path that could not tell a publish from a skip. A 10h26m outage paged as a fresh 14 minutes on 2026-08-09. Guarded via _write_publish_gate_state(episode_closed=...), where the close is evidenced by pending_run_complete_markers()==0. Replay proof: tests/background/test_episode_monotonic_guard.py::test_replays_20260809_and_reports_the_real_episode."
+    },
+    ".operational_layer_signal.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "`consecutive_red` IS an episode counter and supervisor._operational_red_persistent_draw derives a priority-zero draw from it (>3 consecutive = drawable). run_operational_layer_signal read-modify-writes it, so a check that resolves to green for a reason other than a demonstrated recovery resets the episode the escalation is measured by. CLOSE CONDITION (PW4): rc == 0 AND the run reports >=1 test PASSED -- because pytest exits 0 when every selected test SKIPPED, and the operational marker selects exactly the daemon-lifecycle tests most likely to skip themselves when the daemon they drive is absent (R15 fail-open on empty). Read off the subprocess's own summary line, never off this state file. Guarded via process_run_complete.operational_layer_episode_closed -> _write_operational_layer_state(episode_closed=...). Replay proof: tests/background/test_pw4_episode_guards.py::test_op_a_green_that_ran_nothing_does_not_clear_the_red_episode (and ::test_op_a_real_green_still_clears_it for the opposite direction)."
+    },
+    ".supervisor_stuck_state.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "`first_seen_at` is an episode-start timestamp and _check_stuck_escalation both writes it and reads it to decide escalation. Its episode key was the stuck REASON, and these reasons render counts, levels and elapsed minutes into their prose, so every re-render was a new key: first_seen_at was re-stamped and a long stall read as a series of short ones that never reached the 2h threshold. CLOSE CONDITION (PW4): the reason's NUMBER-AND-PLURAL-normalised form changed, or the evidence _stuck_key already carries changed (agenda updated_at / PRIORITIES.md mtime / the staged set) -- all read off the filesystem and off find_work's live draw, never off this state file. Normalised rather than dropped: dropping the reason would make every draw against the same staging backlog ONE episode and page at work that is genuinely moving. Guarded via supervisor._stuck_episode_key + guard_episode(since_fields=STUCK_SINCE_FIELDS). Replay proof: tests/background/test_pw4_episode_guards.py::test_stuck_a_reworded_reason_does_not_restamp_the_episode (opposite direction: ::test_stuck_genuinely_different_work_still_opens_a_fresh_episode)."
+    },
+    ".atom_stall_tracker.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "`consecutive_unchanged` per atom is an episode counter, and _record_atom_draw_and_check_stall writes the same field its own stall check reads. The episode closed on ANY fingerprint difference, and two of the five fingerprint components change without the atom advancing -- an `expert_hour.last` re-stamp (which IS the livelock the tracker exists to catch, resetting the counter meant to catch it) and a `level_target` re-plan. CLOSE CONDITION (PW4): level_current changed, loop_stage changed, or simplifications_count went UP -- the atom's own advancing state in docs/design/maturity_map.yaml, read from the map at draw time and never from this file. Guarded via supervisor._atom_fingerprint_progressed + guard_episode(streak_fields=ATOM_STALL_STREAK_FIELDS). Replay proof: tests/background/test_pw4_episode_guards.py::test_stall_an_expert_hour_restamp_does_not_reset_the_streak (opposite direction: ::test_stall_real_progress_still_closes_the_episode)."
+    },
+    ".run_marker_sweep_state.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "`cycles` counts consecutive zero-progress sweeps and _check_zero_progress writes the counter its own alarm reads. Its close was implicit and wrong -- 'the oldest marker's NAME changed' -- but retiring a superseded marker is a rename that needs no run lock and cannot be lock-skipped, so it drains the queue whether or not publishing works at all and reset the count on a stall that was still running. CLOSE CONDITION (PW4): a publisher invocation returned rc == 0, recorded by _record_marker_published at the one site that sees it; plus an empty queue, the same independent signal the publish gate's own episode uses. Both are independent of this state file. Narrower than 'the backlog shrank' on purpose: the alarm's claim is that the PUBLISH PATH is not moving, and only a publish refutes it. Replay proof: tests/background/test_pw4_episode_guards.py::test_sweep_a_retirement_does_not_reset_the_zero_progress_count (opposite direction: ::test_sweep_a_publish_closes_the_episode)."
+    },
+    ".supervisor_idle_turn_count.json": {
+      "verdict": "benign",
+      "why": "`count` is all-time and strictly increasing (_record_idle_turn does _load()+1 and nothing ever resets it). It already HAS the shape this atom's guard enforces, arrived at independently -- a high-water counter cannot be shortened."
+    },
+    ".supervisor_map_exhausted_state.json": {
+      "verdict": "benign",
+      "why": "A single boolean edge-detector ({\"exhausted\": bool}) that fires on the false->true transition (R5). It records no episode start and no streak, so there is no episode length for a failure to shorten. Separately weak -- it can never report HOW LONG the map has been exhausted -- but that is a missing measure, not a self-clearing one."
+    },
+    ".last_tested_hash": {
+      "verdict": "benign",
+      "why": "Written ONLY on a gate PASS, never on a failure, so no failure path touches it. It is load-bearing in the opposite direction: the wedge draw reads it as the INDEPENDENT anti-tautology cross-check (a pass at HEAD means the failures are stale). Changing it to record failures would DESTROY that independence."
+    },
+    ".notify_transitions.json": {
+      "verdict": "benign",
+      "why": "R5 transition memory: per-key {state, ts} recording the last state notified, so an unchanged status is not re-sent. The stored value is the latest state by design -- overwriting it is the mechanism, not a defect -- and no severity is derived from its age."
+    },
+    ".boot_announced": {
+      "verdict": "benign",
+      "why": "A single boot timestamp used as a once-only announce guard. No episode, no counter."
+    },
+    ".daily_self_note_last_date": {
+      "verdict": "benign",
+      "why": "A date stamp gating one note per day. Latest-value by design; carries no episode length."
+    },
+    ".sanity_daemon_last_digest_date": {
+      "verdict": "benign",
+      "why": "A date stamp gating one digest per day. Same shape as .daily_self_note_last_date."
+    },
+    ".maintenance_reminder_sent.json": {
+      "verdict": "benign",
+      "why": "A once-per-month reminder guard. A latest-sent stamp with no severity derived from it."
+    },
+    ".harden_cooldown.json": {
+      "verdict": "benign",
+      "why": "A cooldown stamp recording when a HARDEN pass last ran. Latest-value; nothing reads it as an episode."
+    },
+    ".dispatcher_seen.json": {
+      "verdict": "benign",
+      "why": "A seen-set keyed by filename. Append-only in effect -- entries are added, never used to measure how long anything has been failing."
+    },
+    ".staging_watcher_seen.json": {
+      "verdict": "benign",
+      "why": "A seen-set of staged filenames. Same shape as .dispatcher_seen.json."
+    },
+    ".ntfy_responder_seen_hashes.json": {
+      "verdict": "benign",
+      "why": "A dedupe set of inbound message hashes. Append-only; no episode-scoped field."
+    },
+    ".ntfy_responder_since.json": {
+      "verdict": "benign",
+      "why": "A poll watermark ({\"since\": ts}). Advancing it is the mechanism; no alarm derives severity from its age."
+    },
+    ".sent_ntfy_ids.json": {
+      "verdict": "benign",
+      "why": "A set of already-sent notification ids, for send-once semantics. Append-only."
+    },
+    ".origin_staging_sync.json": {
+      "verdict": "benign",
+      "why": "A sync watermark for origin staging pulls. Latest-value; carries no streak or episode start."
+    },
+    ".last_push_time.json": {
+      "verdict": "benign",
+      "why": "{\"ts\": ...} of the last successful push -- a latest-SUCCESS stamp, so a failure never writes it. Liveness is measured as time SINCE this value, which a failure cannot shorten."
+    },
+    ".last_processed_fingerprint.json": {
+      "verdict": "benign",
+      "why": "The fingerprint of the last processed run, for idempotence (don't republish an unchanged run). Latest-value by design; no severity derived."
+    },
+    ".reconcile_watch_state.json": {
+      "verdict": "benign",
+      "why": "A latest snapshot ({drift, at}) of the most recent reconciliation. The `at` field is a measurement time, not an episode start -- drift is reported as a current set, not as a duration."
+    },
+    ".retro_cadence_ntfy_state.json": {
+      "verdict": "benign",
+      "why": "{\"last_warning\": text} for R5 dedupe of the retro-cadence warning. Stores the last message to avoid repeating it; no episode length."
+    },
+    "agent_status.json": {
+      "verdict": "benign",
+      "why": "Per-agent latest heartbeat and last action. Staleness is measured as now MINUS last_heartbeat, so a failing agent that stops writing makes the number WORSE, not better -- the opposite of the self-clearing shape."
+    },
+    "run_history.json": {
+      "verdict": "benign",
+      "why": "An append-only list of completed runs. Appending cannot shorten anything."
+    },
+    "live_decisions_log.jsonl": {
+      "verdict": "benign",
+      "why": "An append-only JSONL decision log. Same reasoning as run_history.json."
+    },
+    "run_output_latest.json": {
+      "verdict": "benign",
+      "why": "The latest simulation run's output figures -- a report artefact consumed by the dashboard, not a control's own memory. No alarm derives severity from it."
+    }
+  }
+}

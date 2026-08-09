@@ -48,66 +48,125 @@ from typing import Dict, Mapping
 # phrase, so a third dimension that starts publishing it without registering
 # here fails rather than joining the ambiguity silently.
 #
-# WHAT MAKES THIS ONE FALSIFIABLE AND NOT DECORATION: `populations_coincide` is
-# False and the declared containment is EXACT, so the control fires the moment
-# either side moves -- including, deliberately, when
-# `D16_ageing_negative_population_is_unexcluded` lands and aligns them. That is
-# the intent: the atom's completion should break its own declaration and force
-# it to be rewritten, not slip past a control phrased loosely enough to cover
-# both worlds.
+# WHAT MAKES THIS FALSIFIABLE AND NOT DECORATION: every declaration below is
+# measured against a real scored run, in both directions. The first version of
+# this entry declared `populations_coincide: False` and an EXACT containment
+# precisely so that `D16_ageing_negative_population_is_unexcluded` landing would
+# BREAK its own declaration and force this rewrite rather than slipping past a
+# control phrased loosely enough to cover both worlds. D16 landed on 2026-08-09
+# and it did break; what follows is the rewrite, and it carries the same
+# property -- it is exact, so the next move on either side fails it.
+#
+# WHAT D16 SETTLED, AND THE HALF IT DID NOT SETTLE THE EASY WAY. Carrying D11's
+# exclusion across made the two DENOMINATORS the same population -- not merely
+# the same size: the identical set of cases, measured. It did NOT make the two
+# rates one number, and that residual is the finding rather than leftover work:
+# the two BELIEF sides ask different questions and always did.
+#
+#   * detection asks: did the company EVER chase this invoice? Wrongful dunning
+#     is an EVENT. A customer chased in month one and dropped from the report by
+#     month three was still wrongly chased, so the population is EVER-FLAGGED.
+#   * ageing asks: does the company's open-item report STILL show this invoice
+#     overdue at `as_of`? That is a MISSTATEMENT question -- what a provision, a
+#     board pack or a bad-debt charge is built from -- and the `as_of` snapshot
+#     is the right population for it.
+#
+# Aligning the belief sides too would have destroyed one of the two measures to
+# manufacture agreement between two numbers. So the DENOMINATORS are aligned and
+# the NAME is not shared: "the wrongful-dunning exposure" has exactly ONE
+# publisher, and the ageing rate is renamed to what it measures. `phrase_
+# published_by` is the declaration; the sweep in
+# `tests/tools/test_couple_w2_11_d5.py` measures it against the RENDERED text a
+# reader actually sees, and a dimension that starts printing the phrase without
+# registering fails.
 SHARED_QUANTITY_CONTRACT: Dict[str, Dict[str, object]] = {
     "wrongful_dunning_exposure": {
         "phrase": "wrongful-dunning exposure",
+        # THE NAME HAS ONE OWNER (D16). A second dimension printing this phrase
+        # affirmatively is the defect this register was minted for.
+        "phrase_published_by": ["detection"],
+        # A dimension may MENTION the phrase to disclaim it -- and the ageing
+        # dimension must, because a reader who remembers the old label needs to
+        # be told it moved. A bare substring ban would refuse that honest
+        # sentence: the AO2 "none" shape, which this repo has now been bitten by
+        # twice. The disclaimer's FORM is therefore registered and checked.
+        "phrase_disclaimed_by": {
+            "ageing": "NOT the wrongful-dunning exposure",
+        },
         "published_by": {
             "detection": {
+                "quantity_name": "the wrongful-dunning exposure",
                 "numerator_key": "n_false_flags",
                 "denominator_key": "n_negatives",
                 "rate_key": "false_flag_rate",
+                "numerator_cases_key": "detection_false_flags",
+                "denominator_cases_key": "never_flaggable",
                 "population": (
                     "NEVER-FLAGGABLE: cash arrived on or within the "
                     "reconciliation grace. Late-past-grace successes, unresolved "
                     "disputes and records with no `days_late` truth are EXCLUDED "
                     "and counted in `n_excluded` (D11's rule -- an invoice paid "
                     "three weeks late really WAS unpaid past grace, so flagging "
-                    "it was correct)."
+                    "it was correct). BELIEF SIDE: EVER-FLAGGED."
                 ),
             },
             "ageing": {
+                "quantity_name": "the ageing-report overstatement at as_of",
                 "numerator_key": "false_ageings",
                 "denominator_key": "n_truly_current",
                 "rate_key": "overstated_arrears_rate",
+                "numerator_cases_key": "ageing_false_ageings",
+                "denominator_cases_key": "ageing_truly_current",
                 "population": (
-                    "TRULY-CURRENT AT as_of: every case whose truth bucket is "
-                    "`current`. NO exclusion band at all -- D11's rule was "
-                    "applied to the detection dimension only, so a payment that "
-                    "arrived past grace is 'current' here and a flag on it "
-                    "counts against the company."
+                    "THE SAME never-flaggable set, since D16: a case is scored "
+                    "here only if it truly failed or its cash arrived within "
+                    "grace, and the band in between is EXCLUDED and counted in "
+                    "`n_excluded` under the same rule the detection dimension "
+                    "applies. BELIEF SIDE: the `as_of` open-item SNAPSHOT, which "
+                    "is why this is a different quantity and not the same one "
+                    "measured twice."
                 ),
             },
         },
-        "populations_coincide": False,
-        # The two denominators stand in an EXACT containment, and this is the
-        # falsifiable half: ageing's population is detection's negatives plus
-        # precisely the band detection excludes.
-        "relationship": "ageing_denominator == detection_denominator + detection_n_excluded",
+        # DENOMINATORS: the same population, and the control checks SET identity
+        # rather than equal counts -- two different 782-case populations would
+        # pass a count check and be exactly the defect this register exists for.
+        "populations_coincide": True,
+        # NUMERATORS: a STRICT subset, in the direction the belief sides imply.
+        # An invoice the ageing report shows overdue at `as_of` was necessarily
+        # chased at some point up to `as_of`; the converse fails for every case
+        # the company chased and then dropped from the report.
+        "relationship": (
+            "ageing_denominator_cases == detection_denominator_cases (identical "
+            "sets) AND ageing_numerator_cases STRICT SUBSET OF "
+            "detection_numerator_cases"
+        ),
         "why_they_differ": (
-            "MEASURED case by case, seed 7 / 400 customers (H27 Expert Hour "
-            "2026-08-09), not inferred: 1062 == 782 + 280 exactly, and the two "
-            "numerators share SEVEN cases. 94 of ageing's 101 false ageings land "
-            "in the 280-case excluded band -- i.e. 93% of the ageing dimension's "
-            "published wrongful-dunning exposure is composed of cases the "
-            "detection dimension of the SAME instrument holds the company was "
-            "RIGHT to flag -- and 14 of detection's 21 are not in ageing's "
-            "numerator at all (the belief sides differ too: detection is "
-            "EVER-FLAGGED, 439 cases; ageing is the `as_of` snapshot, 229)."
+            "MEASURED case by case at seeds 7/11/23 and grace windows 5 and 12 "
+            "(atom D16, 2026-08-09), not inferred. Seed 7 / 400 customers: the "
+            "denominators are now the identical 782-case set (they were 1062 vs "
+            "782 before the alignment), and the numerators are 7 of ageing's "
+            "inside detection's 21 -- every case the ageing report still "
+            "overstates was chased, and 14 more were chased and then dropped "
+            "from the report before `as_of`. The residual is ENTIRELY the belief "
+            "side: EVER-FLAGGED vs the `as_of` snapshot. Before the alignment "
+            "the gap was 3.5x and mostly denominator: 94 of ageing's 101 false "
+            "ageings sat in the 280-case band detection excludes as legitimately "
+            "chaseable."
         ),
         "which_to_read": (
-            "NEITHER ALONE, until D16. Detection's is the exposure after D11's "
-            "exclusion rule; ageing's is the exposure if every past-grace "
-            "payment is treated as current. They bound the answer rather than "
-            "state it."
+            "READ DETECTION'S for wrongful dunning -- it is the only publisher "
+            "of that quantity, and an event that happened to a customer does not "
+            "un-happen because the report moved on. READ AGEING'S for the "
+            "report's overstatement TODAY, which is what a provision or a board "
+            "pack is built from. They are two questions, and since D16 they are "
+            "two names."
         ),
-        "alignment_atom": "D16_ageing_negative_population_is_unexcluded",
+        # No atom owns an alignment any more: the denominators ARE aligned and
+        # the numerator divergence is declared, measured and deliberate. `None`
+        # is the honest value and the control requires it to be one or the other
+        # -- an unowned, undeclared divergence is what this register forbids.
+        "alignment_atom": None,
     },
 }
 
@@ -122,10 +181,20 @@ def shared_quantity_measurements(result: Mapping) -> Dict[str, Dict[str, object]
     dimension's own scorer returned -- it never recomputes either side, which
     would be a harness copy checking a harness copy (R15's tautology pattern).
 
+    Where the result carries the scorers' own case SETS (`result["sets"]`, which
+    `score_triad` returns for exactly this purpose), each side also gets the
+    actual CASES behind its numerator and denominator. Counts alone cannot tell
+    two different 782-case populations apart from one shared one -- and "the
+    same size" passing for "the same population" is the shape of the very defect
+    this register was minted for (D16).
+
     A registered dimension missing from `result` RAISES: a quantity that quietly
     stops being published from one side would otherwise turn this contract into
-    a control that cannot fail."""
+    a control that cannot fail. A declared case key missing from `result["sets"]`
+    RAISES for the same reason -- silently degrading to a count comparison would
+    weaken the control precisely when a set stopped being published."""
     out: Dict[str, Dict[str, object]] = {}
+    sets = result.get("sets") if hasattr(result, "get") else None
     for name, spec in SHARED_QUANTITY_CONTRACT.items():
         per_dim: Dict[str, object] = {}
         for dim, keys in spec["published_by"].items():   # type: ignore[union-attr]
@@ -137,11 +206,30 @@ def shared_quantity_measurements(result: Mapping) -> Dict[str, Dict[str, object]
                     "-- comparing what is left would be a control that cannot fail."
                 )
             comp = result[dim].components
-            per_dim[dim] = {
+            side: Dict[str, object] = {
                 "numerator": comp.get(keys["numerator_key"]),
                 "denominator": comp.get(keys["denominator_key"]),
                 "rate": comp.get(keys["rate_key"]),
                 "n_excluded": comp.get("n_excluded"),
+                "quantity_name": keys.get("quantity_name"),
+                "numerator_cases": None,
+                "denominator_cases": None,
             }
+            if sets is not None:
+                for role in ("numerator", "denominator"):
+                    set_key = keys.get(f"{role}_cases_key")
+                    if set_key is None:
+                        continue
+                    if set_key not in sets:
+                        raise KeyError(
+                            f"SHARED_QUANTITY_CONTRACT[{name!r}]/{dim} declares "
+                            f"its {role} cases as {set_key!r}, which this "
+                            "result's `sets` does not carry. Falling back to a "
+                            "count comparison would quietly downgrade a set "
+                            "identity check into one two different populations "
+                            "of the same size would pass."
+                        )
+                    side[f"{role}_cases"] = frozenset(sets[set_key])
+            per_dim[dim] = side
         out[name] = per_dim
     return out

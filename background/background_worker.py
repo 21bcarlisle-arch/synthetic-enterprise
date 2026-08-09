@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Stdlib-only helper (H30) -- safe at module scope, unlike the publish pipeline.
 from background.child_diagnostics import STDERR_TAIL_LINES, stderr_tail  # noqa: E402
+from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 
 PEAK_START = 16  # 4pm GMT
 PEAK_END = 19    # 7pm GMT
@@ -188,6 +189,38 @@ def _remember_oldest_outcome(name: str, rc: int) -> None:
         log(f"Could not record sweep outcome for {name}: {exc}")
 
 
+SWEEP_STREAK_FIELDS = ("cycles",)   # PW4 -- the zero-progress episode counter
+
+
+def _record_marker_published(name: str) -> None:
+    """PW4 -- THE CLOSE CONDITION for the sweep's zero-progress episode: a marker was PUBLISHED.
+
+    `cycles` counts consecutive zero-progress sweeps and `_check_zero_progress` writes the
+    counter its own alarm reads, so the census flags it as self-clearing. Its close used to be
+    implicit and wrong: "the oldest marker's NAME changed". A superseded marker is retired by a
+    rename that needs no run lock and cannot be lock-skipped -- it drains the queue whether or
+    not the publish path works -- so a retirement changed `oldest` and silently reset the count
+    on a stall that was still running.
+
+    THE CONDITION: a publisher invocation returned rc == 0. That is the return code of a
+    subprocess, read at the one site that sees it, and is independent of
+    `.run_marker_sweep_state.json` by construction (R15 anti-tautology).
+
+    This is the ONLY close besides an empty queue. It is deliberately narrower than "the backlog
+    shrank": the alarm's claim is that the PUBLISH PATH is not moving, and only a publish
+    refutes it."""
+    try:
+        state = _load_sweep_state()
+        if not state.get("cycles") and not state.get("stalled_on"):
+            return                      # no open episode to close
+        closed = guard_episode(state, dict(state, cycles=0, oldest=None, stalled_on=None),
+                               streak_fields=SWEEP_STREAK_FIELDS, episode_closed=True)
+        _save_sweep_state(closed)
+        log(f"Run-marker sweep: zero-progress episode CLOSED — {name} published (rc=0)")
+    except Exception as exc:  # noqa: BLE001 -- an observer must never break the observed
+        log(f"Could not close the sweep zero-progress episode for {name}: {exc}")
+
+
 def _check_zero_progress(pending):
     """A retry loop that has NEVER succeeded is an ALARM, not a log line.
 
@@ -206,13 +239,25 @@ def _check_zero_progress(pending):
     if oldest is None:
         if state.get("stalled_on"):
             log("Run-marker sweep: backlog cleared — zero-progress alarm reset")
+        # PW4: an EMPTY queue is an evidenced close -- the same independent signal the publish
+        # gate's own episode uses (pending_run_complete_markers() == 0). The thing the alarm
+        # measures no longer exists, so there is no episode left to shorten.
         _save_sweep_state({})
         return False
-    if state.get("oldest") == oldest:
-        cycles = int(state.get("cycles", 0)) + 1
-    else:
-        cycles = 1
-    already_alarmed = state.get("stalled_on") == oldest
+    # PW4: the episode does NOT close because `oldest` changed. A superseded marker being
+    # RETIRED (a rename to done/, which needs no run lock and so happens whether or not
+    # publishing works at all) changes `oldest` without a single marker having been published --
+    # and that reset the counter this alarm reads, so a persistent publish stall paged as a
+    # first occurrence. The ONLY close is _record_marker_published(), written at the site that
+    # sees rc == 0.
+    cycles = int(state.get("cycles", 0)) + 1
+    guarded = guard_episode(state, {"cycles": cycles}, streak_fields=SWEEP_STREAK_FIELDS,
+                            episode_closed=False)
+    cycles = guarded["cycles"]
+    # R5 keyed on the EPISODE, not on the oldest marker's name: once alarmed, stay quiet until
+    # the episode genuinely closes. Keying on `oldest` meant a retirement -- which does not close
+    # the episode -- would re-fire the page on an unchanged status.
+    already_alarmed = bool(state.get("stalled_on"))
     fire = cycles >= STALL_ALARM_CYCLES and not already_alarmed
     # PRESERVE the observed outcome across the save. This used to replace the whole state dict,
     # which silently dropped `last_outcome`/`last_outcome_marker` every cycle -- the alarm only
@@ -346,6 +391,10 @@ def process_leftover_run_markers():
                 f"lock) — still pending, will retry next cycle")
         elif result.returncode == 0:
             log(f"Processed {marker.name}")
+            # PW4: the ONE evidenced close of the zero-progress episode (see
+            # _record_marker_published) -- written here because this is the only place that sees
+            # a publish actually succeed.
+            _record_marker_published(marker.name)
         else:
             tail = stderr_tail(getattr(result, "stderr", None))
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle"

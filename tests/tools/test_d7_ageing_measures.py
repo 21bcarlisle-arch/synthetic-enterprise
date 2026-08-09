@@ -285,6 +285,84 @@ def test_empty_or_mismatched_input_raises():
 
 
 # ---------------------------------------------------------------------------
+# THE EXCLUSION BAND (atom D16_ageing_negative_population_is_unexcluded)
+# ---------------------------------------------------------------------------
+# The band exists because this dimension applied no rule at all while its
+# sibling applied D11's, so the pair published one named quantity as two numbers
+# 3.5x apart. At the METRIC level what has to hold is narrower and harder: the
+# band must actually move the measures it is applied to, must leave nothing
+# half-excluded, and must be impossible to apply silently.
+
+def test_an_excluded_case_leaves_EVERY_population_not_just_the_current_one():
+    """Half-excluding a case would leave the displacement mean measuring a
+    population the two rates do not -- three measures over three different
+    denominators, which is the shape D7 exists to have removed."""
+    truth = ["current", "current", "30-60", "30-60"]
+    belief = ["60-90", "current", "current", "30-60"]
+    full = ageing_gap(truth, belief).components
+    banded = ageing_gap(
+        truth, belief,
+        excluded=[False, True, False, True],
+        exclusion_reason="test band",
+    ).components
+
+    assert full["n"] == 4 and banded["n"] == 2
+    assert banded["n_excluded"] == 2
+    assert banded["n_truly_current"] == 1 and banded["n_truly_overdue"] == 1
+    # The excluded overdue case is out of the displacement population too.
+    assert full["mean_bucket_displacement"] == pytest.approx(0.5)
+    assert banded["mean_bucket_displacement"] == pytest.approx(1.0)
+    assert banded["overstated_arrears_rate"] == pytest.approx(1.0)
+
+
+def test_an_exclusion_without_a_reason_RAISES():
+    """R15 / the D10 rule. An unexplained exclusion silently shrinks a
+    denominator, which is the cheapest way to make a published rate look better
+    than it is -- and this rate is one the company is scored on."""
+    with pytest.raises(ValueError, match="no `exclusion_reason` was given"):
+        ageing_gap(["current", "30-60"], ["30-60", "30-60"], excluded=[True, False])
+    # A blank reason is not a reason.
+    with pytest.raises(ValueError, match="no `exclusion_reason` was given"):
+        ageing_gap(["current", "30-60"], ["30-60", "30-60"],
+                   excluded=[True, False], exclusion_reason="   ")
+    # No exclusion, no reason required -- the band is optional, not mandatory.
+    assert ageing_gap(["current", "30-60"], ["30-60", "30-60"],
+                      excluded=[False, False]).components["n_excluded"] == 0
+
+
+def test_a_misaligned_or_total_exclusion_RAISES_rather_than_scoring_a_remnant():
+    """FAIL-LOUD on the two ways a mask goes wrong. A short mask would zip
+    silently and exclude arbitrary rows; a full mask would leave nothing to
+    score, and measures over nothing are the fail-open shape the band exists to
+    avoid."""
+    with pytest.raises(ValueError, match="mis-aligned mask"):
+        ageing_gap(["current", "30-60"], ["30-60", "30-60"],
+                   excluded=[True], exclusion_reason="short")
+    with pytest.raises(ValueError, match="no population left to score"):
+        ageing_gap(["current", "30-60"], ["30-60", "30-60"],
+                   excluded=[True, True], exclusion_reason="everything")
+
+
+def test_the_exclusion_is_published_wherever_the_rate_is_printed():
+    """D10's published-not-silent rule, at the render site. A denominator that
+    has had a band removed must say so where a reader meets it -- otherwise the
+    alignment that made two dimensions comparable is invisible at exactly the
+    place someone compares them."""
+    result = ageing_gap(
+        ["current", "current", "30-60"], ["30-60", "current", "30-60"],
+        excluded=[False, True, False],
+        exclusion_reason="paid past grace -- the company was right to chase",
+    )
+    assert result.components["n_excluded"] == 1
+    text = format_ageing_summary(result)
+    assert "1 case(s) in neither population" in text
+    assert "the company was right to chase" in text
+    # And the rate must NOT be printed under the name that belongs to the
+    # detection dimension (D16).
+    assert "NOT the wrongful-dunning exposure" in text
+
+
+# ---------------------------------------------------------------------------
 # The headline must not be readable as a normalised score
 # ---------------------------------------------------------------------------
 
@@ -335,8 +413,14 @@ def test_the_ageing_dimension_routes_through_the_reshaped_measure():
 
     from tools import couple_w2_11_d5
 
+    # WHITESPACE-INSENSITIVE deliberately (D16, which made this call
+    # multi-line when it grew the exclusion band): a control keyed to ONE
+    # syntactic form of the thing it checks goes green-then-blind the first
+    # time someone reformats the line -- a shape this repo has already been
+    # caught by (an AST guard silently disabled by a type hint).
     src = inspect.getsource(couple_w2_11_d5.score_triad)
-    assert "ageing_gap(true_ageing_labels, belief_ageing_labels)" in src
+    compact = "".join(src.split())
+    assert "ageing_gap(true_ageing_labels,belief_ageing_labels," in compact
     assert "misapplication_gap(true_ageing_labels" not in src, (
         "the retired prevalence-normalised scalar is back on the ageing dimension "
         "-- re-read docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md"

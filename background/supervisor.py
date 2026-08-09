@@ -127,6 +127,7 @@ from background.coupled_triad import (  # noqa: E402
     load_gap_ledger as _coupled_load_gap_ledger,
     world_l3_blocked as _coupled_world_l3_blocked,
 )
+from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 
@@ -157,6 +158,7 @@ STUCK_THRESHOLD_SECONDS = 3600  # 1 hour wall-clock (2026-07-11 redesign, R3 sec
 # (the old in-memory globals reset silently on any supervisor.py restart, which
 # was never itself flagged as a gap until now).
 STUCK_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_stuck_state.json"
+STUCK_SINCE_FIELDS = ("first_seen_at",)   # PW4 -- the episode start guard_episode protects
 
 # ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13, director-caught, "the tank just
 # reset"): a livelock distinct from STUCK_THRESHOLD_SECONDS above -- that
@@ -3914,17 +3916,75 @@ def _save_stuck_state(state: dict) -> None:
     STUCK_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
 
 
+_STUCK_VOLATILE_NUMBER_RE = re.compile(r"\d+")
+# ...and the PLURAL the number drives. "1 file"/"2 files" and "1 time"/"2 times" survive digit
+# normalisation as `# file` vs `# files`, which is still a churning key -- caught by this atom's
+# own replay test rather than reasoned about, which is why it is here. Deliberately narrow: it
+# strips a terminal `s` ONLY from the word immediately following a normalised number, so it can
+# never merge two differently-NAMED items (`# atoms_pending` is untouched -- `s_` is not a word
+# boundary), and it is deterministic.
+_STUCK_VOLATILE_PLURAL_RE = re.compile(r"(#\s+\w+?)s\b")
+
+
+def _stuck_episode_key(reason: str) -> str:
+    """PW4 -- THE CLOSE CONDITION for the supervisor stuck episode: the WORK changed, not its
+    WORDING.
+
+    `first_seen_at` is an episode start and `_check_stuck_escalation` both writes it and reads
+    it to decide escalation, so the census flags it as self-clearing. Its episode identity came
+    from `_stuck_key`, which folds the free-text `reason` in verbatim -- and these reasons
+    RENDER counts, elapsed minutes, levels and dates into the prose ("...3 unprocessed
+    staging...", "...level 0->2...", a date stamp). Every re-render was a different key, so
+    `first_seen_at` was re-stamped and one long stall read as a series of short ones: the 2h
+    threshold could never be reached while the numbers moved. Same shape as the publish gate,
+    keyed on a string instead of a clock.
+
+    THE CONDITION: the episode closes when the reason's NUMBER-NORMALISED form changes, or when
+    the evidence `_stuck_key` already carries changes -- the agenda's `updated_at`,
+    PRIORITIES.md's mtime, or the set of genuinely-staged instructions. All of those are read
+    off the filesystem and off find_work's live draw at each call, never off
+    `.supervisor_stuck_state.json` (R15 anti-tautology): the state file cannot vouch for its own
+    episode ending.
+
+    WHY NORMALISE RATHER THAN DROP THE REASON: dropping it entirely would make every draw made
+    against the same staging backlog ONE episode, and the supervisor legitimately draws
+    DIFFERENT atoms hour to hour -- that would page "stuck on the same work" at work that is
+    genuinely moving. A control false-positive jams the channel as effectively as a blind one.
+    Normalising the digits collapses the re-renders and keeps distinct work distinct, because
+    what distinguishes one atom or staged file from another is its NAME, not its numbers."""
+    parsed = json.loads(_stuck_key(reason))
+    if "reason" in parsed:
+        normalised = _STUCK_VOLATILE_NUMBER_RE.sub("#", parsed["reason"])
+        parsed["reason"] = _STUCK_VOLATILE_PLURAL_RE.sub(r"\1", normalised)
+    return json.dumps(parsed, sort_keys=True)
+
+
 def _check_stuck_escalation(reason: str) -> None:
     """Wall-clock, disk-persisted escalation (2026-07-11 redesign) -- see
     STUCK_THRESHOLD_SECONDS and _stuck_key(). Persisting to disk (rather
     than an in-memory counter) means a supervisor.py restart mid-stuck-
     period does not silently reset the clock either -- another latent gap
-    the prior in-memory-only design had."""
+    the prior in-memory-only design had.
+
+    PW4: the episode is keyed on _stuck_episode_key (the observed work), not on the reason
+    prose, and the write goes through the class guard so a re-key cannot move the start
+    forward. `escalated` rides the episode too -- a reason churn that no longer resets the
+    clock must not re-arm the page either, or one stall would page repeatedly (R5)."""
     key = _stuck_key(reason)
+    episode_key = _stuck_episode_key(reason)
     state = _load_stuck_state()
     now = time.time()
-    if state.get("key") != key:
-        _save_stuck_state({"key": key, "first_seen_at": now, "escalated": False})
+    episode_closed = state.get("episode_key") != episode_key
+    proposed = {
+        "key": key,
+        "episode_key": episode_key,
+        "first_seen_at": now,
+        "escalated": False if episode_closed else bool(state.get("escalated")),
+    }
+    state = guard_episode(state, proposed, since_fields=STUCK_SINCE_FIELDS,
+                          episode_closed=episode_closed)
+    _save_stuck_state(state)
+    if episode_closed:
         return
     first_seen_at = state.get("first_seen_at", now)
     elapsed = now - first_seen_at
@@ -3964,6 +4024,55 @@ def _atom_fingerprint(atom: dict) -> str:
     return "|".join(parts)
 
 
+# Positions in the "|"-joined _atom_fingerprint above.
+_FP_LEVEL_CURRENT, _FP_LEVEL_TARGET, _FP_LOOP_STAGE, _FP_SIMPLIFICATIONS, _FP_EXPERT_HOUR = range(5)
+ATOM_STALL_STREAK_FIELDS = ("consecutive_unchanged",)
+
+
+def _atom_fingerprint_progressed(old: str | None, new: str) -> bool:
+    """PW4 -- THE CLOSE CONDITION for an atom's stall episode: the atom actually MOVED.
+
+    `consecutive_unchanged` is an episode counter and `_record_atom_draw_and_check_stall` writes
+    the same field its own stall check reads, so the census flags it as self-clearing. The
+    episode used to close on ANY fingerprint difference -- and two of the five fingerprint
+    components change without the atom advancing:
+
+      * `expert_hour.last` -- a HARDEN pass that RE-STAMPS an at-target atom and does nothing
+        else. That is the livelock the stall tracker exists to catch, and it was resetting the
+        very counter meant to catch it: draw, re-stamp, count back to 1, forever.
+      * `level_target` -- re-planning where the atom is GOING. It says nothing about whether the
+        atom has moved, and an atom re-targeted mid-stall would read as fresh.
+
+    THE CONDITION: `level_current` changed, `loop_stage` changed, or `simplifications_count`
+    went UP. Those three are the atom's own advancing state in `docs/design/maturity_map.yaml`,
+    read from the map at draw time and never from `.atom_stall_tracker.json` (R15
+    anti-tautology).
+
+    `simplifications_count` is required to INCREASE, not merely differ, because it is a count:
+    a count that drops is bookkeeping (a note rehomed, a store rebuilt), not work done.
+
+    An absent prior fingerprint is a close -- a first draw starts a fresh episode, and there is
+    no earlier episode it could be shortening.
+
+    A fingerprint whose SHAPE is not the 5-part one above degrades to plain inequality -- the
+    pre-PW4 behaviour -- rather than to `True`. `True` would have been fail-open in the worst
+    way: if _atom_fingerprint's format ever changed, every atom's episode would close on every
+    draw and the stall tracker would silently stop tracking, with nothing red to say so."""
+    if not old:
+        return True
+    o, n = old.split("|"), new.split("|")
+    if len(o) != 5 or len(n) != 5:
+        return old != new
+    if o[_FP_LEVEL_CURRENT] != n[_FP_LEVEL_CURRENT]:
+        return True
+    if o[_FP_LOOP_STAGE] != n[_FP_LOOP_STAGE]:
+        return True
+    try:
+        return int(n[_FP_SIMPLIFICATIONS]) > int(o[_FP_SIMPLIFICATIONS])
+    except (TypeError, ValueError):
+        return False         # unparseable counts cannot evidence progress -- the episode stands
+
+
 def _load_atom_stall_state() -> dict:
     if not ATOM_STALL_STATE_FILE.exists():
         return {}
@@ -4000,17 +4109,23 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[b
     under threshold) an atom the draw keeps reselecting for no new reason."""
     state = _load_atom_stall_state()
     entry = state.get(atom_id, {})
-    if entry.get("fingerprint") == fingerprint:
-        count = entry.get("consecutive_unchanged", 0) + 1
-    else:
-        count = 1
-    stalled = count >= ATOM_STALL_THRESHOLD
-    state[atom_id] = {
+    # PW4: the episode closes on PROGRESS, not on any fingerprint difference (see
+    # _atom_fingerprint_progressed).
+    episode_closed = _atom_fingerprint_progressed(entry.get("fingerprint"), fingerprint)
+    count = 1 if episode_closed else entry.get("consecutive_unchanged", 0) + 1
+    proposed = {
         "fingerprint": fingerprint,
         "consecutive_unchanged": count,
-        "stalled": stalled,
         "last_drawn_at": time.time(),
     }
+    proposed = guard_episode(entry, proposed, streak_fields=ATOM_STALL_STREAK_FIELDS,
+                             episode_closed=episode_closed)
+    # `stalled` is DERIVED from the guarded count, never carried through the guard -- a boolean
+    # is not an episode and a stale True must not survive an evidenced close.
+    count = proposed["consecutive_unchanged"]
+    stalled = count >= ATOM_STALL_THRESHOLD
+    proposed["stalled"] = stalled
+    state[atom_id] = proposed
     _save_atom_stall_state(state)
     return stalled, count
 

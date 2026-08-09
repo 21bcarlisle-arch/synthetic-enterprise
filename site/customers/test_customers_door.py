@@ -108,12 +108,20 @@ def test_arrears_journey_renders_live_stages():
 
 
 def test_dd_cycle_reframes_credit_as_customer_liability():
-    # R11: when the account is in credit, the DD panel must render the actual balance
+    # When the account is in credit, the DD panel must render the actual balance
     # value AND frame it as the customer's money held by the supplier (a liability, not
     # profit) -- the customer-side mirror of the company-door DD5 held-credit tile.
+    #
+    # The credit balance is set explicitly (2026-08-08, W2_16), exactly as the
+    # outstanding-direction sibling below sets 123.45. It used to assert that the
+    # LIVE C1 happened to be in credit, which made a rendering contract depend on
+    # one RNG draw: the per-bill substream fix moved C1's balance from -63.49 to
+    # 0.00 and this test failed without any rendering change. R11 live-value
+    # coverage is not lost -- test_money_kpis_render_live_billed_banked_balance
+    # above still asserts the real balance renders, whatever its sign.
     d = _live()
+    d["household"]["balance_gbp"] = -63.49
     h = d["household"]
-    assert float(h["balance_gbp"]) < 0, "fixture expects C1 in credit"
     out = _render(d)
     dd = out["cust-dd-cycle"]["innerHTML"]
     assert f"{abs(float(h['balance_gbp'])):,.2f}" in dd, dd

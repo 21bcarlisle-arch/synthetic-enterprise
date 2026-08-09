@@ -855,15 +855,67 @@ def run_fast_tests(git_hash: str):
         return _gate_timed_out()
 
 
+# A FULL DISK MUST SAY SO (2026-08-09, third publish wedge).
+#
+# The checkout is ~130MB extracted plus git's own index and objects, and it lands on whatever
+# filesystem tempfile uses -- here a 7.8GB tmpfs. When that tmpfs was exhausted (4.4GB of repo
+# checkouts abandoned by the DIAGNOSTIC ticks of the two earlier wedges, not by the gate, which
+# cleans up in its own `finally`), git failed in two ways that both name the wrong subject:
+#
+#   * `git init` -> rc=128, `fatal: cannot mkdir`  -- true, and says nothing about disk;
+#   * an OSError whose text was `git is not installed` -- actively misleading, sending the
+#     reader after a missing binary while git was installed and working.
+#
+# Neither line contains the word "space", so the failure reads as a code or environment fault
+# at exactly the moment publishing is wedged and a tick is looking for a red test. HEAD may be
+# perfectly green -- it was.
+#
+# So the check moves BEFORE the extraction, where the cause is still legible. FAIL-CLOSED, same
+# reasoning as _make_checkout_a_repo: a checkout that cannot be materialised is an unavailable
+# check, and an unavailable check is a FAILED check (R15). The point of the pre-flight is not to
+# turn a red into a green -- it is to make the log line name the real subject.
+HEAD_CHECKOUT_MIN_FREE_MB = 400
+
+
+def _free_mb(path):
+    """Free megabytes on the filesystem holding `path`, or None if it cannot be read.
+
+    None -- rather than 0 or a large number -- so the caller decides explicitly what an
+    unreadable filesystem means, instead of the check silently failing open on a big number or
+    silently wedging publishing on a small one."""
+    try:
+        return shutil.disk_usage(str(path)).free // (1024 * 1024)
+    except OSError:
+        return None
+
+
 @contextmanager
 def _head_checkout():
     """Materialise HEAD into a throwaway directory. Yields a Path, or None if unavailable.
 
-    `git archive` is used rather than `git worktree add` deliberately for the minimal version:
-    it needs no lock on the real repo, cannot leave a registered worktree behind if this process
-    dies, and produces exactly the committed tree with no index or .git of its own."""
+    `git archive` is used rather than `git worktree add` deliberately: it needs no lock on the
+    real repo and cannot leave a registered worktree behind if this process dies. What it also
+    produced -- a tree with no `.git` at all -- was a defect, closed by `_make_checkout_a_repo`
+    below."""
+    tmp_root = tempfile.gettempdir()
+    free_mb = _free_mb(tmp_root)
+    if free_mb is not None and free_mb < HEAD_CHECKOUT_MIN_FREE_MB:
+        log("Publish gate: DISK, not code -- only {}MB free on {} and a HEAD checkout needs "
+            "~{}MB, so it was not materialised. HEAD may be green; nothing here says a test "
+            "failed. Reclaim space on {} (abandoned repo checkouts left by diagnostic runs are "
+            "the known cause) and the next cycle proceeds unchanged.".format(
+                free_mb, tmp_root, HEAD_CHECKOUT_MIN_FREE_MB, tmp_root))
+        yield None
+        return
     tmp = tempfile.mkdtemp(prefix="publish-gate-head-")
     try:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
+                              capture_output=True, text=True, timeout=60)
+        if head.returncode != 0:
+            log("Publish gate: `git rev-parse HEAD` failed rc={} -- {}".format(
+                head.returncode, stderr_tail(head.stderr)))
+            yield None
+            return
         archive = subprocess.run(["git", "archive", "HEAD"], cwd=str(PROJECT_DIR),
                                  capture_output=True, timeout=300)
         if archive.returncode != 0:
@@ -877,10 +929,66 @@ def _head_checkout():
             log("Publish gate: extracting HEAD failed rc={}".format(untar.returncode))
             yield None
             return
+        if not _make_checkout_a_repo(Path(tmp), head.stdout.strip()):
+            yield None
+            return
         _overlay_untracked_data(Path(tmp))
         yield Path(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+# A CHECKOUT WITH NO HISTORY IS NOT A CHECKOUT OF HEAD (2026-08-09, R10 class closure).
+#
+# The first `git archive` extraction had no `.git`, so every test that asks git a question died
+# in it -- not with an assertion about the code, but with `fatal: not a git repository`. Two
+# instances inside one evening, both patched at the instance:
+#
+#   * 576105747 -- the ghost-pusher tripwire, taught not to shell out;
+#   * tests/background/test_blocked_atom_visibility.py::test_the_real_staleness_clocks_... which
+#     reads AO11's own `git blame` of the map, and which wedged the publish gate at HEAD.
+#
+# R10 forbids closing that class one instance at a time, and the population is open-ended: any
+# test that reads history, blame, or a SHA is a future instance. So the SUBJECT is fixed instead.
+#
+# WHAT THIS IS, precisely: a STANDALONE repo, not a link to the real one. `git init` creates its
+# own `.git`, an `objects/info/alternates` line lends it the real repo's object store READ-ONLY,
+# and `.git/HEAD` is the raw SHA (detached). `git read-tree` then fills the index so the checkout
+# reads as tracked-and-CLEAN rather than 8,444 untracked files -- a test asking "is this tree
+# clean?" gets the true answer for HEAD, which is yes.
+#
+# WHY NOT `git worktree add`: it registers state in the real repo that survives this process
+# being SIGKILLed (rc=-9 is a known gate outcome), which is exactly what the archive form was
+# chosen to avoid. Nothing here touches the real repo's index, refs, or worktree list; deleting
+# the tmpdir deletes every trace. Measured: init+alternates+read-tree 0.02s, and `git blame` of
+# the map inside the result 0.65s.
+#
+# FAIL-CLOSED (R15): if the repo cannot be made, the gate does not run. A checkout where git
+# questions cannot be answered is not committed truth, and publishing on it would be publishing
+# on an unavailable check.
+def _make_checkout_a_repo(checkout: Path, head_sha: str) -> bool:
+    """Turn an extracted HEAD tree into a real standalone git repo at `head_sha`."""
+    try:
+        init = subprocess.run(["git", "init", "-q"], cwd=str(checkout),
+                              capture_output=True, text=True, timeout=60)
+        if init.returncode != 0:
+            log("Publish gate: `git init` in the HEAD checkout failed rc={} -- {}".format(
+                init.returncode, stderr_tail(init.stderr)))
+            return False
+        alternates = checkout / ".git" / "objects" / "info" / "alternates"
+        alternates.parent.mkdir(parents=True, exist_ok=True)
+        alternates.write_text(str(PROJECT_DIR / ".git" / "objects") + "\n")
+        (checkout / ".git" / "HEAD").write_text(head_sha + "\n")
+        read_tree = subprocess.run(["git", "read-tree", head_sha], cwd=str(checkout),
+                                   capture_output=True, text=True, timeout=120)
+        if read_tree.returncode != 0:
+            log("Publish gate: `git read-tree {}` in the HEAD checkout failed rc={} -- {}".format(
+                head_sha[:9], read_tree.returncode, stderr_tail(read_tree.stderr)))
+            return False
+        return True
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Publish gate: could not make the HEAD checkout a git repo: {}".format(exc))
+        return False
 
 
 # DATA IS NOT CODE. The ruling moved the gate's subject to committed CODE; it did not say the

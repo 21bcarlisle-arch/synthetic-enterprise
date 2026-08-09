@@ -43,6 +43,16 @@ def _isolate(tmp_path, monkeypatch):
     yield
 
 
+# PW4: a GREEN stub must carry a pass count, because rc==0 alone is no longer a recovery.
+# pytest exits 0 on an all-SKIPPED run, and the operational marker selects the daemon-lifecycle
+# tests most likely to skip themselves when what they drive is absent -- so `rc == 0` was
+# fail-open on empty and the close condition is now `rc == 0 AND >=1 passed`. A stub that emits
+# only a return code therefore describes a run that proved nothing, which is not what these
+# tests mean by "green". The all-skipped case is exercised on purpose in
+# tests/background/test_pw4_episode_guards.py.
+_PYTEST_GREEN_SUMMARY = "........                                          [100%]\n41 passed in 8.12s\n"
+
+
 class _Runner:
     """Injectable stub for the pytest subprocess -- returns a canned rc without
     ever running the real (slow) operational suite."""
@@ -52,7 +62,8 @@ class _Runner:
 
     def __call__(self, argv):
         self.argv_seen.append(argv)
-        return type("Result", (), {"returncode": self.rc})()
+        stdout = _PYTEST_GREEN_SUMMARY if self.rc == 0 else ""
+        return type("Result", (), {"returncode": self.rc, "stdout": stdout, "stderr": ""})()
 
 
 @pytest.fixture
@@ -80,8 +91,8 @@ def _marker_expr(argv):
 def test_operational_layer_argv_is_marker_complement_of_content_gate():
     op_argv = prc.operational_layer_pytest_argv()
     gate_argv = prc.publish_gate_pytest_argv()
-    assert _marker_expr(op_argv) == "operational or join_report_only"
-    assert _marker_expr(gate_argv) == "not operational and not join_report_only"
+    assert _marker_expr(op_argv) == "operational or join_report_only or scale_report_only"
+    assert _marker_expr(gate_argv) == "not operational and not join_report_only and not scale_report_only"
     assert op_argv != gate_argv
 
 
@@ -267,9 +278,9 @@ def test_persistent_red_never_touches_publish_gate_state_or_scope(sent):
     # The content gate's own state file was never created/touched by this signal.
     assert not prc.PUBLISH_GATE_STATE_FILE.exists()
     # The content gate's blocking scope is untouched.
-    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only"
+    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only and not scale_report_only"
     gate_argv = prc.publish_gate_pytest_argv()
-    assert _marker_expr(gate_argv) == "not operational and not join_report_only"
+    assert _marker_expr(gate_argv) == "not operational and not join_report_only and not scale_report_only"
 
 
 def test_persistent_red_does_not_block_a_simulated_content_publish(sent):
@@ -383,7 +394,7 @@ def test_green_page_carries_no_failure_payload(sent):
     failing tests to name, and a stale payload there would be a false report."""
     _run_with_output(rc=1, now=0, stdout=_PYTEST_RED_OUTPUT)
     _run_with_output(rc=1, now=10, stdout=_PYTEST_RED_OUTPUT)   # persistent red, pages
-    res = _run_with_output(rc=0, now=20)                        # recovery, pages
+    res = _run_with_output(rc=0, now=20, stdout=_PYTEST_GREEN_SUMMARY)   # recovery, pages
     assert res["digest"] == ""
     assert len(sent) == 2
     assert "FAILED" not in sent[1]
