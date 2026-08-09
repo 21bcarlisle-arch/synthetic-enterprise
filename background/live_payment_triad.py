@@ -57,7 +57,11 @@ only difference is whether the cash is ATTRIBUTABLE when it lands. The
 DIFFERENCE between the two companies' measures is therefore what the
 ambiguous-remittance channel costs, measured rather than argued. See
 `attribute_to_ambiguous_remittance` for the guards that keep it a
-counterfactual rather than a second world.
+counterfactual rather than a second world, and `_attribution_discrimination`
+(atom D17) for why the fact that it explains 100% of every measure is a
+statement about the OBSERVATION CHANNEL and not a pass mark for the
+subtraction -- the thing that actually tests the subtraction is an injected
+belief error no invoice reference can cure.
 
 RECENCY-WINDOW NOTE: the consumer is constructed with a run-spanning
 `dd_failure_window_days` (`_RUN_SPANNING_WINDOW_DAYS`). The DETECTION headline
@@ -139,7 +143,16 @@ _ATTRIBUTED_MEASURES = (
     ("ageing", "mean_bucket_displacement",
      "buckets of debt-DATE displacement over the truly-overdue invoices"),
     ("ageing", "overstated_arrears_rate",
-     "truly-current invoices believed in arrears -- the WRONGFUL-DUNNING exposure"),
+     # NOT "the wrongful-dunning exposure" (atom D16, 2026-08-09). That name
+     # belongs to `detection.false_flag_rate` and to nothing else: this rate is
+     # the company's ageing REPORT overstated at `as_of`, over a belief
+     # population that drops a case once the report stops showing it, while
+     # wrongful dunning is an EVENT that either happened to a customer or did
+     # not. Both were published under one name from one output block, 3.5x
+     # apart. This is the sibling half of that fix -- the same phrase, one file
+     # over from where it was corrected.
+     "truly-current invoices believed in arrears at as_of -- the AGEING-REPORT "
+     "OVERSTATEMENT (NOT the wrongful-dunning exposure: atom D16)"),
     ("ageing", "understated_arrears_rate",
      "truly-overdue invoices believed settled -- debt never chased, under-provisioned"),
     ("detection", "missed_failure_rate",
@@ -215,6 +228,65 @@ _SAME_WORLD_KEYS = (
 )
 
 
+# The guard that carries the discrimination claim `_attribution_discrimination`
+# below points at. Named as a constant, and asserted to RESOLVE to a real test
+# by `test_d17_the_published_discrimination_pointer_resolves_to_a_live_guard` --
+# a published sentence naming a mechanism that no longer exists is a measured
+# failure class in this repo, not a hypothetical one.
+DISCRIMINATION_GUARD = (
+    "tests/background/test_live_payment_triad.py::"
+    "test_R15_the_counterfactual_does_not_attribute_an_injected_non_allocation_error"
+)
+
+
+def _attribution_discrimination(measures: dict) -> dict:
+    """WHAT 100% ATTRIBUTION DOES AND DOES NOT PROVE (atom D17).
+
+    Until 2026-08-09 the anti-rubber-stamp guard on this counterfactual was a
+    RESIDUAL: the ageing overstatement it could not explain (0.2188 of 0.2803 on
+    the offline fixture) was taken as proof that the subtraction discriminated.
+    D16 dissolved that residual -- it was composed entirely of invoices settled
+    PAST the reconciliation grace, i.e. debt the company was RIGHT to carry, now
+    excluded from both dimensions -- so every published measure reads
+    `attributed == actual` and the guard had nothing left to check. This says so
+    at source rather than letting the reader infer discrimination from a number
+    that can no longer show its absence.
+
+    The counts are DERIVED from the measures, never asserted, so the sentence
+    cannot outlive the figures (the rule `format_remittance_attribution_summary`
+    already follows). A measure whose `actual` error is zero is not counted
+    either way: nothing was explained, so nothing was left unexplained."""
+    with_error = {
+        name: m for name, m in measures.items()
+        if m["attributed"] is not None and m["actual"] not in (None, 0, 0.0)
+    }
+    fully = sorted(n for n, m in with_error.items() if m["remittance_complete"] == 0)
+    partial = sorted(set(with_error) - set(fully))
+    return {
+        "n_measures_with_a_nonzero_error": len(with_error),
+        "n_fully_attributed": len(fully),
+        "fully_attributed_measures": fully,
+        "partially_attributed_measures": partial,
+        "guard": DISCRIMINATION_GUARD,
+        "reading": (
+            f"{len(fully)} of {len(with_error)} measure(s) carrying a non-zero "
+            "error read attributed == actual. THAT IS A PROPERTY OF THE "
+            "OBSERVATION CHANNEL, NOT EVIDENCE THAT THIS SUBTRACTION "
+            "DISCRIMINATES (atom D17). Every successful payment in this world "
+            "delivers its credit to BOTH books, and the never-flaggable band "
+            "(D16) has already removed every invoice the company was right to "
+            "carry as owed -- so the only mechanism left that can make the "
+            "company believe a within-grace-settled invoice overdue is the "
+            "oldest-first misallocation the counterfactual removes. Read it as "
+            "'the channel is complete on this population', never as 'the "
+            "counterfactual was tested and passed'. What DOES test it is an "
+            "injected belief error no invoice reference can cure -- suppress "
+            "the DELIVERY of a credit and the shadow company overstates arrears "
+            f"too, so the attributed share falls below 1.0: {DISCRIMINATION_GUARD}."
+        ),
+    }
+
+
 def attribute_to_ambiguous_remittance(
     actual: dict,
     counterfactual: dict,
@@ -264,6 +336,16 @@ def attribute_to_ambiguous_remittance(
       "measured, and the channel costs nothing", which is a lie about a
       measurement that never happened. Reported as `None` with a `vacuity`
       string (the D7 rule).
+
+    A FOURTH GUARD LIVES OUTSIDE THIS FUNCTION, and it has to (atom D17). The
+    three above catch a counterfactual that changed the world, moved the money,
+    or measured nothing. None of them catches the opposite failure -- a shadow
+    company that is clean BY CONSTRUCTION rather than by remittance, which would
+    charge the remittance channel for every belief error the company could ever
+    make. On this population every measure reads `attributed == actual`, which
+    is exactly what that rubber stamp looks like from outside, so it cannot be
+    distinguished from the honest answer by looking at these numbers at all --
+    see `discrimination` in the returned dict for what it IS distinguished by.
 
     R12: this is a DIAGNOSTIC. Nothing here may be tuned, and the honest answer
     includes a delta of zero on a live channel -- which would itself be the
@@ -336,6 +418,7 @@ def attribute_to_ambiguous_remittance(
             "invoice remittance reference, so `AccountLedger.allocate` never "
             "falls back to oldest-first. `attributed` = actual minus that."
         ),
+        "discrimination": _attribution_discrimination(measures),
         "n_ambiguous_records": n_ambiguous_records,
         "n_ambiguous_credits": n_ambiguous_credits,
         "balance_gbp_actual": round(actual_balance_gbp, 2),
@@ -384,12 +467,45 @@ def format_remittance_attribution_summary(attribution: dict) -> str:
         f"delta {attribution['balance_gbp_delta']:+.2f}) while its DATES are not: "
         + "; ".join((
             _fmt("ageing.mean_bucket_displacement", "buckets"),
-            _fmt("ageing.overstated_arrears_rate", "wrongful-dunning rate"),
+            # D16: the ageing dimension does NOT publish the wrongful-dunning
+            # rate -- it publishes the ageing report's overstatement at `as_of`.
+            _fmt("ageing.overstated_arrears_rate", "ageing-overstatement rate"),
             _fmt("ageing.understated_arrears_rate", "debt-believed-settled rate"),
             _fmt("arrears_view.unpursued_arrears_rate", "wrongful-non-pursuit rate"),
         ))
         + ". Read as: what the no-remittance channel COSTS this company, holding "
-        "the world literally fixed. R12: a diagnostic, never a target."
+        "the world literally fixed. R12: a diagnostic, never a target. "
+        + _format_discrimination(attribution["discrimination"])
+    )
+
+
+def _format_discrimination(discrimination: dict) -> str:
+    """One clause carrying the D17 caveat into the published ledger note.
+
+    Short deliberately -- the note this joins is already long -- but it must
+    carry the COUNTS, so a reader who sees every figure fully attributed cannot
+    take that as the counterfactual having been tested.
+
+    The measures are NAMED, not just counted: this clause covers every measure
+    the attribution publishes, while the sentence it joins renders only the four
+    that are not printed with the detection headline -- a bare count would have
+    a reader matching '5' against four visible figures."""
+    n_full = discrimination["n_fully_attributed"]
+    n_err = discrimination["n_measures_with_a_nonzero_error"]
+    if n_full < n_err:
+        return (
+            f"DISCRIMINATION (D17): {n_full} of {n_err} measure(s) with a "
+            "non-zero error are fully attributed -- "
+            + ", ".join(discrimination["partially_attributed_measures"])
+            + " carry a residual this channel cannot explain."
+        )
+    return (
+        f"DISCRIMINATION (D17): ALL {n_err} measure(s) with a non-zero error ("
+        + ", ".join(discrimination["fully_attributed_measures"])
+        + ") read attributed == actual, which is a property of a COMPLETE "
+        "observation channel and NOT evidence that the counterfactual "
+        "discriminates -- a rubber stamp looks identical from here. The "
+        f"discrimination is proven by injection instead: {discrimination['guard']}."
     )
 
 

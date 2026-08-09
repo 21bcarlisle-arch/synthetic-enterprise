@@ -329,22 +329,66 @@ def test_d8_the_money_is_right_and_the_dates_are_not():
     assert disp["attributed"] == disp["actual"]
 
 
-def test_d8_the_counterfactual_discriminates_rather_than_charging_everything():
-    """A counterfactual that explained 100% of every measure would be a rubber
-    stamp. This one must leave a residual somewhere, because there IS a residual:
-    a truly-current invoice can also be believed overdue simply because the cash
-    has not arrived yet (detection LATENCY), which no remittance reference fixes."""
+def test_d8_the_ageing_overstatement_residual_was_made_of_legitimately_owed_cases():
+    """REPLACES `test_d8_the_counterfactual_discriminates_rather_than_charging_
+    everything`, whose premise `D16_ageing_negative_population_is_unexcluded`
+    refuted. Replaced, never repaired (the D7 rule).
+
+    That test asserted the counterfactual MUST leave a residual on the ageing
+    overstatement, reasoning that "payment latency alone overstates arrears and
+    no invoice reference cures it". Measured after D16 carried D11's exclusion
+    across to the ageing dimension: the residual it was resting on -- 0.2188 of
+    0.2803 on this fixture -- was composed of cases where the cash arrived PAST
+    the reconciliation grace, i.e. invoices the company was RIGHT to be carrying
+    as owed. Those cases are now excluded from both dimensions, and what is left
+    of the overstatement is entirely allocation-caused, so the counterfactual
+    explains all of it.
+
+    That is not a rubber stamp appearing; it is a structural consequence worth
+    stating: on this world, believing a within-grace-paid invoice to be 30+ days
+    overdue REQUIRES a misallocation, because nothing else can age an invoice
+    that was settled within five days of its due date.
+
+    WHAT THIS TEST NO LONGER PROVES, said plainly rather than quietly dropped:
+    every measure this counterfactual publishes is now 100% attributed, so the
+    anti-rubber-stamp guard has no measure left with a residual to check.
+
+    D17 CLOSED THAT 2026-08-09 and the structural sentence above survived, but
+    only in a NARROWER form than it was written in. It is not that this world
+    cannot produce an ageing overstatement the remittance channel fails to
+    explain -- it is that the OBSERVATION CHANNEL is complete here, so
+    misallocation is the only mechanism LEFT. Suppress the delivery of a single
+    within-grace credit and the shadow company overstates arrears too. The
+    anti-rubber-stamp guard is therefore no longer this test's residual: it is
+    `test_R15_the_counterfactual_does_not_attribute_an_injected_non_allocation_error`
+    below, which injects exactly that error and holds the attributed share
+    strictly under 1.0.
+    """
     attr = _build_triad().measure()["remittance_attribution"]
     over = attr["measures"]["ageing.overstated_arrears_rate"]
 
-    assert over["attributed"] > 0.0, "the channel contributes nothing at all -- re-derive"
-    assert over["remittance_complete"] > 0.0, (
-        "the counterfactual charges the ENTIRE wrongful-dunning exposure to the "
-        "remittance channel. Payment latency alone overstates arrears and no "
-        "invoice reference cures it, so a zero here means the shadow company is "
-        "not the same world"
+    assert over["actual"] > 0.0, (
+        "the company overstates nothing at all -- the finding has no instance "
+        "on this population and everything below is vacuous"
     )
-    assert over["attributed"] < over["actual"]
+    assert over["remittance_complete"] == 0.0, (
+        "the shadow company with complete remittance references still overstates "
+        "arrears on a within-grace-paid invoice. Nothing else in this world can "
+        "age such an invoice, so either the exclusion band is not being applied "
+        "to the counterfactual as well, or a second mechanism exists that this "
+        "atom has never named"
+    )
+    assert over["attributed"] == over["actual"]
+
+    # The exclusion is REACHING the live path, not only the offline scorer --
+    # the sibling-half class this triad has been bitten by repeatedly.
+    ageing = _build_triad().measure()["ageing"].components
+    assert ageing["n_excluded"] > 0, (
+        "the LIVE ageing dimension excludes nothing while the offline one does "
+        "-- the two halves of one instrument are scoring different populations "
+        "again"
+    )
+    assert ageing["exclusion_reason"], "the live exclusion is silent (D10)"
 
 
 def test_d8_wrongful_non_pursuit_is_measured_where_the_headline_cannot_see_it():
@@ -526,3 +570,275 @@ def test_d8_attribution_is_published_as_structure_and_as_a_sentence(tmp_path):
     assert "AMBIGUOUS-REMITTANCE ATTRIBUTION" in json.dumps(written), (
         "the attribution did not reach the ledger the Proof door reads"
     )
+
+
+# ---------------------------------------------------------------------------
+# ATOM D17 -- the anti-rubber-stamp guard, rebuilt on an INJECTED error.
+#
+# The guard D16 dissolved was a RESIDUAL: the ageing overstatement the
+# counterfactual could not explain was read as proof that the subtraction
+# discriminated. That residual turned out to be invoices the company was RIGHT
+# to carry as owed, and excluding them left every published measure 100%
+# attributed -- which is indistinguishable, from outside, from a shadow company
+# that is clean BY CONSTRUCTION and would absorb any belief error at all.
+#
+# A residual the world happens to supply is the wrong thing to rest a control
+# on: it can be dissolved by an unrelated fix, and then the control silently
+# stops controlling. This one injects its own -- a belief error no invoice
+# reference can cure -- so it is exercised on every run rather than whenever the
+# population is kind. R12: nothing published moved; the injection lives only
+# inside these tests.
+# ---------------------------------------------------------------------------
+
+_SUPPRESSION_GRACE_DAYS = 5
+
+
+def _suppress_every_nth_within_grace_credit(monkeypatch, every: int) -> set:
+    """INJECT the one belief error a remittance reference cannot cure: the
+    company's bank feed never DELIVERS the credit at all.
+
+    Unapplied cash -- a feed gap, a credit sitting in suspense, a payment made
+    to the wrong sort code -- leaves a settled invoice looking unpaid, and no
+    amount of remittance detail on a credit that never arrived can fix it. It is
+    suppressed at `emit_wall_responses`, which `record_period` calls once for the
+    real company and once for the shadow, so BOTH books lose the same cash: the
+    portfolio balances stay identical (the money guard is not what fires here)
+    and `self._records` -- the harness-held TRUTH -- is untouched, because it is
+    built from the `PaymentEvent`, never from what crossed the seam. The world
+    still says the customer paid on time; only the two companies disagree.
+
+    Deterministic (C-S2): the selector is a CRC of the case key, not `hash()`
+    (salted per process) and not iteration order, so the same cases are
+    suppressed on every run and in every process.
+
+    Returns the suppressed case keys so a caller can prove the injection was not
+    vacuous -- a guard whose injected defect never landed is the fail-open shape
+    this file exists to catch."""
+    import zlib
+
+    real_emit = lpt.emit_wall_responses
+    suppressed: set = set()
+
+    def _emit(event, seam_input=None):
+        if (event.result == "success"
+                and event.days_late is not None
+                and event.days_late <= _SUPPRESSION_GRACE_DAYS
+                and zlib.crc32(
+                    f"{event.customer_id}::{event.period_index}".encode()) % every == 0):
+            suppressed.add((event.customer_id, event.period_index))
+            return []
+        return real_emit(event, seam_input)
+
+    monkeypatch.setattr(lpt, "emit_wall_responses", _emit)
+    return suppressed
+
+
+# The two measures an undelivered credit can reach: the invoice stays open, so
+# the company both over-ages it and wrongly flags it. The other three published
+# measures are about debt the company believes SETTLED, which suppressing a
+# credit cannot cause -- asserted below rather than assumed.
+_MEASURES_AN_UNDELIVERED_CREDIT_REACHES = (
+    "ageing.overstated_arrears_rate",
+    "detection.false_flag_rate",
+)
+
+
+def _assert_the_counterfactual_left_a_residual(attr: dict) -> None:
+    """THE PREDICATE THE GUARD IS. Extracted so the mutant below can call it
+    and prove it RAISES -- an R15 both-ways that a hand-copied assertion in the
+    mutant could not give (asserting a copy against a copy is the tautology
+    shape this repo has caught inside its own R15 tests twice)."""
+    for name in _MEASURES_AN_UNDELIVERED_CREDIT_REACHES:
+        m = attr["measures"][name]
+        assert m["actual"] > 0.0, f"{name}: vacuous -- no error to attribute"
+        assert m["remittance_complete"] > 0.0, (
+            f"{name}: the shadow company explains an error that has nothing to "
+            "do with remittance. A credit that never reached either book cannot "
+            "be cured by writing an invoice reference on it, so a shadow "
+            "reading 0.0 here is clean BY CONSTRUCTION, not by remittance -- "
+            "the rubber stamp this guard exists to catch"
+        )
+        assert m["attributed"] < m["actual"], (
+            f"{name}: {m['attributed']} of {m['actual']} attributed -- the "
+            "counterfactual is charging the remittance channel for the whole of "
+            "an error it did not cause"
+        )
+
+
+def test_R15_the_counterfactual_does_not_attribute_an_injected_non_allocation_error(
+    monkeypatch,
+):
+    """THE REPLACEMENT ANTI-RUBBER-STAMP GUARD (atom D17).
+
+    Named defect: a counterfactual that would charge the ambiguous-remittance
+    channel for EVERY belief error the company could make. On the natural
+    population that defect is invisible -- the honest answer and the rubber
+    stamp both print 100%. So the population is given an error the channel
+    provably did not cause, and the attribution must decline to take credit for
+    it.
+
+    MEASURED, seed-free (the population is deterministic), 150 customers x 6
+    months, 5 of 900 credits suppressed: the ageing overstatement goes
+    0.090909 -> 0.163636 while the shadow company goes 0.0 -> 0.090909, so
+    0.072727 of 0.163636 is attributed -- 0.4444, not 1.0. The false-flag rate
+    goes 0.236364 -> 0.309091 against a shadow at 0.090909: 0.7059 attributed.
+    Suppressing more moves it further (every-3rd credit, 19 suppressed: 0.0500
+    and 0.2083), which is the right direction -- the more of the error the
+    channel did not cause, the less of it the channel is charged for."""
+    baseline_result = _build_triad().measure()
+    baseline = baseline_result["remittance_attribution"]
+    for name in _MEASURES_AN_UNDELIVERED_CREDIT_REACHES:
+        m = baseline["measures"][name]
+        assert m["remittance_complete"] == 0.0 and m["attributed"] == m["actual"], (
+            f"{name} already carries a residual on the natural population -- "
+            "this guard's whole premise (that 100% attribution is what the "
+            "channel being complete looks like) needs re-deriving"
+        )
+
+    suppressed = _suppress_every_nth_within_grace_credit(monkeypatch, every=5)
+    triad = _build_triad()
+    injected = triad.measure()
+    attr = injected["remittance_attribution"]
+
+    # NOT VACUOUS, three ways: the injection landed, it reached the measure, and
+    # the attribution was published rather than blanked by another guard.
+    assert suppressed, "no credit was suppressed -- the injected defect never landed"
+    assert (attr["measures"]["ageing.overstated_arrears_rate"]["actual"]
+            > baseline["measures"]["ageing.overstated_arrears_rate"]["actual"]), (
+        "the suppressed credits did not reach the ageing overstatement, so "
+        "nothing below is testing anything"
+    )
+    assert attr["premise_violated"] is None and attr["vacuity"] is None
+
+    # IT IS A BELIEF ERROR, NOT A WORLD CHANGE -- if the injection had moved the
+    # population, the SAME-WORLD guard would be what fired and this guard would
+    # be measuring two different worlds (the flattering error D8's own mutant
+    # tests). The truth is byte-identical and the money still matches.
+    for key in lpt._SAME_WORLD_KEYS:
+        assert injected["stats"][key] == baseline_result["stats"][key], (
+            f"the injection moved {key} -- it changed the WORLD, not the "
+            "company's belief about it"
+        )
+    assert attr["balance_gbp_delta"] == 0.0
+
+    _assert_the_counterfactual_left_a_residual(attr)
+
+    # THE DIRECTION IS RIGHT TOO. An undelivered credit can only make the
+    # company believe MORE debt is owed, so the measures about debt believed
+    # SETTLED must be untouched by it and stay fully attributed. A residual
+    # appearing there would mean the injection is doing something other than
+    # what this test says it does.
+    for name in ("ageing.understated_arrears_rate",
+                 "arrears_view.unpursued_arrears_rate"):
+        m = attr["measures"][name]
+        assert m["remittance_complete"] == 0.0, (
+            f"{name} moved under an injection that can only ADD believed debt"
+        )
+
+    # AND IT IS PUBLISHED, not just asserted: the reader of the note sees the
+    # partial attribution, not a bare set of figures.
+    disc = attr["discrimination"]
+    assert disc["n_fully_attributed"] < disc["n_measures_with_a_nonzero_error"]
+    summary = lpt.format_remittance_attribution_summary(attr)
+    assert "carry a residual this channel cannot explain" in summary
+    for name in _MEASURES_AN_UNDELIVERED_CREDIT_REACHES:
+        assert name in disc["partially_attributed_measures"] and name in summary, (
+            f"{name} carries a residual but the published clause does not name it"
+        )
+
+
+def test_R15_MUTANT_a_shadow_clean_by_construction_fails_the_injected_error_guard(
+    monkeypatch,
+):
+    """MUTATION, and the reason the guard above is a control rather than a
+    ceremony: make the shadow company perfect BY CONSTRUCTION -- its measures
+    forced to zero however the world treats it -- while leaving the injected
+    error, the population, and the money exactly as the guard sees them.
+
+    That is the rubber stamp in its purest form: every figure comes back 100%
+    attributed to the remittance channel, including the part of the error caused
+    by cash that never arrived. None of the three original guards fires (the
+    world is the same world, the balances match to the penny, the channel was
+    exercised). The guard above must, and this proves it does by calling the
+    guard's own predicate rather than a copy of it."""
+    _suppress_every_nth_within_grace_credit(monkeypatch, every=5)
+    triad = _build_triad()
+
+    cf_consumer = triad._cf_consumer
+    real_score = lpt.score_triad
+
+    def _perfect_shadow(records, consumer, as_of, *args, **kwargs):
+        scored = real_score(records, consumer, as_of, *args, **kwargs)
+        if consumer is cf_consumer:
+            for dimension in ("ageing", "detection"):
+                components = scored[dimension].components
+                for key, value in list(components.items()):
+                    if isinstance(value, float):
+                        components[key] = 0.0
+        return scored
+
+    monkeypatch.setattr(lpt, "score_triad", _perfect_shadow)
+    attr = triad.measure()["remittance_attribution"]
+
+    # The three original guards are all silent -- this is exactly the blind spot.
+    assert attr["premise_violated"] is None and attr["vacuity"] is None
+    assert attr["balance_gbp_delta"] == 0.0
+
+    for name in _MEASURES_AN_UNDELIVERED_CREDIT_REACHES:
+        m = attr["measures"][name]
+        assert m["remittance_complete"] == 0.0 and m["attributed"] == m["actual"], (
+            f"{name}: the mutant did not actually rubber-stamp, so the "
+            "assertion below would pass for the wrong reason"
+        )
+
+    with pytest.raises(AssertionError, match="clean BY CONSTRUCTION"):
+        _assert_the_counterfactual_left_a_residual(attr)
+
+
+def test_d17_a_fully_attributed_population_publishes_that_it_proves_nothing():
+    """The natural population's 100% attribution must not be readable as a pass
+    mark -- at SOURCE, so it lands on every consumer of this attribution rather
+    than on the one surface someone remembered (the D6 precedent this triad has
+    been bitten by twice for skipping).
+
+    The counts are DERIVED, so the sentence cannot outlive the figures."""
+    attr = _build_triad().measure()["remittance_attribution"]
+    disc = attr["discrimination"]
+
+    with_error = [n for n, m in attr["measures"].items()
+                  if m["attributed"] is not None and m["actual"] not in (None, 0, 0.0)]
+    assert disc["n_measures_with_a_nonzero_error"] == len(with_error) > 0
+    assert disc["n_fully_attributed"] == len(with_error), (
+        "the natural population no longer attributes everything -- if that is "
+        "real it is a finding, and this atom's structural claim (misallocation "
+        "is the only mechanism left once the observation channel is complete) "
+        "has been refuted rather than merely narrowed"
+    )
+    assert "NOT EVIDENCE THAT THIS SUBTRACTION DISCRIMINATES" in disc["reading"]
+
+    summary = lpt.format_remittance_attribution_summary(attr)
+    assert f"ALL {len(with_error)} measure(s)" in summary, (
+        "the caveat's count is not interpolated from the measurement"
+    )
+    assert "a rubber stamp looks identical from here" in summary
+    # NAMED, not just counted -- the sentence this clause joins renders only
+    # four of the five, so a bare count sends a reader hunting for a fifth.
+    for name in with_error:
+        assert name in summary, f"{name} is counted in the caveat but not named"
+
+
+def test_d17_the_published_discrimination_pointer_resolves_to_a_live_guard():
+    """The published caveat hands the reader a test name as its evidence. A
+    pointer to a mechanism that no longer exists is a measured failure class in
+    this repo, not a hypothetical one -- so the pointer is RESOLVED, not
+    trusted."""
+    path, _, func = lpt.DISCRIMINATION_GUARD.partition("::")
+
+    from pathlib import Path
+    repo_root = Path(__file__).resolve().parents[2]
+    assert (repo_root / path).is_file(), f"{path} does not exist"
+    assert func in globals(), (
+        f"{lpt.DISCRIMINATION_GUARD} names a test that is not defined in "
+        f"{path} -- the published discrimination claim points at nothing"
+    )
+    assert callable(globals()[func])

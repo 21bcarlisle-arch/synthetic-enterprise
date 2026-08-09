@@ -1,5 +1,52 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T12:04:09Z
+Last updated: 2026-08-09T12:22:57Z
+**D17_d8_counterfactual_has_no_unattributed_residual — L0→L2, self-certified. The D8 remittance
+counterfactual explained 100% of every measure it published, which is exactly what a rubber stamp
+looks like from outside — so it was given an error it provably did not cause, and it declined to
+take credit for it.**
+The old anti-rubber-stamp guard rested on a RESIDUAL the world happened to supply: the ageing
+overstatement the counterfactual could not explain. D16 dissolved that residual — it was invoices
+settled *past* the reconciliation grace, i.e. debt the company was **right** to carry — and the
+control silently stopped controlling. A residual the population donates can be taken away by an
+unrelated fix; **this one is injected, so it is exercised on every run rather than whenever the
+population is kind.**
+**The injected error is the one thing no invoice reference can cure: a credit the bank feed never
+DELIVERS.** Unapplied cash, a feed gap, a payment to the wrong sort code — the invoice looks unpaid
+and no amount of remittance detail on a credit that never arrived can fix it. It is suppressed at
+the seam, which the recorder calls once for the real company and once for the shadow, so **both
+books lose the same cash**: the money guard is not what fires, and the harness-held truth is
+untouched because it is built from the payment event, never from what crossed the seam.
+**Measured, 5 of 900 credits suppressed:** the ageing overstatement goes 0.090909 → 0.163636 while
+the shadow goes 0.0 → 0.090909, so **0.072727 of 0.163636 is attributed — 0.4444, not 1.0**. The
+false-flag rate: 0.7059. Suppress every 3rd credit instead (19 cases) and it falls to **0.0500 and
+0.2083** — monotone in the dose, which is the evidence the guard reads the injection and not noise.
+Direction checked too: an undelivered credit can only make the company believe **more** debt is
+owed, so the two measures about debt believed *settled* must stay fully attributed under it, and do.
+**R15 both ways, without a hand-copied assertion.** The guard's predicate is extracted and the
+MUTANT calls that same function under `raises`. The mutant is the rubber stamp in its purest form — a
+shadow company forced clean **by construction** while the injection, the population and the money
+are left exactly as the guard sees them. **All three original guards stay silent** (same world,
+balances equal to the penny, channel exercised), every figure returns 100% attributed *including the
+part caused by cash that never arrived*, and the new guard fires.
+**The atom's structural claim survived, but narrower than it was written.** It said ageing an
+invoice settled within five days of its due date *requires* a misallocation. False as stated — the
+undelivered credit does it with no misallocation anywhere. True as meant: the **observation channel**
+is complete in this world, so once D16's band removes every invoice the company was right to chase,
+misallocation is the only mechanism **left**. That is now published **at source** — in the
+attribution structure and in the ledger note the Proof door reads — with counts derived from the
+measures so the sentence cannot outlive the figures, the measures **named** as well as counted, and
+a pointer test that fails if the guard it cites stops existing.
+**R12 clean: no published number moved.** The baseline measures are byte-identical
+(0.293948 / 0.090909 / 0.097983 / 0.0 / 0.236364 / 0.097983); the injection lives only in the tests.
+**L3 not claimed** — no Expert Hour on the corrected instrument, and this is the tick that changed
+it. 20 tests green in the triad file; **615 passed + 5 xfailed across all 26 files** touching the
+triad, `gap_metric`, the offline scorer or the shared-quantity contract; ruff unchanged at 2 vs a
+pristine HEAD extract.
+
+---
+
+## PREVIOUS
+
 **D14_w2_8_needs_negative_drops — L0→L2, self-certified. The self-rationing detector had a false
 alarm rate of exactly 0.0000, and not one of those zeros was earned: the world could not produce a
 single household whose usage fell for an innocent reason.**
@@ -47,8 +94,6 @@ is strictly harder than reality and **0.0560 is an upper bound**, registered rat
 register, gap_metric, the coupled-triad gate and the proof door.
 
 ---
-
-## PREVIOUS
 
 **KNIFE4_orphan_disposition — L0→L2, self-certified. All 258 company-side orphans now carry a
 ruling, and the pass's own measurement refuted two thirds of the premise it was drawn on.**
@@ -1462,7 +1507,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1577,6 +1622,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1806.8h across 75 sized atom(s) (13 of 88 below-target atoms still unsized).
+- Remaining effort: ~1795.2h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
