@@ -111,12 +111,25 @@ def _real_repo_head() -> str:
     it simply cannot detect a move it could not read.
     """
     try:
+        if not _GIT_DIR.exists():
+            # NO REPOSITORY AT ALL -- the publish gate's clean HEAD checkout
+            # (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09) is a `git archive` extraction
+            # with no .git, and there is no real checkout there for a test to ghost-push into.
+            # Return a constant WITHOUT shelling out: the subprocess fallback below collided
+            # with every test that stubs `subprocess.run`, whose stub answered this call with a
+            # Mock/None and turned the tripwire into `AttributeError: 'NoneType' has no
+            # attribute 'stdout'` -- 9 errors that exist only in the archive, never in the repo.
+            # A constant also satisfies the tripwire honestly: before == after, nothing moved,
+            # because nothing here could move.
+            return "no-git-dir"
         if not _GIT_DIR.is_dir():  # worktree/submodule: .git is a file -> ask git once
             out = subprocess.run(
                 ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
                 capture_output=True, text=True, timeout=15,
             )
-            return out.stdout.strip() or "unreadable"
+            # Defensive: a stubbed subprocess can return anything, and a tripwire that raises
+            # is worse than one that cannot see.
+            return (getattr(out, "stdout", "") or "").strip() or "unreadable"
         head = (_GIT_DIR / "HEAD").read_text().strip()
         if not head.startswith("ref: "):
             return head  # detached HEAD: the sha is right there
