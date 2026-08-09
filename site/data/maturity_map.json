@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 60,
+      "stall_consecutive_unchanged": 92,
       "forward_attachments": []
     },
     {
@@ -2428,7 +2428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20,
+      "stall_consecutive_unchanged": 29,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2492,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 12,
       "forward_attachments": []
     },
     {
@@ -2800,7 +2800,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 47,
+      "stall_consecutive_unchanged": 63,
       "forward_attachments": []
     },
     {
@@ -3076,7 +3076,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34,
+      "stall_consecutive_unchanged": 54,
       "forward_attachments": []
     },
     {
@@ -3096,7 +3096,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 60,
+      "stall_consecutive_unchanged": 67,
       "forward_attachments": []
     },
     {
@@ -3167,7 +3167,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 878,
+      "stall_consecutive_unchanged": 910,
       "forward_attachments": []
     },
     {
@@ -4032,7 +4032,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -4278,7 +4278,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 68,
+      "stall_consecutive_unchanged": 104,
       "forward_attachments": []
     },
     {
@@ -4423,7 +4423,14 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 4,
-      "forward_attachments": []
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md",
+          "date": "2026-08-09",
+          "kind": "finding",
+          "note": "the index's population question and"
+        }
+      ]
     },
     {
       "id": "AO2_write_time_reuse_gate",
@@ -4445,7 +4452,14 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 12,
-      "forward_attachments": []
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md",
+          "date": "2026-08-09",
+          "kind": "finding",
+          "note": "the index's population question and"
+        }
+      ]
     },
     {
       "id": "AO3_join_test_tier",
@@ -4556,7 +4570,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50,
+      "stall_consecutive_unchanged": 70,
       "forward_attachments": []
     },
     {
@@ -4749,7 +4763,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 130,
+      "stall_consecutive_unchanged": 137,
       "forward_attachments": []
     },
     {
@@ -4771,7 +4785,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 141,
+      "stall_consecutive_unchanged": 143,
       "forward_attachments": []
     },
     {
@@ -4811,7 +4825,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 116,
+      "stall_consecutive_unchanged": 121,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4840,7 +4854,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 149,
+      "stall_consecutive_unchanged": 152,
       "forward_attachments": []
     },
     {
@@ -4860,7 +4874,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 124,
+      "stall_consecutive_unchanged": 129,
       "forward_attachments": []
     },
     {
@@ -4882,7 +4896,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 118,
+      "stall_consecutive_unchanged": 128,
       "forward_attachments": []
     },
     {
@@ -4904,7 +4918,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 134,
+      "stall_consecutive_unchanged": 139,
       "forward_attachments": []
     },
     {
@@ -4926,7 +4940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 126,
+      "stall_consecutive_unchanged": 132,
       "forward_attachments": []
     },
     {
@@ -4948,7 +4962,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 126,
+      "stall_consecutive_unchanged": 133,
       "forward_attachments": []
     },
     {
@@ -4972,7 +4986,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 135,
+      "stall_consecutive_unchanged": 140,
       "forward_attachments": []
     },
     {
@@ -4994,7 +5008,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 137,
+      "stall_consecutive_unchanged": 141,
       "forward_attachments": []
     },
     {
@@ -5016,7 +5030,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 116,
+      "stall_consecutive_unchanged": 123,
       "forward_attachments": []
     },
     {
@@ -5038,7 +5052,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 113,
+      "stall_consecutive_unchanged": 119,
       "forward_attachments": []
     },
     {
@@ -5080,7 +5094,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 132,
+      "stall_consecutive_unchanged": 138,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5115,7 +5129,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 138,
+      "stall_consecutive_unchanged": 141,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5165,7 +5179,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36,
+      "stall_consecutive_unchanged": 42,
       "forward_attachments": []
     },
     {
@@ -5187,7 +5201,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 44,
+      "stall_consecutive_unchanged": 45,
       "forward_attachments": []
     },
     {
@@ -5250,6 +5264,66 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 234,
+      "forward_attachments": []
+    },
+    {
+      "id": "PW1_staleness_is_code_actually_loaded",
+      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 DO-NEXT #3 (director: 'your own refinement; it is now the work, not the footnote') and DECIDED #2 ('a detector for that failure mode that is always red will be ignored exactly as reliably as one that is blind'). Redefine the boot-SHA drift signal from repo-HEAD-moved to CODE-THIS-DAEMON-ACTUALLY-LOADS-moved, and first fix the population it is computed over, which today excludes the two daemons that caused the 10h outage. EXIT: TWO halves, both measured on the live daemon set, neither sufficient alone. (a) POPULATION, and it is an R10 class closure not an instance fix: process_reconciler._systemd_owned_sessions() filters on `e.get('launched_by','tmux')=='systemd'`, so sim-runner and background-worker -- user-scope systemd units whose own ExecStartPre wrote the boot stamps -- default to tmux and drop out of evaluate_boot_sha_drift()'s answer. The 2026-07-29 cutover patched two manifest rows and left seven identical ones standing, which silently chose which daemons the detector was allowed to watch. EXIT: the manifest's launched_by is DERIVED from or reconciled against observed reality (/proc/<pid>/cgroup, systemctl --user is-active) rather than trusted, so a wrong row FAILS rather than shrinks the population; the seven double-launchable rows are resolved together; and a test asserts the detector's population equals the observed running set, not a subset of it. (b) SIGNAL: `stale` is computed against the modules the daemon actually imported (its own file_scope closure), not against repo HEAD -- so a daemon whose loaded modules are unchanged reads GREEN while HEAD moves, and a daemon running pre-fix code for a module it imports reads RED. EXIT: the signal is green on a live tree with a moved HEAD and no relevant edit, and red for sim-runner replayed against the 2026-08-09 fa9a73c72 boot state. R15 both ways: a mutation that empties the population, and a mutation that reverts the signal to HEAD-comparison, must each kill named tests; a vacuity guard must prove the honest path evaluates a non-empty daemon set.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
+      "forward_attachments": []
+    },
+    {
+      "id": "PW2_failure_clears_its_own_alarm",
+      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class (director: 'That is a class, not an instance. Where else can a check's failure clear the signal that the check failed?'). The publish failure path wrote to .publish_gate_state.json -- the same state the alarm reads for episode memory -- so each failure reset wedge_since and the alarm truthfully described a fresh 14-minute wedge inside a 10-hour episode. EXIT: A CENSUS first, then a guard -- in that order, because an instance fix on .publish_gate_state.json is exactly what R10 forbids. EXIT: (1) an enumeration of every control in background/ and tools/ whose failure path WRITES to a state file its own alarm/severity READS, produced by a derivation (writer set intersected with reader set per state path) rather than by inspection, with each hit dispositioned real / benign-and-why; (2) the shape is guarded -- for each real hit the episode-scoped field is append-or-monotonic so a failure cannot shorten its own episode, and a test proves the guard fires by replaying the 2026-08-09 sequence and asserting the reported episode length is ~10h and not ~14min; (3) R15 both ways, including a vacuity guard proving the census is non-empty on the live tree (a census that finds nothing is the fail-open shape here).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9,
+      "forward_attachments": []
+    },
+    {
+      "id": "PW3_suite_duration_watch",
+      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class: 'The suite grew past a fixed wall. The new ceiling is sound and growth now fails loudly rather than silently -- but nothing watches suite duration, so the same shape recurs, just noisily.' The timeout fail-open is closed (1fd85cb27); the growth that reached it is unmeasured. EXIT: A duration series that already exists is preferred to a new collector -- check test_execution_log.jsonl before writing one (AO1/AO2 write-time discipline). EXIT: (1) wall-clock duration of the publish gate's suite run is recorded per run with its commit SHA; (2) a headroom figure -- duration against the current ceiling -- is reported on a surface that is read (the daily self-note or the digest), as a RATIO not a raw second count, so the number is comparable across a changed ceiling; (3) the alarm is a TREND transition (R5): crossing a headroom threshold fires once, and recovery fires once; it must not repeat an unchanged status. R12: duration is a DIAGNOSTIC -- no test may be deselected, marked slow, or moved to a tier to make this number smaller, and the atom states that in its own build note. R15: a mutation that reports headroom from the ceiling alone (ignoring the measured duration) must kill a named test.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9,
       "forward_attachments": []
     }
   ],
@@ -5333,7 +5407,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 242,
+  "total_atoms": 245,
   "epoch2_movements": [
     {
       "id": "M1",

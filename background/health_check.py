@@ -485,13 +485,25 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
     try:
         from background.process_reconciler import evaluate_boot_sha_drift
         _bd = evaluate_boot_sha_drift()
-        if _bd["stale"]:
-            problem_lines.append(
-                "  ✗ deployment drift: daemon(s) on stale code (restart to deploy HEAD): "
-                + ", ".join(_bd["stale"])
-            )
+        _faults = []
+        if _bd.get("stale"):
+            _faults.append("daemon(s) running an OLD copy of a module they import (restart to "
+                           "deploy): " + ", ".join(_bd["stale"]))
+        if _bd.get("vacuous"):
+            _faults.append("VACUOUS — the drift population is EMPTY while systemd units are "
+                           "active; the check cannot fail, so it has failed")
+        if _bd.get("unresolved"):
+            _faults.append("unresolvable (an unanswered check is a FAILED check): "
+                           + ", ".join(f"{s}={r}" for s, r in sorted(_bd["unresolved"].items())))
+        if _bd.get("misdeclared"):
+            _faults.append("manifest launched_by disagrees with the observed launcher: "
+                           + ", ".join(m["session"] for m in _bd["misdeclared"]))
+        if _faults:
+            problem_lines.append("  ✗ deployment drift: " + "; ".join(_faults))
         else:
-            ok_lines.append("  ✓ no deployment drift — systemd daemons booted from current HEAD")
+            ok_lines.append(
+                f"  ✓ no deployment drift — {len(_bd.get('population', []))} observed systemd "
+                "daemon(s), none running a changed imported module")
     except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
         ok_lines.append(f"  ℹ boot-SHA drift check unavailable: {exc}")
 

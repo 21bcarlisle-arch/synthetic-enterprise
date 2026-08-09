@@ -48,11 +48,21 @@ their regenerated units:
 
 ## Verification — the L3 acceptance gate
 Deploy is complete only when all of these are clean:
-- **No boot-SHA drift** (every daemon booted from current HEAD):
+- **No loaded-code drift** (no daemon running an old copy of a module it imports):
   ```
   python3 -c 'from background.process_reconciler import evaluate_boot_sha_drift; print(evaluate_boot_sha_drift())'
-  # expect {"head": "<HEAD>", "stale": []}
+  # expect stale == [], unresolved == {}, misdeclared == [], vacuous is False,
+  #        and population == the daemons systemd is observed to be running
   ```
+  Read all five keys, not just `stale` (PW1, 2026-08-09 — the check used to be able to lie by
+  omission). `population` comes from OBSERVED systemd activity, so a wrong `launched_by` row now
+  shows up as `misdeclared` instead of silently deleting that daemon from the answer; `vacuous`
+  true means the population is empty while units are active, which is a FAILED check, not a clean
+  one; `unresolved` names daemons whose state could not be established (`unstamped` /
+  `closure-unknown` / `sha-unresolved`) — an unanswered check is a failed check (R15).
+  `stale_detail` names the exact changed modules per daemon, which is what to diff before
+  restarting. Note this is deliberately NOT "booted from current HEAD": a daemon whose own import
+  closure is untouched is green however far HEAD has moved.
 - **Process reconcile clean** (no `MISSING`, no `UNIT_FAILED`/`UNIT_CRASHLOOPING`; held/dark as declared):
   ```
   python3 -m background.process_reconciler

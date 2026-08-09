@@ -54,6 +54,29 @@ def read_boot_sha(session: str) -> str | None:
         return None
 
 
+def changed_paths_since(sha: str) -> set[str] | None:
+    """Repo-relative paths that differ between `sha` and the CURRENT WORKING TREE, or None if
+    the SHA is unknown to git / git is unavailable.
+
+    Working tree, not HEAD: a daemon loads files off the disk it booted from, so an UNCOMMITTED
+    edit to a module it imports is genuinely code the daemon does not have — that is exactly the
+    caller/callee split (`sim_runner.py` argv) that ran for ten hours on 2026-08-09.
+
+    None means UNRESOLVED, which callers must treat as a failed check (R15 fail-silent), never as
+    an empty diff — an unanswerable question is not a green answer.
+    """
+    if not sha:
+        return None
+    try:
+        r = subprocess.run(["git", "diff", "--name-only", sha, "--"],
+                           cwd=_REPO, capture_output=True, text=True, timeout=30)
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    return {line.strip() for line in (r.stdout or "").splitlines() if line.strip()}
+
+
 if __name__ == "__main__":
     try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
         from background._seat import refuse_if_foreign

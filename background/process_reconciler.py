@@ -204,12 +204,14 @@ def format_report(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def _systemd_owned_sessions(path: Path | None = None) -> list[str]:
-    """Sessions whose lifecycle is ACTUALLY on systemd now (migrated): owner==systemd AND
-    launched_by==systemd. Only these are worth a `systemctl show` -- an un-migrated daemon has no
-    installed unit yet and is detected via `_live_tmux_running` instead."""
-    return [e["session"] for e in load_manifest(path)
-            if e.get("owner") == "systemd" and e.get("launched_by", "tmux") == "systemd"]
+# NOTE (PW1, 2026-08-09): `_systemd_owned_sessions()` -- owner==systemd AND launched_by==systemd --
+# is DELETED, not deprecated. Its only remaining caller was the boot-SHA drift population, and
+# choosing that population from a DECLARED field is precisely the defect: seven un-flipped rows
+# silently decided which daemons the staleness detector was allowed to watch, and the two that
+# caused the 10h wedge were among them. The population is now OBSERVED (`drift_population`); the
+# declaration is the cross-check that ALARMS on disagreement (`launcher_drift`). Do not reintroduce
+# a declaration-derived population -- `test_drift_population_is_observed_never_declared` fails if
+# the manifest field can shrink the answer again.
 
 
 def _unit_snapshot(session: str) -> dict:
@@ -472,35 +474,144 @@ def evaluate_pull_loop() -> dict:
     return pull_loop_status(read_pull_loop_health(), pull_loop_enabled(), now=time.time())
 
 
-# ── Deployment-by-construction: booted-SHA drift (OPS1 sub-step 5, G-D1/G-D3) ─────────────
-# A managed daemon stamps the git HEAD it booted from (its unit's ExecStartPre → boot_sha.stamp).
-# Here we compare that stamp against current HEAD: a running daemon whose boot-SHA is older than
-# HEAD is running STALE code. This GENERALISES health_check.stale_daemon_sessions (own-script
-# mtime only) — any HEAD advance past the boot SHA is stale, including a changed IMPORTED module
-# the mtime check never saw. REPORT ONLY (the deploy step — systemctl restart — is separate, G-D2).
-def boot_sha_drift(head: str | None, boot_shas: dict[str, str | None], running_sessions) -> list[str]:
-    """PURE (mutation-testable): the running daemons on STALE code. A running daemon whose stamped
-    boot-SHA is present AND != head booted from older code → stale. A session with no stamp yet is
-    NOT flagged (fail-safe: unknown, never a false 'stale'). head None → [] (git unavailable, can't
-    judge — the deadman/commit-clock is the backstop). REPORT ONLY."""
-    if not head:
-        return []
-    return sorted(
-        s for s in running_sessions
-        if boot_shas.get(s) and boot_shas.get(s) != head
-    )
+# ── Deployment-by-construction: is the code this daemon LOADS stale? (PW1, rebuilt 2026-08-09) ──
+# A managed daemon stamps the git SHA it booted from (its unit's ExecStartPre → boot_sha.stamp).
+#
+# The ORIGINAL question was "has HEAD moved past that stamp?" — and it had BOTH failure modes the
+# director named in DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09:
+#   BLIND  — its population came from the manifest's `launched_by` field, so the seven rows the
+#            2026-07-29 cutover left un-flipped (sim-runner and background-worker among them, the
+#            two daemons that ran pre-cure code through the 10h wedge) were excluded BY DECLARATION
+#            from the answer. A declaration can drift; an observation cannot.
+#   ALWAYS RED — on a repo that commits every tick, "HEAD moved" is true for every daemon minutes
+#            after boot. "A detector for that failure mode that is always red will be ignored
+#            exactly as reliably as one that is blind" (DECIDED #2).
+# So both halves are rebuilt here, and NEITHER is sufficient alone:
+#   (a) POPULATION = every daemon OBSERVED running under its own --user systemd unit (unit active +
+#       MainPID + /proc cgroup cross-check). The manifest is now the CROSS-CHECK that alarms on
+#       disagreement (`launcher_drift` → MISDECLARED_LAUNCHER), never the filter that shrinks.
+#   (b) SIGNAL = the modules this daemon ACTUALLY IMPORTS (background.code_closure) that changed
+#       between its boot SHA and the working tree. Untouched closure → GREEN however far HEAD ran;
+#       one changed imported module → RED even if nothing else moved.
+# REPORT ONLY (the deploy step — systemctl restart — is separate, G-D2).
+
+def _proc_cgroup(pid: int) -> str:
+    """The cgroup line of a live pid ('' if unreadable). A user-scope systemd daemon's cgroup
+    names its own unit (…/app.slice/sim-runner.service). Used to REFUTE a claimed systemd launch,
+    never to require one — an unreadable /proc must not shrink the population (that is the very
+    fail-open shape this rebuild exists to close)."""
+    try:
+        return Path(f"/proc/{int(pid)}/cgroup").read_text()
+    except Exception:
+        return ""
+
+
+def observed_launched_by(entries: list[dict], unit_states: dict[str, dict],
+                         main_pids: dict[str, int],
+                         cgroup_of=lambda pid: "") -> dict[str, str | None]:
+    """PURE. session -> the launcher OBSERVED to be running it right now ('systemd' | None).
+
+    'systemd' iff the unit is ACTIVE with a real MainPID, and the /proc cgroup cross-check does not
+    REFUTE it (cgroup unreadable → not a refutation; cgroup naming a DIFFERENT unit → refuted).
+    Declared `launched_by` is deliberately NOT read here — that is the whole point."""
+    observed: dict[str, str | None] = {}
+    for e in entries:
+        session = e.get("session", "")
+        if e.get("match") == SEAT_MATCH or e.get("owner") != "systemd":
+            continue
+        st = unit_states.get(session) or {}
+        pid = main_pids.get(session, 0)
+        if not st.get("active") or pid <= 0:
+            observed[session] = None
+            continue
+        cg = cgroup_of(pid)
+        refuted = bool(cg) and f"{session}.service" not in cg
+        observed[session] = None if refuted else "systemd"
+    return observed
+
+
+def drift_population(observed: dict[str, str | None]) -> list[str]:
+    """PURE. The sessions the staleness detector MUST evaluate: everything observed to be running
+    under systemd. Equal to the observed running set BY CONSTRUCTION — no declaration filter can
+    make it a subset (the 2026-07-29 defect)."""
+    return sorted(s for s, v in observed.items() if v == "systemd")
+
+
+def launcher_drift(entries: list[dict], observed: dict[str, str | None]) -> list[dict]:
+    """PURE. Rows whose declared `launched_by` disagrees with the observed world. A row claiming
+    tmux for a daemon observed under systemd is MISDECLARED_LAUNCHER: it is double-launchable AND
+    (before this rebuild) it silently deleted itself from the drift population. Now the wrong row
+    FAILS LOUD instead of shrinking the answer."""
+    out = []
+    for e in entries:
+        session = e.get("session", "")
+        if e.get("match") == SEAT_MATCH or e.get("owner") != "systemd":
+            continue
+        declared = e.get("launched_by", "tmux")
+        if observed.get(session) == "systemd" and declared != "systemd":
+            out.append({"session": session, "declared": declared, "observed": "systemd",
+                        "status": "MISDECLARED_LAUNCHER", "alarm": True})
+    return out
+
+
+def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
+                      closures: dict[str, set[str]], changed_since) -> dict:
+    """PURE (mutation-testable). Per running daemon, which of the modules IT IMPORTS changed since
+    it booted. `changed_since(sha)` -> set of repo-relative changed paths, or None if unresolvable.
+
+    Returns {"stale": {session: [changed loaded paths]}, "unresolved": {session: reason}}.
+    Three fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
+      - no boot stamp        -> unresolved 'unstamped'      (unknown is not clean)
+      - closure empty        -> unresolved 'closure-unknown' (a vacuous compare always passes)
+      - changed_since None   -> unresolved 'sha-unresolved'  (an unanswerable question is not 'no')
+    A daemon with a resolvable diff that touches NOTHING it imports is GREEN — that is the whole
+    point: the signal must be able to be green, or it is noise."""
+    stale: dict[str, list[str]] = {}
+    unresolved: dict[str, str] = {}
+    for session in running_sessions:
+        sha = boot_shas.get(session)
+        if not sha:
+            unresolved[session] = "unstamped"
+            continue
+        closure = closures.get(session) or set()
+        if not closure:
+            unresolved[session] = "closure-unknown"
+            continue
+        changed = changed_since(sha)
+        if changed is None:
+            unresolved[session] = "sha-unresolved"
+            continue
+        hit = sorted(set(changed) & closure)
+        if hit:
+            stale[session] = hit
+    return {"stale": stale, "unresolved": unresolved}
 
 
 def evaluate_boot_sha_drift() -> dict:
-    """Live wrapper: for each ACTIVE systemd-launched daemon (the ones whose unit ExecStartPre
-    actually stamps), compare its boot-SHA to current HEAD. Returns {head, stale:[session,...]}.
-    REPORT ONLY — no restart, no side effects."""
-    from background import boot_sha
-    head = boot_sha.current_head()
+    """Live wrapper. Population = OBSERVED systemd daemons; signal = their own loaded modules.
+    Returns {head, population, stale, stale_detail, unresolved, misdeclared, vacuous}.
+    `stale` stays a list of session names (health_check's existing consumer). REPORT ONLY."""
+    from background import boot_sha, code_closure
+    entries = load_manifest()
     unit_states = _live_unit_states()
-    running = [s for s in _systemd_owned_sessions() if unit_states.get(s, {}).get("active")]
-    boot_shas = {s: boot_sha.read_boot_sha(s) for s in running}
-    return {"head": head, "stale": boot_sha_drift(head, boot_shas, running)}
+    main_pids = {e["session"]: _unit_main_pid(e["session"])
+                 for e in entries if e.get("owner") == "systemd" and e.get("match") != SEAT_MATCH}
+    observed = observed_launched_by(entries, unit_states, main_pids, _proc_cgroup)
+    population = drift_population(observed)
+    closures = {s: code_closure.closure_for_session(s) for s in population}
+    boot_shas = {s: boot_sha.read_boot_sha(s) for s in population}
+    d = loaded_code_drift(population, boot_shas, closures, boot_sha.changed_paths_since)
+    # VACUITY GUARD (R15): an empty population while units are demonstrably active is a FAILED
+    # check, not a clean one. The old detector's silent shrink is what this must never repeat.
+    any_active = any((unit_states.get(e["session"]) or {}).get("active")
+                     for e in entries if e.get("owner") == "systemd")
+    return {"head": boot_sha.current_head(),
+            "population": population,
+            "stale": sorted(d["stale"]),
+            "stale_detail": d["stale"],
+            "unresolved": d["unresolved"],
+            "misdeclared": launcher_drift(entries, observed),
+            "vacuous": bool(any_active and not population)}
 
 
 def _main(argv: list[str]) -> int:

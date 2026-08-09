@@ -84,31 +84,36 @@ def test_migrated_daemon_leaves_startlist_but_generate_units_still_has_it():
     assert "worker-seat-manager.service" in G.regenerate()   # still a real systemd unit
 
 
-def test_systemd_owned_sessions_are_only_the_migrated_ones():
-    """`_systemd_owned_sessions` names the daemons whose lifecycle has ACTUALLY been cut over
-    (owner==systemd AND launched_by==systemd). The autonomy layer — worker-seat-manager +
-    supervisor + deadmans-switch — plus staging-watcher and ntfy-responder, whose cutovers were
-    COMPLETED 2026-07-29 (their units were already installed+enabled+active, but the
-    `launched_by` flip had never been made, so start_worker.sh tmux-launched a SECOND copy and
-    one director message was queued twice).
+def _user_systemd_available() -> bool:
+    import subprocess
+    try:
+        return subprocess.run(["systemctl", "--user", "is-system-running"],
+                              capture_output=True).returncode in (0, 1)
+    except Exception:
+        return False
 
-    NOTE this is no longer the set `_live_unit_states` queries: that reads EVERY owner==systemd
-    unit, so a half-migrated daemon's active unit is visible to DOUBLE_LAUNCH detection.
 
-    2026-08-09 — the remaining SEVEN rows were flipped, completing the migration for every daemon
-    that is actually systemd-launched. The 2026-07-29 pass closed this at the INSTANCE (two rows)
-    and left seven identical ones standing, which is the R10 breach that mattered: an un-flipped
-    row is not only double-launchable, it is EXCLUDED from `_systemd_owned_sessions()` and therefore
-    invisible to boot-SHA drift. sim-runner and background-worker were among the excluded, and both
-    ran pre-cure code for ~10h through the second publish wedge while the drift check reported
-    clean. `executor-daemon` is deliberately NOT here: it is `dark` and its unit is
-    inactive+disabled, so tmux remains its declared launcher."""
-    assert set(R._systemd_owned_sessions()) == {
-        "worker-seat-manager", "supervisor", "deadmans-switch",
-        "staging-watcher", "ntfy-responder",
-        "background-worker", "dispatcher", "discovery-daemon",
-        "sim-runner", "sanity-daemon", "naive-organ", "token-proxy",
-    }
+@pytest.mark.real_subprocess   # the claim is about the LIVE box; a stub cannot make it
+@pytest.mark.skipif(not _user_systemd_available(), reason="no --user systemd on this host")
+def test_manifest_launched_by_agrees_with_the_observed_world():
+    """R10 CLASS CLOSURE for the half-done cutover, replacing the hardcoded migrated-set test that
+    `_systemd_owned_sessions` used to back (that selector is deleted — PW1, 2026-08-09).
+
+    History: on 2026-07-29 the two-launcher defect was diagnosed precisely and TWO rows were
+    patched while SEVEN identical ones were left standing. The instance test could not see them,
+    because it asserted a hand-written list against the same hand-written manifest — a tautology
+    (R15). This one compares the DECLARATION against the OBSERVED world, so the next half-done
+    cutover reds on its own, without anyone remembering to extend a list.
+
+    The second-order cost is why this matters more than double-launching: an un-flipped row also
+    removed its daemon from the staleness detector's population, which is how sim-runner and
+    background-worker ran pre-cure code for ~10h through the second publish wedge while the drift
+    check reported clean."""
+    misdeclared = R.evaluate_boot_sha_drift()["misdeclared"]
+    assert misdeclared == [], (
+        "manifest `launched_by` disagrees with the observed launcher for: "
+        + ", ".join(f"{m['session']} (declared {m['declared']}, observed {m['observed']})"
+                    for m in misdeclared))
 
 
 def test_health_checked_includes_all_migrated_autonomy_daemons():
