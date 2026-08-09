@@ -28,8 +28,8 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.12479629309514974,
-            "verdict": "fail"
+            "value": 0.18036082978173537,
+            "verdict": "pass"
           },
           "L1.2_day_to_day_shape_correlation": {
             "value": 0.3295154116078919,
@@ -64,21 +64,19 @@
             "verdict": "unvalidated"
           }
         },
-        "failed_levels": [
-          "L1"
-        ],
+        "failed_levels": [],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
-        "is_red": true
+        "is_red": false
       }
     },
     "g0": 0.10036526959999999,
     "gap": 0.2048599389205446,
-    "measured_at": "2026-08-08T20:54:49.205197+00:00",
+    "measured_at": "2026-08-09T01:41:13.976468+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.02056082299999999,
-    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
+    "run_git_commit": "b4e1dfb19adbbcdba21c685a474066c244d99dea",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -110,8 +108,8 @@
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.12479629309514974,
-            "verdict": "fail"
+            "value": 0.18036082978173537,
+            "verdict": "pass"
           },
           "L1.2_day_to_day_shape_correlation": {
             "value": 0.3295154116078919,
@@ -146,21 +144,19 @@
             "verdict": "unvalidated"
           }
         },
-        "failed_levels": [
-          "L1"
-        ],
+        "failed_levels": [],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
-        "is_red": true
+        "is_red": false
       }
     },
     "g0": 0.10036526959999999,
     "gap": 0.2325100064350589,
-    "measured_at": "2026-08-08T20:54:49.205197+00:00",
+    "measured_at": "2026-08-09T01:41:13.976468+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
     "raw_gap": 0.02333592948055242,
-    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
+    "run_git_commit": "b4e1dfb19adbbcdba21c685a474066c244d99dea",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -368,23 +364,25 @@
     "twin_atom_id": "C12_channel_attribution_analytics"
   },
   "W2_11_payment_behaviour_source": {
-    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1); flag EVERYTHING also scores 0.0 -- this gap counts missed truth only, so a score near 0 is evidence of recall and says NOTHING about how much the company over-flagged (atom D11_detection_gap_is_recall_only)",
     "components": {
       "caught": 13,
+      "false_flag_rate": 0.014417,
       "flagged_size": 35,
       "miss_rate": 0.580645,
       "missed": 18,
       "missed_harm": 18.0,
+      "n_false_flags": 22,
       "total_harm": 31.0,
       "truth_size": 31
     },
     "g0": 31.0,
     "gap": 0.5806451612903226,
-    "measured_at": "2026-08-08T20:49:33.363386+00:00",
+    "measured_at": "2026-08-09T01:43:01.230605+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2222, ageing 1.2903 [NOT EVIDENCE -- the ageing dimension's normalisation is the wrong shape and its value is uninterpretable: prevalence alone moves it twentyfold with company behaviour held fixed, and >1 does NOT mean worse-than-no-skill. Proven in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom D7_ageing_gap_metric_reshape. Do not cite this figure as fidelity]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. TWO FURTHER LIMITS ON THIS HEADLINE (H27 Expert Hour 2026-08-09, atom D11 -- measured, not tuned; the number itself is unchanged). (1) as_of ARTEFACT: the truth it scores (`result == 'failed'`) does not move with the clock but the belief it scores against is held AT the measurement date, so holding company and world fixed and moving only that date walks the figure ~+70% over 60 days. Its companion `detection_latency` uses an EVER-KNEW population and does not move. (2) RECALL ONLY: a company flagging EVERY invoice would score a perfect 0.0, so read the over-flagging witness beside it -- 22 of 35 flags are on invoices that truly succeeded (rate 0.014417 over the truly-current population). Companion per-dimension gaps: belief 0.2222; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0144 over 1526 truly-current = the wrongful-dunning exposure) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
     "raw_gap": 18.0,
-    "run_git_commit": "e492096d45b747d5cebf3354b64128f57efd21be",
+    "run_git_commit": "b4e1dfb19adbbcdba21c685a474066c244d99dea",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {

@@ -84,14 +84,15 @@ POPULATION = (
 )
 
 
-def _household(premise_id, property_type, build_era, insulation, bedrooms, people):
+def _household(premise_id, property_type, build_era, insulation, bedrooms, people,
+               heating_system=HeatingSystem.GAS_BOILER_COMBI):
     return Household(
         customer_id=premise_id,
         property_type=property_type,
         build_era=build_era,
         epc_rating="D",
         bedrooms=bedrooms,
-        heating_system=HeatingSystem.GAS_BOILER_COMBI,
+        heating_system=heating_system,
         boiler_age=BoilerAge.MID,
         has_solar=False,
         solar_kwp=0.0,
@@ -1220,3 +1221,302 @@ def test_the_harness_reads_the_world_and_the_company_but_writes_to_neither():
             f"{forbidden} — the harness persists ONLY through gap_metric.write_gap_entry, "
             "which writes to the observability ledger and nowhere else"
         )
+
+
+
+# ===========================================================================
+# §8 THE HEATING-CONDITIONED L1.1 BAND (2026-08-09)
+#
+# L1.1 is a ratio to the home's OWN mean, and a heat pump is a large, slowly-
+# varying load in that denominator. One national floor applied to every home
+# regardless of heating system is the same one-national-constant defect W1_12
+# exists to remove, reappearing in the CONTROL — diagnosed in
+# `docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`,
+# where the whole of the only failing home's deficit decomposed to its denominator.
+#
+# The second band is DERIVED FROM PUBLISHED FIGURES, not declared. Every test
+# below exists to stop it becoming the loose band that lets anything through.
+# R15's three killers are taken in turn — TAUTOLOGY (the heating fact must come
+# from the register, never from the numbers being judged), FAIL-OPEN (a missing
+# register fact must land on the STRICTER band), and a control that cannot fail
+# (the mutation must fire on a real heat-pump trace, at the same sensitivity to
+# the actual defect as the band it sits beside).
+# ===========================================================================
+
+
+def _flatten_blend(grid, weight):
+    """MUTATION for a heating-conditioned L1.1 — blend each day toward its own
+    flat daily mean. Weight 0 is the trace itself, weight 1 has texture exactly 0,
+    and every day's TOTAL is preserved at every weight, so the mutation attacks
+    within-day shape and nothing else.
+
+    Used in place of `_smooth` for anything electrically heated, because
+    `_smooth` IS NOT A TEXTURE-DESTROYING MUTATION ON A HEAT-PUMP HOME — measured,
+    not assumed: on the matched pair below it takes the gas home 0.2471 -> 0.1539
+    but RAISES the heat-pump home 0.1069 -> 0.1430. Averaging the same period
+    across neighbouring days removes day-specific appliance noise while leaving
+    the heat pump's repeated diurnal cycle standing, and the median step of what
+    is left is larger than the median step of the original. Pinned by
+    `test_the_SMOOTH_mutation_is_INVALID_on_an_electrically_heated_home`.
+    """
+    flat = [[sum(day) / 48.0] * 48 for day in grid]
+    return [
+        [(1 - weight) * grid[d][p] + weight * flat[d][p] for p in range(48)]
+        for d in range(len(grid))
+    ]
+
+
+def _critical_flatten_weight(grid, threshold):
+    """How much within-day flattening a home can absorb before it drops under a
+    given band. The unit in which two bands with DIFFERENT thresholds can be
+    compared for strictness: both answer "how broken must this home be to fire?"."""
+    lo, hi = 0.0, 1.0
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if fgl.half_hourly_texture(_flatten_blend(grid, mid)) < threshold:
+            hi = mid
+        else:
+            lo = mid
+    return (lo + hi) / 2
+
+
+def _matched_household(premise_id, heating_system):
+    """The SAME household in every respect except how it heats — semi-detached,
+    1965-80, partial insulation, three bedrooms, three people. A matched pair is
+    what makes the comparison below a statement about the heating system rather
+    than about two different houses."""
+    return _household(
+        premise_id, PropertyType.SEMI_DETACHED, BuildEra.ERA_1965_1980,
+        InsulationLevel.PARTIAL, 3, 3, heating_system=heating_system,
+    )
+
+
+@pytest.fixture(scope="module")
+def matched_pair(weather):
+    """One heat-pump home and one gas home from the REAL generator, identical in
+    every other respect. Not synthetic series: a hand-built trace could be given
+    whatever texture the author wanted, and the point of these mutations is that
+    they fire on the generator actually under test."""
+    return tuple(
+        pt.generate_premise_trace(
+            premise_id=premise_id,
+            household=_matched_household(premise_id, heating),
+            weather=weather,
+            seed=7,
+            latitude_deg=fp.latitude_for_weather_site("C1"),
+        )
+        for premise_id, heating in (
+            ("HP1", HeatingSystem.HEAT_PUMP_AIR),
+            ("G1", HeatingSystem.GAS_BOILER_COMBI),
+        )
+    )
+
+
+def test_the_electric_band_is_DERIVED_from_published_figures_not_declared():
+    """The threshold is arithmetic over four published numbers. This test re-does
+    that arithmetic independently of the function, so a hand-edit of the threshold
+    that is not also an edit to a published input FAILS — which is the shape a
+    quiet relaxation would take."""
+    heat = 9500.0 * 0.825          # Ofgem TDCV gas medium x EST in-situ combi efficiency
+    hp_electricity = heat / 2.78   # EoH median ASHP SPFH4
+    behavioural_share = 2500.0 / (2500.0 + hp_electricity)   # Ofgem TDCV electricity medium
+    expected = 0.15 * behavioural_share
+
+    assert fgl.electric_heat_texture_threshold() == pytest.approx(expected, rel=1e-12)
+    assert fgl.BANDS["L1.1e_half_hourly_texture_electric_heat"].threshold == pytest.approx(
+        expected, rel=1e-12
+    )
+    # The published inputs themselves, pinned so a change to one is a visible diff
+    # against the source cited in the band's anchor_source rather than a silent
+    # re-derivation.
+    assert fgl._TDCV_ELECTRICITY_MEDIUM_KWH == 2500.0
+    assert fgl._TDCV_GAS_MEDIUM_KWH == 9500.0
+    assert fgl._COMBI_BOILER_IN_SITU_EFFICIENCY == 0.825
+    assert fgl._ASHP_MEDIAN_SPFH4 == 2.78
+    assert fgl._GAS_TEXTURE_THRESHOLD == 0.15
+
+
+def test_the_electric_band_is_ROBUST_across_the_published_spreads():
+    """The band must not rest on a point estimate. Taken at the JOINT corners of
+    the two published spreads — SPFH4 over the EoH interquartile range crossed
+    with the boiler efficiency over +/-1sd of the EST trial — the whole envelope
+    is 0.0655-0.0758, so no defensible reading of the sources produces a band that
+    would change any verdict this suite reaches."""
+    corners = [
+        0.15 * (2500.0 / (2500.0 + (9500.0 * eff) / spf))
+        for spf in (2.55, 3.05)
+        for eff in (0.785, 0.865)
+    ]
+    assert min(corners) == pytest.approx(0.0655, abs=5e-4)
+    assert max(corners) == pytest.approx(0.0758, abs=5e-4)
+    assert min(corners) < fgl.electric_heat_texture_threshold() < max(corners)
+
+
+def test_the_SMOOTH_mutation_is_INVALID_on_an_electrically_heated_home(matched_pair):
+    """Recorded because it is the trap this section walked into, and a later reader
+    reaching for the obvious mutation deserves to find it already measured.
+
+    `_smooth` is the file's mutation for L1.1 and it is sound on a gas home. On a
+    heat-pump home it moves texture the WRONG WAY. Had the electric band been
+    R15-proven with it, the proof would have been vacuous in the direction that
+    matters — a mutation that raises the statistic cannot demonstrate that a band
+    fires."""
+    heat_pump, gas = matched_pair
+    hp_grid = [list(day) for day in heat_pump.half_hourly("electricity")]
+    gas_grid = [list(day) for day in gas.half_hourly("electricity")]
+
+    assert fgl.half_hourly_texture(_smooth(gas_grid)) < fgl.half_hourly_texture(gas_grid)
+    assert fgl.half_hourly_texture(_smooth(hp_grid)) > fgl.half_hourly_texture(hp_grid), (
+        "if this ever reverses, _smooth has become a valid mutation for electric "
+        "heat and the reason for _flatten_blend should be re-stated, not deleted"
+    )
+
+
+def test_L1_1_ELECTRIC_band_FIRES_when_a_real_heat_pump_home_is_FLATTENED(matched_pair):
+    """R15 — the mutation. A band that cannot fail is worse than none, and a
+    numerically lower band is exactly where that failure hides."""
+    heat_pump, _ = matched_pair
+    grid = [list(day) for day in heat_pump.half_hourly("electricity")]
+    band = fgl.BANDS["L1.1e_half_hourly_texture_electric_heat"]
+
+    before = fgl.half_hourly_texture(grid)
+    assert band.judge(before) is fgl.Verdict.PASS, (
+        f"the unmutated heat-pump trace should clear its own band: {before}"
+    )
+    # Monotone in the mutation, so "it fired" is not an artefact of one weight.
+    values = [fgl.half_hourly_texture(_flatten_blend(grid, w)) for w in (0.0, 0.25, 0.5, 0.75, 1.0)]
+    assert values == sorted(values, reverse=True), values
+    assert band.judge(values[-1]) is fgl.Verdict.FAIL
+    assert band.judge(fgl.half_hourly_texture(_flatten_blend(grid, 0.5))) is fgl.Verdict.FAIL
+
+
+def test_the_electric_band_is_NOT_LOOSER_THAN_THE_GAS_BAND_against_the_same_defect(matched_pair):
+    """The charge this band has to answer: that a threshold was lowered so the
+    thing it judges would stop failing (R12 goal-seek). Thresholds on different
+    denominators cannot be compared directly — 0.0705 against 0.15 says nothing.
+    What CAN be compared is how broken each home must be before its own band
+    fires, on a MATCHED PAIR that differs only in heating system.
+
+    Measured: the heat-pump home fires at 0.349 of the way to a flat day, the gas
+    home at 0.396. The electric band is if anything the STRICTER of the two in the
+    only unit that matters — sensitivity to the actual defect. It is a rescaling
+    of the denominator, not a relaxation."""
+    heat_pump, gas = matched_pair
+    hp_grid = [list(day) for day in heat_pump.half_hourly("electricity")]
+    gas_grid = [list(day) for day in gas.half_hourly("electricity")]
+
+    hp_critical = _critical_flatten_weight(hp_grid, fgl.electric_heat_texture_threshold())
+    gas_critical = _critical_flatten_weight(gas_grid, 0.15)
+
+    assert hp_critical == pytest.approx(0.349, abs=0.02)
+    assert gas_critical == pytest.approx(0.396, abs=0.02)
+    assert hp_critical <= gas_critical + 0.05, (
+        f"the electric band tolerates materially more damage than the gas band "
+        f"before firing ({hp_critical:.3f} vs {gas_critical:.3f}) — that IS a "
+        f"relaxation, whatever the derivation says"
+    )
+
+
+def test_the_heating_fact_comes_from_the_REGISTER_not_from_the_numbers(matched_pair, weather):
+    """R15 TAUTOLOGY. The flag that selects the band must be a register fact — the
+    household's heating system, which is what a real supplier holds as
+    `main_heating_fuel`. Inferring "this looks smooth, so it must be a heat pump"
+    from the very statistic being judged would make the band unfalsifiable.
+
+    Proven by holding the NUMBERS fixed and changing only the claim: the identical
+    trace judged as a gas home FAILS and judged as a heat-pump home PASSES. If the
+    flag were derived from the series, both would reach the same verdict."""
+    heat_pump, _ = matched_pair
+    texture = fgl.half_hourly_texture([list(d) for d in heat_pump.half_hourly("electricity")])
+
+    assert fgl.BANDS["L1.1_half_hourly_texture"].judge(texture) is fgl.Verdict.FAIL
+    assert fgl.BANDS["L1.1e_half_hourly_texture_electric_heat"].judge(texture) is fgl.Verdict.PASS
+    # ...and the builder reads that fact off the trace's register field, which is
+    # itself set from `household.is_gas_heated` at generation time.
+    assert heat_pump.heating_commodity == "electricity"
+    assert fgl.premise_trace_population([heat_pump], weather).electrically_heated == (True,)
+
+
+def test_the_band_selection_is_FAIL_CLOSED_when_the_register_fact_is_MISSING(matched_pair, weather):
+    """R15 FAIL-OPEN. A population built without the heating flags must judge every
+    home by the STRICTER gas band. A caller who forgets the register fact gets a
+    false RED, never a false GREEN — the lenient direction has to be asserted."""
+    heat_pump, _ = matched_pair
+    grid = tuple(tuple(day) for day in heat_pump.half_hourly("electricity"))
+    homes = tuple(f"HP{i}" for i in range(fgl.MIN_HOMES_FOR_DIVERSITY))
+
+    blind = fgl.PopulationTraces(
+        generator="test — heating fact withheld",
+        homes=homes,
+        grids=tuple(grid for _ in homes),
+        is_weekend=tuple(bool(d.is_weekend) for d in weather),
+        annual_kwh=tuple(3000.0 for _ in homes),
+        weather_driver=fgl.hdd_driver(weather),
+    )
+    assert blind.electrically_heated == ()
+
+    cell = fgl.evaluate_two_level(blind).cell(fgl.TEXTURE_STATISTIC)
+    assert cell.band.threshold == 0.15, "a missing register fact must land on the gas band"
+    assert cell.verdict is fgl.Verdict.FAIL
+
+
+def test_a_MISALIGNED_heating_flag_is_REFUSED_not_silently_truncated(matched_pair, weather):
+    """The other half of the fail-closed argument: a flag tuple that does not line
+    up with the homes is a caller bug, and zipping it silently would judge the
+    wrong home by the wrong band."""
+    heat_pump, _ = matched_pair
+    grid = tuple(tuple(day) for day in heat_pump.half_hourly("electricity"))
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.PopulationTraces(
+            generator="test — misaligned flags",
+            homes=("A", "B"),
+            grids=(grid, grid),
+            is_weekend=tuple(bool(d.is_weekend) for d in weather),
+            annual_kwh=(3000.0, 3000.0),
+            electrically_heated=(True,),
+        )
+
+
+def test_the_worst_L1_1_cell_is_the_worst_MARGIN_not_the_lowest_RAW_value(generated, matched_pair):
+    """With two thresholds live, the lowest raw texture is no longer the home in
+    most trouble. The worst cell must be the worst margin against each home's OWN
+    band, or a gas home sitting just under 0.15 would be hidden behind a heat-pump
+    home comfortably clearing 0.0705 with a smaller number — a fail-open created
+    by the very fix that closed the false red."""
+    heat_pump, _ = matched_pair
+    hp_grid = [list(day) for day in heat_pump.half_hourly("electricity")]
+    gas_band = fgl.BANDS["L1.1_half_hourly_texture"]
+
+    # A REAL gas home mutated just under its own band, rather than an invented
+    # series: 0.6 of the way to a flat day takes the fixture's first home there.
+    failing_gas = _flatten_blend(_grids(generated)[0], 0.6)
+    gas_texture = fgl.half_hourly_texture(failing_gas)
+    hp_texture = fgl.half_hourly_texture(hp_grid)
+
+    assert gas_band.judge(gas_texture) is fgl.Verdict.FAIL, gas_texture
+    assert hp_texture < gas_texture, (
+        "the premise of this test is that the heat-pump home carries the LOWER raw "
+        f"number: hp {hp_texture} vs gas {gas_texture}"
+    )
+
+    others = _grids(generated)[1:]
+    population = fgl.PopulationTraces(
+        generator="test — margin selection",
+        homes=("HP", "GAS") + tuple(f"F{i}" for i in range(len(others))),
+        grids=(
+            tuple(tuple(d) for d in hp_grid),
+            tuple(tuple(d) for d in failing_gas),
+        ) + tuple(tuple(tuple(d) for d in g) for g in others),
+        is_weekend=generated.is_weekend,
+        annual_kwh=(3000.0, 3000.0) + generated.annual_kwh[1:],
+        electrically_heated=(True, False) + (False,) * len(others),
+        weather_driver=generated.weather_driver,
+    )
+
+    cell = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
+    assert "worst home GAS" in cell.note, (
+        f"the failing gas home must be the reported worst cell, not the numerically "
+        f"lower heat-pump home: {cell.note}"
+    )
+    assert cell.verdict is fgl.Verdict.FAIL
+    assert cell.band.threshold == 0.15

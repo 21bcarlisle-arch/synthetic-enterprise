@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-08-03 from current codebase.
+Last seeded: 2026-08-08 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -101,6 +101,38 @@ both in sync when either changes.
 | EPC D vs C consumption uplift | Not modelled at property level | Metered: D uses ~20-30% more electricity, ~30-40% more gas than band C (same property type) | EHS 2022-23 AT1_6 (modelled cost: D +44% vs A/B/C avg); adjusted for prebound effect | 2026-06-27 | Gap — household.py not yet built |
 | Loft insulation rate | Not modelled at property level | ~67% of loft-eligible homes insulated (~58% of all homes) | DESNZ HEE Dec 2024; EHS AT_4_10 | 2026-06-27 | Gap — household.py not yet built |
 | Cavity wall insulation rate | Not modelled at property level | ~63% of cavity-eligible homes insulated (~38-40% of all homes) | DESNZ HEE Dec 2024 cumulative ECO installs + pre-ECO stock | 2026-06-27 | Gap — household.py not yet built |
+
+## Heat-Pump Home Electricity Share — the L1.1 texture band anchor (2026-08-09, W1_12 DISCOVER)
+
+Filed because the two-level harness judged an electrically-heated home against a
+band whose own anchor text reasons from a gas premise, and closing that needed a
+real source rather than a chosen number
+(`docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`).
+Consumed by `background/fabric_gap_ledger.electric_heat_texture_threshold`, which
+re-derives the band from these figures rather than storing it.
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| ASHP seasonal performance factor (SPFH4, whole-system incl. auxiliaries) | Not a SIM parameter — used only to derive the L1.1 electric band | Median 2.78, IQR [2.55, 3.05], n=428 (vs 2.44 in the earlier RHPP trial) | DESNZ / Energy Systems Catapult, *Electrification of Heat Demonstration Project* summary report (742 heat pumps; Warmworks/E.ON/OVO installs), PDF fetched 2026-08-09 | 2026-08-09 | ✓ OK — primary, government-funded field trial |
+| In-situ efficiency of a domestic gas COMBI boiler | `simulation/fabric_physics._BOILER_EFFICIENCY` is keyed by boiler age (not reconciled to this figure — see note) | Mean 82.5% measured in situ (sd 4.0%), against a SEDBUK rating of 90.4%. Regular boilers 85.3%, or 80.3% adjusted for storage losses | Energy Saving Trust / DECC, *In-situ monitoring of efficiencies of condensing boilers* final report (60 monitored boilers) | 2026-08-09 | ✓ OK — measured, not rated; the gap to SEDBUK is the point |
+| Household electricity, non-electrically-heated (TDCV medium) | `simulation/population_draw.TDCV_BANDS_KWH` | 2,500 kWh/yr (low 1,600 / high 3,800) from 1 July 2026 | Ofgem TDCV review; already recorded in `docs/market_research/ons_consumption_profiles.md` | 2026-08-09 | ✓ OK |
+| Household gas (TDCV medium) | `simulation/population_draw.TDCV_BANDS_KWH` | 9,500 kWh/yr (low 6,000 / high 14,000) from 1 July 2026 | Ofgem TDCV review | 2026-08-09 | ✓ OK |
+| **Derived: heat-pump share of a heat-pump home's electricity** | Used as the ratio between the two L1.1 bands | **53.0%** — 9,500 × 0.825 = 7,838 kWh useful heat; ÷ 2.78 = 2,819 kWh electricity; against a 2,500 kWh behavioural baseline. Joint-corner envelope across the SPF IQR and boiler-efficiency ±1sd: **51-56%** | Derived from the four rows above | 2026-08-09 | ✓ OK — arithmetic re-done in `test_the_electric_band_is_DERIVED_from_published_figures_not_declared` |
+
+**Note on the boiler-efficiency row.** The 82.5% figure is used ONLY to derive the
+harness band; it was deliberately not pushed into
+`simulation/fabric_physics._BOILER_EFFICIENCY`, which is age-keyed and belongs to
+the world model. Reconciling the two is a separate question about the SIM, and
+changing a world constant to suit a control would be the wrong direction of
+travel (R13: the baseline changes for fidelity reasons, decided blind to what it
+does to a score). Logged here as an open reconciliation, not actioned.
+
+**What is NOT anchored.** There is still no published band for the half-hourly
+*texture* statistic itself (`median |Δ| / mean`) for either fuel — neither SERL
+nor EoH publishes it, and the raw data needed to compute it is behind an
+application. Both L1.1 bands remain a domain-knowledge floor for gas and an
+arithmetic rescaling of it for electric heat. That is weaker than a measured
+distribution and is stated as such in each band's `anchor_source`.
 
 ## Household Segment & Psychology (Phase 2, CORE_FIDELITY_PHASES.md — archetype layer)
 

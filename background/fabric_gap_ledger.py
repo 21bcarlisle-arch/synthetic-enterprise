@@ -725,6 +725,81 @@ class Band:
         raise ValueError(f"unknown band direction {self.direction!r}")
 
 
+# ---------------------------------------------------------------------------
+# The L1.1 texture band is HEATING-SYSTEM CONDITIONED, and the second band is
+# DERIVED from published sources rather than declared
+# ---------------------------------------------------------------------------
+#
+# WHY THERE ARE TWO. L1.1 is `median |x[t] - x[t-1]| / mean(x)` — a RATIO to the
+# home's own mean. A heat pump puts a large, thermally-driven, slowly-varying
+# load into the DENOMINATOR while adding almost nothing to the numerator, so an
+# electrically-heated home is arithmetically smoother in relative terms than a
+# gas-heated home with identical appliance behaviour. Judging both against one
+# national floor is the same one-national-constant defect W1_12 exists to
+# remove, reappearing in the CONTROL rather than in the generator
+# (`docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`,
+# where the whole of the failing home's deficit was decomposed to the denominator).
+#
+# WHERE THE ELECTRIC THRESHOLD COMES FROM. Not from the generator, and not from
+# a judgement about what would make it pass — from four published figures and one
+# division. Each is a constant below so the arithmetic is RE-DERIVABLE in a test
+# and a change to any input is visible in a diff rather than buried in prose.
+_GAS_TEXTURE_THRESHOLD = 0.15
+
+# Ofgem, Typical Domestic Consumption Values applying from 1 July 2026 (medium
+# band). The electricity TDCV is for a home that is NOT electrically heated, so
+# it is exactly the behavioural/appliance baseline this derivation needs.
+# Recorded in `docs/market_research/ons_consumption_profiles.md`.
+_TDCV_ELECTRICITY_MEDIUM_KWH = 2500.0
+_TDCV_GAS_MEDIUM_KWH = 9500.0
+
+# Energy Saving Trust / DECC, "In-situ monitoring of efficiencies of condensing
+# boilers" final report: mean MEASURED in-situ efficiency of the trial set of
+# COMBINATION boilers = 82.5% (sd 4.0%) against a SEDBUK rating of 90.4%. Combi
+# is the right figure here because every gas home in the fabric panel is
+# GAS_BOILER_COMBI.
+_COMBI_BOILER_IN_SITU_EFFICIENCY = 0.825
+
+# DESNZ / Energy Systems Catapult, Electrification of Heat demonstration project
+# summary report: median ASHP SPFH4 = 2.78, IQR [2.55, 3.05], n=428.
+_ASHP_MEDIAN_SPFH4 = 2.78
+
+
+def electric_heat_texture_threshold() -> float:
+    """The L1.1 band for an electrically-heated home, derived not declared.
+
+    Gas TDCV -> useful heat at the measured in-situ combi efficiency -> the
+    electricity an ASHP needs to deliver that heat at the measured median SPFH4.
+    The heat pump's share of total household electricity follows, and the band is
+    the gas band scaled by what is LEFT for behaviour:
+
+        heat        = 9500 * 0.825            = 7837.5 kWh/yr
+        hp_elec     = 7837.5 / 2.78           = 2818.9 kWh/yr
+        behav_share = 2500 / (2500 + 2818.9)  = 0.4700
+        band        = 0.15 * 0.4700           = 0.0705
+
+    CONSERVATIVE BY CONSTRUCTION, and this is the assumption to attack first: the
+    scaling credits the heat pump with ZERO period-to-period movement, so it is a
+    LOWER bound on what a correct electrically-heated home should show in an
+    `at_least` direction. A real ASHP cycles, so a correct generator clears this
+    band with room; a generator that is smooth by construction still cannot.
+
+    NOT A TAUTOLOGY (R15): every input is external to this repository's
+    generators, and none of them is measured on a trace. Sensitivity across the
+    published spreads, taken JOINTLY at their corners — SPFH4 over its IQR
+    [2.55, 3.05] crossed with boiler efficiency over +/-1sd [0.785, 0.865] — moves
+    the band across 0.0655-0.0758, so the number does not rest on any one point
+    estimate. `test_the_electric_band_is_ROBUST_across_the_published_spreads`
+    pins that envelope.
+    """
+    heat_kwh = _TDCV_GAS_MEDIUM_KWH * _COMBI_BOILER_IN_SITU_EFFICIENCY
+    heat_pump_electricity_kwh = heat_kwh / _ASHP_MEDIAN_SPFH4
+    behavioural_share = _TDCV_ELECTRICITY_MEDIUM_KWH / (
+        _TDCV_ELECTRICITY_MEDIUM_KWH + heat_pump_electricity_kwh
+    )
+    return _GAS_TEXTURE_THRESHOLD * behavioural_share
+
+
 # The bands. Every `observed_on_shipped` value below was MEASURED on the shipped
 # demand path (`tests/harness/test_premise_two_level.py::test_MEASURED_shipped_path_values`), not estimated.
 BANDS: dict[str, Band] = {
@@ -732,21 +807,60 @@ BANDS: dict[str, Band] = {
         statistic="L1.1_half_hourly_texture",
         level="L1",
         direction="at_least",
-        threshold=0.15,
+        threshold=_GAS_TEXTURE_THRESHOLD,
         anchor=AnchorStatus.DOMAIN_KNOWLEDGE,
         anchor_source=(
-            "domain-knowledge: real individual-home half-hourly electricity moves in "
+            "domain-knowledge, and it reasons from a GAS-HEATED premise: real "
+            "individual-home half-hourly electricity moves in "
             "the tens of percent of its own mean between adjacent periods (a kettle is "
             "2.8 kW for three minutes on a ~0.7 kWh half-hour). The SERL/LCL published "
             "band is NOT yet in the artefact library, so the threshold is set at 0.15 — "
             "below the low end of the 20-40% domain expectation, deliberately "
             "loose so that it can only fire on a generator that is smooth by "
-            "construction rather than on one that is merely at the calm end of real."
+            "construction rather than on one that is merely at the calm end of real. "
+            "APPLIES TO NON-ELECTRICALLY-HEATED HOMES ONLY — the kettle-on-a-0.7-kWh-"
+            "half-hour reasoning is a statement about the denominator, and an "
+            "electrically-heated home has a different one. See "
+            "L1.1e_half_hourly_texture_electric_heat."
         ),
         observed_on_shipped=None,
         rationale=(
             "A rescaled national average has the texture of a national average, which "
             "is the texture of a hundred thousand homes already summed."
+        ),
+    ),
+    "L1.1e_half_hourly_texture_electric_heat": Band(
+        statistic="L1.1e_half_hourly_texture_electric_heat",
+        level="L1",
+        direction="at_least",
+        threshold=electric_heat_texture_threshold(),
+        anchor=AnchorStatus.PUBLISHED,
+        anchor_source=(
+            "published, derived — Ofgem Typical Domestic Consumption Values from "
+            "1 July 2026 (medium: electricity 2,500 kWh/yr for a non-electrically-"
+            "heated home, gas 9,500 kWh/yr); Energy Saving Trust/DECC 'In-situ "
+            "monitoring of efficiencies of condensing boilers' final report, mean "
+            "measured in-situ efficiency of the trial COMBINATION boilers 82.5% "
+            "(sd 4.0%, vs SEDBUK 90.4%); DESNZ/Energy Systems Catapult Electrification "
+            "of Heat demonstration project summary report, median ASHP SPFH4 = 2.78 "
+            "(IQR [2.55, 3.05], n=428). Those give a heat-pump share of household "
+            "electricity of 53.0%, so the behavioural stream carries 47.0% of the "
+            "mean that L1.1 divides by. See `electric_heat_texture_threshold` for "
+            "the arithmetic and its sensitivity (0.0655-0.0758 across the joint "
+            "corners of the published spreads). NOT a relaxation of the gas band "
+            "and not set by looking at "
+            "what any generator scores: the ratio of the two bands is the ratio of "
+            "the two denominators, and nothing else."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "The shipped path has no electrically-heated home to observe — it "
+            "rescales one national PC1 shape regardless of heating system, which is "
+            "the defect. A heat pump is a large slowly-varying load in the "
+            "DENOMINATOR of a ratio-to-own-mean statistic, so the same appliance "
+            "behaviour scores lower in an ASHP home than in a gas home. Judging both "
+            "with one national floor would fail a correct generator for being "
+            "correct."
         ),
     ),
     "L1.2_day_to_day_shape_correlation": Band(
@@ -993,12 +1107,27 @@ class PopulationTraces:
     # weather archive. External, not population-derived — see `between_home_correlation`.
     weather_driver: tuple[float, ...] = ()
     pc1_is_an_input: bool = False
+    # Which homes heat with electricity, for the heating-conditioned L1.1 band.
+    # A REGISTER fact (the household's heating system, i.e. what a real supplier
+    # holds as main_heating_fuel), never inferred from the trace — inferring
+    # "this home looks like it has a heat pump" from the very smoothness the band
+    # is judging would be the tautology R15 names first.
+    #
+    # FAIL-CLOSED when empty: an empty tuple means every home is judged by the
+    # STRICTER gas band, so a builder that forgets to supply it makes an
+    # electrically-heated home fail, never pass. The lenient direction requires
+    # someone to assert the fact.
+    electrically_heated: tuple[bool, ...] = ()
 
     def __post_init__(self) -> None:
         if len(self.homes) != len(self.grids):
             raise InsufficientEvidence("home ids and grids must align")
         if len(self.homes) != len(self.annual_kwh):
             raise InsufficientEvidence("home ids and annual totals must align")
+        if self.electrically_heated and len(self.electrically_heated) != len(self.homes):
+            raise InsufficientEvidence(
+                "the electrically-heated flags must align with the home ids"
+            )
         for g in self.grids:
             if len(g) != len(self.is_weekend):
                 raise InsufficientEvidence("every home's grid must span the day-type calendar")
@@ -1030,10 +1159,35 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         return values[i], i
 
     # --- L1 ---------------------------------------------------------------
-    band = BANDS["L1.1_half_hourly_texture"]
-    value, i = worst(half_hourly_texture, direction=band.direction)
-    cells.append(CellResult(band.statistic, "L1", value, band.judge(value), band,
-                            note=f"worst home {population.homes[i]}"))
+    # L1.1 is judged PER HOME against that home's own band, because the statistic
+    # is a ratio to the home's own mean and a heat pump changes the denominator.
+    # The worst cell is therefore the worst MARGIN (value / its own threshold),
+    # not the lowest raw value: with two thresholds live, the lowest raw number is
+    # not necessarily the home in most trouble. Both bands are `at_least`, so
+    # min(margin) >= 1 if and only if every home passes its own band — the
+    # worst-cell contract is preserved, not weakened.
+    texture_bands = tuple(
+        BANDS["L1.1e_half_hourly_texture_electric_heat"] if electric
+        else BANDS["L1.1_half_hourly_texture"]
+        for electric in (
+            population.electrically_heated or (False,) * len(population.homes)
+        )
+    )
+    texture_values = [half_hourly_texture(g) for g in grids]
+    i = min(
+        range(len(texture_values)),
+        key=lambda k: texture_values[k] / texture_bands[k].threshold,
+    )
+    value, band = texture_values[i], texture_bands[i]
+    cells.append(CellResult(
+        TEXTURE_STATISTIC, "L1", value, band.judge(value), band,
+        note=(
+            f"worst home {population.homes[i]} — judged by {band.statistic} "
+            f"(band {band.direction} {band.threshold:.4g}); "
+            f"{sum(1 for b in texture_bands if b.anchor is AnchorStatus.PUBLISHED)}"
+            f"/{len(texture_bands)} homes electrically heated"
+        ),
+    ))
 
     band = BANDS["L1.2_day_to_day_shape_correlation"]
     value, i = worst(day_to_day_shape_correlation, direction=band.direction)
@@ -1191,6 +1345,7 @@ def shipped_path_population(
     grids: list[tuple[tuple[float, ...], ...]] = []
     homes: list[str] = []
     annual: list[float] = []
+    electric: list[bool] = []
     for prop in properties:
         days: list[tuple[float, ...]] = []
         for wx in weather_days:
@@ -1204,6 +1359,10 @@ def shipped_path_population(
         grids.append(tuple(days))
         homes.append(str(prop.get("customer_id") or prop.get("premise_id")))
         annual.append(sum(sum(d) for d in days) / len(days) * 365.25)
+        # The REGISTER field a real supplier holds, read as a register field:
+        # anything that is not mains gas heats electrically for L1.1's purposes.
+        # Unknown reads as gas, which is the stricter band (fail-closed).
+        electric.append("heat pump" in str(prop.get("main_heating_fuel", "")).lower())
 
     return PopulationTraces(
         generator=generator,
@@ -1211,6 +1370,7 @@ def shipped_path_population(
         grids=tuple(grids),
         is_weekend=tuple(bool(d.is_weekend) for d in weather_days),
         annual_kwh=tuple(annual),
+        electrically_heated=tuple(electric),
         weather_driver=hdd_driver(weather_days),
         # PC1 IS an input here, so L2.1's large-N anchor is tautological for this
         # generator and `evaluate_two_level` refuses to score that cell as a pass.
@@ -1242,6 +1402,10 @@ def premise_trace_population(
         grids=grids,
         is_weekend=tuple(bool(d.is_weekend) for d in weather_days),
         annual_kwh=tuple(t.annual_kwh(commodity) for t in traces),
+        # `heating_commodity` is set from the HOUSEHOLD RECORD (`is_gas_heated`)
+        # when the trace is generated — a register fact, not a reading of the
+        # numbers the band then judges.
+        electrically_heated=tuple(t.heating_commodity == "electricity" for t in traces),
         weather_driver=hdd_driver(weather_days),
         pc1_is_an_input=False,
     )

@@ -266,10 +266,53 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     finding about the company."""
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
-    assert result.is_red, (
-        "W1_12 still fails 2 of the 7 anchored cells — if it stops, the H_GAP "
-        "strict pin XPASSes and this expectation is re-stated deliberately"
-    )
+    assert not result.is_red, result.summary()
+
+
+def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel, weather):
+    """THE RESIDUAL, RE-STATED (2026-08-09). This test previously asserted
+    `result.is_red` and instructed whoever turned it green to re-state the
+    expectation deliberately. This is that re-statement, and it pins the MECHANISM
+    rather than the colour — because "the suite went green" is exactly the claim
+    that deserves the least trust.
+
+    The last red cell was L1.1 texture, worst home H10, the panel's only
+    heat-pump home, at 0.1248 against a 0.15 floor whose own anchor text reasons
+    from a gas premise ("a kettle is 2.8 kW for three minutes on a ~0.7 kWh
+    half-hour"). The whole of H10's deficit decomposed to its DENOMINATOR: a heat
+    pump is ~half its electricity and moves little period to period.
+
+    WHAT WAS NOT DONE: the 0.15 floor was not touched, and no home was marked
+    UNVALIDATED to duck the judgement. Both would have turned the suite green in
+    one edit, which is why neither was the move.
+
+    WHAT WAS DONE: L1.1 is now conditioned on heating system, with a second band
+    for electrically-heated homes DERIVED from three published sources (Ofgem
+    TDCV, the EST in-situ condensing-boiler trial, the DESNZ/ESC Electrification
+    of Heat SPFH4). R15 evidence for the new band lives in
+    `tests/harness/test_premise_two_level.py` §8, including the matched-pair proof
+    that it is not the looser of the two against the same defect.
+
+    THE TELL that this is not goal-seek, asserted below: the worst L1.1 cell is no
+    longer the heat-pump home at all. It is D7, a GAS home, judged by the
+    UNCHANGED 0.15 band, at 0.1804. The heat-pump home stopped being the worst
+    cell rather than being let off the one it was failing."""
+    result = cf.two_level(panel, weather)
+    texture = result.cell(fgl.TEXTURE_STATISTIC)
+
+    assert texture.verdict is fgl.Verdict.PASS
+    assert texture.band.threshold == 0.15, "the GAS band is the one that judged the worst cell"
+    assert "worst home D7" in texture.note, texture.note
+    assert "1/10 homes electrically heated" in texture.note, texture.note
+    assert texture.value == pytest.approx(0.1804, abs=5e-4)
+
+    # The two UNVALIDATED cells are still UNVALIDATED — going green did not come
+    # from quietly anchoring something that has no anchor.
+    unvalidated = {c.statistic for c in result.cells if c.verdict is fgl.Verdict.UNVALIDATED}
+    assert unvalidated == {
+        "L1.4_weekday_weekend_separation",
+        "L2.4_scale_spread_p90_p10",
+    }, unvalidated
 
 
 # ===========================================================================
