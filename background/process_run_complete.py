@@ -877,9 +877,37 @@ def _head_checkout():
             log("Publish gate: extracting HEAD failed rc={}".format(untar.returncode))
             yield None
             return
+        _overlay_untracked_data(Path(tmp))
         yield Path(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+# DATA IS NOT CODE. The ruling moved the gate's subject to committed CODE; it did not say the
+# suite should run without the machine's data. These paths are untracked BY DESIGN -- a 291MB
+# Elexon/NESO cache and the npm tree -- so `git archive HEAD` cannot contain them, and a checkout
+# without them fails 85 tests for reasons that have nothing to do with whether HEAD is publishable
+# (measured: `FileNotFoundError: sim/cache/elexon_demand_full.json` under 25 of them alone).
+#
+# SYMLINKED, not copied: 291MB per publish cycle would be absurd, and the suite only reads them.
+# A named, explicit list rather than "everything gitignored" -- sweeping in .venv/.pytest_cache
+# would reintroduce exactly the working-tree coupling the ruling removed.
+UNTRACKED_DATA_OVERLAY = ("sim/cache", "node_modules")
+
+
+def _overlay_untracked_data(checkout: Path) -> None:
+    """Symlink the machine's untracked DATA into a HEAD checkout. Never raises: a missing
+    overlay makes tests fail loudly, which is a better failure than the gate refusing to run."""
+    for rel in UNTRACKED_DATA_OVERLAY:
+        src = PROJECT_DIR / rel
+        dst = checkout / rel
+        if not src.exists() or dst.exists():
+            continue
+        try:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.symlink_to(src, target_is_directory=src.is_dir())
+        except OSError as exc:
+            log("Publish gate: could not overlay {} into the HEAD checkout: {}".format(rel, exc))
 
 
 def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
