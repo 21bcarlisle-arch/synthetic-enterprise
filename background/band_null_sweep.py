@@ -272,17 +272,76 @@ def _flat_day_null(population: PopulationTraces, rng: random.Random) -> Populati
     null CLEARS is unambiguously fail-open, and a band it fails is separated
     against the friendliest structureless population that could be built.
     """
+    del rng
+    return _replace_grids(
+        population, [_flatten_home(home) for home in population.grids]
+    )
+
+
+def _flatten_home(home: Sequence[Sequence[float]]) -> list[list[float]]:
+    """One home's days, each replaced by the home's own mean profile rescaled to
+    THAT DAY'S OWN total. The kernel of `_flat_day_null`, factored out so the
+    behavioural null below cannot drift into being a second flattening."""
+    mean_day = [
+        sum(day[p] for day in home) / len(home) for p in range(fgl.PERIODS_PER_DAY)
+    ]
+    shape_total = sum(mean_day)
+    if shape_total <= 0.0:
+        return [list(day) for day in home]
+    unit = [v / shape_total for v in mean_day]
+    return [[v * sum(day) for v in unit] for day in home]
+
+
+def _flat_behavioural_day_null(
+    population: PopulationTraces, rng: random.Random
+) -> PopulationTraces:
+    """The flat-day null for a band read NET OF SPACE HEAT: the BEHAVIOURAL
+    stream is flattened and the heating machine is left exactly as it is.
+
+    WHY THIS EXISTS AND `_flat_day_null` WILL NOT DO (H37). A null must remove
+    the structure its band certifies from the load set the band is READ on. Once
+    L1.3 is read net of space heat, the two available shortcuts are both wrong,
+    and each is wrong in the way this module exists to catch:
+
+    * flatten the METER and leave the heat stream alone — the netted stream is
+      then `flat_meter - real_heat`, which carries the heating machine's whole
+      day-to-day structure with a minus sign in front of it. The null would be
+      INVENTING the structure the band looks for.
+    * flatten BOTH streams — the netted day is `M_d*u_meter - H_d*u_heat`, whose
+      SHAPE moves with the ratio of the two daily totals. Less structure than the
+      first, but not none, and it appears on cold days: a null that puts a
+      weather signal into a band about holidays.
+
+    So the null is taken where the reading is taken. Every day's behavioural
+    stream becomes that home's own mean behavioural profile at that day's own
+    behavioural total, and the meter is rebuilt as `flat_behavioural + heat` so
+    that `meter_net_of_space_heat` recovers exactly the flattened stream and the
+    heat stream is still a genuine component of the meter it is subtracted from.
+
+    What survives: the home's level, its mean behavioural shape, its daily
+    behavioural totals day for day, and its heating machine in full. What is
+    destroyed: any difference in behavioural SHAPE between one day and the next —
+    which is the whole of what an absence is, and the only thing L1.3 certifies.
+    A home that emitted exactly this took its holidays without changing what it
+    did when it was in.
+
+    DETERMINISTIC, for the reason recorded on `_flat_day_null`: `rng` is accepted
+    for uniformity with the randomised nulls and deliberately unused.
+
+    Where the generator supplies no split this degrades to `_flat_day_null`
+    exactly — with nothing to net, the behavioural stream IS the meter.
+    """
+    del rng
     out: list[list[list[float]]] = []
-    for home in population.grids:
-        mean_day = [
-            sum(day[p] for day in home) / len(home) for p in range(fgl.PERIODS_PER_DAY)
-        ]
-        shape_total = sum(mean_day)
-        if shape_total <= 0.0:
-            out.append([list(day) for day in home])
-            continue
-        unit = [v / shape_total for v in mean_day]
-        out.append([[v * sum(day) for v in unit] for day in home])
+    for k, home in enumerate(population.grids):
+        heat = _heat_of(population, k)
+        behavioural = fgl.meter_net_of_space_heat([list(day) for day in home], heat)
+        flat = _flatten_home(behavioural)
+        if heat is None:
+            out.append(flat)
+        else:
+            out.append([[b + h for b, h in zip(flat_day, heat_day)]
+                        for flat_day, heat_day in zip(flat, heat)])
     return _replace_grids(population, out)
 
 
@@ -400,7 +459,25 @@ def _per_home_day_correlation(population: PopulationTraces) -> list[float]:
 
 
 def _per_home_away_days(population: PopulationTraces) -> list[float]:
-    return [float(fgl.trough_statistics(home).away_signature_days) for home in population.grids]
+    """Read on the load set the live cell judges — net of space heat (H37).
+
+    Reading the raw meter here would measure the null of a statistic nobody
+    applies: `evaluate_population` passes the space-heat split to
+    `trough_statistics`, so a sweep that did not would report a margin for a
+    band that is not the one in the ledger.
+    """
+    return [
+        float(fgl.trough_statistics(home, space_heat=_heat_of(population, k)).away_signature_days)
+        for k, home in enumerate(population.grids)
+    ]
+
+
+def _heat_of(population: PopulationTraces, k: int) -> list[list[float]] | None:
+    """Home `k`'s space-heat stream, or None where the generator supplies no
+    split — the fail-closed reading `meter_net_of_space_heat` already defines."""
+    if not population.space_heat_grids:
+        return None
+    return [list(day) for day in population.space_heat_grids[k]]
 
 
 def _smoothing_ratio(population: PopulationTraces) -> list[float]:
@@ -467,10 +544,14 @@ NULL_SPECS: dict[str, NullSpec] = {
         _flat_day_null, _per_home_day_correlation, is_point_mass=True,
     ),
     "L1.3_away_days_per_year": NullSpec(
-        "L1.3_away_days_per_year", "per_home", "flat_day",
-        "every day becomes the home's own mean profile: no day is emptier than "
-        "any other, so no absence is representable",
-        _flat_day_null, _per_home_away_days, is_point_mass=True,
+        "L1.3_away_days_per_year", "per_home", "flat_behavioural_day",
+        "every day's BEHAVIOURAL stream becomes the home's own mean behavioural "
+        "profile at that day's own total, with the heating machine left as it "
+        "is: no day is emptier than any other, so no absence is representable — "
+        "flattened where the band is now read (net of space heat, H37) rather "
+        "than on the meter, since flattening the meter would leave the heat "
+        "stream's own structure in the netted result with a minus sign in front",
+        _flat_behavioural_day_null, _per_home_away_days, is_point_mass=True,
     ),
     "L2.1_smoothing_ratio": NullSpec(
         "L2.1_smoothing_ratio", "population", "clone_population",

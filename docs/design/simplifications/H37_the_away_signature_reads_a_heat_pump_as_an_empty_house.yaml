@@ -1,3 +1,67 @@
 atom_id: H37_the_away_signature_reads_a_heat_pump_as_an_empty_house
 map_notes:
-  origin_note: 'MINTED FROM the L1.3 disposition in the H35 section of docs/design/BAND_NULL_SWEEP.md (2026-08-09). `away_signature` is mean active-window consumption over mean base-load consumption, and a day below 1.30 is counted as "demonstrably empty" (L1.3, at_least 1.0 away day per year). A heat pump runs THROUGH the base-load window, so its base load is not a base load. OBSERVED-WITH-EVIDENCE at the applied window (couple_fabric PANEL, 15 homes x 120d): H11 is flagged away on 104 of 120 days and H12 on 72, on the REAL trace, with the household occupied every day; under the flat-day null every day becomes the home''s own mean profile, whose active/base ratio for those two homes is below 1.30, so all 120 days are flagged and the null reads 120 away-days-per-home against a floor of 1.0 -- L1.3 is INSIDE its own null (margin -119) and cannot fail on absence of the structure it certifies. It read clean at ten homes only because the panel had no electrically-heated home to say otherwise. INFERRED: the same holds for any continuously-heated electric home, including a correctly-modelled storage heater, whose overnight charge block would make it worse -- so this must be repaired BEFORE the W1_12 storage-heater work lands, not after. EXIT: (1) the away signature is computed on a stream in which the space-heating machine cannot masquerade as occupancy -- the netting L1.2h already applies (score the behavioural stream, not the meter total) is a CANDIDATE, not the answer, and whichever is chosen is justified against the physics rather than against the resulting number; (2) the statistic is re-read on the live panel and an occupied heat-pump home is no longer flagged away on most days -- with the count recorded, not merely improved; (3) re-swept: L1.3 is not inside its null at 40/60/90/120d, or the residual is named; (4) R15 both ways -- a genuinely empty home in EVERY regime is still detected (the fail-closed direction, which the obvious netting could break), and a generator with no absences at all still fails; (5) R12: the 1.30 signature threshold and the 1.0 away-day floor are not moved to obtain any of the above.'
+  origin_note: 'MINTED FROM the L1.3 disposition in the H35 section of docs/design/BAND_NULL_SWEEP.md
+    (2026-08-09). `away_signature` is mean active-window consumption over mean base-load consumption,
+    and a day below 1.30 is counted as "demonstrably empty" (L1.3, at_least 1.0 away day per year). A
+    heat pump runs THROUGH the base-load window, so its base load is not a base load. OBSERVED-WITH-EVIDENCE
+    at the applied window (couple_fabric PANEL, 15 homes x 120d): H11 is flagged away on 104 of 120 days
+    and H12 on 72, on the REAL trace, with the household occupied every day; under the flat-day null every
+    day becomes the home''s own mean profile, whose active/base ratio for those two homes is below 1.30,
+    so all 120 days are flagged and the null reads 120 away-days-per-home against a floor of 1.0 -- L1.3
+    is INSIDE its own null (margin -119) and cannot fail on absence of the structure it certifies. It
+    read clean at ten homes only because the panel had no electrically-heated home to say otherwise. INFERRED:
+    the same holds for any continuously-heated electric home, including a correctly-modelled storage heater,
+    whose overnight charge block would make it worse -- so this must be repaired BEFORE the W1_12 storage-heater
+    work lands, not after. EXIT: (1) the away signature is computed on a stream in which the space-heating
+    machine cannot masquerade as occupancy -- the netting L1.2h already applies (score the behavioural
+    stream, not the meter total) is a CANDIDATE, not the answer, and whichever is chosen is justified
+    against the physics rather than against the resulting number; (2) the statistic is re-read on the
+    live panel and an occupied heat-pump home is no longer flagged away on most days -- with the count
+    recorded, not merely improved; (3) re-swept: L1.3 is not inside its null at 40/60/90/120d, or the
+    residual is named; (4) R15 both ways -- a genuinely empty home in EVERY regime is still detected (the
+    fail-closed direction, which the obvious netting could break), and a generator with no absences at
+    all still fails; (5) R12: the 1.30 signature threshold and the 1.0 away-day floor are not moved to
+    obtain any of the above.'
+  build_note: 'BUILT 2026-08-10, L0->L2. Full record, tables and residuals: docs/design/BAND_NULL_SWEEP.md
+    section "H37". (1) DONE: the away signature is read on the meter NET OF SPACE HEAT -- trough_statistics(days,
+    space_heat=...) applies meter_net_of_space_heat, the same netting L1.2 uses, passed in from evaluate_population
+    rather than re-derived so two cells cannot hold two ideas of a home''s behaviour. The candidate was
+    taken, and justified against the PHYSICS not the number: away_signature DIVIDES BY the base-load window
+    and a heat pump does not stop at midnight, so the denominator is the thermostat rather than the fridge;
+    panel heaters make the mirror error, inflating the numerator and hiding a real absence. space_heat=None
+    still judges the WHOLE meter (fail-closed, unchanged). min_half_hour_kwh stays on the meter -- it
+    is a statement about what the meter can read. (2) DONE, COUNTED against each trace''s own is_away
+    calendar (15 homes x 120d): meter 177 true / 176 detected / 217 false positives / recall 0.994 / precision
+    0.448; netted 177 / 177 / 23 / recall 1.000 / precision 0.885. H11 104->26 flagged days and all 26
+    are TRUE away days; H10 57->14; H12 72->17; E15 28->4. RECALL GOES UP, not down -- netting found the
+    one true absence the meter had buried (E15, 0.75->1.00), because a panel heater running in the active
+    window was what hid it. The nine gas homes are bit-for-bit unchanged. TWO RESIDUALS NAMED, not smoothed:
+    H12 keeps 8 false positives and E14 goes 8->15 -- netting fixes the denominator, it does not make
+    a small resistive home''s behavioural stream noiseless. (3) DONE: re-swept via the shipped bns.truncated
+    at 40/60/90/120d -- null best 0 away days per home at every window, margin +1.0, SEPARATED at all
+    four (was inside_null at 120d, margin -119). This needed a NEW NULL: _flat_behavioural_day_null, because
+    once the band is read netted, flattening the METER leaves the heating machine''s structure in the
+    netted result with a minus sign in front (the null would INVENT absences) and flattening BOTH streams
+    leaves a shape that moves with the two daily totals'' ratio (a weather signal in a band about holidays).
+    The null is taken where the reading is taken: flatten the behavioural stream, leave the heat stream
+    in full, rebuild the meter as flat_behavioural+heat so meter_net_of_space_heat recovers exactly the
+    flattened stream. Degrades to _flat_day_null EXACTLY where no split is supplied (asserted equal, not
+    similar). RESIDUAL NAMED: at 40/60/90d the OBSERVED worst is 0 -- one home has taken no holiday yet
+    -- which is a property of applying an annualised at-least band over a third of a year, unchanged by
+    this repair and the reason the applied window is 120d. (4) DONE, R15 both ways, 11 tests: the DEFECT
+    is reproduced on the raw meter in both regimes; an occupied home is not called empty in gas/heat-pump/resistive;
+    THE FAIL-CLOSED DIRECTION -- a genuinely empty home is still detected in ALL THREE regimes; a generator
+    with no absences at all still FAILS the band; no-split judges the whole meter; a gas home is bit-for-bit
+    unchanged ON THE LIVE GENERATOR; the L1.3 CELL reads the netted stream and says so in its note; the
+    SWEEP reads the same load set the ledger judges; and THE NULL''S OWN MUTATION -- swapping _flat_behavioural_day_null
+    for _flat_day_null flips L1.3 back to inside_null, so the repaired null is proved by its own named
+    defect rather than by a rename. The two assertions that would go vacuous if the fixture drifted carry
+    explicit messages saying so. (5) DONE, R12 held: AWAY_SIGNATURE_MAX is still 1.30 and L1.3''s floor
+    is still 1.0 -- the load set was wrong, not the number. WHAT WAS NOT DONE, deliberately: L1.1r stays
+    inside_null (H36''s atom) so the sweep still exits 1 and couple_fabric still reports RED on L1.1 and
+    L2.4, exactly as before H37. away_signature''s non-positive-base branch (returns inf, so such a day
+    can never be counted away) was left alone -- netting makes it LESS plausible, not more, since what
+    remains is the fridge (measured minimum 0.034 kWh per half hour over the panel); recorded rather than
+    pre-emptively rewritten. SCOPE EXTENDED beyond the minted file_scope to background/band_null_sweep.py
+    + tests/harness/test_band_null_sweep.py, because exit criterion (3) cannot be met without moving the
+    null, and the map entry now says so.'

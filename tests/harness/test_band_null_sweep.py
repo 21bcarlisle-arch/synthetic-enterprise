@@ -217,6 +217,118 @@ def test_the_flat_day_null_REMOVES_the_structure_all_three_bands_certify(populat
         assert fgl.trough_statistics(null_home).away_signature_days == 0
 
 
+# ---------------------------------------------------------------------------
+# H37 — L1.3 is now read NET OF SPACE HEAT, so its null has to be taken there
+# too. A null taken on the meter and read on the behavioural stream leaves the
+# heating machine's own structure in the reading with a minus sign in front of
+# it, and the band goes back inside its null on the strength of structure the
+# null itself put there. That is this module's founding defect, one cell over.
+# ---------------------------------------------------------------------------
+
+# Panel heaters: off through the base-load window, on when the room is used.
+# SHAPED on purpose — a constant draw would be a level shift, and a level shift
+# is invisible to a ratio, so a flat heat stream could not tell the right null
+# from the wrong one.
+_RESISTIVE_HEAT_DAY = tuple(0.0 if p in fgl.BASE_LOAD_PERIODS else 0.9 for p in range(PERIODS))
+
+
+def _electrically_heated_population(*, homes: int = 10) -> fgl.PopulationTraces:
+    """The same fixture homes with a panel heater added to the JUDGED meter, and
+    the split declared — the population H37 is about."""
+    base = _population(homes=homes)
+    heat = tuple(tuple(_RESISTIVE_HEAT_DAY) for _ in range(DAYS))
+    return dataclasses.replace(
+        base,
+        grids=tuple(
+            tuple(tuple(v + h for v, h in zip(day, _RESISTIVE_HEAT_DAY)) for day in home)
+            for home in base.grids
+        ),
+        heating_systems=tuple("electric_direct" for _ in range(homes)),
+        space_heat_grids=tuple(heat for _ in range(homes)),
+    )
+
+
+@pytest.fixture(scope="module")
+def electric_population() -> fgl.PopulationTraces:
+    return _electrically_heated_population()
+
+
+def test_H37_the_behavioural_null_LEAVES_THE_HEATING_MACHINE_ALONE(electric_population):
+    """What the null must and must not touch: the heat stream survives exactly (it
+    is not the structure L1.3 certifies), each day's BEHAVIOURAL total survives
+    exactly (that is level, not shape), and the whole thing is deterministic."""
+    null = bns._flat_behavioural_day_null(electric_population, random.Random(1))
+    assert null.space_heat_grids == electric_population.space_heat_grids
+    for k, (real, made) in enumerate(zip(electric_population.grids, null.grids)):
+        heat = bns._heat_of(electric_population, k)
+        before = fgl.meter_net_of_space_heat([list(d) for d in real], heat)
+        after = fgl.meter_net_of_space_heat([list(d) for d in made], heat)
+        for b_day, a_day in zip(before, after):
+            assert sum(a_day) == pytest.approx(sum(b_day), rel=1e-9)
+        assert fgl.day_to_day_shape_correlation(after) == pytest.approx(1.0, abs=1e-9)
+    assert bns._flat_behavioural_day_null(
+        electric_population, random.Random(999)
+    ).grids == null.grids
+
+
+def test_H37_the_behavioural_null_is_the_METER_null_where_there_is_no_split(population):
+    """With nothing to net, the behavioural stream IS the meter — so the new null
+    must degrade to the old one exactly, not to something merely similar."""
+    assert (
+        bns._flat_behavioural_day_null(population, random.Random(1)).grids
+        == bns._flat_day_null(population, random.Random(1)).grids
+    )
+
+
+def test_H37_taking_the_null_on_the_METER_puts_L1_3_back_INSIDE_it(electric_population):
+    """THE MUTATION. Swap the behavioural null for the meter null — the one change
+    this repair is — and L1.3 goes back inside its own null, because the netted
+    reading of a flattened meter is a real heating shape inverted. The guard fires
+    on its own named defect, and the repaired null is not merely a rename."""
+    repaired = bns.measure_null("L1.3_away_days_per_year", electric_population)
+    assert repaired.verdict is bns.NullVerdict.SEPARATED, repaired.note
+
+    spec = bns.NULL_SPECS["L1.3_away_days_per_year"]
+    with_meter_null = dataclasses.replace(spec, make_null=bns._flat_day_null)
+    patched = dict(bns.NULL_SPECS, **{"L1.3_away_days_per_year": with_meter_null})
+    original = bns.NULL_SPECS.copy()
+    bns.NULL_SPECS.update(patched)
+    try:
+        mutated = bns.measure_null("L1.3_away_days_per_year", electric_population)
+    finally:
+        bns.NULL_SPECS.clear()
+        bns.NULL_SPECS.update(original)
+    assert mutated.verdict is bns.NullVerdict.INSIDE_NULL, (
+        f"the meter null read {mutated.null_best} away days per home — if this is "
+        "no longer a defect, the behavioural null is proved by nothing"
+    )
+
+
+def test_H37_the_sweep_reads_L1_3_on_the_SAME_load_set_the_ledger_judges(electric_population):
+    """The wrong-load-set shape, in the direction that is easy to miss: not the
+    wrong HOMES but the wrong STREAM. If the sweep read the raw meter it would
+    report a margin for a band nobody applies."""
+    from_sweep = bns._per_home_away_days(electric_population)
+    from_ledger = [
+        float(
+            fgl.trough_statistics(
+                [list(d) for d in home],
+                space_heat=[list(d) for d in electric_population.space_heat_grids[k]],
+            ).away_signature_days
+        )
+        for k, home in enumerate(electric_population.grids)
+    ]
+    on_the_raw_meter = [
+        float(fgl.trough_statistics([list(d) for d in home]).away_signature_days)
+        for home in electric_population.grids
+    ]
+    assert from_sweep == from_ledger
+    assert from_sweep != on_the_raw_meter, (
+        "this fixture must make the two load sets DISAGREE, or the assertion "
+        "above holds for both and proves nothing"
+    )
+
+
 def test_the_exchangeable_homes_null_leaves_homes_with_NO_timing_of_their_own(population):
     """L2.3's null. Dealing the same days back out must preserve the population's
     days exactly — it removes whose they are, not what they contain."""

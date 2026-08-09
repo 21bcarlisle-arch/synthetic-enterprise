@@ -4417,16 +4417,16 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: worker_finding
   depends_on: [H35_the_panel_never_exercises_two_of_its_own_bands]
   couples_with: [H_GAP_fabric_belief_truth_gap]
-  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
-  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
-  notes_rehomed: [origin_note]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json', 'tests/harness/test_premise_two_level.py', 'tests/harness/test_band_null_sweep.py']
+  file_scope: ['background/fabric_gap_ledger.py', 'background/band_null_sweep.py', 'tests/harness/test_premise_two_level.py', 'tests/harness/test_band_null_sweep.py']
+  notes_rehomed: [build_note, origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an occupancy sensor that calls a house empty because the heating is on"
 

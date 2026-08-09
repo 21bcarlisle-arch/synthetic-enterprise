@@ -882,6 +882,147 @@ def test_the_away_signature_separates_absence_from_an_ordinary_night(generated, 
     )
 
 
+# ---------------------------------------------------------------------------
+# H37 — the away signature must survive the heat being on the JUDGED meter.
+#
+# `away_signature` divides the active window by the base-load window. That is an
+# occupancy statistic only while the denominator is a base load, and a heat pump
+# does not stop at midnight. These homes are synthetic ON PURPOSE: the defect is
+# a property of the arithmetic, so it is named in arithmetic that a reader can
+# check by hand, rather than left resting on whichever regimes the panel happens
+# to carry today.
+# ---------------------------------------------------------------------------
+
+_H37_DAYS = fgl.MIN_DAYS_FOR_TEXTURE + 5
+
+
+def _h37_behaviour(*, occupied: bool):
+    """One day of the household's own load. Occupied: 0.10 kWh per half hour
+    overnight against 0.50 in the active window (signature 5.0). Empty: 0.10 flat
+    — the fridge, and nothing else (signature 1.0)."""
+    if not occupied:
+        return [0.10] * 48
+    return [
+        0.50 if p in fgl.ACTIVE_PERIODS else 0.10 if p in fgl.BASE_LOAD_PERIODS else 0.20
+        for p in range(48)
+    ]
+
+
+# Three regimes, each a plumbing fact about where the heating machine lands.
+_H37_HEAT = {
+    # gas: the heat is on the OTHER meter, so this stream is zeros and every
+    # number below must be bit-for-bit what it was before H37 existed.
+    "gas": [0.0] * 48,
+    # heat pump: a low, continuous draw straight THROUGH the base-load window.
+    "heat_pump": [2.0] * 48,
+    # resistive panel heaters: on when the room is used, off overnight — the
+    # opposite error, and the one that hides a real absence rather than
+    # inventing a false one.
+    "resistive": [0.0 if p in fgl.BASE_LOAD_PERIODS else 3.0 for p in range(48)],
+}
+
+
+def _h37_home(regime, *, occupied):
+    """(meter, space_heat) for a home in `regime` that is either occupied every
+    day or empty every day."""
+    heat = [list(_H37_HEAT[regime]) for _ in range(_H37_DAYS)]
+    behaviour = [_h37_behaviour(occupied=occupied) for _ in range(_H37_DAYS)]
+    meter = [[b + h for b, h in zip(bd, hd)] for bd, hd in zip(behaviour, heat)]
+    return meter, heat
+
+
+@pytest.mark.parametrize("regime", ["heat_pump", "resistive"])
+def test_H37_the_DEFECT_is_reproduced_on_the_raw_meter(regime):
+    """The mutation this repair is proved against, stated as its own test: read on
+    the electricity meter, an electrically-heated home's away-day count is a
+    reading of its plumbing rather than of its occupancy. A heat pump makes an
+    occupied home look empty; panel heaters make an empty one look occupied. Both
+    are wrong, and the raw meter cannot tell either of them from the truth."""
+    meter, _ = _h37_home(regime, occupied=(regime == "heat_pump"))
+    on_the_meter = fgl.trough_statistics(meter).away_signature_days
+    truth = 0 if regime == "heat_pump" else _H37_DAYS
+    assert on_the_meter != truth, (
+        f"{regime}: the meter read {on_the_meter} away days where the truth is "
+        f"{truth} — if this now agrees, the defect H37 repairs has gone away and "
+        "the netting below is no longer proved by anything"
+    )
+
+
+@pytest.mark.parametrize("regime", ["gas", "heat_pump", "resistive"])
+def test_H37_an_OCCUPIED_home_is_not_called_empty_in_any_regime(regime):
+    """The direction the repair is FOR. A household that never left must read zero
+    away days whatever its heating machine is, and after netting it does."""
+    meter, heat = _h37_home(regime, occupied=True)
+    assert fgl.trough_statistics(meter, space_heat=heat).away_signature_days == 0
+
+
+@pytest.mark.parametrize("regime", ["gas", "heat_pump", "resistive"])
+def test_H37_a_genuinely_EMPTY_home_is_still_detected_in_any_regime(regime):
+    """The FAIL-CLOSED direction, which the obvious netting could have broken. An
+    empty house must still be detectable after the heating machine is taken out —
+    and it is, because what netting leaves behind is the fridge, which is exactly
+    the load the 1.30 cutoff was always about. On the resistive home the netting
+    RECOVERS an absence the meter had hidden, which is the same result the live
+    panel gives (E15, recall 0.75 -> 1.00)."""
+    meter, heat = _h37_home(regime, occupied=False)
+    stats = fgl.trough_statistics(meter, space_heat=heat)
+    assert stats.away_signature_days == _H37_DAYS
+    assert fgl.BANDS["L1.3_away_days_per_year"].judge(stats.away_days_per_year) is fgl.Verdict.PASS
+
+
+def test_H37_a_generator_with_no_absences_at_all_still_FAILS_the_band():
+    """The other half of R15: the repair must not have bought its precision by
+    making the band unfailable. A home that is occupied every day fails L1.3 in
+    every regime, netted."""
+    for regime in _H37_HEAT:
+        meter, heat = _h37_home(regime, occupied=True)
+        stats = fgl.trough_statistics(meter, space_heat=heat)
+        assert fgl.BANDS["L1.3_away_days_per_year"].judge(
+            stats.away_days_per_year
+        ) is fgl.Verdict.FAIL, regime
+
+
+def test_H37_no_split_supplied_judges_the_WHOLE_meter_fail_closed():
+    """`space_heat=None` is the strict reading, not a lenient one: it is exactly
+    the pre-H37 behaviour, so a generator that supplies no split buys nothing by
+    staying silent."""
+    meter, _ = _h37_home("heat_pump", occupied=True)
+    assert (
+        fgl.trough_statistics(meter, space_heat=None).away_signature_days
+        == fgl.trough_statistics(meter).away_signature_days
+        == _H37_DAYS
+    )
+
+
+def test_H37_a_gas_home_is_bit_for_bit_what_it_was(generated, traces):
+    """The netting must be a no-op where the heat is on the other meter — zeros
+    subtract to nothing. Asserted on the LIVE generator rather than the synthetic
+    homes, so a change to the netting cannot pass here while moving the panel."""
+    for k, grid in enumerate(_grids(generated)):
+        heat = [list(day) for day in generated.space_heat_grids[k]]
+        if any(any(day) for day in heat):
+            continue
+        assert (
+            fgl.trough_statistics(grid, space_heat=heat)
+            == fgl.trough_statistics(grid)
+        ), generated.homes[k]
+
+
+def test_H37_the_L1_3_CELL_reads_the_netted_stream_not_the_meter(generated):
+    """The statistic being repairable is not the same as the ledger reading the
+    repaired one. The cell must carry the netting AND say so — an exclusion nobody
+    can see in the note is how a netting becomes a quiet one."""
+    cell = fgl.evaluate_two_level(generated).cell("L1.3_away_days_per_year")
+    assert "net of space heat" in cell.note
+    netted = [
+        fgl.trough_statistics(
+            g, space_heat=[list(d) for d in generated.space_heat_grids[k]]
+        ).away_days_per_year
+        for k, g in enumerate(_grids(generated))
+    ]
+    assert cell.worst_value == pytest.approx(min(netted))
+
+
 def test_L1_4_separation_FIRES_when_day_types_are_shuffled(generated):
     """L1.4 has no anchor and is not judged, but the STATISTIC must still be shown
     to detect its defect — an unvalidated cell that cannot even measure would be a

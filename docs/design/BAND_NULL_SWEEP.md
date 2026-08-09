@@ -329,6 +329,11 @@ null with a real disposition, not a blind control.
 
 ## What this run now exits with, and why that is correct
 
+> **Superseded in part, 2026-08-10 (H37).** L1.3 is no longer inside its null:
+> the statistic was repaired as this section dispositioned, and the sweep now
+> names L1.1r alone. The paragraph below is left as the reading of the run that
+> produced the disposition — see the H37 section for the current one.
+
 `python3 tools/band_null_sweep.py` exits **1** at HEAD, naming L1.1r and L1.3. The
 live coupling run (`tools/couple_fabric.py`) reports **RED** on
 `L1.1_half_hourly_texture` (worst home H11) and `L2.4_scale_spread_p90_p10`. Both
@@ -361,3 +366,157 @@ Moved here verbatim from `maturity_map.yaml` when the map hit its size ratchet.
 The record is not lost, it is in the place the ratchet exists to push it:
 
 > MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09 (the instance half closed the same day; the sweep it proposes has never been run). THE QUESTION, per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' -- a distance between two SUBSETS of one subject's data is bounded away from zero by sampling noise alone, and a band derived over a full year can sit UNDER the null of the same statistic at a 120-day window, so a randomised population clears it. Sibling shapes already on the register: worst-of-N not scale-invariant, band applied to the wrong load set, mutation must dominate the natural spread. EXIT: (1) an ENUMERATION of every band in background/ and tools/ carrying a numeric threshold and an external AnchorStatus, derived from the band tables rather than by inspection; (2) per band, the statistic's null MEASURED by randomising the structure it is meant to detect at the window the band is APPLIED at (not the window it was derived at), with the margin recorded -- a band inside its own null is a defect, a band the same order as it is a finding; (3) each hit dispositioned repair-the-statistic (the L1.4->L1.4n permutation-null pattern) or repair-the-window, NEVER lower-the-floor-until-something-fails (R12 goal-seek); (4) R15 both ways incl. a vacuity guard proving the enumeration is non-empty on the live tree, since a sweep that finds no bands is the fail-open shape here.
+
+---
+
+# H37 — the away-day signature, read where it is an occupancy statistic
+
+**Atom:** `H37_the_away_signature_reads_a_heat_pump_as_an_empty_house` (lane H_harness, L0 -> L2)
+**Changed:** `fabric_gap_ledger.trough_statistics` takes `space_heat=`; the L1.3 cell and the sweep both pass it
+**New null:** `band_null_sweep._flat_behavioural_day_null`
+**R15:** `tests/harness/test_premise_two_level.py` (H37 block), `tests/harness/test_band_null_sweep.py` (H37 block)
+
+## The physics, which is the whole of the argument
+
+`away_signature` is mean active-window consumption over mean **base-load**
+consumption. It is an occupancy statistic only while the denominator is a base
+load. A heat pump does not stop at midnight, so on the electricity meter of an
+electrically-heated home the denominator is the thermostat and the ratio falls
+towards 1.0 for a household that never left. Panel heaters make the mirror-image
+error: off overnight and on when the room is used, they inflate the *numerator*
+and hide an absence that did happen.
+
+So the repair is not a new statistic and not a new number. It is the same
+statistic read on the load set it was always about — the meter **net of space
+heat**, the netting L1.2 already applies (`meter_net_of_space_heat`), passed in
+rather than re-derived so the two cells cannot come to hold two ideas of what a
+home's behaviour is. Where the generator supplies no split the whole meter is
+judged, exactly as before: the leniency is bought with a stated, checked fact.
+
+## The measurement, against each trace's own `is_away` calendar
+
+Live panel, `tools/couple_fabric.PANEL`, 15 homes x 120 days. The harness may
+read the generator's own occupancy truth here — measuring belief against truth is
+what this ledger is for — but the **statistic** never does, or it would be a
+tautology.
+
+| stream | true away days | detected | false positives | recall | precision |
+|---|---|---|---|---|---|
+| electricity meter | 177 | 176 | 217 | 0.994 | 0.448 |
+| net of space heat | 177 | **177** | **23** | **1.000** | **0.885** |
+
+Per home, where the two disagree:
+
+| home | regime | true | meter flagged | netted flagged |
+|---|---|---|---|---|
+| H10 | heat pump | 14 | 57 | **14** |
+| H11 | heat pump | 26 | **104** | **26** |
+| H12 | heat pump | 9 | 72 | 17 |
+| E13 | resistive | 4 | 4 | 4 |
+| E14 | resistive | 20 | 28 | 35 |
+| E15 | resistive | 4 | 28 | **4** |
+| nine gas homes | gas combi | 100 | 100 | 100 |
+
+**Recall goes UP, not down.** That is the sentence the fail-closed worry turns on:
+netting could in principle have made an empty house undetectable, and instead it
+found the one true absence the meter had buried (E15, 0.75 -> 1.00) — because a
+panel heater running in the active window is precisely what was hiding it. The
+nine gas homes are bit-for-bit unchanged; a home whose heat is on the other meter
+contributes a stream of zeros, and the test asserting that runs on the live
+generator, not on the synthetic fixture.
+
+**Two residuals, named rather than smoothed.** H12 still reads 8 false positives
+and E14 reads 15 — more than the 8 it had on the meter. Netting fixes the
+denominator; it does not make the behavioural stream of a small resistive home
+noiseless, and the 1.30 cutoff is a threshold on a ratio, not a proof. The
+honest reading is that this statistic is now confounded by ordinary quiet days
+rather than by plumbing, at a rate (23 in 1,800 home-days) comparable with the
+gas homes it was always trusted on. Moving 1.30 to clear them would be R12 read
+backwards and was not done.
+
+## Where the null had to move, and why the two shortcuts are both wrong
+
+Once the band is READ net of space heat, its null has to be TAKEN there. The two
+available shortcuts each inject the structure the null exists to remove:
+
+* **flatten the meter, leave the heat stream** — the netted result is
+  `flat_meter - real_heat`, which carries the heating machine's entire
+  day-to-day structure with a minus sign in front of it. The null invents the
+  absences the band looks for.
+* **flatten both streams** — the netted day is `M_d*u_meter - H_d*u_heat`, whose
+  shape moves with the ratio of the two daily totals. Less structure, but not
+  none, and it appears on cold days: a null that puts a weather signal into a
+  band about holidays.
+
+`_flat_behavioural_day_null` takes the null where the reading is taken. Every
+day's behavioural stream becomes that home's own mean behavioural profile at
+that day's own behavioural total; the heating machine survives in full; the
+meter is rebuilt as `flat_behavioural + heat`, so `meter_net_of_space_heat`
+recovers exactly the flattened stream and the heat stream is still a genuine
+component of the meter it is subtracted from. Where there is no split it degrades
+to `_flat_day_null` **exactly**, and a test asserts the grids are equal rather
+than similar.
+
+## Re-swept at four windows (`bns.truncated`, the shipped helper)
+
+| window | threshold | null (best) | null spread | margin | verdict | observed worst | observed median |
+|---|---|---|---|---|---|---|---|
+| 40d | 1.0 | 0 | 0 | +1.0 | separated | 0 | 3 |
+| 60d | 1.0 | 0 | 0 | +1.0 | separated | 0 | 4 |
+| 90d | 1.0 | 0 | 0 | +1.0 | separated | 0 | 4 |
+| 120d | 1.0 | 0 | 0 | +1.0 | separated | 4 | 13 |
+
+L1.3 is outside its null at every window — the null reads **zero** away days per
+home, which is what "no absence is representable" should read. **The residual is
+in the observed column, not the null:** at 40/60/90 days at least one home has
+taken no holiday yet, so the live cell would fail that home. That is a property
+of applying an annualised at-least band over a third of a year, it is unchanged
+by this repair, and it is why the applied window is 120 days.
+
+## What the sweep and the coupling run say now
+
+`python3 tools/band_null_sweep.py --persist` exits **1**, naming
+**L1.1r alone** (`docs/observability/band_null_sweep.json`, `randomisation:
+flat_behavioural_day`, `margin: 1.0`, `verdict: separated` for L1.3). L1.1r stays
+a defect and belongs to H36 — it was not touched here. `tools/couple_fabric.py`
+reports RED on `L1.1_half_hourly_texture` and `L2.4_scale_spread_p90_p10`,
+exactly as it did before H37; L1.3's cell now reads 0 of 15 homes violating,
+worst home S3 at 12.18 away days per year against a floor of 1.0, with the note
+carrying `away signature read net of space heat; 6 of 15 homes carry heat on the
+judged meter`.
+
+## R15, both ways
+
+| direction | test |
+|---|---|
+| the defect is real and reproducible | `test_H37_the_DEFECT_is_reproduced_on_the_raw_meter` — a heat pump reads occupied-as-empty, panel heaters read empty-as-occupied |
+| an occupied home is not called empty | `test_H37_an_OCCUPIED_home_is_not_called_empty_in_any_regime` |
+| **fail-closed:** an empty home is still detected | `test_H37_a_genuinely_EMPTY_home_is_still_detected_in_any_regime`, all three regimes |
+| the band can still fail | `test_H37_a_generator_with_no_absences_at_all_still_FAILS_the_band` |
+| no split is the STRICT reading | `test_H37_no_split_supplied_judges_the_WHOLE_meter_fail_closed` |
+| a gas home is untouched | `test_H37_a_gas_home_is_bit_for_bit_what_it_was`, on the live generator |
+| the LEDGER reads the repaired stream | `test_H37_the_L1_3_CELL_reads_the_netted_stream_not_the_meter` |
+| the sweep reads the same load set | `test_H37_the_sweep_reads_L1_3_on_the_SAME_load_set_the_ledger_judges` |
+| **the null's own mutation** | `test_H37_taking_the_null_on_the_METER_puts_L1_3_back_INSIDE_it` — swap the behavioural null for the meter null and the verdict flips to `inside_null` |
+| the null leaves the machine alone | `test_H37_the_behavioural_null_LEAVES_THE_HEATING_MACHINE_ALONE` |
+| it degrades exactly, not approximately | `test_H37_the_behavioural_null_is_the_METER_null_where_there_is_no_split` |
+
+The synthetic homes in the fgl tests are synthetic on purpose: the defect is a
+property of the arithmetic, so it is named in arithmetic a reader can check by
+hand rather than left resting on whichever regimes the panel happens to carry.
+The two assertions that would go vacuous if the fixture drifted (the raw meter
+and the netted read agreeing; the mutation no longer being a defect) both carry
+an explicit message saying so.
+
+## What was NOT done
+
+* **R12 held.** `AWAY_SIGNATURE_MAX` is still 1.30 and L1.3's floor is still 1.0.
+  The load set was wrong, not the number.
+* **The non-positive-base branch was left alone.** `away_signature` returns `inf`
+  when the base-load mean is not positive, so such a day can never be counted
+  away. Netting makes that branch *less* plausible, not more: what is left after
+  the heating machine comes out is the fridge, measured minimum 0.034 kWh per
+  half hour over the panel. Recorded rather than pre-emptively rewritten.
+* **L1.1r was not touched** (H36), and the sweep still exits 1 because of it.
+* **`min_half_hour_kwh` stays on the meter**, unnetted — it is a statement about
+  what the meter can read, not about occupancy.

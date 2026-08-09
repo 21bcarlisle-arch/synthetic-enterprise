@@ -467,6 +467,15 @@ def away_signature(day: Sequence[float]) -> float:
     statistic, do not celebrate the pass." This is the fixed statistic. It asks the
     physical question the spec was reaching for (is an empty house REPRESENTABLE)
     in a form that a cycling base load cannot defeat.
+
+    WHICH LOAD SET IT MUST BE READ ON (H37). This ratio is only an occupancy
+    statistic while the denominator is a BASE load. A heat pump runs THROUGH
+    00:00-06:00, so on the electricity meter of an electrically-heated home the
+    denominator is the thermostat, not the fridge, and the ratio collapses towards
+    1.0 for a household that never left. Read the behavioural stream
+    (`meter_net_of_space_heat`) — `trough_statistics(days, space_heat=...)` does
+    it — or this function will call an occupied house empty. It takes no view of
+    its own input: give it the wrong stream and it will answer about that one.
     """
     base = [v for i, v in enumerate(day) if i in BASE_LOAD_PERIODS]
     active = [v for i, v in enumerate(day) if i in ACTIVE_PERIODS]
@@ -479,7 +488,10 @@ def away_signature(day: Sequence[float]) -> float:
 
 
 def trough_statistics(
-    days: Sequence[Sequence[float]], *, signature_max: float = AWAY_SIGNATURE_MAX
+    days: Sequence[Sequence[float]],
+    *,
+    space_heat: Sequence[Sequence[float]] | None = None,
+    signature_max: float = AWAY_SIGNATURE_MAX,
 ) -> TroughStats:
     """L1.3 — the minimum half-hour, and the count of days on which this home was
     demonstrably empty.
@@ -487,13 +499,48 @@ def trough_statistics(
     The threshold is derived from occupancy PHYSICS (a day no busier than its own
     3am) and from each home's OWN trace, never from the generator's parameters —
     so it does not re-tautologise the check.
+
+    THE AWAY SIGNATURE IS READ ON THE BEHAVIOURAL STREAM (H37), for the same
+    reason L1.2 is (`meter_net_of_space_heat`) and by the same netting, but the
+    argument here is a different one and stands on its own. L1.2's is that a
+    thermostat is supposed to repeat, so a correlation band about households is
+    unfair to a home whose heat is on the judged meter. L1.3's is stronger: the
+    away signature DIVIDES BY the base-load window, and a heat pump does not stop
+    at midnight. Its draw enters the denominator, the ratio falls below the 1.30
+    threshold on days nobody left, and the home reads empty. Measured on the live
+    panel (`tools/couple_fabric.PANEL`, 15 homes x 120 days, against each trace's
+    own `is_away` calendar):
+
+        stream            true away days   detected   false positives   recall
+        electricity meter          177        176            217         0.994
+        net of space heat          177        177             23         1.000
+
+    Recall goes UP, not down — netting removes 194 false positives and finds the
+    one true absence the meter had buried (E15, a resistive home). The nine
+    gas-heated homes read bit-for-bit what they did before, because a home whose
+    heat is on the other meter contributes a stream of zeros.
+
+    `min_half_hour_kwh` stays on the METER, unnetted: it is a statement about what
+    the meter can read, not about occupancy.
+
+    FAIL-CLOSED, inherited. `space_heat=None` judges the WHOLE meter, exactly as
+    before this argument existed — the leniency has to be bought with a stated,
+    checked fact. And netting can only make this statistic's base-load window
+    MORE of a base load: what is left after the heating machine comes out is the
+    fridge and the standby draw, which is the load the 1.30 threshold was always
+    about (measured minimum over the panel, 0.034 kWh per half hour, so the
+    non-positive-base branch above stays unreached rather than newly plausible).
+
+    R12: neither `AWAY_SIGNATURE_MAX` (1.30) nor the band's 1.0 away-days-per-year
+    floor moved. The load set was wrong, not the number.
     """
     if not math.isfinite(signature_max) or signature_max <= 1.0:
         raise InsufficientEvidence(
             "the away signature threshold must be finite and greater than 1.0"
         )
     grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name="trough_statistics")
-    signatures = [away_signature(day) for day in grid]
+    behavioural = meter_net_of_space_heat(grid, space_heat)
+    signatures = [away_signature(day) for day in behavioural]
     return TroughStats(
         min_half_hour_kwh=min(v for day in grid for v in day),
         away_signature_days=sum(1 for s in signatures if s < signature_max),
@@ -2393,8 +2440,27 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         worst_home=worst_heat[0] if worst_heat else None,
     ))
 
+    # L1.3 is judged on the SAME load set as L1.2, and for a sharper reason: its
+    # statistic divides by the base-load window, which a heat pump occupies. The
+    # netting is passed in rather than re-derived so the two cells cannot come to
+    # hold two ideas of what this home's behaviour is (H37).
+    cells.append(_l1_rate_cell(
+        "L1.3_away_days_per_year",
+        values=[
+            trough_statistics(g, space_heat=h).away_days_per_year
+            for g, h in zip(grids, heat_streams)
+        ],
+        bands=(BANDS["L1.3_away_days_per_year"],) * len(grids),
+        homes=homes,
+        note=(
+            f"away signature read net of space heat; {netted} of {len(grids)} homes "
+            "carry heat on the judged meter"
+            if population.space_heat_grids
+            else "no space-heat split supplied — the WHOLE meter is judged (fail-closed)"
+        ),
+    ))
+
     for statistic, fn in (
-        ("L1.3_away_days_per_year", lambda g: trough_statistics(g).away_days_per_year),
         ("L1.4_weekday_weekend_separation",
          lambda g: weekday_weekend_separation(g, population.is_weekend)),
         # The same distance, judged against each home's own permutation null.
