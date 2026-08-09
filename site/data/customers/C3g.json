@@ -843,7 +843,7 @@
       "non_commodity_amount_gbp": 9.26,
       "vat_gbp": 1.9,
       "amount_gbp": 39.99,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00016616",
       "mpan": null,
       "mprn": "0000003757",
@@ -2353,7 +2353,7 @@
         "running_balance_gbp": 38.93
       },
       {
-        "date": "2017-10-28",
+        "date": "2017-10-14",
         "type": "payment_received",
         "invoice_number": 429,
         "amount_gbp": -38.93,
@@ -2373,7 +2373,7 @@
         "running_balance_gbp": 39.18
       },
       {
-        "date": "2017-11-28",
+        "date": "2017-11-15",
         "type": "payment_received",
         "invoice_number": 430,
         "amount_gbp": -39.18,
@@ -2434,23 +2434,13 @@
       },
       {
         "date": "2018-02-18",
-        "type": "payment_failed",
+        "type": "payment_received",
         "invoice_number": 433,
-        "amount_gbp": 0.0,
+        "amount_gbp": -39.99,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 39.99
-      },
-      {
-        "date": "2018-02-25",
-        "type": "notice",
-        "invoice_number": 433,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP39.99 outstanding",
-        "running_balance_gbp": 39.99
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2018-03-01",
@@ -2460,17 +2450,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV434 raised",
-        "running_balance_gbp": 79.23
-      },
-      {
-        "date": "2018-03-11",
-        "type": "notice",
-        "invoice_number": 433,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 79.23
+        "running_balance_gbp": 39.24
       },
       {
         "date": "2018-03-15",
@@ -2480,16 +2460,6 @@
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 39.99
-      },
-      {
-        "date": "2018-04-04",
-        "type": "arrears_resolved",
-        "invoice_number": 433,
-        "amount_gbp": -39.99,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -2703,7 +2673,7 @@
         "running_balance_gbp": 308.07
       },
       {
-        "date": "2019-02-27",
+        "date": "2019-02-15",
         "type": "payment_received",
         "invoice_number": 445,
         "amount_gbp": -308.07,
@@ -2723,7 +2693,7 @@
         "running_balance_gbp": 86.29
       },
       {
-        "date": "2019-03-29",
+        "date": "2019-03-19",
         "type": "payment_received",
         "invoice_number": 446,
         "amount_gbp": -86.29,
@@ -3263,56 +3233,12 @@
       "customer_id": "C3",
       "date": "2017-07-01",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 38% churn risk, decided to offer a 3% discount (cost GBP8.50) against GBP165.73 expected term margin at risk -- expected value of offering GBP157.23. Comms framed as a gain (save with this discount).",
+      "description": "Renewal window: company estimated 38% churn risk, decided to offer a 3% discount (cost GBP8.49) against GBP165.61 expected term margin at risk -- expected value of offering GBP157.12. Comms framed as a gain (save with this discount).",
       "company_belief": 0.38,
       "sim_truth": null,
-      "amount_gbp": 157.23,
+      "amount_gbp": 157.12,
       "outcome": "retained",
       "framing_type": "gain_framed"
-    },
-    {
-      "customer_id": "C3",
-      "date": "2018-02-18",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 39.99,
-      "outcome": "DD_FAILED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C3",
-      "date": "2018-02-25",
-      "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP39.99 outstanding",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 39.99,
-      "outcome": "FIRST_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C3",
-      "date": "2018-03-11",
-      "event_type": "arrears_second_notice",
-      "description": "Second notice -- payment plan offered",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 39.99,
-      "outcome": "SECOND_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C3",
-      "date": "2018-04-04",
-      "event_type": "arrears_resolved",
-      "description": "Arrears cleared via payment plan",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 39.99,
-      "outcome": "RESOLVED",
-      "framing_type": null
     },
     {
       "customer_id": "C3",
@@ -3351,9 +3277,9 @@
       "customer_id": "C3",
       "date": "2020-06-30",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 8% churn risk at decision time, SIM realized probability was 12%.",
+      "description": "Renewal outcome: CHURNED -- company believed 8% churn risk at decision time, SIM realized probability was 10%.",
       "company_belief": 0.076,
-      "sim_truth": 0.117,
+      "sim_truth": 0.1,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

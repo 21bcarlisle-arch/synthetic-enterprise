@@ -1,13 +1,21 @@
 {
-  "total": 22018,
+  "total": 23352,
   "areas": [
     {
+      "name": "company/billing",
+      "count": 2146
+    },
+    {
       "name": "simulation",
-      "count": 2079
+      "count": 2132
     },
     {
       "name": "company/crm",
-      "count": 2070
+      "count": 2113
+    },
+    {
+      "name": "tools",
+      "count": 2083
     },
     {
       "name": "company (general)",
@@ -15,43 +23,35 @@
     },
     {
       "name": "company/market",
-      "count": 1992
+      "count": 2016
     },
     {
       "name": "background",
-      "count": 1904
-    },
-    {
-      "name": "tools",
-      "count": 1790
-    },
-    {
-      "name": "company/billing",
-      "count": 1770
+      "count": 2006
     },
     {
       "name": "saas",
-      "count": 1653
+      "count": 1720
     },
     {
       "name": "company/regulatory",
-      "count": 1465
+      "count": 1531
     },
     {
       "name": "sim",
       "count": 959
     },
     {
+      "name": "company/finance",
+      "count": 730
+    },
+    {
       "name": "company/trading",
       "count": 682
     },
     {
-      "name": "company/finance",
-      "count": 656
-    },
-    {
       "name": "company/pricing",
-      "count": 597
+      "count": 679
     },
     {
       "name": "company/compliance",
@@ -59,7 +59,7 @@
     },
     {
       "name": "top-level (general)",
-      "count": 380
+      "count": 384
     },
     {
       "name": "company/risk",
@@ -83,11 +83,23 @@
     },
     {
       "name": "harness",
-      "count": 104
+      "count": 106
     },
     {
       "name": "company/sustainability",
       "count": 84
+    },
+    {
+      "name": "hooks",
+      "count": 54
+    },
+    {
+      "name": "design",
+      "count": 48
+    },
+    {
+      "name": "system",
+      "count": 47
     },
     {
       "name": "interface",
@@ -102,8 +114,12 @@
       "count": 33
     },
     {
-      "name": "hooks",
-      "count": 31
+      "name": "architecture",
+      "count": 25
+    },
+    {
+      "name": "domain",
+      "count": 24
     },
     {
       "name": "company/comms",
@@ -111,10 +127,6 @@
     },
     {
       "name": "company/policy",
-      "count": 19
-    },
-    {
-      "name": "design",
       "count": 19
     }
   ]

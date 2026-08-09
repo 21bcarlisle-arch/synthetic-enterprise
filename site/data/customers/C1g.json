@@ -101,7 +101,7 @@
       "date": "2018-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 146.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 147.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.35p/kWh -> 3.36p/kWh"
     },
     {
@@ -115,7 +115,7 @@
       "date": "2020-12-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 131.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 132.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.49p/kWh -> 2.52p/kWh"
     },
     {
@@ -428,7 +428,7 @@
       "non_commodity_amount_gbp": 3.51,
       "vat_gbp": 0.99,
       "amount_gbp": 20.86,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00016554",
       "mpan": null,
       "mprn": "0000003723",
@@ -510,7 +510,7 @@
       "non_commodity_amount_gbp": 9.35,
       "vat_gbp": 2.08,
       "amount_gbp": 43.66,
-      "status": "PAID",
+      "status": "UNPAID",
       "meter_serial": "M00016554",
       "mpan": null,
       "mprn": "0000003723",
@@ -1412,7 +1412,7 @@
       "non_commodity_amount_gbp": 4.17,
       "vat_gbp": 1.28,
       "amount_gbp": 26.85,
-      "status": "PAID",
+      "status": "UNPAID",
       "meter_serial": "M00016554",
       "mpan": null,
       "mprn": "0000003723",
@@ -1453,7 +1453,7 @@
       "non_commodity_amount_gbp": 6.22,
       "vat_gbp": 1.71,
       "amount_gbp": 35.98,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00016554",
       "mpan": null,
       "mprn": "0000003723",
@@ -2355,7 +2355,7 @@
       "non_commodity_amount_gbp": 4.27,
       "vat_gbp": 1.08,
       "amount_gbp": 22.77,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00016554",
       "mpan": null,
       "mprn": "0000003723",
@@ -3093,7 +3093,7 @@
         "running_balance_gbp": 75.24
       },
       {
-        "date": "2016-02-28",
+        "date": "2016-02-14",
         "type": "payment_received",
         "invoice_number": 73,
         "amount_gbp": -75.24,
@@ -3233,14 +3233,14 @@
         "running_balance_gbp": 20.86
       },
       {
-        "date": "2016-09-23",
-        "type": "notice",
+        "date": "2016-09-16",
+        "type": "payment_received",
         "invoice_number": 80,
-        "amount_gbp": 0.0,
+        "amount_gbp": -20.86,
         "info_amount_gbp": null,
         "method": "standard_credit",
-        "description": "First overdue notice -- GBP20.86 outstanding",
-        "running_balance_gbp": 20.86
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2016-10-03",
@@ -3250,17 +3250,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV81 raised",
-        "running_balance_gbp": 41.91
-      },
-      {
-        "date": "2016-10-07",
-        "type": "notice",
-        "invoice_number": 80,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 41.91
+        "running_balance_gbp": 21.05
       },
       {
         "date": "2016-10-17",
@@ -3270,16 +3260,6 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 20.86
-      },
-      {
-        "date": "2016-10-31",
-        "type": "arrears_resolved",
-        "invoice_number": 80,
-        "amount_gbp": -20.86,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -3293,14 +3273,14 @@
         "running_balance_gbp": 43.66
       },
       {
-        "date": "2016-11-15",
-        "type": "payment_received",
+        "date": "2016-11-22",
+        "type": "notice",
         "invoice_number": 82,
-        "amount_gbp": -43.66,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "First overdue notice -- GBP43.66 outstanding",
+        "running_balance_gbp": 43.66
       },
       {
         "date": "2016-12-03",
@@ -3310,7 +3290,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV83 raised",
-        "running_balance_gbp": 67.62
+        "running_balance_gbp": 111.28
+      },
+      {
+        "date": "2016-12-06",
+        "type": "notice",
+        "invoice_number": 82,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "standard_credit",
+        "description": "Second notice -- payment plan offered",
+        "running_balance_gbp": 111.28
       },
       {
         "date": "2016-12-17",
@@ -3320,6 +3310,16 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
+        "running_balance_gbp": 43.66
+      },
+      {
+        "date": "2016-12-30",
+        "type": "arrears_resolved",
+        "invoice_number": 82,
+        "amount_gbp": -43.66,
+        "info_amount_gbp": null,
+        "method": "payment_plan",
+        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -3413,7 +3413,7 @@
         "running_balance_gbp": 54.59
       },
       {
-        "date": "2017-05-14",
+        "date": "2017-05-27",
         "type": "payment_received",
         "invoice_number": 88,
         "amount_gbp": -54.59,
@@ -3733,14 +3733,14 @@
         "running_balance_gbp": 26.85
       },
       {
-        "date": "2018-09-15",
-        "type": "payment_received",
+        "date": "2018-09-22",
+        "type": "notice",
         "invoice_number": 104,
-        "amount_gbp": -26.85,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "First overdue notice -- GBP26.84 outstanding",
+        "running_balance_gbp": 26.85
       },
       {
         "date": "2018-10-01",
@@ -3750,17 +3750,37 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV105 raised",
-        "running_balance_gbp": 35.98
+        "running_balance_gbp": 62.83
       },
       {
-        "date": "2018-10-22",
+        "date": "2018-10-06",
         "type": "notice",
-        "invoice_number": 105,
+        "invoice_number": 104,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
-        "description": "First overdue notice -- GBP35.98 outstanding",
-        "running_balance_gbp": 35.98
+        "description": "Second notice -- payment plan offered",
+        "running_balance_gbp": 62.83
+      },
+      {
+        "date": "2018-10-15",
+        "type": "payment_received",
+        "invoice_number": 105,
+        "amount_gbp": -35.98,
+        "info_amount_gbp": null,
+        "method": "standard_credit",
+        "description": "Payment received",
+        "running_balance_gbp": 26.85
+      },
+      {
+        "date": "2018-10-30",
+        "type": "arrears_resolved",
+        "invoice_number": 104,
+        "amount_gbp": -26.84,
+        "info_amount_gbp": null,
+        "method": "payment_plan",
+        "description": "Arrears cleared via payment plan",
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2018-11-03",
@@ -3770,17 +3790,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV106 raised",
-        "running_balance_gbp": 92.06
-      },
-      {
-        "date": "2018-11-05",
-        "type": "notice",
-        "invoice_number": 105,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 92.06
+        "running_balance_gbp": 56.09
       },
       {
         "date": "2018-11-17",
@@ -3790,17 +3800,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 35.98
-      },
-      {
-        "date": "2018-11-29",
-        "type": "arrears_resolved",
-        "invoice_number": 105,
-        "amount_gbp": -35.98,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2018-12-04",
@@ -3810,7 +3810,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV107 raised",
-        "running_balance_gbp": 73.49
+        "running_balance_gbp": 73.5
       },
       {
         "date": "2018-12-18",
@@ -3820,7 +3820,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2018-12-31",
@@ -3830,7 +3830,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV108 raised",
-        "running_balance_gbp": 85.67
+        "running_balance_gbp": 85.68
       },
       {
         "date": "2019-01-14",
@@ -3840,7 +3840,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-02-03",
@@ -3850,7 +3850,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV109 raised",
-        "running_balance_gbp": 119.56
+        "running_balance_gbp": 119.57
       },
       {
         "date": "2019-02-17",
@@ -3860,7 +3860,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-03-01",
@@ -3870,7 +3870,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV110 raised",
-        "running_balance_gbp": 86.82
+        "running_balance_gbp": 86.83
       },
       {
         "date": "2019-03-15",
@@ -3880,7 +3880,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-04-01",
@@ -3890,7 +3890,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV111 raised",
-        "running_balance_gbp": 81.35
+        "running_balance_gbp": 81.36
       },
       {
         "date": "2019-04-15",
@@ -3900,7 +3900,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-05-01",
@@ -3910,7 +3910,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV112 raised",
-        "running_balance_gbp": 73.21
+        "running_balance_gbp": 73.22
       },
       {
         "date": "2019-05-15",
@@ -3920,7 +3920,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-06-02",
@@ -3930,7 +3930,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV113 raised",
-        "running_balance_gbp": 54.41
+        "running_balance_gbp": 54.42
       },
       {
         "date": "2019-06-16",
@@ -3940,7 +3940,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-07-03",
@@ -3950,7 +3950,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV114 raised",
-        "running_balance_gbp": 32.77
+        "running_balance_gbp": 32.78
       },
       {
         "date": "2019-07-17",
@@ -3960,7 +3960,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-08-03",
@@ -3970,7 +3970,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV115 raised",
-        "running_balance_gbp": 27.02
+        "running_balance_gbp": 27.03
       },
       {
         "date": "2019-08-17",
@@ -3980,7 +3980,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-09-02",
@@ -3990,7 +3990,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV116 raised",
-        "running_balance_gbp": 27.32
+        "running_balance_gbp": 27.33
       },
       {
         "date": "2019-09-16",
@@ -4000,7 +4000,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-09-30",
@@ -4010,7 +4010,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV117 raised",
-        "running_balance_gbp": 31.8
+        "running_balance_gbp": 31.81
       },
       {
         "date": "2019-10-14",
@@ -4020,7 +4020,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-11-04",
@@ -4030,7 +4030,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV118 raised",
-        "running_balance_gbp": 60.76
+        "running_balance_gbp": 60.77
       },
       {
         "date": "2019-11-18",
@@ -4040,7 +4040,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2019-12-07",
@@ -4050,7 +4050,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV119 raised",
-        "running_balance_gbp": 90.92
+        "running_balance_gbp": 90.93
       },
       {
         "date": "2019-12-21",
@@ -4060,7 +4060,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-01-02",
@@ -4070,7 +4070,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV120 raised",
-        "running_balance_gbp": 97.63
+        "running_balance_gbp": 97.64
       },
       {
         "date": "2020-01-16",
@@ -4080,7 +4080,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-02-01",
@@ -4090,7 +4090,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV121 raised",
-        "running_balance_gbp": 75.05
+        "running_balance_gbp": 75.06
       },
       {
         "date": "2020-02-15",
@@ -4100,7 +4100,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-03-01",
@@ -4110,7 +4110,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV122 raised",
-        "running_balance_gbp": 67.86
+        "running_balance_gbp": 67.87
       },
       {
         "date": "2020-03-15",
@@ -4120,7 +4120,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-04-02",
@@ -4130,7 +4130,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV123 raised",
-        "running_balance_gbp": 73.88
+        "running_balance_gbp": 73.89
       },
       {
         "date": "2020-04-16",
@@ -4140,7 +4140,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-05-01",
@@ -4150,7 +4150,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV124 raised",
-        "running_balance_gbp": 48.01
+        "running_balance_gbp": 48.02
       },
       {
         "date": "2020-05-15",
@@ -4160,7 +4160,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-06-02",
@@ -4170,17 +4170,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV125 raised",
-        "running_balance_gbp": 37.38
+        "running_balance_gbp": 37.39
       },
       {
-        "date": "2020-06-16",
+        "date": "2020-06-22",
         "type": "payment_received",
         "invoice_number": 125,
         "amount_gbp": -37.38,
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-07-03",
@@ -4190,17 +4190,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV126 raised",
-        "running_balance_gbp": 26.19
+        "running_balance_gbp": 26.2
       },
       {
-        "date": "2020-07-21",
+        "date": "2020-07-17",
         "type": "payment_received",
         "invoice_number": 126,
         "amount_gbp": -26.19,
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-07-31",
@@ -4210,17 +4210,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV127 raised",
-        "running_balance_gbp": 22.77
+        "running_balance_gbp": 22.78
       },
       {
-        "date": "2020-08-21",
-        "type": "notice",
+        "date": "2020-08-14",
+        "type": "payment_received",
         "invoice_number": 127,
-        "amount_gbp": 0.0,
+        "amount_gbp": -22.77,
         "info_amount_gbp": null,
         "method": "standard_credit",
-        "description": "First overdue notice -- GBP22.78 outstanding",
-        "running_balance_gbp": 22.77
+        "description": "Payment received",
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-08-31",
@@ -4230,17 +4230,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV128 raised",
-        "running_balance_gbp": 51.64
-      },
-      {
-        "date": "2020-09-04",
-        "type": "notice",
-        "invoice_number": 127,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 51.64
+        "running_balance_gbp": 28.88
       },
       {
         "date": "2020-09-14",
@@ -4250,17 +4240,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": 22.77
-      },
-      {
-        "date": "2020-09-28",
-        "type": "arrears_resolved",
-        "invoice_number": 127,
-        "amount_gbp": -22.78,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-10-03",
@@ -4270,7 +4250,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV129 raised",
-        "running_balance_gbp": 28.09
+        "running_balance_gbp": 28.11
       },
       {
         "date": "2020-10-17",
@@ -4280,7 +4260,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-10-31",
@@ -4290,7 +4270,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV130 raised",
-        "running_balance_gbp": 47.92
+        "running_balance_gbp": 47.94
       },
       {
         "date": "2020-11-14",
@@ -4300,7 +4280,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2020-12-01",
@@ -4310,7 +4290,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV131 raised",
-        "running_balance_gbp": 57.63
+        "running_balance_gbp": 57.65
       },
       {
         "date": "2020-12-15",
@@ -4320,7 +4300,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-01-02",
@@ -4330,7 +4310,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV132 raised",
-        "running_balance_gbp": 81.2
+        "running_balance_gbp": 81.22
       },
       {
         "date": "2021-01-16",
@@ -4340,7 +4320,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-02-02",
@@ -4350,7 +4330,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV133 raised",
-        "running_balance_gbp": 103.4
+        "running_balance_gbp": 103.42
       },
       {
         "date": "2021-02-16",
@@ -4360,7 +4340,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-03-03",
@@ -4370,17 +4350,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV134 raised",
-        "running_balance_gbp": 83.22
+        "running_balance_gbp": 83.24
       },
       {
-        "date": "2021-03-30",
+        "date": "2021-03-17",
         "type": "payment_received",
         "invoice_number": 134,
         "amount_gbp": -83.23,
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-04-02",
@@ -4390,7 +4370,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV135 raised",
-        "running_balance_gbp": 80.34
+        "running_balance_gbp": 80.36
       },
       {
         "date": "2021-04-16",
@@ -4400,7 +4380,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-05-05",
@@ -4410,7 +4390,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV136 raised",
-        "running_balance_gbp": 88.99
+        "running_balance_gbp": 89.01
       },
       {
         "date": "2021-05-19",
@@ -4420,7 +4400,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-06-04",
@@ -4430,7 +4410,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV137 raised",
-        "running_balance_gbp": 46.85
+        "running_balance_gbp": 46.87
       },
       {
         "date": "2021-06-18",
@@ -4440,7 +4420,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-07-16",
@@ -4450,7 +4430,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV138 raised",
-        "running_balance_gbp": 72.91
+        "running_balance_gbp": 72.93
       },
       {
         "date": "2021-07-30",
@@ -4460,7 +4440,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -0.01
+        "running_balance_gbp": 0.01
       },
       {
         "date": "2021-08-02",
@@ -4470,7 +4450,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV139 raised",
-        "running_balance_gbp": -21.96
+        "running_balance_gbp": -21.94
       },
       {
         "date": "2021-08-31",
@@ -4480,7 +4460,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV140 raised",
-        "running_balance_gbp": 31.4
+        "running_balance_gbp": 31.42
       },
       {
         "date": "2021-09-14",
@@ -4490,7 +4470,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -21.96
+        "running_balance_gbp": -21.94
       },
       {
         "date": "2021-10-02",
@@ -4500,7 +4480,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV141 raised",
-        "running_balance_gbp": -24.39
+        "running_balance_gbp": -24.37
       },
       {
         "date": "2021-11-02",
@@ -4510,7 +4490,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV142 raised",
-        "running_balance_gbp": 20.6
+        "running_balance_gbp": 20.62
       },
       {
         "date": "2021-11-16",
@@ -4520,7 +4500,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -24.39
+        "running_balance_gbp": -24.37
       },
       {
         "date": "2021-11-30",
@@ -4530,7 +4510,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV143 raised",
-        "running_balance_gbp": 49.95
+        "running_balance_gbp": 49.97
       },
       {
         "date": "2021-12-14",
@@ -4540,7 +4520,7 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -24.39
+        "running_balance_gbp": -24.37
       },
       {
         "date": "2021-12-29",
@@ -4550,7 +4530,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV144 raised",
-        "running_balance_gbp": 23.68
+        "running_balance_gbp": 23.7
       },
       {
         "date": "2022-01-12",
@@ -4560,12 +4540,12 @@
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
-        "running_balance_gbp": -24.39
+        "running_balance_gbp": -24.37
       }
     ],
-    "current_balance_gbp": -24.39,
+    "current_balance_gbp": -24.37,
     "total_billed_gbp": 3964.42,
-    "total_collected_gbp": 3988.81,
+    "total_collected_gbp": 3988.79,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -4866,45 +4846,45 @@
   "reaction_chain": [
     {
       "customer_id": "C1",
-      "date": "2016-09-16",
+      "date": "2016-11-15",
       "event_type": "arrears_payment_missed",
       "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 20.86,
+      "amount_gbp": 43.66,
       "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2016-09-23",
+      "date": "2016-11-22",
       "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP20.86 outstanding",
+      "description": "First overdue notice -- GBP43.66 outstanding",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 20.86,
+      "amount_gbp": 43.66,
       "outcome": "FIRST_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2016-10-07",
+      "date": "2016-12-06",
       "event_type": "arrears_second_notice",
       "description": "Second notice -- payment plan offered",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 20.86,
+      "amount_gbp": 43.66,
       "outcome": "SECOND_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2016-10-31",
+      "date": "2016-12-30",
       "event_type": "arrears_resolved",
       "description": "Arrears cleared via payment plan",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 20.86,
+      "amount_gbp": 43.66,
       "outcome": "RESOLVED",
       "framing_type": null
     },
@@ -4954,45 +4934,45 @@
     },
     {
       "customer_id": "C1",
-      "date": "2018-10-15",
+      "date": "2018-09-15",
       "event_type": "arrears_payment_missed",
       "description": "Standard credit payment not received",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 35.98,
+      "amount_gbp": 26.84,
       "outcome": "PAYMENT_MISSED",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2018-10-22",
+      "date": "2018-09-22",
       "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP35.98 outstanding",
+      "description": "First overdue notice -- GBP26.84 outstanding",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 35.98,
+      "amount_gbp": 26.84,
       "outcome": "FIRST_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2018-11-05",
+      "date": "2018-10-06",
       "event_type": "arrears_second_notice",
       "description": "Second notice -- payment plan offered",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 35.98,
+      "amount_gbp": 26.84,
       "outcome": "SECOND_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C1",
-      "date": "2018-11-29",
+      "date": "2018-10-30",
       "event_type": "arrears_resolved",
       "description": "Arrears cleared via payment plan",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 35.98,
+      "amount_gbp": 26.84,
       "outcome": "RESOLVED",
       "framing_type": null
     },
@@ -5042,50 +5022,6 @@
     },
     {
       "customer_id": "C1",
-      "date": "2020-08-14",
-      "event_type": "arrears_payment_missed",
-      "description": "Standard credit payment not received",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 22.78,
-      "outcome": "PAYMENT_MISSED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C1",
-      "date": "2020-08-21",
-      "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP22.78 outstanding",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 22.78,
-      "outcome": "FIRST_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C1",
-      "date": "2020-09-04",
-      "event_type": "arrears_second_notice",
-      "description": "Second notice -- payment plan offered",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 22.78,
-      "outcome": "SECOND_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C1",
-      "date": "2020-09-28",
-      "event_type": "arrears_resolved",
-      "description": "Arrears cleared via payment plan",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 22.78,
-      "outcome": "RESOLVED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C1",
       "date": "2020-12-30",
       "event_type": "journey_state",
       "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
@@ -5099,9 +5035,9 @@
       "customer_id": "C1",
       "date": "2020-12-30",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 19%.",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 17%.",
       "company_belief": 0.082,
-      "sim_truth": 0.188,
+      "sim_truth": 0.17,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

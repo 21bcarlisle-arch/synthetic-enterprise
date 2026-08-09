@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T20:44:57.329194+00:00",
+  "generated_at": "2026-08-09T00:10:54.331238+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -21,13 +21,13 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
-    "total_open_atoms: 55 -> 64"
+    "reserved queue: 1 added (publish_gate_wedged)",
+    "total_open_atoms: 55 -> 93"
   ],
   "detail": {
     "new_decisions": [],
     "reserved_added": [
-      "executor-wall_escalated-f13e76f1"
+      "publish_gate_wedged"
     ],
     "reserved_cleared": [],
     "daemons_newly_stale": [],
@@ -39,7 +39,7 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 64
+        "to": 93
       }
     ]
   },
@@ -47,7 +47,7 @@
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
     "reserved_ids": [
-      "executor-wall_escalated-f13e76f1"
+      "publish_gate_wedged"
     ],
     "daemon_status": {
       "session-watchdog": "stale",
@@ -71,11 +71,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 64
+    "open_atoms": 93
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-03T20:39:57.963596+00:00",
-    "health_last_updated": "2026-08-03T20:44:50.293916+00:00",
+    "reserved_generated_at": "2026-08-09T00:05:45.422300+00:00",
+    "health_last_updated": "2026-08-09T00:10:50.915049+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
