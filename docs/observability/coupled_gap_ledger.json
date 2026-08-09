@@ -1,182 +1,248 @@
 {
   "W1_11_fabric_physics_core": {
-    "baseline": "no-skill = predict the climatological mean truth (0.177); MAE_noskill=0.1004",
+    "baseline": "no-skill = predict the climatological mean truth (0.192); MAE_noskill=0.1049",
     "components": {
       "belief_form": "EPC register prior HLC (kW/K), company-side",
       "belief_source": "EPC register prior only",
-      "bias_model": -0.020561,
-      "inference_improvement": -0.027650067514514293,
-      "mae_model": 0.020561,
-      "mae_noskill": 0.100365,
+      "bias_model": 0.003877,
+      "inference_improvement": 0.021825652931711848,
+      "mae_model": 0.044774,
+      "mae_noskill": 0.104879,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc. Decided by company.pricing.fabric_intervention.decide in BOTH arms.",
-        "declined_where_value_existed": 4,
-        "forgone_annual_kg_co2e": 8600.160387595755,
-        "forgone_annual_kwh": 46995.41195407516,
-        "forgone_lifetime_gbp": 41586.324635626195,
-        "gbp_per_tonne_co2e": 4835.528962414152,
-        "misrank_rate": 0.2,
-        "misranked_premises": 2,
-        "premises": 10,
+        "declined_where_value_existed": 89,
+        "forgone_annual_kg_co2e": 135296.93026064645,
+        "forgone_annual_kwh": 739327.4877630954,
+        "forgone_lifetime_gbp": 548166.7676821564,
+        "gbp_per_tonne_co2e": 4051.5831854139315,
+        "misrank_rate": 0.05,
+        "misranked_premises": 10,
+        "premises": 200,
         "value_destroying_recommendations": 0
       },
       "money_consequence_inferred": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = inferred. Decided by company.pricing.fabric_intervention.decide in BOTH arms.",
-        "declined_where_value_existed": 2,
-        "forgone_annual_kg_co2e": 4511.913684993929,
-        "forgone_annual_kwh": 24655.26603821819,
-        "forgone_lifetime_gbp": 16261.394411109708,
-        "gbp_per_tonne_co2e": 3604.101396086789,
-        "misrank_rate": 0.1,
-        "misranked_premises": 1,
-        "premises": 10,
+        "declined_where_value_existed": 73,
+        "forgone_annual_kg_co2e": 112967.1185478439,
+        "forgone_annual_kwh": 617306.6587313875,
+        "forgone_lifetime_gbp": 451216.467628195,
+        "gbp_per_tonne_co2e": 3994.228350943514,
+        "misrank_rate": 0.055,
+        "misranked_premises": 11,
+        "premises": 200,
         "value_destroying_recommendations": 0
       },
-      "n": 10,
-      "premises": 10,
-      "prior": 0.176921,
+      "n": 200,
+      "premises": 200,
+      "prior": 0.191811,
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.18036082978173537,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 0,
+            "resolution": 0.015,
+            "value": 0.0,
+            "verdict": "pass",
+            "worst_home": "P0001",
+            "worst_value": 0.15731565644634554
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.3295154116078919,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 2,
+            "resolution": 0.015,
+            "value": 0.01,
+            "verdict": "fail",
+            "worst_home": "P0197",
+            "worst_value": 0.8868364321557463
           },
           "L1.3_away_days_per_year": {
-            "value": 12.175,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 0,
+            "resolution": 0.015,
+            "value": 0.0,
+            "verdict": "pass",
+            "worst_home": "P0194",
+            "worst_value": 6.0875
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.07934169285065529,
+            "value": 0.16340668763831986,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
-            "value": 0.06666666666666667,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 7,
+            "resolution": 0.015,
+            "value": 0.035,
+            "verdict": "fail",
+            "worst_home": "P0108",
+            "worst_value": 0.15
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.338882112539023,
+            "value": 0.21163503872914702,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06044601286685289,
+            "value": 0.021795091924707927,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
-            "value": 1.022342082344912,
+            "value": 1.0931706235317422,
             "verdict": "pass"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7319747665390262,
+            "value": 1.808932753934729,
             "verdict": "unvalidated"
           }
         },
-        "failed_levels": [],
+        "days": 120,
+        "failed": [
+          "L1.2_day_to_day_shape_correlation",
+          "L1.5_max_multiplicity_share"
+        ],
+        "failed_levels": [
+          "L1"
+        ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
-        "is_red": false
+        "homes": 200,
+        "inconclusive": [],
+        "is_red": true
       }
     },
-    "g0": 0.10036526959999999,
-    "gap": 0.2048599389205446,
-    "measured_at": "2026-08-09T02:09:59.080608+00:00",
+    "g0": 0.10487934813100001,
+    "gap": 0.42690864157617536,
+    "measured_at": "2026-08-09T05:38:32.735443+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
-    "raw_gap": 0.02056082299999999,
-    "run_git_commit": "4e13770a88161ef0a07eedd525085126d074f07a",
+    "raw_gap": 0.04477390004,
+    "run_git_commit": "6facde94940386b09590ff7ccbfc136ec85effec",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
-    "baseline": "no-skill = predict the climatological mean truth (0.177); MAE_noskill=0.1004",
+    "baseline": "no-skill = predict the climatological mean truth (0.192); MAE_noskill=0.1049",
     "components": {
       "belief_form": "C14 posterior HLC (kW/K): EPC prior shrunk toward meter evidence",
       "belief_source": "C14 posterior (EPC + meter evidence)",
-      "bias_model": -0.001363,
-      "inference_improvement": -0.027650067514514293,
-      "mae_model": 0.023336,
-      "mae_noskill": 0.100365,
+      "bias_model": 0.00844,
+      "inference_improvement": 0.021825652931711848,
+      "mae_model": 0.042485,
+      "mae_noskill": 0.104879,
       "money_consequence_epc": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = epc. Decided by company.pricing.fabric_intervention.decide in BOTH arms.",
-        "declined_where_value_existed": 4,
-        "forgone_annual_kg_co2e": 8600.160387595755,
-        "forgone_annual_kwh": 46995.41195407516,
-        "forgone_lifetime_gbp": 41586.324635626195,
-        "gbp_per_tonne_co2e": 4835.528962414152,
-        "misrank_rate": 0.2,
-        "misranked_premises": 2,
-        "premises": 10,
+        "declined_where_value_existed": 89,
+        "forgone_annual_kg_co2e": 135296.93026064645,
+        "forgone_annual_kwh": 739327.4877630954,
+        "forgone_lifetime_gbp": 548166.7676821564,
+        "gbp_per_tonne_co2e": 4051.5831854139315,
+        "misrank_rate": 0.05,
+        "misranked_premises": 10,
+        "premises": 200,
         "value_destroying_recommendations": 0
       },
       "money_consequence_inferred": {
         "basis": "PROVISIONAL \u2014 lifetime net value at 7.4 p/kWh on domain-knowledge retrofit capex; savings from reduced or time-shifted kWh only, never from discounting. Belief = inferred. Decided by company.pricing.fabric_intervention.decide in BOTH arms.",
-        "declined_where_value_existed": 2,
-        "forgone_annual_kg_co2e": 4511.913684993929,
-        "forgone_annual_kwh": 24655.26603821819,
-        "forgone_lifetime_gbp": 16261.394411109708,
-        "gbp_per_tonne_co2e": 3604.101396086789,
-        "misrank_rate": 0.1,
-        "misranked_premises": 1,
-        "premises": 10,
+        "declined_where_value_existed": 73,
+        "forgone_annual_kg_co2e": 112967.1185478439,
+        "forgone_annual_kwh": 617306.6587313875,
+        "forgone_lifetime_gbp": 451216.467628195,
+        "gbp_per_tonne_co2e": 3994.228350943514,
+        "misrank_rate": 0.055,
+        "misranked_premises": 11,
+        "premises": 200,
         "value_destroying_recommendations": 0
       },
-      "n": 10,
-      "premises": 10,
-      "prior": 0.176921,
+      "n": 200,
+      "premises": 200,
+      "prior": 0.191811,
       "two_level": {
         "cells": {
           "L1.1_half_hourly_texture": {
-            "value": 0.18036082978173537,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 0,
+            "resolution": 0.015,
+            "value": 0.0,
+            "verdict": "pass",
+            "worst_home": "P0001",
+            "worst_value": 0.15731565644634554
           },
           "L1.2_day_to_day_shape_correlation": {
-            "value": 0.3295154116078919,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 2,
+            "resolution": 0.015,
+            "value": 0.01,
+            "verdict": "fail",
+            "worst_home": "P0197",
+            "worst_value": 0.8868364321557463
           },
           "L1.3_away_days_per_year": {
-            "value": 12.175,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 0,
+            "resolution": 0.015,
+            "value": 0.0,
+            "verdict": "pass",
+            "worst_home": "P0194",
+            "worst_value": 6.0875
           },
           "L1.4_weekday_weekend_separation": {
-            "value": 0.07934169285065529,
+            "value": 0.16340668763831986,
             "verdict": "unvalidated"
           },
           "L1.5_max_multiplicity_share": {
-            "value": 0.06666666666666667,
-            "verdict": "pass"
+            "homes_judged": 200,
+            "homes_unjudged": 0,
+            "homes_violating": 7,
+            "resolution": 0.015,
+            "value": 0.035,
+            "verdict": "fail",
+            "worst_home": "P0108",
+            "worst_value": 0.15
           },
           "L2.1_smoothing_ratio": {
-            "value": 0.338882112539023,
+            "value": 0.21163503872914702,
             "verdict": "pass"
           },
           "L2.2_between_home_correlation": {
-            "value": 0.06044601286685289,
+            "value": 0.021795091924707927,
             "verdict": "pass"
           },
           "L2.3_timing_diversity_periods": {
-            "value": 1.022342082344912,
+            "value": 1.0931706235317422,
             "verdict": "pass"
           },
           "L2.4_scale_spread_p90_p10": {
-            "value": 1.7319747665390262,
+            "value": 1.808932753934729,
             "verdict": "unvalidated"
           }
         },
-        "failed_levels": [],
+        "days": 120,
+        "failed": [
+          "L1.2_day_to_day_shape_correlation",
+          "L1.5_max_multiplicity_share"
+        ],
+        "failed_levels": [
+          "L1"
+        ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
-        "is_red": false
+        "homes": 200,
+        "inconclusive": [],
+        "is_red": true
       }
     },
-    "g0": 0.10036526959999999,
-    "gap": 0.2325100064350589,
-    "measured_at": "2026-08-09T02:09:59.080608+00:00",
+    "g0": 0.10487934813100001,
+    "gap": 0.4050829886444635,
+    "measured_at": "2026-08-09T05:38:32.735443+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
-    "raw_gap": 0.02333592948055242,
-    "run_git_commit": "4e13770a88161ef0a07eedd525085126d074f07a",
+    "raw_gap": 0.042484839787988615,
+    "run_git_commit": "6facde94940386b09590ff7ccbfc136ec85effec",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -384,25 +450,94 @@
     "twin_atom_id": "C12_channel_attribution_analytics"
   },
   "W2_11_payment_behaviour_source": {
-    "baseline": "flag nobody (all detectable harm missed -> gap = 1); flag EVERYTHING also scores 0.0 -- this gap counts missed truth only, so a score near 0 is evidence of recall and says NOTHING about how much the company over-flagged (atom D11_detection_gap_is_recall_only)",
+    "baseline": "0.5 -- the balanced error EVERY prevalence-blind rule scores: flag nobody (miss 1, false-flag 0), flag EVERYTHING (miss 0, false-flag 1), and any coin-flip at any rate. Unlike the recall-only `detection_gap` this supersedes, 0.0 cannot be bought by over-flagging -- it has to be earned in both directions -- and 1.0 means perfectly wrong, not merely blind.",
     "components": {
-      "caught": 13,
-      "false_flag_rate": 0.014417,
-      "flagged_size": 35,
-      "miss_rate": 0.580645,
-      "missed": 18,
-      "missed_harm": 18.0,
-      "n_false_flags": 22,
+      "caught": 31,
+      "exclusion_reason": "cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.",
+      "false_flag_rate": 0.171875,
+      "flagged_size": 391,
+      "miss_rate": 0.0,
+      "missed": 0,
+      "missed_failure_rate": 0.0,
+      "missed_harm": 0,
+      "n_excluded": 118,
+      "n_false_flags": 242,
+      "n_negatives": 1408,
+      "remittance_attribution": {
+        "balance_gbp_actual": 500.89,
+        "balance_gbp_delta": 0.0,
+        "balance_gbp_remittance_complete": 500.89,
+        "counterfactual": "the SAME world -- same payment outcomes, same clearing dates, same bills -- observed by a company whose every credit carries its invoice remittance reference, so `AccountLedger.allocate` never falls back to oldest-first. `attributed` = actual minus that.",
+        "measures": {
+          "ageing.mean_bucket_displacement": {
+            "actual": 1.741935,
+            "attributed": 1.741935,
+            "meaning": "buckets of debt-DATE displacement over the truly-overdue invoices",
+            "remittance_complete": 0.0
+          },
+          "ageing.overstated_arrears_rate": {
+            "actual": 0.014417,
+            "attributed": 0.011796,
+            "meaning": "truly-current invoices believed in arrears -- the WRONGFUL-DUNNING exposure",
+            "remittance_complete": 0.002621
+          },
+          "ageing.understated_arrears_rate": {
+            "actual": 0.580645,
+            "attributed": 0.580645,
+            "meaning": "truly-overdue invoices believed settled -- debt never chased, under-provisioned",
+            "remittance_complete": 0.0
+          },
+          "arrears_view.unpursued_arrears_rate": {
+            "actual": 0.580645,
+            "attributed": 0.580645,
+            "meaning": "truly-failed invoices the company DETECTED and then stopped holding in its arrears view by as_of -- a real arrears case that disappears from the view that would have pursued it. The detection headline is EVER-FLAGGED (D11) and structurally cannot see this; it is measured here or nowhere.",
+            "remittance_complete": 0.0
+          },
+          "detection.false_flag_rate": {
+            "actual": 0.171875,
+            "attributed": 0.171875,
+            "meaning": "never-flaggable invoices wrongly flagged",
+            "remittance_complete": 0.0
+          },
+          "detection.missed_failure_rate": {
+            "actual": 0.0,
+            "attributed": 0.0,
+            "meaning": "truly-failed invoices the company does not hold flagged -- the WRONGFUL NON-PURSUIT twin: a real arrears case that disappears from the arrears view",
+            "remittance_complete": 0.0
+          }
+        },
+        "n_ambiguous_credits": 384,
+        "n_ambiguous_records": 402,
+        "normalisation": "NONE. Each figure is a difference in the measure's own units on the measure's own denominator (D7's rule). There is deliberately no 'share of the total error' ratio: its denominator would count the truth's class balance, which is the defect D7 exists to remove.",
+        "premise_violated": null,
+        "unpursued_counts": {
+          "actual": {
+            "n_ever_detected": 31,
+            "n_true_failures": 31,
+            "n_unpursued": 18,
+            "unpursued_arrears_rate": 0.580645
+          },
+          "remittance_complete": {
+            "n_ever_detected": 31,
+            "n_true_failures": 31,
+            "n_unpursued": 0,
+            "unpursued_arrears_rate": 0.0
+          }
+        },
+        "vacuity": null
+      },
+      "supersedes": "detection_gap (recall-only, retired 2026-08-09 by atom D11). NOT restated here: it was scored over a different flagged population, so no arithmetic on these sets reproduces it.",
       "total_harm": 31.0,
-      "truth_size": 31
+      "truth_size": 31,
+      "universe_size": 1557
     },
-    "g0": 31.0,
-    "gap": 0.5806451612903226,
-    "measured_at": "2026-08-09T02:14:23.836165+00:00",
+    "g0": 0.5,
+    "gap": 0.0859375,
+    "measured_at": "2026-08-09T05:41:37.577219+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. TWO FURTHER LIMITS ON THIS HEADLINE (H27 Expert Hour 2026-08-09, atom D11 -- measured, not tuned; the number itself is unchanged). (1) as_of ARTEFACT: the truth it scores (`result == 'failed'`) does not move with the clock but the belief it scores against is held AT the measurement date, so holding company and world fixed and moving only that date walks the figure ~+70% over 60 days. Its companion `detection_latency` uses an EVER-KNEW population and does not move. (2) RECALL ONLY: a company flagging EVERY invoice would score a perfect 0.0, so read the over-flagging witness beside it -- 22 of 35 flags are on invoices that truly succeeded (rate 0.014417 over the truly-current population). Companion per-dimension gaps: belief 0.2222; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0144 over 1526 truly-current = the wrongful-dunning exposure) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
-    "raw_gap": 18.0,
-    "run_git_commit": "4e13770a88161ef0a07eedd525085126d074f07a",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift. The H27 Expert Hour measured two defects in the old figure and both are now closed at the measure rather than caveated in prose. (1) It was an as_of ARTEFACT: the truth (`result == 'failed'`) does not move with the clock but the belief was held AT the measurement date, so holding company and world fixed and moving only that date walked the figure ~+70% over 60 days. The population is now EVER-FLAGGED -- a detection is a fact about the day it happened, whatever a later oldest-first allocation did to the invoice -- and the as_of sweep is flat. (2) It counted ONE ERROR DIRECTION: a company flagging EVERY invoice scored a perfect 0.0. The headline is now the BALANCED error of both directions on their own denominators, so both degenerate strategies score g0 = 0.5. detection balanced error 0.0859 [0.5 = every prevalence-blind rule, incl. flagging everything] (missed_failure_rate 0.0000 over 31 truly-failed, false_flag_rate 0.1719 = 242 of 1408 never-flaggable cases wrongly flagged = the wrongful-dunning exposure; 118 case(s) in neither population: cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.). The retired recall-only figure is NOT restated: it was scored over a different flagged population, so no arithmetic on these sets reproduces it. Companion per-dimension gaps: belief 0.2222; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0144 over 1526 truly-current = the wrongful-dunning exposure) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): 384 credit(s) landed with no invoice reference out of 402 unreferenced record(s); the company's MONEY is unaffected by every penny (portfolio balance GBP 500.89 both ways, delta +0.00) while its DATES are not: ageing.mean_bucket_displacement 1.741935 vs 0.0 remittance-complete -> +1.7419 buckets attributable; ageing.overstated_arrears_rate 0.014417 vs 0.002621 remittance-complete -> +0.0118 wrongful-dunning rate attributable; ageing.understated_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 debt-believed-settled rate attributable; arrears_view.unpursued_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 wrongful-non-pursuit rate attributable. Read as: what the no-remittance channel COSTS this company, holding the world literally fixed. R12: a diagnostic, never a target. R12: diagnostic, not a target.",
+    "raw_gap": 0.0,
+    "run_git_commit": "6facde94940386b09590ff7ccbfc136ec85effec",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {

@@ -202,6 +202,38 @@ def record_level_up_self_certified(atom: str, level: int | None, provenance: str
     _append_envelope(fields, provenance, "agent_self_certified", "self", ts=ts, path=path)
 
 
+def record_level_correction_self_certified(atom: str, level: int, provenance: str, *,
+                                           ts: float | None = None, path: Path | None = None) -> None:
+    """Append a SELF-CERTIFIED level CORRECTION — a level_current move DOWN, recorded with the
+    evidence that stopped reproducing.
+
+    WHY THIS EXISTS, and it is not symmetry-for-its-own-sake. Until this landed the ledger could
+    only record a level going UP, so the one direction that carries bad news had no auditable
+    trace at all. R16's requirement is that a level MOVE leave a record of what moved and on what
+    evidence; a demotion is a move, and it is the move a reader most needs to find later. The
+    un-knowing case is the one this codebase has already been bitten by — a population change can
+    retire an artefact that a sibling atom's promotion rested on, and the tell is precisely that
+    the sibling's cited evidence no longer reproduces
+    (`docs/staging/done/WORKER_FINDING_EVER_FLAGGED_IS_BLIND_TO_UN_KNOWING_2026-08-09.md`). With
+    no record path, the only honest options were to leave a known-stale level standing or to edit
+    it silently. Both are worse than a row saying what was un-known and why.
+
+    IT IS DELIBERATELY NOT AN AUTHORITY. `is_valid_level_up` returns False for these rows, so a
+    correction can never be used to satisfy `tools/level_promotion_gate.py` — recording a
+    demotion cannot smuggle a promotion past the commit gate. Going back UP later requires its own
+    `LEVEL_UP_SELF_CERTIFIED` with fresh evidence, exactly as the first move did.
+    """
+    if not isinstance(provenance, str) or not provenance.strip():
+        raise ValueError(
+            "record_level_correction_self_certified requires non-empty provenance (the evidence "
+            "that stopped reproducing) -- an unevidenced demotion is not a record either."
+        )
+    if not isinstance(atom, str) or not atom.strip():
+        raise ValueError("record_level_correction_self_certified requires a non-empty atom id.")
+    if not isinstance(level, int) or isinstance(level, bool):
+        raise ValueError("record_level_correction_self_certified requires the new integer level.")
+    _append_envelope({"atom": atom, "action": "LEVEL_CORRECTION_SELF_CERTIFIED", "level": level},
+                     provenance, "agent_self_certified", "self", ts=ts, path=path)
 
 
 

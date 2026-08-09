@@ -81,6 +81,43 @@ def test_record_level_up_self_certified_writes_honest_envelope_and_requires_evid
     assert len(G.read_ledger(led)) == 1  # only the valid entry was ever written
 
 
+def test_record_level_correction_writes_an_honest_envelope_and_requires_evidence(tmp_path):
+    led = tmp_path / "ledger.jsonl"
+    G.record_level_correction_self_certified(
+        "W1_12_premise_trace_generator", 2,
+        "the exit test the L3 rested on stops reproducing at population scale", path=led)
+    entries = G.read_ledger(led)
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["action"] == "LEVEL_CORRECTION_SELF_CERTIFIED" and e["level"] == 2
+    assert e["authorized_by"] == "agent_self_certified" and e["channel"] == "self"
+    with pytest.raises(ValueError):
+        G.record_level_correction_self_certified("A", 1, "", path=led)        # no evidence
+    with pytest.raises(ValueError):
+        G.record_level_correction_self_certified("", 1, "evidence", path=led)  # no atom
+    with pytest.raises(ValueError):
+        G.record_level_correction_self_certified("A", None, "evidence", path=led)  # no level
+    assert len(G.read_ledger(led)) == 1  # only the valid entry was ever written
+
+
+def test_a_level_correction_can_never_satisfy_a_promotion(tmp_path):
+    """THE failable property of the correction row (R15). A demotion is a RECORD, never an
+    authority: if `is_valid_level_up` accepted one, recording a demotion to level N would silently
+    authorise a PROMOTION to level N at the commit gate.
+
+    The row is written by the REAL recorder rather than hand-built, deliberately. A hand-built
+    dict asserts this module's predicate against a literal the test itself controls, so it stays
+    green no matter what `record_level_correction_self_certified` actually writes — the tautology
+    class that has already been found once inside an R15 test in this codebase. Going through the
+    recorder is what makes mutating the source fire this."""
+    led = tmp_path / "ledger.jsonl"
+    G.record_level_correction_self_certified("W1_12_premise_trace_generator", 2,
+                                             "population-scale evidence did not reproduce", path=led)
+    written = G.read_ledger(led)[0]
+    assert G.is_valid_level_up(written) is False
+    assert G.is_valid_self_certified_level_up(written) is False
+
+
 def test_readers_fail_safe(tmp_path):
     assert G.read_ledger(tmp_path / "nope.jsonl") == []
     assert G.load_baseline(tmp_path / "nope.json") == {}
