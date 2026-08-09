@@ -2521,7 +2521,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 f"[coupled-triad W2_11<->D5] LIVE payment belief-vs-truth gap: "
                 f"detection={_det.gap} (true failures {_triad_result['stats']['n_true_failures']}, "
                 f"flagged {_triad_result['stats']['n_flagged_failures']}, "
-                f"non-DD blind {_triad_result['stats']['n_true_non_dd_failures']}); "
+                f"non-DD blind {_triad_result['stats']['n_true_non_dd_failures']}, "
+                # D10: the headline is reconciliation-determined -- the DD
+                # channel's contribution is only visible in DAYS, never here.
+                f"DD-channel unique detections "
+                f"{_triad_result['stats']['n_flagged_via_dd_channel_only']}, "
+                f"DD channel buys {_triad_result['stats']['dd_channel_days_earlier']} "
+                f"days earlier detection); "
                 f"belief={_triad_result['belief'].gap:.4f} "
                 # D7: never print the ageing figure as a bare scalar -- it is a
                 # bucket displacement with no baseline, and the bare form is how

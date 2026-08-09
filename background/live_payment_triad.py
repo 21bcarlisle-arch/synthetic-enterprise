@@ -83,6 +83,7 @@ from tools.couple_w2_11_d5 import (
     PeriodRecord,
     TWIN_ATOM_ID,
     WORLD_ATOM_ID,
+    format_detection_latency_summary,
     score_triad,
 )
 
@@ -246,9 +247,19 @@ class LivePaymentTriad:
             "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> "
             "D5 consumer belief, measured in-run by run_phase2b). HEADLINE = "
             "DD/non-DD failure DETECTION gap (fraction of true payment failures "
-            "the company never observes through the seam -- the no-remittance "
-            "blind spot). Companion per-dimension gaps: belief "
-            f"{result['belief'].gap:.4f}; "
+            "the company does not BELIEVE unresolved as at the measurement date "
+            "-- NOT, as this note said until 2026-08-09, failures it never "
+            "observes: D10 measured every truly-failed case being flagged on "
+            "time at due+grace, and the residual is cases the company detected "
+            "and then UN-flagged when a later ambiguous non-DD payment was "
+            "allocated oldest-first onto the failed invoice, Clayton's Case, "
+            "atom D8. The no-remittance blind spot is real but is not what this "
+            "number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE "
+            "(D10): `flagged_set` is a UNION and deleting the DD-observation "
+            "channel leaves it bit-identical -- what that channel buys is EARLIER "
+            "detection, reported in days beside it. Companion per-dimension gaps: "
+            f"belief {result['belief'].gap:.4f}; "
+            f"{format_detection_latency_summary(result['detection_latency'])}; "
             f"{format_ageing_summary(result['ageing'])} "
             "[D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing "
             "scalar that used to sit here (live 1.1538) was refuted in "

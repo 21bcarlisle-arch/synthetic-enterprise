@@ -187,6 +187,220 @@ def test_dd_channel_contributes_no_unique_detections_and_headline_is_insensitive
         "channel_contribution note; it no longer describes the measurement"
     )
 
+    # D10, the closure: the SAME deletion that leaves the set-membership
+    # headline bit-identical MUST move the latency dimension. This is the pair
+    # of assertions the atom exists for -- one alone is half the finding.
+    assert without["detection_latency"].gap > baseline["detection_latency"].gap, (
+        "killing the DD-observation channel did not make the company learn "
+        "LATER -- the detection_latency dimension is not measuring the channel "
+        "it claims to measure"
+    )
+    assert baseline["detection_latency"].components["dd_channel_days_earlier"] > 0
+    assert without["detection_latency"].components["dd_channel_days_earlier"] == 0.0, (
+        "the counterfactual is not a counterfactual: with the channel already "
+        "dead, deleting it again must buy exactly nothing"
+    )
+
+
+# ---------------------------------------------------------------------------
+# DETECTION LATENCY (atom D10_detection_headline_is_single_channel).
+# ---------------------------------------------------------------------------
+
+def test_detection_latency_is_the_real_thing_and_not_an_as_of_artefact():
+    """The RETIRED `detection_latency_days` key was days-overdue at whatever
+    `as_of` the scorer happened to ask at -- on this scenario's fixed period
+    grid it read exactly {30, 51, 72} days, a pure artefact carrying no
+    information about WHEN the company first knew. Mutate `as_of` and assert
+    the two behave oppositely: the retired quantity marches with the clock, the
+    latency dimension does not move at all."""
+    import datetime as _dt
+
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=_SEED)
+    early = pair.score_triad(records, consumer, as_of)
+    later = pair.score_triad(records, consumer, as_of + _dt.timedelta(days=30))
+
+    # The retired quantity IS the artefact -- it moves one-for-one with as_of.
+    assert (later["stats"]["reconciliation_days_overdue_at_as_of"]["median_days"]
+            - early["stats"]["reconciliation_days_overdue_at_as_of"]["median_days"]) == 30
+
+    # The real latency is a property of the OBSERVATION, not of the question's
+    # timing, so it does not move.
+    assert later["detection_latency"].gap == early["detection_latency"].gap
+    assert (later["detection_latency"].components["dd_channel_days_earlier"]
+            == early["detection_latency"].components["dd_channel_days_earlier"])
+    assert "detection_latency_days" not in early["stats"], (
+        "the retired key is back -- it never measured a latency"
+    )
+
+
+def test_detection_latency_reads_the_bank_feed_report_date_not_the_value_date():
+    """The 2026-08-08 residual claimed DD latency was unmeasurable here because
+    the adapter emits `value_date == due_date`. That was the wrong field:
+    `DDFailureObservation.observed_at` is the bank-feed REPORT date and the seam
+    already lags it 0..ARUDD_NOTIFICATION_LAG_DAYS. Pin the correction --
+    measured DD lags must be a REAL spread inside that window, not a flat zero
+    (a flat zero would mean the scorer went back to reading `value_date`)."""
+    from simulation.bacs_rails import ARUDD_NOTIFICATION_LAG_DAYS
+
+    result = pair.measure(_N, seed=_SEED)
+    c = result["detection_latency"].components
+
+    # With the DD channel present the mean sits strictly below the
+    # reconciliation grace it replaces.
+    assert 0 < c["mean_lag_days"] < c["mean_lag_days_without_dd_channel"]
+    assert c["n_earliest_via_dd_channel"] > 0
+
+    # The DD channel's OWN lag must be a real spread inside the ARUDD window.
+    # `value_date` == the collection date, so a scorer reading it would show a
+    # DEGENERATE all-zero distribution -- this is the assertion that catches
+    # the misread, and `max == 0` is precisely what the 2026-08-08 residual
+    # believed was the only thing available.
+    assert c["dd_lag_days_min"] == 0
+    assert c["dd_lag_days_max"] == ARUDD_NOTIFICATION_LAG_DAYS, (
+        "the DD lag distribution is degenerate or outside the ARUDD window -- "
+        "the scorer is reading `value_date`, not the bank-feed report date"
+    )
+    assert 0 < c["dd_lag_days_mean"] < ARUDD_NOTIFICATION_LAG_DAYS
+
+
+def test_detection_latency_coverage_witnesses_ride_beside_the_mean(monkeypatch):
+    """FAIL-OPEN guard (R15): a mean over the DETECTED population improves as
+    detection gets worse if the undetected are silently dropped. They are
+    counted, never imputed -- and the counts must add up to the truth."""
+    result = pair.measure(_N, seed=_SEED)
+    c = result["detection_latency"].components
+    assert (c["n_latency_population"] + c["n_undetected"]
+            + c["n_detected_dd_channel_only"]) == c["n_true_failures"]
+    assert c["n_recon_detected_undated"] == 0
+    assert c["n_dd_observed_after_as_of"] == 0
+
+    # `n_undetected` reads 0 on this population (see the characterization test
+    # below), so on its own it is a witness that has never been seen to fire --
+    # exactly the vacuity R15 calls a failed control. Kill BOTH channels and it
+    # must account for the whole truth, or it is not counting anything.
+    _dd_channel_dead(monkeypatch)
+    monkeypatch.setattr(
+        PaymentObservationConsumer, "expected_collection_misses",
+        lambda self, *a, **k: [],
+    )
+    blind = pair.measure(_N, seed=_SEED)["detection_latency"]
+    assert blind.gap is None
+    assert blind.components["n_undetected"] == blind.components["n_true_failures"] > 0
+    assert blind.components["n_latency_population"] == 0
+
+
+def test_detection_residual_is_misallocation_not_a_never_observed_blind_spot():
+    """CHARACTERIZATION of a measured finding (D10), not an aspiration. The
+    detection residual was published as 'failures the company never observes --
+    the no-remittance blind spot'. Asking the company's OWN reconciliation organ
+    at each invoice's due+grace shows otherwise: nothing goes unobserved. The
+    misses the headline counts are detections the company later UN-made, when a
+    later ambiguous non-DD payment was allocated oldest-first onto the failed
+    invoice (Clayton's Case, atom D8).
+
+    If `n_undetected` ever becomes non-zero this fires, and the module's
+    `detection_residual_is_misallocation_not_blindness` note -- and the live
+    ledger note that repeats it -- must be re-derived rather than rot."""
+    result = pair.measure(_N, seed=_SEED)
+    c = result["detection_latency"].components
+
+    assert result["detection"].gap > 0, "no residual to characterise"
+    assert c["n_undetected"] == 0, (
+        "some true failure now escapes BOTH channels entirely -- the detection "
+        "residual is no longer purely misallocation; re-derive the module's "
+        "detection_residual_is_misallocation_not_blindness note"
+    )
+    # The two statements are about the same population, so they must reconcile:
+    # everything truly failed was dated by a channel.
+    assert c["n_latency_population"] == c["n_true_failures"]
+    for phrase in ("never observes", "Clayton"):
+        assert phrase in result["notes"]["detection_residual_is_misallocation_not_blindness"]
+
+
+def test_detection_latency_vacuity_is_none_never_zero():
+    """A population nothing was detected in is not one that was detected
+    instantly. Vacuity must be explicit (the D7 rule, applied here)."""
+    empty = pair.detection_latency_gap({}, {}, n_true_failures=7)
+    assert empty.gap is None
+    assert empty.components["mean_lag_days"] is None
+    assert empty.components["mean_lag_days_without_dd_channel"] is None
+    assert empty.components["dd_channel_days_earlier"] is None
+    assert empty.components["n_undetected"] == 7
+    assert "vacuity" in empty.components
+    rendered = pair.format_detection_latency_summary(empty)
+    assert "UNDEFINED" in rendered and "not 0 days" in rendered
+
+
+# --- R15 mutants of the metric SHAPE itself (the D7 trap, applied early) ----
+# Each mutant must FAIL an assertion the real measure passes. The real measure
+# is invariant to how many failures went undetected -- because the undetected
+# are counted beside it, never inside it. Every mutant re-imports a denominator
+# that counts the population's class balance, which is exactly the defect D7
+# was minted to remove; if one of these ever passes, the shape has rotted back.
+
+_CASES_DETECTED = {("c", 0): 5, ("c", 1): 5, ("c", 2): 5}
+_DD = {("c", 0): 1, ("c", 1): 1, ("c", 2): 1}
+
+
+def _real_mean(n_true_failures):
+    return pair.detection_latency_gap(
+        _DD, _CASES_DETECTED, n_true_failures=n_true_failures
+    ).components["mean_lag_days"]
+
+
+def _MUTANT_mean_over_all_true_failures(n_true_failures):
+    """Divide by the TRUTH count instead of the detected count -- the D7 trap
+    wearing a latency hat: prevalence of the undetected then moves a number
+    that is supposed to be about timing."""
+    lags = [min(_DD[c], _CASES_DETECTED[c]) for c in _CASES_DETECTED]
+    return round(sum(lags) / n_true_failures, 6)
+
+
+def _MUTANT_impute_undetected_at_a_cap(n_true_failures, cap=90):
+    """Impute every undetected failure into the mean at an invented cap. Looks
+    conservative; is a fabricated number, and lets the mean be moved by how many
+    failures were MISSED rather than by how late the found ones were."""
+    lags = [min(_DD[c], _CASES_DETECTED[c]) for c in _CASES_DETECTED]
+    lags += [cap] * (n_true_failures - len(_CASES_DETECTED))
+    return round(sum(lags) / len(lags), 6)
+
+
+def test_latency_mean_is_invariant_to_how_many_failures_went_undetected():
+    """Hold the DETECTED cases and their timings LITERALLY fixed and move only
+    how many failures were missed. The real mean does not budge; both mutants
+    swing. R12: this is a shape criterion, not a nicer number."""
+    fixed = _real_mean(3)
+    assert _real_mean(30) == fixed == 1.0
+    assert _real_mean(300) == fixed
+
+    assert _MUTANT_mean_over_all_true_failures(3) != _MUTANT_mean_over_all_true_failures(30), (
+        "mutant did not exhibit the prevalence defect it was written to exhibit"
+    )
+    assert _MUTANT_impute_undetected_at_a_cap(3) != _MUTANT_impute_undetected_at_a_cap(30), (
+        "mutant did not exhibit the imputation defect"
+    )
+
+
+def test_counterfactual_compares_the_same_population_not_a_bigger_one():
+    """The headline and its DD-deleted counterfactual must differ ONLY in the
+    channel. A case only the DD channel sees would vanish entirely in the
+    counterfactual world, so it is excluded from BOTH means and reported --
+    otherwise the 'days earlier' figure would silently mix a timing change with
+    a population change."""
+    dd_only_case = ("c", 9)
+    result = pair.detection_latency_gap(
+        {**_DD, dd_only_case: 0}, _CASES_DETECTED, n_true_failures=4
+    )
+    c = result.components
+    assert c["n_detected_dd_channel_only"] == 1
+    assert c["n_latency_population"] == 3
+    # The dd-only case (lag 0) is NOT in the mean -- if it were, the headline
+    # would read 0.75 rather than 1.0 and the counterfactual would be measuring
+    # a different set of invoices.
+    assert c["mean_lag_days"] == 1.0
+    assert c["mean_lag_days_without_dd_channel"] == 5.0
+    assert c["n_undetected"] == 0
+
 
 def test_join_witnesses_fire_on_a_key_convention_drift():
     """Named defect #3: the belief-side observations are joined back to truth by
@@ -345,16 +559,27 @@ def test_reconciliation_cannot_fail_open():
     assert [m.invoice_ref for m in real] != mutant_flags
 
 
-def test_detection_latency_is_registered_not_zero():
-    """Ruling §1: the residual is a detection LATENCY, registered with its
-    measured distribution, never compressed to zero. Every reconciliation
-    detection carries a positive latency (days from due date to observation),
-    and the population summary exposes the distribution."""
+def test_detection_residual_lag_is_registered_not_zero():
+    """Ruling §1: the residual is a lag, registered with its measured
+    distribution, never compressed to zero.
+
+    REPLACED, NOT REPAIRED (D10). This used to assert on
+    `stats["detection_latency_days"]`, which was days-overdue at `as_of` and
+    not a latency at all. The ruling's actual requirement -- the lag exists and
+    is registered -- now rests on the `detection_latency` DIMENSION; the
+    days-overdue summary is kept under a name that says what it is."""
     result = pair.measure(_N, seed=_SEED)
-    lat = result["stats"]["detection_latency_days"]
-    assert lat["n"] > 0
-    assert lat["min_days"] is not None and lat["min_days"] >= 5  # >= grace window
-    assert lat["max_days"] >= lat["median_days"] >= lat["min_days"]
+
+    lat = result["detection_latency"]
+    assert lat.gap is not None and lat.gap > 0, "the lag was compressed to zero"
+    assert lat.g0 == 0.0 and "NONE" in lat.baseline, (
+        "a days-valued latency must carry no no-skill divisor (D7's lesson)"
+    )
+    assert lat.components["headline_units"].startswith("days")
+
+    overdue = result["stats"]["reconciliation_days_overdue_at_as_of"]
+    assert overdue["n"] > 0
+    assert overdue["max_days"] >= overdue["median_days"] >= overdue["min_days"]
 
 
 def test_belief_gap_zero_when_distributions_match():

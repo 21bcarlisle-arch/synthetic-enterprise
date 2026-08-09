@@ -146,7 +146,10 @@ from company.billing.account_ledger import (
     LedgerEventType,
 )
 from company.billing.arrears_engine import age_bucket as company_age_bucket
-from company.billing.payment_observation_consumer import PaymentObservationConsumer
+from company.billing.payment_observation_consumer import (
+    DEFAULT_RECONCILIATION_GRACE_DAYS,
+    PaymentObservationConsumer,
+)
 
 from background.gap_metric import (
     GapResult,
@@ -341,6 +344,200 @@ def build_scenario(
     return records, consumer, ledger_book, as_of
 
 
+# ---------------------------------------------------------------------------
+# DETECTION LATENCY (atom D10_detection_headline_is_single_channel)
+# ---------------------------------------------------------------------------
+# WHY THIS DIMENSION EXISTS. The 2026-08-08 HARDEN pass measured that the
+# published DETECTION headline is insensitive to the entire DD-observation
+# channel: `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0`, so
+# deleting the DD channel outright leaves the number bit-identical. That is
+# structurally correct -- a rail failure means the cash did not arrive, which
+# expected-collection reconciliation also sees -- but it means pure
+# set-membership cannot express the only thing the DD channel actually buys:
+# EARLIER detection. This dimension gives that a shape.
+#
+# CORRECTION TO THE 2026-08-08 RESIDUAL (D10, measured not argued). That pass
+# recorded, in this atom's simplification register and in its `channel_contri-
+# bution` note, that "DD latency cannot be honestly measured in this scenario
+# because the adapter emits `value_date == due_date` with no ARUDD lag". That
+# claim is FALSE at HEAD and was a misread of the seam: `value_date` is the
+# collection date, but `WallResponse.observed_at` -- carried verbatim onto
+# `DDFailureObservation.observed_at` -- is the BANK-FEED REPORT date, and
+# `payment_seam_adapter` already lags it by a per-case draw of
+# `0..ARUDD_NOTIFICATION_LAG_DAYS` (simulation/bacs_rails.py, a cited real
+# Bacs constant). Measured DD lags on this population are {0, 1, 2} days. The
+# residual was named against the wrong field, so the measurement was available
+# all along.
+#
+# NO NORMALISER, DELIBERATELY (the D7 lesson, applied before it could bite).
+# D7 caught, by mutation, that any denominator counting the truth's class
+# balance re-imports the prevalence defect whatever the numerator's shape. So
+# the headline here is an ABSOLUTE mean in DAYS over the detected population,
+# with no no-skill divisor at all, and the coverage witnesses ride beside it
+# rather than inside it: an undetected failure is COUNTED, never imputed into
+# the mean at some invented cap (that would let a collapse in detection buy a
+# better-looking latency).
+DETECTION_LATENCY_HEADLINE_UNITS = (
+    "days from an invoice's due date to the company's FIRST knowledge of the "
+    "shortfall, whichever channel got there first"
+)
+DETECTION_LATENCY_NO_NORMALISER_REASON = (
+    "NONE. An absolute mean in days -- there is no no-skill divisor and no "
+    "class-balance denominator anywhere in this measure (D7's mutation-caught "
+    "trap: any normaliser counting the truth's class balance re-imports the "
+    "prevalence defect whatever the numerator's shape). Undetected failures are "
+    "reported as a COUNT beside the mean, never imputed into it."
+)
+
+
+def detection_latency_gap(
+    dd_lag_days: Dict[Tuple[str, int], int],
+    recon_lag_days: Dict[Tuple[str, int], int],
+    *,
+    n_true_failures: int,
+    n_recon_detected_undated: int = 0,
+    n_dd_observed_after_as_of: int = 0,
+) -> GapResult:
+    """How LATE the company learns about a true payment failure, in days, and
+    what the DD-observation channel buys in days (formula: absolute mean, no
+    baseline).
+
+    `dd_lag_days` / `recon_lag_days` map a truly-failed (customer, period) case
+    to the days between its due date and that CHANNEL's first knowledge of it.
+    The DD channel's date is `DDFailureObservation.observed_at` (the bank-feed
+    report date, ARUDD-lagged at the seam); reconciliation's is the earliest
+    date at which the company's OWN `expected_collection_misses` organ returns
+    the invoice -- asked of the organ itself, never re-derived here (R15
+    independence: a harness re-implementation of `due + grace` would be a
+    tautology that could not fail if the organ's rule changed).
+
+    THE POPULATION IS THE COMPARABLE ONE, and the exclusion is published, not
+    silent: the headline and its counterfactual are both means over the cases
+    reconciliation dates, so `mean_lag_days` and `mean_lag_days_without_dd_
+    channel` differ ONLY in the channel, never in the population. A case only
+    the DD channel detects would be lost entirely in the counterfactual world,
+    so it is excluded from both means and reported as
+    `n_detected_dd_channel_only` (measured 0 today -- it is the same quantity
+    the set-membership headline's `n_flagged_via_dd_channel_only` reports).
+
+    FAIL LOUD / VACUITY EXPLICIT (R15): with no dated detected failures the
+    means are `None`, not 0.0, and `gap` is `None`. A vacuous population is not
+    an instantaneous one.
+    """
+    dd_only = set(dd_lag_days) - set(recon_lag_days)
+    population = sorted(set(recon_lag_days))
+    n_pop = len(population)
+
+    def _mean(values: List[int]) -> Optional[float]:
+        return round(sum(values) / len(values), 6) if values else None
+
+    with_dd = [
+        min(recon_lag_days[c], dd_lag_days[c]) if c in dd_lag_days else recon_lag_days[c]
+        for c in population
+    ]
+    without_dd = [recon_lag_days[c] for c in population]
+    earlier_via_dd = [c for c in population
+                      if c in dd_lag_days and dd_lag_days[c] < recon_lag_days[c]]
+
+    mean_with = _mean(with_dd)
+    mean_without = _mean(without_dd)
+    days_earlier = (None if mean_with is None or mean_without is None
+                    else round(mean_without - mean_with, 6))
+
+    components: Dict[str, object] = {
+        "mean_lag_days": mean_with,
+        "median_lag_days": (sorted(with_dd)[len(with_dd) // 2] if with_dd else None),
+        "max_lag_days": (max(with_dd) if with_dd else None),
+        # THE COUNTERFACTUAL -- the whole point of the dimension. Same cases,
+        # same organ, DD channel deleted. `detection_gap` moves by exactly zero
+        # under this deletion; this moves by `dd_channel_days_earlier`.
+        "mean_lag_days_without_dd_channel": mean_without,
+        "dd_channel_days_earlier": days_earlier,
+        "n_earliest_via_dd_channel": len(earlier_via_dd),
+        # THE DD CHANNEL'S OWN LAG, published separately -- this is the ARUDD
+        # notification window as the company actually experiences it, and it is
+        # what makes the counterfactual above a reading rather than a constant.
+        # A degenerate all-zero distribution here means the scorer has gone back
+        # to reading `value_date` (the collection date) instead of `observed_at`
+        # (the bank-feed report date) -- the exact misread that made the
+        # 2026-08-08 pass believe this was unmeasurable.
+        "dd_lag_days_mean": _mean([dd_lag_days[c] for c in sorted(dd_lag_days)]),
+        "dd_lag_days_max": (max(dd_lag_days.values()) if dd_lag_days else None),
+        "dd_lag_days_min": (min(dd_lag_days.values()) if dd_lag_days else None),
+        # COVERAGE WITNESSES -- beside the mean, never inside it. A mean over a
+        # collapsing detected population would otherwise improve as detection
+        # got worse (fail-open).
+        "n_true_failures": int(n_true_failures),
+        "n_latency_population": n_pop,
+        "n_undetected": int(n_true_failures) - n_pop - len(dd_only),
+        "n_detected_dd_channel_only": len(dd_only),
+        # PRECISION WITNESS: a case reconciliation reports at `as_of` but at
+        # none of its candidate dates (an allocation reshuffle could do it).
+        # Excluded from the means rather than dated by guess.
+        "n_recon_detected_undated": int(n_recon_detected_undated),
+        # POINT-IN-TIME WITNESS: a DD failure whose bank-feed report date falls
+        # AFTER `as_of` is not yet knowable and is not counted as knowledge.
+        "n_dd_observed_after_as_of": int(n_dd_observed_after_as_of),
+        "headline_units": DETECTION_LATENCY_HEADLINE_UNITS,
+        "normalisation": DETECTION_LATENCY_NO_NORMALISER_REASON,
+    }
+    if n_pop == 0:
+        components["vacuity"] = (
+            "NO dated detected failures in this population: the latency means "
+            "are UNDEFINED (None), not 0.0. A population nothing was detected "
+            "in is not one that was detected instantly."
+        )
+
+    return GapResult(
+        metric="detection_latency",
+        gap=mean_with,
+        raw_gap=float(mean_with) if mean_with is not None else 0.0,
+        g0=0.0,
+        baseline=(
+            "NONE -- absolute mean in DAYS from due date to the company's first "
+            "knowledge; there is no no-skill divisor here and 1.0 does not mean "
+            "'no better than blind' (it means one day)."
+        ),
+        note=(
+            "detection LATENCY of the W2_11<->D5 triad: how late the company "
+            "learns a payment failed, and what the DD-observation channel buys "
+            "in days. Exists because the set-membership DETECTION headline is "
+            "insensitive to that channel by construction (`flagged_set` is a "
+            "UNION) -- atom D10. R12: a diagnostic in days, never a target."
+        ),
+        components=components,
+    )
+
+
+def format_detection_latency_summary(result: GapResult) -> str:
+    """Render a `detection_latency_gap` result for a log line / ledger note in
+    DAYS with its counterfactual, never as a bare scalar.
+
+    Anti-decay, the same mechanism D7's `format_ageing_summary` is: the reason
+    this dimension exists is that a bare number could not express a channel's
+    contribution, so no consumer of this module prints the headline without the
+    counterfactual and the coverage beside it."""
+    c = result.components
+    mean = c.get("mean_lag_days")
+    without = c.get("mean_lag_days_without_dd_channel")
+    earlier = c.get("dd_channel_days_earlier")
+    if mean is None:
+        return (
+            "detection latency UNDEFINED (no dated detected failures in this "
+            f"population; {c.get('n_true_failures')} true failures, "
+            f"{c.get('n_undetected')} undetected) -- not 0 days"
+        )
+    return (
+        f"detection latency {mean:.2f} days mean "
+        f"(without the DD-observation channel {without:.2f} days -- the channel "
+        f"buys {earlier:.2f} days EARLIER detection on "
+        f"{c.get('n_earliest_via_dd_channel')} of {c.get('n_latency_population')} "
+        f"dated cases, while moving the set-membership detection gap by exactly "
+        f"zero); {c.get('n_undetected')} of {c.get('n_true_failures')} true "
+        "failures never detected at all"
+    )
+
+
 def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, object]:
     """Build the OFFLINE scenario and score all three gap dimensions. Returns a
     dict of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
@@ -361,9 +558,15 @@ def score_triad(
     consumer: PaymentObservationConsumer,
     as_of: date,
     payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
 ) -> Dict[str, object]:
-    """Score the three gap dimensions (detection / belief / ageing) for a
-    coupled-triad population.
+    """Score the four gap dimensions (detection / detection_latency / belief /
+    ageing) for a coupled-triad population.
+
+    `reconciliation_grace_days` is passed EXPLICITLY to the consumer rather than
+    left to its default, because the detection-LATENCY dimension asks the same
+    organ for its earliest detection date -- a scorer using one grace window and
+    a consumer using another would read a latency that belongs to neither.
 
     `records` are the harness-held TRUTH (`PeriodRecord`, one per customer x
     period); `consumer` is the company's BELIEF surface, already fed EXCLUSIVELY
@@ -404,7 +607,16 @@ def score_triad(
     n_true_non_dd_failures = 0
     n_flagged_non_dd_via_dd_channel = 0   # the LEAK witness: must stay 0
     n_flagged_non_dd_via_reconciliation = 0  # the carve-out witness: expected > 0
-    detection_latency_days: List[int] = []  # latency of each detected miss (ruling §1)
+    # Days-overdue AT `as_of` of each reconciliation detection (ruling §1's
+    # registered residual). NOT a detection latency -- see the stats key's own
+    # comment; the real latency is the `detection_latency` dimension below.
+    recon_days_overdue_at_as_of: List[int] = []
+    # DETECTION-LATENCY inputs (atom D10), per truly-failed (customer, period):
+    # days from due date to each CHANNEL's own first knowledge of the shortfall.
+    dd_lag_days: Dict[Tuple[str, int], int] = {}
+    recon_lag_days: Dict[Tuple[str, int], int] = {}
+    n_recon_detected_undated = 0
+    n_dd_observed_after_as_of = 0
     # JOIN WITNESSES (R15 fail-silent, 2026-08-08 HARDEN). Every belief-side
     # observation below is joined back to a truth case by a KEY (`value_date` ->
     # due date, `invoice_ref`/`reference` -> the harness's own invoice_ref). A
@@ -418,23 +630,83 @@ def score_triad(
 
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
-        snapshot = consumer.snapshot(account_id, as_of=as_of, payment_terms_days=payment_terms_days)
+        snapshot = consumer.snapshot(
+            account_id, as_of=as_of, payment_terms_days=payment_terms_days,
+            reconciliation_grace_days=reconciliation_grace_days,
+        )
 
         due_to_period = {r.due_date: r.period_index for r in periods}
         ref_to_period = {r.invoice_ref: r.period_index for r in periods}
+        due_by_period = {r.period_index: r.due_date for r in periods}
+        truly_failed = {r.period_index for r in periods if r.result == "failed"}
         for dd_fail in snapshot.recent_dd_failures:
             p = due_to_period.get(dd_fail.value_date)
             if p is not None:
                 flagged_via_dd_channel.add((cid, p))
+                # FIRST-KNOWLEDGE date for the DD channel: the bank-feed REPORT
+                # date (`observed_at`), ARUDD-lagged at the seam -- NOT
+                # `value_date`, which is the collection date and would read a
+                # flat 0 (the 2026-08-08 residual's misread, see the
+                # `detection_latency_gap` docstring). A report landing after
+                # `as_of` is not yet knowledge: witnessed, never counted.
+                observed_on = dd_fail.observed_at.date()
+                if observed_on > as_of:
+                    n_dd_observed_after_as_of += 1
+                elif p in truly_failed:
+                    lag = (observed_on - due_by_period[p]).days
+                    dd_lag_days[(cid, p)] = min(dd_lag_days.get((cid, p), lag), lag)
             else:
                 n_unjoined_dd_failures += 1
         for miss in snapshot.detected_collection_misses:
             p = ref_to_period.get(miss.invoice_ref)
             if p is not None:
                 flagged_via_reconciliation.add((cid, p))
-                detection_latency_days.append(miss.days_latency)
+                recon_days_overdue_at_as_of.append(miss.days_latency)
             else:
                 n_unjoined_collection_misses += 1
+
+        # RECONCILIATION first-knowledge date, asked of the company's OWN organ
+        # at each candidate date rather than re-derived here as `due + grace`
+        # (R15 independence -- a harness copy of the rule could not fail if the
+        # organ's rule changed). Candidates are the earliest dates the detector
+        # could possibly fire for each truly-failed period.
+        #
+        # THE POPULATION IS "EVER KNEW", NOT "STILL BELIEVES AT as_of", and the
+        # difference is the whole point of the dimension. `flagged_set` above is
+        # a belief held AT `as_of`, so an invoice detected on time and settled
+        # late leaves it -- which makes any mean over that set drift with the
+        # date the scorer happens to ask on (measured: moving `as_of` 30 days
+        # moved the mean 1.96 -> 1.80 while not one detection date changed).
+        # That is the same as_of artefact the retired `detection_latency_days`
+        # key was, so this dimension asks its question of every TRULY-FAILED
+        # case: the company detecting a shortfall on day 5 is a fact about day
+        # 5, whatever the cash did afterwards. A case reported at `as_of` but at
+        # none of its candidates (an allocation reshuffle can do it) is left
+        # UNDATED and witnessed, never dated by guess.
+        if truly_failed:
+            candidates = sorted({
+                due_by_period[p] + timedelta(days=reconciliation_grace_days)
+                for p in truly_failed
+            })
+            for cand in candidates:
+                if cand > as_of:
+                    continue
+                if truly_failed <= {p for (c, p) in recon_lag_days if c == cid}:
+                    break
+                for m in consumer.expected_collection_misses(
+                    account_id, as_of=cand, grace_days=reconciliation_grace_days,
+                    payment_terms_days=payment_terms_days,
+                ):
+                    p = ref_to_period.get(m.invoice_ref)
+                    if p in truly_failed and (cid, p) not in recon_lag_days:
+                        recon_lag_days[(cid, p)] = (cand - due_by_period[p]).days
+            still_flagged = {
+                ref_to_period[m.invoice_ref] for m in snapshot.detected_collection_misses
+                if m.invoice_ref in ref_to_period
+            } & truly_failed
+            n_recon_detected_undated += len(
+                still_flagged - {p for (c, p) in recon_lag_days if c == cid}
+            )
 
         n_unresolved_true = sum(1 for r in periods if r.result == "failed")
         n_hardship_true = sum(
@@ -483,7 +755,30 @@ def score_triad(
         "reconciliation (own bills vs own cash -- director ruling 2026-07-25 §2). "
         "The reconciliation path narrows the push-channel blind spot but never "
         "closes it: a late-but-eventual payment (cash by as_of) is correctly NOT "
-        "flagged (detection LATENCY, ruling §1), guaranteeing gap > 0 (R12)."
+        "flagged (detection LATENCY, ruling §1), guaranteeing gap > 0 (R12). "
+        "READ THIS NUMBER AS RECONCILIATION-DETERMINED ALONE (atom D10, measured "
+        "not asserted): `flagged_set` is a UNION and the DD-observation channel "
+        "contributes ZERO unique detections, so deleting that channel outright "
+        "leaves this figure BIT-IDENTICAL. What the channel does buy is EARLIER "
+        "detection, which set-membership cannot express -- it is measured, in "
+        "days, by the companion `detection_latency` dimension. "
+        "AND READ IT AS A BELIEF HELD AT as_of, NOT AS 'NEVER OBSERVED' (D10, "
+        "second finding): the residual is NOT the no-remittance blind spot it "
+        "was described as. Every truly-failed case in this population was "
+        "flagged by reconciliation at due+grace -- `n_undetected` is 0 on seeds "
+        "7/11/23 -- and the misses counted here are cases the company detected "
+        "ON TIME and then UN-flagged, because a later period's ambiguous non-DD "
+        "payment was allocated oldest-first onto the failed invoice (Clayton's "
+        "Case; atom D8_ambiguous_remittance_misdating). The blind spot is real "
+        "(a failed non-DD payment emits no rail event at all) but it is not what "
+        "this residual measures."
+    )
+
+    lat = detection_latency_gap(
+        dd_lag_days, recon_lag_days,
+        n_true_failures=len(truth_set),
+        n_recon_detected_undated=n_recon_detected_undated,
+        n_dd_observed_after_as_of=n_dd_observed_after_as_of,
     )
 
     bel = belief_gap(
@@ -510,12 +805,12 @@ def score_triad(
     )
 
     n_customers = len(by_customer)
-    _lat = sorted(detection_latency_days)
-    latency_summary = {
-        "n": len(_lat),
-        "min_days": _lat[0] if _lat else None,
-        "median_days": _lat[len(_lat) // 2] if _lat else None,
-        "max_days": _lat[-1] if _lat else None,
+    _od = sorted(recon_days_overdue_at_as_of)
+    days_overdue_summary = {
+        "n": len(_od),
+        "min_days": _od[0] if _od else None,
+        "median_days": _od[len(_od) // 2] if _od else None,
+        "max_days": _od[-1] if _od else None,
     }
     stats = {
         "n_customers": n_customers,
@@ -557,10 +852,26 @@ def score_triad(
         "n_unjoined_dd_failures": n_unjoined_dd_failures,
         "n_unjoined_collection_misses": n_unjoined_collection_misses,
         "n_ageing_refs_matched": n_ageing_refs_matched,
-        # Detection LATENCY distribution (ruling §1: register the lag, do not
-        # compress it to zero). Days between an invoice's due date and the
-        # as_of at which reconciliation first observed the shortfall.
-        "detection_latency_days": latency_summary,
+        # RETIRED KEY `detection_latency_days` (atom D10, 2026-08-09). It was
+        # never a detection latency: `ExpectedCollectionMiss.days_latency` is
+        # days-overdue at the SINGLE `as_of` the scorer happens to ask at, so on
+        # this scenario's fixed period grid it read exactly {30, 51, 72} days --
+        # a pure artefact of `as_of`, carrying zero information about WHEN the
+        # company first knew. Retired, not re-labelled (the D7 precedent): the
+        # key now says what it actually measures, and the real per-channel
+        # latency is the `detection_latency` DIMENSION.
+        "reconciliation_days_overdue_at_as_of": days_overdue_summary,
+        # Detection LATENCY, the real one (ruling §1: register the lag, do not
+        # compress it to zero) -- headline mean in days, its DD-channel-deleted
+        # counterfactual, and the coverage witnesses. Full shape in
+        # `result["detection_latency"].components`.
+        "detection_latency_days_mean": lat.components["mean_lag_days"],
+        "detection_latency_days_mean_without_dd_channel":
+            lat.components["mean_lag_days_without_dd_channel"],
+        "dd_channel_days_earlier": lat.components["dd_channel_days_earlier"],
+        "n_latency_population": lat.components["n_latency_population"],
+        "n_recon_detected_undated": n_recon_detected_undated,
+        "n_dd_observed_after_as_of": n_dd_observed_after_as_of,
     }
     notes = {
         "reconciliation": (
@@ -583,7 +894,41 @@ def score_triad(
             "failure means the cash did not arrive, which reconciliation also "
             "sees) but it means set-membership detection is blind to the only "
             "thing the DD channel actually buys: EARLIER detection. Reported as a "
-            "measured limit of this metric, never tuned away (R12)."
+            "measured limit of this metric, never tuned away (R12). "
+            "CLOSED 2026-08-09 by atom D10, and one claim of the 2026-08-08 "
+            "residual CORRECTED: that pass recorded that DD latency could not be "
+            "honestly measured here because the adapter emits `value_date == "
+            "due_date` with no ARUDD lag. False -- it was the wrong field. "
+            "`WallResponse.observed_at` (the bank-feed REPORT date, carried onto "
+            "`DDFailureObservation.observed_at`) is already lagged "
+            "0..ARUDD_NOTIFICATION_LAG_DAYS per case by the seam. The companion "
+            "`detection_latency` dimension now measures it, and the channel's "
+            "contribution IS visible there in days while remaining exactly zero "
+            "here (R12: the set-membership number was not moved by a single "
+            "digit -- a fix that made this channel 'count' without the company "
+            "detecting anything earlier would have been goal-seeking)."
+        ),
+        "detection_residual_is_misallocation_not_blindness": (
+            "2026-08-09 D10 finding, OBSERVED case by case, not inferred. The "
+            "detection residual was described everywhere as 'failures the "
+            "company never observes through the seam -- the no-remittance blind "
+            "spot'. It is not. Asking the company's OWN reconciliation organ at "
+            "each invoice's due+grace date shows every truly-failed case in this "
+            "population was flagged on time (n_undetected == 0, seeds 7/11/23). "
+            "The cases the headline counts as missed are ones the company "
+            "detected correctly and then UN-detected: a later period's ambiguous "
+            "non-DD payment carries no invoice reference, so AccountLedger's "
+            "oldest-first fallback allocates it onto the FAILED invoice, which "
+            "goes quiet while a later, genuinely-paid invoice takes its place in "
+            "the open-item view (inspected directly: e.g. seed 7 C000024 p0 "
+            "prepayment failed, flagged at due+5, and at as_of the open item is "
+            "p2 instead). That is Clayton's Case -- the mechanism atom "
+            "D8_ambiguous_remittance_misdating exists for -- surfacing in the "
+            "DETECTION dimension, not only the ageing one. R12: nothing was "
+            "tuned; the detection gap is byte-for-byte what it was, and what "
+            "changed is the sentence describing what it counts. The no-remittance "
+            "blind spot is still REAL (a failed non-DD payment emits no rail "
+            "event); it is simply not what this residual is made of."
         ),
         "allocation": (
             "attempted, honestly dropped: misapplication_gap's no-skill "
@@ -596,7 +941,8 @@ def score_triad(
             "rather than being forced into a fourth, ill-fitting metric."
         ),
     }
-    return {"detection": det, "belief": bel, "ageing": age, "stats": stats, "notes": notes}
+    return {"detection": det, "detection_latency": lat, "belief": bel, "ageing": age,
+            "stats": stats, "notes": notes}
 
 
 # UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
@@ -803,6 +1149,10 @@ def main() -> None:
     # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
     # read as one. Its three measures print with their units instead.
     print(f"  [ageing] {format_ageing_summary(result['ageing'])}")
+    # Detection latency is not g0-normalised either -- it is an absolute mean in
+    # days (D10). It prints with its counterfactual because the counterfactual
+    # is the finding: the DD channel moves THIS and not the detection gap.
+    print(f"  [detection_latency] {format_detection_latency_summary(result['detection_latency'])}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
 
