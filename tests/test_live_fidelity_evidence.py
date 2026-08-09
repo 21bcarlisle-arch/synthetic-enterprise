@@ -33,6 +33,8 @@ from background.live_fidelity_evidence import (
     CellMeasurement,
     LiveFidelityGateFailure,
     build_inspection_chain,
+    DETECTION_MEASURE_BOTH_DIRECTIONS,
+    DETECTION_MEASURE_RECALL_ONLY,
     build_ledger_record,
     cell_rel_id,
     emit_live_fidelity_cells,
@@ -301,3 +303,76 @@ def test_no_sim_or_company_import():
             if node.module.split(".")[0] in forbidden:
                 bad.append(node.module)
     assert not bad, f"live fidelity bridge must not import sim/company: {bad}"
+
+
+# --------------------------------------------------------------------------
+# D12 -- THE RECORD NAMES ITS OWN MEASURE, AND BOTH DIRECTIONS TRAVEL WITH IT
+#
+# WHY THIS IS A CONTROL AND NOT A SCHEMA PREFERENCE. This ledger is a TIME
+# SERIES the Proof door reads, and D12 changed what `detection_gap` MEANS for
+# the per-cell grid: recall-only before, the mean of the miss rate and the
+# wrongful-dunning rate after. On the live fixture the lit cell moved
+# 0.1031 -> 0.0584 with NO change in company behaviour. A reader diffing the
+# two eras without a measure label banks a 43% fidelity improvement that never
+# happened -- which is exactly the "band shaped by its own measure" failure the
+# D12 mint told this atom to re-derive rather than inherit.
+# --------------------------------------------------------------------------
+
+def _two_directional_cell(**over):
+    kw = dict(detection_gap=0.0584, true_failures=291, believed_failures=508,
+              regime_label="G1_calm", missed_failure_rate=0.1031,
+              false_flag_rate=0.0136, n_false_flags=24, n_negatives=1760,
+              n_excluded=649, exclusion_reason="late-past-grace and unknown")
+    kw.update(over)
+    return CellMeasurement(**kw)
+
+
+def test_measured_cell_record_names_the_two_directional_measure(ledger):
+    """FIRES: a cell carrying both directions is labelled as the new measure and
+    publishes both rates plus D10's exclusion, rather than a bare scalar."""
+    emit_live_fidelity_cells(
+        cell_gaps={"A1_G1": _two_directional_cell(),
+                   "A1_G2": _two_directional_cell(detection_gap=0.11)},
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    rel = json.loads(ledger.read_text())[cell_rel_id("A1_G1")]["relationship"]
+    assert rel["detection_measure"] == DETECTION_MEASURE_BOTH_DIRECTIONS
+    assert rel["missed_failure_rate"] == pytest.approx(0.1031)
+    assert rel["false_flag_rate"] == pytest.approx(0.0136)
+    # The exclusion reaches the ledger, not just the docstring (D10).
+    assert rel["n_excluded"] == 649 and rel["exclusion_reason"]
+
+
+def test_a_legacy_single_direction_cell_is_not_relabelled_as_two_directional(ledger):
+    """QUIET/must-not-fire: a cell WITHOUT the direction fields is the old
+    recall-only shape and must keep the old label. Defaulting it to the new name
+    would be the cheapest possible way to make the register look paid."""
+    emit_live_fidelity_cells(
+        cell_gaps={"A1_G1": CellMeasurement(0.10, 8, 7, "G1_calm"),
+                   "A1_G2": CellMeasurement(0.42, 20, 6, "G2_crisis")},
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    rel = json.loads(ledger.read_text())[cell_rel_id("A1_G1")]["relationship"]
+    assert rel["detection_measure"] == DETECTION_MEASURE_RECALL_ONLY
+    assert "false_flag_rate" not in rel
+
+
+def test_a_record_claiming_both_directions_without_them_raises():
+    """MUST-FIRE (R15). The label is the whole point of the field, so a record
+    that claims the two-directional measure while omitting the two directions
+    would rebuild the one-directional defect one layer further out -- with a
+    reassuring name on it. It RAISES rather than emitting a headline nobody can
+    take apart."""
+    with pytest.raises(ValueError, match="must carry BOTH"):
+        build_ledger_record(
+            detection_gap=0.0584, true_failures=291, believed_failures=508,
+            measure=DETECTION_MEASURE_BOTH_DIRECTIONS,
+        )
+    # ...and CLEARS once the directions are actually present (both directions
+    # of the control itself, never a one-way assertion).
+    rel = build_ledger_record(
+        detection_gap=0.0584, true_failures=291, believed_failures=508,
+        measure=DETECTION_MEASURE_BOTH_DIRECTIONS,
+        missed_failure_rate=0.1031, false_flag_rate=0.0136,
+    )["relationship"]
+    assert rel["detection_measure"] == DETECTION_MEASURE_BOTH_DIRECTIONS

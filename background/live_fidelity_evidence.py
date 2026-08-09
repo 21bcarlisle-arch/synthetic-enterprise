@@ -74,6 +74,14 @@ from background.fidelity_evidence_ledger import (
 # The single cell the live payment consumer illuminates (see module docstring).
 LIVE_CELL_ID = "A1_G2"
 
+# THE MEASURE IDENTITY (atom D12). `detection_gap` is one field name that has
+# carried two different measures across this ledger's life, so every record says
+# which one produced it. Without this the Proof door reads a 0.1031 -> 0.0584
+# step as the company detecting better, when it is the same company scored a new
+# way -- the "band shaped by its own measure" trap the D12 mint named.
+DETECTION_MEASURE_RECALL_ONLY = "detection_gap_recall_only"
+DETECTION_MEASURE_BOTH_DIRECTIONS = "detection_measures_both_directions"
+
 # Which physics atom this evidence belongs to. The payment TRUTH world atom;
 # the gate that reads this ("W2_11 is not emit-DoD-done until it emits live
 # evidence") is called with this id. Overridable for tests / a future consumer.
@@ -135,12 +143,27 @@ class CellMeasurement:
     by partitioning a live run's payment cases by OBSERVED price regime. Each
     cell carries its OWN measured detection gap over just that regime's cases.
     `regime_label` is the WORLD-side regime name (harness/director artefact,
-    NEVER read company-side) that this cell isolates."""
+    NEVER read company-side) that this cell isolates.
+
+    BOTH ERROR DIRECTIONS TRAVEL WITH THE CELL (atom D12). `detection_gap` is
+    now the balanced headline, and carrying only that scalar would leave a
+    reader unable to tell a cell that misses failures from one that dunns
+    innocent customers -- two very different suppliers behind one number. The
+    direction fields are Optional ONLY so a hand-built fixture may omit them;
+    every measured cell from `tools.couple_w2_11_d5.detection_cell_measurements`
+    populates them, and `n_excluded`/`exclusion_reason` carry D10's published
+    exclusion all the way into the G2 ledger rather than dying in a docstring."""
 
     detection_gap: float
     true_failures: int
     believed_failures: int
     regime_label: Optional[str] = None
+    missed_failure_rate: Optional[float] = None
+    false_flag_rate: Optional[float] = None
+    n_false_flags: Optional[int] = None
+    n_negatives: Optional[int] = None
+    n_excluded: Optional[int] = None
+    exclusion_reason: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -222,6 +245,13 @@ def build_ledger_record(
     cell_id: str = LIVE_CELL_ID,
     rel_id: str = _REL_ID,
     simplification_id: str = _REGIME_MIXED_SIMP_ID,
+    measure: str = DETECTION_MEASURE_RECALL_ONLY,
+    missed_failure_rate: Optional[float] = None,
+    false_flag_rate: Optional[float] = None,
+    n_false_flags: Optional[int] = None,
+    n_negatives: Optional[int] = None,
+    n_excluded: Optional[int] = None,
+    exclusion_reason: Optional[str] = None,
 ) -> dict:
     """Shape the G2 emit-DoD ledger record. Provenance is
     `estimated_from_data` (the gap is a genuinely measured live quantity), and
@@ -229,20 +259,59 @@ def build_ledger_record(
     attribution -- honest beyond the gate's minimum (the gate only REQUIRES a
     simplification_id when provenance == 'asserted'). No `per_cell_lift` is
     emitted: a lift needs a naive-baseline prediction error, which the live run
-    does not compute, and fabricating one would be a made-up number (R12)."""
-    return {
-        "rel_id": rel_id,
-        "atom_id": atom_id,
-        "relationship": {
-            "kind": "payment_failure_detection",
-            "provenance": "estimated_from_data",
-            "simplification_id": simplification_id,
-            "detection_gap": float(detection_gap),
-            "true_failures": int(true_failures),
-            "believed_failures": int(believed_failures),
-            "cell_id": cell_id,
-        },
+    does not compute, and fabricating one would be a made-up number (R12).
+
+    THE RECORD NAMES ITS OWN MEASURE (atom D12), and this is the whole band
+    re-derivation rather than a decoration. This ledger is a TIME SERIES that
+    the Proof door reads, and D12 changed what `detection_gap` MEANS for the
+    per-cell grid: it was a recall-only miss rate and is now the mean of the
+    miss rate and the wrongful-dunning rate. On the live fixture that moved the
+    lit cell from 0.1031 to 0.0584 -- a 43% "improvement" in which the company
+    did not change at all. A reader diffing an old record against a new one
+    without `measure` would bank that as fidelity progress, so the field is
+    what makes the two eras comparable-or-refused rather than silently mixed.
+    `DETECTION_MEASURE_RECALL_ONLY` stays the DEFAULT deliberately: the
+    single-cell collapse path is still recall-only, and defaulting to the new
+    name would relabel a measure that had not changed."""
+    rel = {
+        "kind": "payment_failure_detection",
+        "provenance": "estimated_from_data",
+        "simplification_id": simplification_id,
+        "detection_gap": float(detection_gap),
+        "detection_measure": measure,
+        "true_failures": int(true_failures),
+        "believed_failures": int(believed_failures),
+        "cell_id": cell_id,
     }
+    # THE SECOND DIRECTION TRAVELS WITH THE NUMBER, or not at all. Emitting the
+    # balanced headline while leaving the two directions in a docstring would
+    # rebuild the exact blindness this atom closed, one layer further out.
+    if measure == DETECTION_MEASURE_BOTH_DIRECTIONS:
+        if missed_failure_rate is None or false_flag_rate is None:
+            raise ValueError(
+                "build_ledger_record: a record declaring the two-directional "
+                "measure must carry BOTH `missed_failure_rate` and "
+                "`false_flag_rate` -- a balanced headline whose directions are "
+                "absent cannot be read back apart, which is the one-directional "
+                "defect (D11/D12) rebuilt at the ledger layer."
+            )
+        rel.update({
+            "missed_failure_rate": float(missed_failure_rate),
+            "false_flag_rate": float(false_flag_rate),
+            "n_false_flags": (None if n_false_flags is None else int(n_false_flags)),
+            "n_negatives": (None if n_negatives is None else int(n_negatives)),
+            # D10's published exclusion, carried to the surface a reader sees.
+            "n_excluded": (None if n_excluded is None else int(n_excluded)),
+            "exclusion_reason": exclusion_reason,
+        })
+    return rel_wrap(rel_id, atom_id, rel)
+
+
+def rel_wrap(rel_id: str, atom_id: str, rel: dict) -> dict:
+    """The ledger record envelope. Split out so the record shape lives in ONE
+    place -- `append_record` keys on `rel_id`, so an envelope built a second
+    way is how two cells quietly overwrite each other."""
+    return {"rel_id": rel_id, "atom_id": atom_id, "relationship": rel}
 
 
 def emit_live_fidelity_evidence(
@@ -368,6 +437,11 @@ def emit_live_fidelity_cells(
             rel_id=rid,
             simplification_id=_DETECTION_REGIME_PARTITIONED_SIMP_ID,
         )
+        # A measured cell carrying its two directions IS the two-directional
+        # measure (D12); one without them is a hand-built or legacy single-
+        # direction cell and is labelled as such rather than promoted.
+        two_directional = (m.missed_failure_rate is not None
+                           and m.false_flag_rate is not None)
         record = build_ledger_record(
             detection_gap=m.detection_gap,
             true_failures=m.true_failures,
@@ -376,6 +450,14 @@ def emit_live_fidelity_cells(
             cell_id=cid,
             rel_id=rid,
             simplification_id=_DETECTION_REGIME_PARTITIONED_SIMP_ID,
+            measure=(DETECTION_MEASURE_BOTH_DIRECTIONS if two_directional
+                     else DETECTION_MEASURE_RECALL_ONLY),
+            missed_failure_rate=m.missed_failure_rate,
+            false_flag_rate=m.false_flag_rate,
+            n_false_flags=m.n_false_flags,
+            n_negatives=m.n_negatives,
+            n_excluded=m.n_excluded,
+            exclusion_reason=m.exclusion_reason,
         )
         append_record(record, ledger_path=ledger_path)
 

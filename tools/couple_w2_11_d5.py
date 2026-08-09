@@ -634,8 +634,18 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
 #     from an indiscriminate one, so it MUST either measure both directions or
 #     name the atom that will make it
 #
-# Four dimensions publish one today. One is fixed; three are NAMED DEBT with a
-# reason and an owner, which is a dated liability rather than a silent survivor.
+# Four dimensions published one direction when this register was written. TWO are
+# now fixed (the headline, D11; the regime-partitioned cell grid, D12) and TWO are
+# NAMED DEBT with a reason and an owner -- a dated liability, not a silent
+# survivor. The two survivors are NOT the same problem as the two that were
+# fixed, and that is why they were not taken with them: the payment pair's
+# negative population (cash within the reconciliation grace) is a set already in
+# hand, while "a household that is not self-rationing" is a continuum the harness
+# labels by threshold, so its false-flag denominator is a MODELLING CHOICE.
+# D11 measured how much that choice is worth -- the wrong denominator moved the
+# payment triad's wrongful-dunning rate tenfold -- so inventing one here to empty
+# this register faster would publish a number nobody should believe. It is a
+# DISCOVER (`D13_self_rationing_negative_population_discover`), not a build.
 # `tests/tools/test_couple_w2_11_d5.py` MEASURES this register rather than
 # trusting it: for each entry it actually scores the flag-EVERYTHING degenerate
 # through that entry's own scorer and asserts the declared behaviour -- a
@@ -655,19 +665,21 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
         "debt_atom": None,
     },
     "score_detection_by_partition": {
-        "counts_both_error_directions": False,
-        "scorer": "background.gap_metric.detection_gap",
+        "counts_both_error_directions": True,
+        "scorer": "background.gap_metric.detection_measures",
         "why": (
-            "NAMED DEBT. The regime-partitioned CELL grid feeds "
-            "background.live_fidelity_evidence, whose worst-cell band was "
-            "calibrated on the recall shape -- reshaping the cells in the same "
-            "tick would move the band under a gate that is currently green, "
-            "which is a band decision and not this atom's (SELF_INTERRUPT_"
-            "DISCIPLINE). The cells keep the recall measure so the grid stays "
-            "one measure end to end; the over-flagging direction for this "
-            "population is published in full on the headline dimension above."
+            "FIXED 2026-08-09 (atom D12). The cells were the recall-only "
+            "shape; they now score both directions on their own PER-CELL "
+            "denominators. No denominator was invented: the negative "
+            "population is the same never-flaggable set the headline uses "
+            "(cash within the reconciliation grace), PARTITIONED, because it "
+            "is a per-record property. The band was re-derived in the same "
+            "change per the atom's own instruction -- the lit cell moved "
+            "0.1031 -> 0.0584 on the live fixture with no change in company "
+            "behaviour, so every ledger record now names its `detection_"
+            "measure` and both direction rates travel with the headline."
         ),
-        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+        "debt_atom": None,
     },
     "couple_w2_5_c7.detection": {
         "counts_both_error_directions": False,
@@ -680,7 +692,7 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
             "a set already in hand. Needs its own DISCOVER before a denominator "
             "is invented for it."
         ),
-        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+        "debt_atom": "D13_self_rationing_negative_population_discover",
     },
     "couple_w2_8_c10.detection": {
         "counts_both_error_directions": False,
@@ -691,7 +703,7 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
             "control fails if it is ever quietly promoted as if it measured "
             "both directions."
         ),
-        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+        "debt_atom": "D13_self_rationing_negative_population_discover",
     },
 }
 
@@ -1254,19 +1266,38 @@ def _detection_sets_by_partition(
     as_of: date,
     partition_of: Callable[[PeriodRecord], str],
     payment_terms_days: int,
-) -> Tuple[Dict[str, set], Dict[str, set]]:
-    """(truth_by_part, flagged_by_part) -- the shared partitioning both the
-    gap scorer and the emission-prep reuse. Each failed (customer, period) case
-    is attributed to `partition_of(record)`; each observed DD-failure is mapped
-    back to the partition of the exact case its `value_date` matches (so a
-    customer spanning regimes contributes each period to the right cell, no
-    double-count). `partition_of` reads ONLY the harness-held PeriodRecord."""
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+) -> Tuple[Dict[str, set], Dict[str, set], Dict[str, set], Dict[str, set]]:
+    """(truth_by_part, flagged_by_part, universe_by_part, negative_by_part) --
+    the shared partitioning both the gap scorer and the emission-prep reuse.
+    Each failed (customer, period) case is attributed to `partition_of(record)`;
+    each observed DD-failure is mapped back to the partition of the exact case
+    its `value_date` matches (so a customer spanning regimes contributes each
+    period to the right cell, no double-count). `partition_of` reads ONLY the
+    harness-held PeriodRecord.
+
+    THE LAST TWO ARE WHAT MAKE THE CELLS TWO-DIRECTIONAL (atom D12), and they
+    are PARTITIONED, never re-derived: `universe_by_part` is every case scored
+    in that cell and `negative_by_part` is that cell's slice of the SAME
+    `never_flaggable` set `score_triad` builds for the headline -- a payment
+    that arrived on or within the reconciliation grace, the only case a flag is
+    genuinely WRONG on. Both are per-RECORD properties, so splitting them by
+    partition is arithmetic rather than a modelling choice; that is precisely
+    why the cell grid could be fixed in this atom while the two self-rationing
+    pairs (whose negative population is a thresholded continuum) could not, and
+    inventing one for them was explicitly refused (see
+    `docs/design/D13_SELF_RATIONING_NEGATIVE_POPULATION_DISCOVER.md`).
+    Deriving the negatives as `universe - truth` instead would charge the
+    company for correctly flagging a payment that arrived three weeks late --
+    the error that inflated D11's first draft tenfold."""
     by_customer: Dict[str, List[PeriodRecord]] = {}
     for r in records:
         by_customer.setdefault(r.customer_id, []).append(r)
 
     truth_by_part: Dict[str, set] = {}
     flagged_by_part: Dict[str, set] = {}
+    universe_by_part: Dict[str, set] = {}
+    negative_by_part: Dict[str, set] = {}
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
         snapshot = consumer.snapshot(
@@ -1276,8 +1307,17 @@ def _detection_sets_by_partition(
         ref_to_period = {r.invoice_ref: r.period_index for r in periods}
         rec_by_period = {r.period_index: r for r in periods}
         for r in periods:
+            key = partition_of(r)
+            universe_by_part.setdefault(key, set()).add((cid, r.period_index))
             if r.result == "failed":
-                truth_by_part.setdefault(partition_of(r), set()).add((cid, r.period_index))
+                truth_by_part.setdefault(key, set()).add((cid, r.period_index))
+            elif (r.result == "success" and r.days_late is not None
+                    and r.days_late <= reconciliation_grace_days):
+                # The ONLY cases a flag is wrong on, sliced per cell. Everything
+                # else -- late-past-grace successes, disputes, and any record
+                # whose `days_late` truth is unknown -- falls in NEITHER
+                # population and is published as this cell's own `n_excluded`.
+                negative_by_part.setdefault(key, set()).add((cid, r.period_index))
         for dd_fail in snapshot.recent_dd_failures:
             p = due_to_period.get(dd_fail.value_date)
             if p is not None:
@@ -1292,7 +1332,21 @@ def _detection_sets_by_partition(
             if p is not None:
                 key = partition_of(rec_by_period[p])
                 flagged_by_part.setdefault(key, set()).add((cid, p))
-    return truth_by_part, flagged_by_part
+    return truth_by_part, flagged_by_part, universe_by_part, negative_by_part
+
+
+# The per-cell exclusion reason. Kept as ONE constant used by both cell paths so
+# the grid and the per-cell gap scorer cannot drift into publishing different
+# reasons for the same excluded case (D10: the exclusion is published, not
+# silent, and `detection_measures` RAISES if it is missing).
+_CELL_EXCLUSION_REASON = (
+    "cases in NEITHER direction's population within this cell: a payment that "
+    "eventually succeeded but arrived after the reconciliation grace really was "
+    "unpaid past grace, so flagging it was CORRECT and counting it as a false "
+    "flag would score the company down for being right (the tenfold error D11's "
+    "first draft made); an unresolved dispute is not a settled success; and a "
+    "record carrying no `days_late` truth is UNKNOWN, never assumed paid on time."
+)
 
 
 def detection_cell_measurements(
@@ -1320,8 +1374,10 @@ def detection_cell_measurements(
     if regime_of is None:
         regime_of = lambda rec: uk_price_regime(rec.due_date)  # noqa: E731
 
-    truth_by_part, flagged_by_part = _detection_sets_by_partition(
-        records, consumer, as_of, regime_of, payment_terms_days
+    truth_by_part, flagged_by_part, universe_by_part, negative_by_part = (
+        _detection_sets_by_partition(
+            records, consumer, as_of, regime_of, payment_terms_days
+        )
     )
     out: Dict[str, object] = {}
     for regime in set(truth_by_part) | set(flagged_by_part):
@@ -1329,15 +1385,33 @@ def detection_cell_measurements(
         flagged = flagged_by_part.get(regime, set())
         if not truth:
             continue  # no true failures in this regime -> nothing measured here
-        gap = detection_gap(truth, flagged).gap
-        if gap is None:
+        res = detection_measures(
+            truth, flagged,
+            universe=universe_by_part.get(regime, set()),
+            negative_set=negative_by_part.get(regime, set()),
+            exclusion_reason=_CELL_EXCLUSION_REASON,
+        )
+        # VACUITY IS EXPLICIT, NEVER FAIL-OPEN (R15). A cell with no negative
+        # cases has no false-flag denominator, so `detection_measures` hands
+        # back gap=None. Publishing the recall half alone under the same name
+        # would be exactly the silent one-directional reading this atom exists
+        # to kill, so the cell stays DARK and the grid's fail-open floor keeps
+        # scoring it at least as badly as the worst measured cell.
+        if res.gap is None:
             continue
         cell_id = f"{archetype}_{regime}"
+        comp = res.components
         out[cell_id] = CellMeasurement(
-            detection_gap=float(gap),
+            detection_gap=float(res.gap),
             true_failures=len(truth),
             believed_failures=len(flagged),
             regime_label=regime,
+            missed_failure_rate=comp["missed_failure_rate"],
+            false_flag_rate=comp["false_flag_rate"],
+            n_false_flags=comp["n_false_flags"],
+            n_negatives=comp["n_negatives"],
+            n_excluded=comp["n_excluded"],
+            exclusion_reason=comp["exclusion_reason"],
         )
     return out
 
@@ -1371,19 +1445,33 @@ def score_detection_by_partition(
     that would be double-counted if a spanning customer's belief were charged
     to two cells. Those stay regime-MIXED (the honest residual), never silently
     partitioned. R12: emits what was measured per cell, tunes nothing."""
-    truth_by_part, flagged_by_part = _detection_sets_by_partition(
-        records, consumer, as_of, partition_of, payment_terms_days
+    truth_by_part, flagged_by_part, universe_by_part, negative_by_part = (
+        _detection_sets_by_partition(
+            records, consumer, as_of, partition_of, payment_terms_days
+        )
     )
 
     out: Dict[str, GapResult] = {}
     for key in set(truth_by_part) | set(flagged_by_part):
-        res = detection_gap(truth_by_part.get(key, set()), flagged_by_part.get(key, set()))
+        truth = truth_by_part.get(key, set())
+        if not truth:
+            continue  # nothing to detect in this partition -> nothing measured
+        res = detection_measures(
+            truth, flagged_by_part.get(key, set()),
+            universe=universe_by_part.get(key, set()),
+            negative_set=negative_by_part.get(key, set()),
+            exclusion_reason=_CELL_EXCLUSION_REASON,
+        )
         res.note = (
             f"partition {key!r}: W2_11 true payment failure (any channel) vs "
             "D5's DD-failure-observed belief, over ONLY this partition's cases "
-            "(world-side partition, never leaked company-side). The non-DD "
-            "no-remittance blind spot recurs here by construction (R12/R13) -- "
-            "a near-zero gap would be a leak, not a win."
+            "(world-side partition, never leaked company-side). BOTH ERROR "
+            "DIRECTIONS on their own denominators (atom D12): the headline is "
+            "the mean of the missed-failure rate over this cell's true failures "
+            "and the wrongful-dunning rate over this cell's never-flaggable "
+            "cases, so flagging EVERY case in the partition can no longer score "
+            "it a perfect 0. The non-DD no-remittance blind spot recurs here by "
+            "construction (R12/R13) -- a near-zero gap would be a leak, not a win."
         )
         out[key] = res
     return out

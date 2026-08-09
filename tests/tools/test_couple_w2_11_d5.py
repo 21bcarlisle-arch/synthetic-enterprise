@@ -12,7 +12,10 @@ from __future__ import annotations
 
 import ast
 import inspect
+import copy
+import dataclasses
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -1054,10 +1057,16 @@ def test_partition_lights_distinct_cells_and_conserves_the_whole():
 
 
 def test_partition_detection_gap_matches_a_manual_subset_score():
-    """R15 independence: the per-cell gap is the SAME `detection_gap` scorer
-    applied to just that cell's cases -- prove it by reconstructing one cell's
-    gap by hand and asserting equality (the partition adds no bespoke metric,
-    it only routes cases to the right cell)."""
+    """R15 independence: the per-cell gap is the SAME shared scorer applied to
+    just that cell's cases -- prove it by reconstructing one cell's gap by hand
+    and asserting equality (the partition adds no bespoke metric, it only routes
+    cases to the right cell).
+
+    D12: the shared scorer is now `detection_measures`, so the manual rebuild
+    reconstructs the NEGATIVE population by hand too. That is the half worth
+    reconstructing: the miss direction was already proven equal, and the way
+    this cell grid could go wrong is a negative set that is silently the
+    complement of the truth rather than the never-flaggable cases."""
     records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
     per_cell = pair.score_detection_by_partition(
         records, consumer, as_of, _regime_of_period
@@ -1068,14 +1077,24 @@ def test_partition_detection_gap_matches_a_manual_subset_score():
     for r in records:
         by_customer.setdefault(r.customer_id, []).append(r)
     manual_truth, manual_flagged = set(), set()
+    manual_universe, manual_negatives = set(), set()
     for cid, periods in by_customer.items():
         snap = consumer.snapshot(periods[0].account_id, as_of=as_of,
                                  payment_terms_days=pair.PAYMENT_TERMS_DAYS)
         due_to_period = {r.due_date: r.period_index for r in periods}
         rec_by_period = {r.period_index: r for r in periods}
         for r in periods:
-            if r.result == "failed" and _regime_of_period(r) == "G1":
+            if _regime_of_period(r) != "G1":
+                continue
+            manual_universe.add((cid, r.period_index))
+            if r.result == "failed":
                 manual_truth.add((cid, r.period_index))
+            elif (r.result == "success" and r.days_late is not None
+                    and r.days_late <= pair.DEFAULT_RECONCILIATION_GRACE_DAYS):
+                # Rebuilt from the RECORD, deliberately: a negative set derived
+                # as `universe - truth` would pass this test while charging the
+                # company for correctly flagging a late-past-grace payment.
+                manual_negatives.add((cid, r.period_index))
         ref_to_period = {r.invoice_ref: r.period_index for r in periods}
         for dd in snap.recent_dd_failures:
             p = due_to_period.get(dd.value_date)
@@ -1087,8 +1106,105 @@ def test_partition_detection_gap_matches_a_manual_subset_score():
             p = ref_to_period.get(m.invoice_ref)
             if p is not None and _regime_of_period(rec_by_period[p]) == "G1":
                 manual_flagged.add((cid, p))
-    expected = detection_gap(manual_truth, manual_flagged)
+    expected = detection_measures(
+        manual_truth, manual_flagged,
+        universe=manual_universe, negative_set=manual_negatives,
+        exclusion_reason="manual reconstruction of the cell's excluded cases",
+    )
     assert per_cell["G1"].gap == expected.gap
+    # Both directions, not just the headline they average into: a headline can
+    # match by coincidence when the two directions are individually wrong.
+    assert (per_cell["G1"].components["missed_failure_rate"]
+            == expected.components["missed_failure_rate"])
+    assert (per_cell["G1"].components["false_flag_rate"]
+            == expected.components["false_flag_rate"])
+    # The negative set is NOT the complement of the truth set. Without this the
+    # test would still pass against a scorer that made D11's tenfold error.
+    assert manual_negatives < (manual_universe - manual_truth)
+    assert per_cell["G1"].components["n_excluded"] > 0
+
+
+# ---------------------------------------------------------------------------
+# D12 -- THE CELL GRID SCORES BOTH DIRECTIONS (R15 must-fire)
+# ---------------------------------------------------------------------------
+
+def test_cell_grid_refuses_a_perfect_score_to_a_company_that_flags_everything():
+    """THE NAMED DEFECT D12 EXISTS TO KILL. Under the recall-only scorer a
+    company that flagged EVERY case in a partition scored that cell a perfect
+    0.0, so the grid could not tell a precise supplier from one that dunned its
+    whole book. Scored through the REAL entry point, not a re-implementation."""
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    per_cell = pair.score_detection_by_partition(
+        records, _FlagEverythingConsumer(records, consumer), as_of,
+        _regime_of_period,
+    )
+    assert per_cell, "no cell measured -- the control would be vacuous"
+    for key, res in per_cell.items():
+        assert res.gap is not None and res.gap > 0.0, (
+            f"cell {key}: flagging every case still scores {res.gap} -- the "
+            "cell grid is recall-only again"
+        )
+        # It is specifically the FALSE-FLAG direction that catches it: the
+        # indiscriminate company misses nothing, so a miss-only score is 0.
+        assert res.components["missed_failure_rate"] == 0.0
+        assert res.components["false_flag_rate"] == 1.0
+
+
+def test_cell_negative_population_is_not_the_complement_of_truth():
+    """R15 MUTATION on the DENOMINATOR -- the half D11 got wrong by a factor of
+    ten and the reason this atom was not a copy-paste. Collapse the excluded
+    (late-past-grace / disputed / unknown) cases back into the negatives, the
+    'obvious' complement-of-truth denominator, and the measured wrongful-dunning
+    rate must move MATERIALLY. If it does not, the exclusion is decorative and
+    the published rate is charging the company for being right."""
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    honest = pair.score_detection_by_partition(
+        records, consumer, as_of, _regime_of_period
+    )["G1"]
+
+    truth, flagged, universe, negatives = pair._detection_sets_by_partition(
+        records, consumer, as_of, _regime_of_period, pair.PAYMENT_TERMS_DAYS
+    )
+    mutated = detection_measures(
+        truth["G1"], flagged["G1"],
+        universe=universe["G1"],
+        negative_set=universe["G1"] - truth["G1"],   # THE MUTATION
+        exclusion_reason=None,
+    )
+    honest_rate = honest.components["false_flag_rate"]
+    mutated_rate = mutated.components["false_flag_rate"]
+    assert honest_rate > 0.0, "vacuity guard: nothing measured to move"
+    assert mutated_rate > honest_rate * 5, (
+        f"the complement-of-truth denominator ({mutated_rate}) barely differs "
+        f"from the never-flaggable one ({honest_rate}) -- on this population "
+        "the distinction must dominate, or the exclusion is a no-op"
+    )
+    # And the excluded cases are the whole difference, published not silent.
+    assert honest.components["n_excluded"] > 0
+    assert honest.components["exclusion_reason"]
+
+
+def test_a_cell_with_no_negative_cases_stays_dark_rather_than_fail_open():
+    """FAIL-OPEN is the R15 pattern this shape invites: with no never-flaggable
+    cases there is no false-flag denominator, and publishing the recall half
+    alone under the same field name would silently restore the one-directional
+    measure for that cell. It must go DARK instead, leaving the grid's fail-open
+    floor to score it at least as badly as the worst measured cell."""
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    # Every non-failed case becomes late-past-grace -> excluded, no negatives.
+    stripped = []
+    for r in records:
+        if r.result == "failed":
+            stripped.append(r)
+            continue
+        clone = copy.copy(r)
+        clone.days_late = 999
+        stripped.append(clone)
+    cells = pair.detection_cell_measurements(stripped, consumer, as_of)
+    assert cells == {}, (
+        f"a cell with no false-flag denominator was still published: {cells} "
+        "-- that is the recall-only measure returning under the new name"
+    )
 
 
 def test_uk_price_regime_marks_the_gas_crisis_window():
@@ -1208,6 +1324,35 @@ def test_cli_runs_and_prints_all_three_gaps(capsys, monkeypatch):
 # THE ERROR-DIRECTION CLASS CONTROL (atom D11, the R10 half)
 # ---------------------------------------------------------------------------
 
+class _FlagEverythingSnapshot:
+    """A belief snapshot for an account that flags EVERY one of its cases as a
+    collection miss. Uses the reconciliation channel (`invoice_ref`) rather than
+    the DD channel because reconciliation legitimately covers every payment
+    method -- a degenerate that could only flag DD cases would understate its
+    own indiscriminacy on exactly the non-DD cases the pair cares about."""
+
+    def __init__(self, periods):
+        self.recent_dd_failures = ()
+        self.detected_collection_misses = tuple(
+            SimpleNamespace(invoice_ref=r.invoice_ref) for r in periods
+        )
+
+
+class _FlagEverythingConsumer:
+    """The indiscriminate company, wearing the real consumer's interface. It is
+    a WRAPPER rather than a patched real consumer so the degenerate cannot
+    accidentally inherit any real belief -- what it flags is a property of the
+    truth records alone."""
+
+    def __init__(self, records, _real_consumer):
+        self._by_account = {}
+        for r in records:
+            self._by_account.setdefault(r.account_id, []).append(r)
+
+    def snapshot(self, account_id, as_of=None, payment_terms_days=None, **_kw):
+        return _FlagEverythingSnapshot(self._by_account.get(account_id, []))
+
+
 def _flag_everything_score(entry_key, records, consumer, as_of):
     """Score the flag-EVERYTHING degenerate through the scorer THAT ENTRY
     actually uses. Returns the headline that scorer gives an indiscriminate
@@ -1221,6 +1366,22 @@ def _flag_everything_score(entry_key, records, consumer, as_of):
             truth, universe, universe=universe,
             negative_set=sets["never_flaggable"],
             exclusion_reason="late-past-grace successes and disputes").gap
+    if entry_key == "score_detection_by_partition":
+        # THE CELL GRID, scored through its OWN entry point with a company that
+        # flags every case in every partition (D12). Routed through
+        # `score_detection_by_partition` itself rather than a hand-rolled
+        # `detection_measures` call, so the control measures the code the
+        # register names -- a test that re-implemented the scorer would pass
+        # even if the real one regressed to recall-only (the R15 tautology).
+        per_cell = pair.score_detection_by_partition(
+            records, _FlagEverythingConsumer(records, consumer), as_of,
+            partition_of=lambda rec: pair.uk_price_regime(rec.due_date),
+        )
+        assert per_cell, "the cell grid scored no partitions -- nothing measured"
+        # The grid's published headline is its WORST cell; a degenerate that
+        # scored 0 anywhere would be the defect, so take the best (min) case
+        # for the company and let the caller assert it is still not perfect.
+        return min(r.gap for r in per_cell.values() if r.gap is not None)
     # Every other registered entry is still on the recall-only scorer.
     return detection_gap(truth, universe).gap
 
@@ -1272,11 +1433,13 @@ def test_the_error_direction_control_fires_on_a_declaration_that_lies():
     flip -- the same shape as the as_of contract's exemption."""
     records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
 
-    # The lie: a recall-only entry declaring itself two-directional.
-    key = "score_detection_by_partition"
-    assert pair.DETECTION_DIRECTION_CONTRACT[key][
-        "counts_both_error_directions"] is False
+    # The lie: a recall-only entry declaring itself two-directional. The example
+    # is chosen from the register at RUNTIME, not hardcoded -- D12 fixed the
+    # entry this test used to name, and a hardcoded example turns a fixed
+    # dimension into a broken control instead of a passing one.
+    key = next(k for k, v in pair.DETECTION_DIRECTION_CONTRACT.items()
+               if not v["counts_both_error_directions"])
     degenerate = _flag_everything_score(key, records, consumer, as_of)
-    assert degenerate == 0.0, "the cell scorer stopped being recall-only"
+    assert degenerate == 0.0, f"{key} stopped being recall-only"
     with pytest.raises(AssertionError):
         assert degenerate != 0.0, "declared two-directional but scores a degenerate 0"

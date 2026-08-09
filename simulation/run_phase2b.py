@@ -2577,17 +2577,15 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     # Single regime present -> conservative single-cell collapse,
                     # fed from THAT CELL rather than from the triad headline.
                     #
-                    # D11 (2026-08-09): the headline is no longer the same measure
-                    # as the cells. It is a BALANCED error over an EVER-FLAGGED
-                    # population; the cells are still the recall-only
-                    # `detection_gap` over the at-`as_of` belief, registered as
-                    # named debt in DETECTION_DIRECTION_CONTRACT because the
-                    # grid's worst-cell band was calibrated on that shape. Feeding
-                    # the headline into one branch and cell measurements into the
-                    # other would put two different measures behind one band --
-                    # the band would move for a reason no reader could see. The
-                    # fidelity grid is therefore fed by `detection_cell_measure-
-                    # ments` end to end, and the headline never enters it.
+                    # D12 (2026-08-09): the cells are now the SAME two-directional
+                    # shape as the headline -- both directions on their own
+                    # per-cell denominators -- so the grid is one measure end to
+                    # end again. The headline still never enters the grid: it is
+                    # scored over an EVER-FLAGGED population while the cells score
+                    # the at-`as_of` belief, and feeding one into one branch and
+                    # the other into the other would move the band for a reason no
+                    # reader could see. The fidelity grid stays fed by
+                    # `detection_cell_measurements` end to end.
                     _only_cell = next(iter(_cell_gaps.values()))
                     _fid_em = emit_live_fidelity_evidence(
                         detection_gap=_only_cell.detection_gap,
