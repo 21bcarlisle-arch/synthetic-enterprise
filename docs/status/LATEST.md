@@ -1,5 +1,50 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T00:30:35Z
+Last updated: 2026-08-09T01:48:12Z
+**W1_12_premise_trace_generator — the last red cell was the BAND, not the generator, and the band
+was gas-shaped. L2→L3 (2026-08-09, `d9ae87986`), self-certified.** Last tick DECLINED this
+promotion on a measured red cell and named the work rather than taking the shortcut. This is that
+work. The exit test is *"must pass the two-level test"* and it now passes: **7 anchored cells PASS,
+2 UNVALIDATED** (L1.4, L2.4 — unchanged `NEED` anchors, not newly anchored to reach green),
+`failed_levels []`, re-measured at HEAD rather than re-stamped.
+**The residual.** L1.1 half-hourly texture was **0.1248 against a 0.15 floor**, worst home H10 —
+the panel's *only* heat-pump home. Texture is `median|Δ| / mean`, and the whole of the deficit
+decomposed to the **denominator**: the heat pump is 49% of H10's electricity and moves almost
+nothing period to period. The floor's own anchor text reasons from a gas premise in as many words
+(*"a kettle is 2.8 kW for three minutes on a ~0.7 kWh half-hour"*) and was applied as **one
+national floor to every home regardless of heating system** — structurally the same
+one-national-constant defect this atom exists to remove, reappearing in the **control**.
+**What was not done (R12).** The 0.15 floor is untouched; no cell was marked UNVALIDATED to duck a
+judgement. Either would have turned the suite green in one edit, which is why neither was the move.
+**The anchor, fetched this tick, not chosen.** Ofgem TDCV from 1 Jul 2026 (electricity 2,500 —
+a *non*-electrically-heated home, i.e. the behavioural baseline — and gas 9,500 kWh/yr); the
+EST/DECC in-situ condensing-boiler trial (**mean measured combi efficiency 82.5%**, sd 4.0%, against
+a SEDBUK rating of 90.4%); and the DESNZ/Energy Systems Catapult Electrification of Heat
+demonstration project (**median ASHP SPFH4 2.78**, IQR [2.55, 3.05], n=428). 9500×0.825 ÷ 2.78 =
+2,819 kWh of heat-pump electricity against 2,500 kWh of behaviour — the heat pump is **53.0% of the
+mean**, so the electric band is 0.15 × 0.470 = **0.0705**, derived at import and never stored.
+Joint-corner envelope across both published spreads: **0.0655–0.0758**. Filed with provenance in
+`ASSUMPTIONS.md`, including what is *still* not anchored (no published band for the texture
+statistic itself, in either fuel).
+**R15 — and the old mutation was invalid here.** `_smooth` has been this suite's L1.1 mutation since
+the band was written. On a matched pair (same household, same seed, same weather, differing only in
+heating system) it moves the statistic **the wrong way** on a heat pump: gas 0.2471 → 0.1539 as
+intended, heat pump **0.1069 → 0.1430, up**. Cross-day averaging strips appliance noise and leaves
+the heat pump's repeated diurnal cycle standing. Reusing it would have produced a proof that was
+vacuous in the only direction that matters. Replaced with a monotone, daily-total-preserving
+`_flatten_blend`, verified monotone *before* being used as evidence — and the class (a mutation
+inherits the composition it was validated against; nothing notices when a band is later conditioned)
+is filed as its own finding, not fixed on sight.
+**The answer to "you lowered a threshold so it would pass".** Thresholds on different denominators
+cannot be compared. How broken a home must be before its own band fires **can** be: on the matched
+pair, the heat-pump home fires at **0.349** of the way to a flat day and the gas home at **0.396**.
+The new band is the **stricter** of the two against the same defect.
+**The tell.** The worst L1.1 cell is no longer the heat-pump home at all — it is **D7, a gas home at
+0.1804, judged by the unchanged 0.15 band**. The heat-pump home stopped being the worst cell rather
+than being let off the one it was failing. Also guarded: fail-closed (missing heating flags judge
+every home by the *stricter* band), tautology (the flag is a register fact, never inferred from the
+series being judged), and worst-cell selection by **margin** rather than raw value. 155 passed,
+1 xfailed — the shipped path's strict-xfail pin still XFAILs, so the legacy PC1 rescale has not been
+quietly outgrown. Stops at L3: Expert Hour `not_attempted`.
 
 **D10_detection_headline_is_single_channel (2026-08-09, `e78913088`) — the payment DETECTION
 headline gets a shape that can see latency, and a sentence it published turns out to be wrong.
