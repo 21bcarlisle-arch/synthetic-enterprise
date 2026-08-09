@@ -4379,3 +4379,74 @@
   evidence: ['docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md', "2026-08-09 BUILT L0->L2. Mechanism: background/blocked_atom_visibility.py, rendering docs/design/BLOCKED_ATOM_VISIBILITY.md (generated; --check re-derives and fails on drift). THE ORIGIN_NOTE'S NAMED RISK IS DISPROVEN, by reading the readers as it demanded: `_is_externally_blocked` has exactly two call-site families and both are in background/supervisor.py (grep, whole tree) -- neither AO7 nor AO11 imports it, so the exclusion is NOT implemented once and reused everywhere. TWO CORRECTIONS TO THE RULING'S PREMISE, measured not assumed: (1) `blocked` on this map is `loop_stage: idle` + prose `block_reason`, NOT `blocked_on` -- ZERO of 232 atoms carry a `blocked_on`, for the three reasons the EP1-EP20 mint recorded in the map header, so the measured parked set is the 82 idle atoms; (2) AO7 target_design_delta does not read the maturity map AT ALL -- all seven of its probes are code-tree architecture (AST/git-index/size-census), so the ruling's 'visible to the target-design deltas' was not a property AO7 had either way. Bolting a map-composition target into an architecture document would be accretion (OPERATIONAL_COHERENCE_DESIGN_PASS), so the dial is carried HERE, in AO7's shape but on its own subject. MEASURED, LIVE TREE: draw 82/82 parked atoms not offered by the REAL draw, of which 60 proven excluded BY THE PARK (lifting the park alone makes the same atom drawable) and 22 excluded for another reason (never counted as proof); clocks 82/82 parked atoms carry an AO11 row; dial harness 86/232 = 37.1% vs 82/206 at mint, and ALL FOUR named subjects (clv 1, counterparty_adapter 8, forecast_feed 1, tournament 2) have coverage that is ENTIRELY parked -- a park-filtering reader would report exactly the zero the ruling was minted to fix, which is the visibility property doing work rather than decorating. R15 PROVEN BOTH WAYS, five source mutations: is_parked->False kills 16; a verdict reached without probing the draw (tautology) kills 2; a skipped probe failing open kills 1; clock_invisible->[] kills 1; the vacuity floor removed kills 1; unmutated passes 26. R12: --check returns 0 on a 100% harness share (test_a_lopsided_dial_is_reported_and_passes) -- measurability gates, the number never does. Tests: tests/background/test_blocked_atom_visibility.py 26 passed. Stops at L2 (mechanically real, happy path): nothing calls it on a schedule, so the dial moves only when the CLI is run -- digest/pre-commit wiring is L3."]
   file_scope: ['background/blocked_atom_visibility.py', 'tests/background/test_blocked_atom_visibility.py', 'docs/design/BLOCKED_ATOM_VISIBILITY.md']
   origin_note: "The specific risk this atom must disprove is that the blocked-atom exclusion is implemented once and reused everywhere -- supervisor._is_externally_blocked drops blocked atoms from EVERY draw, and if the target-design and staleness readers share that filter, the futures become invisible to precisely the surfaces the ruling wants them visible on, which would make the whole minting exercise a no-op that looks fine. Verify by reading the actual readers (AO7 target-design, AO11 map_assertion_provenance) against the newly-blocked ids, not by inspecting the draw."
+
+# --- DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09, WORK THIS CREATES (minted 2026-08-09)
+#     #1 (a plain landed-or-not statement) and #2 (run_annual_report.py committed with a truthful
+#     provenance record) were DELIVERED in the same tick rather than minted -- a self-drawable
+#     deliverable is BUILD, not bookkeeping. #1: publish commit 94933cfff landed 2026-08-09
+#     13:56:05 +0100, on origin/main, with the fail-open fix 1fd85cb27 as an ancestor. #2: 83a55b750.
+#     Observation 3 (staging ~38 deep) is judged NOT a mintable class: it is a workload, not a
+#     defect shape, and the marker-drain mechanism it superficially resembles already exists
+#     (background_worker.process_leftover_run_markers, drained 413 -> 12 on 2026-08-03).
+- id: PW1_staleness_is_code_actually_loaded
+  title: "Stale means stale for THIS daemon's code"
+  gain: "A staleness signal that can be green is a signal someone acts on; a permanently-red one is indistinguishable from a blind one."
+  name: "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 DO-NEXT #3 (director: 'your own refinement; it is now the work, not the footnote') and DECIDED #2 ('a detector for that failure mode that is always red will be ignored exactly as reliably as one that is blind'). Redefine the boot-SHA drift signal from repo-HEAD-moved to CODE-THIS-DAEMON-ACTUALLY-LOADS-moved, and first fix the population it is computed over, which today excludes the two daemons that caused the 10h outage. EXIT: TWO halves, both measured on the live daemon set, neither sufficient alone. (a) POPULATION, and it is an R10 class closure not an instance fix: process_reconciler._systemd_owned_sessions() filters on `e.get('launched_by','tmux')=='systemd'`, so sim-runner and background-worker -- user-scope systemd units whose own ExecStartPre wrote the boot stamps -- default to tmux and drop out of evaluate_boot_sha_drift()'s answer. The 2026-07-29 cutover patched two manifest rows and left seven identical ones standing, which silently chose which daemons the detector was allowed to watch. EXIT: the manifest's launched_by is DERIVED from or reconciled against observed reality (/proc/<pid>/cgroup, systemctl --user is-active) rather than trusted, so a wrong row FAILS rather than shrinks the population; the seven double-launchable rows are resolved together; and a test asserts the detector's population equals the observed running set, not a subset of it. (b) SIGNAL: `stale` is computed against the modules the daemon actually imported (its own file_scope closure), not against repo HEAD -- so a daemon whose loaded modules are unchanged reads GREEN while HEAD moves, and a daemon running pre-fix code for a module it imports reads RED. EXIT: the signal is green on a live tree with a moved HEAD and no relevant edit, and red for sim-runner replayed against the 2026-08-09 fa9a73c72 boot state. R15 both ways: a mutation that empties the population, and a mutation that reverts the signal to HEAD-comparison, must each kill named tests; a vacuity guard must prove the honest path evaluates a non-empty daemon set."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_steer
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md', 'docs/staging/WORKER_FINDING_THE_STALENESS_DETECTOR_CANNOT_SEE_THE_DAEMONS_THAT_GO_STALE_2026-08-09.md']
+  file_scope: ['background/process_reconciler.py', 'background/process_manifest.json', 'tests/background/test_process_reconciler.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a config-drift monitor that reports every host red because a shared repo moved, so the on-call team mutes it and misses the one host actually running last month's binary"
+  origin_note: "The R15 shape to hunt is that this detector's own INPUT is a hand-maintained manifest field -- a checker whose population is declared by the thing being checked can shrink itself to zero and still pass. That is the observed defect, not a hypothetical: the answer it returned on 2026-08-09 was correct for the population it was given and useless for the question asked. Do not fix the two rows; fix how the population is obtained."
+
+- id: PW2_failure_clears_its_own_alarm
+  title: "A check whose failure erases the record of the failure"
+  gain: "The class that let a 10h outage alarm about a 14-minute one gets a census and a guard, instead of a second instance fix."
+  name: "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class (director: 'That is a class, not an instance. Where else can a check's failure clear the signal that the check failed?'). The publish failure path wrote to .publish_gate_state.json -- the same state the alarm reads for episode memory -- so each failure reset wedge_since and the alarm truthfully described a fresh 14-minute wedge inside a 10-hour episode. EXIT: A CENSUS first, then a guard -- in that order, because an instance fix on .publish_gate_state.json is exactly what R10 forbids. EXIT: (1) an enumeration of every control in background/ and tools/ whose failure path WRITES to a state file its own alarm/severity READS, produced by a derivation (writer set intersected with reader set per state path) rather than by inspection, with each hit dispositioned real / benign-and-why; (2) the shape is guarded -- for each real hit the episode-scoped field is append-or-monotonic so a failure cannot shorten its own episode, and a test proves the guard fires by replaying the 2026-08-09 sequence and asserting the reported episode length is ~10h and not ~14min; (3) R15 both ways, including a vacuity guard proving the census is non-empty on the live tree (a census that finds nothing is the fail-open shape here)."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_steer
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md', 'docs/staging/WORKER_FINDING_EPISODE_MEMORY_WIPED_MID_EPISODE_2026-08-09.md']
+  file_scope: []
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an incident timer that a retry loop keeps resetting, so a day-long outage pages as a series of five-minute blips and never escalates"
+  origin_note: "This is the second-order form of a fail-silent control (R15): the check does fail, and does alarm, but the alarm's SEVERITY is derived from state the failure just overwrote -- so the louder the failure, the quieter the signal. The census is the deliverable; the fix to the publish gate alone would close the instance the director explicitly said not to close."
+
+- id: PW3_suite_duration_watch
+  title: "Nothing watches how long the suite takes"
+  gain: "The next time the suite outgrows its wall, it is a trend someone saw coming rather than a timeout that read as a pass."
+  name: "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class: 'The suite grew past a fixed wall. The new ceiling is sound and growth now fails loudly rather than silently -- but nothing watches suite duration, so the same shape recurs, just noisily.' The timeout fail-open is closed (1fd85cb27); the growth that reached it is unmeasured. EXIT: A duration series that already exists is preferred to a new collector -- check test_execution_log.jsonl before writing one (AO1/AO2 write-time discipline). EXIT: (1) wall-clock duration of the publish gate's suite run is recorded per run with its commit SHA; (2) a headroom figure -- duration against the current ceiling -- is reported on a surface that is read (the daily self-note or the digest), as a RATIO not a raw second count, so the number is comparable across a changed ceiling; (3) the alarm is a TREND transition (R5): crossing a headroom threshold fires once, and recovery fires once; it must not repeat an unchanged status. R12: duration is a DIAGNOSTIC -- no test may be deselected, marked slow, or moved to a tier to make this number smaller, and the atom states that in its own build note. R15: a mutation that reports headroom from the ceiling alone (ignoring the measured duration) must kill a named test."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_steer
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md', 'background/process_run_complete.py (publish gate timeout)', 'docs/observability/test_execution_log.jsonl']
+  file_scope: []
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a nightly batch that creeps from 2h to 7h across a year with no duration chart, discovered the night it misses the morning cut-off"
+  origin_note: "The tempting build is a new metrics collector; the cheap and correct one is a headroom ratio over a series that already exists. R12 is the live risk on this atom specifically: the fastest way to make the number green is to run fewer tests, which is the one move CLAUDE.md's 'DEPTH IS NOT THE PLACE TO SAVE' forbids."

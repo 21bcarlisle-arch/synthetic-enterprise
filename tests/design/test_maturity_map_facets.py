@@ -69,6 +69,14 @@ REVIEWED_CLOSE_TO_LEARN = {
     # means anything, which is the same close_to_learn class as H29 (its near-identical sibling:
     # both are import-time env capture defeated by reload/teardown ordering).
     "H31_secret_scrub_test_leaks_wake_key",
+    # 2026-08-09 reviewed (worker tick, D16 build, which tripped the ratchet and queued it rather
+    # than trimming its own record to satisfy it). Classified on its merits, not to clear the gate:
+    # H32 is a HARNESS-INTEGRITY atom -- the map's own size ratchet is red on committed HEAD
+    # (464110 bytes vs a 409600 ceiling, measured before this tick's 8865), so a control currently
+    # penalises the one behaviour the map exists for, recording work honestly. It moves no money
+    # and touches no revenue flow; what it measures is whether the machine's own record can be
+    # kept without a control fighting it -- the same close_to_learn class as H29/H30/H31.
+    "H32_map_size_ratchet_red_on_head",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for
@@ -124,6 +132,17 @@ REVIEWED_CLOSE_TO_LEARN = {
     "KNIFE2_customer_straddle",
     "KNIFE3_wall_crossing_paydown",
     "KNIFE4_orphan_disposition",
+    # 2026-08-09 reviewed (worker tick, minted from DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09's
+    # WORK-THIS-CREATES block). Classified on their merits: all three act on whether the machine can
+    # TELL that something is wrong with itself. PW1 redefines a daemon-staleness signal so it can be
+    # green and its red means something; PW2 censuses the class where a check's failure overwrites
+    # the state its own alarm reads; PW3 watches suite duration against its ceiling. None prices,
+    # bills, meters or settles anything -- the only "customer" any of them has is the machine's own
+    # operator, so filing them under meter_to_cash or price_to_bill would invent a revenue flow.
+    # Same close_to_learn class as the AO and H_harness siblings above.
+    "PW1_staleness_is_code_actually_loaded",
+    "PW2_failure_clears_its_own_alarm",
+    "PW3_suite_duration_watch",
     # 2026-08-08 reviewed (worker tick, minting the EP1-EP20 commitment sets (epochs 2-5) from
     # DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08). Classified on their merits, not to clear
     # the gate -- and as with the AO batch, the gate firing on eleven at once is this control doing
