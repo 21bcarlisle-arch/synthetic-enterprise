@@ -305,12 +305,20 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     ON THE TEN-PREMISE PANEL that verdict is now INSUFFICIENT rather than green,
     and that is the correct reading of what a panel can support (2026-08-09): a
     clean sheet over ten homes rules out a true violation rate no smaller than
-    30%. The panel breaches no band — its problem is power. The judged verdict
-    comes from `--population`, which is what the gap is measured on for the record.
+    30%. Every L1 cell's problem here is power. The judged verdict comes from
+    `--population`, which is what the gap is measured on for the record.
+
+    THE PANEL ALSO BREACHES ONE BAND, since L2.4 was anchored later the same day.
+    L2.4 is a POPULATION statistic rather than a per-home one, so ten homes are
+    enough to judge it and it is red at ten homes — the two readings are kept
+    apart below because "under-powered" and "wrong" are different states and this
+    panel is now both.
     """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
-    assert not result.failed, result.summary()
+    assert {c.statistic for c in result.failed} == {
+        "L2.4_scale_spread_p90_p10"
+    }, result.summary()
     assert result.inconclusive, (
         "ten homes cannot clear a control that claims to see a 5% violation rate"
     )
@@ -400,12 +408,21 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
     # stream's own day-to-day repeatability, netted out of L1.2 so that one band
     # stops judging behaviour in a gas home and a thermostat in an electric one,
     # and REPORTED rather than given a threshold nobody has published.
+    #
+    # `L2.4_scale_spread_p90_p10` LEFT this set on 2026-08-09 — anchored on the
+    # Low Carbon London panel and immediately red, which is the opposite of
+    # "quietly anchoring something that has no anchor" and is why the set is
+    # asserted exactly rather than as a superset. `L1.4` stayed, and the reason is
+    # now a measurement rather than an absence: the same panel anchors it, and its
+    # own R15 mutation shows the anchor does not transfer to this window
+    # (`tests/harness/test_premise_two_level.py::
+    # test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`).
     unvalidated = {c.statistic for c in result.cells if c.verdict is fgl.Verdict.UNVALIDATED}
     assert unvalidated == {
         "L1.2h_heating_shape_repeatability",
         "L1.4_weekday_weekend_separation",
-        "L2.4_scale_spread_p90_p10",
     }, unvalidated
+    assert result.cell("L2.4_scale_spread_p90_p10").verdict is fgl.Verdict.FAIL
     # ...and the new one is not vacuous on this panel: the panel's heat-pump home
     # is exactly a home whose heat lands on the judged meter.
     assert result.cell("L1.2h_heating_shape_repeatability").homes_unjudged == 1

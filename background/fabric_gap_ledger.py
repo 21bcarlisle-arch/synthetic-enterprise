@@ -114,6 +114,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Mapping, Sequence
 
+from background import lcl_household_anchors as lcl_anchors
 from background.gap_metric import GapResult, prediction_gap, write_gap_entry
 
 # HARNESS CROSSES THE WALL BY DESIGN — this module is the only layer permitted to
@@ -1202,14 +1203,39 @@ BANDS: dict[str, Band] = {
         threshold=None,
         anchor=AnchorStatus.NEED,
         anchor_source=(
-            "NEED — SERL weekday/weekend shape statistics. Measured and reported, NOT "
-            "judged. The defect this targets is not absence of a weekday/weekend "
-            "difference but IDENTITY of that difference across homes, which is "
-            "captured by L2.3 timing diversity; giving this cell an invented "
-            "threshold would make the suite look rigorous while being unfalsifiable."
+            "STILL NEED, and as of 2026-08-09 the reason is MEASURED rather than "
+            "'no source exists'. An anchor WAS found and WAS applied — the Low "
+            "Carbon London panel's per-home weekday-vs-weekend total-variation "
+            "distance (304 real households, full year 2013: median 0.0724, P05 "
+            "0.0279, bootstrap floor 0.0262; background/lcl_household_anchors.py "
+            "still derives it) — and it was REMOVED again the same day because it "
+            "cannot fail at this window length. THE MEASUREMENT: relabelling the "
+            "day-type calendar at random, keeping the same 85/35 counts, is this "
+            "cell's own named R15 mutation, and over 600 home-permutation samples "
+            "on the drawn population NOT ONE value fell below the floor — null "
+            "median 0.0715, null MINIMUM 0.0378, against a floor of 0.0262. The "
+            "statistic is strongly biased upward at 120 days: with 35 weekend days "
+            "against 85 weekday days, two arbitrary subsets of the SAME home differ "
+            "by about as much as a real household's weekday differs from its "
+            "weekend over a full year. A band that a day-type-randomised population "
+            "clears with a 1.4x margin is fail-open, and a fail-open band is worse "
+            "than an honest blank (R15). WHAT WOULD CLOSE IT: judge each home "
+            "against its OWN permutation null (separation minus the median of k "
+            "randomised relabellings) rather than against a raw distance measured "
+            "on a different window — then a full-year anchor and a 120-day "
+            "measurement are the same statistic. That is a named build, not a "
+            "threshold move. SERL remains the stratified source of record."
         ),
         observed_on_shipped=None,
-        rationale="Present but identical for every home is the real defect — see L2.3.",
+        rationale=(
+            "Present but identical for every home is the real defect — see L2.3. "
+            "Reported for the record while unjudged: on the drawn n=200 population "
+            "the model's per-home spread of this statistic (P90/P10 = 2.25) is about "
+            "half the panel's (4.66) and its LOWEST home (0.072) sits at the panel's "
+            "MEDIAN (0.072) — so the model's homes look MORE weekday/weekend-distinct "
+            "and LESS varied in that distinction than real ones. Both readings are "
+            "confounded by the same window bias, which is why neither is judged."
+        ),
     ),
     "L1.5_max_multiplicity_share": Band(
         statistic="L1.5_max_multiplicity_share",
@@ -1288,18 +1314,24 @@ BANDS: dict[str, Band] = {
         statistic="L2.4_scale_spread_p90_p10",
         level="L2",
         direction="at_least",
-        threshold=None,
-        anchor=AnchorStatus.NEED,
+        threshold=lcl_anchors.LCL_SCALE_SPREAD_P90_P10_FLOOR,
+        anchor=AnchorStatus.PUBLISHED,
         anchor_source=(
-            "NEED — NEED (the DESNZ National Energy Efficiency Data-Framework) "
-            "EPC-linked actual metered annual consumption by property type and floor "
-            "area band. Measured and reported, NOT judged. Note the shipped path's "
-            "8% spread is visibly wrong against any plausible band, but 'visibly "
-            "wrong' is not a threshold, and inventing one here would be exactly the "
-            "unfalsifiable-rigour failure this file refuses elsewhere."
+            "ANCHORED 2026-08-09 on the Low Carbon London panel (304 real households, "
+            "2013, CC-BY — background/lcl_household_anchors.py). Point estimate "
+            "P90/P10 = 5.3769 (IQR ratio 2.4566); the threshold is the bootstrap P05 "
+            "of that ratio, i.e. the low end of what the panel's own sampling error "
+            "admits. The DESNZ NEED (EPC-linked metered annual consumption stratified "
+            "by property type and floor-area band) is NOT retired: this panel says "
+            "whether the spread is the right SIZE, never whether it is wrong in the "
+            "right PLACES, and a stratified source should replace it."
         ),
         observed_on_shipped=None,
-        rationale="Real UK homes span several-fold in annual kWh across the stock.",
+        rationale=(
+            "Real UK homes span several-fold in annual kWh across the stock. Not "
+            "knife-edge: the drawn n=200 population reads 1.80 against 4.88, so every "
+            "tolerance the anchor rule admits lands on the same verdict."
+        ),
     ),
 }
 
@@ -1420,8 +1452,11 @@ RATE_BANDS: dict[str, RateBand] = {
     ),
     "L1.4_weekday_weekend_separation": RateBand(
         "L1.4_weekday_weekend_separation", None, AnchorStatus.NEED,
-        "NEED — SERL weekday/weekend shape statistics. The per-home band is itself "
-        "unanchored, so there is nothing to count violations of.",
+        "The per-home band is itself unanchored, so there is nothing to count "
+        "violations of. It briefly was not, on 2026-08-09 — see the L1.4 entry in "
+        "BANDS for the measurement that took the anchor back out, and for the "
+        "tolerated rate (10%) that goes back in with it when the statistic is "
+        "null-corrected.",
     ),
     "L1.5_max_multiplicity_share": RateBand(
         "L1.5_max_multiplicity_share", 0.0, AnchorStatus.STRUCTURAL,

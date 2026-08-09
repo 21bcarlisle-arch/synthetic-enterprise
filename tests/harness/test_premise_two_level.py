@@ -47,11 +47,13 @@ import dataclasses
 import datetime as dt
 import json
 import math
+import random
 import statistics
 
 import pytest
 
 from background import fabric_gap_ledger as fgl
+from background import lcl_household_anchors as anchors
 from company.pricing import fabric_intervention as fi
 from company.pricing.thermal_inference import (
     EvidenceBasis,
@@ -290,21 +292,60 @@ def test_the_shipped_path_fails_at_EVERY_home_not_at_one_of_them(shipped_result)
         assert cell.homes_unjudged == 0
 
 
-def test_the_two_unanchored_cells_are_reported_UNVALIDATED_not_passed(shipped_result):
-    """Two statistics have no published anchor yet. They are MEASURED and REPORTED
-    but excluded from the verdict, rather than given an invented threshold.
+def test_the_remaining_unanchored_cells_are_reported_UNVALIDATED_not_passed(shipped_result):
+    """A statistic with no anchor is MEASURED and REPORTED but excluded from the
+    verdict, rather than given an invented threshold.
 
     This is the honest failure mode to choose: a fabricated band would make the
-    suite look rigorous while being unfalsifiable. Note that the shipped path's
-    8%-apart annual totals are visibly wrong against any plausible band — but
-    "visibly wrong" is not a threshold.
+    suite look rigorous while being unfalsifiable.
+
+    WAS THREE, IS TWO (2026-08-09). L2.4 left this list when the Low Carbon London
+    panel anchored it — see `test_the_L2_4_cell_is_ANCHORED_on_the_LCL_PANEL`.
+    L1.4 briefly left it the same day and CAME BACK; the reason is measured and
+    pinned in `test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`.
+    `L1.2h_heating_shape_repeatability` — the quantity L1.2 nets out — has no
+    published statistic for how repeatable a thermostat is.
     """
-    for statistic in ("L1.4_weekday_weekend_separation", "L2.4_scale_spread_p90_p10"):
+    for statistic in (
+        "L1.4_weekday_weekend_separation",
+        "L1.2h_heating_shape_repeatability",
+    ):
         cell = shipped_result.cell(statistic)
-        assert cell.verdict is fgl.Verdict.UNVALIDATED
-        assert cell.band.anchor is fgl.AnchorStatus.NEED
-        assert cell.band.threshold is None
-        assert math.isfinite(cell.value), "an unvalidated cell still reports its value"
+        assert cell.verdict is fgl.Verdict.UNVALIDATED, cell.note
+        assert cell.band.anchor is fgl.AnchorStatus.NEED, statistic
+        assert cell.band.threshold is None, statistic
+
+
+def test_the_L2_4_cell_is_ANCHORED_on_the_LCL_PANEL(shipped_result):
+    """L2.4 stopped being decorative on 2026-08-09.
+
+    It was `AnchorStatus.NEED` from the day this suite was written, which is honest
+    and has a price: an unanchored cell is reported and never judged, so a
+    generator can be arbitrarily wrong on it while the suite still reads green.
+    The anchor was already in the repo — 304 real Low Carbon London households,
+    fetched for an unrelated workload — and it measures exactly this quantity.
+    `background/lcl_household_anchors.py` holds the panel, the rule that picked the
+    threshold, and what the panel is NOT.
+
+    THE BAND MUST TRACE TO THE PANEL, not to a number typed here: the assertion
+    below reads the anchor module, so a threshold edited in the band table without
+    the panel behind it fails this test.
+    """
+    band = fgl.BANDS["L2.4_scale_spread_p90_p10"]
+    assert band.anchor is fgl.AnchorStatus.PUBLISHED
+    assert band.threshold == anchors.LCL_SCALE_SPREAD_P90_P10_FLOOR
+    assert "Low Carbon London" in band.anchor_source
+
+    # AND THE SHIPPED PATH IS RED ON THE CELL THAT COULD ALWAYS SEE IT. It spans
+    # 1.58x between its 10th and 90th percentile home; the anchor says real
+    # households span 5.38x. "Visibly wrong" was never a threshold, and now it does
+    # not have to be. (The 8% recorded when this suite was written was the shipped
+    # path's spread over a DIFFERENT panel; the number moved, the verdict did not,
+    # which is why the value and the verdict are both asserted.)
+    spread = shipped_result.cell("L2.4_scale_spread_p90_p10")
+    assert spread.verdict is fgl.Verdict.FAIL, spread.note
+    assert spread.value == pytest.approx(1.58, abs=0.05), spread.note
+    assert spread.value < band.threshold
 
 
 def test_every_band_carries_a_named_anchor_or_declares_it_NEEDs_one():
@@ -351,11 +392,19 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
 
     Note the direction: this is STRICTLY less flattering than what it replaced.
     The panel's numbers were never wrong, they were never enough.
+
+    THE PANEL DOES NOW BREACH ONE BAND (2026-08-09). L2.4 is a POPULATION
+    statistic, not a per-home one, so it is judgeable at eight homes and it is red
+    at eight homes — which says the panel's problem is power on the L1 cells AND
+    fidelity on L2.4, not power alone. The distinction is kept in the assertion
+    below rather than collapsed into "the panel is red".
     """
     assert generated_result.homes < fgl.MIN_HOMES_FOR_L1_RATE
-    assert not generated_result.failed, (
-        "the panel breaches no band — its problem is power, not fidelity: "
-        + generated_result.summary()
+    assert {c.statistic for c in generated_result.failed} == {
+        "L2.4_scale_spread_p90_p10"
+    }, (
+        "the panel breaches only the anchored spread band — every L1 cell's "
+        "problem here is power, not fidelity: " + generated_result.summary()
     )
     inconclusive = {c.statistic for c in generated_result.inconclusive}
     assert inconclusive == {
@@ -372,12 +421,28 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
         assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / generated_result.homes)
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "RE-PINNED 2026-08-09, and NOT by a generator regression — by an ANCHOR "
+        "landing. L2.4 (between-home spread of annual consumption) had been "
+        "AnchorStatus.NEED since this suite was written: measured, reported, never "
+        "judged. Anchored on 304 real Low Carbon London households it reads 1.80 "
+        "against a floor of 4.88 — the drawn population's homes are between two and "
+        "three times too ALIKE in scale. Nothing about the generator changed; a cell "
+        "that had never been able to fail acquired the ability, and used it "
+        "immediately. That is the fourth time this suite's own control SET, not its "
+        "controls, turned out to be the hole. STRICT: when the generator's scale "
+        "spread reaches the anchor this XPASSes and whoever fixes it writes down "
+        "how, exactly as the four cells below were closed."
+    ),
+)
 def test_the_premise_trace_generator_meets_the_two_level_test(population_result):
     """The requirement, held against the POPULATION rather than the panel.
 
-    UNPINNED 2026-08-09. This assertion carried a STRICT xfail from the moment the
-    drawn population first ran, and the pin did its job: closing the last cell made
-    it XPASS and turned the suite red until somebody came here and wrote down how.
+    UNPINNED 2026-08-09, then RE-PINNED the same day when L2.4 was anchored (see
+    the decorator). The pin has now done its job in both directions: it caught the
+    generator getting better, and it caught the suite getting sharper.
 
     THE FOUR CELLS THIS GENERATOR HAS CLOSED, EACH BY NAMING A MECHANISM AND NONE
     BY MOVING A BAND — the record is kept whole because the method is the point:
@@ -452,7 +517,17 @@ def test_MEASURED_population_values(population_result):
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
     # breached it.
-    assert not population_result.failed, population_result.summary()
+    #
+    # EVERY L1 CELL IS GREEN AND THE POPULATION IS STILL RED, on the L2 cell that
+    # was anchored on 2026-08-09. Pinned as a value and not merely as a verdict, so
+    # a generator that closes half the gap is visible as progress rather than as a
+    # still-red flag: 60 drawn homes span 2.17x between their 10th and 90th
+    # percentile against real households' 5.38x (floor 4.88).
+    assert {c.statistic for c in population_result.failed} == {
+        "L2.4_scale_spread_p90_p10"
+    }, population_result.summary()
+    spread = population_result.cell("L2.4_scale_spread_p90_p10")
+    assert spread.value == pytest.approx(2.17, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     assert population_result.cell(
         "L1.2_day_to_day_shape_correlation"
@@ -477,9 +552,10 @@ def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, genera
     """The distance between the two columns IS the value of wiring W1_12 in,
     expressed in the units of the defect rather than as a claim that it is better.
 
-    The shipped path is RED. As of 2026-08-08 `premise_trace` fails NO anchored
-    cell, so the gap between the columns is now the whole of the shipped path's
-    failure set. The subset assertion is kept as the standing regression guard:
+    The shipped path is RED. `premise_trace` fails ONE anchored cell — L2.4, since
+    it was anchored on 2026-08-09 — and the shipped path fails that one too, and
+    worse (1.58 against 2.12 on the same panel), so the gap between the columns is
+    still every other cell. The subset assertion is the standing regression guard:
     any cell `premise_trace` starts failing that the shipped path passes is a
     regression, and this test says so.
     """
@@ -489,7 +565,7 @@ def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, genera
         "premise_trace's failures must be a strict subset of the shipped path's — "
         f"shipped {sorted(shipped_fails)}, generated {sorted(generated_fails)}"
     )
-    assert generated_fails == set()
+    assert generated_fails == {"L2.4_scale_spread_p90_p10"}
     assert shipped_result.is_red, (
         "the shipped demand path is still RED — wiring premise_trace in is the "
         "open work this measurement exists to size, and it is NOT done"
@@ -945,6 +1021,98 @@ def test_L2_4_scale_spread_FIRES_when_every_home_is_set_to_the_mean(generated):
     assert after.p90_over_p10 == pytest.approx(1.0)
     assert after.iqr_ratio == pytest.approx(1.0)
     assert before.p90_over_p10 > 1.0
+    # AND THE BAND, not merely the statistic. A statistic that moves under its own
+    # mutation while the band it feeds stays green is the fail-open this suite
+    # exists to refuse, and it is a distinct assertion because until 2026-08-09
+    # this cell HAD no band to check.
+    band = fgl.BANDS["L2.4_scale_spread_p90_p10"]
+    assert band.judge(after.p90_over_p10) is fgl.Verdict.FAIL
+
+
+def test_the_L2_4_BAND_CAN_PASS_and_is_not_a_control_that_can_only_fail(generated):
+    """R15's other direction, and the one a red-on-arrival band most needs.
+
+    L2.4 is red on both generators and on every population this suite measures. A
+    band nobody has ever seen pass is indistinguishable from a band that cannot,
+    and a control that can only fail wedges whatever it gates instead of measuring
+    it.
+
+    The demonstration uses the model's OWN homes, stretched about their median by a
+    stated exponent until they span what real households span. Nothing about the
+    stretch is realistic — it is arithmetic — and that is the point: the band is a
+    statement about dispersion and can be satisfied by dispersion, so failing it is
+    a fact about this generator rather than about the threshold.
+    """
+    band = fgl.BANDS["L2.4_scale_spread_p90_p10"]
+    annuals = list(generated.annual_kwh)
+    assert band.judge(fgl.scale_spread(annuals).p90_over_p10) is fgl.Verdict.FAIL
+
+    median = statistics.median(annuals)
+    stretched = [median * (a / median) ** 3.0 for a in annuals]
+    spread = fgl.scale_spread(stretched).p90_over_p10
+    assert band.judge(spread) is fgl.Verdict.PASS, (
+        f"the anchored spread band must be reachable; stretched population reads "
+        f"{spread:.3f} against a floor of {band.threshold:.3f}"
+    )
+    # The anchor panel itself clears its own floor. Stated as a SANITY check and
+    # not as evidence: the floor is the bootstrap P05 of this panel's own ratio, so
+    # this comparison is true by construction and proves only that the derivation
+    # was not wired up backwards.
+    assert band.judge(
+        fgl.scale_spread(anchors.panel_daily_kwh()).p90_over_p10
+    ) is fgl.Verdict.PASS
+
+
+def test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window(population):
+    """THE FINDING THAT TOOK AN ANCHOR BACK OUT, pinned (2026-08-09).
+
+    The same Low Carbon London panel that anchored L2.4 also measures L1.4 — real
+    households' weekday-vs-weekend total-variation distance, median 0.0724 over
+    calendar 2013, bootstrap floor 0.0262. It was wired into the L1.4 band and
+    removed again within the hour, because this cell's own named R15 mutation —
+    "shuffle day-types" — could not make it fire.
+
+    THE MEASUREMENT IS THE TEST. Relabelling the day-type calendar at random,
+    keeping the same weekday/weekend counts, destroys every trace of real
+    weekday/weekend structure. Over the samples below not one home lands under the
+    floor: the statistic is biased upward at 120 days, where 35 weekend days
+    against 85 weekday days leaves two arbitrary subsets of the SAME home differing
+    by about as much as a real household's weekday differs from its weekend over a
+    full year.
+
+    THE GENERAL FORM, which is why this is pinned rather than written in a comment:
+    an anchor is a number AND a window. Both bands came off the same panel by the
+    same rule on the same day; L2.4's statistic is a ratio BETWEEN homes and does
+    not care how long each was watched, L1.4's is a distance between two subsets of
+    ONE home's days and cares enormously. Nothing in an anchor's provenance says
+    which kind you have — only the mutation does.
+    """
+    floor = anchors.LCL_WEEKDAY_WEEKEND_TV_FLOOR
+    grids = _grids(population)
+    real = list(population.is_weekend)
+    weekends = sum(real)
+    rnd = random.Random(4242)
+
+    null: list[float] = []
+    for _ in range(4):
+        chosen = set(rnd.sample(range(len(real)), weekends))
+        labels = [i in chosen for i in range(len(real))]
+        null.extend(fgl.weekday_weekend_separation(g, labels) for g in grids)
+
+    assert min(null) > floor, (
+        "if a randomised day-type calendar can breach the floor, the anchor "
+        "transfers after all and this test is the thing to delete"
+    )
+    assert min(null) > 1.3 * floor, (
+        f"the null MINIMUM is {min(null):.4f} against a floor of {floor:.4f} — the "
+        "margin is what makes this fail-open rather than marginal"
+    )
+    assert statistics.median(null) > 2 * floor
+    # AND THE BAND MUST STILL BE BLANK. The finding is only worth pinning if the
+    # code agrees with it: a later tick that re-wires the anchor without
+    # null-correcting the statistic fails here.
+    assert fgl.BANDS["L1.4_weekday_weekend_separation"].threshold is None
+    assert fgl.RATE_BANDS["L1.4_weekday_weekend_separation"].threshold is None
 
 
 def test_L2_5_aggregation_consistency_is_retained_as_a_regression_guard():
@@ -1695,7 +1863,18 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
         assert cell["homes_violating"] == 0
         assert cell["worst_home"]
     for statistic in two_level["failed"]:
-        assert two_level["cells"][statistic]["worst_home"]
+        # ONLY THE PER-HOME CELLS NAME A HOME. An L2 cell is one number over the
+        # whole population and has no worst home to name — this loop asserted
+        # otherwise and never noticed, because until L2.4 was anchored on
+        # 2026-08-09 every failure this suite had ever produced was an L1 rate
+        # cell. A loop that has only ever seen one shape of input is not evidence
+        # about the others.
+        cell = two_level["cells"][statistic]
+        if "homes_judged" in cell:
+            assert cell["worst_home"], statistic
+        else:
+            assert cell["verdict"] == fgl.Verdict.FAIL.value, statistic
+            assert math.isfinite(cell["value"]), statistic
     assert "money_consequence_epc" in components and "money_consequence_inferred" in components
     assert components["money_consequence_epc"]["basis"].startswith("PROVISIONAL")
     assert components["inference_improvement"] > 0.0, "the inferred belief is the better one here"
