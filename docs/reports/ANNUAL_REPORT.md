@@ -1333,7 +1333,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £395 |
 | 2022 | 9 | 62 | 6.9 | £20,316 |
 | 2023 | 4 | 28 | 7.0 | £49,329 |
@@ -1703,7 +1703,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-08-09T02:44:01Z
+Generated: 2026-08-09T03:23:27Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2200,7 +2200,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £129,226 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C7: 19 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2752,7 +2752,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-03-31: treasury £2,466,661.29, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-04-30: treasury £2,466,669.86, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-05-30: treasury £2,466,677.85, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-06-29: treasury £2,466,685.52, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-06-29: treasury £2,466,685.52, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,693.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-08-28: treasury £2,466,701.63, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,709.63, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25

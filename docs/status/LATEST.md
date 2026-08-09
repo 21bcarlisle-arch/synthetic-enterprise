@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T12:22:57Z
+Last updated: 2026-08-09T12:56:05Z
 **D17_d8_counterfactual_has_no_unattributed_residual — L0→L2, self-certified. The D8 remittance
 counterfactual explained 100% of every measure it published, which is exactly what a rubber stamp
 looks like from outside — so it was given an error it provably did not cause, and it declined to
@@ -1507,7 +1507,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517

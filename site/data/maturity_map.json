@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4,
+      "stall_consecutive_unchanged": 60,
       "forward_attachments": []
     },
     {
@@ -2428,7 +2428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 20,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2492,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 9,
       "forward_attachments": []
     },
     {
@@ -2792,9 +2792,7 @@
       "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "attempted_finding_open",
-      "depends_on": [
-        "D16_ageing_negative_population_is_unexcluded"
-      ],
+      "depends_on": [],
       "couples_with": [
         "D5_account_hierarchy_payments",
         "W2_11_payment_behaviour_source"
@@ -2802,7 +2800,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8,
+      "stall_consecutive_unchanged": 47,
       "forward_attachments": []
     },
     {
@@ -2989,9 +2987,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3002,9 +3000,9 @@
         "C10_self_rationing_detection"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 50,
+      "stall_consecutive_unchanged": 79,
       "forward_attachments": []
     },
     {
@@ -3014,9 +3012,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3027,9 +3025,9 @@
         "C7_life_event_detection"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 77,
+      "stall_consecutive_unchanged": 94,
       "forward_attachments": []
     },
     {
@@ -3039,7 +3037,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -3051,9 +3049,77 @@
         "D5_account_hierarchy_payments"
       ],
       "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9,
+      "forward_attachments": []
+    },
+    {
+      "id": "D18_confounder_observable_channel",
+      "name": "W2_8's new drop confounders (D14) are ANSWER KEY: the company cannot see that a household MOVED OUT, that a property stood empty, or that its own ECO scheme insulated the home -- so it false-flags 0.0560 of the settled negative with no way to explain any of it away. A real supplier holds several of those records itself: a change-of-tenancy registration on the account, a void notification, its own install file. Detection here is therefore strictly HARDER than reality and the published false-flag rate is an UPPER bound. Give the C10 detector an OBSERVABLE confounder channel -- with realistic DISCOVERY LATENCY, since the CoT scope brief's point is that nobody is told for weeks or months -- and measure the gap between what a supplier could explain away and what it actually does.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D14_w2_8_needs_negative_drops"
+      ],
+      "couples_with": [
+        "W2_8_self_rationing",
+        "C10_self_rationing_detection"
+      ],
+      "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 34,
+      "forward_attachments": []
+    },
+    {
+      "id": "H32_map_size_ratchet_red_on_head",
+      "name": "The maturity map's own spine ratchet is RED ON COMMITTED HEAD and has been for some time: tests/design/test_simplifications_store.py::test_map_within_size_ratchet_when_store_populated asserts maturity_map.yaml < 409600 bytes and HEAD is 464110 (measured 2026-08-09, before that tick's edits). Every atom that records its work honestly makes it worse, so the ratchet currently penalises the behaviour the map exists for. Decide which it is: the ceiling is wrong for a map this size (raise it with a stated reason), or the long-note fields belong in the store beside `simplifications` (rehome them, as the H27 register was rehomed rather than trimmed). It may NOT be closed by trimming build notes -- that is paying a size warning with the record.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 60,
+      "forward_attachments": []
+    },
+    {
+      "id": "D17_d8_counterfactual_has_no_unattributed_residual",
+      "name": "The D8 remittance counterfactual now attributes 100% of EVERY measure it publishes, so its own anti-rubber-stamp guard guards nothing. That guard rested on one residual -- the ageing overstatement the counterfactual could not explain (0.2188 of 0.2803 on the live fixture) -- and D16 measured that residual to be composed entirely of cases where cash arrived PAST the reconciliation grace, i.e. invoices the company was RIGHT to carry as owed. With those excluded, every published measure reads attributed == actual. Either MEASURE a partial attribution by injecting a belief error no invoice reference can cure, or establish and state that this world structurally cannot produce one -- because on it, ageing an invoice settled within five days of its due date REQUIRES a misallocation.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 46,
       "forward_attachments": []
     },
     {
@@ -3101,7 +3167,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 735,
+      "stall_consecutive_unchanged": 878,
       "forward_attachments": []
     },
     {
@@ -3966,7 +4032,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 39,
       "forward_attachments": []
     },
     {
@@ -4212,7 +4278,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 68,
       "forward_attachments": []
     },
     {
@@ -4455,9 +4521,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -4465,9 +4531,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 69,
+      "stall_consecutive_unchanged": 84,
       "forward_attachments": []
     },
     {
@@ -4489,8 +4555,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 50,
       "forward_attachments": []
     },
     {
@@ -4524,7 +4590,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -4534,9 +4600,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 59,
+      "stall_consecutive_unchanged": 90,
       "forward_attachments": []
     },
     {
@@ -4683,7 +4749,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 111,
+      "stall_consecutive_unchanged": 130,
       "forward_attachments": []
     },
     {
@@ -4705,7 +4771,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 115,
+      "stall_consecutive_unchanged": 141,
       "forward_attachments": []
     },
     {
@@ -4725,7 +4791,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 98,
+      "stall_consecutive_unchanged": 118,
       "forward_attachments": []
     },
     {
@@ -4745,7 +4811,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 96,
+      "stall_consecutive_unchanged": 116,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4774,7 +4840,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 120,
+      "stall_consecutive_unchanged": 149,
       "forward_attachments": []
     },
     {
@@ -4794,7 +4860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 101,
+      "stall_consecutive_unchanged": 124,
       "forward_attachments": []
     },
     {
@@ -4816,7 +4882,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 94,
+      "stall_consecutive_unchanged": 118,
       "forward_attachments": []
     },
     {
@@ -4838,7 +4904,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 112,
+      "stall_consecutive_unchanged": 134,
       "forward_attachments": []
     },
     {
@@ -4860,7 +4926,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 101,
+      "stall_consecutive_unchanged": 126,
       "forward_attachments": []
     },
     {
@@ -4882,7 +4948,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 99,
+      "stall_consecutive_unchanged": 126,
       "forward_attachments": []
     },
     {
@@ -4906,7 +4972,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 114,
+      "stall_consecutive_unchanged": 135,
       "forward_attachments": []
     },
     {
@@ -4928,7 +4994,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 115,
+      "stall_consecutive_unchanged": 137,
       "forward_attachments": []
     },
     {
@@ -4950,7 +5016,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 97,
+      "stall_consecutive_unchanged": 116,
       "forward_attachments": []
     },
     {
@@ -4972,7 +5038,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 89,
+      "stall_consecutive_unchanged": 113,
       "forward_attachments": []
     },
     {
@@ -5014,7 +5080,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 112,
+      "stall_consecutive_unchanged": 132,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5049,7 +5115,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 122,
+      "stall_consecutive_unchanged": 138,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5099,7 +5165,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 29,
+      "stall_consecutive_unchanged": 36,
       "forward_attachments": []
     },
     {
@@ -5121,7 +5187,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 32,
+      "stall_consecutive_unchanged": 44,
       "forward_attachments": []
     },
     {
@@ -5267,7 +5333,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 239,
+  "total_atoms": 242,
   "epoch2_movements": [
     {
       "id": "M1",

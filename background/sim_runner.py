@@ -83,7 +83,10 @@ def run_simulation() -> bool:
         # identifies a failure.
         result = subprocess.run(
             [
-                sys.executable, "-m", "saas.reporting.annual_report",
+                # KNIFE pass 1 (2026-08-09): the RUN entry point moved out of
+                # saas/ to the composition root above both layers. The report
+                # module is render-only now and no longer imports simulation.
+                sys.executable, "-m", "tools.run_annual_report",
                 "--save-json", str(out_json),
                 "--output", str(out_md),
             ],
