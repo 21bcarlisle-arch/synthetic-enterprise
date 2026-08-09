@@ -1,5 +1,38 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T05:13:15Z
+Last updated: 2026-08-09T06:17:19Z
+**W2_15_segment_case_sensitivity_siblings — L0→L2, self-certified. The DISCOVER question was
+"one segment vocabulary or three?" The answer is one drift and two seams — and the guard that was
+supposed to be watching had been switched off by a type annotation.**
+`sme_distress` held a private copy of the canonical vocabulary compared with a bare case-SENSITIVE
+`in`, so `is_business_segment("sme")` was False and the twin **raised** on a real microbusiness.
+That one was drift: merged into the canon. The other two are **seams that must not be merged** —
+the company's observed book label is *allowed* to disagree with the world about a customer, and
+that disagreement is the W2_9/C11 gap; coercing it onto the canon would make belief equal truth by
+construction and silently zero the measurement.
+**The atom's own note understated its third finding.** It recorded that `iandc` raises on the way
+across. Measured, the block was **partial, not silent**: `resi` and `sme` are *also* valid canon
+aliases and coerced quietly (`'sme'` → `'SME'`), so a book→canon pipe runs **green through any
+resi/SME population and fails the first time an I&C customer appears**. Closed at the **type**
+(`CompanyBookLabel`), because the strings are legitimately shared and no string-based block can
+tell them apart.
+**Fourth finding, not in the atom notes.** `tools/segment_case_guard.py` — the R10 class closure
+built last week — visited `ast.Assign` only. `_IC_SEGMENTS: Tuple[str, ...] = ("ic", "I&C")` scanned
+**clean**; the identical unannotated line was 1 violation. **A type hint switched the control off**,
+which is exactly why it had never looked at the constant this atom is about and reported
+`clean (83 files scanned)` throughout. R15 names three killer patterns; this is a fourth shape worth
+naming — *a control keyed to one syntactic form of a construct that has two*.
+**What the guard still cannot see is written down, not left to read as coverage:** the case-sensitive
+*comparison* needs dataflow an AST scan does not do, so the guard now flags the **private copy** that
+makes the comparison possible — a stated proxy, with imported-by-name vocabularies, runtime-built
+vocabularies and the unscanned `saas/`+`company/` trees listed as residual.
+**Evidence:** 4 R15 mutations **run**, all fire (bare-`str` label → 2 red; delete `visit_AnnAssign`
+→ 2 red; delete the duplicate check → 3 red; restore the private copy → 2 red *and* the guard
+reports it). 373 passed / 2 xfailed across the full 18-file blast radius; guard clean on 84 files;
+epistemic verifier PASS. **Not L3:** no coupled-triad measurement against an adversarially spelled
+feed, no Expert Hour. → `docs/design/W2_15_SEGMENT_VOCABULARIES_DISCOVER.md`
+
+---
+
 **D11_detection_gap_is_recall_only — L0→L2, self-certified. The payment DETECTION headline was
 measuring the clock and one direction; it now measures neither, and the number it publishes moved
 0.0725 → 0.0134 without the company changing at all.**
@@ -1202,7 +1235,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1317,6 +1350,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1773.0h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
+- Remaining effort: ~1787.1h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
