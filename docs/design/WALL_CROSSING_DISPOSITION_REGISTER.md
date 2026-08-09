@@ -209,14 +209,6 @@ routine the company is free to change without notice, which is the one property 
 does not grant the world.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B5_collections_tone_is_an_event_attribute
-1 edge. `simulation.arrears_engine` imports `company.policy.decision_policy` for CURRENT_POLICY
-and tone_for. What the world genuinely observes is the LETTER — its tone is a property of the
-communication that arrived. What it must not read is the POLICY that chose the tone. Cut: tone
-becomes an attribute of the collections-action event the company emits; the arrears engine
-reacts to the event it receives and never consults the policy object.
-WALL-CROSSING-DESIGN -->
-
 <!-- WALL-CROSSING-DESIGN B7_renewal_is_a_company_decision
 4 edges. `simulation.renewals` imports the company's tariff engine, its SaaS pricing function,
 its approval interface and its decision-rights table — that is, a SIM module runs the company's
@@ -315,12 +307,51 @@ directly (line 39). That edge is real, it is still live, and it is owed to `A_co
 along with 31 others on that file. The funnel's edge was a SECOND, hidden path to the same
 constant, and only that second path died here.
 
+### B5_collections_tone_is_an_event_attribute — EXECUTED IN PART 2026-08-10 (1 edge)
+
+1 edge. `simulation.arrears_engine` imported `CURRENT_POLICY` and `tone_for` from
+`company.policy.decision_policy` and applied the company's dunning policy itself. What the world
+genuinely observes is the LETTER — its tone is a property of the communication that arrived.
+What it must not read is the POLICY that chose the tone.
+
+**As executed:** the tone is read off a new seam, `company/interfaces/collections_communication.py`,
+which publishes exactly one string per (customer, period) and deliberately re-exports neither
+`DecisionPolicy` nor `CURRENT_POLICY`. The applicability test — which bills involve a dunning
+letter at all — stayed SIM-side on purpose: that is a fact about how this world bills people, not
+a company decision, and pushing it into the seam would have widened the door for no reason. Same
+walked-destination reasoning as B8: `company/interfaces/` is walked byte for byte, so this is the
+ratchet's own published `SEAM_PACKAGE` remedy, not the `tools/` relocation §2b refused.
+
+**Half the design, and the half that is missing is named rather than implied.** B5 asks for a
+PUSH — tone stamped onto a collections-action event the company EMITS, with the arrears engine
+reacting to what it receives. What landed is a PULL through a named door. The blocker is
+structural and was MEASURED, not assumed: the bill dicts all four consumers read are built by
+`simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, a SIM composition root carrying 14
+owed edges of its own. There is no company-side bill emitter to stamp the attribute onto, so the
+push is not available until bill emission sits company-side — `A_composition_lift`'s work.
+
+Stamping it anyway, from where the code stands, would have meant the SIM writing a value it had
+just pulled from the company onto its own bill dict and reading its own stamp back: the shape of
+a push with the substance of a pull, and a worse artefact than an honest pull, because the next
+reader would believe the event contract existed. **The residual is therefore owed to
+`A_composition_lift`, and is recorded here rather than left to be rediscovered.** What the cut
+does buy now: the policy object and its type are unreachable from the SIM, the crossing is legible
+at one chokepoint, and what crosses is a single string.
+
+**A finding surfaced and QUEUED, not fixed** (SELF_INTERRUPT_DISCIPLINE, one hotspot per pass):
+the tone resolves against the LIVE `CURRENT_POLICY`, which is the pre-cut behaviour preserved
+byte for byte — but `tools/run_frozen_baseline.py` runs a NAIVE arm whose `tone_mode` is
+`firm_toned` rather than `ab_test`, and that arm's arrears tone never switches with it. Filed as
+`docs/staging/WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10.md`. Fixing it inside a
+wall pass would have changed simulated payment outcomes in the same commit that moved an import,
+which is the one thing this pass's own walls forbid.
+
 ---
 
-## 4. The register — all 88 examined crossings, 81 of them still live
+## 4. The register — all 88 examined crossings, 79 of them still live
 
-88 was the count when every crossing was ruled on (2026-08-09, step 2). Seven have since been
-CUT (§3a), so the tree carries 81 and this section carries 88 rows: a cut row is not deleted,
+88 was the count when every crossing was ruled on (2026-08-09, step 2). NINE have since been
+CUT (§3a), so the tree carries 79 and this section carries 88 rows: a cut row is not deleted,
 because a deleted row is how a re-entry becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
@@ -352,7 +383,7 @@ edge: simulation.dd_balance_book -> company.billing.dd_review | disposition=owed
 edge: simulation.dd_collection_book -> company.billing.direct_debit | disposition=owed | design=B4_billing_mechanics_reached_directly
 edge: simulation.dd_level_collection_book -> company.billing.direct_debit | disposition=owed | design=B4_billing_mechanics_reached_directly
 # --- B5_collections_tone_is_an_event_attribute ---
-edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=owed | design=B5_collections_tone_is_an_event_attribute
+edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=cut | reason=B5 executed 2026-08-10 — the tone is now read off `company/interfaces/collections_communication.py::collections_tone_for`, so the world learns the tone of a letter that ARRIVED while `DecisionPolicy` (its tone_mode, its A/B split) stays unreachable from the SIM. HALF the design, stated as such: this is a PULL and B5 asks for a PUSH (tone stamped on an emitted event). Blocked structurally, by measurement not assumption — the bill dicts are built by `simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, a SIM composition root, so there is no company-side emitter to stamp; that is A_composition_lift's work. See B5 residual in §3a.
 # --- B6_cpa_is_company_accounting ---
 edge: simulation.acquisition_funnel -> saas.growth_mandate | disposition=cut | reason=B6 executed 2026-08-10 — the lazy `COST_PER_ACQUISITION` import is deleted and `total_amount_gbp` is a REQUIRED argument, so the funnel is told the cost and cannot consult company accounting even by accident. Measured safe before the cut: the sole live caller already passed the value, so the default branch was dead in production.
 # --- B7_renewal_is_a_company_decision ---

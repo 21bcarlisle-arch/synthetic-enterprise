@@ -339,15 +339,28 @@ def _tone_for_bill(method: str, customer_id: str | None, period_end: str) -> str
     """Resolve the debt-collection letter tone for a resi bill's
     payment_outcome() call (2026-07-10, NUDGE_PHYSICS.md remaining
     mechanism) -- resi-only, and only meaningful once a customer_id is
-    known. Reads the company's own CURRENT_POLICY.tone_mode choice
-    (company/policy/decision_policy.py::tone_for) -- the SIM legitimately
-    consumes the company's own chosen attribute here (same precedent as
-    simulation/run_phase2b.py's framing_type_for() call), it is not a wall
-    violation to read what the company itself decided."""
+    known.
+
+    Reads the tone off the company's published collections-communication
+    seam (company/interfaces/collections_communication.py), i.e. the world
+    learns the tone of a letter that ARRIVED. It deliberately does NOT
+    import company.policy.decision_policy: the earlier version of this
+    function pulled in CURRENT_POLICY and applied tone_for() itself, and
+    its docstring argued that reading "what the company itself decided" was
+    not a wall violation. KNIFE pass 3 overruled that argument rather than
+    inheriting it (design B5_collections_tone_is_an_event_attribute) -- the
+    tone of the letter is observable, but the POLICY OBJECT that chose it,
+    with its tone_mode and its A/B cohort split, is the company's internal
+    decision machinery and a customer does not read it.
+
+    The APPLICABILITY test below stays here and was deliberately not pushed
+    into the seam: which bills involve a dunning letter at all is a fact
+    about how this world bills people, not a company decision. The seam
+    publishes exactly one thing -- the tone the company chose."""
     if customer_id is None or method not in ("direct_debit", "standard_credit"):
         return None
-    from company.policy.decision_policy import CURRENT_POLICY, tone_for
-    return tone_for(CURRENT_POLICY, customer_id, period_end)
+    from company.interfaces.collections_communication import collections_tone_for
+    return collections_tone_for(customer_id, period_end)
 
 
 FUEL_POVERTY_DD_FAIL_MULTIPLIER = 1.3
@@ -373,8 +386,9 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     original behaviour (2026-07-10, NUDGE_PHYSICS.md remaining mechanism:
     debt-collection letter tone/framing). Represents the company's chosen
     dunning-communication style ("empathetic_toned"/"firm_toned") as a
-    company-wide policy attribute (company/policy/decision_policy.py::
-    tone_for()) -- not a claim that one specific letter caused one specific
+    company-wide policy attribute, read through the company's published
+    seam (company/interfaces/collections_communication.py::
+    collections_tone_for) -- not a claim that one specific letter caused one specific
     payment, but that a customer's hidden responsiveness to that general
     communication style (simulation/nudge_physics.py::
     tone_effectiveness_multiplier, hidden from the company) nudges their
