@@ -15,23 +15,30 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**8 attachment(s)** from 7 source doc(s), across 6 atom(s).
+**10 attachment(s)** from 9 source doc(s), across 7 atom(s).
 
 ## C14_thermal_parameter_inference
 **Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficien**  
-_epoch 3 · lane C_customer_ops · L2→L3 · build_
+_epoch 3 · lane C_customer_ops · L3→L3 · harden_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_DECISION_WITHOUT_A_DO_NOTHING_OPTION_2026-08-09.md` (finding)
 
 ## D11_detection_gap_is_recall_only
 **Reshape the coupled-triad DETECTION dimension, which has two defects the 2026-08-09 H27 Expert Hour **  
-_epoch 3 · lane D_billing_metering · L0→L2 · build_
+_epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
+- `2026-08-09` · `docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
+
+## D12_detection_cell_grid_is_recall_only
+**Three published detection dimensions are still RECALL ONLY after D11 fixed the fourth: the regime-pa**  
+_epoch 3 · lane D_billing_metering · L0→L2 · build_
+
+- `2026-08-09` · `docs/staging/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md` (finding)
 
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
-_epoch 3 · lane D_billing_metering · L0→L2 · build_
+_epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
