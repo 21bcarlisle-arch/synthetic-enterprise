@@ -42,37 +42,62 @@ import sys
 import warnings
 from pathlib import Path
 
-# Imports from these modules are allowed in company/ code (the approved seam)
-APPROVED_SEAM = "company/interfaces/sim_interface"
+from tools.epistemic_wall import (
+    COMPANY_PACKAGES,
+    SEAM_PATH_PREFIX,
+    SIM_PACKAGES,
+    is_sim_module,
+)
 
-# SIM runner imports allowed in saas/reporting/ (structural orchestration, not epistemic).
-# These run the SIM as a data source -- they do not read SIM internals into company state.
-APPROVED_ORCHESTRATION = [
-    "simulation.run_phase4c_on_phase2b",
-    "simulation.run_segments",
-]
+# ---------------------------------------------------------------------------
+# THE PERIMETER IS NOT DEFINED HERE (2026-08-09, KNIFE pass 3 first step).
+#
+# This scanner used to carry its own forbidden-root tuple, its own seam
+# constant and its own exemption registers, alongside the ratchet's and the
+# KNIFE ledger's. Three registers of one concept, and they had drifted twice:
+#
+#   * `APPROVED_ORCHESTRATION` exempted `simulation.run_phase4c_on_phase2b` and
+#     `simulation.run_segments` in company-side code -- EXACTLY the two class-(a)
+#     edges KNIFE pass 1 deleted. A dead exemption is not inert: it is a
+#     pre-authorised re-entry, and it would have waved those imports back in
+#     with the reasoning ("structural orchestration, not epistemic") that the
+#     pass had just proved false -- both were CLI COMPOSITION, and composition
+#     belongs above both layers (tools/run_annual_report.py). DELETED.
+#   * `APPROVED_SEAM` was a single FILE ("company/interfaces/sim_interface")
+#     while the wall's seam is the PACKAGE (`company.interfaces`). It was
+#     consulted as a SUBSTRING of a forbidden import LINE, which no real seam
+#     import can ever be (a `from company.interfaces...` line does not match
+#     FORBIDDEN_SOURCES at all) -- so it could only ever fire on a SIM import
+#     carrying the seam path in a trailing comment. That is not a seam
+#     exemption; it is a comment-shaped escape hatch. DELETED. The genuine
+#     source-side seam exemption is `EXEMPT_PATHS`, below, and it is now
+#     DERIVED from the shared `SEAM_PACKAGE` so it cannot drift again.
+#
+# Definition: tools/epistemic_wall.py. Gate: the ratchet's frozen
+# allowlists. This tool reports at phase close, over a wider (dynamic-import)
+# reach than the static ratchet, against the SAME perimeter.
+# ---------------------------------------------------------------------------
 
-# Importing directly from these is a violation if found in company/ files
+# Importing directly from these is a violation if found in company/ files.
+# Derived from the shared SIM_PACKAGES so a perimeter change reaches this
+# scanner without anyone remembering to edit it.
 FORBIDDEN_SOURCES = [
-    r"^from sim\.",
-    r"^from sim import",
-    r"^import sim\.",
-    r"^from simulation\.",
-    r"^from simulation import",
-    r"^import simulation\.",
+    pattern
+    for pkg in sorted(SIM_PACKAGES)
+    for pattern in (rf"^from {pkg}\.", rf"^from {pkg} import", rf"^import {pkg}\.")
 ]
 
 # Files and directories that are allowed to cross the seam freely
 EXEMPT_PATHS = {
     "tests/",             # tests may import anything
     "background/",        # orchestrator layer
-    "simulation/",        # is the simulation
-    "company/interfaces/",  # the approved seam itself
+    *(f"{pkg}/" for pkg in sorted(SIM_PACKAGES)),  # the simulation is the simulation
+    SEAM_PATH_PREFIX,     # the approved seam itself (the PACKAGE, per the shared definition)
     "tools/",             # dev tools
 }
 
 # Company-layer paths that must be checked
-COMPANY_PATHS = ["company/", "saas/"]
+COMPANY_PATHS = [f"{pkg}/" for pkg in sorted(COMPANY_PACKAGES)]
 
 
 # ---------------------------------------------------------------------------
@@ -239,10 +264,6 @@ def _is_company_file(path: str) -> bool:
     return (path.startswith("company/") or path.startswith("saas/")) and path.endswith(".py")
 
 
-# Root package names whose direct import into company/ code is a wall breach.
-_FORBIDDEN_ROOTS = ("sim", "simulation")
-
-
 def _module_is_forbidden(module: str | None) -> bool:
     """True iff a dotted module name is a forbidden SIM import.
 
@@ -251,16 +272,15 @@ def _module_is_forbidden(module: str | None) -> bool:
     aliasing, or indentation -- the FAIL-OPEN gaps a line-anchored regex misses
     (``from  simulation.x import y`` with stray spaces, ``import simulation``
     with no dotted tail, ``import os; import simulation.x`` on one physical
-    line). The approved orchestration modules are exempt.
+    line).
+
+    There is NO per-module exemption. The old `APPROVED_ORCHESTRATION` list is
+    deleted (see the header): a SIM module is forbidden in company-side code
+    whatever it is called, and the one legitimate exemption -- the seam -- is a
+    property of the IMPORTING file, applied in `_is_exempt`, exactly as the
+    ratchet applies it to the company-side endpoint of an edge.
     """
-    if not module:
-        return False
-    root = module.split(".", 1)[0]
-    if root not in _FORBIDDEN_ROOTS:
-        return False
-    if any(module == m or module.startswith(m + ".") for m in APPROVED_ORCHESTRATION):
-        return False
-    return True
+    return is_sim_module(module) if module else False
 
 
 def _violation(path: str, lineno: int, code: str, stripped: str, dynamic: bool = False) -> dict:
@@ -426,16 +446,20 @@ def _scan_source(source: str, path: str) -> list[dict] | None:
 def _scan_lines(content: str, path: str) -> list[dict]:
     """Legacy line-anchored regex scan -- the SyntaxError fallback for a file
     the AST cannot parse. Kept so an unparseable file is still inspected rather
-    than skipped."""
+    than skipped.
+
+    No line-TEXT exemptions (2026-08-09, KNIFE pass 3). Both that this loop
+    carried were escape hatches rather than seams: a forbidden `from sim...`
+    line was waved through if it merely CONTAINED the string
+    "company/interfaces/sim_interface" or an approved-orchestration module
+    name -- i.e. a trailing comment could clear a real crossing. The seam
+    exemption belongs to the importing FILE (`_is_exempt`), which is where the
+    ratchet puts it too."""
     violations = []
     for lineno, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
         for pattern in FORBIDDEN_SOURCES:
             if re.match(pattern, stripped):
-                if APPROVED_SEAM in stripped:
-                    break
-                if any(m in stripped for m in APPROVED_ORCHESTRATION):
-                    break
                 violations.append(_violation(path, lineno, line.rstrip(), stripped))
                 break
         for match in _DYNAMIC_IMPORT_CALL_RE.finditer(line):

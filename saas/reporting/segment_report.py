@@ -1,6 +1,6 @@
 """Phase 10b — Segment portfolio annual report generator.
 
-Reads the structured output of `simulation.run_segments.main()` and produces a
+Reads the structured output of the segment simulation run and produces a
 markdown annual report covering the full simulation window, one section per
 calendar year, with segment-level headcount trajectory and unit economics.
 
@@ -9,11 +9,18 @@ has no CLV, billing experience, or home-move mechanics — headcount handles all
 portfolio dynamics. The added value is unit economics at realistic scale:
 margin per customer, smart-meter migration tracking, and per-segment P&L.
 
-CLI: python3 -m saas.reporting.segment_report
-     --from-json <path>   load pre-computed run output (skip re-running sim)
-     --save-json <path>   save run output for later re-use
+This module does not run the simulation — KNIFE pass 1 (2026-08-09, atom
+`KNIFE1_reporting_cycle`) cut the `simulation.run_segments` import that its CLI
+used to make, a class-(a) epistemic-wall crossing. `extract_segment_data()` and
+`generate_segment_report()` are pure functions over a run-output dict; the
+composition lives above both layers in `tools/run_segment_report.py`.
+
+RENDER CLI: python3 -m saas.reporting.segment_report
+     --from-json <path>   run output to render (default: the saved segment run)
      --output <path>      report destination (default: docs/reports/SEGMENT_REPORT.md)
      --end-year <YYYY>    truncate report at year end (for partial windows)
+
+RUN CLI:    python3 -m tools.run_segment_report [--save-json <path>] ...
 """
 
 import argparse
@@ -436,11 +443,7 @@ The business {outcome}.
 """
 
 
-def _save_json(data: dict, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
-    print(f"Run output saved → {path}")
+RUN_CLI = "python3 -m tools.run_segment_report"
 
 
 def _load_json(path: Path) -> dict:
@@ -449,23 +452,33 @@ def _load_json(path: Path) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate segment portfolio annual report")
-    parser.add_argument("--from-json", metavar="PATH", help="load pre-computed run output")
-    parser.add_argument("--save-json", metavar="PATH", help="save run output for re-use")
+    """RENDER the segment report from an already-produced run output.
+
+    This CLI does NOT run the simulation, and since KNIFE pass 1 (2026-08-09)
+    it cannot — `tools/run_segment_report.py` is the composition root that runs
+    then renders.
+    """
+    parser = argparse.ArgumentParser(
+        description="Render the segment portfolio annual report from a saved run "
+        f"output (to RUN the segment simulation first, use `{RUN_CLI}`)"
+    )
+    parser.add_argument(
+        "--from-json", metavar="PATH",
+        help=f"load run output from this path (default: {DEFAULT_JSON_PATH})",
+    )
     parser.add_argument("--output", metavar="PATH", default=str(DEFAULT_REPORT_PATH))
     parser.add_argument("--end-year", metavar="YYYY", help="truncate report at this year")
     args = parser.parse_args()
 
-    if args.from_json:
-        run_output = _load_json(Path(args.from_json))
-        print(f"Loaded run output from {args.from_json}")
-    else:
-        from simulation.run_segments import main as run_segments
-        print("Running segment simulation…")
-        run_output = run_segments()
-
-    if args.save_json:
-        _save_json(run_output, Path(args.save_json))
+    json_path = Path(args.from_json) if args.from_json else DEFAULT_JSON_PATH
+    if not json_path.exists():
+        raise SystemExit(
+            f"No segment run output at {json_path}. This CLI only renders; run "
+            f"the segment simulation first with `{RUN_CLI}`, or point "
+            "--from-json at a saved run output."
+        )
+    run_output = _load_json(json_path)
+    print(f"Loaded run output from {json_path}")
 
     data = extract_segment_data(run_output)
     report = generate_segment_report(data, end_year=args.end_year)

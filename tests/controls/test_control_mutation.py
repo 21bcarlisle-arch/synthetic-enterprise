@@ -1125,9 +1125,15 @@ def test_verifier_does_not_false_fire_on_lookalike_names():
     assert _scan_src("from company.interfaces.sim_interface import get_market_price\n") == []
     assert _scan_src("import simplejson\n") == []            # not the `sim` package
     assert _scan_src("from similarity import score\n") == []  # not `sim.`
-    # The approved orchestration modules remain exempt (structural, not epistemic).
-    assert _scan_src("from simulation.run_segments import run\n") == []
-    assert _scan_src("import simulation.run_phase4c_on_phase2b\n") == []
+    # 2026-08-09, KNIFE pass 3: these two assertions were INVERTED. They used to pin
+    # `APPROVED_ORCHESTRATION` ("the approved orchestration modules remain exempt --
+    # structural, not epistemic"), which KNIFE pass 1 proved false: both imports were
+    # CLI COMPOSITION and moved above both layers (tools/run_annual_report.py). The
+    # exemption then outlived the crossings it exempted, which makes it a
+    # pre-authorised re-entry, and a green test asserting the exemption PINNED it.
+    # A SIM run module in company-side code is a crossing like any other.
+    assert len(_scan_src("from simulation.run_segments import run\n")) == 1
+    assert len(_scan_src("import simulation.run_phase4c_on_phase2b\n")) == 1
 
 
 def test_verifier_missing_file_alarms_not_clean():
@@ -1202,14 +1208,17 @@ def test_verifier_dynamic_import_pre_fix_baseline_did_not_fire():
 
 
 def test_verifier_dynamic_import_does_not_false_fire_on_lookalikes_or_variables():
-    # OUTCOME-SAFE: lookalike package names, the approved seam/orchestration,
-    # ordinary non-SIM dynamic imports, and a non-literal (unresolvable)
-    # target must NOT fire -- a control that flags everything is as useless
-    # as one that flags nothing.
+    # OUTCOME-SAFE: lookalike package names, the approved seam, ordinary non-SIM
+    # dynamic imports, and a non-literal (unresolvable) target must NOT fire -- a
+    # control that flags everything is as useless as one that flags nothing.
     assert _scan_src('importlib.import_module("simplejson")\n') == []
     assert _scan_src('importlib.import_module("similarity")\n') == []
-    assert _scan_src('importlib.import_module("simulation.run_segments")\n') == []
     assert _scan_src('importlib.import_module("company.interfaces.sim_interface")\n') == []
+    # INVERTED 2026-08-09 (KNIFE pass 3) with its static twin above: the
+    # orchestration carve-out is deleted, so this dynamic form now fires too.
+    # Dynamically importing a SIM run module from company-side code was the exact
+    # bypass the carve-out would have blessed.
+    assert len(_scan_src('importlib.import_module("simulation.run_segments")\n')) == 1
     assert _scan_src('__import__("os")\n') == []
     # A non-literal target cannot be resolved statically -- documented
     # heuristic limit, not a claimed detection.

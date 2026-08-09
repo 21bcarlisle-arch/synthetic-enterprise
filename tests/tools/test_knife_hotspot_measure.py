@@ -77,28 +77,93 @@ def _write(tmp_path: Path, text: str) -> Path:
     return p
 
 
+def _mutate(old: str, new: str) -> str:
+    """Apply a mutation to the live plan, PROVING it actually mutated.
+
+    These fixtures pin literal declaration lines out of the live document, so
+    editing the plan can silently turn a `.replace()` into a no-op — the test
+    then measures an unmutated document and its guard never fires. That
+    happened on 2026-08-09 when KNIFE pass 1 legitimately changed two overlap
+    lines to zero. The asserts below caught it (the guards reported nothing, so
+    the tests reddened rather than passing vacuously), but a control should say
+    WHY it failed, not leave the reader to work out that the mutation never
+    landed. An unmutated fixture is now a distinct, named failure.
+    """
+    text = _live_text()
+    assert old in text, (
+        f"mutation source line is no longer in the live plan: {old!r}. "
+        "Re-point the fixture at a line that exists — do NOT relax the "
+        "assertion; an un-mutated fixture proves nothing."
+    )
+    mutated = text.replace(old, new)
+    assert mutated != text, "the mutation did not change the document"
+    return mutated
+
+
 def _findings_for(tmp_path: Path, text: str) -> list[str]:
     doc = _write(tmp_path, text)
     return knife.reconcile(knife.load_plan(doc), doc)[0]
 
 
-def test_mutation_undeclared_overlap_reds(tmp_path):
+def _overlap_the_tree_no_longer_has(monkeypatch, a: str, b: str, shared_file: str) -> None:
+    """Make probes `a` and `b` genuinely share `shared_file`, on the MEASURED side.
+
+    WHY THIS IS SYNTHESISED RATHER THAN PINNED (2026-08-09, KNIFE pass 3).
+    These two guards used to point at whichever real overlap the tree happened to
+    carry — first reporting<->customer, then (after pass 1) customer<->crossings at
+    16 files. Pass 2 cut those sixteen, the overlap table went to ALL ZEROS, and both
+    guards went RED at HEAD with "mutation source line is no longer in the live plan":
+    there was no longer a real overlap to leave undeclared.
+
+    That is the guard's own anti-vacuity assert doing its job, and it is also a design
+    defect it exposed: a control whose fixture requires a LIVE instance of the defect
+    dies exactly when the codebase reaches its goal state — and the goal state here is
+    total disjointness. Repair the STATISTIC, not the fixture: the mutation now
+    manufactures the overlap on the measured side, so the guard proves the same thing
+    (a declared 0 against a real 1 is caught, and silence is not zero) on a tree with
+    no tangle left in it, and will keep proving it forever.
+    """
+    for name in (a, b):
+        real = knife.PROBES[name]()
+        patched = knife.Population(
+            files=real.files | {shared_file},
+            edges=real.edges,
+            scanned=real.scanned or 1,
+            lines=real.lines,
+            notes=real.notes,
+        )
+        monkeypatch.setitem(knife.PROBES, name, lambda p=patched: p)
+
+
+def test_mutation_undeclared_overlap_reds(tmp_path, monkeypatch):
     """THE guard: a real overlap left undeclared is the concurrency hazard itself.
 
     This is the mutation that actually fired in anger — the drafted plan declared
-    reporting/customer disjoint when they share `simulation/run_phase4c_on_phase2b.py`.
+    reporting/customer disjoint when they shared `simulation/run_phase4c_on_phase2b.py`.
+    The plan now declares every pair at 0, truthfully, so the defect is manufactured
+    on the measured side (see `_overlap_the_tree_no_longer_has`) and the plan's honest
+    `0` becomes the lie.
     """
-    text = _live_text().replace(
-        "overlaps: customer_straddle=1, wall_crossings=3, company_orphans=0",
-        "overlaps: customer_straddle=0, wall_crossings=3, company_orphans=0",
+    _overlap_the_tree_no_longer_has(
+        monkeypatch, "customer_straddle", "wall_crossings", "saas/_synthetic_shared_file.py"
     )
-    findings = _findings_for(tmp_path, text)
-    assert any("undeclared" in f and "reporting_monolith" in f for f in findings), findings
+    findings = _findings_for(tmp_path, _live_text())
+    assert any(
+        "undeclared" in f and "customer_straddle" in f and "wall_crossings" in f
+        for f in findings
+    ), findings
+
+
+def test_vacuity_the_undeclared_overlap_guard_is_silent_without_the_defect(tmp_path):
+    """The other half of the mutation above: with no injected overlap the SAME call
+    reports nothing. Without this, a guard that always fired would look identical."""
+    findings = _findings_for(tmp_path, _live_text())
+    assert not any("undeclared" in f for f in findings), findings
 
 
 def test_mutation_invented_overlap_reds(tmp_path):
     """The mirror defect: a plan claiming a tangle the tree does not have."""
-    text = _live_text().replace(
+    text = _mutate(
         "overlaps: reporting_monolith=0, customer_straddle=0, wall_crossings=0",
         "overlaps: reporting_monolith=7, customer_straddle=0, wall_crossings=0",
     )
@@ -106,14 +171,24 @@ def test_mutation_invented_overlap_reds(tmp_path):
     assert any("not there" in f for f in findings), findings
 
 
-def test_mutation_omitted_pair_reds_rather_than_defaulting_to_zero(tmp_path):
-    """FAIL-OPEN: silence about a pair must never read as 'they do not overlap'."""
-    text = _live_text().replace(
-        "overlaps: customer_straddle=1, wall_crossings=3, company_orphans=0",
-        "overlaps: wall_crossings=3, company_orphans=0",
+def test_mutation_omitted_pair_reds_rather_than_defaulting_to_zero(tmp_path, monkeypatch):
+    """FAIL-OPEN: silence about a pair must never read as 'they do not overlap'.
+
+    The omitted pair is deliberately one that DOES overlap — manufactured on the
+    measured side, since the tree is now fully disjoint (see
+    `_overlap_the_tree_no_longer_has`) — so the test proves silence is caught on
+    exactly the case where defaulting to zero would hide a real hazard, rather than
+    on a pair where zero happens to be right.
+    """
+    _overlap_the_tree_no_longer_has(
+        monkeypatch, "customer_straddle", "wall_crossings", "saas/_synthetic_shared_file.py"
+    )
+    text = _mutate(
+        "overlaps: reporting_monolith=0, wall_crossings=0, company_orphans=0",
+        "overlaps: reporting_monolith=0, company_orphans=0",
     )
     findings = _findings_for(tmp_path, text)
-    assert any("omits" in f and "customer_straddle" in f for f in findings), findings
+    assert any("omits" in f and "wall_crossings" in f for f in findings), findings
 
 
 def test_mutation_hotspot_dropped_leaves_its_probe_orphaned(tmp_path):

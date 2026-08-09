@@ -64,14 +64,16 @@ WIDER_ROOTS = ("background", "tools")
 #: pin to be removed rather than quietly protecting nothing).
 KNOWN_WIDER_TEST_IMPORTS = {
     "tools/build_battery_register.py -> tests.domain.battery_register",
-    # KNIFE pass 1 (2026-08-09). `knife_hotspot_measure` sizes the epistemic wall's
-    # live crossing edges, and the ratchet's walker (`build_edges`/`company_reads_sim`/
-    # `sim_reads_company`) is the ONLY implementation of that traversal. Re-implementing
-    # it in tools/ would give the measurement a second, independently-driftable notion of
-    # what a crossing is — the measure would stop describing the control it measures.
-    # Pinned, not fixed on sight: the honest fix is to rehome the walker into a shared
-    # module both sides import, which is a KNIFE follow-up, not this incident's work.
-    "tools/knife_hotspot_measure.py -> tests.architecture.test_epistemic_wall_ratchet",
+    # KNIFE pass 1's pin (`knife_hotspot_measure` -> the ratchet test module) was REMOVED
+    # here on 2026-08-09, because the thing it was pinned against actually happened: pass 3's
+    # declared first step rehomed the walker (`build_edges`/`company_reads_sim`/
+    # `sim_reads_company`) into `tools/epistemic_wall.py`, and the ratchet, the hotspot
+    # ledger and `tools/epistemic_verifier.py` now all import it from there. The pin said the
+    # honest fix was exactly that rehome; the rehome landed, so the pin goes with it.
+    #
+    # This deletion is the amnesty working as designed rather than an edit to accommodate one:
+    # the set is asserted EXACTLY, so a FIXED offender reds just as loudly as a new one and
+    # the stale pin cannot outlive the crossing it was protecting.
 }
 
 

@@ -108,13 +108,30 @@ def staged_files() -> list[str]:
 
 def tests_for(path: str) -> list[str]:
     """Map a changed file to its test file(s): a changed test file -> itself; a changed *.py ->
-    tests/**/test_<stem>.py if present."""
+    tests/**/test_<stem>.py AND tests/**/test_<stem>_*.py if present.
+
+    THE SUFFIX HALF IS LOAD-BEARING, not tidiness (2026-08-09, the second publish wedge). This
+    globbed the EXACT stem only, so a module whose tests live in a QUALIFIED file was mapped to
+    zero tests and committed untested. `simulation/live_population.py` is covered solely by
+    `tests/simulation/test_live_population_seam.py`; `tests_for()` returned `[]` for it, the
+    pre-commit gate passed, and the wall-hygiene test in that very file then wedged the publish
+    gate for ~112 minutes. Naming a test file after the ASPECT it covers is normal in this repo
+    (`_seam`, `_event_log`, `_guards`), so the exact-stem glob was silently blind to a whole
+    naming convention the repo actively uses.
+
+    Same shape as the non-`.py` blind spot filed alongside it (a control whose SCOPE was derived
+    from a convenient filename proxy rather than "what does this file actually affect"); this
+    closes the `.py` half. The unmappable-non-`.py` half is still open and still fails toward
+    silence -- see WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md.
+    """
     p = Path(path)
     if p.suffix != ".py":
         return []
     if p.name.startswith("test_") and (ROOT / p).exists():
         return [str(p)]
-    return [str(c.relative_to(ROOT)) for c in ROOT.glob(f"tests/**/test_{p.stem}.py")]
+    matches = set(ROOT.glob(f"tests/**/test_{p.stem}.py"))
+    matches |= set(ROOT.glob(f"tests/**/test_{p.stem}_*.py"))
+    return sorted(str(c.relative_to(ROOT)) for c in matches)
 
 
 # THE MINT-MARKER SURFACE (2026-07-28, atom `unstated_reason_block_impossible` §3): a

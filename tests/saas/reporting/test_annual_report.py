@@ -19,7 +19,6 @@ from saas.reporting.annual_report import (
     _section_volume_tolerance,
     _section_triad_exposure,
     _segment_margin_trend_section,
-    _send_run_complete_ntfy,
     extract_report_data,
     generate_annual_report,
 )
@@ -595,9 +594,16 @@ def _ntfy_data():
 
 
 def test_send_run_complete_ntfy_is_no_op(monkeypatch):
-    # _send_run_complete_ntfy was removed (per-run NTFYs are spam at 1 run/17min).
+    # _send_run_complete_ntfy was gutted (per-run NTFYs are spam at 1 run/17min).
     # Verify the function exists but sends nothing.
+    #
+    # It moved to tools/run_annual_report.py with the rest of the run path
+    # (KNIFE pass 1, 2026-08-09) — the report module is render-only now and may
+    # not import `simulation`, so the composition root owns everything that
+    # happens around a run.
     import background.ntfy_utils as ntfy_utils
+    from tools.run_annual_report import _send_run_complete_ntfy
+
     sent = []
     monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, headers=None: sent.append(msg))
     _send_run_complete_ntfy(_ntfy_data(), Path("ANNUAL_REPORT.md"))

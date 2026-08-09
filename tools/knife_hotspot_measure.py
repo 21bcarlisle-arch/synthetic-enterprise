@@ -46,17 +46,17 @@ frozen lists may only shrink, and a new crossing reds the suite. This module doe
 that. It reads the SAME walker (imported, not reimplemented — see below) and reports; the ratchet
 gates. One definition of "a crossing", two consumers with different jobs.
 
-WHY THE WALKER IS IMPORTED FROM A TEST MODULE
-----------------------------------------------
-`build_edges`/`company_reads_sim`/`sim_reads_company` live in the ratchet test. A tool importing
-a test module is unusual, and the obviously tidier move is to lift the walker into a shared module
-and have both import it. That move is deliberately NOT made here, and the reason is this atom's
-own doctrine: the walker is part of the NET that protects the KNIFE passes, and KNIFE's first
-wall is that the net is stable BEFORE the knife cuts. Moving the net while planning the cuts is
-the error the sequence exists to prevent. The extraction is real work and it is owed — it is
-recorded as the first step INSIDE pass 3, where it belongs, rather than done opportunistically
-here. A second AST walk written to avoid the awkward import would be exactly the write-time
-blindness the whole programme is about.
+WHERE THE WALKER LIVES (extraction landed 2026-08-09, KNIFE pass 3 first step)
+-------------------------------------------------------------------------------
+`build_edges`/`company_reads_sim`/`sim_reads_company` used to live in the ratchet TEST module, and
+this tool imported them from there — unusual, acknowledged, and deliberately left alone while the
+passes were being planned, because the walker is part of the NET that protects the KNIFE cuts and
+moving the net while planning the cuts is the error the MAP -> NET -> KNIFE sequence exists to
+prevent. Pass 3's declared first step made the move, before its first cut: the definition now
+lives in `tools/epistemic_wall.py` and the ratchet, this ledger and
+`tools/epistemic_verifier.py` all import it. The ratchet keeps its frozen ALLOWLISTS — the policy
+baseline stays with the gate; only the definition is shared. A second AST walk written here to
+avoid the import would be exactly the write-time blindness the whole programme is about.
 
 R15 — THE THREE KILLER PATTERNS, ANSWERED
 ------------------------------------------
@@ -137,7 +137,7 @@ def _wall_edges():
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
-        from tests.architecture.test_epistemic_wall_ratchet import (  # noqa: PLC0415
+        from tools.epistemic_wall import (  # noqa: PLC0415
             REPO_ROOT,
             WALL_DIRS,
             build_edges,

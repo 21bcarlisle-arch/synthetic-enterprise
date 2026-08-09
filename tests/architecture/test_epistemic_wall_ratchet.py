@@ -78,159 +78,64 @@ TWO packages, not one; each was established by an independent AST census, not
 assumed from the directory that shares the concept's name. A wall checker is
 only as honest as its perimeter.
 
-Dependencies: pytest + Python stdlib (`ast`, `os`) only. No project imports,
-so this suite runs even when the app's runtime deps are absent.
+WHERE THE DEFINITION LIVES (changed 2026-08-09, KNIFE pass 3 first step)
+------------------------------------------------------------------------
+The perimeter, the AST walker and the two classifiers used to live in THIS
+file, and three instruments answered "is this a crossing?" from three private
+copies. They now live once, in `tools/epistemic_wall.py`, and this
+module imports them — as do `tools/knife_hotspot_measure.py` (the ledger) and
+`tools/epistemic_verifier.py` (the phase-close scanner). One definition, three
+consumers with different jobs.
+
+What did NOT move, deliberately: the dated allowlists below. They are this
+gate's frozen POLICY baseline, reviewed every time they shrink; the shared
+module is the DEFINITION, which no pass edits. Keeping them apart is what lets
+a pass say "the walker was not edited" and mean it, and it means no tool can
+silence this gate by import.
+
+Dependencies: pytest + Python stdlib (`ast`, `os`) only — the shared module is
+stdlib-only for exactly this reason, so this suite still runs when the app's
+runtime deps are absent.
 """
 
 from __future__ import annotations
 
-import ast
 import os
-from dataclasses import dataclass
+import sys
 
-# --------------------------------------------------------------------------
-# Configuration — the two sides of the wall and the sanctioned seam.
-# --------------------------------------------------------------------------
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-# Company/business side of the wall — TWO packages (see recon).
-COMPANY_PACKAGES = frozenset({"company", "saas"})
-# SIM side of the wall — the simulated world spans TWO packages (see recon).
-SIM_PACKAGES = frozenset({"sim", "simulation"})
-# The sanctioned company<->sim crossing surface. An edge whose COMPANY-side
-# endpoint module is under this package is a legitimate seam crossing, not a
-# wall violation. (The top-level `interface/` sim<->saas seam is deliberately
-# NOT listed here — see the module docstring.)
-SEAM_PACKAGE = "company.interfaces"
-
-# Top-level directories walked (all under REPO_ROOT). These are exactly the
-# four wall-side packages; `interface/` is intentionally excluded because it is
-# neither wall side and cannot host a wall edge.
-WALL_DIRS = ("company", "saas", "sim", "simulation")
-
-WALL_DOCTRINE = (
-    "Epistemic wall (CLAUDE.md, Architectural Laws): the company/business layer "
-    "must only cross the SIM boundary through the sanctioned seam "
-    f"`{SEAM_PACKAGE}` ({SEAM_PACKAGE.replace('.', '/')}/). A direct import "
-    "between company-side internals (company/, saas/) and SIM internals (sim/, "
-    "simulation/) bypasses that seam. If this crossing is intentional and "
-    "unavoidable, route it through the seam; if it is genuinely legacy, add it "
-    "to the dated allowlist in this file with a one-line justification — never "
-    "silently. company-side reading SIM (class a) is the strictly forbidden "
-    "direction and the highest-priority shrink target."
+from tools.epistemic_wall import (  # noqa: E402
+    COMPANY_PACKAGES,
+    REPO_ROOT,
+    SEAM_PACKAGE,
+    SIM_PACKAGES,
+    WALL_DIRS,
+    WALL_DOCTRINE,
+    RawEdge,
+    build_edges,
+    company_reads_sim,
+    sim_reads_company,
+)
+from tools.epistemic_wall import (
+    top_package as _top,
+)
+from tools.epistemic_wall import (
+    under_seam as _under_seam,
 )
 
-
-# --------------------------------------------------------------------------
-# Static import extraction (stdlib `ast` only).
-# --------------------------------------------------------------------------
-
-@dataclass(frozen=True)
-class RawEdge:
-    """One import edge: source module imports target module, at file:line."""
-
-    src: str          # dotted module doing the importing
-    dst: str          # dotted module being imported
-    path: str         # file (repo-relative) where the import statement sits
-    lineno: int
-
-
-def _module_name(root: str, path: str) -> str:
-    """Dotted module name for a .py file relative to `root` (drops __init__)."""
-    rel = os.path.relpath(path, root)
-    parts = rel[: -len(".py")].split(os.sep)
-    if parts and parts[-1] == "__init__":
-        parts = parts[:-1]
-    return ".".join(parts)
-
-
-def _resolve_relative(src: str, module: str | None, level: int) -> str:
-    """Resolve a relative import (`from . import x`) to an absolute dotted name.
-
-    Sibling top-level packages (company / saas / sim / simulation) cannot reach
-    each other via a relative import, so relative imports never produce a wall
-    crossing — but we resolve them correctly anyway for completeness.
-    """
-    pkg = src.split(".")
-    base = pkg[: len(pkg) - level] if level <= len(pkg) else []
-    tail = module.split(".") if module else []
-    return ".".join(base + tail)
-
-
-def build_edges(root: str, dirs: tuple[str, ...]) -> list[RawEdge]:
-    """Walk `dirs` under `root` and return every static import edge.
-
-    Pure static read: parses each file with `ast`, extracts `Import` and
-    `ImportFrom` nodes. A file that fails to parse is skipped (it cannot import
-    anything at runtime either). Parameterised by root so the R15 mutation
-    fixtures can point it at a synthetic tmp tree.
-    """
-    edges: list[RawEdge] = []
-    for top in dirs:
-        for dirpath, _dirnames, filenames in os.walk(os.path.join(root, top)):
-            for fn in filenames:
-                if not fn.endswith(".py"):
-                    continue
-                path = os.path.join(dirpath, fn)
-                src = _module_name(root, path)
-                try:
-                    with open(path, encoding="utf-8") as fh:
-                        tree = ast.parse(fh.read(), filename=path)
-                except (SyntaxError, UnicodeDecodeError):
-                    continue
-                relpath = os.path.relpath(path, root)
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Import):
-                        for alias in node.names:
-                            edges.append(RawEdge(src, alias.name, relpath, node.lineno))
-                    elif isinstance(node, ast.ImportFrom):
-                        if node.level:
-                            dst = _resolve_relative(src, node.module, node.level)
-                        else:
-                            dst = node.module or ""
-                        edges.append(RawEdge(src, dst, relpath, node.lineno))
-    return edges
-
-
-# --------------------------------------------------------------------------
-# Classification — which edges cross the wall.
-# --------------------------------------------------------------------------
-
-def _top(module: str) -> str:
-    return module.split(".", 1)[0] if module else ""
-
-
-def _under_seam(module: str) -> bool:
-    return module == SEAM_PACKAGE or module.startswith(SEAM_PACKAGE + ".")
-
-
-def company_reads_sim(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
-    """Class (a): company-side internals importing SIM internals, NOT via seam.
-
-    Keyed by (src_module, dst_module) so many import statements collapsing to
-    the same module pair count as one edge; value is a representative location.
-    This is the STRICTLY FORBIDDEN direction — the business layer must never
-    read the simulated world's internals.
-    """
-    out: dict[tuple[str, str], RawEdge] = {}
-    for e in edges:
-        if _top(e.src) in COMPANY_PACKAGES and _top(e.dst) in SIM_PACKAGES and not _under_seam(e.src):
-            out.setdefault((e.src, e.dst), e)
-    return out
-
-
-def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
-    """Class (b): SIM internals importing company-side internals, NOT via seam.
-
-    Symmetric to class (a): an edge whose company-side endpoint (here the
-    TARGET) is under the seam package is a sanctioned crossing and exempt.
-    """
-    out: dict[tuple[str, str], RawEdge] = {}
-    for e in edges:
-        if _top(e.src) in SIM_PACKAGES and _top(e.dst) in COMPANY_PACKAGES and not _under_seam(e.dst):
-            out.setdefault((e.src, e.dst), e)
-    return out
+__all__ = [
+    "COMPANY_PACKAGES",
+    "REPO_ROOT",
+    "SEAM_PACKAGE",
+    "SIM_PACKAGES",
+    "WALL_DIRS",
+    "WALL_DOCTRINE",
+    "RawEdge",
+    "build_edges",
+    "company_reads_sim",
+    "sim_reads_company",
+]
 
 
 # --------------------------------------------------------------------------
@@ -249,13 +154,27 @@ def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
 
 # Class (a) — company-side (company/, saas/) importing SIM internals other than
 # via the seam. Census on 2026-08-05: 2 edges, BOTH the strictly-forbidden
-# `saas -> simulation` direction. These are the wall's HIGHEST-PRIORITY shrink
-# targets: the business layer directly importing the simulated world's run
-# harness. (`company/` itself reads SIM internals only inside the seam file.)
-LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset({
-    ("saas.reporting.annual_report", "simulation.run_phase4c_on_phase2b"),
-    ("saas.reporting.segment_report", "simulation.run_segments"),
-})
+# `saas -> simulation` direction — the business layer directly importing the
+# simulated world's run harness. (`company/` itself read SIM internals only
+# inside the seam file, and still does.)
+#
+# 2026-08-09, KNIFE pass 1 (atom `KNIFE1_reporting_cycle`): both were PAID
+# DOWN, and class (a) is now EMPTY. `saas.reporting.annual_report ->
+# simulation.run_phase4c_on_phase2b` and `saas.reporting.segment_report ->
+# simulation.run_segments` were both CLI composition, not reporting: the run
+# entry points moved above both layers to `tools/run_annual_report.py` and
+# `tools/run_segment_report.py`. Neither reporting module names `simulation`
+# in any form now.
+#
+# An EMPTY allowlist makes `test_company_reads_sim_allowlist_has_no_stale_
+# entries` vacuous for this direction (it has nothing left to find stale) —
+# stated rather than glossed, per R15. The live controls for class (a) are
+# `test_no_new_company_reads_sim` (any new edge is now a hard failure with no
+# grandfathering left to hide behind), its mutation proof, and
+# `test_mutation_walker_detects_physical_crossings_on_disk`, all of which still
+# fire. The direction is not unmeasured; it is at zero, and the ratchet's
+# floor for it is now the floor.
+LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 
 # Class (b) — sim.*/simulation.* importing company-side internals other than
 # via the seam. Census on 2026-08-05: 105 edges (59 simulation->saas from 61
@@ -263,6 +182,27 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset({
 # side zero times. The simulation->saas mass is the largest crossing class in
 # the codebase and was invisible before the perimeter was widened to include
 # saas/.
+#
+# 2026-08-09, KNIFE pass 1: 105 -> 104. `simulation.run_phase4c_on_phase2b ->
+# saas.reporting.annual_report` deleted — the return edge that closed the
+# reporting import cycle. It reduced the run's output through the report's
+# `extract_report_data`, a reporting concern the run module had absorbed; that
+# code now lives in `tools/run_annual_report.py`.
+#
+# 2026-08-09, KNIFE pass 2 (atom `KNIFE2_customer_straddle`): 104 -> 88. All
+# SIXTEEN `simulation.* -> saas.customers` edges deleted — the customer module
+# straddling the wall, the single most-reached company module in the codebase.
+# They now route through `company.interfaces.supply_book`, which IS the
+# sanctioned seam and is therefore exempt by the rule at the top of this file,
+# not by escaping the walker: `company/interfaces/**` is walked exactly as
+# before, and any `simulation -> saas.customers` edge reappearing anywhere in
+# the tree is now a HARD failure with no grandfathering left for it to hide
+# behind. Note the honest limit — the seam ROUTES the crossing, it does not
+# remove the dependency: the same records cross, at one reviewable chokepoint
+# instead of sixteen unreviewable ones, and the field-level narrowing a real
+# MPAN registration would apply is owed to pass 3 / the Epoch-3 adapters. That
+# limit is stated in the seam module's own docstring so it cannot be read as
+# a clean break.
 LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.acquisition_funnel", "saas.growth_mandate"),
     ("simulation.arrears_engine", "company.policy.decision_policy"),
@@ -279,7 +219,6 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.dd_level_collection_book", "company.billing.direct_debit"),
     ("simulation.feedback_survey", "company.core.reputation_index"),
     ("simulation.hedged_settlement", "company.pricing.ofgem_price_cap"),
-    ("simulation.live_population", "saas.customers"),
     ("simulation.publish_market_feed", "company.market.price_feed"),
     ("simulation.renewals", "company.governance.approval_interface"),
     ("simulation.renewals", "company.governance.decision_rights"),
@@ -288,25 +227,15 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase0b", "saas.tariff_pricing"),
     ("simulation.run_phase0c", "saas.clv_seed"),
     ("simulation.run_phase0c", "saas.customer_reaction"),
-    ("simulation.run_phase0c", "saas.customers"),
     ("simulation.run_phase0c", "saas.tariff_pricing"),
-    ("simulation.run_phase1b_weather_pull", "saas.customers"),
     ("simulation.run_phase1c", "saas.clv_seed"),
     ("simulation.run_phase1c", "saas.customer_reaction"),
-    ("simulation.run_phase1c", "saas.customers"),
     ("simulation.run_phase1c", "saas.tariff_pricing"),
     ("simulation.run_phase1c_full_window", "saas.clv_seed"),
     ("simulation.run_phase1c_full_window", "saas.customer_reaction"),
-    ("simulation.run_phase1c_full_window", "saas.customers"),
     ("simulation.run_phase1c_full_window", "saas.tariff_pricing"),
     ("simulation.run_phase1c_renewals", "saas.clv_seed"),
     ("simulation.run_phase1c_renewals", "saas.customer_reaction"),
-    ("simulation.run_phase1c_renewals", "saas.customers"),
-    ("simulation.run_phase1d", "saas.customers"),
-    ("simulation.run_phase1e", "saas.customers"),
-    ("simulation.run_phase1e_repriced", "saas.customers"),
-    ("simulation.run_phase2a", "saas.customers"),
-    ("simulation.run_phase2a_repriced", "saas.customers"),
     ("simulation.run_phase2b", "company.analytics.churn_accuracy_report"),
     ("simulation.run_phase2b", "company.core.reputation_index"),
     ("simulation.run_phase2b", "company.core.resentment_ledger"),
@@ -335,7 +264,6 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "company.trading.wholesale_credit_exposure"),
     ("simulation.run_phase2b", "saas.cost_to_serve"),
     ("simulation.run_phase2b", "saas.customer_reaction"),
-    ("simulation.run_phase2b", "saas.customers"),
     ("simulation.run_phase2b", "saas.demand_response"),
     ("simulation.run_phase2b", "saas.growth_mandate"),
     ("simulation.run_phase2b", "saas.ledger"),
@@ -343,10 +271,8 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "saas.smart_meter_rollout"),
     ("simulation.run_phase2b", "saas.tariff_pricing"),
     ("simulation.run_phase3a", "saas.customer_reaction"),
-    ("simulation.run_phase3a", "saas.customers"),
     ("simulation.run_phase4b_on_phase2b", "saas.churn_model"),
     ("simulation.run_phase4b_on_phase2b", "saas.cost_to_serve"),
-    ("simulation.run_phase4b_on_phase2b", "saas.customers"),
     ("simulation.run_phase4b_on_phase2b", "saas.enterprise_value"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.account_adjustment_register"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.back_billing"),
@@ -357,18 +283,15 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase4c_on_phase2b", "saas.churn_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.cost_to_serve"),
-    ("simulation.run_phase4c_on_phase2b", "saas.customers"),
     ("simulation.run_phase4c_on_phase2b", "saas.enterprise_value"),
     ("simulation.run_phase4c_on_phase2b", "saas.home_move_win_rate"),
     ("simulation.run_phase4c_on_phase2b", "saas.ledger"),
     ("simulation.run_phase4c_on_phase2b", "saas.payment_behaviour"),
-    ("simulation.run_phase4c_on_phase2b", "saas.reporting.annual_report"),
     ("simulation.run_segments", "saas.growth_mandate"),
     ("simulation.run_segments", "saas.ledger"),
     ("simulation.run_segments", "saas.property_model"),
     ("simulation.run_segments", "saas.tariff_pricing"),
     ("simulation.satisfaction_churn", "saas.churn_model"),
-    ("simulation.weather_inputs", "saas.customers"),
 })
 
 
@@ -625,8 +548,9 @@ def test_mutation_walker_respects_the_seam_exemption(tmp_path):
 # --------------------------------------------------------------------------
 
 def test_baseline_census_is_exactly_as_frozen():
-    """On today's tree: class (a) == the 2 saas->simulation edges, class (b) ==
-    the 105 frozen SIM->company-side edges."""
+    """On today's tree: class (a) == EMPTY (both saas->simulation edges paid
+    down by KNIFE pass 1, 2026-08-09), class (b) == the 104 frozen
+    SIM->company-side edges (105 minus the reporting-cycle return edge)."""
     edges = _real_edges()
     assert set(company_reads_sim(edges)) == LEGACY_COMPANY_READS_SIM
     assert set(sim_reads_company(edges)) == LEGACY_SIM_READS_COMPANY

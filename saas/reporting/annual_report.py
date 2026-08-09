@@ -5,13 +5,20 @@ Reads the structured output of `simulation.run_phase4c_on_phase2b.main()`
 layers for the real 10-account portfolio) and produces a markdown annual
 report covering the whole window, one section per calendar year.
 
-This module does not run the simulation. `extract_report_data()` is a pure
-function over the run's output dict; `generate_annual_report()` is a pure
-function over `extract_report_data()`'s result. The CLI entry point below
-(`python3 -m saas.reporting.annual_report`) is the only place that calls
-`run_phase4c_on_phase2b.main()`, and it caches the extracted data as JSON
-(`docs/observability/phase4c_report_data.json`) so subsequent report
-regenerations can run from `--from-json` without re-running the simulation.
+This module does not run the simulation — and since KNIFE pass 1 (2026-08-09,
+atom `KNIFE1_reporting_cycle`) it CANNOT: it no longer imports `simulation` at
+all, in any form. `extract_report_data()` is a pure function over the run's
+output dict; `generate_annual_report()` is a pure function over
+`extract_report_data()`'s result. The CLI entry point below
+(`python3 -m saas.reporting.annual_report [--from-json PATH]`) RENDERS from
+already-extracted data and nothing else.
+
+The composition — run the world, then describe it — lives above both layers in
+`tools/run_annual_report.py` (`python3 -m tools.run_annual_report`), which also
+owns `save_run_output_json()`. Before that pass this module imported
+`simulation.run_phase4c_on_phase2b.main` at line 41 and the run module imported
+`extract_report_data` back: a class-(a) wall crossing (the business layer
+reading the simulated world's run harness) closing a mutual-import cycle.
 
 Phase 5b: `run_phase4c_on_phase2b.main()` now runs Phase 2b once and feeds
 the same `all_records`/`CUSTOMERS` through both the 4c billing-experience
@@ -38,7 +45,6 @@ from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
-from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from company.market.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
@@ -9293,80 +9299,51 @@ def _current_git_commit() -> str | None:
         return None
 
 
-def _run_and_extract(report_end: str | None = None) -> dict:
-    run_output = run_phase4c_on_phase2b(report_end=report_end)
-    return extract_report_data(run_output)
-
-
-def _send_run_complete_ntfy(data: dict, report_path: Path) -> None:
-    # Removed: per-run NTFYs from annual_report are spam (one run every ~17min).
-    # Claude picks up results via run_complete_*.md staging markers instead.
-    pass
+RUN_CLI = "python3 -m tools.run_annual_report"
 
 
 def main() -> None:
-    import os
+    """RENDER the annual report from already-extracted run data.
 
-    parser = argparse.ArgumentParser(description="Generate the annual report")
+    This CLI does NOT run the simulation, and since KNIFE pass 1 (2026-08-09)
+    it cannot: running the world from the business layer was the epistemic
+    wall's strictly-forbidden direction. `python3 -m tools.run_annual_report`
+    is the composition root that runs then renders.
+    """
+    parser = argparse.ArgumentParser(
+        description="Render the annual report from extracted run data "
+        f"(to RUN the simulation first, use `{RUN_CLI}`)"
+    )
     parser.add_argument(
         "--from-json",
         type=Path,
         default=None,
-        help="Load extracted report data from this JSON file instead of "
-        "running the simulation",
+        help="Load extracted report data from this JSON file "
+        f"(default: {DEFAULT_REPORT_DATA_PATH})",
     )
-    parser.add_argument("--save-json", type=Path, default=DEFAULT_REPORT_DATA_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_REPORT_PATH)
-    parser.add_argument(
-        "--end-year",
-        type=int,
-        default=None,
-        metavar="YYYY",
-        help="Truncate the simulation window at Dec 31 of this year (e.g. 2020). "
-        "Useful for fast iteration on early years without running the full window.",
-    )
-    parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="Set SIM_FAST_MODE=1: use the deterministic mock risk committee "
-        "(no LLM calls). Cuts per-run time from ~hours to ~minutes.",
-    )
     args = parser.parse_args()
 
-    if args.fast:
-        os.environ["SIM_FAST_MODE"] = "1"
-        print("[FAST MODE] SIM_FAST_MODE=1 — deterministic mock committee, no LLM calls.")
+    data_path = args.from_json or DEFAULT_REPORT_DATA_PATH
+    if not data_path.exists():
+        raise SystemExit(
+            f"No extracted report data at {data_path}. This CLI only renders; "
+            f"run the simulation first with `{RUN_CLI}`, or point --from-json "
+            "at a saved run output."
+        )
 
-    report_end = f"{args.end_year}-12-31" if args.end_year else None
-    if report_end:
-        print(f"[TRUNCATED] Simulation window truncated to {report_end}.")
+    data = json.loads(data_path.read_text())
 
-    if args.from_json:
-        data = json.loads(args.from_json.read_text())
-    elif not report_end and DEFAULT_REPORT_DATA_PATH.exists() and args.save_json == DEFAULT_REPORT_DATA_PATH:
-        data = json.loads(DEFAULT_REPORT_DATA_PATH.read_text())
+    if args.from_json is None:
         cached_commit = data.get("_cache_meta", {}).get("git_commit")
         current_commit = _current_git_commit()
         if cached_commit and current_commit and cached_commit != current_commit:
             print(
-                f"WARNING: cached report data ({DEFAULT_REPORT_DATA_PATH}) was "
+                f"WARNING: cached report data ({data_path}) was "
                 f"generated at commit {cached_commit}, but HEAD is now "
-                f"{current_commit} -- figures may be stale. Delete the cache "
-                f"or pass --save-json to re-run the simulation."
+                f"{current_commit} -- figures may be stale. Re-run the "
+                f"simulation with `{RUN_CLI}`."
             )
-    else:
-        raw_output = run_phase4c_on_phase2b(report_end=report_end)
-        data = extract_report_data(raw_output)
-        args.save_json.parent.mkdir(parents=True, exist_ok=True)
-        args.save_json.write_text(json.dumps(data, indent=2))
-        fresh_full_run = not args.fast and not report_end
-        if fresh_full_run:
-            ledger_events = raw_output.get("ledger_events", [])
-            if ledger_events:
-                LEDGER_LATEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-                LEDGER_LATEST_PATH.write_text(json.dumps(ledger_events, indent=2))
-                print(f"Wrote {LEDGER_LATEST_PATH} ({len(ledger_events):,} events)")
-            _send_run_complete_ntfy(data, args.output)
 
     report = generate_annual_report(data)
     args.output.parent.mkdir(parents=True, exist_ok=True)
