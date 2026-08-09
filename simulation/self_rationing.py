@@ -151,6 +151,13 @@ DROP-CONFOUNDER ANCHORS & SIMPLIFICATIONS (R10, atom D14, dated 2026-08-09)
   now false-flags. Hiding them makes detection strictly HARDER than reality, so
   the measured false-flag rate is an UPPER bound, never flattering. The
   observable channel is a follow-on atom, not a silent omission.
+  PAID 2026-08-09 by atom D18 (`docs/design/D18_OBSERVABLE_CONFOUNDER_CHANNEL.md`)
+  WITHOUT touching this world: the CAUSE stays answer key here, and the company
+  reads supplier-side RECORDS (a CoT registration, a void notification, its own
+  install file) with their own coverage and latency, built in the harness and
+  the detector. The bound held: 0.0560 -> 0.0373, and only 0.4286 of the false
+  flags were explainable even in principle, because a VOLUNTARY_CUT leaves no
+  record in any system.
 - SIMPLIFICATION (R10): confounder magnitudes are annual-consumption fractions,
   not within-year profiles. This world has no intra-year shape to cut.
 """

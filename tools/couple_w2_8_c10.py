@@ -55,6 +55,36 @@ three-way R13 call, this is NOT a curriculum choice: the naive basis is simply
 WRONG (it scores the company down for correctly flagging a real rationer) and
 travels only so a reader can see what it is worth.
 
+THE SUPPLIER'S OWN RECORDS, AND THE DISTANCE THEY DO NOT CLOSE (atom D18)
+--------------------------------------------------------------------------
+D14 hid every confounder CAUSE, which it registered as making detection
+strictly HARDER than reality: a real supplier holds a change-of-tenancy
+registration, a void notification, its own install file, and would explain some
+of those drops away. So 0.0560 was an UPPER bound. D18 builds the channel --
+`account_records_for` emits SUPPLIER RECORDS (never the cause enum) through a
+coverage gate and a latency band, and the C10 detector reads them.
+
+What the channel is NOT: a free pass. A voluntary cut leaves NO record in any
+system, ever, so a whole class of hard negatives stays permanently
+unexplainable; a record that has not ARRIVED by `_AS_OF` does not count; and a
+CoT/void record only invalidates the baseline (the history is the previous
+occupier's), it never certifies that no hardship exists.
+
+Every run therefore scores TWO companies on ONE population -- with the records
+(`flagged`) and without (`flagged_unaided`, the pre-D18 company) -- and
+publishes the three numbers the atom actually asked for: what a supplier COULD
+have explained away, what it DID, and the distance between them. It also
+publishes the channel's PRICE, which is not a footnote: a genuine rationer who
+also moved house is explained away and MISSED.
+
+R12 ON THE RESULT, STATED BEFORE THE NUMBER IS READ: the false-flag rate falls
+and the miss rate RISES, and because this pair's gap is the unweighted mean of
+two rates on very different denominators (205 truth vs 3752 negatives), the
+headline GAP gets WORSE even though the company trades ~70 false flags for ~9
+misses. That is a diagnostic, not a verdict on the channel -- and the fix for
+disliking it is a cost-weighted instrument argued on its own merits, never
+switching metric because this one moved the wrong way.
+
 THE HONEST GAP DRIVER -- SMART-METER / BASELINE COVERAGE. The drop signal needs a
 usable prior baseline. A real UK supplier does not have one for every account:
 traditional (non-smart/non-AMR) meters send no regular reads and switched-in
@@ -82,15 +112,18 @@ gathered by this harness (not by gap_metric, which never calls a clock).
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable, Dict
+from datetime import date, datetime, timedelta, timezone
+from typing import Callable, Dict, Optional, Tuple
 
 from simulation.self_rationing import DropConfounder, generate_self_rationing_state
 
 from company.crm.self_rationing_detector import (
+    AccountRecord,
+    AccountRecordType,
     SelfRationingDetector,
     SelfRationingObservation,
 )
@@ -126,6 +159,53 @@ _HEALTHY_BANDS = (
 _WEATHER_FACTORS = (0.94, 0.98, 1.0, 1.02, 1.07)
 
 
+# ---------------------------------------------------------------------------
+# THE OBSERVABLE CONFOUNDER CHANNEL (atom D18) — the supplier's OWN records.
+#
+# D14 left every confounder cause as ANSWER KEY, which made detection strictly
+# HARDER than reality: a real supplier holds a change-of-tenancy registration, a
+# void notification, an install file for its own scheme. This channel hands the
+# company those RECORDS — never the cause enum — through three gates that keep
+# it a record and not a label: COVERAGE (does the event leave a record at all),
+# LATENCY (has it reached us by the detection date), and the fact that a CoT or
+# void record only INVALIDATES the baseline, it never certifies "no hardship".
+#
+# The rates below are CURRICULUM shapes (R13/[L]), fixed from the advisor scope
+# brief before the resulting rates were measured, and never tuned to a gap:
+#   - CoT: "supplier-internal ... industry-wide, nobody is told"; discovery
+#     latency is itself a distribution ("week 1 vs month 6") — so a bit over
+#     half of moves get registered at all and the tail arrives too late.
+#   - Void: the landlord/agent has to bother telling us; fewer do.
+#   - Install: the file exists only for the company's OWN scheme customers, so
+#     coverage is roughly a supplier's share of a national programme.
+# ---------------------------------------------------------------------------
+_RECORD_CHANNEL: Dict[DropConfounder, Optional[Tuple[AccountRecordType, float, Tuple[int, int]]]] = {
+    # cause -> (record type, coverage, latency band in days)
+    DropConfounder.HOUSE_MOVE: (AccountRecordType.CHANGE_OF_TENANCY, 0.55, (7, 240)),
+    DropConfounder.VACANCY: (AccountRecordType.VOID_NOTIFICATION, 0.35, (14, 150)),
+    DropConfounder.EFFICIENCY_RETROFIT: (AccountRecordType.OWN_SCHEME_INSTALL, 0.30, (1, 75)),
+    # NO RECORD EXISTS, EVER: nobody registers a decision to use less energy.
+    # This is what keeps the channel from being the answer key — a whole class
+    # of hard negatives stays permanently unexplainable.
+    DropConfounder.VOLUNTARY_CUT: None,
+    DropConfounder.NONE: None,
+}
+
+# The DEEMED saving on the company's own install file (ECO/GBIS deemed scores,
+# ~10-30% typical). It is a SCHEME constant, deliberately NOT the household's
+# realised cut — the deemed-vs-actual performance gap is real, and reading the
+# realised figure would be the magnitude leaking through the record.
+_DEEMED_INSTALL_SAVING = 0.20
+
+# The consumption period the two meter reads bracket, and the date the detector
+# runs. A record received after `_AS_OF` has not arrived (C-S3: the request and
+# the answer are separate events in time).
+_PERIOD_START = date(2023, 4, 1)
+_PERIOD_END = date(2024, 3, 31)
+_DETECTION_LAG_DAYS = 60
+_AS_OF = _PERIOD_END + timedelta(days=_DETECTION_LAG_DAYS)
+
+
 def _u01(*parts) -> float:
     """Deterministic uniform(0,1) from a stable sha256 of the parts (C-S2)."""
     key = ":".join(str(p) for p in parts)
@@ -150,6 +230,40 @@ def _draw_healthy_kwh(cid: str) -> float:
 def _weather_factor(cid: str) -> float:
     idx = int(_u01("weather", cid) * len(_WEATHER_FACTORS))
     return _WEATHER_FACTORS[min(idx, len(_WEATHER_FACTORS) - 1)]
+
+
+def account_records_for(cid: str, confounder: DropConfounder) -> Tuple[AccountRecord, ...]:
+    """The supplier-side records this household's event WOULD generate (D18).
+
+    Returns the records that EXIST — arrival is the detector's problem, not this
+    function's, so the harness can measure explainable-but-not-explained. A
+    cause with no record type (a voluntary cut) returns nothing, whatever the
+    draw: the channel cannot invent a record for an event nobody registers.
+    Deterministic (C-S2), from this module's own named substreams.
+    """
+    spec = _RECORD_CHANNEL.get(confounder)
+    if spec is None:
+        return ()
+    record_type, coverage, (lo_days, hi_days) = spec
+    if _u01("record_coverage", cid) >= coverage:
+        return ()          # the event happened; nobody registered it
+    effective = _PERIOD_START + timedelta(
+        days=int(_u01("record_effective", cid) * 364)
+    )
+    latency = lo_days + int(_u01("record_latency", cid) * (hi_days - lo_days))
+    saving = (
+        _DEEMED_INSTALL_SAVING
+        if record_type is AccountRecordType.OWN_SCHEME_INSTALL
+        else None
+    )
+    return (
+        AccountRecord(
+            record_type=record_type,
+            effective_date=effective,
+            received_date=effective + timedelta(days=latency),
+            expected_saving_fraction=saving,
+        ),
+    )
 
 
 def _has_baseline(cid: str) -> bool:
@@ -212,7 +326,37 @@ NEGATIVE_BASES: Dict[str, NegativeBasis] = {
 PUBLISHED_NEGATIVE_BASIS = "settled_not_rationing"
 
 
-def build_populations(n_customers: int, confounders_enabled: bool = True
+def check_channel_invariants(flagged, flagged_unaided, explained, explainable) -> None:
+    """The two things that must be TRUE of a record channel, or it is a leak.
+
+    Held as a named function, called by the real build, so the R15 mutation
+    tests exercise the SAME code the measurement runs rather than a
+    re-implementation of it (the tautology this repo keeps catching).
+
+      1. A record can only ever SUPPRESS a flag -- it invalidates a baseline or
+         explains part of a fall. An account the aided company flags but the
+         unaided one does not means the channel is manufacturing suspicion out
+         of a record, which no supplier record does.
+      2. Nothing is explained away without a record behind it. If a false flag
+         disappears where no record exists, the "channel" is reading something
+         it should not be able to see.
+    """
+    if not set(flagged) <= set(flagged_unaided):
+        raise AssertionError(
+            "the record channel FLAGGED accounts the unaided detector did not: "
+            f"{sorted(set(flagged) - set(flagged_unaided))[:5]} -- a record must "
+            "never create a flag, only explain one away (D18)"
+        )
+    if not set(explained) <= set(explainable):
+        raise AssertionError(
+            "a false flag was explained away with no record behind it: "
+            f"{sorted(set(explained) - set(explainable))[:5]} -- the channel is "
+            "not record-driven (D18)"
+        )
+
+
+def build_populations(n_customers: int, confounders_enabled: bool = True,
+                      record_channel_enabled: bool = True,
                       ) -> DetectionPopulations:
     """Run the coupled loop and partition the population into the three sets.
 
@@ -224,6 +368,13 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
     `confounders_enabled=False` reproduces the pre-D14 world (no non-budget
     drops). It is the R15 mutation instrument ONLY -- the published measurement
     never passes it, and `test_...` asserts that.
+
+    `record_channel_enabled=False` reproduces the pre-D18 COMPANY: the same
+    world, the same detector, but blind to the supplier's own CoT / void /
+    install records. Every run scores BOTH companies on the same population
+    (`flagged` vs `flagged_unaided` in the stats), because the point of D18 is
+    the DISTANCE between what a supplier could explain away and what it does --
+    a distance that cannot be seen from one of the two numbers alone.
     """
     detector = SelfRationingDetector()
     universe: set[str] = set()
@@ -231,6 +382,9 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
     neither: set[str] = set()
     must_not: set[str] = set()
     flagged_set: set[str] = set()
+    flagged_unaided: set[str] = set()   # the pre-D18 company, same population
+    records_exist: set[str] = set()     # a record EXISTS (coverage hit)
+    records_arrived: set[str] = set()   # ...and it reached us in time (latency)
     harm: dict[str, float] = {}
 
     n_rationing = 0
@@ -242,6 +396,8 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
     n_with_baseline = 0
     n_hard_negatives = 0      # NOT rationing, yet the meter really dropped (D14)
     confounder_mix: dict[str, int] = {c.value: 0 for c in DropConfounder}
+    record_mix: dict[str, int] = {t.value: 0 for t in AccountRecordType}
+    record_arrived_mix: dict[str, int] = {t.value: 0 for t in AccountRecordType}
 
     for i in range(n_customers):
         cid = f"W28C{i:06d}"
@@ -269,6 +425,19 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
         if has_base:
             n_with_baseline += 1
 
+        # -- THE SUPPLIER'S OWN RECORDS (D18). Derived from the world's cause,
+        # but what crosses to the company is a RECORD with a coverage gate and
+        # two dates -- never the cause. Built even when the channel is off, so
+        # the harness can count what was explainable either way.
+        records = account_records_for(cid, state.drop_confounder)
+        if records:
+            records_exist.add(cid)
+            for rec in records:
+                record_mix[rec.record_type.value] += 1
+                if rec.has_arrived(_AS_OF) and rec.effective_date >= _PERIOD_START:
+                    records_arrived.add(cid)
+                    record_arrived_mix[rec.record_type.value] += 1
+
         # -- Company observables ONLY. Baseline present only where covered.
         obs = SelfRationingObservation(
             customer_id=cid,
@@ -279,8 +448,17 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
             missed_payments=state.missed_payments,   # always 0 -- the silent channel
             arrears_open=False,
             weather_normalisation_factor=_weather_factor(cid),
+            account_records=(records if record_channel_enabled else ()),
+            as_of=_AS_OF,
+            baseline_period_start=_PERIOD_START,
         )
         result = detector.detect(obs)
+        # The SAME detector on the SAME account with the record channel removed:
+        # the pre-D18 company, so every comparison below is company-vs-company on
+        # one population rather than two runs of two worlds.
+        unaided = detector.detect(dataclasses.replace(obs, account_records=()))
+        if unaided.self_rationing_suspected:
+            flagged_unaided.add(cid)
 
         # THE THREE POPULATIONS. DETECTABLE truth = silent hardship (rationing +
         # below floor + clean). A rationer ABOVE the floor is `neither`: not in
@@ -315,6 +493,21 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
     fp_settled = len(flagged_set & must_not)
     n_naive = len(must_not) + len(neither)
     fp_naive = len(flagged_set - truth_set)
+
+    # -- EXPLAINABLE vs EXPLAINED (the atom's actual question). Of the false
+    # flags the pre-D18 company raised on the settled negative: how many COULD a
+    # supplier have explained away (a record exists at all), and how many did it
+    # actually explain (the record had arrived and bore on the drop)? The
+    # difference is the price of coverage and latency, and it is published.
+    fp_unaided_set = flagged_unaided & must_not
+    explainable = fp_unaided_set & records_exist
+    explained = fp_unaided_set - flagged_set
+    check_channel_invariants(flagged_set, flagged_unaided, explained, explainable)
+    n_fp_unaided = len(fp_unaided_set)
+    # The COST, never left for a reader to discover: a genuine rationer who also
+    # moved house or had a void is now explained away and MISSED.
+    truth_explained_away = (truth_set & flagged_unaided) - flagged_set
+
     stats = {
         "n_customers": n_customers,
         "n_below_floor": n_below_floor,
@@ -333,6 +526,34 @@ def build_populations(n_customers: int, confounders_enabled: bool = True
         "false_positive_rate_naive": (fp_naive / n_naive) if n_naive else None,
         "baseline_coverage_actual": (n_with_baseline / n_customers) if n_customers else 0.0,
         "missed_because_no_baseline": missed_no_baseline,
+        # -- THE OBSERVABLE CONFOUNDER CHANNEL (atom D18) --------------------
+        "record_channel_enabled": record_channel_enabled,
+        "record_mix": record_mix,
+        "record_arrived_mix": record_arrived_mix,
+        "n_records_exist": len(records_exist),
+        "n_records_arrived": len(records_arrived),
+        # The pre-D18 company on the SAME population -- the D14 upper bound.
+        "n_flagged_unaided": len(flagged_unaided),
+        "false_positives_unaided": n_fp_unaided,
+        "false_positive_rate_unaided": (
+            (n_fp_unaided / n_settled_negative) if n_settled_negative else None
+        ),
+        # COULD have explained away / DID explain away, and the shortfall
+        # between them (coverage that arrived too late, or not at all).
+        "n_false_flags_explainable": len(explainable),
+        "n_false_flags_explained": len(explained),
+        "explainable_share_of_false_flags": (
+            (len(explainable) / n_fp_unaided) if n_fp_unaided else None
+        ),
+        "explained_share_of_false_flags": (
+            (len(explained) / n_fp_unaided) if n_fp_unaided else None
+        ),
+        "explanation_shortfall_share": (
+            ((len(explainable) - len(explained)) / n_fp_unaided) if n_fp_unaided else None
+        ),
+        # The price of the channel: real hardship the records talked us out of.
+        "n_truth_explained_away": len(truth_explained_away),
+        "missed_because_record_invalidated_baseline": len(truth_explained_away),
     }
     # `false_positives` above is the SETTLED count; the loop's running tally
     # counted a flag on `neither` as an error, which it is not.
@@ -387,7 +608,10 @@ def false_flag_measures(pops: DetectionPopulations) -> Dict[str, object]:
 
 
 def measure(n_customers: int = 4000):
-    """The published measurement: both directions, on the settled negative."""
+    """The published measurement: both directions, on the settled negative, and
+    (since D18) with the supplier's own record channel LIVE -- the company the
+    published figure describes is the one that reads its own CoT, void and
+    install records, because that is the company a real supplier is."""
     pops = build_populations(n_customers)
     measures = false_flag_measures(pops)
     stats = dict(pops.stats)
@@ -428,6 +652,17 @@ def main() -> None:
           "   <- the hard negatives D14 added; 0 before it")
     print(f"  confounder mix               : {stats['confounder_mix']}")
     print(f"  baseline coverage (actual)   : {stats['baseline_coverage_actual']:.4f}")
+    print("  -- THE SUPPLIER'S OWN RECORDS (atom D18) --")
+    print(f"  records that EXIST           : {stats['n_records_exist']}  {stats['record_mix']}")
+    print(f"  ...arrived by as_of          : {stats['n_records_arrived']}  {stats['record_arrived_mix']}")
+    print(f"  flagged: unaided -> with records: {stats['n_flagged_unaided']} -> {stats['n_flagged']}")
+    print(f"  false flags COULD have explained: {stats['n_false_flags_explainable']}"
+          f" of {stats['false_positives_unaided']}"
+          f"  ({stats['explainable_share_of_false_flags']})")
+    print(f"  false flags ACTUALLY explained  : {stats['n_false_flags_explained']}"
+          f"  ({stats['explained_share_of_false_flags']})")
+    print(f"  THE DISTANCE (coverage+latency) : {stats['explanation_shortfall_share']}")
+    print(f"  PRICE: real hardship explained away: {stats['n_truth_explained_away']}")
     print(f"  flagged by detector          : {stats['n_flagged']}")
     print(f"  true positives               : {stats['true_positives']}")
     print(f"  missed for lack of baseline  : {stats['missed_because_no_baseline']}")
@@ -439,6 +674,8 @@ def main() -> None:
     for key, rate in stats["false_flag_rate_by_basis"].items():
         mark = "  <-- PUBLISHED" if key == PUBLISHED_NEGATIVE_BASIS else "  (DEFECTIVE, shown for contrast)"
         print(f"  false_flag_rate [{key}] : {rate}{mark}")
+    print(f"  false_flag_rate [unaided, pre-D18 UPPER BOUND] : "
+          f"{stats['false_positive_rate_unaided']}")
     print(f"  excluded (NEITHER)           : {result.components['n_excluded']}"
           f"  reason published in components")
     print(f"  baseline (g0)                : {result.baseline}")

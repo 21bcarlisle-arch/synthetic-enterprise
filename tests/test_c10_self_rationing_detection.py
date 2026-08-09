@@ -22,6 +22,8 @@ import pytest
 
 from company.compliance.domain_invariants import TDCV_ELEC_LOW, TDCV_GAS_LOW
 from company.crm.self_rationing_detector import (
+    AccountRecord,
+    AccountRecordType,
     SelfRationingDetector,
     SelfRationingObservation,
     TDCV_LOW_FLOOR_KWH,
@@ -176,6 +178,152 @@ def test_apply_to_register_no_detection_is_noop():
 
 
 # --------------------------------------------------------------------------
+# 1b. THE SUPPLIER'S OWN RECORDS (atom D18) -- the observable confounder
+#     channel. Every test here is a differential: the SAME textbook rationing
+#     signature, with and without a record, so a test can only pass because the
+#     record did something.
+# --------------------------------------------------------------------------
+
+_AS_OF = dt.date(2024, 5, 30)
+_PERIOD_START = dt.date(2023, 4, 1)
+
+
+def _rationing_obs(**kw):
+    """The textbook signature: a drop from 2900 to 1200 (below the 1400 floor),
+    clean payments, baseline present -> flagged, absent any record."""
+    base = dict(
+        baseline_annual_kwh=2900.0, observed_annual_kwh=1200.0,
+        as_of=_AS_OF, baseline_period_start=_PERIOD_START,
+    )
+    base.update(kw)
+    return _obs(**base)
+
+
+def _record(record_type, effective=dt.date(2023, 9, 1), received=dt.date(2023, 10, 1),
+            saving=None):
+    return AccountRecord(record_type=record_type, effective_date=effective,
+                         received_date=received, expected_saving_fraction=saving)
+
+
+def test_the_signature_is_still_flagged_with_no_records_at_all():
+    """The differential's control arm. Every D18 test below changes ONE thing
+    from this observation, so a suppression can only be the record's doing."""
+    det = SelfRationingDetector()
+    assert det.detect(_rationing_obs()).self_rationing_suspected is True
+
+
+def test_arrived_cot_record_invalidates_the_baseline_and_is_not_a_clearance():
+    """A change-of-tenancy the company HAS: the prior baseline belongs to the
+    previous occupier, so the drop is not this household's drop and no flag can
+    be raised from it. Critically it is NOT a finding of no hardship -- the
+    incoming occupier may be rationing and the company simply cannot see it."""
+    det = SelfRationingDetector()
+    r = det.detect(_rationing_obs(
+        account_records=(_record(AccountRecordType.CHANGE_OF_TENANCY),)))
+    assert r.self_rationing_suspected is False
+    assert r.signals["baseline_invalidated_by"] == "change_of_tenancy"
+    assert r.signals["has_usable_baseline"] is False
+    assert "NOT a finding of no hardship" in r.signals["not_flagged_reason"]
+    assert r.signals["records_arrived"] == ("change_of_tenancy",)
+
+
+def test_void_notification_behaves_the_same_way():
+    det = SelfRationingDetector()
+    r = det.detect(_rationing_obs(
+        account_records=(_record(AccountRecordType.VOID_NOTIFICATION),)))
+    assert r.self_rationing_suspected is False
+    assert r.signals["baseline_invalidated_by"] == "void_notification"
+
+
+def test_mutation_a_record_that_has_not_arrived_explains_nothing():
+    """R15, THE LABEL-LEAK MUTATION the atom names. The event HAPPENED and the
+    record EXISTS -- but it reaches us after the detection date (CoT discovery
+    is weeks to months). The household must still be flaggable, exactly as it
+    was before D18. A channel that fired on existence rather than arrival would
+    be handing the detector the world's cause enum by another name."""
+    det = SelfRationingDetector()
+    late = _record(AccountRecordType.CHANGE_OF_TENANCY,
+                   effective=dt.date(2024, 2, 1), received=dt.date(2024, 8, 1))
+    r = det.detect(_rationing_obs(account_records=(late,)))
+    assert r.self_rationing_suspected is True
+    assert r.signals["records_arrived"] == ()
+    assert r.signals["records_not_yet_arrived"] == ("change_of_tenancy",)
+    assert r.signals["baseline_invalidated_by"] is None
+
+
+def test_no_as_of_means_no_record_has_arrived():
+    """Fail-SAFE, not fail-open: with no stated clock the company cannot claim a
+    record had reached it, so the record suppresses nothing and the account gets
+    looked at. An unknown clock must never silence a vulnerability flag."""
+    det = SelfRationingDetector()
+    r = det.detect(_rationing_obs(
+        as_of=None, account_records=(_record(AccountRecordType.CHANGE_OF_TENANCY),)))
+    assert r.self_rationing_suspected is True
+
+
+def test_a_record_predating_the_baseline_period_does_not_explain_this_drop():
+    """A tenancy change four years ago explains the BASELINE, not a fall away
+    from it. Without this the channel would fail open on stale history."""
+    det = SelfRationingDetector()
+    stale = _record(AccountRecordType.CHANGE_OF_TENANCY,
+                    effective=dt.date(2019, 6, 1), received=dt.date(2019, 7, 1))
+    r = det.detect(_rationing_obs(account_records=(stale,)))
+    assert r.self_rationing_suspected is True
+    assert r.signals["records_not_yet_arrived"] == ("change_of_tenancy",)
+
+
+def test_install_record_explains_a_retrofit_sized_fall():
+    """Our own scheme insulated the home: the deemed saving on our own file
+    lowers what we EXPECT the meter to read, so a retrofit-sized fall is no
+    longer a material cut."""
+    det = SelfRationingDetector()
+    install = _record(AccountRecordType.OWN_SCHEME_INSTALL, saving=0.20)
+    # 1550 -> 1200 is a 22.6% raw drop (material, and below the 1400 floor);
+    # against a 20%-deemed-saving expectation of 1240 the residual is ~3%.
+    obs = dict(baseline_annual_kwh=1550.0, observed_annual_kwh=1200.0)
+    assert det.detect(_rationing_obs(**obs)).self_rationing_suspected is True
+    r = det.detect(_rationing_obs(account_records=(install,), **obs))
+    assert r.self_rationing_suspected is False
+    assert r.signals["deemed_saving_fraction"] == 0.2
+    assert "deemed saving" in r.signals["not_flagged_reason"]
+
+
+def test_mutation_an_install_record_does_not_blanket_clear_a_deeper_cut():
+    """The other half of the same control: a household that cut FAR beyond what
+    its retrofit explains is still flagged. An install record that cleared any
+    drop would be a blanket amnesty on exactly the accounts most at risk."""
+    det = SelfRationingDetector()
+    install = _record(AccountRecordType.OWN_SCHEME_INSTALL, saving=0.20)
+    r = det.detect(_rationing_obs(account_records=(install,)))   # 2900 -> 1200
+    assert r.self_rationing_suspected is True
+    assert r.signals["deemed_saving_fraction"] == 0.2
+
+
+def test_install_record_without_a_deemed_saving_adjusts_nothing():
+    """A missing number must not become a free pass (the fail-open shape)."""
+    det = SelfRationingDetector()
+    install = _record(AccountRecordType.OWN_SCHEME_INSTALL, saving=None)
+    obs = dict(baseline_annual_kwh=1550.0, observed_annual_kwh=1200.0)
+    r = det.detect(_rationing_obs(account_records=(install,), **obs))
+    assert r.self_rationing_suspected is True
+    assert r.signals["deemed_saving_fraction"] == 0.0
+
+
+def test_a_deemed_saving_can_never_swallow_an_arbitrary_drop():
+    """Clamped below 1.0: an absurd saving on a record cannot drive expected
+    consumption to zero and make every fall unremarkable."""
+    det = SelfRationingDetector()
+    install = _record(AccountRecordType.OWN_SCHEME_INSTALL, saving=0.99)
+    r = det.detect(_rationing_obs(account_records=(install,)))   # 2900 -> 1200
+    assert r.signals["deemed_saving_fraction"] == 0.9
+    # expected 290, observed 1200 -> no drop at all; the clamp keeps the figure
+    # finite and the account simply reads ABOVE its adjusted expectation.
+    r2 = det.detect(_rationing_obs(observed_annual_kwh=100.0,
+                                   account_records=(install,)))
+    assert r2.self_rationing_suspected is True
+
+
+# --------------------------------------------------------------------------
 # 2. wall + drift discipline
 # --------------------------------------------------------------------------
 
@@ -257,15 +405,130 @@ def test_mutation_the_published_measure_never_runs_with_confounders_off():
     # The published entry point cannot reach that state.
     _result, stats = couple.measure(n_customers=800)
     assert stats["confounders_enabled"] is True
+    # ...and the published company is the one that reads its own records (D18):
+    # the off-switch there is a mutation instrument too, not a publishable mode.
+    assert stats["record_channel_enabled"] is True
 
 
-def test_missed_are_the_no_baseline_blind_spot():
+def test_every_miss_has_a_named_cause_and_the_channel_owns_its_share():
     """Every truth account the detector missed is a coverage blind spot, not a
-    logic error: with a baseline the rationer is separable by construction."""
+    logic error: with a usable baseline the rationer is separable by
+    construction. Since D18 there are exactly TWO ways to lose the baseline and
+    both are counted -- the meter never gave us one, or a CoT/void record told
+    us the history is not this occupier's. The second is the record channel's
+    PRICE and it is named rather than absorbed into the first.
+
+    THE ASSERTION THAT CHANGED, AND WHY IT HAD TO: this test previously read
+    `missed_because_no_baseline == missed`, which would now be false by 4-9
+    accounts -- and 'the channel lost us some hardship cases' is exactly the
+    thing that must not vanish into a rounding argument."""
     result, stats = couple.measure(n_customers=2500)
     missed = result.components["missed"]
-    # All (or essentially all) misses are the no-baseline population.
-    assert stats["missed_because_no_baseline"] == missed
+    assert missed == (
+        stats["missed_because_no_baseline"]
+        + stats["missed_because_record_invalidated_baseline"]
+    )
+    # Both causes are LIVE -- a decomposition where one term is always zero
+    # would be a partition on paper only.
+    assert stats["missed_because_no_baseline"] > 0
+    assert stats["missed_because_record_invalidated_baseline"] > 0
+
+
+# --------------------------------------------------------------------------
+# 3b. THE OBSERVABLE CONFOUNDER CHANNEL, measured on the coupled population
+#     (atom D18). The two R15 obligations the atom set: prove the channel is
+#     not a label leak, and prove it actually MOVES the rate (a channel that
+#     changes nothing is not evidence of anything).
+# --------------------------------------------------------------------------
+
+def test_mutation_the_channel_moves_the_false_flag_rate():
+    """R15 obligation #2. Same world, same detector, records on vs off. If the
+    published rate did not move, the channel would be decoration."""
+    aided = couple.build_populations(2500)
+    unaided = couple.build_populations(2500, record_channel_enabled=False)
+    rate_aided = aided.stats["false_positive_rate"]
+    rate_unaided = unaided.stats["false_positive_rate"]
+    assert 0.0 < rate_aided < rate_unaided
+    # The off-build reproduces the pre-D18 company EXACTLY -- the aided run's
+    # own `..._unaided` figure is the same number, so the two ways of asking
+    # agree and neither is a re-derivation of the other.
+    assert unaided.stats["false_positive_rate"] == aided.stats["false_positive_rate_unaided"]
+    assert unaided.stats["n_flagged"] == aided.stats["n_flagged_unaided"]
+    # ...and with the channel off nothing is explained away.
+    assert unaided.stats["n_false_flags_explained"] == 0
+    assert unaided.stats["n_truth_explained_away"] == 0
+
+
+def test_mutation_the_channel_is_not_a_label_leak():
+    """R15 obligation #1, on the population. A household whose confounder fired
+    but whose record has NOT arrived (or was never registered at all) must
+    remain flaggable -- so the false-flag rate must stay well clear of zero and
+    a large share of the pre-D18 false flags must remain UNEXPLAINABLE."""
+    pops = couple.build_populations(2500)
+    s = pops.stats
+    assert s["false_positive_rate"] > 0.01, "the channel explained away everything"
+    # A ceiling strictly below 1: some hard negatives can never be explained.
+    assert 0.0 < s["explainable_share_of_false_flags"] < 0.75
+    # And what was actually explained is strictly less than what could be --
+    # coverage and latency both cost something.
+    assert s["n_false_flags_explained"] < s["n_false_flags_explainable"]
+    assert s["explanation_shortfall_share"] > 0.0
+    # Records exist that have NOT arrived; without them latency is untested.
+    assert s["n_records_arrived"] < s["n_records_exist"]
+
+
+def test_a_voluntary_cut_can_never_produce_a_record():
+    """The class that keeps the channel honest: nobody registers a decision to
+    use less energy. Swept over the population's own ids, not one fixture."""
+    from simulation.self_rationing import DropConfounder
+    for i in range(2000):
+        cid = f"W28C{i:06d}"
+        assert couple.account_records_for(cid, DropConfounder.VOLUNTARY_CUT) == ()
+        assert couple.account_records_for(cid, DropConfounder.NONE) == ()
+    # ...while the causes that DO leave a record leave one for some households.
+    assert any(couple.account_records_for(f"W28C{i:06d}", DropConfounder.HOUSE_MOVE)
+               for i in range(50))
+
+
+def test_all_three_record_types_occur_and_arrive_in_the_scored_population():
+    """Vacuity guard: a channel whose rarest record never fires is untested by
+    the measurement that cites it."""
+    s = couple.build_populations(4000).stats
+    for rtype in ("change_of_tenancy", "void_notification", "own_scheme_install"):
+        assert s["record_mix"][rtype] > 0, rtype
+        assert s["record_arrived_mix"][rtype] > 0, rtype
+
+
+def test_mutation_the_channel_invariants_fire_on_their_own_defects():
+    """R15 on the guard itself. `check_channel_invariants` is the function the
+    real build calls, so these mutations exercise the shipped control rather
+    than a copy of it."""
+    # A record must never CREATE a flag.
+    with pytest.raises(AssertionError, match="never create a flag"):
+        couple.check_channel_invariants(
+            flagged={"a", "b"}, flagged_unaided={"a"}, explained=set(), explainable=set())
+    # Nothing may be explained away with no record behind it.
+    with pytest.raises(AssertionError, match="no record behind it"):
+        couple.check_channel_invariants(
+            flagged={"a"}, flagged_unaided={"a", "b"},
+            explained={"b"}, explainable=set())
+    # The honest case passes.
+    couple.check_channel_invariants(
+        flagged={"a"}, flagged_unaided={"a", "b"},
+        explained={"b"}, explainable={"b", "c"})
+
+
+def test_the_price_of_the_channel_is_published_beside_the_benefit():
+    """R12: the channel buys a lower false-flag rate and PAYS in missed
+    hardship, and both travel. A published improvement whose cost is not in the
+    same stats dict is how a metric gets gamed by accident."""
+    s = couple.build_populations(2500).stats
+    assert s["n_truth_explained_away"] > 0, (
+        "no real rationer was explained away -- either the confounder draw has "
+        "stopped landing on rationers (D14's independence property) or the cost "
+        "term has gone blind"
+    )
+    assert s["false_positive_rate"] < s["false_positive_rate_unaided"]
 
 
 def test_scenario_deterministic():
