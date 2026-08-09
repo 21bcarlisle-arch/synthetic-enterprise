@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-09T00:10:54.331238+00:00",
+  "generated_at": "2026-08-09T02:43:06.009408+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -10,8 +10,8 @@
   "changed": true,
   "counts": {
     "new_decisions": 0,
-    "reserved_changed": 1,
-    "reserved_added": 1,
+    "reserved_changed": 0,
+    "reserved_added": 0,
     "reserved_cleared": 0,
     "daemons_flipped": 0,
     "daemons_newly_stale": 0,
@@ -21,14 +21,11 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (publish_gate_wedged)",
-    "total_open_atoms: 55 -> 93"
+    "total_open_atoms: 55 -> 90"
   ],
   "detail": {
     "new_decisions": [],
-    "reserved_added": [
-      "publish_gate_wedged"
-    ],
+    "reserved_added": [],
     "reserved_cleared": [],
     "daemons_newly_stale": [],
     "daemons_recovered": [],
@@ -39,16 +36,14 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 93
+        "to": 90
       }
     ]
   },
   "current_state": {
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
-    "reserved_ids": [
-      "publish_gate_wedged"
-    ],
+    "reserved_ids": [],
     "daemon_status": {
       "session-watchdog": "stale",
       "staging-watcher": "live",
@@ -71,11 +66,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 93
+    "open_atoms": 90
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-09T00:05:45.422300+00:00",
-    "health_last_updated": "2026-08-09T00:10:50.915049+00:00",
+    "reserved_generated_at": "2026-08-09T02:39:18.403380+00:00",
+    "health_last_updated": "2026-08-09T02:43:03.225215+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

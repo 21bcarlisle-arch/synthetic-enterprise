@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T02:17:59Z
+Last updated: 2026-08-09T02:54:07Z
 **C14_thermal_parameter_inference — the fabric belief now SPENDS MONEY, and the decision metric
 could not previously report a loss. Half the L2→L3 step built; LEVEL DELIBERATELY NOT MOVED.**
 This atom's own L2 record named two exit conditions: wire the belief into a live decision path, and
@@ -1138,7 +1138,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (529s / 9 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
