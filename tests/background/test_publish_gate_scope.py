@@ -102,8 +102,18 @@ def test_gate_argv_selects_by_operational_marker_not_directory():
     # (docs/design/JOIN_TEST_TIER.md §3). Asserted as an exact equality rather than
     # a substring so a third conjunct cannot be added silently: widening what the
     # publish gate ignores must always break this test and be argued for.
+    #
+    # 2026-08-09 (AO4_scale_constraints_executable): the THIRD conjunct, argued
+    # for here as this comment requires. The five production-readiness scale
+    # constraints land as checks that MEASURE the tree as it is, so some are red
+    # on arrival by design (the money-in-duplicate drift the structural audit
+    # named). The alternative to deselecting them is softening them, which is R12.
+    # The complement expression (OPERATIONAL_LAYER_MARKER_EXPR) widened with it,
+    # so the tier is deselected here and covered there -- never uncovered.
     assert "-m" in argv and prc.PUBLISH_GATE_MARKER_EXPR in argv
-    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only"
+    assert prc.PUBLISH_GATE_MARKER_EXPR == (
+        "not operational and not join_report_only and not scale_report_only"
+    )
     assert "not operational" in prc.PUBLISH_GATE_MARKER_EXPR
     # ... and the blunt directory ignore (the fail-open we rejected) is GONE.
     assert "--ignore=tests/background" not in argv
@@ -121,11 +131,24 @@ def test_run_fast_tests_emits_the_marker_deselection(tmp_path, monkeypatch):
 
     def _fake_run(argv, **kwargs):
         captured["argv"] = argv
+        captured["cwd"] = kwargs.get("cwd")
         return _Result()
 
+    # The gate's subject is a clean HEAD checkout now (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT):
+    # stub the checkout so this test keeps its own subject -- the marker deselection in argv.
+    import contextlib as _ctx
+    head = tmp_path / "head"
+    head.mkdir(exist_ok=True)
+
+    @_ctx.contextmanager
+    def _fake_checkout():
+        yield head
+
+    monkeypatch.setattr(prc, "_head_checkout", _fake_checkout)
     monkeypatch.setattr(prc.subprocess, "run", _fake_run)
     assert prc.run_fast_tests("deadbeef") == (True, False)
     argv = captured["argv"]
+    assert captured["cwd"] == str(head), "the gate must run IN the clean checkout, not the tree"
     # argv[1:3] is the `python -m pytest` launcher; the marker filter is a
     # SEPARATE `-m <expr>` pair -- assert that pair is present.
     assert prc.PUBLISH_GATE_MARKER_EXPR in argv

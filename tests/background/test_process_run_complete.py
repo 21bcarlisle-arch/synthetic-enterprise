@@ -1083,6 +1083,19 @@ def _gate_log_text(monkeypatch, tmp_path, result):
         captured_kwargs.update(kwargs)
         return result
 
+    # DIRECTOR_RULING_PUBLISH_GATE_SUBJECT: run_fast_tests now materialises a clean HEAD checkout
+    # before running the suite, so a bare `subprocess.run` stub would answer `git archive` and
+    # `tar` with the fake pytest result too. Stub the checkout itself and let these tests keep
+    # their subject: what the gate does with a pytest RESULT. The checkout's own behaviour is
+    # covered separately (test_publish_gate_subject_is_head.py).
+    checkout = tmp_path / "head"
+    checkout.mkdir(exist_ok=True)
+
+    @contextlib.contextmanager
+    def fake_checkout():
+        yield checkout
+
+    monkeypatch.setattr(prc, "_head_checkout", fake_checkout)
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
     passed, timed_out = prc.run_fast_tests("deadbeef")
     text = log_path.read_text() if log_path.exists() else ""

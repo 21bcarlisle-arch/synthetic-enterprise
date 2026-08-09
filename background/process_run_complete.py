@@ -3,8 +3,10 @@ import fcntl
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -264,6 +266,58 @@ OPERATIONAL_LAYER_DIGEST_MAX_LINES = 12              # failure lines carried int
 # correct its transition logic is.
 _OPERATIONAL_LAYER_NO_OUTPUT = "(no output captured from the run -- cause unavailable)"
 
+# PW4 -- THE CLOSE CONDITION for the operational-layer red episode.
+#
+# `consecutive_red` is an episode counter (>=OPERATIONAL_RED_DRAWABLE_THRESHOLD makes the
+# supervisor draw it at priority zero) and this module read-modify-writes it, so the census
+# flags it as self-clearing. Guarding it needs an answer to "what EVIDENCES that the red
+# episode ended", and for THIS control `rc == 0` is not that answer.
+#
+# WHY NOT rc == 0: pytest exits 0 when every selected test SKIPPED. The operational marker
+# selects daemon-lifecycle tests -- exactly the tests most likely to skip themselves when the
+# thing they drive (tmux, a systemd unit, a live daemon) is absent. That is the R15 FAIL-OPEN
+# pattern in its purest form: the check passes on empty. A green that executed nothing is
+# indistinguishable, at rc level, from a green that proved the daemons recovered, and only one
+# of those is evidence the red is over.
+#
+# THE CONDITION: rc == 0 AND the run reports at least one test PASSED. Independent of
+# `.operational_layer_signal.json` by construction (R15 anti-tautology) -- it is read off the
+# subprocess's own summary line, never off the state whose episode it closes.
+#
+# FAIL DIRECTION: toward REMEMBERING the episode. An unparseable/absent summary means we
+# cannot demonstrate a recovery, so the episode stands. That deliberately cannot wedge the
+# alarm permanently the way an always-red detector would: the counter simply stops moving in
+# either direction until a parseable green arrives, and the vacuous green is LOGGED by name so
+# the state is diagnosable rather than mute.
+_PYTEST_PASSED_RE = re.compile(r"(\d+) passed")
+
+
+def operational_layer_passed_count(result):
+    """How many tests the operational run actually PASSED, or None if it cannot be told.
+
+    None and 0 are opposite facts here and are kept apart on purpose: 0 means the run
+    demonstrably passed nothing (all skipped/deselected), None means the run's own output was
+    unavailable, so the question is unanswered. Neither closes an episode; only a positive
+    count does."""
+    chunks = []
+    for attr in ("stdout", "stderr"):
+        val = getattr(result, attr, None)
+        if isinstance(val, bytes):
+            val = val.decode("utf-8", "replace")
+        if isinstance(val, str) and val.strip():
+            chunks.append(val)
+    if not chunks:
+        return None
+    matches = _PYTEST_PASSED_RE.findall("\n".join(chunks))
+    if not matches:
+        return None
+    return max(int(m) for m in matches)
+
+
+def operational_layer_episode_closed(result, rc):
+    """The named close condition, in one place so the test can put it on trial directly."""
+    return rc == 0 and (operational_layer_passed_count(result) or 0) >= 1
+
 
 def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_MAX_LINES):
     """The failing-run payload carried into the log and the RED page.
@@ -328,13 +382,28 @@ def _read_operational_layer_state():
                 "consecutive_green": 0, "state_unavailable": True}
 
 
-def _write_operational_layer_state(state):
+OPERATIONAL_LAYER_STREAK_FIELDS = ("consecutive_red",)
+
+
+def _write_operational_layer_state(state, *, episode_closed=False):
+    """Persist the signal state, with the PW4 guard on the red episode counter.
+
+    `episode_closed` is `operational_layer_episode_closed(...)` -- the caller's EVIDENCED claim
+    that a green actually executed something. Only `consecutive_red` is guarded:
+    `consecutive_green` is not an episode any alarm reads for severity, and resetting a green
+    streak over-reports rather than under-reports, which is the direction this class of guard
+    deliberately does not police."""
     out = {
         "last_run_ts": state.get("last_run_ts"),
         "last_result": state.get("last_result"),
         "consecutive_red": state.get("consecutive_red", 0),
         "consecutive_green": state.get("consecutive_green", 0),
     }
+    out = guard_episode(_read_operational_layer_state() if OPERATIONAL_LAYER_STATE_FILE.exists()
+                        else None,
+                        out,
+                        streak_fields=OPERATIONAL_LAYER_STREAK_FIELDS,
+                        episode_closed=episode_closed)
     OPERATIONAL_LAYER_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     OPERATIONAL_LAYER_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
 
@@ -399,6 +468,29 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
         consecutive_red = int(state.get("consecutive_red") or 0)
         consecutive_green = int(state.get("consecutive_green") or 0)
         paged = False
+        # PW4: a green only CLOSES the red episode if it demonstrably ran something.
+        episode_closed = operational_layer_episode_closed(result, rc)
+
+        if is_green and not episode_closed:
+            # A VACUOUS GREEN (rc=0, nothing passed). The red episode stands: this run is
+            # evidence of nothing, exactly as a lock-skip is evidence of nothing to the publish
+            # gate. Recorded by name so the state is diagnosable rather than a mute plateau.
+            passed = operational_layer_passed_count(result)
+            log_fn(
+                "Operational-layer signal: rc=0 but the run demonstrated no recovery ({}) -- "
+                "the red episode is PRESERVED at consecutive_red={}, not cleared. A green that "
+                "executed nothing cannot close a red episode (PW4)."
+                .format("0 tests passed" if passed == 0 else "no pass count in the run's output",
+                        consecutive_red))
+            _write_operational_layer_state({
+                "last_run_ts": now,
+                "last_result": "green_unevidenced",
+                "consecutive_red": consecutive_red,
+                "consecutive_green": consecutive_green,
+            }, episode_closed=False)
+            return {"ran": True, "green": True, "episode_closed": False, "rc": rc,
+                    "consecutive_red": consecutive_red, "consecutive_green": consecutive_green,
+                    "paged": False, "digest": ""}
 
         if is_green:
             was_persistent_red = consecutive_red >= OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD
@@ -444,8 +536,9 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
             "last_result": "green" if is_green else "red",
             "consecutive_red": consecutive_red,
             "consecutive_green": consecutive_green,
-        })
-        return {"ran": True, "green": is_green, "rc": rc, "consecutive_red": consecutive_red,
+        }, episode_closed=episode_closed)
+        return {"ran": True, "green": is_green, "episode_closed": episode_closed, "rc": rc,
+                "consecutive_red": consecutive_red,
                 "consecutive_green": consecutive_green, "paged": paged, "digest": digest}
     except Exception as exc:
         log_fn("Operational-layer signal check error (swallowed): {}".format(exc))
@@ -459,6 +552,7 @@ from background.child_diagnostics import (  # noqa: E402  (H30)
     failure_detail,
     stderr_tail,
 )
+from background.episode_monotonic import guard_episode  # noqa: E402  (PW2)
 from background.tree_lock import tree_lock  # noqa: E402
 
 
@@ -730,54 +824,157 @@ def run_fast_tests(git_hash: str):
     full_env = dict(os.environ)
     full_env["SIM_FAST_MODE"] = "1"
     try:
-        # Blocking scope = publish-SURFACE tests only (see publish_gate_pytest_argv:
-        # heavy ignores for speed, operational ignores for R10 class closure).
+        # THE GATE'S SUBJECT IS A CLEAN CHECKOUT OF HEAD (director ruling
+        # DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09): "publishing tests committed truth
+        # only; the working tree belongs to the lanes."
         #
-        # R5/R9 (2026-07-29, a ~67-min publish wedge whose ONLY record was the
-        # string "Tests FAILED - not committing"): the gate's own output was
-        # discarded, so the blocking test was unknowable from the log and the
-        # failure could not be diagnosed after the fact -- the site data has
-        # since been regenerated, so the red is not reproducible later. An
-        # alarm must carry its diagnostic payload, so capture the run and log
-        # the failing node IDs. Capture is bounded (tail only) so a pathological
-        # suite can never balloon the log.
-        result = subprocess.run(
-            publish_gate_pytest_argv("tests/"),
-            cwd=str(PROJECT_DIR),
-            env=full_env,
-            timeout=GATE_SUITE_TIMEOUT_SECONDS,
-            capture_output=True,
-            text=True,
-            errors="replace",
-        )
-        if result.returncode == 0:
-            LAST_TESTED_HASH_FILE.write_text(git_hash)
-        else:
-            _log_gate_failure_payload(result)
-        return result.returncode == 0, False
+        # WHY. The gate used to run in PROJECT_DIR, so its subject was the live working tree --
+        # shared with every lane. One lane's uncommitted work therefore halted publishing for the
+        # whole machine, and was invisible at HEAD. Measured twice on 2026-08-09: first a single
+        # uncommitted isort fix, then KNIFE2's 19 staged-but-uncommitted files, which held
+        # publishing down from 12:56Z on three reds that a fresh checkout passes.
+        #
+        # This is the MINIMAL implementation the ruling asked for tonight: `git archive HEAD`
+        # into a throwaway dir (measured 0.46s / 130MB / 8,444 files, so it is cheap enough to do
+        # every cycle) and run the same argv there. The polished version -- a proper worktree
+        # lifecycle, cleanup on crash, R15 both ways -- is its own atom.
+        #
+        # WHAT THIS DELIBERATELY DOES NOT CHANGE: tests that assert about the LIVE box (systemd
+        # units, daemon liveness) still observe the real machine, because their subject is the
+        # box, not the tree. Only the CODE under test moves to HEAD.
+        with _head_checkout() as head_dir:
+            if head_dir is None:
+                # R15: an unavailable check is a FAILED check. If committed truth cannot be
+                # materialised there is nothing legitimate to test, so do not publish.
+                log("Publish gate: could NOT materialise a clean HEAD checkout -- not committing. "
+                    "R15: the gate's subject is committed truth; if it cannot be produced, the "
+                    "gate has not run.")
+                return False, False
+            return _run_gate_in(head_dir, full_env, git_hash)
     except subprocess.TimeoutExpired:
-        # R15 FAIL-OPEN, closed 2026-08-09. This branch used to `return True, True` on the
-        # reasoning that "timeout is a resource constraint, not a test failure". Two things
-        # were wrong with that, both observed live during the second publish wedge:
-        #
-        #   1. The suite takes ~613s (measured: 22,525 passed in 612.94s) against what was a
-        #      600s timeout, so it did not time out under load -- it timed out ROUTINELY. The
-        #      gate could not pass; it could only time out and then publish unverified.
-        #   2. A timeout returning True walks the whole success path: the marker is archived,
-        #      the commit is attempted, and -- the part that mattered -- the publish-gate
-        #      outcome is recorded as rc=0, which CLEARS wedge_since/episode_failures and
-        #      re-arms the alarm. So a gate that never ran silently disarmed the alarm that
-        #      exists to say it never ran. Markers were consumed and archived with nothing
-        #      published, which is strictly worse than a wedge: a wedge at least alarms.
-        #
-        # R15 is explicit that an unavailable check is a FAILED check, and the safe direction
-        # for a check that cannot answer is "do not publish". So a timeout now BLOCKS, and the
-        # timeout is generous enough (3x the measured runtime) that hitting it is a real
-        # anomaly worth wedging on rather than the normal case.
-        log("Fast test suite timed out (>{}s) -- NOT committing. R15: an unavailable check is "
-            "a FAILED check; a gate that did not finish cannot authorise a publish."
-            .format(GATE_SUITE_TIMEOUT_SECONDS))
-        return False, True
+        return _gate_timed_out()
+
+
+@contextmanager
+def _head_checkout():
+    """Materialise HEAD into a throwaway directory. Yields a Path, or None if unavailable.
+
+    `git archive` is used rather than `git worktree add` deliberately for the minimal version:
+    it needs no lock on the real repo, cannot leave a registered worktree behind if this process
+    dies, and produces exactly the committed tree with no index or .git of its own."""
+    tmp = tempfile.mkdtemp(prefix="publish-gate-head-")
+    try:
+        archive = subprocess.run(["git", "archive", "HEAD"], cwd=str(PROJECT_DIR),
+                                 capture_output=True, timeout=300)
+        if archive.returncode != 0:
+            log("Publish gate: `git archive HEAD` failed rc={} -- {}".format(
+                archive.returncode, stderr_tail(archive.stderr.decode("utf-8", "replace"))))
+            yield None
+            return
+        untar = subprocess.run(["tar", "-x", "-C", tmp], input=archive.stdout,
+                               capture_output=True, timeout=300)
+        if untar.returncode != 0:
+            log("Publish gate: extracting HEAD failed rc={}".format(untar.returncode))
+            yield None
+            return
+        yield Path(tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
+    """Run the publish-gate argv in `cwd` and record the outcome. Split out so the checkout
+    lifecycle above stays readable and the run itself stays testable."""
+    # Blocking scope = publish-SURFACE tests only (see publish_gate_pytest_argv:
+    # heavy ignores for speed, operational ignores for R10 class closure).
+    #
+    # R5/R9 (2026-07-29, a ~67-min publish wedge whose ONLY record was the
+    # string "Tests FAILED - not committing"): the gate's own output was
+    # discarded, so the blocking test was unknowable from the log and the
+    # failure could not be diagnosed after the fact -- the site data has
+    # since been regenerated, so the red is not reproducible later. An
+    # alarm must carry its diagnostic payload, so capture the run and log
+    # the failing node IDs. Capture is bounded (tail only) so a pathological
+    # suite can never balloon the log.
+    result = subprocess.run(
+        publish_gate_pytest_argv("tests/"),
+        cwd=str(cwd),
+        env=full_env,
+        timeout=GATE_SUITE_TIMEOUT_SECONDS,
+        capture_output=True,
+        text=True,
+        errors="replace",
+    )
+    if result.returncode == 0:
+        LAST_TESTED_HASH_FILE.write_text(git_hash)
+    else:
+        _log_gate_failure_payload(result)
+    return result.returncode == 0, False
+
+
+def _publish_tree_divergence():
+    """Measure and PUBLISH how much uncommitted work is squatting in the shared tree, by lane.
+
+    The other half of DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09: moving the gate's subject
+    to a clean HEAD checkout means a lane's uncommitted work can no longer halt publishing --
+    which also means nothing would notice it at all. So the cost is NAMED here instead. Verbatim:
+    *"squatting gets named daily, never punished via the public site."*
+
+    NEVER PUNISHES, structurally and not merely by intent: this returns None, so there is no
+    value the caller could branch on even by mistake, and the whole body is wrapped -- an
+    observer that can raise into the publish path it observes is itself a defect.
+
+    Measured just before the gate, so the artefact records the tree as it was when the run was
+    judged rather than after the publish commit has swept part of it away."""
+    try:
+        from background import tree_divergence as _td
+        m = _td.measure()
+        _td.write_artifact(m)
+        log("Tree divergence: {} source file(s) vs HEAD, oldest {}h — top: {}".format(
+            m["total_files"], m["oldest_age_hours"], _td.top_squatters(m)))
+        found = _td.breaches(m)
+        if found:
+            # "NAMED DAILY" is exactly notify's transition_key + re_escalate_after contract:
+            # a CHANGED squat pages at once, an UNCHANGED one re-pages every 24h and is silent in
+            # between. Keying `state` on the lane table rather than the raw counts means the
+            # generated-file churn that moves the total every cycle does not re-page; a lane
+            # appearing, growing or leaving does. Without re_escalate_after a standing squat
+            # would page once and then be silent forever, which is the opposite of daily.
+            from background.notify import notify
+            notify("[TREE DIVERGENCE] " + "; ".join(found) + ". By lane: " + _td.top_squatters(m)
+                   + ". Report only — the publish gate's subject is HEAD, so this blocks nothing.",
+                   kind="real_alarm",
+                   transition_key="tree_divergence",
+                   state=_td.top_squatters(m),
+                   re_escalate_after=24 * 3600)
+    except Exception as exc:  # noqa: BLE001 -- see docstring; never raise into the publish path
+        log("Tree-divergence measure unavailable (publish unaffected): {}".format(exc))
+
+
+def _gate_timed_out():
+    """The timeout verdict, split out so `run_fast_tests` reads as checkout -> run -> verdict."""
+    # R15 FAIL-OPEN, closed 2026-08-09. This branch used to `return True, True` on the
+    # reasoning that "timeout is a resource constraint, not a test failure". Two things
+    # were wrong with that, both observed live during the second publish wedge:
+    #
+    #   1. The suite takes ~613s (measured: 22,525 passed in 612.94s) against what was a
+    #      600s timeout, so it did not time out under load -- it timed out ROUTINELY. The
+    #      gate could not pass; it could only time out and then publish unverified.
+    #   2. A timeout returning True walks the whole success path: the marker is archived,
+    #      the commit is attempted, and -- the part that mattered -- the publish-gate
+    #      outcome is recorded as rc=0, which CLEARS wedge_since/episode_failures and
+    #      re-arms the alarm. So a gate that never ran silently disarmed the alarm that
+    #      exists to say it never ran. Markers were consumed and archived with nothing
+    #      published, which is strictly worse than a wedge: a wedge at least alarms.
+    #
+    # R15 is explicit that an unavailable check is a FAILED check, and the safe direction
+    # for a check that cannot answer is "do not publish". So a timeout now BLOCKS, and the
+    # timeout is generous enough (3x the measured runtime) that hitting it is a real
+    # anomaly worth wedging on rather than the normal case.
+    log("Fast test suite timed out (>{}s) -- NOT committing. R15: an unavailable check is "
+        "a FAILED check; a gate that did not finish cannot authorise a publish."
+        .format(GATE_SUITE_TIMEOUT_SECONDS))
+    return False, True
 
 
 # Publish-gate suite timeout. Was 600s, which the suite itself exceeded (612.94s measured on
@@ -1783,11 +1980,30 @@ def _read_publish_gate_state():
                 "episode_failures": 0, "cited_findings": [], "state_unavailable": True}
 
 
-def _write_publish_gate_state(state):
+PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
+PUBLISH_GATE_STREAK_FIELDS = ("episode_failures",)
+
+
+def _write_publish_gate_state(state, *, episode_closed=False):
+    """Persist the wedge state, with the PW2 guard on the episode-scoped fields.
+
+    `episode_closed` is the CALLER'S EVIDENCED CLAIM that the wedge episode really ended. Every
+    failure path passes False, so a failure can no longer move `wedge_since` forward or drop
+    `episode_failures` -- the 2026-08-09 defect, where a 10h26m outage paged as a fresh 14
+    minutes because each round of failures rewrote the clock the alarm was about to read.
+
+    This is the CLASS guard (`background/episode_monotonic.py`), not an instance patch on this
+    file -- R10, and the steer said so explicitly. The census
+    (`background/self_clearing_alarm_census.py`) is what says which other state files need it."""
     out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at"),
            "wedge_since": state.get("wedge_since"),
            "episode_failures": state.get("episode_failures", 0),
            "cited_findings": state.get("cited_findings", [])}
+    out = guard_episode(_read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None,
+                        out,
+                        since_fields=PUBLISH_GATE_SINCE_FIELDS,
+                        streak_fields=PUBLISH_GATE_STREAK_FIELDS,
+                        episode_closed=episode_closed)
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
 
@@ -1940,17 +2156,32 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         return {"count": 0, "kind": "error", "threshold_met": False, "fired": False}
 
 
-def record_publish_gate_success(*, now=None):
-    """A clean publish (or a clean skip) CLEARS the wedge state: resets the
-    consecutive-failure streak, re-arms the alarm, and resolves the durable
-    action_needed item if one was open. Idempotent; never raises."""
+def record_publish_gate_success(*, now=None, markers_pending=None):
+    """A clean publish CLEARS the wedge state: resets the consecutive-failure streak, re-arms the
+    alarm, and resolves the durable action_needed item if one was open. Idempotent; never raises.
+
+    THE EPISODE CLOSES ONLY ON EVIDENCE (PW2, 2026-08-09). The old docstring said this cleared on
+    "a clean publish (or a clean skip)" -- and that parenthetical was the defect. A path that
+    published NOTHING could zero `wedge_since`/`episode_failures`, so the next failure opened a
+    FRESH episode and the alarm truthfully described 14 minutes of a 10h26m outage.
+
+    The evidence is `pending_run_complete_markers()`: the queue this pipeline exists to drain,
+    read off the real staging directory and therefore INDEPENDENT of the gate's own state (R15
+    anti-tautology -- a gate-state file that lies cannot make the backlog look drained). Zero
+    markers pending is a demonstrated end of episode. Anything else -- markers still queued, or
+    an unreadable staging dir -- clears the ALARM (`failures`, `alerted_at`, so nothing spams and
+    no phantom rung-1 draw fires: that draw needs >= 3 in-window failures) while PRESERVING the
+    episode memory, so a resumed wedge is still measured from where it really began."""
     try:
         had_state = False
         if PUBLISH_GATE_STATE_FILE.exists():
             prev = _read_publish_gate_state()
             had_state = bool(prev.get("failures")) or prev.get("alerted_at") is not None
+        pending = (pending_run_complete_markers() if markers_pending is None else markers_pending)
+        episode_closed = (pending == 0)
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
-                                   "episode_failures": 0, "cited_findings": []})
+                                   "episode_failures": 0, "cited_findings": []},
+                                  episode_closed=episode_closed)
         if had_state:
             log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
             try:
@@ -2259,6 +2490,8 @@ def _process(marker_path_str):
                 len(_folded), _folded))
     except Exception as _exc:
         log("Pre-gate inbox fold skipped (non-fatal): {}".format(_exc))
+
+    _publish_tree_divergence()
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)
