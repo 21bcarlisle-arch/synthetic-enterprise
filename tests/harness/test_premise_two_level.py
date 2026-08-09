@@ -372,34 +372,38 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
         assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / generated_result.homes)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "LANDED RED AT POPULATION SCALE, 2026-08-09. On the eight-home panel this "
-        "generator failed no anchored cell, and on a drawn population of 60 it "
-        "fails two: L1.2 day-to-day shape correlation (1/60, P0033 at 0.9253 vs a "
-        "band of 0.85) and L1.5 max multiplicity share (1/60, P0032 at 0.1167 vs "
-        "0.10). Both are ONE home each — a violation rate of 1.7% — which is "
-        "exactly the size of defect the panel could never have seen. AND IT IS NOT "
-        "A SEED ARTEFACT: the runner's own independent draw (trace seed 17, written "
-        "to the coupled gap ledger the same day) fails the same two cells at the "
-        "same 1/60, on different homes (P0033 at 0.8595, P0056 at 0.1333). NEITHER "
-        "BAND WAS MOVED (R12): the homes are registered for diagnosis against "
-        "W1_12, and this pin is STRICT so closing them cannot pass unnoticed."
-    ),
-)
 def test_the_premise_trace_generator_meets_the_two_level_test(population_result):
     """The requirement, held against the POPULATION rather than the panel.
 
-    Previous residual, retained because it is still the record of how the panel's
-    two cells were closed (2026-08-08) — both by naming their mechanism, neither by
-    moving a band. L2.3 timing diversity 0.211 -> 1.02 half-hours: every day's
-    event start was drawn from the NATIONAL window, so each home varied day to day
-    while its long-run centre converged on the envelope mean — a population point
-    mass hiding behind within-home variation, fixed with a persistent per-premise
-    `routine_offset_periods`. L1.1 texture 0.1499 -> 0.15353: lighting and
-    electronics were a per-person wattage times an occupancy FRACTION, constant
-    across an occupancy block, fixed by switching them at the same expected load.
+    UNPINNED 2026-08-09. This assertion carried a STRICT xfail from the moment the
+    drawn population first ran, and the pin did its job: closing the last cell made
+    it XPASS and turned the suite red until somebody came here and wrote down how.
+
+    THE FOUR CELLS THIS GENERATOR HAS CLOSED, EACH BY NAMING A MECHANISM AND NONE
+    BY MOVING A BAND — the record is kept whole because the method is the point:
+
+    * L2.3 timing diversity 0.211 -> 1.02 half-hours (2026-08-08). Every day's
+      event start was drawn from the NATIONAL window, so each home varied day to
+      day while its long-run centre converged on the envelope mean — a population
+      point mass hiding behind within-home variation. Fixed with a persistent
+      per-premise `routine_offset_periods`.
+    * L1.1 texture 0.1499 -> 0.15353 (2026-08-08). Lighting and electronics were a
+      per-person wattage times an occupancy FRACTION, constant across an occupancy
+      block. Fixed by switching them at the same expected load.
+    * L1.5 max multiplicity 7/200 -> 0/200 (2026-08-09). Every stochastic component
+      was gated on occupancy, so an away day was a byte-identical clone of every
+      other away day. Fixed by making the cold-appliance duty the heat balance it
+      physically is, against the premise's own setpoint.
+    * L1.2 day-to-day shape correlation 2/200 -> 0/200 (2026-08-09), AND THIS ONE
+      WAS THE CONTROL'S DEFECT, NOT THE GENERATOR'S. The two violators were
+      electric-storage homes; decomposing them (`meter_net_of_space_heat`) put the
+      whole deficit in the heating stream — 0.9133 on a storage home's ELECTRICITY
+      meter against 0.9197 and 0.9080 on gas homes' GAS meters, i.e. the same
+      repeatability in every regime — while their behaviour scored 0.32 and 0.11
+      against a population median of 0.22. The band is a statement about
+      households and was being asked about a thermostat. It is judged on the same
+      load set for every home now; the threshold is untouched at 0.85 and the
+      quantity removed is reported as `L1.2h_heating_shape_repeatability`.
     """
     assert not population_result.is_red, population_result.summary()
 
@@ -408,10 +412,15 @@ def test_MEASURED_population_values(population_result):
     """The population verdict, pinned cell by cell, so "RED at population scale" is
     a checkable claim and not an adjective.
 
-    The two numbers that carry the finding: L1.1 PASSES at 0/60 — it failed at
-    n=200 under the old boolean band purely because three resistive homes were
-    being judged by a heat-pump threshold — while L1.2 fails on ONE home. A panel
-    of eight could not have produced either statement.
+    L1.2 MOVED TO PASS, 2026-08-09, BY JUDGING EVERY HOME ON THE SAME LOAD SET —
+    the threshold is untouched at 0.85 and no home was excluded from the count.
+    Its two n=200 violators were electric-storage homes whose ELECTRICITY meter
+    carries their heat; the heating stream repeats at 0.91-0.96 in EVERY regime
+    (gas homes included, on the gas meter, where L1.2 never saw it) while their
+    behaviour scores 0.11-0.32 against a population median of 0.22. The cell is
+    now computed on the meter net of space heat, the worst home in the population
+    is a GAS home at 0.4386, and what was netted out is reported next door as
+    `L1.2h_heating_shape_repeatability` rather than dropped.
 
     L1.5 MOVED TO PASS, 2026-08-09, BY FIXING THE GENERATOR AND NOT THE BAND. The
     0.10 threshold is untouched and no cell was marked UNVALIDATED. On the n=200
@@ -429,7 +438,7 @@ def test_MEASURED_population_values(population_result):
     assert population_result.homes >= fgl.MIN_HOMES_FOR_L1_RATE
     expected = {
         "L1.1_half_hourly_texture": (fgl.Verdict.PASS, 0.0),
-        "L1.2_day_to_day_shape_correlation": (fgl.Verdict.FAIL, 1 / 60),
+        "L1.2_day_to_day_shape_correlation": (fgl.Verdict.PASS, 0.0),
         "L1.3_away_days_per_year": (fgl.Verdict.PASS, 0.0),
         "L1.5_max_multiplicity_share": (fgl.Verdict.PASS, 0.0),
     }
@@ -439,10 +448,15 @@ def test_MEASURED_population_values(population_result):
         assert cell.value == pytest.approx(rate, abs=1e-9), cell.note
         assert cell.homes_judged == 60 and cell.homes_unjudged == 0, cell.note
         assert cell.resolution == pytest.approx(0.05)
-    assert {c.statistic for c in population_result.failed} == {
-        "L1.2_day_to_day_shape_correlation",
-    }
+    # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
+    # cell — the electrically heated ones included — which is the difference
+    # between netting a component out of a statistic and dropping the homes that
+    # breached it.
+    assert not population_result.failed, population_result.summary()
     assert not population_result.inconclusive, population_result.summary()
+    assert population_result.cell(
+        "L1.2_day_to_day_shape_correlation"
+    ).worst_value == pytest.approx(0.4386, abs=0.01), "the worst home is a GAS home"
 
 
 def test_the_DRAWN_population_actually_contains_the_regime_the_fix_is_about(
@@ -593,6 +607,162 @@ def test_L1_2_correlation_FIRES_when_one_days_shape_is_replayed(generated):
     assert after == pytest.approx(1.0, abs=1e-9), "a replayed shape correlates at exactly 1"
     assert before < 0.85
     assert fgl.BANDS["L1.2_day_to_day_shape_correlation"].judge(after) is fgl.Verdict.FAIL
+
+
+def _homes_with_heat_on_the_judged_meter(population):
+    """The homes whose heating machine draws from the meter L1.2 reads — i.e. the
+    only homes the netting can possibly affect."""
+    return [
+        k for k, grid in enumerate(population.space_heat_grids)
+        if any(any(day) for day in grid)
+    ]
+
+
+def test_the_DRAWN_population_contains_a_home_whose_HEAT_IS_ON_THE_JUDGED_METER(population):
+    """THE VACUITY GUARD on the netting, and it is not a formality: a population of
+    gas-heated homes exercises none of this and would pass whatever the netting
+    did. The authored eight-home panel is exactly that population, which is why
+    this fix could only ever have been found on a drawn one."""
+    affected = _homes_with_heat_on_the_judged_meter(population)
+    assert affected, (
+        "no home in the drawn population carries space heat on the electricity "
+        "meter, so the L1.2 netting is untested by this fixture"
+    )
+    assert len(affected) < len(population.homes), (
+        "and it must contain homes heated OFF the judged meter too, or the "
+        "no-op arm of this fix is vacuous as well"
+    )
+
+
+def test_L1_2_still_FIRES_when_an_ELECTRICALLY_HEATED_homes_BEHAVIOUR_is_replayed(population):
+    """R15, THE ARM THAT MATTERS. Netting space heat out of L1.2 buys leniency;
+    this proves it did not buy immunity.
+
+    The mutation is the cell's own named defect (`_replay_one_day`) applied to the
+    stream that is actually judged, on the very home the netting rescued, with its
+    real heating stream added back so the meter is a meter. If the control had been
+    disarmed rather than corrected, this would pass and nothing else in the suite
+    would notice.
+
+    The unmutated call comes first, so a control that fails on everything cannot
+    satisfy this test.
+    """
+    affected = _homes_with_heat_on_the_judged_meter(population)
+    assert affected
+    k = affected[0]
+    clean = fgl.evaluate_two_level(population).cell("L1.2_day_to_day_shape_correlation")
+    assert clean.verdict is fgl.Verdict.PASS, clean.note
+
+    heat = [list(day) for day in population.space_heat_grids[k]]
+    behaviour = fgl.meter_net_of_space_heat([list(d) for d in population.grids[k]], heat)
+    replayed = _replay_one_day(behaviour)
+    poisoned = [
+        tuple(b + h for b, h in zip(bd, hd)) for bd, hd in zip(replayed, heat)
+    ]
+    grids = list(population.grids)
+    grids[k] = tuple(poisoned)
+    mutated = dataclasses.replace(population, grids=tuple(grids))
+
+    cell = fgl.evaluate_two_level(mutated).cell("L1.2_day_to_day_shape_correlation")
+    assert cell.verdict is fgl.Verdict.FAIL, cell.note
+    assert cell.worst_home == population.homes[k], cell.note
+    assert cell.worst_value == pytest.approx(1.0, abs=1e-9), (
+        "a replayed behavioural shape correlates at exactly 1 THROUGH the netting"
+    )
+
+
+def test_L1_2_judges_the_WHOLE_METER_when_the_generator_supplies_no_split(population):
+    """FAIL-CLOSED, proven by removing the fact. The leniency is bought with a
+    stated split; a generator that cannot state one has its whole meter judged.
+
+    This is also the direct attribution for the cell's pass (R9): the SAME
+    population, the SAME band, the SAME statistic, differing only in whether the
+    space-heat split is supplied — red without it, green with it. The pass is a
+    property of the netting and not of anything else that moved this week.
+    """
+    stripped = dataclasses.replace(population, space_heat_grids=())
+    cell = fgl.evaluate_two_level(stripped).cell("L1.2_day_to_day_shape_correlation")
+    assert cell.verdict is fgl.Verdict.FAIL, cell.note
+    assert cell.homes_violating and cell.homes_violating > 0
+    assert cell.worst_home in {
+        population.homes[k] for k in _homes_with_heat_on_the_judged_meter(population)
+    }, "the homes the whole-meter reading fails are the electrically heated ones"
+
+
+def test_the_netting_CHANGES_NOTHING_for_a_home_heated_off_the_judged_meter(population):
+    """The blast radius, measured rather than asserted. A gas-heated home's L1.2 is
+    BIT-IDENTICAL before and after, because its space-heat stream is a run of
+    zeros — so this change cannot have moved the 190-of-200 majority of the
+    population in either direction."""
+    affected = set(_homes_with_heat_on_the_judged_meter(population))
+    moved = 0
+    for k, grid in enumerate(population.grids):
+        whole = fgl.day_to_day_shape_correlation([list(d) for d in grid])
+        net = fgl.day_to_day_shape_correlation(
+            fgl.meter_net_of_space_heat(
+                [list(d) for d in grid],
+                [list(d) for d in population.space_heat_grids[k]],
+            )
+        )
+        if k in affected:
+            moved += whole != net
+        else:
+            assert net == whole, f"{population.homes[k]} moved without carrying heat"
+    assert moved == len(affected), "every affected home should actually have moved"
+
+
+def test_the_netting_REFUSES_a_stream_that_is_not_a_COMPONENT_of_the_meter(population):
+    """R15 on the guard itself. The split is a claim, and every way of making it a
+    false claim is refused rather than netted through — an unchecked subtraction
+    would let a generator declare its behaviour to be heat and walk out of the
+    cell."""
+    meter = [list(day) for day in population.grids[0]]
+    ok = fgl.meter_net_of_space_heat(meter, [[0.0] * len(d) for d in meter])
+    assert ok == meter, "the unmutated call must pass, or this proves nothing"
+
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.meter_net_of_space_heat(meter, [[v * 2 for v in d] for d in meter])
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.meter_net_of_space_heat(meter, [[-1e-6] + [0.0] * (len(d) - 1) for d in meter])
+    with pytest.raises(fgl.NonFiniteTrace):
+        fgl.meter_net_of_space_heat(
+            meter, [[float("nan")] + [0.0] * (len(d) - 1) for d in meter]
+        )
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.meter_net_of_space_heat(meter, [[0.0] * len(d) for d in meter][:-1])
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.meter_net_of_space_heat(meter, [[0.0] * (len(d) - 1) for d in meter])
+
+
+def test_the_NETTED_OUT_quantity_is_reported_and_is_ABOVE_the_band_it_left(population_result):
+    """The exclusion is not a quiet one. What was taken out of L1.2 is measured on
+    the homes it was taken from, reported UNVALIDATED, and — the substantive point
+    — sits ABOVE the 0.85 band it was removed from.
+
+    That number is the finding, stated rather than hidden: the model's thermostat
+    really does repeat at a level a household never would, on gas and electric
+    homes alike. Judging a household band against it was the defect.
+    """
+    cell = population_result.cell("L1.2h_heating_shape_repeatability")
+    assert cell.verdict is fgl.Verdict.UNVALIDATED
+    assert cell.band.anchor is fgl.AnchorStatus.NEED and cell.band.threshold is None
+    assert math.isfinite(cell.value), "an unvalidated cell still reports its value"
+    assert cell.value > fgl.BANDS["L1.2_day_to_day_shape_correlation"].threshold, (
+        "if the netted-out stream were INSIDE the household band, netting it out "
+        "would have been unnecessary and this fix would be unjustified: " + cell.note
+    )
+
+
+def test_the_netted_out_cell_says_NOTHING_WAS_NETTED_rather_than_going_quiet(shipped_result):
+    """The shipped path supplies no split, so nothing is netted anywhere and this
+    cell has no homes to measure. It must still APPEAR, saying so — a cell that
+    vanishes when its subject is absent is indistinguishable from a cell that
+    found nothing to report, and NaN-with-a-reason is the honest form."""
+    cell = shipped_result.cell("L1.2h_heating_shape_repeatability")
+    assert cell.verdict is fgl.Verdict.UNVALIDATED
+    assert math.isnan(cell.value)
+    assert cell.homes_unjudged == 0
+    assert "no home" in cell.note
 
 
 def test_L1_3_troughs_FIRE_when_the_empty_house_is_removed(generated):
@@ -1503,20 +1673,29 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
     # verdicts are serialised separately, so a writer that reported a flag its own
     # cells contradict is caught here.
     two_level = components["two_level"]
-    assert two_level["is_red"] is True
+    assert two_level["is_red"] is (
+        bool(two_level["failed"]) or bool(two_level["inconclusive"])
+    )
     assert set(two_level["failed"]) == {
         s for s, c in two_level["cells"].items() if c["verdict"] == fgl.Verdict.FAIL.value
     }
     assert two_level["inconclusive"] == []
-    assert two_level["failed_levels"] == ["L1"]
-    # A READER MUST BE ABLE TO SIZE THE FAILURE, which is the whole reason the
-    # population fields are on the wire: two homes in sixty, not "red".
+    assert two_level["failed_levels"] == sorted(
+        {c.level for c in population_result.failed}
+    )
+    # A READER MUST BE ABLE TO SIZE THE RESULT, which is the whole reason the
+    # population fields are on the wire: "0 of 60 homes", not "green". The rate
+    # cells carry their denominator whatever the verdict — a green cell with no n
+    # behind it is exactly the fail-open this suite spent a day removing.
     assert two_level["homes"] == fgl.MIN_HOMES_FOR_L1_RATE
-    for statistic in two_level["failed"]:
+    for statistic in ("L1.1_half_hourly_texture", "L1.2_day_to_day_shape_correlation",
+                      "L1.3_away_days_per_year", "L1.5_max_multiplicity_share"):
         cell = two_level["cells"][statistic]
-        assert cell["homes_violating"] == 1
         assert cell["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
+        assert cell["homes_violating"] == 0
         assert cell["worst_home"]
+    for statistic in two_level["failed"]:
+        assert two_level["cells"][statistic]["worst_home"]
     assert "money_consequence_epc" in components and "money_consequence_inferred" in components
     assert components["money_consequence_epc"]["basis"].startswith("PROVISIONAL")
     assert components["inference_improvement"] > 0.0, "the inferred belief is the better one here"

@@ -392,13 +392,23 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
     # the one judging the worst cell is the untouched 0.15 gas band.
     assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
 
-    # The two UNVALIDATED cells are still UNVALIDATED — going green did not come
-    # from quietly anchoring something that has no anchor.
+    # The UNVALIDATED cells are still UNVALIDATED — going green did not come from
+    # quietly anchoring something that has no anchor. This assertion is an exact
+    # set BECAUSE a cell arriving or leaving unnoticed is the thing it guards, and
+    # it did its job on 2026-08-09: `L1.2h` appeared here before anyone mentioned
+    # it in a commit message. It is a deliberate third — the space-heating
+    # stream's own day-to-day repeatability, netted out of L1.2 so that one band
+    # stops judging behaviour in a gas home and a thermostat in an electric one,
+    # and REPORTED rather than given a threshold nobody has published.
     unvalidated = {c.statistic for c in result.cells if c.verdict is fgl.Verdict.UNVALIDATED}
     assert unvalidated == {
+        "L1.2h_heating_shape_repeatability",
         "L1.4_weekday_weekend_separation",
         "L2.4_scale_spread_p90_p10",
     }, unvalidated
+    # ...and the new one is not vacuous on this panel: the panel's heat-pump home
+    # is exactly a home whose heat lands on the judged meter.
+    assert result.cell("L1.2h_heating_shape_repeatability").homes_unjudged == 1
 
 
 def test_the_RESHAPED_closure_control_still_fires_when_the_BAND_IS_MOVED(panel, weather, monkeypatch):

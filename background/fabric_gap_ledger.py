@@ -322,6 +322,91 @@ def day_to_day_shape_correlation(days: Sequence[Sequence[float]]) -> float:
     return statistics.median(rs)
 
 
+def meter_net_of_space_heat(
+    days: Sequence[Sequence[float]],
+    space_heat: Sequence[Sequence[float]] | None,
+) -> list[list[float]]:
+    """The judged meter with the SPACE-HEATING MACHINE taken back out — the load
+    set L1.2's band was actually derived to judge.
+
+    WHY THIS EXISTS, and it is a measurement rather than a preference. L1.2's
+    0.85 band is a statement about HOUSEHOLDS ("meals, showers and departures
+    move by tens of minutes"). It is applied to the ELECTRICITY meter. For a
+    gas-heated home those are the same thing; for a home whose heat is electric
+    the meter also carries a thermostat, and a thermostat is supposed to repeat.
+    Measured on the drawn population (n=200, `population_seed=17`, real
+    Open-Meteo archive 2022-01-01..2022-04-30) the two are not close:
+
+        stream                      median day-to-day shape correlation
+        heating, gas combi homes                 0.9197   (on the GAS meter)
+        heating, gas system homes                0.9080   (on the GAS meter)
+        heating, electric storage home           0.9133   (on the ELECTRICITY meter)
+        behaviour, every regime                  0.21 - 0.32
+
+    The generator makes heat equally repeatable and behaviour equally diverse in
+    EVERY regime. The only thing separating a home that breaches L1.2 from one
+    that does not is WHICH METER its heat lands on — which is a fact about the
+    house's plumbing, not about whether the generator can produce a household.
+    That is the L1.1 class one cell over (`texture_band_for`): a band keyed on a
+    population whose heating regime it never names.
+
+    WHY NET RATHER THAN RESCALE THE BAND. L1.1's band could be RE-DERIVED for the
+    regime, because that statistic is a ratio to the home's own mean and the mix
+    arithmetic follows from published consumption shares alone. A correlation
+    does not: blending two streams needs the heating stream's OWN repeatability,
+    for which no published figure exists, so any regime-specific L1.2 threshold
+    would be a number I chose. Comparing the same load set needs no new number at
+    all, and the 0.85 band is untouched.
+
+    FAIL-CLOSED. `space_heat=None` (a generator that supplies no split) returns
+    the meter UNCHANGED, so the whole meter is judged — the strict reading. The
+    leniency has to be bought with a stated fact, and the fact is checked: the
+    stream must be finite and non-negative everywhere (a heating machine draws,
+    it does not generate) and must not exceed the meter it claims to be part of
+    over the window. What it may NOT be checked against is each day's own total,
+    because a PV home legitimately exports on a mild day and its net meter can
+    then be smaller than its heat draw without the split being wrong.
+
+    The result may go slightly negative for the same reason (measured worst case
+    -0.0125 kWh in a half hour, on solar homes), which is a meter reading, not a
+    load, and the correlation that consumes it neither needs nor assumes
+    positivity.
+    """
+    grid = [list(day) for day in days]
+    if space_heat is None:
+        return grid
+    heat = [list(day) for day in space_heat]
+    if len(heat) != len(grid):
+        raise InsufficientEvidence(
+            f"the space-heat stream spans {len(heat)} days and the meter {len(grid)}"
+        )
+    total_meter = 0.0
+    total_heat = 0.0
+    for k, (meter_day, heat_day) in enumerate(zip(grid, heat)):
+        if len(heat_day) != len(meter_day):
+            raise InsufficientEvidence(
+                f"day {k}: the space-heat stream has {len(heat_day)} periods and "
+                f"the meter {len(meter_day)}"
+            )
+        for v in heat_day:
+            if not math.isfinite(v):
+                raise NonFiniteTrace(f"day {k}: a non-finite space-heat value {v!r}")
+            if v < 0.0:
+                raise InsufficientEvidence(
+                    f"day {k}: a space-heat draw of {v!r} — a heating machine draws "
+                    "energy, it does not generate it"
+                )
+        total_meter += sum(meter_day)
+        total_heat += sum(heat_day)
+    if total_heat > total_meter:
+        raise InsufficientEvidence(
+            f"a space-heat stream of {total_heat:.4g} kWh over a meter that read "
+            f"{total_meter:.4g} kWh is not a COMPONENT of that meter"
+        )
+    return [[v - h for v, h in zip(meter_day, heat_day)]
+            for meter_day, heat_day in zip(grid, heat)]
+
+
 @dataclass(frozen=True)
 class TroughStats:
     """L1.3 — can this generator represent an EMPTY HOUSE?"""
@@ -1041,10 +1126,43 @@ BANDS: dict[str, Band] = {
             "domain-knowledge: a household does not repeat its half-hourly pattern "
             "day to day — meals, showers and departures move by tens of minutes. The "
             "threshold is set at 0.85, well above any plausible real value, so it "
-            "fires only on near-replay. A SERL-anchored band is registered as NEED."
+            "fires only on near-replay. A SERL-anchored band is registered as NEED. "
+            "THE THRESHOLD IS UNMOVED SINCE IT WAS WRITTEN; what changed on "
+            "2026-08-09 is WHAT IT IS APPLIED TO. The sentence above describes a "
+            "HOUSEHOLD, so it is judged on the meter NET OF SPACE HEAT "
+            "(`meter_net_of_space_heat`) — otherwise the same band judges "
+            "behaviour in a gas-heated home and a thermostat in an electrically "
+            "heated one, and a thermostat is supposed to repeat. The heating "
+            "stream's own repeatability is reported separately and never judged."
         ),
         observed_on_shipped=None,
         rationale="Normalised to the daily total, so this is shape, not weather.",
+    ),
+    "L1.2h_heating_shape_repeatability": Band(
+        statistic="L1.2h_heating_shape_repeatability",
+        level="L1",
+        direction="at_most",
+        threshold=None,
+        anchor=AnchorStatus.NEED,
+        anchor_source=(
+            "NEED — a published day-to-day shape correlation for a SPACE-HEATING "
+            "load. This cell exists so that netting heat out of L1.2 cannot be a "
+            "quiet exclusion: the number that was removed from the judged "
+            "statistic is MEASURED and REPORTED here, on exactly the homes whose "
+            "heat lands on the judged meter, and never given an invented "
+            "threshold. What would anchor it: a metered panel of Economy-7 / "
+            "electrically-heated dwellings with per-day half-hourly readings — "
+            "SERL, or the LCL trial's raw partitioned archive. The repo's LCL "
+            "extract (`data/lake/lcl_household_load_shapes_2013`) cannot: it "
+            "holds each household's ANNUAL MEAN weekday and weekend shape, from "
+            "which no day-to-day correlation can be recovered."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "The removed quantity is stated, not dropped. A real thermostat "
+            "repeats; how much it repeats is a question nobody here has an "
+            "external answer to, so it is measured and left visible."
+        ),
     ),
     "L1.3_away_days_per_year": Band(
         statistic="L1.3_away_days_per_year",
@@ -1485,6 +1603,17 @@ class PopulationTraces:
     # electrically-heated home fail, never pass. The lenient direction requires
     # someone to assert the fact.
     heating_systems: tuple[str, ...] = ()
+    # THE PART OF THE JUDGED METER DRAWN BY THE SPACE-HEATING MACHINE, per home,
+    # for the cells that must compare the same load set across regimes
+    # (`meter_net_of_space_heat`). Zeros — not absence — where a home's heat is on
+    # the OTHER commodity: that is a stated fact ("no heat on this meter"), which
+    # is different from a generator that cannot say.
+    #
+    # FAIL-CLOSED when empty: a generator that supplies no split has its WHOLE
+    # meter judged by L1.2, which is the strict reading and the one that keeps the
+    # shipped path red. The lenient direction has to be bought with a fact, and
+    # `meter_net_of_space_heat` checks the fact it is given.
+    space_heat_grids: tuple[tuple[tuple[float, ...], ...], ...] = ()
 
     def __post_init__(self) -> None:
         if len(self.homes) != len(self.grids):
@@ -1500,6 +1629,16 @@ class PopulationTraces:
                 raise InsufficientEvidence("every home's grid must span the day-type calendar")
         if self.weather_driver and len(self.weather_driver) != len(self.is_weekend):
             raise InsufficientEvidence("the weather driver must span the day-type calendar")
+        if self.space_heat_grids:
+            if len(self.space_heat_grids) != len(self.homes):
+                raise InsufficientEvidence(
+                    "the space-heat streams must align with the home ids"
+                )
+            for g in self.space_heat_grids:
+                if len(g) != len(self.is_weekend):
+                    raise InsufficientEvidence(
+                        "every space-heat stream must span the day-type calendar"
+                    )
 
     @property
     def days(self) -> int:
@@ -1655,8 +1794,60 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         note="regimes " + ", ".join(f"{k}={v}" for k, v in sorted(regime_counts.items())),
     ))
 
+    # L1.2 is judged on the SAME LOAD SET for every home. Its band is a statement
+    # about households; where the heating machine is on the judged meter it is
+    # taken back out, so the cell cannot fail a home for owning a thermostat
+    # (`meter_net_of_space_heat` carries the measurement that forced this).
+    heat_streams: list[list[list[float]] | None] = [
+        [list(day) for day in population.space_heat_grids[k]]
+        if population.space_heat_grids else None
+        for k in range(len(grids))
+    ]
+    behavioural = [meter_net_of_space_heat(g, h) for g, h in zip(grids, heat_streams)]
+    netted = sum(
+        1 for h in heat_streams if h is not None and any(any(day) for day in h)
+    )
+    cells.append(_l1_rate_cell(
+        "L1.2_day_to_day_shape_correlation",
+        values=[day_to_day_shape_correlation(g) for g in behavioural],
+        bands=(BANDS["L1.2_day_to_day_shape_correlation"],) * len(grids),
+        homes=homes,
+        note=(
+            f"judged on the meter net of space heat; {netted} of {len(grids)} homes "
+            "carry heat on the judged meter"
+            if population.space_heat_grids
+            else "no space-heat split supplied — the WHOLE meter is judged (fail-closed)"
+        ),
+    ))
+    # THE QUANTITY THAT WAS NETTED OUT, said out loud. Measured on the homes whose
+    # heat is actually on the judged meter, never judged, so the exclusion above
+    # cannot be a quiet one. A cell nobody can see is how an exclusion becomes a
+    # fail-open.
+    heat_measured = [
+        (homes[k], day_to_day_shape_correlation(h))
+        for k, h in enumerate(heat_streams)
+        if h is not None and any(any(day) for day in h)
+    ]
+    heat_band = BANDS["L1.2h_heating_shape_repeatability"]
+    worst_heat = max(heat_measured, key=lambda hv: hv[1], default=None)
+    cells.append(CellResult(
+        heat_band.statistic, "L1",
+        worst_heat[1] if worst_heat else float("nan"),
+        Verdict.UNVALIDATED, heat_band,
+        note=(
+            f"worst of {len(heat_measured)} homes whose heat is on the judged "
+            f"meter, median {statistics.median(v for _, v in heat_measured):.4g} "
+            "— measured, not judged"
+            if heat_measured
+            else "no home in this population carries space heat on the judged meter"
+        ),
+        homes_judged=0, homes_violating=0, homes_unjudged=len(heat_measured),
+        resolution=None,
+        worst_value=worst_heat[1] if worst_heat else None,
+        worst_home=worst_heat[0] if worst_heat else None,
+    ))
+
     for statistic, fn in (
-        ("L1.2_day_to_day_shape_correlation", day_to_day_shape_correlation),
         ("L1.3_away_days_per_year", lambda g: trough_statistics(g).away_days_per_year),
         ("L1.4_weekday_weekend_separation",
          lambda g: weekday_weekend_separation(g, population.is_weekend)),
@@ -1838,6 +2029,10 @@ def shipped_path_population(
         is_weekend=tuple(bool(d.is_weekend) for d in weather_days),
         annual_kwh=tuple(annual),
         heating_systems=tuple(registers),
+        # NO SPACE-HEAT SPLIT, deliberately and correctly: this path rescales one
+        # national shape and has no notion of which appliance drew what, so it
+        # cannot state the fact and does not get the leniency. Its whole meter is
+        # judged by L1.2 — which is what keeps the birth condition red.
         weather_driver=hdd_driver(weather_days),
         # PC1 IS an input here, so L2.1's large-N anchor is tautological for this
         # generator and `evaluate_two_level` refuses to score that cell as a pass.
@@ -1875,6 +2070,19 @@ def premise_trace_population(
         # harness holds no import on the generator's types.
         heating_systems=tuple(str(getattr(t.source.system, "value", t.source.system))
                               for t in traces),
+        # The space-heating machine's own draw, carried ONLY where it lands on the
+        # commodity being judged. `heating_commodity` is the trace's own statement
+        # of which meter its heat is on — a plumbing fact, not a reading of the
+        # numbers — so a gas-heated home contributes zeros and its L1.2 is
+        # bit-for-bit what it was before this field existed.
+        space_heat_grids=tuple(
+            tuple(
+                tuple(day.heating_fuel_kwh) if t.heating_commodity == commodity
+                else (0.0,) * len(day.heating_fuel_kwh)
+                for day in t.days
+            )
+            for t in traces
+        ),
         weather_driver=hdd_driver(weather_days),
         pc1_is_an_input=False,
     )
