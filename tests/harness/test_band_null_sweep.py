@@ -409,3 +409,118 @@ def test_to_json_carries_the_window_and_the_exclusions(population):
     assert payload["window"]["days"] == DAYS
     assert payload["bands_swept"] == len(bns.anchored_bands())
     assert set(payload["excluded"]) == set(bns.excluded_bands())
+
+
+# ---------------------------------------------------------------------------
+# (7) THE RUN MUST FAIL ON A BAND NOBODY EXERCISES — H35, both ways
+# ---------------------------------------------------------------------------
+#
+# The sweep already reported UNMEASURABLE as its own state and counted it a hit
+# (§5 above). What it did NOT do until 2026-08-09 was FAIL on it: the runner's
+# exit code named INSIDE_NULL only, so `L1.1r` judging zero homes for six weeks
+# produced a clean exit 0 beside a green table. "Reported" and "fires" are not the
+# same control, which is this project's own recurring finding (an always-red
+# detector is as ignored as a blind one; a tripwire that reds as an opportunity is
+# not a tripwire). These two tests are the R15 pair for the promotion of that
+# state to fatal.
+
+
+def test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported():
+    """THE DEFECT DIRECTION. A gas-only population leaves the heat-pump band with
+    nothing to judge; the run must fail, not report.
+
+    The mutation is applied to the POPULATION rather than to a verdict object,
+    so what is exercised is the same path a real unexercised band takes —
+    asserting `fatal([NullMeasurement(verdict=UNMEASURABLE)])` would prove only
+    that a list comprehension filters, the tautology shape R15 names first.
+    """
+    gas_only = _population(homes=6)
+    measurement = bns.measure_null(
+        "L1.1e_half_hourly_texture_electric_heat", gas_only, replications=5
+    )
+    assert measurement.verdict is bns.NullVerdict.UNMEASURABLE
+    assert bns.fatal([measurement]) == [measurement], (
+        "a band whose null cannot be measured must fail the run — an unavailable "
+        "check is a FAILED check, not a passing one"
+    )
+
+
+def test_the_SAME_band_stops_being_fatal_once_a_home_EXERCISES_it():
+    """THE OTHER DIRECTION, and it is the one that matters for whether the guard
+    is a control or a wedge. The same band, the same window, the same call — one
+    heat-pump home added to the population and the run is no longer fatal FOR
+    THAT REASON.
+
+    A guard that can only ever fire is worth no more than one that never does:
+    it would make every future sweep red regardless of what was fixed, and the
+    fix this guard exists to demand (put a home of that regime on the panel)
+    would be indistinguishable from doing nothing.
+    """
+    mixed = _population(
+        homes=6, heating=("gas_boiler_combi",) * 5 + ("heat_pump_air",)
+    )
+    measurement = bns.measure_null(
+        "L1.1e_half_hourly_texture_electric_heat", mixed, replications=5
+    )
+    assert measurement.homes_judged == 1
+    assert measurement.verdict is not bns.NullVerdict.UNMEASURABLE, (
+        "one home of the regime is enough to MEASURE the band's null — whether "
+        "the null then clears it is the sweep's own separate question"
+    )
+    # ...and the guard is genuinely capable of returning nothing, which is the
+    # half a control that could only ever fire would be missing. Measured on a
+    # band the fixture separates from its own null, through the same `fatal`.
+    gas = bns.measure_null("L1.1_half_hourly_texture", mixed, replications=5)
+    assert gas.verdict in (bns.NullVerdict.SEPARATED, bns.NullVerdict.SAME_ORDER), gas.note
+    assert bns.fatal([gas]) == [], (
+        "a band that is measured and not inside its null must leave the run "
+        "green — a guard that cannot return empty is not a guard"
+    )
+
+
+def test_SAME_ORDER_stays_a_FINDING_and_does_not_fail_the_run():
+    """The line the guard draws is 'is this band's null known', not 'is every
+    verdict the best one'. A SAME_ORDER band has a measured null and a real
+    disposition; making it fatal too would collapse three states into one and
+    take the sweep's own diagnosis away from it."""
+    assert bns.NullVerdict.SAME_ORDER not in bns.FATAL_VERDICTS
+    assert bns.NullVerdict.SEPARATED not in bns.FATAL_VERDICTS
+    assert set(bns.FATAL_VERDICTS) == {
+        bns.NullVerdict.INSIDE_NULL,
+        bns.NullVerdict.UNMEASURABLE,
+    }
+
+
+def test_the_RUNNERS_EXIT_CODE_is_the_one_the_module_declares():
+    """R11 no-orphan: the promotion is worthless if the runner keeps its own copy
+    of the rule. The runner is imported and its `main` driven against a stub
+    population, so what is proven is the EXIT CODE, not that a constant exists.
+    """
+    import importlib
+    import sys
+
+    runner = importlib.import_module("tools.band_null_sweep")
+    gas_only = _population(homes=6)
+    mixed = _population(
+        homes=6,
+        heating=("gas_boiler_combi",) * 4 + ("heat_pump_air", "electric_direct"),
+    )
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(sys, "argv", ["band_null_sweep.py", "--replications", "3"])
+        mp.setattr(runner, "live_population", lambda: gas_only)
+        assert runner.main() == 1, (
+            "a population that exercises neither electric band must exit non-zero"
+        )
+        mp.setattr(runner, "live_population", lambda: mixed)
+        exercised = runner.main()
+    # The second population exercises every texture band; it may still exit 1 for
+    # a band that is genuinely inside its null on a synthetic fixture, so what is
+    # asserted is that the UNMEASURABLE reason is gone — not a bare 0, which would
+    # make this test a hostage to the fixture's own realism.
+    fatal_bands = {
+        m.band
+        for m in bns.fatal(bns.sweep(mixed, replications=3))
+        if m.verdict is bns.NullVerdict.UNMEASURABLE
+    }
+    assert not fatal_bands, fatal_bands
+    assert exercised in (0, 1)

@@ -779,6 +779,33 @@ def hits(measurements: Sequence[NullMeasurement]) -> list[NullMeasurement]:
     return [m for m in measurements if m.is_hit]
 
 
+# The verdicts a RUN must not survive, as opposed to the ones it may report and
+# carry to a disposition. Declared here rather than in the runner so the rule can
+# be exercised without a subprocess, and so there is ONE list rather than a
+# report-side idea of "bad" and an exit-code-side one free to drift apart.
+#
+# UNMEASURABLE is fatal (2026-08-09, atom `H35_the_panel_never_exercises_two_of_its
+# _own_bands`) and it was not before. The distinction the old exit code drew was
+# "the null is known and the band sits inside it" vs "everything else", which puts
+# a band whose null is UNKNOWN on the passing side of the line. That is R15's
+# fail-silent pattern applied to the sweep itself: a band no home exercises is an
+# unavailable check, an unavailable check is a FAILED check, and the whole reason
+# this module exists is that unknown reads exactly like clean. It cost nothing to
+# notice for the six weeks L1.1r judged zero homes and reported a clean exit 0.
+FATAL_VERDICTS = (NullVerdict.INSIDE_NULL, NullVerdict.UNMEASURABLE)
+
+
+def fatal(measurements: Sequence[NullMeasurement]) -> list[NullMeasurement]:
+    """The measurements a run must FAIL on, not merely print.
+
+    SAME_ORDER stays non-fatal and that is deliberate rather than lenient: it is a
+    finding about how far a band sits from its null, dispositioned in
+    `docs/design/BAND_NULL_SWEEP.md`, and it does not mean the control is blind.
+    A band judging NO home does mean exactly that.
+    """
+    return [m for m in measurements if m.verdict in FATAL_VERDICTS]
+
+
 def truncated(population: PopulationTraces, days: int) -> PopulationTraces:
     """The same population watched for fewer days."""
     if days > population.days:

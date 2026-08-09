@@ -4373,7 +4373,27 @@
 - id: H35_the_panel_never_exercises_two_of_its_own_bands
   title: "A resistive-heat home on the coupling panel, so L1.1r is judged by something"
   gain: "Two regime-conditioned bands are carried and never exercised -- an unexercised band's null is unknown, and unknown reads like clean."
-  name: "MINTED FROM the L1.1r/L1.1e dispositions in docs/design/BAND_NULL_SWEEP.md (H33, 2026-08-09). MEASURED at the applied window (couple_fabric PANEL, 10 homes x 120d): L1.1r judges ZERO homes -- no electric_storage/electric_direct home is on the panel -- so its null cannot be measured on the load set it governs, and reading it off the 9 gas homes is the wrong-load-set defect. L1.1e judges ONE home, so its null has no estimable spread and its +0.0163 margin is a point estimate. NOTABLE: L1.1r was derived BECAUSE a storage-heater home breached L1.1, and none is ever judged by it. EXIT: (1) the panel carries an electric_storage home and enough heat-pump homes for L1.1e's null to have a spread, stock-representativeness restated not silently widened; (2) both bands MEASURABLE on re-run; (3) re-measured verdicts dispositioned repair-the-statistic or repair-the-window, never lower-the-floor (R12); (4) a guard making a band that judges zero homes FAIL, not merely be reported."
+  name: "MINTED FROM the L1.1r/L1.1e dispositions in docs/design/BAND_NULL_SWEEP.md (H33, 2026-08-09), whose H35 section carries the atom as minted, the re-measurement and every disposition in full. Two regime-conditioned texture bands judged ZERO and ONE home at the applied window, so one null was unmeasurable and the other a point estimate."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 3
+  provenance: worker_finding
+  depends_on: [H33_does_this_statistic_have_a_null]
+  couples_with: [H_GAP_fabric_belief_truth_gap]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json', 'tests/harness/test_band_null_sweep.py', 'tests/tools/test_couple_fabric.py']
+  file_scope: ['tools/couple_fabric.py', 'background/band_null_sweep.py', 'tools/band_null_sweep.py', 'tests/harness/test_band_null_sweep.py', 'tests/tools/test_couple_fabric.py']
+  notes_rehomed: [build_note, origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a lab keeping a reference range for a test it has never run on a sample of that type"
+
+- id: H36_the_texture_floor_is_one_number_for_every_home_size
+  title: "Condition the electric texture floors on the home's own behavioural share"
+  gain: "Two of the three L1.1 floors are derived at ONE published typical home and applied at every home size -- the wrong-load-set defect one level in from the one that exercised them."
+  name: "MINTED FROM the L1.1r/L1.1e dispositions in the H35 section of docs/design/BAND_NULL_SWEEP.md (2026-08-09), which carries the measurement, the per-home table and the full exit criteria."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4382,12 +4402,33 @@
   loop_stage: build
   dial_inherited: 3
   provenance: worker_finding
-  depends_on: [H33_does_this_statistic_have_a_null]
+  depends_on: [H35_the_panel_never_exercises_two_of_its_own_bands]
   couples_with: [H_GAP_fabric_belief_truth_gap]
   evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
-  file_scope: ['tools/couple_fabric.py']
+  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
+  notes_rehomed: [origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a lab keeping a reference range for a test it has never run on a sample of that type"
+  real_world_twin: "a reference range quoted for an average adult and applied unchanged to a child and a heavyweight athlete"
+
+- id: H37_the_away_signature_reads_a_heat_pump_as_an_empty_house
+  title: "An away-day detector that survives the heat being on the judged meter"
+  gain: "L1.3 flags an occupied heat-pump home as empty on 104 of 120 real days, and cannot fail on absence of the structure it certifies."
+  name: "MINTED FROM the L1.3 disposition in the H35 section of docs/design/BAND_NULL_SWEEP.md (2026-08-09), which carries the measurement and the full exit criteria."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: worker_finding
+  depends_on: [H35_the_panel_never_exercises_two_of_its_own_bands]
+  couples_with: [H_GAP_fabric_belief_truth_gap]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
+  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an occupancy sensor that calls a house empty because the heating is on"
 
 - id: OPS4_surgical_landing_tool
   title: "Land exactly-named paths with the gate run against the tree the commit would create"
@@ -4403,8 +4444,48 @@
   provenance: director_ruling
   depends_on: []
   couples_with: []
-  evidence: ['docs/staging/DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09.md']
+  evidence: ['docs/staging/done/DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09.md']
   file_scope: ['tools/surgical_land.py', 'tests/tools/test_surgical_land.py', 'docs/design/SURGICAL_LANDING.md']
   notes_rehomed: [origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a change-control desk that will not let an engineer hand-carry a fix past the test rig, and therefore keeps a rig that can test exactly the one change he needs to land"
+
+- id: OPS5_retire_the_interim_bypass_shape
+  title: "Retire the sanctioned interim bypass shape the moment the tool replaces it"
+  gain: "A retro-sanctioned exception with no expiry becomes the rule; the ruling gave it one, and an expiry nobody executes is an orphan transition (R11)."
+  name: "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: [OPS4_surgical_landing_tool]
+  couples_with: []
+  evidence: ['docs/staging/done/DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09.md']
+  file_scope: ['docs/design/SURGICAL_LANDING.md', 'CLAUDE.md']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a temporary permit with an expiry date that someone actually checks"
+
+- id: H38_full_suite_pollution_bisect
+  title: "Name the module that pollutes the full suite, then close its class"
+  gain: "Instance-fixing a moving target is how three days went; the ruling granted the bisect precisely so the cause gets named once."
+  name: "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09 (granted memory-aware: sim-runner stopped for full-suite runs, defer over collide)."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/done/DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09.md']
+  file_scope: ['tools/', 'tests/']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an intermittent fault traced to the bench before any board is replaced"

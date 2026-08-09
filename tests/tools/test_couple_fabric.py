@@ -192,16 +192,44 @@ def test_the_gaps_are_finite_and_on_the_shared_0_to_1_scale(measured):
         )
 
 
-def test_the_EPC_register_UNDERSTATES_heat_loss_on_every_premise(measured):
+def test_the_EPC_register_UNDERSTATES_heat_loss_on_ALL_BUT_ONE_premise(measured):
     """A real, directional finding and not a tautology: the register's modelled
     fabric is optimistic against what the building physics actually does. It is
     asserted because it is the mechanism behind the result below — C14 corrects
-    UPWARD, which is why it can overshoot."""
+    UPWARD, which is why it can overshoot.
+
+    RE-DERIVED 2026-08-09 (H35), which is what the previous version of this test
+    instructed rather than re-stated. It read `== len(observations)` on a
+    ten-premise panel of nine gas homes and one heat pump. Widening the panel to
+    exercise the resistive and heat-pump texture bands put a fourteenth and
+    fifteenth home on it, and ONE of them — H11, a detached 1965-80 home with
+    partial insulation — has an EPC prior ABOVE its true HLC (0.2922 vs 0.2688).
+
+    The direction is not noise and it is not a regression: `epc_prior` builds the
+    prior from era U-values and an envelope-area ratio per property type, so a
+    detached home of that era carries the largest modelled envelope on the panel,
+    and the modelling error that is optimistic in a small flat can overshoot in a
+    big house. What the finding below actually needs is that the REGISTER IS
+    BIASED LOW OVERALL, which is asserted directly rather than inferred from a
+    universal quantifier that a fifteenth home can break.
+
+    The exception is pinned BY IDENTITY: a second premise crossing over is a
+    different finding and must fail here rather than be absorbed.
+    """
     observations, _ = measured
-    understated = [o for o in observations if o.epc_hlc_kw_per_k < o.actual_hlc_kw_per_k]
-    assert len(understated) == len(observations), (
-        "every premise's EPC prior sits below its true HLC; if this ever stops "
-        "being true the finding below needs re-deriving, not re-stating"
+    overstated = {
+        o.premise_id for o in observations if o.epc_hlc_kw_per_k >= o.actual_hlc_kw_per_k
+    }
+    assert overstated == {"H11"}, (
+        "the register's optimism is the mechanism behind the result below; if the "
+        "set of premises it is NOT optimistic about changes, re-derive the finding "
+        f"rather than re-stating it (overstated: {sorted(overstated)})"
+    )
+    mean_epc = sum(o.epc_hlc_kw_per_k for o in observations) / len(observations)
+    mean_actual = sum(o.actual_hlc_kw_per_k for o in observations) / len(observations)
+    assert mean_epc < mean_actual, (
+        f"the register must be biased LOW across the panel (epc {mean_epc:.4f}, "
+        f"actual {mean_actual:.4f}) — that bias is what C14 corrects upward"
     )
 
 
@@ -267,7 +295,13 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
     calling it a pricing law.
     """
     observations, _ = measured
-    rates = (9.0, 10.0, 11.0)
+    # The triple moved 9/10/11 -> 11/12/13 on 2026-08-09 (H35). It is chosen for
+    # the ONE property the test needs — that the decision vector is constant
+    # across it — and the guard below is what enforces that, so the choice cannot
+    # quietly become a choice about the answer. The widened panel puts a decision
+    # flip between 10 and 11 p/kWh; measured, not guessed:
+    # (9,10,11) -> [(1,6),(1,6),(0,6)], (11,12,13) -> [(0,6),(0,6),(0,6)].
+    rates = (11.0, 12.0, 13.0)
     vectors = [
         [
             (
@@ -302,25 +336,29 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     not in another file. A fabric gap measured on unrealistic traces is not a
     finding about the company.
 
-    ON THE TEN-PREMISE PANEL that verdict is now INSUFFICIENT rather than green,
-    and that is the correct reading of what a panel can support (2026-08-09): a
-    clean sheet over ten homes rules out a true violation rate no smaller than
-    30%. Every L1 cell's problem here is power. The judged verdict comes from
-    `--population`, which is what the gap is measured on for the record.
+    ON THIS PANEL that verdict is INSUFFICIENT rather than green, and that is the
+    correct reading of what a panel can support (2026-08-09): a clean sheet over
+    fifteen homes rules out a true violation rate no smaller than 20%. Every L1
+    cell's problem here is power. The judged verdict comes from `--population`,
+    which is what the gap is measured on for the record.
 
-    THE PANEL ALSO BREACHES ONE BAND, since L2.4 was anchored later the same day.
-    L2.4 is a POPULATION statistic rather than a per-home one, so ten homes are
-    enough to judge it and it is red at ten homes — the two readings are kept
-    apart below because "under-powered" and "wrong" are different states and this
-    panel is now both.
+    THE PANEL ALSO BREACHES TWO BANDS. L2.4 is a POPULATION statistic rather than
+    a per-home one, so the panel is enough to judge it and it is red — the two
+    readings are kept apart below because "under-powered" and "wrong" are
+    different states and this panel is both. L1.1 joined it on 2026-08-09 when the
+    panel was widened to exercise the resistive and heat-pump texture bands (H35):
+    the worst home is H11 at 0.07037 against the 0.07050 heat-pump floor. That
+    breach is diagnosed, not tolerated — see the test below and atom
+    `H36_the_texture_floor_is_one_number_for_every_home_size`.
     """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
     assert {c.statistic for c in result.failed} == {
-        "L2.4_scale_spread_p90_p10"
+        "L1.1_half_hourly_texture",
+        "L2.4_scale_spread_p90_p10",
     }, result.summary()
     assert result.inconclusive, (
-        "ten homes cannot clear a control that claims to see a 5% violation rate"
+        "fifteen homes cannot clear a control that claims to see a 5% violation rate"
     )
     for cell in result.inconclusive:
         assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / result.homes)
@@ -345,88 +383,111 @@ def _worst_cell_clears_its_own_floor(texture) -> None:
     )
 
 
-def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel, weather):
-    """THE RESIDUAL, RE-STATED (2026-08-09). This test previously asserted
-    `result.is_red` and instructed whoever turned it green to re-state the
-    expectation deliberately. This is that re-statement, and it pins the MECHANISM
-    rather than the colour — because "the suite went green" is exactly the claim
-    that deserves the least trust.
+def test_the_TEXTURE_CELL_has_ONE_OPEN_BREACH_and_the_band_is_the_diagnosis(panel, weather):
+    """RE-STATED AGAIN 2026-08-09 (H35), and the direction is the uncomfortable
+    one: this cell was closed, and widening the panel re-opened it.
 
-    The last red cell was L1.1 texture, worst home H10, the panel's only
-    heat-pump home, at 0.1248 against a 0.15 floor whose own anchor text reasons
-    from a gas premise ("a kettle is 2.8 kW for three minutes on a ~0.7 kWh
-    half-hour"). The whole of H10's deficit decomposed to its DENOMINATOR: a heat
-    pump is ~half its electricity and moves little period to period.
+    WHAT CHANGED. The panel judged one heat-pump home and no resistive home at
+    all, so two of the three regime-conditioned texture bands were carried and
+    never exercised — L1.1r judged ZERO homes and reported nothing. H35 put three
+    heat pumps and three panel-heater homes on it. The gas homes are untouched and
+    all nine still clear the untouched 0.15 floor; ONE new home does not clear
+    its own: H11 at 0.07037 against the 0.07050 heat-pump floor, a shortfall of
+    0.2%.
 
-    WHAT WAS NOT DONE: the 0.15 floor was not touched, and no home was marked
-    UNVALIDATED to duck the judgement. Both would have turned the suite green in
-    one edit, which is why neither was the move.
+    WHY THIS IS NOT "THE GENERATOR IS SMOOTH", and the decomposition is asserted
+    below rather than argued. Both electric bands are `0.15 x behavioural share`,
+    where the share comes from ONE published typical home: Ofgem TDCV medium
+    (2,500 kWh behavioural) against a DESNZ/ESC median-SPFH4 heat pump, giving
+    47.0%. H11 is a detached 1965-80 home with partial insulation, and its heat is
+    62.4% of its own electricity — so the behavioural stream it actually has is
+    37.6%, and the floor that follows from the band's OWN arithmetic at H11's own
+    share is 0.0564, which H11 clears by 25%. The same holds for every home on the
+    panel. The number that does not fit is the band's assumed home, not the trace:
+    a fixed floor derived at one home size, applied to a home twice that size, is
+    the wrong-load-set shape one level in from the one H35 was minted for.
 
-    WHAT WAS DONE: L1.1 is now conditioned on heating system, with a second band
-    for electrically-heated homes DERIVED from three published sources (Ofgem
-    TDCV, the EST in-situ condensing-boiler trial, the DESNZ/ESC Electrification
-    of Heat SPFH4). R15 evidence for the new band lives in
-    `tests/harness/test_premise_two_level.py` §8, including the matched-pair proof
-    that it is not the looser of the two against the same defect.
+    WHAT WAS NOT DONE, and this is the part that matters: the floor was not moved,
+    H11 was not taken off the panel, and no home was marked UNVALIDATED. Any of
+    the three would have turned this suite green in one edit while making the
+    measurement worse. The breach is REPORTED and dispositioned as repair-the-
+    statistic, on its own atom
+    (`H36_the_texture_floor_is_one_number_for_every_home_size`) — a breach is a
+    mechanism to diagnose (R4), never a tolerance to raise (R12).
 
-    THE TELL that this is not goal-seek, asserted below: the worst L1.1 cell is no
-    longer the heat-pump home at all. It is D7, a GAS home, judged by the
-    UNCHANGED 0.15 band, at 0.1804. The heat-pump home stopped being the worst
-    cell rather than being let off the one it was failing."""
+    THE CONTROL IS STILL LIVE. `_worst_cell_clears_its_own_floor` is asserted
+    below to RAISE on the real measured cell, so the open breach is held by the
+    same expression the R15 mutations exercise — it has not been quietly relaxed
+    to accommodate the finding.
+    """
     result = cf.two_level(panel, weather)
     texture = result.cell(fgl.TEXTURE_STATISTIC)
 
-    assert texture.homes_violating == 0, texture.note
-    assert texture.band.threshold == 0.15, "the GAS band is the one that judged the worst cell"
-    assert texture.worst_home == "D7", texture.note
-    # THE WORST CELL CLEARS THE UNTOUCHED FLOOR. Asserted as a RELATION, not as a
-    # pinned literal (2026-08-09): this assertion previously read
-    # `worst_value == approx(0.1804, abs=5e-4)`, and the W1_12 cold-appliance
-    # coupling — an honest fidelity improvement that moves the electricity series
-    # this statistic is computed on — took D7 to 0.1782 and turned the control red
-    # while saying nothing whatever about goal-seek. That is the "never pin a
-    # generated value in a control" class: the pin cannot distinguish a physics
-    # improvement from a regression, and its cheap fix (re-typing the literal to
-    # match today's output) is the exact reflex R12 forbids.
-    #
-    # What the test is NAMED for is the mechanism, so the mechanism is what is
-    # pinned: the band is a FLOOR at an UNMOVED 0.15 (asserted above) and the
-    # worst home clears it on its own. The value stays in the message as a
-    # diagnostic (R12), never as the pass condition.
-    _worst_cell_clears_its_own_floor(texture)
-    assert "L1.1e_half_hourly_texture_electric_heat=1" in texture.note, texture.note
-    # The panel's ten homes cannot reach a PASS — see the note on the test above.
-    # What is asserted here is the MECHANISM: no home is outside its own band, and
-    # the one judging the worst cell is the untouched 0.15 gas band.
-    assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
+    # (a) The original closure still holds where it was closed: the GAS band is
+    #     untouched at 0.15 and no home judged by it is in breach.
+    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold == 0.15, (
+        "the gas floor is the one the original closure rests on and it stays put"
+    )
+    assert "L1.1_half_hourly_texture=9" in texture.note, texture.note
 
-    # The UNVALIDATED cells are still UNVALIDATED — going green did not come from
-    # quietly anchoring something that has no anchor. This assertion is an exact
-    # set BECAUSE a cell arriving or leaving unnoticed is the thing it guards, and
-    # it did its job on 2026-08-09: `L1.2h` appeared here before anyone mentioned
-    # it in a commit message. It is a deliberate third — the space-heating
-    # stream's own day-to-day repeatability, netted out of L1.2 so that one band
-    # stops judging behaviour in a gas home and a thermostat in an electric one,
-    # and REPORTED rather than given a threshold nobody has published.
-    #
-    # `L2.4_scale_spread_p90_p10` LEFT this set on 2026-08-09 — anchored on the
-    # Low Carbon London panel and immediately red, which is the opposite of
-    # "quietly anchoring something that has no anchor" and is why the set is
-    # asserted exactly rather than as a superset. `L1.4` stayed, and the reason is
-    # now a measurement rather than an absence: the same panel anchors it, and its
-    # own R15 mutation shows the anchor does not transfer to this window
-    # (`tests/harness/test_premise_two_level.py::
-    # test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`).
-    #
-    # `L2.3_timing_diversity_periods` JOINED this set on 2026-08-10 (H34), and the
-    # direction matters: it is not a cell quietly losing its threshold to go green.
-    # The H33 sweep measured its 0.5-half-hour floor INSIDE its own null at 40, 60
-    # and 90 days — a structureless population cleared it 68% of the time at 40d —
-    # and no height fixes a spread-of-means judged against a constant. The floor
-    # came out and a STRICTLY SHARPER cell arrived in the same commit:
-    # `L2.3n_timing_diversity_null_ratio` scores the same spread against a re-deal
-    # of this population's own days, and it is JUDGED here (asserted below), so
-    # nothing stopped being checked.
+    # (b) The breach is EXACTLY ONE and it is pinned by identity, not by value.
+    #     A second home crossing over, or a different home, is a different finding
+    #     and must fail here rather than be absorbed into a remembered count.
+    assert texture.homes_violating == 1, texture.note
+    assert texture.worst_home == "H11", texture.note
+    assert texture.band.statistic == "L1.1e_half_hourly_texture_electric_heat", texture.band
+    assert texture.verdict is fgl.Verdict.FAIL, texture.note
+
+    # (c) THE DIAGNOSIS. Every home clears the floor that the band's OWN
+    #     arithmetic gives at that home's OWN behavioural share — including the
+    #     one in breach. This is what says "the band's assumed home is wrong"
+    #     rather than "the traces are smooth", and it is measured here rather
+    #     than quoted from the docstring.
+    population = fgl.premise_trace_population([entry[2] for entry in panel], weather)
+    for index, (home, grid) in enumerate(zip(population.homes, population.grids)):
+        total = sum(sum(day) for day in grid)
+        heat = sum(sum(day) for day in population.space_heat_grids[index])
+        own_floor = fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold * (1.0 - heat / total)
+        assert fgl.half_hourly_texture(grid) >= own_floor, (
+            f"{home} falls below the floor implied by its OWN behavioural share "
+            f"({own_floor:.4f}) — that would be a generator finding, and it is a "
+            "different one from the band-scope finding this test records"
+        )
+
+    # (d) The control that carries the claim is the live one, and it FIRES on the
+    #     breach rather than having been loosened around it.
+    with pytest.raises(AssertionError, match="fell"):
+        _worst_cell_clears_its_own_floor(texture)
+
+
+def test_the_CELL_INVENTORY_is_EXACT_so_a_cell_cannot_arrive_or_leave_unnoticed(panel, weather):
+    """The set of cells that are REPORTED-BUT-NOT-JUDGED, asserted exactly.
+
+    A cell arriving or leaving unnoticed is the thing this guards, and it has
+    caught three real movements: `L1.2h` appeared here before anyone mentioned it
+    in a commit message; `L2.4_scale_spread_p90_p10` LEFT the set on 2026-08-09
+    when it was anchored on the Low Carbon London panel and went immediately red
+    (the opposite of quietly anchoring something that has no anchor, which is why
+    the set is exact rather than a superset); and `L2.3_timing_diversity_periods`
+    JOINED it on 2026-08-10 (H34) — not a cell losing its threshold to go green,
+    but a floor the H33 sweep measured INSIDE its own null at 40, 60 and 90 days,
+    replaced in the same commit by the strictly sharper
+    `L2.3n_timing_diversity_null_ratio`, which is judged and asserted below.
+
+    `L1.4` stayed, and the reason is a measurement rather than an absence: the
+    same panel anchors it, and its own R15 mutation shows the anchor does not
+    transfer to this window (`tests/harness/test_premise_two_level.py::
+    test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`).
+
+    THE L1.1 HISTORY MOVED, it did not disappear: the 2026-08-09 closure of the
+    last red texture cell — conditioning the band on heating regime rather than
+    moving the 0.15 floor — and the breach the widened panel re-opened in the
+    heat-pump regime are both held by
+    `test_the_TEXTURE_CELL_has_ONE_OPEN_BREACH_and_the_band_is_the_diagnosis`
+    above, which is where those mechanism assertions now live.
+    """
+    result = cf.two_level(panel, weather)
+
     unvalidated = {c.statistic for c in result.cells if c.verdict is fgl.Verdict.UNVALIDATED}
     assert unvalidated == {
         "L1.2h_heating_shape_repeatability",
@@ -437,70 +498,70 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
         fgl.Verdict.PASS, fgl.Verdict.FAIL
     ), "L2.3 became unjudged only because L2.3n judges it — that must stay true here"
     assert result.cell("L2.4_scale_spread_p90_p10").verdict is fgl.Verdict.FAIL
-    # ...and the new one is not vacuous on this panel: the panel's heat-pump home
-    # is exactly a home whose heat lands on the judged meter.
-    assert result.cell("L1.2h_heating_shape_repeatability").homes_unjudged == 1
+    # ...and L1.2h is not vacuous on this panel: it measures every home whose heat
+    # lands on the judged meter, which the H35 widening took from one to six. A
+    # reported-not-judged cell measuring NOTHING would be the fail-open shape, so
+    # the count is asserted rather than the mere presence of the cell.
+    assert result.cell("L1.2h_heating_shape_repeatability").homes_unjudged == 6
 
 
-def test_the_RESHAPED_closure_control_still_fires_when_the_BAND_IS_MOVED(panel, weather, monkeypatch):
-    """R15 for the reshape directly above. The literal `worst_value` pin was
-    removed because it fired on honest physics; this proves the relational form
-    that replaced it still fires on THE DEFECT THE TEST IS NAMED FOR — the cell
-    being closed by MOVING the band rather than by conditioning it.
+def test_the_CLOSURE_CONTROL_still_fires_when_the_JUDGING_BAND_IS_MOVED(panel, weather, monkeypatch):
+    """R15 arm one for the control above: the goal-seek move — closing the cell by
+    MOVING the band rather than by diagnosing what it judges — must be visible.
 
-    The mutation is the goal-seek move itself, applied to the real band and run
-    through the real measurement: drop the gas floor from 0.15 to 0.10, which is
-    exactly what someone would do to admit a worst cell that would not clear it.
-    Both surviving mechanism assertions must then reject the run — the band is no
-    longer the untouched 0.15, and the floor the worst home is compared against is
-    no longer the one whose anchor text this closure rests on.
+    The mutation is applied to the band that ACTUALLY JUDGES the worst cell, which
+    since the H35 widening is the heat-pump band rather than the gas one. That
+    matters: mutating a band no home is judged by would leave the measurement
+    unchanged and prove nothing, which is the same wrong-load-set error one level
+    down that H35 was minted for. Dropping the heat-pump floor to 0.05 is exactly
+    the edit that would turn today's RED cell green in one line.
 
-    A REPLACEMENT CONTROL THAT COULD NOT FIRE WOULD BE WORSE THAN THE PIN IT
-    REPLACED: the pin at least failed loudly. This is the evidence that the
-    reshape tightened the control's aim rather than fail-opening it.
+    Both halves are asserted: the mutation REACHES the real measurement, and what
+    it produces is the green cell the finding above refuses to buy that way.
     """
-    moved = dataclasses.replace(fgl.BANDS[fgl.TEXTURE_STATISTIC], threshold=0.10)
-    monkeypatch.setitem(fgl.BANDS, fgl.TEXTURE_STATISTIC, moved)
+    electric = "L1.1e_half_hourly_texture_electric_heat"
+    published_floor = fgl.BANDS[electric].threshold
+    moved = dataclasses.replace(fgl.BANDS[electric], threshold=0.05)
+    monkeypatch.setitem(fgl.BANDS, electric, moved)
 
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
 
-    # The assertion that carries the "not moved" claim REJECTS the moved band.
-    assert texture.band.threshold != 0.15, (
-        "the moved band did not reach the measurement — this mutation proves "
-        "nothing about the control and must be repaired before it is trusted"
-    )
-    assert texture.band.threshold == 0.10, texture.band
-
-    # And the relational assertion is genuinely comparing against the band that
-    # was used, not against a remembered constant: it is the MOVED floor the
-    # worst home is now measured against.
-    assert texture.worst_value >= texture.band.threshold, texture.note
+    # The mutation reached the real measurement...
+    assert fgl.BANDS[electric].threshold != published_floor
+    # ...and it is what "closes" the cell: the breach the untouched panel reports
+    # disappears the moment the floor is lowered under it. That is the whole
+    # reason the breach above is recorded rather than edited away.
+    assert texture.homes_violating == 0, texture.note
+    _worst_cell_clears_its_own_floor(texture)
 
 
-def test_the_RESHAPED_closure_control_still_fires_when_the_WORST_CELL_REGRESSES(panel, weather):
-    """The second arm: the control must reject a worst cell that falls BELOW its
-    floor. That is the regression the removed literal pin would also have caught,
-    so the reshape must not have quietly given it up.
+def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one(panel, weather):
+    """R15 arm two: the control must be able to return BOTH answers on a real
+    measured cell, or it is a constant wearing an assertion.
 
     THE MUTATION IS APPLIED TO THE CONTROL'S INPUT, NOT RE-IMPLEMENTED BESIDE IT.
     `_worst_cell_clears_its_own_floor` is the single expression the closure test
-    above actually depends on; here it is handed a REAL measured cell whose worst
-    value has been pushed under its own real band, and it must raise. Asserting
-    `0.14 < 0.15` in a test of my own writing would prove only that Python
-    compares floats — the tautology shape this project keeps finding inside its
-    own R15 evidence.
+    depends on; here it is handed the REAL measured cell with its worst value
+    moved above and below its OWN real band. Asserting `0.14 < 0.15` in a test of
+    my own writing would prove only that Python compares floats — the tautology
+    shape this project keeps finding inside its own R15 evidence.
+
+    The accept arm is CONSTRUCTED rather than measured, and that is a statement
+    about the tree rather than about the control: at HEAD the panel's worst
+    texture cell is in breach (H11, the open finding above), so there is no
+    unmutated cell to demonstrate the pass side with. Constructing it from the
+    real cell and the real band keeps both arms on the same expression — and the
+    arm above shows the pass side IS reachable from a real measurement.
 
     Generator-side proof that the real physics can drive this statistic through
     the real band lives one suite over (`tests/harness/test_premise_two_level.py`,
-    the `_flatten_blend` mutation). This arm covers the seam between the two: that
-    a sub-floor measurement, however produced, is not accepted here.
+    the `_flatten_blend` mutation).
     """
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
     floor = texture.band.threshold
 
-    # Sanity: the unmutated cell passes the control, so a raise below is caused by
-    # the mutation and not by a control that raises on everything.
-    _worst_cell_clears_its_own_floor(texture)
+    clearing = dataclasses.replace(texture, worst_value=floor + 0.01)
+    _worst_cell_clears_its_own_floor(clearing)
 
     regressed = dataclasses.replace(texture, worst_value=floor - 0.01)
     with pytest.raises(AssertionError, match="fell"):

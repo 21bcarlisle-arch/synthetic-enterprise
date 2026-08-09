@@ -178,25 +178,164 @@ structureless population clear this control, and does that depend on the window)
 is measured directly at each window in the table above. The same reasoning is why
 `L1.4n` was already excluded.
 
-### L1.1r_half_hourly_texture_resistive_heat — UNMEASURABLE, widen the panel
+### L1.1r_half_hourly_texture_resistive_heat — was UNMEASURABLE; **panel widened 2026-08-09 (H35)**
 
-No home at the applied window is judged by this band: `tools/couple_fabric.py`'s
-PANEL is 9 gas boilers and 1 air-source heat pump, and there is no resistive
-(`electric_storage` / `electric_direct`) home at all. The band is carried and
+No home at the applied window was judged by this band: `tools/couple_fabric.py`'s
+PANEL was 9 gas boilers and 1 air-source heat pump, with no resistive
+(`electric_storage` / `electric_direct`) home at all. The band was carried and
 never exercised — notable given it was derived *because* a storage-heater home
-breached L1.1. Its null cannot be measured on the load set it governs, and
-measuring it on the gas panel would be the wrong-load-set defect. Disposition:
-add a resistive-heat home to the panel, then re-run; not a threshold change.
+breached L1.1. Its null could not be measured on the load set it governs, and
+measuring it on the gas panel would have been the wrong-load-set defect.
 
-### L1.1e_half_hourly_texture_electric_heat — one home, no estimable spread
+### L1.1e_half_hourly_texture_electric_heat — was one home, no estimable spread
 
 Margin +0.0163 against a null of 0.0542, both from the single heat-pump home. The
-verdict is a point estimate: `SAME_ORDER` was not reachable for this band at this
-window, so `SEPARATED` here means "not obviously inside its null", not "clear of
-it". Same disposition as L1.1r — widen the panel, then re-measure.
+verdict was a point estimate: `SAME_ORDER` was not reachable for this band at that
+window, so `SEPARATED` meant "not obviously inside its null", not "clear of it".
+Same disposition as L1.1r — widen the panel, then re-measure.
 
-None of the three is dispositioned as a threshold move. One of the three (L2.3) is
-closed; the other two are atom `H35_the_panel_never_exercises_two_of_its_own_bands`.
+None of the three was dispositioned as a threshold move. L2.3 closed in H34; the
+other two are atom `H35_the_panel_never_exercises_two_of_its_own_bands`, executed
+below.
+
+---
+
+# H35 — the panel widened, and what the two unexercised bands actually read
+
+**Atom:** `H35_the_panel_never_exercises_two_of_its_own_bands` (lane H_harness, L0 -> L2)
+**Changed:** `tools/couple_fabric.py` PANEL, 10 homes -> 15 (9 gas, 3 heat pump, 3 resistive)
+**Guard:** `background/band_null_sweep.FATAL_VERDICTS` / `fatal()`; runner exits 1 on UNMEASURABLE
+**R15:** `tests/harness/test_band_null_sweep.py` §7, both directions
+
+## What was added, and the one deliberate deviation from the atom's wording
+
+Three air-source heat-pump homes (H10 as before, plus H11 a partially-insulated
+1965-80 detached retrofit and H12 a post-2000 terrace on a monthly meter) and
+three `ELECTRIC_DIRECT` panel-heater homes (E13, E14, E15). Regime and meter
+cadence are varied independently, so "electric" and "read daily" cannot be
+confounded.
+
+**The atom asked for an `electric_storage` home and it did not get one, on
+purpose.** The world layer does not model a storage heater:
+`simulation/fabric_physics.py::_CONTROL_MODE` gives `ELECTRIC_STORAGE` the same
+deadband thermostat as a gas combi, and `simulation/premise_trace.py` has no
+charge window, no thermal store and no Economy-7 calendar
+(`WORKER_FINDING_THE_MODELS_STORAGE_HEATER_IS_NOT_ONE`, owner atom `W1_12`). A
+home labelled `electric_storage` would have been a panel heater wearing a storage
+heater's register value, and L1.1r's null would then be reported as measured on a
+load set half of which is a mislabel. `ELECTRIC_DIRECT` *is* a panel heater, and
+L1.1r's own anchor covers "resistive (storage or panel)" — so the band is now
+measured on the sub-regime the physics genuinely represents, and the storage
+sub-regime stays **openly unexercised** until the storage-heater work lands rather
+than being quietly claimed.
+
+**The panel is a SPAN, not a sample**, and the widening makes that worth restating:
+6 of 15 homes are electrically heated against ~9% of the GB stock. Representativeness
+lives in `build_drawn_population` (raked onto published EHS marginals); the panel
+exists so that every band the ledger carries is exercised by the run that judges it.
+
+## The re-measurement (same window: 15 homes x 120 days)
+
+| band | n before | n now | threshold | null (best) | null spread | margin | verdict |
+|---|---|---|---|---|---|---|---|
+| L1.1_half_hourly_texture | 9 | 9 | 0.15 | 0.0818 | 0.0432 | +0.0682 | separated |
+| L1.1e_..._electric_heat | 1 | **3** | 0.0705 | 0.0695 | 0.0302 | **+0.0010** | **same_order** |
+| L1.1r_..._resistive_heat | **0** | **3** | 0.0363 | 0.1228 | 0.0763 | **-0.0865** | **inside_null** |
+| L1.2_day_to_day_shape_correlation | 10 | 15 | 0.85 | 1.0 | 0 | +0.15 | separated |
+| L1.3_away_days_per_year | 10 | 15 | 1.0 | **120** | 120 | **-119** | **inside_null** |
+| L2.1_smoothing_ratio | 10 | 15 | 0.85 | 1.0 | ~0 | +0.15 | separated |
+| L2.2_between_home_correlation | 10 | 15 | 0.6 | 1.0 | 0 | +0.40 | separated |
+| L2.4_scale_spread_p90_p10 | 10 | 15 | 4.881 | 1.0 | 0 | +3.881 | separated \*\* |
+
+Both target bands are now MEASURABLE, and both are hits. A third band — L1.3,
+clean at ten gas-ish homes — went `inside_null` on the same widening. That is the
+finding underneath all three: **two of this ledger's statistics were only ever
+valid for a home whose heat is on the other meter**, and nothing could say so
+while the panel had no electrically-heated home to say it with.
+
+## Dispositions — repair the statistic, in both cases (R12: never lower the floor)
+
+### L1.1r and L1.1e — one fixed floor for every home size
+
+Both electric bands are `0.15 x behavioural share`, where the share comes from ONE
+published typical home (Ofgem TDCV medium against a DESNZ/ESC median-SPFH4 heat
+pump = 47.0% behavioural; resistive = 24.2%). The panel's homes are not that home.
+Measured heat share of own electricity, and the floor the band's OWN arithmetic
+gives at each home's own share:
+
+| home | regime | heat share | own-share floor | texture | fixed floor | fixed verdict |
+|---|---|---|---|---|---|---|
+| H10 | heat pump | 0.305 | 0.1043 | 0.1261 | 0.0705 | pass |
+| H11 | heat pump | **0.624** | **0.0564** | **0.0704** | 0.0705 | **FAIL by 0.2%** |
+| H12 | heat pump | 0.316 | 0.1026 | 0.1664 | 0.0705 | pass |
+| E13 | resistive | 0.428 | 0.0858 | 0.1031 | 0.0363 | pass |
+| E14 | resistive | 0.356 | 0.0966 | 0.1213 | 0.0363 | pass |
+| E15 | resistive | 0.738 | 0.0393 | 0.0567 | 0.0363 | pass |
+
+Every home clears the floor implied by its **own** behavioural share — H11 by 25%.
+The number that does not fit is the band's assumed home, not the trace. In the
+`at_most` direction the same fixed floor is far too LOW for the smaller resistive
+homes, which is why a structureless resistive population clears 0.0363 easily and
+the band lands inside its own null.
+
+Which repair, per this document's own rule: the resistive population reads no
+higher than its null (observed median 0.1031 against a null best of 0.1228), which
+is the **statistic-has-no-discriminating-power** reading, not the threshold-too-low
+one. For a heat-dominated home, `half_hourly_texture` is dominated by the
+thermostat's own on/off blocks rather than by appliance events, so it cannot
+separate a smooth-by-construction generator from a real home in that regime.
+
+**Disposition: REPAIR THE STATISTIC** — atom
+`H36_the_texture_floor_is_one_number_for_every_home_size`. Not a threshold move in
+either direction: raising the floor until it clears its null would be fitting the
+threshold to the population, which is R12 read backwards.
+
+### L1.3 — the away-day signature reads a heat pump as an empty house
+
+`away_signature` is mean active-window consumption over mean base-load
+consumption, and a day scoring below 1.30 is counted as "demonstrably empty". A
+heat pump runs THROUGH the base-load window, so its base load is not a base load:
+
+* H11 is flagged away on **104 of 120 days** and H12 on 72 — on the REAL trace,
+  with the household occupied every day. `observed-with-evidence`.
+* Under the flat-day null every day becomes the home's own mean profile, whose
+  active/base ratio for those two homes is below 1.30, so all 120 days are flagged
+  and the null reads 120 away-days-per-home against a floor of 1.0.
+
+The band therefore cannot fail on absence of the structure it certifies, and the
+statistic is already mis-reading the live panel. `inferred`: the same will hold for
+any continuously-heated electric home, including a correctly-modelled storage
+heater, whose overnight charge block would make it worse.
+
+**Disposition: REPAIR THE STATISTIC** — atom
+`H37_the_away_signature_reads_a_heat_pump_as_an_empty_house`. The netting L1.2h
+already applies (score the behavioural stream, not the meter total) is the obvious
+candidate and is named as a candidate, not as the answer.
+
+## The guard the atom asked for: an unexercised band FAILS the run
+
+Before H35 the runner's exit code named `INSIDE_NULL` only, so `L1.1r` judging zero
+homes produced a **clean exit 0 beside a green table** — the sweep reported the
+state and nothing acted on it. `UNMEASURABLE` is now fatal
+(`background.band_null_sweep.FATAL_VERDICTS`, read by the runner so the exit code
+and the report cannot hold two ideas of what is bad), with the R15 pair in
+`tests/harness/test_band_null_sweep.py` §7: a gas-only population makes the
+heat-pump band fatal, one heat-pump home stops it being fatal for that reason, and
+a measured-and-separated band leaves `fatal()` empty — a guard that could only ever
+fire would be worth no more than a blind one.
+
+`SAME_ORDER` stays non-fatal on purpose: it is a finding about distance from the
+null with a real disposition, not a blind control.
+
+## What this run now exits with, and why that is correct
+
+`python3 tools/band_null_sweep.py` exits **1** at HEAD, naming L1.1r and L1.3. The
+live coupling run (`tools/couple_fabric.py`) reports **RED** on
+`L1.1_half_hourly_texture` (worst home H11) and `L2.4_scale_spread_p90_p10`. Both
+are recorded rather than edited away: the floor was not moved, H11 was not taken
+off the panel, and no cell was marked UNVALIDATED — each of which would have gone
+green in one line while making the measurement worse.
+
 
 ## The sweep's own fail-open shapes, and what closes each
 

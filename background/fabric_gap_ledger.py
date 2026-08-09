@@ -1007,8 +1007,9 @@ def deal_preserving_counts(
 #      90d |                                           15% |                   7%
 #     120d |                                            2% |                   2%
 #
-# (Applied panel — `tools/couple_fabric.py`'s ten homes — 40 independent deals
-# per window, 2026-08-10; the 8-home test panel reads 68/45/15/3 against 2/5/10/5.
+# (Applied panel — `tools/couple_fabric.py`, the TEN homes it carried on that
+# date; widened to 15 by H35 on 2026-08-09 — 40 independent deals per window,
+# 2026-08-10; the 8-home test panel reads 68/45/15/3 against 2/5/10/5.
 # The old floor's fail-open rate is a function of the WINDOW; the ratio's is flat
 # at its own alpha, which is what window-invariance looks like when it is measured
 # rather than asserted.)
@@ -1724,8 +1725,10 @@ BANDS: dict[str, Band] = {
             "percentile of that null, i.e. a one-sided permutation test at alpha = "
             "0.05: the decision point is a property of the construction, not a "
             "number anyone picked, and there is nothing here to tune. THE WINDOWS "
-            "IT HOLDS AT, measured on the APPLIED panel (couple_fabric, 10 homes, "
-            "40 independent re-deals per window, 2026-08-10) at 40 / 60 / 90 / "
+            "IT HOLDS AT, measured on the APPLIED panel as it stood that day "
+            "(couple_fabric, 10 homes; widened to 15 by H35, which does not "
+            "re-date this reading) — 40 independent re-deals per window, "
+            "2026-08-10 — at 40 / 60 / 90 / "
             "120 days: a timing-less population passes this ratio 7% / 12% / 7% / "
             "2% — flat at its own alpha — where the floor it replaces passed the "
             "same deals 65% / 57% / 15% / 2%, i.e. fail-open in proportion to how "

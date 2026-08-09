@@ -106,6 +106,29 @@ REVIEWED_CLOSE_TO_LEARN = {
     # Neither moves money; what both measure is whether this repo's bands can fail at all.
     "H34_score_timing_diversity_against_its_own_null",
     "H35_the_panel_never_exercises_two_of_its_own_bands",
+    # 2026-08-09 reviewed (worker tick, H35's own build). H35 widened the coupling panel so
+    # the two unexercised bands could be measured; both came back hits, and a third band that
+    # had read clean for as long as the panel was all-gas came back INSIDE its own null. H36
+    # and H37 are those dispositions, and they are close_to_learn on the same grounds as their
+    # parents rather than by default: neither moves money, neither touches a revenue flow, and
+    # what each measures is whether a band this repo already ships can fail at all —
+    #   H36: both electric texture floors are derived at ONE published typical home and applied
+    # at every home size, so a home with twice the assumed heat share is judged by a floor that
+    # was never about it (every panel home clears the floor its OWN behavioural share implies).
+    #   H37: the away-day signature reads a heat pump as an empty house — an occupied home
+    # flagged away on 104 of 120 real days — so L1.3 cannot fail on absence of the structure it
+    # certifies once any home's heat lands on the judged meter.
+    "H36_the_texture_floor_is_one_number_for_every_home_size",
+    "H37_the_away_signature_reads_a_heat_pump_as_an_empty_house",
+    # 2026-08-09 reviewed (worker tick, minting the WORK THIS CREATES block of
+    # DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING). Both are harness-integrity work and
+    # neither touches a revenue flow: OPS5 executes the expiry the ruling put on the one
+    # sanctioned interim bypass shape (an un-executed expiry turns a retro-sanction into the
+    # rule), and H38 is the granted full-suite pollution bisect — naming the module that makes
+    # tests pass alone and fail together, so the class stops being instance-fixed on a moving
+    # target. What each measures is whether this repo's own gate can be trusted to run.
+    "OPS5_retire_the_interim_bypass_shape",
+    "H38_full_suite_pollution_bisect",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for

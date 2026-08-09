@@ -143,14 +143,46 @@ _ERA_BAND = {
 
 # The PANEL — spans the stock deliberately, so a small gap cannot be an artefact
 # of asking eight near-identical houses whether they differ. Property type x build
-# era x insulation x occupancy, plus a heat pump (whose flat assumed SCOP is a
-# KNOWN bias source C14 copes with by widening, never by correcting).
+# era x insulation x occupancy, crossed with the HEATING REGIMES the band table
+# carries (whose flat assumed ASHP SCOP is a KNOWN bias source C14 copes with by
+# widening, never by correcting).
 #
 # `every_n_days` is the METER CADENCE, and it is deliberately NOT uniform: a real
 # supplier's book is a mix of smart (daily) and traditional (monthly/quarterly)
 # meters, and C14's measured error runs 0.2% -> 18% across that range. A panel read
 # entirely daily would flatter the company by giving every premise smart-meter
 # evidence it does not have.
+#
+# IT IS A SPAN, NOT A SAMPLE — restated here because this panel was widened
+# (2026-08-09, atom `H35_the_panel_never_exercises_two_of_its_own_bands`) and a
+# silent widening is how a span turns into an implied sample. 15 homes: 9 gas, 3
+# heat pump, 3 resistive electric. Real GB stock is ~85% mains gas, ~1% heat pump
+# and ~8% electric, so the electric regimes are deliberately over-weighted here by
+# roughly an order of magnitude. THAT IS NOT A REPRESENTATIVENESS CLAIM AND MUST
+# NEVER BE READ AS ONE: representativeness lives in `build_drawn_population`, which
+# draws property type, era and EPC band from a joint raked onto published EHS
+# marginals and heating system from its own published shares. This panel exists so
+# that every band the ledger carries is EXERCISED by the run that judges it —
+# `fabric_gap_ledger` conditions the L1.1 texture floor on heating regime (gas /
+# heat pump / resistive), and until 2026-08-09 the resistive band judged ZERO homes
+# and the heat-pump band judged ONE, so one band's null was unmeasurable and the
+# other's had no estimable spread. A carried-and-never-exercised band reads exactly
+# like a clean one.
+#
+# WHY THE RESISTIVE HOMES ARE `ELECTRIC_DIRECT` AND NOT `ELECTRIC_STORAGE`, which
+# is a deliberate deviation from the atom's own wording: the world layer does not
+# model a storage heater. `simulation/fabric_physics.py::_CONTROL_MODE` gives
+# `ELECTRIC_STORAGE` the same deadband thermostat as a gas combi, and
+# `simulation/premise_trace.py` contains no charge window, no thermal store and no
+# Economy-7 calendar (`WORKER_FINDING_THE_MODELS_STORAGE_HEATER_IS_NOT_ONE`,
+# owner atom W1_12). A home labelled `electric_storage` here would be a panel
+# heater wearing a storage heater's register value, and L1.1r's null would then be
+# reported as measured on a load set half of which is a mislabel. A panel heater is
+# exactly what `ELECTRIC_DIRECT` already is, and L1.1r's own anchor covers
+# "resistive (storage or panel)" — so the band becomes measurable on the
+# sub-regime the physics genuinely represents, and the storage sub-regime stays
+# openly unexercised until the storage-heater fidelity work lands, rather than
+# being quietly claimed.
 PANEL = (
     # id, property type, era, insulation, bedrooms, people, heating, meter cadence
     ("F1", PropertyType.FLAT, BuildEra.POST_2000, InsulationLevel.FULL, 1, 1,
@@ -173,6 +205,23 @@ PANEL = (
      HeatingSystem.GAS_BOILER_COMBI, 30),
     ("H10", PropertyType.SEMI_DETACHED, BuildEra.ERA_1981_2000, InsulationLevel.FULL, 3, 3,
      HeatingSystem.HEAT_PUMP_AIR, 1),
+    # The retrofit ASHP archetype — an older detached home, partially insulated,
+    # which is where the flat-SCOP assumption hurts most and therefore the home
+    # the heat-pump band most needs to be judged on.
+    ("H11", PropertyType.DETACHED, BuildEra.ERA_1965_1980, InsulationLevel.PARTIAL, 4, 3,
+     HeatingSystem.HEAT_PUMP_AIR, 7),
+    # New-build ASHP on a traditional meter: the regime and the cadence are varied
+    # independently, so "heat pump" and "read daily" cannot be confounded.
+    ("H12", PropertyType.TERRACED, BuildEra.POST_2000, InsulationLevel.FULL, 2, 2,
+     HeatingSystem.HEAT_PUMP_AIR, 30),
+    # Resistive electric (panel heaters). The canonical electrically-heated
+    # dwelling in the GB stock is a converted flat with no gas connection.
+    ("E13", PropertyType.FLAT, BuildEra.PRE_1919, InsulationLevel.POOR, 1, 1,
+     HeatingSystem.ELECTRIC_DIRECT, 30),
+    ("E14", PropertyType.FLAT, BuildEra.ERA_1965_1980, InsulationLevel.PARTIAL, 2, 2,
+     HeatingSystem.ELECTRIC_DIRECT, 7),
+    ("E15", PropertyType.TERRACED, BuildEra.ERA_1945_1964, InsulationLevel.POOR, 2, 3,
+     HeatingSystem.ELECTRIC_DIRECT, 1),
 )
 
 # EPC lodgement dates. STALENESS IS PART OF THE MEASUREMENT, not noise to remove:
@@ -191,7 +240,31 @@ _LODGED = {
     "F8": dt.date(2014, 2, 1),
     "S9": dt.date(2011, 6, 1),
     "H10": dt.date(2022, 1, 1),
+    "H11": dt.date(2018, 4, 1),
+    "H12": dt.date(2021, 6, 1),
+    "E13": dt.date(2013, 9, 1),
+    "E14": dt.date(2010, 8, 1),
+    "E15": dt.date(2022, 2, 1),
 }
+
+# The MAIN FUEL string as the EPC register itself records it, in the register's own
+# vocabulary ("electricity (not community)" is a real MAIN_FUEL value, not a
+# paraphrase). ONE map, read by both the certificate the company is handed and the
+# fuel it is told to assume when there is no certificate, because two copies of
+# this is how a home ends up with a resistive meter and a boiler's assumed
+# efficiency. Nothing here is a SIM internal: a supplier knows which meters it
+# supplies and what the register says is in the house.
+_REGISTER_FUEL = {
+    HeatingSystem.HEAT_PUMP_AIR: "air source heat pump",
+    HeatingSystem.HEAT_PUMP_GROUND: "ground source heat pump",
+    HeatingSystem.ELECTRIC_DIRECT: "electricity (not community)",
+    HeatingSystem.ELECTRIC_STORAGE: "electricity (not community)",
+    HeatingSystem.DISTRICT_HEAT: "community scheme",
+}
+
+
+def _register_fuel(household) -> str:
+    return _REGISTER_FUEL.get(household.heating_system, "mains gas")
 
 
 def _household(premise_id, property_type, build_era, insulation, bedrooms, people, heating):
@@ -202,7 +275,17 @@ def _household(premise_id, property_type, build_era, insulation, bedrooms, peopl
         epc_rating="D",
         bedrooms=bedrooms,
         heating_system=heating,
-        boiler_age=BoilerAge.MID,
+        # NA where there is no boiler. Inert in the physics (`_fuel_for` reads it
+        # only on the gas branch), and set anyway so the household RECORD does not
+        # assert a mid-life boiler in a home heated by panel heaters — a record a
+        # later consumer would be entitled to believe. The gas homes keep MID: a
+        # blanket era-derived boiler age would move every gas trace this panel has
+        # ever published, which is a different change from this one.
+        boiler_age=(
+            BoilerAge.MID
+            if heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)
+            else BoilerAge.NA
+        ),
         has_solar=False,
         solar_kwp=0.0,
         solar_install_year=None,
@@ -245,11 +328,7 @@ def _certificate_for(trace, household, lodged):
         property_type=_EPC_PROPERTY_TYPE[household.property_type],
         build_era_band=_ERA_BAND[household.build_era],
         insulation=household.insulation.value,
-        main_heating_fuel=(
-            "air source heat pump"
-            if household.heating_system == HeatingSystem.HEAT_PUMP_AIR
-            else "mains gas"
-        ),
+        main_heating_fuel=_register_fuel(household),
     )
 
 
@@ -280,7 +359,11 @@ def build_panel(weather, *, seed: int = 17, limit: int | None = None):
     for premise_id, ptype, era, insulation, bedrooms, people, heating, cadence in specs:
         household = _household(premise_id, ptype, era, insulation, bedrooms, people, heating)
         trace = _trace_for(premise_id, household, weather, seed=seed)
-        commodity = "electricity" if heating == HeatingSystem.HEAT_PUMP_AIR else "gas"
+        # The meter the heat actually lands on, taken from the trace's own
+        # statement rather than re-derived here: a list of "which systems are
+        # electric" maintained in this file is one heating system away from
+        # reading a resistive home's gas register and finding nothing on it.
+        commodity = trace.heating_commodity
         out.append((premise_id, household, trace, commodity, cadence, _LODGED.get(premise_id)))
     return out
 
@@ -347,11 +430,7 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
             certificate=certificate,
             as_of=AS_OF,
             property_type_hint=_EPC_PROPERTY_TYPE[household.property_type],
-            main_heating_fuel=(
-                "air source heat pump"
-                if household.heating_system == HeatingSystem.HEAT_PUMP_AIR
-                else "mains gas"
-            ),
+            main_heating_fuel=_register_fuel(household),
         )
         # TRUTH — read from the SIM side, never shown to the company.
         actual = trace.fabric.heat_loss_coefficient_kw_per_k

@@ -11,10 +11,16 @@ on a convenient fixture instead would answer a question nobody asked: a band's
 null is a property of the band AND the window it is applied at, and the only
 window that matters is the one in production.
 
-Exit status is 1 when any band is INSIDE its own null, so a scheduled run of this
-is an alarm and not a report. SAME_ORDER and UNMEASURABLE are findings, reported
-and not fatal — they are dispositioned in
-`docs/design/BAND_NULL_SWEEP.md`, not silently tolerated.
+Exit status is 1 when any band is INSIDE its own null OR when any band judges NO
+home at this window, so a scheduled run of this is an alarm and not a report. The
+second half of that was added on 2026-08-09 (atom `H35`): an unexercised band's
+null is UNKNOWN, and unknown must not exit 0 alongside measured-and-clear — an
+unavailable check is a failed check. The list lives in
+`background.band_null_sweep.FATAL_VERDICTS`, not here, so the exit code and the
+report cannot hold two different ideas of what is bad.
+
+SAME_ORDER stays a finding: reported, non-fatal, and dispositioned in
+`docs/design/BAND_NULL_SWEEP.md` rather than silently tolerated.
 """
 
 from __future__ import annotations
@@ -70,12 +76,15 @@ def main() -> int:
                 print(f"\n  {m.band}: {m.note}")
             if m.caveat:
                 print(f"\n  {m.band} [caveat]: {m.caveat}")
+        # R5 — the alarm carries its payload. A non-zero exit whose reason is only
+        # visible by re-reading the table above is a status, not a diagnostic.
+        for m in bns.fatal(measurements):
+            print(f"\n  FATAL {m.band}: {m.verdict.value} — {m.note}")
         print(f"\n  excluded from the sweep ({len(bns.excluded_bands())}):")
         for name, reason in sorted(bns.excluded_bands().items()):
             print(f"    {name}: {reason}")
 
-    defects = [m for m in measurements if m.verdict is bns.NullVerdict.INSIDE_NULL]
-    return 1 if defects else 0
+    return 1 if bns.fatal(measurements) else 0
 
 
 if __name__ == "__main__":
