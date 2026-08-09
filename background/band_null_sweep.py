@@ -593,6 +593,79 @@ def _null_best(values: Sequence[float], direction: str) -> float:
     return _quantile(values, 0.95) if direction == "at_least" else _quantile(values, 0.05)
 
 
+def _draw(
+    spec: "NullSpec",
+    population: PopulationTraces,
+    selected: Sequence[int],
+    band_name: str,
+    *,
+    replications: int,
+    seed: int,
+) -> tuple[list[float], list[float], int]:
+    """Read the statistic on the real population and on `draws` null populations,
+    both restricted to the homes this band judges.
+
+    Both empty cases RAISE rather than returning an empty list: a statistic that
+    reads nothing finite has no margin to compare, and a null that cannot be
+    measured is a null that is UNKNOWN — which must never render as a clear one.
+    """
+    keep = set(selected)
+
+    def read(pop: PopulationTraces) -> list[float]:
+        return [v for k, v in enumerate(spec.read(pop)) if k in keep and math.isfinite(v)]
+
+    observed = read(population)
+    if not observed:
+        raise SweepIncomplete(
+            f"{band_name}: the statistic returned nothing finite on the real "
+            "population, so there is no margin to compare a null against"
+        )
+
+    rng = random.Random(f"{seed}:{band_name}")
+    draws = 1 if spec.is_point_mass else replications
+    values: list[float] = []
+    for _ in range(draws):
+        values.extend(read(spec.make_null(population, rng)))
+    if not values:
+        raise SweepIncomplete(
+            f"{band_name}: the null produced no finite readings — a null that "
+            "cannot be measured is a null that is unknown, not one that is clear"
+        )
+    return observed, values, draws
+
+
+def _judge_against_null(
+    band: Band, values: Sequence[float]
+) -> tuple[float, float, float, NullVerdict, str]:
+    """The verdict rule, kept in one place and away from the plumbing.
+
+    Fixed BEFORE any number was looked at (R12): the threshold has to clear the
+    best the null manages, and clear it by more than the null's own spread. The
+    quantity compared is `null_best` — the 95th percentile on the pass side, not
+    the median — because a band a structureless population beats one draw in
+    twenty is not a control.
+    """
+    threshold = band.threshold
+    assert threshold is not None      # callers check; narrows the type
+    best = _null_best(values, band.direction)
+    spread = _quantile(values, 0.95) - _quantile(values, 0.05)
+    gap = (threshold - best) if band.direction == "at_least" else (best - threshold)
+
+    if band.judge(best) is Verdict.PASS:
+        return best, spread, gap, NullVerdict.INSIDE_NULL, (
+            "a population with this structure REMOVED clears the band in at least "
+            "1 draw in 20 — the band cannot fail on absence"
+        )
+    if gap <= spread:
+        return best, spread, gap, NullVerdict.SAME_ORDER, (
+            f"the band clears the null by {gap:.4g}, which is inside the null's own "
+            f"spread of {spread:.4g} — separated by the draw, not by construction"
+        )
+    return best, spread, gap, NullVerdict.SEPARATED, (
+        f"the band clears the null by {gap:.4g} against a null spread of {spread:.4g}"
+    )
+
+
 def measure_null(
     band_name: str,
     population: PopulationTraces,
@@ -617,46 +690,10 @@ def measure_null(
     if not selected:
         return _unmeasurable(band, spec, population)
 
-    def read(pop: PopulationTraces) -> list[float]:
-        return [v for k, v in enumerate(spec.read(pop)) if k in set(selected) and math.isfinite(v)]
-
-    observed = read(population)
-    if not observed:
-        raise SweepIncomplete(
-            f"{band_name}: the statistic returned nothing finite on the real "
-            "population, so there is no margin to compare a null against"
-        )
-
-    rng = random.Random(f"{seed}:{band_name}")
-    values: list[float] = []
-    draws = 1 if spec.is_point_mass else replications
-    for _ in range(draws):
-        values.extend(read(spec.make_null(population, rng)))
-    if not values:
-        raise SweepIncomplete(
-            f"{band_name}: the null produced no finite readings — a null that "
-            "cannot be measured is a null that is unknown, not one that is clear"
-        )
-
-    best = _null_best(values, band.direction)
-    spread = _quantile(values, 0.95) - _quantile(values, 0.05)
-    gap = (band.threshold - best) if band.direction == "at_least" else (best - band.threshold)
-
-    if band.judge(best) is Verdict.PASS:
-        verdict = NullVerdict.INSIDE_NULL
-        note = (
-            "a population with this structure REMOVED clears the band in at least "
-            "1 draw in 20 — the band cannot fail on absence"
-        )
-    elif gap <= spread:
-        verdict = NullVerdict.SAME_ORDER
-        note = (
-            f"the band clears the null by {gap:.4g}, which is inside the null's own "
-            f"spread of {spread:.4g} — separated by the draw, not by construction"
-        )
-    else:
-        verdict = NullVerdict.SEPARATED
-        note = f"the band clears the null by {gap:.4g} against a null spread of {spread:.4g}"
+    observed, values, draws = _draw(
+        spec, population, selected, band_name, replications=replications, seed=seed
+    )
+    best, spread, gap, verdict, note = _judge_against_null(band, values)
 
     return NullMeasurement(
         band=band_name,
