@@ -1685,3 +1685,17 @@ def test_cli_write_ledger_publishes_the_measured_note_not_a_retired_one(monkeypa
     # The two same-named exposures must be flagged as different measurements
     # wherever both are printed together (the shared-quantity finding).
     assert "SHARED_QUANTITY_CONTRACT" in note
+
+
+def test_the_pair_reexports_the_class_register_it_does_not_copy_it():
+    """The register was lifted OUT of this triad's module on 2026-08-09 because
+    it is a CLASS register (R10) and living inside the one pair that tripped the
+    defect is how the previous ones ended up triad-local. The pair re-exports it
+    for its consumers -- this asserts the re-export is the SAME OBJECT, not a
+    second copy that could drift, and gives the new module its own direct test
+    evidence (the capability index reads it as untested otherwise, which is the
+    no-caller shape this repo keeps auditing)."""
+    import background.shared_quantity_contract as reg
+
+    assert pair.SHARED_QUANTITY_CONTRACT is reg.SHARED_QUANTITY_CONTRACT
+    assert pair.shared_quantity_measurements is reg.shared_quantity_measurements
