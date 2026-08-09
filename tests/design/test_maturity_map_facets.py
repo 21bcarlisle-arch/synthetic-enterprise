@@ -109,6 +109,21 @@ REVIEWED_CLOSE_TO_LEARN = {
     # customer neither goes near.
     "AO10_exhaust_separated_from_record",
     "AO11_map_assertion_provenance",
+    # 2026-08-09 reviewed (worker tick, minted at AO5 close: the four KNIFE passes the plan in
+    # docs/design/KNIFE_HOTSPOT_PASSES.md sequences). Classified on their merits and inheriting
+    # nothing from AO5 by default -- the gate refusing all four at once caught exactly that
+    # inheritance, which is the defect it exists for. Each moves code structure and no money:
+    # KNIFE1 breaks an import cycle between the reporting package and the run that imports it
+    # back; KNIFE2 routes 16 SIM reads of the customer module through the existing seam; KNIFE3
+    # pays down what remains of the 107 wall crossings; KNIFE4 gives 258 unreferenced company
+    # modules a wired/archived/explained verdict. All four are behaviour-preserving by their own
+    # exit tests -- a KNIFE pass that changed a bill would have failed its own byte-identical
+    # check -- so filing any of them under meter_to_cash or price_to_bill would claim a revenue
+    # movement their acceptance criteria explicitly forbid.
+    "KNIFE1_reporting_cycle",
+    "KNIFE2_customer_straddle",
+    "KNIFE3_wall_crossing_paydown",
+    "KNIFE4_orphan_disposition",
     # 2026-08-08 reviewed (worker tick, minting the EP1-EP20 commitment sets (epochs 2-5) from
     # DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08). Classified on their merits, not to clear
     # the gate -- and as with the AO batch, the gate firing on eleven at once is this control doing

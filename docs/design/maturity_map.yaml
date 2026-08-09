@@ -3648,7 +3648,7 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
@@ -3658,6 +3658,74 @@
   evidence: ['docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md']
   file_scope: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
   origin_note: "BLAST RADIUS HIGH -- the hotspots include MONEY PATHS. The director pre-ruled all four mitigations and they are walls, not preferences: sequence position (after NET, hence the depends_on above), one hotspot per pass, behaviour-preserving moves ONLY, and byte-identical output checks where they exist (established pattern). The Epoch-3 adapter programme is the BOUNDARY half of this knife and is deliberately NOT duplicated here -- check it before touching target (3), the SIM->company crossings, or two lanes will cut the same seam. file_scope is the planning doc only: each pass mints its OWN atom with its own real file_scope, because a shared file_scope across four high-risk refactors is exactly the concurrency hazard the three-lanes rule exists to prevent."
+- id: KNIFE1_reporting_cycle
+  title: "Break the reporting/main-run import cycle"
+  gain: "The annual report stops importing the simulation run that imports it back, so the company's reporting can be read, tested and moved without dragging the whole run behind it."
+  name: "KNIFE pass 1 of 4 (AO5). Cut the 3-edge mutual import between saas/reporting/ and the main run: saas.reporting.annual_report -> simulation.run_phase4c_on_phase2b, saas.reporting.segment_report -> simulation.run_segments (both class (a), the STRICTLY FORBIDDEN direction and the ratchet's own named highest-priority shrink target), plus the return edge simulation.run_phase4c_on_phase2b -> saas.reporting.annual_report that closes the cycle. Cutting one direction alone leaves an import, not a cycle. EXIT: both class-(a) tuples deleted from LEGACY_COMPANY_READS_SIM so class (a) reaches ZERO; the return tuple deleted from LEGACY_SIM_READS_COMPANY (105 -> 104); annual report byte-identical before/after."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO5_hotspot_consolidation]
+  couples_with: []
+  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
+  file_scope: ['saas/reporting/annual_report.py', 'saas/reporting/segment_report.py', 'simulation/run_phase4c_on_phase2b.py', 'simulation/run_segments.py', 'tests/architecture/test_epistemic_wall_ratchet.py']
+  origin_note: "SERIAL WALL, measured not assumed: this pass shares simulation/run_phase4c_on_phase2b.py with KNIFE2_customer_straddle and 3 files with KNIFE3_wall_crossing_paydown. NO TWO of the three wall passes are disjoint, so none may run concurrently with another -- the overlap table in KNIFE_HOTSPOT_PASSES.md section 3 is the evidence and tools/knife_hotspot_measure.py re-checks it. Do NOT split the 9,378-line annual_report.py in this pass: that is a SIZE problem, this is a CYCLE problem, and one-hotspot-per-pass is a director wall. The split is deferred to AO6_consolidation_rhythm or its own atom, named so it is deferred rather than forgotten. Do NOT edit the walker inside test_epistemic_wall_ratchet.py -- changing the instrument and the measured thing in one commit measures nothing; the file is in scope ONLY to delete allowlist tuples."
+- id: KNIFE2_customer_straddle
+  title: "Stop the simulation reaching into the customer module"
+  gain: "The 16 places where the simulated world reads the company's own customer code directly go through the seam instead, so the company can be wrong about its customers the way a real supplier can."
+  name: "KNIFE pass 2 of 4 (AO5). saas/customers.py (496 lines) is company-side code that 16 SIM modules import directly, bypassing company/interfaces/sim_interface.py. Route them through the seam. EXIT: those 16 edges gone from LEGACY_SIM_READS_COMPANY; class (b) drops to 88 (from 104, after pass 1 takes the return edge). WATCH: simulation.run_phase2b owns 35 of the 105 class-(b) edges, the densest source in the codebase -- this pass touches ONLY its customer edges; the rest belong to pass 3 and must not be taken opportunistically."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO5_hotspot_consolidation, KNIFE1_reporting_cycle]
+  couples_with: []
+  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
+  file_scope: ['saas/customers.py', 'company/interfaces/sim_interface.py', 'tests/architecture/test_epistemic_wall_ratchet.py']
+  origin_note: "file_scope here names the OWNED files; the 16 SIM reachers are enumerated by tools/knife_hotspot_measure.py at draw time rather than frozen into this row, because pass 1 changes the set. SERIAL WALL: shares simulation/run_phase4c_on_phase2b.py with KNIFE1 and 16 files with KNIFE3 -- never concurrent with either. This pass ADDS to the seam, which is the one place a crossing is legitimate; a 'fix' that deletes the crossing by copying customer state into the SIM is an epistemic-wall violation, not a paydown."
+- id: KNIFE3_wall_crossing_paydown
+  title: "Pay down the remaining wall crossings"
+  gain: "What is left of the 107 direct SIM/company imports goes through the one sanctioned seam, which is the same seam a real go-live would swap for real endpoints."
+  name: "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO5_hotspot_consolidation, KNIFE1_reporting_cycle, KNIFE2_customer_straddle]
+  couples_with: []
+  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
+  file_scope: ['company/interfaces/sim_interface.py', 'tests/architecture/test_epistemic_wall_ratchet.py', 'tools/knife_hotspot_measure.py']
+  origin_note: "COORDINATION WALL, director-stated: the Epoch-3 adapter programme is the BOUNDARY half of this knife and is NOT duplicated here -- CHECK IT BEFORE STARTING, or two lanes cut the same seam. This pass CONTAINS passes 1 and 2 by file set (33 files including all 3 of pass 1's and all 16 of pass 2's), which is why depends_on chains it behind both: drawn earlier it would re-cut edges another pass owns. Its own file_scope is deliberately narrow -- the SIM-side files it touches are whatever survives, enumerated at draw time by tools/knife_hotspot_measure.py, because freezing them today would be a lie by the time this is drawn."
+- id: KNIFE4_orphan_disposition
+  title: "Give every unreferenced company module a verdict"
+  gain: "258 company modules nothing calls stop being ambiguous -- each is wired to its missing caller, archived with the thing that superseded it, or explained."
+  name: "KNIFE pass 4 of 4 (AO5), position free -- the only hotspot disjoint from the other three. Dispose of the 258 company-side zero-import modules: wire or retire, ARCHIVE NEVER DELETE (director wall). METHOD IS FORCED BY THE MEASUREMENT: all 258 carry test evidence, so the orphan list is a list of QUESTIONS, not corpses, and retirement may NEVER be inferred from orphan status alone. Each module gets a positive disposition with a reason -- wired (a caller existed and was missing), retired-to-archive (name the superseder), or kept-and-explained (a library/entry point the index cannot see, which is a defect in the index's caller detection and is logged as one). EXIT: every orphan carries a disposition; the count falls; nothing is deleted."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_programme
+  depends_on: [AO5_hotspot_consolidation]
+  couples_with: []
+  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
+  file_scope: ['docs/design/ORPHAN_DISPOSITION_REGISTER.md', 'tools/capability_index.py']
+  origin_note: "DISJOINT BY MEASUREMENT, not by definition: an orphan could in principle also sit on a crossing edge (nothing stops a module with no company-side caller being imported from simulation/), and the measured overlap with all three wall passes is zero. So this pass may run at any position, including alongside a wall pass if width is ever available. The 258 module paths are NOT frozen into file_scope -- the register is the owned artefact and the index is the source; freezing 258 paths would make every unrelated module addition a scope conflict. Directly connected to the no-caller class census (2026-08-09, 13 instances in 13 days, 8 found by accident): this pass is that class's standing disposition, and a module 'kept-and-explained' because the index could not see its caller is a finding AGAINST the index, to be logged, not absorbed."
 - id: AO6_consolidation_rhythm
   title: "Tidying becomes a standing duty"
   gain: "Duplicates and orphans get cleared every epoch instead of accumulating until the next big audit."
