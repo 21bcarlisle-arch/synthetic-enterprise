@@ -4334,7 +4334,26 @@
 - id: H33_does_this_statistic_have_a_null
   title: "Sweep every anchored band for the null it is supposed to sit above"
   gain: "Finds the bands that a structureless population already clears -- the fail-open shape no amount of re-reading an anchor's provenance can catch."
-  name: "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09 (the instance half closed the same day; the sweep it proposes has never been run). THE QUESTION, per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' -- a distance between two SUBSETS of one subject's data is bounded away from zero by sampling noise alone, and a band derived over a full year can sit UNDER the null of the same statistic at a 120-day window, so a randomised population clears it. Sibling shapes already on the register: worst-of-N not scale-invariant, band applied to the wrong load set, mutation must dominate the natural spread. EXIT: (1) an ENUMERATION of every band in background/ and tools/ carrying a numeric threshold and an external AnchorStatus, derived from the band tables rather than by inspection; (2) per band, the statistic's null MEASURED by randomising the structure it is meant to detect at the window the band is APPLIED at (not the window it was derived at), with the margin recorded -- a band inside its own null is a defect, a band the same order as it is a finding; (3) each hit dispositioned repair-the-statistic (the L1.4->L1.4n permutation-null pattern) or repair-the-window, NEVER lower-the-floor-until-something-fails (R12 goal-seek); (4) R15 both ways incl. a vacuity guard proving the enumeration is non-empty on the live tree, since a sweep that finds no bands is the fail-open shape here."
+  name: "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09. Per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' BUILT 2026-08-09 -- background/band_null_sweep.py, tools/band_null_sweep.py, 25 R15 tests. The four EXIT criteria as minted, the enumeration, every measured null and each hit's disposition are in docs/design/BAND_NULL_SWEEP.md (moved there verbatim when the map hit its size ratchet). Hits: L2.3 SAME_ORDER -> atom H34; L1.1r UNMEASURABLE and L1.1e n=1 -> atom H35."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 3
+  provenance: worker_finding
+  depends_on: []
+  couples_with: [H_GAP_fabric_belief_truth_gap]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'background/band_null_sweep.py', 'tools/band_null_sweep.py', 'tests/harness/test_band_null_sweep.py', 'docs/observability/band_null_sweep.json', 'docs/staging/done/WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09.md']
+  file_scope: ['background/band_null_sweep.py', 'tools/band_null_sweep.py', 'tests/harness/test_band_null_sweep.py', 'docs/design/BAND_NULL_SWEEP.md']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a lab that validated its assay against a reference range measured on a different sample size, and never ran a blank"
+
+- id: H34_score_timing_diversity_against_its_own_null
+  title: "L2.3 against its permutation null, not against a constant half-hour floor"
+  gain: "Removes the one band the H33 sweep found sitting on its own null -- as a CLASS, by scoring against the null not moving a number."
+  name: "MINTED FROM the L2.3 disposition in docs/design/BAND_NULL_SWEEP.md (H33 sweep 2026-08-09; full numbers there). MEASURED: L2.3_timing_diversity_periods (at_least 0.5) sits INSIDE its own null at 40/60/90d and clears it at the applied 120d window by +0.0101 -- 3.8% of the null's spread. The observed value falls WITH the null, so the statistic carries the same sampling term as its null and no fixed floor is right at every window. EXIT: (1) L2.3 scored as observed/permutation-null (the L1.4 -> L1.4n pattern), reusing band_null_sweep::_exchangeable_homes_null; (2) the ratio's threshold derived rule-before-number, stated with the windows it holds at; (3) R15 both ways -- a timing-less population FAILS and a real one PASSES at every window in 40..120d; (4) band_null_sweep shows L2.3 SEPARATED at every window. Never lower the floor (R12)."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4343,9 +4362,28 @@
   loop_stage: build
   dial_inherited: 3
   provenance: worker_finding
-  depends_on: []
+  depends_on: [H33_does_this_statistic_have_a_null]
   couples_with: [H_GAP_fabric_belief_truth_gap]
-  evidence: ['docs/staging/done/WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09.md', 'background/lcl_household_anchors.py', 'background/fabric_gap_ledger.py']
-  file_scope: []
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
+  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a lab that validated its assay against a reference range measured on a different sample size, and never ran a blank"
+  real_world_twin: "a reference range that holds at the sample size the lab usually runs, and silently does not at the one it ran"
+
+- id: H35_the_panel_never_exercises_two_of_its_own_bands
+  title: "A resistive-heat home on the coupling panel, so L1.1r is judged by something"
+  gain: "Two regime-conditioned bands are carried and never exercised -- an unexercised band's null is unknown, and unknown reads like clean."
+  name: "MINTED FROM the L1.1r/L1.1e dispositions in docs/design/BAND_NULL_SWEEP.md (H33, 2026-08-09). MEASURED at the applied window (couple_fabric PANEL, 10 homes x 120d): L1.1r judges ZERO homes -- no electric_storage/electric_direct home is on the panel -- so its null cannot be measured on the load set it governs, and reading it off the 9 gas homes is the wrong-load-set defect. L1.1e judges ONE home, so its null has no estimable spread and its +0.0163 margin is a point estimate. NOTABLE: L1.1r was derived BECAUSE a storage-heater home breached L1.1, and none is ever judged by it. EXIT: (1) the panel carries an electric_storage home and enough heat-pump homes for L1.1e's null to have a spread, stock-representativeness restated not silently widened; (2) both bands MEASURABLE on re-run; (3) re-measured verdicts dispositioned repair-the-statistic or repair-the-window, never lower-the-floor (R12); (4) a guard making a band that judges zero homes FAIL, not merely be reported."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: worker_finding
+  depends_on: [H33_does_this_statistic_have_a_null]
+  couples_with: [H_GAP_fabric_belief_truth_gap]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
+  file_scope: ['tools/couple_fabric.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a lab keeping a reference range for a test it has never run on a sample of that type"

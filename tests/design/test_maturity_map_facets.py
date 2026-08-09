@@ -95,6 +95,17 @@ REVIEWED_CLOSE_TO_LEARN = {
     "OPS2_publish_gate_head_worktree",
     "OPS3_first_post_ruling_publish",
     "H33_does_this_statistic_have_a_null",
+    # 2026-08-09 reviewed (worker tick, H33's own two hits). Classified on their merits, not to
+    # clear the gate: both are R15 CONTROL-INTEGRITY atoms of exactly H33's class, minted from
+    # its measured output rather than authored.
+    #   H34 repairs the one band the sweep found sitting on its own null (L2.3 timing diversity
+    # is INSIDE its null at 40/60/90 days and clears it at 120 by 3.8% of the null's own spread),
+    # by scoring against the permutation null instead of a constant floor.
+    #   H35 closes the other hit: two regime-conditioned texture bands that judge zero and one
+    # home at the applied window, so their nulls cannot be measured on the load set they govern.
+    # Neither moves money; what both measure is whether this repo's bands can fail at all.
+    "H34_score_timing_diversity_against_its_own_null",
+    "H35_the_panel_never_exercises_two_of_its_own_bands",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for
