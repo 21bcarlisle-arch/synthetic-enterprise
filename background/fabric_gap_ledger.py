@@ -108,6 +108,7 @@ passed IN by the caller. Any sampling draws from this module's OWN named substre
 from __future__ import annotations
 
 import math
+import random
 import statistics
 from dataclasses import dataclass
 from enum import Enum
@@ -534,6 +535,172 @@ def weekday_weekend_separation(
 
     a, b = mean_shape(weekday), mean_shape(weekend)
     return 0.5 * sum(abs(x - y) for x, y in zip(a, b))
+
+
+# ---------------------------------------------------------------------------
+# L1.4n — THE SAME DISTANCE, JUDGED AGAINST THE HOME'S OWN PERMUTATION NULL
+# ---------------------------------------------------------------------------
+#
+# WHY THIS EXISTS, and it is the direct repair of a named defect in this file.
+# `weekday_weekend_separation` above is a distance between two SUBSETS of one
+# home's days, and a distance between two subsets is bounded away from zero by
+# sampling noise alone: with 85 weekday days against 35 weekend ones, two
+# ARBITRARY halves of the same home differ by about as much as a real household's
+# weekday differs from its weekend over a full year. That is not a conjecture —
+# it was measured on 2026-08-09, and it is why the Low Carbon London anchor for
+# L1.4 was derived, wired, and taken back out within the hour: a day-type
+# RANDOMISED population cleared the floor with a 1.4x margin, and a band a
+# structureless population clears is fail-open (R15).
+#
+# THE REPAIR IS TO THE STATISTIC, NOT THE THRESHOLD. Each home is compared with
+# ITSELF under `WEEKDAY_WEEKEND_NULL_SAMPLES` random relabellings of its own
+# day-type calendar, holding the weekday/weekend COUNTS fixed. The judged number
+# is the ratio of the real separation to the 95th percentile of that null — a
+# one-sided permutation test at alpha = 0.05, expressed so that 1.0 is the
+# decision point and the number itself reads as "this home's weekday/weekend
+# distance is N times what an arbitrary split of its own days achieves".
+#
+# NOT A TAUTOLOGY, and this is the R15 pattern most likely to be alleged here:
+# the null is built from the same home's data, so it looks like a value checked
+# against itself. What is destroyed in the null is exactly the thing under test —
+# the ASSOCIATION between the calendar and the shape — while the home's own
+# noise, level and day-to-day variability are held. The proof is not the argument
+# but the measurement: on the drawn population the real labelling reads a median
+# ratio of 1.45 with 1 home of 60 below 1.0, and the randomised labelling reads
+# 0.75 with 58 of 60 below. A tautological statistic cannot separate those.
+#
+# WHAT THIS STILL DOES NOT ANSWER. This band asks whether a home has ANY real
+# weekday/weekend structure. It does NOT ask whether that structure is as LARGE
+# as a real household's — that is a magnitude question, it needs an external
+# panel, and it remains `AnchorStatus.NEED` on the raw L1.4 cell below. The LCL
+# extract in this repo cannot close it: it carries each household's ANNUAL MEAN
+# weekday and weekend shape, so the panel's own null cannot be computed from it,
+# and null-correcting one side of a comparison and not the other is the same
+# window-mismatch error in new coordinates.
+
+#: A one-sided permutation test at alpha = 0.05. 99 samples so the 95th
+#: percentile is an order statistic rather than an interpolation.
+WEEKDAY_WEEKEND_NULL_SAMPLES = 99
+WEEKDAY_WEEKEND_NULL_QUANTILE = 0.95
+
+#: Named rather than a literal at the call site (C-S2, RNG substream discipline):
+#: a threshold that can be moved by quietly reseeding is not a threshold.
+WEEKDAY_WEEKEND_NULL_SEED = 90210
+
+#: THE DEGENERACY GUARD IS RELATIVE, NOT `> 0.0`, and it was written that way
+#: because `> 0.0` did not hold. A home whose days are all IDENTICAL has a true
+#: null of exactly zero, but the two branches of the difference are summed in a
+#: different order, so it computes as ~1e-18 rather than 0.0 — and the ratio of
+#: two rounding errors is a number between 0 and 2 that reads as an ordinary
+#: verdict. A separation is a total-variation distance between vectors that sum
+#: to 1, so it lives in [0, 1] and a real one is O(0.1); 1e-9 is nine orders
+#: below anything meaningful and cannot be reached by a home that has structure.
+WEEKDAY_WEEKEND_NULL_DEGENERATE_BELOW = 1e-9
+
+
+class DegenerateNull(InsufficientEvidence):
+    """This ONE home has no null to be judged against — every relabelling of its
+    days gives the same mean shape.
+
+    A separate type because the two insufficiencies must be handled differently
+    and conflating them was a real defect for the length of one test run: too few
+    DAYS is a fact about the RUN and must stop it, while a degenerate null is a
+    fact about ONE HOME and must not — a population containing a single flat home
+    would otherwise abort the whole suite, which is a control that cannot report.
+    What the cell does with it is a decision stated at the call site, not here.
+    """
+
+
+@dataclass(frozen=True)
+class SeparationAgainstNull:
+    """L1.4n — one home's weekday/weekend separation beside its own null."""
+
+    raw: float
+    null_median: float
+    null_p95: float
+    samples: int
+
+    @property
+    def ratio(self) -> float:
+        """THE judged statistic. >= 1.0 means the real day-type calendar explains
+        more of this home's shape than an arbitrary relabelling of its own days
+        does 95% of the time."""
+        return self.raw / self.null_p95
+
+
+def weekday_weekend_separation_vs_own_null(
+    days: Sequence[Sequence[float]],
+    is_weekend: Sequence[bool],
+    *,
+    samples: int = WEEKDAY_WEEKEND_NULL_SAMPLES,
+    seed: int = WEEKDAY_WEEKEND_NULL_SEED,
+) -> SeparationAgainstNull:
+    """L1.4n — `weekday_weekend_separation` judged against this home's own
+    permutation null. Deterministic given `seed` (C-S2).
+
+    FAIL-CLOSED in every direction an unavailable check could take (R15): too few
+    days or too few of either day type RAISES via the same guards the raw
+    statistic uses; a non-finite reading RAISES; and a degenerate null — every
+    relabelling of this home's days giving the same mean shape, so the
+    denominator is zero — RAISES rather than returning an infinite ratio that
+    would read as a spectacular pass.
+    """
+    grid = _require_days(
+        days, minimum=MIN_DAYS_FOR_TEXTURE, name="weekday_weekend_separation_vs_own_null"
+    )
+    if len(is_weekend) != len(grid):
+        raise InsufficientEvidence("day-type flags must align with the trace days")
+    if samples < 2:
+        raise InsufficientEvidence("a permutation null over fewer than two samples is theatre")
+
+    # Normalise each non-empty day ONCE. Every relabelling is then a re-partition
+    # of the same normalised shapes, which is what makes the null affordable.
+    shapes: list[list[float]] = []
+    weekend_flags: list[bool] = []
+    for day, flag in zip(grid, is_weekend):
+        total = sum(day)
+        if total > 0.0:
+            shapes.append([v / total for v in day])
+            weekend_flags.append(bool(flag))
+    n = len(shapes)
+    n_weekend = sum(weekend_flags)
+    if n_weekend < 5 or n - n_weekend < 5:
+        raise InsufficientEvidence(
+            f"need >= 5 non-empty days of each type; got {n - n_weekend} weekday / "
+            f"{n_weekend} weekend"
+        )
+
+    total_shape = [0.0] * PERIODS_PER_DAY
+    for shape in shapes:
+        for p in range(PERIODS_PER_DAY):
+            total_shape[p] += shape[p]
+
+    def separation(weekend_index: Sequence[int]) -> float:
+        acc = [0.0] * PERIODS_PER_DAY
+        for i in weekend_index:
+            shape = shapes[i]
+            for p in range(PERIODS_PER_DAY):
+                acc[p] += shape[p]
+        k = len(weekend_index)
+        return 0.5 * sum(
+            abs((total_shape[p] - acc[p]) / (n - k) - acc[p] / k) for p in range(PERIODS_PER_DAY)
+        )
+
+    raw = separation([i for i, w in enumerate(weekend_flags) if w])
+    rnd = random.Random(seed)
+    null = sorted(separation(rnd.sample(range(n), n_weekend)) for _ in range(samples))
+    p95 = null[min(int(WEEKDAY_WEEKEND_NULL_QUANTILE * (samples - 1)), samples - 1)]
+    if not math.isfinite(raw) or not math.isfinite(p95):
+        raise InsufficientEvidence("a non-finite separation cannot be judged")
+    if p95 <= WEEKDAY_WEEKEND_NULL_DEGENERATE_BELOW:
+        raise DegenerateNull(
+            f"this home's permutation null is degenerate (p95 {p95:.3g}) — every "
+            "relabelling of its days gives the same mean shape, so there is no null "
+            "to judge against and the ratio would be one rounding error over another"
+        )
+    return SeparationAgainstNull(
+        raw=raw, null_median=statistics.median(null), null_p95=p95, samples=samples
+    )
 
 
 @dataclass(frozen=True)
@@ -1219,12 +1386,20 @@ BANDS: dict[str, Band] = {
             "by about as much as a real household's weekday differs from its "
             "weekend over a full year. A band that a day-type-randomised population "
             "clears with a 1.4x margin is fail-open, and a fail-open band is worse "
-            "than an honest blank (R15). WHAT WOULD CLOSE IT: judge each home "
-            "against its OWN permutation null (separation minus the median of k "
-            "randomised relabellings) rather than against a raw distance measured "
-            "on a different window — then a full-year anchor and a 120-day "
-            "measurement are the same statistic. That is a named build, not a "
-            "threshold move. SERL remains the stratified source of record."
+            "than an honest blank (R15). HALF OF WHAT THIS NEEDED IS NOW BUILT and "
+            "sits beside it as L1.4n: each home is judged against its OWN "
+            "permutation null, which answers whether the home has ANY real "
+            "weekday/weekend structure and DOES fire on the randomised calendar "
+            "this raw cell could not. THIS CELL STAYS UNANCHORED ANYWAY, because "
+            "it asks the other question — whether that structure is as LARGE as a "
+            "real household's — and the repo's LCL extract cannot answer it: it "
+            "carries each household's ANNUAL MEAN weekday and weekend shape, so "
+            "the panel's own null is not computable from it, and null-correcting "
+            "the model's side alone would be this same window-mismatch error in "
+            "new coordinates. WHAT WOULD CLOSE IT: a panel with PER-DAY half-hourly "
+            "readings — SERL, or the LCL trial's raw partitioned archive — from "
+            "which the same null correction can be computed on both sides. SERL "
+            "remains the stratified source of record."
         ),
         observed_on_shipped=None,
         rationale=(
@@ -1235,6 +1410,34 @@ BANDS: dict[str, Band] = {
             "MEDIAN (0.072) — so the model's homes look MORE weekday/weekend-distinct "
             "and LESS varied in that distinction than real ones. Both readings are "
             "confounded by the same window bias, which is why neither is judged."
+        ),
+    ),
+    "L1.4n_weekday_weekend_null_ratio": Band(
+        statistic="L1.4n_weekday_weekend_null_ratio",
+        level="L1",
+        direction="at_least",
+        threshold=1.0,
+        anchor=AnchorStatus.STRUCTURAL,
+        anchor_source=(
+            "No external anchor needed and none is borrowed — the comparison is "
+            "the home against ITSELF with the calendar/shape association destroyed "
+            "(see the L1.4n note above the statistic). The threshold is 1.0 "
+            "because the statistic is DEFINED as a ratio to the 95th percentile "
+            "of that null, i.e. a one-sided permutation test at alpha = 0.05: the "
+            "decision point is a property of the construction, not a number "
+            "anyone picked, and there is nothing here to tune. THIS IS THE CELL "
+            "L1.4 COULD NOT BE. The raw distance had a null of 0.0715 at this "
+            "window and a floor of 0.0262 under it, so a day-type-randomised "
+            "population passed; expressed against its own null the SAME "
+            "population reads a median 0.75 and fails on 58 homes of 60."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "A generator with no day-type mechanism at all scores at its own null "
+            "whatever the window length — which is exactly what the raw cell could "
+            "not say. What this cell does NOT claim is magnitude: a home can beat "
+            "its own null with a weekday/weekend difference far smaller than a real "
+            "household's, and that question stays open on L1.4."
         ),
     ),
     "L1.5_max_multiplicity_share": Band(
@@ -1457,6 +1660,31 @@ RATE_BANDS: dict[str, RateBand] = {
         "BANDS for the measurement that took the anchor back out, and for the "
         "tolerated rate (10%) that goes back in with it when the statistic is "
         "null-corrected.",
+    ),
+    "L1.4n_weekday_weekend_null_ratio": RateBand(
+        "L1.4n_weekday_weekend_null_ratio", 0.50, AnchorStatus.STRUCTURAL,
+        "NOT the impossibility bound the other structural rates use, and the "
+        "difference is the point: L1.4n's per-home band is a SIGNIFICANCE test at "
+        "alpha = 0.05, so a clean sheet is not expected even from a perfect "
+        "generator — a home with genuine but weak day-type structure lands under "
+        "its own null by chance, and the rate at which it does is a POWER "
+        "question that shrinks with the window. A zero tolerance would therefore "
+        "fail a correct generator for being watched for 60 days instead of 120. "
+        "THE RULE WAS FIXED BEFORE THE NUMBER (R12): the tolerance must sit in "
+        "the empty gap between a population that HAS day-type structure and one "
+        "that does not, and must give the same verdict on every population and "
+        "every window measured. BOTH ENDS ARE MEASURED ON BOTH POPULATIONS, and "
+        "they are reported separately because they are not the same number — "
+        "quoting one population's rate as the other's is how one name comes to "
+        "carry two numbers. Real calendar vs day-type-randomised, at 60 / 90 / "
+        "120 days: n=60 fixture 0.183 / 0.067 / 0.017 against 0.900 / 0.950 / "
+        "0.967; n=200 drawn 0.295 / 0.180 / 0.120 against 0.945 / 0.860 / 0.965. "
+        "The TIGHTEST pair across all twelve readings is (0.295, 0.860), and 0.50 "
+        "is its geometric midpoint — so the band sits ~1.7x from both ends in "
+        "ratio terms, and every threshold in [0.30, 0.86] lands on the same "
+        "verdict everywhere measured. The rate RISES with n and FALLS with the "
+        "window, both expected: more homes means more genuinely weak ones, and "
+        "fewer days means less power to detect the structure a home does have.",
     ),
     "L1.5_max_multiplicity_share": RateBand(
         "L1.5_max_multiplicity_share", 0.0, AnchorStatus.STRUCTURAL,
@@ -1692,6 +1920,26 @@ class PopulationTraces:
         return len(self.is_weekend)
 
 
+def _null_ratio_or_zero(
+    days: Sequence[Sequence[float]], is_weekend: Sequence[bool]
+) -> float:
+    """L1.4n for one home, with the degenerate case decided HERE rather than
+    buried in the statistic.
+
+    A home whose permutation null is degenerate has identical days: its real
+    separation is zero AND every relabelling's is too. It is scored 0.0 — a
+    definitive violation — and NOT skipped. Both alternatives are worse. Skipping
+    it is fail-open, and it is the exact fail-open this suite is built to catch:
+    a 7-day-rolling-mean smoothing of a real home is one of the spec's own named
+    mutations, and a smoothed home lands here. Raising would let one flat home
+    abort the whole population's cell.
+    """
+    try:
+        return weekday_weekend_separation_vs_own_null(days, is_weekend).ratio
+    except DegenerateNull:
+        return 0.0
+
+
 def _l1_rate_cell(
     statistic: str,
     *,
@@ -1898,6 +2146,12 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         ("L1.3_away_days_per_year", lambda g: trough_statistics(g).away_days_per_year),
         ("L1.4_weekday_weekend_separation",
          lambda g: weekday_weekend_separation(g, population.is_weekend)),
+        # The same distance, judged against each home's own permutation null.
+        # Reported as a SEPARATE cell rather than replacing L1.4, because the two
+        # answer different questions (structure vs magnitude) and collapsing them
+        # into one name would be one name carrying two numbers.
+        ("L1.4n_weekday_weekend_null_ratio",
+         lambda g: _null_ratio_or_zero(g, population.is_weekend)),
         ("L1.5_max_multiplicity_share",
          lambda g: normalised_fraction_multiplicity(g).max_multiplicity_share),
     ):

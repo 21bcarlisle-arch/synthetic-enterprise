@@ -411,6 +411,12 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
         "L1.1_half_hourly_texture",
         "L1.2_day_to_day_shape_correlation",
         "L1.3_away_days_per_year",
+        # L1.4n joined the suite on 2026-08-09 and lands HERE rather than in
+        # `failed` even though 2 of the 8 panel homes are outside their own null:
+        # a 25% violation rate at n=8 cannot be told apart from the 40% tolerance,
+        # which is the rate machinery doing its job on a new cell without anyone
+        # special-casing it.
+        "L1.4n_weekday_weekend_null_ratio",
         "L1.5_max_multiplicity_share",
     }, generated_result.summary()
     assert generated_result.is_red, (
@@ -1113,6 +1119,205 @@ def test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window(population):
     # null-correcting the statistic fails here.
     assert fgl.BANDS["L1.4_weekday_weekend_separation"].threshold is None
     assert fgl.RATE_BANDS["L1.4_weekday_weekend_separation"].threshold is None
+
+
+# ===========================================================================
+# §9 L1.4n — THE REPAIR, AND IT IS PROVED ON THE MUTATION THAT DEFEATED L1.4
+# ===========================================================================
+
+
+def _randomised_daytypes(is_weekend, seed):
+    """The R15 mutation the spec names for this cell: relabel the day-type
+    calendar at random, holding the weekday/weekend COUNTS fixed. Every trace of
+    real weekday/weekend structure is destroyed and nothing else is touched."""
+    real = list(is_weekend)
+    chosen = set(random.Random(seed).sample(range(len(real)), sum(real)))
+    return [i in chosen for i in range(len(real))]
+
+
+def test_L1_4n_FIRES_on_the_randomised_calendar_that_L1_4_COULD_NOT_SEE(population):
+    """THE WHOLE REASON THIS CELL EXISTS, stated as the comparison that motivates it.
+
+    The raw L1.4 distance could not fail on a day-type-randomised population — the
+    measurement that took its anchor back out. The SAME mutation on the SAME
+    population, judged against each home's own permutation null, fails hard. That
+    is a repair to the STATISTIC, and it is the only kind of evidence that a
+    repair to a statistic can have.
+    """
+    grids = _grids(population)
+    shuffled = _randomised_daytypes(population.is_weekend, 4242)
+    band = fgl.BANDS["L1.4n_weekday_weekend_null_ratio"]
+
+    ratios = [
+        fgl.weekday_weekend_separation_vs_own_null(g, shuffled).ratio for g in grids
+    ]
+    violating = sum(1 for r in ratios if band.judge(r) is not fgl.Verdict.PASS)
+    rate = violating / len(ratios)
+
+    assert rate > fgl.RATE_BANDS["L1.4n_weekday_weekend_null_ratio"].threshold, (
+        f"a day-type-randomised population violates at {rate:.3f}, which must "
+        "breach the population tolerance or this cell is fail-open exactly where "
+        "L1.4 was"
+    )
+    assert statistics.median(ratios) < 1.0, (
+        f"the median randomised home reads {statistics.median(ratios):.3f} — under "
+        "its own null is where a structureless home belongs"
+    )
+    # AND THE CONTRAST WITH THE RAW CELL, re-measured here rather than quoted, so
+    # this stops being true the moment it stops being true.
+    raw_floor = anchors.LCL_WEEKDAY_WEEKEND_TV_FLOOR
+    raw = [fgl.weekday_weekend_separation(g, shuffled) for g in grids]
+    assert min(raw) > raw_floor, (
+        "the raw statistic must still clear the LCL floor on this randomised "
+        "population — if it no longer does, the finding this cell repairs has "
+        "changed and both should be re-derived"
+    )
+
+
+def test_L1_4n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_result):
+    """A band nobody has ever seen pass is indistinguishable from one that cannot.
+
+    The real calendar on the real drawn population passes, and it is the SAME
+    population, the SAME homes and the SAME statistic that fail above under a
+    randomised calendar — so the pass is evidence about the generator rather than
+    about the band being loose.
+    """
+    cell = next(
+        c for c in population_result.cells
+        if c.statistic == "L1.4n_weekday_weekend_null_ratio"
+    )
+    assert cell.verdict is fgl.Verdict.PASS, population_result.summary()
+    assert cell.homes_judged == population_result.homes, (
+        "every home must be judged — an unjudged home here would be a quiet "
+        "exclusion, and the pass would be over a population nobody named"
+    )
+    assert cell.value < fgl.RATE_BANDS["L1.4n_weekday_weekend_null_ratio"].threshold, (
+        f"violation rate {cell.value} must sit inside the tolerance for this to be "
+        "a pass anyone can read"
+    )
+
+
+def test_L1_4n_the_NULL_is_window_stable_where_the_RAW_NULL_IS_NOT(population):
+    """THE PROPERTY THE REPAIR IS FOR, measured rather than argued.
+
+    L1.4's defect was that its null MOVES with the window, so a floor derived on a
+    full year is meaningless at 120 days. Expressed against its own null, a
+    structureless population sits below 1.0 at EVERY window — which is what makes
+    the band transferable in the way the raw floor was not.
+
+    The magnitude does NOT transfer and this test says so: the real population's
+    violation rate walks from 0.183 at 60 days to 0.017 at 120, because the
+    per-home test simply has less power on fewer days. That is why the population
+    tolerance is set in the empty gap between the two ends rather than at zero.
+    """
+    grids = _grids(population)
+    real = list(population.is_weekend)
+    band = fgl.BANDS["L1.4n_weekday_weekend_null_ratio"]
+    tolerance = fgl.RATE_BANDS["L1.4n_weekday_weekend_null_ratio"].threshold
+
+    for days in (60, 90, len(real)):
+        labels = real[:days]
+        shuffled = _randomised_daytypes(labels, 909 + days)
+
+        def _rate(lab, n=days):
+            vals = [
+                fgl.weekday_weekend_separation_vs_own_null(g[:n], lab).ratio for g in grids
+            ]
+            return sum(1 for v in vals if band.judge(v) is not fgl.Verdict.PASS) / len(vals)
+
+        null_rate, real_rate = _rate(shuffled), _rate(labels)
+        assert null_rate > tolerance, (
+            f"at {days} days a structureless population violates at {null_rate:.3f}, "
+            f"which must exceed the {tolerance} tolerance at EVERY window or the "
+            "band is window-bound after all"
+        )
+        assert real_rate < tolerance, (
+            f"at {days} days the real calendar violates at {real_rate:.3f}, which "
+            f"must sit inside the {tolerance} tolerance at every window or a correct "
+            "generator is failed for being watched for less time"
+        )
+        assert null_rate > 2 * real_rate, (
+            f"at {days} days the two ends are {real_rate:.3f} and {null_rate:.3f} — "
+            "the tolerance is only meaningful while there is a gap to sit in"
+        )
+
+
+def test_L1_4n_FAILS_CLOSED_rather_than_returning_a_spectacular_pass(population):
+    """An unavailable check is a FAILED check (R15), and this statistic has one
+    fail-open shape all of its own: a degenerate null puts a zero in the
+    DENOMINATOR, and an infinite ratio would read as the most structured home ever
+    measured. It raises instead."""
+    grid = _grids(population)[0]
+    identical = [list(grid[0]) for _ in grid]  # every day the same shape
+    real = list(population.is_weekend)
+    with pytest.raises(fgl.DegenerateNull, match="degenerate"):
+        fgl.weekday_weekend_separation_vs_own_null(identical, real)
+
+    # And the ordinary insufficiency guards are inherited, not re-implemented.
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.weekday_weekend_separation_vs_own_null(grid[:10], real[:10])
+    with pytest.raises(fgl.InsufficientEvidence, match="two samples"):
+        fgl.weekday_weekend_separation_vs_own_null(grid, real, samples=1)
+
+
+def test_L1_4n_scores_a_DEGENERATE_home_as_a_VIOLATION_not_as_a_pass(population):
+    """THE FAIL-OPEN THAT SURVIVED THE FIRST MUTATION PASS, so it is pinned here.
+
+    `_null_ratio_or_zero` decides what a home with no null of its own is worth,
+    and the whole suite stayed GREEN when that decision was mutated from 0.0 (a
+    violation) to 1.0 (a pass) — i.e. nothing was checking the one line where the
+    fail-open lives. A home with identical days is not an awkward edge case in
+    this suite: replaying one day's shape all year is a mutation the spec NAMES,
+    and a smoothed home lands exactly here. Reading it as a pass would let the
+    cell's own named defect walk straight through it.
+    """
+    grids = _grids(population)
+    poisoned = [[list(day) for day in home] for home in grids]
+    poisoned[-1] = [list(poisoned[-1][0]) for _ in poisoned[-1]]  # every day identical
+
+    flat_home = population.homes[len(poisoned) - 1]
+    assert fgl._null_ratio_or_zero(poisoned[-1], population.is_weekend) == 0.0, (
+        "a home whose days are identical has no null to be judged against and must "
+        "score zero — if this returns a number, the fixture is not degenerate"
+    )
+
+    cell = fgl.evaluate_two_level(fgl.PopulationTraces(
+        generator=population.generator,
+        homes=population.homes,
+        grids=tuple(tuple(tuple(day) for day in home) for home in poisoned),
+        is_weekend=population.is_weekend,
+        annual_kwh=population.annual_kwh,
+        weather_driver=population.weather_driver,
+        pc1_is_an_input=population.pc1_is_an_input,
+    )).cell("L1.4n_weekday_weekend_null_ratio")
+
+    assert cell.homes_violating >= 1, cell.note
+    assert cell.worst_value == 0.0, (
+        f"the flat home must be the worst home in the cell, not merely counted: "
+        f"{cell.note}"
+    )
+    assert flat_home in cell.note, (
+        f"a violating home the cell cannot NAME is a number nobody can act on: {cell.note}"
+    )
+
+
+def test_L1_4n_is_DETERMINISTIC_so_a_threshold_cannot_be_moved_by_reseeding(population):
+    """C-S2. The null is a random object; a band judged against a re-rolled null
+    every run is a band that moves on its own."""
+    grid = _grids(population)[0]
+    real = list(population.is_weekend)
+    a = fgl.weekday_weekend_separation_vs_own_null(grid, real)
+    b = fgl.weekday_weekend_separation_vs_own_null(grid, real)
+    assert a == b
+    # The raw separation is a property of the data and must NOT depend on the seed;
+    # only the null may. This is what stops a reseed from moving the numerator too.
+    c = fgl.weekday_weekend_separation_vs_own_null(grid, real, seed=1)
+    assert c.raw == a.raw
+    assert c.null_p95 != a.null_p95 or c.null_median != a.null_median
+    assert a.raw == pytest.approx(fgl.weekday_weekend_separation(grid, real), rel=1e-9), (
+        "L1.4n's numerator must be the SAME measurement L1.4 reports, or the two "
+        "cells are two statistics wearing one name"
+    )
 
 
 def test_L2_5_aggregation_consistency_is_retained_as_a_regression_guard():
