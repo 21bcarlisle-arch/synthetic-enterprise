@@ -1,5 +1,37 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T06:17:19Z
+Last updated: 2026-08-09T06:40:01Z
+**FUT3_blocked_atom_visibility — L0→L2, self-certified. The ruling said blocked atoms stay
+visible to the deltas and the clocks. One of those two readers does not read the map at all —
+and the property it was supposed to carry is now the thing that proves the mint was not a no-op.**
+The atom's own `origin_note` named the risk to disprove: that `_is_externally_blocked` is
+implemented once and reused everywhere, so the futures go invisible on exactly the surfaces meant
+to see them. **Disproven by reading the readers** — that predicate has call sites in
+`background/supervisor.py` and nowhere else; neither AO7 nor AO11 imports it.
+**Two premise corrections, measured not assumed.** (1) "Blocked" on this map is
+`loop_stage: idle` + prose `block_reason`, **never `blocked_on`** — zero of 232 atoms carry one,
+for the three reasons the EP1–EP20 mint recorded in the map header. The measured parked set is the
+**82 idle atoms**. (2) **AO7 `target_design_delta` does not read the maturity map at all** — all
+seven probes are code-tree architecture (AST / git index / size census), so "visible to the
+target-design deltas" was never a property AO7 had either way. Bolting a map-composition target
+into an architecture document would be accretion, so the dial is carried in its own module, in
+AO7's shape and on its own subject.
+**Measured on the live tree.** DRAW: the **real** `_maturity_map_draw_concurrent` offers **0 of 82**
+parked atoms — 60 proven excluded **by the park** (lifting the park alone makes the same atom
+drawable), 22 excluded for another reason and never counted as proof. CLOCKS: AO11 `build_rows`
+carries a row for **82/82**. DIAL: harness **86/232 = 37.1%** against 82/206 at mint — and all four
+ruling-named subjects (`clv` 1, `counterparty_adapter` 8, `forecast_feed` 1, `tournament` 2) are
+covered **entirely** by parked atoms. **A reader that filtered parked atoms would report exactly the
+zero the ruling was minted to fix** — which is the visibility property doing work rather than
+decorating.
+**Evidence:** 5 source mutations **run**, all fire (`is_parked`→False kills 16; a verdict reached
+without probing the draw kills 2; a skipped probe failing open kills 1; `clock_invisible`→[] kills
+1; vacuity floor removed kills 1); unmutated 26 passed. R12 held: a 100%-harness map still returns
+rc 0 — measurability gates, the number never does. Epistemic verifier PASS.
+**Not L3:** nothing calls it on a schedule, and the draw probe patches a live production module in
+-process, so scheduled wiring must run it out-of-process. → `docs/design/BLOCKED_ATOM_VISIBILITY.md`
+
+---
+
 **W2_15_segment_case_sensitivity_siblings — L0→L2, self-certified. The DISCOVER question was
 "one segment vocabulary or three?" The answer is one drift and two seams — and the guard that was
 supposed to be watching had been switched off by a type annotation.**
@@ -1235,7 +1267,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1350,6 +1382,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1787.1h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
+- Remaining effort: ~1741.3h across 73 sized atom(s) (13 of 86 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
