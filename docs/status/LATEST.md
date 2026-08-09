@@ -1,38 +1,96 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T09:32:32Z
-**H27_payment_belief_gap — Expert Hour #2 ran on the corrected instrument, as the last release
-demanded. Held at L2 again, and this time the reason is that the instrument publishes ONE named
-quantity as TWO different numbers.**
-"The wrongful-dunning exposure" prints **twice in one output block** — detection's `false_flag_rate`
-**0.0269** (21 of 782) and ageing's `overstated_arrears_rate` **0.0951** (101 of 1062), 3.5× apart —
-while `background/gap_metric.py` asserted in prose that they were "literally the same numerator".
-**Measured case by case, they share SEVEN cases.**
-**Why, and it is not arbitrary.** The denominators sit in exact containment (`1062 == 782 + 280`):
-D11 established that a payment arriving past its grace date really *was* unpaid past grace, so the
-flag was **correct**, and applied that exclusion to the **detection dimension only**. **94 of
-ageing's 101 land inside the excluded band** — 93% of one dimension's published exposure is composed
-of cases the sibling dimension of the same instrument holds the company was **right** about.
-Reproduced at seeds 7/11/23 and two grace windows.
-**Second finding — the sibling publish path was left behind, again.** The CLI `--write-ledger` branch
-still overwrote the measured note with the **refuted** "fraction of true payment failures the company
-never observes — the no-remittance blind spot" sentence, into the **same bare ledger key** the Proof
-door reads. The live path was corrected on 2026-08-09; this one was left behind **and had no test at
-all**. It now appends rather than clobbers, under the test it never had.
-**R10 class closure.** `SHARED_QUANTITY_CONTRACT` — lifted into its own module, because a class
-register living inside the one triad that tripped the defect is how the previous ones ended up
-triad-local — plus a control that derives both sides from the **two scorers' own components** (no
-recomputation), measures the containment **across seeds and grace windows**, requires an undeclared
-divergence to **name an owning atom**, and sweeps the **rendered** summaries so an unregistered
-publisher fails. R15 both ways: two register lies, a de-registered emitter, and a missing dimension
-**raises**. The containment is declared **exact** so that D16 landing *breaks its own declaration*.
-**R12:** no published number moved — detection balanced error stays **0.0134**, ageing unchanged.
-**The queue did not shrink.** `depends_on → D16_ageing_negative_population_is_unexcluded` (minted);
-D16 is drawable and the draw points at it, verified against `supervisor`'s own `_dependencies_met`.
-**Method note.** The first version of the CLI test banned the substring `"never observes"` — and
-**failed on the honest sentence that negates it**. It now tests the claim, not the words.
-**Evidence.** 55 tests in `test_couple_w2_11_d5.py`; 106 across the triad, `gap_metric` and
-live-triad suites; **2,147 passed / 4 skipped / 2 xfailed** across `tests/tools`; ruff on the touched
-files **7 → 5** vs a pristine HEAD extract (zero added).
+Last updated: 2026-08-09T10:55:16Z
+**D15_w2_5_false_flag_direction_r13_choice — L0→L2, self-certified. The life-event pair scored
+"nearly perfect" at 0.0081 — and so did a company that flagged every single customer-year.**
+It now scores **both** error directions, so neither degenerate can buy a score (flag-everything and
+flag-nobody both land on the 0.5 baseline, under every candidate denominator).
+**The three populations are each built by their own positive predicate, and the complement
+derivation is refused at the source.** `_classify` runs all three per instance and **raises** unless
+exactly one matches — so "NEITHER = whatever is left over", the shape that scored **2,772**
+customer-years of genuine carried-in distress as the company's false flags, cannot be written rather
+than merely being reviewed for. Reproduces the D13 census exactly: **1,099 / 2,772 / 16,129** of
+20,000.
+**The R13 choice went to the director with a recommendation, not as a bare ask.** All three candidate
+negatives are scored on **every** run and printed side by side — naive **0.1661** (3,140/18,901),
+exclude-carried-HIGH **0.1491** (2,674/17,937), settled-LOW-both-ends **0.0576** (929/16,129) — with
+the miss direction **0.0081 on all three**, because the company is literally fixed. The published
+basis is **one constant** the director moves in a one-line edit.
+**R12 hazard, stated where a reader sees it rather than buried.** The recommendation (C) produces the
+**lowest** of the three rates and comes from the agent whose atom closes on it, so the argument rests
+on the **set**: the miss direction's truth is **event**-shaped ("a distress event dated in this
+year"), the detector's claim is **state**-shaped ("this household is in distress"), and the
+carried-distress band is exactly where the two shapes disagree. A flag there is not an error under
+either reading. The record also names what would **overturn** it — a curriculum decision to price
+timeliness — and says the honest instrument for that want is a latency dimension, **not** the naive
+denominator. `docs/design/D15_FALSE_FLAG_EXCLUSION_R13_CHOICE.md`.
+**Found and fixed at birth, not after a reader was misled.** The shared renderer hardcoded the
+payment triad's nouns, so this pair's first render published "**the wrongful-dunning exposure**" for
+a life-event distress rate — the one-name-two-numbers class D16 had closed one instrument over, one
+tick earlier. The nouns are now parameters defaulting to the triad's wording; every pre-existing
+render is byte-identical, asserted.
+**R15 — 20 controls, each a differential.** Both partition mutations raise; membership is re-derived
+from `simulation.life_events`, never from the sets under test; folding the band back moves the rate
+**0.0576 → 0.1661**; a company flagging one carried-distress year scores **0** false flags while one
+flagging one settled LOW/LOW year scores **1** (the naive basis cannot tell them apart); an
+unexplained exclusion raises. The register debt is closed **measured, not declared**: three of four
+published detection dimensions now count both directions, and the survivor (W2_8, atom D14) is
+**vacuous** rather than unchosen — D13's "these were never one problem" paying off.
+**Carried in the same commit, said plainly.** The D16 build was sitting **complete but uncommitted
+and unrecorded** in the shared tree (map at L2, code live, no ledger entry). D15 edits the same
+register file, so an unrecorded level move would have ridden in under cover of another atom — what
+R16 exists to stop. Verified before recording: 129 tests green and the central claim re-measured live
+(identical case set, 586/586, 212 excluded both sides).
+**Evidence.** 20 new controls; 406 green over the commit gate's own target set; 857 across the wider
+detection/gap/coupled selection. **L3 not claimed** — no Expert Hour on the published instrument, and
+the director has not yet answered the R13 call this atom exists to put to him.
+
+**D16_ageing_negative_population_is_unexcluded — L0→L2, self-certified. Aligning the two
+denominators did NOT make the two numbers one number — and that is the answer, not a residual.**
+The atom offered two remedies (carry D11's exclusion across, or declare which figure to read); the
+honest delivery needed **both**. `never_flaggable` is now built **once** and read by both
+dimensions, so the two denominators are the **identical case set** — 782/782 (seed 7, was 1062 vs
+782), 776/776, 755/755, and at grace windows 5 and 12. The rates still differ: detection **0.0269**,
+ageing **0.0090**.
+**The residual is entirely belief-side, and it is two honest questions.** Detection asks *did the
+company ever chase this invoice* — wrongful dunning is an **event**, and a customer chased in month
+one was still chased when the report drops it in month three. Ageing asks *does the open-item report
+still show it overdue at `as_of`* — a **misstatement** question, which is what a provision or a board
+pack is built from. Aligning the belief sides too would have destroyed one measure to manufacture
+agreement between two numbers (the goal-seek R12 forbids). So the denominators align and **the name
+does not**: `overstated_arrears_rate` is renamed everywhere to the **ageing-report overstatement at
+`as_of`**, and "the wrongful-dunning exposure" has exactly **one** publisher. Measured, not asserted:
+ageing's numerator is a **strict subset** of detection's at every seed and both grace windows (7 of
+21, 16 of 31, 5 of 13).
+**The open question the atom said not to dodge, settled.** The `DIMENSION_AS_OF_CONTRACT` ageing
+exemption ("an invoice really does age") licenses the **truth** side moving and says nothing about
+the belief side — so it **is** broader than its justification. Kept, and narrowed to what it
+excuses: `belief_side_is_as_of_dependent: True`.
+**R15, and the register was rewritten rather than loosened.** The pre-D16 declaration was deliberately
+exact so this atom would break it. It did. The new one is exact too and is proven falsifiable on
+**three** register lies (populations divergent; numerators identical; subset in the wrong direction)
+plus a **vacuity guard** — an empty ageing numerator is a subset of anything. The band itself:
+fold it back and the rate **must** move (0.0090 → 0.0951); blank `days_late` and those cases must
+**leave** the population, never be assumed paid on time.
+**The method trap, hit again in this build.** The phrase sweep counted the honest sentence *"NOT the
+wrongful-dunning exposure"* as **publishing** the name — the AO2 `"none"` shape, one tick after the
+last one. The disclaimer's **form** is now registered; doublespeak is proven not to buy an exemption.
+**The sibling half was not left behind this time.** `background/live_payment_triad.py` carried the
+same label in two places, one file over; both corrected under a test that the **live** dimension
+carries the band.
+**Queued, not fixed on sight.** `D17_d8_counterfactual_has_no_unattributed_residual` — the D8
+counterfactual's anti-rubber-stamp guard rested on a residual made **entirely** of the cases D16
+excludes, so every measure it publishes is now 100% attributed and the guard guards nothing (the
+refuted test is **replaced**, and names D17 in its own docstring). `H32_map_size_ratchet_red_on_head`
+— the map's own size ratchet is red on **committed HEAD** (464,110 vs a 409,600 ceiling, before this
+tick), so it penalises the one behaviour the map exists for.
+**R12:** the detection balanced error is byte-identical at **0.0134**; the ageing number moved
+because its population moved, and the criterion was the exclusion **rule's** correctness.
+**H27 is released and NOT promoted.** `depends_on` is dropped and **not** re-pointed a fourth time.
+The 2→3 is drawable and unblocked; it is not taken here because **this tick changed the instrument**,
+and an Expert Hour run by the tick that built the change is the exact failure every prior release
+warned about. The next promoter runs it fresh, starting at D17.
+**Evidence.** 62 tests in `test_couple_w2_11_d5.py`; 694 across every file touching `gap_metric`,
+the triad or the live path; `tests/design/` green but for the pre-existing H32 ratchet.
 
 **FUT3_blocked_atom_visibility — L0→L2, self-certified. The ruling said blocked atoms stay
 visible to the deltas and the clocks. One of those two readers does not read the map at all —
@@ -1301,10 +1359,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
-- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
-- Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+- Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
+- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -1416,6 +1474,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1864.2h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
+- Remaining effort: ~1852.5h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
