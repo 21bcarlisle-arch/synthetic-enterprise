@@ -171,6 +171,23 @@ def _save_sweep_state(state: dict):
         log(f"Could not persist run-marker sweep state: {exc}")
 
 
+def _remember_oldest_outcome(name: str, rc: int) -> None:
+    """Persist the last publisher outcome for the OLDEST pending marker (EPISODE4 item 2).
+
+    Kept deliberately small and defensive: this only feeds an alarm's wording, so a failure to
+    record it must never disturb the sweep it is observing."""
+    label = {0: "rc=0 (published)", EXIT_LOCK_SKIPPED: f"rc={EXIT_LOCK_SKIPPED} (lock-skipped, "
+             "not attempted)"}.get(rc, f"rc={rc} (publisher ran and FAILED — a red publish gate "
+                                       "looks exactly like this)")
+    try:
+        state = _load_sweep_state()
+        state["last_outcome"] = f"{label} at {datetime.now(timezone.utc):%H:%M}Z"
+        state["last_outcome_marker"] = name
+        _save_sweep_state(state)
+    except Exception as exc:  # noqa: BLE001 -- an observer must never break the observed
+        log(f"Could not record sweep outcome for {name}: {exc}")
+
+
 def _check_zero_progress(pending):
     """A retry loop that has NEVER succeeded is an ALARM, not a log line.
 
@@ -197,16 +214,41 @@ def _check_zero_progress(pending):
         cycles = 1
     already_alarmed = state.get("stalled_on") == oldest
     fire = cycles >= STALL_ALARM_CYCLES and not already_alarmed
+    # PRESERVE the observed outcome across the save. This used to replace the whole state dict,
+    # which silently dropped `last_outcome`/`last_outcome_marker` every cycle -- the alarm only
+    # still read them because it holds the pre-save `state`. That fragility is a defect in its
+    # own right (it made the retry property untestable), so the fields are carried explicitly.
     _save_sweep_state({
         "oldest": oldest, "cycles": cycles,
         "stalled_on": oldest if (fire or already_alarmed) else None,
+        "last_outcome": state.get("last_outcome"),
+        "last_outcome_marker": state.get("last_outcome_marker"),
     })
     if fire:
+        # R9 APPLIED TO A CONTROL (EPISODE4 item 2, 2026-08-09). This alarm used to end
+        # "The publish retry loop is not retrying — treat 'will retry next cycle' as FALSE."
+        # That is an INFERENCE, and on 2026-08-09 it was measurably WRONG: the oldest marker
+        # was attempted at 14:01 (rc=1) and again at 14:54 (rc=1), straddling this alarm's own
+        # 14:48 firing. The loop retried exactly as promised; the retries FAILED, because the
+        # publish gate was red on a stale derived artefact. Zero progress and "not retrying"
+        # are different claims, and this detector can only observe the first.
+        #
+        # The cost of asserting the wrong one is not cosmetic: it sent the diagnosis at a
+        # retry-loop bug that does not exist while the real cause sat one line above in the
+        # same log, as `rc=1`. So the alarm now reports WHAT IT SAW (no progress, and the last
+        # recorded publisher outcome, which it does have) and names the gate as where to look.
+        # Same defect class as the ghost-pusher tripwire: a verdict that is an inference rather
+        # than an observation.
+        last = state.get("last_outcome") or _load_sweep_state().get("last_outcome")
+        cause = (f" Last publisher outcome for it: {last}." if last
+                 else " No publisher outcome recorded yet for it.")
         msg = (
             f"[ACTION NEEDED] Run-marker sweep has made ZERO progress for {cycles} "
             f"consecutive cycles: {oldest} is still the oldest of {len(pending)} pending "
-            f"run_complete marker(s). The publish retry loop is not retrying — treat "
-            f"'will retry next cycle' in background-worker-log.md as FALSE."
+            f"run_complete marker(s).{cause} The sweep IS re-attempting every pending marker "
+            f"each cycle (unconditional glob) — so this is the publish path failing, not the "
+            f"retry loop stopping. Look at the publish gate's blocking test in "
+            f"docs/observability/sim-runner-log.md, not at the sweep."
         )
         log(msg)
         try:
@@ -290,6 +332,11 @@ def process_leftover_run_markers():
             stderr=subprocess.PIPE,
             text=True,
         )
+        # EPISODE4 item 2: remember what actually happened to the OLDEST pending marker, so the
+        # zero-progress alarm can report an observed cause instead of inferring one. Written
+        # here (not in the alarm) because this is the only place that sees the return code.
+        if marker is pending[0]:
+            _remember_oldest_outcome(marker.name, result.returncode)
         if result.returncode == EXIT_LOCK_SKIPPED:
             # NOT processed -- another instance holds the run lock and the
             # marker is untouched. Saying "Processed" here was a false claim in

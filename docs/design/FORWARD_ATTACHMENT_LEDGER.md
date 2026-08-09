@@ -15,7 +15,19 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**10 attachment(s)** from 9 source doc(s), across 7 atom(s).
+**12 attachment(s)** from 10 source doc(s), across 9 atom(s).
+
+## AO1_capability_index
+**The list of what we already have**  
+_epoch 3 · lane H_harness · L2→L2 · build_
+
+- `2026-08-09` · `docs/staging/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (finding) — the index's population question and
+
+## AO2_write_time_reuse_gate
+**Check before you build**  
+_epoch 3 · lane H_harness · L2→L2 · build_
+
+- `2026-08-09` · `docs/staging/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (finding) — the index's population question and
 
 ## C14_thermal_parameter_inference
 **Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficien**  
@@ -32,7 +44,7 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 ## D12_detection_cell_grid_is_recall_only
 **Three published detection dimensions are still RECALL ONLY after D11 fixed the fourth: the regime-pa**  
-_epoch 3 · lane D_billing_metering · L0→L2 · build_
+_epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md` (finding)
 

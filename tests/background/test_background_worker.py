@@ -507,3 +507,64 @@ def test_a_failed_retirement_never_breaks_the_sweep(monkeypatch):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ── EPISODE4 item 2: the retry promise, as a BEHAVIOURAL exit test ───────────────────────────
+# The director's exit test, verbatim: "a failed publish cycle is followed by an attempted one
+# without human touch." It was prose in a log line ("will retry next cycle") and prose evaporates
+# -- so it is pinned here instead.
+#
+# MEASURED CONTEXT (2026-08-09): the zero-progress alarm claimed "the publish retry loop is not
+# retrying". The worker log disproves it -- the oldest marker was attempted at 14:01 (rc=1) and
+# again at 14:54 (rc=1), straddling that alarm's own 14:48 firing. The loop retried; the retries
+# failed on a red gate. These tests hold the retry property so the claim can never again be
+# asserted without evidence, and the alarm-wording test below holds the other half.
+def test_a_failed_cycle_is_followed_by_another_attempt_without_human_touch(monkeypatch):
+    """THE exit test. Two consecutive sweeps, publisher red both times, no intervention between:
+    the same marker must be attempted on the second sweep.
+
+    MUTATION: make the sweep skip markers it already failed on (e.g. remember-and-exclude) and
+    this fails -- which is precisely the bug the alarm alleged and the log refutes."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260809T125051Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    attempts = []
+
+    def _always_red(*a, **k):
+        attempts.append(a[0])
+        return MagicMock(returncode=1, stderr="")
+
+    monkeypatch.setattr(background_worker.subprocess, "run", _always_red)
+
+    background_worker.process_leftover_run_markers()   # cycle 1 -- fails
+    background_worker.process_leftover_run_markers()   # cycle 2 -- no human touch in between
+
+    assert len(attempts) == 2, "a failed publish cycle was NOT followed by another attempt"
+    assert all(str(marker) in a for a in attempts), "the same marker must be re-attempted"
+    assert marker.exists(), "a failed marker must stay pending, not be consumed"
+
+
+def test_the_zero_progress_alarm_reports_what_it_saw_not_a_cause_it_inferred(monkeypatch):
+    """R9 applied to a control. The alarm may say progress stopped; it may NOT assert that the
+    retry loop stopped, because it cannot observe that -- and on 2026-08-09 that inference was
+    measurably wrong while the real cause (a red gate) sat in the same log as rc=1.
+
+    MUTATION: restore 'The publish retry loop is not retrying' and this fails."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260809T125051Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker, "STALL_ALARM_CYCLES", 2)
+    sent = []
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=1, stderr=""))
+    import background.notify as _notify
+    monkeypatch.setattr(_notify, "notify", lambda msg, **k: sent.append(msg))
+
+    background_worker.process_leftover_run_markers()
+    background_worker.process_leftover_run_markers()
+
+    assert sent, "a stalled backlog must still raise ONE alarm"
+    msg = sent[-1]
+    assert "retry loop is not retrying" not in msg, (
+        "the alarm asserted a cause it cannot observe -- the sweep does re-attempt every cycle"
+    )
+    assert "rc=1" in msg, "the alarm must carry the OBSERVED publisher outcome"
+    assert "publish gate" in msg.lower(), "it must point the reader at the real place to look"

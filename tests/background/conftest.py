@@ -19,6 +19,7 @@ BODY via its own monkeypatch, which runs after this fixture's setup and therefor
 that already isolate explicitly (test_supervisor.py::_isolate) merely point at a different clean
 tmp -- also non-wedged, so correctness is unaffected either way.
 """
+import os
 import subprocess
 from pathlib import Path
 
@@ -133,34 +134,104 @@ def _real_repo_head() -> str:
         return "unreadable"
 
 
-def _commits_between(before: str, after: str) -> str:
-    """Subjects of the commits a test manufactured, newest first -- the failure payload (R5)."""
+# ── TRIPWIRE vs COLLEAGUE (EPISODE4 item 1, 2026-08-09) ──────────────────────────────────────
+# The guard above compared HEAD before/after and blamed "this test session" for ANY move. On a box
+# where an autonomous worker commits several times an hour and the suite takes ~11 minutes, that
+# is not a tripwire, it is a collision detector: a real D14 build commit landing mid-run failed a
+# 22,525-green suite, the publish gate booked it as `test_regression`, and publishing could only
+# succeed in the lulls between colleagues' commits. MEASURED cause, twice.
+#
+# THE DISCRIMINATOR. Git records no PID, so attribution has to be arranged in advance: this
+# process stamps a sentinel COMMITTER identity into its own environment at conftest import, before
+# any test spawns anything. Every `git commit` reached from inside this pytest process -- however
+# many subprocess layers down -- inherits it. A colleague's commit, made from a different process
+# tree, cannot carry it. So `before..after` partitions cleanly into "mine" and "theirs", and only
+# "mine" is a ghost push.
+#
+# WHY COMMITTER AND NOT AUTHOR. Author survives rebases, cherry-picks and `--author` overrides;
+# committer records who actually performed the commit, which is exactly the question.
+#
+# FAIL-CLOSED ON UNATTRIBUTABLE (R15). If HEAD moved and the log cannot be read, the check cannot
+# answer -- and an unavailable check is a FAILED check. That is rare (a git hiccup), unlike a
+# concurrent commit, which is routine; so the split keeps the guard's teeth without paying the
+# false-positive tax it was actually costing.
+GHOST_SENTINEL_EMAIL = "pytest-ghost-tripwire@invalid"
+os.environ.setdefault("GIT_COMMITTER_EMAIL", GHOST_SENTINEL_EMAIL)
+
+_ROW_SEP = "\x1f"
+
+
+def partition_commits(rows: list[tuple[str, str, str]]) -> tuple[list[str], list[str]]:
+    """PURE (mutation-testable). rows = [(sha, committer_email, subject)].
+
+    -> (mine, theirs): commits this pytest process committed, and commits it did not.
+    Only `mine` is a ghost push; `theirs` is a colleague working normally and must be ignored."""
+    mine = [f"{sha} {subj}" for sha, email, subj in rows if email == GHOST_SENTINEL_EMAIL]
+    theirs = [f"{sha} {subj}" for sha, email, subj in rows if email != GHOST_SENTINEL_EMAIL]
+    return mine, theirs
+
+
+def _commit_rows(before: str, after: str) -> list[tuple[str, str, str]] | None:
+    """(sha, committer_email, subject) for before..after; None if unreadable (-> fail-closed)."""
     try:
         out = subprocess.run(
-            ["git", "log", "--format=%h %s", "{}..{}".format(before, after)],
+            ["git", "log", f"--format=%h{_ROW_SEP}%ce{_ROW_SEP}%s", f"{before}..{after}"],
             cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=15,
         )
-        return out.stdout.strip() or "(subjects unavailable)"
+        if out.returncode != 0:
+            return None
     except (OSError, subprocess.SubprocessError):
-        return "(subjects unavailable)"
+        return None
+    rows = []
+    for line in out.stdout.splitlines():
+        parts = line.split(_ROW_SEP, 2)
+        if len(parts) == 3:
+            rows.append((parts[0], parts[1], parts[2]))
+    return rows
+
+
+def ghost_verdict(before: str, after: str, rows: list[tuple[str, str, str]] | None,
+                  where: str) -> str | None:
+    """PURE (mutation-testable): the failure message, or None if this is not a ghost push.
+
+    Kept pure and separate from `_assert_head_unmoved` deliberately -- the autouse per-test
+    fixture below calls that function at teardown, so a test that monkeypatched its internals
+    would trip the very tripwire it is testing. The decision has to be reachable without
+    patching module globals."""
+    if after == before:
+        return None
+    if rows is None:
+        return (
+            "GHOST PUSHER (unattributable): {} -- HEAD moved {} -> {} and `git log` could not be "
+            "read, so this check could not tell a test's commit from a colleague's. R15: an "
+            "unavailable check is a FAILED check.".format(where, before[:9], after[:9])
+        )
+    mine, theirs = partition_commits(rows)
+    if not mine:
+        return None  # a colleague committed while we ran -- routine here, never our tripwire
+    return (
+        "GHOST PUSHER: {} moved the REAL repo's HEAD.\n"
+        "  {} -> {}\n"
+        "  commit(s) THIS TEST PROCESS manufactured (committer {}):\n    {}\n"
+        "{}"
+        "A test in tests/background/ must never commit to the real checkout. This one reached a "
+        "credential-holding publish path on the real tree -- almost always a missing "
+        "`monkeypatch.setattr(<module>, \"PROJECT_DIR\", tmp_path)`. Isolate it; do not silence "
+        "this fixture.".format(
+            where, before[:9], after[:9], GHOST_SENTINEL_EMAIL,
+            "\n    ".join(mine),
+            "  (also in range, NOT ours: {})\n".format("; ".join(theirs)) if theirs else "",
+        )
+    )
 
 
 def _assert_head_unmoved(before: str, where: str) -> None:
     after = _real_repo_head()
     if after == before:
         return
-    pytest.fail(
-        "GHOST PUSHER: {} moved the REAL repo's HEAD.\n"
-        "  {} -> {}\n"
-        "  commit(s) manufactured:\n    {}\n"
-        "A test in tests/background/ must never commit to the real checkout. This one reached a "
-        "credential-holding publish path on the real tree -- almost always a missing "
-        "`monkeypatch.setattr(<module>, \"PROJECT_DIR\", tmp_path)`. Isolate it; do not silence "
-        "this fixture.".format(
-            where, before[:9], after[:9],
-            _commits_between(before, after).replace("\n", "\n    "),
-        )
-    )
+    msg = ghost_verdict(before, after, _commit_rows(before, after), where)
+    if msg:
+        pytest.fail(msg)
 
 
 @pytest.fixture(autouse=True, scope="session")
