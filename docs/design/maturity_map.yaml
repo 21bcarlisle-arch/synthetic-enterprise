@@ -3175,12 +3175,12 @@
   dial_inherited: 3
   provenance: proposal
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py]
+  file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 16
+  simplifications_count: 20
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
-  evidence: [docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md, docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md, docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_premise_two_level.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py]
+  evidence: [docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md, docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md, docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_premise_two_level.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py, background/reconcile_watch.py]
 - id: SP2_1_working_day_calculator
   name: "Canonical working-day calculator + dated England-&-Wales bank-holiday calendar, all ~17 independent callers migrated, with a guard that reds on a second definition (R10 class fix)"
   lane: D_billing_metering

@@ -1,7 +1,8 @@
 """Periodic reconcile watch — OPS1 sub-step 4, G-L2/G-R3 made LIVE (not boot-only).
 
 PURPOSE
-    The reconcile (process_manifest + schedule_manifest declared-vs-actual) is a DRIFT CONTROL.
+    The reconcile (process_manifest + schedule_manifest + gap-ledger declared-vs-actual) is a
+    DRIFT CONTROL.
     A control with no live consumer is fail-silent theatre (R15): boot_announce runs the reconcile
     once at boot, so between boots drift is UNWATCHED — exactly why a live worker-seat declared
     `held` produced no HELD_VIOLATED (found 2026-07-17 at the worker-seat gate). This closes that
@@ -29,35 +30,51 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
+from background import gap_ledger_reconciler as _gap  # noqa: E402
 from background import process_reconciler as _proc  # noqa: E402
 from background import schedule_reconciler as _sched  # noqa: E402
+
+# How many gap-drift lines the human summary spells out before counting the rest. The SIGNATURE
+# always carries every item (so no transition can hide behind the cap) and the overflow is stated,
+# never silently dropped.
+_GAP_SUMMARY_CAP = 5
 
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".reconcile_watch_state.json"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "reconcile-watch-log.md"
 
 
-def drift_signature(proc_results: list[dict], sched_results: list[dict]) -> list[str]:
+def drift_signature(proc_results: list[dict], sched_results: list[dict],
+                    gap_results: list[dict] | None = None) -> list[str]:
     """A stable, order-independent signature of the CURRENT drift set — the thing whose CHANGE is
     the transition worth paging on (R5). Clean == []."""
     return sorted(
         [f"P:{r['session']}:{r['status']}" for r in _proc.drift(proc_results)]
         + [f"S:{r['item']}:{r['status']}" for r in _sched.drift(sched_results)]
+        + [f"G:{r['item']}:{r['status']}" for r in _gap.drift(gap_results or [])]
     )
 
 
-def build_report(proc_results: list[dict], sched_results: list[dict]) -> tuple[list[str], str]:
+def build_report(proc_results: list[dict], sched_results: list[dict],
+                 gap_results: list[dict] | None = None) -> tuple[list[str], str]:
     """(drift_signature, human_summary). Injectable results for tests; production reads live."""
-    sig = drift_signature(proc_results, sched_results)
+    gap_results = gap_results or []
+    sig = drift_signature(proc_results, sched_results, gap_results)
     if not sig:
         summary = ("[RECONCILE] clean — no drift "
-                   f"({len(proc_results)} declared processes, {len(sched_results)} schedule entries "
-                   "all as declared).")
+                   f"({len(proc_results)} declared processes, {len(sched_results)} schedule entries, "
+                   f"{len(gap_results)} gap-ledger entries all as declared).")
     else:
         lines = [f"[RECONCILE] DRIFT — {len(sig)} item(s) diverge from the manifests:"]
         for r in _proc.drift(proc_results):
             lines.append(f"    ✗ {r['session']}: {r['status']}")
         for r in _sched.drift(sched_results):
             lines.append(f"    ✗ [{r['kind']}] {r['item']}: {r['status']}")
+        gap_drift = _gap.drift(gap_results)
+        for r in gap_drift[:_GAP_SUMMARY_CAP]:
+            lines.append(f"    ✗ [gap:{r['status']}] {r['item']}")
+        if len(gap_drift) > _GAP_SUMMARY_CAP:
+            lines.append(f"    … and {len(gap_drift) - _GAP_SUMMARY_CAP} further gap-ledger "
+                         "entr(ies) — full set in the drift signature")
         summary = "\n".join(lines)
     return sig, summary
 
@@ -95,7 +112,8 @@ def _log(msg: str) -> None:
 
 def run(proc_results: list[dict] | None = None,
         sched_results: list[dict] | None = None,
-        notify=None) -> bool:
+        notify=None,
+        gap_results: list[dict] | None = None) -> bool:
     """Run one reconcile, log it, and NTFY only on a drift-set TRANSITION. Returns True if it
     paged. `notify` and results are injectable for tests; production reads live + uses send_ntfy."""
     if proc_results is None:
@@ -103,7 +121,9 @@ def run(proc_results: list[dict] | None = None,
                                        _proc._live_tmux_running())
     if sched_results is None:
         sched_results = _sched.reconcile()
-    sig, summary = build_report(proc_results, sched_results)
+    if gap_results is None:
+        gap_results = _gap.reconcile()
+    sig, summary = build_report(proc_results, sched_results, gap_results)
     last = _load_last()
     changed = sig != last
 

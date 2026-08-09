@@ -10,6 +10,16 @@ import pytest
 from background import reconcile_watch as W
 
 
+@pytest.fixture(autouse=True)
+def _isolate_the_gap_ledger_source(monkeypatch):
+    """The gap-ledger reconcile is the THIRD drift source and it reads real git + the real ledger.
+    A new source that a test lets fall through to live disk silently flips every clean/drift
+    assertion in this file the moment the live ledger goes stale — the same fixture-isolation
+    class the F-lane draw rung hit. Default it to clean here; the tests that exercise it inject
+    their own rows in the body, which runs after this fixture and therefore wins."""
+    monkeypatch.setattr(W._gap, "reconcile", lambda *a, **k: [])
+
+
 def _clean():
     proc = [{"session": "sim-runner", "status": "OK", "alarm": False},
             {"session": "supervisor", "status": "HELD", "alarm": False}]
@@ -83,6 +93,61 @@ def test_drift_present_is_typed_high_priority(_wired):
     W.run(dp, ds, notify=lambda *a, **k: _wired.append((a, k)))
     assert _wired[0][1]["headers"]["X-Tags"] == "rotating_light"
     assert _wired[0][1]["headers"]["X-Priority"] == "high"
+
+# --- the gap-ledger source, wired in 2026-08-09 ------------------------------------------------
+# H_GAP's three-times-registered residual: eleven couple_*/gap tools, no production caller, so
+# their published rows go stale unseen. This watch is the caller — the reconcile is report-only,
+# so being SEEN on a transition is the whole mechanism.
+
+def _gap_drift():
+    return [{"item": "W1_11_fabric_physics_core", "kind": "row", "producers": [],
+             "status": "stale", "detail": "producer moved"},
+            {"item": "W2_7_willingness_classification", "kind": "row", "producers": [],
+             "status": "current", "detail": "unchanged"}]
+
+
+def test_a_stale_gap_row_reaches_the_drift_signature_under_its_own_prefix():
+    proc, sched = _clean()
+    sig = W.drift_signature(proc, sched, _gap_drift())
+    assert sig == ["G:W1_11_fabric_physics_core:stale"]
+
+
+def test_a_gap_row_measured_by_current_code_adds_nothing():
+    proc, sched = _clean()
+    current_only = [r for r in _gap_drift() if r["status"] == "current"]
+    assert W.drift_signature(proc, sched, current_only) == []
+
+
+def test_gap_drift_pages_on_its_own_even_when_processes_are_clean(_wired):
+    """The property that matters: this source can page by itself. A third source folded in so
+    that it can only ever ride along with process drift would be decorative."""
+    proc, sched = _clean()
+    notify = lambda *a, **k: _wired.append((a, k))  # noqa: E731
+    assert W.run(proc, sched, notify=notify, gap_results=_gap_drift()) is True
+    assert "gap:stale" in _wired[0][0][0]
+    assert _wired[0][1]["headers"]["X-Tags"] == "rotating_light"
+
+
+def test_the_summary_caps_the_gap_lines_and_SAYS_SO_while_the_signature_keeps_them_all():
+    """No silent caps: an elided line must be counted out loud, and the transition signal must
+    still see every item or a change inside the tail could not page."""
+    many = [{"item": f"W9_{i}_x", "kind": "row", "producers": [], "status": "stale",
+             "detail": "d"} for i in range(W._GAP_SUMMARY_CAP + 3)]
+    proc, sched = _clean()
+    sig, summary = W.build_report(proc, sched, many)
+    assert len(sig) == len(many)
+    assert summary.count("[gap:stale]") == W._GAP_SUMMARY_CAP
+    assert "and 3 further gap-ledger" in summary
+
+
+def test_run_falls_through_to_the_live_reconcile_when_no_rows_are_injected(monkeypatch):
+    """Production must not need the caller to pass rows — otherwise the wiring is inert."""
+    seen = []
+    monkeypatch.setattr(W._gap, "reconcile", lambda *a, **k: seen.append(1) or [])
+    proc, sched = _clean()
+    W.run(proc, sched, notify=lambda *a, **k: None)
+    assert seen == [1]
+
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
