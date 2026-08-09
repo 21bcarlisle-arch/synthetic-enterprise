@@ -15,6 +15,7 @@ import inspect
 import copy
 import dataclasses
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -22,6 +23,7 @@ import pytest
 import tools.couple_w2_11_d5 as pair
 
 from background.gap_metric import (
+    ageing_gap,
     belief_gap,
     detection_gap,
     detection_measures,
@@ -1380,6 +1382,20 @@ def _flag_everything_score(entry_key, records, consumer, as_of):
         # scored 0 anywhere would be the defect, so take the best (min) case
         # for the company and let the caller assert it is still not perfect.
         return min(r.gap for r in per_cell.values() if r.gap is not None)
+    if entry_key == "couple_w2_5_c7.detection":
+        # THE LIFE-EVENT PAIR IS SCORED ON ITS OWN WORLD (atom D15), not on the
+        # payment records above: its universe is customer-YEARS and its negative
+        # population is an income_stress state, so scoring it here through the
+        # triad's records would measure nothing about the register entry. The
+        # degenerate is the SAME world with the company replaced by one that
+        # flags every instance -- and it is routed through `false_flag_measures`,
+        # the function the entry names, so a regression back to recall-only in
+        # the real code fails this control rather than passing a re-implementation
+        # of it (the R15 tautology).
+        from tools import couple_w2_5_c7 as lifepair
+        pops = lifepair.partition_populations(120, 2016, 2020)
+        measures = lifepair.false_flag_measures(pops.with_flagged(pops.universe))
+        return measures[lifepair.PUBLISHED_EXCLUSION_BASIS].gap
     # Every other registered entry is still on the recall-only scorer.
     return detection_gap(truth, universe).gap
 
@@ -1499,82 +1515,186 @@ def test_shared_quantity_declarations_are_measured_not_asserted(seed, grace):
             assert side["denominator"], f"{name}/{dim} has no denominator"
             assert side["rate"] is not None, f"{name}/{dim} publishes no rate"
 
-        coincide = age["denominator"] == det["denominator"]
+        # COINCIDENCE IS SET IDENTITY, NOT EQUAL SIZE (D16). Two different
+        # 782-case populations would pass a count check, and "the same size read
+        # as the same population" is the shape of the defect this register was
+        # minted for. The cases come from the scorers' own returned sets.
+        for dim, side in sides.items():
+            assert side["denominator_cases"] is not None, (
+                f"{name}/{dim}: no denominator CASES -- a count-only comparison "
+                "cannot tell two same-sized populations apart"
+            )
+            assert len(side["denominator_cases"]) == side["denominator"], (
+                f"{name}/{dim}: the published denominator {side['denominator']} "
+                f"and the cases behind it ({len(side['denominator_cases'])}) "
+                "disagree, so one of them is not what the scorer counted"
+            )
+            assert len(side["numerator_cases"]) == side["numerator"], (
+                f"{name}/{dim}: numerator {side['numerator']} vs "
+                f"{len(side['numerator_cases'])} cases"
+            )
+
+        coincide = age["denominator_cases"] == det["denominator_cases"]
         assert coincide is spec["populations_coincide"], (
             f"{name}: the register declares populations_coincide="
-            f"{spec['populations_coincide']} but the measured denominators are "
-            f"ageing {age['denominator']} vs detection {det['denominator']}. "
+            f"{spec['populations_coincide']} but the measured populations are "
+            f"ageing {age['denominator']} vs detection {det['denominator']} "
+            f"cases, differing on "
+            f"{len(age['denominator_cases'] ^ det['denominator_cases'])}. "
             "A register that can disagree with the run and still pass is the "
             "prose this contract replaced."
         )
 
-        if not spec["populations_coincide"]:
-            # The declared containment, measured. It is EXACT on purpose: it
-            # breaks the moment either side's population moves -- including when
-            # the alignment atom lands, which is the intent.
-            assert spec["relationship"] == (
-                "ageing_denominator == detection_denominator + detection_n_excluded"
-            ), f"{name}: unrecognised relationship -- add its measurement here"
-            assert age["denominator"] == det["denominator"] + det["n_excluded"], (
-                f"{name}: declared containment broken -- ageing {age['denominator']} "
-                f"!= detection {det['denominator']} + excluded {det['n_excluded']}"
+        # THE DECLARED RELATIONSHIP, MEASURED. Exact on purpose, exactly as the
+        # pre-D16 containment was: the next move on either side breaks it rather
+        # than slipping past a phrase loose enough to cover two worlds.
+        assert spec["relationship"] == (
+            "ageing_denominator_cases == detection_denominator_cases (identical "
+            "sets) AND ageing_numerator_cases STRICT SUBSET OF "
+            "detection_numerator_cases"
+        ), f"{name}: unrecognised relationship -- add its measurement here"
+        # VACUITY GUARD: an empty numerator is a subset of anything, so the
+        # subset half would pass on a population where the company never
+        # overstated at all -- proving nothing.
+        assert age["numerator_cases"], (
+            f"{name}: the ageing numerator is EMPTY on this population, so the "
+            "declared subset holds vacuously and this control measured nothing"
+        )
+        assert age["numerator_cases"] < det["numerator_cases"], (
+            f"{name}: declared STRICT subset broken -- ageing's "
+            f"{len(age['numerator_cases'])} case(s) are not a strict subset of "
+            f"detection's {len(det['numerator_cases'])}; "
+            f"{len(age['numerator_cases'] - det['numerator_cases'])} case(s) "
+            "are overstated in the ageing report but were never chased, which "
+            "the belief populations say cannot happen"
+        )
+
+        # TWO QUANTITIES, TWO NAMES (D16). Rates that differ under ONE name is
+        # the original defect; the register must say which quantity each side
+        # publishes, and they must not be the same words.
+        names = {dim: side["quantity_name"] for dim, side in sides.items()}
+        assert all(names.values()), f"{name}: a side publishes an unnamed quantity"
+        if age["rate"] != det["rate"]:
+            assert len(set(names.values())) == len(names), (
+                f"{name}: the sides publish {age['rate']} and {det['rate']} "
+                f"under the same name {names} -- two numbers under one name is "
+                "the defect this register exists for"
             )
-            # An undeclared divergence is the defect; an OWNED one is debt.
-            assert str(spec["why_they_differ"]).strip(), name
-            assert str(spec["which_to_read"]).strip(), name
-            assert spec["alignment_atom"], (
-                f"{name}: two dimensions publish this quantity over different "
-                "populations and no atom owns the alignment -- an unowned "
-                "divergence is how a defect becomes a convention"
-            )
+
+        # An undeclared divergence is the defect; an OWNED one is debt; a
+        # DECLARED-AND-DELIBERATE one carries no atom and must say why.
+        assert str(spec["why_they_differ"]).strip(), name
+        assert str(spec["which_to_read"]).strip(), name
+
+
+def _phrase_emitters(spec, rendered: dict) -> tuple:
+    """Split the dimensions whose RENDERED text contains a registered phrase into
+    the ones that PUBLISH the quantity under that name and the ones that only
+    DISCLAIM it.
+
+    The distinction is the point (D16). A bare substring sweep cannot tell "this
+    rate IS the wrongful-dunning exposure" from "this rate is NOT the
+    wrongful-dunning exposure" -- and the second sentence is one a reader who
+    remembers the old label needs. Banning the substring outright would refuse
+    the honest correction: the AO2 `"none"` shape, which this repo has now been
+    bitten by twice, once inside this very atom's predecessor. So the
+    disclaimer's FORM is registered and checked, and what is measured is the
+    text left over once the disclaimer is removed.
+    """
+    phrase = str(spec["phrase"])
+    disclaimers = dict(spec.get("phrase_disclaimed_by") or {})
+    publishers, disclaimers_seen = set(), set()
+    for dim, text in rendered.items():
+        if phrase not in text:
+            continue
+        form = disclaimers.get(dim)
+        if form and form in text:
+            disclaimers_seen.add(dim)
+            # What is left after the registered disclaimer is removed. A
+            # dimension that both disclaims the name AND uses it affirmatively
+            # is still publishing it -- doublespeak must not buy an exemption.
+            if phrase in text.replace(form, ""):
+                publishers.add(dim)
+        else:
+            publishers.add(dim)
+    return publishers, disclaimers_seen
 
 
 def test_every_dimension_publishing_a_registered_phrase_is_registered():
     """R10, the half that catches the NEXT instance rather than this one: a
     dimension that starts printing a registered quantity's phrase to a reader
-    must appear in that quantity's `published_by`, or it joins the ambiguity
-    with nothing comparing it -- exactly how the ageing/detection pair got a
-    fortnight of being two numbers under one name."""
+    must appear in that quantity's `phrase_published_by`, or it joins the
+    ambiguity with nothing comparing it -- exactly how the ageing/detection pair
+    got a fortnight of being two numbers under one name."""
     rendered = _rendered_dimension_text(_scored())
 
     for name, spec in pair.SHARED_QUANTITY_CONTRACT.items():
         phrase = str(spec["phrase"])
-        emitters = {dim for dim, text in rendered.items() if phrase in text}
-        assert emitters, (
+        publishers, disclaimed = _phrase_emitters(spec, rendered)
+        assert publishers, (
             f"{name}: no dimension prints {phrase!r} any more -- if the quantity "
             "stopped being published, retire the register entry rather than "
             "leaving a control with nothing to check (it can no longer fail)"
         )
-        registered = set(spec["published_by"])          # type: ignore[arg-type]
-        assert emitters <= registered, (
-            f"{name}: {sorted(emitters - registered)} print {phrase!r} to a reader "
-            "but are not registered as publishers of it, so no control compares "
-            "them with the registered ones"
+        registered = set(spec["phrase_published_by"])   # type: ignore[arg-type]
+        assert publishers == registered, (
+            f"{name}: the register says {sorted(registered)} publish {phrase!r} "
+            f"and the rendered text says {sorted(publishers)}. A dimension "
+            "printing the name unregistered joins the ambiguity with nothing "
+            "comparing it; a registered one that stopped printing it leaves a "
+            "declaration nothing measures."
+        )
+        # THE DISCLAIMER IS ITSELF REQUIRED, not merely tolerated: every
+        # dimension registered as disclaiming the name must actually say so, or
+        # a reader carrying the old label away from the old output block is
+        # never told it moved.
+        assert disclaimed == set(spec.get("phrase_disclaimed_by") or {}), (
+            f"{name}: registered disclaimers {sorted(spec.get('phrase_disclaimed_by') or {})} "
+            f"but measured {sorted(disclaimed)} -- a dimension that used to "
+            "publish this name must keep saying it no longer does"
         )
 
 
-def test_the_two_wrongful_dunning_numbers_are_not_one_number():
-    """The finding itself, pinned as a CHARACTERIZATION (not a contract): the
-    two rates published under one phrase genuinely differ, and most of the
-    ageing numerator lives in the band the detection dimension excludes.
+def test_the_two_dimensions_score_the_same_cases_and_the_residual_is_belief_side():
+    """REPLACES `test_the_two_wrongful_dunning_numbers_are_not_one_number`, which
+    pinned the pre-alignment divergence and was written to fail when
+    `D16_ageing_negative_population_is_unexcluded` landed. It landed; the
+    characterization is replaced, never repaired (the D7 rule).
 
-    Expected to FAIL when `D16_ageing_negative_population_is_unexcluded` lands.
-    That is the point -- replace it then, never repair it. No generated value is
-    pinned: the assertion is on the DIRECTION of the divergence, which is a
-    structural consequence of ageing carrying no exclusion band.
+    What is asserted now is what D16 established, and both halves matter: the
+    two dimensions score the IDENTICAL population, and what still differs is
+    entirely the belief side -- every case the ageing report overstates was
+    chased, and more were chased and then dropped from the report before
+    `as_of`. That residual is a property of two honest questions, not leftover
+    work, which is why no atom owns it.
     """
-    sides = pair.shared_quantity_measurements(_scored())["wrongful_dunning_exposure"]
+    result = _scored()
+    sides = pair.shared_quantity_measurements(result)["wrongful_dunning_exposure"]
     det, age = sides["detection"], sides["ageing"]
 
-    assert det["n_excluded"] > 0, (
-        "the detection dimension excludes nothing, so there is no divergence to "
-        "characterise -- has the alignment landed?"
+    assert det["n_excluded"] > 0 and age["n_excluded"] > 0, (
+        "a dimension excludes nothing -- the alignment is only meaningful if "
+        "BOTH sides carry the band, and one side carrying it was the defect"
     )
-    assert age["rate"] > det["rate"], (
-        "ageing's wrongful-dunning rate is no longer the larger of the two; the "
-        "exclusion band can only ADD flaggable-but-not-failed cases to ageing's "
-        "denominator and numerator, so this inverting means one side's "
-        "population changed"
+    assert det["n_excluded"] == age["n_excluded"], (
+        f"the two dimensions exclude different numbers of cases "
+        f"({det['n_excluded']} vs {age['n_excluded']}), so they are applying "
+        "two rules again rather than reading one set"
+    )
+    assert age["denominator_cases"] == det["denominator_cases"]
+
+    # THE RESIDUAL IS BELIEF-SIDE, AND IT IS REAL (not a rounding leftover):
+    # cases the company chased and later dropped from the ageing report.
+    chased_then_dropped = det["numerator_cases"] - age["numerator_cases"]
+    assert chased_then_dropped, (
+        "detection and ageing now count the same cases as well as the same "
+        "population -- if the belief sides have converged, the two-questions "
+        "reading in the register is wrong and needs rewriting, not asserting"
+    )
+    assert age["rate"] < det["rate"], (
+        f"the ageing report's overstatement ({age['rate']}) is no longer below "
+        f"the wrongful-dunning exposure ({det['rate']}), which the subset "
+        "relation between the numerators requires"
     )
 
 
@@ -1597,34 +1717,83 @@ def test_the_shared_quantity_control_fires_on_a_register_that_lies():
     det = measured["wrongful_dunning_exposure"]["detection"]
     age = measured["wrongful_dunning_exposure"]["ageing"]
 
-    # Lie 1: claim the two populations are the same population.
+    # Lie 1: declare the populations DIFFERENT now that D16 has aligned them.
+    # The pre-D16 register declared exactly this and was true; the same
+    # declaration is now false, and the control must notice which world it is in
+    # rather than accepting whichever the register asserts.
     with pytest.raises(AssertionError):
-        assert (age["denominator"] == det["denominator"]) is True, (
-            "declared coincident, but the denominators differ")
+        assert (age["denominator_cases"] == det["denominator_cases"]) is False, (
+            "declared divergent, but the populations are the same set")
 
-    # Lie 2: declare the containment without the excluded band -- the shape the
-    # retired prose claim implied ("literally the same numerator").
+    # Lie 2: declare the numerators identical -- the shape the retired prose
+    # claim implied ("literally the same numerator"). Alignment made the
+    # denominators one population; it did NOT make the numerators one set, and a
+    # register saying otherwise must fail.
     with pytest.raises(AssertionError):
-        assert age["denominator"] == det["denominator"], (
-            "declared equal denominators, but ageing carries the excluded band")
+        assert age["numerator_cases"] == det["numerator_cases"], (
+            "declared the same numerator, but the belief sides differ")
+
+    # Lie 3: declare the subset in the WRONG DIRECTION. A control that only
+    # checked "the two overlap" would pass on this.
+    with pytest.raises(AssertionError):
+        assert det["numerator_cases"] < age["numerator_cases"], (
+            "declared detection's cases inside ageing's; it is the other way")
 
 
 def test_the_phrase_sweep_fires_on_an_unregistered_publisher():
-    """R15 MUST-FIRE on the sweep half: de-register a dimension that really does
-    print the phrase and the control must catch it. Without this the sweep could
-    be an empty loop that never had an emitter to find."""
+    """R15 MUST-FIRE on the sweep half: a dimension that really does print the
+    phrase, de-registered, must be caught. Without this the sweep could be an
+    empty loop that never had an emitter to find."""
+    rendered = _rendered_dimension_text(_scored())
+    spec = pair.SHARED_QUANTITY_CONTRACT["wrongful_dunning_exposure"]
+    publishers, _ = _phrase_emitters(spec, rendered)
+    assert publishers, "no dimension publishes the phrase -- nothing to sweep"
+
+    de_registered = set(spec["phrase_published_by"]) - {"detection"}
+    with pytest.raises(AssertionError):
+        assert publishers == de_registered, "detection prints the phrase unregistered"
+
+
+def test_the_phrase_sweep_tells_publishing_the_name_from_disclaiming_it():
+    """R15 MUST-FIRE on the D16 half, in BOTH directions -- and this is the test
+    that stops the sweep degenerating back into a substring ban.
+
+    The ageing summary mentions the phrase, deliberately, to say the rate is NOT
+    that quantity. A bare `phrase in text` sweep counts that as publishing it
+    (it did, on the first run of this build) and would force the honest sentence
+    to be deleted to satisfy a control -- the AO2 `"none"` shape. So: the real
+    disclaimed text must NOT read as a publisher, and text that both disclaims
+    and then uses the name affirmatively MUST.
+    """
     rendered = _rendered_dimension_text(_scored())
     spec = pair.SHARED_QUANTITY_CONTRACT["wrongful_dunning_exposure"]
     phrase = str(spec["phrase"])
-    emitters = {dim for dim, text in rendered.items() if phrase in text}
-    assert len(emitters) >= 2, (
-        "fewer than two dimensions print the phrase, so the shared-quantity "
-        "contract has nothing to be about"
+    form = spec["phrase_disclaimed_by"]["ageing"]        # type: ignore[index]
+
+    assert phrase in rendered["ageing"] and form in rendered["ageing"], (
+        "the ageing summary no longer mentions the name it used to publish, so "
+        "this test is measuring nothing and a reader is never told it moved"
+    )
+    publishers, disclaimed = _phrase_emitters(spec, rendered)
+    assert "ageing" in disclaimed and "ageing" not in publishers
+
+    # DOUBLESPEAK MUST NOT BUY AN EXEMPTION: disclaim the name once, then use it
+    # affirmatively, and the dimension is publishing it again.
+    doublespeak = dict(rendered)
+    doublespeak["ageing"] = rendered["ageing"] + f" = {phrase}"
+    publishers_2, _ = _phrase_emitters(spec, doublespeak)
+    assert "ageing" in publishers_2, (
+        "a summary that disclaims the name and then uses it anyway reads as "
+        "disclaimed -- the sweep is checking for the disclaimer, not for the "
+        "absence of the claim"
     )
 
-    de_registered = set(spec["published_by"]) - {"ageing"}   # type: ignore[arg-type]
-    with pytest.raises(AssertionError):
-        assert emitters <= de_registered, "ageing prints the phrase unregistered"
+    # And the disclaimer being DROPPED is caught too: the phrase without its
+    # registered form is a publisher.
+    dropped = dict(rendered)
+    dropped["ageing"] = rendered["ageing"].replace(form, phrase)
+    publishers_3, disclaimed_3 = _phrase_emitters(spec, dropped)
+    assert "ageing" in publishers_3 and "ageing" not in disclaimed_3
 
 
 def test_cli_write_ledger_publishes_the_measured_note_not_a_retired_one(monkeypatch):
@@ -1685,6 +1854,94 @@ def test_cli_write_ledger_publishes_the_measured_note_not_a_retired_one(monkeypa
     # The two same-named exposures must be flagged as different measurements
     # wherever both are printed together (the shared-quantity finding).
     assert "SHARED_QUANTITY_CONTRACT" in note
+
+
+# ---------------------------------------------------------------------------
+# THE AGEING EXCLUSION BAND (atom D16) -- R15 both ways
+# ---------------------------------------------------------------------------
+# The band is the whole of this atom's mechanism, so it gets the two mutations
+# the atom's own brief demanded: prove it is not a no-op (fold it back in and
+# the rate must move), and prove it cannot fail OPEN on a record whose
+# `days_late` truth is unknown -- the case where "assume it was paid on time"
+# would quietly count a company error that may not be one.
+
+def test_the_ageing_exclusion_is_not_a_no_op():
+    """R15 MUST-MOVE. Re-score the ageing dimension's OWN inputs through the SAME
+    scorer with the mask removed: if the band changed nothing, the alignment is
+    decoration and the two dimensions were never really brought together."""
+    result = _scored()
+    inputs = result["ageing_inputs"]
+    assert any(inputs["excluded"]), "nothing was excluded -- the band is empty here"
+
+    aligned = result["ageing"].components["overstated_arrears_rate"]
+    unaligned = ageing_gap(
+        inputs["truth_labels"], inputs["belief_labels"],
+    ).components["overstated_arrears_rate"]
+
+    assert unaligned != aligned, (
+        "folding the excluded band back into the denominator leaves the rate "
+        "unchanged, so the band contains no case the company is scored on and "
+        "this atom moved nothing"
+    )
+    # DIRECTION, not a pinned value: the band can only ADD truly-current cases
+    # (and the false ageings among them), and the finding is that it added
+    # proportionally more numerator than denominator.
+    assert unaligned > aligned, (
+        f"the unaligned rate {unaligned} is not above the aligned {aligned}; "
+        "the excluded band is made of cases the company was RIGHT about, so "
+        "counting them against it can only inflate the rate"
+    )
+
+
+def test_the_ageing_exclusion_does_not_fail_open_on_unknown_days_late():
+    """R15 FAIL-OPEN. A record whose `days_late` truth is missing is UNKNOWN, and
+    the fail-open reading -- 'no lateness recorded, so it was paid on time' --
+    would drop it into the truly-current population and score the company for a
+    belief nobody can adjudicate.
+
+    Measured through the real path: blank `days_late` on the within-grace
+    successes and they must LEAVE the scored population entirely, not join it.
+    """
+    records, consumer, _ledger, as_of = pair.build_scenario(300, seed=_SEED)
+    clean = pair.score_triad(records, consumer, as_of)
+    before = clean["ageing"].components
+
+    grace = pair.DEFAULT_RECONCILIATION_GRACE_DAYS
+    blanked = 0
+    for r in records:
+        if r.result == "success" and r.days_late is not None and r.days_late <= grace:
+            r.days_late = None
+            blanked += 1
+    assert blanked, "no within-grace success to blank -- the mutation is vacuous"
+
+    after = pair.score_triad(records, consumer, as_of)["ageing"].components
+    assert after["n_truly_current"] == before["n_truly_current"] - blanked, (
+        "an unknown `days_late` did not leave the truly-current population -- "
+        "the band is reading missing truth as 'paid on time', which is the "
+        "fail-open shape this exclusion exists to avoid"
+    )
+    assert after["n_excluded"] == before["n_excluded"] + blanked
+
+
+def test_the_two_dimensions_read_ONE_exclusion_set_not_two_copies():
+    """The defect this atom closes was born of one rule living in one dimension.
+    A second copy of the rule for the ageing side would have been the same shape
+    again, one file over -- so the set is built once and both read it.
+
+    Asserted structurally as well as numerically: the module must construct
+    `never_flaggable` exactly once."""
+    src = Path(pair.__file__).read_text()
+    assert src.count("    never_flaggable = {") == 1, (
+        "the never-flaggable band is constructed more than once in this module; "
+        "two copies of one rule is how the detection and ageing dimensions came "
+        "to disagree about the same cases"
+    )
+    result = _scored()
+    sets = result["sets"]
+    assert sets["ageing_truly_current"] == sets["never_flaggable"], (
+        "the ageing dimension's scored-current population is not the detection "
+        "dimension's negative set, so the two are applying different rules again"
+    )
 
 
 def test_the_pair_reexports_the_class_register_it_does_not_copy_it():

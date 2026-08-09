@@ -486,10 +486,10 @@
             "remittance_complete": 0.0
           },
           "ageing.overstated_arrears_rate": {
-            "actual": 0.014417,
-            "attributed": 0.011796,
-            "meaning": "truly-current invoices believed in arrears -- the WRONGFUL-DUNNING exposure",
-            "remittance_complete": 0.002621
+            "actual": 0.011364,
+            "attributed": 0.011364,
+            "meaning": "truly-current invoices believed in arrears at as_of -- the AGEING-REPORT OVERSTATEMENT (NOT the wrongful-dunning exposure: atom D16)",
+            "remittance_complete": 0.0
           },
           "ageing.understated_arrears_rate": {
             "actual": 0.580645,
@@ -543,11 +543,11 @@
     },
     "g0": 0.5,
     "gap": 0.0859375,
-    "measured_at": "2026-08-09T08:20:40.010537+00:00",
+    "measured_at": "2026-08-09T10:33:22.311010+00:00",
     "metric": "detection",
-    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift. The H27 Expert Hour measured two defects in the old figure and both are now closed at the measure rather than caveated in prose. (1) It was an as_of ARTEFACT: the truth (`result == 'failed'`) does not move with the clock but the belief was held AT the measurement date, so holding company and world fixed and moving only that date walked the figure ~+70% over 60 days. The population is now EVER-FLAGGED -- a detection is a fact about the day it happened, whatever a later oldest-first allocation did to the invoice -- and the as_of sweep is flat. (2) It counted ONE ERROR DIRECTION: a company flagging EVERY invoice scored a perfect 0.0. The headline is now the BALANCED error of both directions on their own denominators, so both degenerate strategies score g0 = 0.5. detection balanced error 0.0859 [0.5 = every prevalence-blind rule, incl. flagging everything] (missed_failure_rate 0.0000 over 31 truly-failed, false_flag_rate 0.1719 = 242 of 1408 never-flaggable cases wrongly flagged = the wrongful-dunning exposure; 118 case(s) in neither population: cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.). The retired recall-only figure is NOT restated: it was scored over a different flagged population, so no arithmetic on these sets reproduces it. Companion per-dimension gaps: belief 0.2222; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0144 over 1526 truly-current = the wrongful-dunning exposure) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): 384 credit(s) landed with no invoice reference out of 402 unreferenced record(s); the company's MONEY is unaffected by every penny (portfolio balance GBP 500.89 both ways, delta +0.00) while its DATES are not: ageing.mean_bucket_displacement 1.741935 vs 0.0 remittance-complete -> +1.7419 buckets attributable; ageing.overstated_arrears_rate 0.014417 vs 0.002621 remittance-complete -> +0.0118 wrongful-dunning rate attributable; ageing.understated_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 debt-believed-settled rate attributable; arrears_view.unpursued_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 wrongful-non-pursuit rate attributable. Read as: what the no-remittance channel COSTS this company, holding the world literally fixed. R12: a diagnostic, never a target. R12: diagnostic, not a target.",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift. The H27 Expert Hour measured two defects in the old figure and both are now closed at the measure rather than caveated in prose. (1) It was an as_of ARTEFACT: the truth (`result == 'failed'`) does not move with the clock but the belief was held AT the measurement date, so holding company and world fixed and moving only that date walked the figure ~+70% over 60 days. The population is now EVER-FLAGGED -- a detection is a fact about the day it happened, whatever a later oldest-first allocation did to the invoice -- and the as_of sweep is flat. (2) It counted ONE ERROR DIRECTION: a company flagging EVERY invoice scored a perfect 0.0. The headline is now the BALANCED error of both directions on their own denominators, so both degenerate strategies score g0 = 0.5. detection balanced error 0.0859 [0.5 = every prevalence-blind rule, incl. flagging everything] (missed_failure_rate 0.0000 over 31 truly-failed, false_flag_rate 0.1719 = 242 of 1408 never-flaggable cases wrongly flagged = the wrongful-dunning exposure; 118 case(s) in neither population: cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.). The retired recall-only figure is NOT restated: it was scored over a different flagged population, so no arithmetic on these sets reproduces it. Companion per-dimension gaps: belief 0.2222; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0114 over 1408 truly-current = the ageing-report overstatement at as_of, NOT the wrongful-dunning exposure (atom D16); 118 case(s) in neither population: cases in NEITHER ageing population (atom D16, carrying D11's rule across from the detection dimension of this same instrument): a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really WAS unpaid past grace, so the company carrying it as owed was CORRECT even though the truth bucket at `as_of` reads `current`; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time. Until this band existed, 94 of this dimension's 101 false ageings were cases its sibling dimension holds the company was RIGHT about.) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): 384 credit(s) landed with no invoice reference out of 402 unreferenced record(s); the company's MONEY is unaffected by every penny (portfolio balance GBP 500.89 both ways, delta +0.00) while its DATES are not: ageing.mean_bucket_displacement 1.741935 vs 0.0 remittance-complete -> +1.7419 buckets attributable; ageing.overstated_arrears_rate 0.011364 vs 0.0 remittance-complete -> +0.0114 ageing-overstatement rate attributable; ageing.understated_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 debt-believed-settled rate attributable; arrears_view.unpursued_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 wrongful-non-pursuit rate attributable. Read as: what the no-remittance channel COSTS this company, holding the world literally fixed. R12: a diagnostic, never a target. R12: diagnostic, not a target.",
     "raw_gap": 0.0,
-    "run_git_commit": "8b45e405e744beb2cb7319f86604e6279c066a25",
+    "run_git_commit": "3e45a014faa057506ede777b376869fce281b8f3",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
@@ -580,23 +580,40 @@
     "twin_atom_id": "C6_affordability_inference"
   },
   "W2_5_life_event_stream": {
-    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "baseline": "0.5 -- the balanced error EVERY prevalence-blind rule scores: flag nobody (miss 1, false-flag 0), flag EVERYTHING (miss 0, false-flag 1), and any coin-flip at any rate. Unlike the recall-only `detection_gap` this supersedes, 0.0 cannot be bought by over-flagging -- it has to be earned in both directions -- and 1.0 means perfectly wrong, not merely blind.",
     "components": {
+      "candidate_false_flag_rates": {
+        "A_naive_universe_minus_truth": 0.166129,
+        "B_exclude_carried_high": 0.149077,
+        "C_settled_low_at_both_ends": 0.057598
+      },
       "caught": 1085,
+      "exclusion_basis": "C_settled_low_at_both_ends",
+      "exclusion_basis_label": "settled negative: LOW income stress at BOTH year ends",
+      "exclusion_basis_provenance": "PROVISIONAL, agent-recommended 2026-08-09 (atom D15), open to the director's R13 overturn: the negative population must be the cases a flag is WRONG on, and the harness cannot call a flag wrong on a household it knows to be carrying income stress. The recommendation produces the LOWEST of the three rates and is therefore stated with its hazard: the reason is the SET (the miss direction's truth is EVENT-shaped while the detector's claim is STATE-shaped, and the two disagree exactly on the carried-distress band), never the number. All three rates are published side by side on every run so the choice cannot hide inside a headline.",
+      "exclusion_reason": "customer-years with no distress event dated in them where the household nonetheless carries income stress (HIGH or MODERATE) at a year end, because `income_stress` PERSISTS until an income_recovery event fires and `simulation.payment_timing` keeps mapping it onto LATE/DD_FAILED records. The household really is in distress, so a C7 flag is CORRECT and scoring it as a false flag would penalise the company for being right (atom D15; the same rule D11 applied to the payment triad's late-past-grace successes).",
+      "false_flag_rate": 0.057598,
       "flagged_size": 4225,
+      "holds_the_company_to": "flagging a household that was demonstrably not in distress at any point the harness can name -- and nothing else",
       "miss_rate": 0.012739,
       "missed": 14,
+      "missed_failure_rate": 0.008142,
       "missed_harm": 23.0,
+      "n_excluded": 2772,
+      "n_false_flags": 929,
+      "n_negatives": 16129,
+      "supersedes": "detection_gap (recall-only, retired 2026-08-09 by atom D11). NOT restated here: it was scored over a different flagged population, so no arithmetic on these sets reproduces it.",
       "total_harm": 2825.0,
-      "truth_size": 1099
+      "truth_size": 1099,
+      "universe_size": 20000
     },
-    "g0": 2825.0,
-    "gap": 0.008141592920353982,
-    "measured_at": "2026-07-13T21:32:34.443227+00:00",
+    "g0": 0.5,
+    "gap": 0.03286985405829219,
+    "measured_at": "2026-08-09T10:49:52.384130+00:00",
     "metric": "detection",
-    "note": "harm-weighted fraction of detectable life-event distress the company MISSED (W2_5 hidden events -> observable payment disruption -> C7 detection); miss-only metric, blind to false positives.",
-    "raw_gap": 23.0,
-    "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
+    "note": "W2_5 hidden life events -> observable payment disruption -> C7 detection, BOTH directions (atom D15). NEGATIVE BASIS = C_settled_low_at_both_ends: settled negative: LOW income stress at BOTH year ends. No false-flag rate on this pair is readable without its basis -- the three candidates swing it several-fold with company behaviour literally fixed. flagging a household that was demonstrably not in distress at any point the harness can name -- and nothing else. RESHAPED 2026-08-09 (atom D15): NOT COMPARABLE WITH ANY LEDGER ENTRY FOR THIS PAIR WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift -- the retired figure counted ONE direction, so a company flagging every customer-year scored a perfect 0.0 on it. No arithmetic on these sets reproduces it and it is deliberately not restated. R12: a diagnostic, never a target.",
+    "raw_gap": 0.008141592920353982,
+    "run_git_commit": "3e45a014faa057506ede777b376869fce281b8f3",
     "twin_atom_id": "C7_life_event_detection"
   },
   "W2_6_sme_distress_twin": {

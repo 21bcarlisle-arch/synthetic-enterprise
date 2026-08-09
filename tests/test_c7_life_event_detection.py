@@ -216,5 +216,23 @@ def test_detector_recall_is_high_but_not_perfect(scenario):
     truth, flagged, _harm, stats = scenario
     recall = stats["true_positives"] / stats["n_truth"]
     assert 0.90 <= recall < 1.0
-    # ... and the miss-only metric is blind to a real false-positive cost:
-    assert stats["false_positives"] > 0
+    # ... and the over-flagging cost is REAL and now MEASURED. This assertion is
+    # REPLACED, not repaired (atom D15, 2026-08-09): it used to read
+    # `stats["false_positives"] > 0` off a naive count of every flag on a
+    # customer-year with no distress event dated in it -- the denominator D13
+    # measured as x2.88 wrong, because income_stress persists and thousands of
+    # those flags land on households genuinely still in distress. The pair no
+    # longer publishes a miss-only metric, so the honest statement of the same
+    # fact is that the false-flag direction, on the population where a flag is
+    # actually WRONG, is non-zero.
+    from tools.couple_w2_5_c7 import (
+        EXCLUSION_BASES,
+        PUBLISHED_EXCLUSION_BASIS,
+        false_flag_measures,
+        partition_populations,
+    )
+    pops = partition_populations(400, 2016, 2025)
+    rates = {k: r.components["false_flag_rate"]
+             for k, r in false_flag_measures(pops).items()}
+    assert rates[PUBLISHED_EXCLUSION_BASIS] > 0
+    assert set(rates) == set(EXCLUSION_BASES)

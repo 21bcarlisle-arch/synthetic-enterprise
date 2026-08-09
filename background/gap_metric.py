@@ -680,7 +680,11 @@ def detection_measures(truth_set: Iterable, flagged_set: Iterable, *,
     )
 
 
-def format_detection_summary(result: GapResult) -> str:
+def format_detection_summary(
+    result: GapResult, *,
+    truth_noun: str = "truly-failed",
+    false_flag_name: str = "the wrongful-dunning exposure",
+) -> str:
     """Render a `detection_measures` result for a log line / ledger note as BOTH
     directions with their denominators, never as a bare scalar.
 
@@ -689,7 +693,17 @@ def format_detection_summary(result: GapResult) -> str:
     went wrong the moment a bare `detection 0.0725` could be read as "nearly
     perfect detection" when half the company's flags were on invoices that had
     been paid. No consumer of this module prints the headline without both
-    directions beside it."""
+    directions beside it.
+
+    THE TWO NOUNS ARE PARAMETERS (atom D15, 2026-08-09) and default to the
+    payment triad's wording, so every pre-existing render is byte-identical. They
+    exist because this renderer stopped being the payment triad's alone the
+    moment a second pair scored both directions through it: W2_5<->C7's truth is
+    a life-event distress year, not a failed payment, and its false flags are not
+    dunning. Hardcoding one pair's nouns into a shared renderer is how a name
+    ends up describing two different quantities -- the class D16 closed inside
+    the triad, applied here at birth rather than after a reader is misled. A
+    caller measuring something else names it."""
     c = result.components
 
     def _num(key: str, fmt: str) -> str:
@@ -701,11 +715,11 @@ def format_detection_summary(result: GapResult) -> str:
                                        else format(result.gap, ".4f"))
         + " [0.5 = every prevalence-blind rule, incl. flagging everything]"
         + " (missed_failure_rate " + _num("missed_failure_rate", ".4f")
-        + " over " + str(c.get("truth_size")) + " truly-failed"
+        + " over " + str(c.get("truth_size")) + " " + truth_noun
         + ", false_flag_rate " + _num("false_flag_rate", ".4f")
         + " = " + str(c.get("n_false_flags")) + " of "
         + str(c.get("n_negatives")) + " never-flaggable cases wrongly flagged"
-        + " = the wrongful-dunning exposure"
+        + " = " + false_flag_name
         + ("" if not c.get("n_excluded") else
            f"; {c.get('n_excluded')} case(s) in neither population: "
            f"{c.get('exclusion_reason')}")
@@ -854,12 +868,21 @@ AGEING_HEADLINE_UNITS: str = (
 
 
 def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
-                   order: Sequence) -> dict:
+                   order: Sequence,
+                   excluded: Optional[Sequence] = None) -> dict:
     """The MEASUREMENT half of `ageing_gap`: validate the inputs and count, with
     no packaging, no rounding and no prose. Split out from `ageing_gap` (which
     assembles the GapResult) so the arithmetic can be read and tested without the
     ledger-shaping around it -- and because the numbers, not the presentation, are
     the thing under R15 mutation in `tests/tools/test_d7_ageing_measures.py`.
+
+    `excluded` is a parallel truthy/falsy sequence marking cases that are in
+    NEITHER direction's population (atom D16; see `ageing_gap`). An excluded case
+    leaves EVERY count -- `n`, both denominators, the displacement population --
+    and is counted in `n_excluded`. It is deliberately not "excluded from the
+    current side only": a case the caller cannot classify is not evidence in
+    either direction, and half-excluding it would leave the displacement mean
+    measuring a population the rates do not.
 
     Returns the raw measures UNROUNDED. `None` (never 0.0) where a denominator is
     empty -- see `ageing_gap`'s docstring for why vacuity must not read as perfect.
@@ -871,6 +894,17 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
     if len(truth) != len(belief):
         raise ValueError("truth_labels and belief_labels must be the same length")
 
+    if excluded is None:
+        drop = [False] * len(truth)
+    else:
+        drop = [bool(x) for x in excluded]
+        if len(drop) != len(truth):
+            raise ValueError(
+                f"ageing_gap: `excluded` has {len(drop)} entries for "
+                f"{len(truth)} cases -- a mis-aligned mask would exclude "
+                "arbitrary rows, so this RAISES rather than zipping short."
+            )
+
     rank = {b: i for i, b in enumerate(order)}
     unknown = sorted({str(x) for x in truth + belief if x not in rank})
     if unknown:
@@ -881,23 +915,33 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
             "(R15 fail-open)."
         )
 
+    n_excluded = sum(1 for d in drop if d)
+    scored = [(t, b) for t, b, d in zip(truth, belief, drop) if not d]
+    if not scored:
+        raise ValueError(
+            f"ageing_gap: all {len(truth)} case(s) were excluded -- there is no "
+            "population left to score, and returning measures over nothing would "
+            "be the fail-open shape this exclusion exists to avoid."
+        )
+
     current = order[0]
-    n = len(truth)
-    n_truly_overdue = sum(1 for t in truth if t != current)
+    n = len(scored)
+    n_truly_overdue = sum(1 for t, _ in scored if t != current)
     n_truly_current = n - n_truly_overdue
 
-    misses = sum(1 for t, b in zip(truth, belief) if t != current and b == current)
-    false_ageings = sum(1 for t, b in zip(truth, belief) if t == current and b != current)
+    misses = sum(1 for t, b in scored if t != current and b == current)
+    false_ageings = sum(1 for t, b in scored if t == current and b != current)
     wrong_bucket = sum(
-        1 for t, b in zip(truth, belief)
+        1 for t, b in scored
         if t != current and b != current and t != b
     )
     displacements = [
-        abs(rank[b] - rank[t]) for t, b in zip(truth, belief) if t != current
+        abs(rank[b] - rank[t]) for t, b in scored if t != current
     ]
 
     return {
         "n": n,
+        "n_excluded": n_excluded,
         "n_truly_overdue": n_truly_overdue,
         "n_truly_current": n_truly_current,
         "misses": misses,
@@ -913,7 +957,9 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
 
 
 def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
-               *, bucket_order: Sequence = AGEING_BUCKET_ORDER) -> GapResult:
+               *, bucket_order: Sequence = AGEING_BUCKET_ORDER,
+               excluded: Optional[Sequence] = None,
+               exclusion_reason: Optional[str] = None) -> GapResult:
     """Debt-DATING measures for an ORDERED ageing space (formula g).
 
     Replaces the single prevalence-normalised scalar the ageing dimension used to
@@ -930,9 +976,12 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
 
     * **understated** -- debt the company believes settled. What a real supplier
       under-provisions for and never chases.
-    * **overstated** -- the WRONGFUL-DUNNING exposure: truly-current invoices the
-      company believes are in arrears. The old ratio hid this inside a
-      denominator normed on the *other* class.
+    * **overstated** -- the AGEING-REPORT OVERSTATEMENT: truly-current invoices
+      the company believes are in arrears *at `as_of`*. The old ratio hid this
+      inside a denominator normed on the *other* class. It was published under
+      the name "the wrongful-dunning exposure" until atom D16 measured that it is
+      NOT that quantity and must not carry its name -- see the EXCLUSION note
+      below and `background.shared_quantity_contract`.
     * **mean_bucket_displacement** -- the ORDINAL severity, which is what a dating
       dimension is really about. Distinguishes off-by-one from stone-blind, which
       an error rate cannot. Reported ABSOLUTE, in buckets, with NO baseline
@@ -944,14 +993,38 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     rate) and `g0` is 0.0 because there IS no baseline -- `baseline` says so in
     words so a ledger reader cannot mistake it for a normalised score.
 
-    FAIL LOUD, never fail-open (R15): an empty population, a length mismatch, or a
-    label outside `bucket_order` RAISES. A silently-tolerated unknown label would
-    score as displacement 0 -- a bucket-vocabulary drift would then read as perfect
-    dating. VACUITY IS EXPLICIT, not zero: with no truly-overdue invoices the two
-    overdue-denominated measures are `None`, not 0.0, and so is `gap`.
+    THE EXCLUSION BAND (atom `D16_ageing_negative_population_is_unexcluded`,
+    2026-08-09). `excluded` is a parallel truthy/falsy mask marking cases in
+    NEITHER direction's population, exactly as `detection_measures` treats
+    `universe - truth_set - negative_set`. It exists because the two dimensions
+    of the payment triad published one named quantity as two numbers 3.5x apart:
+    `detection_measures` applies D11's rule -- an invoice paid past its grace
+    date really WAS unpaid past grace, so a flag on it was CORRECT -- and this
+    function applied no rule at all, so 94 of its 101 "false ageings" were cases
+    the sibling dimension of the same instrument held the company was RIGHT
+    about. The band is the CALLER's to define (only the caller knows what its
+    cases are), but it is PUBLISHED, NEVER SILENT: excluding any case without an
+    `exclusion_reason` RAISES, because an unexplained exclusion shrinking a
+    denominator is the cheapest way to make a rate look better than it is (the
+    D10 rule, and here it would move a rate the caller is being scored on).
+
+    FAIL LOUD, never fail-open (R15): an empty population, a length mismatch, a
+    mis-aligned `excluded` mask, an exclusion with no reason, a fully-excluded
+    population, or a label outside `bucket_order` all RAISE. A silently-tolerated
+    unknown label would score as displacement 0 -- a bucket-vocabulary drift
+    would then read as perfect dating. VACUITY IS EXPLICIT, not zero: with no
+    truly-overdue invoices the two overdue-denominated measures are `None`, not
+    0.0, and so is `gap`.
     """
     order = list(bucket_order)
-    measured = _ageing_counts(truth_labels, belief_labels, order)
+    measured = _ageing_counts(truth_labels, belief_labels, order, excluded)
+    if measured["n_excluded"] and not (exclusion_reason or "").strip():
+        raise ValueError(
+            f"ageing_gap: {measured['n_excluded']} case(s) are excluded from "
+            "both populations and no `exclusion_reason` was given. An "
+            "unexplained exclusion silently shrinks a denominator -- the D10 "
+            "rule: the exclusion is published, not silent."
+        )
     mean_disp = measured["mean_bucket_displacement"]
 
     def _r(x: Optional[float]) -> Optional[float]:
@@ -964,6 +1037,13 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     components["bucket_order"] = order
     components["headline_units"] = AGEING_HEADLINE_UNITS
     components["normalisation"] = AGEING_NO_NORMALISER_REASON
+    # THE PUBLISHED EXCLUSION (D10's rule, carried across by D16), in the
+    # components rather than in prose a ledger reader never sees -- and `None`
+    # rather than absent when nothing was excluded, so a reader can tell "this
+    # dimension applies no band" from "this dimension excluded nothing today".
+    components["exclusion_reason"] = (
+        exclusion_reason if measured["n_excluded"] else None
+    )
     if measured["n_truly_overdue"] == 0:
         components["vacuity"] = (
             "NO truly-overdue invoices in this population: the two "
@@ -987,8 +1067,11 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
             "debt DATE displacement (buckets) over the truly-overdue population, "
             "with the two error directions reported separately on their own "
             "denominators: understated_arrears_rate (debt believed settled) and "
-            "overstated_arrears_rate (the wrongful-dunning exposure). R12: all "
-            "three are diagnostics, never targets."
+            "overstated_arrears_rate (the AGEING-REPORT OVERSTATEMENT at `as_of` "
+            "-- NOT the wrongful-dunning exposure, which is a different "
+            "measurement over a different belief population and is published by "
+            "the detection dimension; atom D16). R12: all three are diagnostics, "
+            "never targets."
         ),
     )
 
@@ -1008,6 +1091,18 @@ def format_ageing_summary(result: GapResult) -> str:
         v = c.get(key)
         return "undefined (no such population)" if v is None else format(v, fmt)
 
+    n_excluded = c.get("n_excluded") or 0
+    # THE EXCLUSION RIDES WITH THE RATE IT MOVES (D10's published-not-silent rule,
+    # carried across by D16). A denominator that has had a band removed from it
+    # must say so wherever it is printed -- otherwise the alignment that made the
+    # two dimensions comparable is invisible at exactly the sites where a reader
+    # compares them.
+    excl = ""
+    if n_excluded:
+        excl = (
+            "; " + str(n_excluded) + " case(s) in neither population: "
+            + str(c.get("exclusion_reason"))
+        )
     return (
         "ageing displacement " + _num("mean_bucket_displacement", ".3f")
         + " buckets [no baseline; not a 0-1 ratio]"
@@ -1015,7 +1110,8 @@ def format_ageing_summary(result: GapResult) -> str:
         + " over " + str(c.get("n_truly_overdue")) + " truly-overdue"
         + ", overstated_arrears_rate " + _num("overstated_arrears_rate", ".4f")
         + " over " + str(c.get("n_truly_current")) + " truly-current"
-        + " = the wrongful-dunning exposure)"
+        + " = the ageing-report overstatement at as_of, NOT the wrongful-dunning"
+        + " exposure (atom D16)" + excl + ")"
     )
 
 

@@ -74,8 +74,11 @@ METRIC CHOICE per dimension (design section 1.4, "pick the shape that fits"):
     ORDER (believing a 90+ debt is 60-90 scored the same as not seeing it).
     The buckets are ORDERED, so the dimension now reports date DISPLACEMENT
     plus the two error directions on their own denominators -- understated
-    (debt believed settled) and overstated (the wrongful-dunning exposure) --
-    and carries no prevalence-shaped baseline at all.
+    (debt believed settled) and overstated (the ageing REPORT's overstatement
+    at `as_of`; NOT the wrongful-dunning exposure, which the detection
+    dimension publishes -- atom D16) -- and carries no prevalence-shaped
+    baseline at all. Both directions are scored over the SAME never-flaggable
+    band the detection dimension uses, since D16.
   * allocation -- ATTEMPTED, HONESTLY DROPPED (see module note "ON
     ALLOCATION" below): `misapplication_gap`'s no-skill baseline needs a
     SMALL shared label space; a per-invoice `invoice_ref` is effectively
@@ -622,8 +625,52 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
         "why": ("EXEMPT, and this is why the invariant is differential: an "
                 "invoice really does age, so the truth moves and the gap "
                 "following it is correct behaviour, not an artefact."),
+        # D16 ASKED WHETHER THIS EXEMPTION IS BROADER THAN ITS JUSTIFICATION,
+        # and the answer is YES -- it is recorded here rather than left as the
+        # comfortable reading. The justification ("an invoice really does age")
+        # licenses the TRUTH side moving with the clock. It says nothing about
+        # the BELIEF side, which here is the `as_of` SNAPSHOT of the company's
+        # open-item report: an invoice the company chased in month one and
+        # dropped from the report by month three leaves this dimension's
+        # numerator purely because the clock moved, exactly the way the
+        # detection headline's did before D11 made it EVER-FLAGGED. The
+        # exemption is therefore kept but NARROWED in what it is allowed to
+        # excuse: it covers truth-side ageing, and the belief side's as_of
+        # dependence is a REAL property that must be named wherever this rate is
+        # published rather than absorbed into the exemption.
+        "belief_side_is_as_of_dependent": True,
+        "belief_side_note": (
+            "The belief is the open-item report AS AT `as_of`, not an "
+            "ever-chased population. That is the RIGHT shape for the question "
+            "this dimension asks -- is the company's ageing report overstated "
+            "today -- and the WRONG shape for the question its rate used to be "
+            "named after (was this customer ever wrongly chased), which is why "
+            "D16 moved the wrongful-dunning name to the detection dimension "
+            "rather than aligning the two belief sides. Aligning them would "
+            "have destroyed the misstatement measure to manufacture agreement "
+            "between two numbers -- a fix chosen for making the instrument look "
+            "consistent, which is the goal-seek R12 forbids."
+        ),
     },
 }
+
+
+# THE AGEING EXCLUSION BAND'S PUBLISHED REASON (atom D16). One constant, so the
+# offline scorer, the live scorer and any future ageing caller cannot drift into
+# publishing different reasons for the same excluded case -- the same discipline
+# `_CELL_EXCLUSION_REASON` carries for the detection cells, and `ageing_gap`
+# RAISES if it is missing (D10: the exclusion is published, not silent).
+AGEING_EXCLUSION_REASON = (
+    "cases in NEITHER ageing population (atom D16, carrying D11's rule across "
+    "from the detection dimension of this same instrument): a payment that "
+    "eventually succeeded but arrived more than {grace} days (the reconciliation "
+    "grace) after its due date really WAS unpaid past grace, so the company "
+    "carrying it as owed was CORRECT even though the truth bucket at `as_of` "
+    "reads `current`; an unresolved dispute is not a settled success either; and "
+    "a record carrying no `days_late` truth is UNKNOWN, never assumed paid on "
+    "time. Until this band existed, 94 of this dimension's 101 false ageings "
+    "were cases its sibling dimension holds the company was RIGHT about."
+)
 
 
 # ---------------------------------------------------------------------------
@@ -640,23 +687,27 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
 #     from an indiscriminate one, so it MUST either measure both directions or
 #     name the atom that will make it
 #
-# Four dimensions published one direction when this register was written. TWO are
-# now fixed (the headline, D11; the regime-partitioned cell grid, D12) and TWO are
-# NAMED DEBT with a reason and an owner -- a dated liability, not a silent
-# survivor. The two survivors are NOT the same problem as the two that were
-# fixed -- and, per the D13 DISCOVER (2026-08-09), they are not the same problem
-# as EACH OTHER either; bracketing them under one atom was the error.
+# Four dimensions published one direction when this register was written. THREE
+# are now fixed (the headline, D11; the regime-partitioned cell grid, D12; the
+# W2_5<->C7 life-event pair, D15) and ONE is NAMED DEBT with a reason and an
+# owner -- a dated liability, not a silent survivor. The survivor is NOT the same
+# problem as the three that were fixed -- and, per the D13 DISCOVER
+# (2026-08-09), the two self-rationing pairs were never the same problem as EACH
+# OTHER either; bracketing them under one atom was the error, and D15 closing
+# while D14 stays open is that finding paying off.
 # The premise this comment used to carry -- that "a household that is not
 # self-rationing" is a continuum the harness labels by threshold -- was measured
 # and is FALSE for both. W2_8 stamps RationingLabel.NOT_RATIONING from a
 # Bernoulli onset; W2_5 runs a discrete LOW/MODERATE/HIGH income_stress state
 # machine. Both negatives are settled facts. They remain debt for OPPOSITE
-# reasons, each now carried by its own atom: W2_8's measure is VACUOUS (0 of
-# 3752 non-rationers have any drop, so the rate is 0.0000 for any detector --
-# `D14_w2_8_needs_negative_drops`, a WORLD gap), while W2_5's is live and
-# consequential (the exclusion boundary swings it x2.88 because income_stress
-# PERSISTS past the event year -- `D15_w2_5_false_flag_direction_r13_choice`,
-# an R13 curriculum call). D11 measured what a careless denominator is worth --
+# reasons, each carried by its own atom: W2_8's measure is VACUOUS (0 of 3752
+# non-rationers have any drop, so the rate is 0.0000 for any detector --
+# `D14_w2_8_needs_negative_drops`, a WORLD gap, still open), while W2_5's was
+# live and consequential (the exclusion boundary swings it x2.88 because
+# income_stress PERSISTS past the event year) and is now published under a NAMED
+# exclusion basis with all three candidate rates travelling beside it
+# (`D15_w2_5_false_flag_direction_r13_choice`, landed). D11 measured what a
+# careless denominator is worth --
 # it moved the payment triad's wrongful-dunning rate tenfold -- so neither is
 # closed by inventing one to empty this register faster.
 # `tests/tools/test_couple_w2_11_d5.py` MEASURES this register rather than
@@ -695,23 +746,27 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
         "debt_atom": None,
     },
     "couple_w2_5_c7.detection": {
-        "counts_both_error_directions": False,
-        "scorer": "background.gap_metric.detection_gap",
+        "counts_both_error_directions": True,
+        "scorer": "background.gap_metric.detection_measures",
         "why": (
-            "NAMED DEBT, REASON CORRECTED 2026-08-09 by the D13 DISCOVER. The "
-            "original reason -- that a non-distressed household is a continuum "
-            "labelled by threshold -- was measured and is FALSE: income_stress "
-            "is a discrete LOW/MODERATE/HIGH state machine, so 'LOW at both year "
-            "ends' is a settled-fact negative. The real debt is that the "
-            "EXCLUSION boundary is consequential and unchosen: income_stress "
-            "PERSISTS, so 14.7% of the naive denominator are years with no "
-            "distress EVENT but carried-in distress, where a flag is CORRECT. "
-            "The candidate denominators score 0.1661 / 0.1491 / 0.0576 -- a "
-            "x2.88 swing with company behaviour fixed. Publishable once that "
-            "three-way choice is made as an R13 curriculum call, not by the "
-            "agent that benefits from the atom closing."
+            "FIXED 2026-08-09 (atom D15, on the D13 DISCOVER's finding). The "
+            "settled-fact negative the DISCOVER named is now built and scored: "
+            "income_stress is a discrete LOW/MODERATE/HIGH state machine, so "
+            "'LOW at both year ends' is a state, not a threshold. What made this "
+            "publishable rather than merely computable is that the exclusion is "
+            "NAMED: `tools.couple_w2_5_c7.EXCLUSION_BASES` enumerates all three "
+            "candidate negatives, EVERY run scores all three (0.1661 / 0.1491 / "
+            "0.0576 at the reference population -- a x2.88 swing with company "
+            "behaviour literally fixed), and the published one is a single "
+            "constant the director moves in one edit. The recommendation is "
+            "PROVISIONAL and its R12 hazard is stated where a reader sees it: it "
+            "produces the LOWEST of the three, and the reason is the SET (the "
+            "miss direction's truth is EVENT-shaped, the detector's claim is "
+            "STATE-shaped, and the carried-distress band is exactly where they "
+            "disagree), never the number. Director's call: docs/design/"
+            "D15_FALSE_FLAG_EXCLUSION_R13_CHOICE.md."
         ),
-        "debt_atom": "D15_w2_5_false_flag_direction_r13_choice",
+        "debt_atom": None,
     },
     "couple_w2_8_c10.detection": {
         "counts_both_error_directions": False,
@@ -780,6 +835,31 @@ def score_triad(
     # (1) DD-failure detection
     # ------------------------------------------------------------------
     truth_set = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    # THE NEVER-FLAGGABLE BAND, BUILT ONCE AND USED BY BOTH DIMENSIONS (atom
+    # D16). It is constructed here, above the loop, rather than beside the
+    # `detection_measures` call, for a reason that is the whole of D16: this set
+    # defines which cases a belief can be WRONG about, and until 2026-08-09 only
+    # the detection dimension had it. The ageing dimension re-derived nothing and
+    # applied no band at all, so the two published one named quantity as two
+    # numbers 3.5x apart. A SECOND construction of the same rule would have been
+    # the sibling-half class again (two copies drifting apart is how this defect
+    # was born); there is one set, and both dimensions read it.
+    #
+    # An invoice paid 20 days late genuinely WAS unpaid past its grace date, so
+    # the company treating it as owing was CORRECT -- scoring it against the
+    # company would punish it for being right, and on this population that error
+    # inflated the measured false-flag rate from 0.0009 to 0.2834 in D11's first
+    # draft. A belief is wrong only about a case that was NEVER legitimately
+    # chaseable: the cash arrived on or within grace. Everything else --
+    # late-past-grace successes, unresolved disputes, and any record whose
+    # `days_late` truth is UNKNOWN (never assumed paid on time) -- is EXCLUDED,
+    # counted, and the reason travels in the components (D10's rule: published,
+    # not silent).
+    never_flaggable = {
+        (r.customer_id, r.period_index) for r in records
+        if r.result == "success" and r.days_late is not None
+        and r.days_late <= reconciliation_grace_days
+    }
     flagged_set: set = set()
     # Two INDEPENDENT detection paths, kept apart so their witnesses stay clean
     # (director ruling 2026-07-25 §2, R15 both-ways):
@@ -799,6 +879,12 @@ def score_triad(
     belief_severity_labels: List[str] = []
     true_ageing_labels: List[str] = []
     belief_ageing_labels: List[str] = []
+    # D16: the ageing dimension's own view of the never-flaggable band, parallel
+    # to the two label lists, plus the case keys so the two dimensions'
+    # NUMERATORS (not just their denominators) can be compared case by case by
+    # the shared-quantity control without either being re-derived.
+    ageing_excluded: List[bool] = []
+    ageing_case_keys: List[Tuple[str, int]] = []
 
     n_true_dd_failures = 0
     n_true_non_dd_failures = 0
@@ -943,6 +1029,20 @@ def score_triad(
 
         aged_by_ref = {ai.reference: ai for ai in snapshot.aged_items}
         for r in periods:
+            # D16: the SAME band the detection dimension uses, read from the SAME
+            # set. A case is scored here only if it is one the company's ageing
+            # report could be right or wrong about in an unambiguous way: a true
+            # failure (truly overdue) or a payment that landed within grace
+            # (truly current). A payment that arrived past grace is NEITHER --
+            # the company was right that it was owed and the truth bucket at
+            # `as_of` says "current", which is precisely the disagreement that
+            # made 94 of this dimension's 101 false ageings land on cases the
+            # sibling dimension holds the company was RIGHT about.
+            ageing_case_keys.append((r.customer_id, r.period_index))
+            ageing_excluded.append(
+                r.result != "failed"
+                and (r.customer_id, r.period_index) not in never_flaggable
+            )
             if r.result == "failed":
                 n_true_dd_failures += 1 if r.payment_method == DIRECT_DEBIT else 0
                 n_true_non_dd_failures += 1 if r.payment_method != DIRECT_DEBIT else 0
@@ -978,20 +1078,9 @@ def score_triad(
     # quietly shrinking a denominator.
     universe = {(r.customer_id, r.period_index) for r in records}
     # THE FALSE-FLAG DENOMINATOR IS NOT `universe - truth_set`, and getting this
-    # wrong was the first thing the D11 build got wrong about itself. An invoice
-    # paid 20 days late genuinely WAS unpaid past its grace date, so the company
-    # flagging it was CORRECT -- scoring it as wrongful dunning would punish the
-    # company for being right, and on this population it inflated the measured
-    # false-flag rate from 0.0009 to 0.2834. A flag is wrong only on a case that
-    # was NEVER legitimately flaggable: the cash arrived on or within grace.
-    # Everything else -- late-past-grace successes, unresolved disputes, and any
-    # record whose `days_late` truth is unknown -- is EXCLUDED, counted, and the
-    # reason travels in the components (D10's rule: published, not silent).
-    never_flaggable = {
-        (r.customer_id, r.period_index) for r in records
-        if r.result == "success" and r.days_late is not None
-        and r.days_late <= reconciliation_grace_days
-    }
+    # wrong was the first thing the D11 build got wrong about itself. The band
+    # itself is built ONCE, above the loop -- see its comment there for why, and
+    # for what "never flaggable" means.
     det = detection_measures(
         truth_set, flagged_set, universe=universe,
         negative_set=never_flaggable,
@@ -1047,9 +1136,13 @@ def score_triad(
         "flagged every invoice scored a perfect 0.0 while 44-51% of what this "
         "company actually flags is an invoice that truly SUCCEEDED. The headline "
         "is now the BALANCED error: the mean of missed_failure_rate (over the "
-        "truly-failed) and false_flag_rate (over the truly-succeeded -- the same "
-        "wrongful-dunning exposure D7's `overstated_arrears_rate` publishes one "
-        "dimension over). Both degenerate strategies now score g0 = 0.5. The "
+        "truly-failed) and false_flag_rate (over the never-flaggable -- THE "
+        "wrongful-dunning exposure, and since atom D16 the only figure that "
+        "carries that name: the ageing dimension's `overstated_arrears_rate` "
+        "measures the REPORT's overstatement at `as_of` over the same "
+        "population but a different belief side, and was measured to be a "
+        "strict SUBSET of these cases, not the same number). Both degenerate "
+        "strategies now score g0 = 0.5. The "
         "retired figure is NOT restated in components: it was scored over a "
         "different flagged population, so no arithmetic on these sets reproduces "
         "it, and a restatement would be a false continuity between two numbers "
@@ -1084,7 +1177,12 @@ def score_triad(
         "different-coverage inputs."
     )
 
-    age = ageing_gap(true_ageing_labels, belief_ageing_labels)
+    age = ageing_gap(
+        true_ageing_labels, belief_ageing_labels,
+        excluded=ageing_excluded,
+        exclusion_reason=AGEING_EXCLUSION_REASON.format(
+            grace=reconciliation_grace_days),
+    )
     age.note = (
         "per-invoice 30/60/90+ ageing bucket: truth (resolved-by-as_of fact) vs "
         "D5's own open-item ageing belief; picks up both the raw non-payment "
@@ -1093,7 +1191,30 @@ def score_triad(
         "D7 RESHAPE (2026-08-08): three measures on their own denominators, NOT "
         "one prevalence-normalised scalar -- headline `gap` is mean bucket "
         "DISPLACEMENT (buckets, no baseline); read understated_arrears_rate and "
-        "overstated_arrears_rate (the wrongful-dunning exposure) in components."
+        "overstated_arrears_rate in components. "
+        "D16 ALIGNMENT (2026-08-09) -- TWO CHANGES, and the second is the one a "
+        "reader must not skip. (1) THE DENOMINATOR. This dimension carried no "
+        "exclusion band at all while its sibling applied D11's rule (a payment "
+        "that arrived past the reconciliation grace really WAS unpaid past "
+        "grace, so the company treating it as owed was CORRECT), so 94 of its "
+        "101 false ageings landed on cases the DETECTION dimension of this same "
+        "instrument holds the company was RIGHT about. The band is now the SAME "
+        "SET, built once and read by both, and `n_excluded` publishes it. "
+        "(2) THE NAME. `overstated_arrears_rate` was published as 'the "
+        "wrongful-dunning exposure' -- the same words the detection dimension's "
+        "`false_flag_rate` carries. Aligning the denominators did NOT make them "
+        "one number, and that is the finding, not a residual: the two BELIEF "
+        "sides ask different questions. Detection asks whether the company EVER "
+        "chased this invoice -- which is what wrongful dunning IS, an event that "
+        "either happened to a customer or did not. Ageing asks whether the "
+        "company's open-item report STILL shows it overdue at `as_of` -- a "
+        "misstatement question, which is what a provision or a board pack is "
+        "built from. A customer wrongly chased in month one and dropped from the "
+        "report by month three was still wrongly chased. So this rate keeps its "
+        "denominator alignment and LOSES the name: it is the AGEING-REPORT "
+        "OVERSTATEMENT at `as_of`. The wrongful-dunning exposure is published "
+        "ONCE, by the detection dimension. R12: neither number was chosen; the "
+        "band was, and the rate followed it."
     )
 
     n_customers = len(by_customer)
@@ -1247,6 +1368,20 @@ def score_triad(
     # A test that re-implemented this loop would be asserting a copy against a
     # copy: the tautology R15 names first (and the one this repo has already
     # caught twice inside its own R15 tests).
+    # THE AGEING DIMENSION'S OWN CASE SETS (atom D16). Returned for the same
+    # reason the detection sets are: the shared-quantity control has to compare
+    # the two dimensions' NUMERATORS case by case, and a control that rebuilt
+    # this loop to do it would be asserting a copy against a copy. These are the
+    # cases the ageing scorer actually counted, not a re-derivation of them.
+    ageing_false_ageing_cases = {
+        k for k, t, b, x in zip(ageing_case_keys, true_ageing_labels,
+                                belief_ageing_labels, ageing_excluded)
+        if not x and t == "current" and b != "current"
+    }
+    ageing_scored_current_cases = {
+        k for k, t, x in zip(ageing_case_keys, true_ageing_labels, ageing_excluded)
+        if not x and t == "current"
+    }
     sets = {
         "truth": truth_set,
         "flagged": flagged_set,
@@ -1254,9 +1389,32 @@ def score_triad(
         "flagged_via_reconciliation": flagged_via_reconciliation,
         "never_flaggable": never_flaggable,
         "universe": universe,
+        # The detection dimension's own false-flag CASES, named so the
+        # shared-quantity control can compare numerators case by case exactly as
+        # it compares denominators. `detection_measures` computes `D & N`
+        # internally on these same two sets; this names the result rather than
+        # asking the control to know the formula.
+        "detection_false_flags": flagged_set & never_flaggable,
+        "ageing_false_ageings": ageing_false_ageing_cases,
+        "ageing_truly_current": ageing_scored_current_cases,
+        "ageing_excluded": {
+            k for k, x in zip(ageing_case_keys, ageing_excluded) if x
+        },
+    }
+    # THE AGEING SCORER'S ACTUAL INPUTS (atom D16), returned for the same reason
+    # `sets` is: the R15 mutation that matters here is "fold the excluded band
+    # back into the denominator and prove the rate moves", and a test that
+    # rebuilt these three lists to do it would be scoring a copy. It re-scores
+    # THESE, through `gap_metric.ageing_gap`, with the mask removed.
+    ageing_inputs = {
+        "truth_labels": true_ageing_labels,
+        "belief_labels": belief_ageing_labels,
+        "excluded": ageing_excluded,
+        "case_keys": ageing_case_keys,
     }
     return {"detection": det, "detection_latency": lat, "belief": bel, "ageing": age,
-            "stats": stats, "notes": notes, "sets": sets}
+            "stats": stats, "notes": notes, "sets": sets,
+            "ageing_inputs": ageing_inputs}
 
 
 # UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
@@ -1590,16 +1748,23 @@ def main() -> None:
             f"gaps: belief {result['belief'].gap:.4f}; "
             f"{format_detection_latency_summary(result['detection_latency'])}; "
             f"{format_ageing_summary(result['ageing'])}; allocation honestly "
-            "dropped (metric-shape mismatch). READ THE TWO WRONGFUL-DUNNING "
-            "FIGURES AS DIFFERENT MEASUREMENTS (H27 Expert Hour 2026-08-09, "
-            "measured case by case): the detection false_flag_rate and the "
-            "ageing overstated_arrears_rate above both carry that name and are "
-            "NOT the same number -- ageing's truly-current population is "
-            "detection's negatives PLUS the cases detection excludes as "
-            "legitimately flaggable, and most of ageing's numerator lives in "
-            "that excluded band. The declared relationship is held by "
-            "SHARED_QUANTITY_CONTRACT and the alignment is atom "
-            "D16_ageing_negative_population_is_unexcluded. R12: diagnostic, not "
+            "dropped (metric-shape mismatch). ONE NAME, ONE NUMBER (atom D16, "
+            "2026-08-09): the wrongful-dunning exposure is `false_flag_rate` "
+            "above and NOTHING ELSE. Until D16 the ageing dimension published "
+            "its `overstated_arrears_rate` under the same name over a "
+            "population carrying no exclusion band, so one output block gave a "
+            "reader two numbers 3.5x apart for one real-world quantity. Both "
+            "dimensions now score the SAME never-flaggable population -- "
+            "measured as the identical case set, not merely the same size -- "
+            "and the ageing rate is renamed to what it measures: the ageing "
+            "REPORT's overstatement AT `as_of`. The residual between them is "
+            "belief-side and deliberate (detection is EVER-CHASED, because "
+            "wrongful dunning is an event that happened to a customer; ageing "
+            "is the `as_of` snapshot, because a misstatement is a fact about "
+            "the report today), and ageing's cases were measured to be a "
+            "STRICT SUBSET of detection's at seeds 7/11/23 and two grace "
+            "windows. The declared relationship is held and measured by "
+            "SHARED_QUANTITY_CONTRACT. R12: diagnostic, not "
             "a target. == THE MEASURED NOTE FOLLOWS == " + (headline.note or "")
         )
         ledger = write_gap_entry(

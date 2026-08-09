@@ -29,6 +29,35 @@ distress looks like", blind to those parameters. The gap is therefore a real
 measurement, not a tautology. It is NOT tuned toward any target (R12/R13): the
 harm weights are a principled severity ordering, frozen here.
 
+BOTH ERROR DIRECTIONS (atom D15, landed 2026-08-09, closing the named debt the
+D13 DISCOVER left against this pair in `DETECTION_DIRECTION_CONTRACT`). Until
+this build the pair published a RECALL-ONLY number -- the ledger read gap 0.0081,
+"nearly perfect", while a company that flagged EVERY customer-year would have
+scored the same perfect 0.0. It now scores the balanced error of both directions
+on their own denominators (`gap_metric.detection_measures`), so neither
+degenerate can buy a good score.
+
+WHICH CASES A FLAG IS *WRONG* ON IS A NAMED CHOICE, NOT AN ASSUMPTION. It is the
+whole of this atom, and the D13 DISCOVER measured why: `income_stress` PERSISTS
+past the year its event was dated in, so the naive negative (universe minus
+truth) sweeps in thousands of customer-years where the household really is in
+distress and a C7 flag is CORRECT. The three candidate negatives are enumerated
+in `EXCLUSION_BASES` below -- there are exactly three because `income_stress` has
+exactly three values -- every one of them is MEASURED on every run, and the
+published basis is a single named constant (`PUBLISHED_EXCLUSION_BASIS`) that the
+director can move with a one-line edit. Full reasoning, all three measured rates
+and the R13 call: `docs/design/D15_FALSE_FLAG_EXCLUSION_R13_CHOICE.md`.
+
+R12 HAZARD, STATED IN THE OPEN: the recommended basis produces the LOWEST of the
+three rates. That is the shape this repo keeps catching -- an agent choosing the
+denominator that flatters the company whose atom it is closing -- so the reason
+is a property of the SET and not of the number: the miss direction's truth is
+EVENT-shaped ("a distress event dated in this year"), while the detector's actual
+claim is STATE-shaped ("this household is in distress"). The two shapes disagree
+on exactly the carried-distress band, and a flag there is not an error under
+either reading. All three rates are printed side by side precisely so no reader
+has to take that on trust.
+
 DETERMINISM (C-S2). Every RNG is seeded from a stable hash of
 (customer, year, period). No unseeded randomness. `measured_at`/`run_git_commit`
 for the ledger are gathered by this harness (not by gap_metric, which never
@@ -38,18 +67,25 @@ calls a clock).
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import random
 import subprocess
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from typing import Callable, Mapping
 
-from simulation.household import make_household
+from simulation.household import IncomeStress, make_household
 from simulation.life_events import generate_life_events, household_at_date
 from simulation.payment_timing import generate_payment_record
 
 from company.crm.life_event_detector import LifeEventDetector, ObservationWindow
 
-from background.gap_metric import detection_gap, write_gap_entry
+from background.gap_metric import (
+    detection_measures,
+    format_detection_summary,
+    write_gap_entry,
+)
 
 WORLD_ATOM_ID = "W2_5_life_event_stream"
 TWIN_ATOM_ID = "C7_life_event_detection"
@@ -102,96 +138,325 @@ def _monthly_payments(cid: str, year: int, period: str, income_stress):
     return recs
 
 
-def build_scenario(n_customers: int, start_year: int, end_year: int):
-    """Run the coupled loop and return (truth_set, flagged_set, harm, stats).
+MUST_FLAG = "must_flag"
+NEITHER = "neither"
+MUST_NOT_FLAG = "must_not_flag"
 
-    Each (customer, year) is one detection instance. Truth = a distress event
-    dated in that year. Observables = the customer's payment records in the
-    prior year (baseline) vs that year (recent). The detector sees only the
-    observables.
+# THE THREE POPULATIONS, EACH BY ITS OWN POSITIVE PREDICATE (atom D15).
+#
+# Each predicate is written to be true of a case ON ITS OWN FACTS -- never as
+# "whatever is left over". Deriving NEITHER as `universe - must_flag` is exactly
+# the defect this atom exists to close: it is how 2772 customer-years in which
+# the household was genuinely in distress got scored as the company's false
+# flags. `_classify` runs ALL THREE and raises unless exactly one matches, so a
+# fourth `income_stress` state, or an event type that stops moving the state
+# machine, breaks the partition loudly instead of quietly landing in a bucket.
+_POPULATION_PREDICATES: dict[str, Callable[[bool, object, object], bool]] = {
+    # A distress event is DATED IN THIS YEAR: the company must flag it.
+    MUST_FLAG: lambda ev, sb, sa: ev,
+    # No event this year, but the household carries income stress at a year end
+    # -- a job loss in 2019 leaves it HIGH until an income_recovery fires, and
+    # payment_timing keeps mapping that onto LATE/DD_FAILED records. A flag here
+    # is CORRECT, so it belongs in neither direction's denominator.
+    NEITHER: lambda ev, sb, sa: (not ev) and not (
+        sb is IncomeStress.LOW and sa is IncomeStress.LOW),
+    # No event this year AND LOW income stress at BOTH ends: a settled-fact
+    # negative (a discrete state, not a threshold), so a flag here is WRONG.
+    MUST_NOT_FLAG: lambda ev, sb, sa: (not ev) and (
+        sb is IncomeStress.LOW and sa is IncomeStress.LOW),
+}
+
+
+def _classify(has_event: bool, stress_before, stress_after) -> str:
+    """Return the ONE population this instance belongs to, or raise."""
+    hits = [name for name, pred in _POPULATION_PREDICATES.items()
+            if pred(has_event, stress_before, stress_after)]
+    if len(hits) != 1:
+        raise ValueError(
+            f"D15 partition broken: instance (event={has_event}, "
+            f"{stress_before} -> {stress_after}) matched {hits or 'NO'} "
+            "population(s). Each of the three is defined by its own positive "
+            "predicate and exactly one must hold; a case in none of them would "
+            "silently leave the scored universe and a case in two would be "
+            "counted in two denominators."
+        )
+    return hits[0]
+
+
+@dataclass(frozen=True)
+class DetectionPopulations:
+    """One coupled run, held as the sets the two error directions are scored on.
+
+    `universe` is every (customer, year) instance scored; `must_flag` is the
+    truth set; `flagged` is the company's belief. `carried_high` is the subset of
+    NEITHER touching HIGH stress -- it exists only because it is candidate basis
+    B's exclusion, and it is derived by its own predicate for the same reason the
+    three populations are.
+    """
+    universe: frozenset
+    must_flag: frozenset
+    neither: frozenset
+    must_not_flag: frozenset
+    carried_high: frozenset
+    flagged: frozenset
+    harm: Mapping
+    stats: dict
+
+    def with_flagged(self, flagged) -> "DetectionPopulations":
+        """The same world, a different company -- the degenerate-scoring hook."""
+        return dataclasses.replace(self, flagged=frozenset(flagged))
+
+
+def _distress_years(events) -> dict[int, float]:
+    """Distress event years -> the harm weight of missing that year."""
+    by_year: dict[int, float] = {}
+    for e in events:
+        if e.event_type in _DISTRESS_HARM:
+            y = int(e.event_date[:4])
+            by_year[y] = max(by_year.get(y, 0.0), _DISTRESS_HARM[e.event_type])
+    return by_year
+
+
+def partition_populations(n_customers: int, start_year: int,
+                          end_year: int) -> DetectionPopulations:
+    """Run the coupled loop once and return every population it scores.
+
+    Each (customer, year) is one detection instance. Observables = the customer's
+    payment records in the prior year (baseline) vs that year (recent). The
+    detector sees only the observables.
     """
     detector = LifeEventDetector()
-    truth_set: set[str] = set()
-    flagged_set: set[str] = set()
+    buckets: dict[str, set] = {name: set() for name in _POPULATION_PREDICATES}
+    universe: set = set()
+    flagged: set = set()
+    carried_high: set = set()
     harm: dict[str, float] = {}
-    n_instances = 0
-    false_positives = 0
-    true_positives = 0
 
     for hh in _make_population(n_customers):
         cid = hh.customer_id
         events = generate_life_events(hh, start_year, end_year)
-
-        # Index distress events by year with their harm weight.
-        distress_by_year: dict[int, float] = {}
-        for e in events:
-            if e.event_type in _DISTRESS_HARM:
-                y = int(e.event_date[:4])
-                distress_by_year[y] = max(
-                    distress_by_year.get(y, 0.0), _DISTRESS_HARM[e.event_type]
-                )
+        distress_by_year = _distress_years(events)
 
         for year in range(start_year, end_year + 1):
             instance = f"{cid}:{year}"
-            n_instances += 1
-
-            stress_before = household_at_date(
-                hh, events, f"{year - 1}-12-31"
-            ).income_stress
-            stress_after = household_at_date(
-                hh, events, f"{year}-12-31"
-            ).income_stress
+            universe.add(instance)
+            before = household_at_date(hh, events, f"{year - 1}-12-31").income_stress
+            after = household_at_date(hh, events, f"{year}-12-31").income_stress
+            has_event = year in distress_by_year
 
             window = ObservationWindow(
                 customer_id=cid,
-                baseline_payments=_monthly_payments(cid, year - 1, "base", stress_before),
-                recent_payments=_monthly_payments(cid, year, "recent", stress_after),
+                baseline_payments=_monthly_payments(cid, year - 1, "base", before),
+                recent_payments=_monthly_payments(cid, year, "recent", after),
                 # Consumption left unread here: detection rests purely on the
                 # INDEPENDENT payment channel (cleanest R15 separation).
                 baseline_consumption_kwh=None,
                 recent_consumption_kwh=None,
             )
-            result = detector.detect(window)
-
-            is_truth = year in distress_by_year
-            if is_truth:
-                truth_set.add(instance)
+            if detector.detect(window).distress_detected:
+                flagged.add(instance)
+            buckets[_classify(has_event, before, after)].add(instance)
+            if has_event:
                 harm[instance] = distress_by_year[year]
-            if result.distress_detected:
-                flagged_set.add(instance)
-                if is_truth:
-                    true_positives += 1
-                else:
-                    false_positives += 1
+            elif IncomeStress.HIGH in (before, after):
+                carried_high.add(instance)
 
-    stats = {
-        "n_customers": n_customers,
-        "n_instances": n_instances,
-        "n_truth": len(truth_set),
-        "n_flagged": len(flagged_set),
-        "true_positives": true_positives,
-        "false_positives": false_positives,
-        "false_positive_rate": (
-            false_positives / (n_instances - len(truth_set))
-            if n_instances - len(truth_set) else 0.0
+    return DetectionPopulations(
+        universe=frozenset(universe),
+        must_flag=frozenset(buckets[MUST_FLAG]),
+        neither=frozenset(buckets[NEITHER]),
+        must_not_flag=frozenset(buckets[MUST_NOT_FLAG]),
+        carried_high=frozenset(carried_high),
+        flagged=frozenset(flagged),
+        harm=harm,
+        stats={
+            "n_customers": n_customers,
+            "n_instances": len(universe),
+            "n_truth": len(buckets[MUST_FLAG]),
+            "n_flagged": len(flagged),
+            "n_neither": len(buckets[NEITHER]),
+            "n_must_not_flag": len(buckets[MUST_NOT_FLAG]),
+            "n_carried_high": len(carried_high),
+            "true_positives": len(flagged & buckets[MUST_FLAG]),
+        },
+    )
+
+
+def build_scenario(n_customers: int, start_year: int, end_year: int):
+    """(truth_set, flagged_set, harm, stats) -- the miss-direction view of
+    `partition_populations`, kept for the callers that only score recall.
+
+    A WRAPPER, not a second derivation: two copies of this loop drifting apart is
+    the sibling-half defect this repo has already paid for.
+    """
+    p = partition_populations(n_customers, start_year, end_year)
+    return set(p.must_flag), set(p.flagged), p.harm, p.stats
+
+
+@dataclass(frozen=True)
+class ExclusionBasis:
+    """One candidate answer to "which cases is a flag WRONG on?"."""
+    key: str
+    label: str
+    holds_the_company_to: str
+    negative_of: Callable[[DetectionPopulations], frozenset]
+    exclusion_reason: str
+
+
+# THE R13 CURRICULUM CALL, ENUMERATED (atom D15). Exactly three candidates exist
+# because `income_stress` has exactly three values -- this is a named, discrete
+# question with a measured consequence attached to each answer, not a threshold
+# on a continuum. All three are scored on every run; see
+# `docs/design/D15_FALSE_FLAG_EXCLUSION_R13_CHOICE.md` for the director's call.
+EXCLUSION_BASES: dict[str, ExclusionBasis] = {
+    "A_naive_universe_minus_truth": ExclusionBasis(
+        key="A_naive_universe_minus_truth",
+        label="naive: every customer-year with no distress event dated in it",
+        holds_the_company_to=(
+            "flagging distress only in the year an event is dated -- a household "
+            "still HIGH from last year's job loss must NOT be flagged"
         ),
-    }
-    return truth_set, flagged_set, harm, stats
+        negative_of=lambda p: p.neither | p.must_not_flag,
+        exclusion_reason="",  # nothing is excluded under this basis
+    ),
+    "B_exclude_carried_high": ExclusionBasis(
+        key="B_exclude_carried_high",
+        label="exclude carried-HIGH years, keep carried-MODERATE ones",
+        holds_the_company_to=(
+            "flagging severe carried distress is allowed; flagging carried "
+            "MODERATE distress (a new baby, a divorce, a retirement in a prior "
+            "year) is still counted against it"
+        ),
+        negative_of=lambda p: (p.neither | p.must_not_flag) - p.carried_high,
+        exclusion_reason=(
+            "customer-years with no distress event dated in them that carry HIGH "
+            "income stress from a prior year (a job loss or illness not yet "
+            "recovered from): the household is severely distressed and a flag is "
+            "CORRECT, so the case belongs in neither direction's denominator."
+        ),
+    ),
+    "C_settled_low_at_both_ends": ExclusionBasis(
+        key="C_settled_low_at_both_ends",
+        label="settled negative: LOW income stress at BOTH year ends",
+        holds_the_company_to=(
+            "flagging a household that was demonstrably not in distress at any "
+            "point the harness can name -- and nothing else"
+        ),
+        negative_of=lambda p: p.must_not_flag,
+        exclusion_reason=(
+            "customer-years with no distress event dated in them where the "
+            "household nonetheless carries income stress (HIGH or MODERATE) at a "
+            "year end, because `income_stress` PERSISTS until an income_recovery "
+            "event fires and `simulation.payment_timing` keeps mapping it onto "
+            "LATE/DD_FAILED records. The household really is in distress, so a "
+            "C7 flag is CORRECT and scoring it as a false flag would penalise "
+            "the company for being right (atom D15; the same rule D11 applied to "
+            "the payment triad's late-past-grace successes)."
+        ),
+    ),
+}
+
+# THE PUBLISHED BASIS. One constant: moving it is the whole of the director's
+# R13 call, and it changes every published rate on the next run with no other
+# edit. PROVISIONAL and reversible -- recorded in `docs/design/
+# D15_FALSE_FLAG_EXCLUSION_R13_CHOICE.md` with all three measured rates, sent to
+# the director on 2026-08-09 with the agent's recommendation and its reasoning.
+PUBLISHED_EXCLUSION_BASIS = "C_settled_low_at_both_ends"
+
+PUBLISHED_BASIS_PROVENANCE = (
+    "PROVISIONAL, agent-recommended 2026-08-09 (atom D15), open to the "
+    "director's R13 overturn: the negative population must be the cases a flag "
+    "is WRONG on, and the harness cannot call a flag wrong on a household it "
+    "knows to be carrying income stress. The recommendation produces the LOWEST "
+    "of the three rates and is therefore stated with its hazard: the reason is "
+    "the SET (the miss direction's truth is EVENT-shaped while the detector's "
+    "claim is STATE-shaped, and the two disagree exactly on the carried-distress "
+    "band), never the number. All three rates are published side by side on "
+    "every run so the choice cannot hide inside a headline."
+)
+
+
+def false_flag_measures(pops: DetectionPopulations) -> dict:
+    """Score the pair under EVERY candidate negative -- one `GapResult` per basis.
+
+    All three are always computed. A caller that wanted only the published one
+    would leave the other two unmeasured, and an unmeasured alternative is how a
+    denominator choice stops being visible (R12: every rate here is a diagnostic).
+    """
+    out: dict = {}
+    for key, basis in EXCLUSION_BASES.items():
+        negatives = frozenset(basis.negative_of(pops))
+        result = detection_measures(
+            pops.must_flag, pops.flagged, universe=pops.universe,
+            negative_set=negatives, exclusion_reason=basis.exclusion_reason,
+            harm=pops.harm,
+        )
+        result.components["exclusion_basis"] = key
+        result.components["exclusion_basis_label"] = basis.label
+        result.components["holds_the_company_to"] = basis.holds_the_company_to
+        result.note = (
+            f"W2_5 hidden life events -> observable payment disruption -> C7 "
+            f"detection, BOTH directions (atom D15). NEGATIVE BASIS = {key}: "
+            f"{basis.label}. No false-flag rate on this pair is readable without "
+            f"its basis -- the three candidates swing it several-fold with "
+            f"company behaviour literally fixed. {basis.holds_the_company_to}. "
+            f"RESHAPED 2026-08-09 (atom D15): NOT COMPARABLE WITH ANY LEDGER "
+            f"ENTRY FOR THIS PAIR WRITTEN BEFORE THAT DATE, and the "
+            f"discontinuity is a fix, not a drift -- the retired figure counted "
+            f"ONE direction, so a company flagging every customer-year scored a "
+            f"perfect 0.0 on it. No arithmetic on these sets reproduces it and "
+            f"it is deliberately not restated. R12: a diagnostic, never a target."
+        )
+        out[key] = result
+    return out
+
+
+# THIS PAIR'S OWN NOUNS for the shared renderer. NOT the payment triad's: its
+# truth is a distress year, not a failed payment, and its false flags are a
+# support team knocking on the door of a household that was fine -- not dunning.
+# One name must mean one quantity (the D16 class), so a second consumer of a
+# shared renderer names what IT measured instead of inheriting a phrase.
+TRUTH_NOUN = "truly-distressed customer-years"
+FALSE_FLAG_NAME = "the false-distress-flag exposure"
+
+
+def format_pair_summary(result) -> str:
+    """This pair's headline, both directions, in this pair's own nouns."""
+    return format_detection_summary(
+        result, truth_noun=TRUTH_NOUN, false_flag_name=FALSE_FLAG_NAME)
+
+
+def format_r13_choice_table(measures: dict) -> str:
+    """All three candidate rates, side by side, with the published one marked."""
+    lines = []
+    for key, result in measures.items():
+        c = result.components
+        mark = "  <-- PUBLISHED" if key == PUBLISHED_EXCLUSION_BASIS else ""
+        rate = c["false_flag_rate"]
+        lines.append(
+            f"    {key:<30} false_flag_rate "
+            f"{'undefined' if rate is None else format(rate, '.4f')}"
+            f"  ({c['n_false_flags']} of {c['n_negatives']} negatives, "
+            f"{c['n_excluded']} excluded){mark}"
+        )
+    return "\n".join(lines)
 
 
 def measure(n_customers: int = 2000, start_year: int = 2016, end_year: int = 2025):
-    truth_set, flagged_set, harm, stats = build_scenario(
-        n_customers, start_year, end_year
-    )
-    result = detection_gap(truth_set, flagged_set, harm=harm)
-    # detection_gap's default note is worded for the self-rationing pair (W2_8);
-    # restate it for THIS pair without touching the shared metric module.
-    result.note = (
-        "harm-weighted fraction of detectable life-event distress the company "
-        "MISSED (W2_5 hidden events -> observable payment disruption -> C7 "
-        "detection); miss-only metric, blind to false positives."
-    )
-    return result, stats
+    """(published GapResult, stats). `stats['by_exclusion_basis']` carries every
+    candidate rate, so nothing downstream can read the headline without them."""
+    pops = partition_populations(n_customers, start_year, end_year)
+    measures = false_flag_measures(pops)
+    published = measures[PUBLISHED_EXCLUSION_BASIS]
+    stats = dict(pops.stats)
+    stats["exclusion_basis"] = PUBLISHED_EXCLUSION_BASIS
+    stats["exclusion_basis_provenance"] = PUBLISHED_BASIS_PROVENANCE
+    stats["by_exclusion_basis"] = {
+        key: r.components["false_flag_rate"] for key, r in measures.items()
+    }
+    published.components["candidate_false_flag_rates"] = stats["by_exclusion_basis"]
+    published.components["exclusion_basis_provenance"] = PUBLISHED_BASIS_PROVENANCE
+    return published, stats
 
 
 def _git_head() -> str | None:
@@ -212,20 +477,30 @@ def main() -> None:
                     help="persist the measured gap into coupled_gap_ledger.json")
     args = ap.parse_args()
 
-    result, stats = measure(args.customers, args.start_year, args.end_year)
+    pops = partition_populations(args.customers, args.start_year, args.end_year)
+    measures = false_flag_measures(pops)
+    result = measures[PUBLISHED_EXCLUSION_BASIS]
+    result.components["candidate_false_flag_rates"] = {
+        k: r.components["false_flag_rate"] for k, r in measures.items()}
+    result.components["exclusion_basis_provenance"] = PUBLISHED_BASIS_PROVENANCE
+    stats = pops.stats
 
-    print(f"W2_5 <-> C7 coupled detection scenario")
+    print("W2_5 <-> C7 coupled detection scenario")
     print(f"  customers   : {stats['n_customers']}")
     print(f"  instances   : {stats['n_instances']}  (customer-years)")
-    print(f"  truth (distress events)  : {stats['n_truth']}")
+    print("  THREE POPULATIONS (each by its own predicate, never a complement):")
+    print(f"    must-flag     (distress event dated in the year) : {stats['n_truth']}")
+    print(f"    NEITHER       (no event, stress carried in)      : {stats['n_neither']}"
+          "   <- a flag here is CORRECT")
+    print(f"    must-not-flag (LOW at both year ends)            : "
+          f"{stats['n_must_not_flag']}")
     print(f"  flagged by detector      : {stats['n_flagged']}")
-    print(f"  true positives           : {stats['true_positives']}")
-    print(f"  false positives          : {stats['false_positives']}"
-          f"  (fp rate {stats['false_positive_rate']:.4f})")
     print(f"  recall (caught/truth)    : "
           f"{result.components['caught']}/{result.components['truth_size']} "
           f"= {1 - result.components['miss_rate']:.4f}")
-    print(f"  GAP (harm-weighted miss) : {result.gap}")
+    print("  FALSE-FLAG DIRECTION, under every candidate negative (R13 choice):")
+    print(format_r13_choice_table(measures))
+    print(f"  PUBLISHED : {format_pair_summary(result)}")
     print(f"  baseline (g0)            : {result.baseline}")
 
     if args.write_ledger:
