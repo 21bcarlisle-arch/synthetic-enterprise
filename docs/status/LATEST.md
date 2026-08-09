@@ -1,5 +1,60 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T10:55:16Z
+Last updated: 2026-08-09T11:41:04Z
+**KNIFE4_orphan_disposition — L0→L2, self-certified. All 258 company-side orphans now carry a
+ruling, and the pass's own measurement refuted two thirds of the premise it was drawn on.**
+The atom expected the 258 to divide between *a caller existed and was missing*, *superseded — name
+the superseder*, and *a library the index cannot see*. Each was measured before anything was ruled
+on, because the third is an accusation against the index and an accusation is worth checking first.
+**Four blindness hypotheses, zero real callers:** dotted-name strings across every production module
+(1 hit — a docstring example), dynamic loading (`walk_packages`/`import_module`/`__import__`, 0),
+all **6,226 tracked non-`.py` files** (258 hits, every one *documentation* — a doc that mentions a
+module is not a caller), and unguarded `main()` entry points (0 of 258). **The index is not blind;
+the orphans are real.** A symbol-overlap scan against every wired module found one pair above 50
+percent, and the orphan carries bias detection the wired one lacks — a consolidation candidate for
+`AO6`, not a corpse. So `kept-and-explained` and `retired-to-archive` describe **0 and 0** of the
+population.
+**What they actually are: 258 `Phase XX` domain registers — Breathing Space moratoria, Fair Value
+Assessments, SEG registers, theft risk scoring — carrying real regulatory content and 258/258 test
+evidence across 334 test files.** Tested capability whose consumer was never built. That is a fourth
+class, `unhooked`, and the danger of a fourth class is that it becomes the box everything goes in —
+so it is the box with the guard on it: **every row must nominate the consumer that would drive it**,
+derived from the package's wired modules, and the check refuses a nomination that names a module
+nobody wrote (`ABSENT`), one that imports nothing from the package (`DECORATIVE`), or a "no consumer
+exists" claim for a package that has one (`REFUTED`). Two packages — `company.carbon` and
+`company.sustainability` — genuinely have no door, which the check verifies rather than exempts. The
+largest door is `simulation.run_phase2b` (82); the second is `tools.working_day_guard` (59), **a
+lint-style checker**, which is a finding about `company.market` rather than about the guard.
+**"The count falls" is WITHDRAWN as an exit clause, not deferred or quietly missed.** With no
+justified retirement and no missing caller, the only ways to move 258 today are deletion (a director
+wall), archiving on orphan status alone (this atom's own method forbids it), or manufacturing an
+import — moving the measurement rather than the code, which KNIFE pass 1 already refused. **R12: the
+count is a diagnostic, never a target. LAW A: when a criterion and the evidence disagree, the
+criterion is wrong.** Second time in one day a KNIFE pass's measurement has corrected the plan that
+scheduled it (§3a was the first). The fall is owed to the consumers being built, and the register's
+referent column is that work list, sorted by door.
+**R15 — 17 mutation proofs, and the control can pass as well as fail.** Fires on: a missing register
+(an unavailable ruling must never read as "no orphans outstanding"), a vacuous one, an
+undispositioned orphan, **a NEW orphan appearing after the register was complete** (the 259th — this
+is what makes it a mechanism and not a one-off audit), a stale row both ways (subject got wired /
+subject departed), absent/decorative/refuted referents, an unknown class, a malformed row, an
+unclosed block, a duplicate ruling, an empty reason. The healthy case and a *true* `none:` claim both
+pass. 41/41 green; KNIFE ledger `company_orphans` 258 → 258; **nothing deleted**.
+**Deliberately no generator.** A new orphan must be ruled on by a judgement and `--dispositions`
+fails until one exists. Auto-stamping every new orphan with a default class would leave the count
+complete and the ruling empty — the tidy-register fail-open. This is the standing disposition for the
+no-caller class that produced **13 instances in 13 days, 8 found by accident**.
+**Paid its own ratchet warning, and queued the one it did not pay.** `disposition_findings` came out
+at 105 lines against the 60-line cap and was split three ways along the real seam (population / one
+ruling / the referent). `tools/capability_index.py` is 923 lines against a 600 cap — but it was
+**678 and already flagged on 2026-08-08**, before this pass; queued as
+`docs/staging/WORKER_FINDING_CAPABILITY_INDEX_OVER_SIZE_CAP_2026-08-09.md` with the reason the
+obvious split is a design question, not a line-count response.
+`docs/design/ORPHAN_DISPOSITION_REGISTER.md` · `docs/design/KNIFE_HOTSPOT_PASSES.md` section 4.
+
+---
+
+## PREVIOUS
+
 **D15_w2_5_false_flag_direction_r13_choice — L0→L2, self-certified. The life-event pair scored
 "nearly perfect" at 0.0081 — and so did a company that flagged every single customer-year.**
 It now scores **both** error directions, so neither degenerate can buy a score (flag-everything and
@@ -1360,9 +1415,9 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 ---
 
 **Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
-- Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
-- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
+- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
+- Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -1474,6 +1529,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1852.5h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
+- Remaining effort: ~1806.8h across 75 sized atom(s) (13 of 88 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
