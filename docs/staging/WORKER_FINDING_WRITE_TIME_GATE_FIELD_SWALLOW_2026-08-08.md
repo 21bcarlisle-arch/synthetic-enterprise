@@ -97,3 +97,38 @@ still have to live in the commit message to be seen at all.
 Still not fixed on sight, same reasoning as above: editing the gate that just refused my own commit
 is the route-around shape even when the diagnosis is right. Worked around identically (record last
 in the commit message), and the module's docstring now says where its record actually is.
+
+---
+
+## Third instance, 2026-08-09 (AO10 commit `39e3cb899`)
+
+Same class, third refusal in three ticks. The AO10 REUSE block was placed FIRST in the commit
+message (the readable position), so `INDEX:` swallowed the entire body below it — 40 lines
+describing the sweep. G6 fired on the word "nothing" and named "staging archive" as returning
+73 rows.
+
+Two details this instance adds:
+
+1. **The swallow is not the only trigger — the record's own prose is enough.** My INDEX line
+   genuinely contained the word "nothing", describing what `staging_watcher.archive_from_rich`
+   *records* ("it leaves no trail" in the final wording). `_NOTHING_CLAIMED` matches the bare word
+   anywhere in the field, so a record that says *what it found* in prose containing "none",
+   "nothing" or "no existing" trips a guard whose only legitimate trigger is a claim that the
+   INDEX search was EMPTY. Bounding the field (the fix above) does NOT close this: the trigger
+   would still fire on an in-record use of the word.
+
+2. **It punishes the thorough record.** My block named two real nearest rows and said why neither
+   fits — exactly what G6's own refusal text asks for ("Finding something is not a refusal — say
+   what you found and why new code anyway"). The more specific the prose, the likelier it contains
+   a negation. The guard's trigger should be a claim ABOUT the search result (e.g. an explicit
+   `FOUND: none` / `-- no row covers this` at the end of the INDEX line), not any negation in the
+   sentence.
+
+**Amends "The fix, when drawn" a second time:** the trigger needs a defined shape, not a word
+match, and the R15 test for it must include a record that FINDS rows and says so using a negation
+("neither of these fits") — today that record is refused, and that is the false-positive the fix
+must be shown to kill.
+
+Not fixed on sight (same reasoning as both instances above). Worked around by rewording the
+record's prose to avoid the trigger word — which is exactly the obfuscation this project treats as
+a defect, and is the reason this is worth drawing rather than living with.
