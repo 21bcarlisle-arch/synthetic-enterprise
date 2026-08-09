@@ -375,6 +375,19 @@ def meter_net_of_space_heat(
     grid = [list(day) for day in days]
     if space_heat is None:
         return grid
+    heat = _require_component_of_meter(grid, space_heat)
+    return [[v - h for v, h in zip(meter_day, heat_day)]
+            for meter_day, heat_day in zip(grid, heat)]
+
+
+def _require_component_of_meter(
+    grid: list[list[float]],
+    space_heat: Sequence[Sequence[float]],
+) -> list[list[float]]:
+    """Check the claim before acting on it: is this stream actually a PART of that
+    meter? Separated from the subtraction because it is the whole of the guard —
+    the netting itself is one line, and an unchecked subtraction would let a
+    generator declare its behaviour to be heat and walk out of the cell."""
     heat = [list(day) for day in space_heat]
     if len(heat) != len(grid):
         raise InsufficientEvidence(
@@ -403,8 +416,7 @@ def meter_net_of_space_heat(
             f"a space-heat stream of {total_heat:.4g} kWh over a meter that read "
             f"{total_meter:.4g} kWh is not a COMPONENT of that meter"
         )
-    return [[v - h for v, h in zip(meter_day, heat_day)]
-            for meter_day, heat_day in zip(grid, heat)]
+    return heat
 
 
 @dataclass(frozen=True)
