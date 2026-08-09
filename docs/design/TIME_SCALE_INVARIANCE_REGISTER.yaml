@@ -1,0 +1,77 @@
+# TIME-SCALE INVARIANCE REGISTER — C-S5
+#
+# Constraint (PRODUCTION_READINESS_SCALE_ADDENDUM.md, director-decided 2026-07-13):
+#   "Any company-side atom claiming maturity L3+ must state whether its logic is
+#    time-scale invariant (correct regardless of how fast events accumulate in
+#    wall-clock terms) and register any exception as a named simplification per R10."
+#
+# Enforced by tests/system/test_scale_constraints.py::test_cs5_*, whose population is
+# DERIVED from docs/design/maturity_map.yaml (every atom at level_current >= 3 in a
+# company-side lane: A_/B_/C_/D_/E_/F_). This file is the declaration surface; the map
+# is the population. Neither is authoritative for the other.
+#
+# A declaration is ONE LINE OF HONEST JUDGEMENT, not a build. `invariant: true` means:
+# the logic gives the same answer whether its events accumulate over nine simulated
+# minutes or nine real years. `invariant: false` means it does not, and then the
+# `exception` entry names the simplification per R10.
+
+schema_version: 1
+
+# ── declarations: an atom's owner has answered the question ───────────────────
+declarations: []
+
+# ── exceptions: logic KNOWN not to be time-scale invariant, named per R10 ─────
+exceptions:
+  - atom_id: W5_1_banking_payment_rails
+    invariant: false
+    simplification: >-
+      DD mandate submit-and-resolve in the SAME step. A real mandate lodgement is
+      answered by the bank days later; the compressed-time implementation resolved it
+      within the step that raised it, so any logic reading "is the mandate live yet?"
+      is correct only because sim-time never leaves it pending. Found by W5_1's Expert
+      Hour and named by the addendum's amendment A4 as the proven exemplar of the
+      time-compression class this constraint exists to catch.
+    found_by: W5_1 Expert Hour (2026-07-13, addendum amendment A4)
+    remediation: >-
+      C-S3's request/response split (company/governance/decision_rights.py
+      submit_decision_request/resolve_decision_request) is the mechanism this converts
+      to. Not yet applied to the DD path — remediation-on-touch.
+
+# ── landing amnesty: FROZEN ───────────────────────────────────────────────────
+# These atoms were already at L3+ in a company-side lane when this check landed
+# (2026-08-09). They owe a declaration and have not given one. The list is written
+# down rather than left silent because an unmechanised constraint that is simply not
+# mentioned is exactly the prose-only decay MAKE_IT_STICK forbids.
+#
+# It is FROZEN, and the test pins it EXACTLY (`FROZEN_CS5_BASELINE` in
+# tests/system/test_scale_constraints.py):
+#   - a NEW company-side atom reaching L3+ without a declaration FAILS; it cannot be
+#     parked here, because adding a name here fails the pin too;
+#   - an atom that gets declared and is left here ALSO fails, so the amnesty cannot
+#     outlive the thing it pins and silently protect nothing.
+# Clearing an entry is remediation-on-touch: declare the atom at its next real touch,
+# then delete it from this list AND from the frozen set in the test.
+undeclared_at_landing:
+  - A1_learn_loop_chair
+  - A2_decision_rights_register
+  - A6_coupled_triad_gap_metric
+  - B1_margin_bridge
+  - B2_opex_cost_to_serve
+  - C10_self_rationing_detection
+  - C12_channel_attribution_analytics
+  - C13_weather_normalisation
+  - C14_thermal_parameter_inference
+  - C1_segment_layers
+  - C3_satisfaction_heterogeneity
+  - C7_life_event_detection
+  - C9_cantpay_wontpay_classifier
+  - C_supply_start_semantic_separation
+  - D1_bill_correctness
+  - D3_catchup_rebilling
+  - D5_account_hierarchy_payments
+  - E1_ledger_double_entry
+  - E2_revenue_reconciliation
+  - E4_supplier_reporting_standard
+  - F1_epistemic_verifier
+  - F2_sanity_daemon
+  - F3_obligations_register
