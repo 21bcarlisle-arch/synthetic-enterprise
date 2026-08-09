@@ -267,14 +267,14 @@ class TestStageCalendarSpacing:
 
     def test_quote_stage_date_equals_term_start(self):
         result = run_acquisition_funnel(
-            "resi", "seedA", date(2020, 1, 1), _FakeBureau(passed=True),
+            "resi", "seedA", date(2020, 1, 1), _FakeBureau(passed=True), total_amount_gbp=150.0,
         )
         assert result.stages[0].stage == "quote"
         assert result.stages[0].stage_date == "2020-01-01"
 
     def test_stage_dates_strictly_non_decreasing(self):
         result = run_acquisition_funnel(
-            "resi", "seedB", date(2020, 1, 1), _FakeBureau(passed=True),
+            "resi", "seedB", date(2020, 1, 1), _FakeBureau(passed=True), total_amount_gbp=150.0,
         )
         dates = [date.fromisoformat(s.stage_date) for s in result.stages]
         assert dates == sorted(dates)
@@ -284,7 +284,7 @@ class TestStageCalendarSpacing:
         # are probabilistic) rather than assuming any single seed does.
         for i in range(50):
             result = run_acquisition_funnel(
-                "resi", f"coolseed{i}", date(2020, 1, 1), _FakeBureau(passed=True),
+                "resi", f"coolseed{i}", date(2020, 1, 1), _FakeBureau(passed=True), total_amount_gbp=150.0,
             )
             if result.stage_reached == "cooling_off":
                 by_stage = {s.stage: date.fromisoformat(s.stage_date) for s in result.stages}
@@ -292,15 +292,23 @@ class TestStageCalendarSpacing:
                 return
         pytest.fail("no seed reached cooling_off in 50 tries")
 
+    # 150.0 is passed explicitly in the three tests below because the argument is now
+    # REQUIRED (KNIFE pass 3, B6): the funnel no longer defaults to the company's own
+    # COST_PER_ACQUISITION["resi"]. That figure IS 150.0, so these three keep the exact
+    # values they asserted before the cut -- the point of the cut is that the world is
+    # told the amount, not that the amount changed.
     def test_stage_date_deterministic_for_same_seed(self):
-        r1 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True))
-        r2 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True))
+        r1 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True),
+                                    total_amount_gbp=150.0)
+        r2 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True),
+                                    total_amount_gbp=150.0)
         assert [s.stage_date for s in r1.stages] == [s.stage_date for s in r2.stages]
 
     def test_stage_dates_vary_across_seeds(self):
         application_dates = {
             run_acquisition_funnel(
-                "resi", f"seed{i}", date(2020, 1, 1), _FakeBureau(passed=True)
+                "resi", f"seed{i}", date(2020, 1, 1), _FakeBureau(passed=True),
+                total_amount_gbp=150.0,
             ).stages[1].stage_date
             for i in range(20)
         }
@@ -309,6 +317,7 @@ class TestStageCalendarSpacing:
     def test_early_dropout_still_carries_stage_dates(self):
         result = run_acquisition_funnel(
             "resi", "seedE", date(2020, 1, 1), _FakeBureau(passed=False),
+            total_amount_gbp=150.0,
         )
         assert result.stage_reached == "credit_check"
         assert len(result.stages) == 3

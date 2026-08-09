@@ -167,6 +167,33 @@ company misreading the cap stays structurally possible, matching real suppliers 
 for exactly that. Importing the company's READING of the cap collapses the two and makes a
 misread impossible. Cut: the world enforces the cap from the published figures in the domain
 artefact library, the company keeps its own reading, and the two are allowed to differ.
+
+REFINED 2026-08-10, when this was picked up for execution alongside B6 and put back down. As
+written above, the cut is UNDERSPECIFIED in exactly the place it can go wrong, and the tempting
+execution is one this pass has already refused once in writing. "The world reads the published
+figures" does not say WHERE the published schedule lives, and the cheapest home for it — a
+lane-neutral module under `tools/` — is not walked by `tools/epistemic_wall.py`. Routing the
+crossing through an unwalked module would drop the edge count by one while changing nothing
+about who depends on whom: the same laundering the step-2 ruling refused for the shape-A
+harnesses, and the same class as `moving a file past the walker is not a cut`. The
+regulation-commons doctrine sanctions a shared home for regulatory TEXT, so a commons is not
+forbidden — but "doctrine permits a commons" is not the same claim as "this particular
+relocation is a cut," and the two must not be allowed to stand in for each other.
+
+Three things this block must settle BEFORE any edge moves, none of which are mechanical:
+  (a) WHERE the published window schedule lives, and whether that home is walked. If it is not
+      walked, the design must say what makes it a commons rather than a blind spot.
+  (b) HOW divergence is controlled. The world getting its own reading is the entire point — a
+      test pinning the two readings equal would restore the coupling in the test suite that the
+      cut removes from the code. But with no control at all this becomes `one name, two numbers`:
+      two cap tables drifting apart silently, which is a fidelity defect in both lanes.
+  (c) WHAT each side is allowed to get wrong. `get_cap_unit_rate_for_date` carries real policy
+      beyond the published levels — carry-forward past the last window, `min(Ofgem, EPG)`, the
+      VAT/standing-charge basis (R14). Those are READINGS of the law. The published windows are
+      the law. The split between them is the cut, and it has not been drawn yet.
+
+Sized honestly, that is a design step plus a build, not the one-line import swap the edge count
+suggests. It stays `owed` until (a)–(c) are answered.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B4_billing_mechanics_reached_directly
@@ -190,14 +217,6 @@ becomes an attribute of the collections-action event the company emits; the arre
 reacts to the event it receives and never consults the policy object.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B6_cpa_is_company_accounting
-1 edge. `simulation.acquisition_funnel` imports COST_PER_ACQUISITION from `saas.growth_mandate`.
-The supplier's own cost of acquiring a customer is company accounting; the world has no view of
-it and no use for it in deciding whether an acquisition happens. Cut: the funnel emits
-acquisition events and the company prices them. This also removes a quiet feedback path in
-which a change to the company's CPA assumption alters the world's acquisition behaviour.
-WALL-CROSSING-DESIGN -->
-
 <!-- WALL-CROSSING-DESIGN B7_renewal_is_a_company_decision
 4 edges. `simulation.renewals` imports the company's tariff engine, its SaaS pricing function,
 its approval interface and its decision-rights table — that is, a SIM module runs the company's
@@ -212,7 +231,7 @@ WALL-CROSSING-DESIGN -->
 
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
-These two were designs in §3 until 2026-08-09, when they were carried out. They are recorded
+These were designs in §3 until they were carried out. They are recorded
 here rather than deleted, and they are deliberately OUTSIDE the `WALL-CROSSING-DESIGN` markers:
 `tools/wall_crossing_dispositions.py` rules that a design block no *owed* row references is "a
 plan for nothing" (rc 2), which is what a completed design becomes. The rationale is worth
@@ -262,6 +281,40 @@ WHERE the crossing happens, not WHAT crosses; typing the payload as a versioned 
 to `EP7_adapter_elexon_insights` (level 0 / idle when this cut was made — coordination wall
 checked first, as the atom's origin_note requires).
 
+### B6_cpa_is_company_accounting — EXECUTED 2026-08-10 (1 edge)
+
+1 edge. `simulation.acquisition_funnel` imported `COST_PER_ACQUISITION` from
+`saas.growth_mandate` — lazily, inside the function body, to fill in `total_amount_gbp` when a
+caller left it out. What a supplier spends to win a customer is management accounting; the world
+has no view of it. Cut: the amount ARRIVES as a required argument, and the funnel holds no
+reference to company accounting at all.
+
+**As executed:** the lazy import is deleted and `total_amount_gbp` is REQUIRED — not defaulted
+to `0.0` or `None`. That choice is the substance of the cut rather than a detail: a silent zero
+would have converted a wall breach into a fail-open accounting hole, which R15 rates strictly
+worse than the breach it replaced. Six test call sites that relied on the default now pass
+`150.0` explicitly, which IS `COST_PER_ACQUISITION["resi"]`, so every assertion they made holds
+on the same numbers as before. The safety of the move was MEASURED before it, not inferred from
+the ruling: the sole live caller (`simulation/run_phase2b.py:1664`) already reads the table
+itself and passes the result, so the default branch was dead in production and no simulated
+outcome moves.
+
+**A correction to this design's own stated rationale (LAW A: when the criterion and the evidence
+disagree, the criterion is wrong).** The step-2 block claimed the cut "also removes a quiet
+feedback path in which a change to the company's CPA assumption alters the world's acquisition
+behaviour." Traced before cutting, that was not true: `total_amount_gbp` reaches only
+`_stage_cost_increment`, which feeds `state["cost"]`. Whether a prospect converts is decided by
+`_bernoulli` on stage pass-rates, which never see the amount. So no CPA change could ever have
+altered who was acquired. The real defect is the plainer one and it stands on its own — a WORLD
+module reached into the supplier's management accounts to invent a value it should have been
+told. Recorded rather than quietly dropped, because a design block that overstates its own
+danger is how the next pass learns to discount these blocks.
+
+**What this does NOT cut:** `simulation/run_phase2b.py` still imports `COST_PER_ACQUISITION`
+directly (line 39). That edge is real, it is still live, and it is owed to `A_composition_lift`
+along with 31 others on that file. The funnel's edge was a SECOND, hidden path to the same
+constant, and only that second path died here.
+
 ---
 
 ## 4. The register — all 88 examined crossings, 81 of them still live
@@ -301,7 +354,7 @@ edge: simulation.dd_level_collection_book -> company.billing.direct_debit | disp
 # --- B5_collections_tone_is_an_event_attribute ---
 edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=owed | design=B5_collections_tone_is_an_event_attribute
 # --- B6_cpa_is_company_accounting ---
-edge: simulation.acquisition_funnel -> saas.growth_mandate | disposition=owed | design=B6_cpa_is_company_accounting
+edge: simulation.acquisition_funnel -> saas.growth_mandate | disposition=cut | reason=B6 executed 2026-08-10 — the lazy `COST_PER_ACQUISITION` import is deleted and `total_amount_gbp` is a REQUIRED argument, so the funnel is told the cost and cannot consult company accounting even by accident. Measured safe before the cut: the sole live caller already passed the value, so the default branch was dead in production.
 # --- B7_renewal_is_a_company_decision ---
 edge: simulation.renewals -> company.governance.approval_interface | disposition=owed | design=B7_renewal_is_a_company_decision
 edge: simulation.renewals -> company.governance.decision_rights | disposition=owed | design=B7_renewal_is_a_company_decision

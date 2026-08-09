@@ -175,25 +175,36 @@ def _stage_day_offset(seed: str, stage: str) -> int:
     return rng.randint(lo, hi)
 
 
-def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp=None):
+def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp):
     """Run quote -> application -> credit_check -> onboarding -> cooling_off.
 
     credit_bureau must expose .check_credit(applicant_id, segment, seed) -> result
     where result has .passed (bool) and .score_band (str) attributes -- matches the
     CreditBureauPort Protocol in tools.credit_bureau_port (structural typing only).
 
-    total_amount_gbp is the full committed cost for a WON attempt (mirrors the
-    existing flat saas.growth_mandate.COST_PER_ACQUISITION[segment]); defaults to it
-    when not supplied.
+    total_amount_gbp is the full committed cost for a WON attempt, and it is REQUIRED:
+    the funnel is world machinery and has no view of what acquiring a customer costs
+    the supplier. See the wall note below.
 
     Every stage draws from an independent seeded RNG except credit_check, which is
     delegated to credit_bureau. Same seed + term_start always reproduces the same
     result.
-    """
-    if total_amount_gbp is None:
-        from saas.growth_mandate import COST_PER_ACQUISITION
-        total_amount_gbp = COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
 
+    THE WALL (KNIFE pass 3, design B6_cpa_is_company_accounting)
+    ------------------------------------------------------------
+    This argument used to default to `saas.growth_mandate.COST_PER_ACQUISITION[segment]`,
+    imported lazily right here -- a SIM module reaching into the supplier's own management
+    accounts. What a supplier spends to win a customer is company accounting; the world has
+    no view of it and no use for it in deciding whether an acquisition happens. Now the cost
+    ARRIVES as an input, so the funnel cannot consult company accounting even by accident.
+
+    The default was already dead in production: the sole live caller
+    (`simulation/run_phase2b.py`) reads the table itself and passes the result, so removing
+    it changes no simulated outcome. Making the argument REQUIRED rather than defaulting to
+    0.0 or None is the point -- a silent zero would have turned a wall breach into a
+    fail-open accounting hole, which is the trade R15 names as strictly worse than the
+    breach.
+    """
     stages = []
     state = {"cost": 0.0, "band": None, "passed": None, "elapsed_days": 0}
     state["true_creditworthy"] = None

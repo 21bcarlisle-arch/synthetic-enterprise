@@ -204,7 +204,6 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 # limit is stated in the seam module's own docstring so it cannot be read as
 # a clean break.
 LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
-    ("simulation.acquisition_funnel", "saas.growth_mandate"),
     ("simulation.arrears_engine", "company.policy.decision_policy"),
     ("simulation.credit_refund_events", "company.billing.credit_refund"),
     ("simulation.customer_events", "company.crm.churn_model"),
