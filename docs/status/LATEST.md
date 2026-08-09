@@ -1,5 +1,60 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T03:13:00Z
+Last updated: 2026-08-09T05:13:15Z
+**D11_detection_gap_is_recall_only — L0→L2, self-certified. The payment DETECTION headline was
+measuring the clock and one direction; it now measures neither, and the number it publishes moved
+0.0725 → 0.0134 without the company changing at all.**
+Yesterday's Expert Hour held H27 at L2 on two measured defects and minted this atom to fix them
+rather than caveat them further. Both are now closed **at the measure**.
+**(1) The population.** `flagged_set` was the company's belief held *at* `as_of`, scored against a
+truth (`result == 'failed'`) that does not move with the clock, so moving only the scorer's question
+date walked the published figure **+70% over 60 days** with the world byte-identical. `score_triad`
+now asks the company's own reconciliation organ at **every invoice's due+grace date** and unions
+everything it ever reported: a detection is a fact about the day it happened, whatever a later
+oldest-first allocation (Clayton's Case, D8) did to the invoice afterwards. The mint's acceptance
+criterion is met and **measured, not asserted** — sweeping `as_of` +0/+7/+14/+30/+60/+90 leaves the
+gap and both direction rates bit-identical.
+**(2) The direction.** The old figure was pure recall, so a company that flagged **every** invoice
+scored a perfect 0.0. New `gap_metric.detection_measures` publishes the **balanced error** — the mean
+of `missed_failure_rate` (over the truly-failed) and `false_flag_rate` (over the never-flaggable),
+each on its own denominator, D7's rule carried to a second dimension. **Both degenerate strategies
+now score exactly g0 = 0.5**; a perfect detector still scores 0.0 and a perfectly-wrong one 1.0.
+**The denominator was the real work, and this build got it wrong first.** Using `universe − truth`
+as the negative population charges the company for flagging invoices that genuinely *were* unpaid
+past grace and merely got paid later — it inflated the measured wrongful-dunning rate **0.0269 →
+0.2834, tenfold**. Late-past-grace successes, unresolved disputes and any record with no `days_late`
+truth are now **excluded from both populations, counted, and the reason travels in the components**;
+an unexplained exclusion raises rather than shrinking a denominator invisibly.
+**What the reshaped number actually says is a different story from the old one.** Seed 7: balanced
+error **0.0134** = `missed_failure_rate` **0.0000** (reconciliation catches every true failure at
+due+grace — consistent with D10's `n_undetected == 0`) + `false_flag_rate` **0.0269** (**21 of 782**
+never-flaggable invoices wrongly flagged). The company's defect is not blindness; it is **wrongful
+dunning**, and the old headline could not say so.
+**Fixed in passing:** a DD failure whose bank-feed report date fell *after* `as_of` was counted as a
+detection — crediting the company with knowledge its own bank feed had not delivered.
+**R10 class closure.** `DETECTION_DIRECTION_CONTRACT` enumerates **all four** published
+detection-style dimensions and its control *measures* each declaration by scoring the flag-EVERYTHING
+degenerate through **that entry's own scorer**: two-directional must not score 0, recall-only must,
+and an unregistered dimension fails. The three still on the recall shape (the regime **cell grid**,
+whose fidelity band was calibrated on it, and the two self-rationing pairs, whose negative population
+needs a DISCOVER first) are **registered named debt as `D12`**, not silent survivors.
+**R15, mutating the source both ways.** The `as_of` declaration is now falsifiable in **both**
+directions — claiming a clean dimension is dirty fails too, which it could not before; flag-everything
+is proven not to score 0 through the new measure **with the retired one as the falsifier**; collapsing
+the excluded population back into the negatives must move the score 5×; and the **miss direction is
+proven able to fire by deleting the reconciliation channel** — it is structurally 0.0000 on every
+population this repo scores, so observation alone would have been a control that cannot fail.
+**Registered, not hidden:** that leaves the headline **half a measurement** today. The world that
+would make the miss direction move is a world atom, and inventing one to make the metric look busier
+is exactly the goal-seeking R12 forbids.
+**H27's hold is released and the L3 is still not taken.** `depends_on` is dropped rather than
+re-pointed a third time, but the instrument changed *again* — an Hour run on the old instrument's
+reputation is what the previous release warned against.
+**Evidence.** 42 tests in `test_couple_w2_11_d5.py`, 7 in `test_live_payment_triad.py`, 36 in
+`test_gap_metric.py`; **2,207 green** across `tests/tools` plus the gap and fidelity suites;
+`epistemic_verifier` PASS (535 files); ruff **8 vs 9** on a pristine HEAD extract of the same files.
+**R12:** nothing was tuned — the number moved because the measure was wrong, not because it looked
+wrong.
+
 **C14_thermal_parameter_inference — L2→L3, self-certified. The exit test was the POPULATION, and
 the population changed the answer: both headline numbers from twelve hours ago were artefacts of a
 panel somebody chose.**
@@ -150,10 +205,10 @@ assertion. Plus a vacuity guard so a sweep where nothing moved cannot pass silen
 **A coverage hole found on the way:** `live_payment_triad.measure_and_write` — the path that
 actually *publishes* the gap into `coupled_gap_ledger.json` — had **no test reaching it**, so every
 word of its note was unexercised. Now covered, with the witness interpolated from the measurement.
-**Queued, not fixed on sight:** `D11_detection_gap_is_recall_only` carries the reshape (it moves
-three published numbers), and H27's `depends_on` re-points at it — the whole of the remaining hold.
-Acceptance is already measurable: the `as_of` sweep must come out flat, and flag-everything must
-stop scoring 0. 38 tests in the triad file (was 31), 7 in the live file (was 5), 2,186 green across
+**Queued, not fixed on sight — and LANDED 2026-08-09 (see the D11 entry at the top):**
+`D11_detection_gap_is_recall_only` carried the reshape, and H27's `depends_on` re-pointed at it as
+the whole of the remaining hold. Both acceptance criteria named here were met: the `as_of` sweep
+comes out flat and flag-everything now scores g0 = 0.5, not 0. 38 tests in the triad file (was 31), 7 in the live file (was 5), 2,186 green across
 the targeted surface; ruff unchanged at 7 vs a pristine HEAD extract.
 
 **D10_detection_headline_is_single_channel (2026-08-09, `e78913088`) — the payment DETECTION
@@ -1147,7 +1202,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (505s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1257,10 +1312,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
 - (T3_inherence) Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
 - (T3_inherence) What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
+- (T3_inherence) Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1655.9h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
-- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
+- Remaining effort: ~1773.0h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
+- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

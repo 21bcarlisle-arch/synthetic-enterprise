@@ -1,18 +1,25 @@
 # PRODUCTION_READINESS_SCALE_ADDENDUM
 
-**IN PROGRESS (2026-07-13):** DoD items 1/2/3/5 done -- constraints folded into CLAUDE.md (commit
-665fb1f8), retroactive-application decision recorded (remediation-on-touch), C-S3 + A3's own
-pending-latency mechanism built as ONE mechanism (company/governance/decision_rights.py's
-submit_decision_request()/resolve_decision_request()/pending_decision_requests_as_of(), 17 new
-tests). **Blocking sub-item still open: DoD item 4, RNG substream discipline (C-S2/A1) "implemented
-and proven".** Deliberately NOT built this pass -- a codebase-wide RNG-stream audit/refactor risks
-the actual simulation ground-truth output across the full 2016-2025 replay, and rushing it under
-time pressure would be irresponsible given the real 01:09Z incident this same class of change already
-caused once. What unblocks it: a dedicated, unrushed BUILD pass auditing every stochastic subsystem in
-simulation/ for shared-RNG exposure (see docs/PRIORITIES.md's own precise registration for the exact
-pattern to generalise -- life_events.py's existing rng/econ_rng XOR-salt split) and applying the
-named-substream-per-subsystem pattern consistently, with a real regression test proving one
-subsystem's new draw leaves every other subsystem's stream bit-identical.
+**CONSUMED AND CLOSED (2026-08-09, atom `AO4_scale_constraints_executable`).** All five DoD items
+are done. Items 1/2/3/5 closed 2026-07-13 (constraints folded into CLAUDE.md, commit 665fb1f8;
+retroactive-application decision recorded as remediation-on-touch; C-S3 and A3's pending-latency
+mechanism built as ONE mechanism in `company/governance/decision_rights.py`).
+
+**The blocking sub-item — DoD item 4, RNG substream discipline (C-S2/A1) "implemented and proven" —
+is now closed.** It was deferred on 2026-07-13 because a codebase-wide RNG-stream audit risked the
+2016-2025 replay output, and the fear was right to have. It turned out not to need the refactor it
+was waiting for: the named-substream pattern had already been applied subsystem by subsystem
+(`life_events.py`, `population_draw.py`, `household_segments.py`, `demand_model.py`), and an AST scan
+of 620 modules across `simulation/`, `sim/`, `company/` and `saas/` finds **zero** drawing from the
+process-global `random` stream. What was missing was not the discipline but the PROOF, which is what
+this atom adds: a standing class guard against the shared stream (mutation-proven to fire on a
+module-level draw, and proven NOT to fire on the compliant `random.Random(seed)` construct), plus the
+property itself asserted — burning 500 draws on one named substream leaves another bit-identical.
+
+Two things this did NOT close, stated rather than absorbed: the guard prevents a REGRESSION but does
+not prove every existing substream is seeded from a genuinely independent salt; and run-level replay
+determinism stays where it already lives (`process_run_complete`'s output gate), deliberately not
+duplicated. Full residual list: `docs/design/SCALE_CONSTRAINT_CHECKS.md` §3.
 
 **Status:** Director-decided (2026-07-13). Addendum to PRODUCTION_READINESS_BASELINE.md Part C (standing design constraints).
 **Place in the epoch arc:** constrains Epoch 2 build and Epoch 3 walled-interface specification. Enables go-live scale; builds none of it. Nothing here changes epoch sequencing.
