@@ -2428,7 +2428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2492,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -2792,7 +2792,9 @@
       "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "attempted_finding_open",
-      "depends_on": [],
+      "depends_on": [
+        "D16_ageing_negative_population_is_unexcluded"
+      ],
       "couples_with": [
         "D5_account_hierarchy_payments",
         "W2_11_payment_behaviour_source"
@@ -2800,7 +2802,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 8,
       "forward_attachments": []
     },
     {
@@ -3002,7 +3004,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 50,
       "forward_attachments": []
     },
     {
@@ -3023,6 +3025,30 @@
       "couples_with": [
         "W2_5_life_event_stream",
         "C7_life_event_detection"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 77,
+      "forward_attachments": []
+    },
+    {
+      "id": "D16_ageing_negative_population_is_unexcluded",
+      "name": "The W2_11<->D5 triad publishes 'the wrongful-dunning exposure' TWICE, from two dimensions, as two numbers 3.5x apart: detection's false_flag_rate 0.0269 (21 of 782) and ageing's overstated_arrears_rate 0.0951 (101 of 1062), sharing SEVEN cases. D11 established that an invoice paid past its grace date genuinely WAS unpaid past grace, so a flag on it was CORRECT, and excluded those cases from the detection denominators -- and that rule was applied to the detection dimension ONLY. Ageing carries no exclusion band at all, so 94 of its 101 false ageings land on cases the sibling dimension of the same instrument holds the company was RIGHT about. Carry D11's exclusion across to the ageing dimension, or declare in the published note which of the two a reader should take as the company's exposure.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
       ],
       "chain": null,
       "at_target": false,
@@ -3075,7 +3101,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 597,
+      "stall_consecutive_unchanged": 735,
       "forward_attachments": []
     },
     {
@@ -3846,9 +3872,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3859,9 +3885,9 @@
         "C14_thermal_parameter_inference"
       ],
       "chain": "weather_cascade",
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -3940,7 +3966,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     },
     {
@@ -4186,7 +4212,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     },
     {
@@ -4406,7 +4432,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -4417,9 +4443,100 @@
       ],
       "couples_with": [],
       "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 73,
+      "forward_attachments": []
+    },
+    {
+      "id": "KNIFE1_reporting_cycle",
+      "name": "KNIFE pass 1 of 4 (AO5). Cut the 3-edge mutual import between saas/reporting/ and the main run: saas.reporting.annual_report -> simulation.run_phase4c_on_phase2b, saas.reporting.segment_report -> simulation.run_segments (both class (a), the STRICTLY FORBIDDEN direction and the ratchet's own named highest-priority shrink target), plus the return edge simulation.run_phase4c_on_phase2b -> saas.reporting.annual_report that closes the cycle. Cutting one direction alone leaves an import, not a cycle. EXIT: both class-(a) tuples deleted from LEGACY_COMPANY_READS_SIM so class (a) reaches ZERO; the return tuple deleted from LEGACY_SIM_READS_COMPANY (105 -> 104); annual report byte-identical before/after.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO5_hotspot_consolidation"
+      ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 69,
+      "forward_attachments": []
+    },
+    {
+      "id": "KNIFE2_customer_straddle",
+      "name": "KNIFE pass 2 of 4 (AO5). saas/customers.py (496 lines) is company-side code that 16 SIM modules import directly, bypassing company/interfaces/sim_interface.py. Route them through the seam. EXIT: those 16 edges gone from LEGACY_SIM_READS_COMPANY; class (b) drops to 88 (from 104, after pass 1 takes the return edge). WATCH: simulation.run_phase2b owns 35 of the 105 class-(b) edges, the densest source in the codebase -- this pass touches ONLY its customer edges; the rest belong to pass 3 and must not be taken opportunistically.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO5_hotspot_consolidation",
+        "KNIFE1_reporting_cycle"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "KNIFE3_wall_crossing_paydown",
+      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO5_hotspot_consolidation",
+        "KNIFE1_reporting_cycle",
+        "KNIFE2_customer_straddle"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "KNIFE4_orphan_disposition",
+      "name": "KNIFE pass 4 of 4 (AO5), position free -- the only hotspot disjoint from the other three. Dispose of the 258 company-side zero-import modules: wire or retire, ARCHIVE NEVER DELETE (director wall). METHOD IS FORCED BY THE MEASUREMENT: all 258 carry test evidence, so the orphan list is a list of QUESTIONS, not corpses, and retirement may NEVER be inferred from orphan status alone. Each module gets a positive disposition with a reason -- wired (a caller existed and was missing), retired-to-archive (name the superseder), or kept-and-explained (a library/entry point the index cannot see, which is a defect in the index's caller detection and is logged as one). EXIT: every orphan carries a disposition; the count falls; nothing is deleted.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "AO5_hotspot_consolidation"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 59,
       "forward_attachments": []
     },
     {
@@ -4566,7 +4683,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 92,
+      "stall_consecutive_unchanged": 111,
       "forward_attachments": []
     },
     {
@@ -4588,7 +4705,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 83,
+      "stall_consecutive_unchanged": 115,
       "forward_attachments": []
     },
     {
@@ -4608,7 +4725,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 83,
+      "stall_consecutive_unchanged": 98,
       "forward_attachments": []
     },
     {
@@ -4628,7 +4745,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 77,
+      "stall_consecutive_unchanged": 96,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4657,7 +4774,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 95,
+      "stall_consecutive_unchanged": 120,
       "forward_attachments": []
     },
     {
@@ -4677,7 +4794,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 73,
+      "stall_consecutive_unchanged": 101,
       "forward_attachments": []
     },
     {
@@ -4699,7 +4816,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 66,
+      "stall_consecutive_unchanged": 94,
       "forward_attachments": []
     },
     {
@@ -4721,7 +4838,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 90,
+      "stall_consecutive_unchanged": 112,
       "forward_attachments": []
     },
     {
@@ -4743,7 +4860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 71,
+      "stall_consecutive_unchanged": 101,
       "forward_attachments": []
     },
     {
@@ -4765,7 +4882,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 78,
+      "stall_consecutive_unchanged": 99,
       "forward_attachments": []
     },
     {
@@ -4789,7 +4906,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 92,
+      "stall_consecutive_unchanged": 114,
       "forward_attachments": []
     },
     {
@@ -4811,7 +4928,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 87,
+      "stall_consecutive_unchanged": 115,
       "forward_attachments": []
     },
     {
@@ -4833,7 +4950,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 78,
+      "stall_consecutive_unchanged": 97,
       "forward_attachments": []
     },
     {
@@ -4855,7 +4972,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 68,
+      "stall_consecutive_unchanged": 89,
       "forward_attachments": []
     },
     {
@@ -4897,7 +5014,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 89,
+      "stall_consecutive_unchanged": 112,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -4932,7 +5049,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 94,
+      "stall_consecutive_unchanged": 122,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -4982,7 +5099,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21,
+      "stall_consecutive_unchanged": 29,
       "forward_attachments": []
     },
     {
@@ -5004,7 +5121,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 28,
+      "stall_consecutive_unchanged": 32,
       "forward_attachments": []
     },
     {
@@ -5150,7 +5267,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 234,
+  "total_atoms": 239,
   "epoch2_movements": [
     {
       "id": "M1",

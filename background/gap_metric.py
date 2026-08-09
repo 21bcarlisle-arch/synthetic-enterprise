@@ -469,8 +469,23 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
 #     never chases, provision it never makes.
 #   * false_flag_rate     -- an invoice that truly SUCCEEDED and was flagged
 #     anyway: the WRONGFUL-DUNNING exposure, a real customer chased for money
-#     they already paid. On the payment triad this is literally the same
-#     numerator D7's `overstated_arrears_rate` publishes one dimension over.
+#     they already paid.
+#
+# THAT SECOND DIRECTION IS **NOT** THE SAME NUMBER D7's `overstated_arrears_rate`
+# PUBLISHES ONE DIMENSION OVER, and this comment asserted for a day that it was
+# ("literally the same numerator"). MEASURED, seed 7 / 400 customers, case by
+# case (H27 Expert Hour 2026-08-09): detection counts 21 false flags over 782
+# never-flaggable cases (0.0269); ageing counts 101 false ageings over 1062
+# truly-current ones (0.0951). They share SEVEN cases. The two populations sit in
+# an exact containment -- ageing's truly-current == detection's negatives PLUS
+# the 280 cases detection EXCLUDES -- and 94 of ageing's 101 land in that
+# excluded band, i.e. on invoices the exclusion rule below holds the company was
+# RIGHT to flag. Both numbers are defensible; the claim that they are one
+# measurement was not. The two dimensions are held to a DECLARED, measured
+# relationship by `tools.couple_w2_11_d5.SHARED_QUANTITY_CONTRACT` rather than by
+# this paragraph, and the alignment itself is atom
+# `D16_ageing_negative_population_is_unexcluded` (it moves a published number, so
+# it is not done on sight).
 #
 # THE HEADLINE IS THE BALANCED ERROR, and its baseline is honest in a way the
 # recall gap's could not be: EVERY prevalence-blind strategy scores exactly

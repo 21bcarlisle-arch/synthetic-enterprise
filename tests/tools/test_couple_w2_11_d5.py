@@ -157,8 +157,6 @@ def _dd_channel_dead(monkeypatch):
     """Named defect #1: the DD-failure observation channel goes completely dark
     (a renamed field, a mis-set recency window, a broken adapter emit). The
     company observes NO rail failures at all."""
-    import dataclasses
-
     original = PaymentObservationConsumer.snapshot
 
     def blind(self, *args, **kwargs):
@@ -1443,3 +1441,247 @@ def test_the_error_direction_control_fires_on_a_declaration_that_lies():
     assert degenerate == 0.0, f"{key} stopped being recall-only"
     with pytest.raises(AssertionError):
         assert degenerate != 0.0, "declared two-directional but scores a degenerate 0"
+
+
+# ---------------------------------------------------------------------------
+# THE SHARED-QUANTITY CLASS CONTROL (H27 Expert Hour 2026-08-09, the R10 half)
+# ---------------------------------------------------------------------------
+# The instance it closes: this triad published "the wrongful-dunning exposure"
+# from TWO dimensions, in one output block, as 0.0269 and 0.0951 -- 3.5x apart,
+# sharing seven cases -- while `background.gap_metric` asserted in prose that
+# they were "literally the same numerator". Nothing compared them, so nothing
+# could notice. These tests make the comparison a MEASUREMENT.
+
+def _scored(seed: int = _SEED, n: int = 300, grace: int | None = None):
+    records, consumer, _ledger, as_of = pair.build_scenario(n, seed=seed)
+    kwargs = {} if grace is None else {"reconciliation_grace_days": grace}
+    return pair.score_triad(records, consumer, as_of, **kwargs)
+
+
+def _rendered_dimension_text(result) -> dict:
+    """Every published dimension as the text a HUMAN actually reads -- the
+    formatter output where there is one, the note otherwise. The phrase sweep
+    below runs over this rather than over the contract, because the defect was a
+    phrase reaching a reader from a dimension nobody had compared."""
+    return {
+        "detection": format_detection_summary(result["detection"]),
+        "ageing": pair.format_ageing_summary(result["ageing"]),
+        "detection_latency": pair.format_detection_latency_summary(
+            result["detection_latency"]),
+        "belief": str(result["belief"].note or ""),
+    }
+
+
+@pytest.mark.parametrize("seed,grace", [(7, None), (11, None), (23, 12)])
+def test_shared_quantity_declarations_are_measured_not_asserted(seed, grace):
+    """Each registered quantity's declared population relationship is checked
+    against what the two SCORERS actually returned.
+
+    Independence (R15 tautology): the two sides come from
+    `gap_metric.ageing_gap` and `gap_metric.detection_measures`, two separate
+    measurements over separately built populations. Neither is recomputed here.
+
+    The grace window is varied deliberately: it moves the exclusion band for
+    real, through the real code path, so a declaration that only held on one
+    fixture would fail rather than pass by coincidence.
+    """
+    result = _scored(seed=seed, grace=grace)
+    measured = pair.shared_quantity_measurements(result)
+    assert measured, "the register is empty -- a control over nothing cannot fail"
+
+    for name, spec in pair.SHARED_QUANTITY_CONTRACT.items():
+        sides = measured[name]
+        det, age = sides["detection"], sides["ageing"]
+
+        # No side may be vacuous: a missing denominator would make the
+        # comparison undefined and the control fail-open.
+        for dim, side in sides.items():
+            assert side["denominator"], f"{name}/{dim} has no denominator"
+            assert side["rate"] is not None, f"{name}/{dim} publishes no rate"
+
+        coincide = age["denominator"] == det["denominator"]
+        assert coincide is spec["populations_coincide"], (
+            f"{name}: the register declares populations_coincide="
+            f"{spec['populations_coincide']} but the measured denominators are "
+            f"ageing {age['denominator']} vs detection {det['denominator']}. "
+            "A register that can disagree with the run and still pass is the "
+            "prose this contract replaced."
+        )
+
+        if not spec["populations_coincide"]:
+            # The declared containment, measured. It is EXACT on purpose: it
+            # breaks the moment either side's population moves -- including when
+            # the alignment atom lands, which is the intent.
+            assert spec["relationship"] == (
+                "ageing_denominator == detection_denominator + detection_n_excluded"
+            ), f"{name}: unrecognised relationship -- add its measurement here"
+            assert age["denominator"] == det["denominator"] + det["n_excluded"], (
+                f"{name}: declared containment broken -- ageing {age['denominator']} "
+                f"!= detection {det['denominator']} + excluded {det['n_excluded']}"
+            )
+            # An undeclared divergence is the defect; an OWNED one is debt.
+            assert str(spec["why_they_differ"]).strip(), name
+            assert str(spec["which_to_read"]).strip(), name
+            assert spec["alignment_atom"], (
+                f"{name}: two dimensions publish this quantity over different "
+                "populations and no atom owns the alignment -- an unowned "
+                "divergence is how a defect becomes a convention"
+            )
+
+
+def test_every_dimension_publishing_a_registered_phrase_is_registered():
+    """R10, the half that catches the NEXT instance rather than this one: a
+    dimension that starts printing a registered quantity's phrase to a reader
+    must appear in that quantity's `published_by`, or it joins the ambiguity
+    with nothing comparing it -- exactly how the ageing/detection pair got a
+    fortnight of being two numbers under one name."""
+    rendered = _rendered_dimension_text(_scored())
+
+    for name, spec in pair.SHARED_QUANTITY_CONTRACT.items():
+        phrase = str(spec["phrase"])
+        emitters = {dim for dim, text in rendered.items() if phrase in text}
+        assert emitters, (
+            f"{name}: no dimension prints {phrase!r} any more -- if the quantity "
+            "stopped being published, retire the register entry rather than "
+            "leaving a control with nothing to check (it can no longer fail)"
+        )
+        registered = set(spec["published_by"])          # type: ignore[arg-type]
+        assert emitters <= registered, (
+            f"{name}: {sorted(emitters - registered)} print {phrase!r} to a reader "
+            "but are not registered as publishers of it, so no control compares "
+            "them with the registered ones"
+        )
+
+
+def test_the_two_wrongful_dunning_numbers_are_not_one_number():
+    """The finding itself, pinned as a CHARACTERIZATION (not a contract): the
+    two rates published under one phrase genuinely differ, and most of the
+    ageing numerator lives in the band the detection dimension excludes.
+
+    Expected to FAIL when `D16_ageing_negative_population_is_unexcluded` lands.
+    That is the point -- replace it then, never repair it. No generated value is
+    pinned: the assertion is on the DIRECTION of the divergence, which is a
+    structural consequence of ageing carrying no exclusion band.
+    """
+    sides = pair.shared_quantity_measurements(_scored())["wrongful_dunning_exposure"]
+    det, age = sides["detection"], sides["ageing"]
+
+    assert det["n_excluded"] > 0, (
+        "the detection dimension excludes nothing, so there is no divergence to "
+        "characterise -- has the alignment landed?"
+    )
+    assert age["rate"] > det["rate"], (
+        "ageing's wrongful-dunning rate is no longer the larger of the two; the "
+        "exclusion band can only ADD flaggable-but-not-failed cases to ageing's "
+        "denominator and numerator, so this inverting means one side's "
+        "population changed"
+    )
+
+
+def test_shared_quantity_measurements_raises_on_a_missing_dimension():
+    """FAIL-OPEN guard (R15): if a registered dimension silently stopped being
+    published, comparing whatever was left would pass while the quantity went
+    unchecked."""
+    result = _scored()
+    partial = {k: v for k, v in result.items() if k != "ageing"}
+    with pytest.raises(KeyError, match="does not publish"):
+        pair.shared_quantity_measurements(partial)
+
+
+def test_the_shared_quantity_control_fires_on_a_register_that_lies():
+    """R15 MUST-FIRE, mutating the DECLARATION both ways. A register anyone can
+    write anything into is a switch, not a control -- the same shape the as_of
+    contract's exemption and the direction contract's `counts_both_error_
+    directions` are each held to."""
+    measured = pair.shared_quantity_measurements(_scored())
+    det = measured["wrongful_dunning_exposure"]["detection"]
+    age = measured["wrongful_dunning_exposure"]["ageing"]
+
+    # Lie 1: claim the two populations are the same population.
+    with pytest.raises(AssertionError):
+        assert (age["denominator"] == det["denominator"]) is True, (
+            "declared coincident, but the denominators differ")
+
+    # Lie 2: declare the containment without the excluded band -- the shape the
+    # retired prose claim implied ("literally the same numerator").
+    with pytest.raises(AssertionError):
+        assert age["denominator"] == det["denominator"], (
+            "declared equal denominators, but ageing carries the excluded band")
+
+
+def test_the_phrase_sweep_fires_on_an_unregistered_publisher():
+    """R15 MUST-FIRE on the sweep half: de-register a dimension that really does
+    print the phrase and the control must catch it. Without this the sweep could
+    be an empty loop that never had an emitter to find."""
+    rendered = _rendered_dimension_text(_scored())
+    spec = pair.SHARED_QUANTITY_CONTRACT["wrongful_dunning_exposure"]
+    phrase = str(spec["phrase"])
+    emitters = {dim for dim, text in rendered.items() if phrase in text}
+    assert len(emitters) >= 2, (
+        "fewer than two dimensions print the phrase, so the shared-quantity "
+        "contract has nothing to be about"
+    )
+
+    de_registered = set(spec["published_by"]) - {"ageing"}   # type: ignore[arg-type]
+    with pytest.raises(AssertionError):
+        assert emitters <= de_registered, "ageing prints the phrase unregistered"
+
+
+def test_cli_write_ledger_publishes_the_measured_note_not_a_retired_one(monkeypatch):
+    """The `--write-ledger` branch had NO test, and that is exactly how it kept
+    publishing a REFUTED sentence for a day after the sentence was refuted.
+
+    It overwrote the measured `det.note` with "the fraction of true payment
+    failures the company NEVER OBSERVES through the seam -- the no-remittance
+    blind spot": D10 measured that false (`n_undetected` == 0 on seeds 7/11/23 --
+    the residual is detections the company UN-made under oldest-first
+    allocation), and D11 then made it wrong a second way (the headline is a
+    balanced error over two directions, not a fraction of failures). Both this
+    path and `background.live_payment_triad.measure_and_write` write the SAME
+    bare ledger key the Proof door reads, so whichever ran last decided what a
+    reader saw -- the live one was corrected on 2026-08-09 and this offline
+    sibling was left behind (the sibling-half class, again).
+
+    The ledger is not touched: the writer is captured, so what is under test is
+    the NOTE, which is the thing that rotted.
+    """
+    captured = {}
+
+    def _capture(world, twin, result, **kwargs):
+        captured["result"] = result
+        return {world: {"gap": result.gap}}
+
+    monkeypatch.setattr(pair, "write_gap_entry", _capture)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["couple_w2_11_d5.py", "--customers", "250", "--seed", "3", "--write-ledger"],
+    )
+    pair.main()
+
+    note = captured["result"].note
+    # ASSERT ON THE CLAIM, NOT ON THE WORDS. A bare ban on "never observes"
+    # refuses the honest sentence that NEGATES it, which is the shape that has
+    # already bitten this repo once (an AO2 gate tripping on the word "none").
+    # What must be absent is the AFFIRMATIVE description; what must be present
+    # is its correction.
+    retired_claim = (
+        "fraction of true payment failures the company never observes"
+    )
+    assert retired_claim not in note, (
+        "the retired, measured-false description of the headline is back in the "
+        "published note"
+    )
+    assert "never observes" in note and "NOT" in note, (
+        "the note should name the retired description and say it is wrong -- a "
+        "reader comparing this entry with a pre-2026-08-09 one needs to be told "
+        "the description changed, not just handed a different sentence"
+    )
+    # It must publish what the headline actually IS, with both directions.
+    assert "BALANCED" in note and "missed_failure_rate" in note
+    assert "false_flag_rate" in note
+    # And it must not silently drop the measured note it used to clobber.
+    assert "THE MEASURED NOTE FOLLOWS" in note
+    assert "atom D11" in note or "D11" in note
+    # The two same-named exposures must be flagged as different measurements
+    # wherever both are printed together (the shared-quantity finding).
+    assert "SHARED_QUANTITY_CONTRACT" in note
