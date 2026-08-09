@@ -421,3 +421,34 @@ def test_the_untracked_overlay_is_symlinked_AFTER_staging_not_before(
     (repo / "code.py").write_text("VALUE = 2\n")
 
     assert sl.land(repo, ["code.py"], "land with an overlay present") != ""
+
+
+def test_the_script_entrypoint_can_reach_the_repo_packages_it_defers_to():
+    """The one caller no other test here exercises: the tool run as a SCRIPT.
+
+    Every test above calls `sl.land()` in-process, where pytest has already put the repo root on
+    `sys.path` -- so `background.tree_lock`, which `_write_lock` reaches for, resolves for free.
+    Run the way the usage string shows (`python3 tools/surgical_land.py ...`), `sys.path[0]` is
+    `tools/` and that import raises `ModuleNotFoundError`. The suite was green through the whole
+    of it, because the defect lives strictly between the entry point and the code under test.
+
+    Where it bit is what makes it worth a test rather than a fix: `_write_lock` is the LAST step
+    of `land()`, so the crash arrived AFTER the full pre-commit gate had run against the extract
+    -- minutes of work, nothing landed, and the legal move unavailable at the exact moment a seat
+    reaches for it. That is the pressure toward `--no-verify` that this tool exists to remove.
+
+    R15: this fires ALONE on its own defect -- delete the `sys.path.insert` in surgical_land.py
+    and this reds while every other test in the file stays green. `cwd` is a foreign directory and
+    PYTHONPATH is cleared so the repo root cannot arrive by either accident.
+    """
+    import os
+    import sys
+
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    script = Path(sl.__file__).resolve()
+    r = subprocess.run([sys.executable, str(script), "--help"],
+                       cwd=str(script.parent.parent.parent), capture_output=True, text=True,
+                       env=env)
+    assert r.returncode == 0, (
+        "the tool cannot even print its usage when run as a script: {}".format(r.stderr.strip()))
+    assert "ModuleNotFoundError" not in r.stderr

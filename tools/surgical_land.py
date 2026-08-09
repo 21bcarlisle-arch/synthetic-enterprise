@@ -78,6 +78,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# Run as a SCRIPT (`python3 tools/surgical_land.py ...` -- the form the usage string shows and the
+# only form a seat actually types), sys.path[0] is tools/, not the repo root, so `background` is
+# unimportable. Every test here calls land() IN-PROCESS from pytest, whose rootdir is the repo, so
+# the whole suite was green while the entry point could not reach the one module it defers to.
+# That is the "guard unreachable from its only caller" shape, and it failed in the worst place:
+# _write_lock is the LAST step, so the crash landed after the full gate had already run, leaving
+# the legal move unavailable exactly when someone reaches for it -- which is the pressure toward
+# bypass this tool exists to remove. Bypass is a wall; the wall needs the door to open.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from background.tree_lock import tree_lock  # noqa: E402  (needs the path insert above)
+
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
 HOOK_REL = "tools/git-hooks/pre-commit"
@@ -327,7 +340,6 @@ def _write_lock(root: Path):
     if root.resolve() != ROOT:
         yield
         return
-    from background.tree_lock import tree_lock
     with tree_lock():
         yield
 
