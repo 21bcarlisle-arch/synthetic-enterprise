@@ -77,6 +77,24 @@ REVIEWED_CLOSE_TO_LEARN = {
     # and touches no revenue flow; what it measures is whether the machine's own record can be
     # kept without a control fighting it -- the same close_to_learn class as H29/H30/H31.
     "H32_map_size_ratchet_red_on_head",
+    # 2026-08-09 reviewed (worker tick, minting from DIRECTOR_RULING_PUBLISH_GATE_SUBJECT and
+    # closing the H_GAP anchor finding). Classified on their merits, not to clear the gate --
+    # and this control catching all three at once is it working as designed: the first two were
+    # minted earlier the same day by a tick that never ran tests/design/, so they arrived
+    # off-grammar AND unreviewed and sat red on HEAD until now (renamed onto the grammar here
+    # rather than allowlisted, per the id test's own instruction).
+    #   OPS2/OPS3 are PUBLISH-PATH atoms. Under the ruling the gate's subject became a clean
+    # checkout of HEAD; what they change is what the machine MEANS by "the code passed" and
+    # whether a publish has actually gone out through the new path. Neither moves money nor
+    # touches a revenue flow -- what they measure is whether the machine's own verdict can be
+    # trusted, the same close_to_learn class as their H_harness siblings.
+    #   H33 is an R15 CONTROL-INTEGRITY atom: it asks of every anchored band whether the
+    # statistic has a null the threshold is supposed to sit above, after L1.4's band was found
+    # sitting UNDER its own null (a day-type-randomised population cleared it with 1.4x margin).
+    # It moves no money; what it measures is whether this repo's bands can fail at all.
+    "OPS2_publish_gate_head_worktree",
+    "OPS3_first_post_ruling_publish",
+    "H33_does_this_statistic_have_a_null",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for
@@ -143,6 +161,13 @@ REVIEWED_CLOSE_TO_LEARN = {
     "PW1_staleness_is_code_actually_loaded",
     "PW2_failure_clears_its_own_alarm",
     "PW3_suite_duration_watch",
+    # 2026-08-09 reviewed (worker tick, at PW2's close). PW4 is the residue of PW2's own census:
+    # four state files the derivation judged `real` and PW2 deliberately did NOT guard, because
+    # each needs its own answer to "what evidences an episode close". Classified on its merits and
+    # not inherited from its parent: it is the same question PW2 asked -- can the machine still
+    # tell how long it has been broken -- applied to four more of its own alarms. It moves no
+    # money, meters nothing, and bills nobody; the only consumer is the operator reading a page.
+    "PW4_guard_remaining_episode_states",
     # 2026-08-08 reviewed (worker tick, minting the EP1-EP20 commitment sets (epochs 2-5) from
     # DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08). Classified on their merits, not to clear
     # the gate -- and as with the AO batch, the gate firing on eleven at once is this control doing

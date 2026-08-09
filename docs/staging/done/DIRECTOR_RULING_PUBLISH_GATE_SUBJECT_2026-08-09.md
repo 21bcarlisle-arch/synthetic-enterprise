@@ -15,3 +15,22 @@
 
 ## Counterweight (added pre-delivery, on the director's challenge)
 Freeing publishing from the tree must not license silent squatting. Therefore, paired with the gate change: a standing **tree-divergence measure** — count and AGE of staged-or-modified files versus HEAD, attributed to their owning lane where derivable — published each cycle and alarmed past a threshold with the same episode-memory discipline as the publish alarm. The forcing function moves from "the public site dies" to "the squatting lane is named daily." Existing teeth already pointing the same way, for the record: the tracked-and-clean promotion gate (uncommitted work cannot claim done), the orphan census and adoption path, the queued tick-exit check, and the cutover proposal's uncommitted-age alarm. A broken lane is thus detected by its divergence age, not by the mission's outage.
+
+---
+
+## MINT DISPOSITION 2026-08-09 (worker tick) — all four are covered, none re-minted
+
+Per §2+§4 of `DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27`, one atom per named
+deliverable in WORK THIS CREATES, and a deliverable already covered is stated rather than re-minted.
+Verified against real disk/git state, not against a claim:
+
+| # | deliverable | disposition |
+|---|---|---|
+| 1 | tonight's minimal gate-on-HEAD, deployed to the publish path | **LANDED** — `14fbd32cd`, then `576105747`, `3cc852aff` (untracked-DATA overlay). `run_fast_tests()` materialises HEAD via `git archive` into a throwaway dir; `tests/background/test_publish_gate_head_checkout_is_a_repo.py` covers it. No atom: shipped code is not a queue item. |
+| 2 | the polished atom (worktree lifecycle, cleanup, R15 both ways) | **ALREADY MINTED** — `OPS2_publish_gate_head_worktree` (H_harness, L0→L2, `loop_stage: build`), spec `PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md`. Not re-minted. |
+| 3 | the first post-ruling publish landed and stated, markers drain-superseded, the £1,526,252.39 candidate baseline printed and adopted | **ALREADY MINTED** — `OPS3_first_post_ruling_publish` (H_harness, L0→L2, `depends_on: [OPS2_publish_gate_head_worktree]`). Not re-minted. |
+| — | the **Counterweight**: a standing tree-divergence measure, by lane, published each cycle and alarmed past a threshold with episode-memory discipline | **LANDED AND WIRED** — `background/tree_divergence.py` + `tests/background/test_tree_divergence.py`, called from `process_run_complete._publish_tree_divergence()` at the pre-gate point, alarming through `notify(transition_key="tree_divergence", re_escalate_after=24h)` so a standing squat is named daily and an unchanged one does not re-page. Returns `None` by construction, so the publish path has no value to block on. |
+
+Both minted atoms are drawable now (`loop_stage: build`) and neither is opened by anyone —
+PROPOSE/RECORD/ACT. The spec doc is archived to `docs/staging/done/` with this one and the map's
+references follow it, so the reference stays resolvable.

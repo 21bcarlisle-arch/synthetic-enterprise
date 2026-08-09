@@ -18,10 +18,28 @@ floor (null median 0.0715, null minimum 0.0378, floor 0.0262). The statistic is
 biased upward at the coupled run's 120-day window, where 35 weekend days and 85
 weekday days are small enough that two arbitrary subsets of the SAME home differ
 by about as much as a real household's weekday differs from its weekend over a
-full year. The anchor is sound; applying it across window lengths is not. The
-derivation is kept, un-wired, because the fix is to null-correct the STATISTIC
-(separation minus the median of k randomised relabellings) and this number is
-half of what that build needs.
+full year. The anchor is sound; applying it across window lengths is not.
+
+THE NULL-CORRECTION THAT WAS THE STATED FIX IS NOW BUILT, AND IT DID NOT USE THIS
+NUMBER. `fabric_gap_ledger.weekday_weekend_separation_vs_own_null` judges each
+home against k randomised relabellings of its OWN calendar and ships as the
+separate cell `L1.4n_weekday_weekend_null_ratio`, threshold 1.0, STRUCTURAL — it
+needs no external panel, because a permutation test's decision point is 1.0 by
+construction. So this constant is not "half of that build" as this docstring said
+until 2026-08-09; it answers a DIFFERENT question that L1.4n explicitly does not:
+whether a home's weekday/weekend structure is as LARGE as a real household's,
+rather than merely present.
+
+THAT MAGNITUDE QUESTION STAYS OPEN, and this panel cannot close it. Correcting
+the model's side without correcting the panel's is the same window-mismatch error
+in new coordinates, and the panel's own null is not computable from this extract:
+it carries each household's ANNUAL MEAN weekday and weekend shape, not its days.
+Closing it needs a DAY-LEVEL panel (SERL, or raw LCL half-hourly), at which point
+both sides get null-corrected together. That precondition is a fact about a file a
+later tick could change, so it is asserted rather than left here as prose:
+`tests/harness/test_lcl_household_anchors.py::test_the_panel_STILL_CANNOT_close_L1_4s_magnitude_question`
+reds the day a day-level panel lands, and says so as available work rather than as
+a regression.
 
 PURPOSE, GUARANTEES, WHY — stated first (OPS1 standard) or the mechanism is deleted
 ====================================================================================

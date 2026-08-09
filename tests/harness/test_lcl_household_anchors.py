@@ -108,6 +108,47 @@ def test_the_L1_4_FLOOR_re_derives_from_the_raw_CSV():
     assert floor == pytest.approx(anchors.LCL_WEEKDAY_WEEKEND_TV_FLOOR, abs=5e-5)
 
 
+def test_the_panel_STILL_CANNOT_close_L1_4s_magnitude_question():
+    """A FALSIFIER FOR THE ONE CLAIM IN THIS MODULE THAT IS ONLY PROSE.
+
+    `LCL_WEEKDAY_WEEKEND_TV_FLOOR` is derived and DELIBERATELY not wired into a
+    band. The reason, stated in `fabric_gap_ledger`'s L1.4n note and in this
+    module's docstring, is a fact about THIS FILE and not about the statistic: the
+    extract carries each household's ANNUAL MEAN weekday and weekend shape, so the
+    panel's own permutation null cannot be computed from it — and null-correcting
+    the model's side while leaving the panel's raw is the same window-mismatch
+    error in new coordinates (the finding that took this anchor out).
+
+    That reason is a claim about a file that a later tick could change. Fetch a
+    day-level panel into the same path and every word above silently becomes
+    false, the constant stays unwired, and the magnitude question stays open for
+    no reason at all. So the claim is asserted rather than written down.
+
+    IF THIS TEST REDS, IT IS NOT A REGRESSION — it is the work becoming
+    available: null-correct BOTH sides (panel and model) with
+    `weekday_weekend_separation_vs_own_null`, and L1.4 gets the magnitude band it
+    has carried `AnchorStatus.NEED` for since the suite was written.
+    """
+    columns = set(_raw_rows()[0])
+    # Day-level data would arrive as per-day columns or a date/day key. Neither
+    # naming convention is guessed at singly: the check is that NOTHING beyond the
+    # four identity columns and the two annual-mean 48-vectors is present, which
+    # is true of an annual-mean extract and false of any day-level one.
+    expected = {"LCLid", "stdorToU", "mean_daily_kwh", "archetype_k2"}
+    expected |= {f"wd_{i}" for i in range(48)} | {f"we_{i}" for i in range(48)}
+    assert columns == expected, (
+        f"the anchor panel has grown {sorted(columns - expected)} — if any of that "
+        "is day-level, the L1.4 magnitude anchor is now BUILDABLE and "
+        "LCL_WEEKDAY_WEEKEND_TV_FLOOR should stop being an unwired constant"
+    )
+    # And the constant is still unwired, so this test and the code agree about
+    # which state the world is in rather than each describing its own.
+    from background import fabric_gap_ledger as fgl
+
+    assert fgl.BANDS["L1.4_weekday_weekend_separation"].threshold is None
+    assert fgl.RATE_BANDS["L1.4_weekday_weekend_separation"].threshold is None
+
+
 def test_the_shapes_the_L1_4_anchor_reads_are_actually_NORMALISED():
     """The statistic is a total-variation distance between two probability-like
     48-vectors. Against un-normalised vectors it is a different quantity that would

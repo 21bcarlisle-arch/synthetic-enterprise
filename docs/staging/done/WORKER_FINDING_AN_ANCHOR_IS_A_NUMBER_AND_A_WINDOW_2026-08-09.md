@@ -86,3 +86,40 @@ the band notices.
 `tests/harness/test_premise_two_level.py::test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`
 measures the null and asserts the band is still blank — so a later tick that re-wires the anchor
 without null-correcting the statistic fails there rather than shipping a control that cannot fail.
+
+---
+
+## RESOLVED 2026-08-09 (worker tick, `H_GAP_fabric_belief_truth_gap` draw)
+
+`observed-with-evidence`. The queued build landed as commit `cff5cf698` and this pass closed the
+half it left behind. Both halves are recorded because they came apart in a way the finding did not
+predict.
+
+**The repair shipped, and it did not use this anchor.** `L1.4n_weekday_weekend_null_ratio`
+(`fabric_gap_ledger.weekday_weekend_separation_vs_own_null`) judges each home against 99 random
+relabellings of its OWN calendar, at threshold 1.0. A permutation test's decision point is 1.0 by
+construction, so it needs no external panel at all. This finding's "would close it" paragraph said
+`LCL_WEEKDAY_WEEKEND_TV_FLOOR` was "half of that build" — it was not. R15 both ways on the drawn
+population: the randomised calendar reads median ratio 0.75 with 58/60 homes below 1.0, the real
+calendar reads 1.45 with 1/60 below.
+
+**What the anchor was actually half of, and it is still open.** L1.4n asks whether a home has ANY
+real weekday/weekend structure. It does not ask whether that structure is as LARGE as a real
+household's. That magnitude question is what the panel measures, and this panel cannot close it:
+the extract carries each household's ANNUAL MEAN weekday and weekend shape, so the panel's own
+permutation null is not computable, and null-correcting the model's side while leaving the panel's
+raw is this finding's own error in new coordinates. It needs a DAY-LEVEL panel (SERL, or raw LCL
+half-hourly — neither is in `data/lake/`, and autonomous ticks have no network).
+
+**So the precondition is now a control rather than a paragraph.**
+`tests/harness/test_lcl_household_anchors.py::test_the_panel_STILL_CANNOT_close_L1_4s_magnitude_question`
+asserts the panel is annual-mean-only and that both L1.4 bands are still blank. Mutation run and
+restored: adding one day-level column to a copy of the panel reds it, naming the work that becomes
+available. It fails as an OPPORTUNITY, not a regression, and its message says so — a later tick that
+fetches a day-level panel is told the magnitude anchor is buildable instead of inheriting an unwired
+constant whose reason nobody re-reads. `background/lcl_household_anchors.py`'s docstring, which had
+gone stale against the shipped code within the day, is corrected to match.
+
+**The CLASS is still open** and this pass does not close it: the cheap sweep this doc proposes —
+asking every anchored band "does this statistic have a null, and is the band above it?" — has not
+been run. That remains the generalisable half.

@@ -4,7 +4,7 @@
 file the proper atom for the polished version."* This is that atom. The minimal version is LANDED
 and deployed; this doc scopes only what the minimal version deliberately did not do.
 
-**Proposed atom:** `OPS_publish_gate_head_worktree`
+**Proposed atom:** `OPS2_publish_gate_head_worktree`
 **Lane:** `H_harness` · **level 0→2** · **loop_stage:** build
 **file_scope:** `background/process_run_complete.py`, `tests/background/test_publish_gate_subject_is_head.py`
 **depends_on:** none (the minimal version is already live)

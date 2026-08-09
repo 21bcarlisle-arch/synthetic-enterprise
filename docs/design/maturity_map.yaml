@@ -3602,9 +3602,10 @@
   provenance: director_programme
   depends_on: [AO5_hotspot_consolidation, KNIFE1_reporting_cycle, KNIFE2_customer_straddle]
   couples_with: []
-  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
-  file_scope: ['company/interfaces/sim_interface.py', 'tests/architecture/test_epistemic_wall_ratchet.py', 'tools/knife_hotspot_measure.py']
+  evidence: ['docs/design/KNIFE_HOTSPOT_PASSES.md', 'tools/epistemic_wall.py', 'tests/architecture/test_epistemic_wall_single_source.py', 'tools/epistemic_verifier.py', 'docs/staging/WORKER_FINDING_STALE_ORCHESTRATION_CARVE_OUT_2026-08-09.md']
+  file_scope: ['company/interfaces/sim_interface.py', 'tests/architecture/test_epistemic_wall_ratchet.py', 'tests/architecture/test_epistemic_wall_single_source.py', 'tools/knife_hotspot_measure.py', 'tools/epistemic_wall.py', 'tools/epistemic_verifier.py']
   notes_rehomed: [origin_note]
+  exit_evidence: "FIRST STEP LANDED 2026-08-09; THE CUT HAS NOT STARTED — this atom is PARTIALLY built and must NOT be re-drawn as if from zero (see finding 1 below for what that failure looks like). Coordination wall CHECKED FIRST, as the wall specifies: EP7-EP14 are all level 0 / loop_stage idle / file_scope [], so no lane is cutting this seam. Measured count this pass is scored against: 88 class-(b) edges across 23 files (`python3 tools/knife_hotspot_measure.py`), class (a) at zero. THE EXTRACTION: build_edges/company_reads_sim/sim_reads_company + perimeter + seam now live once in tools/epistemic_wall.py; the ratchet (gate), tools/knife_hotspot_measure.py (ledger) and tools/epistemic_verifier.py (phase-close scanner) all import it. The dated ALLOWLISTS deliberately stayed in the ratchet — definition shared, policy baseline not — and are byte-unchanged across this commit, so the ratchet's floor is provably unmoved by the extraction (the origin_note wall against moving the instrument and the measured thing together). R15 CONTROL: tests/architecture/test_epistemic_wall_single_source.py, 15 tests, asserting OBJECT IDENTITY not equal answers (two identical copies of the walker compare EQUAL on today's tree and are exactly the defect). Both mutation proofs run and restored: re-adding a private build_edges to the ratchet reds 2 tests; restoring APPROVED_ORCHESTRATION reds 3. FOUR FINDINGS. (1) THE CONTROL FAILED ON ITS FIRST RUN AND NAMED ITS OWN AUTHOR: tools/epistemic_wall.py ALREADY EXISTED, untracked, in no commit, imported by nothing — an earlier attempt at this identical extraction that died before wiring. Disposition per the standing unmerged-work rule: ADOPT, DO NOT REBUILD — the found file is the survivor, this pass's copy was deleted, and the pass's additions (is_sim_module/is_company_module, the wiring, the control) went on top; provenance recorded in the module docstring. (2) The stale APPROVED_ORCHESTRATION carve-out is DELETED, closing pass 1's queued finding: it exempted exactly the two class-(a) edges pass 1 cut, i.e. a pre-authorised re-entry — and it was PINNED GREEN by two assertions in tests/controls/test_control_mutation.py, which are now inverted with the reason in place. (3) A second, undocumented escape hatch went with it: APPROVED_SEAM was matched as a SUBSTRING OF THE OFFENDING LINE, so a trailing `# company/interfaces/sim_interface` comment cleared a real crossing in the regex fallback. Deleted; EXEMPT_PATHS is now DERIVED from the shared SEAM_PACKAGE, closing the file-vs-package divergence pass 2 recorded as this extraction's second referent. (4) TWO OF THE LEDGER'S OWN MUTATION PROOFS WERE RED AT HEAD, caused by pass 2: they pinned whichever real overlap the tree carried, pass 2 cut the last sixteen, and the guards died — a control whose fixture needs a LIVE instance of the defect dies exactly when the codebase reaches its goal state, and total disjointness IS the goal state. Repaired at the STATISTIC: the overlap is manufactured on the measured side, plus a vacuity twin proving silence without it. EXIT NOW STATED, as conditions not a number (R12/LAW A, following pass 4's withdrawal of 'the count falls'): every one of the 88 crossings carries a disposition (cut with its allowlist tuple deleted, or explicitly grandfathered with a reason) — no edge survives UNEXAMINED; nothing routed through a package the walker does not walk; the walker never edited in a cutting commit; wall 4 stated as having no byte-comparable artefact. THE CUT IS DECOMPOSED AND IT IS NOT ONE SHAPE: (A) 67 edges / 10 simulation/run_phase*.py modules that are COMPOSITION ROOTS, not the world — scenario harnesses running a world and a company together, run_phase2b.py alone 2,954 lines and 34 edges; cut by pass 1's template (composition belongs above both layers). (B) 21 edges / 13 modules of genuine world-physics-reads-company-brain; cut by pass 2's template (a designed seam per population). B is the smaller count and the harder work — each is a wall-DESIGN question, not a mechanical move. Suites green: tests/architecture/ 66 passed (ratchet 12/12 including both mutation proofs), tests/tools/test_knife_hotspot_measure.py 26 passed, tests/controls/test_control_mutation.py green. Verifier PASS over the same 501 company/+saas/ files before and after; ledger numbers identical before and after (88 edges / 23 files) — the extraction is behaviour-preserving, measured on both sides. Ruff I001 fixed at source rather than by raising the frozen baseline."
 - id: KNIFE4_orphan_disposition
   title: "Give every unreferenced company module a verdict"
   gain: "258 company modules nothing calls stop being ambiguous -- each is wired to its missing caller, archived with the thing that superseded it, or explained."
@@ -4259,15 +4260,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: worker_finding
   depends_on: ['PW2_failure_clears_its_own_alarm']
   couples_with: []
-  evidence: ['docs/design/self_clearing_alarm_dispositions.json', 'docs/observability/self_clearing_alarm_census.json', 'background/episode_monotonic.py']
-  file_scope: []
+  evidence: ['docs/design/self_clearing_alarm_dispositions.json', 'docs/observability/self_clearing_alarm_census.json', 'background/episode_monotonic.py', 'tests/background/test_pw4_episode_guards.py', 'background/self_clearing_alarm_census.py']
+  file_scope: ['background/process_run_complete.py', 'background/supervisor.py', 'background/background_worker.py', 'background/self_clearing_alarm_census.py', 'docs/design/self_clearing_alarm_dispositions.json', 'tests/background/test_pw4_episode_guards.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an incident-management rollout that instruments the one service that caused last quarter's outage and leaves the other four with the same resettable timer"
   notes_rehomed: [origin_note]
@@ -4291,3 +4292,60 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a nightly batch that creeps from 2h to 7h across a year with no duration chart, discovered the night it misses the morning cut-off"
   notes_rehomed: [origin_note]
+
+- id: OPS2_publish_gate_head_worktree
+  title: "The HEAD-checkout publish gate gets a real lifecycle"
+  gain: "Gate-on-HEAD stops costing 2.5x per cycle and stops leaking a 130MB tmpdir when the publisher is killed."
+  name: "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 2 ('the polished atom'); full scope in docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md, which is this atom's spec and must not be re-derived. The minimal version is LANDED and deployed (git archive HEAD -> mkdtemp + untracked-DATA symlink overlay) -- do NOT redo it. EXIT: (1) a REUSED checkout so __pycache__ survives between cycles, and the clean-subject gate runs within 1.3x the in-tree baseline (measured both sides, not asserted); (2) GATE_SUITE_TIMEOUT_SECONDS re-derived from the NEW measured runtime at >=2x, with test_the_gate_timeout_exceeds_the_suites_own_runtime's constant moved with it -- the gate now fail-CLOSES on timeout, so an undersized bound wedges publishing; (3) crash-safe lifecycle (startup sweep of stale publish-gate-head-* dirs, or git worktree + prune) since rc=-9 is a known outcome and finally: does not run; (4) R15 both ways in its own module tests/background/test_publish_gate_subject_is_head.py -- cwd is the checkout not PROJECT_DIR (mutation: point it back, reds), a DIRTY working tree does not change the verdict (write a syntax error into a tracked source file, gate still passes -- this is THE property the ruling bought and nothing asserts it yet), an unavailable checkout BLOCKS (mutation: return True, reds), the dir is removed including on a raising run; (5) the LAST_TESTED_HASH_FILE contract stated in ONE place -- the supervisor's RUNG-1 wedge draw uses it as its independence cross-check and infers the semantics from two call sites."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md', 'docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md', 'background/process_run_complete.py']
+  file_scope: ['background/process_run_complete.py', 'tests/background/test_publish_gate_subject_is_head.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a CI runner switched from the dev box to a clean container overnight, correct on day one and 2.5x slower until someone caches the layer"
+
+- id: OPS3_first_post_ruling_publish
+  title: "Land the first publish under the new subject and say what it printed"
+  gain: "The ruling is only real once a publish has actually landed from committed truth; until then gate-on-HEAD is a claim."
+  name: "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 3, verbatim: 'The first post-ruling publish landed and stated plainly, markers drain-superseded, the GBP 1,526,252.39 candidate baseline printed and adopted per the standing recommendation.' EXIT: (1) one publish cycle completes green with the gate's subject a clean HEAD checkout, and .last_tested_hash names that commit; (2) the run_complete backlog is DRAIN-SUPERSEDED, not bulk-archived -- the newest marker publishes and the superseded ones are archived naming the marker that superseded them; (3) the candidate baseline is printed on the live surface and R11-verified by fetching it, quoting the rendered figure and its clock basis (R14), not the file on origin; (4) the episode counter for the publish-gate wedge returns to zero through a real pass, never by hand. R9: state the measured cause of the wedge this publish closed."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS2_publish_gate_head_worktree]
+  couples_with: []
+  evidence: ['docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md', 'docs/observability/.publish_gate_state.json', 'docs/status/LATEST.md']
+  file_scope: ['docs/status/LATEST.md', 'docs/observability/.publish_gate_state.json']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a release process changed on Friday and declared fixed before any release had actually gone out through it"
+
+- id: H33_does_this_statistic_have_a_null
+  title: "Sweep every anchored band for the null it is supposed to sit above"
+  gain: "Finds the bands that a structureless population already clears -- the fail-open shape no amount of re-reading an anchor's provenance can catch."
+  name: "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09 (the instance half closed the same day; the sweep it proposes has never been run). THE QUESTION, per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' -- a distance between two SUBSETS of one subject's data is bounded away from zero by sampling noise alone, and a band derived over a full year can sit UNDER the null of the same statistic at a 120-day window, so a randomised population clears it. Sibling shapes already on the register: worst-of-N not scale-invariant, band applied to the wrong load set, mutation must dominate the natural spread. EXIT: (1) an ENUMERATION of every band in background/ and tools/ carrying a numeric threshold and an external AnchorStatus, derived from the band tables rather than by inspection; (2) per band, the statistic's null MEASURED by randomising the structure it is meant to detect at the window the band is APPLIED at (not the window it was derived at), with the margin recorded -- a band inside its own null is a defect, a band the same order as it is a finding; (3) each hit dispositioned repair-the-statistic (the L1.4->L1.4n permutation-null pattern) or repair-the-window, NEVER lower-the-floor-until-something-fails (R12 goal-seek); (4) R15 both ways incl. a vacuity guard proving the enumeration is non-empty on the live tree, since a sweep that finds no bands is the fail-open shape here."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: worker_finding
+  depends_on: []
+  couples_with: [H_GAP_fabric_belief_truth_gap]
+  evidence: ['docs/staging/done/WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09.md', 'background/lcl_household_anchors.py', 'background/fabric_gap_ledger.py']
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a lab that validated its assay against a reference range measured on a different sample size, and never ran a blank"
