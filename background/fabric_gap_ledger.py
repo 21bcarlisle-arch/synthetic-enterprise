@@ -112,7 +112,7 @@ import statistics
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Mapping, Sequence
+from typing import Mapping, Sequence
 
 from background.gap_metric import GapResult, prediction_gap, write_gap_entry
 
@@ -163,6 +163,57 @@ class Verdict(str, Enum):
     FAIL = "fail"
     UNVALIDATED = "unvalidated"                    # AnchorStatus.NEED — measured only
     TAUTOLOGICAL = "tautological_for_this_generator"
+    INSUFFICIENT = "insufficient_to_judge"         # too few judged homes to have power
+
+
+# ---------------------------------------------------------------------------
+# SCALE INVARIANCE — why the L1 verdict is a RATE and not a worst-of-N
+# ---------------------------------------------------------------------------
+#
+# The first version of this suite judged every L1 cell on the WORST home. A
+# worst-of-N is monotone in N by construction: it can only move away from the
+# band as homes are added, so the SAME generator on the SAME weather with the
+# SAME seed scored green at n=25 and red at n=200 and the report said nothing
+# about which n produced the verdict
+# (`docs/staging/WORKER_FINDING_WORST_OF_N_CONTROL_IS_NOT_SCALE_INVARIANT_2026-08-09.md`).
+# A reader could not tell a worse generator from a bigger sample.
+#
+# THE FIX IS TO THE STATISTIC, NEVER TO THE ANCHORED BAND. Every per-home band
+# below stays exactly where it was and keeps its own anchor; what changes is what
+# is done with the per-home verdicts. Each home is judged against its own band and
+# the CELL reports the VIOLATION RATE — the share of judged homes outside their
+# band. A rate converges as n grows instead of drifting, so the same generator
+# scores the same thing at n=25 and n=200 and a MOVE in the number is a move in
+# the world.
+#
+# AND THE FAIL-OPEN DIRECTION IS THE ONE THAT NEEDED CLOSING. The old form was not
+# merely noisy at small n, it was WEAK: a clean sheet over ten homes is consistent
+# with a true violation rate of 26%, so a genuinely bad generator would likely
+# pass. A zero-violation result is therefore only allowed to be a PASS when the
+# sample could have DETECTED a violation rate this suite cares about. The bound is
+# the rule of three (Hanley & Lippman-Hand, JAMA 1983): observing zero events in n
+# independent trials puts the one-sided 95% upper bound on the true rate at 3/n.
+#
+# REQUIRED_RATE_RESOLUTION is a CONTROL-DESIGN parameter, not a fidelity band — it
+# says how small a defect this suite claims to be able to see, and it can only ever
+# make the control stricter as the population grows. It is not a number any
+# generator can move, so it is not goal-seekable (R12).
+RULE_OF_THREE = 3.0
+REQUIRED_RATE_RESOLUTION = 0.05
+MIN_HOMES_FOR_L1_RATE = math.ceil(RULE_OF_THREE / REQUIRED_RATE_RESOLUTION)  # 60
+
+
+def detectable_violation_rate(homes_judged: int) -> float:
+    """The smallest true violation rate a CLEAN sheet over `homes_judged` homes
+    rules out at one-sided 95% — the rule of three, 3/n.
+
+    Raises on zero rather than returning infinity: a cell with no judged home has
+    not measured anything, and an unavailable check is a FAILED check (R15)."""
+    if homes_judged <= 0:
+        raise InsufficientEvidence(
+            "a violation rate over zero judged homes has no resolution at all"
+        )
+    return RULE_OF_THREE / homes_judged
 
 
 # ---------------------------------------------------------------------------
@@ -777,8 +828,56 @@ _COMBI_BOILER_IN_SITU_EFFICIENCY = 0.825
 _ASHP_MEDIAN_SPFH4 = 2.78
 
 
+# The seasonal delivered efficiency of RESISTIVE electric heat. Not a measurement
+# and not a citation — conservation of energy. Every kWh drawn by a storage heater
+# or a panel heater ends up in the dwelling as heat, so the ratio is 1.0 and there
+# is no published spread to quote. It is stated as a constant so the arithmetic
+# below reads the same way for every regime.
+_RESISTIVE_SEASONAL_EFFICIENCY = 1.0
+
+
+def heating_texture_threshold(seasonal_efficiency: float) -> float:
+    """The L1.1 band for a home whose ELECTRICITY meter carries its heat, derived
+    from the delivered efficiency of the machine that carries it.
+
+    THE BAND IS KEYED ON A RATIO, NOT ON A CATEGORY, and that is the whole point
+    of this function. The previous version conditioned on `is_gas_heated`, a
+    BOOLEAN, while the physics is keyed on how much electricity the heating draws
+    to deliver a fixed amount of heat — so a resistive storage heater (SPF ~1.0)
+    was judged by a band derived for a heat pump (SPFH4 2.78) and failed for being
+    a different machine, not for being unrealistic
+    (`docs/staging/WORKER_FINDING_HEATING_REGIME_CONDITIONING_IS_BINARY_2026-08-09.md`).
+    Every regime with its own delivered efficiency now gets its own rescaling of
+    the SAME behavioural floor, which closes the class rather than the instance
+    (R10): a new heating system needs an efficiency in `HEATING_REGIMES`, not a
+    new branch here.
+
+        heat        = 9500 * 0.825                        (useful heat, kWh/yr)
+        heat_elec   = heat / seasonal_efficiency          (what the meter sees)
+        behav_share = 2500 / (2500 + heat_elec)
+        band        = 0.15 * behav_share
+
+    CONSERVATIVE BY CONSTRUCTION, and this is the assumption to attack first: the
+    scaling credits the heating with ZERO period-to-period movement, so it is a
+    LOWER bound on what a correct electrically-heated home should show in an
+    `at_least` direction. A real ASHP cycles and a real storage heater switches in
+    blocks, so a correct generator clears its band with room; a generator that is
+    smooth by construction still cannot.
+    """
+    if not math.isfinite(seasonal_efficiency) or seasonal_efficiency <= 0.0:
+        raise InsufficientEvidence(
+            f"a seasonal delivered efficiency of {seasonal_efficiency!r} is not a machine"
+        )
+    heat_kwh = _TDCV_GAS_MEDIUM_KWH * _COMBI_BOILER_IN_SITU_EFFICIENCY
+    heating_electricity_kwh = heat_kwh / seasonal_efficiency
+    behavioural_share = _TDCV_ELECTRICITY_MEDIUM_KWH / (
+        _TDCV_ELECTRICITY_MEDIUM_KWH + heating_electricity_kwh
+    )
+    return _GAS_TEXTURE_THRESHOLD * behavioural_share
+
+
 def electric_heat_texture_threshold() -> float:
-    """The L1.1 band for an electrically-heated home, derived not declared.
+    """The L1.1 band for an ASHP home, derived not declared.
 
     Gas TDCV -> useful heat at the measured in-situ combi efficiency -> the
     electricity an ASHP needs to deliver that heat at the measured median SPFH4.
@@ -804,12 +903,25 @@ def electric_heat_texture_threshold() -> float:
     estimate. `test_the_electric_band_is_ROBUST_across_the_published_spreads`
     pins that envelope.
     """
-    heat_kwh = _TDCV_GAS_MEDIUM_KWH * _COMBI_BOILER_IN_SITU_EFFICIENCY
-    heat_pump_electricity_kwh = heat_kwh / _ASHP_MEDIAN_SPFH4
-    behavioural_share = _TDCV_ELECTRICITY_MEDIUM_KWH / (
-        _TDCV_ELECTRICITY_MEDIUM_KWH + heat_pump_electricity_kwh
-    )
-    return _GAS_TEXTURE_THRESHOLD * behavioural_share
+    return heating_texture_threshold(_ASHP_MEDIAN_SPFH4)
+
+
+def resistive_heat_texture_threshold() -> float:
+    """The L1.1 band for a home heated by RESISTIVE electricity (storage or
+    panel), on the same arithmetic and the same published inputs:
+
+        heat_elec   = 7837.5 / 1.0            = 7837.5 kWh/yr
+        behav_share = 2500 / (2500 + 7837.5)  = 0.2418
+        band        = 0.15 * 0.2418           = 0.0363
+
+    A third of the gas band, because a resistive heater puts nearly three times
+    the ASHP's electricity into the same denominator for the same delivered heat.
+    Judging such a home by the heat-pump band fails it for having the wrong
+    machine — measured, on the first drawn population: P0197 (terraced, pre-1919,
+    EPC C, electric storage) scores 0.0414, which clears this band and fails the
+    ASHP one.
+    """
+    return heating_texture_threshold(_RESISTIVE_SEASONAL_EFFICIENCY)
 
 
 # The bands. Every `observed_on_shipped` value below was MEASURED on the shipped
@@ -874,6 +986,50 @@ BANDS: dict[str, Band] = {
             "with one national floor would fail a correct generator for being "
             "correct."
         ),
+    ),
+    "L1.1r_half_hourly_texture_resistive_heat": Band(
+        statistic="L1.1r_half_hourly_texture_resistive_heat",
+        level="L1",
+        direction="at_least",
+        threshold=resistive_heat_texture_threshold(),
+        anchor=AnchorStatus.PUBLISHED,
+        anchor_source=(
+            "published, derived — the SAME Ofgem TDCV and in-situ combi efficiency "
+            "as the heat-pump band, with the ASHP SPFH4 replaced by the seasonal "
+            "delivered efficiency of RESISTIVE heat, which is 1.0 by conservation of "
+            "energy and has no spread to quote. Heating then carries 75.8% of the "
+            "electricity mean and the behavioural stream 24.2%. This band is NOT a "
+            "relaxation of anything: it is the same floor divided by the same "
+            "denominator argument, applied to the machine the register says is "
+            "actually in the house."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "A storage heater is resistive, so the same delivered heat costs ~2.8x "
+            "the electricity an ASHP would draw and lands in the DENOMINATOR of a "
+            "ratio-to-own-mean statistic. Judging it by the heat-pump band fails a "
+            "correct generator for having the wrong machine."
+        ),
+    ),
+    "L1.1u_half_hourly_texture_unregistered_regime": Band(
+        statistic="L1.1u_half_hourly_texture_unregistered_regime",
+        level="L1",
+        direction="at_least",
+        threshold=None,
+        anchor=AnchorStatus.NEED,
+        anchor_source=(
+            "NEED — a published seasonal delivered efficiency for this heating "
+            "regime. A home whose register fact names a machine with no efficiency "
+            "in `HEATING_REGIMES` is MEASURED AND COUNTED, never judged and never "
+            "silently folded into another regime's band. Both silent folds are "
+            "wrong in a different direction: reading an unknown machine as gas "
+            "fails a correct heat pump, and reading it as a heat pump passes a "
+            "smooth resistive home. The unjudged count is reported on the cell and "
+            "the cell goes INSUFFICIENT if too much of the population lands here, "
+            "so a register hole cannot be mistaken for a green suite."
+        ),
+        observed_on_shipped=None,
+        rationale="A register hole is a visible hole, not a default.",
     ),
     "L1.2_day_to_day_shape_correlation": Band(
         statistic="L1.2_day_to_day_shape_correlation",
@@ -1018,10 +1174,145 @@ BANDS: dict[str, Band] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# THE HEATING REGISTER — which band judges which house, keyed on the machine
+# ---------------------------------------------------------------------------
+#
+# A REGISTER fact, never a reading of the trace: `main_heating_fuel` is what a real
+# supplier holds, and inferring "this home looks like it has a heat pump" from the
+# very smoothness the band is judging is the tautology R15 names first.
+#
+# The keys are the string VALUES of `simulation.household.HeatingSystem`, written
+# out rather than imported: the harness must not depend on the generator it judges.
+# `tests/harness/test_premise_two_level.py::test_EVERY_heating_system_is_registered`
+# is the class guard that fails when a new member appears in that enum with no entry
+# here — which is the R10 half of this design. A member may legitimately map to the
+# NEED band; what it may not do is fall through to somebody else's band.
+NON_ELECTRIC_TEXTURE_BAND = "L1.1_half_hourly_texture"
+UNREGISTERED_TEXTURE_BAND = "L1.1u_half_hourly_texture_unregistered_regime"
+
+HEATING_REGIMES: dict[str, str] = {
+    # The electricity meter carries no heat at all — the gas band applies because
+    # the denominator is purely behavioural. District heat and no-heating are here
+    # for the same reason as gas: whatever the heat costs, it is not on this meter.
+    "gas_boiler_combi": NON_ELECTRIC_TEXTURE_BAND,
+    "gas_boiler_system": NON_ELECTRIC_TEXTURE_BAND,
+    "district_heat": NON_ELECTRIC_TEXTURE_BAND,
+    "none": NON_ELECTRIC_TEXTURE_BAND,
+    # The meter carries the heat, at a published delivered efficiency.
+    "heat_pump_air": "L1.1e_half_hourly_texture_electric_heat",
+    "electric_storage": "L1.1r_half_hourly_texture_resistive_heat",
+    "electric_direct": "L1.1r_half_hourly_texture_resistive_heat",
+    # The meter carries the heat and this file has no published efficiency for the
+    # machine. A GSHP's SPF is at least an ASHP's, and a HIGHER efficiency implies a
+    # HIGHER (stricter) band — so borrowing the ASHP band here would be lenient in
+    # exactly the direction R15 calls fail-open. Measured and counted instead.
+    "heat_pump_ground": UNREGISTERED_TEXTURE_BAND,
+}
+
+# How much of a population may land in the unregistered band before the L1.1 cell
+# stops being evidence. Not a fidelity band — a coverage floor on the CONTROL, of
+# the same family as `REQUIRED_RATE_RESOLUTION`. A population control that reports
+# a clean rate while most of its homes were never judged is the vacuity failure
+# this codebase has already been bitten by.
+MAX_UNJUDGED_SHARE = 0.10
+
+
+def texture_band_for(heating_system: str | None) -> Band:
+    """The L1.1 band that judges a home with this register fact.
+
+    FAIL-CLOSED on ABSENCE, VISIBLE on the UNKNOWN, and the two are deliberately
+    different. `None`/empty means the caller asserted nothing, which reads as the
+    default UK home and gets the STRICTEST band — a builder who forgets to supply
+    the register fact makes an electrically-heated home fail, never pass. A NAMED
+    machine that is not in `HEATING_REGIMES` is a hole in this register rather than
+    a silent caller, and pretending it is gas would fail a correct heat pump, so it
+    lands in the NEED band and is counted.
+    """
+    if not heating_system:
+        return BANDS[NON_ELECTRIC_TEXTURE_BAND]
+    return BANDS[HEATING_REGIMES.get(str(heating_system), UNREGISTERED_TEXTURE_BAND)]
+
+
+# ---------------------------------------------------------------------------
+# RATE BANDS — what share of a population may sit outside its own L1 band
+# ---------------------------------------------------------------------------
+#
+# Read the per-home anchors above before reading these. Every judged L1 band was
+# deliberately placed OUTSIDE the plausible real range ("below the low end of the
+# 20-40% domain expectation", "well above any plausible real value", "an order of
+# magnitude clear of BOTH measured values"). A band placed beyond the support of the
+# real distribution should be violated by NO home, at any n — which is why these
+# thresholds are 0.0 and why that is not a smuggled-in worst-of-N.
+#
+# The distinction that matters: the FAIL direction has no n-dependence at all (one
+# violating home is evidence of a mechanism, however large the sample), while the
+# PASS direction now requires enough homes to have had the power to see one. That
+# asymmetry is the fix.
+#
+# If a real subpopulation is ever found sitting outside one of these bands, the
+# correct response is R4 — diagnose the mechanism — and NOT a rate threshold moved
+# up to accommodate it. That is exactly what happened to the storage-heater home
+# that first breached L1.1: the band was re-derived from the machine's physics, the
+# tolerance was not widened.
+@dataclass(frozen=True)
+class RateBand:
+    """A population-level tolerance on the share of homes outside their own band."""
+
+    statistic: str
+    threshold: float | None   # None = AnchorStatus.NEED, measured and not judged
+    anchor: AnchorStatus
+    anchor_source: str
+
+
+_IMPOSSIBILITY_BOUND = (
+    "structural, and it inherits the per-home anchor rather than adding one: the "
+    "per-home band sits outside the plausible real range by construction, so the "
+    "share of real homes beyond it is zero. A breach is a mechanism to diagnose "
+    "(R4), never a tolerance to raise (R12)."
+)
+
+RATE_BANDS: dict[str, RateBand] = {
+    "L1.1_half_hourly_texture": RateBand(
+        "L1.1_half_hourly_texture", 0.0, AnchorStatus.STRUCTURAL, _IMPOSSIBILITY_BOUND
+    ),
+    "L1.2_day_to_day_shape_correlation": RateBand(
+        "L1.2_day_to_day_shape_correlation", 0.0, AnchorStatus.STRUCTURAL,
+        _IMPOSSIBILITY_BOUND,
+    ),
+    "L1.3_away_days_per_year": RateBand(
+        "L1.3_away_days_per_year", 0.0, AnchorStatus.STRUCTURAL,
+        _IMPOSSIBILITY_BOUND + " Here the per-home band is representability — a home "
+        "that is never once in a year quieter by day than it is at 3am cannot "
+        "represent an empty house AT ALL — so the population tolerance for homes "
+        "that cannot is zero. The RATE of away days per home remains unanchored "
+        "(ONS/BEIS holiday-taking) and is reported, not judged.",
+    ),
+    "L1.4_weekday_weekend_separation": RateBand(
+        "L1.4_weekday_weekend_separation", None, AnchorStatus.NEED,
+        "NEED — SERL weekday/weekend shape statistics. The per-home band is itself "
+        "unanchored, so there is nothing to count violations of.",
+    ),
+    "L1.5_max_multiplicity_share": RateBand(
+        "L1.5_max_multiplicity_share", 0.0, AnchorStatus.STRUCTURAL,
+        _IMPOSSIBILITY_BOUND + " L1.5 is a mechanism detector rather than a "
+        "statistic: a generator that rescales a fixed base shape does it for EVERY "
+        "home, so there is no tail argument available and no reason any real home "
+        "should breach it.",
+    ),
+}
+
+
 # The R12 goal-seek pair, named once so a rename cannot silently desync the
 # warning from the bands (it did exactly that once — see `goal_seek_warning`).
 TEXTURE_STATISTIC = "L1.1_half_hourly_texture"
 STRUCTURAL_STATISTIC = "L1.5_max_multiplicity_share"
+
+# How widespread the structural artefact must be before an L1.1-pass-with-L1.5-fail
+# reads as TUNING rather than as one home to diagnose. A rescaled base shape is a
+# property of the GENERATOR, so the artefact it leaves is in every home it makes;
+# half the population is a deliberately loose floor on "every".
+GOAL_SEEK_STRUCTURAL_PREVALENCE = 0.5
 
 
 @dataclass(frozen=True)
@@ -1032,12 +1323,29 @@ class CellResult:
     verdict: Verdict
     band: Band
     note: str = ""
+    # POPULATION FIELDS, present on L1 cells only. `value` is the VIOLATION RATE
+    # for a judged L1 cell — the thing the verdict is about — so the number and the
+    # verdict cannot drift apart. The worst home is carried alongside as a
+    # diagnostic, never as the judged quantity.
+    homes_judged: int | None = None
+    homes_violating: int | None = None
+    homes_unjudged: int | None = None
+    resolution: float | None = None      # rule of three, 3/n
+    worst_value: float | None = None
+    worst_home: str | None = None
+    rate_band: "RateBand | None" = None
 
 
 @dataclass(frozen=True)
 class TwoLevelResult:
-    """The suite's verdict. WORST CELL, never average — an average across homes
-    would hide the exact clone-cluster the test exists to find."""
+    """The suite's verdict.
+
+    L1 cells are POPULATION VIOLATION RATES against per-home bands (see the scale
+    invariance note at the top of this module); L2 cells are population statistics
+    in their own right. Neither is an average over homes — an average would hide
+    the exact clone-cluster the suite exists to find, and a worst-of-N would make
+    the verdict a function of how many homes were looked at.
+    """
 
     generator: str
     cells: tuple[CellResult, ...]
@@ -1053,8 +1361,19 @@ class TwoLevelResult:
         return tuple(c for c in self.cells if c.verdict is Verdict.UNVALIDATED)
 
     @property
+    def inconclusive(self) -> tuple[CellResult, ...]:
+        """Cells that COULD have been judged and were not, for want of homes or
+        for want of a register fact. Distinct from `unvalidated`, where there is no
+        band to judge against in the first place."""
+        return tuple(c for c in self.cells if c.verdict is Verdict.INSUFFICIENT)
+
+    @property
     def is_red(self) -> bool:
-        return bool(self.failed)
+        """An unavailable check is a FAILED check (R15), so an inconclusive cell
+        reds the suite. Read `failed` for the cells that actually breached a band —
+        the two are reported separately precisely so 'we did not look at enough
+        homes' can never be read as 'the generator is broken', or vice versa."""
+        return bool(self.failed) or bool(self.inconclusive)
 
     def cell(self, statistic: str) -> CellResult:
         for c in self.cells:
@@ -1078,19 +1397,50 @@ class TwoLevelResult:
             # which is exactly how this method was caught silently returning None
             # after L1.5 was renamed.
             return None
-        if texture.verdict is Verdict.PASS and structural.verdict is Verdict.FAIL:
-            return (
-                "SOMEONE TUNED THE NUMBER: L1.1 texture passes while L1.5 repeat-rate "
-                "fails. Level noise has been injected onto a rescaled base shape — the "
-                "symptom moved and the mechanism did not."
-            )
-        return None
+        if texture.verdict is not Verdict.PASS or structural.verdict is not Verdict.FAIL:
+            return None
+        # THE PREMISE NEEDS A PREVALENCE, and it did not have one until the cells
+        # became rates. Tuning is a statement about the GENERATOR: level noise
+        # sprinkled onto a rescaled base shape leaves the artefact in EVERY home,
+        # because the base shape is the generator's, not the home's. One home in
+        # sixty breaching L1.5 while the texture band holds is a single home to
+        # diagnose (R4), not evidence that someone moved a number — and reading it
+        # as tuning was this warning's first false positive, on the first
+        # population-scale run (2026-08-09, n=60, 1/60).
+        if structural.value is not None and structural.rate_band is not None:
+            if structural.value < GOAL_SEEK_STRUCTURAL_PREVALENCE:
+                return None
+        return (
+            "SOMEONE TUNED THE NUMBER: L1.1 texture passes while L1.5 repeat-rate "
+            "fails. Level noise has been injected onto a rescaled base shape — the "
+            "symptom moved and the mechanism did not."
+        )
 
     def summary(self) -> str:
         lines = [f"two-level test — generator={self.generator} homes={self.homes} days={self.days}"]
         for c in self.cells:
+            if c.homes_judged is not None and c.rate_band is not None:
+                # An L1 rate cell. n and the resolution are printed on the SAME line
+                # as the verdict, because the whole defect this form exists to fix
+                # was a verdict whose report did not say how many homes produced it.
+                parts = [f"rate {c.value:.4g}"]
+                if c.rate_band.threshold is None:
+                    parts.append("NEED tolerance")
+                else:
+                    parts.append(f"tolerance {c.rate_band.threshold:g}")
+                if c.resolution is not None:
+                    parts.append(f"resolution {c.resolution:.3g}")
+                if c.homes_unjudged:
+                    parts.append(f"{c.homes_unjudged} unjudged")
+                lines.append(
+                    f"  [{c.verdict.value.upper():>18}] {c.statistic}: "
+                    f"{c.homes_violating}/{c.homes_judged} homes outside band "
+                    f"({', '.join(parts)})"
+                    + (f"  — {c.note}" if c.note else "")
+                )
+                continue
             lines.append(
-                f"  [{c.verdict.value.upper():>12}] {c.statistic} = {c.value:.4g}"
+                f"  [{c.verdict.value.upper():>18}] {c.statistic} = {c.value:.4g}"
                 + (f"  (band {c.band.direction} {c.band.threshold:g})" if c.band.threshold is not None else "  (NEED anchor)")
                 + (f"  — {c.note}" if c.note else "")
             )
@@ -1119,26 +1469,31 @@ class PopulationTraces:
     # weather archive. External, not population-derived — see `between_home_correlation`.
     weather_driver: tuple[float, ...] = ()
     pc1_is_an_input: bool = False
-    # Which homes heat with electricity, for the heating-conditioned L1.1 band.
-    # A REGISTER fact (the household's heating system, i.e. what a real supplier
-    # holds as main_heating_fuel), never inferred from the trace — inferring
-    # "this home looks like it has a heat pump" from the very smoothness the band
-    # is judging would be the tautology R15 names first.
+    # WHICH MACHINE HEATS EACH HOME, for the regime-conditioned L1.1 band. The
+    # string values of `simulation.household.HeatingSystem` — a REGISTER fact (what
+    # a real supplier holds as `main_heating_fuel`), never inferred from the trace:
+    # inferring "this home looks like it has a heat pump" from the very smoothness
+    # the band is judging would be the tautology R15 names first.
+    #
+    # This replaced a BOOLEAN (`electrically_heated`) on 2026-08-09, because the
+    # boolean was the defect: the physics is keyed on delivered efficiency, not on
+    # electric-vs-not, and a resistive storage heater was being judged by a band
+    # derived for a heat pump. See `heating_texture_threshold`.
     #
     # FAIL-CLOSED when empty: an empty tuple means every home is judged by the
     # STRICTER gas band, so a builder that forgets to supply it makes an
     # electrically-heated home fail, never pass. The lenient direction requires
     # someone to assert the fact.
-    electrically_heated: tuple[bool, ...] = ()
+    heating_systems: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if len(self.homes) != len(self.grids):
             raise InsufficientEvidence("home ids and grids must align")
         if len(self.homes) != len(self.annual_kwh):
             raise InsufficientEvidence("home ids and annual totals must align")
-        if self.electrically_heated and len(self.electrically_heated) != len(self.homes):
+        if self.heating_systems and len(self.heating_systems) != len(self.homes):
             raise InsufficientEvidence(
-                "the electrically-heated flags must align with the home ids"
+                "the heating-system register facts must align with the home ids"
             )
         for g in self.grids:
             if len(g) != len(self.is_weekend):
@@ -1151,92 +1506,170 @@ class PopulationTraces:
         return len(self.is_weekend)
 
 
-def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
-    """Run every statistic over a population and return the WORST-CELL verdict.
+def _l1_rate_cell(
+    statistic: str,
+    *,
+    values: Sequence[float],
+    bands: Sequence[Band],
+    homes: Sequence[str],
+    note: str = "",
+) -> CellResult:
+    """Judge every home against its OWN band and report the population VIOLATION
+    RATE, with n and the resolution that n bought.
 
-    Level 1 statistics are computed per home and the WORST home is reported — an
-    average would hide a clone cluster inside an otherwise-diverse population,
-    which is the exact failure mode this suite exists to find.
+    The asymmetry is the whole design (see the scale-invariance note at the top of
+    this module):
+
+    * ANY violation FAILS, at any n. One home outside an impossibility bound is
+      evidence of a mechanism, and waiting for a bigger sample to say so would be
+      the fail-open direction.
+    * A CLEAN sheet only PASSES when the sample could have detected a violation
+      rate of `REQUIRED_RATE_RESOLUTION`. Zero-in-ten rules out nothing worth
+      ruling out, so it is INSUFFICIENT, not a pass.
+    * Homes with no band to be judged by are COUNTED, and if too many of them
+      accumulate the cell is INSUFFICIENT rather than quietly clean.
+    """
+    if len(values) != len(bands) or len(values) != len(homes):
+        raise InsufficientEvidence(f"{statistic}: values, bands and homes must align")
+    if not values:
+        raise InsufficientEvidence(f"{statistic}: no homes to judge")
+
+    rate_band = RATE_BANDS[statistic]
+    judged: list[int] = []
+    unjudged: list[int] = []
+    violating: list[int] = []
+    for k, (v, b) in enumerate(zip(values, bands)):
+        if b.threshold is None or b.anchor is AnchorStatus.NEED:
+            unjudged.append(k)
+            continue
+        judged.append(k)
+        if b.judge(v) is not Verdict.PASS:
+            violating.append(k)
+
+    # The worst home is a DIAGNOSTIC and is reported whatever the verdict — worst
+    # by MARGIN against its own band, because with several thresholds live the
+    # lowest raw number is not necessarily the home in most trouble.
+    def _margin(k: int) -> float:
+        b = bands[k]
+        if b.threshold is None or b.threshold == 0.0:
+            return math.inf
+        m = values[k] / b.threshold
+        return m if b.direction == "at_least" else -m
+
+    worst_k = min(range(len(values)), key=_margin)
+
+    unjudged_share = len(unjudged) / len(values)
+    detail = (
+        f"worst home {homes[worst_k]} = {values[worst_k]:.4g} judged by "
+        f"{bands[worst_k].statistic}"
+    )
+    if violating:
+        detail += "; outside band: " + ", ".join(
+            f"{homes[k]}={values[k]:.4g} vs {bands[k].statistic} "
+            f"{bands[k].direction} {bands[k].threshold:.4g}"
+            for k in violating[:5]
+        )
+        if len(violating) > 5:
+            detail += f" (+{len(violating) - 5} more)"
+    if note:
+        detail = f"{detail}; {note}"
+
+    if rate_band.threshold is None:
+        # NO ANCHOR EXISTS for this statistic, so there is nothing to count
+        # violations of and no rate to report. Reported in the plain measured form
+        # — the worst home's value — exactly as before, because "unvalidated" and
+        # "we did not look at enough homes" are different states and this file has
+        # room for both.
+        return CellResult(
+            statistic, "L1", values[worst_k], Verdict.UNVALIDATED, bands[worst_k],
+            note=detail + " — measured, not judged",
+            worst_value=values[worst_k], worst_home=homes[worst_k],
+        )
+
+    if not judged:
+        return CellResult(
+            statistic, "L1", float("nan"), Verdict.INSUFFICIENT, bands[worst_k],
+            note=detail + "; NO home carried a judgeable band — the register is the hole",
+            homes_judged=0, homes_violating=0, homes_unjudged=len(unjudged),
+            resolution=None, worst_value=values[worst_k], worst_home=homes[worst_k],
+            rate_band=rate_band,
+        )
+
+    rate = len(violating) / len(judged)
+    resolution = detectable_violation_rate(len(judged))
+
+    if rate > rate_band.threshold:
+        verdict = Verdict.FAIL
+    elif unjudged_share > MAX_UNJUDGED_SHARE:
+        verdict = Verdict.INSUFFICIENT
+        detail += (
+            f"; {unjudged_share:.1%} of the population had no registered band, "
+            f"above the {MAX_UNJUDGED_SHARE:.0%} coverage floor"
+        )
+    elif resolution > REQUIRED_RATE_RESOLUTION:
+        verdict = Verdict.INSUFFICIENT
+        detail += (
+            f"; {len(judged)} judged homes rule out only a {resolution:.1%} violation "
+            f"rate, and this suite claims to see {REQUIRED_RATE_RESOLUTION:.0%} "
+            f"(needs {MIN_HOMES_FOR_L1_RATE})"
+        )
+    else:
+        verdict = Verdict.PASS
+
+    return CellResult(
+        statistic, "L1", rate, verdict, bands[worst_k], note=detail,
+        homes_judged=len(judged), homes_violating=len(violating),
+        homes_unjudged=len(unjudged), resolution=resolution,
+        worst_value=values[worst_k], worst_home=homes[worst_k], rate_band=rate_band,
+    )
+
+
+def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
+    """Run every statistic over a population and return the two-level verdict.
+
+    Level 1 statistics are computed PER HOME, judged against that home's own band,
+    and reported as the population's VIOLATION RATE with the n behind it. Neither
+    an average (which would hide a clone cluster inside an otherwise-diverse
+    population) nor a worst-of-N (which would make the verdict a function of how
+    many homes were looked at).
     """
     _require_homes(population.grids, minimum=MIN_HOMES_FOR_DIVERSITY, name="evaluate_two_level")
     grids = [[list(day) for day in home] for home in population.grids]
+    homes = tuple(population.homes)
     cells: list[CellResult] = []
 
-    def worst(fn: Callable[[list[list[float]]], float], *, direction: str) -> tuple[float, int]:
-        values = [fn(g) for g in grids]
-        if direction == "at_least":
-            i = min(range(len(values)), key=lambda k: values[k])
-        else:
-            i = max(range(len(values)), key=lambda k: values[k])
-        return values[i], i
-
     # --- L1 ---------------------------------------------------------------
-    # L1.1 is judged PER HOME against that home's own band, because the statistic
-    # is a ratio to the home's own mean and a heat pump changes the denominator.
-    # The worst cell is therefore the worst MARGIN (value / its own threshold),
-    # not the lowest raw value: with two thresholds live, the lowest raw number is
-    # not necessarily the home in most trouble. Both bands are `at_least`, so
-    # min(margin) >= 1 if and only if every home passes its own band — the
-    # worst-cell contract is preserved, not weakened.
-    texture_bands = tuple(
-        BANDS["L1.1e_half_hourly_texture_electric_heat"] if electric
-        else BANDS["L1.1_half_hourly_texture"]
-        for electric in (
-            population.electrically_heated or (False,) * len(population.homes)
-        )
-    )
-    texture_values = [half_hourly_texture(g) for g in grids]
-    i = min(
-        range(len(texture_values)),
-        key=lambda k: texture_values[k] / texture_bands[k].threshold,
-    )
-    value, band = texture_values[i], texture_bands[i]
-    cells.append(CellResult(
-        TEXTURE_STATISTIC, "L1", value, band.judge(value), band,
-        note=(
-            f"worst home {population.homes[i]} — judged by {band.statistic} "
-            f"(band {band.direction} {band.threshold:.4g}); "
-            f"{sum(1 for b in texture_bands if b.anchor is AnchorStatus.PUBLISHED)}"
-            f"/{len(texture_bands)} homes electrically heated"
-        ),
+    # L1.1's band is keyed on the MACHINE, because the statistic is a ratio to the
+    # home's own mean and how much heat sits in that denominator depends on the
+    # heating system's delivered efficiency, not on a gas/electric boolean.
+    registers = population.heating_systems or ("",) * len(homes)
+    texture_bands = tuple(texture_band_for(r) for r in registers)
+    regime_counts: dict[str, int] = {}
+    for b in texture_bands:
+        regime_counts[b.statistic] = regime_counts.get(b.statistic, 0) + 1
+    cells.append(_l1_rate_cell(
+        TEXTURE_STATISTIC,
+        values=[half_hourly_texture(g) for g in grids],
+        bands=texture_bands,
+        homes=homes,
+        note="regimes " + ", ".join(f"{k}={v}" for k, v in sorted(regime_counts.items())),
     ))
 
-    band = BANDS["L1.2_day_to_day_shape_correlation"]
-    value, i = worst(day_to_day_shape_correlation, direction=band.direction)
-    cells.append(CellResult(band.statistic, "L1", value, band.judge(value), band,
-                            note=f"worst home {population.homes[i]}"))
-
-    band = BANDS["L1.3_away_days_per_year"]
-    value, i = worst(
-        lambda g: trough_statistics(g).away_days_per_year, direction=band.direction
-    )
-    cells.append(CellResult(
-        band.statistic, "L1", value, band.judge(value), band,
-        note=(
-            f"worst home {population.homes[i]} — best away signature "
-            f"{trough_statistics(grids[i]).worst_signature:.3g} (1.0 = empty house)"
-        ),
-    ))
-
-    band = BANDS["L1.4_weekday_weekend_separation"]
-    value, i = worst(
-        lambda g: weekday_weekend_separation(g, population.is_weekend), direction="at_least"
-    )
-    cells.append(CellResult(band.statistic, "L1", value, band.judge(value), band,
-                            note=f"worst home {population.homes[i]} — measured, not judged"))
-
-    band = BANDS["L1.5_max_multiplicity_share"]
-    value, i = worst(
-        lambda g: normalised_fraction_multiplicity(g).max_multiplicity_share,
-        direction=band.direction,
-    )
-    cells.append(CellResult(
-        band.statistic, "L1", value, band.judge(value), band,
-        note=(
-            f"worst home {population.homes[i]} — raw repeat rate "
-            f"{normalised_fraction_multiplicity(grids[i]).repeat_rate:.3g} (reported, not judged)"
-        ),
-    ))
+    for statistic, fn in (
+        ("L1.2_day_to_day_shape_correlation", day_to_day_shape_correlation),
+        ("L1.3_away_days_per_year", lambda g: trough_statistics(g).away_days_per_year),
+        ("L1.4_weekday_weekend_separation",
+         lambda g: weekday_weekend_separation(g, population.is_weekend)),
+        ("L1.5_max_multiplicity_share",
+         lambda g: normalised_fraction_multiplicity(g).max_multiplicity_share),
+    ):
+        band = BANDS[statistic]
+        cells.append(_l1_rate_cell(
+            statistic,
+            values=[fn(g) for g in grids],
+            bands=(band,) * len(grids),
+            homes=homes,
+        ))
 
     # --- L2 ---------------------------------------------------------------
     curve = smoothing_curve(grids)
@@ -1321,6 +1754,26 @@ def _require_finite_scalar(value: float) -> float:
 # looking at — `PopulationTraces` carries no generator-specific field.
 
 
+def _register_heating_system(main_heating_fuel: object) -> str:
+    """Map a legacy free-text `main_heating_fuel` onto a heating-regime key.
+
+    Only the phrasings this repository's own legacy property dicts actually use.
+    An unrecognised string returns the gas key deliberately: on THIS path the
+    vocabulary is uncontrolled, so an unrecognised value is far more likely to be a
+    spelling of something already listed than a machine nobody has registered, and
+    the gas band is the strict end. The typed path (`premise_trace_population`)
+    carries an ENUM and therefore gets the visible-hole treatment instead.
+    """
+    text = str(main_heating_fuel or "").lower()
+    if "heat pump" in text or "ashp" in text:
+        return "heat_pump_air"
+    if "storage" in text:
+        return "electric_storage"
+    if "electric" in text:
+        return "electric_direct"
+    return "gas_boiler_combi"
+
+
 def shipped_path_population(
     properties: Sequence[Mapping],
     weather_days: Sequence,
@@ -1357,7 +1810,7 @@ def shipped_path_population(
     grids: list[tuple[tuple[float, ...], ...]] = []
     homes: list[str] = []
     annual: list[float] = []
-    electric: list[bool] = []
+    registers: list[str] = []
     for prop in properties:
         days: list[tuple[float, ...]] = []
         for wx in weather_days:
@@ -1371,10 +1824,12 @@ def shipped_path_population(
         grids.append(tuple(days))
         homes.append(str(prop.get("customer_id") or prop.get("premise_id")))
         annual.append(sum(sum(d) for d in days) / len(days) * 365.25)
-        # The REGISTER field a real supplier holds, read as a register field:
-        # anything that is not mains gas heats electrically for L1.1's purposes.
-        # Unknown reads as gas, which is the stricter band (fail-closed).
-        electric.append("heat pump" in str(prop.get("main_heating_fuel", "")).lower())
+        # The REGISTER field a real supplier holds, mapped from its free-text
+        # vocabulary onto the heating-regime keys. Anything unrecognised reads as
+        # gas, which is the STRICTER band (fail-closed) — this path's properties
+        # are legacy dicts with no controlled vocabulary, so an unrecognised string
+        # is far more likely to be a spelling than a new machine.
+        registers.append(_register_heating_system(prop.get("main_heating_fuel")))
 
     return PopulationTraces(
         generator=generator,
@@ -1382,7 +1837,7 @@ def shipped_path_population(
         grids=tuple(grids),
         is_weekend=tuple(bool(d.is_weekend) for d in weather_days),
         annual_kwh=tuple(annual),
-        electrically_heated=tuple(electric),
+        heating_systems=tuple(registers),
         weather_driver=hdd_driver(weather_days),
         # PC1 IS an input here, so L2.1's large-N anchor is tautological for this
         # generator and `evaluate_two_level` refuses to score that cell as a pass.
@@ -1414,10 +1869,12 @@ def premise_trace_population(
         grids=grids,
         is_weekend=tuple(bool(d.is_weekend) for d in weather_days),
         annual_kwh=tuple(t.annual_kwh(commodity) for t in traces),
-        # `heating_commodity` is set from the HOUSEHOLD RECORD (`is_gas_heated`)
-        # when the trace is generated — a register fact, not a reading of the
-        # numbers the band then judges.
-        electrically_heated=tuple(t.heating_commodity == "electricity" for t in traces),
+        # `source.system` is the HOUSEHOLD RECORD's heating system, carried onto
+        # the trace when it was generated — a register fact, not a reading of the
+        # numbers the band then judges. Read as the enum's string VALUE so the
+        # harness holds no import on the generator's types.
+        heating_systems=tuple(str(getattr(t.source.system, "value", t.source.system))
+                              for t in traces),
         weather_driver=hdd_driver(weather_days),
         pc1_is_an_input=False,
     )
@@ -1844,9 +2301,29 @@ def write_fabric_gap_entries(
         shared["two_level"] = {
             "generator": two_level.generator,
             "is_red": two_level.is_red,
+            # SEPARATELY, and this is not tidiness. `is_red` is true both when a
+            # band was breached and when there were not enough homes to judge, and
+            # a reader who cannot tell those apart will read "we did not look hard
+            # enough" as "the generator is broken". The population size that
+            # produced the verdict is carried for the same reason.
+            "failed": [c.statistic for c in two_level.failed],
+            "inconclusive": [c.statistic for c in two_level.inconclusive],
+            "homes": two_level.homes,
+            "days": two_level.days,
             "failed_levels": list(two_level.failed_levels()),
             "cells": {
-                c.statistic: {"value": c.value, "verdict": c.verdict.value}
+                c.statistic: {
+                    "value": c.value,
+                    "verdict": c.verdict.value,
+                    **({} if c.homes_judged is None else {
+                        "homes_judged": c.homes_judged,
+                        "homes_violating": c.homes_violating,
+                        "homes_unjudged": c.homes_unjudged,
+                        "resolution": c.resolution,
+                        "worst_value": c.worst_value,
+                        "worst_home": c.worst_home,
+                    }),
+                }
                 for c in two_level.cells
             },
             "goal_seek_warning": two_level.goal_seek_warning(),

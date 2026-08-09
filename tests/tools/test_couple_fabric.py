@@ -299,10 +299,22 @@ def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(m
 def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     """The realism of the traces the gap was measured ON is reported beside it,
     not in another file. A fabric gap measured on unrealistic traces is not a
-    finding about the company."""
+    finding about the company.
+
+    ON THE TEN-PREMISE PANEL that verdict is now INSUFFICIENT rather than green,
+    and that is the correct reading of what a panel can support (2026-08-09): a
+    clean sheet over ten homes rules out a true violation rate no smaller than
+    30%. The panel breaches no band — its problem is power. The judged verdict
+    comes from `--population`, which is what the gap is measured on for the record.
+    """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
-    assert not result.is_red, result.summary()
+    assert not result.failed, result.summary()
+    assert result.inconclusive, (
+        "ten homes cannot clear a control that claims to see a 5% violation rate"
+    )
+    for cell in result.inconclusive:
+        assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / result.homes)
 
 
 def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel, weather):
@@ -336,11 +348,15 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
     result = cf.two_level(panel, weather)
     texture = result.cell(fgl.TEXTURE_STATISTIC)
 
-    assert texture.verdict is fgl.Verdict.PASS
+    assert texture.homes_violating == 0, texture.note
     assert texture.band.threshold == 0.15, "the GAS band is the one that judged the worst cell"
-    assert "worst home D7" in texture.note, texture.note
-    assert "1/10 homes electrically heated" in texture.note, texture.note
-    assert texture.value == pytest.approx(0.1804, abs=5e-4)
+    assert texture.worst_home == "D7", texture.note
+    assert texture.worst_value == pytest.approx(0.1804, abs=5e-4)
+    assert "L1.1e_half_hourly_texture_electric_heat=1" in texture.note, texture.note
+    # The panel's ten homes cannot reach a PASS — see the note on the test above.
+    # What is asserted here is the MECHANISM: no home is outside its own band, and
+    # the one judging the worst cell is the untouched 0.15 gas band.
+    assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
 
     # The two UNVALIDATED cells are still UNVALIDATED — going green did not come
     # from quietly anchoring something that has no anchor.

@@ -60,6 +60,7 @@ from company.pricing.thermal_inference import (
     log_normal_interval_95,
 )
 from simulation import fabric_physics as fp
+from simulation import premise_population as ppop
 from simulation import premise_trace as pt
 from simulation.household import (
     BoilerAge,
@@ -166,6 +167,43 @@ def generated(traces, weather):
     return fgl.premise_trace_population(traces, weather)
 
 
+POPULATION_N = fgl.MIN_HOMES_FOR_L1_RATE
+POPULATION_SEED = 17
+POPULATION_AS_OF = dt.date(2022, 5, 1)
+
+
+@pytest.fixture(scope="module")
+def population(weather):
+    """A DRAWN population, not an authored panel, at exactly the size the rate
+    statistic needs to have power (`MIN_HOMES_FOR_L1_RATE`).
+
+    Drawn from `simulation.premise_population`, whose composition is raked onto
+    published EHS marginals — so the homes in it are chosen by the stock, not by
+    anyone with an interest in the answer. That is the whole reason the panel could
+    not be the verdict: a result on a chosen panel cannot be separated from the
+    chooser's taste, and the panel's ten homes contained no storage heater at all.
+    """
+    drawn = ppop.draw_premise_population(
+        POPULATION_N, base_seed=POPULATION_SEED, as_of=POPULATION_AS_OF
+    )
+    traces = [
+        pt.generate_premise_trace(
+            premise_id=p.premise_id,
+            household=p.household,
+            weather=weather,
+            seed=7,
+            latitude_deg=fp.latitude_for_weather_site("C1"),
+        )
+        for p in drawn
+    ]
+    return fgl.premise_trace_population(traces, weather)
+
+
+@pytest.fixture(scope="module")
+def population_result(population):
+    return fgl.evaluate_two_level(population)
+
+
 @pytest.fixture(scope="module")
 def shipped_result(shipped):
     return fgl.evaluate_two_level(shipped)
@@ -205,6 +243,9 @@ def test_the_shipped_demand_path_is_RED(shipped_result):
         # Every value below was MEASURED on the real archive, 2026-08-03, not
         # estimated. They are recorded to 2 significant figures so ordinary
         # floating-point drift does not fail the suite but a real change does.
+        # For an L1 cell this is the WORST HOME's value, which is what these
+        # numbers always were; the cell's own `value` became the population
+        # violation rate on 2026-08-09 and is pinned separately below.
         ("L1.1_half_hourly_texture", 0.048),
         ("L1.2_day_to_day_shape_correlation", 1.000),
         ("L1.3_away_days_per_year", 0.0),
@@ -228,7 +269,25 @@ def test_MEASURED_shipped_path_values(shipped_result, statistic, expected):
     """
     cell = shipped_result.cell(statistic)
     assert cell.verdict is fgl.Verdict.FAIL, f"{statistic} should be RED, got {cell.verdict}"
-    assert cell.value == pytest.approx(expected, abs=0.01), cell.note
+    measured = cell.value if cell.worst_value is None else cell.worst_value
+    assert measured == pytest.approx(expected, abs=0.01), cell.note
+
+
+def test_the_shipped_path_fails_at_EVERY_home_not_at_one_of_them(shipped_result):
+    """The L1 verdict is a population VIOLATION RATE, and on the shipped path it is
+    1.0 on every judged cell — every single home is outside the band.
+
+    This is the number that distinguishes a broken generator from an unlucky
+    sample, and it is the reason the suite no longer reports a worst-of-N: a rate
+    of 1.0 over 8 homes and a rate of 1.0 over 800 homes say the same thing, where
+    a worst-of-N would have said something different for each.
+    """
+    for statistic in ("L1.1_half_hourly_texture", "L1.2_day_to_day_shape_correlation",
+                      "L1.3_away_days_per_year", "L1.5_max_multiplicity_share"):
+        cell = shipped_result.cell(statistic)
+        assert cell.value == 1.0, f"{statistic}: {cell.note}"
+        assert cell.homes_violating == cell.homes_judged == shipped_result.homes
+        assert cell.homes_unjudged == 0
 
 
 def test_the_two_unanchored_cells_are_reported_UNVALIDATED_not_passed(shipped_result):
@@ -280,34 +339,112 @@ def test_the_shipped_demand_path_meets_the_two_level_test(shipped_result):
     assert not shipped_result.is_red, shipped_result.summary()
 
 
-def test_the_premise_trace_generator_meets_the_two_level_test(generated_result):
-    """THE RESIDUAL, RE-STATED (2026-08-08). This was pinned `xfail(strict=True)`
-    on two cells; both were closed by naming their mechanism, and the pin is gone
-    rather than relaxed. The band was NOT moved (R12) — both thresholds are the
-    ones the spec landed with.
+def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_result):
+    """THE FINDING, PINNED (2026-08-09). Eight homes cannot clear this suite, and
+    the version that let them was fail-open.
 
-    L2.3 timing diversity 0.211 -> 1.02 half-hours (band 0.5). Diagnosed root
-    cause: every day's event start was drawn uniformly from the NATIONAL window,
-    so each home's day-to-day timing varied but its long-run centre converged on
-    the envelope mean — a population point mass hiding behind within-home
-    variation. Fixed by giving each premise a persistent
-    `routine_offset_periods` (its own clock), drawn once and applied to
-    appliances, hot water and the heating schedule alike.
+    A clean sheet over eight homes rules out a true violation rate no smaller than
+    3/8 = 37.5% (rule of three), so "green on the panel" meant only "no more than
+    three homes in eight are broken". Every judged L1 cell on the panel is now
+    INSUFFICIENT rather than PASS, and the suite's verdict comes from the drawn
+    population instead — see `population_result`.
 
-    L1.1 texture 0.1499 -> 0.15353 (band 0.15; the 0.1562 first recorded here did
-    not reproduce — the value this fixture actually yields is 0.15353, on P7, and
-    the smaller margin is the honest one to hold this cell to). Lighting and
-    electronics were a per-person wattage times an occupancy FRACTION, which is
-    constant for a whole occupancy block — the module had applied its own
-    "a flat base load re-introduces the smooth series" argument to the fridge but
-    not to the loads beside it. Fixed by switching them, with the stationary
-    on-probability set to the same occupancy, so the expected load is unchanged.
-
-    That the fix is mechanical rather than tuned is what L1.5 attests: it is
-    unmoved at 0.09167 across both changes. A noise-injected pass would have
-    shifted it.
+    Note the direction: this is STRICTLY less flattering than what it replaced.
+    The panel's numbers were never wrong, they were never enough.
     """
-    assert not generated_result.is_red, generated_result.summary()
+    assert generated_result.homes < fgl.MIN_HOMES_FOR_L1_RATE
+    assert not generated_result.failed, (
+        "the panel breaches no band — its problem is power, not fidelity: "
+        + generated_result.summary()
+    )
+    inconclusive = {c.statistic for c in generated_result.inconclusive}
+    assert inconclusive == {
+        "L1.1_half_hourly_texture",
+        "L1.2_day_to_day_shape_correlation",
+        "L1.3_away_days_per_year",
+        "L1.5_max_multiplicity_share",
+    }, generated_result.summary()
+    assert generated_result.is_red, (
+        "an unavailable check is a FAILED check (R15) — a suite that cannot judge "
+        "is not a suite that passed"
+    )
+    for cell in generated_result.inconclusive:
+        assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / generated_result.homes)
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "LANDED RED AT POPULATION SCALE, 2026-08-09. On the eight-home panel this "
+        "generator failed no anchored cell, and on a drawn population of 60 it "
+        "fails two: L1.2 day-to-day shape correlation (1/60, P0033 at 0.9253 vs a "
+        "band of 0.85) and L1.5 max multiplicity share (1/60, P0032 at 0.1167 vs "
+        "0.10). Both are ONE home each — a violation rate of 1.7% — which is "
+        "exactly the size of defect the panel could never have seen. AND IT IS NOT "
+        "A SEED ARTEFACT: the runner's own independent draw (trace seed 17, written "
+        "to the coupled gap ledger the same day) fails the same two cells at the "
+        "same 1/60, on different homes (P0033 at 0.8595, P0056 at 0.1333). NEITHER "
+        "BAND WAS MOVED (R12): the homes are registered for diagnosis against "
+        "W1_12, and this pin is STRICT so closing them cannot pass unnoticed."
+    ),
+)
+def test_the_premise_trace_generator_meets_the_two_level_test(population_result):
+    """The requirement, held against the POPULATION rather than the panel.
+
+    Previous residual, retained because it is still the record of how the panel's
+    two cells were closed (2026-08-08) — both by naming their mechanism, neither by
+    moving a band. L2.3 timing diversity 0.211 -> 1.02 half-hours: every day's
+    event start was drawn from the NATIONAL window, so each home varied day to day
+    while its long-run centre converged on the envelope mean — a population point
+    mass hiding behind within-home variation, fixed with a persistent per-premise
+    `routine_offset_periods`. L1.1 texture 0.1499 -> 0.15353: lighting and
+    electronics were a per-person wattage times an occupancy FRACTION, constant
+    across an occupancy block, fixed by switching them at the same expected load.
+    """
+    assert not population_result.is_red, population_result.summary()
+
+
+def test_MEASURED_population_values(population_result):
+    """The population verdict, pinned cell by cell, so "RED at population scale" is
+    a checkable claim and not an adjective.
+
+    The two numbers that carry the finding: L1.1 PASSES at 0/60 — it failed at
+    n=200 under the old boolean band purely because three resistive homes were
+    being judged by a heat-pump threshold — while L1.2 and L1.5 each fail on ONE
+    home. A panel of eight could not have produced either statement.
+    """
+    assert population_result.homes >= fgl.MIN_HOMES_FOR_L1_RATE
+    expected = {
+        "L1.1_half_hourly_texture": (fgl.Verdict.PASS, 0.0),
+        "L1.2_day_to_day_shape_correlation": (fgl.Verdict.FAIL, 1 / 60),
+        "L1.3_away_days_per_year": (fgl.Verdict.PASS, 0.0),
+        "L1.5_max_multiplicity_share": (fgl.Verdict.FAIL, 1 / 60),
+    }
+    for statistic, (verdict, rate) in expected.items():
+        cell = population_result.cell(statistic)
+        assert cell.verdict is verdict, cell.note
+        assert cell.value == pytest.approx(rate, abs=1e-9), cell.note
+        assert cell.homes_judged == 60 and cell.homes_unjudged == 0, cell.note
+        assert cell.resolution == pytest.approx(0.05)
+    assert {c.statistic for c in population_result.failed} == {
+        "L1.2_day_to_day_shape_correlation",
+        "L1.5_max_multiplicity_share",
+    }
+    assert not population_result.inconclusive, population_result.summary()
+
+
+def test_the_DRAWN_population_actually_contains_the_regime_the_fix_is_about(
+    population, population_result
+):
+    """The vacuity guard on the regime fix. A population with no resistive home in
+    it would exercise none of this and pass regardless — the ten-home panel had
+    exactly that hole, which is how the boolean band survived as long as it did."""
+    regimes = {fgl.HEATING_REGIMES.get(s, "UNREGISTERED") for s in population.heating_systems}
+    assert "L1.1r_half_hourly_texture_resistive_heat" in regimes, (
+        f"the drawn population must contain resistive-heated homes; got {regimes}"
+    )
+    cell = population_result.cell(fgl.TEXTURE_STATISTIC)
+    assert cell.homes_unjudged == 0, cell.note
 
 
 def test_the_premise_trace_generator_is_MEASURABLY_better(shipped_result, generated_result):
@@ -911,12 +1048,27 @@ def test_the_verdict_is_WORST_CELL_not_an_average(generated):
     )
     cell = fgl.evaluate_two_level(population).cell("L1.1_half_hourly_texture")
 
-    assert cell.value == pytest.approx(worst), (
+    # THE CONTRACT MOVED ON 2026-08-09 and this test moved with it. The judged
+    # quantity is now the population VIOLATION RATE, and the worst home is carried
+    # as `worst_value`/`worst_home` — so there are two things to prove, not one:
+    # the cell still finds and NAMES the poisoned home, and the rate still reflects
+    # a single broken home rather than being diluted by the seven good ones.
+    assert cell.worst_value == pytest.approx(worst), (
         f"the verdict must report the WORST home ({worst:.4g}), not the population "
-        f"mean ({mean:.4g}) — got {cell.value:.4g}"
+        f"mean ({mean:.4g}) — got {cell.worst_value}"
     )
-    assert cell.value != pytest.approx(mean)
+    assert cell.worst_value != pytest.approx(mean)
+    assert cell.worst_home == generated.homes[-1]
     assert generated.homes[-1] in cell.note, "the worst cell must NAME the home it found"
+    # An AVERAGE of the per-home statistic would sit at 0.1877, comfortably above
+    # the 0.15 band, and the cell would read green. The rate does not average: one
+    # home in eight is outside its band and the cell says 1/8.
+    assert mean > fgl.BANDS["L1.1_half_hourly_texture"].threshold, (
+        "the fixture must be one where an average WOULD have hidden the defect, "
+        "else this test proves nothing about averaging"
+    )
+    assert cell.homes_violating == 1
+    assert cell.value == pytest.approx(1 / len(generated.homes))
 
 
 # ===========================================================================
@@ -1315,7 +1467,7 @@ def test_the_decision_function_REFUSES_degenerate_inputs(call):
         call()
 
 
-def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path, generated_result):
+def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path, population_result):
     """The fabric gap and the realism of the traces it was measured on are written
     side by side, so neither can be read without the other."""
     ledger = tmp_path / "coupled_gap_ledger.json"
@@ -1324,7 +1476,7 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
         unit_rate_p_per_kwh=25.0,
         measured_at="2026-08-03T00:00:00Z",
         run_git_commit="deadbeef",
-        two_level=generated_result,
+        two_level=population_result,
         path=ledger,
     )
     assert set(results) == {"epc_vs_actual", "inferred_vs_actual"}
@@ -1334,14 +1486,25 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
     assert entry["twin_atom_id"] == fgl.FABRIC_TWIN_ATOM
     assert entry["measured_at"] == "2026-08-03T00:00:00Z"
     components = entry["components"]
-    # The generator has met every anchored cell since 2026-08-08. The recorded
-    # verdict is cross-checked against the recorded CELLS rather than trusted on
-    # its own: `is_red` and the per-cell verdicts are serialised separately, so a
-    # writer that reported a flag its own cells contradict is caught here.
+    # The recorded verdict is cross-checked against the recorded CELLS rather than
+    # trusted on its own: `is_red`, `failed`, `inconclusive` and the per-cell
+    # verdicts are serialised separately, so a writer that reported a flag its own
+    # cells contradict is caught here.
     two_level = components["two_level"]
-    assert two_level["is_red"] is False
-    assert not [s for s, c in two_level["cells"].items() if c["verdict"] == "FAIL"]
-    assert two_level["failed_levels"] == []
+    assert two_level["is_red"] is True
+    assert set(two_level["failed"]) == {
+        s for s, c in two_level["cells"].items() if c["verdict"] == fgl.Verdict.FAIL.value
+    }
+    assert two_level["inconclusive"] == []
+    assert two_level["failed_levels"] == ["L1"]
+    # A READER MUST BE ABLE TO SIZE THE FAILURE, which is the whole reason the
+    # population fields are on the wire: two homes in sixty, not "red".
+    assert two_level["homes"] == fgl.MIN_HOMES_FOR_L1_RATE
+    for statistic in two_level["failed"]:
+        cell = two_level["cells"][statistic]
+        assert cell["homes_violating"] == 1
+        assert cell["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
+        assert cell["worst_home"]
     assert "money_consequence_epc" in components and "money_consequence_inferred" in components
     assert components["money_consequence_epc"]["basis"].startswith("PROVISIONAL")
     assert components["inference_improvement"] > 0.0, "the inferred belief is the better one here"
@@ -1622,7 +1785,9 @@ def test_the_heating_fact_comes_from_the_REGISTER_not_from_the_numbers(matched_p
     # ...and the builder reads that fact off the trace's register field, which is
     # itself set from `household.is_gas_heated` at generation time.
     assert heat_pump.heating_commodity == "electricity"
-    assert fgl.premise_trace_population([heat_pump], weather).electrically_heated == (True,)
+    assert fgl.premise_trace_population([heat_pump], weather).heating_systems == (
+        HeatingSystem.HEAT_PUMP_AIR.value,
+    )
 
 
 def test_the_band_selection_is_FAIL_CLOSED_when_the_register_fact_is_MISSING(matched_pair, weather):
@@ -1641,7 +1806,7 @@ def test_the_band_selection_is_FAIL_CLOSED_when_the_register_fact_is_MISSING(mat
         annual_kwh=tuple(3000.0 for _ in homes),
         weather_driver=fgl.hdd_driver(weather),
     )
-    assert blind.electrically_heated == ()
+    assert blind.heating_systems == ()
 
     cell = fgl.evaluate_two_level(blind).cell(fgl.TEXTURE_STATISTIC)
     assert cell.band.threshold == 0.15, "a missing register fact must land on the gas band"
@@ -1661,7 +1826,7 @@ def test_a_MISALIGNED_heating_flag_is_REFUSED_not_silently_truncated(matched_pai
             grids=(grid, grid),
             is_weekend=tuple(bool(d.is_weekend) for d in weather),
             annual_kwh=(3000.0, 3000.0),
-            electrically_heated=(True,),
+            heating_systems=(HeatingSystem.HEAT_PUMP_AIR.value,),
         )
 
 
@@ -1697,14 +1862,460 @@ def test_the_worst_L1_1_cell_is_the_worst_MARGIN_not_the_lowest_RAW_value(genera
         ) + tuple(tuple(tuple(d) for d in g) for g in others),
         is_weekend=generated.is_weekend,
         annual_kwh=(3000.0, 3000.0) + generated.annual_kwh[1:],
-        electrically_heated=(True, False) + (False,) * len(others),
+        heating_systems=(HeatingSystem.HEAT_PUMP_AIR.value,
+                         HeatingSystem.GAS_BOILER_COMBI.value)
+                        + (HeatingSystem.GAS_BOILER_COMBI.value,) * len(others),
         weather_driver=generated.weather_driver,
     )
 
     cell = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
-    assert "worst home GAS" in cell.note, (
+    assert cell.worst_home == "GAS", (
         f"the failing gas home must be the reported worst cell, not the numerically "
         f"lower heat-pump home: {cell.note}"
     )
+    assert "worst home GAS" in cell.note
     assert cell.verdict is fgl.Verdict.FAIL
     assert cell.band.threshold == 0.15
+    # And the RATE says how many homes are in trouble, which the worst-of-N form
+    # could never do: exactly one, the gas home that was mutated under its band.
+    assert cell.homes_violating == 1 and cell.homes_judged == len(population.homes)
+
+
+# ===========================================================================
+# §7 SCALE INVARIANCE — the verdict must be about the generator, not about n
+#
+# `docs/staging/WORKER_FINDING_WORST_OF_N_CONTROL_IS_NOT_SCALE_INVARIANT_2026-08-09.md`.
+# The old L1 form was a worst-of-N, which is monotone in N by construction: the
+# same generator on the same weather with the same seed scored green at n=25 and
+# red at n=200, and nothing in the report said which n produced the verdict.
+# ===========================================================================
+
+
+def _worst_of_n(values, band):
+    """THE OLD STATISTIC, kept here as the thing the new one is compared against.
+
+    This is deliberately a re-implementation rather than an import: the point of
+    every test below is that these two forms answer differently, and a test that
+    could only run while the old code still existed would evaporate the moment it
+    was deleted.
+    """
+    return min(values) if band.direction == "at_least" else max(values)
+
+
+BROKEN_SHARE = 0.20        # exactly one home in five, at EVERY population size
+_PHI = 0.6180339887498949  # low-discrepancy step, so any prefix is a fair subsample
+
+
+def _graded_pool(grids, size):
+    """A pool of `size` homes in which exactly `BROKEN_SHARE` of ANY prefix that is
+    a multiple of five is outside the L1.1 band — and in which the broken ones are
+    flattened to DIFFERENT depths, deepening as the pool grows.
+
+    Both properties are deliberate, and they are what make the comparison below a
+    test rather than a demonstration. The constant share is the truth about the
+    world that a scale-invariant statistic must recover at any n; the deepening
+    tail is the artefact that a worst-of-N reports instead.
+    """
+    out = []
+    for i in range(size):
+        broken = (i % 5) == 0
+        # A broken home's depth is drawn from a low-discrepancy sequence, so the
+        # deepest ones only appear as the pool grows — exactly how a real rare tail
+        # reveals itself, and exactly what drags a worst-of-N around.
+        # The unbroken homes are left EXACTLY as generated. Even a 5% blend pushes
+        # the panel's tightest home (0.1535) under the 0.15 band, which would make
+        # the "broken" share a number nobody chose — measured, on the first run.
+        weight = (0.55 + 0.25 * ((i * _PHI) % 1.0)) if broken else 0.0
+        out.append(_flatten_blend(grids[i % len(grids)], weight))
+    return out
+
+
+def test_the_RATE_is_invariant_in_n_where_the_WORST_OF_N_is_not(generated):
+    """THE FINDING, REPRODUCED AS A STANDING TEST.
+
+    One pool of homes, looked at twice: a 50-home prefix and the whole 200. The
+    world does not change between the two reads — one home in five is outside the
+    band at both sizes. The rate recovers exactly that, at both sizes. The
+    worst-of-N reports two different numbers, and always in the same direction,
+    because a min over a bigger sample can only go one way.
+
+    Read the two assertions together: the first says the new form is right, the
+    second says the old form could not have been, ON THE SAME DATA. Either alone
+    would be an argument rather than a measurement.
+    """
+    band = fgl.BANDS["L1.1_half_hourly_texture"]
+    pool = _graded_pool(_grids(generated), 200)
+    textures = [fgl.half_hourly_texture(g) for g in pool]
+
+    def cell(n):
+        # Through the PRODUCTION cell, not a re-implementation of it. A test that
+        # computed the rate itself would demonstrate a property of arithmetic and
+        # assert nothing about the code under test — the tautology pattern that has
+        # already been found once inside this file's own R15 tests.
+        return _texture_cell(
+            textures[:n], (band,) * n, tuple(f"H{i}" for i in range(n))
+        )
+
+    small, large = 50, 200
+    for n in (small, large):
+        assert cell(n).value == pytest.approx(BROKEN_SHARE), (
+            f"the cell must report the share of the population that is broken "
+            f"({BROKEN_SHARE}), whatever n: got {cell(n).value} at n={n}"
+        )
+        assert cell(n).homes_violating == int(n * BROKEN_SHARE)
+
+    worst_small = _worst_of_n(textures[:small], band)
+    worst_large = _worst_of_n(textures[:large], band)
+    assert worst_large < worst_small, (
+        "the fixture must actually exhibit the defect being guarded against — a "
+        "worst-of-N that does not degrade with n proves nothing here: "
+        f"{worst_small:.4g} at n={small} vs {worst_large:.4g} at n={large}"
+    )
+    assert worst_small / worst_large > 1.15, (
+        f"and it must degrade MATERIALLY, else the two forms are interchangeable: "
+        f"{worst_small:.4g} -> {worst_large:.4g}"
+    )
+
+
+def _clone_population(grid, n, weather, *, heating=None):
+    homes = tuple(f"H{i}" for i in range(n))
+    return fgl.PopulationTraces(
+        generator="test — clones",
+        homes=homes,
+        grids=tuple(tuple(tuple(d) for d in grid) for _ in homes),
+        is_weekend=tuple(bool(d.is_weekend) for d in weather),
+        annual_kwh=tuple(3000.0 for _ in homes),
+        weather_driver=fgl.hdd_driver(weather),
+        heating_systems=() if heating is None else tuple(heating for _ in homes),
+    )
+
+
+def _texture_cell(values, bands, homes):
+    return fgl._l1_rate_cell(
+        fgl.TEXTURE_STATISTIC, values=values, bands=bands, homes=homes
+    )
+
+
+@pytest.mark.parametrize(
+    "n, expected",
+    [
+        (fgl.MIN_HOMES_FOR_L1_RATE - 1, fgl.Verdict.INSUFFICIENT),
+        (fgl.MIN_HOMES_FOR_L1_RATE, fgl.Verdict.PASS),
+    ],
+)
+def test_a_CLEAN_SHEET_only_PASSES_once_it_could_have_SEEN_a_defect(n, expected):
+    """THE FAIL-OPEN DIRECTION, closed at its exact boundary.
+
+    Zero violations in n homes rules out a true violation rate no smaller than 3/n
+    (rule of three). At 59 homes that is 5.08% and this suite claims to see 5%, so
+    the clean sheet is INSUFFICIENT; at 60 it is 5.00% and the same clean sheet is
+    a PASS. Nothing about the homes changes between the two rows — only whether
+    enough of them were looked at, which is precisely the thing the old form never
+    said out loud.
+    """
+    band = fgl.BANDS["L1.1_half_hourly_texture"]
+    passing = band.threshold * 1.5
+    cell = _texture_cell(
+        [passing] * n, (band,) * n, tuple(f"H{i}" for i in range(n))
+    )
+    assert cell.verdict is expected, cell.note
+    assert cell.value == 0.0
+    assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / n)
+
+
+@pytest.mark.parametrize("n", [fgl.MIN_HOMES_FOR_DIVERSITY, 20, 500])
+def test_ONE_violating_home_FAILS_at_EVERY_n(n):
+    """The other half of the asymmetry, and the half that must NOT be n-dependent.
+
+    A violation is evidence of a mechanism however small the sample, so the FAIL
+    direction has no power requirement at all. Waiting for a bigger sample before
+    admitting a breach would be a fail-open dressed as statistical caution.
+    """
+    band = fgl.BANDS["L1.1_half_hourly_texture"]
+    values = [band.threshold * 1.5] * n
+    values[0] = band.threshold * 0.5
+    cell = _texture_cell(values, (band,) * n, tuple(f"H{i}" for i in range(n)))
+    assert cell.verdict is fgl.Verdict.FAIL, cell.note
+    assert cell.homes_violating == 1
+    assert cell.value == pytest.approx(1 / n)
+
+
+def test_the_RESOLUTION_the_verdict_rests_on_is_REPORTED_not_implied(population_result):
+    """A reader must be able to tell a worse generator from a bigger sample, and
+    that means n and the resolution it bought travel WITH the verdict — on the
+    cell, and in the printed summary. This is the reporting half of the finding
+    and it is the half a rate statistic alone would not have fixed."""
+    text = population_result.summary()
+    for cell in population_result.cells:
+        if cell.rate_band is None:
+            continue
+        assert cell.homes_judged is not None and cell.resolution is not None
+        assert f"{cell.homes_violating}/{cell.homes_judged} homes outside band" in text
+        assert f"resolution {cell.resolution:.3g}" in text
+
+
+def test_the_goal_seek_warning_needs_a_PREVALENCE_not_a_single_home(population_result):
+    """R15, and this control's first recorded FALSE POSITIVE (2026-08-09).
+
+    The warning reads "L1.1 passes while L1.5 fails" as tuning — level noise
+    sprinkled onto a rescaled base shape. That inference was sound when both cells
+    were worst-of-N. Under a rate it is not: the population's L1.5 breach is ONE
+    home in sixty, and a rescaled base shape is a property of the generator, so it
+    would be in every home it makes. The warning is silent here, and it must still
+    fire when the artefact is actually widespread.
+    """
+    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.PASS
+    assert population_result.cell(fgl.STRUCTURAL_STATISTIC).verdict is fgl.Verdict.FAIL
+    assert population_result.cell(fgl.STRUCTURAL_STATISTIC).value < 0.05
+    assert population_result.goal_seek_warning() is None, (
+        "one home in sixty is a home to diagnose (R4), not evidence that someone "
+        "moved a number"
+    )
+
+    # ...and the silence is not a broken control: raise the prevalence past the
+    # floor on the SAME result object and the warning comes back.
+    widespread = dataclasses.replace(
+        population_result,
+        cells=tuple(
+            dataclasses.replace(c, value=0.9)
+            if c.statistic == fgl.STRUCTURAL_STATISTIC else c
+            for c in population_result.cells
+        ),
+    )
+    assert widespread.goal_seek_warning() is not None, (
+        "with the artefact in 90% of homes this IS the tuning signature and the "
+        "warning must fire"
+    )
+
+
+# ===========================================================================
+# §8 THE HEATING REGIME IS A RATIO, NOT A CATEGORY (R10 class closure)
+#
+# `docs/staging/WORKER_FINDING_HEATING_REGIME_CONDITIONING_IS_BINARY_2026-08-09.md`.
+# The 2026-08-08 fix conditioned the L1.1 band on `is_gas_heated`, a BOOLEAN, while
+# the physics is keyed on delivered efficiency — so a resistive storage heater was
+# judged by a threshold derived from heat-pump arithmetic.
+# ===========================================================================
+
+
+REGIME_FIXTURES = (
+    ("G1", HeatingSystem.GAS_BOILER_COMBI, "L1.1_half_hourly_texture"),
+    ("HP1", HeatingSystem.HEAT_PUMP_AIR, "L1.1e_half_hourly_texture_electric_heat"),
+    ("ST1", HeatingSystem.ELECTRIC_STORAGE, "L1.1r_half_hourly_texture_resistive_heat"),
+    ("ED1", HeatingSystem.ELECTRIC_DIRECT, "L1.1r_half_hourly_texture_resistive_heat"),
+)
+
+
+@pytest.fixture(scope="module")
+def matched_regimes(weather):
+    """The SAME household with four different machines in it — the panel the
+    boolean band never had. Real generated traces, not synthetic series."""
+    return {
+        heating: pt.generate_premise_trace(
+            premise_id=premise_id,
+            household=_matched_household(premise_id, heating),
+            weather=weather,
+            seed=7,
+            latitude_deg=fp.latitude_for_weather_site("C1"),
+        )
+        for premise_id, heating, _ in REGIME_FIXTURES
+    }
+
+
+def test_EVERY_heating_system_is_registered_or_explicitly_UNANCHORED():
+    """THE CLASS GUARD (R10). The instance was a storage heater judged by a heat
+    pump's band; the class is a heating system reaching L1.1 through somebody
+    else's threshold.
+
+    A member may legitimately map to the NEED band — what it may not do is fall
+    through silently. This test fails the moment a new machine appears in the
+    generator's enum with no entry here, which is the only reason the register is
+    written out as strings rather than derived from the enum: a register derived
+    from the thing it is supposed to constrain could not fail.
+    """
+    for system in HeatingSystem:
+        assert system.value in fgl.HEATING_REGIMES, (
+            f"{system.value} has no entry in HEATING_REGIMES — it would be judged "
+            "by the unregistered band by default, which is visible, but a NEW "
+            "machine deserves a decision rather than a fallback"
+        )
+        assert fgl.HEATING_REGIMES[system.value] in fgl.BANDS
+
+
+def test_the_RESISTIVE_band_is_DERIVED_from_the_same_published_figures():
+    """Re-derived from the constants, not pinned as a literal, so a change to any
+    published input moves the band in a diff instead of silently disagreeing with
+    the docstring that explains it."""
+    heat = 9500.0 * 0.825
+    resistive_electricity = heat / 1.0
+    share = 2500.0 / (2500.0 + resistive_electricity)
+    assert fgl.resistive_heat_texture_threshold() == pytest.approx(0.15 * share)
+    assert fgl.resistive_heat_texture_threshold() == pytest.approx(0.03628, abs=1e-5)
+    assert fgl.BANDS["L1.1r_half_hourly_texture_resistive_heat"].threshold == (
+        pytest.approx(fgl.resistive_heat_texture_threshold())
+    )
+
+
+@pytest.mark.parametrize("efficiency", [1.0, 1.5, 2.0, 2.78, 3.5, 5.0])
+def test_the_band_is_MONOTONE_in_delivered_efficiency(efficiency):
+    """The class property that makes this a ratio and not a category: a machine
+    that delivers the same heat for less electricity leaves MORE of the meter to
+    behaviour, so its band is HIGHER. Any future regime slots onto this curve
+    without a new branch — which is what closing the class means."""
+    band = fgl.heating_texture_threshold(efficiency)
+    assert fgl.heating_texture_threshold(efficiency * 0.9) < band
+    assert band < fgl.heating_texture_threshold(efficiency * 1.1)
+    assert band < fgl._GAS_TEXTURE_THRESHOLD, (
+        "no electrically-heated machine may score a band above the gas one — its "
+        "heat is in the denominator and gas's is not"
+    )
+
+
+@pytest.mark.parametrize("efficiency", [0.0, -1.0, float("nan"), float("inf")])
+def test_a_DEGENERATE_efficiency_is_REFUSED_not_absorbed(efficiency):
+    """Fail-open pattern 2. A non-finite or non-positive efficiency reaching the
+    division would produce a band nobody could read, and `nan > t` is silently
+    False — so it raises before any arithmetic."""
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.heating_texture_threshold(efficiency)
+
+
+@pytest.mark.parametrize("premise_id, heating, expected_band", REGIME_FIXTURES)
+def test_each_REGIME_is_judged_by_its_OWN_band(matched_regimes, premise_id, heating,
+                                               expected_band):
+    """Every registered machine reaches the band derived for IT, on a real trace.
+
+    The storage-heated row is the finding: measured at 0.0484 it clears its own
+    resistive band (0.0363) and FAILS the heat-pump band (0.0705) it used to be
+    judged by. The band moved because the physics changed, not because a number
+    was inconvenient — and the assertion below is what makes that checkable rather
+    than assertable.
+    """
+    trace = matched_regimes[heating]
+    texture = fgl.half_hourly_texture([list(d) for d in trace.half_hourly("electricity")])
+    band = fgl.texture_band_for(heating.value)
+    assert band.statistic == expected_band
+    assert band.judge(texture) is fgl.Verdict.PASS, (
+        f"{premise_id} texture {texture:.4g} vs its own band {band.threshold:.4g}"
+    )
+    if expected_band == "L1.1r_half_hourly_texture_resistive_heat":
+        ashp = fgl.BANDS["L1.1e_half_hourly_texture_electric_heat"]
+        assert ashp.judge(texture) is fgl.Verdict.FAIL, (
+            f"{premise_id} at {texture:.4g} would have passed the heat-pump band "
+            "too, so this row proves nothing about the regime fix"
+        )
+
+
+@pytest.mark.parametrize("premise_id, heating, expected_band", REGIME_FIXTURES)
+def test_the_MUTATION_that_proves_each_band_is_VALID_on_THAT_regime(
+    matched_regimes, premise_id, heating, expected_band
+):
+    """R15, and the class behind
+    `WORKER_FINDING_MUTATION_VALID_ON_ONE_SUBPOPULATION_ONLY_2026-08-09.md`.
+
+    A mutation is the evidence that a band CAN fail. `_smooth` moves the statistic
+    the wrong way on a heat-pump home, so reusing it for an electrically-heated
+    band would have produced an R15 proof that was vacuous in the only direction
+    that matters. The guard against a repeat is per-regime rather than per-band:
+    for EVERY registered machine, the mutation must move that machine's own
+    statistic DOWN and take it below its own band.
+
+    A new regime added to `HEATING_REGIMES` with no fixture here fails
+    `test_EVERY_heating_system_is_registered_or_explicitly_UNANCHORED` first, so
+    the class cannot be reopened quietly.
+    """
+    trace = matched_regimes[heating]
+    grid = [list(d) for d in trace.half_hourly("electricity")]
+    band = fgl.texture_band_for(heating.value)
+    before = fgl.half_hourly_texture(grid)
+    after = fgl.half_hourly_texture(_flatten_blend(grid, 0.9))
+    assert after < before, (
+        f"the mutation must DESTROY texture on a {heating.value} home, not raise it: "
+        f"{before:.4g} -> {after:.4g}"
+    )
+    assert band.judge(before) is fgl.Verdict.PASS
+    assert band.judge(after) is fgl.Verdict.FAIL, (
+        f"{heating.value}: the mutation left {after:.4g}, still inside a band of "
+        f"{band.threshold:.4g} — this band has no proof that it can fire"
+    )
+
+
+def test_an_UNREGISTERED_machine_is_COUNTED_never_folded_into_another_band(weather,
+                                                                          matched_regimes):
+    """The register hole is VISIBLE. A ground-source heat pump has no published
+    SPFH4 in this file, and both silent folds are wrong in a different direction:
+    reading it as gas fails a correct heat pump, reading it as an air-source heat
+    pump passes a smooth resistive home. It is measured, counted, and excluded
+    from the rate."""
+    assert fgl.HEATING_REGIMES[HeatingSystem.HEAT_PUMP_GROUND.value] == (
+        fgl.UNREGISTERED_TEXTURE_BAND
+    )
+    band = fgl.texture_band_for(HeatingSystem.HEAT_PUMP_GROUND.value)
+    assert band.threshold is None and band.anchor is fgl.AnchorStatus.NEED
+
+    gas = fgl.BANDS["L1.1_half_hourly_texture"]
+    n = 100
+    values = [gas.threshold * 1.5] * n
+    bands = [gas] * n
+    bands[0] = band                       # one unregistered machine
+    cell = _texture_cell(values, tuple(bands), tuple(f"H{i}" for i in range(n)))
+    assert cell.homes_unjudged == 1
+    assert cell.homes_judged == n - 1
+    assert cell.verdict is fgl.Verdict.PASS, cell.note
+
+
+def test_a_population_MOSTLY_unregistered_is_INSUFFICIENT_not_clean():
+    """The vacuity guard. A population control that reports a clean rate while
+    most of its homes were never judged is the exact shape this codebase has
+    already been bitten by (1557/1557 passing while the field was absent)."""
+    gas = fgl.BANDS["L1.1_half_hourly_texture"]
+    unregistered = fgl.BANDS[fgl.UNREGISTERED_TEXTURE_BAND]
+    n = 100
+    unjudged = int(n * fgl.MAX_UNJUDGED_SHARE) + 1
+    bands = [unregistered] * unjudged + [gas] * (n - unjudged)
+    cell = _texture_cell(
+        [gas.threshold * 1.5] * n, tuple(bands), tuple(f"H{i}" for i in range(n))
+    )
+    assert cell.verdict is fgl.Verdict.INSUFFICIENT, cell.note
+    assert "coverage floor" in cell.note
+
+
+def test_a_population_with_NO_judgeable_band_at_all_is_INSUFFICIENT():
+    """And the degenerate end of the same guard: zero judged homes is not a clean
+    sheet, it is no measurement. An unavailable check is a FAILED check."""
+    unregistered = fgl.BANDS[fgl.UNREGISTERED_TEXTURE_BAND]
+    n = 10
+    cell = _texture_cell(
+        [0.5] * n, (unregistered,) * n, tuple(f"H{i}" for i in range(n))
+    )
+    assert cell.verdict is fgl.Verdict.INSUFFICIENT
+    assert cell.homes_judged == 0 and cell.homes_unjudged == n
+    assert "the register is the hole" in cell.note
+
+
+def test_the_MISSING_register_fact_still_fails_CLOSED_onto_the_gas_band(weather,
+                                                                       matched_regimes):
+    """Absence and the unknown are treated DIFFERENTLY, deliberately. A caller that
+    supplies nothing gets the strictest band (a false red, never a false green); a
+    caller that names a machine nobody has registered gets the visible hole. Both
+    directions are asserted because either one alone would be an argument."""
+    heat_pump = matched_regimes[HeatingSystem.HEAT_PUMP_AIR]
+    grid = [list(d) for d in heat_pump.half_hourly("electricity")]
+    blind = _clone_population(grid, fgl.MIN_HOMES_FOR_DIVERSITY, weather)
+    assert blind.heating_systems == ()
+    cell = fgl.evaluate_two_level(blind).cell(fgl.TEXTURE_STATISTIC)
+    assert cell.band.threshold == fgl._GAS_TEXTURE_THRESHOLD
+    assert cell.verdict is fgl.Verdict.FAIL
+    assert cell.homes_unjudged == 0, "absence is judged strictly, not left unjudged"
+
+    # The same trace, with the register fact supplied, at the population size the
+    # rate statistic needs — so the PASS direction is actually reachable and the
+    # comparison is band-selection against band-selection, not power against power.
+    named = _clone_population(
+        grid, fgl.MIN_HOMES_FOR_L1_RATE, weather,
+        heating=HeatingSystem.HEAT_PUMP_AIR.value,
+    )
+    cell = fgl.evaluate_two_level(named).cell(fgl.TEXTURE_STATISTIC)
+    assert cell.band.threshold == pytest.approx(fgl.electric_heat_texture_threshold())
+    assert cell.verdict is fgl.Verdict.PASS
+    assert cell.homes_violating == 0 and cell.homes_unjudged == 0
