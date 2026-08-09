@@ -1,3 +1,15 @@
+<!-- STILL OPEN 2026-08-03 (later worker tick). NOT ADVANCED THIS TICK, said plainly: this tick's draw
+  was C_supply_start_semantic_separation, and none of the 15 pending re-verifications were done.
+  What this tick DOES add is one more worked precedent for the path item #2 needs, so the next tick
+  drawing this file can copy the shape rather than re-derive it: C_supply_start_semantic_separation
+  was moved L0->L2 via background.gate_authorization.record_level_up_self_certified with the evidence
+  in the provenance string (mechanism, 5 named R15 mutations and what each fired, the migration
+  measured on the real 19-row registry, test counts, epistemic verifier) and an explicit statement of
+  what was NOT claimed (no R11, because nothing user-visible changed). That last part is the bit the
+  15 re-verifications actually turn on -- a level recorded with a provenance that overstates what was
+  checked is the stale-cell defect wearing a ledger entry, which is exactly why they are not being
+  bulk-stamped. Count remains 15; honest classification, not re-scoped to zero (R12). -->
+
 <!-- BLOCK DISSOLVED 2026-08-03 (worker tick) -- KEPT IN in_progress/ ON PURPOSE, AS DRAWABLE WORK,
   NOT ARCHIVED. The stated blocker above is now FALSE. It reads "the agent cannot self-cross the R16 wall",
   but R16 was RESCOPED 2026-08-03: "a level move must leave an auditable trace in gate_authorizations.jsonl

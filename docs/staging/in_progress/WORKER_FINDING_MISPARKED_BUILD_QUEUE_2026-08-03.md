@@ -17,7 +17,28 @@
       not footing. The build is now committed, pushed and re-verified against the deployed site (see
       the D_money_boundary_reconciliation cell). Leaving the original line above as written, with
       this correction under it, because the failure mode is the point: local-green read as done.
-    - The other 10 Class B halves remain BUILD-drawable and unbuilt.
+    - `supply_start_semantic_separation` -- ITS BUILD HALF IS DONE (2026-08-03, later worker tick),
+      built L0->L2 as map atom `C_supply_start_semantic_separation`. `company/crm/supply_start.py`
+      now separates supply_start (real relationship start, from the observable activation event)
+      from term_anchor_date (the renewal grid anchor); the registry schema was rebuilt so UNKNOWN
+      is representable, and a successor with no activation observable is recorded UNKNOWN rather
+      than back-dated to the predecessor's date. R10 class guard
+      `SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE` registered in the invariants library, R15-proven
+      on 5 mutations. Migration run against the real 19-row registry.db: the 6 successors became
+      UNKNOWN, the 13 base records unchanged.
+      HEEDING THE money_representation CORRECTION DIRECTLY ABOVE: the build was committed and
+      pushed BEFORE this line was written, not after -- local-green is what made that earlier claim
+      read as done. What is deliberately NOT claimed here: no R11 render-verification, because
+      nothing user-visible changed. The 7 LIVE-wrong tenure/cohort/render consumers this atom's
+      own DISCOVER enumerated are outside its file_scope and are STILL LIVE (poesys.net still shows
+      C1_2 as "Customer since 2016-01-01" against a real 2020-12-30). That half is minted as
+      `C_supply_start_consumer_routing`, not silently folded into this one.
+    - The other 9 Class B halves remain BUILD-drawable and unbuilt:
+      `gap1_reader_contract_failopen_fix`, `inbound_ratification_batch_path`,
+      `intra_year_price_cap_granularity`, `payment_channel_dd_consistency_invariant`,
+      `owned_quantity_registry_gate`, `rng_substream_primitive`,
+      `shared_primitive_ensuring_activity`, `size_and_clone_ratchet`,
+      `stop_control_gap_characterisation`.
 
   THE EARLIER TICK DID NOT DRAW FROM IT: the self-refill draw handed over W1_11_fabric_physics_core
   (level 2->3), which was built to a measured blocker -- see commit 66d73d1e0 and the W1_11 cell.
