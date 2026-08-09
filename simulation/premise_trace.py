@@ -601,6 +601,9 @@ APPLIANCE_CATALOGUE: tuple[ApplianceSpec, ...] = (
 _STANDBY_KW = 0.025
 """Router, alarm, standby draws — genuinely constant."""
 
+_FROZEN_COMPARTMENT_TARGET_C = -18.0
+"""EU Reg. 2019/2016 / IEC 62552-2 frozen-compartment target temperature."""
+
 
 @dataclass(frozen=True)
 class ColdApplianceSpec:
@@ -608,11 +611,25 @@ class ColdApplianceSpec:
     power_kw: float
     cycle_minutes: float
     duty: float
+    cabinet_c: float
+    """The temperature the compressor works AGAINST, and the reason `duty` cannot
+    be a constant.
+
+    Published, not chosen: EU Regulation 2019/2016 (and IEC 62552-2, which it
+    references) sets the frozen-compartment target temperature at **-18 C**. Both
+    appliances here have a frozen compartment, and in a domestic fridge-freezer a
+    single compressor works against an evaporator held at freezer temperature, so
+    -18 C is what sets the duty in both cases. Using the fresh-food target (+5 C)
+    instead would make the ambient sensitivity roughly three times as steep; -18 C
+    is therefore the CONSERVATIVE reading of the same regulation, which is the
+    right bias for a coupling introduced to remove an artefact (R12 — the point is
+    the mechanism, never the size of its effect on the statistic).
+    """
 
 
 COLD_APPLIANCES: tuple[ColdApplianceSpec, ...] = (
-    ColdApplianceSpec("fridge_freezer", 0.090, 47.0, 0.32),
-    ColdApplianceSpec("freezer", 0.100, 61.0, 0.30),
+    ColdApplianceSpec("fridge_freezer", 0.090, 47.0, 0.32, _FROZEN_COMPARTMENT_TARGET_C),
+    ColdApplianceSpec("freezer", 0.100, 61.0, 0.30, _FROZEN_COMPARTMENT_TARGET_C),
 )
 
 _LIGHTING_KW_PER_PERSON = 0.035
@@ -723,24 +740,71 @@ def cold_appliance_phases(
     )
 
 
+def duty_at_room_temperature(
+    spec: ColdApplianceSpec, room_c: float, reference_room_c: float
+) -> float:
+    """The compressor's duty cycle in a room at `room_c`.
+
+    STEADY-STATE HEAT BALANCE, not a fitted curve. A cold appliance holds its
+    cabinet at a fixed temperature; heat leaks in through the walls in proportion
+    to `(room - cabinet)`; the compressor must remove exactly that heat, and it
+    removes it at a fixed rate whenever it runs. So the fraction of the time it
+    runs is proportional to `(room - cabinet)` — the same conductance argument
+    W1_11 makes one level up for the dwelling itself. It is the linear-in-ambient
+    form that IEC 62552-3 relies on when it derives a declared annual consumption
+    by interpolating between its two test ambients.
+
+    `reference_room_c` is the room the spec's own `duty` describes, and the caller
+    supplies the premise's OWN comfort setpoint for it rather than a constant:
+    "0.32 duty" is a figure for a fridge in a normally-heated home, and this
+    home's normal temperature is the temperature it heats itself to. That keeps
+    the whole coupling free of any new unanchored number — the reference is a
+    value the model already holds per premise, so a home sitting at its setpoint
+    draws EXACTLY what it drew before this coupling existed.
+
+    A room at or below the cabinet returns zero duty (a compressor with nothing to
+    remove does not run), and a reference at or below the cabinet RAISES rather
+    than dividing by a non-positive span.
+    """
+    span = reference_room_c - spec.cabinet_c
+    if span <= 0.0:
+        raise ValueError(
+            f"reference room {reference_room_c} C is not above {spec.name}'s "
+            f"cabinet at {spec.cabinet_c} C — there is no duty to scale"
+        )
+    scaled = spec.duty * (room_c - spec.cabinet_c) / span
+    return min(1.0, max(0.0, scaled))
+
+
 def cold_appliance_kwh(
     phases: Sequence[float],
     day_index: int,
     period: int,
     *,
+    room_c: float,
+    reference_room_c: float,
     specs: Sequence[ColdApplianceSpec] = COLD_APPLIANCES,
 ) -> float:
-    """Cold-appliance energy in one settlement period, from the cycling model."""
+    """Cold-appliance energy in one settlement period, from the cycling model.
+
+    `room_c` and `reference_room_c` are REQUIRED, with no default. A default here
+    would be the fail-open shape (R15): a caller that forgot the room would get a
+    plausible, ambient-invariant series back — which is precisely the defect this
+    signature exists to make impossible to reintroduce silently.
+    """
     if len(phases) != len(specs):
         raise ValueError("one phase per cold-appliance spec is required")
     absolute_start = day_index * 24.0 + period * PERIOD_HOURS
     total = 0.0
     for spec, phase in zip(specs, phases):
+        duty = duty_at_room_temperature(spec, room_c, reference_room_c)
+        if duty <= 0.0:
+            continue
         on_h = _square_wave_on_hours(
             absolute_start,
             absolute_start + PERIOD_HOURS,
             cycle_h=spec.cycle_minutes / 60.0,
-            duty=spec.duty,
+            duty=duty,
             phase_h=phase,
         )
         total += spec.power_kw * on_h
@@ -1175,8 +1239,23 @@ class PremiseDayTrace:
     heat_delivered_kwh: tuple[float, ...]
     heating_fuel_kwh: tuple[float, ...]
     behavioural_electricity_kwh: tuple[float, ...]
-    """Appliances + lighting + electronics + base load + electric DHW. FABRIC-
-    INDEPENDENT by construction — the series the separability control checks."""
+    """Appliances + lighting + electronics + base load + electric DHW.
+
+    NOT fabric-independent as a whole, and the part that is not is broken out as
+    `cold_appliance_kwh` below. The separability control checks this series NET of
+    that one term — see `fabric_only_moves_level_and_character`."""
+    cold_appliance_kwh: tuple[float, ...]
+    """The fridge/freezer stream, carried SEPARATELY because it is the one load in
+    here that is not behaviour.
+
+    A cold appliance is a THERMOSTATIC device coupled to the room, the same class
+    of mechanism as W1_11's boiler deadband one level down: its compressor duty
+    is set by `(room - cabinet)`, so a leaky home that runs cold genuinely spends
+    less on its fridge than a tight one. That coupling is physics, not the thermal
+    model reaching back into what the household DOES, and separating the stream is
+    what lets the separability law keep its full strength over the behaviour it is
+    actually about while the coupling stays measured (and directional) in its own
+    test rather than exempted."""
     dhw_fuel_kwh: tuple[float, ...]
     ev_kwh: tuple[float, ...]
     pv_generation_kwh: tuple[float, ...]
@@ -1305,6 +1384,15 @@ def generate_premise_trace(
     # other because their compressors are out of phase, never because noise was
     # added to either output series.
     cold_phases = cold_appliance_phases(base_seed)
+    # THE ROOM THE FRIDGE STANDS IN, lagged one day — and the lag is structural,
+    # not a shortcut. Today's cold-appliance energy is part of today's internal
+    # gain, which is an INPUT to today's thermal solve, so today's indoor
+    # temperature cannot be read before it. A one-day explicit coupling breaks
+    # that loop honestly: a house's temperature moves slowly, and yesterday's is
+    # what a compressor sizing itself against a room has actually experienced.
+    # Day 0 has no yesterday, so it uses the premise's own comfort setpoint —
+    # the same referent the duty is expressed against, i.e. no scaling at all.
+    previous_indoor_air_c: tuple[float, ...] | None = None
 
     heating_commodity = "gas" if household.is_gas_heated else "electricity"
     dhw_commodity = heating_commodity if household.heating_system != HeatingSystem.NONE else "electricity"
@@ -1373,7 +1461,17 @@ def generate_premise_trace(
             )
             prev_device_p, prev_light_p = device_p, light_p
             kw += devices_on * device_kw_per_unit + lights_on * light_kw_per_unit
-            cold_kwh[period] = cold_appliance_kwh(cold_phases, day_index, period)
+            cold_kwh[period] = cold_appliance_kwh(
+                cold_phases,
+                day_index,
+                period,
+                room_c=(
+                    previous_indoor_air_c[period]
+                    if previous_indoor_air_c is not None
+                    else base_schedule.comfort_setpoint_c
+                ),
+                reference_room_c=base_schedule.comfort_setpoint_c,
+            )
             behavioural[period] = kw * PERIOD_HOURS + cold_kwh[period] + appliance_kwh[period]
 
         # --- Layer 2 -> Layer 1: the three arguments, and nothing else -------
@@ -1418,6 +1516,7 @@ def generate_premise_trace(
             internal_gain_kw=list(layer_two.internal_gain_kw),
         )
         state = result.end_state
+        previous_indoor_air_c = tuple(result.indoor_air_c)
 
         # --- assets ----------------------------------------------------------
         ev_kwh, ev_state = draw_ev_day(
@@ -1465,6 +1564,7 @@ def generate_premise_trace(
                 heat_delivered_kwh=tuple(result.heat_delivered_kwh),
                 heating_fuel_kwh=tuple(result.fuel_kwh),
                 behavioural_electricity_kwh=tuple(behavioural),
+                cold_appliance_kwh=tuple(cold_kwh),
                 dhw_fuel_kwh=tuple(dhw_fuel),
                 ev_kwh=tuple(ev_kwh),
                 pv_generation_kwh=tuple(pv_kwh),
@@ -1556,6 +1656,73 @@ def _check_series(series: Sequence[float], *, name: str, minimum: int) -> None:
         _require_finite(name, value)
 
 
+SEPARABILITY_EPSILON_KWH = 1e-12
+"""The bound below which two behavioural streams count as the SAME stream.
+
+Not a tolerance on the physics — a bound on arithmetic. The net stream is
+recovered as `gross - cold`, and `(x + c) - c` is not bit-identical to `x` in
+binary floating point, so two homes whose behaviour is genuinely identical differ
+here by a few ULPs of a ~0.1 kWh value, i.e. of order 1e-17 kWh. 1e-12 kWh is a
+nanowatt-hour — five orders of magnitude ABOVE that noise and ten orders BELOW
+the 0.01 kWh perturbation the R15 mutation uses, so it is nowhere near either
+edge. A leak worth the name moves a real load, not a nanowatt-hour.
+"""
+
+
+def _behaviour_net_of_cold(day: PremiseDayTrace) -> tuple[float, ...]:
+    """The genuinely-behavioural part of the electricity stream: everything the
+    household DOES, with the one thermostatic device taken back out."""
+    return tuple(
+        v - c for v, c in zip(day.behavioural_electricity_kwh, day.cold_appliance_kwh)
+    )
+
+
+def cold_appliance_load_tracks_the_room(
+    cold_trace: PremiseTrace,
+    warm_trace: PremiseTrace,
+    *,
+    min_indoor_gap_c: float = 0.5,
+) -> bool:
+    """The control that PAYS FOR the cold-appliance exemption in the separability
+    law above: the coupling that law stops policing must be shown to exist, and to
+    run in the physically correct direction.
+
+    `cold_trace` must be the home that actually ran COLDER over the window (that
+    is checked, not assumed — passing the two traces the wrong way round must fail
+    rather than silently invert the claim). Given that, its fridge and freezer
+    must have used STRICTLY LESS energy, because a compressor in a cold room has
+    less heat to remove.
+
+    RAISES rather than returning True when the two homes did not differ in indoor
+    temperature by `min_indoor_gap_c`: a directional claim tested on two homes at
+    the same temperature is vacuous, and a vacuous pass is the fail-open shape
+    this project keeps finding (R15).
+    """
+    if not cold_trace.days or not warm_trace.days:
+        raise ValueError("the room-coupling control needs at least one day on each trace")
+    if len(cold_trace.days) != len(warm_trace.days):
+        raise ValueError("the room-coupling control compares the SAME weather days")
+
+    def mean_indoor(trace: PremiseTrace) -> float:
+        values = [v for day in trace.days for v in day.indoor_air_c]
+        for value in values:
+            _require_finite("indoor air", value)
+        return sum(values) / len(values)
+
+    def cold_total(trace: PremiseTrace) -> float:
+        total = sum(v for day in trace.days for v in day.cold_appliance_kwh)
+        return _require_finite("cold appliance energy", total)
+
+    gap = mean_indoor(warm_trace) - mean_indoor(cold_trace)
+    if gap < min_indoor_gap_c:
+        raise ValueError(
+            f"the two homes differ by only {gap:.3f} C of mean indoor air, below the "
+            f"{min_indoor_gap_c} C this claim needs to be non-vacuous — and a negative "
+            "gap means the traces were passed in the wrong order"
+        )
+    return cold_total(cold_trace) < cold_total(warm_trace)
+
+
 def fabric_only_moves_level_and_character(
     trace_a: PremiseTrace,
     trace_b: PremiseTrace,
@@ -1570,6 +1737,19 @@ def fabric_only_moves_level_and_character(
     thermal model is reaching back into behaviour — or (b) the fabric change did
     NOT move the heat level, which would mean the fabric is not doing the work
     the design claims.
+
+    THE ONE EXEMPTION, AND WHY IT IS NOT A HOLE (2026-08-09). The comparison is
+    made NET of `cold_appliance_kwh`. A fridge is a thermostatic device, not a
+    behaviour: its duty is set by the temperature of the room it stands in, so a
+    leaky home that runs cold spends less on it, and requiring the gross stream to
+    be bit-identical would be requiring a physically false invariance. The
+    exemption is narrow (one named stream, carried in its own field) and it is
+    PAID FOR rather than asserted: `cold_appliance_load_tracks_the_room` states
+    the coupling as a signed claim and fires if it is absent or backwards, so the
+    channel this control stops watching is watched by a control of its own. The
+    mutation that proves this one still has teeth perturbs the behavioural stream
+    and leaves the cold stream alone, so narrowing the comparison does not blunt
+    it — see tests/simulation/test_premise_trace.py.
     """
     if not trace_a.days or not trace_b.days:
         raise ValueError("separability needs at least one day on each trace")
@@ -1577,10 +1757,12 @@ def fabric_only_moves_level_and_character(
         raise ValueError("separability compares traces over the SAME weather days")
 
     for day_a, day_b in zip(trace_a.days, trace_b.days):
-        for va, vb in zip(day_a.behavioural_electricity_kwh, day_b.behavioural_electricity_kwh):
+        net_a = _behaviour_net_of_cold(day_a)
+        net_b = _behaviour_net_of_cold(day_b)
+        for va, vb in zip(net_a, net_b):
             _require_finite("behavioural electricity", va)
             _require_finite("behavioural electricity", vb)
-            if va != vb:
+            if abs(va - vb) > SEPARABILITY_EPSILON_KWH:
                 return False  # fabric leaked into the appliance stream
         for sa, sb in zip(day_a.setpoint_c, day_b.setpoint_c):
             if sa != sb:

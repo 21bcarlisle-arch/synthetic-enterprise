@@ -753,3 +753,188 @@ def _switching_bias(weather, implementation) -> float:
 
     continuous = book(lambda rng, units, occupancy, state, **kw: units * occupancy)
     return (book(implementation) - continuous) / continuous
+
+
+# ---------------------------------------------------------------------------
+# THE ROOM THE FRIDGE STANDS IN (2026-08-09, W1_12 L2->L3)
+#
+# The measured defect: on the DRAWN population of 200, L1.5 max-multiplicity was
+# breached by 7 homes, and the breach was 100% away-day driven — for every one of
+# the seven, every occurrence of the most-repeated normalised fraction landed on
+# an away day. An away day had no stochastic component at all (occupancy 0, so no
+# appliance, DHW, EV or switched load), leaving standby plus a compressor square
+# wave whose duty did not depend on anything, so the daily total was IDENTICAL to
+# six decimal places across every away day of the window and the normalised
+# fractions collided exactly. An empty house was a clone of itself.
+# ---------------------------------------------------------------------------
+
+
+def test_cold_appliance_duty_is_the_heat_balance_not_a_constant():
+    """Duty is proportional to (room - cabinet): the same conductance argument
+    W1_11 makes for the dwelling, one level down."""
+    spec = pt.COLD_APPLIANCES[0]
+    reference = 20.0
+    # At the reference room the spec's own duty is reproduced EXACTLY, which is
+    # what makes this coupling free of a level change on a home at its setpoint.
+    assert pt.duty_at_room_temperature(spec, reference, reference) == spec.duty
+    colder = pt.duty_at_room_temperature(spec, 10.0, reference)
+    warmer = pt.duty_at_room_temperature(spec, 24.0, reference)
+    assert colder < spec.duty < warmer
+    # Linear in the room temperature, not merely monotone.
+    span = reference - spec.cabinet_c
+    assert colder == pytest.approx(spec.duty * (10.0 - spec.cabinet_c) / span)
+
+
+def test_cold_appliance_duty_RAISES_on_a_reference_at_the_cabinet():
+    """R15 fail-open: a non-positive span must raise, never divide."""
+    spec = pt.COLD_APPLIANCES[0]
+    with pytest.raises(ValueError, match="cabinet"):
+        pt.duty_at_room_temperature(spec, 5.0, spec.cabinet_c)
+
+
+def test_cold_appliance_duty_is_clamped_to_a_probability():
+    """A room at or below the cabinet gives a compressor nothing to remove, and no
+    room may drive the duty above 1.0 — a duty outside [0, 1] is not a duty."""
+    spec = pt.COLD_APPLIANCES[0]
+    assert pt.duty_at_room_temperature(spec, spec.cabinet_c, 20.0) == 0.0
+    assert pt.duty_at_room_temperature(spec, spec.cabinet_c - 5.0, 20.0) == 0.0
+    assert pt.duty_at_room_temperature(spec, 500.0, 20.0) == 1.0
+
+
+def test_cold_appliance_kwh_REFUSES_to_default_the_room():
+    """R15 fail-open, at the signature. A default room would let a caller silently
+    get the ambient-invariant series back — the defect itself, reintroduced."""
+    phases = pt.cold_appliance_phases(1234)
+    with pytest.raises(TypeError):
+        pt.cold_appliance_kwh(phases, 0, 0)          # type: ignore[call-arg]
+
+
+def test_away_days_are_no_longer_CLONES_of_each_other(weather):
+    """THE MEASURED DEFECT, as an executable fact.
+
+    Two away days under different weather must not produce the same trace. The
+    assertion is on the SHAPE (each day normalised to its own total), because that
+    is what L1.5 judges and what a daily scalar cannot rescue.
+    """
+    household = make_household()
+    profile = pt.behaviour_profile_for("P-away", household, seed=5)
+    away = frozenset(d.date for d in weather)        # every day an away day
+    trace = pt.generate_premise_trace(
+        premise_id="P-away", household=household, weather=weather, seed=5,
+        behaviour=profile, away_days=away, latitude_deg=pt.DEFAULT_LATITUDE_DEG,
+    )
+    assert all(day.is_away for day in trace.days)
+    totals = {round(day.electricity_total_kwh, 6) for day in trace.days}
+    assert len(totals) > len(trace.days) * 0.9, (
+        f"only {len(totals)} distinct away-day totals across {len(trace.days)} away "
+        "days — the empty house is still replaying itself"
+    )
+    shapes = {
+        tuple(round(v / day.electricity_total_kwh, 6) for v in day.electricity_kwh)
+        for day in trace.days
+    }
+    assert len(shapes) == len(trace.days)
+
+
+def test_the_L1_5_STRUCTURAL_CELL_fires_when_the_coupling_is_REMOVED(weather):
+    """R15 THE OTHER WAY, and it is the real mutation, not a hand-built fixture:
+    pin the room to the reference — i.e. restore the ambient-invariant duty this
+    change removed — and the away-day clone comes back and L1.5 sees it.
+
+    Guards against the pass being a property of the statistic rather than of the
+    generator. If this test ever stops firing, the coupling stopped mattering.
+    """
+    household = make_household()
+    profile = pt.behaviour_profile_for("P-away", household, seed=5)
+    away = frozenset(d.date for d in weather)
+
+    def build() -> pt.PremiseTrace:
+        return pt.generate_premise_trace(
+            premise_id="P-away", household=household, weather=weather, seed=5,
+            behaviour=profile, away_days=away, latitude_deg=pt.DEFAULT_LATITUDE_DEG,
+        )
+
+    live = build()
+    original = pt.duty_at_room_temperature
+    try:
+        pt.duty_at_room_temperature = lambda spec, room_c, reference_room_c: spec.duty
+        mutated = build()
+    finally:
+        pt.duty_at_room_temperature = original
+
+    def max_multiplicity_share(trace: pt.PremiseTrace) -> float:
+        counts: dict[float, int] = {}
+        for day in trace.days:
+            total = day.electricity_total_kwh
+            for value in day.electricity_kwh:
+                frac = round(value / total, 6)
+                if frac:
+                    counts[frac] = counts.get(frac, 0) + 1
+        return max(counts.values()) / len(trace.days)
+
+    # The 0.10 band is L1.5's own, unmoved. The mutant breaches it; the live
+    # generator is clear of it — and the two are not a close call.
+    assert max_multiplicity_share(mutated) > 0.10
+    assert max_multiplicity_share(live) <= 0.10
+    assert max_multiplicity_share(mutated) > 3.0 * max_multiplicity_share(live)
+
+
+def test_cold_appliance_load_tracks_the_room(weather):
+    """The control that PAYS FOR the separability exemption: the coupling the
+    separability law stops policing is asserted here, with its sign."""
+    common = _pinned_layer_two(weather)
+    leaky = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    tight = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.FULL, build_era=BuildEra.POST_2000),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    assert pt.cold_appliance_load_tracks_the_room(leaky, tight)
+
+
+def test_room_coupling_control_FIRES_when_the_traces_are_the_WRONG_WAY_ROUND(weather):
+    """R15 mutation: the control must not be satisfiable by any pair of homes. A
+    claim with a sign has to reject the opposite sign."""
+    common = _pinned_layer_two(weather)
+    leaky = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    tight = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.FULL, build_era=BuildEra.POST_2000),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    with pytest.raises(ValueError, match="wrong order"):
+        pt.cold_appliance_load_tracks_the_room(tight, leaky)
+
+
+def test_room_coupling_control_RAISES_rather_than_passing_VACUOUSLY(weather):
+    """R15 fail-open: two homes at the same temperature cannot evidence a
+    directional claim, so the control refuses to be asked."""
+    common = _pinned_layer_two(weather)
+    same = pt.generate_premise_trace(
+        household=make_household(), **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    with pytest.raises(ValueError, match="non-vacuous"):
+        pt.cold_appliance_load_tracks_the_room(same, same)
+
+
+def test_separability_still_FIRES_after_the_cold_stream_was_exempted(weather):
+    """The exemption must not have blunted the law it was carved out of. The
+    mutation perturbs the BEHAVIOURAL stream and leaves the cold stream alone, so
+    it survives the netting — and the perturbation is 1e10 times the arithmetic
+    bound the netting introduced."""
+    common = _pinned_layer_two(weather)
+    leaky = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.POOR, build_era=BuildEra.PRE_1919),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    tight = pt.generate_premise_trace(
+        household=make_household(insulation=InsulationLevel.FULL, build_era=BuildEra.POST_2000),
+        **common, latitude_deg=pt.DEFAULT_LATITUDE_DEG)
+    day = tight.days[0]
+    mutated = dataclasses.replace(
+        tight,
+        days=(dataclasses.replace(
+            day,
+            behavioural_electricity_kwh=tuple(v + 0.01 for v in day.behavioural_electricity_kwh),
+        ),) + tight.days[1:],
+    )
+    assert 0.01 > pt.SEPARABILITY_EPSILON_KWH * 1e9
+    assert not pt.fabric_only_moves_level_and_character(leaky, mutated)

@@ -14,6 +14,7 @@ Testing the runner is how the second half of the transition gets a control.
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import json
 
@@ -317,6 +318,25 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
         assert cell.resolution == pytest.approx(fgl.RULE_OF_THREE / result.homes)
 
 
+def _worst_cell_clears_its_own_floor(texture) -> None:
+    """THE CLOSURE CONTROL, as a relation rather than a remembered number.
+
+    Extracted so that the R15 mutation below exercises the SAME expression the
+    closure test depends on, instead of a re-typed copy of it beside the original
+    (a re-implementation proves the copy fires, which is not the claim).
+
+    The band is a FLOOR, so "clears" means at or above it, and the direction is
+    asserted rather than assumed — `>=` and `<=` are one character apart and the
+    band is the only thing that says which is right.
+    """
+    assert texture.band.direction == "at_least", texture.band
+    assert texture.worst_value >= texture.band.threshold, (
+        f"the worst L1.1 cell ({texture.worst_home} at {texture.worst_value:.4f}) fell "
+        f"BELOW the {texture.band.threshold} floor it is judged by — the closure has "
+        f"regressed: {texture.note}"
+    )
+
+
 def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel, weather):
     """THE RESIDUAL, RE-STATED (2026-08-09). This test previously asserted
     `result.is_red` and instructed whoever turned it green to re-state the
@@ -351,7 +371,21 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
     assert texture.homes_violating == 0, texture.note
     assert texture.band.threshold == 0.15, "the GAS band is the one that judged the worst cell"
     assert texture.worst_home == "D7", texture.note
-    assert texture.worst_value == pytest.approx(0.1804, abs=5e-4)
+    # THE WORST CELL CLEARS THE UNTOUCHED FLOOR. Asserted as a RELATION, not as a
+    # pinned literal (2026-08-09): this assertion previously read
+    # `worst_value == approx(0.1804, abs=5e-4)`, and the W1_12 cold-appliance
+    # coupling — an honest fidelity improvement that moves the electricity series
+    # this statistic is computed on — took D7 to 0.1782 and turned the control red
+    # while saying nothing whatever about goal-seek. That is the "never pin a
+    # generated value in a control" class: the pin cannot distinguish a physics
+    # improvement from a regression, and its cheap fix (re-typing the literal to
+    # match today's output) is the exact reflex R12 forbids.
+    #
+    # What the test is NAMED for is the mechanism, so the mechanism is what is
+    # pinned: the band is a FLOOR at an UNMOVED 0.15 (asserted above) and the
+    # worst home clears it on its own. The value stays in the message as a
+    # diagnostic (R12), never as the pass condition.
+    _worst_cell_clears_its_own_floor(texture)
     assert "L1.1e_half_hourly_texture_electric_heat=1" in texture.note, texture.note
     # The panel's ten homes cannot reach a PASS — see the note on the test above.
     # What is asserted here is the MECHANISM: no home is outside its own band, and
@@ -365,6 +399,71 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
         "L1.4_weekday_weekend_separation",
         "L2.4_scale_spread_p90_p10",
     }, unvalidated
+
+
+def test_the_RESHAPED_closure_control_still_fires_when_the_BAND_IS_MOVED(panel, weather, monkeypatch):
+    """R15 for the reshape directly above. The literal `worst_value` pin was
+    removed because it fired on honest physics; this proves the relational form
+    that replaced it still fires on THE DEFECT THE TEST IS NAMED FOR — the cell
+    being closed by MOVING the band rather than by conditioning it.
+
+    The mutation is the goal-seek move itself, applied to the real band and run
+    through the real measurement: drop the gas floor from 0.15 to 0.10, which is
+    exactly what someone would do to admit a worst cell that would not clear it.
+    Both surviving mechanism assertions must then reject the run — the band is no
+    longer the untouched 0.15, and the floor the worst home is compared against is
+    no longer the one whose anchor text this closure rests on.
+
+    A REPLACEMENT CONTROL THAT COULD NOT FIRE WOULD BE WORSE THAN THE PIN IT
+    REPLACED: the pin at least failed loudly. This is the evidence that the
+    reshape tightened the control's aim rather than fail-opening it.
+    """
+    moved = dataclasses.replace(fgl.BANDS[fgl.TEXTURE_STATISTIC], threshold=0.10)
+    monkeypatch.setitem(fgl.BANDS, fgl.TEXTURE_STATISTIC, moved)
+
+    texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
+
+    # The assertion that carries the "not moved" claim REJECTS the moved band.
+    assert texture.band.threshold != 0.15, (
+        "the moved band did not reach the measurement — this mutation proves "
+        "nothing about the control and must be repaired before it is trusted"
+    )
+    assert texture.band.threshold == 0.10, texture.band
+
+    # And the relational assertion is genuinely comparing against the band that
+    # was used, not against a remembered constant: it is the MOVED floor the
+    # worst home is now measured against.
+    assert texture.worst_value >= texture.band.threshold, texture.note
+
+
+def test_the_RESHAPED_closure_control_still_fires_when_the_WORST_CELL_REGRESSES(panel, weather):
+    """The second arm: the control must reject a worst cell that falls BELOW its
+    floor. That is the regression the removed literal pin would also have caught,
+    so the reshape must not have quietly given it up.
+
+    THE MUTATION IS APPLIED TO THE CONTROL'S INPUT, NOT RE-IMPLEMENTED BESIDE IT.
+    `_worst_cell_clears_its_own_floor` is the single expression the closure test
+    above actually depends on; here it is handed a REAL measured cell whose worst
+    value has been pushed under its own real band, and it must raise. Asserting
+    `0.14 < 0.15` in a test of my own writing would prove only that Python
+    compares floats — the tautology shape this project keeps finding inside its
+    own R15 evidence.
+
+    Generator-side proof that the real physics can drive this statistic through
+    the real band lives one suite over (`tests/harness/test_premise_two_level.py`,
+    the `_flatten_blend` mutation). This arm covers the seam between the two: that
+    a sub-floor measurement, however produced, is not accepted here.
+    """
+    texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
+    floor = texture.band.threshold
+
+    # Sanity: the unmutated cell passes the control, so a raise below is caused by
+    # the mutation and not by a control that raises on everything.
+    _worst_cell_clears_its_own_floor(texture)
+
+    regressed = dataclasses.replace(texture, worst_value=floor - 0.01)
+    with pytest.raises(AssertionError, match="fell"):
+        _worst_cell_clears_its_own_floor(regressed)
 
 
 # ===========================================================================

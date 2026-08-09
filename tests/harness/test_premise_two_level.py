@@ -410,15 +410,28 @@ def test_MEASURED_population_values(population_result):
 
     The two numbers that carry the finding: L1.1 PASSES at 0/60 — it failed at
     n=200 under the old boolean band purely because three resistive homes were
-    being judged by a heat-pump threshold — while L1.2 and L1.5 each fail on ONE
-    home. A panel of eight could not have produced either statement.
+    being judged by a heat-pump threshold — while L1.2 fails on ONE home. A panel
+    of eight could not have produced either statement.
+
+    L1.5 MOVED TO PASS, 2026-08-09, BY FIXING THE GENERATOR AND NOT THE BAND. The
+    0.10 threshold is untouched and no cell was marked UNVALIDATED. On the n=200
+    draw the cell failed with 7 homes outside band, and the breach was 100%
+    away-day driven: for all seven, EVERY occurrence of the most-repeated
+    normalised fraction landed on an away day (measured, not inferred — excluding
+    away days dropped all seven to 0.043-0.061 against the 0.10 band). An away day
+    had no stochastic component at all, so it was a clone of every other away day
+    and the normalised fractions collided exactly. The cold-appliance duty is now
+    the heat balance it always physically was — proportional to (room - cabinet),
+    against the premise's own comfort setpoint as the reference, so a home at its
+    setpoint draws exactly what it drew before — and away days differ because the
+    weather does. 7/200 -> 0/200, 1/60 -> 0/60.
     """
     assert population_result.homes >= fgl.MIN_HOMES_FOR_L1_RATE
     expected = {
         "L1.1_half_hourly_texture": (fgl.Verdict.PASS, 0.0),
         "L1.2_day_to_day_shape_correlation": (fgl.Verdict.FAIL, 1 / 60),
         "L1.3_away_days_per_year": (fgl.Verdict.PASS, 0.0),
-        "L1.5_max_multiplicity_share": (fgl.Verdict.FAIL, 1 / 60),
+        "L1.5_max_multiplicity_share": (fgl.Verdict.PASS, 0.0),
     }
     for statistic, (verdict, rate) in expected.items():
         cell = population_result.cell(statistic)
@@ -428,7 +441,6 @@ def test_MEASURED_population_values(population_result):
         assert cell.resolution == pytest.approx(0.05)
     assert {c.statistic for c in population_result.failed} == {
         "L1.2_day_to_day_shape_correlation",
-        "L1.5_max_multiplicity_share",
     }
     assert not population_result.inconclusive, population_result.summary()
 
@@ -2059,29 +2071,45 @@ def test_the_goal_seek_warning_needs_a_PREVALENCE_not_a_single_home(population_r
 
     The warning reads "L1.1 passes while L1.5 fails" as tuning — level noise
     sprinkled onto a rescaled base shape. That inference was sound when both cells
-    were worst-of-N. Under a rate it is not: the population's L1.5 breach is ONE
-    home in sixty, and a rescaled base shape is a property of the generator, so it
-    would be in every home it makes. The warning is silent here, and it must still
-    fire when the artefact is actually widespread.
+    were worst-of-N. Under a rate it is not: a rescaled base shape is a property
+    of the GENERATOR, so it would be in every home it makes, and one home in sixty
+    is a home to diagnose (R4). Both prevalences must therefore be exercised, and
+    the warning must be silent at one and loud at the other.
+
+    THE VEHICLE IS NOW SYNTHETIC ON BOTH ARMS, 2026-08-09, AND SAYING SO IS THE
+    POINT. Until this tick the low-prevalence arm rode on the live population's
+    real 1/60 L1.5 breach; that breach was the away-day clone and it is fixed, so
+    L1.5 now passes and there is no live FAIL to borrow. Rebuilding the low arm
+    with `dataclasses.replace` keeps the control genuinely under test — every
+    field the warning reads is set explicitly and the warning itself is not
+    stubbed — but it does mean this test no longer witnesses that the generator
+    can produce a low-prevalence breach at all. That witness moved to
+    `tests/simulation/test_premise_trace.py::test_the_L1_5_STRUCTURAL_CELL_fires_
+    when_the_coupling_is_REMOVED`, which restores the ambient-invariant duty and
+    watches the real statistic go back over the real band.
     """
     assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.PASS
-    assert population_result.cell(fgl.STRUCTURAL_STATISTIC).verdict is fgl.Verdict.FAIL
-    assert population_result.cell(fgl.STRUCTURAL_STATISTIC).value < 0.05
-    assert population_result.goal_seek_warning() is None, (
+
+    def with_structural(value: float, verdict: fgl.Verdict) -> fgl.TwoLevelResult:
+        return dataclasses.replace(
+            population_result,
+            cells=tuple(
+                dataclasses.replace(c, value=value, verdict=verdict)
+                if c.statistic == fgl.STRUCTURAL_STATISTIC else c
+                for c in population_result.cells
+            ),
+        )
+
+    rare = with_structural(1 / 60, fgl.Verdict.FAIL)
+    assert rare.cell(fgl.STRUCTURAL_STATISTIC).value < 0.05
+    assert rare.goal_seek_warning() is None, (
         "one home in sixty is a home to diagnose (R4), not evidence that someone "
         "moved a number"
     )
 
     # ...and the silence is not a broken control: raise the prevalence past the
     # floor on the SAME result object and the warning comes back.
-    widespread = dataclasses.replace(
-        population_result,
-        cells=tuple(
-            dataclasses.replace(c, value=0.9)
-            if c.statistic == fgl.STRUCTURAL_STATISTIC else c
-            for c in population_result.cells
-        ),
-    )
+    widespread = with_structural(0.9, fgl.Verdict.FAIL)
     assert widespread.goal_seek_warning() is not None, (
         "with the artefact in 90% of homes this IS the tuning signature and the "
         "warning must fire"
