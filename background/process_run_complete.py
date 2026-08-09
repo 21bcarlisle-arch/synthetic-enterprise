@@ -850,9 +850,55 @@ def run_fast_tests(git_hash: str):
                     "R15: the gate's subject is committed truth; if it cannot be produced, the "
                     "gate has not run.")
                 return False, False
+            _repair_derived_artefacts_in(head_dir)
             return _run_gate_in(head_dir, full_env, git_hash)
     except subprocess.TimeoutExpired:
         return _gate_timed_out()
+
+
+# SELF-HEALING DERIVED ARTEFACTS (2026-08-10, R10 class closure for the fourth wedge of the
+# same shape; register: background/derived_artefact_register.py).
+#
+# WHY. A `docs/design/*.md` projection goes stale whenever an ordinary act moves its sources --
+# minting an atom into the maturity map, archiving a finding to `staging/done/`. Its blocking
+# `--check` test then reds at HEAD, and because the publish path only commits AFTER a green
+# gate, the repair can never land: publishing deadlocks until a worker tick hand-runs `--write`.
+# That happened four times on 2026-08-09/10, costing hours each. The regeneration step existed
+# and simply had no caller.
+#
+# WHERE, and why here rather than in the staging-archive path (the open question the filed
+# finding left): today's drift was caused by a MAP MINT, not a staging archive, so an
+# archive-path repair would not have prevented it. This point is trigger-agnostic -- it repairs
+# whatever went stale, however it went stale, at the one moment staleness does harm.
+#
+# WHAT IT DOES TO THE GATE'S SUBJECT. The rendering is written into the HEAD checkout as well as
+# the working tree, so the gate tests HEAD *plus a mechanical re-derivation of HEAD's own
+# sources* -- and `git_commit_push` then publishes that same rendering in this cycle, so the
+# checkout is never ahead of what lands. This is a deliberate, narrow qualification of
+# DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09: what is tested is still committed truth, plus
+# the projection that committed truth *entails*. It cannot mask a real defect, because a
+# projection is a pure function of committed sources -- if the re-derivation differs from what is
+# committed, the committed copy was stale, which is the bug being repaired and not a finding
+# about the code. Nothing else in the checkout is touched.
+#
+# FAIL-OPEN BY DESIGN, DELIBERATELY: a repair that cannot run logs and returns, and the gate then
+# reds on the true unrepaired state. That is the honest outcome -- this helper must never be able
+# to turn a red gate green by crashing.
+def _repair_derived_artefacts_in(head_dir):
+    """Re-render stale derived artefacts from committed truth, into the checkout AND the tree."""
+    try:
+        from background import derived_artefact_register as dar
+        res = dar.repair_from(head_dir, PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001 -- see FAIL-OPEN note above
+        log("Derived-artefact repair skipped (non-fatal): {}".format(exc))
+        return
+    if res["repaired"]:
+        log("Derived-artefact repair: re-rendered {} stale projection(s) from HEAD -- {}. "
+            "Committed with this run.".format(len(res["repaired"]), ", ".join(res["repaired"])))
+    if not res["converged"]:
+        log("Derived-artefact repair did NOT converge after {} pass(es): {} still stale. Two "
+            "projections may be invalidating each other -- this is a real defect, not slow "
+            "convergence.".format(res["passes"], ", ".join(res["still_stale"])))
 
 
 # A FULL DISK MUST SAY SO (2026-08-09, third publish wedge).
@@ -1775,6 +1821,19 @@ def git_commit_push(git_hash, net_margin):
         files.append(str(docs_state))
     if DONE_DIR.exists():
         files.append(str(DONE_DIR))
+    # The derived-artefact repair (_repair_derived_artefacts_in) re-renders stale docs/design
+    # projections in the working tree; without this they would be repaired every cycle and
+    # committed by none, so the wedge would return on the next run. Driven off the REGISTER
+    # rather than a path list, so a future derived artefact is committed automatically -- the
+    # same class-closure shape as the site/data/*.json glob above, for the same reason.
+    try:
+        from background.derived_artefact_register import REGISTER as _DERIVED
+        for _art in _DERIVED:
+            _rendered = PROJECT_DIR / _art.rendered
+            if _rendered.exists():
+                files.append(str(_rendered))
+    except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
+        log("Derived-artefact paths not added to the commit (non-fatal): {}".format(_exc))
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
