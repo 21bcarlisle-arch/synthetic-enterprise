@@ -69,9 +69,20 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
+from simulation.segment_vocabulary import CompanyBookLabel
+
 # ---------------------------------------------------------------------------
 # Segment -> obligation-class (independent of C11's Segment enum; the world
 # normalises the observed spellings on its own terms).
+#
+# W2_15: these label sets are DELIBERATELY not the canonical market vocabulary
+# in `simulation/segment_vocabulary.py`. `_norm` lower-cases first, so every
+# comparison here is case-insensitive by construction and the segment-case
+# class cannot bite -- and the labels this module EMITS ('resi'/'sme'/'iandc')
+# are the COMPANY's book vocabulary, a different thing from the world's truth.
+# Merging the two would delete the belief-vs-truth gap C11 is scored on. The
+# seam, and why it is a seam and not drift, is in
+# `docs/design/W2_15_SEGMENT_VOCABULARIES_DISCOVER.md`.
 # ---------------------------------------------------------------------------
 
 # The obligation differs on ONE binary axis: is this a BUSINESS customer
@@ -279,7 +290,7 @@ def _u01(*parts: object) -> float:
     return int.from_bytes(digest[:8], "big") / float(1 << 64)
 
 
-def observed_segment(true_segment: object, customer_id: object) -> str:
+def observed_segment(true_segment: object, customer_id: object) -> CompanyBookLabel:
     """The segment label RECORDED on the company's account book for this
     customer -- what C11 acts on. Usually equals the true segment; with the
     illustrative misclassification rates above it is sometimes wrong (a
@@ -288,14 +299,25 @@ def observed_segment(true_segment: object, customer_id: object) -> str:
     is always mis/correctly recorded the same way on replay.
 
     Returns a label in the company's own vocabulary ('resi' / 'sme' / 'iandc')
-    so it can be fed straight into C11.select_debt_terms unchanged."""
+    so it can be fed straight into C11.select_debt_terms unchanged -- typed as
+    `CompanyBookLabel` (W2_15) so that this vocabulary cannot be coerced onto
+    the world-true canon by accident. It compares equal to the bare string, so
+    every existing consumer is unaffected; what it changes is that
+    `segment_vocabulary.normalise_segment()` now REFUSES it. Two of the three
+    labels here ('resi', 'sme') are also valid canonical aliases, so a
+    string-only block would have let them through silently and raised only on
+    'iandc' -- a trap that hides until the first I&C customer."""
     key = _norm(true_segment)
     draw = _u01(customer_id)
     if key in _DOMESTIC_LABELS:
-        return "sme" if draw < _MISCLASSIFY_DOMESTIC_AS_SME else "resi"
+        return CompanyBookLabel(
+            "sme" if draw < _MISCLASSIFY_DOMESTIC_AS_SME else "resi"
+        )
     if key in _SME_LABELS:
-        return "resi" if draw < _MISCLASSIFY_SME_AS_DOMESTIC else "sme"
+        return CompanyBookLabel(
+            "resi" if draw < _MISCLASSIFY_SME_AS_DOMESTIC else "sme"
+        )
     if key in _IANDC_LABELS:
         # A misrecorded I&C is (rarely) dropped to domestic.
-        return "resi" if draw < _MISCLASSIFY_IANDC else "iandc"
+        return CompanyBookLabel("resi" if draw < _MISCLASSIFY_IANDC else "iandc")
     raise ValueError(f"unrecognised customer segment: {true_segment!r}")

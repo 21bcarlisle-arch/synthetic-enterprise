@@ -104,12 +104,22 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterator, List, Mapping, Optional, Tuple
 
+from simulation import segment_vocabulary as _vocab
+
 # ---------------------------------------------------------------------------
 STREAM_NAMESPACE = "W2_6_sme_distress"
 
 #: Segments this twin applies to. Residential accounts go through the
 #: residential life-event stream instead (segment-gated there, W2_5 scope).
-BUSINESS_SEGMENTS: Tuple[str, ...] = ("SME", "I&C")
+#:
+#: W2_15: SOURCED from the canonical vocabulary, never re-declared. This line
+#: used to read `("SME", "I&C")` -- the same two strings, spelled the same way,
+#: but a SECOND declaration of a vocabulary that already had an owner. That is
+#: how the original segment-case defect was born (a private tuple that drifted
+#: from the system of record), and a second copy compared with a bare `in` is
+#: case-SENSITIVE, so `is_business_segment("sme")` was False and the twin
+#: RAISED on a lower-case spelling instead of doing its job.
+BUSINESS_SEGMENTS: Tuple[str, ...] = tuple(_vocab.BUSINESS_SEGMENTS)
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +219,23 @@ def _base_seed_for(customer_id: str, seed: Optional[int]) -> int:
 
 
 def is_business_segment(segment: str) -> bool:
-    return segment in BUSINESS_SEGMENTS
+    """True for a segment this distress twin applies to (SME / I&C).
+
+    Case-INSENSITIVE, via the canonical normaliser (W2_15). It used to be a
+    bare `segment in BUSINESS_SEGMENTS`, which meant a lower-case "sme" was
+    not a business segment and `generate_business_distress_profile` RAISED on
+    a real microbusiness. That was latent rather than live only because every
+    caller today happens to spell it canonically.
+
+    An unrecognised segment is False, not an exception: the caller's own
+    ValueError carries the better message (it names the residential stream as
+    the right home), and a predicate that raises is a predicate every caller
+    has to wrap.
+    """
+    try:
+        return _vocab.is_business(segment)
+    except _vocab.UnknownSegmentError:
+        return False
 
 
 # ---------------------------------------------------------------------------

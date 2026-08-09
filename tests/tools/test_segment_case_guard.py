@@ -126,6 +126,114 @@ class TestDoesNotFireOnCorrectCode:
         assert main([]) == 0
 
 
+class TestAnnotatedAssignment:
+    """W2_15 MUTATION: the fail-open a type hint used to open.
+
+    `_IC_SEGMENTS = (...)` is an `ast.Assign`; `_IC_SEGMENTS: Tuple[str, ...] =
+    (...)` is an `ast.AnnAssign`. The constant-collection channel visited only
+    the first, so adding a type annotation switched the control off. These
+    tests are the pair: the same defect, annotated and bare, must both fire.
+    """
+
+    def test_the_annotated_constant_is_flagged_like_the_bare_one(self, tmp_path):
+        _write(tmp_path, "mutated.py", '''
+            from typing import Tuple
+            _IC_SEGMENTS: Tuple[str, ...] = ("ic", "I&C")
+        ''')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert len(messages) == 1, messages
+        assert "'ic'" in messages[0]
+
+    def test_annotated_and_bare_forms_agree(self, tmp_path):
+        """The property, not one instance: annotation must not change the
+        verdict for ANY of the shapes the guard claims to catch."""
+        bodies = [
+            '_SEGS{ann} = ("ic", "I&C")',
+            '_SEGS{ann} = ["sme"]',
+            '_SEGS{ann} = ("SME", "I&C")',
+        ]
+        (tmp_path / "a").mkdir()
+        (tmp_path / "b").mkdir()
+        for body in bodies:
+            _write(tmp_path / "a", "m.py", body.format(ann=""))
+            _write(tmp_path / "b", "m.py", body.format(ann=": tuple"))
+            n_bare, _ = scan(tmp_path / "a", tmp_path)
+            n_ann, _ = scan(tmp_path / "b", tmp_path)
+            assert len(n_bare) == len(n_ann) > 0, (body, n_bare, n_ann)
+
+    def test_an_annotated_clean_constant_still_passes(self, tmp_path):
+        """The new visitor must not fire on correct annotated code."""
+        _write(tmp_path, "clean.py", '''
+            from typing import Tuple
+            _LABELS: Tuple[str, ...] = ("small_business", "household")
+        ''')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert messages == []
+
+
+class TestDuplicatedCanonicalVocabulary:
+    """W2_15 MUTATION: a SECOND copy of the canonical vocabulary.
+
+    The named defect is `simulation/sme_distress.BUSINESS_SEGMENTS = ("SME",
+    "I&C")` -- every literal canonical, so the case-check had nothing to flag,
+    while `segment in BUSINESS_SEGMENTS` was case-SENSITIVE and a lower-case
+    "sme" was not a business segment. The comparison itself is out of an AST
+    scan's reach; the private copy that makes it possible is not.
+    """
+
+    def test_fires_on_the_real_sme_distress_constant(self, tmp_path):
+        _write(tmp_path, "mutated.py",
+               'BUSINESS_SEGMENTS: Tuple[str, ...] = ("SME", "I&C")\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert len(messages) == 1, messages
+        assert "re-declared" in messages[0]
+        assert "segment_vocabulary" in messages[0], (
+            "the message must name where to import it from, or the reader's "
+            "obvious fix is to spell it differently"
+        )
+
+    def test_fires_on_all_three_segments_and_on_a_list_or_set(self, tmp_path):
+        for source in (
+            'ALL = ("resi", "SME", "I&C")\n',
+            'ALL = ["resi", "SME"]\n',
+            'ALL = {"SME", "I&C"}\n',
+        ):
+            _write(tmp_path, "mutated.py", source)
+            messages, _ = scan(tmp_path, tmp_path)
+            assert len(messages) == 1, (source, messages)
+
+    def test_a_single_canonical_literal_is_not_a_vocabulary(self, tmp_path):
+        """Threshold check -- one literal in a collection is a value, not a
+        re-declaration, and flagging it would make the guard noise."""
+        _write(tmp_path, "clean.py", 'DEFAULTS = ("resi",)\n')
+        messages, _ = scan(tmp_path, tmp_path)
+        assert messages == []
+
+    def test_the_vocabulary_module_itself_is_exempt(self, tmp_path):
+        """The canon declaring the canon is the point, not a duplicate.
+
+        This drives the EXEMPT path mechanism rather than asserting it from
+        the real tree: `simulation/segment_vocabulary.py` happens to build
+        `CANONICAL_SEGMENTS` from names, not literals, so a green real-tree
+        run would prove nothing about the exemption. Same source, two paths,
+        opposite verdicts -- that is the exemption actually doing work.
+        """
+        source = 'CANONICAL_SEGMENTS = ("resi", "SME", "I&C")\n'
+        elsewhere = tmp_path / "elsewhere"
+        elsewhere.mkdir()
+        _write(elsewhere, "anywhere.py", source)
+        assert len(scan(elsewhere, tmp_path)[0]) == 1, "flagged off the exempt path"
+
+        canon = tmp_path / "simulation"
+        canon.mkdir()
+        _write(canon, "segment_vocabulary.py", source)
+        messages, scanned = scan(canon, tmp_path)
+        assert scanned == 0 and messages == [], (
+            "the alias table's own declaration must be exempt -- and the "
+            "exemption is keyed on the repo-relative path, so it must resolve"
+        )
+
+
 class TestCannotFailOpen:
     """FAIL-OPEN / FAIL-SILENT: not-run must never read as passed."""
 
