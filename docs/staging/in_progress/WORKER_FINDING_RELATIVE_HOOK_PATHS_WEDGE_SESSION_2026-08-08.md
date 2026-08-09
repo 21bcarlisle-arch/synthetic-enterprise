@@ -1,3 +1,16 @@
+> **PARKED IN in_progress/ 2026-08-09.** Named as a suspect by
+> DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH Draw 1 and CHECKED: the instance is fixed —
+> all 8 hook commands in `.claude/settings.json` are project-anchored
+> (`${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/...`), verified by read.
+> It was NOT a cause of the 2026-08-09 publish wedge (that was a ruff F401 in an
+> uncommitted edit, then a stale derived ledger).
+>
+> **STILL OPEN — the class half, and it is why this is not in done/:** there is no
+> regression guard that every hook command is project-anchored (`grep -rl CLAUDE_PROJECT_DIR tests/`
+> returns nothing), so the next hand-edited hook re-arms the same total-deadlock. Unblocks by:
+> one R15-mutation-proven test asserting every `.claude/settings.json` hook command resolves
+> independently of cwd. QUEUED per SELF_INTERRUPT_DISCIPLINE — not fixed on sight.
+
 # [WORKER FINDING] A single `cd` in a Bash call wedged EVERY tool in the session (2026-08-08)
 
 **Status:** root cause FIXED in the same turn (`.claude/settings.json`, 8 hook commands).
