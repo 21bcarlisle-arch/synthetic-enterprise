@@ -1396,7 +1396,37 @@ def _flag_everything_score(entry_key, records, consumer, as_of):
         pops = lifepair.partition_populations(120, 2016, 2020)
         measures = lifepair.false_flag_measures(pops.with_flagged(pops.universe))
         return measures[lifepair.PUBLISHED_EXCLUSION_BASIS].gap
+    if entry_key == "couple_w2_8_c10.detection":
+        # THE SELF-RATIONING PAIR IS ALSO SCORED ON ITS OWN WORLD (atom D14):
+        # its universe is households and its negative population is the settled
+        # `RationingLabel.NOT_RATIONING` outcome, so the triad's payment records
+        # would measure nothing about this entry. Routed through
+        # `false_flag_measures` -- the function the entry names -- so a
+        # regression to recall-only fails this control instead of passing a
+        # re-implementation of it (the R15 tautology).
+        from tools import couple_w2_8_c10 as rationpair
+        pops = rationpair.build_populations(600)
+        flag_everything = dataclasses.replace(pops, flagged=pops.universe)
+        measures = rationpair.false_flag_measures(flag_everything)
+        return measures[rationpair.PUBLISHED_NEGATIVE_BASIS].gap
     # Every other registered entry is still on the recall-only scorer.
+    return detection_gap(truth, universe).gap
+
+
+def _reference_recall_only_score(records):
+    """The OTHER side of the differential, held independently of the register.
+
+    The control compares two shapes: a two-directional scorer must not hand the
+    flag-EVERYTHING degenerate a perfect score, a recall-only one must. Sourcing
+    the recall-only side from whichever entry HAPPENS to still be unpaid debt
+    made the control weaker the closer the register got to clean -- and it would
+    have broken outright on the day the last debt was paid, which is the one day
+    it must still work (atom D14 paid it). So the recall-only side is scored
+    from `detection_gap` DIRECTLY, on this test's own records: the differential
+    stays exercised whether or not any entry is still debt.
+    """
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    universe = {(r.customer_id, r.period_index) for r in records}
     return detection_gap(truth, universe).gap
 
 
@@ -1415,9 +1445,16 @@ def test_every_published_detection_dimension_declares_its_error_directions():
 
     assert contract, "the register is empty -- it cannot fail on anything"
     # VACUITY GUARD: both sides of the differential must be exercised, or a pass
-    # here proves only that one shape exists.
+    # here proves only that one shape exists. The two-directional side comes
+    # from the register; the recall-only side comes from `detection_gap` itself,
+    # NOT from whichever entry is still unpaid -- see
+    # `_reference_recall_only_score`.
     assert any(v["counts_both_error_directions"] for v in contract.values())
-    assert any(not v["counts_both_error_directions"] for v in contract.values())
+    assert _reference_recall_only_score(records) == 0.0, (
+        "the recall-only reference no longer hands the flag-EVERYTHING "
+        "degenerate a perfect score -- the differential this control rests on "
+        "is gone, so a two-directional pass below would prove nothing"
+    )
 
     for key, declared in contract.items():
         degenerate = _flag_everything_score(key, records, consumer, as_of)
@@ -1450,10 +1487,18 @@ def test_the_error_direction_control_fires_on_a_declaration_that_lies():
     # The lie: a recall-only entry declaring itself two-directional. The example
     # is chosen from the register at RUNTIME, not hardcoded -- D12 fixed the
     # entry this test used to name, and a hardcoded example turns a fixed
-    # dimension into a broken control instead of a passing one.
-    key = next(k for k, v in pair.DETECTION_DIRECTION_CONTRACT.items()
-               if not v["counts_both_error_directions"])
-    degenerate = _flag_everything_score(key, records, consumer, as_of)
+    # dimension into a broken control instead of a passing one. When the
+    # register carries NO recall-only entry left (D14 paid the last one), the
+    # recall-only scorer itself stands in: the control must keep proving it can
+    # catch a false declaration on a clean register, which is exactly when a
+    # future entry is most likely to be waved through.
+    key = next((k for k, v in pair.DETECTION_DIRECTION_CONTRACT.items()
+                if not v["counts_both_error_directions"]), None)
+    if key is None:
+        key = "detection_gap (reference recall-only scorer, no debt left)"
+        degenerate = _reference_recall_only_score(records)
+    else:
+        degenerate = _flag_everything_score(key, records, consumer, as_of)
     assert degenerate == 0.0, f"{key} stopped being recall-only"
     with pytest.raises(AssertionError):
         assert degenerate != 0.0, "declared two-directional but scores a degenerate 0"

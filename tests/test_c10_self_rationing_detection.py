@@ -212,8 +212,51 @@ def test_coupled_scenario_gap_is_non_degenerate():
     assert stats["n_low_need_below_floor"] > 0, "the confound must be present"
     # A real, honest gap: not perfect (blind spot), not blind (some recovery).
     assert 0.0 < result.gap < 1.0
-    # The detector is NOT naive: it excludes the low-need confounds cleanly.
-    assert stats["false_positive_rate"] < 0.05
+    # THE FALSE-FLAG DIRECTION IS REAL NOW (atom D14). This assertion used to
+    # read `false_positive_rate < 0.05` and it PASSED at 0.0000 -- on a world
+    # where no non-rationer could drop at all, so no drop-based detector could
+    # ever have failed it. A bound that tight was measuring the world's
+    # emptiness and calling it detector precision (R12). What is asserted now is
+    # STRUCTURAL: the rate can move, and the detector is far better than an
+    # indiscriminate one -- never a target band.
+    fp = stats["false_positive_rate"]
+    assert fp is not None and 0.0 < fp < 0.5, fp
+    assert stats["n_hard_negatives"] > 0, (
+        "no non-rationer in the scored population has a real consumption drop "
+        "-- the false-flag rate is structurally 0 again and means nothing"
+    )
+
+
+def test_the_false_flag_rate_is_scored_on_the_settled_negative_not_the_naive_one():
+    """The D11 denominator rule, on this pair (atom D14). A household that IS
+    self-rationing but sits ABOVE the floor is in NEITHER direction's
+    population: it is not in the truth set, and a flag on it is CORRECT. Both
+    rates are published every run so the defect cannot come back quietly."""
+    result, stats = couple.measure(n_customers=2500)
+    assert stats["negative_basis"] == couple.PUBLISHED_NEGATIVE_BASIS
+    assert stats["n_neither_excluded"] > 0, "nothing excluded -- no differential"
+    # The exclusion is PUBLISHED, not silent (D10): it travels in the components.
+    assert result.components["n_excluded"] == stats["n_neither_excluded"]
+    assert "ABOVE the TDCV Low floor" in result.components["exclusion_reason"]
+    # The naive denominator sweeps the excluded set in -- a different number.
+    by_basis = stats["false_flag_rate_by_basis"]
+    assert set(by_basis) == set(couple.NEGATIVE_BASES)
+    assert by_basis["settled_not_rationing"] != by_basis["naive_universe_minus_truth"]
+
+
+def test_mutation_the_published_measure_never_runs_with_confounders_off():
+    """R15: the world's hard negatives are what make the false-flag direction
+    publishable, so the off-switch must be unreachable from the published path.
+    Turning it off restores the pre-D14 vacuity -- and `detection_measures`
+    would then report a false-flag rate of exactly 0.0000, the number the D13
+    DISCOVER refused to publish."""
+    pops = couple.build_populations(2500, confounders_enabled=False)
+    assert pops.stats["n_hard_negatives"] == 0
+    measures = couple.false_flag_measures(pops)
+    assert measures[couple.PUBLISHED_NEGATIVE_BASIS].components["false_flag_rate"] == 0.0
+    # The published entry point cannot reach that state.
+    _result, stats = couple.measure(n_customers=800)
+    assert stats["confounders_enabled"] is True
 
 
 def test_missed_are_the_no_baseline_blind_spot():

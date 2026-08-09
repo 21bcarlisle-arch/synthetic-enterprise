@@ -105,26 +105,30 @@
           },
           "L2.4_scale_spread_p90_p10": {
             "value": 1.7981110234118327,
-            "verdict": "unvalidated"
+            "verdict": "fail"
           }
         },
         "days": 120,
-        "failed": [],
-        "failed_levels": [],
+        "failed": [
+          "L2.4_scale_spread_p90_p10"
+        ],
+        "failed_levels": [
+          "L2"
+        ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
         "homes": 200,
         "inconclusive": [],
-        "is_red": false
+        "is_red": true
       }
     },
     "g0": 0.10487934813100001,
     "gap": 0.42690864157617536,
-    "measured_at": "2026-08-09T09:07:39.224946+00:00",
+    "measured_at": "2026-08-09T11:22:32.737018+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.04477390004,
-    "run_git_commit": "afeb549c0681e11fbffc89303f69b630e1d4da37",
+    "run_git_commit": "39142e0059dc67398fcff6e5bbf1ee9a155675a3",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -233,26 +237,30 @@
           },
           "L2.4_scale_spread_p90_p10": {
             "value": 1.7981110234118327,
-            "verdict": "unvalidated"
+            "verdict": "fail"
           }
         },
         "days": 120,
-        "failed": [],
-        "failed_levels": [],
+        "failed": [
+          "L2.4_scale_spread_p90_p10"
+        ],
+        "failed_levels": [
+          "L2"
+        ],
         "generator": "premise_trace.generate_premise_trace (W1_12)",
         "goal_seek_warning": null,
         "homes": 200,
         "inconclusive": [],
-        "is_red": false
+        "is_red": true
       }
     },
     "g0": 0.10487934813100001,
     "gap": 0.4043773825542921,
-    "measured_at": "2026-08-09T09:07:39.224946+00:00",
+    "measured_at": "2026-08-09T11:22:32.737018+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
     "raw_gap": 0.04241083628121418,
-    "run_git_commit": "afeb549c0681e11fbffc89303f69b630e1d4da37",
+    "run_git_commit": "39142e0059dc67398fcff6e5bbf1ee9a155675a3",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -665,23 +673,33 @@
     "twin_atom_id": "C9_cantpay_wontpay_classifier"
   },
   "W2_8_self_rationing": {
-    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "baseline": "0.5 -- the balanced error EVERY prevalence-blind rule scores: flag nobody (miss 1, false-flag 0), flag EVERYTHING (miss 0, false-flag 1), and any coin-flip at any rate. Unlike the recall-only `detection_gap` this supersedes, 0.0 cannot be bought by over-flagging -- it has to be earned in both directions -- and 1.0 means perfectly wrong, not merely blind.",
     "components": {
-      "caught": 133,
-      "flagged_size": 133,
-      "miss_rate": 0.307292,
-      "missed": 59,
-      "missed_harm": 54335.41,
-      "total_harm": 175606.37,
-      "truth_size": 192
+      "caught": 141,
+      "exclusion_reason": "households that ARE genuinely self-rationing but sit ABOVE the TDCV Low floor, so they fall outside `is_silent_hardship` and are not in the truth set. A C10 flag on one of them is CORRECT -- the company is right about the household -- so counting it as a false flag would score the company down for being right (the D11 rule; the defect the D13 DISCOVER found in this file).",
+      "false_flag_rate": 0.05597,
+      "flagged_size": 351,
+      "miss_rate": 0.312195,
+      "missed": 64,
+      "missed_failure_rate": 0.30142,
+      "missed_harm": 61927.89,
+      "n_excluded": 43,
+      "n_false_flags": 210,
+      "n_negatives": 3752,
+      "negative_basis": "settled_not_rationing",
+      "negative_basis_label": "settled negative: label == NOT_RATIONING (the Bernoulli outcome)",
+      "supersedes": "detection_gap (recall-only, retired 2026-08-09 by atom D11). NOT restated here: it was scored over a different flagged population, so no arithmetic on these sets reproduces it.",
+      "total_harm": 205453.63,
+      "truth_size": 205,
+      "universe_size": 4000
     },
-    "g0": 175606.37,
-    "gap": 0.30941593975207166,
-    "measured_at": "2026-07-13T22:09:20.633906+00:00",
+    "g0": 0.5,
+    "gap": 0.1786952129680573,
+    "measured_at": "2026-08-09T11:53:26.000449+00:00",
     "metric": "detection",
-    "note": "harm-weighted fraction of DETECTABLE silent self-rationing the company MISSED (W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection). The gap is driven by the smart-meter/baseline coverage blind spot: a rationer without a usable prior baseline is indistinguishable from a low-need home. Miss-only metric; false positives reported separately.",
-    "raw_gap": 54335.41,
-    "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
+    "note": "W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection, BOTH directions (atom D14). NEGATIVE BASIS = settled_not_rationing: settled negative: label == NOT_RATIONING (the Bernoulli outcome). The MISS direction is driven by the smart-meter/baseline coverage blind spot (a rationer without a usable prior baseline is indistinguishable from a low-need home); the FALSE-FLAG direction is driven by the world's non-budget drop confounders (a house move, a void, a retrofit, a voluntary cut), which before D14 did not exist -- the rate was 0.0000 for ANY detector and was a property of the world, not of the company.",
+    "raw_gap": 0.30142027668238325,
+    "run_git_commit": "83c2bce93e6ac27e80aa886d0b7eef0224ede3b5",
     "twin_atom_id": "C10_self_rationing_detection"
   },
   "W2_9_segment_debt_tnc": {

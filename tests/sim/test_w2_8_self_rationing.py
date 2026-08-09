@@ -37,6 +37,7 @@ from simulation.life_events import generate_life_events
 from simulation.population_draw import draw_population
 from simulation.self_rationing import (
     TDCV_LOW_FLOOR_KWH,
+    DropConfounder,
     RationingLabel,
     _SUBSTREAMS,
     _base_seed_for,
@@ -179,14 +180,120 @@ def test_propensity_never_exceeds_the_curriculum_maximum():
 
 
 def test_comfortable_household_never_self_rations():
-    # A comfortable budget -> onset propensity 0 -> NOT_RATIONING, no drop.
+    # A comfortable budget -> onset propensity 0 -> NOT_RATIONING, and the
+    # BUDGET-driven cut is always zero. It may still show a drop (D14: a move, a
+    # void, a retrofit, a voluntary cut), but never a rationing one.
     budget = _budget(margin=800.0, floor=1000.0)
     for i in range(200):
         s = generate_self_rationing_state(f"COMF{i}", 2500.0, budget=budget, seed=i)
         assert s.label == RationingLabel.NOT_RATIONING
         assert s.rationing_severity == 0.0
-        assert s.observed_annual_kwh == s.healthy_annual_kwh  # no drop
-        assert s.observed_drop_fraction == 0.0
+        if s.drop_confounder is DropConfounder.NONE:
+            assert s.observed_annual_kwh == s.healthy_annual_kwh  # no drop
+            assert s.observed_drop_fraction == 0.0
+
+
+def test_no_drop_is_ever_unexplained():
+    """EVERY drop is attributable (atom D14). Consumption falls below the
+    household's own baseline ONLY through the budget-driven severity, the
+    non-budget confounder, or both compounded -- never for an unnamed reason.
+    Without this the confounder could mask a generator bug as 'a bit of noise'."""
+    stressed = _budget(margin=-200.0, floor=1000.0)
+    for i in range(600):
+        for budget in (stressed, _budget(margin=900.0, floor=1000.0)):
+            s = generate_self_rationing_state(f"ATTR{i}", 2500.0, budget=budget, seed=i)
+            if s.observed_annual_kwh < s.healthy_annual_kwh:
+                assert s.rationing_severity > 0.0 or s.has_confounded_drop, (
+                    f"unexplained drop: {s}"
+                )
+            else:
+                assert s.rationing_severity == 0.0 and not s.has_confounded_drop
+
+
+def test_the_world_emits_hard_negatives_a_drop_with_no_hardship():
+    """THE D14 EXIT CRITERION. Before D14 this world could not produce a single
+    non-rationer with a consumption drop, so the false-flag rate of ANY
+    drop-based detector was 0.0000 -- a property of the world published as
+    detector precision. Non-rationers who genuinely drop must now EXIST, at a
+    material rate, with a NAMED cause."""
+    comfortable = _budget(margin=900.0, floor=1000.0)
+    states = [
+        generate_self_rationing_state(f"HN{i}", 2500.0, budget=comfortable, seed=i)
+        for i in range(3000)
+    ]
+    hard_negatives = [s for s in states if s.is_hard_negative]
+    assert hard_negatives, "the world still has NO hard negatives -- D14 undone"
+    # Order-of-magnitude claim, NOT a tuned target (R12): the confounder
+    # incidences sum to ~19%/yr, so a material minority drop.
+    rate = len(hard_negatives) / len(states)
+    assert 0.05 < rate < 0.40, rate
+    # Every one names its cause, and no cause is a rationing label in disguise.
+    assert all(s.label == RationingLabel.NOT_RATIONING for s in hard_negatives)
+    assert all(s.rationing_severity == 0.0 for s in hard_negatives)
+    causes = {s.drop_confounder for s in hard_negatives}
+    assert causes and DropConfounder.NONE not in causes
+    # All four mechanisms are reachable -- a band nothing can draw from is dead
+    # code pretending to be world depth.
+    assert causes == {c for c in DropConfounder if c is not DropConfounder.NONE}, causes
+
+
+def test_mutation_disabling_confounders_restores_the_vacuous_world():
+    """R15 MUST-FIRE. The control above has to be able to FAIL on its own named
+    defect: switch the confounders off and the world goes back to emitting zero
+    hard negatives, exactly as the D13 DISCOVER measured it. If this mutation
+    did not restore the 0/N, the control would be passing on something other
+    than the mechanism D14 built."""
+    comfortable = _budget(margin=900.0, floor=1000.0)
+    states = [
+        generate_self_rationing_state(
+            f"HN{i}", 2500.0, budget=comfortable, seed=i, confounders_enabled=False
+        )
+        for i in range(3000)
+    ]
+    assert not [s for s in states if s.is_hard_negative]
+    assert all(s.observed_annual_kwh == s.healthy_annual_kwh for s in states)
+
+
+def test_confounders_are_drawn_independently_of_the_rationing_label():
+    """A confounder that only ever landed on non-rationers would be a giveaway
+    correlation, not a confounder: the harness could recover the hidden label
+    from the drop cause. The SAME household draws the SAME confounder whatever
+    its budget does."""
+    stressed = _budget(margin=-300.0, floor=1000.0)
+    comfortable = _budget(margin=900.0, floor=1000.0)
+    seen_on_a_rationer = False
+    for i in range(800):
+        a = generate_self_rationing_state(f"IND{i}", 2500.0, budget=stressed, seed=i)
+        b = generate_self_rationing_state(f"IND{i}", 2500.0, budget=comfortable, seed=i)
+        assert a.drop_confounder == b.drop_confounder
+        assert a.confounder_drop_fraction == b.confounder_drop_fraction
+        if a.is_self_rationing and a.has_confounded_drop:
+            seen_on_a_rationer = True
+    assert seen_on_a_rationer, (
+        "no rationer ever drew a confounder -- the draw is not independent of "
+        "the label after all"
+    )
+
+
+def test_a_rationer_who_also_moves_out_cuts_further_and_keeps_its_severity():
+    """The two cuts COMPOUND on the same home, and `rationing_severity` keeps
+    naming ONLY the budget-driven part -- the answer key must not absorb the
+    confounder's share, or the harm attributed to hardship would be inflated by
+    a house move."""
+    stressed = _budget(margin=-300.0, floor=1000.0)
+    pairs = []
+    for i in range(2000):
+        on = generate_self_rationing_state(f"CMP{i}", 3000.0, budget=stressed, seed=i)
+        off = generate_self_rationing_state(
+            f"CMP{i}", 3000.0, budget=stressed, seed=i, confounders_enabled=False
+        )
+        if on.is_self_rationing and on.has_confounded_drop:
+            pairs.append((on, off))
+    assert pairs, "no rationer drew a confounder -- nothing to compound"
+    for on, off in pairs:
+        assert on.rationing_severity == off.rationing_severity  # answer key intact
+        assert on.observed_annual_kwh < off.observed_annual_kwh  # cut further
+        assert on.observed_annual_kwh > 0.0
 
 
 def test_default_budget_is_drawn_from_w2_4_when_not_supplied():
@@ -238,7 +345,18 @@ def test_genuinely_low_need_household_is_below_floor_but_not_rationing():
     # below the floor — below floor, but NO drop and NOT rationing. The detector
     # must not flag it; only the true label separates it from a self-rationer.
     comfortable = _budget(margin=900.0, floor=1000.0)
-    s = generate_self_rationing_state("LOWNEED", 1200.0, budget=comfortable, seed=1)
+    # Drawn from the DEFAULT world (confounders live), so this is a household
+    # that really exists in what the coupler scores -- not the pre-D14 world
+    # switched back on. It must be an ordinary case, not a rarity.
+    candidates = [
+        s
+        for i in range(500)
+        if (s := generate_self_rationing_state(
+            f"LOWNEED{i}", 1200.0, budget=comfortable, seed=i)
+        ).drop_confounder is DropConfounder.NONE
+    ]
+    assert len(candidates) > 250, "the no-confounder low-need home has gone rare"
+    s = candidates[0]
     assert s.is_below_floor            # observably below the 1400 floor
     assert not s.is_self_rationing     # but NOT rationing (answer key)
     assert s.observed_drop_fraction == 0.0  # and no drop — the distinguishing signal

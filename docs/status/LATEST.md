@@ -1,5 +1,55 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T11:41:04Z
+Last updated: 2026-08-09T12:04:09Z
+**D14_w2_8_needs_negative_drops — L0→L2, self-certified. The self-rationing detector had a false
+alarm rate of exactly 0.0000, and not one of those zeros was earned: the world could not produce a
+single household whose usage fell for an innocent reason.**
+Of 3752 non-rationers, **0 had any consumption drop at all** — the generator returned
+`observed == healthy` exactly — so no drop-based detector could have false-flagged anyone, ever.
+That number was a property of the WORLD being published as detector precision (R12), which is why
+the D13 DISCOVER refused to publish the second direction and booked the debt here.
+**Fixed in the WORLD, not in the metric.** `DropConfounder` now emits drops with no hardship behind
+them, drawn independently of the hidden rationing label: **house move 10%/yr** (the outgoing account
+reads part of a year — advisor CoT scope brief), **voluntary cut 6%** (GB domestic demand fell
+materially in 2022-23 among households under no budget stress), **vacancy 2%**, **efficiency
+retrofit 1%**. Every incidence traces to a stated anchor, tagged `[L]` where it is a curriculum shape
+rather than a measured rate, and **all four were fixed and committed before the resulting rate was
+measured** — R13 as an order of operations, not a sentence.
+**695 of 3752 non-rationers now really do drop. The false-flag rate moved 0.0000 → 0.0560 and that
+is the point, never a number to tune back down.** Recall barely moved (0.6927 → 0.6878): the change
+bought the company nothing on the direction it was already scored on. Two consequences stated rather
+than glossed — the truth set MOVED (192 → 205, as confounders push above-floor rationers below it),
+and harm on a rationer who also moved house includes the move's share.
+**The denominator defect the DISCOVER found in shipped code is fixed in the same change.** The 43
+households that ARE rationing but sit above the floor are EXCLUDED — a flag on them is *correct*, so
+counting it as a false flag would score the company down for being right (the D11 rule). Both the
+settled and the naive rate are published every run (0.0560 vs 0.0553) so the defect cannot come back
+quietly. The exclusion travels in the ledger components, published not silent.
+**Paying the last debt in the register broke the control that watched it.** The error-direction
+control's vacuity guard asserted that *some* entry was still recall-only, and its lying-declaration
+sibling picked that entry at runtime — both would have failed on the day the register got clean,
+which is the one day they must work. The recall-only side of the differential is now scored from
+`detection_gap` directly, independent of any unpaid liability existing.
+**R15 both ways.** Switch the confounders off and the world returns to 0 hard negatives with
+`observed == healthy` for every household — exactly as D13 measured it — and the published entry
+point is proven unable to reach that switch. Plus: no drop is ever unexplained (severity, confounder,
+or both), the confounder draw is proven independent of the label in both directions, all four
+mechanisms are reachable, and a rationer who also moves out cuts further while `rationing_severity`
+keeps naming only the budget-driven part.
+**The assertion that had to go, named rather than quietly deleted:** the coupled test asserted
+`false_positive_rate < 0.05` and passed at 0.0000 — on a world where nothing could fail it. It is
+replaced by a structural claim (the rate can move; hard negatives exist), never a target band.
+All four published detection dimensions now count both directions; the pair gap changes meaning,
+harm-weighted miss 0.3094 → mean of both directions 0.1787.
+**Queued, not fixed on sight:** `D18_confounder_observable_channel` — the confounder cause is answer
+key, so the company cannot explain away a house move it would really have registered. Detection here
+is strictly harder than reality and **0.0560 is an upper bound**, registered rather than hidden.
+`docs/design/D14_W2_8_DROP_CONFOUNDERS.md` · 176 tests green across the pair, the sim atom, the
+register, gap_metric, the coupled-triad gate and the proof door.
+
+---
+
+## PREVIOUS
+
 **KNIFE4_orphan_disposition — L0→L2, self-certified. All 258 company-side orphans now carry a
 ruling, and the pass's own measurement refuted two thirds of the premise it was drawn on.**
 The atom expected the 258 to divide between *a caller existed and was missing*, *superseded — name
@@ -52,8 +102,6 @@ obvious split is a design question, not a line-count response.
 `docs/design/ORPHAN_DISPOSITION_REGISTER.md` · `docs/design/KNIFE_HOTSPOT_PASSES.md` section 4.
 
 ---
-
-## PREVIOUS
 
 **D15_w2_5_false_flag_direction_r13_choice — L0→L2, self-certified. The life-event pair scored
 "nearly perfect" at 0.0081 — and so did a company that flagged every single customer-year.**
@@ -1414,7 +1462,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517

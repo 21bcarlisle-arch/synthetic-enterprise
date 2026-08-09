@@ -36,6 +36,30 @@ tell these apart from observables (the drop, the weather-inconsistency) without
 ever reading the hidden budget or the true label. A detector that scores 100%
 would be leaking hidden state (an epistemic-wall violation in spirit).
 
+THE SECOND CONFOUND - A DROP IS NOT A DIAGNOSIS (atom D14, 2026-08-09)
+---------------------------------------------------------------------
+The paragraph above was, until D14, the WHOLE story - and that made this world
+dishonest in a way no detector could expose. Every non-rationer returned
+``observed == healthy`` EXACTLY: measured at the coupled pair's own reference
+population, 0 of 3752 non-rationers had any consumption drop at all, and 0 were
+flaggable under any weather factor the coupler can draw. The false-flag rate was
+therefore 0.0000 for ANY drop-based detector - a property of the WORLD published
+as if it were detector precision (the D13 DISCOVER's finding; an R12 breach in
+the making). Real consumption falls for many reasons that have nothing to do
+with a squeezed budget: somebody MOVES OUT halfway through the year, a home is
+INSULATED, a property stands EMPTY between occupiers, or a household that can
+comfortably afford its bill simply decides to use less. Each of those produces
+exactly the observable signature - a large drop from the account's own prior
+baseline, with a clean payment record - that the harm case produces. So the
+world now emits them (``DropConfounder``), drawn INDEPENDENTLY of the rationing
+label, and a drop-based detector can be WRONG here for the first time.
+
+This is a BASELINE FIDELITY change (R13): made because the world lacked a real
+phenomenon, decided BLIND to what it does to the measured gap. The incidences
+and magnitudes below were fixed from external anchors and committed BEFORE the
+resulting false-flag rate was measured. The change RAISES that rate off zero -
+that is the point, and it is never a number to tune back down (R12).
+
 WALL DISCIPLINE (.claude/rules/epistemic-wall-sim.md)
 -----------------------------------------------------
 WORLD/sim code. MUST NOT import ``company.*`` or ``saas.*``. The only sanctioned
@@ -97,6 +121,38 @@ Provenance: ``docs/design/CHARTER_W2_AFFORDABILITY.md`` §W2_8 and Ofgem,
 - SIMPLIFICATION (R10): the margin->propensity ramp (``_COMFORT_RATIO``,
   ``_STRESS_RATIO``) and the severity band (``_SEVERITY_RANGE``) are documented
   curriculum shapes, overridable, not measured per-household figures.
+
+DROP-CONFOUNDER ANCHORS & SIMPLIFICATIONS (R10, atom D14, dated 2026-08-09)
+---------------------------------------------------------------------------
+- ANCHORED [rate, directional]: ~10% of GB households MOVE each year (advisor
+  scope brief `ADVISOR_SCOPE_BRIEF_CHANGE_OF_TENANCY_2026-08-07.md`, itself
+  marked verify-current). A mid-year move leaves the outgoing account a
+  part-year read against a full-year baseline - the single largest source of
+  "the meter says this home stopped using energy" that has nothing to do with
+  hardship.
+- ANCHORED [rate, order-of-magnitude, tagged [L]]: retrofit. ECO/GBIS-scale
+  measure installs run in the low hundreds of thousands of homes a year against
+  a ~28m-household stock, i.e. ~1%/yr, at a typical 10-30% consumption saving.
+- ANCHORED [rate, order-of-magnitude, tagged [L]]: vacancy. Vacant dwellings run
+  at roughly 2-3% of the English stock (council-tax-base dwelling statistics),
+  long-term empties around 1%. A property empty for part of a year reads as a
+  deep drop on a live supply.
+- ANCHORED [phenomenon, directional, tagged [L]]: voluntary/behavioural cuts.
+  GB domestic demand fell materially through the 2022-23 price shock (DESNZ/NESO
+  reporting; gas ~10-15%, electricity mid-single-digit) and a substantial share
+  of that came from households under NO budget stress at all. That households
+  who can afford their bill still cut usage is the anchored fact; the per-year
+  incidence of a MATERIAL individual cut is a curriculum shape.
+- SIMPLIFICATION (R10, REGISTERED, NOT HIDDEN): at most ONE confounder fires per
+  household per period, and its cause is carried as ANSWER KEY - the company
+  cannot observe it. In reality a supplier learns of some of these directly (a
+  change-of-tenancy registration, an ECO install on its own scheme, a void
+  notification), which would let a real detector explain away part of what it
+  now false-flags. Hiding them makes detection strictly HARDER than reality, so
+  the measured false-flag rate is an UPPER bound, never flattering. The
+  observable channel is a follow-on atom, not a silent omission.
+- SIMPLIFICATION (R10): confounder magnitudes are annual-consumption fractions,
+  not within-year profiles. This world has no intra-year shape to cut.
 """
 from __future__ import annotations
 
@@ -112,7 +168,12 @@ STREAM_NAMESPACE = "W2_8_self_rationing"
 
 # Named RNG substreams — one per stochastic mechanism (C-S2). A future mechanism
 # APPENDS a name here; it can never shift an existing substream's sequence.
-_SUBSTREAMS: Tuple[str, ...] = ("onset", "severity")
+# "confounder_onset"/"confounder_magnitude" were APPENDED by D14 — appending is
+# why every rationer's onset and severity stayed byte-identical through a change
+# that altered what the world emits.
+_SUBSTREAMS: Tuple[str, ...] = (
+    "onset", "severity", "confounder_onset", "confounder_magnitude",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -151,6 +212,42 @@ class RationingLabel(str, Enum):
     """The HIDDEN true label — the answer key the C10 twin must recover."""
     NOT_RATIONING = "not_rationing"      # normal need OR genuinely-low need
     SELF_RATIONING = "self_rationing"    # cutting heat/energy under budget stress
+
+
+class DropConfounder(str, Enum):
+    """A NON-BUDGET cause of a consumption drop (atom D14). Drawn INDEPENDENTLY
+    of ``RationingLabel``, so it fires on rationers and non-rationers alike — a
+    confounder that only ever landed on non-rationers would be a giveaway
+    correlation, not a confounder. It is the mechanism by which a household that
+    is NOT in hardship can still show the exact observable signature the C10
+    detector keys on."""
+    NONE = "none"
+    HOUSE_MOVE = "house_move"                    # occupier changed mid-period
+    VOLUNTARY_CUT = "voluntary_cut"              # afforded it, chose to use less
+    VACANCY = "vacancy"                          # premises empty part of period
+    EFFICIENCY_RETROFIT = "efficiency_retrofit"  # insulation / heating upgrade
+
+
+# ---------------------------------------------------------------------------
+# DROP CONFOUNDERS (atom D14) — (cause, annual incidence, drop-fraction band).
+# BASELINE fidelity, R13: each incidence traces to the anchor recorded in the
+# module docstring and was fixed BEFORE the resulting false-flag rate was
+# measured. Order matters only for the cumulative pick; incidences are annual
+# probabilities and are MUTUALLY EXCLUSIVE (registered simplification).
+# ---------------------------------------------------------------------------
+_CONFOUNDER_BANDS: Tuple[Tuple["DropConfounder", float, Tuple[float, float]], ...] = (
+    # ~10%/yr of households move; the outgoing account reads part of a year.
+    (DropConfounder.HOUSE_MOVE, 0.100, (0.20, 0.70)),
+    # Material voluntary cut with no budget stress behind it ([L] shape).
+    (DropConfounder.VOLUNTARY_CUT, 0.060, (0.15, 0.35)),
+    # ~2%/yr of premises stand empty for a material part of the period.
+    (DropConfounder.VACANCY, 0.020, (0.50, 0.90)),
+    # ~1%/yr get an efficiency measure, saving ~10-30%.
+    (DropConfounder.EFFICIENCY_RETROFIT, 0.010, (0.10, 0.30)),
+)
+
+# A home never reads exactly zero on a live supply (base load, standing losses).
+_MAX_TOTAL_CUT = 0.97
 
 
 def _substream(base_seed: int, name: str) -> random.Random:
@@ -194,6 +291,33 @@ def rationing_propensity(margin_monthly: float, floor_monthly: float) -> float:
     return round(frac * _MAX_RATIONING_PROPENSITY, 6)
 
 
+def draw_drop_confounder(
+    base_seed: int, enabled: bool = True
+) -> Tuple[DropConfounder, float]:
+    """Draw this household's NON-BUDGET drop cause and its magnitude (D14).
+
+    Independent of the rationing label and of the budget: it draws from this
+    module's own ``confounder_onset`` / ``confounder_magnitude`` substreams, so
+    it can neither read nor shift the onset/severity sequences (C-S2). Returns
+    ``(DropConfounder.NONE, 0.0)`` for the majority of households.
+
+    ``enabled=False`` reproduces the pre-D14 world (no non-budget drops at all).
+    It exists for the R15 mutation that proves the false-flag rate is structural
+    — the DEFAULT is on, and nothing in the harness may pass ``False`` to make a
+    detector look better.
+    """
+    if not enabled:
+        return DropConfounder.NONE, 0.0
+    u = _substream(base_seed, "confounder_onset").random()
+    cum = 0.0
+    for cause, incidence, band in _CONFOUNDER_BANDS:
+        cum += incidence
+        if u < cum:
+            magnitude = _substream(base_seed, "confounder_magnitude").uniform(*band)
+            return cause, round(magnitude, 4)
+    return DropConfounder.NONE, 0.0
+
+
 @dataclass(frozen=True)
 class SelfRationingState:
     """A household's hidden self-rationing truth for a consumption period.
@@ -215,6 +339,11 @@ class SelfRationingState:
     label: RationingLabel
     rationing_severity: float            # 0.0 if not rationing
     discretionary_margin_monthly: float  # from W2_4 (may be < 0)
+    # The NON-BUDGET drop cause (D14) and its magnitude. ANSWER KEY: a move, a
+    # retrofit, a void or a voluntary cut is invisible to the company here, so a
+    # drop it produces is indistinguishable from hardship at the meter.
+    drop_confounder: DropConfounder = DropConfounder.NONE
+    confounder_drop_fraction: float = 0.0
     data_regime: str = "synthetic"
 
     # -- OBSERVABLE derived signals (what the detector may condition on) -----
@@ -241,6 +370,23 @@ class SelfRationingState:
         return self.label == RationingLabel.SELF_RATIONING
 
     @property
+    def has_confounded_drop(self) -> bool:
+        """A non-budget cause cut this household's consumption (D14). On a
+        household that is NOT rationing this is the world's HARD NEGATIVE: a
+        genuine drop with no hardship behind it, which a drop-based detector may
+        legitimately get wrong."""
+        return (
+            self.drop_confounder is not DropConfounder.NONE
+            and self.confounder_drop_fraction > 0.0
+        )
+
+    @property
+    def is_hard_negative(self) -> bool:
+        """NOT rationing, yet the meter shows a real drop — the population whose
+        absence made the false-flag rate structurally 0.0000 before D14."""
+        return not self.is_self_rationing and self.has_confounded_drop
+
+    @property
     def is_silent_hardship(self) -> bool:
         """The defining hard case: genuinely self-rationing AND below the floor
         AND a PERFECT payment record — the harm the arrears channel cannot see."""
@@ -254,6 +400,7 @@ def generate_self_rationing_state(
     budget: Optional[HouseholdBudget] = None,
     seed: Optional[int] = None,
     floor_kwh: Optional[float] = None,
+    confounders_enabled: bool = True,
 ) -> SelfRationingState:
     """Generate one household's hidden self-rationing state for a period.
 
@@ -267,10 +414,14 @@ def generate_self_rationing_state(
 
     Deterministic in ``(customer_id, seed, healthy_annual_kwh, commodity)``.
 
-    A household with a comfortable margin returns ``NOT_RATIONING`` with
-    ``observed == healthy`` (no drop) — including the confound case where its
-    ``healthy_annual_kwh`` is itself already below the floor (a genuinely-low-need
-    home): below floor, but no drop and not rationing.
+    A household with a comfortable margin always returns ``NOT_RATIONING`` —
+    including the confound case where its ``healthy_annual_kwh`` is itself
+    already below the floor (a genuinely-low-need home): below floor, but not
+    rationing. It may STILL show a consumption drop, because a non-budget
+    ``DropConfounder`` (a move, a void, a retrofit, a voluntary cut) is drawn
+    independently of the label (D14). Every drop is attributable: consumption
+    falls below the baseline only through ``rationing_severity``, the
+    ``confounder_drop_fraction``, or both compounded.
     """
     if commodity not in TDCV_LOW_FLOOR_KWH:
         raise ValueError(
@@ -287,17 +438,28 @@ def generate_self_rationing_state(
     # -- onset (own substream): Bernoulli against the budget-derived propensity.
     onset = _substream(base_seed, "onset").random() < prop
 
+    # -- confounder (own substreams, D14): the NON-BUDGET drop cause. Drawn for
+    # EVERY household regardless of the label — a move or a retrofit does not
+    # check whether you are in hardship first — and it can never shift the onset
+    # or severity sequences, so the pre-D14 rationing population is unchanged.
+    confounder, conf_frac = draw_drop_confounder(base_seed, confounders_enabled)
+
     if not onset:
+        # Not rationing — but a confounder may still have cut the meter. When it
+        # has, this is the world's HARD NEGATIVE: a real drop, no hardship.
+        observed = round(healthy_annual_kwh * (1.0 - conf_frac), 1)
         return SelfRationingState(
             customer_id=customer_id,
             commodity=commodity,
             healthy_annual_kwh=round(healthy_annual_kwh, 1),
-            observed_annual_kwh=round(healthy_annual_kwh, 1),  # no drop
+            observed_annual_kwh=observed,
             floor_kwh=floor,
             missed_payments=0,
             label=RationingLabel.NOT_RATIONING,
             rationing_severity=0.0,
             discretionary_margin_monthly=margin,
+            drop_confounder=confounder,
+            confounder_drop_fraction=conf_frac,
         )
 
     # -- severity (own substream): band draw, DEEPENED by the squeeze. A more
@@ -308,7 +470,13 @@ def generate_self_rationing_state(
     severity = r_sev.uniform(*_SEVERITY_RANGE) + _SEVERITY_SQUEEZE_BONUS * squeeze_frac
     severity = round(min(0.90, severity), 4)  # never cut below ~10% of baseline
 
-    observed = round(healthy_annual_kwh * (1.0 - severity), 1)
+    # A rationer who ALSO moves out / insulates / goes away uses less again: the
+    # two cuts COMPOUND on the same home. The label stays SELF_RATIONING — the
+    # hidden budget state is what the label names — and `rationing_severity`
+    # keeps naming only the budget-driven part, so the answer key never absorbs
+    # the confounder's share.
+    total_cut = min(_MAX_TOTAL_CUT, 1.0 - (1.0 - severity) * (1.0 - conf_frac))
+    observed = round(healthy_annual_kwh * (1.0 - total_cut), 1)
 
     return SelfRationingState(
         customer_id=customer_id,
@@ -320,4 +488,6 @@ def generate_self_rationing_state(
         label=RationingLabel.SELF_RATIONING,
         rationing_severity=severity,
         discretionary_margin_monthly=margin,
+        drop_confounder=confounder,
+        confounder_drop_fraction=conf_frac,
     )

@@ -769,21 +769,30 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
         "debt_atom": None,
     },
     "couple_w2_8_c10.detection": {
-        "counts_both_error_directions": False,
-        "scorer": "background.gap_metric.detection_gap",
+        "counts_both_error_directions": True,
+        "scorer": "background.gap_metric.detection_measures",
         "why": (
-            "NAMED DEBT, REASON CORRECTED 2026-08-09 by the D13 DISCOVER. NOT "
-            "the same shape as W2_5<->C7 -- bracketing the two was the error. "
-            "This negative is settled and unambiguous (RationingLabel."
-            "NOT_RATIONING is a Bernoulli outcome), but the measure is VACUOUS: "
-            "0 of 3752 non-rationers have ANY consumption drop and 0 are "
-            "flaggable under any weather factor, so the false-flag rate is "
-            "0.0000 for any drop-based detector. Publishing it would report a "
-            "property of the WORLD as detector precision (R12). Recall-only "
-            "until W2_8 emits non-rationers who genuinely drop -- a world-depth "
-            "gap, not a metric gap."
+            "FIXED 2026-08-09 (atom D14) -- and fixed in the WORLD first, which "
+            "is why it took a second atom rather than a denominator edit. The "
+            "D13 DISCOVER measured this measure as VACUOUS: 0 of 3752 "
+            "non-rationers had ANY consumption drop, so the false-flag rate was "
+            "0.0000 for any drop-based detector -- a property of the world "
+            "published as detector precision (R12). D14 added the missing world "
+            "depth (`simulation.self_rationing.DropConfounder`: house moves, "
+            "voids, retrofits and voluntary cuts now cut consumption with NO "
+            "hardship behind them, drawn independently of the rationing label "
+            "and anchored to external rates fixed BEFORE the resulting rate was "
+            "measured). 695 of 3752 non-rationers now really do drop, and the "
+            "detector false-flags 0.0560 of the settled negative -- a rate that "
+            "can now move because the world can now produce the error. The "
+            "denominator defect the DISCOVER found here is fixed in the same "
+            "change: the 43 households that ARE rationing but sit above the "
+            "floor are EXCLUDED (a flag on them is right), and both the settled "
+            "and the naive rate are published every run via "
+            "`tools.couple_w2_8_c10.NEGATIVE_BASES` so the defect cannot return "
+            "unnoticed."
         ),
-        "debt_atom": "D14_w2_8_needs_negative_drops",
+        "debt_atom": None,
     },
 }
 
