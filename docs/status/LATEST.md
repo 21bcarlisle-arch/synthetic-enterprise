@@ -1,5 +1,114 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T12:56:05Z
+Last updated: 2026-08-09T23:55:50Z
+
+**KNIFE3 step 5 — NO LEVEL MOVE, and that is the point. The world stops reading the supplier's
+collections policy: the arrears engine now learns the tone of a letter that ARRIVED, not the policy
+that chose it. 9 of 88 crossings cut, 79 owed, `level_current` stays 0.**
+`simulation/arrears_engine.py` imported `CURRENT_POLICY` and `tone_for` from
+`company.policy.decision_policy` and applied the company's dunning policy itself — and its docstring
+argued that reading "what the company itself decided" was not a wall violation. The register
+overruled that argument rather than inheriting it. Live crossings **80 → 79**, files **19 → 18**,
+agreed independently by `tools/knife_hotspot_measure.py` and `tools/wall_crossing_dispositions.py`
+(both `OK`). Commit `a43d33cc2`, on origin.
+
+**The cut is a new seam, `company/interfaces/collections_communication.py`.** It publishes one
+string per (customer, period): the tone of the dunning letter. `DecisionPolicy`, its `tone_mode` and
+its A/B cohort split are now unreachable from the SIM. A real customer reads the letter, not the
+supplier's collections strategy document — that split is the whole ruling. The applicability guard
+(*which* bills involve a letter at all) deliberately stayed SIM-side: that is a fact about how this
+world bills people, not a company decision, and moving it would have widened the door for nothing.
+Not laundering, on the B8 precedent: `company/interfaces/**` is walked byte for byte, so this is the
+ratchet's own published `SEAM_PACKAGE` remedy, not the `tools/` relocation pass 1 refused in writing.
+
+**Half the design landed, and the missing half is NAMED rather than implied.** B5 asks for a PUSH —
+tone stamped on a collections-action event the company EMITS. What landed is a PULL through a named
+door. The blocker was MEASURED, not assumed: the bill dicts all four consumers read are built by
+`simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, a SIM composition root carrying 14 owed
+edges of its own, so there is no company-side emitter to stamp onto — that is `A_composition_lift`'s
+work. Stamping anyway would have meant the SIM writing a value it had just pulled from the company
+and reading its own stamp back: the shape of a push with the substance of a pull, and a *worse*
+artefact than an honest pull, because the next reader would believe the event contract existed. The
+residual is recorded as owed in the register's §3a and in the seam's own docstring.
+
+**Behaviour identity MEASURED, not asserted: 27,090 `(method, customer_id, period_end)` combinations
+compared against the pre-cut expression, zero mismatches**, with both cohort arms and the `None`
+guard branch exercised. This mattered because four consumers resolve payment outcomes from a shared
+per-bill RNG substream — a moved tone would have shifted written-off GBP in the board P&L while every
+test that does not compute a payment outcome stayed green. No published figure moves.
+
+**R15 both ways on the real tree.** Re-adding the import reds the ratchet naming
+`simulation/arrears_engine.py:362` *and* reds `wall_crossing_dispositions` with "ruled `cut` but the
+import IS STILL IN THE TREE"; the mutation was restored and the restoration verified **byte-equal by
+`cmp`**, not assumed. The new control (12 tests) polices the two properties **no other instrument can
+see**: that the seam must not hand back the policy object — a `policy: DecisionPolicy = CURRENT_POLICY`
+convenience argument would restore the removed dependency *without creating a single wall edge*,
+because the import would still terminate on the exempt seam package, so the ratchet is blind to it by
+construction — and that the tone values must not move. Both mutation proofs perform the defect; the
+identity check carries a vacuity guard proving its sample spans both arms. The allowlist tuple is
+deleted, so the floor moved down with the code. `tools/epistemic_wall.py` was NOT edited in this
+cutting commit, which is the wall the pass set for itself.
+
+**One finding QUEUED, not fixed on sight:** the tone resolves against the live `CURRENT_POLICY` —
+pre-existing and preserved byte for byte — but `tools/run_frozen_baseline.py` runs a NAIVE arm whose
+`tone_mode` is `firm_toned`, and that arm's arrears tone never switches with it. **The published
+counterfactual is therefore not the naive company**, and the sign of the error is unknown, which is
+itself the finding. Filed with its R10 class version: `framing_mode` is a live candidate for the
+identical bug. Fixing it inside a wall pass would have moved a simulated payment outcome in the same
+commit that moved an import.
+
+**Still owed: 79 edges across 5 designs** — B2 (the worst inversion, a coupled-triad build), B3 (put
+back down at step 4, blocked on three design questions), B4, B7, and `A_composition_lift` (65 edges,
+10 harnesses). Suites: architecture + ledger 114 passed; consumer behaviour 245 passed; static
+quality ratchet 13 passed (isort floor unperturbed); `epistemic_verifier` PASS over 535 files.
+
+---
+
+## PREVIOUS
+
+**KNIFE2_customer_straddle — L0→L2, self-certified. Sixteen simulation modules were reading the
+company's own customer roster directly. They now ask the supply book — which is what the industry
+actually learns when a supplier registers an MPAN, and is a crossing the wall can finally catch.**
+`saas/customers.py` was imported by 16 `simulation/` modules, sixteen separate hands in the CRM,
+none of them a declared crossing. All 16 tuples are gone from `LEGACY_SIM_READS_COMPANY`: class (b)
+**104 → 88**, exactly the number the atom's EXIT clause predicted, re-measured independently by
+`tools/knife_hotspot_measure.py` (`customer_straddle` 17 files/16 edges → **1 file/0 edges**;
+`KNIFE LEDGER: OK — every hotspot measured; every declared overlap matches the tree`).
+**The cut is a new seam, `company/interfaces/supply_book.py` — "the supply book".** In GB a supplier
+registers against an MPAN and the industry *learns* the point is on its book, so the world knowing
+the registered population is real; sixteen modules reaching into the CRM to find it out was not.
+Deliberately a separate file from `sim_interface.py`, which is the opposite direction (the company
+asking the world) — two directions behind one name is how a seam stops meaning anything.
+**Why this is not laundering, and the claim is falsifiable rather than asserted.** Pass 1 refused to
+route through `tools/` because `tools/` is outside the walker's `WALL_DIRS` — the edge would have
+left the *measurement*, not the code. `company/interfaces/**` is walked byte for byte and exempt by
+the ratchet's own published `SEAM_PACKAGE` rule, whose doctrine string names this exact remedy. The
+test is whether the wall can still catch a regression: **re-add `from saas.customers import
+CUSTOMERS` to any SIM module today and `test_no_new_sim_reads_company` reds instantly**, with no
+grandfathered tuple left to hide behind. That was not true yesterday.
+**R15 — the property that would have failed silently.** The three rosters are mutable module-level
+lists; `run_phase2b` appends each acquisition to `ACQUIRED_CUSTOMERS` and teardown clears it in
+place. An accessor returning a defensive copy — the tidy-up a reviewer waves through — would leave
+the simulation appending registrations into a list nobody reads: **green suite, wrong world.** The
+accessors return the live objects and that contract now has its own control (10 tests, `is`-identity
+not equality). Both mutation proofs **vacuity-checked**: neutering the injected defect reds them
+(2 failed, 8 passed), so they are not tautologies.
+**Wall 4 (byte-identical output): no comparable artefact — stated, not substituted with something
+weaker.** No rendering path changed and the artefact needs the ~100-minute Phase 2b run. Identity is
+the stronger check here anyway: a copy is the only way this refactor could alter behaviour.
+**Three things it did NOT do, in the seam's own docstring so nobody reads 16→0 as decoupling:** the
+same records still cross (one reviewable chokepoint, not sixteen unreviewable ones); the seam does
+not yet narrow the record to what a real registration publishes (`contract_type`, internal `segment`
+— owed to pass 3); dwelling truth stays filed company-side, because the clean fix would re-open
+class (a), which pass 1 drove to zero.
+**Sequencing consequence: every KNIFE hotspot is now disjoint from every other**, so the serial wall
+over passes 1–3 is discharged (KNIFE_HOTSPOT_PASSES.md §3b — the third time in one day the ledger
+has falsified the plan that scheduled it).
+**Two pre-existing defects QUEUED, not fixed on sight:** `simulation/run_phase2a.py` and
+`run_phase2a_repriced.py` do not import at all (module-scope `sum()` over `eac_kwh`, 12 of 18 roster
+entries `None`) and nothing in the tree imports them; and **KNIFE pass 1's paydown half was
+uncommitted at HEAD while its committed doc said LANDED** — committed here, ahead of this pass, so
+the two land in their real order.
+
 **D17_d8_counterfactual_has_no_unattributed_residual — L0→L2, self-certified. The D8 remittance
 counterfactual explained 100% of every measure it published, which is exactly what a rubber stamp
 looks like from outside — so it was given an error it provably did not cause, and it declined to
@@ -44,9 +153,6 @@ triad, `gap_metric`, the offline scorer or the shared-quantity contract; ruff un
 pristine HEAD extract.
 
 ---
-
-## PREVIOUS
-
 **D14_w2_8_needs_negative_drops — L0→L2, self-certified. The self-rationing detector had a false
 alarm rate of exactly 0.0000, and not one of those zeros was earned: the world could not produce a
 single household whose usage fell for an innocent reason.**
@@ -1507,10 +1613,10 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
-- Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
-- Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
-- Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
+**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
+- Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
+- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
+- Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
@@ -1615,13 +1721,13 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] In this simulator, what concretely *is* "the physics" that would have moved — which specific state variable, updated by which mechanism — and what evidence distinguishes it from a hedge/accounting number that the model would have simply re-solved to keep the books balanced?
 - (T3_inherence) [unanswered >24h] What specific evidence distinguishes "p99 is a physics finding" — an invariant of the system that no amount of engineering or configuration can move — from the ordinary case of a p99 that merely hasn't been optimised yet, and what observation would falsify the physics claim?
 - (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
-- (T3_inherence) Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
-- (T3_inherence) What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
+- (T3_inherence) [unanswered >24h] Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
+- (T3_inherence) [unanswered >24h] What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
 - (T3_inherence) Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1795.2h across 74 sized atom(s) (13 of 87 below-target atoms still unsized).
+- Remaining effort: ~1966.5h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
