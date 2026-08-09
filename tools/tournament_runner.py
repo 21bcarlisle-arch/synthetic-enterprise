@@ -272,7 +272,7 @@ def _run_one_life(args) -> LifeResult:
     out_md = output_dir / "life_{}.md".format(life_id)
 
     cmd = [
-        sys.executable, "-m", "saas.reporting.annual_report",
+        sys.executable, "-m", "tools.run_annual_report",
         "--fast",  # guard #1: the only mode with no board-pack side effects
         "--save-json", str(out_json),
         "--output", str(out_md),

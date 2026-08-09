@@ -20,15 +20,15 @@ publish-report: report
 # Full 2016-2025 simulation run with LLM risk committee — generates report + JSON
 run:
 	rm -f docs/reports/run_output_latest.json
-	python3 -m saas.reporting.annual_report --save-json docs/reports/run_output_latest.json
+	python3 -m tools.run_annual_report --save-json docs/reports/run_output_latest.json
 
 # Fast iteration run (deterministic committee, truncated window) — no LLM calls
 run-fast:
-	python3 -m saas.reporting.annual_report --fast --end-year 2020 --save-json /tmp/run_output_fast.json --output /tmp/ANNUAL_REPORT_fast.md
+	python3 -m tools.run_annual_report --fast --end-year 2020 --save-json /tmp/run_output_fast.json --output /tmp/ANNUAL_REPORT_fast.md
 
 # Full 2016-2025 segment model run — generates SEGMENT_REPORT.md + saves JSON
 run-segments:
-	python3 -m saas.reporting.segment_report --save-json docs/reports/run_output_segments_latest.json
+	python3 -m tools.run_segment_report --save-json docs/reports/run_output_segments_latest.json
 
 # Regenerate segment report from saved JSON (fast, no simulation re-run)
 segment-report:
