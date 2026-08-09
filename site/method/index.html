@@ -242,8 +242,9 @@ function renderLoop(d){
   var loop=d.staging_loop||{};
   var kpis=[
     {l:"Pending now",v:loop.pending_count},
-    {l:"Actioned all-time",v:loop.done_total},
-    {l:"Draft proposals",v:loop.drafts_count}
+    {l:"Instructions actioned all-time",v:loop.done_total},
+    {l:"Draft proposals",v:loop.drafts_count},
+    {l:"Sim-run markers archived",v:loop.exhaust_total}
   ];
   document.getElementById("loop-kpis").innerHTML=kpis.map(function(k){
     return '<div class="loop-kpi"><div class="loop-kpi-l">'+esc(k.l)+'</div><div class="loop-kpi-v">'+(k.v!=null?k.v:"--")+'</div></div>';

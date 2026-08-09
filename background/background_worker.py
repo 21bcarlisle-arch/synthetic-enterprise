@@ -85,13 +85,23 @@ def _marker_stamp(name: str) -> str | None:
 
 
 def _newest_published_stamp(done_dir: Path) -> str | None:
-    """The latest run stamp that actually REACHED done/, i.e. the newest run
-    whose publish pipeline ran to completion. This is the supersession
+    """The latest run stamp that actually REACHED the archive, i.e. the newest
+    run whose publish pipeline ran to completion. This is the supersession
     frontier: any marker older than it describes a snapshot that has already
-    been overtaken on every published surface."""
-    if not done_dir.is_dir():
-        return None
-    stamps = [s for s in (_marker_stamp(p.name) for p in done_dir.glob("run_complete_*.md")) if s]
+    been overtaken on every published surface.
+
+    Reads the UNION of done/ and the exhaust tree (AO10 moved ~4,300 markers
+    out of done/ into docs/staging/exhaust/<YYYY-MM>/). Globbing done/ alone
+    would now return nothing, and a frontier of None classifies every leftover
+    marker as PENDING -- republishing a stale snapshot over current figures,
+    the exact fidelity regression classify_markers() exists to prevent."""
+    from background import staging_archive_policy
+    stamps = [
+        s for s in (
+            _marker_stamp(p.name)
+            for p in staging_archive_policy.iter_marker_paths("run_complete_", done_dir=done_dir)
+        ) if s
+    ]
     return max(stamps) if stamps else None
 
 

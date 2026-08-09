@@ -2049,8 +2049,14 @@ def main(marker_path_str):
 def _process(marker_path_str):
     marker = Path(marker_path_str).resolve()
     if not marker.exists():
-        if (DONE_DIR / Path(marker_path_str).name).exists():
-            log("Already in done/ (duplicate run): {}".format(Path(marker_path_str).name))
+        # Archived markers live in done/ OR in the exhaust tree (AO10), so ask
+        # the policy where it is rather than globbing one directory -- a
+        # duplicate that reads as "not found" returns 1 and alarms for nothing.
+        from background import staging_archive_policy
+        archived = staging_archive_policy.locate(Path(marker_path_str).name, done_dir=DONE_DIR)
+        if archived is not None:
+            log("Already archived at {} (duplicate run): {}".format(
+                archived.parent.name, Path(marker_path_str).name))
             return 0
         log("Marker not found: {}".format(marker))
         return 1

@@ -154,6 +154,23 @@ def _staging_pending():
     return items
 
 
+def _exhaust_total():
+    """Sim-run markers archived to docs/staging/exhaust/ (AO10).
+
+    Until 2026-08-09 these 4,345 machine-written markers sat in done/ and were
+    counted in `done_total`, so the tile read "Actioned all-time: 4,962" when
+    the instruction record was 617. Publishing them as a SEPARATE figure is
+    the honest split -- the heartbeat is real work, it just is not an actioned
+    instruction (R14's principle: a figure must say what it is counting)."""
+    try:
+        from background import staging_archive_policy
+    except ImportError:  # run as a bare script, not `-m tools.…`: repo root is not on the path
+        import sys
+        sys.path.insert(0, str(PROJECT))
+        from background import staging_archive_policy
+    return sum(staging_archive_policy.partition_counts().values())
+
+
 def _staging_done_recent(limit=RECENT_DONE_LIMIT):
     if not STAGING_DONE_DIR.is_dir():
         return [], 0
@@ -236,6 +253,7 @@ def generate():
             pending_count=len(pending),
             pending=pending,
             done_total=done_total,
+            exhaust_total=_exhaust_total(),
             recent_done=recent_done,
             drafts_count=_staging_drafts_count(),
         ),
