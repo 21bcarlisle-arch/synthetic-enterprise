@@ -412,9 +412,48 @@ Shape B is the smaller count and the harder work: each of the 21 is a wall-DESIG
 the world know the supplier's cap reading?"), not a mechanical move, and cutting one badly is worse
 than leaving it measured. Shape A is bulk but has a proven template.
 
-**Status: the first step has landed; the cut has not started.** Recorded loudly rather than left
+##### Second step — LANDED: every one of the 88 carries a disposition
+
+The first EXIT clause is now a mechanism rather than a promise:
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` rules on all 88 edges, and
+`python3 tools/wall_crossing_dispositions.py` exits 2 if any live crossing has no ruling — or if a
+ruling names an edge the tree no longer has. R15 proof:
+`tests/tools/test_wall_crossing_dispositions.py` (46 tests), every guard mutated against a
+SYNTHETIC register rather than the live tree, for the reason finding (4) above had to repair in the
+ledger's own proofs — the goal state of this register (everything cut, nothing owed) is exactly the
+state a live-fixture proof would go vacuous in.
+
+Three things the examination turned up, and one it refused:
+
+1. **The A/B split in the table above is 65/23, not 67/21.** Two `run_phase2b` edges
+   (`→ company.core.reputation_index`, `→ company.core.resentment_ledger`) sit in a shape-A file but
+   are killed by a shape-B cut. Ruling per EDGE rather than per FILE is the only assignment that
+   keeps a named cut design meaningful. **Fourth time in this programme that measuring something has
+   corrected the document that scheduled it.**
+2. **Three `company/core/` modules are world physics, and the objection that blocked the analogous
+   move in pass 2 is measurably absent here.** `reputation_index`, `resentment_ledger` and
+   `activation_energy` call themselves "behavioral physics" in their own docstrings and have **zero
+   company-side importers** — every importer is SIM-side. Pass 2 rejected moving `saas/customers.py`
+   to the SIM side because it would re-open class (a); with no company-side importer, moving these
+   three creates no class-(a) edge at all. Six edges, one cut, blocking objection refuted by
+   measurement rather than argued away.
+3. **The most serious inversion is not in shape A.** `simulation.customer_events` imports the
+   company's churn model *to decide who actually churns*. The company's belief is therefore
+   self-fulfilling, which destroys the exact quantity the COUPLED TRIAD exists to score and
+   silently flatters every churn-accuracy figure downstream of it.
+
+**And the refusal, recorded before anyone tries it:** the tempting shape-A cut is to move all ten
+`run_phase*` harnesses to `tools/` and watch 65 edges vanish. That is laundering. Pass 1's move was
+legitimate because it extracted a *thin* composition and left the substantive modules in place,
+walked and clean; here the composition IS the substance (`run_phase2b.py` is 2,954 lines of which
+`main()` is ~2,100). Relocating it changes no code, removes no dependency, and moves only the
+walker's reach — failing this pass's own second exit clause. The register says so in writing so the
+next draw inherits the ruling instead of rediscovering the temptation.
+
+**Status: first and second steps landed; the cut has not started.** Recorded loudly rather than left
 implicit, because the orphaned duplicate found in finding (1) is what a silent partial pass looks
-like from the next draw.
+like from the next draw. The remaining work is the eight named designs in the register, and B8
+(one edge, relocate a publication surface under the seam) is the cheapest genuine cut available.
 
 ### Pass 4 — `KNIFE4_orphan_disposition` (size L, position free)
 **Cut:** dispose of the 258 company-side orphans — wire or retire, **archive, never delete**.
