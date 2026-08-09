@@ -153,9 +153,24 @@ BASELINE_DATE = "2026-08-06"
 #       I001  background/process_run_complete.py, tools/generate_maturity_map_data.py,
 #             tests/tools/test_map_assertion_provenance.py, tools/couple_supply_start.py
 #             -> `ruff --select I001 --fix`, floor drops to 1388.
+#   2026-08-09  I001 1387 -> 1386  (publish wedge episode 3; TWO causes, not one)
+#     process_run_complete rc=1 on run_complete_20260809T125051Z.md wedged the
+#     publish gate again. Both halves were measured against a `git archive HEAD`
+#     extraction rather than inferred, because the two causes point opposite ways:
+#       EXCEEDS (working tree, 1392): the in-flight `saas.customers.
+#             customer_to_settlement_input` -> `company.interfaces.supply_book.
+#             settlement_input` seam migration put the new `company.` import below
+#             the `saas.` block in five `simulation/run_phase*.py` files, plus the
+#             untracked `tests/company/interfaces/test_supply_book_seam.py`
+#             -> `ruff --select I001 --fix` on those six, back to 1386.
+#       STALE (committed HEAD, 1386): HEAD was already one BELOW the 1387
+#             baseline — an earlier fix landed without shrinking the entry, so a
+#             *pristine* tree still red-ed `test_ruff_no_stale_baseline_entries`.
+#             Fixing only the working tree would have left the gate wedged.
+#     Floor drops to 1386, which is now HEAD and working tree alike.
 #
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392  (now 1387)
+#   I001 unsorted-imports .............. 1392  (now 1386)
 #   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194  (now  193)
 #   F841 unused-variable ...............  130
@@ -169,7 +184,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1387,
+    "I001": 1386,
     "F401": 279,
     "E402": 193,
     "F841": 130,
@@ -189,7 +204,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2413  # was 2421 at the 08-06 freeze; -8 per the shrink log above
+RUFF_BASELINE_TOTAL = 2412  # was 2421 at the 08-06 freeze; -9 per the shrink log above
 
 
 # --------------------------------------------------------------------------
