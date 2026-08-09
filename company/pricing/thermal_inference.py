@@ -141,6 +141,16 @@ reports the same confidence for a quarterly-read premise as for a smart-metered
 one — a fail-open in the uncertainty model, and the reason a coarse-read premise
 must fall out of `is_actionable`."""
 
+MAX_ACTIONABLE_RELATIVE_SD = 0.35
+"""The widest belief the company will spend money on (`is_actionable_belief`).
+
+Named rather than inlined (2026-08-09) because it is a DIAL a downstream decision
+depends on, and an unnamed threshold is one nobody can find, compare or mutate —
+this project's own orphan-constant class. It sits below `STOCK_PRIOR_RELATIVE_SD`
+(0.60) by construction: a stock prior must fail this test on its width alone even
+if the basis check were removed, so the two halves of the refusal are independent
+rather than one masking the other."""
+
 FLAT_SCOP_EXTRA_RELATIVE_SD = 0.40
 """Extra uncertainty on any heat-pump premise, because `ASSUMED_HEAT_PUMP_SCOP`
 is a FLAT seasonal figure applied to a machine whose COP falls with ambient
@@ -321,6 +331,43 @@ class HlcPrior:
     certificate_age_years: float | None
 
 
+def log_normal_interval_95(value: float, relative_sd: float) -> tuple[float, float]:
+    """The 95% interval of a strictly-positive quantity with multiplicative error.
+
+    EXTRACTED FROM `ThermalBelief.interval_95` (2026-08-09) so that a consumer which
+    holds a fabric number WITHOUT a full belief object — the harness's counterfactual
+    truth arm, the EPC prior taken on its own — computes the same interval from the
+    same code. A second implementation of this three-line formula elsewhere would be
+    a drift surface that no test could see.
+    """
+    _require_finite("relative_sd", relative_sd)
+    if value <= 0.0 or not math.isfinite(value):
+        raise InsufficientObservationError(
+            f"a log-normal interval needs a positive finite value, got {value!r}"
+        )
+    if relative_sd < 0.0:
+        raise InsufficientObservationError(
+            f"a relative sd cannot be negative, got {relative_sd!r}"
+        )
+    sigma = math.sqrt(math.log1p(relative_sd**2))
+    mu = math.log(value) - 0.5 * sigma**2
+    return (math.exp(mu - 1.96 * sigma), math.exp(mu + 1.96 * sigma))
+
+
+def is_actionable_belief(basis: EvidenceBasis, relative_sd: float) -> bool:
+    """Whether a fabric belief is tight enough to spend money on.
+
+    EXTRACTED FROM `ThermalBelief.is_actionable` (2026-08-09) for the same reason as
+    `log_normal_interval_95`: the harness must judge actionability by the COMPANY's
+    rule, not by a copy of it. `relative_sd` is checked for finiteness FIRST because
+    every comparison below is NaN-blind — `nan <= 0.35` is False, so a NaN sd would
+    read as "not actionable" for the right answer by accident here and could read the
+    other way in any future variant of this predicate.
+    """
+    _require_finite("relative_sd", relative_sd)
+    return basis != EvidenceBasis.STOCK_PRIOR and relative_sd <= MAX_ACTIONABLE_RELATIVE_SD
+
+
 @dataclass(frozen=True)
 class ThermalBelief:
     """What the company believes about one premise's fabric, and how sure it is.
@@ -351,15 +398,13 @@ class ThermalBelief:
     def interval_95(self) -> tuple[float, float]:
         """Log-normal 95% interval: HLC is strictly positive and its errors are
         multiplicative, so a symmetric band would put mass below zero."""
-        sigma = math.sqrt(math.log1p(self.relative_sd**2))
-        mu = math.log(self.hlc_kw_per_k) - 0.5 * sigma**2
-        return (math.exp(mu - 1.96 * sigma), math.exp(mu + 1.96 * sigma))
+        return log_normal_interval_95(self.hlc_kw_per_k, self.relative_sd)
 
     @property
     def is_actionable(self) -> bool:
         """Whether this belief is tight enough to base a fabric intervention on.
         A stock prior never is: it contains no information about THIS premise."""
-        return self.basis != EvidenceBasis.STOCK_PRIOR and self.relative_sd <= 0.35
+        return is_actionable_belief(self.basis, self.relative_sd)
 
 
 # ---------------------------------------------------------------------------

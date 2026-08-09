@@ -116,6 +116,18 @@ from typing import Callable, Mapping, Sequence
 
 from background.gap_metric import GapResult, prediction_gap, write_gap_entry
 
+# HARNESS CROSSES THE WALL BY DESIGN — this module is the only layer permitted to
+# hold the SIM's fabric truth and the company's belief together, and the decision it
+# scores must be the COMPANY's own or it is scoring a fiction. Importing company code
+# here is therefore correct; the reverse direction is what would be a violation, and
+# `test_no_production_code_imports_the_harness` fails if it ever happens.
+from company.pricing import fabric_intervention as fi
+from company.pricing.thermal_inference import (
+    EvidenceBasis,
+    is_actionable_belief,
+    log_normal_interval_95,
+)
+
 STREAM_NAME = "H_GAP_fabric_belief_truth_gap"
 
 PERIODS_PER_DAY = 48
@@ -1431,6 +1443,18 @@ class FabricObservation:
     inferred_hlc_kw_per_k: float        # the company's C14 posterior
     floor_area_m2: float
     annual_heat_kwh: float
+    # THE DECISION INPUTS (added 2026-08-09, C14 L2->L3). A point estimate alone is
+    # not enough to decide on: the company refuses to spend money on a belief that is
+    # too wide or rests on a stock prior, and it needs the heating degree days of the
+    # published weather to attribute any part of the bill to fabric at all. These are
+    # REQUIRED rather than defaulted — a default would let a caller silently obtain a
+    # certain, actionable belief it never actually had, which is the fail-open shape
+    # this whole module exists to catch.
+    annual_degree_days_k_day: float
+    epc_relative_sd: float
+    inferred_relative_sd: float
+    epc_basis: EvidenceBasis
+    inferred_basis: EvidenceBasis
 
     def __post_init__(self) -> None:
         for name in (
@@ -1439,12 +1463,38 @@ class FabricObservation:
             "inferred_hlc_kw_per_k",
             "floor_area_m2",
             "annual_heat_kwh",
+            "annual_degree_days_k_day",
+            "epc_relative_sd",
+            "inferred_relative_sd",
         ):
             v = getattr(self, name)
             if not math.isfinite(v):
                 raise NonFiniteTrace(f"{self.premise_id}: {name} is {v!r}")
         if self.actual_hlc_kw_per_k <= 0.0:
             raise InsufficientEvidence(f"{self.premise_id}: the actual HLC must be positive")
+        if self.annual_degree_days_k_day <= 0.0:
+            raise InsufficientEvidence(
+                f"{self.premise_id}: a premise with no heating season gives the fabric "
+                f"belief nothing to bite on"
+            )
+
+    def belief_arm(self, belief: str) -> tuple[float, float, EvidenceBasis]:
+        """The (estimate, relative sd, basis) triple for one of the two beliefs.
+
+        One accessor rather than two parallel `if belief == "epc"` chains at every
+        use site: a decision arm that picked the EPC point estimate but the inferred
+        uncertainty would be a silent hybrid nobody holds, and it would not show up
+        as a wrong number, only as a wrong one.
+        """
+        if belief == "epc":
+            return (self.epc_hlc_kw_per_k, self.epc_relative_sd, self.epc_basis)
+        if belief == "inferred":
+            return (
+                self.inferred_hlc_kw_per_k,
+                self.inferred_relative_sd,
+                self.inferred_basis,
+            )
+        raise ValueError(f"unknown belief {belief!r}")
 
 
 def epc_vs_actual_gap(observations: Sequence[FabricObservation]) -> GapResult:
@@ -1491,113 +1541,109 @@ def inference_improvement(observations: Sequence[FabricObservation]) -> float:
 
 # --- the money consequence -------------------------------------------------
 #
-# THE MISSION LINK, and the constraint that governs it: savings count ONLY from
-# reduced or time-shifted usage, NEVER from discounting. Every measure below is
-# scored on the kWh it removes or moves, priced at the unit rate, and nothing here
-# can create a saving by changing a tariff.
+# WHO DECIDES, AND WHY IT MOVED (2026-08-09, C14 L2->L3)
+# ------------------------------------------------------
+# This section used to hold its OWN decision function (`rank_measures`) and its own
+# measure catalogue. That was an R11 orphan of the exact class this repo keeps
+# finding: the harness was scoring a decision that no company anywhere in the
+# codebase actually made, and `company/pricing/thermal_inference.py`'s uncertainty
+# model — `interval_95`, `is_actionable`, `EvidenceBasis` — was computed by C14 and
+# read by nobody.
+#
+# It also had a fail-open that only showed up when the numbers were probed: the
+# choice set contained no DO-NOTHING option, so every premise was recommended
+# something. A 0.08 kW/K flat using 4,000 kWh/yr at 7.4 p/kWh was recommended
+# `time_shift` at a lifetime net value of **-£41** — spend £300 to save £259 — and
+# because the truth arm picked the same value-destroying measure, `chosen == best`
+# and the metric recorded a PERFECT decision. A control that cannot express "every
+# option here loses money" cannot report the loss.
+#
+# The decision therefore now lives where a decision belongs — in the company
+# (`company.pricing.fabric_intervention`) — and this module CALLS it, twice: once
+# with the company's belief, once with the truth the company cannot see. That
+# second call is the only thing the harness adds, and it is the one thing the
+# company could never do for itself. Both arms run the SAME rule and the SAME
+# catalogue, so the difference between them is the belief and nothing else.
+#
+# THE MISSION LINK, unchanged and still structural: savings count ONLY from reduced
+# or time-shifted usage, never from discounting — `offer_annual_saving_kwh` has no
+# price parameter, so no tariff move can conjure a saved kWh.
 
-MEASURES = ("insulate", "heat_pump", "solar_pv", "time_shift")
-
-
-@dataclass(frozen=True)
-class MeasureEconomics:
-    """A fabric-targeted measure, scored on the kWh it removes or moves.
-
-    R13: these are BASELINE physical/cost parameters, set blind to company P&L and
-    to any gap number. They are DIAGNOSTIC inputs, never tuned to move a result.
-    """
-
-    name: str
-    capex_gbp: float
-    hlc_reduction_fraction: float       # how much of the fabric loss it removes
-    delivered_efficiency_gain: float    # kWh out per kWh in, relative to today
-    shiftable_fraction: float           # of annual heat kWh, moved not removed
-    lifetime_years: float
-
-
-# `domain-knowledge` order-of-magnitude UK retrofit parameters. Registered as an
-# UNVALIDATED SIMPLIFICATION on the atom: the RANKING these produce is what the
-# gap metric consumes, and the ranking is robust to the level of these numbers in
-# a way the absolute £ is not. Absolute £ is therefore reported as PROVISIONAL.
-DEFAULT_MEASURES: dict[str, MeasureEconomics] = {
-    "insulate": MeasureEconomics("insulate", 6000.0, 0.30, 0.0, 0.0, 30.0),
-    "heat_pump": MeasureEconomics("heat_pump", 12000.0, 0.0, 2.6, 0.0, 18.0),
-    "solar_pv": MeasureEconomics("solar_pv", 7000.0, 0.0, 0.0, 0.0, 25.0),
-    "time_shift": MeasureEconomics("time_shift", 300.0, 0.0, 0.0, 0.25, 10.0),
-}
+# Re-exported so this module's readers and tests reach the company's definitions
+# rather than a copy. `MeasureEconomics`/`DEFAULT_MEASURES`/`rank_measures` were the
+# harness-private names for these and are deliberately GONE, not aliased: an alias
+# would have let a caller keep using the do-nothing-free choice set.
+MeasureEconomics = fi.RetrofitOffer
+DEFAULT_MEASURES = fi.OFFER_BOOK
+MEASURES = tuple(sorted(fi.OFFER_BOOK)) + (fi.DO_NOTHING,)
 
 # kgCO2e per kWh — BEIS/DESNZ conversion factors, used to express the same
 # decision in carbon as well as in money. Reported, never optimised.
 CARBON_KG_PER_KWH = {"gas": 0.183, "electricity": 0.207}
 
-SOLAR_KWH_PER_YEAR = 3200.0   # a typical 4 kWp south-facing UK domestic array
-TIME_SHIFT_PRICE_ADVANTAGE = 0.35   # off-peak unit rate relative to peak
-
 
 def measure_annual_saving_kwh(
     hlc_kw_per_k: float,
     annual_heat_kwh: float,
-    measure: MeasureEconomics,
+    measure: fi.RetrofitOffer,
+    *,
+    annual_degree_days_k_day: float,
 ) -> float:
-    """The kWh a measure removes (or, for time-shift, moves) in a year, for a home
-    whose fabric loss coefficient is `hlc_kw_per_k`.
+    """The kWh a measure removes or moves in a year — the COMPANY's physics.
 
-    Fabric-driven measures scale with the heat demand that HLC implies, which is
-    why getting HLC wrong misprices them. `solar_pv` deliberately does NOT scale
-    with fabric — it is in the choice set precisely so the decision can be wrong in
-    both directions: a home whose fabric is overestimated will be steered toward
-    insulation when PV was the better buy.
+    Kept as a name here only because the carbon arithmetic below needs it; it
+    delegates rather than reimplements. `DO_NOTHING` saves exactly zero and is
+    handled by `_saving_of`, not here, so that a caller cannot accidentally price
+    inaction as a measure.
     """
-    if hlc_kw_per_k <= 0.0 or not math.isfinite(hlc_kw_per_k):
-        raise InsufficientEvidence("a measure cannot be scored against a non-positive HLC")
-    if not math.isfinite(annual_heat_kwh) or annual_heat_kwh < 0.0:
-        raise InsufficientEvidence("annual heat demand must be finite and non-negative")
-    if measure.name == "solar_pv":
-        return SOLAR_KWH_PER_YEAR
-    saved = annual_heat_kwh * measure.hlc_reduction_fraction
-    if measure.delivered_efficiency_gain > 0.0:
-        saved += annual_heat_kwh * (1.0 - 1.0 / measure.delivered_efficiency_gain)
-    return saved
+    return fi.offer_annual_saving_kwh(
+        hlc_kw_per_k, annual_heat_kwh, annual_degree_days_k_day, measure
+    )
 
 
-def rank_measures(
+def _saving_of(
+    name: str,
     hlc_kw_per_k: float,
     annual_heat_kwh: float,
-    *,
-    unit_rate_p_per_kwh: float,
-    measures: Mapping[str, MeasureEconomics] | None = None,
-) -> list[tuple[str, float]]:
-    """Rank measures by lifetime net saving, best first, for a given fabric BELIEF.
-
-    This is the decision function. Run it on the belief and on the truth and the
-    difference between the two answers is the money consequence of the gap.
-    """
-    if not math.isfinite(unit_rate_p_per_kwh) or unit_rate_p_per_kwh <= 0.0:
-        raise InsufficientEvidence("the unit rate must be positive and finite")
-    catalogue = dict(measures or DEFAULT_MEASURES)
-    scored: list[tuple[str, float]] = []
-    for name, m in catalogue.items():
-        if m.name == "time_shift":
-            moved = annual_heat_kwh * m.shiftable_fraction
-            annual_gbp = moved * unit_rate_p_per_kwh / 100.0 * TIME_SHIFT_PRICE_ADVANTAGE
-        else:
-            annual_gbp = (
-                measure_annual_saving_kwh(hlc_kw_per_k, annual_heat_kwh, m)
-                * unit_rate_p_per_kwh
-                / 100.0
-            )
-        scored.append((name, annual_gbp * m.lifetime_years - m.capex_gbp))
-    scored.sort(key=lambda kv: (-kv[1], kv[0]))
-    return scored
+    annual_degree_days_k_day: float,
+    catalogue: Mapping[str, fi.RetrofitOffer],
+) -> float:
+    """kWh saved by `name` at TRUE fabric. Doing nothing saves nothing."""
+    if name == fi.DO_NOTHING:
+        return 0.0
+    return measure_annual_saving_kwh(
+        hlc_kw_per_k,
+        annual_heat_kwh,
+        catalogue[name],
+        annual_degree_days_k_day=annual_degree_days_k_day,
+    )
 
 
 @dataclass(frozen=True)
 class MoneyConsequence:
-    """What the fabric gap COSTS: the value forgone by choosing a measure on a
-    belief instead of on the truth, plus the carbon that decision did not save."""
+    """What the fabric gap COSTS: the value forgone by deciding on a belief instead
+    of on the truth, plus the carbon that decision did not save.
+
+    THREE FAILURE MODES, COUNTED SEPARATELY because they cost different things and
+    a supplier would act differently on each:
+
+    * `misranked_premises` — the company acted and bought the wrong measure.
+    * `declined_where_value_existed` — the company refused (no evidence, or the
+      winner did not survive its own error bar) where the truth said a positive
+      measure existed. This is the price of honest caution, and it is a price: a
+      metric that only counted wrong purchases would score a company that never
+      acts as perfect.
+    * `value_destroying_recommendations` — the company recommended a measure whose
+      TRUE lifetime value is negative. Structurally invisible before 2026-08-09.
+
+    All three are folded into `forgone_lifetime_gbp`; the counts say WHICH kind of
+    wrong the company was.
+    """
 
     premises: int
     misranked_premises: int
+    declined_where_value_existed: int
+    value_destroying_recommendations: int
     forgone_lifetime_gbp: float
     forgone_annual_kwh: float
     forgone_annual_kg_co2e: float
@@ -1623,19 +1669,19 @@ def money_consequence(
     unit_rate_p_per_kwh: float,
     belief: str = "epc",
     fuel: str = "gas",
-    measures: Mapping[str, MeasureEconomics] | None = None,
+    measures: Mapping[str, fi.RetrofitOffer] | None = None,
 ) -> MoneyConsequence:
-    """The money consequence of deciding on `belief` instead of on the truth.
+    """The money consequence of the COMPANY deciding on `belief` instead of on truth.
 
-    For each premise: rank the measures on the belief, rank them on the truth, and
-    if the top choice differs, charge the difference in TRUE lifetime value between
-    the measure that would have been chosen and the measure that should have been.
-    A premise where the belief is wrong but the RANKING survives costs nothing —
-    which is the honest reading, and is why this is a decision metric rather than
-    an error metric.
+    For each premise the company's own `fabric_intervention.decide` is run twice:
+    once on the belief the company holds (with that belief's uncertainty, so it may
+    legitimately DECLINE), and once on the SIM truth with no uncertainty at all —
+    the counterfactual only the harness can compute. Where the two answers differ,
+    the premise is charged the difference in TRUE lifetime value between what the
+    truth would have bought and what the belief actually bought.
 
-    Savings are counted only from reduced or time-shifted kWh (`rank_measures`
-    prices no tariff change), so no result here can be manufactured by discounting.
+    A premise where the belief is wrong but the DECISION survives costs nothing —
+    the honest reading, and why this is a decision metric rather than an error one.
     """
     _require_homes(observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="money_consequence")
     if belief not in ("epc", "inferred"):
@@ -1643,48 +1689,80 @@ def money_consequence(
     if fuel not in CARBON_KG_PER_KWH:
         raise ValueError(f"unknown fuel {fuel!r} — no published carbon factor")
 
-    catalogue = dict(measures or DEFAULT_MEASURES)
+    catalogue = dict(measures if measures is not None else fi.OFFER_BOOK)
     misranked = 0
+    declined_with_value = 0
+    value_destroying = 0
     forgone_gbp = 0.0
     forgone_kwh = 0.0
     for o in observations:
-        held = o.epc_hlc_kw_per_k if belief == "epc" else o.inferred_hlc_kw_per_k
+        held, relative_sd, held_basis = o.belief_arm(belief)
         if not math.isfinite(held) or held <= 0.0:
             raise InsufficientEvidence(f"{o.premise_id}: a non-positive belief is not decidable")
-        # The heat demand the company BELIEVES this home has, scaled from the
-        # observed demand by the ratio of believed to actual fabric — the company
-        # sees the bill, so its demand estimate is anchored, but it attributes that
-        # demand to the fabric it believes in.
-        believed_heat = o.annual_heat_kwh * held / o.actual_hlc_kw_per_k
-        chosen = rank_measures(
-            held, believed_heat, unit_rate_p_per_kwh=unit_rate_p_per_kwh, measures=catalogue
-        )[0][0]
-        truth_ranked = rank_measures(
-            o.actual_hlc_kw_per_k,
-            o.annual_heat_kwh,
+        lower, _upper = log_normal_interval_95(held, relative_sd)
+        company = fi.decide(
+            o.premise_id,
+            held,
+            hlc_pessimistic_kw_per_k=lower,
+            actionable=is_actionable_belief(held_basis, relative_sd),
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
             unit_rate_p_per_kwh=unit_rate_p_per_kwh,
-            measures=catalogue,
+            offers=catalogue,
+            evidence_note=f"basis={held_basis.value}, relative_sd={relative_sd:.3f}",
         )
-        best = truth_ranked[0][0]
+        # THE TRUTH ARM. Zero uncertainty and actionable by construction: this is
+        # not a belief anyone holds, it is what a decider WOULD have chosen with
+        # perfect knowledge, and it is the only place in this codebase where the
+        # company's rule is fed the SIM's hidden fabric.
+        truth = fi.decide(
+            o.premise_id,
+            o.actual_hlc_kw_per_k,
+            hlc_pessimistic_kw_per_k=o.actual_hlc_kw_per_k,
+            actionable=True,
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            offers=catalogue,
+            evidence_note="SIM truth — harness counterfactual, no company holds this",
+        )
+        chosen, best = company.measure, truth.measure
         if chosen == best:
             continue
-        misranked += 1
-        true_values = dict(truth_ranked)
+        true_values = dict(
+            fi.rank_offers(
+                o.actual_hlc_kw_per_k,
+                o.annual_heat_kwh,
+                o.annual_degree_days_k_day,
+                unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+                offers=catalogue,
+            )
+        )
+        if chosen == fi.DO_NOTHING:
+            declined_with_value += 1
+        else:
+            misranked += 1
+            if true_values[chosen] < 0.0:
+                value_destroying += 1
         forgone_gbp += true_values[best] - true_values[chosen]
-        forgone_kwh += (
-            measure_annual_saving_kwh(o.actual_hlc_kw_per_k, o.annual_heat_kwh, catalogue[best])
-            - measure_annual_saving_kwh(o.actual_hlc_kw_per_k, o.annual_heat_kwh, catalogue[chosen])
+        forgone_kwh += _saving_of(
+            best, o.actual_hlc_kw_per_k, o.annual_heat_kwh, o.annual_degree_days_k_day, catalogue
+        ) - _saving_of(
+            chosen, o.actual_hlc_kw_per_k, o.annual_heat_kwh, o.annual_degree_days_k_day, catalogue
         )
     return MoneyConsequence(
         premises=len(observations),
         misranked_premises=misranked,
+        declined_where_value_existed=declined_with_value,
+        value_destroying_recommendations=value_destroying,
         forgone_lifetime_gbp=forgone_gbp,
         forgone_annual_kwh=forgone_kwh,
         forgone_annual_kg_co2e=max(0.0, forgone_kwh) * CARBON_KG_PER_KWH[fuel],
         basis=(
             f"PROVISIONAL — lifetime net value at {unit_rate_p_per_kwh:g} p/kWh on "
             f"domain-knowledge retrofit capex; savings from reduced or time-shifted "
-            f"kWh only, never from discounting. Belief = {belief}."
+            f"kWh only, never from discounting. Belief = {belief}. Decided by "
+            f"company.pricing.fabric_intervention.decide in BOTH arms."
         ),
     )
 
@@ -1704,6 +1782,28 @@ def money_consequence(
 FABRIC_TWIN_ATOM = "C14_thermal_parameter_inference"
 FABRIC_WORLD_ATOM = "W1_11_fabric_physics_core"
 GENERATOR_WORLD_ATOM = "W1_12_premise_trace_generator"
+
+
+def _money_components(m: MoneyConsequence) -> dict:
+    """The whole decision outcome, into the ledger row.
+
+    EVERY count, not just `misrank_rate`. A reader who saw only the misrank rate
+    would read a company that declined every single premise as flawless, which is
+    the fail-open the do-nothing option was added to close — reporting it away in
+    the ledger would put it straight back.
+    """
+    return {
+        "premises": m.premises,
+        "misrank_rate": m.misrank_rate,
+        "misranked_premises": m.misranked_premises,
+        "declined_where_value_existed": m.declined_where_value_existed,
+        "value_destroying_recommendations": m.value_destroying_recommendations,
+        "forgone_lifetime_gbp": m.forgone_lifetime_gbp,
+        "forgone_annual_kwh": m.forgone_annual_kwh,
+        "forgone_annual_kg_co2e": m.forgone_annual_kg_co2e,
+        "gbp_per_tonne_co2e": m.gbp_per_tonne_co2e,
+        "basis": m.basis,
+    }
 
 
 def write_fabric_gap_entries(
@@ -1736,20 +1836,8 @@ def write_fabric_gap_entries(
 
     shared = {
         "premises": len(observations),
-        "money_consequence_epc": {
-            "misrank_rate": money_epc.misrank_rate,
-            "forgone_lifetime_gbp": money_epc.forgone_lifetime_gbp,
-            "forgone_annual_kg_co2e": money_epc.forgone_annual_kg_co2e,
-            "gbp_per_tonne_co2e": money_epc.gbp_per_tonne_co2e,
-            "basis": money_epc.basis,
-        },
-        "money_consequence_inferred": {
-            "misrank_rate": money_inferred.misrank_rate,
-            "forgone_lifetime_gbp": money_inferred.forgone_lifetime_gbp,
-            "forgone_annual_kg_co2e": money_inferred.forgone_annual_kg_co2e,
-            "gbp_per_tonne_co2e": money_inferred.gbp_per_tonne_co2e,
-            "basis": money_inferred.basis,
-        },
+        "money_consequence_epc": _money_components(money_epc),
+        "money_consequence_inferred": _money_components(money_inferred),
         "inference_improvement": epc.gap - inferred.gap,
     }
     if two_level is not None:

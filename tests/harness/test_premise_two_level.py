@@ -43,6 +43,7 @@ demand path would buy, not an endorsement.
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import json
 import math
@@ -51,6 +52,13 @@ import statistics
 import pytest
 
 from background import fabric_gap_ledger as fgl
+from company.pricing import fabric_intervention as fi
+from company.pricing.thermal_inference import (
+    EvidenceBasis,
+    InsufficientObservationError,
+    is_actionable_belief,
+    log_normal_interval_95,
+)
 from simulation import fabric_physics as fp
 from simulation import premise_trace as pt
 from simulation.household import (
@@ -916,7 +924,33 @@ def test_the_verdict_is_WORST_CELL_not_an_average(generated):
 # ===========================================================================
 
 
-def _observations(n=8, *, epc_bias=1.0, inferred_bias=1.0):
+# A UK heating season at the 15.5 C published base, in K.day. Fixed here so the
+# fabric SHARE of each fixture premise's demand is stated rather than incidental.
+FIXTURE_DEGREE_DAYS = 2000.0
+
+# Tight enough to be actionable on the company's own rule, and identical on both
+# beliefs by DEFAULT — so a difference in outcome between the two arms can only come
+# from the estimate, never from one arm having been quietly handed more confidence.
+FIXTURE_RELATIVE_SD = 0.20
+
+# The unit rate the decision fixtures are priced at, and it is NOT arbitrary — see
+# `test_a_high_enough_unit_rate_SATURATES_the_decision_and_fabric_stops_mattering`
+# below, which is where this number is justified rather than merely chosen. 12 p/kWh
+# sits inside the 2022-23 UK domestic GAS range; the previous fixtures used 25 p/kWh,
+# which is an ELECTRICITY rate and at which the decision is saturated.
+FIXTURE_UNIT_RATE = 12.0
+
+
+def _observations(
+    n=8,
+    *,
+    epc_bias=1.0,
+    inferred_bias=1.0,
+    epc_relative_sd=FIXTURE_RELATIVE_SD,
+    inferred_relative_sd=FIXTURE_RELATIVE_SD,
+    epc_basis=EvidenceBasis.EPC_ONLY,
+    inferred_basis=EvidenceBasis.METER_AND_EPC,
+):
     """A synthetic fabric population. Truth spans a real-looking HLC range; the two
     beliefs are the truth scaled by a stated bias, so the gap has a KNOWN answer and
     the metric can be checked rather than merely exercised."""
@@ -928,6 +962,11 @@ def _observations(n=8, *, epc_bias=1.0, inferred_bias=1.0):
             inferred_hlc_kw_per_k=(0.10 + 0.05 * i) * inferred_bias,
             floor_area_m2=60.0 + 10.0 * i,
             annual_heat_kwh=8000.0 + 1500.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=epc_relative_sd,
+            inferred_relative_sd=inferred_relative_sd,
+            epc_basis=epc_basis,
+            inferred_basis=inferred_basis,
         )
         for i in range(n)
     ]
@@ -945,9 +984,7 @@ def test_a_wrong_belief_scores_a_positive_gap_and_a_blind_one_scores_about_one()
     blind = _observations()
     mean = sum(o.actual_hlc_kw_per_k for o in blind) / len(blind)
     blind = [
-        fgl.FabricObservation(
-            o.premise_id, o.actual_hlc_kw_per_k, mean, mean, o.floor_area_m2, o.annual_heat_kwh
-        )
+        dataclasses.replace(o, epc_hlc_kw_per_k=mean, inferred_hlc_kw_per_k=mean)
         for o in blind
     ]
     assert fgl.epc_vs_actual_gap(blind).gap == pytest.approx(1.0)
@@ -964,7 +1001,21 @@ def test_inference_that_makes_things_WORSE_is_reported_as_negative_improvement()
     assert fgl.inference_improvement(better) > 0.0
 
 
-@pytest.mark.parametrize("field_name", ["actual_hlc_kw_per_k", "epc_hlc_kw_per_k", "inferred_hlc_kw_per_k"])
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "actual_hlc_kw_per_k",
+        "epc_hlc_kw_per_k",
+        "inferred_hlc_kw_per_k",
+        # ADDED 2026-08-09 with the fields themselves: a NaN degree-day count or a
+        # NaN uncertainty would slide straight past every threshold in the decision
+        # (`nan <= 0.35` is False), so they must be refused at construction like the
+        # three fabric numbers already are.
+        "annual_degree_days_k_day",
+        "epc_relative_sd",
+        "inferred_relative_sd",
+    ],
+)
 def test_a_non_finite_fabric_observation_is_REFUSED(field_name):
     kwargs = dict(
         premise_id="P0",
@@ -973,6 +1024,11 @@ def test_a_non_finite_fabric_observation_is_REFUSED(field_name):
         inferred_hlc_kw_per_k=0.2,
         floor_area_m2=80.0,
         annual_heat_kwh=9000.0,
+        annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+        epc_relative_sd=FIXTURE_RELATIVE_SD,
+        inferred_relative_sd=FIXTURE_RELATIVE_SD,
+        epc_basis=EvidenceBasis.EPC_ONLY,
+        inferred_basis=EvidenceBasis.METER_AND_EPC,
     )
     kwargs[field_name] = float("nan")
     with pytest.raises(fgl.NonFiniteTrace):
@@ -1015,12 +1071,16 @@ def test_a_belief_that_is_wrong_but_does_not_FLIP_THE_RANKING_costs_nothing():
     )
 
 
-def test_a_belief_wrong_enough_to_FLIP_THE_RANKING_costs_real_money_and_carbon():
+def test_a_belief_wrong_enough_to_FLIP_THE_DECISION_costs_real_money_and_carbon():
     wrong = fgl.money_consequence(
-        _observations(epc_bias=0.30), unit_rate_p_per_kwh=25.0, belief="epc"
+        _observations(epc_bias=0.30), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc"
     )
-    assert wrong.misranked_premises > 0
-    assert wrong.misrank_rate > 0.0
+    # A belief 70% low under-attributes the bill to fabric, so the company either
+    # buys the wrong measure or declines outright. BOTH are charged, and the test
+    # asserts the total rather than one channel: a version of this that only checked
+    # `misranked_premises` would have gone green on a company that simply stopped
+    # deciding.
+    assert wrong.misranked_premises + wrong.declined_where_value_existed > 0
     assert wrong.forgone_lifetime_gbp > 0.0
     assert wrong.basis.startswith("PROVISIONAL"), (
         "R14 — a financial figure resting on domain-knowledge retrofit capex must "
@@ -1032,12 +1092,90 @@ def test_the_money_consequence_moves_MONOTONICALLY_with_the_size_of_the_error():
     """A metric that did not respond to the error it measures would be theatre."""
     rates = [
         fgl.money_consequence(
-            _observations(epc_bias=bias), unit_rate_p_per_kwh=25.0, belief="epc"
-        ).misrank_rate
+            _observations(epc_bias=bias), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc"
+        ).forgone_lifetime_gbp
         for bias in (1.0, 0.6, 0.3, 0.15)
     ]
-    assert rates == sorted(rates), f"misrank rate must not fall as the error grows: {rates}"
+    assert rates == sorted(rates), f"forgone value must not fall as the error grows: {rates}"
     assert rates[0] == 0.0 and rates[-1] > 0.0
+
+
+def test_the_VALUE_DESTROYING_counter_can_actually_FIRE():
+    """R15. `value_destroying_recommendations` reads 0 on the live panel, and a
+    counter that has only ever been observed at zero is indistinguishable from one
+    that cannot count. This constructs the case it exists for: a belief that
+    OVERSTATES fabric badly enough that insulation looks worth buying, on a premise
+    where the truth says it destroys value.
+
+    Note what the outcome is NOT: it is not a misrank between two profitable
+    measures. The company spends real capex on a home where every measure loses
+    money — the failure mode that was structurally unreportable before the do-nothing
+    option existed, and the whole reason this counter is separate from the misrank.
+    """
+    inflated = fgl.money_consequence(
+        _observations(epc_bias=3.0), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc"
+    )
+    assert inflated.value_destroying_recommendations > 0, (
+        "an inflated fabric belief must be able to buy something that loses money"
+    )
+    assert inflated.value_destroying_recommendations <= inflated.misranked_premises, (
+        "a value-destroying recommendation is a SUBSET of the wrong purchases, not a "
+        "separate population — if it ever exceeds them the two are being counted from "
+        "different denominators"
+    )
+    assert inflated.forgone_lifetime_gbp > 0.0
+
+
+def test_the_DECLINED_WHERE_VALUE_EXISTED_counter_can_actually_FIRE():
+    """R15, and the reason a decline had to be charged at all: a company that simply
+    refuses every premise makes no wrong purchases, and a metric counting only wrong
+    purchases would score it as flawless.
+
+    The belief here is CORRECT to three decimal places and still costs money, because
+    it rests on a stock prior — which C14 refuses to act on however tight its band.
+    Honest caution has a price and this is it.
+    """
+    refused = fgl.money_consequence(
+        _observations(epc_basis=EvidenceBasis.STOCK_PRIOR),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        belief="epc",
+    )
+    assert refused.misranked_premises == 0, "the belief is exact — nothing is misbought"
+    assert refused.declined_where_value_existed > 0
+    assert refused.forgone_lifetime_gbp > 0.0, (
+        "a company that declines everything must NOT score as costless"
+    )
+
+
+def test_a_high_enough_unit_rate_SATURATES_the_decision_and_fabric_stops_mattering():
+    """A REAL PROPERTY OF THE MODEL, recorded rather than hidden — and the reason the
+    decision fixtures are priced at a gas rate and not an electricity one.
+
+    Only `insulate` scales with the fabric belief; `heat_pump` earns its saving from
+    delivered efficiency on the whole heat demand, whatever the fabric. So above some
+    unit rate the heat pump wins everywhere and NO fabric error can change the
+    decision — the money consequence goes to zero not because the company got fabric
+    right but because fabric stopped being decision-relevant.
+
+    That is worth a standing test in both directions. If it ever fails it means the
+    measure economics moved, and every fabric decision number in the ledger should be
+    re-read before it is believed. It was found the hard way: these fixtures were
+    priced at 25 p/kWh, and at 25 p/kWh a belief 85% low costs exactly nothing.
+    """
+    saturated = fgl.money_consequence(
+        _observations(epc_bias=0.15), unit_rate_p_per_kwh=25.0, belief="epc"
+    )
+    assert saturated.forgone_lifetime_gbp == pytest.approx(0.0), (
+        "at 25 p/kWh the heat pump should dominate regardless of fabric"
+    )
+    biting = fgl.money_consequence(
+        _observations(epc_bias=0.15), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc"
+    )
+    assert biting.forgone_lifetime_gbp > 0.0, (
+        f"at {FIXTURE_UNIT_RATE} p/kWh the same error must cost something, or the "
+        f"fixture rate is in the saturated region too and every decision test below "
+        f"it is vacuous"
+    )
 
 
 def test_NO_SAVING_MAY_COME_FROM_DISCOUNTING():
@@ -1053,41 +1191,87 @@ def test_NO_SAVING_MAY_COME_FROM_DISCOUNTING():
     """
     import inspect
 
-    # (1) The saving function cannot even SEE a tariff.
-    parameters = inspect.signature(fgl.measure_annual_saving_kwh).parameters
+    # (1) The saving function cannot even SEE a tariff. Checked on the COMPANY's
+    # function, because that is the one a decision now calls — checking the harness
+    # wrapper would prove nothing about the rule that actually runs.
+    parameters = inspect.signature(fi.offer_annual_saving_kwh).parameters
     assert not any("rate" in p or "price" in p or "tariff" in p for p in parameters), (
         f"a physical saving must not take a price: {list(parameters)}"
     )
 
     # (2) For a fixed home and a fixed measure, the kWh saved is rate-independent.
-    for name, measure in fgl.DEFAULT_MEASURES.items():
-        saved = fgl.measure_annual_saving_kwh(0.25, 12000.0, measure)
-        assert saved == fgl.measure_annual_saving_kwh(0.25, 12000.0, measure), name
+    for name, measure in fi.OFFER_BOOK.items():
+        saved = fi.offer_annual_saving_kwh(0.25, 12000.0, FIXTURE_DEGREE_DAYS, measure)
+        assert saved == fi.offer_annual_saving_kwh(
+            0.25, 12000.0, FIXTURE_DEGREE_DAYS, measure
+        ), name
 
     # (3) No unit rate can make a zero-saving measure worth buying. If discounting
     # could create value, this is where it would leak in.
-    useless = fgl.MeasureEconomics("useless", 5000.0, 0.0, 0.0, 0.0, 30.0)
+    useless = fi.RetrofitOffer("useless", 5000.0, 0.0, 0.0, 0.0, 30.0)
     for rate in (5.0, 25.0, 200.0):
-        ranked = dict(fgl.rank_measures(0.25, 12000.0, unit_rate_p_per_kwh=rate,
-                                        measures={"useless": useless}))
+        ranked = dict(fi.rank_offers(0.25, 12000.0, FIXTURE_DEGREE_DAYS,
+                                     unit_rate_p_per_kwh=rate,
+                                     offers={"useless": useless}))
         assert ranked["useless"] == pytest.approx(-5000.0), (
             "a measure that saves no kWh must be worth exactly its negative capex at "
             "every price"
         )
+        # ...and it must LOSE to doing nothing at every price, which is the check
+        # that could not exist before there was a do-nothing to lose to.
+        assert ranked[fi.DO_NOTHING] == 0.0
+
+
+def _decision_vector(observations, rate, belief="epc"):
+    """The (chosen, truth-best) pair for every premise, computed here from the
+    company's own rule. Deliberately INDEPENDENT of `money_consequence`'s counters:
+    a test that used those counters to decide whether the decisions matched would be
+    asking the metric to vouch for itself."""
+    out = []
+    for o in observations:
+        held, sd, basis = o.belief_arm(belief)
+        lower, _ = log_normal_interval_95(held, sd)
+        chosen = fi.decide(
+            o.premise_id, held, hlc_pessimistic_kw_per_k=lower,
+            actionable=is_actionable_belief(basis, sd),
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
+            unit_rate_p_per_kwh=rate,
+        ).measure
+        best = fi.decide(
+            o.premise_id, o.actual_hlc_kw_per_k,
+            hlc_pessimistic_kw_per_k=o.actual_hlc_kw_per_k, actionable=True,
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
+            unit_rate_p_per_kwh=rate,
+        ).measure
+        out.append((chosen, best))
+    return out
 
 
 def test_the_carbon_consequence_is_rate_INDEPENDENT_for_a_fixed_decision():
     """Carbon is physics. Once the decision is made, the tonnes forgone cannot move
-    because the tariff moved — so a rate change that does not flip any ranking must
-    leave the carbon number untouched."""
+    because the tariff moved — so a rate change that does not flip any decision must
+    leave the carbon number untouched.
+
+    THE GUARD HAD TO BE STRENGTHENED (2026-08-09). It previously asserted only that
+    the two rates produced the same NUMBER of misranked premises, which is not the
+    same as producing the same decisions: a rate move that flipped one premise from
+    `insulate` to `heat_pump` and another the opposite way kept the count identical
+    while changing every kWh in the sum. That is exactly what happened on the first
+    run of this test after the decision moved to the company, and the assertion that
+    caught it is the decision VECTOR, not its cardinality.
+    """
+    observations = _observations(epc_bias=0.30)
+    cheap_rate, dear_rate = FIXTURE_UNIT_RATE - 0.05, FIXTURE_UNIT_RATE + 0.05
+    assert _decision_vector(observations, cheap_rate) == _decision_vector(
+        observations, dear_rate
+    ), "this test needs a rate move small enough not to flip any decision"
     cheap = fgl.money_consequence(
-        _observations(epc_bias=0.30), unit_rate_p_per_kwh=24.0, belief="epc"
+        observations, unit_rate_p_per_kwh=cheap_rate, belief="epc"
     )
     dear = fgl.money_consequence(
-        _observations(epc_bias=0.30), unit_rate_p_per_kwh=26.0, belief="epc"
-    )
-    assert cheap.misranked_premises == dear.misranked_premises, (
-        "this test needs a rate move small enough not to flip any ranking"
+        observations, unit_rate_p_per_kwh=dear_rate, belief="epc"
     )
     assert cheap.forgone_annual_kwh == pytest.approx(dear.forgone_annual_kwh)
     assert cheap.forgone_annual_kg_co2e == pytest.approx(dear.forgone_annual_kg_co2e)
@@ -1096,8 +1280,8 @@ def test_the_carbon_consequence_is_rate_INDEPENDENT_for_a_fixed_decision():
 def test_the_measure_ranking_actually_changes_with_fabric():
     """The decision function must be sensitive to the thing the gap is about, or
     the money consequence would be structurally zero and would look like good news."""
-    leaky = fgl.rank_measures(0.45, 22000.0, unit_rate_p_per_kwh=25.0)
-    tight = fgl.rank_measures(0.08, 3000.0, unit_rate_p_per_kwh=25.0)
+    leaky = fi.rank_offers(0.45, 22000.0, FIXTURE_DEGREE_DAYS, unit_rate_p_per_kwh=25.0)
+    tight = fi.rank_offers(0.08, 3000.0, FIXTURE_DEGREE_DAYS, unit_rate_p_per_kwh=25.0)
     assert leaky[0][0] != tight[0][0], (
         f"a leaky and a tight home must not want the same measure: "
         f"{leaky[0][0]} vs {tight[0][0]}"
@@ -1108,22 +1292,26 @@ def test_solar_pv_does_not_scale_with_fabric_so_the_decision_can_be_wrong_BOTH_W
     """PV is in the choice set precisely so overestimating fabric is punished too:
     a home steered to insulation when PV was the better buy is a real error."""
     for hlc in (0.08, 0.45):
-        assert fgl.measure_annual_saving_kwh(
-            hlc, 12000.0, fgl.DEFAULT_MEASURES["solar_pv"]
-        ) == pytest.approx(fgl.SOLAR_KWH_PER_YEAR)
+        assert fi.offer_annual_saving_kwh(
+            hlc, 12000.0, FIXTURE_DEGREE_DAYS, fi.OFFER_BOOK["solar_pv"]
+        ) == pytest.approx(fi.SOLAR_KWH_PER_YEAR)
 
 
 @pytest.mark.parametrize(
     "call",
     [
-        lambda: fgl.rank_measures(0.2, 9000.0, unit_rate_p_per_kwh=0.0),
-        lambda: fgl.rank_measures(0.2, 9000.0, unit_rate_p_per_kwh=float("nan")),
-        lambda: fgl.measure_annual_saving_kwh(0.0, 9000.0, fgl.DEFAULT_MEASURES["insulate"]),
-        lambda: fgl.measure_annual_saving_kwh(0.2, float("nan"), fgl.DEFAULT_MEASURES["insulate"]),
+        lambda: fi.rank_offers(0.2, 9000.0, 2000.0, unit_rate_p_per_kwh=0.0),
+        lambda: fi.rank_offers(0.2, 9000.0, 2000.0, unit_rate_p_per_kwh=float("nan")),
+        lambda: fi.offer_annual_saving_kwh(0.0, 9000.0, 2000.0, fi.OFFER_BOOK["insulate"]),
+        lambda: fi.offer_annual_saving_kwh(0.2, float("nan"), 2000.0, fi.OFFER_BOOK["insulate"]),
+        lambda: fi.offer_annual_saving_kwh(0.2, 9000.0, 0.0, fi.OFFER_BOOK["insulate"]),
     ],
 )
 def test_the_decision_function_REFUSES_degenerate_inputs(call):
-    with pytest.raises(fgl.InsufficientEvidence):
+    """The decision now lives in the company, so its refusals are the company's
+    exception type. `InsufficientObservationError` is what C14 already raises for an
+    input it cannot decide on, and reusing it keeps one refusal vocabulary."""
+    with pytest.raises(InsufficientObservationError):
         call()
 
 

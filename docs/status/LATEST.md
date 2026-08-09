@@ -1,5 +1,63 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T01:48:12Z
+Last updated: 2026-08-09T02:17:59Z
+**C14_thermal_parameter_inference — the fabric belief now SPENDS MONEY, and the decision metric
+could not previously report a loss. Half the L2→L3 step built; LEVEL DELIBERATELY NOT MOVED.**
+This atom's own L2 record named two exit conditions: wire the belief into a live decision path, and
+measure the gap on the **population** rather than a hand-picked panel. The first is done. The second
+is not — the panel is 10 authored premises — so the level stays at **2** and the exit test is not
+renegotiated to fit what got built.
+**The defect, found by probing numbers rather than by review.** The only decision function the
+fabric triad had lived in the *harness that scores it*, and its choice set had **no do-nothing
+option**. A 0.08 kW/K flat using 4,000 kWh/yr at 7.4 p/kWh was recommended `time_shift` at a lifetime
+net value of **−£41** — spend £300 to save £259 — and the metric scored it as a **perfect decision**,
+because the truth arm picked the same value-destroying measure. A choice set that cannot say
+*"nothing here is worth doing"* cannot report the loss, and `money_consequence_inferred` had been
+sitting at `misrank 0.0, forgone £0.00` reading as good news.
+**What was built.** `company/pricing/fabric_intervention.py` — the first thing in this codebase that
+spends money on a thermal belief. It reads the two C14 properties that until now were computed by
+nothing and read by nobody: `is_actionable` (refuses a stock prior however tight its band) and
+`interval_95` (refuses a winner that dies at the pessimistic end of the company's *own* uncertainty).
+The harness now calls the company's rule **twice** — once on the belief, once on the SIM truth only
+it can see — same rule, same catalogue, so the only difference between the arms is the belief.
+**The wall forced a better model.** The harness had made the belief matter by scaling the company's
+demand estimate by `belief / truth`, which cannot live in company code even in principle because it
+needs the truth. The company instead attributes part of its own bill to fabric (`HLC × degree days ×
+24`, capped at the bill, at the 15.5 °C published UK base), so insulation saves a share of the
+**fabric** portion, never of the bill — more physical, and consequential without contrivance.
+**The measurement disagrees with itself, and both halves are published.** The C14 posterior is
+**worse** than the register at predicting fabric (gap **0.2325** vs **0.2049**, improvement −0.0277)
+and **better** at deciding what to do about it — **£16,261 forgone against £41,586, a 61% reduction**
+— because narrowing the uncertainty converts refusals into correct actions. Reporting either number
+alone would be a lie in one direction or the other. Three outcomes are now counted separately
+(bought-wrong, declined-where-value-existed, value-destroying) because they cost different things and
+a metric counting only wrong purchases scores a company that never acts as flawless. Both new
+counters are R15-proven to fire — a counter only ever observed at zero cannot be told from one that
+cannot count.
+**Three weaker-than-they-read controls corrected in passing.** (1) The carbon-invariance test guarded
+on the *count* of misranked premises, not on *which* — two flipping opposite ways keeps the count and
+changes every kWh, which is exactly what happened; it now asserts the decision **vector**, computed
+independently of the metric it checks. (2) *"The money consequence scales **linearly** with the unit
+rate"* was **false** — capex does not move with price and does not cancel, so the relationship is
+**affine**; doc, printout and test all now say so. (3) The decision fixtures were priced at 25 p/kWh,
+an *electricity* rate at which the heat pump wins on delivered efficiency whatever the fabric — a
+belief 85% low cost exactly nothing and every fabric test below it was vacuous. That saturation is
+now its own standing test, in both directions.
+**R15 found something the design had not.** Guards 2 and 3 **overlap**: a winner negative at the
+estimate is negative at the pessimistic bound too, so removing the do-nothing option does *not*
+resurrect the loss-making sale, and a mutation test asserting it would have been simply false.
+Recorded rather than tidied — **"the outcome did not change under mutation" is not evidence a guard
+is inert** — and each guard is instead shown firing *alone*, on an input the other cannot refuse.
+**Evidence.** 871 passed, 3 xfailed (`tests/company/pricing` incl. 34 new, `test_premise_two_level`
+96, `test_couple_fabric`, `test_premise_trace`); `epistemic_verifier` **PASS**; wall ratchet 12
+passed; ledger rewritten at HEAD by `tools/couple_fabric.py --write-ledger`.
+**What L3 still needs, now precisely located.** The population. The panel's composition was *chosen*
+to span the stock, so no result on it separates the company's skill from the panel designer's taste.
+The anchors already exist in `ASSUMPTIONS.md` (EHS 2022-23 AT1_5 property-type and build-era, AT1_2
+EPC bands, AT3_1/AT4 heating systems — all four rows still marked *"Gap — household.py not yet
+built"*). `simulation/population_draw.py` cannot serve: `SyntheticCustomer` carries no
+`home_type`/`epc_rating`/`bedrooms`, so `make_household` defaults every draw to the same
+`suburban_semi` and the population would be clones.
+
 **W1_12_premise_trace_generator — the last red cell was the BAND, not the generator, and the band
 was gas-shaped. L2→L3 (2026-08-09, `d9ae87986`), self-certified.** Last tick DECLINED this
 promotion on a measured red cell and named the work rather than taking the shortcut. This is that
@@ -45,6 +103,49 @@ every home by the *stricter* band), tautology (the flag is a register fact, neve
 series being judged), and worst-cell selection by **margin** rather than raw value. 155 passed,
 1 xfailed — the shipped path's strict-xfail pin still XFAILs, so the legacy PC1 rescale has not been
 quietly outgrown. Stops at L3: Expert Hour `not_attempted`.
+
+**H27_payment_belief_gap — the Expert Hour ran on the corrected instrument, and the detection
+headline failed it twice. HELD AT L2 (2026-08-09).** The previous tick released H27's procedural
+block and left an instruction rather than the promotion: *a promoter must run the Expert-Hour pass
+on the corrected instrument, not on the reputation of the old one.* It ran. L3 means "no major
+flaws"; two were measured, both in the published headline, neither previously named.
+**(1) The headline is an `as_of` artefact.** `truth_set` is `result == 'failed'` — a settled fact
+that does not move with the clock — while `flagged_set` is a belief held **at** `as_of`. Holding
+the company *and* the world literally fixed (same records, same consumer, nothing re-simulated) and
+moving only the date the scorer asks on walks the published figure **0.0725 → 0.1232, +70% over 60
+days**. The mechanism is D8's (a case detected on time, then *un*-flagged by an oldest-first
+allocation). The sting: this was already solved one dimension over — `detection_latency` was built
+on an ever-knew population for exactly this reason, and its test is literally named *"not an as_of
+artefact"* while sitting beside a headline that is one. Third instance of the class (D7's prevalence
+scalar, D10's retired key), so it is **closed at the class**, not the instance (R10).
+**(2) The headline counts one error direction.** `detection_gap` is pure recall, so `flagged_set`
+enters only through the intersection and **a company that flagged every invoice scores a perfect
+0.0** — while the published baseline names only the opposite degenerate ("flag nobody → 1"), which
+reads as though 0 were earned. Measured: **44–51% of everything the company flags is an invoice
+that truly succeeded** (seed 7: 101 false flags, 0.0951 over the truly-current population). That is
+*the same 101/1062* D7's `overstated_arrears_rate` already publishes on the ageing dimension — the
+error direction was visible one dimension over and invisible here. It had even been noticed: the
+live test file said "flagged can EXCEED true", explained it away, and declined to assert on it.
+**What landed instead of the promotion (HARDEN; R12 clean — the detection gap is byte-identical at
+`0.09547325102880659`):** the caveat is stamped **at source** in `gap_metric.detection_gap` (the D6
+precedent), so it lands on all **three** coupled triads that call it, not just where it was found;
+`n_false_flags`/`false_flag_rate` ride beside the score on their own denominator (`None`, never
+`0`, when the universe is unknown — a 0 there is the strongest possible claim handed out free); and
+both limits now print **with** the headline at the CLI and in the live ledger note the Proof door
+reads. **The class control:** `DIMENSION_AS_OF_CONTRACT` + a real `as_of` sweep holding every
+dimension to *truth invariant ⇒ gap invariant*. Deliberately **differential** — ageing is exempt
+because an invoice really does age; a blanket rule would false-positive there and teach everyone to
+skip the gate. **R15, mutating the source twice:** flipping detection's declared invariance fires
+it with the real drift; stripping the fix-atom name from its exemption fires the named-debt
+assertion. Plus a vacuity guard so a sweep where nothing moved cannot pass silently.
+**A coverage hole found on the way:** `live_payment_triad.measure_and_write` — the path that
+actually *publishes* the gap into `coupled_gap_ledger.json` — had **no test reaching it**, so every
+word of its note was unexercised. Now covered, with the witness interpolated from the measurement.
+**Queued, not fixed on sight:** `D11_detection_gap_is_recall_only` carries the reshape (it moves
+three published numbers), and H27's `depends_on` re-points at it — the whole of the remaining hold.
+Acceptance is already measurable: the `as_of` sweep must come out flat, and flag-everything must
+stop scoring 0. 38 tests in the triad file (was 31), 7 in the live file (was 5), 2,186 green across
+the targeted surface; ruff unchanged at 7 vs a pristine HEAD extract.
 
 **D10_detection_headline_is_single_channel (2026-08-09, `e78913088`) — the payment DETECTION
 headline gets a shape that can see latency, and a sentence it published turns out to be wrong.
@@ -1037,7 +1138,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (505s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
@@ -1151,6 +1252,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1766.0h across 80 sized atom(s) (13 of 93 below-target atoms still unsized).
+- Remaining effort: ~1657.9h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

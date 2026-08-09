@@ -65,6 +65,7 @@ if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
 from background import fabric_gap_ledger as fgl  # noqa: E402
+from company.pricing import fabric_intervention as fi  # noqa: E402
 from company.pricing import thermal_inference as ti  # noqa: E402
 from simulation import fabric_physics as fp  # noqa: E402
 from simulation import premise_trace as pt  # noqa: E402
@@ -95,10 +96,26 @@ WINDOW_END = dt.date(2022, 4, 30)
 SITE = "C1"
 AS_OF = dt.date(2022, 5, 1)
 
-# The default unit rate. DIAGNOSTIC input, not a company figure: the money
-# consequence scales linearly with it, so it is printed alongside every £ result
-# rather than buried (R14 — a figure without its basis is a defect).
+# The default unit rate. DIAGNOSTIC input, not a company figure, and it is printed
+# alongside every £ result rather than buried (R14 — a figure without its basis is a
+# defect). It is NOT a scale factor: forgone value is AFFINE in the rate, not linear,
+# because the capex of the measure a wrong belief bought does not move with the price
+# — and the rate also decides WHICH measure wins, so a different rate is a different
+# decision, not the same one rescaled.
 DEFAULT_UNIT_RATE_P_PER_KWH = 7.4
+
+# The degree-day base used to attribute part of a bill to FABRIC loss in the
+# intervention decision. 15.5 C is the long-standing UK published convention (the
+# base of the Met Office / BizEE UK degree-day series), NOT the per-premise balance
+# point C14 searches for.
+#
+# THAT DISTINCTION IS DELIBERATE AND IT IS A WALL ISSUE. The searched balance point
+# is a COMPANY artefact that exists only where a meter fit succeeded; feeding it to
+# the decision would (a) leave EPC-only premises with no base at all and (b) put a
+# company-derived quantity inside the TRUTH arm, where the whole point is that the
+# only thing differing between the arms is the fabric belief. One published
+# convention, applied identically to both arms and every premise.
+DEGREE_DAY_BASE_C = 15.5
 
 # The EPC register's OWN vocabulary, as `thermal_inference.epc_prior` recognises
 # it. These strings are the company's, not the SIM's — the whole point of the
@@ -263,7 +280,7 @@ def build_panel(weather, *, seed: int = 17, limit: int | None = None):
     return out
 
 
-def observe(panel, weather):
+def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     """Hold the two sides together — the ONE place permitted to do so.
 
     Returns (observations, per-premise detail). The company's belief is computed
@@ -274,6 +291,15 @@ def observe(panel, weather):
         ti.PublishedWeatherDay(day.date, day.weather.temperature_mean_c)
         for day in weather
     ]
+    # ANNUALISED the SAME WAY the heat total is, and that is not a detail. The
+    # measurement window is a heating season (Jan-Apr), and `PremiseTrace.annual_kwh`
+    # annualises it as `window mean x 365.25`. Annualising the degree days by the
+    # identical rule keeps the two commensurate, so the FABRIC SHARE the decision
+    # actually turns on is unaffected by the annualisation — a window-mean heat
+    # total divided by a true-annual degree-day count would silently halve every
+    # premise's apparent fabric share and steer the whole book away from insulation.
+    hdd_by_day = ti.heating_degree_days(published, DEGREE_DAY_BASE_C)
+    annual_degree_days = sum(hdd_by_day.values()) / len(hdd_by_day) * 365.25
     observations, detail = [], []
     for premise_id, household, trace, commodity, cadence in panel:
         certificate = _certificate_for(trace, household, _LODGED.get(premise_id))
@@ -302,6 +328,14 @@ def observe(panel, weather):
                 inferred_hlc_kw_per_k=belief.hlc_kw_per_k,
                 floor_area_m2=trace.fabric.floor_area_m2,
                 annual_heat_kwh=trace.annual_kwh(commodity),
+                annual_degree_days_k_day=annual_degree_days,
+                # The register prior taken ON ITS OWN — its own width and its own
+                # basis, not the posterior's. A company that had never looked at a
+                # meter would hold exactly this, and that is the arm being scored.
+                epc_relative_sd=belief.prior.relative_sd,
+                epc_basis=belief.prior.basis,
+                inferred_relative_sd=belief.relative_sd,
+                inferred_basis=belief.basis,
             )
         )
         detail.append(
@@ -315,6 +349,12 @@ def observe(panel, weather):
                 "relative_sd": belief.relative_sd,
                 "basis": belief.basis.value,
                 "is_actionable": belief.is_actionable,
+                "recommendation": fi.recommend_measure(
+                    belief,
+                    annual_heat_kwh=trace.annual_kwh(commodity),
+                    annual_degree_days_k_day=annual_degree_days,
+                    unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+                ).decision.value,
             }
         )
     return observations, detail
@@ -337,6 +377,24 @@ def _git_head():
         return None
 
 
+def _money_json(m):
+    """The money consequence in full. Every count is emitted, not just the misrank
+    rate: a reader who saw only `misrank_rate` would read a company that declined
+    every premise as flawless."""
+    return {
+        "premises": m.premises,
+        "misrank_rate": m.misrank_rate,
+        "misranked_premises": m.misranked_premises,
+        "declined_where_value_existed": m.declined_where_value_existed,
+        "value_destroying_recommendations": m.value_destroying_recommendations,
+        "forgone_lifetime_gbp": m.forgone_lifetime_gbp,
+        "forgone_annual_kwh": m.forgone_annual_kwh,
+        "forgone_annual_kg_co2e": m.forgone_annual_kg_co2e,
+        "gbp_per_tonne_co2e": m.gbp_per_tonne_co2e,
+        "basis": m.basis,
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", type=int, default=17)
@@ -353,7 +411,7 @@ def main() -> None:
 
     weather = load_weather()
     panel = build_panel(weather, seed=args.seed, limit=args.premises)
-    observations, detail = observe(panel, weather)
+    observations, detail = observe(panel, weather, unit_rate_p_per_kwh=args.unit_rate)
     result = two_level(panel, weather)
 
     epc = fgl.epc_vs_actual_gap(observations)
@@ -368,14 +426,8 @@ def main() -> None:
             "epc_vs_actual_gap": epc.gap,
             "inferred_vs_actual_gap": inferred.gap,
             "inference_improvement": epc.gap - inferred.gap,
-            "money_epc": {
-                "misrank_rate": money_epc.misrank_rate,
-                "forgone_lifetime_gbp": money_epc.forgone_lifetime_gbp,
-            },
-            "money_inferred": {
-                "misrank_rate": money_inferred.misrank_rate,
-                "forgone_lifetime_gbp": money_inferred.forgone_lifetime_gbp,
-            },
+            "money_epc": _money_json(money_epc),
+            "money_inferred": _money_json(money_inferred),
             "two_level_is_red": result.is_red,
             "two_level_failed": [c.statistic for c in result.failed],
             "premises": detail,
@@ -399,11 +451,20 @@ def main() -> None:
         print(f"  inference improvement     : {epc.gap - inferred.gap:+.4f}"
               "   (positive = inference beat the register)")
         print()
-        print(f"  MONEY CONSEQUENCE at {args.unit_rate:.2f} p/kWh (DIAGNOSTIC, scales linearly):")
+        print(f"  MONEY CONSEQUENCE at {args.unit_rate:.2f} p/kWh"
+              "  (DIAGNOSTIC; AFFINE in the rate, not proportional to it — the capex of a\n"
+              "   wrongly-bought measure does not move with the price, and the price\n"
+              "   also decides WHICH measure wins):")
         for label, m in (("on EPC belief", money_epc), ("on inferred belief", money_inferred)):
-            print(f"    {label:<20} misrank {m.misrank_rate:.3f}"
-                  f"  forgone GBP {m.forgone_lifetime_gbp:,.0f}"
+            print(f"    {label:<20} forgone GBP {m.forgone_lifetime_gbp:,.0f}"
                   f"  {m.forgone_annual_kg_co2e:,.0f} kg CO2e/yr")
+            # The THREE kinds of wrong, never summed into one rate: buying the wrong
+            # measure, refusing where value existed, and buying something that
+            # destroys value are different failures with different remedies.
+            print(f"    {'':<20}   bought wrong {m.misranked_premises}"
+                  f" (of which value-DESTROYING {m.value_destroying_recommendations})"
+                  f"  declined-where-value-existed {m.declined_where_value_existed}"
+                  f"  of {m.premises}")
         print()
         print(f"  two-level test            : {'RED' if result.is_red else 'green'}"
               f"  failed {[c.statistic for c in result.failed]}")

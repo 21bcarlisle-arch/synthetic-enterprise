@@ -245,19 +245,55 @@ def test_INFERENCE_CAN_MAKE_THE_POINT_ESTIMATE_WORSE_WHILE_MAKING_THE_DECISION_B
     assert money_inferred.forgone_lifetime_gbp <= money_epc.forgone_lifetime_gbp
 
 
-def test_the_money_consequence_scales_LINEARLY_with_the_unit_rate(measured):
-    """R14 — the £ figure is meaningless without its basis, so the basis is
-    proven to be exactly what the printout says it is."""
+def test_the_money_consequence_is_AFFINE_in_the_unit_rate_for_a_fixed_decision(measured):
+    """R14 — the £ figure is meaningless without its basis, so the basis is proven to
+    be exactly what the printout says it is.
+
+    THE OLD CLAIM WAS "LINEAR" AND IT WAS WRONG (corrected 2026-08-09). Forgone value
+    is `(saving_best x rate x life_best - capex_best) - (saving_chosen x rate x
+    life_chosen - capex_chosen)`. The capex terms do not scale with the rate and do
+    not cancel unless the two measures happen to cost the same, so doubling the rate
+    cannot double the answer in general — the relationship is AFFINE, with an
+    intercept made of the capex difference the wrong decision bought. The previous
+    assertion held only for the particular pair of decisions the old choice set
+    produced; adding the do-nothing option (whose capex is zero) exposed it
+    immediately.
+
+    Affine is testable without knowing the coefficients: three equally-spaced rates
+    must satisfy `f(r1) + f(r3) == 2 f(r2)`. It is only a statement about the PRICE
+    for a FIXED decision, so the decision vector is asserted unchanged first — a
+    version of this test without that guard would be measuring a decision flip and
+    calling it a pricing law.
+    """
     observations, _ = measured
-    single = fgl.money_consequence(observations, unit_rate_p_per_kwh=10.0, belief="epc")
-    double = fgl.money_consequence(observations, unit_rate_p_per_kwh=20.0, belief="epc")
-    assert double.forgone_lifetime_gbp == pytest.approx(
-        2.0 * single.forgone_lifetime_gbp, rel=1e-9
+    rates = (9.0, 10.0, 11.0)
+    vectors = [
+        [
+            (
+                fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").misranked_premises,
+                fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").declined_where_value_existed,
+            )
+            for r in rates
+        ]
+    ][0]
+    assert len(set(vectors)) == 1, (
+        f"this test needs three rates that produce the SAME decisions: {vectors}"
     )
+    f = [
+        fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").forgone_lifetime_gbp
+        for r in rates
+    ]
+    assert f[0] + f[2] == pytest.approx(2.0 * f[1], rel=1e-9), (
+        f"forgone value must be affine in the unit rate for a fixed decision: {f}"
+    )
+    assert f[2] != pytest.approx(f[0]), "a rate move must change the £ figure at all"
+
     # Carbon is a PHYSICAL quantity and must not move with the price at all.
-    assert double.forgone_annual_kg_co2e == pytest.approx(
-        single.forgone_annual_kg_co2e, rel=1e-9
-    )
+    carbon = [
+        fgl.money_consequence(observations, unit_rate_p_per_kwh=r, belief="epc").forgone_annual_kg_co2e
+        for r in rates
+    ]
+    assert carbon[0] == pytest.approx(carbon[2], rel=1e-9)
 
 
 def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
