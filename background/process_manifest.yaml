@@ -91,6 +91,11 @@ processes:
     match: background_worker.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Qwen task queue + leftover run_complete-marker sweep; off-peak"
 
   - session: staging-watcher
@@ -120,6 +125,11 @@ processes:
     match: dispatcher.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Classifies from_rich_*.md URGENT/NORMAL/FYI"
 
   - session: discovery-daemon
@@ -127,6 +137,11 @@ processes:
     match: discovery_agent.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Validates sim assumptions every 6h via Qwen"
 
   - session: sim-runner
@@ -134,6 +149,11 @@ processes:
     match: sim_runner.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Continuous simulation loop; writes run_complete markers"
 
   - session: sanity-daemon
@@ -141,6 +161,11 @@ processes:
     match: sanity_daemon.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Population-level statistical sanity checks every 30min"
 
   # ── RETIRED: page-comment authority path decommissioned (director ruling 2026-07-24) ──
@@ -158,6 +183,11 @@ processes:
     match: naive_organ
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Independent outside-view skeptic on its own timer (was MISSING from the old EXPECTED_PANES)"
 
   - session: token-proxy
@@ -165,6 +195,11 @@ processes:
     match: background.token_proxy
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
+                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
+                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
+                           # left this row un-flipped: two launchers declared, AND excluded from
+                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
     purpose: "Local token-usage proxy"
 
   # NOTE: file-api is NOT here — it is a systemd-owned service (director-access

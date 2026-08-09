@@ -207,6 +207,7 @@ def _draw_reading(atoms: list[dict]):
     """
     try:
         import yaml
+
         from background import supervisor
     except ImportError as exc:
         raise ProbeUnavailable("supervisor unavailable: the draw cannot be measured") from exc
@@ -524,4 +525,9 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/blocked_atom_visibility.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("blocked_atom_visibility")
     raise SystemExit(main())

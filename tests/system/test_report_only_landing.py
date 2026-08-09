@@ -33,6 +33,21 @@ from background import process_run_complete as prc
 
 ROOT = Path(__file__).resolve().parents[2]
 SYSTEM_TIER = ROOT / "tests" / "system"
+
+#: Every report-only marker this tier carries. `scale_report_only` joined on
+#: 2026-08-09 (AO4_scale_constraints_executable) on identical terms. They are
+#: SEPARATE markers on purpose — one marker would mean promoting either tier out
+#: of report-only promotes both, and the two earn their stable weeks
+#: independently. Containment and coverage below are asserted over the whole set,
+#: so a third marker added without extending this tuple fails the coverage half.
+REPORT_ONLY_MARKERS = ("join_report_only", "scale_report_only")
+
+#: The exact expression the publish gate runs. Pinned as a literal (not rebuilt
+#: from REPORT_ONLY_MARKERS) — a check that derives the expected value from the
+#: same source it checks is a tautology and would agree with any drift (R15).
+EXPECTED_GATE_EXPR = (
+    "not operational and not join_report_only and not scale_report_only"
+)
 #: Where a test-tree import would be a genuine WALL breach: the layers the
 #: epistemic wall actually separates. Zero tolerance -- the cross-wall helpers in
 #: chains.py must be unreachable from anything shippable.
@@ -49,6 +64,14 @@ WIDER_ROOTS = ("background", "tools")
 #: pin to be removed rather than quietly protecting nothing).
 KNOWN_WIDER_TEST_IMPORTS = {
     "tools/build_battery_register.py -> tests.domain.battery_register",
+    # KNIFE pass 1 (2026-08-09). `knife_hotspot_measure` sizes the epistemic wall's
+    # live crossing edges, and the ratchet's walker (`build_edges`/`company_reads_sim`/
+    # `sim_reads_company`) is the ONLY implementation of that traversal. Re-implementing
+    # it in tools/ would give the measurement a second, independently-driftable notion of
+    # what a crossing is — the measure would stop describing the control it measures.
+    # Pinned, not fixed on sight: the honest fix is to rehome the walker into a shared
+    # module both sides import, which is a KNIFE follow-up, not this incident's work.
+    "tools/knife_hotspot_measure.py -> tests.architecture.test_epistemic_wall_ratchet",
 }
 
 
@@ -56,7 +79,7 @@ KNOWN_WIDER_TEST_IMPORTS = {
 
 def test_the_publish_gate_deselects_the_join_tier():
     argv = prc.publish_gate_pytest_argv("tests/")
-    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational and not join_report_only"
+    assert prc.PUBLISH_GATE_MARKER_EXPR == EXPECTED_GATE_EXPR
     assert "-m" in argv
     assert argv[argv.index(prc.PUBLISH_GATE_MARKER_EXPR) - 1] == "-m", (
         "the marker expression is present in argv but not as the value of `-m` — it is "
@@ -64,39 +87,49 @@ def test_the_publish_gate_deselects_the_join_tier():
     )
 
 
-def test_pytest_really_deselects_the_marked_tier_not_just_the_config():
+@pytest.mark.parametrize("module", [
+    "tests/system/test_join_work_loop.py",
+    "tests/system/test_scale_constraints.py",
+])
+def test_pytest_really_deselects_the_marked_tier_not_just_the_config(module):
     """Resolve the marker the way pytest resolves it, on the REAL tier.
 
     The config constant agreeing with itself is a tautology; what matters is
     whether collection under the gate's own expression actually drops these
     modules. Collect `tests/system/` under the live marker expression and assert
-    nothing survives.
+    nothing survives. One representative module per report-only marker — a second
+    marker that was registered but never added to the gate expression would pass
+    every string check above and fail here.
     """
     r = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/system/test_join_work_loop.py",
+        [sys.executable, "-m", "pytest", module,
          "--collect-only", "-q", "-p", "no:cacheprovider",
          "-m", prc.PUBLISH_GATE_MARKER_EXPR],
         cwd=str(ROOT), capture_output=True, text=True,
     )
     assert "no tests ran" in r.stdout or "0 tests collected" in r.stdout or \
            "deselected" in r.stdout, (
-        "a join module was NOT deselected by the publish gate's own marker expression "
+        f"{module} was NOT deselected by the publish gate's own marker expression "
         f"— report-only is not in force.\nstdout:\n{r.stdout[-2000:]}"
     )
 
 
-def test_a_red_join_test_cannot_wedge_the_publish_gate(tmp_path):
+@pytest.mark.parametrize("marker", REPORT_ONLY_MARKERS)
+def test_a_red_join_test_cannot_wedge_the_publish_gate(tmp_path, marker):
     """The end-to-end claim, on a throwaway tree: a RED marked test passes the
     gate's selector, and a RED unmarked one still fails it.
 
     Both directions. Without the second, 'report-only works' would also be
-    satisfied by a selector that deselects everything.
+    satisfied by a selector that deselects everything. Run per marker: each one
+    opens its own fail-open channel and each has to be shown to be contained.
     """
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "conftest.py").write_text(
         "def pytest_configure(config):\n"
-        "    config.addinivalue_line('markers', 'join_report_only: x')\n"
-        "    config.addinivalue_line('markers', 'operational: x')\n"
+        + "".join(
+            f"    config.addinivalue_line('markers', '{m}: x')\n"
+            for m in (*REPORT_ONLY_MARKERS, "operational")
+        )
     )
     # A green UNMARKED test, so the synthetic tree mirrors the real gate: with
     # only a deselected test present pytest exits 5 ("no tests collected"), which
@@ -107,7 +140,7 @@ def test_a_red_join_test_cannot_wedge_the_publish_gate(tmp_path):
     )
     (tmp_path / "tests" / "test_join_red.py").write_text(
         "import pytest\n"
-        "pytestmark = pytest.mark.join_report_only\n"
+        f"pytestmark = pytest.mark.{marker}\n"
         "def test_brittle_join():\n    assert False, 'a brittle join test'\n"
     )
 
@@ -157,17 +190,18 @@ def _module_level_marks(path: Path) -> set[str]:
     return marks
 
 
-def test_join_report_only_marker_is_confined_to_the_system_tier():
-    """CONTAINMENT. The gate now ignores anything carrying this marker, so a
-    content or safety-wall test that took it would silently stop blocking."""
+@pytest.mark.parametrize("marker", REPORT_ONLY_MARKERS)
+def test_join_report_only_marker_is_confined_to_the_system_tier(marker):
+    """CONTAINMENT. The gate now ignores anything carrying these markers, so a
+    content or safety-wall test that took one would silently stop blocking."""
     strays = [
         str(p.relative_to(ROOT))
         for p in (ROOT / "tests").rglob("test_*.py")
-        if "join_report_only" in _module_level_marks(p)
+        if marker in _module_level_marks(p)
         and SYSTEM_TIER not in p.parents
     ]
     assert strays == [], (
-        "join_report_only escaped tests/system/ — these modules are now deselected from "
+        f"{marker} escaped tests/system/ — these modules are now deselected from "
         f"the publish gate and can no longer block a bad publish: {strays}"
     )
 
@@ -176,21 +210,28 @@ def test_every_join_module_actually_carries_the_marker():
     """The other direction: an UNMARKED module in this tier is blocking, which
     contradicts the report-only landing the director ruled. This module is the
     single deliberate exception — it is the control surface and must stay
-    blocking."""
-    unmarked = [
-        p.name
+    blocking.
+
+    Each module must carry EXACTLY ONE of the report-only markers. Zero would
+    block publish; two would mean promoting one tier out of report-only silently
+    leaves the module deselected under the other, which is how a tier gets
+    promoted on paper and stays report-only in fact.
+    """
+    wrong = {
+        p.name: sorted(_module_level_marks(p) & set(REPORT_ONLY_MARKERS))
         for p in sorted(SYSTEM_TIER.glob("test_*.py"))
         if p.name != Path(__file__).name
-        and "join_report_only" not in _module_level_marks(p)
-    ]
-    assert unmarked == [], (
-        f"join modules missing the report-only marker (they would block publish): {unmarked}"
+        and len(_module_level_marks(p) & set(REPORT_ONLY_MARKERS)) != 1
+    }
+    assert wrong == {}, (
+        "every module in this tier must carry exactly one report-only marker; these do "
+        f"not: {wrong}"
     )
 
 
 def test_this_control_module_is_itself_blocking():
     """A containment guard that is itself deselected guards nothing."""
-    assert "join_report_only" not in _module_level_marks(Path(__file__))
+    assert not (_module_level_marks(Path(__file__)) & set(REPORT_ONLY_MARKERS))
 
 
 # ── the advisor's "one real rule" for this tier ──────────────────────────────

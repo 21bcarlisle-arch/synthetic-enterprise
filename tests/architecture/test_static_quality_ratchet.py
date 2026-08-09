@@ -116,6 +116,26 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-09  I001 1388 -> 1387, F541 28 -> 27  (SECOND publish wedge, ~10h)
+#     The same disease as the 7h episode below, the same day, and the reason it
+#     read as "stale" rather than "regression" is that the gate was red in BOTH
+#     directions at once and each direction HID the other:
+#       I001  a real regression landed at HEAD (1388 -> 1389) —
+#             `background/blocked_atom_visibility.py` grew an unsorted import
+#             block. But the working tree already carried the isort fix for it
+#             AND for `tests/harness/test_conversation_gap.py`, both uncommitted,
+#             so the tree linted 1387 and the gate only ever reported the stale
+#             side. Fixed at source per the ratchet's remedy: both isort fixes
+#             are COMMITTED here, so 1387 is the floor at HEAD and not a number
+#             that depends on one concurrent writer's unsaved work.
+#       F541  `tools/couple_w2_5_c7.py` lost its placeholder-less f-string in
+#             D15 (30f111b9e). A legitimate shrink that was never recorded -> 27.
+#   2026-08-09  E402 194 -> 193  (KNIFE pass 1, atom `KNIFE1_reporting_cycle`)
+#     `saas/reporting/annual_report.py` line 41 was
+#     `from simulation.run_phase4c_on_phase2b import main ...`, sitting below a
+#     module-level `_PROJECT = Path(...)` and so counted as an E402. Cutting the
+#     epistemic-wall crossing deleted the import and the lint with it. Lowered,
+#     not left stale: the ratchet holds the new floor.
 #   2026-08-09  I001 1392 -> 1388, F401 280 -> 279  (E402 back to 194, unchanged)
 #     The ratchet went RED at pristine HEAD between 2026-08-06 and 2026-08-08
 #     (E402 201, F401 281, I001 1396) and wedged the publish gate for ~7 hours:
@@ -135,29 +155,29 @@ BASELINE_DATE = "2026-08-06"
 #             -> `ruff --select I001 --fix`, floor drops to 1388.
 #
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392  (now 1388)
+#   I001 unsorted-imports .............. 1392  (now 1387)
 #   F401 unused-import .................  280  (now  279)
-#   E402 module-import-not-at-top ......  194
+#   E402 module-import-not-at-top ......  194  (now  193)
 #   F841 unused-variable ...............  130
 #   E741 ambiguous-variable-name .......  108
 #   F811 redefined-while-unused ........   95
 #   E702 multiple-statements-semicolon .   76
 #   E701 multiple-statements-colon .....   45
-#   F541 f-string-missing-placeholders .   28
+#   F541 f-string-missing-placeholders .   28  (now   27)
 #   E401 multiple-imports-on-one-line ..   21
 # `invalid-syntax` (1) is a Python-3.12-only f-string in
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1388,
+    "I001": 1387,
     "F401": 279,
-    "E402": 194,
+    "E402": 193,
     "F841": 130,
     "E741": 108,
     "F811": 95,
     "E702": 76,
     "E701": 45,
-    "F541": 28,
+    "F541": 27,
     "E401": 21,
     "E731": 19,
     "W293": 19,
@@ -169,7 +189,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2416  # was 2421 at the 08-06 freeze; -5 per the shrink log above
+RUFF_BASELINE_TOTAL = 2413  # was 2421 at the 08-06 freeze; -8 per the shrink log above
 
 
 # --------------------------------------------------------------------------

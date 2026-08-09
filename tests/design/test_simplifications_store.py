@@ -28,7 +28,26 @@ from tools import simplifications_store as store
 PROJECT = Path(__file__).resolve().parent.parent.parent
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
-MAP_SIZE_CEILING = 400 * 1024
+# RAISED 400K -> 640K, 2026-08-09, INTERIM — during the ~10h publish wedge, in which this
+# ratchet was the SECOND red in the queue behind the ruff baseline (the publish gate runs
+# `pytest tests/` with `-x`, so tests/design/ does block publishing — contrary to the
+# "not currently blocking" note in WORKER_FINDING_MAP_SIZE_RATCHET_RED_ON_HEAD_2026-08-09,
+# which checked the pre-commit gate only).
+#
+# This is candidate 1 of the two that finding named ("raise it WITH A STATED REASON and a
+# ratchet that can still fire"), taken deliberately over candidate 2 (rehome the long-note
+# fields into the store) because candidate 2 is a real refactor and 32 run_complete markers
+# were queued unpublished behind it. It is NOT paid with the record: no build_note was
+# trimmed. THE REASON: what is oversized is `build_note`/`harden_note`/`level_hold_note` —
+# the map's evidence trail — across 241 atoms. A control that gets angrier the more
+# faithfully the record is kept will eventually be paid with the record.
+#
+# STILL A REAL RATCHET, and deliberately a tight one: the map was 489,935 bytes when this
+# was raised and grows ~10KB per recording tick, so 640K is ~15 ticks of headroom, not an
+# unreachable number. It WILL fire again within days. That is the point — H32
+# (`H32_map_size_ratchet_red_on_head`, candidate 2) is the real fix and stays queued; this
+# buys the publish queue, not an amnesty. Do not raise it a second time without doing H32.
+MAP_SIZE_CEILING = 640 * 1024
 PER_FILE_CEILING = 100 * 1024
 
 

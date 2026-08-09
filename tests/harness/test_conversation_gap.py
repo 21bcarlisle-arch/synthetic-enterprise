@@ -48,7 +48,6 @@ from interface.contracts.conversation_seam import (
 )
 from simulation.conversation_response import _SITUATION_PROFILE
 
-
 # --- helpers (mirrors tests/company/comms/test_conversation_comms.py idiom) -
 
 
