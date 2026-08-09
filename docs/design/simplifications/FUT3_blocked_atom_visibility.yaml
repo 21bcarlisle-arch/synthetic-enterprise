@@ -1,0 +1,3 @@
+atom_id: FUT3_blocked_atom_visibility
+map_notes:
+  origin_note: The specific risk this atom must disprove is that the blocked-atom exclusion is implemented once and reused everywhere -- supervisor._is_externally_blocked drops blocked atoms from EVERY draw, and if the target-design and staleness readers share that filter, the futures become invisible to precisely the surfaces the ruling wants them visible on, which would make the whole minting exercise a no-op that looks fine. Verify by reading the actual readers (AO7 target-design, AO11 map_assertion_provenance) against the newly-blocked ids, not by inspecting the draw.

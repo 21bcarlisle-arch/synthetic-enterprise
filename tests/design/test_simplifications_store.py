@@ -28,26 +28,34 @@ from tools import simplifications_store as store
 PROJECT = Path(__file__).resolve().parent.parent.parent
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
-# RAISED 400K -> 640K, 2026-08-09, INTERIM — during the ~10h publish wedge, in which this
-# ratchet was the SECOND red in the queue behind the ruff baseline (the publish gate runs
-# `pytest tests/` with `-x`, so tests/design/ does block publishing — contrary to the
-# "not currently blocking" note in WORKER_FINDING_MAP_SIZE_RATCHET_RED_ON_HEAD_2026-08-09,
-# which checked the pre-commit gate only).
+# RESTORED 640K -> 400K, 2026-08-09, by H32 (`H32_map_size_ratchet_red_on_head`) — the
+# real fix the interim raise named and made a precondition of any second raise.
 #
-# This is candidate 1 of the two that finding named ("raise it WITH A STATED REASON and a
-# ratchet that can still fire"), taken deliberately over candidate 2 (rehome the long-note
-# fields into the store) because candidate 2 is a real refactor and 32 run_complete markers
-# were queued unpublished behind it. It is NOT paid with the record: no build_note was
-# trimmed. THE REASON: what is oversized is `build_note`/`harden_note`/`level_hold_note` —
-# the map's evidence trail — across 241 atoms. A control that gets angrier the more
-# faithfully the record is kept will eventually be paid with the record.
+# HISTORY, kept because the reasoning is the point. On 2026-08-09 this ceiling was raised
+# 400K -> 640K during the ~10h publish wedge, where it was the SECOND red behind the ruff
+# baseline (the publish gate runs `pytest tests/` with `-x`, so tests/design/ does block
+# publishing). That was candidate 1 of the two the originating finding named, taken over
+# candidate 2 (rehome the long-note fields) because candidate 2 is a real refactor and 32
+# run_complete markers were queued behind it. The stated reason for the raise: what was
+# oversized is the map's own EVIDENCE TRAIL — `build_note`/`harden_note`/`level_hold_note` —
+# and "a control that gets angrier the more faithfully the record is kept will eventually
+# be paid with the record."
 #
-# STILL A REAL RATCHET, and deliberately a tight one: the map was 489,935 bytes when this
-# was raised and grows ~10KB per recording tick, so 640K is ~15 ticks of headroom, not an
-# unreachable number. It WILL fire again within days. That is the point — H32
-# (`H32_map_size_ratchet_red_on_head`, candidate 2) is the real fix and stays queued; this
-# buys the publish queue, not an amnesty. Do not raise it a second time without doing H32.
-MAP_SIZE_CEILING = 640 * 1024
+# H32 has now done candidate 2. The narrative note CLASS (`build_note`, `origin_note`,
+# `harden_note`, `level_hold_note`, `level_note`, `discover_note`, `notes`) was MOVED
+# verbatim into the sibling store's `map_notes:` tenant — 84 fields over 61 atoms,
+# 129,750 bytes — taking the map 521,770 -> 393,692. Nothing was trimmed: the record is
+# intact and hash-proven identical (tools/migrate_atom_notes.py, three proof layers), it
+# simply no longer lives in the spine. So the ORIGINAL ceiling fits again, honestly.
+#
+# The ratchet is therefore tight ON PURPOSE and will fire again — but what it now measures
+# is the map's STRUCTURED spine (245 atoms x id/lane/level/evidence/file_scope), which grows
+# with the atom count, not with how much prose an atom writes about itself. That is the
+# distinction the raise was reaching for. If it goes red again, the question is whether the
+# spine has a new unbounded FIELD to rehome (extend `simplifications_store.NOTE_FIELDS`, and
+# tests/design/test_atom_notes_store.py's class guard already fails on any new `*_note`),
+# NOT whether to raise the number.
+MAP_SIZE_CEILING = 400 * 1024
 PER_FILE_CEILING = 100 * 1024
 
 
@@ -77,7 +85,18 @@ def check_no_orphans(atom_ids: set[str], store_map: dict[str, list]) -> list[str
 
 def check_counts_match(atoms: list, store_map: dict[str, list]) -> list[str]:
     """Each atom's `simplifications_count` must equal its store file's note count;
-    an atom with a store file must declare a count and vice versa."""
+    an atom with a NON-ZERO count must have a store file.
+
+    ABSENT AND ZERO ARE THE SAME STATEMENT (H32, 2026-08-09). The migration's own
+    contract is "an atom with an EMPTY list gets no count and no store file", but
+    four atoms were later hand-authored with an explicit `simplifications_count: 0`,
+    and `load_all` is tenant-scoped so an empty register is not in `store_map` at
+    all. Requiring a file for a zero count would fail those four for stating, in the
+    permitted alternative spelling, that they have nothing to declare.
+
+    This does NOT weaken the control: an atom that HAS notes in the store while
+    declaring 0 is still caught by the first loop (0 != len(notes)), which is the
+    defect that actually matters -- a register the spine under-reports."""
     violations = []
     by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and a.get("id")}
     for aid, notes in store_map.items():
@@ -85,14 +104,14 @@ def check_counts_match(atoms: list, store_map: dict[str, list]) -> list[str]:
         if atom is None:
             continue  # orphan -- reported by check_no_orphans
         declared = atom.get("simplifications_count")
-        if declared != len(notes):
+        if (declared or 0) != len(notes):
             violations.append(
                 f"{aid}: map simplifications_count={declared!r} != store file "
                 f"count={len(notes)}"
             )
     for aid, atom in by_id.items():
         c = atom.get("simplifications_count")
-        if c is not None and aid not in store_map:
+        if c and aid not in store_map:
             violations.append(
                 f"{aid}: map declares simplifications_count={c} but has no store file"
             )
@@ -190,6 +209,19 @@ def test_count_check_fires_on_mismatch():
 def test_count_check_fires_on_count_without_file():
     atoms = [{"id": "A1", "simplifications_count": 3}]
     assert check_counts_match(atoms, {})  # count declared, no store file
+
+
+def test_count_check_still_fires_when_a_zero_count_hides_real_notes():
+    """The half of the zero-count relaxation that must NOT go soft: declaring 0 while
+    the store holds notes is the spine under-reporting its own register."""
+    assert check_counts_match([{"id": "A1", "simplifications_count": 0}], {"A1": ["real"]})
+    assert check_counts_match([{"id": "A1"}], {"A1": ["real"]})  # absent count, notes exist
+
+
+def test_count_check_permits_zero_or_absent_for_an_empty_register():
+    """Both spellings of "nothing to declare" are legal, and neither needs a file."""
+    assert not check_counts_match([{"id": "A1", "simplifications_count": 0}], {})
+    assert not check_counts_match([{"id": "A1"}], {})
 
 
 def test_size_check_fires_on_oversize(tmp_path):

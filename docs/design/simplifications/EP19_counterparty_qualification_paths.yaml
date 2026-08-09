@@ -1,0 +1,3 @@
+atom_id: EP19_counterparty_qualification_paths
+map_notes:
+  origin_note: 'Deliberately a REGISTER and not an action: the atom''s whole value is that the qualification paths are known and costed before anyone commits, and its whole risk is that building it looks like permission to start one. The boundary is written into blocked_on rather than left to judgement. F5_ofgem_licence_readiness is the sibling covering the licence itself; this covers the industry-systems side, and the two should share one register rather than grow two.'

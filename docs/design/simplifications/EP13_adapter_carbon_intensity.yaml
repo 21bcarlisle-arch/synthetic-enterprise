@@ -1,0 +1,3 @@
+atom_id: EP13_adapter_carbon_intensity
+map_notes:
+  origin_note: 'CARBON_NOT_A_TARGET_CONSTRAINT already governs this lane and binds here: an intensity feed makes a carbon number cheap to publish and therefore cheap to optimise toward, which is exactly what that constraint forbids (R12). The forecast/actual split is the fidelity prize -- the company acts on the FORECAST and is settled against the ACTUAL, which is a belief-vs-truth gap available for free from a public API.'
