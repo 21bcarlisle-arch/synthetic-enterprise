@@ -638,14 +638,21 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
 # now fixed (the headline, D11; the regime-partitioned cell grid, D12) and TWO are
 # NAMED DEBT with a reason and an owner -- a dated liability, not a silent
 # survivor. The two survivors are NOT the same problem as the two that were
-# fixed, and that is why they were not taken with them: the payment pair's
-# negative population (cash within the reconciliation grace) is a set already in
-# hand, while "a household that is not self-rationing" is a continuum the harness
-# labels by threshold, so its false-flag denominator is a MODELLING CHOICE.
-# D11 measured how much that choice is worth -- the wrong denominator moved the
-# payment triad's wrongful-dunning rate tenfold -- so inventing one here to empty
-# this register faster would publish a number nobody should believe. It is a
-# DISCOVER (`D13_self_rationing_negative_population_discover`), not a build.
+# fixed -- and, per the D13 DISCOVER (2026-08-09), they are not the same problem
+# as EACH OTHER either; bracketing them under one atom was the error.
+# The premise this comment used to carry -- that "a household that is not
+# self-rationing" is a continuum the harness labels by threshold -- was measured
+# and is FALSE for both. W2_8 stamps RationingLabel.NOT_RATIONING from a
+# Bernoulli onset; W2_5 runs a discrete LOW/MODERATE/HIGH income_stress state
+# machine. Both negatives are settled facts. They remain debt for OPPOSITE
+# reasons, each now carried by its own atom: W2_8's measure is VACUOUS (0 of
+# 3752 non-rationers have any drop, so the rate is 0.0000 for any detector --
+# `D14_w2_8_needs_negative_drops`, a WORLD gap), while W2_5's is live and
+# consequential (the exclusion boundary swings it x2.88 because income_stress
+# PERSISTS past the event year -- `D15_w2_5_false_flag_direction_r13_choice`,
+# an R13 curriculum call). D11 measured what a careless denominator is worth --
+# it moved the payment triad's wrongful-dunning rate tenfold -- so neither is
+# closed by inventing one to empty this register faster.
 # `tests/tools/test_couple_w2_11_d5.py` MEASURES this register rather than
 # trusting it: for each entry it actually scores the flag-EVERYTHING degenerate
 # through that entry's own scorer and asserts the declared behaviour -- a
@@ -685,25 +692,37 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
         "counts_both_error_directions": False,
         "scorer": "background.gap_metric.detection_gap",
         "why": (
-            "NAMED DEBT. The W2_5<->C7 self-rationing pair cannot name its "
-            "truly-negative universe as cheaply as the payment pair can: a "
-            "'non-rationing household' is a continuum the harness labels by "
-            "threshold, so the false-flag denominator is a modelling choice, not "
-            "a set already in hand. Needs its own DISCOVER before a denominator "
-            "is invented for it."
+            "NAMED DEBT, REASON CORRECTED 2026-08-09 by the D13 DISCOVER. The "
+            "original reason -- that a non-distressed household is a continuum "
+            "labelled by threshold -- was measured and is FALSE: income_stress "
+            "is a discrete LOW/MODERATE/HIGH state machine, so 'LOW at both year "
+            "ends' is a settled-fact negative. The real debt is that the "
+            "EXCLUSION boundary is consequential and unchosen: income_stress "
+            "PERSISTS, so 14.7% of the naive denominator are years with no "
+            "distress EVENT but carried-in distress, where a flag is CORRECT. "
+            "The candidate denominators score 0.1661 / 0.1491 / 0.0576 -- a "
+            "x2.88 swing with company behaviour fixed. Publishable once that "
+            "three-way choice is made as an R13 curriculum call, not by the "
+            "agent that benefits from the atom closing."
         ),
-        "debt_atom": "D13_self_rationing_negative_population_discover",
+        "debt_atom": "D15_w2_5_false_flag_direction_r13_choice",
     },
     "couple_w2_8_c10.detection": {
         "counts_both_error_directions": False,
         "scorer": "background.gap_metric.detection_gap",
         "why": (
-            "NAMED DEBT. Same shape as W2_5<->C7 -- harm-weighted self-rationing "
-            "detection over a thresholded truth. Registered here so the class "
-            "control fails if it is ever quietly promoted as if it measured "
-            "both directions."
+            "NAMED DEBT, REASON CORRECTED 2026-08-09 by the D13 DISCOVER. NOT "
+            "the same shape as W2_5<->C7 -- bracketing the two was the error. "
+            "This negative is settled and unambiguous (RationingLabel."
+            "NOT_RATIONING is a Bernoulli outcome), but the measure is VACUOUS: "
+            "0 of 3752 non-rationers have ANY consumption drop and 0 are "
+            "flaggable under any weather factor, so the false-flag rate is "
+            "0.0000 for any drop-based detector. Publishing it would report a "
+            "property of the WORLD as detector precision (R12). Recall-only "
+            "until W2_8 emits non-rationers who genuinely drop -- a world-depth "
+            "gap, not a metric gap."
         ),
-        "debt_atom": "D13_self_rationing_negative_population_discover",
+        "debt_atom": "D14_w2_8_needs_negative_drops",
     },
 }
 
