@@ -1,5 +1,50 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T00:11:15Z
+Last updated: 2026-08-09T00:30:35Z
+
+**D10_detection_headline_is_single_channel (2026-08-09, `e78913088`) — the payment DETECTION
+headline gets a shape that can see latency, and a sentence it published turns out to be wrong.
+L0→L2, self-certified.** The atom asked for either a dimension that can see latency or a published
+note saying the headline is reconciliation-determined alone. Both landed.
+**The dimension:** `detection_latency` — days from an invoice's due date to the company's FIRST
+knowledge, whichever channel got there first, with the DD-channel-deleted **counterfactual** beside
+it. Seeds 7/11/23 at 400 customers: **2.30 / 2.41 / 2.04 days** with the DD-observation channel,
+**exactly 5.00** without it. The channel buys ~2.7 days of *earlier* detection while moving the
+set-membership detection gap by **exactly zero** — the 2026-08-08 finding stated as a number rather
+than a paragraph. No normaliser anywhere (D7's trap applied before it could bite): absolute days,
+no class-balance denominator, undetected failures **counted beside** the mean and never imputed
+into it.
+**The old residual's premise was false.** That pass recorded DD latency as unmeasurable "because
+the adapter emits `value_date == due_date` with no ARUDD lag". Wrong *field*, not a missing
+capability — `WallResponse.observed_at` is the bank-feed report date and the seam already lags it
+`0..ARUDD_NOTIFICATION_LAG_DAYS`. Measured DD lags `{0,1,2}`. Retracted in the register.
+**AND THE HEADLINE DOES NOT COUNT WHAT EVERY SURFACE SAID IT COUNTS** (observed case by case, R9):
+it was published as "failures the company **never observes** — the no-remittance blind spot". It is
+not. Asking the company's own reconciliation organ at each `due+grace` date gives **n_undetected =
+0 on all three seeds** — everything that truly failed was flagged *on time*. The misses are
+detections the company **un-made**, when a later ambiguous non-DD payment was allocated oldest-first
+onto the failed invoice. That is Clayton's Case (atom `D8`) surfacing in a dimension nobody had
+looked for it in — the wrongful-**non-pursuit** twin of the wrongful-dunning exposure D7 measures.
+Corrected at every site that repeated it, staged as a worker finding, recorded as evidence on D8,
+and pinned by a test that fires if anything ever *does* escape both channels.
+**Retired, not re-labelled:** `stats["detection_latency_days"]` was days-overdue at whatever single
+`as_of` the scorer asked at — `{30,51,72}` on this period grid, a pure artefact of the question's
+timing. Its characterization test was replaced, not repaired.
+**R12 clean: not one published number moved.** The detection gap is byte-for-byte what it was; what
+changed is the sentence describing it. **R15:** four mutations, each proven to fire on its own named
+defect — `value_date` instead of `observed_at`; the latency population defined at `as_of` (moved the
+mean 1.96→1.80 for zero change in any detection date); DD-only cases folded into the counterfactual;
+both channels dead (proving the `n_undetected == 0` witness is not vacuous) — plus two metric-shape
+mutants that swing where the real measure is flat. 31 tests green in the triad file (was 24), 467
+across every file touching the triad or `gap_metric`, ruff unchanged at 18 vs a pristine HEAD
+extract.
+**H27's hold released:** D10 was its sole remaining reason, so `depends_on` is dropped rather than
+re-pointed a second time. **Not claimed:** the 2→3 is now drawable and is *not* taken — the tick
+that finds a published sentence wrong is not the tick to certify the instrument as real; that needs
+the Expert-Hour pass, on the corrected instrument. D10 itself stays L2 for the same reason. The size
+ratchet (warn-only) flags `detection_latency_gap` at 117 lines against a 60 cap; left standing
+rather than split, since the length is its documentation and SP3's own text says not to split to
+dodge a count.
+
 
 **FUT1_attach_forward_hook (2026-08-09, `641a87ae2`) — forward discovery now has an address.
 L0→L2, self-certified.** Deliverable #2 of the futures ruling: a finding or DISCOVER mint declares
@@ -947,7 +992,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (505s / 8 min):
 - Net margin: £1,526,675.52 | Gross: £6,468,266.50 | Capital: £51,397
 - Treasury: £2,466,636 → £3,902,360 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,568.83 | Net after CTS: £1,503,517
