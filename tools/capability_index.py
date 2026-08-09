@@ -668,6 +668,61 @@ def _package_consumers(rows: list[dict]) -> dict[str, set[str]]:
     return out
 
 
+def _referent_findings(mod: str, cls: str, ref: str, where: str,
+                       consumers: dict[str, set[str]], known: set[str]) -> list[str]:
+    """Whether the referent this class REQUIRES is a claim or decoration."""
+    pkg = mod.rpartition(".")[0]
+    if ref.startswith(_NO_CONSUMER):
+        claimed = ref[len(_NO_CONSUMER):]
+        if cls != "unhooked":
+            return ["REFERENT MISUSE: %s uses `%s...`, which only a class `unhooked` row "
+                    "may claim" % (where, _NO_CONSUMER)]
+        if claimed != pkg:
+            return ["REFERENT MISMATCH: %s claims package %r, but the module lives in %r"
+                    % (where, claimed, pkg)]
+        if consumers.get(claimed):
+            return ["REFUTED REFERENT: %s claims package %s has no external consumer, but "
+                    "%s imports it -- nominate that consumer"
+                    % (where, claimed, sorted(consumers[claimed])[0])]
+        return []
+    if ref not in known:
+        return ["ABSENT REFERENT: %s names %s as its %s, and no such module exists"
+                % (where, ref, DISPOSITION_CLASSES[cls])]
+    if cls == "unhooked" and ref not in consumers.get(pkg, set()):
+        return ["DECORATIVE REFERENT: %s nominates %s as the consumer that would drive it, "
+                "but %s imports nothing from %s -- a nomination that touches the package "
+                "nowhere is decoration" % (where, ref, ref, pkg)]
+    if cls == "wired":
+        return ["SELF-REFUTING ROW: %s is classed `wired` but the index still calls it an "
+                "orphan -- if %s really imports it the status would say so" % (where, ref)]
+    return []
+
+
+def _row_findings(row: dict, subjects: dict[str, dict], consumers: dict[str, set[str]],
+                  known: set[str]) -> list[str]:
+    """Everything one ruling can be wrong about: subject, class, reason, referent."""
+    mod, cls, ref = row["module"], row["class"], row["referent"]
+    where = "%s (line %d)" % (mod, row["line"])
+
+    if mod not in subjects:
+        return ["STALE DISPOSITION: %s names a module that is no longer in the index -- "
+                "the register is outliving its subject" % where]
+    if subjects[mod]["status"] != "orphan":
+        return ["STALE DISPOSITION: %s is now %s, not an orphan -- delete the row; a ruling "
+                "kept past its subject is how the count stops meaning anything"
+                % (where, subjects[mod]["status"])]
+    if cls not in DISPOSITION_CLASSES:
+        return ["UNKNOWN CLASS: %s is classed %r, which is not one of %s"
+                % (where, cls, ", ".join(sorted(DISPOSITION_CLASSES)))]
+
+    findings: list[str] = []
+    if not row["reason"]:
+        findings.append("EMPTY REASON: %s carries a class but no reason -- a class without "
+                        "a reason is a label" % where)
+    findings.extend(_referent_findings(mod, cls, ref, where, consumers, known))
+    return findings
+
+
 def disposition_findings(rows: list[dict], root: Path | None = None) -> list[str]:
     """Every way the orphan ruling could be quietly absent, stale or vacuous.
 
@@ -703,69 +758,16 @@ def disposition_findings(rows: list[dict], root: Path | None = None) -> list[str
         )
 
     consumers = _package_consumers(rows)
+    known = {r["module"] for r in rows}
     seen: set[str] = set()
     for row in declared:
-        mod, cls, ref = row["module"], row["class"], row["referent"]
-        where = "%s (line %d)" % (mod, row["line"])
-        if mod in seen:
-            findings.append("DUPLICATE DISPOSITION: %s is ruled on twice -- two rulings "
-                            "means neither is the ruling" % where)
+        if row["module"] in seen:
+            findings.append("DUPLICATE DISPOSITION: %s (line %d) is ruled on twice -- two "
+                            "rulings means neither is the ruling"
+                            % (row["module"], row["line"]))
             continue
-        seen.add(mod)
-
-        if mod not in subjects:
-            findings.append(
-                "STALE DISPOSITION: %s names a module that is no longer in the index -- "
-                "the register is outliving its subject" % where)
-            continue
-        if subjects[mod]["status"] != "orphan":
-            findings.append(
-                "STALE DISPOSITION: %s is now %s, not an orphan -- delete the row; a ruling "
-                "kept past its subject is how the count stops meaning anything"
-                % (where, subjects[mod]["status"]))
-            continue
-
-        required = DISPOSITION_CLASSES.get(cls)
-        if required is None:
-            findings.append("UNKNOWN CLASS: %s is classed %r, which is not one of %s"
-                            % (where, cls, ", ".join(sorted(DISPOSITION_CLASSES))))
-            continue
-        if not row["reason"]:
-            findings.append("EMPTY REASON: %s carries a class but no reason -- a class "
-                            "without a reason is a label" % where)
-
-        if ref.startswith(_NO_CONSUMER):
-            pkg = ref[len(_NO_CONSUMER):]
-            if cls != "unhooked":
-                findings.append("REFERENT MISUSE: %s uses `%s...`, which only a class "
-                                "`unhooked` row may claim" % (where, _NO_CONSUMER))
-            elif pkg != mod.rpartition(".")[0]:
-                findings.append("REFERENT MISMATCH: %s claims package %r, but the module "
-                                "lives in %r" % (where, pkg, mod.rpartition(".")[0]))
-            elif consumers.get(pkg):
-                findings.append(
-                    "REFUTED REFERENT: %s claims package %s has no external consumer, but "
-                    "%s imports it -- nominate that consumer"
-                    % (where, pkg, sorted(consumers[pkg])[0]))
-            continue
-
-        if ref not in subjects and ref not in {r["module"] for r in rows}:
-            findings.append("ABSENT REFERENT: %s names %s as its %s, and no such module "
-                            "exists" % (where, ref, required))
-            continue
-
-        if cls == "unhooked":
-            pkg = mod.rpartition(".")[0]
-            if ref not in consumers.get(pkg, set()):
-                findings.append(
-                    "DECORATIVE REFERENT: %s nominates %s as the consumer that would drive "
-                    "it, but %s imports nothing from %s -- a nomination that touches the "
-                    "package nowhere is decoration" % (where, ref, ref, pkg))
-        elif cls == "wired":
-            findings.append(
-                "SELF-REFUTING ROW: %s is classed `wired` but the index still calls it an "
-                "orphan -- if %s really imports it the status would say so"
-                % (where, ref))
+        seen.add(row["module"])
+        findings.extend(_row_findings(row, subjects, consumers, known))
 
     missing = sorted(outstanding - seen)
     if missing:
