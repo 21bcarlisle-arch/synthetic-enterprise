@@ -336,8 +336,41 @@ def belief_gap(truth: Sequence[float], belief: Sequence[float],
 # (d) Detection-rate + false-negative-harm gap -- self-rationing (W2_8)
 # ---------------------------------------------------------------------------
 
+# D11 CLASS FINDING (2026-08-09, H27 Expert-Hour pass). This gap counts ONE
+# ERROR DIRECTION -- missed truth. `flagged_set` appears in the formula only
+# through `S & D`, so enlarging D can never make the score worse, and the
+# DUAL DEGENERATE strategy -- flag EVERYTHING -- scores a PERFECT 0.0 on any
+# population whatsoever. `baseline`/`g0` name only the opposite degenerate
+# ("flag nobody -> 1"), which reads as though 0 were earned. It is not: 0 is
+# what both a perfect detector AND a company that flags every account score.
+#
+# This is the D6/D7 defect shape one dimension over. D7 established the remedy
+# for the ageing dimension -- report the two error directions on their OWN
+# denominators rather than one figure that silently mixes them -- and the same
+# reasoning applies here, so the caveat is stamped AT SOURCE (the D6 precedent)
+# and lands on every call site: W2_11<->D5, W2_5<->C7, W2_8<->C10.
+#
+# SUPERSEDED, NOT DELETED (D11 landed 2026-08-09). `detection_measures` below is
+# the two-directional replacement and the payment triad's published headline now
+# uses it. This function survives ONLY for the callers that cannot (yet) name the
+# universe of cases that could have been flagged -- the W2_5<->C7 and W2_8<->C10
+# self-rationing pairs, and the regime-partitioned payment CELL grid, whose band
+# was calibrated on this shape. Those are REGISTERED NAMED DEBT, not silent
+# survivors: `tools.couple_w2_11_d5.DETECTION_DIRECTION_CONTRACT` enumerates every
+# published detection-style dimension and its control fails on an unregistered one.
+DETECTION_GAP_DUAL_DEGENERATE = (
+    "flag EVERYTHING also scores 0.0 -- this gap counts missed truth only, so a "
+    "score near 0 is evidence of recall and says NOTHING about how much the "
+    "company over-flagged. SUPERSEDED by gap_metric.detection_measures "
+    "(atom D11_detection_gap_is_recall_only, landed 2026-08-09), which scores "
+    "both directions on their own denominators; a caller still on this function "
+    "must be registered as named debt in DETECTION_DIRECTION_CONTRACT"
+)
+
+
 def detection_gap(truth_set: Iterable, flagged_set: Iterable,
-                  harm: Optional[Mapping] = None) -> GapResult:
+                  harm: Optional[Mapping] = None,
+                  population_size: Optional[int] = None) -> GapResult:
     """Self-rationing detection gap (formula d).
 
     truth_set S = accounts truly self-rationing (SIM label). flagged_set D =
@@ -349,6 +382,14 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
 
     `harm` maps account -> severity (e.g. TDCV shortfall x duration). Omitted ->
     uniform harm (gap == miss_rate). g0 = flagging nobody (gap == 1 when D=empty).
+
+    READ THE SCORE WITH ITS DUAL (see DETECTION_GAP_DUAL_DEGENERATE above):
+    this is a RECALL gap, and flagging everything scores 0. `population_size`
+    is the size of the scored universe (truth + non-truth); pass it and the
+    over-flagging witnesses `n_false_flags` / `false_flag_rate` (false flags
+    over the truly-NEGATIVE population, its own denominator per D7) come back
+    in `components`. Omit it and they are None -- explicitly not-measured,
+    never a silent 0.
     """
     S = set(truth_set)
     D = set(flagged_set)
@@ -374,7 +415,24 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
         gap = missed_harm / total_harm     # already normalised: D=empty -> 1.0
         g0 = 1.0
 
-    baseline = "flag nobody (all detectable harm missed -> gap = 1)"
+    # OVER-FLAGGING witnesses (D11). False flags are counted on their OWN
+    # denominator -- the truly-NEGATIVE population -- because a rate over the
+    # whole population would re-import exactly the class-balance dependence D7
+    # was minted to remove. Unknown universe -> None, never 0: a missing
+    # denominator that scored as "no false flags" would be fail-open, and this
+    # witness exists precisely because a 0 here is otherwise indistinguishable
+    # from a company that flagged everything.
+    false_flags = D - S
+    if population_size is None:
+        n_false_flags: Optional[int] = None
+        false_flag_rate: Optional[float] = None
+    else:
+        n_false_flags = len(false_flags)
+        n_negatives = int(population_size) - len(S)
+        false_flag_rate = (n_false_flags / n_negatives) if n_negatives > 0 else None
+
+    baseline = ("flag nobody (all detectable harm missed -> gap = 1); "
+                + DETECTION_GAP_DUAL_DEGENERATE)
     return GapResult(
         metric="detection", gap=gap, raw_gap=missed_harm,
         g0=(total_harm if total_harm else 0.0),
@@ -382,8 +440,261 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
         components={"miss_rate": round(miss_rate, 6),
                     "caught": len(caught), "missed": len(missed),
                     "truth_size": len(S), "flagged_size": len(D),
-                    "missed_harm": missed_harm, "total_harm": total_harm},
-        note="harm-weighted fraction of detectable self-rationing harm missed",
+                    "missed_harm": missed_harm, "total_harm": total_harm,
+                    # D11: the other error direction, on its own denominator.
+                    "n_false_flags": n_false_flags,
+                    "false_flag_rate": (round(false_flag_rate, 6)
+                                        if false_flag_rate is not None else None)},
+        note=("harm-weighted fraction of detectable self-rationing harm missed "
+              "-- RECALL ONLY; " + DETECTION_GAP_DUAL_DEGENERATE),
+    )
+
+
+# ---------------------------------------------------------------------------
+# (d2) Detection MEASURES -- the two-directional successor (atom D11)
+# ---------------------------------------------------------------------------
+# WHY THIS REPLACES `detection_gap` FOR ANY DIMENSION THAT CAN NAME ITS UNIVERSE.
+# `detection_gap` above is a RECALL gap: `flagged_set` enters only through the
+# intersection, so enlarging it can never make the score worse and the dual
+# degenerate -- flag EVERYTHING -- scores a perfect 0.0. The 2026-08-09 H27
+# Expert Hour measured 44-51% of the payment triad's flags landing on invoices
+# that truly SUCCEEDED while the headline read 0.0725, i.e. "nearly perfect".
+#
+# THE REMEDY IS D7's, APPLIED TO A SECOND DIMENSION (R10 -- the class, not the
+# instance). D7 retired the ageing dimension's single scalar and published the
+# two error directions on the denominators they are each actually about. The
+# same two directions exist here and they are NOT interchangeable in the world:
+#
+#   * missed_failure_rate -- a true failure the company never flagged. Cash it
+#     never chases, provision it never makes.
+#   * false_flag_rate     -- an invoice that truly SUCCEEDED and was flagged
+#     anyway: the WRONGFUL-DUNNING exposure, a real customer chased for money
+#     they already paid. On the payment triad this is literally the same
+#     numerator D7's `overstated_arrears_rate` publishes one dimension over.
+#
+# THE HEADLINE IS THE BALANCED ERROR, and its baseline is honest in a way the
+# recall gap's could not be: EVERY prevalence-blind strategy scores exactly
+# `g0 = 0.5` -- flag nobody (1, 0), flag everything (0, 1), and any coin-flip at
+# any rate. 0.0 has to be earned in BOTH directions; 1.0 is perfectly wrong.
+#
+# NO CLASS-BALANCE DENOMINATOR ANYWHERE (D7's mutation-caught trap: any
+# normaliser counting the truth's class balance re-imports the prevalence defect
+# whatever the numerator's shape). Each rate carries its own class's denominator,
+# so each is prevalence-invariant, and so is their mean.
+#
+# VACUITY IS EXPLICIT, NEVER ZERO (R15 fail-open): no truly-negative cases -> the
+# false-flag direction is UNDEFINED, so the headline is `None`, not the recall
+# number wearing a new name. A universe with nothing to get wrong is not a
+# universe the company got right.
+DETECTION_BALANCED_BASELINE: str = (
+    "0.5 -- the balanced error EVERY prevalence-blind rule scores: flag nobody "
+    "(miss 1, false-flag 0), flag EVERYTHING (miss 0, false-flag 1), and any "
+    "coin-flip at any rate. Unlike the recall-only `detection_gap` this "
+    "supersedes, 0.0 cannot be bought by over-flagging -- it has to be earned in "
+    "both directions -- and 1.0 means perfectly wrong, not merely blind."
+)
+
+
+def detection_measures(truth_set: Iterable, flagged_set: Iterable, *,
+                       universe: Iterable,
+                       negative_set: Optional[Iterable] = None,
+                       exclusion_reason: Optional[str] = None,
+                       harm: Optional[Mapping] = None) -> GapResult:
+    """Two-directional detection measures (formula d2, atom
+    `D11_detection_gap_is_recall_only`). Supersedes `detection_gap` wherever the
+    caller can name the universe of cases that could have been flagged.
+
+        missed_failure_rate = |S \\ D| / |S|            # harm-weighted if `harm`
+        false_flag_rate     = |D & N| / |N|             # the wrongful-dunning side
+        gap  (headline)     = (missed_failure_rate + false_flag_rate) / 2
+
+    `universe` U is EVERY case scored. It is a SET, not a count, deliberately: a
+    count cannot notice that a flag landed on a case outside the scored universe,
+    which is exactly what a join-key drift looks like, and the denominators would
+    then be quietly wrong.
+
+    `negative_set` N is the cases a flag would be WRONG on -- NOT simply `U - S`.
+    The two differ whenever a case is neither a true positive nor a legitimate
+    negative: on the payment triad, an invoice paid three weeks late really was
+    unpaid past its grace date, so the company flagging it was RIGHT even though
+    the payment eventually succeeded. Counting it as a false flag would score the
+    company down for being correct. Omit `negative_set` and it defaults to
+    `U - S` -- right only when every non-truth case is one a flag would be wrong
+    on. Anything in `U` that is in neither `S` nor `N` is EXCLUDED, counted, and
+    `exclusion_reason` must say why: THE EXCLUSION IS PUBLISHED, NOT SILENT (the
+    D10 rule), and omitting the reason RAISES rather than shrinking a denominator
+    invisibly -- an unexplained exclusion is the cheapest way to make either
+    direction look better than it is.
+
+    FAIL LOUD (R15): an empty universe, an empty truth set, `S`/`N`/`D` outside
+    `U`, an `S`/`N` overlap, or an unexplained exclusion all RAISE. VACUITY IS
+    EXPLICIT: with no negative cases `false_flag_rate` and `gap` are `None`,
+    never 0.0 and never a silent fallback to the recall number.
+
+    `harm` weights the MISS direction only (severity of harm missed), matching
+    `detection_gap`. There is deliberately no harm weight on the false-flag side
+    here: the harm of wrongful dunning is a property of the CUSTOMER contacted,
+    not of the invoice's size, and inventing a weight for it would be a curriculum
+    change (R13) rather than a measurement.
+    """
+    S = set(truth_set)
+    D = set(flagged_set)
+    U = set(universe)
+    N = (U - S) if negative_set is None else set(negative_set)
+
+    if not U:
+        raise ValueError(
+            "detection_measures: empty universe -- the false-flag denominator is "
+            "undefined and scoring it as 0 would be fail-open (R15)."
+        )
+    if not S:
+        raise ValueError("detection_measures: empty truth set (nothing to detect)")
+    if not S <= U:
+        raise ValueError(
+            f"detection_measures: {len(S - U)} truth case(s) outside the scored "
+            "universe -- the universe is not the population that was scored, so "
+            "every rate below would be measured against the wrong denominator."
+        )
+    if not D <= U:
+        raise ValueError(
+            f"detection_measures: {len(D - U)} flagged case(s) outside the scored "
+            "universe -- a flag on an unscored case is a join-key drift, and "
+            "silently dropping it would push the false-flag rate toward 0."
+        )
+    if not N <= U:
+        raise ValueError(
+            f"detection_measures: {len(N - U)} negative case(s) outside the "
+            "scored universe."
+        )
+    if S & N:
+        raise ValueError(
+            f"detection_measures: {len(S & N)} case(s) are in BOTH the truth set "
+            "and the negative set -- a case cannot be one the company must flag "
+            "and one it must not."
+        )
+
+    excluded = U - S - N
+    if excluded and not (exclusion_reason or "").strip():
+        raise ValueError(
+            f"detection_measures: {len(excluded)} case(s) are in neither the "
+            "truth set nor the negative set and no `exclusion_reason` was given. "
+            "An unexplained exclusion silently shrinks a denominator, which is "
+            "the cheapest way to make either direction look better than it is "
+            "(the D10 rule: the exclusion is published, not silent)."
+        )
+
+    caught = S & D
+    missed = S - S.intersection(D)
+    false_flags = D & N
+    negatives = N
+
+    miss_rate = 1.0 - len(caught) / len(S)
+    if harm is None:
+        harm_map = {i: 1.0 for i in S}
+    else:
+        harm_map = {i: float(harm.get(i, 0.0)) for i in S}
+    total_harm = sum(harm_map.values())
+    missed_harm = sum(harm_map[i] for i in missed)
+    # With no harm anywhere there is nothing at stake to miss; the harm-weighted
+    # miss direction is 0 by construction, exactly as in `detection_gap`.
+    missed_share = (missed_harm / total_harm) if total_harm else 0.0
+
+    if negatives:
+        false_flag_rate: Optional[float] = len(false_flags) / len(negatives)
+        gap: Optional[float] = (missed_share + false_flag_rate) / 2.0
+    else:
+        false_flag_rate = None
+        gap = None
+
+    components = {
+        "missed_failure_rate": round(missed_share, 6),
+        "false_flag_rate": (None if false_flag_rate is None
+                            else round(false_flag_rate, 6)),
+        "miss_rate": round(miss_rate, 6),
+        "caught": len(caught),
+        "missed": len(missed),
+        "n_false_flags": len(false_flags),
+        "truth_size": len(S),
+        "flagged_size": len(D),
+        "universe_size": len(U),
+        "n_negatives": len(negatives),
+        # THE PUBLISHED EXCLUSION (D10's rule). Cases in neither direction's
+        # population, with the reason travelling in the components rather than in
+        # prose a ledger reader never sees.
+        "n_excluded": len(excluded),
+        "exclusion_reason": (exclusion_reason if excluded else None),
+        "missed_harm": missed_harm,
+        "total_harm": total_harm,
+        # NO RESTATEMENT OF THE RETIRED RECALL FIGURE, deliberately. It was
+        # scored over a DIFFERENT flagged population (belief held at `as_of`, not
+        # ever-flagged), so nothing computable from these sets reproduces it, and
+        # a component that looked like it did would be a false continuity -- the
+        # reader would compare two numbers that were never the same measurement.
+        # Pre-2026-08-09 ledger entries carry the old figure; this one does not
+        # pretend to.
+        "supersedes": (
+            "detection_gap (recall-only, retired 2026-08-09 by atom D11). NOT "
+            "restated here: it was scored over a different flagged population, "
+            "so no arithmetic on these sets reproduces it."
+        ),
+    }
+    if not negatives:
+        components["vacuity"] = (
+            "NO case in the scored universe is one a flag would be WRONG on: the "
+            "false-flag direction and the headline are UNDEFINED (None), not "
+            "0.0. A universe with nothing to get wrong is not one the company "
+            "got right."
+        )
+
+    return GapResult(
+        metric="detection",
+        gap=gap,
+        raw_gap=float(missed_share),
+        g0=0.5,
+        baseline=DETECTION_BALANCED_BASELINE,
+        components=components,
+        note=(
+            "BALANCED detection error -- the mean of the two error directions on "
+            "their OWN denominators (atom D11, superseding the recall-only "
+            "`detection_gap`): missed_failure_rate over the truly-failed cases "
+            "and false_flag_rate over the truly-negative ones (the "
+            "wrongful-dunning exposure). Neither degenerate strategy can buy a "
+            "good score: flag nobody and flag everything both land on 0.5. "
+            "R12: a diagnostic, never a target."
+        ),
+    )
+
+
+def format_detection_summary(result: GapResult) -> str:
+    """Render a `detection_measures` result for a log line / ledger note as BOTH
+    directions with their denominators, never as a bare scalar.
+
+    The same anti-decay mechanism as `format_ageing_summary` and
+    `format_detection_latency_summary`, and for the same reason: this dimension
+    went wrong the moment a bare `detection 0.0725` could be read as "nearly
+    perfect detection" when half the company's flags were on invoices that had
+    been paid. No consumer of this module prints the headline without both
+    directions beside it."""
+    c = result.components
+
+    def _num(key: str, fmt: str) -> str:
+        v = c.get(key)
+        return "undefined (no such population)" if v is None else format(v, fmt)
+
+    return (
+        "detection balanced error " + ("undefined" if result.gap is None
+                                       else format(result.gap, ".4f"))
+        + " [0.5 = every prevalence-blind rule, incl. flagging everything]"
+        + " (missed_failure_rate " + _num("missed_failure_rate", ".4f")
+        + " over " + str(c.get("truth_size")) + " truly-failed"
+        + ", false_flag_rate " + _num("false_flag_rate", ".4f")
+        + " = " + str(c.get("n_false_flags")) + " of "
+        + str(c.get("n_negatives")) + " never-flaggable cases wrongly flagged"
+        + " = the wrongful-dunning exposure"
+        + ("" if not c.get("n_excluded") else
+           f"; {c.get('n_excluded')} case(s) in neither population: "
+           f"{c.get('exclusion_reason')}")
+        + ")"
     )
 
 

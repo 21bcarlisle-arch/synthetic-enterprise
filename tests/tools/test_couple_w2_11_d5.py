@@ -14,9 +14,18 @@ import ast
 import inspect
 import json
 
+import pytest
+
 import tools.couple_w2_11_d5 as pair
 
-from background.gap_metric import belief_gap, detection_gap, misapplication_gap, write_gap_entry
+from background.gap_metric import (
+    belief_gap,
+    detection_gap,
+    detection_measures,
+    format_detection_summary,
+    misapplication_gap,
+    write_gap_entry,
+)
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from interface.contracts.wall_envelope import WallResponse
 from simulation.payment_behaviour_source import PaymentEvent
@@ -26,6 +35,19 @@ from simulation.payment_behaviour_source import PaymentEvent
 # keeping the suite fast.
 _N = 900
 _SEED = 101
+
+
+def _ever_flagged(records, consumer, as_of, dd_channel_only: bool = False):
+    """The company's EVER-FLAGGED set, taken from the scorer's OWN sweep rather
+    than re-derived here (R15 independence, the other way round from usual): a
+    second implementation of the ever-flagged loop in this file would let a
+    mutation test assert one copy against another and pass while the real
+    scorer was broken. `dd_channel_only` is the MUTATION -- the reconciliation
+    channel deleted, leaving the rail-event channel alone."""
+    sets = pair.score_triad(records, consumer, as_of)["sets"]
+    if dd_channel_only:
+        return set(sets["flagged_via_dd_channel"])
+    return set(sets["flagged"])
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +337,400 @@ def test_detection_residual_is_misallocation_not_a_never_observed_blind_spot():
     assert c["n_latency_population"] == c["n_true_failures"]
     for phrase in ("never observes", "Clayton"):
         assert phrase in result["notes"]["detection_residual_is_misallocation_not_blindness"]
+
+
+# ---------------------------------------------------------------------------
+# THE as_of CLASS CONTROL (atom D11, H27 Expert-Hour pass 2026-08-09)
+#
+# R10: the artefact class -- a published figure that moves for a reason having
+# nothing to do with the company's skill -- had already been fixed TWICE by
+# instance (D7's prevalence scalar, D10's retired `detection_latency_days` key)
+# and each time the dimension next door kept it. So it is closed here at the
+# CLASS: every dimension declares whether its TRUTH moves with `as_of`, and
+# this control MEASURES the declaration by moving `as_of` for real.
+#
+# The invariant is DIFFERENTIAL on purpose. A blanket "no dimension may move
+# with as_of" would fire on ageing, where moving is correct -- a false positive
+# that jams the gate teaches everyone to skip the gate.
+# ---------------------------------------------------------------------------
+
+_CONTRACT_SWEEP_DAYS = 60
+
+
+def _independent_truth_signatures(records, as_of):
+    """The harness-held TRUTH each dimension is scored against, derived HERE
+    from `records` alone (R15 independence -- reusing the module's own
+    intermediate would make this a tautology that cannot fail)."""
+    failed = [r for r in records if r.result == "failed"]
+    return {
+        "detection": frozenset((r.customer_id, r.period_index) for r in failed),
+        "detection_latency": frozenset(
+            (r.customer_id, r.period_index, r.due_date) for r in failed),
+        "belief": tuple(sorted(
+            (cid, sum(1 for r in failed if r.customer_id == cid))
+            for cid in {r.customer_id for r in records})),
+        "ageing": tuple(sorted(
+            (r.invoice_ref,
+             pair.company_age_bucket((as_of - r.due_date).days)
+             if r.result == "failed" else "current")
+            for r in records)),
+    }
+
+
+def _as_of_contract_report(records, consumer, as_of, contract, score=None):
+    """Run the sweep and return, per dimension, what was MEASURED against what
+    was DECLARED. Pure measurement -- the judging lives in the callers so the
+    mutants can drive the same code."""
+    import datetime as _dt
+
+    score = score or pair.score_triad
+    later = as_of + _dt.timedelta(days=_CONTRACT_SWEEP_DAYS)
+    early_res, later_res = score(records, consumer, as_of), score(records, consumer, later)
+    early_truth = _independent_truth_signatures(records, as_of)
+    later_truth = _independent_truth_signatures(records, later)
+
+    report = {}
+    for dim, declared in contract.items():
+        a, b = early_res[dim].gap, later_res[dim].gap
+        gap_moved = ((a is None) != (b is None)) or (
+            a is not None and abs(a - b) > 1e-9)
+        report[dim] = {
+            "truth_moved": early_truth[dim] != later_truth[dim],
+            "gap_moved": gap_moved,
+            "declared_truth_invariant": bool(declared["truth_is_as_of_invariant"]),
+            "declared_gap_invariant": bool(declared["gap_is_as_of_invariant"]),
+            "early": a, "later": b,
+        }
+    return report
+
+
+def test_every_dimension_declares_its_as_of_contract_and_the_declaration_is_measured():
+    """THE CLASS CONTROL. Hold the company and the world literally fixed --
+    same `records`, same `consumer`, nothing re-simulated -- and move only the
+    date the scorer asks on. Every dimension's DECLARED as_of behaviour must
+    match what actually happens, and the invariant must hold:
+
+        truth invariant under as_of  =>  gap invariant under as_of
+
+    A dimension allowed to break it must say so in its own declaration AND name
+    the atom that fixes it, so the exemption is a dated debt rather than a
+    silent one."""
+    records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
+    contract = pair.DIMENSION_AS_OF_CONTRACT
+    report = _as_of_contract_report(records, consumer, as_of, contract)
+
+    assert set(contract) == {"detection", "detection_latency", "belief", "ageing"}, (
+        "a dimension was added or renamed without an as_of declaration -- the "
+        "whole point of this control is that no published number escapes it"
+    )
+
+    # VACUITY GUARD. A sweep in which nothing moved at all would pass every
+    # assertion below while proving nothing (the population might carry no
+    # failures, or `_CONTRACT_SWEEP_DAYS` might land inside a dead window).
+    # Both sides of the differential must be genuinely exercised.
+    assert any(v["truth_moved"] for v in report.values()), (
+        "no dimension's truth moved over the sweep -- the differential half of "
+        "this control was not exercised, so a pass here is vacuous"
+    )
+    assert any(not v["truth_moved"] for v in report.values())
+    assert any(v["gap_moved"] for v in report.values()), (
+        "not one published gap moved -- the sweep did nothing"
+    )
+
+    for dim, m in report.items():
+        assert m["truth_moved"] == (not m["declared_truth_invariant"]), (
+            f"{dim}: declared truth_is_as_of_invariant="
+            f"{m['declared_truth_invariant']} but measurement says otherwise"
+        )
+        assert m["gap_moved"] == (not m["declared_gap_invariant"]), (
+            f"{dim}: declared gap_is_as_of_invariant="
+            f"{m['declared_gap_invariant']} but the gap went "
+            f"{m['early']} -> {m['later']} over {_CONTRACT_SWEEP_DAYS} days"
+        )
+        if m["declared_truth_invariant"] and not m["declared_gap_invariant"]:
+            # The exemption is allowed, but only as a NAMED, dated debt.
+            why = str(contract[dim]["why"])
+            assert "VIOLATES THE INVARIANT" in why, dim
+            assert "D11" in why, (
+                f"{dim} is exempt from the as_of invariant without naming the "
+                f"atom that closes it -- an unblockable reason living only in "
+                f"prose is how a hold outlives its cause"
+            )
+
+
+def test_the_as_of_class_control_fires_when_a_clean_dimension_starts_drifting():
+    """R15 MUST-FIRE #1. `belief` is declared invariant on both sides and
+    measures clean today. Poison ONLY its gap so it drifts with the clock while
+    its truth stands still -- the exact defect class -- and the control must
+    catch it. A control that only ever passes is not evidence."""
+    import datetime as _dt
+
+    records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
+
+    def _poisoned_score(recs, cons, when, **kw):
+        res = pair.score_triad(recs, cons, when, **kw)
+        # Nothing about the world changed; only the question's timing.
+        res["belief"].gap = res["belief"].gap + 0.001 * (when - as_of).days
+        return res
+
+    report = _as_of_contract_report(
+        records, consumer, as_of, pair.DIMENSION_AS_OF_CONTRACT, score=_poisoned_score)
+
+    assert report["belief"]["gap_moved"] is True
+    assert report["belief"]["truth_moved"] is False
+    # ...and that combination is precisely what the real test forbids.
+    with pytest.raises(AssertionError):
+        m = report["belief"]
+        assert m["gap_moved"] == (not m["declared_gap_invariant"])
+
+
+def test_the_as_of_class_control_fires_on_a_declaration_that_lies():
+    """R15 MUST-FIRE #2, aimed at the DECLARATION rather than the measurement,
+    and it must be falsifiable in BOTH directions.
+
+    Before D11 only one direction was tested: `detection` really did drift, so
+    the only lie the control could catch was "it is clean". Now that every
+    truth-invariant dimension is also gap-invariant, the remaining lie is the
+    opposite one -- claiming a clean dimension is dirty, which would quietly buy
+    a permanent exemption for a dimension that does not need one. Both lies must
+    fail the control, or the declaration is unfalsifiable one way round."""
+    records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
+    real = _as_of_contract_report(
+        records, consumer, as_of, pair.DIMENSION_AS_OF_CONTRACT)
+
+    # LIE A -- claim a genuinely-drifting dimension is clean. `ageing` really
+    # does move with the clock (an invoice ages), which is why it is exempt.
+    assert real["ageing"]["gap_moved"] is True, "ageing stopped moving -- re-derive"
+    lying_clean = {k: dict(v) for k, v in pair.DIMENSION_AS_OF_CONTRACT.items()}
+    lying_clean["ageing"]["gap_is_as_of_invariant"] = True
+    m = _as_of_contract_report(records, consumer, as_of, lying_clean)["ageing"]
+    with pytest.raises(AssertionError):
+        assert m["gap_moved"] == (not m["declared_gap_invariant"])
+
+    # LIE B -- claim a genuinely-clean dimension drifts, i.e. take an exemption
+    # that is not needed. `detection` has been invariant since D11 landed.
+    assert real["detection"]["gap_moved"] is False, (
+        "the detection headline is drifting with as_of again -- D11 regressed"
+    )
+    lying_dirty = {k: dict(v) for k, v in pair.DIMENSION_AS_OF_CONTRACT.items()}
+    lying_dirty["detection"]["gap_is_as_of_invariant"] = False
+    m = _as_of_contract_report(records, consumer, as_of, lying_dirty)["detection"]
+    with pytest.raises(AssertionError):
+        assert m["gap_moved"] == (not m["declared_gap_invariant"])
+
+
+def test_detection_headline_is_no_longer_an_as_of_artefact():
+    """THE D11 ACCEPTANCE CRITERION, and it REPLACES the characterization that
+    used to sit here (which asserted the drift, as the defect it then was).
+
+    Hold the company and the world literally fixed -- same `records`, same
+    `consumer`, nothing re-simulated -- and move only the date the scorer asks
+    on. The old headline walked 0.0725 -> 0.1232 over 60 days. The reshaped one
+    must not move at all, because its population is EVER-FLAGGED and a detection
+    is a fact about the day it happened."""
+    import datetime as _dt
+
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=7)
+    swept = {
+        d: pair.score_triad(records, consumer, as_of + _dt.timedelta(days=d))
+        for d in (0, 7, 14, 30, 60, 90)
+    }
+    base = swept[0]["detection"]
+
+    # VACUITY GUARD: a sweep over a population with nothing in it would pass
+    # every assertion below while proving nothing.
+    assert base.components["truth_size"] > 0
+    assert base.components["n_negatives"] > 0
+    assert base.gap is not None
+
+    for d, res in swept.items():
+        det = res["detection"]
+        assert det.components["truth_size"] == base.components["truth_size"], d
+        assert det.gap == base.gap, (
+            f"the detection headline moved to {det.gap} at as_of+{d} while the "
+            f"company and the world stood still -- D11 regressed"
+        )
+        assert det.components["false_flag_rate"] == base.components["false_flag_rate"], d
+        assert det.components["missed_failure_rate"] == base.components["missed_failure_rate"], d
+
+    # The dimension D10 built on an EVER-KNEW population is invariant too -- the
+    # headline has now joined it rather than being the odd one out.
+    assert swept[90]["detection_latency"].gap == swept[0]["detection_latency"].gap
+    # ...and the sweep is not a no-op: `ageing`, whose truth genuinely moves,
+    # still moves. Otherwise the flatness above would prove only that nothing
+    # in this scorer responds to `as_of` at all.
+    assert swept[90]["ageing"].gap != swept[0]["ageing"].gap, (
+        "not one dimension moved over the sweep -- the sweep did nothing, so the "
+        "invariance asserted above is vacuous"
+    )
+
+
+def test_flag_everything_no_longer_buys_a_perfect_detection_score():
+    """R15 MUST-FIRE, and the second half of what D11 was for. The retired
+    headline gave a company that flagged EVERY invoice a perfect 0.0. The
+    reshaped one must give both degenerate strategies exactly the no-skill
+    baseline, and must score the real company strictly better than both -- or
+    the reshape bought nothing."""
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=7)
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    universe = {(r.customer_id, r.period_index) for r in records}
+    negatives = {
+        (r.customer_id, r.period_index) for r in records
+        if r.result == "success" and r.days_late is not None and r.days_late <= 5
+    }
+    assert truth and negatives and len(truth) < len(universe), "vacuous population"
+    kw = dict(universe=universe, negative_set=negatives,
+              exclusion_reason="late-past-grace successes and disputes")
+
+    everything = detection_measures(truth, universe, **kw)
+    nobody = detection_measures(truth, set(), **kw)
+    perfect = detection_measures(truth, truth, **kw)
+
+    assert everything.gap == 0.5 == nobody.gap, (
+        "a degenerate strategy is no longer scoring the no-skill baseline -- the "
+        "balanced shape has been lost"
+    )
+    assert everything.g0 == 0.5
+    assert perfect.gap == 0.0, "a perfect detector must still be able to score 0"
+
+    # ...and the retired measure is the falsifier: on the SAME sets it hands the
+    # indiscriminate company the perfect score that made D11 necessary.
+    assert detection_gap(truth, universe).gap == 0.0
+
+    # The real company sits strictly between the degenerates and perfection.
+    real = pair.score_triad(records, consumer, as_of)["detection"]
+    assert 0.0 < real.gap < 0.5, real.gap
+
+
+def test_the_detection_headline_never_prints_alone():
+    """R11-in-spirit: BOTH directions must reach the surface a human actually
+    reads, not only the module docstring. The witnesses ride in `stats` and in
+    the rendered summary the CLI and the live ledger note both use."""
+    result = pair.measure(300, seed=_SEED)
+    stats = result["stats"]
+    det = result["detection"]
+
+    assert stats["n_flagged_not_truly_failed"] is not None
+    assert stats["false_flag_rate_over_truly_current"] is not None
+    assert stats["n_flagged_not_truly_failed"] > 0, (
+        "no false flags on this population -- this witness is vacuous here"
+    )
+    for phrase in ("EVER-FLAGGED", "BALANCED error", "D11", "n_excluded"):
+        assert phrase in det.note, phrase
+
+    rendered = format_detection_summary(det)
+    assert "missed_failure_rate" in rendered and "false_flag_rate" in rendered
+    assert "wrongful-dunning exposure" in rendered
+    assert f"{det.components['n_false_flags']} of {det.components['n_negatives']}" in rendered
+    assert str(det.components["n_excluded"]) in rendered, (
+        "the excluded population is not printed -- an unpublished exclusion is "
+        "how a denominator gets quietly shrunk"
+    )
+
+
+def test_the_false_flag_denominator_excludes_legitimately_flagged_late_payers():
+    """THE DENOMINATOR IS THE MEASURE. D11's own first draft used
+    `universe - truth_set` as the negative population, which charged the company
+    for flagging invoices that really were unpaid past grace and merely got paid
+    later. On this population that inflated the false-flag rate 0.0269 -> 0.2834
+    -- a tenfold error, entirely inside the denominator.
+
+    A late-past-grace payment must therefore be in NEITHER population, and the
+    exclusion must be counted and explained."""
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=7)
+    det = pair.score_triad(records, consumer, as_of)["detection"]
+    c = det.components
+
+    late_past_grace = [
+        r for r in records
+        if r.result == "success" and r.days_late is not None and r.days_late > 5
+    ]
+    assert late_past_grace, (
+        "no late-past-grace payments in this population -- the distinction this "
+        "test exists to protect is not exercised, so a pass proves nothing"
+    )
+    assert c["n_excluded"] >= len(late_past_grace)
+    assert c["exclusion_reason"] and "grace" in c["exclusion_reason"]
+    assert c["truth_size"] + c["n_negatives"] + c["n_excluded"] == c["universe_size"]
+
+    # THE MUTATION: put them back in the negative population (the draft's bug)
+    # and the measured wrongful-dunning rate must jump. If it did not, the
+    # distinction would be decorative.
+    universe = {(r.customer_id, r.period_index) for r in records}
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    naive = detection_measures(truth, _ever_flagged(records, consumer, as_of),
+                               universe=universe)
+    assert naive.components["false_flag_rate"] > c["false_flag_rate"] * 5, (
+        "collapsing the excluded population into the negatives no longer moves "
+        "the score -- either the population changed or the exclusion is a no-op"
+    )
+
+
+def test_detection_measures_fails_loud_on_a_bad_population():
+    """R15 FAIL-LOUD. Every way of handing this measure an incoherent population
+    must RAISE, because each one silently moves a denominator: a flag outside
+    the scored universe is a join-key drift, an overlap makes a case both
+    must-flag and must-not-flag, and an unexplained exclusion is the cheapest
+    possible way to make either direction look better than it is."""
+    U = {1, 2, 3, 4}
+    S = {1}
+    N = {2, 3}
+    reason = "case 4 was neither"
+
+    with pytest.raises(ValueError, match="outside the scored universe"):
+        detection_measures(S, {1, 99}, universe=U, negative_set=N, exclusion_reason=reason)
+    with pytest.raises(ValueError, match="outside the scored universe"):
+        detection_measures({1, 99}, {1}, universe=U, negative_set=N, exclusion_reason=reason)
+    with pytest.raises(ValueError, match="in BOTH"):
+        detection_measures(S, {1}, universe=U, negative_set={1, 2}, exclusion_reason=reason)
+    with pytest.raises(ValueError, match="no `exclusion_reason`"):
+        detection_measures(S, {1}, universe=U, negative_set=N)
+    with pytest.raises(ValueError, match="empty truth set"):
+        detection_measures(set(), {1}, universe=U, negative_set=N, exclusion_reason=reason)
+    with pytest.raises(ValueError, match="empty universe"):
+        detection_measures(S, {1}, universe=set())
+
+    # VACUITY IS EXPLICIT, never a silent fallback to the recall number: with no
+    # negative population the false-flag direction and the headline are None.
+    vacuous = detection_measures(S, {1}, universe=U, negative_set=set(),
+                                 exclusion_reason=reason)
+    assert vacuous.components["false_flag_rate"] is None
+    assert vacuous.gap is None
+    assert "vacuity" in vacuous.components
+    # ...and the miss direction is still measured, so the None above is a
+    # statement about the denominator, not about the whole measurement failing.
+    assert vacuous.components["missed_failure_rate"] == 0.0
+
+
+def test_the_miss_direction_can_still_fire():
+    """R15: a direction that is 0 on every population this repo scores is a
+    control that cannot fail, and `missed_failure_rate` IS 0 here -- expected-
+    collection reconciliation catches every truly-failed invoice at due+grace
+    (D10 measured `n_undetected == 0` on seeds 7/11/23).
+
+    So it is proven by MUTATION rather than by observation: delete the
+    reconciliation channel, leaving the DD-event channel alone, and the non-DD
+    blind spot must reappear as a non-zero miss rate."""
+    records, consumer, _ledger, as_of = pair.build_scenario(400, seed=7)
+    honest = pair.score_triad(records, consumer, as_of)["detection"]
+    assert honest.components["missed_failure_rate"] == 0.0
+
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    universe = {(r.customer_id, r.period_index) for r in records}
+    negatives = {
+        (r.customer_id, r.period_index) for r in records
+        if r.result == "success" and r.days_late is not None and r.days_late <= 5
+    }
+    dd_only = _ever_flagged(records, consumer, as_of, dd_channel_only=True)
+    crippled = detection_measures(
+        truth, dd_only, universe=universe, negative_set=negatives,
+        exclusion_reason="late-past-grace successes and disputes")
+
+    assert crippled.components["missed_failure_rate"] > 0.0, (
+        "deleting the reconciliation channel left the miss direction at zero -- "
+        "then it cannot fire at all and is not evidence of anything"
+    )
+    assert crippled.gap > honest.gap
 
 
 def test_detection_latency_vacuity_is_none_never_zero():
@@ -782,3 +1198,85 @@ def test_cli_runs_and_prints_all_three_gaps(capsys, monkeypatch):
     assert "[belief]" in out
     assert "[ageing]" in out
     assert "allocation note:" in out
+    # D11: the CLI is a surface a human reads, and the headline must never reach
+    # it as a bare scalar -- both directions, with their own denominators.
+    assert "missed_failure_rate" in out and "false_flag_rate" in out
+    assert "wrongful-dunning exposure" in out
+
+
+# ---------------------------------------------------------------------------
+# THE ERROR-DIRECTION CLASS CONTROL (atom D11, the R10 half)
+# ---------------------------------------------------------------------------
+
+def _flag_everything_score(entry_key, records, consumer, as_of):
+    """Score the flag-EVERYTHING degenerate through the scorer THAT ENTRY
+    actually uses. Returns the headline that scorer gives an indiscriminate
+    company -- the one number that tells a two-directional measure from a
+    recall-only one."""
+    truth = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+    universe = {(r.customer_id, r.period_index) for r in records}
+    if entry_key == "score_triad.detection":
+        sets = pair.score_triad(records, consumer, as_of)["sets"]
+        return detection_measures(
+            truth, universe, universe=universe,
+            negative_set=sets["never_flaggable"],
+            exclusion_reason="late-past-grace successes and disputes").gap
+    # Every other registered entry is still on the recall-only scorer.
+    return detection_gap(truth, universe).gap
+
+
+def test_every_published_detection_dimension_declares_its_error_directions():
+    """THE CLASS CONTROL (R10 -- an absurdity-class defect may not be closed
+    with an instance fix). The instance was the payment triad's headline scoring
+    0.0725 while 44-51% of what the company flagged had been paid. The class is
+    every published set-membership detection score in this repo.
+
+    The register is not trusted, it is MEASURED: each entry's own scorer is
+    handed the flag-EVERYTHING degenerate, and a dimension claiming to count
+    both directions must NOT hand it a perfect score -- while one registered as
+    recall-only MUST, because that is precisely what makes it debt."""
+    records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
+    contract = pair.DETECTION_DIRECTION_CONTRACT
+
+    assert contract, "the register is empty -- it cannot fail on anything"
+    # VACUITY GUARD: both sides of the differential must be exercised, or a pass
+    # here proves only that one shape exists.
+    assert any(v["counts_both_error_directions"] for v in contract.values())
+    assert any(not v["counts_both_error_directions"] for v in contract.values())
+
+    for key, declared in contract.items():
+        degenerate = _flag_everything_score(key, records, consumer, as_of)
+        if declared["counts_both_error_directions"]:
+            assert degenerate != 0.0, (
+                f"{key} declares it counts both error directions, but a company "
+                f"that flagged EVERY case still scores {degenerate} through its "
+                "own scorer -- the declaration is false"
+            )
+            assert declared["debt_atom"] is None, key
+        else:
+            assert degenerate == 0.0, (
+                f"{key} is registered as recall-only debt but flagging "
+                "everything no longer scores perfectly -- if it was fixed, "
+                "update the register rather than leaving a stale liability"
+            )
+            assert declared["debt_atom"], (
+                f"{key} counts one error direction and names no atom to fix it "
+                "-- an unowned limitation is how a defect becomes a convention"
+            )
+            assert str(declared["why"]).strip(), key
+
+
+def test_the_error_direction_control_fires_on_a_declaration_that_lies():
+    """R15 MUST-FIRE on the register itself. If an entry could simply claim to
+    count both directions, the register would be a fail-open switch anyone could
+    flip -- the same shape as the as_of contract's exemption."""
+    records, consumer, _ledger, as_of = pair.build_scenario(250, seed=_SEED)
+
+    # The lie: a recall-only entry declaring itself two-directional.
+    key = "score_detection_by_partition"
+    assert pair.DETECTION_DIRECTION_CONTRACT[key][
+        "counts_both_error_directions"] is False
+    degenerate = _flag_everything_score(key, records, consumer, as_of)
+    assert degenerate == 0.0, "the cell scorer stopped being recall-only"
+    with pytest.raises(AssertionError):
+        assert degenerate != 0.0, "declared two-directional but scores a degenerate 0"

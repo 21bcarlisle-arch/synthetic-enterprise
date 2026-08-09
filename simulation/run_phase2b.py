@@ -90,6 +90,7 @@ from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
+from background.gap_metric import format_detection_summary as _format_detection_summary
 from background.live_payment_triad import LivePaymentTriad
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from simulation.demand_model import build_demand_shape, solar_generation_shape
@@ -2519,8 +2520,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             _det = _triad_result["detection"]
             print(
                 f"[coupled-triad W2_11<->D5] LIVE payment belief-vs-truth gap: "
-                f"detection={_det.gap} (true failures {_triad_result['stats']['n_true_failures']}, "
-                f"flagged {_triad_result['stats']['n_flagged_failures']}, "
+                # D11: never print the detection headline as a bare scalar. It is
+                # a BALANCED error over two directions, and the bare form is how
+                # the retired recall-only figure got read as "nearly perfect
+                # detection" while half the company's flags were on paid invoices.
+                f"{_format_detection_summary(_det)} "
+                f"(true failures {_triad_result['stats']['n_true_failures']}, "
+                f"ever-flagged {_triad_result['stats']['n_flagged_failures']}, "
                 f"non-DD blind {_triad_result['stats']['n_true_non_dd_failures']}, "
                 # D10: the headline is reconciliation-determined -- the DD
                 # channel's contribution is only visible in DAYS, never here.
@@ -2567,12 +2573,26 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         f"{_mc.grid_score.worst_cell} ({_mc.grid_score.fidelity_score:.4f}), "
                         f"gate PASS, {len(_mc.grid_score.untested_cells)} cells untested"
                     )
-                else:
-                    # Single regime present -> conservative single-cell collapse.
+                elif _cell_gaps:
+                    # Single regime present -> conservative single-cell collapse,
+                    # fed from THAT CELL rather than from the triad headline.
+                    #
+                    # D11 (2026-08-09): the headline is no longer the same measure
+                    # as the cells. It is a BALANCED error over an EVER-FLAGGED
+                    # population; the cells are still the recall-only
+                    # `detection_gap` over the at-`as_of` belief, registered as
+                    # named debt in DETECTION_DIRECTION_CONTRACT because the
+                    # grid's worst-cell band was calibrated on that shape. Feeding
+                    # the headline into one branch and cell measurements into the
+                    # other would put two different measures behind one band --
+                    # the band would move for a reason no reader could see. The
+                    # fidelity grid is therefore fed by `detection_cell_measure-
+                    # ments` end to end, and the headline never enters it.
+                    _only_cell = next(iter(_cell_gaps.values()))
                     _fid_em = emit_live_fidelity_evidence(
-                        detection_gap=_det.gap,
-                        true_failures=_triad_result["stats"]["n_true_failures"],
-                        believed_failures=_triad_result["stats"]["n_flagged_failures"],
+                        detection_gap=_only_cell.detection_gap,
+                        true_failures=_only_cell.true_failures,
+                        believed_failures=_only_cell.believed_failures,
                         as_of=_fid_as_of,
                     )
                     print(
@@ -2580,6 +2600,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         f"gap={_fid_em.detection_gap} -> grid worst {_fid_em.grid_score.worst_cell} "
                         f"({_fid_em.grid_score.fidelity_score:.4f}), gate PASS, "
                         f"{len(_fid_em.grid_score.untested_cells)} cells untested"
+                    )
+                else:
+                    # No cell carried any true failure -- nothing honestly
+                    # measured, so nothing is emitted. Substituting the headline
+                    # here would light a grid cell off a different measure than
+                    # the one the cells are scored with (D11), which is how a
+                    # grid gets a value it never earned.
+                    print(
+                        "[fidelity-evidence G1/G2/G3] no cell carried a true "
+                        "payment failure -- nothing emitted (cells stay dark)"
                     )
             except Exception as _fid_exc:  # pragma: no cover - defensive
                 print(f"WARNING [fidelity-evidence G1/G2/G3] live emission failed: {_fid_exc}")

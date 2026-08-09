@@ -156,7 +156,9 @@ from background.gap_metric import (
     ageing_gap,
     belief_gap,
     detection_gap,
+    detection_measures,
     format_ageing_summary,
+    format_detection_summary,
     write_gap_entry,
 )
 
@@ -235,12 +237,12 @@ class PeriodRecord:
     __slots__ = (
         "customer_id", "period_index", "invoice_ref", "account_id",
         "due_date", "issue_date", "payment_method", "result",
-        "dd_failure_reason", "correlation_id",
+        "dd_failure_reason", "correlation_id", "days_late",
     )
 
     def __init__(self, customer_id, period_index, invoice_ref, account_id,
                  due_date, issue_date, payment_method, result,
-                 dd_failure_reason, correlation_id):
+                 dd_failure_reason, correlation_id, days_late=None):
         self.customer_id = customer_id
         self.period_index = period_index
         self.invoice_ref = invoice_ref
@@ -251,6 +253,15 @@ class PeriodRecord:
         self.result = result
         self.dd_failure_reason = dd_failure_reason
         self.correlation_id = correlation_id
+        # HOW LATE the cash actually arrived, days after `due_date` (atom D11).
+        # Carried because the detection dimension's FALSE-FLAG denominator needs
+        # it: an invoice paid 20 days late was genuinely unpaid past its grace
+        # date, so the company flagging it was CORRECT, not wrongful dunning --
+        # and scoring it as a false flag would punish the company for being
+        # right. `None` means UNKNOWN, never "paid on time": an unknown case is
+        # excluded from the denominator with a published witness rather than
+        # quietly counted as one the company should not have flagged.
+        self.days_late = days_late
 
 
 def build_scenario(
@@ -337,6 +348,7 @@ def build_scenario(
                 payment_method=method, result=event.result,
                 dd_failure_reason=event.dd_failure_reason,
                 correlation_id=correlation_id,
+                days_late=event.days_late,
             ))
 
     last_due = FIRST_DUE_DATE + timedelta(days=PERIOD_SPACING_DAYS * (N_PERIODS - 1))
@@ -538,6 +550,152 @@ def format_detection_latency_summary(result: GapResult) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# THE as_of CONTRACT (atom D11, minted by the H27 Expert-Hour pass 2026-08-09)
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS. `score_triad` publishes four numbers, each scored against a
+# harness-held TRUTH. Some of those truths genuinely move as the clock moves --
+# an unpaid invoice really does age -- and some do not: whether a payment
+# FAILED is a fact about the payment, settled forever the moment it happened.
+#
+# THE CLASS INVARIANT, and it is deliberately DIFFERENTIAL rather than a
+# blanket "nothing may move with as_of" (which would fire on the ageing
+# dimension, where movement is the correct behaviour, and be a false positive
+# that jams the gate):
+#
+#     if a dimension's TRUTH side is invariant under `as_of`,
+#     its published gap MUST be invariant under `as_of` too.
+#
+# A number that moves while the thing it measures stands still is an artefact
+# of the question's timing, not a measurement of the company. This is the same
+# defect the RETIRED `detection_latency_days` key was (D10) and the same defect
+# D6 found in the ageing scalar's prevalence dependence (D7): a published
+# figure moving for a reason that has nothing to do with the company's skill.
+# R10 says an absurdity-class defect may not be closed with an instance fix --
+# so the property is declared here, for every dimension, and
+# `tests/tools/test_couple_w2_11_d5.py` MEASURES the declaration by actually
+# moving `as_of` rather than trusting it.
+#
+# `truth_is_as_of_invariant` is the DECLARATION. The test derives the truth
+# signatures independently from `records`, so a wrong declaration fails.
+DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
+    "detection": {
+        "truth_is_as_of_invariant": True,
+        "truth": "result == 'failed' -- a settled fact about the payment",
+        "gap_is_as_of_invariant": True,
+        "why": (
+            "HOLDS SINCE 2026-08-09 (atom D11). It did NOT hold before: "
+            "`flagged_set` was the company's belief held AT as_of, so a case "
+            "detected on time and later un-flagged (an ambiguous non-DD payment "
+            "allocated oldest-first onto the failed invoice, Clayton's Case) "
+            "left the set purely because the clock moved -- measured seed 7 at "
+            "0.0725 at as_of and 0.1232 at as_of+60 with company and world "
+            "byte-identical. The population is now EVER-FLAGGED, the shape "
+            "detection_latency was already built on, and a detection is a fact "
+            "about the day it happened."
+        ),
+    },
+    "detection_latency": {
+        "truth_is_as_of_invariant": True,
+        "truth": "due dates of truly-failed invoices -- fixed at issue",
+        "gap_is_as_of_invariant": True,
+        "why": ("HOLDS. Built on an EVER-KNEW population precisely so the "
+                "answer is a property of the observation, not of when it was "
+                "asked for (D10)."),
+    },
+    "belief": {
+        "truth_is_as_of_invariant": True,
+        "truth": "per-account count of unresolved true failures -- as_of-free",
+        "gap_is_as_of_invariant": True,
+        "why": "HOLDS. Severity distributions over settled facts.",
+    },
+    "ageing": {
+        "truth_is_as_of_invariant": False,
+        "truth": "30/60/90+ bucket of (as_of - due_date) -- genuinely a clock fact",
+        "gap_is_as_of_invariant": False,
+        "why": ("EXEMPT, and this is why the invariant is differential: an "
+                "invoice really does age, so the truth moves and the gap "
+                "following it is correct behaviour, not an artefact."),
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# THE ERROR-DIRECTION CONTRACT (atom D11, the R10 half)
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS AND WHY IT IS NOT JUST A FIXED FUNCTION. R10: an absurdity-class
+# defect may not be closed with an instance fix. The instance was the payment
+# triad's detection headline scoring a company 0.0725 -- "nearly perfect" -- while
+# 44-51% of everything it flagged was an invoice that had been paid. The CLASS is
+# every published set-membership detection score in this repo, because they all
+# share one property:
+#
+#     a one-directional detection score cannot distinguish a precise company
+#     from an indiscriminate one, so it MUST either measure both directions or
+#     name the atom that will make it
+#
+# Four dimensions publish one today. One is fixed; three are NAMED DEBT with a
+# reason and an owner, which is a dated liability rather than a silent survivor.
+# `tests/tools/test_couple_w2_11_d5.py` MEASURES this register rather than
+# trusting it: for each entry it actually scores the flag-EVERYTHING degenerate
+# through that entry's own scorer and asserts the declared behaviour -- a
+# two-directional dimension must NOT hand it a perfect score, a recall-only one
+# must (that is what makes it debt). A dimension added without an entry fails the
+# control, and an entry claiming to be two-directional while still scoring the
+# degenerate perfectly fails it too.
+DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
+    "score_triad.detection": {
+        "counts_both_error_directions": True,
+        "scorer": "background.gap_metric.detection_measures",
+        "why": (
+            "FIXED 2026-08-09 (atom D11). Balanced error over both directions on "
+            "their own denominators; flag-nobody and flag-EVERYTHING both score "
+            "g0 = 0.5."
+        ),
+        "debt_atom": None,
+    },
+    "score_detection_by_partition": {
+        "counts_both_error_directions": False,
+        "scorer": "background.gap_metric.detection_gap",
+        "why": (
+            "NAMED DEBT. The regime-partitioned CELL grid feeds "
+            "background.live_fidelity_evidence, whose worst-cell band was "
+            "calibrated on the recall shape -- reshaping the cells in the same "
+            "tick would move the band under a gate that is currently green, "
+            "which is a band decision and not this atom's (SELF_INTERRUPT_"
+            "DISCIPLINE). The cells keep the recall measure so the grid stays "
+            "one measure end to end; the over-flagging direction for this "
+            "population is published in full on the headline dimension above."
+        ),
+        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+    },
+    "couple_w2_5_c7.detection": {
+        "counts_both_error_directions": False,
+        "scorer": "background.gap_metric.detection_gap",
+        "why": (
+            "NAMED DEBT. The W2_5<->C7 self-rationing pair cannot name its "
+            "truly-negative universe as cheaply as the payment pair can: a "
+            "'non-rationing household' is a continuum the harness labels by "
+            "threshold, so the false-flag denominator is a modelling choice, not "
+            "a set already in hand. Needs its own DISCOVER before a denominator "
+            "is invented for it."
+        ),
+        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+    },
+    "couple_w2_8_c10.detection": {
+        "counts_both_error_directions": False,
+        "scorer": "background.gap_metric.detection_gap",
+        "why": (
+            "NAMED DEBT. Same shape as W2_5<->C7 -- harm-weighted self-rationing "
+            "detection over a thresholded truth. Registered here so the class "
+            "control fails if it is ever quietly promoted as if it measured "
+            "both directions."
+        ),
+        "debt_atom": "D12_detection_cell_grid_is_recall_only",
+    },
+}
+
+
 def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, object]:
     """Build the OFFLINE scenario and score all three gap dimensions. Returns a
     dict of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
@@ -641,22 +799,30 @@ def score_triad(
         truly_failed = {r.period_index for r in periods if r.result == "failed"}
         for dd_fail in snapshot.recent_dd_failures:
             p = due_to_period.get(dd_fail.value_date)
-            if p is not None:
-                flagged_via_dd_channel.add((cid, p))
-                # FIRST-KNOWLEDGE date for the DD channel: the bank-feed REPORT
-                # date (`observed_at`), ARUDD-lagged at the seam -- NOT
-                # `value_date`, which is the collection date and would read a
-                # flat 0 (the 2026-08-08 residual's misread, see the
-                # `detection_latency_gap` docstring). A report landing after
-                # `as_of` is not yet knowledge: witnessed, never counted.
-                observed_on = dd_fail.observed_at.date()
-                if observed_on > as_of:
-                    n_dd_observed_after_as_of += 1
-                elif p in truly_failed:
-                    lag = (observed_on - due_by_period[p]).days
-                    dd_lag_days[(cid, p)] = min(dd_lag_days.get((cid, p), lag), lag)
-            else:
+            if p is None:
                 n_unjoined_dd_failures += 1
+                continue
+            # FIRST-KNOWLEDGE date for the DD channel: the bank-feed REPORT
+            # date (`observed_at`), ARUDD-lagged at the seam -- NOT
+            # `value_date`, which is the collection date and would read a
+            # flat 0 (the 2026-08-08 residual's misread, see the
+            # `detection_latency_gap` docstring). A report landing after
+            # `as_of` is not yet knowledge: witnessed, never counted.
+            #
+            # POINT-IN-TIME FIX (D11, 2026-08-09): the not-yet-knowable case is
+            # now excluded from `flagged_via_dd_channel` as well, not only from
+            # the latency inputs. Until this tick it was counted as a detection
+            # -- crediting the company with knowing something its own bank feed
+            # had not reported yet, which is the detection dimension's own small
+            # version of a point-in-time blindfold breach.
+            observed_on = dd_fail.observed_at.date()
+            if observed_on > as_of:
+                n_dd_observed_after_as_of += 1
+                continue
+            flagged_via_dd_channel.add((cid, p))
+            if p in truly_failed:
+                lag = (observed_on - due_by_period[p]).days
+                dd_lag_days[(cid, p)] = min(dd_lag_days.get((cid, p), lag), lag)
         for miss in snapshot.detected_collection_misses:
             p = ref_to_period.get(miss.invoice_ref)
             if p is not None:
@@ -683,23 +849,43 @@ def score_triad(
         # 5, whatever the cash did afterwards. A case reported at `as_of` but at
         # none of its candidates (an allocation reshuffle can do it) is left
         # UNDATED and witnessed, never dated by guess.
-        if truly_failed:
-            candidates = sorted({
-                due_by_period[p] + timedelta(days=reconciliation_grace_days)
-                for p in truly_failed
-            })
-            for cand in candidates:
-                if cand > as_of:
+        # THE EVER-FLAGGED SWEEP (atom D11, 2026-08-09). Until this tick this
+        # loop ran over the truly-FAILED periods only, and only to date the
+        # latency dimension; the detection headline's `flagged_set` came from the
+        # `as_of` snapshot alone. That made the headline a belief held AT `as_of`
+        # scored against a truth that does not move at all, so moving only the
+        # date the scorer asks on walked the published figure +70% over 60 days
+        # (H27 Expert Hour). It now sweeps EVERY period -- truly-failed and
+        # truly-succeeded alike, because the false-flag direction needs the
+        # succeeded ones too -- and a case the company flagged at ANY date up to
+        # `as_of` stays flagged. Detecting a shortfall on day 5 is a fact about
+        # day 5, whatever a later oldest-first allocation did to the invoice.
+        #
+        # Cost is one organ query per distinct due+grace date per account. The
+        # early-break that used to stop once every failure was dated is gone
+        # deliberately: it could only ever be correct for a truly-failed
+        # population, and leaving it in would have silently truncated the
+        # false-flag sweep.
+        candidates = sorted({
+            r.due_date + timedelta(days=reconciliation_grace_days) for r in periods
+        })
+        for cand in candidates:
+            if cand > as_of:
+                continue
+            for m in consumer.expected_collection_misses(
+                account_id, as_of=cand, grace_days=reconciliation_grace_days,
+                payment_terms_days=payment_terms_days,
+            ):
+                # An unjoinable ref is counted once, at `as_of`, in the snapshot
+                # loop above -- same key convention, so witnessing it twice would
+                # double-count the drift rather than detect it twice.
+                p = ref_to_period.get(m.invoice_ref)
+                if p is None:
                     continue
-                if truly_failed <= {p for (c, p) in recon_lag_days if c == cid}:
-                    break
-                for m in consumer.expected_collection_misses(
-                    account_id, as_of=cand, grace_days=reconciliation_grace_days,
-                    payment_terms_days=payment_terms_days,
-                ):
-                    p = ref_to_period.get(m.invoice_ref)
-                    if p in truly_failed and (cid, p) not in recon_lag_days:
-                        recon_lag_days[(cid, p)] = (cand - due_by_period[p]).days
+                flagged_via_reconciliation.add((cid, p))
+                if p in truly_failed and (cid, p) not in recon_lag_days:
+                    recon_lag_days[(cid, p)] = (cand - due_by_period[p]).days
+        if truly_failed:
             still_flagged = {
                 ref_to_period[m.invoice_ref] for m in snapshot.detected_collection_misses
                 if m.invoice_ref in ref_to_period
@@ -748,7 +934,38 @@ def score_triad(
         if rec.payment_method != DIRECT_DEBIT:
             n_flagged_non_dd_via_reconciliation += 1  # the carve-out working
 
-    det = detection_gap(truth_set, flagged_set)
+    # THE UNIVERSE, passed as a SET rather than a count (D11): a flag landing
+    # outside the scored universe -- a join-key drift -- RAISES instead of
+    # quietly shrinking a denominator.
+    universe = {(r.customer_id, r.period_index) for r in records}
+    # THE FALSE-FLAG DENOMINATOR IS NOT `universe - truth_set`, and getting this
+    # wrong was the first thing the D11 build got wrong about itself. An invoice
+    # paid 20 days late genuinely WAS unpaid past its grace date, so the company
+    # flagging it was CORRECT -- scoring it as wrongful dunning would punish the
+    # company for being right, and on this population it inflated the measured
+    # false-flag rate from 0.0009 to 0.2834. A flag is wrong only on a case that
+    # was NEVER legitimately flaggable: the cash arrived on or within grace.
+    # Everything else -- late-past-grace successes, unresolved disputes, and any
+    # record whose `days_late` truth is unknown -- is EXCLUDED, counted, and the
+    # reason travels in the components (D10's rule: published, not silent).
+    never_flaggable = {
+        (r.customer_id, r.period_index) for r in records
+        if r.result == "success" and r.days_late is not None
+        and r.days_late <= reconciliation_grace_days
+    }
+    det = detection_measures(
+        truth_set, flagged_set, universe=universe,
+        negative_set=never_flaggable,
+        exclusion_reason=(
+            "cases in NEITHER direction's population: a payment that eventually "
+            f"succeeded but arrived more than {reconciliation_grace_days} days "
+            "(the reconciliation grace) after its due date really was unpaid "
+            "past grace, so flagging it was correct and counting it as a false "
+            "flag would score the company down for being right; an unresolved "
+            "dispute is not a settled success either; and a record carrying no "
+            "`days_late` truth is UNKNOWN, never assumed paid on time."
+        ),
+    )
     det.note = (
         "W2_11 true payment failure (any channel) vs D5's belief, now via TWO "
         "detection paths: observed Bacs/rail failure events AND expected-collection "
@@ -771,7 +988,43 @@ def score_triad(
         "payment was allocated oldest-first onto the failed invoice (Clayton's "
         "Case; atom D8_ambiguous_remittance_misdating). The blind spot is real "
         "(a failed non-DD payment emits no rail event at all) but it is not what "
-        "this residual measures."
+        "this residual measures. "
+        "RESHAPED 2026-08-09 (atom D11) -- the two limits the H27 Expert Hour "
+        "measured are FIXED, not caveated, and the headline is a DIFFERENT "
+        "NUMBER from every ledger entry written before that date. What changed, "
+        "and what each change was for: "
+        "(1) THE POPULATION. `flagged_set` was a belief held AT `as_of` scored "
+        "against a truth (`result == 'failed'`) that does not move at all, so "
+        "holding the company AND the world literally fixed and moving only the "
+        "date the scorer asks on walked the old figure 0.0725 -> 0.1232 (+70% "
+        "over 60 days, seed 7). It is now EVER-FLAGGED: a case the company "
+        "flagged at any date up to `as_of` stays flagged, whatever a later "
+        "oldest-first allocation did to the invoice (Clayton's Case, atom D8). "
+        "That is the shape the companion `detection_latency` dimension was "
+        "deliberately built on (D10) and the headline had been left behind. "
+        "`DIMENSION_AS_OF_CONTRACT` now declares this dimension invariant and "
+        "the class control MEASURES the declaration by sweeping `as_of`. "
+        "(2) THE DIRECTION. The old figure was a RECALL gap -- a company that "
+        "flagged every invoice scored a perfect 0.0 while 44-51% of what this "
+        "company actually flags is an invoice that truly SUCCEEDED. The headline "
+        "is now the BALANCED error: the mean of missed_failure_rate (over the "
+        "truly-failed) and false_flag_rate (over the truly-succeeded -- the same "
+        "wrongful-dunning exposure D7's `overstated_arrears_rate` publishes one "
+        "dimension over). Both degenerate strategies now score g0 = 0.5. The "
+        "retired figure is NOT restated in components: it was scored over a "
+        "different flagged population, so no arithmetic on these sets reproduces "
+        "it, and a restatement would be a false continuity between two numbers "
+        "that were never the same measurement. "
+        "(3) THE FALSE-FLAG DENOMINATOR IS NOT 'everything that did not fail'. "
+        "An invoice paid past the reconciliation grace really was unpaid past "
+        "grace, so flagging it was CORRECT; those cases, unresolved disputes, "
+        "and any record with no `days_late` truth are EXCLUDED and counted "
+        "(`n_excluded`), never quietly folded into either direction. Getting "
+        "this wrong inflated the first draft of this very measure from 0.0009 "
+        "to 0.2834. "
+        "R12: the reshape was designed from the defect, never fitted to a value; "
+        "the number moved because the measure was wrong, not because it looked "
+        "wrong."
     )
 
     lat = detection_latency_gap(
@@ -831,6 +1084,14 @@ def score_triad(
         "n_flagged_non_dd_via_reconciliation": n_flagged_non_dd_via_reconciliation,
         "n_flagged_via_dd_channel": len(flagged_via_dd_channel),
         "n_flagged_via_reconciliation": len(flagged_via_reconciliation),
+        # OVER-FLAGGING witnesses (atom D11, H27 Expert Hour 2026-08-09). The
+        # detection headline is a RECALL gap: flagging everything scores a
+        # perfect 0, so the score alone cannot tell a precise company from an
+        # indiscriminate one. These carry the other error direction, on its own
+        # denominator (the D7 rule -- a rate over the whole population would
+        # re-import the class-balance dependence D7 exists to remove).
+        "n_flagged_not_truly_failed": det.components["n_false_flags"],
+        "false_flag_rate_over_truly_current": det.components["false_flag_rate"],
         # CHANNEL-CONTRIBUTION witnesses (R15 fail-silent, 2026-08-08 HARDEN).
         # `flagged_set` is a UNION, so a channel that detects nothing the other
         # channel does not already detect moves the headline detection gap by
@@ -941,8 +1202,22 @@ def score_triad(
             "rather than being forced into a fourth, ill-fitting metric."
         ),
     }
+    # THE SETS THEMSELVES (atom D11). Returned so a caller -- in practice the
+    # R15 mutation tests -- can score a MUTATED belief through the SAME scorer
+    # rather than re-deriving the ever-flagged sweep in a second implementation.
+    # A test that re-implemented this loop would be asserting a copy against a
+    # copy: the tautology R15 names first (and the one this repo has already
+    # caught twice inside its own R15 tests).
+    sets = {
+        "truth": truth_set,
+        "flagged": flagged_set,
+        "flagged_via_dd_channel": flagged_via_dd_channel,
+        "flagged_via_reconciliation": flagged_via_reconciliation,
+        "never_flaggable": never_flaggable,
+        "universe": universe,
+    }
     return {"detection": det, "detection_latency": lat, "belief": bel, "ageing": age,
-            "stats": stats, "notes": notes}
+            "stats": stats, "notes": notes, "sets": sets}
 
 
 # UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
@@ -1139,12 +1414,19 @@ def main() -> None:
     print(f"  as_of                     : {stats['as_of']}")
     print(f"  true failures (all chan.) : {stats['n_true_failures']}"
           f"  (DD {stats['n_true_dd_failures']}, non-DD {stats['n_true_non_dd_failures']})")
-    print(f"  flagged failures (belief) : {stats['n_flagged_failures']}"
+    print(f"  ever-flagged (belief)     : {stats['n_flagged_failures']}"
           f"  (non-DD leaked: {stats['n_flagged_non_dd_failures']})")
 
-    for name in ("detection", "belief"):
-        r: GapResult = result[name]
-        print(f"  [{name}] raw_gap={r.raw_gap:.4f}  g0={r.g0:.4f}  GAP={r.gap}")
+    # DETECTION is not a g0-normalised recall score any more (D11) -- it is a
+    # BALANCED error over two directions, and printing it in the raw_gap/g0/GAP
+    # shape is how the retired figure got read as "nearly perfect detection"
+    # while half the company's flags were on invoices that had been paid. It
+    # prints as both directions with their own denominators.
+    print(f"  [detection] {format_detection_summary(result['detection'])}")
+    print(f"              g0={result['detection'].g0} "
+          f"(both degenerate strategies -- flag nobody AND flag everything)")
+    r_bel: GapResult = result["belief"]
+    print(f"  [belief] raw_gap={r_bel.raw_gap:.4f}  g0={r_bel.g0:.4f}  GAP={r_bel.gap}")
     # Ageing is NOT a g0-normalised score (D7) -- printing it in the same
     # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
     # read as one. Its three measures print with their units instead.

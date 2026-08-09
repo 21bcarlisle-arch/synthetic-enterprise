@@ -76,7 +76,12 @@ from company.billing.account_ledger import (
 )
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 
-from background.gap_metric import GapResult, format_ageing_summary, write_gap_entry
+from background.gap_metric import (
+    GapResult,
+    format_ageing_summary,
+    format_detection_summary as _format_detection_summary,
+    write_gap_entry,
+)
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
@@ -207,6 +212,7 @@ class LivePaymentTriad:
             payment_method=method, result=event.result,
             dd_failure_reason=event.dd_failure_reason,
             correlation_id=correlation_id,
+            days_late=event.days_late,
         ))
 
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
@@ -257,7 +263,26 @@ class LivePaymentTriad:
             "number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE "
             "(D10): `flagged_set` is a UNION and deleting the DD-observation "
             "channel leaves it bit-identical -- what that channel buys is EARLIER "
-            "detection, reported in days beside it. Companion per-dimension gaps: "
+            "detection, reported in days beside it. "
+            "RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE "
+            "WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the "
+            "discontinuity is a fix, not a drift. The H27 Expert Hour measured "
+            "two defects in the old figure and both are now closed at the "
+            "measure rather than caveated in prose. (1) It was an as_of "
+            "ARTEFACT: the truth (`result == 'failed'`) does not move with the "
+            "clock but the belief was held AT the measurement date, so holding "
+            "company and world fixed and moving only that date walked the figure "
+            "~+70% over 60 days. The population is now EVER-FLAGGED -- a "
+            "detection is a fact about the day it happened, whatever a later "
+            "oldest-first allocation did to the invoice -- and the as_of sweep "
+            "is flat. (2) It counted ONE ERROR DIRECTION: a company flagging "
+            "EVERY invoice scored a perfect 0.0. The headline is now the "
+            "BALANCED error of both directions on their own denominators, so "
+            "both degenerate strategies score g0 = 0.5. "
+            f"{_format_detection_summary(headline)}. The retired recall-only "
+            "figure is NOT restated: it was scored over a different flagged "
+            "population, so no arithmetic on these sets reproduces it. "
+            "Companion per-dimension gaps: "
             f"belief {result['belief'].gap:.4f}; "
             f"{format_detection_latency_summary(result['detection_latency'])}; "
             f"{format_ageing_summary(result['ageing'])} "

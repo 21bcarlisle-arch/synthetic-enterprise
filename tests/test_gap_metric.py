@@ -189,6 +189,107 @@ def test_detection_uniform_harm_equals_miss_rate():
 
 
 # ===========================================================================
+# (d2) Detection MEASURES -- the two-directional successor (atom D11)
+# ===========================================================================
+
+def _kw(universe, negatives, reason="the rest were neither"):
+    return dict(universe=universe, negative_set=negatives, exclusion_reason=reason)
+
+
+def test_detection_measures_scores_both_degenerates_at_the_baseline():
+    """The whole point of D11. The retired `detection_gap` gave a company that
+    flagged EVERYTHING a perfect 0.0; here both degenerate strategies land
+    exactly on g0, and only a company right in both directions scores 0."""
+    S, N = {"a", "b"}, {"c", "d", "e", "f"}
+    U = S | N
+
+    everything = gm.detection_measures(S, U, **_kw(U, N))
+    nobody = gm.detection_measures(S, set(), **_kw(U, N))
+    perfect = gm.detection_measures(S, S, **_kw(U, N))
+    backwards = gm.detection_measures(S, N, **_kw(U, N))
+
+    assert everything.gap == 0.5 == nobody.gap == everything.g0
+    assert perfect.gap == 0.0
+    assert backwards.gap == 1.0, "perfectly wrong must score 1.0, not 0.5"
+    # The falsifier: the retired measure on the SAME sets.
+    assert gm.detection_gap(S, U).gap == 0.0
+
+
+def test_detection_measures_is_invariant_to_prevalence():
+    """D7's rule, carried over: neither direction may carry the other class's
+    denominator, or prevalence alone would move the score with the company held
+    fixed. Same per-case behaviour, ten times the negatives -> same score."""
+    S = {f"s{i}" for i in range(10)}
+    flagged = {f"s{i}" for i in range(8)}      # catches 8/10 either way
+
+    small_N = {f"n{i}" for i in range(10)}
+    big_N = {f"n{i}" for i in range(100)}
+    small = gm.detection_measures(S, flagged | {"n0"}, **_kw(S | small_N, small_N))
+    # Same behaviour proportionally: 10% of negatives wrongly flagged in both.
+    big = gm.detection_measures(
+        S, flagged | {f"n{i}" for i in range(10)}, **_kw(S | big_N, big_N))
+
+    assert small.components["false_flag_rate"] == big.components["false_flag_rate"]
+    assert small.gap == big.gap
+
+
+def test_detection_measures_harm_weights_the_miss_direction_only():
+    S = {"a", "b", "c"}
+    N = {"x", "y"}
+    harm = {"a": 8.0, "b": 1.0, "c": 1.0}
+    r = gm.detection_measures(S, {"b", "c"}, harm=harm, **_kw(S | N, N))
+    assert r.components["miss_rate"] == pytest.approx(1 / 3)
+    assert r.components["missed_failure_rate"] == pytest.approx(0.8)
+    assert r.components["false_flag_rate"] == 0.0
+    assert r.gap == pytest.approx(0.4)
+
+
+def test_detection_measures_publishes_its_exclusions_or_raises():
+    """The exclusion is published, not silent (D10's rule mechanised): a case in
+    neither population shrinks a denominator, and an unexplained one is the
+    cheapest way to make either direction look better than it is."""
+    U, S, N = {1, 2, 3, 4}, {1}, {2, 3}
+    with pytest.raises(ValueError, match="no `exclusion_reason`"):
+        gm.detection_measures(S, {1}, universe=U, negative_set=N)
+
+    r = gm.detection_measures(S, {1}, universe=U, negative_set=N,
+                              exclusion_reason="case 4 was neither")
+    assert r.components["n_excluded"] == 1
+    assert r.components["exclusion_reason"] == "case 4 was neither"
+    # No exclusions -> no reason to carry, and it must not be invented.
+    clean = gm.detection_measures(S, {1}, universe={1, 2, 3}, negative_set={2, 3},
+                                  exclusion_reason="unused")
+    assert clean.components["n_excluded"] == 0
+    assert clean.components["exclusion_reason"] is None
+
+
+def test_detection_measures_vacuity_is_none_never_zero():
+    """A universe with nothing to get wrong is not one the company got right --
+    and it must NOT silently fall back to the recall number, which is the
+    fail-open this measure exists to remove."""
+    r = gm.detection_measures({1}, {1}, universe={1}, negative_set=set())
+    assert r.components["false_flag_rate"] is None
+    assert r.gap is None
+    assert "vacuity" in r.components
+    assert r.components["missed_failure_rate"] == 0.0
+    assert "supersedes" in r.components
+
+
+def test_format_detection_summary_never_renders_a_bare_scalar():
+    S, N = {"a", "b"}, {"c", "d", "e", "f"}
+    rendered = gm.format_detection_summary(
+        gm.detection_measures(S, {"a", "c"}, **_kw(S | N, N)))
+    assert "missed_failure_rate 0.5000" in rendered
+    assert "false_flag_rate 0.2500" in rendered
+    assert "1 of 4" in rendered
+    assert "wrongful-dunning exposure" in rendered
+    # Vacuous case must render as undefined, never as a number.
+    vacuous = gm.format_detection_summary(
+        gm.detection_measures({1}, {1}, universe={1}, negative_set=set()))
+    assert "undefined" in vacuous
+
+
+# ===========================================================================
 # (e) Misapplication gap -- wrong-class applied vs answer key (W2_9 <-> C11)
 # ===========================================================================
 

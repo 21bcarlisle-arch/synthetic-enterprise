@@ -124,14 +124,38 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
 
     neutered = _build_triad().measure()
     assert neutered is not None
-    neutered_gap = neutered["detection"].gap
 
-    # The wall leaked -> the company now flags every true failure -> the
-    # detection gap collapses to 0. The measurement demonstrably FIRED.
-    assert neutered_gap == 0.0, neutered_gap
-    assert neutered_gap < baseline_gap
+    # The mutation reached the company: non-DD failures, which the adapter
+    # structurally emits nothing for, are now visible on the DD-event channel.
     assert neutered["stats"]["n_flagged_non_dd_failures"] > 0, (
         "the mutation should have made the (formerly blind) non-DD failures visible"
+    )
+
+    # WHICH DIMENSION THE WALL ACTUALLY MOVES (rewritten 2026-08-09, atom D11).
+    # Until D11 this test asserted the DETECTION headline collapsed to 0. It did
+    # -- but for the wrong reason, and the reason is the defect D11 fixed: the
+    # headline scored a belief held AT `as_of`, so leaking the wall was papering
+    # over cases reconciliation had detected on time and then UN-flagged when a
+    # later ambiguous payment was allocated oldest-first (Clayton's Case). With
+    # an EVER-FLAGGED population those cases are already counted as detected, so
+    # the headline is insensitive to this channel -- which is exactly what D10
+    # measured directly (`n_flagged_via_dd_channel_only == 0`) and what the
+    # `detection_latency` dimension exists to express instead.
+    #
+    # The dimension the DD-observation channel really feeds is BELIEF: the
+    # company's arrears severity is counted from rail-observed failures, so
+    # leaking every failure onto that channel must collapse the belief gap.
+    assert neutered["belief"].gap < baseline["belief"].gap, (
+        "leaking the wall left the BELIEF gap where it was -- that dimension is "
+        "built on the DD-observed failure count, so this mutation must move it"
+    )
+    assert baseline["belief"].gap > 0.0, "vacuous: the belief gap was already 0"
+
+    assert neutered["detection"].gap == baseline["detection"].gap, (
+        "the detection headline moved under a pure DD-channel mutation -- either "
+        "the ever-flagged population regressed to a belief held at `as_of`, or "
+        "D10's measured 'this headline is reconciliation-determined' no longer "
+        "holds and must be re-derived"
     )
 
 
@@ -184,3 +208,87 @@ def test_single_truth_derivation_maps_all_result_classes():
     # dispute (I&C bacs contested collection) maps to DD_FAILED (documented
     # simplification -- legacy analytics vocabulary has no 'dispute').
     assert _derive_analytics_record("IC1", due, 9000.0, dispute)["result"] == "DD_FAILED"
+
+
+# ---------------------------------------------------------------------------
+# `measure_and_write` -- the path that actually PUBLISHES. Until 2026-08-09 no
+# test in this file reached it, so every word of the note it stamps into
+# `coupled_gap_ledger.json` (which the Proof door reads) was unexercised: a
+# KeyError or a rotted sentence there would have surfaced only in a live
+# run_phase2b. Found by the H27 Expert-Hour pass; closed here.
+# ---------------------------------------------------------------------------
+
+def test_measure_and_write_renders_its_published_note_with_both_directions(tmp_path):
+    """The live note is a PUBLISHED surface -- the Proof door reads it. It must
+    RENDER (not merely exist in source) and must carry both error directions
+    with their own denominators, interpolated from the measurement rather than
+    typed into a sentence once.
+
+    REPLACED, not repaired (2026-08-09, atom D11). Until this tick it asserted
+    the note carried the two Expert-Hour LIMITS as caveats. Those limits are now
+    fixed at the measure, so a note still advertising them would be describing a
+    metric this module no longer computes."""
+    triad = _build_triad()
+    ledger = tmp_path / "coupled_gap_ledger.json"
+    result = triad.measure_and_write(run_git_commit="0" * 40, ledger_path=ledger)
+    assert result is not None
+
+    note = result["detection"].note
+    for phrase in ("EVER-FLAGGED", "BALANCED error", "D11",
+                   "missed_failure_rate", "false_flag_rate",
+                   "NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE"):
+        assert phrase in note, f"published note lost: {phrase}"
+    # The two limits must appear only in the PAST tense, as what was fixed. The
+    # exact present-tense bullets the pre-D11 note carried are the falsifier: if
+    # either comes back, a caveat has outlived its defect.
+    for stale in ("(1) as_of ARTEFACT:", "(2) RECALL ONLY:"):
+        assert stale not in note, (
+            f"the note still advertises {stale!r} as a LIVE limit -- D11 closed "
+            "it at the measure, so this is a caveat outliving its defect"
+        )
+    assert "It was an as_of ARTEFACT" in note, (
+        "the note stopped saying what was wrong before -- a reader comparing "
+        "against a pre-D11 ledger entry has no way to understand the jump"
+    )
+
+    # The witnesses are INTERPOLATED from the components, so they must agree
+    # with what was actually measured.
+    comp = result["detection"].components
+    assert f"{comp['n_false_flags']} of {comp['n_negatives']}" in note
+    assert comp["n_false_flags"] > 0, (
+        "no false flags on this population -- the witness is vacuous here, so "
+        "this test would pass without proving the sentence is true"
+    )
+    assert ledger.exists(), "the ledger entry the Proof door reads was not written"
+
+
+def test_live_over_flagging_decomposes_and_is_not_all_wrongful():
+    """The excess of flags over true failures is REAL, and it is not all error.
+
+    This file once noted that 'flagged can EXCEED true' and declined to assert
+    on it. D11's first draft then over-corrected and charged the WHOLE excess to
+    wrongful dunning, which inflated the measured false-flag rate 30x: an
+    invoice paid three weeks late genuinely WAS unpaid past its grace date, so
+    the company flagging it was right. The excess must decompose exactly, with
+    each part landing where it belongs."""
+    result = _build_triad().measure()
+    comp = result["detection"].components
+
+    excess = comp["flagged_size"] - comp["caught"]
+    assert excess > 0, "the population no longer over-flags -- re-derive this"
+
+    # Every flag is on a true failure, a never-flaggable case (WRONG), or an
+    # excluded one (legitimately flaggable but eventually paid). No fourth kind.
+    assert comp["n_false_flags"] > 0, "no wrongful flags at all -- vacuous"
+    assert comp["n_false_flags"] < excess, (
+        "the whole excess is being charged as wrongful dunning -- that is the "
+        "denominator error D11's first draft made; late-past-grace payments were "
+        "genuinely unpaid past grace and flagging them was correct"
+    )
+    assert comp["n_excluded"] > 0 and comp["exclusion_reason"], (
+        "cases in neither direction's population must be counted AND explained "
+        "-- an unexplained exclusion silently shrinks a denominator"
+    )
+    assert (comp["truth_size"] + comp["n_negatives"] + comp["n_excluded"]
+            == comp["universe_size"]), "the three populations must partition the universe"
+    assert 0.0 < result["stats"]["false_flag_rate_over_truly_current"] < 1.0
