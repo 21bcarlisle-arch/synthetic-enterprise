@@ -1,0 +1,423 @@
+"""R15 contract for the surgical-landing tool (atom OPS4).
+
+WHY THESE TESTS AND NOT OTHERS. The tool's whole claim is that it makes "bypass" unnecessary,
+so the only interesting question is whether it can FAIL. A landing tool that quietly commits
+when its gate is missing, or when the gate is red, is strictly worse than the bypass it
+replaces -- it launders an ungated commit as a gated one. So every check here fires on the
+tool's OWN named defect (R15 doctrine: TAUTOLOGY / FAIL-OPEN / FAIL-SILENT), and the
+happy-path test exists mainly to prove the failing tests are not vacuously passing.
+
+The fixture is a real throwaway git repo with its own `tools/git-hooks/pre-commit`, because
+every property under test is a property of git's actual behaviour (index isolation, tree
+construction, ref compare-and-swap) and a mocked git would prove nothing about any of them.
+
+THE DEFECT THIS TOOL EXISTS TO CATCH is reproduced literally in
+`test_a_partial_landing_is_gated_on_the_commit_not_the_working_tree`: a two-part change whose
+committed half is red and whose working tree is green. That is the 2026-08-09 wedge in
+miniature, and it is the one test that would still pass if the tool merely shelled out to
+`git commit -- <paths>`, so it is written to distinguish the two.
+"""
+from __future__ import annotations
+
+import subprocess
+import textwrap
+from pathlib import Path
+
+import pytest
+
+from tools import surgical_land as sl
+
+# A hook that reads a marker file IN THE TREE IT IS RUN AGAINST. That indirection is the whole
+# point: it lets a test make the working tree green and the resulting tree red at the same time,
+# which no gate reading only the working tree can distinguish.
+HOOK = textwrap.dedent(
+    """\
+    #!/bin/sh
+    if [ -f gate_verdict ] && [ "$(cat gate_verdict)" = "red" ]; then
+        echo "1 failed, 0 passed"
+        exit 1
+    fi
+    echo "3 passed in 0.01s"
+    exit 0
+    """
+)
+
+
+def _run(repo: Path, *args: str, stdin: str | None = None) -> subprocess.CompletedProcess:
+    r = subprocess.run(args, cwd=str(repo), capture_output=True, text=True, input=stdin)
+    assert r.returncode == 0, "{} failed: {}".format(args, r.stderr)
+    return r
+
+
+@pytest.fixture()
+def repo(tmp_path: Path) -> Path:
+    r = tmp_path / "repo"
+    (r / "tools" / "git-hooks").mkdir(parents=True)
+    _run(r.parent, "git", "init", "-q", "-b", "main", str(r))
+    _run(r, "git", "config", "user.email", "t@example.com")
+    _run(r, "git", "config", "user.name", "T")
+    (r / "tools" / "git-hooks" / "pre-commit").write_text(HOOK)
+    (r / "gate_verdict").write_text("green")
+    (r / "code.py").write_text("VALUE = 1\n")
+    (r / "other_lane.txt").write_text("another lane's work\n")
+    _run(r, "git", "add", "-A")
+    _run(r, "git", "commit", "-q", "-m", "base")
+    return r
+
+
+def _head(repo: Path) -> str:
+    return _run(repo, "git", "rev-parse", "HEAD").stdout.strip()
+
+
+def _index_blob(repo: Path, path: str) -> str:
+    """The sha the REAL index holds for `path` -- the byte-level thing a landing must not move
+    for anyone else's file."""
+    out = _run(repo, "git", "ls-files", "-s", "--", path).stdout.strip()
+    return out.split()[1] if out else ""
+
+
+# --------------------------------------------------------------------------------------------
+# It works at all (so the refusal tests below are not vacuous).
+# --------------------------------------------------------------------------------------------
+
+def test_a_green_landing_commits_exactly_the_named_paths(repo: Path):
+    (repo / "code.py").write_text("VALUE = 2\n")
+    (repo / "unrelated.py").write_text("NOT PART OF THIS LANDING\n")
+    before = _head(repo)
+
+    sha = sl.land(repo, ["code.py"], "land the code change")
+
+    assert sha != before
+    changed = _run(repo, "git", "diff", "--name-only", before, sha).stdout.split()
+    assert changed == ["code.py"], "the landing swept in something it was not asked to commit"
+    assert "NOT PART" not in _run(repo, "git", "show", sha + ":code.py").stdout
+    assert (repo / "unrelated.py").read_text() == "NOT PART OF THIS LANDING\n", \
+        "the working tree was mutated"
+
+
+def test_the_landed_paths_are_clean_afterwards_so_the_next_commit_does_not_revert_them(
+        repo: Path):
+    """Leaving the index at the PARENT for a landed path is not neutrality -- it stages a
+    revert, and the next commit undoes the landing. Same post-state as `git commit -- <paths>`."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    sl.land(repo, ["code.py"], "land it")
+
+    status = _run(repo, "git", "status", "--porcelain", "--", "code.py").stdout
+    assert status.strip() == "", "code.py is not clean after landing: {!r}".format(status)
+
+
+# --------------------------------------------------------------------------------------------
+# THE DEFECT THE TOOL EXISTS FOR: gate the commit, not the tree.
+# --------------------------------------------------------------------------------------------
+
+def test_a_partial_landing_is_gated_on_the_commit_not_the_working_tree(repo: Path):
+    """The 2026-08-09 wedge in miniature. `code.py` and `gate_verdict` are two halves of one
+    change; landing only the half that makes the gate red must REFUSE, even though the working
+    tree -- which contains both halves -- is green."""
+    # HEAD carries the red marker; the fix for it sits UNSTAGED in the working tree.
+    (repo / "gate_verdict").write_text("red")
+    _run(repo, "git", "add", "gate_verdict")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "HEAD is red")
+    before = _head(repo)
+    (repo / "gate_verdict").write_text("green")   # the unstaged half that makes the TREE green
+    (repo / "code.py").write_text("VALUE = 2\n")  # the half about to be landed alone
+
+    # The premise, asserted rather than assumed: a tree-scoped gate would admit this commit.
+    assert subprocess.run(["sh", "tools/git-hooks/pre-commit"], cwd=str(repo),
+                          capture_output=True).returncode == 0, \
+        "premise broken -- the working tree must be GREEN for this test to mean anything"
+
+    with pytest.raises(sl.LandingRefused, match="GATE RED"):
+        sl.land(repo, ["code.py"], "land only the half that leaves HEAD red")
+    assert _head(repo) == before, "a red resulting tree still produced a commit"
+
+
+def test_it_refuses_and_commits_nothing_when_the_gate_is_red(repo: Path):
+    (repo / "gate_verdict").write_text("red")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="GATE RED"):
+        sl.land(repo, ["code.py", "gate_verdict"], "should not land")
+
+    assert _head(repo) == before
+
+
+# --------------------------------------------------------------------------------------------
+# FAIL-CLOSED: an unavailable check is a FAILED check.
+# --------------------------------------------------------------------------------------------
+
+def test_a_missing_gate_refuses_rather_than_landing_ungated(repo: Path):
+    """The FAIL-SILENT direction. If this returned 0 the tool would launder ungated commits as
+    gated ones -- strictly worse than the bypass it replaces."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="UNAVAILABLE"):
+        sl.land(repo, ["code.py"], "no hook", hook_rel="tools/git-hooks/does-not-exist")
+
+    assert _head(repo) == before
+
+
+def test_deleting_the_hook_IN_THE_LANDING_is_caught_because_the_gate_runs_on_the_result(
+        repo: Path):
+    """A landing that removes the gate is judged by the tree it creates, where the gate is
+    already gone -- so it refuses. A tool gating the WORKING TREE (which still has the hook)
+    would happily commit away its own check."""
+    (repo / "tools" / "git-hooks" / "pre-commit").unlink()
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused, match="UNAVAILABLE"):
+        sl.land(repo, ["tools/git-hooks/pre-commit"], "remove the gate")
+
+    assert _head(repo) == before
+
+
+def test_it_refuses_a_no_op_rather_than_writing_an_empty_commit(repo: Path):
+    with pytest.raises(sl.LandingRefused, match="nothing to land"):
+        sl.land(repo, ["code.py"], "no change")
+
+
+def test_it_refuses_an_empty_pathspec(repo: Path):
+    with pytest.raises(sl.LandingRefused, match="names its paths explicitly"):
+        sl.land(repo, [], "nothing named")
+
+
+def test_head_moving_under_the_gate_refuses_instead_of_landing_a_stale_verdict(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """The shared-tree race: a concurrent writer moves HEAD while the gate runs, so the gated
+    tree is no longer the tree this commit would create. Simulated by moving HEAD from inside
+    the gate call, which is exactly when a real colleague's commit would land."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    real_run_gate = sl.run_gate
+
+    def racing_gate(checkout, hook_rel=sl.HOOK_REL):
+        rc, out = real_run_gate(checkout, hook_rel)
+        (repo / "colleague.txt").write_text("landed mid-gate\n")
+        _run(repo, "git", "add", "colleague.txt")
+        _run(repo, "git", "commit", "-q", "--no-verify", "-m", "colleague")
+        return rc, out
+
+    monkeypatch.setattr(sl, "run_gate", racing_gate)
+    with pytest.raises(sl.LandingRefused, match="HEAD moved"):
+        sl.land(repo, ["code.py"], "stale base")
+    assert _run(repo, "git", "log", "-1", "--format=%s").stdout.strip() == "colleague", \
+        "the stale-base landing overwrote the colleague's commit"
+
+
+# --------------------------------------------------------------------------------------------
+# It must not touch anyone else's staged work -- the property that makes it the legal move.
+# --------------------------------------------------------------------------------------------
+
+def test_another_lanes_staged_work_is_byte_identical_after_a_landing(repo: Path):
+    """The originating incident: `git merge` refused because 35 paths of other lanes' staged
+    work sat in the shared index, and sweeping them in was the alternative sin."""
+    (repo / "other_lane.txt").write_text("another lane's UNCOMMITTED, STAGED work\n")
+    _run(repo, "git", "add", "other_lane.txt")
+    staged_before = _index_blob(repo, "other_lane.txt")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    sha = sl.land(repo, ["code.py"], "land mine only")
+
+    assert _index_blob(repo, "other_lane.txt") == staged_before, \
+        "the other lane's staged entry moved"
+    assert "other_lane.txt" not in _run(
+        repo, "git", "diff", "--name-only", before, sha).stdout, \
+        "the other lane's work was swept into the commit"
+    assert (repo / "other_lane.txt").read_text().endswith("STAGED work\n")
+
+
+def test_a_refused_landing_leaves_the_index_untouched_too(repo: Path):
+    (repo / "other_lane.txt").write_text("staged elsewhere\n")
+    _run(repo, "git", "add", "other_lane.txt")
+    staged_before = _index_blob(repo, "other_lane.txt")
+    (repo / "gate_verdict").write_text("red")
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    with pytest.raises(sl.LandingRefused):
+        sl.land(repo, ["code.py", "gate_verdict"], "refused")
+
+    assert _index_blob(repo, "other_lane.txt") == staged_before
+
+
+def test_a_deletion_lands_as_a_deletion(repo: Path):
+    """A tool that could only ADD would leave the deleting half of a two-part change silently
+    uncommitted -- the shape of the wedge, in the other direction."""
+    (repo / "other_lane.txt").unlink()
+    before = _head(repo)
+
+    sha = sl.land(repo, ["other_lane.txt"], "delete it")
+
+    assert _run(repo, "git", "diff", "--name-status", before, sha).stdout.split()[0] == "D"
+    assert _run(repo, "git", "status", "--porcelain", "--", "other_lane.txt").stdout.strip() == ""
+
+
+# --------------------------------------------------------------------------------------------
+# The receipt has to be falsifiable, or it is decoration.
+# --------------------------------------------------------------------------------------------
+
+def test_the_receipt_names_the_tree_the_parent_and_every_path(repo: Path):
+    (repo / "code.py").write_text("VALUE = 2\n")
+    parent = _head(repo)
+    sha = sl.land(repo, ["code.py"], "land it")
+
+    receipt = sl.parse_receipt(_run(repo, "git", "log", "-1", "--format=%B", sha).stdout)
+    assert receipt["parent"] == parent
+    assert receipt["tree"] == _run(repo, "git", "rev-parse", sha + "^{tree}").stdout.strip()
+    assert receipt["paths"] == ["code.py"]
+    assert receipt["gate-rc"] == "0"
+    assert "passed" in receipt["tests"], "the receipt carries no evidence the gate ran tests"
+
+
+def test_verify_accepts_a_real_landing(repo: Path):
+    (repo / "code.py").write_text("VALUE = 2\n")
+    sha = sl.land(repo, ["code.py"], "land it")
+    rc, text = sl.verify(repo, sha)
+    assert rc == 0, text
+
+
+def test_verify_FALSIFIES_a_receipt_copied_onto_a_different_commit(repo: Path):
+    """The attack the receipt must survive: a hand-rolled commit wearing a real receipt to claim
+    a gate run it never had."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    sha = sl.land(repo, ["code.py"], "land it")
+    stolen = _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+
+    (repo / "code.py").write_text("VALUE = 999  # ungated\n")
+    _run(repo, "git", "add", "code.py")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", stolen)
+
+    rc, text = sl.verify(repo, "HEAD")
+    assert rc == 1, "a stolen receipt was accepted: {}".format(text)
+    assert "FALSIFIED" in text
+
+
+def _forge(repo: Path, tree: str | None = None, paths: list[str] | None = None) -> None:
+    """Put a receipt on HEAD that is TRUE in every field except the one under test.
+
+    `--amend` preserves the tree and the parent and rewrites only the message, so the receipt
+    can name the commit's real shas while lying about exactly one thing. Without this, a forgery
+    that gets several fields wrong is caught by whichever check runs first, and the others are
+    never exercised -- which is how two of these checks initially survived mutation.
+    """
+    real_parent = _run(repo, "git", "rev-parse", "HEAD^").stdout.strip()
+    real_tree = _run(repo, "git", "rev-parse", "HEAD^{tree}").stdout.strip()
+    real_paths = _run(repo, "git", "diff", "--name-only", "HEAD^", "HEAD").stdout.split()
+    receipt = sl.build_receipt(real_parent, tree or real_tree,
+                               paths if paths is not None else real_paths,
+                               0, "3 passed", sl.HOOK_REL)
+    _run(repo, "git", "commit", "-q", "--amend", "--no-verify", "-m", "claimed gated\n\n" + receipt)
+
+
+def test_verify_FALSIFIES_a_receipt_whose_only_lie_is_the_TREE(repo: Path):
+    """Isolates the tree check. Parent and path set are true; only the tree sha is wrong -- the
+    shape of a receipt copied from a sibling commit that touched the same files."""
+    (repo / "code.py").write_text("VALUE = 999  # ungated\n")
+    _run(repo, "git", "add", "code.py")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "ungated")
+    _forge(repo, tree="0" * 40)
+
+    rc, text = sl.verify(repo, "HEAD")
+    assert rc == 1, "a receipt naming the wrong tree was accepted: {}".format(text)
+    assert "tree" in text
+
+
+def test_verify_FALSIFIES_a_receipt_whose_only_lie_is_the_PATH_SET(repo: Path):
+    """Isolates the path-set check, and it is the likelier forgery: a receipt whose shas are all
+    genuine on a commit that quietly carries MORE than the receipt names."""
+    (repo / "code.py").write_text("VALUE = 999\n")
+    (repo / "other_lane.txt").write_text("swept in without being named\n")
+    _run(repo, "git", "add", "code.py", "other_lane.txt")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "ungated")
+    _forge(repo, paths=["code.py"])
+
+    rc, text = sl.verify(repo, "HEAD")
+    assert rc == 1, "a receipt understating what it committed was accepted: {}".format(text)
+    assert "other_lane.txt" in text
+
+
+def test_verify_FALSIFIES_a_receipt_whose_only_lie_is_the_PARENT(repo: Path):
+    """Isolates the parent check -- the field that makes 'gated against THIS base' meaningful."""
+    (repo / "code.py").write_text("VALUE = 999\n")
+    _run(repo, "git", "add", "code.py")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "ungated")
+    real_tree = _run(repo, "git", "rev-parse", "HEAD^{tree}").stdout.strip()
+    receipt = sl.build_receipt("0" * 40, real_tree, ["code.py"], 0, "3 passed", sl.HOOK_REL)
+    _run(repo, "git", "commit", "-q", "--amend", "--no-verify", "-m", "claimed\n\n" + receipt)
+
+    rc, text = sl.verify(repo, "HEAD")
+    assert rc == 1, "a receipt naming the wrong base was accepted: {}".format(text)
+    assert "parent" in text
+
+
+def test_verify_reports_no_receipt_distinctly_from_a_falsified_one(repo: Path):
+    """Two different facts -- "not made with the tool" and "lying about it" -- must not collapse
+    into one exit code, or the check cannot be acted on."""
+    rc, text = sl.verify(repo, "HEAD")
+    assert rc == 2
+    assert "no surgical-land receipt" in text
+
+
+# --------------------------------------------------------------------------------------------
+# The extract really is a repo (the R10 lesson already paid for once in the publish gate).
+# --------------------------------------------------------------------------------------------
+
+def test_the_gate_runs_in_a_real_repo_so_git_asking_tests_do_not_die(repo: Path):
+    """A checkout with no `.git` fails every history-reading test with `fatal: not a git
+    repository` -- a failure about the harness, not the code, which is indistinguishable from a
+    real red at the exit code. Proven by a hook that asks git a question."""
+    (repo / "tools" / "git-hooks" / "pre-commit").write_text(
+        "#!/bin/sh\ngit rev-parse HEAD >/dev/null || exit 1\n"
+        "git diff --cached --name-only | grep -qx code.py || exit 1\n"
+        "echo '1 passed'\n"
+    )
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "git-asking hook")
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sha = sl.land(repo, ["code.py"], "land under a git-asking gate")
+    assert sha != ""
+
+
+def test_the_extract_stages_exactly_this_commit_so_staging_aware_gates_see_it(repo: Path):
+    """Several real gates (size ratchet, level surface, mint hygiene) are staging-aware: they
+    read `git diff --cached` and pay nothing for an out-of-scope commit. If the extract staged
+    everything, every landing would drag every gate in and the tool would be unusable."""
+    (repo / "tools" / "git-hooks" / "pre-commit").write_text(
+        "#!/bin/sh\n[ \"$(git diff --cached --name-only)\" = 'code.py' ] || {\n"
+        "  echo \"staged set was: $(git diff --cached --name-only | tr '\\n' ' ')\"; exit 1; }\n"
+        "echo '1 passed'\n"
+    )
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "staged-set hook")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    (repo / "other_lane.txt").write_text("not mine\n")
+
+    assert sl.land(repo, ["code.py"], "one path only") != ""
+
+
+def test_the_untracked_overlay_is_symlinked_AFTER_staging_not_before(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """On the real tree the overlay is a ~291MB Elexon/NESO cache and `node_modules`. Symlinking
+    it in BEFORE the extract's `git add` would stage the whole thing and hand every staging-aware
+    gate a fabricated scope -- so the ORDER, not the pathspec, is what has to hold. (The pathspec
+    alone is behaviourally equivalent here and is documented as such rather than claimed as a
+    control.)"""
+    (repo / "sim" / "cache").mkdir(parents=True)
+    (repo / "sim" / "cache" / "big.json").write_text("{}\n")
+    (repo / ".gitignore").write_text("sim/cache/\n")
+    _run(repo, "git", "add", ".gitignore")
+    (repo / "tools" / "git-hooks" / "pre-commit").write_text(
+        "#!/bin/sh\n"
+        "git diff --cached --name-only | grep -q 'sim/cache' && {\n"
+        "  echo 'the overlay was staged'; exit 1; }\n"
+        "test -e sim/cache/big.json || { echo 'overlay missing entirely'; exit 1; }\n"
+        "echo '1 passed'\n"
+    )
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "overlay-checking hook")
+    monkeypatch.setattr(sl, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    assert sl.land(repo, ["code.py"], "land with an overlay present") != ""
