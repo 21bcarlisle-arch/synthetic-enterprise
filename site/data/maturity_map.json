@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 92,
+      "stall_consecutive_unchanged": 397,
       "forward_attachments": []
     },
     {
@@ -2428,7 +2428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 29,
+      "stall_consecutive_unchanged": 99,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2492,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12,
+      "stall_consecutive_unchanged": 45,
       "forward_attachments": []
     },
     {
@@ -2800,7 +2800,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63,
+      "stall_consecutive_unchanged": 243,
       "forward_attachments": []
     },
     {
@@ -3061,9 +3061,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3074,9 +3074,9 @@
         "C10_self_rationing_detection"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 73,
       "forward_attachments": []
     },
     {
@@ -3086,17 +3086,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 67,
+      "stall_consecutive_unchanged": 87,
       "forward_attachments": []
     },
     {
@@ -3167,7 +3167,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 910,
+      "stall_consecutive_unchanged": 1249,
       "forward_attachments": []
     },
     {
@@ -4032,7 +4032,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 7,
       "forward_attachments": []
     },
     {
@@ -4278,7 +4278,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 104,
+      "stall_consecutive_unchanged": 416,
       "forward_attachments": []
     },
     {
@@ -4557,9 +4557,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -4568,9 +4568,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 70,
+      "stall_consecutive_unchanged": 75,
       "forward_attachments": []
     },
     {
@@ -4593,8 +4593,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -4763,7 +4763,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 137,
+      "stall_consecutive_unchanged": 183,
       "forward_attachments": []
     },
     {
@@ -4785,7 +4785,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 143,
+      "stall_consecutive_unchanged": 217,
       "forward_attachments": []
     },
     {
@@ -4805,7 +4805,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 118,
+      "stall_consecutive_unchanged": 161,
       "forward_attachments": []
     },
     {
@@ -4825,7 +4825,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 121,
+      "stall_consecutive_unchanged": 176,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4854,7 +4854,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 152,
+      "stall_consecutive_unchanged": 209,
       "forward_attachments": []
     },
     {
@@ -4874,7 +4874,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 129,
+      "stall_consecutive_unchanged": 179,
       "forward_attachments": []
     },
     {
@@ -4896,7 +4896,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 128,
+      "stall_consecutive_unchanged": 195,
       "forward_attachments": []
     },
     {
@@ -4918,7 +4918,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 139,
+      "stall_consecutive_unchanged": 171,
       "forward_attachments": []
     },
     {
@@ -4940,7 +4940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 132,
+      "stall_consecutive_unchanged": 190,
       "forward_attachments": []
     },
     {
@@ -4962,7 +4962,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 133,
+      "stall_consecutive_unchanged": 189,
       "forward_attachments": []
     },
     {
@@ -4986,7 +4986,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 140,
+      "stall_consecutive_unchanged": 193,
       "forward_attachments": []
     },
     {
@@ -5008,7 +5008,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 141,
+      "stall_consecutive_unchanged": 189,
       "forward_attachments": []
     },
     {
@@ -5030,7 +5030,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 123,
+      "stall_consecutive_unchanged": 166,
       "forward_attachments": []
     },
     {
@@ -5052,7 +5052,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 119,
+      "stall_consecutive_unchanged": 170,
       "forward_attachments": []
     },
     {
@@ -5094,7 +5094,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 138,
+      "stall_consecutive_unchanged": 186,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5129,7 +5129,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 141,
+      "stall_consecutive_unchanged": 185,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5179,7 +5179,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 42,
+      "stall_consecutive_unchanged": 57,
       "forward_attachments": []
     },
     {
@@ -5201,7 +5201,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 45,
+      "stall_consecutive_unchanged": 58,
       "forward_attachments": []
     },
     {
@@ -5268,7 +5268,7 @@
     },
     {
       "id": "PW1_staleness_is_code_actually_loaded",
-      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 DO-NEXT #3 (director: 'your own refinement; it is now the work, not the footnote') and DECIDED #2 ('a detector for that failure mode that is always red will be ignored exactly as reliably as one that is blind'). Redefine the boot-SHA drift signal from repo-HEAD-moved to CODE-THIS-DAEMON-ACTUALLY-LOADS-moved, and first fix the population it is computed over, which today excludes the two daemons that caused the 10h outage. EXIT: TWO halves, both measured on the live daemon set, neither sufficient alone. (a) POPULATION, and it is an R10 class closure not an instance fix: process_reconciler._systemd_owned_sessions() filters on `e.get('launched_by','tmux')=='systemd'`, so sim-runner and background-worker -- user-scope systemd units whose own ExecStartPre wrote the boot stamps -- default to tmux and drop out of evaluate_boot_sha_drift()'s answer. The 2026-07-29 cutover patched two manifest rows and left seven identical ones standing, which silently chose which daemons the detector was allowed to watch. EXIT: the manifest's launched_by is DERIVED from or reconciled against observed reality (/proc/<pid>/cgroup, systemctl --user is-active) rather than trusted, so a wrong row FAILS rather than shrinks the population; the seven double-launchable rows are resolved together; and a test asserts the detector's population equals the observed running set, not a subset of it. (b) SIGNAL: `stale` is computed against the modules the daemon actually imported (its own file_scope closure), not against repo HEAD -- so a daemon whose loaded modules are unchanged reads GREEN while HEAD moves, and a daemon running pre-fix code for a module it imports reads RED. EXIT: the signal is green on a live tree with a moved HEAD and no relevant edit, and red for sim-runner replayed against the 2026-08-09 fa9a73c72 boot state. R15 both ways: a mutation that empties the population, and a mutation that reverts the signal to HEAD-comparison, must each kill named tests; a vacuity guard must prove the honest path evaluates a non-empty daemon set.",
+      "name": "Is the code the process is RUNNING the code on disk? Closed L2/L2 -- full mint text, cause and exit criteria in origin_note.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
@@ -5288,22 +5288,44 @@
     },
     {
       "id": "PW2_failure_clears_its_own_alarm",
-      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class (director: 'That is a class, not an instance. Where else can a check's failure clear the signal that the check failed?'). The publish failure path wrote to .publish_gate_state.json -- the same state the alarm reads for episode memory -- so each failure reset wedge_since and the alarm truthfully described a fresh 14-minute wedge inside a 10-hour episode. EXIT: A CENSUS first, then a guard -- in that order, because an instance fix on .publish_gate_state.json is exactly what R10 forbids. EXIT: (1) an enumeration of every control in background/ and tools/ whose failure path WRITES to a state file its own alarm/severity READS, produced by a derivation (writer set intersected with reader set per state path) rather than by inspection, with each hit dispositioned real / benign-and-why; (2) the shape is guarded -- for each real hit the episode-scoped field is append-or-monotonic so a failure cannot shorten its own episode, and a test proves the guard fires by replaying the 2026-08-09 sequence and asserting the reported episode length is ~10h and not ~14min; (3) R15 both ways, including a vacuity guard proving the census is non-empty on the live tree (a census that finds nothing is the fail-open shape here).",
+      "name": "A failure must clear the alarm it raised. Closed L2/L2 -- full mint text in origin_note, build record in build_note.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 58,
+      "forward_attachments": []
+    },
+    {
+      "id": "PW4_guard_remaining_episode_states",
+      "name": "The episode states no guard covered. Closed L2/L2 -- full mint text and exit criteria in origin_note.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "PW2_failure_clears_its_own_alarm"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 45,
       "forward_attachments": []
     },
     {
@@ -5323,7 +5345,139 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 138,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS2_publish_gate_head_worktree",
+      "name": "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 2 ('the polished atom'); full scope in docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md, which is this atom's spec and must not be re-derived. The minimal version is LANDED and deployed (git archive HEAD -> mkdtemp + untracked-DATA symlink overlay) -- do NOT redo it. EXIT: (1) a REUSED checkout so __pycache__ survives between cycles, and the clean-subject gate runs within 1.3x the in-tree baseline (measured both sides, not asserted); (2) GATE_SUITE_TIMEOUT_SECONDS re-derived from the NEW measured runtime at >=2x, with test_the_gate_timeout_exceeds_the_suites_own_runtime's constant moved with it -- the gate now fail-CLOSES on timeout, so an undersized bound wedges publishing; (3) crash-safe lifecycle (startup sweep of stale publish-gate-head-* dirs, or git worktree + prune) since rc=-9 is a known outcome and finally: does not run; (4) R15 both ways in its own module tests/background/test_publish_gate_subject_is_head.py -- cwd is the checkout not PROJECT_DIR (mutation: point it back, reds), a DIRTY working tree does not change the verdict (write a syntax error into a tracked source file, gate still passes -- this is THE property the ruling bought and nothing asserts it yet), an unavailable checkout BLOCKS (mutation: return True, reds), the dir is removed including on a raising run; (5) the LAST_TESTED_HASH_FILE contract stated in ONE place -- the supervisor's RUNG-1 wedge draw uses it as its independence cross-check and infers the semantics from two call sites.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 40,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS3_first_post_ruling_publish",
+      "name": "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 3, verbatim: 'The first post-ruling publish landed and stated plainly, markers drain-superseded, the GBP 1,526,252.39 candidate baseline printed and adopted per the standing recommendation.' EXIT: (1) one publish cycle completes green with the gate's subject a clean HEAD checkout, and .last_tested_hash names that commit; (2) the run_complete backlog is DRAIN-SUPERSEDED, not bulk-archived -- the newest marker publishes and the superseded ones are archived naming the marker that superseded them; (3) the candidate baseline is printed on the live surface and R11-verified by fetching it, quoting the rendered figure and its clock basis (R14), not the file on origin; (4) the episode counter for the publish-gate wedge returns to zero through a real pass, never by hand. R9: state the measured cause of the wedge this publish closed.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS2_publish_gate_head_worktree"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "H33_does_this_statistic_have_a_null",
+      "name": "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09. Per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' BUILT 2026-08-09. The atom as minted, the enumeration, every measured null and each hit's disposition are in docs/design/BAND_NULL_SWEEP.md. Hits: L2.3 SAME_ORDER -> H34 (closed 2026-08-10); L1.1r UNMEASURABLE and L1.1e n=1 -> H35.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 42,
+      "forward_attachments": []
+    },
+    {
+      "id": "H34_score_timing_diversity_against_its_own_null",
+      "name": "MINTED FROM the L2.3 disposition in docs/design/BAND_NULL_SWEEP.md, which now carries the atom as minted, the measured nulls, the four exit criteria and the build record in full (moved there at the map's size ratchet, as H33 was). L2.3 was a spread-of-means judged against a constant floor, so it carried the same sampling term as its own null and sat INSIDE it at 40/60/90d; repaired by scoring against a permutation null (L2.3n), never by moving the number (R12).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H33_does_this_statistic_have_a_null"
+      ],
+      "couples_with": [
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
+      "forward_attachments": []
+    },
+    {
+      "id": "H35_the_panel_never_exercises_two_of_its_own_bands",
+      "name": "MINTED FROM the L1.1r/L1.1e dispositions in docs/design/BAND_NULL_SWEEP.md (H33, 2026-08-09). MEASURED at the applied window (couple_fabric PANEL, 10 homes x 120d): L1.1r judges ZERO homes -- no electric_storage/electric_direct home is on the panel -- so its null cannot be measured on the load set it governs, and reading it off the 9 gas homes is the wrong-load-set defect. L1.1e judges ONE home, so its null has no estimable spread and its +0.0163 margin is a point estimate. NOTABLE: L1.1r was derived BECAUSE a storage-heater home breached L1.1, and none is ever judged by it. EXIT: (1) the panel carries an electric_storage home and enough heat-pump homes for L1.1e's null to have a spread, stock-representativeness restated not silently widened; (2) both bands MEASURABLE on re-run; (3) re-measured verdicts dispositioned repair-the-statistic or repair-the-window, never lower-the-floor (R12); (4) a guard making a band that judges zero homes FAIL, not merely be reported.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H33_does_this_statistic_have_a_null"
+      ],
+      "couples_with": [
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS4_surgical_landing_tool",
+      "name": "MINTED FROM DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09 (hook-bypass is a WALL). A tool that lands exactly-named paths by building the tree the commit WOULD create and running the gate against THAT, so a dirty shared index never leaves bypass as the only move. Full mint text, cause and the five exit criteria: origin_note in the store.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     }
   ],
@@ -5407,7 +5561,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 245,
+  "total_atoms": 252,
   "epoch2_movements": [
     {
       "id": "M1",

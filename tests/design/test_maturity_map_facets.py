@@ -372,6 +372,16 @@ REVIEWED_CLOSE_TO_LEARN = {
     # its sibling harness-gap atoms F1c_harness_conversation_gap and A6_coupled_triad_gap_metric,
     # and close_to_learn is its TRUE stream, not a dumping-ground default.
     "H_GAP_fabric_belief_truth_gap",
+    # 2026-08-09 reviewed (worker seat, minted from DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL).
+    # Classified on its merits, not to clear the gate: this is a HARNESS-INTEGRITY atom in the
+    # same class as H29/H30/H31 above. It builds the tool that runs the gate against the tree a
+    # commit WOULD create, so landing work on a shared dirty index never requires routing around
+    # the check. What it measures is whether the machine's own verification can be TRUSTED to
+    # have run -- it moves no money and touches no revenue flow, price, meter or bill. The cost
+    # is already on the record: on 2026-08-09 the absence of this tool left the operator with
+    # only two moves, sweep four other lanes' staged work into a commit or bypass the hook, and
+    # the bypass is what happened. close_to_learn is its TRUE stream, not a dumping-ground default.
+    "OPS4_surgical_landing_tool",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

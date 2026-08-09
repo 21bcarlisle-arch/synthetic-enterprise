@@ -297,15 +297,20 @@ def _exchangeable_homes_null(
     else's. Any diversity a statistic still reports is the spread of a sample
     mean — which is exactly the quantity L2.3 (timing diversity) reports, and
     exactly the quantity that shrinks with the window.
+
+    THE DEAL ITSELF IS THE LEDGER'S (`fgl.deal_preserving_counts`), not a second
+    copy here. L2.3n's repair scores the live cell against the SAME null this
+    sweep measures it with, and two implementations of "pool and deal back" would
+    be one name carrying two nulls the day one of them was tweaked.
     """
-    pool = [list(day) for home in population.grids for day in home]
-    rng.shuffle(pool)
-    out: list[list[list[float]]] = []
-    cursor = 0
-    for home in population.grids:
-        out.append(pool[cursor : cursor + len(home)])
-        cursor += len(home)
-    return _replace_grids(population, out)
+    return _replace_grids(
+        population,
+        fgl.deal_preserving_counts(
+            [list(day) for home in population.grids for day in home],
+            [len(home) for home in population.grids],
+            rng,
+        ),
+    )
 
 
 def _clone_population_null(
@@ -480,6 +485,13 @@ NULL_SPECS: dict[str, NullSpec] = {
         "residuals should sit near +1",
         _clone_population_null, _between_home_correlation,
     ),
+    # KEPT AFTER L2.3 LEFT THE JUDGED SET (H34, 2026-08-10). The sweep measured
+    # this band INSIDE its own null at 40/60/90d, the disposition was repair-the-
+    # statistic, and the floor came out — so `anchored_bands()` no longer returns
+    # it and `measure_null` would refuse a band with no threshold. The spec stays
+    # because it is the standing offer: the day anyone puts a number back on L2.3
+    # from an external panel, the sweep measures its null on the next run instead
+    # of silently having no opinion about it.
     "L2.3_timing_diversity_periods": NullSpec(
         "L2.3_timing_diversity_periods", "population", "exchangeable_homes",
         "days are pooled and dealt back at random: homes have no timing of "

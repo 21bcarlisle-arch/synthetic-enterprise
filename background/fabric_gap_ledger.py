@@ -599,8 +599,12 @@ WEEKDAY_WEEKEND_NULL_DEGENERATE_BELOW = 1e-9
 
 
 class DegenerateNull(InsufficientEvidence):
-    """This ONE home has no null to be judged against — every relabelling of its
-    days gives the same mean shape.
+    """This subject has no null to be judged against — every re-draw gives the
+    same reading. Raised by L1.4n for ONE HOME whose relabelled days give the same
+    mean shape, and by L2.3n for a POPULATION whose re-dealt days give the same
+    timing spread. One type because the two are the same condition at different
+    scopes, and a caller that must decide what to score a subject with no null
+    would otherwise grow a second except-clause saying the same thing.
 
     A separate type because the two insufficiencies must be handled differently
     and conflating them was a real defect for the length of one test run: too few
@@ -911,18 +915,32 @@ def between_home_correlation(
     return statistics.median(rs)
 
 
-def evening_peak_period(days: Sequence[Sequence[float]]) -> float:
-    """The mean half-hour index of a home's evening (periods 30-46) maximum."""
-    grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name="evening_peak_period")
+def _evening_peak_picks(days: Sequence[Sequence[float]], *, name: str) -> list[int]:
+    """The evening-peak half-hour of each day that HAS one.
+
+    THE ONLY PLACE a day's evening timing is computed. `evening_peak_period`
+    averages this list, `timing_diversity` spreads those averages, and
+    `timing_diversity_vs_own_null` re-partitions the same list under a permutation
+    — so there is one implementation of "when does this day peak" and the three
+    cannot drift into one name carrying different numbers.
+    """
+    grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name=name)
     window = range(29, 46)
-    picks: list[int] = []
-    for day in grid:
-        best = max(window, key=lambda p: day[p])
-        if day[best] > 0.0:
-            picks.append(best)
+    picks = [max(window, key=lambda p: day[p]) for day in grid]
+    picks = [p for p, day in zip(picks, grid) if day[p] > 0.0]
     if not picks:
         raise InsufficientEvidence("no day has any evening usage — no peak timing to measure")
+    return picks
+
+
+def evening_peak_period(days: Sequence[Sequence[float]]) -> float:
+    """The mean half-hour index of a home's evening (periods 30-46) maximum."""
+    picks = _evening_peak_picks(days, name="evening_peak_period")
     return sum(picks) / len(picks)
+
+
+def _spread_of_pick_means(pick_lists: Sequence[Sequence[int]]) -> float:
+    return statistics.pstdev([sum(p) / len(p) for p in pick_lists])
 
 
 def timing_diversity(homes: Sequence[Sequence[Sequence[float]]]) -> float:
@@ -931,10 +949,165 @@ def timing_diversity(homes: Sequence[Sequence[Sequence[float]]]) -> float:
 
     0.0 is a point mass: every home in the country peaks in the same half-hour,
     which is what one national `HEATING_PERIOD_WEIGHTS` constant produces.
+
+    REPORTED, NOT JUDGED, since 2026-08-10 — the number is real and this docstring
+    still describes it, but no fixed floor over it is sound at every window. See
+    `timing_diversity_vs_own_null` below for why, and for the cell that judges.
     """
     _require_homes(homes, minimum=MIN_HOMES_FOR_DIVERSITY, name="timing_diversity")
-    peaks = [evening_peak_period(h) for h in homes]
-    return statistics.pstdev(peaks)
+    return _spread_of_pick_means(
+        [_evening_peak_picks(h, name="timing_diversity") for h in homes]
+    )
+
+
+def deal_preserving_counts(
+    items: Sequence, counts: Sequence[int], rng: random.Random
+) -> list[list]:
+    """Pool `items` and deal them back into groups of `counts` at random.
+
+    THE EXCHANGEABILITY PRIMITIVE, in one place because it is used on two
+    different item types and a second copy would be a second null. Dealing DAYS
+    gives `band_null_sweep._exchangeable_homes_null` (a whole structureless
+    population); dealing this population's evening-PEAK picks gives
+    `timing_diversity_vs_own_null`'s null. Same permutation, same guarantee: after
+    the deal no group has anything of its own, because its members came from the
+    same pot as everybody else's.
+    """
+    pool = list(items)
+    if len(pool) != sum(counts):
+        raise InsufficientEvidence(
+            f"a deal must place every item: {len(pool)} items into {sum(counts)} places"
+        )
+    rng.shuffle(pool)
+    out: list[list] = []
+    cursor = 0
+    for k in counts:
+        out.append(pool[cursor : cursor + k])
+        cursor += k
+    return out
+
+
+# ---------------------------------------------------------------------------
+# L2.3n — THE SAME SPREAD, JUDGED AGAINST THE POPULATION'S OWN PERMUTATION NULL
+# ---------------------------------------------------------------------------
+#
+# WHY THIS EXISTS. It is the second instance of the defect L1.4n repaired, found
+# by the sweep built to look for it (`background/band_null_sweep.py`, H33, and
+# the numbers are in `docs/design/BAND_NULL_SWEEP.md`). `timing_diversity` above
+# is a SPREAD OF MEANS, and a spread of sample means is bounded away from zero by
+# sampling noise alone: deal one population's days out to its homes at random —
+# so that no home has a timing of its own — and the statistic still reads 0.79
+# half-hours at 40 days against a floor of 0.5. The floor is not too low. There
+# is no height it could be moved to that would be right at every window, which is
+# the whole finding:
+#
+#   window | a TIMING-LESS population passes the 0.5 floor | ... passes this ratio
+#      40d |                                           65% |                   7%
+#      60d |                                           57% |                  12%
+#      90d |                                           15% |                   7%
+#     120d |                                            2% |                   2%
+#
+# (Applied panel — `tools/couple_fabric.py`'s ten homes — 40 independent deals
+# per window, 2026-08-10; the 8-home test panel reads 68/45/15/3 against 2/5/10/5.
+# The old floor's fail-open rate is a function of the WINDOW; the ratio's is flat
+# at its own alpha, which is what window-invariance looks like when it is measured
+# rather than asserted.)
+#
+# THE REPAIR IS TO THE STATISTIC, NOT THE THRESHOLD, and never to the window
+# (R12). Repairing the window would only move the problem to whichever window is
+# run next. The population is compared with ITSELF under
+# `TIMING_DIVERSITY_NULL_SAMPLES` random re-deals of its own days' evening peaks,
+# holding each home's day count fixed. The judged number is the ratio of the real
+# spread to the 95th percentile of that null — a one-sided permutation test at
+# alpha = 0.05, so 1.0 is the decision point by CONSTRUCTION and there is nothing
+# here for anyone to tune.
+#
+# NOT A TAUTOLOGY. The null is built from the same population, so it looks like a
+# value checked against itself. What the deal destroys is exactly the thing under
+# test — the ASSOCIATION between a home and its evening timing — while every
+# day's own shape, level and weather response survive intact. The proof is the
+# measurement above, not the argument: a tautological statistic could not read
+# 1.35-2.07 on the real panel and 0.60-0.68 on its own re-deal.
+#
+# WHAT THIS DOES NOT ANSWER, and it is the same gap L1.4n left. This asks whether
+# the population has ANY real timing diversity. It does not ask whether that
+# diversity is as WIDE as a real population's — a magnitude question needing an
+# external panel of per-home half-hourly reads (SERL, or the LCL trial's raw
+# archive). That stays open on the raw L2.3 cell, unjudged, exactly as L1.4 is.
+
+#: A one-sided permutation test at alpha = 0.05. 99 samples so the 95th
+#: percentile is an order statistic rather than an interpolation.
+TIMING_DIVERSITY_NULL_SAMPLES = 99
+TIMING_DIVERSITY_NULL_QUANTILE = 0.95
+
+#: Named rather than a literal at the call site (C-S2, RNG substream discipline):
+#: a threshold that can be moved by quietly reseeding is not a threshold.
+TIMING_DIVERSITY_NULL_SEED = 20260810
+
+#: The spread is in HALF-HOURS over a 17-period evening window, so a real one is
+#: O(1) and an honest zero is exact (identical pick lists average to identical
+#: floats). Nine orders below anything meaningful, for the same reason L1.4n's
+#: guard is relative rather than `> 0.0`.
+TIMING_DIVERSITY_NULL_DEGENERATE_BELOW = 1e-9
+
+
+@dataclass(frozen=True)
+class DiversityAgainstNull:
+    """L2.3n — one population's timing diversity beside its own null."""
+
+    raw: float
+    null_median: float
+    null_p95: float
+    samples: int
+
+    @property
+    def ratio(self) -> float:
+        """THE judged statistic. >= 1.0 means these homes' own evening timings
+        explain more of the population's spread than dealing the same days out at
+        random does 95% of the time."""
+        return self.raw / self.null_p95
+
+
+def timing_diversity_vs_own_null(
+    homes: Sequence[Sequence[Sequence[float]]],
+    *,
+    samples: int = TIMING_DIVERSITY_NULL_SAMPLES,
+    seed: int = TIMING_DIVERSITY_NULL_SEED,
+) -> DiversityAgainstNull:
+    """L2.3n — `timing_diversity` judged against this population's own
+    permutation null. Deterministic given `seed` (C-S2).
+
+    FAIL-CLOSED in every direction an unavailable check could take (R15): too few
+    homes or too few days RAISES through the same guards the raw statistic uses;
+    a non-finite reading RAISES; and a degenerate null — every re-deal giving the
+    same spread, which is what ONE national timetable produces — RAISES rather
+    than returning a ratio of one rounding error over another.
+    """
+    _require_homes(homes, minimum=MIN_HOMES_FOR_DIVERSITY, name="timing_diversity_vs_own_null")
+    if samples < 2:
+        raise InsufficientEvidence("a permutation null over fewer than two samples is theatre")
+
+    picks = [_evening_peak_picks(h, name="timing_diversity_vs_own_null") for h in homes]
+    counts = [len(p) for p in picks]
+    pool = [p for home in picks for p in home]
+
+    raw = _spread_of_pick_means(picks)
+    rnd = random.Random(seed)
+    null = sorted(
+        _spread_of_pick_means(deal_preserving_counts(pool, counts, rnd)) for _ in range(samples)
+    )
+    p95 = null[min(int(TIMING_DIVERSITY_NULL_QUANTILE * (samples - 1)), samples - 1)]
+    if not math.isfinite(raw) or not math.isfinite(p95):
+        raise InsufficientEvidence("a non-finite timing spread cannot be judged")
+    if p95 <= TIMING_DIVERSITY_NULL_DEGENERATE_BELOW:
+        raise DegenerateNull(
+            f"this population's permutation null is degenerate (p95 {p95:.3g}) — every "
+            "re-deal of its days gives the same spread, which is what a single national "
+            "evening timetable produces, so there is no null to judge against"
+        )
+    return DiversityAgainstNull(
+        raw=raw, null_median=statistics.median(null), null_p95=p95, samples=samples
+    )
 
 
 @dataclass(frozen=True)
@@ -1502,16 +1675,73 @@ BANDS: dict[str, Band] = {
         statistic="L2.3_timing_diversity_periods",
         level="L2",
         direction="at_least",
-        threshold=0.5,
-        anchor=AnchorStatus.DOMAIN_KNOWLEDGE,
+        threshold=None,
+        anchor=AnchorStatus.NEED,
         anchor_source=(
-            "domain-knowledge: households do not all peak in the same half-hour. The "
-            "threshold asks for a population sd of at least half a settlement period "
-            "— the weakest possible non-point-mass — because the shipped defect is a "
-            "single national constant, i.e. an exact point mass at 0.0."
+            "THE FLOOR CAME OUT 2026-08-10 (H34) AND THE NUMBER IS NOT COMING BACK "
+            "AT ANY HEIGHT. It was 0.5 half-hours on domain knowledge — households "
+            "do not all peak in the same half-hour, and the shipped defect is a "
+            "single national constant, i.e. an exact point mass at 0.0. The domain "
+            "claim is still true; the NUMBER was fail-open, and the H33 sweep "
+            "measured it: `timing_diversity` is a SPREAD OF MEANS, so it carries "
+            "the same sampling term as its own null, and a population whose days "
+            "are dealt out at random — no home with a timing of its own — cleared "
+            "0.5 in 65% of deals at 40 days, 57% at 60, 15% at 90 and 2% at 120 "
+            "on the applied panel (docs/design/BAND_NULL_SWEEP.md). The band was "
+            "INSIDE its own null at "
+            "40/60/90d and cleared it at 120d by 3.8% of the null's spread, while "
+            "the number in this table never moved. NO fixed floor is right at "
+            "every window, so lowering or raising it is not the repair and neither "
+            "is picking a kinder window (R12) — the STATISTIC was repaired, and "
+            "sits beside this cell as L2.3n, where the same spread is scored "
+            "against a re-deal of the population's own days. WHAT WOULD PUT A "
+            "NUMBER BACK HERE: a panel of per-home half-hourly reads (SERL, or the "
+            "LCL trial's raw archive) from which the panel's OWN null is computable "
+            "at the same window — because this cell's remaining question is "
+            "MAGNITUDE (is the diversity as wide as a real population's), and "
+            "null-correcting the model's side alone would be the same "
+            "window-mismatch error in new coordinates."
         ),
         observed_on_shipped=None,
-        rationale="One national HEATING_PERIOD_WEIGHTS constant is a point mass.",
+        rationale=(
+            "Reported for the record while unjudged: one national "
+            "HEATING_PERIOD_WEIGHTS constant is an exact point mass at 0.0, which "
+            "L2.3n scores 0.0 and fails. The number here is real and still moves "
+            "with the generator — it is the FLOOR over it that no window supports."
+        ),
+    ),
+    "L2.3n_timing_diversity_null_ratio": Band(
+        statistic="L2.3n_timing_diversity_null_ratio",
+        level="L2",
+        direction="at_least",
+        threshold=1.0,
+        anchor=AnchorStatus.STRUCTURAL,
+        anchor_source=(
+            "No external anchor needed and none is borrowed — the comparison is "
+            "the population against ITSELF with the home/timing association "
+            "destroyed (see the L2.3n note above the statistic). The threshold is "
+            "1.0 because the statistic is DEFINED as a ratio to the 95th "
+            "percentile of that null, i.e. a one-sided permutation test at alpha = "
+            "0.05: the decision point is a property of the construction, not a "
+            "number anyone picked, and there is nothing here to tune. THE WINDOWS "
+            "IT HOLDS AT, measured on the APPLIED panel (couple_fabric, 10 homes, "
+            "40 independent re-deals per window, 2026-08-10) at 40 / 60 / 90 / "
+            "120 days: a timing-less population passes this ratio 7% / 12% / 7% / "
+            "2% — flat at its own alpha — where the floor it replaces passed the "
+            "same deals 65% / 57% / 15% / 2%, i.e. fail-open in proportion to how "
+            "SHORT the run was. The real panel reads 1.66 / 1.84 / 2.11 / 2.12 "
+            "over those windows (8-home test panel: 1.35 / 1.47 / 1.67 / 2.07), so "
+            "both directions hold across 40-120d and neither verdict turns on how "
+            "long anyone watched."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "A generator with no per-home clock scores at its own null whatever "
+            "the window length — which is exactly what the raw cell could not say. "
+            "What this cell does NOT claim is magnitude: a population can beat its "
+            "own null with a timing spread far narrower than a real one's, and "
+            "that question stays open on L2.3."
+        ),
     ),
     "L2.4_scale_spread_p90_p10": Band(
         statistic="L2.4_scale_spread_p90_p10",
@@ -1940,6 +2170,24 @@ def _null_ratio_or_zero(
         return 0.0
 
 
+def _timing_ratio_or_zero(grids: Sequence[Sequence[Sequence[float]]]) -> float:
+    """L2.3n for one population, with the degenerate case decided HERE rather than
+    buried in the statistic.
+
+    A population whose re-deal null is degenerate is one where every day in every
+    home peaks in the same half-hour: its real spread is zero AND every re-deal's
+    is too. That is not an edge case to skip — it is the shipped defect this cell
+    exists to fail (one national `HEATING_PERIOD_WEIGHTS` constant), so it is
+    scored 0.0, a definitive violation. Skipping it would be fail-open on the
+    exact population the band was written for; raising would let the L2 level go
+    unreported instead of red, and an unavailable check is a failed check (R15).
+    """
+    try:
+        return timing_diversity_vs_own_null(grids).ratio
+    except DegenerateNull:
+        return 0.0
+
+
 def _l1_rate_cell(
     statistic: str,
     *,
@@ -2193,7 +2441,17 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     band = BANDS["L2.3_timing_diversity_periods"]
     value = timing_diversity(grids)
     cells.append(CellResult(band.statistic, "L2", value, band.judge(value), band,
-                            note="population sd of each home's mean evening-peak period"))
+                            note="population sd of each home's mean evening-peak period "
+                                 "— measured, not judged; L2.3n judges it"))
+
+    # The same spread against a re-deal of this population's own days. Reported as
+    # a SEPARATE cell rather than replacing L2.3, because the two answer different
+    # questions (structure vs magnitude) and collapsing them into one name would be
+    # one name carrying two numbers.
+    band = BANDS["L2.3n_timing_diversity_null_ratio"]
+    value = _timing_ratio_or_zero(grids)
+    cells.append(CellResult(band.statistic, "L2", value, band.judge(value), band,
+                            note="timing diversity over the p95 of its own re-deal null"))
 
     band = BANDS["L2.4_scale_spread_p90_p10"]
     spread = scale_spread(population.annual_kwh)

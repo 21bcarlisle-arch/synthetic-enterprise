@@ -21,11 +21,12 @@ at — and is the threshold above that?**
 ## (1) The enumeration
 
 Derived by iterating the live `fabric_gap_ledger.BANDS` table
-(`anchored_bands()`), never from a hand-copied list. **9 of 14 bands** carry a
-numeric threshold and an external anchor (`published` / `domain`). The other 5
-are reported as an explicit complement with reasons (`excluded_bands()`), so a
-band that changes anchor class leaves the sweep's scope visibly rather than
-evaporating from a list:
+(`anchored_bands()`), never from a hand-copied list. **8 of 15 bands** carry a
+numeric threshold and an external anchor (`published` / `domain`) — it was 9 of
+14 until H34 executed the L2.3 disposition below. The other 7 are reported as an
+explicit complement with reasons (`excluded_bands()`), so a band that changes
+anchor class leaves the sweep's scope visibly rather than evaporating from a
+list:
 
 | excluded band | reason |
 |---|---|
@@ -34,6 +35,8 @@ evaporating from a list:
 | `L1.4_weekday_weekend_separation` | no numeric threshold (anchor=need) — the instance this atom was minted from |
 | `L1.4n_weekday_weekend_null_ratio` | structural: its bound is an argument, not an external figure |
 | `L1.5_max_multiplicity_share` | structural, as above |
+| `L2.3_timing_diversity_periods` | no numeric threshold (anchor=need) — **the floor came out 2026-08-10, H34**, per this document's own disposition |
+| `L2.3n_timing_diversity_null_ratio` | structural, as above — and see "why the repaired cell is not swept" below |
 
 `unswept_band_sources()` re-scans `background/` and `tools/` by AST for any
 *other* module constructing a `Band`/`RateBand`. Currently empty — the
@@ -62,8 +65,17 @@ spread; `SEPARATED` otherwise.
 | L1.3_away_days_per_year | at_least | 10 | 1.0 | 0.0 | 0 | +1.0 | separated |
 | L2.1_smoothing_ratio | at_most | 10 | 0.85 | 1.0 | ~0 | +0.15 | separated |
 | L2.2_between_home_correlation | at_most | 10 | 0.6 | 1.0 | 0 | +0.40 | separated |
-| L2.3_timing_diversity_periods | at_least | 10 | 0.5 | 0.4899 | 0.2677 | **+0.0101** | **same_order** |
+| L2.3_timing_diversity_periods | at_least | 10 | 0.5 | 0.4899 | 0.2677 | **+0.0101** | **same_order** † |
 | L2.4_scale_spread_p90_p10 | at_least | 10 | 4.881 | 1.0 | 0 | +3.881 | separated \*\* |
+
+† **This row is the 2026-08-09 reading and is now history.** The floor came out on
+2026-08-10 (H34) and the cell left the swept set; the live sweep has no
+`inside_null` and no `same_order` row at all. The row is kept because deleting the
+measurement along with the band would leave the finding resting on prose — and it
+is also kept as a TEST
+(`test_band_null_sweep.py::test_a_shrinking_window_GROWS_the_sampling_null`
+restores the band exactly as it was and re-measures it, so the finding has to keep
+reproducing).
 
 \*\* the null rests on a single reading, so it has no estimable spread: the
 `SEPARATED` verdict is a point estimate and `SAME_ORDER` was not reachable for
@@ -95,7 +107,7 @@ structureless population that could be built.
 
 **Never lower the floor until something fails (R12).** Two repairs are allowed.
 
-### L2.3_timing_diversity_periods — REPAIR THE STATISTIC
+### L2.3_timing_diversity_periods — REPAIR THE STATISTIC — **DONE 2026-08-10 (H34)**
 
 The band (0.5 half-hours, `at_least`) clears its null by **3.8% of the null's own
 spread**. Its window sensitivity, measured on the live panel:
@@ -120,6 +132,52 @@ null, ~2.9x at 120 d and ~2.35x at 40 d — far more stable than the raw statist
 against a constant) rather than against a constant. Repairing the window instead
 would only move the problem to whichever window is run next.
 
+#### What was built, and what it measures
+
+`L2.3_timing_diversity_periods` is now **reported, not judged** (`threshold=None`,
+`anchor=NEED`, with the route back to a number named on the cell: a panel of
+per-home half-hourly reads from which the PANEL's own null is computable at the
+same window). `L2.3n_timing_diversity_null_ratio` judges in its place:
+`timing_diversity` over the 95th percentile of the same statistic under 99
+re-deals of the population's own days, so **1.0 is the decision point by
+construction** — a one-sided permutation test at alpha = 0.05 — and there is
+nothing in it to tune. The deal is `fabric_gap_ledger.deal_preserving_counts`,
+which is the same function this sweep's `_exchangeable_homes_null` now calls: one
+null, not a measured one and a judged one free to drift apart.
+
+The threshold rule was fixed before the numbers, and the numbers are the point of
+the repair — **the old floor's fail-open rate is a function of the window and the
+ratio's is not** (applied panel, 40 independent structureless deals per window):
+
+| window | timing-less population clears the **0.5 floor** | ...clears the **ratio** | real panel's ratio |
+|---|---|---|---|
+| 40 d | 65% | 7% | 1.656 |
+| 60 d | 57% | 12% | 1.841 |
+| 90 d | 15% | 7% | 2.111 |
+| 120 d | 2% | 2% | 2.121 |
+
+Both R15 directions hold at **every** window in 40–120 d: the real panel passes at
+all four, a timing-less population fails at all four, and the shipped defect (one
+national `HEATING_PERIOD_WEIGHTS` constant) makes the null itself degenerate —
+every re-deal gives the same spread — which the statistic RAISES on and the cell
+scores 0.0, a definitive violation rather than a skip.
+
+#### Why the repaired cell is not itself swept, which was the atom's fourth exit
+
+The atom asked for "band_null_sweep shows L2.3 SEPARATED at every window". It does
+not, and no honest build could make it: `SEPARATED` compares the threshold with
+the 95th percentile of the band's null, and L2.3n's threshold **is** the 95th
+percentile of its null. Sweeping it would ask whether p95 ≥ p95 — R15's first
+killer pattern, a value checked against the source it is derived from. A one-sided
+test at alpha = 0.05 is *defined* to pass a structureless population about 1 time
+in 20, so it can never separate from its own null; that is its size, not a
+fail-open. What was delivered instead is stronger than the verdict word: the sweep
+is now **clean at every window** — no `inside_null` and no `same_order` row exists
+at all — and the property the verdict was a proxy for (how often does a
+structureless population clear this control, and does that depend on the window)
+is measured directly at each window in the table above. The same reasoning is why
+`L1.4n` was already excluded.
+
 ### L1.1r_half_hourly_texture_resistive_heat — UNMEASURABLE, widen the panel
 
 No home at the applied window is judged by this band: `tools/couple_fabric.py`'s
@@ -137,7 +195,8 @@ verdict is a point estimate: `SAME_ORDER` was not reachable for this band at thi
 window, so `SEPARATED` here means "not obviously inside its null", not "clear of
 it". Same disposition as L1.1r — widen the panel, then re-measure.
 
-None of the three is dispositioned as a threshold move.
+None of the three is dispositioned as a threshold move. One of the three (L2.3) is
+closed; the other two are atom `H35_the_panel_never_exercises_two_of_its_own_bands`.
 
 ## The sweep's own fail-open shapes, and what closes each
 

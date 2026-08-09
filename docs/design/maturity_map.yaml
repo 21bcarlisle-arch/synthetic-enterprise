@@ -4216,7 +4216,7 @@
 - id: PW1_staleness_is_code_actually_loaded
   title: "Stale means stale for THIS daemon's code"
   gain: "A staleness signal that can be green is a signal someone acts on; a permanently-red one is indistinguishable from a blind one."
-  name: "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 DO-NEXT #3 (director: 'your own refinement; it is now the work, not the footnote') and DECIDED #2 ('a detector for that failure mode that is always red will be ignored exactly as reliably as one that is blind'). Redefine the boot-SHA drift signal from repo-HEAD-moved to CODE-THIS-DAEMON-ACTUALLY-LOADS-moved, and first fix the population it is computed over, which today excludes the two daemons that caused the 10h outage. EXIT: TWO halves, both measured on the live daemon set, neither sufficient alone. (a) POPULATION, and it is an R10 class closure not an instance fix: process_reconciler._systemd_owned_sessions() filters on `e.get('launched_by','tmux')=='systemd'`, so sim-runner and background-worker -- user-scope systemd units whose own ExecStartPre wrote the boot stamps -- default to tmux and drop out of evaluate_boot_sha_drift()'s answer. The 2026-07-29 cutover patched two manifest rows and left seven identical ones standing, which silently chose which daemons the detector was allowed to watch. EXIT: the manifest's launched_by is DERIVED from or reconciled against observed reality (/proc/<pid>/cgroup, systemctl --user is-active) rather than trusted, so a wrong row FAILS rather than shrinks the population; the seven double-launchable rows are resolved together; and a test asserts the detector's population equals the observed running set, not a subset of it. (b) SIGNAL: `stale` is computed against the modules the daemon actually imported (its own file_scope closure), not against repo HEAD -- so a daemon whose loaded modules are unchanged reads GREEN while HEAD moves, and a daemon running pre-fix code for a module it imports reads RED. EXIT: the signal is green on a live tree with a moved HEAD and no relevant edit, and red for sim-runner replayed against the 2026-08-09 fa9a73c72 boot state. R15 both ways: a mutation that empties the population, and a mutation that reverts the signal to HEAD-comparison, must each kill named tests; a vacuity guard must prove the honest path evaluates a non-empty daemon set."
+  name: "Is the code the process is RUNNING the code on disk? Closed L2/L2 -- full mint text, cause and exit criteria in origin_note."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4236,7 +4236,7 @@
 - id: PW2_failure_clears_its_own_alarm
   title: "A check whose failure erases the record of the failure"
   gain: "The class that let a 10h outage alarm about a 14-minute one gets a census and a guard, instead of a second instance fix."
-  name: "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class (director: 'That is a class, not an instance. Where else can a check's failure clear the signal that the check failed?'). The publish failure path wrote to .publish_gate_state.json -- the same state the alarm reads for episode memory -- so each failure reset wedge_since and the alarm truthfully described a fresh 14-minute wedge inside a 10-hour episode. EXIT: A CENSUS first, then a guard -- in that order, because an instance fix on .publish_gate_state.json is exactly what R10 forbids. EXIT: (1) an enumeration of every control in background/ and tools/ whose failure path WRITES to a state file its own alarm/severity READS, produced by a derivation (writer set intersected with reader set per state path) rather than by inspection, with each hit dispositioned real / benign-and-why; (2) the shape is guarded -- for each real hit the episode-scoped field is append-or-monotonic so a failure cannot shorten its own episode, and a test proves the guard fires by replaying the 2026-08-09 sequence and asserting the reported episode length is ~10h and not ~14min; (3) R15 both ways, including a vacuity guard proving the census is non-empty on the live tree (a census that finds nothing is the fail-open shape here)."
+  name: "A failure must clear the alarm it raised. Closed L2/L2 -- full mint text in origin_note, build record in build_note."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4256,7 +4256,7 @@
 - id: PW4_guard_remaining_episode_states
   title: "The other four self-clearing episode states"
   gain: "The class guard reaches every control the census called real, not only the one that broke loudly enough to be noticed."
-  name: "Follow-on from PW2, which built the census (background/self_clearing_alarm_census.py) and guarded ONE of the five real hits -- .publish_gate_state.json, the instance the director's steer was about. The remaining four are dispositioned `real` with `guard: registered` in docs/design/self_clearing_alarm_dispositions.json: .operational_layer_signal.json (consecutive_red, read by supervisor._operational_red_persistent_draw for a priority-zero draw), .supervisor_stuck_state.json (first_seen_at, re-stamped whenever the stuck REASON string churns), .atom_stall_tracker.json (consecutive_unchanged per atom), .run_marker_sweep_state.json (cycles of zero progress). They were deliberately NOT guarded in the same pass: each needs its own answer to 'what EVIDENCES an episode close' -- for the publish gate that was pending_run_complete_markers()==0, an independent signal, and picking that answer is a per-control judgement. Guarding them by reflex, with a close condition nobody chose, is the accretion OPERATIONAL_COHERENCE_DESIGN_PASS forbids and would produce four controls that cannot clear (an always-red detector is as ignored as a blind one). EXIT: (1) for each of the four, the close condition is NAMED and is INDEPENDENT of the state being guarded (R15 anti-tautology -- never derived from the same file); (2) background.episode_monotonic.guard_episode is wired at each write seam; (3) per control, a replay test in the PW2 pattern proving a failure can no longer shorten its own episode, AND the opposite direction proving an evidenced close still clears; (4) the disposition row flips from `registered` to `guarded` naming the test."
+  name: "The episode states no guard covered. Closed L2/L2 -- full mint text and exit criteria in origin_note."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4334,7 +4334,7 @@
 - id: H33_does_this_statistic_have_a_null
   title: "Sweep every anchored band for the null it is supposed to sit above"
   gain: "Finds the bands that a structureless population already clears -- the fail-open shape no amount of re-reading an anchor's provenance can catch."
-  name: "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09. Per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' BUILT 2026-08-09 -- background/band_null_sweep.py, tools/band_null_sweep.py, 25 R15 tests. The four EXIT criteria as minted, the enumeration, every measured null and each hit's disposition are in docs/design/BAND_NULL_SWEEP.md (moved there verbatim when the map hit its size ratchet). Hits: L2.3 SAME_ORDER -> atom H34; L1.1r UNMEASURABLE and L1.1e n=1 -> atom H35."
+  name: "MINTED FROM the CLASS half of WORKER_FINDING_AN_ANCHOR_IS_A_NUMBER_AND_A_WINDOW_2026-08-09. Per band: not 'is the source real' but 'does this statistic have a NULL, and is the threshold above it?' BUILT 2026-08-09. The atom as minted, the enumeration, every measured null and each hit's disposition are in docs/design/BAND_NULL_SWEEP.md. Hits: L2.3 SAME_ORDER -> H34 (closed 2026-08-10); L1.1r UNMEASURABLE and L1.1e n=1 -> H35."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4353,19 +4353,20 @@
 - id: H34_score_timing_diversity_against_its_own_null
   title: "L2.3 against its permutation null, not against a constant half-hour floor"
   gain: "Removes the one band the H33 sweep found sitting on its own null -- as a CLASS, by scoring against the null not moving a number."
-  name: "MINTED FROM the L2.3 disposition in docs/design/BAND_NULL_SWEEP.md (H33 sweep 2026-08-09; full numbers there). MEASURED: L2.3_timing_diversity_periods (at_least 0.5) sits INSIDE its own null at 40/60/90d and clears it at the applied 120d window by +0.0101 -- 3.8% of the null's spread. The observed value falls WITH the null, so the statistic carries the same sampling term as its null and no fixed floor is right at every window. EXIT: (1) L2.3 scored as observed/permutation-null (the L1.4 -> L1.4n pattern), reusing band_null_sweep::_exchangeable_homes_null; (2) the ratio's threshold derived rule-before-number, stated with the windows it holds at; (3) R15 both ways -- a timing-less population FAILS and a real one PASSES at every window in 40..120d; (4) band_null_sweep shows L2.3 SEPARATED at every window. Never lower the floor (R12)."
+  name: "MINTED FROM the L2.3 disposition in docs/design/BAND_NULL_SWEEP.md, which now carries the atom as minted, the measured nulls, the four exit criteria and the build record in full (moved there at the map's size ratchet, as H33 was). L2.3 was a spread-of-means judged against a constant floor, so it carried the same sampling term as its own null and sat INSIDE it at 40/60/90d; repaired by scoring against a permutation null (L2.3n), never by moving the number (R12)."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: worker_finding
   depends_on: [H33_does_this_statistic_have_a_null]
   couples_with: [H_GAP_fabric_belief_truth_gap]
-  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json']
-  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json', 'background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
+  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py', 'background/band_null_sweep.py', 'tests/harness/test_band_null_sweep.py', 'tests/tools/test_couple_fabric.py']
+  notes_rehomed: [build_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a reference range that holds at the sample size the lab usually runs, and silently does not at the one it ran"
 
@@ -4387,3 +4388,23 @@
   file_scope: ['tools/couple_fabric.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a lab keeping a reference range for a test it has never run on a sample of that type"
+
+- id: OPS4_surgical_landing_tool
+  title: "Land exactly-named paths with the gate run against the tree the commit would create"
+  gain: "The legal move always exists, so 'bypass' stops being a concept anyone has to weigh: the check runs on the resulting tree even when the shared index is full of other lanes' work."
+  name: "MINTED FROM DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09 (hook-bypass is a WALL). A tool that lands exactly-named paths by building the tree the commit WOULD create and running the gate against THAT, so a dirty shared index never leaves bypass as the only move. Full mint text, cause and the five exit criteria: origin_note in the store."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09.md']
+  file_scope: ['tools/surgical_land.py', 'tests/tools/test_surgical_land.py', 'docs/design/SURGICAL_LANDING.md']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a change-control desk that will not let an engineer hand-carry a fix past the test rig, and therefore keeps a rig that can test exactly the one change he needs to land"

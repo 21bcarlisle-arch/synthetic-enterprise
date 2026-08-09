@@ -254,7 +254,10 @@ def test_the_shipped_demand_path_is_RED(shipped_result):
         ("L1.5_max_multiplicity_share", 2.000),
         ("L2.1_smoothing_ratio", 0.959),
         ("L2.2_between_home_correlation", 0.999),
-        ("L2.3_timing_diversity_periods", 0.0),
+        # L2.3n, not L2.3: the raw spread is still 0.0 and still recorded (in
+        # `test_the_shipped_path_is_a_TIMING_POINT_MASS` below), but the floor over
+        # it came out on 2026-08-10 and the judging cell is now the null ratio.
+        ("L2.3n_timing_diversity_null_ratio", 0.0),
     ],
 )
 def test_MEASURED_shipped_path_values(shipped_result, statistic, expected):
@@ -267,7 +270,9 @@ def test_MEASURED_shipped_path_values(shipped_result, statistic, expected):
     smooths by 4% when aggregated across eight households (L2.1 = 0.96 where 1.0
     is no smoothing at all), and produces eight homes whose de-weathered daily
     residuals correlate at 0.999 (L2.2) while every one of them peaks in the
-    identical half-hour (L2.3 = 0, an exact point mass).
+    identical half-hour (L2.3n = 0, an exact point mass whose re-deal null is
+    degenerate — every day peaks at the same half-hour, so there is no null and
+    the cell is scored a definitive violation rather than skipped).
     """
     cell = shipped_result.cell(statistic)
     assert cell.verdict is fgl.Verdict.FAIL, f"{statistic} should be RED, got {cell.verdict}"
@@ -1011,12 +1016,226 @@ def test_L2_2_does_NOT_use_a_population_derived_common_mode(generated):
 
 
 def test_L2_3_timing_diversity_FIRES_when_every_peak_is_collapsed(generated):
+    """The raw statistic still MOVES under the mutation — that was never the
+    problem — and the cell that JUDGES it fires."""
     grids = _grids(generated)
     before = fgl.timing_diversity(grids)
     after = fgl.timing_diversity(_collapse_evening_peak(grids))
     assert after == pytest.approx(0.0, abs=1e-12), "one national constant is an exact point mass"
     assert before > 0.0
-    assert fgl.BANDS["L2.3_timing_diversity_periods"].judge(after) is fgl.Verdict.FAIL
+    ratio = fgl._timing_ratio_or_zero(_collapse_evening_peak(grids))
+    assert ratio == 0.0, "a degenerate re-deal null is scored a violation, never skipped"
+    assert fgl.BANDS["L2.3n_timing_diversity_null_ratio"].judge(ratio) is fgl.Verdict.FAIL
+
+
+# ---------------------------------------------------------------------------
+# L2.3n — THE REPAIR, PROVEN AT EVERY WINDOW IT IS APPLIED AT (atom H34)
+# ---------------------------------------------------------------------------
+#
+# The H33 sweep found the 0.5-half-hour floor sitting INSIDE its own null at 40,
+# 60 and 90 days and clearing it at 120 by 3.8% of the null's spread. The
+# disposition was repair-the-STATISTIC, never lower-the-floor and never
+# repair-the-window (R12) — so the proof owed here is a proof AT EVERY WINDOW,
+# because a control proven only at the window someone happened to run is the
+# exact defect being repaired.
+
+#: The windows the band must hold at, spanning the shortest run anyone plausibly
+#: judges on up to the applied `couple_fabric` window (10 homes x 120 days).
+L2_3N_WINDOWS = (40, 60, 90, 120)
+
+#: Independent structureless populations per window. Not a power calculation — it
+#: is the number at which a 5%-alpha test's pass rate is distinguishable from the
+#: floor's 68% within a test-suite time budget.
+L2_3N_DEALS = 20
+
+#: A one-sided permutation test at alpha = 0.05 passes a structureless population
+#: about 1 time in 20 BY CONSTRUCTION — that is its size, not a fail-open. The
+#: ceiling here is 5x that nominal rate, fixed from alpha BEFORE any of the rates
+#: below were measured, and generous for 20 draws. It is not a target: nothing in
+#: the band may ever be tuned to sit under it (R12).
+L2_3N_MAX_STRUCTURELESS_PASS_RATE = 0.25
+
+#: The floor this cell replaced, quoted so the comparison below is against the
+#: real superseded control rather than a straw one. Gone from `BANDS` on purpose.
+SUPERSEDED_L2_3_FLOOR = 0.5
+
+
+def _timing_less(grids, seed):
+    """A population with no home-level timing: pool every day and deal them back.
+
+    Deliberately NOT `fgl.deal_preserving_counts`, though it is the same
+    operation. The statistic under test builds its null with that function, and a
+    test that manufactured its structureless population with the subject's own
+    helper would be checking the helper against itself. Four lines of independent
+    shuffle costs nothing and removes the question.
+    """
+    rng = random.Random(seed)
+    pool = [list(day) for home in grids for day in home]
+    rng.shuffle(pool)
+    out, cursor = [], 0
+    for home in grids:
+        out.append(pool[cursor:cursor + len(home)])
+        cursor += len(home)
+    return out
+
+
+def _l2_3n_rates(grids, window):
+    """(floor pass rate, ratio pass rate) on structureless populations at `window`
+    days — the two controls judged on identical draws."""
+    truncated = [home[:window] for home in grids]
+    floor_passes = ratio_passes = 0
+    for k in range(L2_3N_DEALS):
+        dealt = _timing_less(truncated, seed=9000 + k)
+        if fgl.timing_diversity(dealt) >= SUPERSEDED_L2_3_FLOOR:
+            floor_passes += 1
+        # The null seed varies with the draw too. Sharing one seed across draws
+        # correlates the tests through their common permutation set and inflates
+        # the measured pass rate — observed while deriving these numbers.
+        if fgl.timing_diversity_vs_own_null(dealt, seed=400000 + k * 7919).ratio >= 1.0:
+            ratio_passes += 1
+    return floor_passes / L2_3N_DEALS, ratio_passes / L2_3N_DEALS
+
+
+def test_L2_3n_a_REAL_population_passes_at_EVERY_window(generated):
+    """Direction one of R15. The band must not simply fail everything — and it
+    must not need a long run to say so.
+
+    Measured 2026-08-10 on this panel: 1.35 / 1.47 / 1.67 / 2.07 at 40 / 60 / 90 /
+    120 days. The ratio RISES with the window (the null shrinks while the real
+    spread does not), which is the diagnostic that the spread is a real property
+    of these homes and not the sampling term the raw statistic carried.
+    """
+    grids = _grids(generated)
+    ratios = {}
+    for window in L2_3N_WINDOWS:
+        ratios[window] = fgl.timing_diversity_vs_own_null([h[:window] for h in grids]).ratio
+    for window, value in ratios.items():
+        assert value >= 1.0, (
+            f"the real panel must beat its own re-deal null at {window} days, "
+            f"got {value:.3f} — all windows: {ratios}"
+        )
+    assert ratios[120] > ratios[40], (
+        "the ratio must GROW with the window as the null shrinks; if it does not, "
+        f"the statistic still carries its null's sampling term: {ratios}"
+    )
+
+
+def test_L2_3n_a_TIMING_LESS_population_FAILS_at_EVERY_window(generated):
+    """Direction two of R15, and the finding this atom was minted from.
+
+    Deal one population's days out at random and no home has an evening timing of
+    its own. The superseded 0.5 floor cleared that population most of the time at
+    a short window and rarely at a long one — a control whose fail-open rate is a
+    function of how long anyone watched. The ratio's is flat at its own alpha.
+    """
+    grids = _grids(generated)
+    measured = {w: _l2_3n_rates(grids, w) for w in L2_3N_WINDOWS}
+    for window, (floor_rate, ratio_rate) in measured.items():
+        assert ratio_rate <= L2_3N_MAX_STRUCTURELESS_PASS_RATE, (
+            f"a structureless population cleared L2.3n {ratio_rate:.0%} of the time "
+            f"at {window} days, above the {L2_3N_MAX_STRUCTURELESS_PASS_RATE:.0%} "
+            f"ceiling alpha allows — all windows: {measured}"
+        )
+        assert ratio_rate <= floor_rate, (
+            f"at {window} days the repair is WORSE than the floor it replaced "
+            f"({ratio_rate:.0%} vs {floor_rate:.0%}) — all windows: {measured}"
+        )
+    short, long = measured[40][0], measured[120][0]
+    assert short > long, (
+        "THE FINDING ITSELF must stay reproducible: the superseded floor's "
+        f"fail-open rate has to be worse at 40 days ({short:.0%}) than at 120 "
+        f"({long:.0%}). If it is not, this whole repair rests on a stale "
+        f"measurement: {measured}"
+    )
+    assert short >= 0.5, (
+        f"the floor cleared a timing-less population {short:.0%} of the time at 40 "
+        "days when this was measured (68%) — that is what made it fail-open"
+    )
+
+
+def test_L2_3n_the_decision_point_is_the_CONSTRUCTION_not_a_chosen_number():
+    """1.0 is where the real spread equals the 95th percentile of its own null.
+    That is a property of the ratio, not a figure anyone picked, and it is the
+    reason there is nothing here to goal-seek (R12)."""
+    band = fgl.BANDS["L2.3n_timing_diversity_null_ratio"]
+    assert band.threshold == 1.0 and band.direction == "at_least"
+    assert band.anchor is fgl.AnchorStatus.STRUCTURAL, (
+        "borrowing an external anchor for a self-referential ratio would be the "
+        "tautology this band exists to avoid claiming"
+    )
+    at_the_point = fgl.DiversityAgainstNull(raw=0.7, null_median=0.4, null_p95=0.7, samples=99)
+    assert at_the_point.ratio == 1.0
+    assert band.judge(at_the_point.ratio) is fgl.Verdict.PASS
+    just_under = fgl.DiversityAgainstNull(raw=0.7, null_median=0.4, null_p95=0.71, samples=99)
+    assert band.judge(just_under.ratio) is fgl.Verdict.FAIL
+
+
+def test_L2_3n_the_null_does_not_INVENT_structure(generated):
+    """The R15 pattern that cost the H33 sweep two rebuilt nulls: a null that ADDS
+    the movement the statistic measures manufactures defects that are not there.
+
+    A deal is a permutation. Every day survives byte-identical, each home keeps
+    its day count, and the pooled multiset is unchanged — so nothing about the
+    days themselves can differ between the population and its null.
+    """
+    grids = [h[:60] for h in _grids(generated)]
+    dealt = fgl.deal_preserving_counts(
+        [tuple(day) for home in grids for day in home],
+        [len(home) for home in grids],
+        random.Random(4),
+    )
+    assert [len(h) for h in dealt] == [len(h) for h in grids]
+    assert sorted(d for h in dealt for d in h) == sorted(
+        tuple(day) for home in grids for day in home
+    )
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.deal_preserving_counts([1, 2, 3], [2, 2], random.Random(1))
+
+
+def test_L2_3n_a_DEGENERATE_null_RAISES_rather_than_returning_a_verdict(generated):
+    """FAIL-CLOSED. When every day peaks in the same half-hour the null is exactly
+    zero, and raw/0 would read as a spectacular pass. The statistic raises; the
+    CELL decides what a subject with no null scores, and scores it a violation."""
+    collapsed = _collapse_evening_peak(_grids(generated))
+    with pytest.raises(fgl.DegenerateNull):
+        fgl.timing_diversity_vs_own_null(collapsed)
+    assert fgl._timing_ratio_or_zero(collapsed) == 0.0
+
+
+def test_L2_3n_and_the_SWEEPS_null_are_ONE_implementation(generated):
+    """One name, one number. The sweep measures L2.3's null with the same deal the
+    live cell scores against; a second copy would let the measured null and the
+    judged null drift apart silently."""
+    from background import band_null_sweep as bns
+
+    population = dataclasses.replace(
+        generated, grids=tuple(tuple(tuple(d) for d in h[:60]) for h in generated.grids),
+        is_weekend=generated.is_weekend[:60],
+        weather_driver=generated.weather_driver[:60],
+        space_heat_grids=tuple(tuple(tuple(d) for d in g[:60]) for g in generated.space_heat_grids),
+    )
+    via_sweep = bns._exchangeable_homes_null(population, random.Random(11))
+    via_ledger = fgl.deal_preserving_counts(
+        [day for home in population.grids for day in home],
+        [len(home) for home in population.grids],
+        random.Random(11),
+    )
+    assert [list(h) for h in via_sweep.grids] == [list(h) for h in via_ledger]
+
+
+def test_the_raw_L2_3_cell_is_REPORTED_and_NOT_JUDGED(generated_result):
+    """The floor came out and the record says so. This test is the thing that
+    stops it drifting back in unnoticed: a number restored to L2.3 without the
+    external panel that would justify one turns this red."""
+    band = fgl.BANDS["L2.3_timing_diversity_periods"]
+    assert band.threshold is None and band.anchor is fgl.AnchorStatus.NEED
+    cell = generated_result.cell("L2.3_timing_diversity_periods")
+    assert cell.verdict is fgl.Verdict.UNVALIDATED
+    assert cell.value > 0.0, "the statistic is still measured and still reported"
+    assert "SERL" in band.anchor_source, (
+        "an unjudged cell must name what would close it, or it is a blank with no "
+        "route back to a number"
+    )
 
 
 def test_L2_4_scale_spread_FIRES_when_every_home_is_set_to_the_mean(generated):
@@ -1379,8 +1598,8 @@ def test_L2_3_FIRES_when_every_HOUSEHOLD_CLOCK_is_collapsed(monkeypatch, weather
     """
     mutated = _regenerated_result(monkeypatch, weather, _MAX_ROUTINE_OFFSET_PERIODS=0.0)
     failed = {c.statistic for c in mutated.failed}
-    assert "L2.3_timing_diversity_periods" in failed, (
-        "collapsing the per-home routine MUST re-open L2.3 — if it does not, the "
+    assert "L2.3n_timing_diversity_null_ratio" in failed, (
+        "collapsing the per-home routine MUST re-open L2.3n — if it does not, the "
         f"routine is not what is holding the cell open. Got: {mutated.summary()}"
     )
 

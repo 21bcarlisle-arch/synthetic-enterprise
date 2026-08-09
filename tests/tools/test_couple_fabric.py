@@ -417,11 +417,25 @@ def test_the_LAST_RED_CELL_closed_by_the_BAND_being_conditioned_not_moved(panel,
     # own R15 mutation shows the anchor does not transfer to this window
     # (`tests/harness/test_premise_two_level.py::
     # test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window`).
+    #
+    # `L2.3_timing_diversity_periods` JOINED this set on 2026-08-10 (H34), and the
+    # direction matters: it is not a cell quietly losing its threshold to go green.
+    # The H33 sweep measured its 0.5-half-hour floor INSIDE its own null at 40, 60
+    # and 90 days — a structureless population cleared it 68% of the time at 40d —
+    # and no height fixes a spread-of-means judged against a constant. The floor
+    # came out and a STRICTLY SHARPER cell arrived in the same commit:
+    # `L2.3n_timing_diversity_null_ratio` scores the same spread against a re-deal
+    # of this population's own days, and it is JUDGED here (asserted below), so
+    # nothing stopped being checked.
     unvalidated = {c.statistic for c in result.cells if c.verdict is fgl.Verdict.UNVALIDATED}
     assert unvalidated == {
         "L1.2h_heating_shape_repeatability",
         "L1.4_weekday_weekend_separation",
+        "L2.3_timing_diversity_periods",
     }, unvalidated
+    assert result.cell("L2.3n_timing_diversity_null_ratio").verdict in (
+        fgl.Verdict.PASS, fgl.Verdict.FAIL
+    ), "L2.3 became unjudged only because L2.3n judges it — that must stay true here"
     assert result.cell("L2.4_scale_spread_p90_p10").verdict is fgl.Verdict.FAIL
     # ...and the new one is not vacuous on this panel: the panel's heat-pump home
     # is exactly a home whose heat lands on the judged meter.

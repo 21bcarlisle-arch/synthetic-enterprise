@@ -3,13 +3,15 @@
     "homes": 10,
     "days": 120
   },
-  "bands_swept": 9,
+  "bands_swept": 8,
   "excluded": {
     "L1.1u_half_hourly_texture_unregistered_regime": "no numeric threshold (anchor=need)",
     "L1.2h_heating_shape_repeatability": "no numeric threshold (anchor=need)",
     "L1.4_weekday_weekend_separation": "no numeric threshold (anchor=need)",
     "L1.4n_weekday_weekend_null_ratio": "anchor is structural, not external \u2014 its bound is an argument, not a measured external figure",
-    "L1.5_max_multiplicity_share": "anchor is structural, not external \u2014 its bound is an argument, not a measured external figure"
+    "L1.5_max_multiplicity_share": "anchor is structural, not external \u2014 its bound is an argument, not a measured external figure",
+    "L2.3_timing_diversity_periods": "no numeric threshold (anchor=need)",
+    "L2.3n_timing_diversity_null_ratio": "anchor is structural, not external \u2014 its bound is an argument, not a measured external figure"
   },
   "measurements": [
     {
@@ -165,28 +167,6 @@
       "caveat": "",
       "verdict": "separated",
       "note": "the band clears the null by 0.4 against a null spread of 0"
-    },
-    {
-      "band": "L2.3_timing_diversity_periods",
-      "direction": "at_least",
-      "threshold": 0.5,
-      "anchor": "domain",
-      "randomisation": "exchangeable_homes",
-      "scope": "population",
-      "homes_judged": 10,
-      "draws": 200,
-      "null_median": 0.3444387753383361,
-      "null_p5": 0.22221422044743094,
-      "null_p95": 0.48990277466211,
-      "null_spread": 0.2676885542146791,
-      "null_best": 0.48990277466211,
-      "margin": 0.010097225337889981,
-      "observed_median": 1.0128785300650132,
-      "observed_worst": 1.0128785300650132,
-      "spread_readings": 200,
-      "caveat": "",
-      "verdict": "same_order",
-      "note": "the band clears the null by 0.0101, which is inside the null's own spread of 0.2677 \u2014 separated by the draw, not by construction"
     },
     {
       "band": "L2.4_scale_spread_p90_p10",

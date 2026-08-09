@@ -12,6 +12,7 @@ The sweep's own fail-open shapes, and the test that closes each:
 
 from __future__ import annotations
 
+import dataclasses
 import math
 import random
 import textwrap
@@ -123,9 +124,9 @@ def test_a_band_with_no_null_spec_RAISES(population):
     sweep, never quietly shrink its coverage."""
     with pytest.MonkeyPatch.context() as mp:
         specs = dict(bns.NULL_SPECS)
-        specs.pop("L2.3_timing_diversity_periods")
+        specs.pop("L2.2_between_home_correlation")
         mp.setattr(bns, "NULL_SPECS", specs)
-        with pytest.raises(bns.SweepIncomplete, match="L2.3_timing_diversity_periods"):
+        with pytest.raises(bns.SweepIncomplete, match="L2.2_between_home_correlation"):
             bns.sweep(population, replications=2)
 
 
@@ -285,8 +286,8 @@ def test_a_band_far_above_its_null_stays_SEPARATED(population):
 
 
 def test_the_null_is_REPRODUCIBLE_at_a_fixed_seed(population):
-    a = bns.measure_null("L2.3_timing_diversity_periods", population, replications=20, seed=7)
-    b = bns.measure_null("L2.3_timing_diversity_periods", population, replications=20, seed=7)
+    a = bns.measure_null("L2.2_between_home_correlation", population, replications=20, seed=7)
+    b = bns.measure_null("L2.2_between_home_correlation", population, replications=20, seed=7)
     assert (a.null_best, a.null_spread, a.verdict) == (b.null_best, b.null_spread, b.verdict)
 
 
@@ -363,17 +364,34 @@ def test_a_shrinking_window_GROWS_the_sampling_null(population):
     inside its own null at another while the number in the table never moves.
 
     L2.3 is a spread-of-means, so its null falls like 1/sqrt(days) — and on the
-    live panel the shipped band sits INSIDE it at 40, 60 and 90 days and clears
+    live panel the shipped band sat INSIDE it at 40, 60 and 90 days and cleared
     it at 120 by 3.8% of the null's own spread. A control whose verdict on a
     structureless population depends on how long it watched is not measuring what
     its threshold claims to measure.
+
+    THE FLOOR THIS DEMONSTRATES ON IS GONE — it came out on 2026-08-10 (H34) and
+    L2.3 is now reported-not-judged, with `L2.3n_timing_diversity_null_ratio`
+    doing the judging. So the band is restored HERE, in the test, exactly as it
+    was: deleting the demonstration along with the floor would leave the finding
+    resting on a note in a design doc, and the next spread-of-means band that
+    wants a constant floor deserves to meet this test rather than a paragraph.
     """
-    measured = bns.window_sensitivity(
-        "L2.3_timing_diversity_periods", population, (40, DAYS), replications=40
+    was = dataclasses.replace(
+        fgl.BANDS["L2.3_timing_diversity_periods"],
+        threshold=0.5, anchor=fgl.AnchorStatus.DOMAIN_KNOWLEDGE,
     )
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(fgl, "BANDS", {**fgl.BANDS, "L2.3_timing_diversity_periods": was})
+        measured = bns.window_sensitivity(
+            "L2.3_timing_diversity_periods", population, (40, DAYS), replications=40
+        )
     short, long = measured
     assert short.days == 40 and long.days == DAYS
     assert short.null_best > long.null_best
+    assert short.is_hit, (
+        "the floor that was removed must still read as a hit at the short window — "
+        f"if it does not, the finding behind H34 no longer reproduces: {short.note}"
+    )
 
 
 def test_truncating_a_population_keeps_every_home_and_shortens_every_grid(population):
