@@ -61,8 +61,13 @@ def test_startlist_is_enabled_dark_and_not_yet_migrated():
     # OPS1 sub-step 4: startlist = daemons start_worker.sh still TMUX-launches (owner==systemd,
     # enabled|dark, NOT migrated to systemd). A migrated daemon LEAVES this set.
     names = [s for s, _ in R.startlist()]
-    assert "sim-runner" in names            # enabled, still tmux
     assert "executor-daemon" in names       # dark: installed (no-op) unit, still tmux
+    # 2026-08-09: sim-runner MOVED to the migrated side. Its unit was installed+enabled+ACTIVE
+    # and stamping boot SHAs, while `launched_by` still said tmux — the same half-done cutover
+    # that hit staging-watcher and ntfy-responder on 2026-07-29, left un-flipped on seven more
+    # rows. See test_systemd_owned_sessions_are_only_the_migrated_ones below.
+    assert "sim-runner" not in names        # MIGRATED to systemd (launched_by) — left the tmux set
+    assert "background-worker" not in names  # MIGRATED to systemd (launched_by) — left the tmux set
     assert "supervisor" not in names        # MIGRATED to systemd (launched_by) — left the tmux set
     assert "deadmans-switch" not in names   # MIGRATED to systemd (launched_by) — left the tmux set
     assert "claude" not in names            # worker seat: owned by worker-seat-manager, not systemd
@@ -88,10 +93,21 @@ def test_systemd_owned_sessions_are_only_the_migrated_ones():
     one director message was queued twice).
 
     NOTE this is no longer the set `_live_unit_states` queries: that reads EVERY owner==systemd
-    unit, so a half-migrated daemon's active unit is visible to DOUBLE_LAUNCH detection."""
+    unit, so a half-migrated daemon's active unit is visible to DOUBLE_LAUNCH detection.
+
+    2026-08-09 — the remaining SEVEN rows were flipped, completing the migration for every daemon
+    that is actually systemd-launched. The 2026-07-29 pass closed this at the INSTANCE (two rows)
+    and left seven identical ones standing, which is the R10 breach that mattered: an un-flipped
+    row is not only double-launchable, it is EXCLUDED from `_systemd_owned_sessions()` and therefore
+    invisible to boot-SHA drift. sim-runner and background-worker were among the excluded, and both
+    ran pre-cure code for ~10h through the second publish wedge while the drift check reported
+    clean. `executor-daemon` is deliberately NOT here: it is `dark` and its unit is
+    inactive+disabled, so tmux remains its declared launcher."""
     assert set(R._systemd_owned_sessions()) == {
         "worker-seat-manager", "supervisor", "deadmans-switch",
         "staging-watcher", "ntfy-responder",
+        "background-worker", "dispatcher", "discovery-daemon",
+        "sim-runner", "sanity-daemon", "naive-organ", "token-proxy",
     }
 
 
