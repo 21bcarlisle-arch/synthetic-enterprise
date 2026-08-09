@@ -100,9 +100,26 @@ production module imports and no command runs. Absence becomes a query rather
 than a discovery, and per R15 it is mutation-proven: delete the only caller of
 a real module and it must appear.
 
+ORPHAN DISPOSITION (KNIFE pass 4)
+---------------------------------
+`--orphans` answers *what is unwired*. It cannot answer *and what did we decide
+about it* — a standing list nobody has ruled on decays into wallpaper, which is
+how the no-caller class produced 13 instances in 13 days, 8 of them found by
+accident. `--dispositions` is the ruling half: every company-side orphan must
+carry a row in `docs/design/ORPHAN_DISPOSITION_REGISTER.md` naming its class,
+the referent that class requires, and a reason.
+
+There is deliberately NO generator. A new orphan must be dispositioned by a
+judgement, and this check FAILS until one exists; auto-stamping every new
+orphan with a default class would be the fail-open that empties the ruling of
+content. The check also fails on a STALE row — a module that stopped being an
+orphan, or stopped existing — so the register cannot quietly outlive its
+subject.
+
 Usage:
     python3 tools/capability_index.py --find billing
     python3 tools/capability_index.py --orphans
+    python3 tools/capability_index.py --dispositions
     python3 tools/capability_index.py --unnamed
     python3 tools/capability_index.py --json --out /tmp/index.json
 """
@@ -557,6 +574,207 @@ def orphans(rows: list[dict]) -> list[dict]:
     return [r for r in rows if r["status"] == "orphan"]
 
 
+# ---------------------------------------------------------------------------
+# disposition (KNIFE pass 4) — the ruling on every orphan
+# ---------------------------------------------------------------------------
+
+#: The register this check reads. The index is the SOURCE (what is an orphan);
+#: the register is the RULING (what we decided about it). Two files because a
+#: judgement stored in the thing that derives the fact would be re-derived away
+#: on the next run.
+DISPOSITION_REGISTER = "docs/design/ORPHAN_DISPOSITION_REGISTER.md"
+
+#: Which orphans must carry a ruling. The register is a company-layer artefact;
+#: `background/`, `tools/` and `sim/` orphans are governed elsewhere and are not
+#: silently swept in here.
+DISPOSITION_PREFIXES: tuple[str, ...] = ("company.", "saas.")
+
+#: Each disposition class and the referent it MUST name to be non-vacuous. A
+#: class with no required referent would be a label, and a label cannot be
+#: wrong -- which is the whole failure mode this register exists to avoid.
+DISPOSITION_CLASSES: dict[str, str] = {
+    # a caller existed and was missing; the referent is that caller, and it
+    # must now genuinely import the module (so the row self-destructs by
+    # becoming stale the moment it is true)
+    "wired": "caller",
+    # archived because something replaced it; the referent NAMES the superseder
+    "retired": "superseder",
+    # the index cannot see its real caller: an index DEFECT, logged as one
+    "explained": "caller",
+    # a real, tested capability with no consumer because the consumer was never
+    # built; the referent nominates who would drive it
+    "unhooked": "consumer",
+}
+
+_REGISTER_OPEN = "<!-- ORPHAN-DISPOSITIONS"
+_REGISTER_CLOSE = "ORPHAN-DISPOSITIONS -->"
+
+#: Referent form for an orphan whose whole PACKAGE has no external consumer --
+#: there is no module to nominate, and inventing one would be decoration. It is
+#: a claim about the tree, not an escape hatch: the check verifies the package
+#: really has zero external consumers and fires when one appears.
+_NO_CONSUMER = "none:"
+
+
+def parse_dispositions(text: str) -> tuple[list[dict], list[str]]:
+    """Rows of the register, plus every line that would not parse.
+
+    Malformed lines are RETURNED, never skipped: a row the parser cannot read
+    is a ruling nobody is enforcing, and dropping it silently would let a typo
+    un-disposition a module while the count still looked complete.
+    """
+    rows: list[dict] = []
+    errors: list[str] = []
+    inside = False
+    for lineno, raw in enumerate(text.splitlines(), start=1):
+        line = raw.strip()
+        if not inside:
+            if line.startswith(_REGISTER_OPEN):
+                inside = True
+            continue
+        if line.startswith(_REGISTER_CLOSE):
+            inside = False
+            continue
+        if not line or line.startswith("#"):
+            continue
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) != 4 or not all(parts[:3]):
+            errors.append("line %d is not `module | class | referent | reason`: %s"
+                          % (lineno, line[:90]))
+            continue
+        rows.append({"module": parts[0], "class": parts[1],
+                     "referent": parts[2], "reason": parts[3], "line": lineno})
+    if inside:
+        errors.append("the disposition block was opened and never closed -- every row after "
+                      "the last readable one is unenforced")
+    return rows, errors
+
+
+def _package_consumers(rows: list[dict]) -> dict[str, set[str]]:
+    """Per package, the modules OUTSIDE it that import one of its wired modules."""
+    out: dict[str, set[str]] = {}
+    for row in rows:
+        pkg = row["module"].rpartition(".")[0]
+        if not pkg:
+            continue
+        bucket = out.setdefault(pkg, set())
+        if row["status"] != "wired":
+            continue
+        for caller in row["callers"]:
+            name = caller.replace(" (by path)", "")
+            if name == pkg or name.startswith(pkg + "."):
+                continue  # a sibling is not a driver of the package
+            bucket.add(name)
+    return out
+
+
+def disposition_findings(rows: list[dict], root: Path | None = None) -> list[str]:
+    """Every way the orphan ruling could be quietly absent, stale or vacuous.
+
+    Reads the register from disk rather than taking it as an argument, because
+    the failure this guards is the register being MISSING -- and a check that
+    can only run once someone hands it a register cannot witness that.
+    """
+    base = root or ROOT
+    path = base / DISPOSITION_REGISTER
+    findings: list[str] = []
+
+    subjects = {r["module"]: r for r in rows
+                if r["module"].startswith(DISPOSITION_PREFIXES)}
+    outstanding = {m for m, r in subjects.items() if r["status"] == "orphan"}
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        # FAIL-SILENT guard: an unavailable register is a FAILED ruling, and
+        # must never read as "no orphans outstanding".
+        return ["DISPOSITION REGISTER UNAVAILABLE: %s could not be read (%s) -- %d "
+                "company-side orphan(s) are therefore unruled, which is a FAILED check, "
+                "not a clean one" % (DISPOSITION_REGISTER, exc, len(outstanding))]
+
+    declared, errors = parse_dispositions(text)
+    findings.extend("MALFORMED DISPOSITION: %s" % e for e in errors)
+
+    if outstanding and not declared:
+        findings.append(
+            "VACUOUS REGISTER: %d company-side orphan(s) outstanding and the register "
+            "declares 0 dispositions -- an empty ruling is not a clean tree"
+            % len(outstanding)
+        )
+
+    consumers = _package_consumers(rows)
+    seen: set[str] = set()
+    for row in declared:
+        mod, cls, ref = row["module"], row["class"], row["referent"]
+        where = "%s (line %d)" % (mod, row["line"])
+        if mod in seen:
+            findings.append("DUPLICATE DISPOSITION: %s is ruled on twice -- two rulings "
+                            "means neither is the ruling" % where)
+            continue
+        seen.add(mod)
+
+        if mod not in subjects:
+            findings.append(
+                "STALE DISPOSITION: %s names a module that is no longer in the index -- "
+                "the register is outliving its subject" % where)
+            continue
+        if subjects[mod]["status"] != "orphan":
+            findings.append(
+                "STALE DISPOSITION: %s is now %s, not an orphan -- delete the row; a ruling "
+                "kept past its subject is how the count stops meaning anything"
+                % (where, subjects[mod]["status"]))
+            continue
+
+        required = DISPOSITION_CLASSES.get(cls)
+        if required is None:
+            findings.append("UNKNOWN CLASS: %s is classed %r, which is not one of %s"
+                            % (where, cls, ", ".join(sorted(DISPOSITION_CLASSES))))
+            continue
+        if not row["reason"]:
+            findings.append("EMPTY REASON: %s carries a class but no reason -- a class "
+                            "without a reason is a label" % where)
+
+        if ref.startswith(_NO_CONSUMER):
+            pkg = ref[len(_NO_CONSUMER):]
+            if cls != "unhooked":
+                findings.append("REFERENT MISUSE: %s uses `%s...`, which only a class "
+                                "`unhooked` row may claim" % (where, _NO_CONSUMER))
+            elif pkg != mod.rpartition(".")[0]:
+                findings.append("REFERENT MISMATCH: %s claims package %r, but the module "
+                                "lives in %r" % (where, pkg, mod.rpartition(".")[0]))
+            elif consumers.get(pkg):
+                findings.append(
+                    "REFUTED REFERENT: %s claims package %s has no external consumer, but "
+                    "%s imports it -- nominate that consumer"
+                    % (where, pkg, sorted(consumers[pkg])[0]))
+            continue
+
+        if ref not in subjects and ref not in {r["module"] for r in rows}:
+            findings.append("ABSENT REFERENT: %s names %s as its %s, and no such module "
+                            "exists" % (where, ref, required))
+            continue
+
+        if cls == "unhooked":
+            pkg = mod.rpartition(".")[0]
+            if ref not in consumers.get(pkg, set()):
+                findings.append(
+                    "DECORATIVE REFERENT: %s nominates %s as the consumer that would drive "
+                    "it, but %s imports nothing from %s -- a nomination that touches the "
+                    "package nowhere is decoration" % (where, ref, ref, pkg))
+        elif cls == "wired":
+            findings.append(
+                "SELF-REFUTING ROW: %s is classed `wired` but the index still calls it an "
+                "orphan -- if %s really imports it the status would say so"
+                % (where, ref))
+
+    missing = sorted(outstanding - seen)
+    if missing:
+        findings.append(
+            "UNDISPOSITIONED: %d company-side orphan(s) carry no ruling: %s"
+            % (len(missing), ", ".join(missing[:10]) + (" ..." if len(missing) > 10 else "")))
+    return findings
+
+
 def unnamed(rows: list[dict]) -> list[dict]:
     """The empty rows: code with no plain-words description of what it is for.
 
@@ -621,6 +839,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--find", metavar="TERM", help="rows whose name or description mentions TERM")
     ap.add_argument("--orphans", action="store_true", help="modules nothing imports and no command runs")
+    ap.add_argument("--dispositions", action="store_true",
+                    help="check every company-side orphan carries a ruling in the register")
     ap.add_argument("--unnamed", action="store_true", help="rows with no plain-words description")
     ap.add_argument("--json", action="store_true", help="emit the whole index as JSON")
     ap.add_argument("--out", metavar="PATH", help="write the JSON index to PATH")
@@ -658,6 +878,29 @@ def main(argv: list[str] | None = None) -> int:
         rest = orphans(rows)
         print("%d orphan row(s): nothing imports them and no command runs them" % len(rest))
         _print_rows(rest, args.limit)
+    elif args.dispositions:
+        try:
+            ruling = disposition_findings(rows)
+        except Exception as exc:
+            print("ORPHAN DISPOSITIONS: COULD NOT RUN -- %s" % exc, file=sys.stderr)
+            return 2
+        subject = [r for r in orphans(rows) if r["module"].startswith(DISPOSITION_PREFIXES)]
+        declared, _ = parse_dispositions(
+            (ROOT / DISPOSITION_REGISTER).read_text(encoding="utf-8")
+            if (ROOT / DISPOSITION_REGISTER).exists() else "")
+        counts: dict[str, int] = {}
+        for row in declared:
+            counts[row["class"]] = counts.get(row["class"], 0) + 1
+        print("ORPHAN DISPOSITIONS: %d company-side orphan(s), %d ruled -- %s"
+              % (len(subject), len(declared),
+                 ", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)) or "none"))
+        if ruling:
+            print("%d disposition finding(s):" % len(ruling), file=sys.stderr)
+            for f in ruling:
+                print("  " + f, file=sys.stderr)
+            return 1
+        print("every company-side orphan carries a ruling with a referent that holds")
+        return 1 if findings else 0
     elif args.unnamed:
         rest = unnamed(rows)
         print("%d unnamed capability row(s): code with no docstring to describe it" % len(rest))

@@ -325,3 +325,183 @@ def test_cli_returns_two_when_it_cannot_run(tmp_path, monkeypatch):
     monkeypatch.setattr(ci, "build_rows", lambda *a, **k: (_ for _ in ()).throw(
         RuntimeError("oracle unavailable")))
     assert ci.main(["--check"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# orphan disposition (KNIFE pass 4) — R15 on the ruling, not just on the index
+#
+# The register is a second fail-open surface stacked on the first. An index
+# that under-reports looks like a small codebase; a REGISTER that under-reports
+# looks like a tidy one — every orphan ruled, because the ones nobody ruled on
+# were never counted. So each check below is mutated into firing on a real
+# tree, and the healthy case is asserted too: a control that can only fail is
+# worth as little as one that can only pass.
+# ---------------------------------------------------------------------------
+
+def write_register(root, body):
+    """Put a register on disk where `disposition_findings` looks for it."""
+    path = root / ci.DISPOSITION_REGISTER
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "# register\n\n<!-- ORPHAN-DISPOSITIONS\n" + body + "\nORPHAN-DISPOSITIONS -->\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+HEALTHY_ROW = ("company.billing.abandoned | unhooked | tools.runner | "
+               "a register nothing imports; no importer")
+
+
+def fires(findings, marker):
+    return [f for f in findings if f.startswith(marker)]
+
+
+def test_the_healthy_register_produces_no_findings(tree):
+    """The control must be able to PASS on a correct tree, or every mutation
+    below proves nothing but that it always fires."""
+    write_register(tree, HEALTHY_ROW)
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+
+def test_an_orphan_with_no_ruling_fires(tree):
+    """The exit criterion itself: `every orphan carries a disposition`."""
+    write_register(tree, "# nothing ruled on")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert fires(findings, "VACUOUS REGISTER")
+    assert any("company.billing.abandoned" in f for f in fires(findings, "UNDISPOSITIONED"))
+
+
+def test_a_new_orphan_appearing_later_fires(tree):
+    """The 259th orphan. The register is complete today; a module that loses
+    its caller tomorrow must break the check, which is the whole reason this
+    is a mechanism and not a one-off audit."""
+    write_register(tree, HEALTHY_ROW)
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+    (tree / "tools" / "runner.py").write_text(
+        '"""Command that runs nothing in particular."""\n'
+        'if __name__ == "__main__":\n    pass\n', encoding="utf-8")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert any("company.billing.engine" in f for f in fires(findings, "UNDISPOSITIONED"))
+
+
+def test_a_missing_register_is_a_failed_check_not_a_clean_one(tree):
+    """FAIL-SILENT. An unavailable ruling must never read as 'no orphans
+    outstanding' — that is the shape that lets the whole surface disappear."""
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert fires(findings, "DISPOSITION REGISTER UNAVAILABLE")
+    assert "1 company-side orphan(s) are therefore unruled" in findings[0]
+
+
+def test_a_ruling_that_outlives_its_subject_fires(tree):
+    """STALE both ways: the module got wired, and the module went away."""
+    write_register(tree, HEALTHY_ROW + "\ncompany.billing.working_days | unhooked | "
+                                       "tools.runner | already wired")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert any("is now wired" in f for f in fires(findings, "STALE DISPOSITION"))
+
+    write_register(tree, HEALTHY_ROW + "\ncompany.billing.deleted_long_ago | unhooked | "
+                                       "tools.runner | subject no longer exists")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert any("no longer in the index" in f for f in fires(findings, "STALE DISPOSITION"))
+
+
+def test_a_consumer_that_touches_the_package_nowhere_fires(tree):
+    """DECORATIVE REFERENT — the guard that stops `unhooked` becoming a label.
+    `company.billing.engine` is a real module, so the referent EXISTS; it just
+    imports nothing from the orphan's package, which makes the nomination
+    scenery rather than a claim."""
+    write_register(tree, "company.billing.abandoned | unhooked | company.billing.engine | "
+                         "nominates a sibling that drives nothing")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert fires(findings, "DECORATIVE REFERENT")
+
+
+def test_a_referent_that_does_not_exist_fires(tree):
+    write_register(tree, "company.billing.abandoned | unhooked | tools.imaginary | "
+                         "nominates a module nobody wrote")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "ABSENT REFERENT")
+
+
+def test_a_no_consumer_claim_is_refuted_when_a_consumer_exists(tree):
+    """REFUTED REFERENT. `none:<package>` is a claim about the tree, not an
+    exemption from making one."""
+    write_register(tree, "company.billing.abandoned | unhooked | none:company.billing | "
+                         "claims the package has no door")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "REFUTED REFERENT")
+
+
+def test_a_no_consumer_claim_holds_when_the_package_really_has_no_door(tree):
+    """...and it must be able to be TRUE, or the five real `none:` rows in the
+    live register could never pass."""
+    (tree / "company" / "carbon").mkdir()
+    (tree / "company" / "carbon" / "__init__.py").write_text("", encoding="utf-8")
+    (tree / "company" / "carbon" / "ledger.py").write_text(
+        '"""Carbon ledger nothing drives."""\nVALUE = 1\n', encoding="utf-8")
+    write_register(tree, HEALTHY_ROW + "\ncompany.carbon.ledger | unhooked | "
+                                       "none:company.carbon | no consumer exists")
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+
+def test_a_class_outside_the_declared_set_fires(tree):
+    write_register(tree, "company.billing.abandoned | probably_fine | tools.runner | "
+                         "invents its own class")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "UNKNOWN CLASS")
+
+
+def test_a_wired_ruling_on_a_still_orphaned_module_refutes_itself(tree):
+    """`wired` says a caller was missing and now is not. The index disagreeing
+    is the row refuting itself, and it must say so rather than be believed."""
+    write_register(tree, "company.billing.abandoned | wired | tools.runner | claims a caller")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "SELF-REFUTING ROW")
+
+
+def test_a_malformed_row_is_reported_never_skipped(tree):
+    """A row the parser cannot read is a ruling nobody is enforcing. Dropping
+    it silently would un-disposition a module while the count still looked
+    complete — the tidy-register fail-open in its purest form."""
+    write_register(tree, "company.billing.abandoned | unhooked | tools.runner")
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert fires(findings, "MALFORMED DISPOSITION")
+    assert fires(findings, "UNDISPOSITIONED")
+
+
+def test_an_unclosed_block_does_not_swallow_the_rest_of_the_file(tree):
+    path = tree / ci.DISPOSITION_REGISTER
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("<!-- ORPHAN-DISPOSITIONS\n" + HEALTHY_ROW + "\n", encoding="utf-8")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree),
+                 "MALFORMED DISPOSITION")
+
+
+def test_two_rulings_on_one_module_fire(tree):
+    write_register(tree, HEALTHY_ROW + "\n" + HEALTHY_ROW)
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "DUPLICATE DISPOSITION")
+
+
+def test_a_class_with_no_reason_is_a_label(tree):
+    write_register(tree, "company.billing.abandoned | unhooked | tools.runner |")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "EMPTY REASON")
+
+
+def test_only_company_side_orphans_are_swept_in(tree):
+    """`background/` and `tools/` orphans are governed elsewhere. Sweeping them
+    in silently would make this register the owner of a population it never
+    measured."""
+    (tree / "tools" / "stray.py").write_text(
+        '"""A tools-side orphan."""\nVALUE = 1\n', encoding="utf-8")
+    write_register(tree, HEALTHY_ROW)
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+
+def test_the_live_register_rules_on_every_live_orphan():
+    """The pass's own exit criterion, asserted against the real tree."""
+    rows = ci.build_rows(REPO)
+    assert ci.disposition_findings(rows, REPO) == []
+    subjects = [r for r in ci.orphans(rows)
+                if r["module"].startswith(ci.DISPOSITION_PREFIXES)]
+    declared, errors = ci.parse_dispositions(
+        (REPO / ci.DISPOSITION_REGISTER).read_text(encoding="utf-8"))
+    assert errors == []
+    assert len(declared) == len(subjects) > 200
+    assert {r["class"] for r in declared} <= set(ci.DISPOSITION_CLASSES)

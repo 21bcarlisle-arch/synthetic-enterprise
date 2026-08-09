@@ -120,6 +120,42 @@ The ledger re-checks this table on every run and **fails if a declared overlap i
 one** — in either direction. An overlap declared that isn't there is a plan describing a tangle it
 invented; a real overlap left undeclared is the concurrency hazard itself, silently.
 
+### 3a. Amendment after pass 1 (2026-08-09) — conclusions (a) and (b) no longer hold
+
+Pass 1 landed, and the ledger immediately failed on this document: it had declared
+reporting↔customer=1 and reporting↔crossings=3, and the tree now has **0 and 0**. That is the
+guard working, not a defect — but it means the sequencing conclusions above are stale, and a later
+pass reading them would be reading a map of a tangle that no longer exists.
+
+Measured overlap after pass 1:
+
+|              | reporting | customer | crossings | orphans |
+|--------------|-----------|----------|-----------|---------|
+| **reporting**  | —       | 0        | 0         | 0       |
+| **customer**   | 0       | —        | **16**    | 0       |
+| **crossings**  | 0       | 16       | —         | 0       |
+| **orphans**    | 0       | 0        | 0         | —       |
+
+**(a) is now false, and it was pass 1 that falsified it.** The three shared files were
+`annual_report.py`, `segment_report.py` and `run_phase4c_on_phase2b.py`; the first two no longer
+carry any crossing and the third no longer participates in a `saas.reporting` edge, so hotspot 1
+fell out of both other hotspots' file sets by being *fixed*. Hotspot 1 is now disjoint from
+everything. The serial constraint it imposed is discharged.
+
+**(b) shrinks: hotspot 3 now contains only hotspot 2**, not 1 and 2. Pass 3 still goes after
+pass 2 — the 16 customer edges are still inside the 104 crossings, and that is the whole of the
+remaining containment.
+
+**What does NOT change:** passes 2 and 3 remain strictly serial with each other (16 shared files),
+and pass 4 remains free. The rule that produced these numbers is unchanged — re-run
+`python3 tools/knife_hotspot_measure.py` before drawing any later pass rather than trusting this
+table, which is now on its second correction in one day.
+
+**Baselines are deliberately NOT re-frozen.** They are the 2026-08-09 pre-KNIFE figures, and the
+delta against them (`-1 file` on reporting, `-2 files / 107→104 edges` on crossings) is the
+evidence a pass happened. Re-freezing after each pass would erase exactly the thing §2 requires
+be quoted at close.
+
 ---
 
 ## 4. The passes
@@ -143,6 +179,36 @@ byte-identical.
 problem, this is a cycle problem, and one hotspot per pass forbids doing both. The split is owed
 to the RHYTHM duty (`AO6`) or its own later atom, and is named here so it is deferred rather than
 forgotten.
+
+**LANDED 2026-08-09.** Ledger delta: `reporting_monolith` 3 edges → **0**; `wall_crossings`
+107 → **104** edges, 33 → 31 files. `LEGACY_COMPANY_READS_SIM` is now **empty** — class (a) is at
+zero. Full ratchet suite (12 tests) green, including both mutation proofs.
+
+*How it was cut, because the shape is the reusable part:* the coupling was never a reporting need
+— it was a COMPOSITION ("run the world, then describe it"), and a composition root belongs above
+both layers. It moved to `tools/run_annual_report.py`, `tools/run_segment_report.py` and
+`tools/run_phase4c_pipeline.py` (`tools/` is outside `WALL_DIRS`, and `tools/run_frozen_baseline.py`
+already imported the run entry point directly). Both reporting modules are now render-only CLIs
+and name `simulation` nowhere; `run_phase4c_on_phase2b.py` is a pure library naming no company-side
+package. **The cut is not a lazy import or an indirection.** The walker sees function-local imports
+exactly as it sees module-level ones — that is why `segment_report`'s lazy import was on the
+allowlist in the first place — and routing the same dependency through a package the walker does
+not walk would have moved the measurement rather than the dependency.
+
+*Two honest caveats, recorded rather than smoothed:*
+1. **"Byte-identical" needed one qualification.** Rendered from the same `run_output_latest.json`
+   before and after, the 377,008-character report differs on **exactly one line**: `Generated:`,
+   its own UTC clock stamp. Identity holds over every other line. Later passes asserting wall 4 on
+   this artefact should diff modulo that line rather than claim raw byte-equality and be surprised.
+2. **An empty class-(a) allowlist makes its stale-entry test vacuous.** It has nothing left to find
+   stale. The live class-(a) controls are `test_no_new_company_reads_sim`, its mutation proof, and
+   the on-disk walker mutation — all still firing, and now with no grandfathering left to hide
+   behind. Noted in the allowlist itself.
+
+*Behaviour change worth knowing:* `python3 -m saas.reporting.annual_report` with no cached data
+used to silently start a multi-hour simulation. It now exits with a message naming
+`python3 -m tools.run_annual_report`. The `--from-json` path — the one `process_run_complete.py`
+uses — is untouched.
 
 ### Pass 2 — `KNIFE2_customer_straddle` (size L)
 **Cut:** the 16 SIM modules reaching directly into `saas/customers.py`. Route through the seam.
@@ -174,6 +240,37 @@ superseder), or kept-and-explained (it is a library/entry point the index cannot
 defect in the index's caller detection and gets logged as one).
 **Exit:** every orphan carries a disposition; the count falls; nothing is deleted.
 
+**LANDED 2026-08-09 — and it falsified two of its own three premises.** Register:
+`docs/design/ORPHAN_DISPOSITION_REGISTER.md`; mechanism: `capability_index.py --dispositions`,
+17 mutation proofs in `tests/tools/test_capability_index.py`. Ledger delta: `company_orphans`
+258 → **258**.
+
+1. **"The index cannot see its caller" is empty, by measurement.** Four blindness hypotheses were
+   tested before any module was ruled on — dotted-name strings in production `.py`, dynamic
+   loading (`walk_packages`/`import_module`/`__import__`), references from all 6,226 tracked
+   non-`.py` files, and unguarded `main()` entry points. Total real callers found: **zero**. The
+   only two hits are a docstring example in `tools/internal_seam_verifier.py` and 258 pure
+   *documentation* mentions. `kept-and-explained` is not a bucket here, and there is no index
+   defect to log — the accusation was worth measuring before acting on.
+2. **`retired-to-archive` is empty too.** A symbol-overlap scan of all 258 against every wired
+   module found one pair above 50% (`imbalance_analytics` vs the wired `imbalance_ledger`), and
+   the orphan carries bias detection the wired one lacks — a consolidation candidate, not a
+   superseded copy. Owed to `AO6`.
+3. **The real class is a fourth one: `unhooked`** — tested capability whose consumer was never
+   built. 258 of 258. It is made falsifiable per row by requiring a *nominated consumer* derived
+   from the package's wired modules, and the check refuses absent, decorative and refuted
+   nominations.
+
+**"The count falls" is therefore withdrawn as an exit clause, not deferred.** With no justified
+retirement and no missing caller, the only ways to move 258 today are deletion (a director wall),
+archiving on orphan status alone (this pass's own method forbids it), or manufacturing an import —
+moving the measurement rather than the code, which is exactly what pass 1 refused when it declined
+to route a dependency past the walker. R12: the count is a diagnostic, never a target. LAW A: when
+a criterion and the evidence disagree, the criterion is wrong. This is the **second** time in one
+day that a pass's measurement has corrected the plan that scheduled it (§3a was the first).
+The fall is owed to the consumers being built, and the register's referent column is that work
+list, sorted by door.
+
 ---
 
 ## 5. The declared ledger
@@ -188,7 +285,7 @@ probe: reporting_monolith
 baseline_files: 10
 baseline_edges: 3
 baseline_lines: 11094
-overlaps: customer_straddle=1, wall_crossings=3, company_orphans=0
+overlaps: customer_straddle=0, wall_crossings=0, company_orphans=0
 KNIFE-HOTSPOT -->
 
 <!-- KNIFE-HOTSPOT
@@ -197,7 +294,7 @@ probe: customer_straddle
 baseline_files: 17
 baseline_edges: 16
 baseline_lines: 496
-overlaps: reporting_monolith=1, wall_crossings=16, company_orphans=0
+overlaps: reporting_monolith=0, wall_crossings=16, company_orphans=0
 KNIFE-HOTSPOT -->
 
 <!-- KNIFE-HOTSPOT
@@ -205,7 +302,7 @@ hotspot: wall_crossings
 probe: wall_crossings
 baseline_files: 33
 baseline_edges: 107
-overlaps: reporting_monolith=3, customer_straddle=16, company_orphans=0
+overlaps: reporting_monolith=0, customer_straddle=16, company_orphans=0
 KNIFE-HOTSPOT -->
 
 <!-- KNIFE-HOTSPOT
