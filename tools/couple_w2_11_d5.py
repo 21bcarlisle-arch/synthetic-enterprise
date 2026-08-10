@@ -2420,113 +2420,148 @@ def check_dimension_drift_resolution(
                 "register -- an inert counterfactual company cannot evidence "
                 "either a blindness or a resolution"
             )
-        blind = bool(tuple(entry["invisible_drifts"])
-                     or tuple(entry.get("collapsed_pairs") or ()))
         if not entry["in_causal_path"]:
-            if row["moved"]:
-                violations.append(
-                    f"{dim}: declared OFF the drift's causal path but drifts "
-                    f"{row['moved']} moved it -- the entry has rotted; "
-                    "re-derive it as an on-path entry with a measured band"
-                )
-            if not entry.get("exercised_by"):
-                violations.append(
-                    f"{dim}: declared off-path and names no `exercised_by` "
-                    "probe -- a dimension nothing in this repo can move is "
-                    "unfalsifiable, not exempt"
-                )
-            elif row["exercised"] is not True:
-                violations.append(
-                    f"{dim}: its declared `exercised_by` probe "
-                    f"({entry['exercised_by']}) did NOT move it "
-                    f"(exercised={row['exercised']!r}) -- the exemption is "
-                    "believed, which is the shape D21 hid behind"
-                )
-            continue
-        for k in entry["invisible_drifts"]:
-            if k not in row["unmoved"]:
-                violations.append(
-                    f"{dim}: drift {k:+d}d is declared INVISIBLE but moved the "
-                    f"reading on at least one seed "
-                    f"({ {s: (row['by_seed'][s]['baseline'], row['by_seed'][s]['by_drift'][k]) for s in row['seeds']} }). "
-                    f"If {entry['debt_atom']} has landed, RE-DERIVE this entry; "
-                    "a debt entry outliving its debt misleads worse than none"
-                )
-        for k in entry["visible_drifts"]:
-            if k not in row["moved"]:
-                violations.append(
-                    f"{dim}: drift {k:+d}d is declared VISIBLE but left the "
-                    "reading where it was on at least one seed -- the "
-                    "dimension is blinder than this register admits"
-                )
-        # THE BAND MUST BE EXACT, NOT MERELY TRUE. Caught by this sweep on its
-        # own first draft: with only the two rules above, UNDER-stating the
-        # blindness passed silently -- drop -1 from the ageing band and every
-        # declaration still held, while `ageing_resolution_caveat` (which
-        # interpolates the band) went on publishing a narrower blind spot than
-        # the instrument has. A caveat that can only shrink is the decay this
-        # register exists to stop.
-        undeclared = [k for k in row["unmoved"]
-                      if k not in tuple(entry["invisible_drifts"])]
-        if undeclared:
-            violations.append(
-                f"{dim}: drifts {undeclared} were MEASURED invisible and are "
-                "not declared -- the band understates the blindness, and the "
-                "caveat that interpolates it now publishes a narrower blind "
-                "spot than the instrument has"
+            violations.extend(_check_off_path_entry(dim, row, entry))
+        else:
+            violations.extend(_check_on_path_entry(dim, row, entry))
+    violations.extend(_check_register_is_differential(register))
+    return violations
+
+
+def _check_off_path_entry(dim: str, row: Dict[str, object],
+                          entry: Dict[str, object]) -> List[str]:
+    """An entry claiming the drift has no causal route to this dimension's
+    organ. It is the EXEMPTION shape D21 hid behind for five Hours, so it earns
+    two rules of its own: the claim must still be false-ifiable by measurement,
+    and the dimension must be moved by SOMETHING."""
+    out: List[str] = []
+    if row["moved"]:
+        out.append(
+            f"{dim}: declared OFF the drift's causal path but drifts "
+            f"{row['moved']} moved it -- the entry has rotted; "
+            "re-derive it as an on-path entry with a measured band"
+        )
+    if not entry.get("exercised_by"):
+        out.append(
+            f"{dim}: declared off-path and names no `exercised_by` "
+            "probe -- a dimension nothing in this repo can move is "
+            "unfalsifiable, not exempt"
+        )
+    elif row["exercised"] is not True:
+        out.append(
+            f"{dim}: its declared `exercised_by` probe "
+            f"({entry['exercised_by']}) did NOT move it "
+            f"(exercised={row['exercised']!r}) -- the exemption is "
+            "believed, which is the shape D21 hid behind"
+        )
+    return out
+
+
+def _check_on_path_entry(dim: str, row: Dict[str, object],
+                         entry: Dict[str, object]) -> List[str]:
+    """An entry the drift can actually reach: its declared band, its declared
+    sight, and its declared collapses all go on trial against the readings."""
+    out: List[str] = []
+    for k in entry["invisible_drifts"]:
+        if k not in row["unmoved"]:
+            seen = {s: (row["by_seed"][s]["baseline"],
+                        row["by_seed"][s]["by_drift"][k]) for s in row["seeds"]}
+            out.append(
+                f"{dim}: drift {k:+d}d is declared INVISIBLE but moved the "
+                f"reading on at least one seed ({seen}). "
+                f"If {entry['debt_atom']} has landed, RE-DERIVE this entry; "
+                "a debt entry outliving its debt misleads worse than none"
             )
-        for pair in tuple(entry.get("collapsed_pairs") or ()):
-            # Re-derived from the RAW readings rather than read out of the
-            # measurement's own summary, so a claim is never checked against a
-            # reading that was never taken: `measure` is told the register only
-            # to choose which drifts to score, and this rule fails loudly if a
-            # declared pair is outside them.
-            got = _collapse_state(row, pair)
-            if got is None:
-                violations.append(
-                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
-                    "declared to COLLAPSE but were never scored -- a "
-                    "declaration checked against readings nobody took"
-                )
-                continue
-            if not got.get("collapsed"):
-                violations.append(
-                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
-                    f"declared to COLLAPSE to one reading but read "
-                    f"{got.get('readings')!r}. If {entry['debt_atom']} has "
-                    "landed, RE-DERIVE this entry"
-                )
-            elif not got.get("distinct_from_baseline"):
-                violations.append(
-                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d read the "
-                    "BASELINE -- that is an INVISIBILITY, not a collapse; "
-                    "declare it where the rule that checks it lives"
-                )
-        if blind and not entry["debt_atom"]:
-            violations.append(
-                f"{dim}: declares a blindness with no `debt_atom` -- an "
-                "unowned hole; name the atom that will close it"
+    for k in entry["visible_drifts"]:
+        if k not in row["moved"]:
+            out.append(
+                f"{dim}: drift {k:+d}d is declared VISIBLE but left the "
+                "reading where it was on at least one seed -- the "
+                "dimension is blinder than this register admits"
             )
-        if not blind and not tuple(entry["visible_drifts"]):
-            violations.append(
-                f"{dim}: on-path and declares neither a blindness nor a drift "
-                "it must see -- an entry that cannot fail either way"
+    # THE BAND MUST BE EXACT, NOT MERELY TRUE. Caught by this sweep on its own
+    # first draft: with only the two rules above, UNDER-stating the blindness
+    # passed silently -- drop -1 from the ageing band and every declaration
+    # still held, while `ageing_resolution_caveat` (which interpolates the band)
+    # went on publishing a narrower blind spot than the instrument has. A caveat
+    # that can only shrink is the decay this register exists to stop.
+    undeclared = [k for k in row["unmoved"]
+                  if k not in tuple(entry["invisible_drifts"])]
+    if undeclared:
+        out.append(
+            f"{dim}: drifts {undeclared} were MEASURED invisible and are "
+            "not declared -- the band understates the blindness, and the "
+            "caveat that interpolates it now publishes a narrower blind "
+            "spot than the instrument has"
+        )
+    out.extend(_check_declared_collapses(dim, row, entry))
+    blind = bool(tuple(entry["invisible_drifts"])
+                 or tuple(entry.get("collapsed_pairs") or ()))
+    if blind and not entry["debt_atom"]:
+        out.append(
+            f"{dim}: declares a blindness with no `debt_atom` -- an "
+            "unowned hole; name the atom that will close it"
+        )
+    if not blind and not tuple(entry["visible_drifts"]):
+        out.append(
+            f"{dim}: on-path and declares neither a blindness nor a drift "
+            "it must see -- an entry that cannot fail either way"
+        )
+    return out
+
+
+def _check_declared_collapses(dim: str, row: Dict[str, object],
+                              entry: Dict[str, object]) -> List[str]:
+    """Two DIFFERENT companies declared to publish ONE reading. Re-derived from
+    the RAW readings rather than read out of the measurement's own summary, so a
+    claim is never checked against a reading that was never taken: `measure` is
+    told the register only to choose which drifts to score."""
+    out: List[str] = []
+    for pair in tuple(entry.get("collapsed_pairs") or ()):
+        got = _collapse_state(row, pair)
+        if got is None:
+            out.append(
+                f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
+                "declared to COLLAPSE but were never scored -- a "
+                "declaration checked against readings nobody took"
             )
+        elif not got.get("collapsed"):
+            out.append(
+                f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
+                f"declared to COLLAPSE to one reading but read "
+                f"{got.get('readings')!r}. If {entry['debt_atom']} has "
+                "landed, RE-DERIVE this entry"
+            )
+        elif not got.get("distinct_from_baseline"):
+            out.append(
+                f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d read the "
+                "BASELINE -- that is an INVISIBILITY, not a collapse; "
+                "declare it where the rule that checks it lives"
+            )
+    return out
+
+
+def _check_register_is_differential(
+        register: Dict[str, Dict[str, object]]) -> List[str]:
+    """All three declared states must be OCCUPIED. A register whose entries all
+    land on one side is a blanket claim wearing a register's clothes -- it would
+    pass whatever the instrument did."""
     kinds = {
         (bool(e["in_causal_path"]),
          bool(tuple(e["invisible_drifts"]) or tuple(e.get("collapsed_pairs") or ())))
         for e in register.values()
     }
+    out: List[str] = []
     for want, label in (((True, True), "on-path and BLIND"),
                         ((True, False), "on-path and SIGHTED"),
                         ((False, False), "OFF-path")):
         if want not in kinds:
-            violations.append(
+            out.append(
                 f"register: no {label} entry -- with every entry on one side "
                 "this is a blanket claim wearing a register's clothes, and it "
                 "would pass whatever the instrument did"
             )
-    return violations
+    return out
 
 
 def ageing_resolution_caveat() -> str:
