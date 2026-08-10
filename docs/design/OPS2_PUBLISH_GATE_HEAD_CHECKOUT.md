@@ -36,12 +36,21 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 
 | Run | Wall clock | Notes |
 |---|---|---|
-| In-tree baseline (`PROJECT_DIR`) | **PLACEHOLDER_BASELINE** | the pre-ruling subject |
-| Reused checkout, first cycle (cold `__pycache__`) | **PLACEHOLDER_COLD** | what every cycle used to pay |
-| Reused checkout, second cycle (warm) | **PLACEHOLDER_WARM** | the steady state |
+| In-tree baseline (`PROJECT_DIR`) | *pending* | the pre-ruling subject |
+| Reused checkout, first cycle (cold `__pycache__`) | *pending* | what every cycle used to pay |
+| Reused checkout, second cycle (warm) | *pending* | the steady state |
 
-**Ratio warm / in-tree: PLACEHOLDER_RATIO** against the exit criterion of ≤ 1.3×.
-PLACEHOLDER_VERDICT
+**Ratio warm / in-tree: PENDING** against the exit criterion of ≤ 1.3×.
+
+> **STATUS 2026-08-10 — the measurement is IN FLIGHT, not skipped, and must not be re-derived.**
+> Harness: `python3 -m tools.measure_publish_gate_subject_cost` (in the repo precisely so this
+> claim can be re-run rather than believed). It writes
+> `docs/observability/publish_gate_subject_cost.json` with all three phases, the ratio, and
+> `implied_timeout_floor_2x`. A ~50-minute run that must not overlap the live publisher's own
+> suite — it waits for the box to go quiet, and deletes the reused checkout only AFTER that wait
+> so it can never pull the directory out from under a real cycle. **The next worker tick should
+> READ that JSON and fill in this table and §2 — not start another run.** If the JSON is absent
+> or its `head_sha` is older than HEAD, the run died; re-launch the harness.
 
 Both sides ran on the live box while the publisher's own cycles were running, so the absolute
 numbers carry that load; the ratio is what the criterion is about and both sides carry it alike.
@@ -51,7 +60,14 @@ which on a shared box would be a flake generator.
 
 ## 2. `GATE_SUITE_TIMEOUT_SECONDS`, re-derived
 
-PLACEHOLDER_TIMEOUT
+**PENDING the §1 measurement — still 1800s, which is the constant justified against the OLD
+in-tree subject.** This is the one exit criterion of the five that is not yet met, and it is
+named here rather than quietly left: the bound moves to ≥ 2× the *worst legitimate* run
+(`implied_timeout_floor_2x` in the JSON), not 2× the usual one, because a cold cycle is a real
+outcome — a fallback throwaway when another publisher holds the reuse lock, or a rebuilt corrupt
+checkout. `test_the_gate_timeout_exceeds_the_suites_own_runtime`'s `MEASURED_SUITE_SECONDS = 613`
+moves with it in the same commit; that constant currently describes the in-tree subject and so
+under-states what the gate now actually runs.
 
 The direction of danger has flipped since the constant was first set. A timeout used to return
 `True` (publish unverified); since 2026-08-09 it **fail-CLOSES**, so an undersized bound no longer
