@@ -211,10 +211,13 @@ of this design is `run_phase2b` (32 direct + 2 indirect) and `run_phase4c_on_pha
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
-5 edges, and the most serious inversion in the register. `simulation.customer_events` imports
-the company's own churn model, its customer-reaction model and its home-move win rates in order
-to decide WHO ACTUALLY CHURNS; `simulation.satisfaction_churn` takes the company's
-MAX_CHURN_PROBABILITY as the world's ceiling. This makes the company's belief self-fulfilling:
+4 edges, and the most serious inversion in the register. It was 5 until step 12 took the CEILING
+half away (§3g): `simulation.satisfaction_churn` took the company's MAX_CHURN_PROBABILITY as the
+world's ceiling, and that turned out to be B3's shape rather than this one — a CONSTANT the world
+could simply own, cuttable in an afternoon without touching who decides anything. What is left is
+this design's actual subject and none of it got easier: `simulation.customer_events` imports the
+company's own churn model, its customer-reaction model and its home-move win rates in order
+to decide WHO ACTUALLY CHURNS. This makes the company's belief self-fulfilling:
 the model cannot be wrong about churn, because the model IS churn. That destroys the quantity
 the COUPLED TRIAD is built to measure — the gap between what the company believes and what the
 world does — and it silently flatters every churn-accuracy figure derived from it. Cut: the
@@ -563,6 +566,88 @@ class-(a) edge with no grandfathering left to hide behind. Two exposures it cann
    call site passes POSITIONALLY. So the second control compares parameter names AND order between
    `SimulatedReadFeed` and the Protocol, and its mutation exhibits a feed with two parameters
    swapped that `isinstance()` still accepts. The `isinstance` check alone was not evidence.
+
+---
+
+## 3g. `B3_world_needs_its_own_cap_physics`, applied a SECOND time — added 2026-08-10 (step 12)
+
+**`simulation.satisfaction_churn -> saas.churn_model` is cut. 50 → 49 live (48 → 47 direct).**
+
+B3's executed block (§3a) ends by naming the shape it had just cut: *"a belief constituting the
+fact it is a belief about ... that is B2's shape at one edge instead of five."* It was describing
+the price cap. The same sentence was true, unread, of a second edge in the register — and it was
+filed under B2, the design that says of itself *"this is a coupled-triad build, not a mechanical
+move, and it must not be attempted as one."*
+
+**The finding is the FILING, not the fix.** `simulation/satisfaction_churn.py` clamped the world's
+GROUND-TRUTH churn probability at the company's `MAX_CHURN_PROBABILITY`. B2's four other edges hand
+the company's *reasoning* the job of deciding who churns; this one handed it a *number* — a ceiling
+the world can perfectly well own. Being filed alongside the hard four is what kept it looking like a
+coupled-triad build for a day longer than it was. **A design block is a ruling about a class, and an
+edge can sit in the wrong class while every count above it stays correct.** Worth recording because
+the register's whole method is ruling by class: the classes are load-bearing, so a misfiled member
+is a defect of the same kind as a miscounted edge, and nothing in the tooling looks for one.
+
+**The world's ceiling had three copies and one of them was the company's.** Before the cut:
+`satisfaction_churn` borrowed the company's constant, `switching_propensity` carried a private
+`_MAX_CHURN_PROBABILITY = 0.95`, and `customer_events` had a bare `0.95` literal inside a `min()`.
+One world fact, three expressions, and the register already names what that becomes (`one name, two
+numbers`). The cut gives it one home on the world's side — `simulation/churn_ceiling.py` — and folds
+the other two in. **Only the first is an edge**; the other two are housekeeping that arrived with it
+and are recorded as such, not counted.
+
+**No number moves, and that is measured rather than asserted.** Both ceilings are 0.95, so every
+clamp returns the identical float; the world's arithmetic is bit-for-bit what it was. What changed
+is who depends on whom.
+
+**The control, and what it deliberately does NOT assert.** No test pins the two constants equal —
+that would restore in the suite exactly the coupling the cut removes from the code, which is the
+refusal B3 recorded for the cap schedule and B7 for the hedge floor, for the third time here.
+`tests/simulation/test_churn_ceiling.py` asserts INDEPENDENCE by mutation instead, and both
+mutations were RUN on the real tree, not named:
+
+  1. **The company's ceiling mutated to 0.10** → the world's clamp does not move.
+     Re-injecting the deleted import (`from saas.churn_model import MAX_CHURN_PROBABILITY as
+     WORLD_MAX_CHURN_PROBABILITY`, a same-name alias so nothing else has to change) reds
+     `test_mutating_the_companys_ceiling_does_not_move_the_worlds` AND
+     `test_no_sim_module_names_the_companys_churn_constant`, and independently reds four tests in
+     `test_epistemic_wall_ratchet.py` including the frozen census. 6 failed / 12 passed; reverted.
+  2. **THE VACUITY GUARD, which is the one with teeth.** Mutation 1 proves nothing on its own — it
+     would pass identically against a company constant that nothing reads (`donated residual is not
+     a control`). So `test_the_same_mutation_does_move_the_companys_own_answer` asserts the same
+     mutation DOES move the company's own capped estimate. Replacing `MAX_CHURN_PROBABILITY` with a
+     literal `1.0` inside `saas.churn_model.churn_probability` reds exactly that test and nothing
+     else. 1 failed / 5 passed; reverted.
+
+  A third guard, `test_the_world_clamp_actually_binds`, covers the vacuity in the other direction:
+  a ceiling no input can reach makes every independence claim about it vacuously true.
+
+**The named-edge control asks the WALKER, never a substring.** A substring scan fails on its own
+subject here — the docstrings recording *why* the import went away contain both `saas.churn_model`
+and `MAX_CHURN_PROBABILITY`. That is the `REVIEW_GATE must match idleness, not prose mentioning the
+string` class, which bit this programme once already at §3a, so the control calls
+`tools.epistemic_wall.live_crossings()` — the one definition of "a crossing" this pass extracted as
+its first step, and the reason that extraction was the first step.
+
+### The wall was enforced only AFTER the commit, and that is now fixed
+
+Found while placing the control: `tests/architecture/test_epistemic_wall_ratchet.py` was not in
+`tools/pre_commit_test_gate.py`'s always-run `CONTROL_TESTS`. Per-file selection ran it when the
+RATCHET was edited — the case that needs it least — and stayed silent when a sim module landed a
+fresh `saas.*` import, which is the only case it exists for. So a crossing could LAND on committed
+HEAD and wait for the post-commit publish gate to find it, which is precisely what
+`WORKER_FINDING_THE_EPISTEMIC_WALL_IS_BREACHED_AT_HEAD_2026-08-09` cost.
+
+It is the same R10 class the three neighbouring `CONTROL_TESTS` entries were each added for (a
+whole-tree scanner reachable only from the scanner's own file), applied to the one control CLAUDE.md
+classes as a **WALL** rather than a dial. Added, with its cost stated rather than glossed: ~4.8s on
+every code commit, by far the most expensive entry in that list, because it is an AST walk of four
+packages.
+
+**What this does NOT close.** B2 keeps all four `customer_events` edges and loses none of its
+difficulty — the world still asks the company's brain who churns. This cut removes a guaranteed zero
+from the coupled-triad gap score; it does not narrow the gap, because there was never a gap here to
+narrow.
 
 ---
 
@@ -988,11 +1073,12 @@ itself.
 
 ---
 
-## 4. The register — all 91 examined crossings, 59 of them still live
+## 4. The register — all 91 examined crossings, 49 of them still live
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
-walker could not see (§3b), making 91 rows. THIRTY-EIGHT have since been CUT — seventeen by B1/B3–B8
-(§3a), sixteen by `A_composition_lift` part 1 (§3c) and four by part 2 (§3e) — so the tree carries 53
+walker could not see (§3b), making 91 rows. FORTY-TWO have since been CUT — by B1/B3–B8 (§3a,
+including B3's second application at §3g), by `A_composition_lift` parts 1 and 2 (§3c/§3e), by the
+bill-assembly cut (§3f), and one as a side effect of another atom entirely — so the tree carries 49
 and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
 becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
@@ -1016,7 +1102,7 @@ edge: simulation.customer_events -> company.crm.churn_model | disposition=owed |
 edge: simulation.customer_events -> saas.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.customer_events -> saas.customer_reaction | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.customer_events -> saas.home_move_win_rate | disposition=owed | design=B2_company_brain_decides_the_world
-edge: simulation.satisfaction_churn -> saas.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
+edge: simulation.satisfaction_churn -> saas.churn_model | disposition=cut | reason=B3_world_needs_its_own_cap_physics applied a SECOND time, EXECUTED 2026-08-10 (step 12, §3g) — the world clamped its own ground-truth churn probability at the COMPANY's `MAX_CHURN_PROBABILITY`, so the company's belief about the ceiling WAS the ceiling. The world's ceiling now lives in `simulation/churn_ceiling.py`; the company keeps its estimate. Both are 0.95, so no simulated outcome moves — what changed is who depends on whom. Independence proven by mutation WITH a vacuity guard, never by a test pinning the two equal (B3's and B7's recorded refusal). This is B2's shape at one edge; the four `customer_events` edges are the real B2 build and are UNTOUCHED.
 # --- B3_world_needs_its_own_cap_physics ---
 edge: simulation.hedged_settlement -> company.pricing.ofgem_price_cap | disposition=cut | reason=B3 executed 2026-08-10 — the published cap schedule moved to the regulation commons as a DATA artefact (which has no import statement to launder a dependency through, unlike the unwalked-module home the block refused), and each lane now reads it with its own loader. The world enforces the ceiling from `simulation/price_cap_enforcement.py`; the company keeps its own reading and the two are free to differ. No value moved — both readings agree across the whole published span today, and nothing pins them there.
 # --- B4_billing_mechanics_reached_directly ---

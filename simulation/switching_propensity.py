@@ -12,9 +12,13 @@ read income_stress directly -- it uses observable payment behaviour (Phases MX/M
 """
 from __future__ import annotations
 
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 from simulation.household import IncomeStress
 
-_MAX_CHURN_PROBABILITY = 0.95
+# The world's churn ceiling, which this module used to carry as its own private
+# copy of 0.95. Kept importable under the old name so nothing that reads it has
+# to care that the definition moved (KNIFE pass 3 §3g).
+_MAX_CHURN_PROBABILITY = WORLD_MAX_CHURN_PROBABILITY
 
 STRESS_SWITCHING_MULTIPLIER: dict[IncomeStress, float] = {
     IncomeStress.LOW:      1.10,

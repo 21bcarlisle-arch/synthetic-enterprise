@@ -28,10 +28,11 @@ from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
 from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 from simulation.household import IncomeStress
 from simulation.market_switching_propensity import market_switching_multiplier
-from simulation.switching_propensity import adjust_churn_probability
 from simulation.satisfaction_churn import adjust_churn_for_satisfaction
+from simulation.switching_propensity import adjust_churn_probability
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
@@ -108,7 +109,7 @@ def roll_lifecycle_event(
     # opportunity ceiling is set first, then individual customer frictions modify it.
     if market_year is not None:
         p_churn_market = (1.0 - effective_p_retain) * market_switching_multiplier(market_year)
-        effective_p_retain = 1.0 - min(p_churn_market, 0.95)
+        effective_p_retain = 1.0 - min(p_churn_market, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
     # renters switch less (see switching_propensity.py's module note).

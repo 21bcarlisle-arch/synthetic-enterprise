@@ -279,7 +279,16 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # the disposition register sets; its condition-4 leak (the world's hedge mandate deciding the
     # company's naked fraction) was REPAIRED by the B7 template in the same commit rather than
     # relocated. The floor moves down with the code: none of the four can return silently.
-    ("simulation.satisfaction_churn", "saas.churn_model"),
+    #
+    # 2026-08-10, KNIFE pass 3 step 12 (`B3_world_needs_its_own_cap_physics`, applied a
+    # SECOND time — register §3g): `simulation.satisfaction_churn -> saas.churn_model`
+    # deleted. The world was clamping its own ground-truth churn probability at the
+    # COMPANY's `MAX_CHURN_PROBABILITY`, so the company's belief about the ceiling
+    # constituted the ceiling — B2's inversion at one edge. The world's ceiling now lives
+    # in `simulation/churn_ceiling.py`; the company keeps its estimate; both are 0.95, so
+    # no simulated outcome moved. Independence is proven by mutation with a vacuity guard
+    # in `tests/simulation/test_churn_ceiling.py`, NOT by a test pinning the two equal —
+    # that would restore the coupling in the suite (B3's and B7's recorded refusal).
 })
 
 

@@ -4,11 +4,15 @@ Satisfaction-based churn multiplier applied to the SIM ground-truth churn
 probability before retention modifier. Analogous to switching_propensity.py
 for income stress.
 
-This operates at the SIM physics layer -- NOT visible to the company.
+This operates at the SIM physics layer -- NOT visible to the company. The
+ceiling it clamps to is the WORLD's own (`simulation/churn_ceiling.py`); it
+used to be the company's `saas.churn_model.MAX_CHURN_PROBABILITY`, which made
+the company's belief about the ceiling constitute the ceiling. See the
+register's §3g.
 """
 from __future__ import annotations
 
-from saas.churn_model import MAX_CHURN_PROBABILITY
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 
 _HIGH_SATISFACTION_THRESHOLD = 0.80
 _LOW_SATISFACTION_THRESHOLD = 0.50
@@ -32,4 +36,4 @@ def adjust_churn_for_satisfaction(
 ) -> float:
     """Return adjusted churn probability after applying satisfaction multiplier."""
     multiplier = satisfaction_churn_multiplier(satisfaction_score)
-    return min(base_churn_probability * multiplier, MAX_CHURN_PROBABILITY)
+    return min(base_churn_probability * multiplier, WORLD_MAX_CHURN_PROBABILITY)

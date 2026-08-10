@@ -22,7 +22,7 @@ from simulation.satisfaction_churn import (
     satisfaction_churn_multiplier,
 )
 from simulation.household import IncomeStress
-from saas.churn_model import MAX_CHURN_PROBABILITY
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 
 
 def test_baseline_no_shocks_no_stress():
@@ -164,4 +164,4 @@ def test_adjust_churn_high_satisfaction_suppresses():
 def test_adjust_churn_low_satisfaction_raises_capped_at_max():
     base = 0.80
     adjusted = adjust_churn_for_satisfaction(base, _LOW_SATISFACTION_THRESHOLD - 0.01)
-    assert adjusted <= MAX_CHURN_PROBABILITY
+    assert adjusted <= WORLD_MAX_CHURN_PROBABILITY

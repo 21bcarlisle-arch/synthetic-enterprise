@@ -58,6 +58,18 @@ CONTROL_TESTS = [
     # when the register is edited (needs it least) and stay silent then (the
     # case it exists for). Also catches a stale status block. ~0.3s.
     "tests/domain/test_battery_register_integrity.py",
+    # THE EPISTEMIC WALL (KNIFE pass 3 step 12, 2026-08-10). Same R10 shape as the
+    # three above, on the one control CLAUDE.md classes as a WALL rather than a dial:
+    # `test_no_new_sim_reads_company` walks EVERY file under company/, saas/, sim/ and
+    # simulation/, so it has to run on any code change. Per-file selection fired it when
+    # the ratchet itself was edited -- the case that needs it least -- and stayed silent
+    # when a brand-new sim module landed importing `saas.*`, which is the only case it
+    # exists for. Until now the wall was enforced only by the post-commit publish gate,
+    # so a crossing could LAND and be found hours later; `WORKER_FINDING_THE_EPISTEMIC_
+    # WALL_IS_BREACHED_AT_HEAD_2026-08-09` is what that costs. ~4.8s, by far the most
+    # expensive entry in this list and stated rather than glossed: it is an AST walk of
+    # four packages, and it is paid on every code commit deliberately.
+    "tests/architecture/test_epistemic_wall_ratchet.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own
