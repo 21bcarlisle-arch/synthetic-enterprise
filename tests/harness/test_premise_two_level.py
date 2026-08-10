@@ -426,6 +426,10 @@ def test_the_EIGHT_HOME_PANEL_is_INSUFFICIENT_and_never_was_evidence(generated_r
     inconclusive = {c.statistic for c in generated_result.inconclusive}
     assert inconclusive == {
         "L1.1_half_hourly_texture",
+        # L1.1n joined on 2026-08-10 (H39) and lands here for the ordinary
+        # reason: 0 of 8 panel homes are under their own null (worst 2.391), and
+        # 8 homes cannot rule out the 5% rate this suite claims to see.
+        "L1.1n_half_hourly_texture_null_ratio",
         "L1.2_day_to_day_shape_correlation",
         "L1.3_away_days_per_year",
         # L1.4n joined the suite on 2026-08-09 and lands HERE rather than in
@@ -2036,6 +2040,329 @@ def test_L1_4n_is_DETERMINISTIC_so_a_threshold_cannot_be_moved_by_reseeding(popu
     )
 
 
+# ===========================================================================
+# §9b L1.1n — THE FLOOR'S NULL IS A PROPERTY OF THE HOME, AND THIS REMOVES IT
+#
+# H39. `half_hourly_texture` reads part of the 0.15 floor off a home's own mean
+# diurnal profile, which moves between adjacent half-hours whether or not the
+# generator ever fired an appliance. That reading is not zero and is not the same
+# for every home, so ONE floor asks a different question of each — and the
+# band-null sweep sees it from outside as a margin (0.0550) inside the null's own
+# spread across homes (0.0558).
+#
+# The repair is a companion statistic whose null is the SAME NUMBER for every
+# home: each home's texture over its OWN flat counterfactual. The floor does not
+# move (R12) — it keeps the MAGNITUDE question it has a domain anchor for, and
+# L1.1n takes the question the floor's own anchor text says it is really for.
+# ===========================================================================
+
+
+def _rescaled_base_shape(behavioural):
+    """THE MUTATION, and it is the generator L1.1's own rationale names: ONE base
+    shape, rescaled per home per day, with no day-to-day behaviour in it at all.
+
+    The base shape is a REAL DAY from a REAL home rather than a smooth
+    construction, which is the whole point — the floor's rationale assumes the
+    fake shape is a national AVERAGE ("the texture of a hundred thousand homes
+    already summed") and therefore smooth. A generator that rescales one real
+    day is a strictly more convincing fake and the floor cannot see it.
+    """
+    base = list(behavioural[0][0])
+    total = sum(base)
+    unit = [v / total for v in base]
+    return [[[v * sum(day) for v in unit] for day in home] for home in behavioural]
+
+
+def _behavioural_streams(population):
+    """The load set BOTH L1.1 cells are read on, net of both machines (H38)."""
+    return [
+        fgl.meter_net_of_machines(
+            [list(day) for day in home],
+            fgl.machine_draw(
+                [list(d) for d in population.space_heat_grids[k]]
+                if population.space_heat_grids else None,
+                [list(d) for d in population.water_heat_grids[k]]
+                if population.water_heat_grids else None,
+            ),
+        )
+        for k, home in enumerate(population.grids)
+    ]
+
+
+def test_L1_1n_FIRES_on_the_RESCALED_REAL_DAY_that_the_FLOOR_CANNOT_SEE(population):
+    """THE WHOLE REASON THIS CELL EXISTS, stated as the comparison that motivates it.
+
+    A generator that rescales ONE REAL DAY as every home's base shape has zero
+    day-to-day behaviour, which is precisely what L1.1 certifies — and it clears
+    the 0.15 floor at EVERY home, because a real day is textured and rescaling it
+    does not smooth it. Judged against each home's own flat counterfactual the
+    same population reads exactly 1.0 and fails at every home.
+
+    SAID OUT LOUD, because overselling this would be the easy mistake: L1.2 and
+    L1.5 also fail this generator, so the CELL as a whole was never blind to it.
+    The claim is about L1.1's own null, which is the thing the band-null sweep
+    measures band by band and the thing H39 is about.
+    """
+    behavioural = _behavioural_streams(population)
+    faked = _rescaled_base_shape(behavioural)
+    floor = fgl.BANDS[fgl.TEXTURE_STATISTIC]
+    ratio_band = fgl.BANDS[fgl.TEXTURE_NULL_RATIO_STATISTIC]
+
+    texture = [fgl.half_hourly_texture(h) for h in faked]
+    ratios = [fgl._texture_ratio_or_zero(h) for h in faked]
+
+    assert all(floor.judge(t) is fgl.Verdict.PASS for t in texture), (
+        f"the floor must PASS this generator for the finding to be real — it "
+        f"reads {min(texture):.4f}-{max(texture):.4f} against 0.15"
+    )
+    assert all(ratio_band.judge(r) is not fgl.Verdict.PASS for r in ratios), (
+        f"L1.1n must fail every home of a generator with no behaviour in it; "
+        f"worst ratio {max(ratios):.17g}"
+    )
+    assert max(ratios) == pytest.approx(1.0, abs=1e-9), (
+        "a flat generator must read EXACTLY 1.0 — anything else means the "
+        "counterfactual is no longer the same arithmetic as the reading"
+    )
+    # ...and the honest half.
+    assert any(
+        fgl.day_to_day_shape_correlation(h) > fgl.BANDS[
+            "L1.2_day_to_day_shape_correlation"].threshold for h in faked
+    ), "L1.2 is expected to catch this too; if it stopped, that is a bigger finding"
+
+
+def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_result):
+    """A band nobody has ever seen pass is indistinguishable from one that cannot.
+
+    The real drawn population passes at every home, and it is the SAME homes and
+    the SAME statistic that fail above under a rescaled base shape — so the pass
+    is evidence about the generator rather than about the band being loose.
+    """
+    cell = next(
+        c for c in population_result.cells
+        if c.statistic == fgl.TEXTURE_NULL_RATIO_STATISTIC
+    )
+    assert cell.homes_violating == 0, population_result.summary()
+    assert cell.homes_judged == population_result.homes, (
+        "every home must be judged — an unjudged home here would be a quiet "
+        "exclusion, and the pass would be over a population nobody named"
+    )
+    assert cell.worst_value > 2.0, (
+        f"the worst real home reads {cell.worst_value:.3f} times its own flat "
+        "counterfactual; if that ever approached 1.0 the pass would be a squeak "
+        "rather than a verdict"
+    )
+
+
+def test_the_NULL_is_ONE_NUMBER_for_every_home_where_the_FLOORs_is_NOT(population):
+    """THE PROPERTY THE REPAIR IS FOR, measured rather than argued — and it is the
+    H39 finding restated as an assertion.
+
+    Under the flat counterfactual the RAW statistic reads a different number for
+    every home, because it is reading that home's own mean profile. The RATIO
+    reads 1.0 for all of them. That is what makes one floor comparable across
+    homes and the other not, and it is why the sweep's margin-inside-its-own-
+    spread verdict on L1.1 cannot be repaired by moving 0.15 in either direction.
+    """
+    behavioural = _behavioural_streams(population)
+    flat = [fgl.flatten_to_mean_profile(h) for h in behavioural]
+
+    raw_nulls = [fgl.half_hourly_texture(h) for h in flat]
+    ratio_nulls = [fgl._texture_ratio_or_zero(h) for h in flat]
+
+    assert max(raw_nulls) / min(raw_nulls) > 2.0, (
+        f"the raw null must vary materially across homes for this finding to be "
+        f"real — measured {min(raw_nulls):.4f} to {max(raw_nulls):.4f}"
+    )
+    assert max(ratio_nulls) - min(ratio_nulls) < 1e-9, (
+        f"the ratio's null must be one number for every home — measured "
+        f"{min(ratio_nulls):.17g} to {max(ratio_nulls):.17g}"
+    )
+    # The floor's own margin against the biggest of those nulls, quoted so a
+    # reader can see how much of 0.15 is already spent before any behaviour.
+    assert max(raw_nulls) > 0.5 * fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold, (
+        "if no home's flat reading gets anywhere near the floor any more, H39's "
+        "premise has changed and this cell should be re-derived, not carried"
+    )
+
+
+def test_the_TOLERANCE_is_LOAD_BEARING_and_at_least_1_0_would_be_FAIL_OPEN(population):
+    """R15 ON THE CONSTANT ITSELF. `TEXTURE_NULL_RATIO_TOLERANCE` looks like a
+    rounding-error nicety and is not: the flat counterfactual is the same
+    arithmetic as the reading in a different order, so a structureless home lands
+    at 1.0 plus or minus a few units in the last place — and roughly a third of
+    them land ABOVE. A band written `at_least 1.0` would pass them.
+
+    The mutation is the removal of the tolerance, and the assertion is that the
+    control stops firing without it.
+    """
+    behavioural = _behavioural_streams(population)
+    flat = [fgl.flatten_to_mean_profile(h) for h in behavioural]
+    ratios = [fgl._texture_ratio_or_zero(h) for h in flat]
+
+    passes_without_tolerance = sum(1 for r in ratios if r >= 1.0)
+    assert passes_without_tolerance > 0, (
+        "the tolerance is not load-bearing on this population — if float error "
+        "never lands above 1.0 here, say so and delete the constant rather than "
+        "carrying a guard nobody can show firing"
+    )
+    band = fgl.BANDS[fgl.TEXTURE_NULL_RATIO_STATISTIC]
+    assert all(band.judge(r) is not fgl.Verdict.PASS for r in ratios), (
+        "with the tolerance in place NO structureless home may pass"
+    )
+    # And the tolerance is nowhere near a real home: nine orders below the
+    # smallest real margin, so it can never be doing threshold work.
+    real = [fgl._texture_ratio_or_zero(h) for h in behavioural]
+    assert min(real) - 1.0 > 1e6 * fgl.TEXTURE_NULL_RATIO_TOLERANCE, (
+        f"the smallest real margin is {min(real) - 1.0:.4f}; a tolerance that "
+        "approached it would have become a threshold"
+    )
+
+
+def test_the_FLAT_COUNTERFACTUAL_is_IDEMPOTENT_which_is_what_makes_1_0_EXACT(population):
+    """The construction claim the decision point rests on, asserted rather than
+    argued: flattening an already-flat home returns the same home.
+
+    If it did not, the null would be some other number near 1.0 that nobody had
+    derived, and the band would need a threshold rather than a construction."""
+    behavioural = _behavioural_streams(population)
+    for home in behavioural:
+        once = fgl.flatten_to_mean_profile(home)
+        twice = fgl.flatten_to_mean_profile(once)
+        for a, b in zip(once, twice):
+            assert a == pytest.approx(b, rel=1e-12, abs=1e-15)
+
+
+def test_the_FLATTENING_is_the_LEDGERS_and_the_SWEEP_keeps_no_second_copy():
+    """ONE null, not a measured one and a judged one free to drift apart.
+
+    The sweep measures L1.1's null with the same counterfactual L1.1n divides by.
+    Two implementations would let the sweep report a clean margin for a statistic
+    the ledger does not apply — R15's first killer pattern, one module over."""
+    from background import band_null_sweep as bns
+
+    days = [[float((i * 7 + p) % 5) + 1.0 for p in range(48)] for i in range(10)]
+    assert bns._flatten_home(days) == fgl.flatten_to_mean_profile(days)
+
+    # Behavioural equality is not enough on its own — an inlined copy satisfies it
+    # today and drifts tomorrow. The source must actually CALL the ledger, and the
+    # check is on the AST rather than on the text: this module's own docstring
+    # names the function, and a substring match would have passed a copy that
+    # merely mentioned it. Prose is not a call — the same reason
+    # `band_null_sweep.unswept_band_sources` matches band declarations on the call
+    # node instead of on the file's text.
+    import ast
+    import inspect
+    import textwrap
+
+    tree = ast.parse(textwrap.dedent(inspect.getsource(bns._flatten_home)))
+    called = {
+        node.func.attr if isinstance(node.func, ast.Attribute) else
+        node.func.id if isinstance(node.func, ast.Name) else None
+        for node in ast.walk(tree) if isinstance(node, ast.Call)
+    }
+    assert "flatten_to_mean_profile" in called, (
+        "the sweep must CALL the ledger's flattening, not merely agree with it — "
+        f"calls found: {sorted(c for c in called if c)}"
+    )
+
+
+def test_L1_1n_FAILS_CLOSED_rather_than_returning_a_spectacular_pass():
+    """A home whose mean profile is a CONSTANT has no null: its flat
+    counterfactual has no half-hourly movement, so the ratio would be a reading
+    over zero. It raises. An unavailable check is a failed check (R15)."""
+    flat_profile = [[1.0] * 48 for _ in range(40)]
+    with pytest.raises(fgl.DegenerateNull):
+        fgl.half_hourly_texture_vs_own_null(flat_profile)
+    # ...and the raw statistic on the same home is a perfectly ordinary number,
+    # which is exactly why the degenerate case has to be caught here.
+    assert fgl.half_hourly_texture(flat_profile) == 0.0
+
+
+def test_L1_1n_scores_a_DEGENERATE_home_as_a_VIOLATION_not_as_a_pass():
+    """And the cell's decision about that home is a VIOLATION, never a skip.
+
+    A constant mean profile is what a rescaled base shape looks like when the
+    base shape is flat — the generator this cell is written for. Skipping it
+    would be fail-open on precisely that population."""
+    flat_profile = [[1.0] * 48 for _ in range(40)]
+    assert fgl._texture_ratio_or_zero(flat_profile) == 0.0
+    band = fgl.BANDS[fgl.TEXTURE_NULL_RATIO_STATISTIC]
+    assert band.judge(0.0) is not fgl.Verdict.PASS
+
+
+def test_L1_1n_NETS_THE_MACHINE_BEFORE_it_flattens(population):
+    """The order matters and getting it wrong reintroduces H36's defect.
+
+    Flattening the METER and then subtracting the real machine leaves
+    `flat_meter - real_heat`, which carries the machine's whole day-to-day
+    structure with a minus sign in front — the null would be INVENTING the
+    behaviour the band looks for. The shipped call nets first; this pins that the
+    two orders actually differ on a home with heat on the judged meter, so the
+    pin is not vacuous.
+    """
+    k = next(
+        (i for i in range(len(population.grids))
+         if population.space_heat_grids
+         and any(any(d) for d in population.space_heat_grids[i])),
+        None,
+    )
+    if k is None:
+        pytest.skip("no home in this population carries heat on the judged meter")
+    meter = [list(d) for d in population.grids[k]]
+    heat = fgl.machine_draw(
+        [list(d) for d in population.space_heat_grids[k]],
+        [list(d) for d in population.water_heat_grids[k]]
+        if population.water_heat_grids else None,
+    )
+    net_then_flat = fgl.half_hourly_texture(
+        fgl.flatten_to_mean_profile(fgl.meter_net_of_machines(meter, heat))
+    )
+    flat_then_net = fgl.half_hourly_texture(
+        fgl.meter_net_of_machines(fgl.flatten_to_mean_profile(meter), heat)
+    )
+    assert net_then_flat != pytest.approx(flat_then_net, rel=1e-6), (
+        "if the two orders agree on this home the pin is vacuous and the wrong "
+        "one could be shipped unnoticed"
+    )
+    shipped = fgl.half_hourly_texture_vs_own_null(meter, machines=heat)
+    assert shipped.null == pytest.approx(net_then_flat, rel=1e-12)
+
+
+def test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement(population):
+    """THE CORRECTION, recorded as a test rather than as a sentence.
+
+    H39 was minted with an `inferred`-labelled mechanism: "the p95 is set by
+    whichever home has the peakiest mean profile". It is not. Measured across the
+    live panel the flat null is essentially UNCORRELATED with the mean profile's
+    peak-to-mean (-0.05), and sharpening a profile's peak does not raise the
+    reading at all — texture is period-to-period ROUGHNESS, and a tall smooth
+    peak is still smooth between adjacent half-hours. The defect is real and the
+    repair is unchanged; the stated cause was wrong, and a wrong cause left in
+    place is how the next repair gets aimed at the wrong thing.
+    """
+    behavioural = _behavioural_streams(population)
+    flat = [fgl.flatten_to_mean_profile(h) for h in behavioural]
+    nulls = [fgl.half_hourly_texture(h) for h in flat]
+    peakiness = [
+        fgl.peak_to_mean([
+            sum(day[p] for day in home) / len(home) for p in range(fgl.PERIODS_PER_DAY)
+        ])
+        for home in flat
+    ]
+    n = len(nulls)
+    mn, mp = sum(nulls) / n, sum(peakiness) / n
+    cov = sum((a - mn) * (b - mp) for a, b in zip(nulls, peakiness))
+    denom = (
+        sum((a - mn) ** 2 for a in nulls) * sum((b - mp) ** 2 for b in peakiness)
+    ) ** 0.5
+    r = cov / denom
+    assert abs(r) < 0.4, (
+        f"peak-to-mean now explains the null at r={r:+.3f}. The mint's inferred "
+        "mechanism was refuted at r=-0.05 on 2026-08-10; if it has come back, "
+        "re-open the diagnosis rather than trusting this docstring"
+    )
+
+
 def test_L2_5_aggregation_consistency_is_retained_as_a_regression_guard():
     """L2.5 — the existing W1_5 invariant, kept so the trade-off is EXPLICIT and
     ENFORCED: added realism must not cost aggregation consistency. A new generator
@@ -3043,17 +3370,42 @@ def test_the_FLOOR_is_ONE_NUMBER_and_no_regime_has_its_own(matched_pair):
     25% too strict for the largest electrically heated home and fail-open for the
     smallest. There is now ONE judged texture floor, and the only other entry is
     the NEED band for a home whose behavioural stream cannot be recovered at all.
+
+    WIDENED, NOT WEAKENED, BY H39 (2026-08-10). `L1.1n` is a second judged L1.1
+    band and it is deliberately NOT a second floor: it carries no absolute
+    threshold at all, its decision point is 1.0 by construction, and — the
+    property this test is really about — it is not routed by
+    `texture_band_for`, so no heating regime can acquire one of its own. The
+    assertion is therefore on the shape of each judged band rather than on there
+    being exactly one of them: an absolute kWh-ratio floor may exist ONCE, and
+    `texture_band_for` may return only that one.
     """
     texture_bands = {
         name: band for name, band in fgl.BANDS.items()
         if name.startswith("L1.1")
     }
     judged = {n: b for n, b in texture_bands.items() if b.threshold is not None}
-    assert set(judged) == {fgl.TEXTURE_STATISTIC}, (
-        f"a second judged texture floor is back: {sorted(judged)}"
+    assert set(judged) == {fgl.TEXTURE_STATISTIC, fgl.TEXTURE_NULL_RATIO_STATISTIC}, (
+        f"a second judged texture band is back: {sorted(judged)}"
     )
     assert judged[fgl.TEXTURE_STATISTIC].threshold == 0.15
     assert set(texture_bands) - set(judged) == {fgl.NO_BEHAVIOURAL_STREAM_BAND}
+
+    # THE HALF THAT KEEPS THE TEETH: exactly one band is an absolute floor on the
+    # raw statistic, and the ROUTER can only ever hand a home that one or the NEED
+    # band. A regime-conditioned floor coming back through `L1.1n`'s door would
+    # have to appear here.
+    routed = {
+        fgl.texture_band_for(regime, has_split=split).statistic
+        for regime in ("gas_boiler_combi", "heat_pump_air", "electric_direct",
+                       "electric_storage", "", None)
+        for split in (True, False)
+    }
+    assert routed <= {fgl.TEXTURE_STATISTIC, fgl.NO_BEHAVIOURAL_STREAM_BAND}, routed
+    assert fgl.TEXTURE_NULL_RATIO_STATISTIC not in routed, (
+        "the null-ratio band must be one band for every home — the moment the "
+        "register can route it, it is a per-regime threshold in new coordinates"
+    )
 
     # ...and no derivation of a per-regime threshold survives anywhere, which is
     # the half that would let one grow back quietly.

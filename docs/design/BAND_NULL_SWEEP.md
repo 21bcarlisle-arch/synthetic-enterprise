@@ -858,3 +858,215 @@ line would have concluded it double-counts.
 * **`_flatten_blend` was kept** even though `_smooth` is a valid mutation again
   once both machines are out. It attacks the defect this cell is really about;
   the reversal is recorded as an assertion rather than used as a reason to delete.
+
+
+# H39 — the floor's null is a property of the HOME, and this takes it out
+
+**Atom:** `H39_the_texture_floor_sits_inside_the_spread_of_its_own_null` (lane H_harness, L0 -> L2)
+**Added:** `fabric_gap_ledger.flatten_to_mean_profile`, `half_hourly_texture_vs_own_null`, band + rate band `L1.1n_half_hourly_texture_null_ratio`, an L1.1n cell in `evaluate_two_level`
+**Moved, not copied:** the sweep's `_flatten_home` is now a call into the ledger's kernel — one flattening, since it became the denominator of a JUDGED band
+**Unchanged:** the 0.15 floor, its anchor, its load set, and every home it judges
+**R15:** `tests/harness/test_premise_two_level.py` §9b, four mutations, each shown firing
+
+## The argument, which is one sentence and then the evidence for it
+
+`half_hourly_texture` is `median |x[t] - x[t-1]| / mean(x)`, and a home's own mean
+diurnal profile *already moves between adjacent half-hours* — the morning ramp and
+the evening fall are period-to-period steps that are there whether or not the
+generator ever fired an appliance. So the reading a structureless generator gets
+is not zero, and it is not the same number for every home. Measured on the live
+panel with every appliance event removed and the heating machines left intact:
+
+| home | regime | observed | its own flat reading | ratio |
+|---|---|---|---|---|
+| F1 | gas combi | 0.2437 | 0.0606 | 4.02 |
+| T2 | gas combi | 0.2187 | 0.0432 | 5.06 |
+| S3 | gas combi | 0.2141 | **0.0365** | **5.87** |
+| D4 | gas combi | 0.2002 | 0.0437 | 4.58 |
+| T5 | gas combi | 0.2390 | 0.0925 | **2.59** |
+| S6 | gas combi | 0.2102 | 0.0552 | 3.81 |
+| D7 | gas combi | 0.1782 | 0.0659 | 2.70 |
+| F8 | gas combi | 0.2874 | 0.0553 | 5.20 |
+| S9 | gas combi | 0.1859 | 0.0419 | 4.44 |
+| H10 | heat pump | 0.2155 | 0.0474 | 4.55 |
+| H11 | heat pump | 0.1959 | 0.0403 | 4.86 |
+| H12 | heat pump | 0.2674 | **0.1009** | 2.65 |
+| E13 | resistive | 0.2438 | 0.0546 | 4.46 |
+| E14 | resistive | 0.2407 | 0.0658 | 3.66 |
+| E15 | resistive | 0.2205 | 0.0496 | 4.45 |
+
+**2.8x across the panel, 3.5x across the drawn 60** (0.0292–0.1035, which is 19%
+to 69% of the floor). One floor is therefore asking S3 to manufacture 0.113 out of
+appliance events and H12 to manufacture 0.049 — and neither number is about how
+honest the generator was.
+
+## The mint's stated mechanism was WRONG, and the correction is the first result
+
+H39 was minted with an explicitly `inferred`-labelled cause: *"the p95 is set by
+whichever home has the peakiest mean profile"*. It is not, and the label was doing
+its job — measured across the panel, the flat reading is essentially uncorrelated
+with the mean profile's peak-to-mean (**r = −0.052**), and the two extremes are
+the wrong way round: H12 has the panel's *second-lowest* peak-to-mean (2.264,
+against a 2.203–2.731 range) and the *highest* flat reading, while H11 has the
+highest peak-to-mean and the second-lowest reading.
+
+Sharpening a profile's peak does not raise the statistic — it lowers it. Taking
+the panel's own mean behavioural shape and raising it to a power to sharpen the
+peak, applied to every home as one national profile:
+
+| peak-to-mean | 2.24 | 2.90 | 3.53 | 4.09 | 4.59 | 5.02 | 5.42 |
+|---|---|---|---|---|---|---|---|
+| median flat reading | 0.0402 | 0.0401 | 0.0352 | 0.0312 | 0.0271 | 0.0219 | 0.0163 |
+
+A tall peak is still smooth *between adjacent half-hours*, which is the only thing
+this statistic reads. The driver is the mean profile's period-to-period
+**roughness**, and what makes one home's mean rough is not settled here: it
+correlates weakly and negatively with the home's behavioural level (r = −0.377,
+n = 15 — reported as weak, not as a finding). **The defect is real and the repair
+is unchanged; the stated cause was wrong**, and a wrong cause left standing is how
+the next repair gets aimed at the wrong thing. Pinned by
+`test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement`.
+
+## The fail-open, measured — a generator the floor cannot see
+
+The floor's own rationale says what it is for: *"a rescaled national average has
+the texture of a national average, which is the texture of a hundred thousand
+homes already summed"* — i.e. it assumes the fake shape is **smooth**. A more
+convincing fake is not. Take **one real day from one real home** and use it as
+every home's base shape, rescaled to each home-day's own real total: zero
+day-to-day behaviour anywhere in the population, which is exactly what L1.1
+certifies.
+
+| band | reading on that generator | verdict |
+|---|---|---|
+| `L1.1` (at_least 0.15) | 0.1890 – 0.1923, all 15 homes | **PASS, 15 of 15** |
+| `L1.1n` (at_least 1.0) | 1.0 to within 4e-16, all 15 homes | FAIL, 15 of 15 |
+
+**Said out loud, because overselling this would be the easy mistake:** `L1.2`
+(day-to-day shape correlation reads exactly 1.0) and `L1.5` (multiplicity share
+2.0 against a 0.10 band) also fail this generator, so the CELL was never blind to
+it. The claim is about **L1.1's own null**, which is the quantity this sweep
+measures band by band and the quantity H39 is about. Pinned by
+`test_L1_1n_FIRES_on_the_RESCALED_REAL_DAY_that_the_FLOOR_CANNOT_SEE`.
+
+The defect cuts the other way too. On the drawn 60 the home closest to the floor
+is P0036 at **0.1521 — 1.4% clear of firing** — while reading **4.26x** its own
+flat counterfactual; the home closest to its *own* null (P0031, 2.14x) reads
+0.1750 and is nowhere near the floor. The floor's ranking of those two homes and
+the evidence's ranking disagree.
+
+## The window evidence, which is what decides "repair the statistic"
+
+This module's disposition rule has two branches. Neither describes L1.1, and that
+is itself the diagnosis:
+
+| window | null (best) | null spread | observed median | margin | verdict |
+|---|---|---|---|---|---|
+| 40 d | 0.1138 | 0.0517 | 0.2155 | +0.0362 | same_order |
+| 60 d | 0.1124 | 0.0720 | 0.2090 | +0.0376 | same_order |
+| 90 d | 0.0846 | 0.0443 | 0.2120 | +0.0654 | **separated** |
+| 120 d | 0.0950 | 0.0558 | 0.2187 | +0.0550 | same_order |
+
+The null does **not shrink with the window** — it wanders, and the verdict wanders
+with it, flipping to `separated` at 90 days and back at 120 while the observed
+value never moves. A *sampling* null shrinks with n (that is L2.3's shape, and it
+is why L2.3 was repaired to a ratio). This one does not, because it is not a
+sampling term at all: it is a **per-home constant**, estimated on whichever days
+the window happens to contain. Repairing the WINDOW is therefore not available —
+there is no window at which this null is small — and the statistic is what has to
+change.
+
+## The repair, and why it is not a threshold move in either direction
+
+`L1.1n_half_hourly_texture_null_ratio` = `half_hourly_texture` on the home,
+divided by `half_hourly_texture` on the **same home flattened**: every day's
+behavioural stream replaced by that home's own mean behavioural profile, rescaled
+to that day's own behavioural total. Level, diurnal shape and daily totals all
+survive; appliance events do not. **1.0 is the decision point by construction** —
+the flattening is idempotent, so a structureless population reads exactly 1.0 —
+and there is nothing in it to tune. The number reads as *"this home's meter is N
+times rougher than its own smooth counterfactual"*.
+
+**The null is a POINT MASS, and that is the difference from `L1.4n` and `L2.3n`.**
+Those are 99-sample permutation nulls, so their 1.0 is a 95th percentile and a
+structureless subject clears them 1 time in 20 — their size, not a fail-open,
+which is why `L1.4n` needed a 0.50 population tolerance. Here the counterfactual
+is deterministic, a structureless home reads 1.0 with no spread at all, and no
+sampling puts a home with any behaviour under it. So the rate band is the
+**impossibility bound, 0.0**.
+
+### The 1e-9 is float error, and it is load-bearing
+
+The two readings are the same arithmetic in a different order, so a structureless
+home lands at 1.0 ± a few units in the last place. On the panel's own flat null,
+**5 of 15 homes land ABOVE 1.0**, by up to 2.4e-15. A band written `at_least 1.0`
+would therefore have passed a third of a smooth-by-construction population — the
+exact defect it exists to fail. `TEXTURE_NULL_RATIO_TOLERANCE = 1e-9` is sized
+against float error, never against where the population sits: the smallest real
+margin measured anywhere is 1.14 (P0031, ratio 2.14), nine orders clear of it.
+Zeroing the constant makes two tests fail; that is the mutation, and it is run.
+
+### The floor did not move, and it is still judged
+
+R12 in both directions. `L1.1` keeps 0.15, keeps its domain anchor, and keeps
+every home it judges — it answers the **magnitude** question ("is this as textured
+as a real household?"), which has an external argument behind it. `L1.1n` answers
+the **significance** question ("is any of this texture behaviour rather than
+shape?"), which has a construction behind it. They are separate cells for the
+reason `L1.4`/`L1.4n` already are: collapsing them into one name would be one name
+carrying two numbers. Raising 0.15 until it cleared its null, or retiring it
+because the sweep flagged it, would each have been fitting the number to the
+population.
+
+### Why the L1.1 row is still `same_order`, and why no honest build could change that
+
+`SEPARATED` compares the threshold with the 95th percentile of the band's null
+**across homes**, and L1.1's null across homes is irreducibly wide because it is a
+property of the homes. Nothing that leaves 0.15 in place can turn that row green,
+and `L1.1n` is not swept either — its threshold **is** its null, so sweeping it
+would ask whether 1.0 ≥ 1.0, R15's first killer pattern (`anchored_bands()`
+excludes it automatically as `STRUCTURAL`, the same door `L1.4n` and `L2.3n` go
+through). What is delivered instead of a colour change is the property the verdict
+was a proxy for, measured directly: **a population with no day-to-day behaviour in
+it now fails a judged band of this cell, at every home, whatever its profile looks
+like.**
+
+## R15, both ways
+
+| direction | test |
+|---|---|
+| **the floor is fail-open on a rescaled real day** | `test_L1_1n_FIRES_on_the_RESCALED_REAL_DAY_that_the_FLOOR_CANNOT_SEE` — floor passes 15/15, L1.1n fails 15/15 |
+| the band can PASS, on the real drawn 60 | `test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail` — 0 violations, worst home 2.14x |
+| the null is ONE number where the floor's is not | `test_the_NULL_is_ONE_NUMBER_for_every_home_where_the_FLOORs_is_NOT` |
+| the tolerance is load-bearing | `test_the_TOLERANCE_is_LOAD_BEARING_and_at_least_1_0_would_be_FAIL_OPEN` |
+| the decision point is exact | `test_the_FLAT_COUNTERFACTUAL_is_IDEMPOTENT_which_is_what_makes_1_0_EXACT` |
+| one flattening, not two | `test_the_FLATTENING_is_the_LEDGERS_and_the_SWEEP_keeps_no_second_copy` — AST, not substring: this module's docstring names the function, so a text match would have passed an inlined copy |
+| a degenerate null RAISES | `test_L1_1n_FAILS_CLOSED_rather_than_returning_a_spectacular_pass` |
+| ...and the cell scores it a VIOLATION | `test_L1_1n_scores_a_DEGENERATE_home_as_a_VIOLATION_not_as_a_pass` |
+| the machine is netted BEFORE the flattening | `test_L1_1n_NETS_THE_MACHINE_BEFORE_it_flattens` — the wrong order reads a null of 0.2092 against the right one's 0.0724 |
+| the mint's stated cause was refuted | `test_the_MINTS_INFERRED_MECHANISM_was_REFUTED_by_measurement` |
+| the floor is still ONE number and no regime has its own | `test_the_FLOOR_is_ONE_NUMBER_and_no_regime_has_its_own` — widened to assert `texture_band_for` can never route a home to `L1.1n` |
+
+**The four mutations, each run and each shown firing:** tolerance → 0.0 (2 tests
+fail); flattening keeps 1% of the real day, so it is no longer a null (3 fail);
+flatten-the-meter-then-net, which is H36's defect coming back in through the null
+(1 fail); the sweep inlines its own copy of the flattening (1 fail).
+
+## What was NOT done
+
+* **The floor did not move.** Still 0.15, still judged, still every home.
+* **Nobody was excluded**, and no cell was marked UNVALIDATED.
+* **The MAGNITUDE question is still open** and is still where it was: the
+  SERL/LCL published per-home half-hourly band is not in the artefact library, so
+  nothing here says whether a real household reads 2x or 5x its own flat
+  counterfactual. The route back is named on the band — a panel of real per-home
+  half-hourly reads, from which the ratio's real-home distribution is computable
+  **at the window it is applied at**.
+* **What makes one home's mean profile rough is not diagnosed.** The correlation
+  with behavioural level (−0.377, n=15) is reported as weak and is not a finding.
+* **EV charging is still unmeasured**, as H38 recorded — carried forward, not
+  closed.
+* **`docs/observability/band_null_sweep.json` was stale** (it carried H38's
+  pre-repair 0.0334/0.0763) and was regenerated here. Noted rather than folded in:
+  a derived artefact that lags its generator is its own class, already on the
+  register.

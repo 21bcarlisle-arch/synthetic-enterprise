@@ -887,6 +887,177 @@ def weekday_weekend_separation_vs_own_null(
     )
 
 
+# ---------------------------------------------------------------------------
+# L1.1n — THE SAME TEXTURE, JUDGED AGAINST THE HOME'S OWN FLAT COUNTERFACTUAL
+# ---------------------------------------------------------------------------
+#
+# WHY THIS EXISTS (H39, 2026-08-10). `half_hourly_texture` is `median |x[t] -
+# x[t-1]| / mean(x)`, and a home's OWN MEAN DIURNAL PROFILE already moves between
+# adjacent half-hours: the morning ramp and the evening peak are period-to-period
+# steps that are there whether or not the generator ever fired an appliance. So
+# the reading a structureless generator gets is not zero and is not the same for
+# every home — it is that home's profile's own roughness, a property of the HOME
+# rather than of the generator's honesty. Measured on the live 15-home panel with
+# every appliance event removed, the flat reading runs 0.0365 (S3) to 0.1009
+# (H12): a 2.8x range under one 0.15 floor. The band-null sweep reads the same
+# fact from the outside — the floor clears the 95th percentile of its own null by
+# 0.0550 against a null spread across homes of 0.0558.
+#
+# WHAT THAT COSTS, IN BOTH DIRECTIONS, and neither is hypothetical:
+#   * FAIL-OPEN. A home whose mean profile is rough enough between adjacent
+#     half-hours needs almost no real behaviour to reach 0.15. The roughest home
+#     on the panel is already at 67% of the floor with nothing in it at all (69%
+#     on the drawn 60), and a generator that rescales ONE REAL DAY as its base
+#     shape clears the floor at EVERY home — measured, below — while having no
+#     day-to-day behaviour in it at all, which is the one thing the floor's own
+#     anchor text says it exists to fire on.
+#   * FALSE POSITIVE. A home with a flat profile has to manufacture the whole
+#     0.15 out of appliance events. On the drawn 60 the marginal home sits at
+#     0.1521 — 1.4% above the floor — while reading 4.26x its own flat
+#     counterfactual, and the home at 2.14x (the closest in the population to its
+#     own null) reads 0.1750 and is nowhere near the floor. The floor's ranking
+#     of these homes and the evidence's disagree.
+#
+# THE REPAIR IS TO THE STATISTIC, NOT THE THRESHOLD — and NOT by moving 0.15 in
+# either direction, which would be fitting the number to the population (R12 read
+# backwards). Each home is compared with ITSELF under the flat counterfactual:
+# every day's behavioural stream replaced by that home's own mean behavioural
+# profile rescaled to that day's own behavioural total. Level, diurnal shape and
+# daily totals all survive; appliance events do not. The judged number is the
+# ratio of the two readings, so 1.0 is the decision point BY CONSTRUCTION and the
+# number itself reads as "this home's meter is N times rougher than its own
+# smooth counterfactual".
+#
+# THE NULL IS A POINT MASS, WHICH IS THE DIFFERENCE FROM L1.4n ABOVE. L1.4n's null
+# is 99 random relabellings, so its 1.0 is a 95th percentile and a structureless
+# home clears it 1 time in 20 — its size, not a fail-open. Here the flat
+# counterfactual is DETERMINISTIC and idempotent, so a structureless population
+# reads EXACTLY 1.0 with no spread at all. That is a stronger null and a sharper
+# trap: measured on the panel's own flat null, 15 of 15 homes read 1.0 to within
+# 2.4e-15 and FIVE OF THEM LAND ABOVE 1.0 on floating-point rounding alone. A
+# band written as `at_least 1.0` would therefore pass a third of a
+# smooth-by-construction population, which is the defect this cell is for. Hence
+# the tolerance below: it is a NUMERICAL constant sized by float error, not a
+# threshold anyone may tune.
+#
+# WHAT THIS STILL DOES NOT ANSWER, and it is the same gap L1.4n leaves. This band
+# asks whether a home has ANY texture of its own beyond its mean profile. It does
+# NOT ask whether that texture is as LARGE as a real household's — that is the
+# MAGNITUDE question, it is what the 0.15 floor is for, and the two are reported
+# as separate cells for the reason L1.4/L1.4n already are: collapsing them into
+# one name would be one name carrying two numbers. The floor does not move here.
+
+#: The ratio a structureless population reads is exactly 1.0, so the decision
+#: point is "anything above 1.0" — and the only reason this is not written as
+#: 1.0 is that the two readings are the same arithmetic in a different order and
+#: differ in their last bits. A real home reads 2.1-6.5 on every population
+#: measured, so 1e-9 is nine orders below anything a textured home can reach and
+#: cannot be crossed by adding behaviour. Sized against float error, never
+#: against where the population sits.
+TEXTURE_NULL_RATIO_TOLERANCE = 1e-9
+
+#: A home whose flat counterfactual has a zero median step has no null to be
+#: judged against. Relative, not `> 0.0`, for the reason recorded on
+#: `WEEKDAY_WEEKEND_NULL_DEGENERATE_BELOW`: the ratio of two rounding errors
+#: reads as an ordinary verdict. The statistic is a step over a mean, so a real
+#: reading is O(0.1) and 1e-9 is eight orders below it.
+TEXTURE_NULL_DEGENERATE_BELOW = 1e-9
+
+
+def flatten_to_mean_profile(days: Sequence[Sequence[float]]) -> list[list[float]]:
+    """One home's days, each replaced by the home's own mean profile rescaled to
+    THAT DAY'S OWN total — the flat counterfactual L1.1n is judged against.
+
+    What survives: the home's level, its mean diurnal shape, and its daily-total
+    series day for day. What is destroyed: appliance events, occupancy variation
+    and any difference in shape between one day and the next.
+
+    NOTHING IS RESAMPLED, and that is not a simplification — it is the outcome of
+    two recorded mistakes, both made while building the sweep's null and both the
+    same mistake. Redrawing each day's TOTAL injected level jumps across midnight
+    and inflated texture from ~0.05 to ~0.35; bootstrapping the MEAN PROFILE over
+    the home's own days, defended as "the estimation noise a 120-day mean
+    genuinely carries", inflated it by ~30%, because sampling noise in a mean
+    profile IS half-hourly movement and half-hourly movement is precisely what
+    this statistic measures. A null that ADDS structure is not a null, whatever
+    the noise is called. The full record is in `docs/design/BAND_NULL_SWEEP.md`.
+
+    IT IS ALSO IDEMPOTENT, which is what makes the ratio's decision point exact:
+    flattening an already-flat home returns the same home, so a structureless
+    population reads 1.0 rather than something near it.
+
+    THIS IS THE ONE FLATTENING. `background.band_null_sweep` measures L1.1's null
+    by calling THIS function rather than keeping its own copy — two
+    implementations of "replace each day by the mean profile" would be one name
+    carrying two nulls the day one of them was tweaked, and the sweep would then
+    be measuring the null of a statistic nobody applies (R15's first killer
+    pattern, one module over).
+    """
+    grid = [list(day) for day in days]
+    if not grid:
+        return grid
+    mean_day = [
+        sum(day[p] for day in grid) / len(grid) for p in range(PERIODS_PER_DAY)
+    ]
+    shape_total = sum(mean_day)
+    if shape_total <= 0.0:
+        return grid
+    unit = [v / shape_total for v in mean_day]
+    return [[v * sum(day) for v in unit] for day in grid]
+
+
+@dataclass(frozen=True)
+class TextureAgainstNull:
+    """L1.1n — one home's half-hourly texture beside its own flat counterfactual."""
+
+    raw: float
+    null: float
+
+    @property
+    def ratio(self) -> float:
+        """THE judged statistic. Above 1.0 means this home's meter moves more
+        between adjacent half-hours than its own mean diurnal profile does — i.e.
+        some of the texture is behaviour rather than shape."""
+        return self.raw / self.null
+
+
+def half_hourly_texture_vs_own_null(
+    days: Sequence[Sequence[float]],
+    *,
+    machines: Sequence[Sequence[float]] | None = None,
+) -> TextureAgainstNull:
+    """L1.1n — `half_hourly_texture` judged against this home's own flat
+    counterfactual. Deterministic: there is no seed, so there is no reseeding
+    that could move the answer (C-S2).
+
+    READ ON THE SAME LOAD SET as the raw cell — net of the heating machines — and
+    the netting happens BEFORE the flattening, not after. Flattening the meter and
+    subtracting the real machine would leave `flat_meter - real_heat`, which hands
+    the statistic the machine's own day-to-day movement as though it were
+    behaviour; that is the exact reading H36 took out of this cell and it must not
+    come back in through the null.
+
+    FAIL-CLOSED in every direction an unavailable check could take (R15): too few
+    days RAISES through the same guard the raw statistic uses; a non-positive mean
+    RAISES there too; a non-finite reading RAISES; and a degenerate null — a home
+    whose flat counterfactual has no half-hourly movement at all, so the
+    denominator is zero — RAISES rather than returning an infinite ratio that
+    would read as a spectacular pass.
+    """
+    netted = meter_net_of_machines([list(day) for day in days], machines)
+    raw = half_hourly_texture(netted)
+    null = half_hourly_texture(flatten_to_mean_profile(netted))
+    if not math.isfinite(raw) or not math.isfinite(null):
+        raise InsufficientEvidence("a non-finite texture cannot be judged")
+    if null <= TEXTURE_NULL_DEGENERATE_BELOW:
+        raise DegenerateNull(
+            f"this home's flat counterfactual has no texture at all (null {null:.3g}) "
+            "— its mean diurnal profile is a constant, so there is no null to judge "
+            "against and the ratio would be a reading over a rounding error"
+        )
+    return TextureAgainstNull(raw=raw, null=null)
+
+
 @dataclass(frozen=True)
 class FractionMultiplicity:
     """L1.5 — the sharpest control in the suite. It detects the MECHANISM of the
@@ -1469,6 +1640,40 @@ BANDS: dict[str, Band] = {
             "is the texture of a hundred thousand homes already summed."
         ),
     ),
+    "L1.1n_half_hourly_texture_null_ratio": Band(
+        statistic="L1.1n_half_hourly_texture_null_ratio",
+        level="L1",
+        direction="at_least",
+        threshold=1.0 + TEXTURE_NULL_RATIO_TOLERANCE,
+        anchor=AnchorStatus.STRUCTURAL,
+        anchor_source=(
+            "structural, and it needs no external figure because the decision "
+            "point is a property of the construction: `half_hourly_texture` read "
+            "on the home's own flat counterfactual against the same statistic "
+            "read on the home itself, so a population with no appliance events in "
+            "it reads EXACTLY 1.0 (the flattening is idempotent) and anything "
+            "above 1.0 is texture the mean diurnal profile does not account for. "
+            "There is nothing in it to tune. The 1e-9 is FLOAT ERROR, not a "
+            "margin: the two readings are the same arithmetic in a different "
+            "order, and on the live panel's own flat null 5 of 15 homes land "
+            "above 1.0 by up to 2.4e-15 — so `at_least 1.0` would pass a third of "
+            "a smooth-by-construction population. Real homes read 2.14-6.54 "
+            "across both measured populations, nine orders clear of it. See the "
+            "L1.1n note above `half_hourly_texture_vs_own_null` and the H39 "
+            "section of docs/design/BAND_NULL_SWEEP.md."
+        ),
+        observed_on_shipped=None,
+        rationale=(
+            "The 0.15 floor is a MAGNITUDE band and a home's own mean diurnal "
+            "profile already spends part of it: on the live panel the flat "
+            "reading runs 0.0365-0.1009, so the same floor asks a 2.8x-different "
+            "question of different homes and the roughest-profiled is already at 67% "
+            "of it "
+            "with no behaviour in it at all. This band asks the question the "
+            "floor's own anchor text says it is for — is this generator smooth by "
+            "construction — where the answer cannot be bought with a peaky shape."
+        ),
+    ),
     "L1.1u_half_hourly_texture_no_behavioural_stream": Band(
         statistic="L1.1u_half_hourly_texture_no_behavioural_stream",
         level="L1",
@@ -1918,6 +2123,20 @@ RATE_BANDS: dict[str, RateBand] = {
     "L1.1_half_hourly_texture": RateBand(
         "L1.1_half_hourly_texture", 0.0, AnchorStatus.STRUCTURAL, _IMPOSSIBILITY_BOUND
     ),
+    "L1.1n_half_hourly_texture_null_ratio": RateBand(
+        "L1.1n_half_hourly_texture_null_ratio", 0.0, AnchorStatus.STRUCTURAL,
+        _IMPOSSIBILITY_BOUND + " AND IT IS THE IMPOSSIBILITY BOUND HERE, WHERE "
+        "L1.4n's sibling rate is NOT — the difference is the null. L1.4n's is 99 "
+        "random relabellings, so its 1.0 is a 95th percentile and a correct "
+        "generator still puts weak-but-real homes under it 1 time in 20; its "
+        "tolerance had to be 0.50 for that reason. L1.1n's flat counterfactual is "
+        "DETERMINISTIC and idempotent, so a structureless home reads exactly 1.0 "
+        "and there is no sampling under which a home with any behaviour at all "
+        "falls below it. A home that does is a home whose meter is no rougher "
+        "than its own mean profile, which no real household is — so the tolerated "
+        "rate is zero and a breach is a mechanism to diagnose (R4), never a "
+        "tolerance to raise (R12).",
+    ),
     "L1.2_day_to_day_shape_correlation": RateBand(
         "L1.2_day_to_day_shape_correlation", 0.0, AnchorStatus.STRUCTURAL,
         _IMPOSSIBILITY_BOUND,
@@ -1977,6 +2196,12 @@ RATE_BANDS: dict[str, RateBand] = {
 # warning from the bands (it did exactly that once — see `goal_seek_warning`).
 TEXTURE_STATISTIC = "L1.1_half_hourly_texture"
 STRUCTURAL_STATISTIC = "L1.5_max_multiplicity_share"
+
+# The companion band that asks the same cell's SIGNIFICANCE question (H39). Named
+# once, for the same reason the two above are: the cell, the sweep's exclusion
+# list and the tests all reach it through this constant, so a rename cannot leave
+# one of them judging a band that no longer exists.
+TEXTURE_NULL_RATIO_STATISTIC = "L1.1n_half_hourly_texture_null_ratio"
 
 # How widespread the structural artefact must be before an L1.1-pass-with-L1.5-fail
 # reads as TUNING rather than as one home to diagnose. A rescaled base shape is a
@@ -2242,6 +2467,29 @@ def _null_ratio_or_zero(
         return 0.0
 
 
+def _texture_ratio_or_zero(days: Sequence[Sequence[float]]) -> float:
+    """L1.1n for one home, with the degenerate case decided HERE rather than
+    buried in the statistic.
+
+    A home whose flat counterfactual has no half-hourly movement has a mean
+    diurnal profile that is a CONSTANT — the same value in all 48 periods. Its
+    real texture may be anything; the point is that it has no null. It is scored
+    0.0, a definitive violation, and NOT skipped, for the reason the two sibling
+    helpers give: a flat-profile home is what a rescaled national base shape looks
+    like once the rescaling is per-day, so skipping it would be fail-open on
+    exactly the generator this cell is written for. Raising would let one such
+    home abort the whole population's cell.
+
+    The days are already netted of the heating machines by the caller, which is
+    why nothing is passed for `machines` here: netting twice would subtract the
+    machine from a stream it is no longer in.
+    """
+    try:
+        return half_hourly_texture_vs_own_null(days).ratio
+    except DegenerateNull:
+        return 0.0
+
+
 def _timing_ratio_or_zero(grids: Sequence[Sequence[Sequence[float]]]) -> float:
     """L2.3n for one population, with the degenerate case decided HERE rather than
     buried in the statistic.
@@ -2454,6 +2702,34 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
             else "no machine split supplied — the WHOLE meter is judged where the "
             f"register says the heat is elsewhere, and {unjudged_for_no_split} of "
             f"{len(grids)} homes are counted rather than judged"
+        ),
+    ))
+
+    # L1.1n — THE SAME TEXTURE, beside each home's own flat counterfactual (H39).
+    # A SEPARATE cell rather than a replacement for the floor above, for the reason
+    # L1.4/L1.4n are already separate: the floor asks a MAGNITUDE question with a
+    # domain anchor behind it, this asks whether ANY of the texture is behaviour
+    # rather than the home's own diurnal shape, and collapsing the two into one
+    # name would be one name carrying two numbers. It is read on the SAME
+    # `behavioural` stream the floor is read on — computed once, above — so the two
+    # cannot come to hold two ideas of what this home's behaviour is.
+    #
+    # ONE BAND FOR EVERY HOME, with no register lookup: the ratio's decision point
+    # is a property of the construction rather than of the load set, so unlike the
+    # floor it has nothing for a heating regime to condition. A home with no
+    # recoverable behavioural stream is already counted, not judged, by the floor's
+    # own `L1.1u` routing; here it is judged on the whole meter it presents,
+    # because a home whose meter is no rougher than its own mean profile is a
+    # finding whatever is in the meter.
+    cells.append(_l1_rate_cell(
+        TEXTURE_NULL_RATIO_STATISTIC,
+        values=[_texture_ratio_or_zero(b) for b in behavioural],
+        bands=(BANDS[TEXTURE_NULL_RATIO_STATISTIC],) * len(grids),
+        homes=homes,
+        note=(
+            "read on the same load set as the floor above; a home whose flat "
+            "counterfactual has no texture at all is scored 0.0 (a violation), "
+            "never skipped"
         ),
     ))
 

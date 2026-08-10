@@ -282,15 +282,17 @@ def _flat_day_null(population: PopulationTraces, rng: random.Random) -> Populati
 def _flatten_home(home: Sequence[Sequence[float]]) -> list[list[float]]:
     """One home's days, each replaced by the home's own mean profile rescaled to
     THAT DAY'S OWN total. The kernel of `_flat_day_null`, factored out so the
-    behavioural null below cannot drift into being a second flattening."""
-    mean_day = [
-        sum(day[p] for day in home) / len(home) for p in range(fgl.PERIODS_PER_DAY)
-    ]
-    shape_total = sum(mean_day)
-    if shape_total <= 0.0:
-        return [list(day) for day in home]
-    unit = [v / shape_total for v in mean_day]
-    return [[v * sum(day) for v in unit] for day in home]
+    behavioural null below cannot drift into being a second flattening.
+
+    THE KERNEL ITSELF IS THE LEDGER'S (`fgl.flatten_to_mean_profile`), not a copy
+    here — H39 made this same counterfactual the denominator of a JUDGED band
+    (`L1.1n`), and from that moment two implementations of "replace each day by
+    the mean profile" would be one name carrying two nulls: this module would be
+    measuring the null of a statistic the ledger does not apply, and could go
+    green while the shipped cell stayed fail-open. Same reason
+    `_exchangeable_homes_null` calls `fgl.deal_preserving_counts`.
+    """
+    return fgl.flatten_to_mean_profile(home)
 
 
 def _flat_behavioural_day_null(
