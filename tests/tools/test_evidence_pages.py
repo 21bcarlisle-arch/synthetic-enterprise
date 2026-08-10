@@ -306,6 +306,11 @@ def sources(tmp_path):
         dest = tmp_path / src.name
         shutil.copy2(src, dest)
         out[kw] = dest
+    # The per-atom record store is a FIFTH source since H41 moved `evidence` out of
+    # the map, and it is resolved relative to the map copy -- so the fixture must
+    # bring it along or every atom's citations would read MISSING for a reason that
+    # has nothing to do with the evidence.
+    shutil.copytree(G.STORE_DIR, tmp_path / "simplifications")
     return out
 
 
@@ -339,6 +344,45 @@ def test_an_empty_source_raises_rather_than_rendering_a_blank_page(sources, brok
     sources[broken].write_text("", encoding="utf-8")
     with pytest.raises(EvidenceSourceUnavailable):
         build_payload(**sources)
+
+
+def test_a_missing_record_store_raises_rather_than_rendering_every_citation_missing(sources):
+    """DEFECT (fail-silent, H41): `evidence` now lives in the per-atom record store, so a
+    reader that cannot see the store finds no `evidence:` line for 259 atoms and renders a
+    MISSING badge against every citation on every node. That page does not look broken -- it
+    looks like a VERDICT ("nothing substantiates these claims"), which is the worst shape a
+    fail-silent can take on an evidence surface. Source absent must be LOUD."""
+    from tools.generate_evidence_data import EvidenceSourceUnavailable, build_payload
+
+    shutil.rmtree(sources["map_path"].parent / "simplifications")
+    with pytest.raises(EvidenceSourceUnavailable):
+        build_payload(**sources)
+
+
+def test_an_empty_record_store_raises_rather_than_rendering_every_citation_missing(sources):
+    """DEFECT (fail-open on empty): the store directory exists but holds nothing. A
+    present-but-empty source must be as loud as an absent one -- the classic pass-on-empty."""
+    from tools.generate_evidence_data import EvidenceSourceUnavailable, build_payload
+
+    store_dir = sources["map_path"].parent / "simplifications"
+    shutil.rmtree(store_dir)
+    store_dir.mkdir()
+    with pytest.raises(EvidenceSourceUnavailable):
+        build_payload(**sources)
+
+
+def test_the_record_store_actually_supplies_the_citations(sources):
+    """FAIL-OPEN FLOOR for the two tests above: prove the store is what the citations come
+    from, not merely that removing it raises. Without this, a build that got its evidence from
+    somewhere else entirely would still satisfy both raise-tests."""
+    from tools.generate_evidence_data import build_payload
+
+    payload = build_payload(**sources)
+    cited = sum(
+        len(a.get("citations") or [])
+        for n in payload["nodes"] for a in n.get("atoms") or []
+    )
+    assert cited > 50, f"only {cited} citations built -- the store is not feeding this page"
 
 
 @pytest.mark.parametrize("broken", ("ledger_path", "suite_log_path"))

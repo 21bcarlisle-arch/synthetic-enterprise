@@ -55,8 +55,35 @@ STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 # spine has a new unbounded FIELD to rehome (extend `simplifications_store.NOTE_FIELDS`, and
 # tests/design/test_atom_notes_store.py's class guard already fails on any new `*_note`),
 # NOT whether to raise the number.
+#
+# IT WENT RED AGAIN IN 24 HOURS, and the paragraph above asked the right question but named
+# the wrong field. H41 (2026-08-10) answered it by measuring the REFILL rather than the
+# stock: over the 24h to 2026-08-10 the map grew +67,096 bytes net, of which `evidence`
+# was +46,853 and `exit_evidence` +20,652 — i.e. the two record fields WERE the growth, and
+# H32 had drained a different one. Those are now the store's `map_records:` tenant
+# (tools/migrate_atom_lists.py, same three proof layers, 259 atoms / 21,586 entries moved
+# verbatim), taking the map 430,962 -> 300,565. THIS NUMBER IS STILL 400K, unraised, for the
+# third time — every wedge in this control's history has been paid by moving content out,
+# never by moving the line.
 MAP_SIZE_CEILING = 400 * 1024
 PER_FILE_CEILING = 100 * 1024
+
+# ── The scale-invariant half of the control (H41) ────────────────────────────────
+# A FIXED ceiling on a GROWING population is the defect this control kept re-expressing.
+# 31 atoms were minted in that same 24h window, and an honestly-recorded 260-atom map
+# legitimately costs more bytes than a 229-atom one — so a whole-file ceiling cannot tell
+# "the company did more work" (fine, and the map's whole purpose) from "one atom accreted
+# 4KB of prose" (the thing that actually needs draining). It reds on both, which is why it
+# twice arrived as a publish wedge carrying no information about what to fix.
+#
+# The per-atom budget is invariant to atom count by construction: minting never moves it,
+# accretion always does, and when it fires it NAMES the offending atom instead of handing
+# the reader a total. Both numbers are derived from the map AFTER the H41 drain (mean 1,156
+# B/atom over 260 atoms; largest atom SITE1_expert_doors at 10,552 B) — derived from a
+# cleaned map, never from the pressure of a wedge, which is the condition the originating
+# finding put on any re-derivation.
+MAP_MEAN_BYTES_PER_ATOM = 1400
+MAP_MAX_BYTES_PER_ATOM = 12 * 1024
 
 
 def _load_atoms(path: Path = MAP_PATH) -> list:
@@ -189,6 +216,95 @@ def test_map_within_size_ratchet_when_store_populated():
     assert size < MAP_SIZE_CEILING, (
         f"maturity_map.yaml is {size} bytes, over the {MAP_SIZE_CEILING}-byte "
         "spine ratchet -- the register must live in the store, not the map"
+    )
+
+
+def atom_byte_sizes(text: str) -> dict[str, int]:
+    """{atom_id: bytes its `- id:` block occupies in the map text}.
+
+    Text-measured, not yaml-measured: what the ratchet cares about is the bytes on
+    disk, and a re-serialised atom is not the same size as the hand-authored one."""
+    lines = text.splitlines(keepends=True)
+    starts = [i for i, ln in enumerate(lines) if ln.startswith("- id: ")]
+    out: dict[str, int] = {}
+    for n, i in enumerate(starts):
+        end = starts[n + 1] if n + 1 < len(starts) else len(lines)
+        out[lines[i][len("- id: "):].strip()] = sum(
+            len(ln.encode("utf-8")) for ln in lines[i:end]
+        )
+    return out
+
+
+def check_per_atom_budget(
+    sizes: dict[str, int],
+    mean_budget: int = MAP_MEAN_BYTES_PER_ATOM,
+    max_budget: int = MAP_MAX_BYTES_PER_ATOM,
+) -> list[str]:
+    """Violations of the scale-invariant budget. Empty list == within budget.
+
+    VACUITY GUARD: an empty map is not a passing map. A control whose population can
+    be zero passes loudest exactly when its input has gone missing, which is the
+    fail-open shape R15 names -- so no atoms is itself the violation."""
+    if not sizes:
+        return ["no atoms measured -- an empty map is not a map within budget"]
+    out = []
+    mean = sum(sizes.values()) / len(sizes)
+    if mean > mean_budget:
+        out.append(
+            f"mean {mean:.0f} B/atom over {len(sizes)} atoms, above the "
+            f"{mean_budget} B/atom budget -- atoms are accreting prose; rehome the "
+            "growing FIELD to the record store rather than raising this number"
+        )
+    for aid, n in sorted(sizes.items(), key=lambda kv: -kv[1]):
+        if n > max_budget:
+            out.append(f"{aid}: {n} B, above the {max_budget} B per-atom cap")
+    return out
+
+
+def test_map_within_per_atom_budget():
+    """The scale-invariant companion to the whole-file ratchet: minting atoms must
+    never red this, accreting prose into one always must."""
+    if not _store_is_populated():
+        pytest.skip("store empty")
+    violations = check_per_atom_budget(
+        atom_byte_sizes(MAP_PATH.read_text(encoding="utf-8"))
+    )
+    assert not violations, "per-atom budget:\n  " + "\n  ".join(violations)
+
+
+def test_per_atom_budget_is_invariant_to_atom_COUNT():
+    """R15 both-ways, and the property that distinguishes this control from the
+    whole-file ceiling it backs up: 10x the atoms at the same size per atom is NOT a
+    violation. A control that fires on honest growth is the one that arrives as a
+    publish wedge carrying no information about what to fix."""
+    small = {f"A{i}": 1000 for i in range(10)}
+    large = {f"A{i}": 1000 for i in range(1000)}
+    assert not check_per_atom_budget(small)
+    assert not check_per_atom_budget(large)
+
+
+def test_per_atom_budget_fires_on_accretion_and_on_one_fat_atom():
+    """R15: the check must FIRE on each of its own named defects."""
+    # (a) broad accretion -- every atom over the mean budget, none over the cap
+    assert check_per_atom_budget({f"A{i}": 2000 for i in range(50)})
+    # (b) one atom over the per-atom cap, with a mean well inside budget
+    fat = {f"A{i}": 100 for i in range(500)}
+    fat["FAT"] = MAP_MAX_BYTES_PER_ATOM + 1
+    violations = check_per_atom_budget(fat)
+    assert violations and "FAT" in violations[0], violations
+    # (c) FAIL-OPEN guard: an empty population is a violation, not a pass
+    assert check_per_atom_budget({})
+
+
+def test_atom_byte_sizes_measures_the_real_map():
+    """The measurement must be anchored to the live map, not only to synthetic
+    fixtures -- a sizer that returned {} would make every budget test above vacuous
+    while still passing (the tautology R15 warns about, one layer down)."""
+    sizes = atom_byte_sizes(MAP_PATH.read_text(encoding="utf-8"))
+    assert len(sizes) > 100, f"only {len(sizes)} atoms parsed out of the live map"
+    assert sum(sizes.values()) > 0.9 * MAP_PATH.stat().st_size, (
+        "atom blocks account for <90% of the map -- the sizer is missing content, so "
+        "the budget it feeds is measuring the wrong thing"
     )
 
 

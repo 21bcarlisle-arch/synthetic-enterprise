@@ -83,8 +83,13 @@ SITE = PROJECT / "site"
 # create a second definition that can drift.
 if str(SITE) not in sys.path:
     sys.path.insert(0, str(SITE))
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
+
+from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
 
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
+STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 MAPPING_PATH = SITE / "data" / "moap_node_atoms.json"
 LEDGER_PATH = PROJECT / "docs" / "observability" / "gate_authorizations.jsonl"
 SUITE_LOG_PATH = PROJECT / "docs" / "observability" / "test_execution_log.jsonl"
@@ -196,12 +201,71 @@ def atom_records(map_path: Path = MAP_PATH) -> dict[str, dict]:
             elif value.startswith("["):
                 ev_buf = [value]
             continue
-        if key in ("name", "lane", "loop_stage", "value_stream", "epoch", "provenance"):
+        if key in ("name", "lane", "loop_stage", "value_stream", "epoch", "provenance",
+                   "records_rehomed"):
             records[current][key] = value.strip().strip("'\"")
     if current and ev_buf is not None:
         records[current]["evidence_raw"] = "\n".join(ev_buf)
     if not records:
         raise EvidenceSourceUnavailable(f"maturity map parsed to zero atoms: {map_path}")
+    # The record store is DERIVED from the map's own location, never hard-coded to
+    # the live one: a caller handed a map copy (every test fixture here) must get
+    # that copy's store, or it would silently read the real tree's evidence and the
+    # fixture would be testing the wrong pair. Same rule as
+    # merge_atom_status._store_dir_for.
+    return _attach_rehomed_evidence(records, Path(map_path).parent / "simplifications")
+
+
+def _attach_rehomed_evidence(records: dict[str, dict], store_dir: Path = STORE_DIR) -> dict:
+    """Resolve `evidence` for atoms that declare it REHOMED to the record store (H41).
+
+    `evidence` was the bulk of the maturity map's byte growth and now lives in
+    docs/design/simplifications/<atom_id>.yaml under `map_records:`, with the map
+    keeping a `records_rehomed: [evidence]` declaration. Without this the text parse
+    above would find no `evidence:` line for 259 atoms and this page would render a
+    MISSING badge against every citation on every node -- a page that looks like a
+    verdict ("nothing substantiates these claims") but is really a stale reader.
+
+    THE TWO-TIER FAIL RULE IS THIS MODULE'S OWN (see the header): SOURCE ABSENT ->
+    LOUD, EVIDENCE ABSENT -> VISIBLY MISSING. A store directory that is gone, or a
+    map where every atom declares rehomed evidence and NOT ONE resolves, is the
+    source being unavailable -- raise, write nothing, leave the previous page up.
+    A single declared atom the store has no record for is per-atom absence and
+    renders the ordinary MISSING badge, exactly as an unresolvable citation does.
+
+    Reading through `simplifications_store.records_load_all` rather than re-parsing
+    the store's yaml here is deliberate: one module owns that file format, and this
+    is the same loader the H41 migration's hash proof and the store contract tests
+    verify against -- so this page cannot drift into its own private idea of the
+    store's shape."""
+    declared = [
+        aid for aid, r in records.items()
+        if "evidence" in str(r.get("records_rehomed") or "")
+    ]
+    if not declared:
+        # Pre-H41 map (or a test fixture): evidence is still inline and the text
+        # parse above is complete. Not an error -- and not a silent pass either,
+        # since the map either declares the rehome or still carries the field.
+        return records
+    if not store_dir.is_dir():
+        raise EvidenceSourceUnavailable(
+            f"{len(declared)} atom(s) declare rehomed evidence but the record store "
+            f"is missing: {store_dir}"
+        )
+    loaded = store.records_load_all(store_dir)
+    resolved = 0
+    for aid in declared:
+        entries = (loaded.get(aid) or {}).get("evidence")
+        if isinstance(entries, list) and entries:
+            records[aid]["evidence_entries"] = [str(e) for e in entries]
+            resolved += 1
+    if not resolved:
+        raise EvidenceSourceUnavailable(
+            f"{len(declared)} atom(s) declare rehomed evidence and the store "
+            f"({store_dir}) resolved NONE of them -- refusing to publish an "
+            "evidence page whose every citation would read MISSING for a reader-side "
+            "reason"
+        )
     return records
 
 
@@ -364,7 +428,12 @@ def build_payload(
         for a in stage["atoms"]:
             rec = records.get(a["id"], {})
             citations = []
-            for raw in _split_evidence(rec.get("evidence_raw", "")):
+            # Rehomed atoms carry their entries as a real list (H41); only a still-
+            # inline atom needs the flow-list text split.
+            raw_entries = rec.get("evidence_entries")
+            if raw_entries is None:
+                raw_entries = _split_evidence(rec.get("evidence_raw", ""))
+            for raw in raw_entries:
                 for p in citation_paths(raw):
                     c = classify_citation(p, project)
                     c["raw"] = raw

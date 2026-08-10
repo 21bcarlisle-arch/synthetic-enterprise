@@ -84,6 +84,12 @@ class MigrationError(Exception):
     """A structural precondition of the migration was violated."""
 
 
+# A field key inside an atom block. Module-level so the sibling list-class
+# migration (tools/migrate_atom_lists.py, H41) reuses this module's proven,
+# shape-agnostic text surgery instead of copying a third divergent copy of it.
+KEY_RE = re.compile(r"^(\s+)([A-Za-z_][A-Za-z0-9_]*):")
+
+
 # --------------------------------------------------------------------------
 # Text surgery
 # --------------------------------------------------------------------------
@@ -159,10 +165,9 @@ def _rewrite_block(block: list[str]) -> tuple[list[str], dict]:
     declaration where the first one stood. Returns (new_block, {field: value})."""
     notes: dict = {}
     spans: list[tuple[int, int]] = []
-    key_re = re.compile(r"^(\s+)([A-Za-z_][A-Za-z0-9_]*):")
     j = 0
     while j < len(block):
-        m = key_re.match(block[j])
+        m = KEY_RE.match(block[j])
         if not m or not store.is_note_field(m.group(2)):
             j += 1
             continue

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-09T12:55:43Z",
-  "git_hash": "unknown",
+  "generated_at": "2026-08-10T10:27:53Z",
+  "git_hash": "c76014aac",
   "suite": {
-    "test_count": 22552,
-    "timestamp": "2026-08-09T12:36:34.768133+00:00"
+    "test_count": 22710,
+    "timestamp": "2026-08-09T19:25:25.233451+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2091,7 +2091,7 @@
               "path": "site/data/customers/C3g.json",
               "status": "RESOLVED",
               "resolved_path": "site/data/customers/C3g.json",
-              "raw": "real full 2016-2025 run, 2026-07-12: 1588 bills, 471 estimated (29.7%, consistent with the 27% finding below), 155 catch-ups resolved (67 undercharge/88 overcharge), raw delta GBP7,950.07, GBP7,864.25 chargeable, GBP85.82 written off under the Ofgem 12-month cap (2 real cap-applied cases) -- site/data/customers/C3g.json INV470 (2018-08-31) read by eye: 12 consecutive estimated gas bills resolved on the real read, GBP480.64 raw undercharge, GBP39.61 correctly written off (the oldest sliver pre-dates the SLC 31A 12-month protected window as of the billing date), GBP441.03 charged -- folded into that bills own total_amount_gbp with bill_shock_pct/clarity_score recomputed consistently.",
+              "raw": "real full 2016-2025 run, 2026-07-12: 1588 bills, 471 estimated (29.7%, consistent with the 27% finding below), 155 catch-ups resolved (67 undercharge/88 overcharge), raw delta GBP7,950.07, GBP7,864.25 chargeable, GBP85.82 written off under the Ofgem 12-month cap (2 real cap-applied cases) -- site/data/customers/C3g.json INV470 (2018-08-31) read by eye: 12 consecutive estimated gas bills resolved on the real read, GBP480.64 raw undercharge, GBP39.61 correctly written off (the oldest sliver pre-dates the SLC 31A 12-month protected window as of the billing date), GBP441.03 charged -- folded into that bill's own total_amount_gbp with bill_shock_pct/clarity_score recomputed consistently.",
               "is_test": false
             },
             {

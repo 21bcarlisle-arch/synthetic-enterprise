@@ -1,0 +1,6 @@
+atom_id: OPS8_last_known_good_staleness_banner
+map_notes:
+  origin_note: 'MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 3: if even the scoped gate is red the site keeps serving the last verified snapshot under a dated banner (''verification paused since T; showing run R''), so a visitor can always tell WHAT they are seeing and HOW current it is. EXIT: (1) a red scoped gate leaves the last verified snapshot SERVED, not blanked and not silently frozen; (2) the banner renders T and R on the live page, R11-verified by fetch; (3) R11 ''no orphan transitions'' applies to the banner''s RELEASE as well -- a subsequent green must actually clear it, and that clearing is tested, because a banner that never lifts is the same defect inverted; (4) an R15 mutation proves BOTH directions: the banner cannot be shown while the snapshot is in fact current, and cannot be hidden while it is stale.'
+map_records:
+  evidence:
+  - docs/staging/done/DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10.md

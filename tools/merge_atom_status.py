@@ -55,13 +55,24 @@ PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 INBOX_DIR = PROJECT / "docs" / "design" / "atom_status"
 
-# Map-text fold fields a fork is permitted to mutate via its inbox. `evidence`
-# still lives in the map (narrow text fold). `simplifications` MOVED to the
-# sibling store (retro FM-1): `append_simplification` is handled separately --
-# it appends to the store file and rewrites only the map's `simplifications_count`
-# scalar (see `_apply_inbox_to_lines`). Keeping it out of this dict is what stops
-# the fold from re-creating a `simplifications:` block in the map.
-_APPENDABLE = {"append_evidence": "evidence"}
+# Map-text fold fields a fork is permitted to mutate via its inbox.
+#
+# THIS DICT IS NOW EMPTY, AND THAT IS THE POINT (H41, 2026-08-10). Both append-only
+# registers have left the map: `simplifications` to the sibling store (retro FM-1),
+# and `evidence` to the same store's record tenant. `evidence` was the single
+# largest source of map growth -- +46,853 bytes in the 24h that put the spine
+# ratchet back into a publish wedge one day after H32 drained a different field --
+# and THIS fold was the pipe it grew through. Rewiring it to the store is what makes
+# the H41 repair a DRAIN rather than another one-time cleanup: every level move from
+# here on grows a per-atom store file, not the spine.
+#
+# Both appends are handled explicitly in `_apply_inbox_to_lines`/`merge`: the notes
+# and evidence go to the store, and the map keeps only a derived declaration
+# (`simplifications_count`, `records_rehomed`). Keeping them OUT of this dict is
+# what stops the fold from re-creating either block in the map. The dict itself
+# stays as the seam: a future genuinely-map-resident appendable field belongs here,
+# and its emptiness is asserted by the store contract test.
+_APPENDABLE: dict[str, str] = {}
 
 
 def _store_dir_for(map_path: Path) -> Path:
@@ -496,6 +507,27 @@ def _apply_inbox_to_lines(lines: list[str], inbox: dict, store_dir: Path) -> lis
         new_count = store.count_for_atom(atom_id, store_dir) + len(simpl_additions)
         block = _set_or_create_scalar(block, atom_id, "simplifications_count", new_count)
 
+    # append_evidence -- the artefact trail MOVED to the store's record tenant (H41),
+    # the same shape as append_simplification above. The map keeps only the
+    # `records_rehomed: [...]` DECLARATION naming which record fields exist, and that
+    # declaration is computed from the store's post-append field set (current fields
+    # ∪ {evidence}) rather than from anything in the map -- so the two cannot drift,
+    # and the declaration-matches-store contract test has something real to check.
+    ev_additions = inbox.get("append_evidence")
+    if ev_additions:
+        if not isinstance(ev_additions, list):
+            raise MergeError(f"append_evidence in inbox '{atom_id}' must be a list")
+        if _block_declares_field(block, "evidence"):
+            raise MergeError(
+                f"atom '{atom_id}' still carries an inline `evidence:` field -- "
+                "appending to the store as well would create two sources of truth. "
+                "Run `python3 -m tools.migrate_atom_lists` first."
+            )
+        fields = sorted(set(store.records_for_atom(atom_id, store_dir)) | {"evidence"})
+        block = _set_or_create_scalar(
+            block, atom_id, store.RECORDS_DECLARATION_FIELD, "[" + ", ".join(fields) + "]"
+        )
+
     return lines[:start] + block + lines[end:]
 
 
@@ -550,6 +582,9 @@ def merge(
         adds = ib.get("append_simplification")
         if adds:
             store.append_for_atom(ib["id"], adds, store_dir)
+        ev_adds = ib.get("append_evidence")
+        if ev_adds:
+            store.append_to_record_for_atom(ib["id"], "evidence", ev_adds, store_dir)
     map_path.write_text(new_text)
     if clear:
         for ib in inboxes:

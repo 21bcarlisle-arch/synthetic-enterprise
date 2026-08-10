@@ -71,22 +71,32 @@ def _path_for(atom_id: str, store_dir: Path | None = None) -> Path:
     return _store_dir(store_dir) / f"{atom_id}.yaml"
 
 
-def _dump(atom_id: str, notes: list, map_notes: dict | None = None) -> str:
+def _dump(
+    atom_id: str,
+    notes: list,
+    map_notes: dict | None = None,
+    map_records: dict | None = None,
+) -> str:
     """Serialise one atom's store file. Keys are ordered atom_id-then-list so the
     file is self-describing (the orphan test can key off either the filename or
     the in-file atom_id). Note strings are emitted verbatim -- pyyaml quotes only
     where YAML requires it, and round-trips back to the identical Python list.
 
-    `map_notes` is the second tenant (H32). It is emitted ONLY when non-empty, so
-    a simplifications-only file keeps its exact historical shape; and `simplifications`
-    is emitted only when non-empty, so a notes-only atom does not gain a spurious
-    empty register. EVERY writer routes through here precisely so neither tenant
-    can be dropped by a writer that only knows about the other."""
+    `map_notes` (H32) and `map_records` (H41) are the second and third tenants. Each
+    is emitted ONLY when non-empty, so a simplifications-only file keeps its exact
+    historical shape and a notes-only atom does not gain a spurious empty register.
+    EVERY writer routes through here precisely so no tenant can be dropped by a
+    writer that only knows about the others -- and since H41 no writer calls this
+    directly with a partial tenant set either: `_write_tenants` below is the sole
+    write path, and it read-modify-writes, so forgetting a tenant is no longer
+    POSSIBLE rather than merely discouraged."""
     doc: dict = {"atom_id": atom_id}
     if notes:
         doc["simplifications"] = list(notes)
     if map_notes:
         doc["map_notes"] = dict(map_notes)
+    if map_records:
+        doc["map_records"] = dict(map_records)
     return yaml.safe_dump(
         doc,
         sort_keys=False,
@@ -94,6 +104,46 @@ def _dump(atom_id: str, notes: list, map_notes: dict | None = None) -> str:
         width=10 ** 9,
         default_flow_style=False,
     )
+
+
+def _write_tenants(atom_id: str, store_dir: Path | None = None, **changed) -> str:
+    """THE SOLE WRITE PATH. Read-modify-write one atom's store file: apply only the
+    tenants named in `changed` (`notes`, `map_notes`, `map_records`) and carry every
+    other tenant through verbatim.
+
+    WHY THIS EXISTS (H41). `_dump` rebuilds the whole file, so with three tenants
+    each of the three writers had to remember to re-read and pass the other two --
+    and the H32 comment on `append_for_atom` ("an append that forgot `map_notes`
+    would silently delete this atom's rehomed note record") is a warning that the
+    hazard was real and was being held off by convention. Convention does not
+    survive a fourth tenant. This makes the drop structurally impossible: a writer
+    that says nothing about a tenant preserves it.
+
+    Enforces the per-file bound before touching disk, so an over-bound write leaves
+    the existing file intact rather than half-replacing it."""
+    doc = _read_doc(atom_id, store_dir)
+    existing_notes = doc.get("simplifications")
+    existing_map_notes = doc.get("map_notes")
+    existing_map_records = doc.get("map_records")
+    tenants = {
+        "notes": list(existing_notes) if isinstance(existing_notes, list) else [],
+        "map_notes": dict(existing_map_notes) if isinstance(existing_map_notes, dict) else {},
+        "map_records": dict(existing_map_records) if isinstance(existing_map_records, dict) else {},
+    }
+    unknown = set(changed) - set(tenants)
+    if unknown:
+        raise ValueError(f"unknown store tenant(s): {sorted(unknown)}")
+    tenants.update(changed)
+    body = _dump(atom_id, tenants["notes"], tenants["map_notes"], tenants["map_records"])
+    if len(body.encode("utf-8")) > MAX_FILE_BYTES:
+        raise ValueError(
+            f"store file for {atom_id!r} would be {len(body.encode('utf-8'))} bytes, "
+            f"over the {MAX_FILE_BYTES}-byte per-file bound"
+        )
+    d = _store_dir(store_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    _path_for(atom_id, store_dir).write_text(body, encoding="utf-8")
+    return body
 
 
 def _read_doc(atom_id: str, store_dir: Path | None = None) -> dict:
@@ -165,17 +215,10 @@ def append_for_atom(atom_id: str, notes: list, store_dir: Path | None = None) ->
         raise ValueError(f"notes for {atom_id!r} must be a list, got {type(notes).__name__}")
     existing = for_atom(atom_id, store_dir)
     combined = existing + list(notes)
-    # PRESERVE the other tenant: `_dump` rebuilds the whole file, so an append that
-    # forgot `map_notes` would silently delete this atom's rehomed note record (H32).
-    body = _dump(atom_id, combined, notes_for_atom(atom_id, store_dir))
-    if len(body.encode("utf-8")) > MAX_FILE_BYTES:
-        raise ValueError(
-            f"store file for {atom_id!r} would be {len(body.encode('utf-8'))} bytes, "
-            f"over the {MAX_FILE_BYTES}-byte per-file bound"
-        )
-    d = _store_dir(store_dir)
-    d.mkdir(parents=True, exist_ok=True)
-    _path_for(atom_id, store_dir).write_text(body, encoding="utf-8")
+    # PRESERVE the other tenants: `_write_tenants` carries `map_notes`/`map_records`
+    # through untouched, so an append can no longer delete this atom's rehomed
+    # note or list record (the H32 hazard, now structural rather than remembered).
+    _write_tenants(atom_id, store_dir, notes=combined)
     return len(combined)
 
 
@@ -261,28 +304,148 @@ def set_note_for_atom(
         raise ValueError(f"note {field!r} for {atom_id!r} must be a non-empty string")
     merged = notes_for_atom(atom_id, store_dir)
     merged[field] = text
-    body = _dump(atom_id, for_atom(atom_id, store_dir), merged)
-    if len(body.encode("utf-8")) > MAX_FILE_BYTES:
-        raise ValueError(
-            f"store file for {atom_id!r} would be {len(body.encode('utf-8'))} bytes, "
-            f"over the {MAX_FILE_BYTES}-byte per-file bound"
-        )
+    _write_tenants(atom_id, store_dir, map_notes=merged)
+    return merged
+
+
+# --------------------------------------------------------------------------
+# Third tenant: the rehomed unbounded RECORD LIST fields (atom H41)
+# --------------------------------------------------------------------------
+# WHY. `evidence` and `exit_evidence` are append-per-level-move narrative lists.
+# Measured over the 24h to 2026-08-10 they grew +46,853 and +20,652 bytes against
+# a map that grew +67,096 net -- i.e. THEY ARE ESSENTIALLY THE WHOLE REFILL. That
+# is why H32's note rehome, which drained a different field, was back over the
+# spine ratchet inside a day: it removed a stock and left the flow running. This
+# tenant moves the flow. Every other map field's growth is atom-COUNT driven
+# (a new atom's `name`/`lane`/levels), which the per-atom budget control in
+# tests/design/test_simplifications_store.py is deliberately invariant to.
+#
+# CLASS GUARD, not an instance list (R10): `evidence` plus any `*_evidence`, so a
+# future `frame_evidence` appearing inline in the map is caught by construction
+# rather than by someone remembering to extend a tuple.
+#
+# SHAPE-TOLERANT BY MEASUREMENT, not by taste: on the live map `evidence` is a list
+# on all 259 atoms that carry it and `exit_evidence` is a prose STRING on all 3 --
+# the class is "the unbounded record fields", which is why the tenant is called
+# `map_records` and not `map_records`. Values are carried VERBATIM in whatever shape
+# the map held them; nothing here coerces, because a coercion in a migration is a
+# silent content edit (`list("some prose")` would have exploded a string into
+# characters and still round-tripped through a naive hash).
+RECORD_FIELDS = ("evidence", "exit_evidence")
+
+# The map-side declaration naming which record fields an atom keeps in the store.
+RECORDS_DECLARATION_FIELD = "records_rehomed"
+
+
+def is_record_field(field: str) -> bool:
+    """Membership in the rehomed-record CLASS: `evidence` itself, plus anything
+    ending `_evidence`."""
+    return field == "evidence" or field.endswith("_evidence")
+
+
+def records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:
+    """{field: value} for one atom -- exactly what the map atom's record fields
+    used to yield, in their original shape. `{}` when the atom has no store file
+    or no record tenant in it."""
+    recs = _read_doc(atom_id, store_dir).get("map_records")
+    if not isinstance(recs, dict):
+        return {}
+    return {k: (list(v) if isinstance(v, list) else v) for k, v in recs.items()}
+
+
+def records_load_all(store_dir: Path | None = None) -> dict[str, dict]:
+    """{atom_id: {field: value}} across the whole store, over atoms that HAVE
+    record fields. The record-tenant twin of `load_all`/`notes_load_all`, and the
+    independent recombination the H41 migration's hash proof matches against.
+    Tenant-scoped for the same reason `load_all` is (see its docstring)."""
+    out: dict[str, dict] = {}
     d = _store_dir(store_dir)
-    d.mkdir(parents=True, exist_ok=True)
-    _path_for(atom_id, store_dir).write_text(body, encoding="utf-8")
+    if not d.is_dir():
+        return out
+    for p in sorted(d.glob("*.yaml")):
+        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            continue
+        recs = data.get("map_records")
+        if isinstance(recs, dict) and recs:
+            out[str(data.get("atom_id") or p.stem)] = {
+                k: (list(v) if isinstance(v, list) else v) for k, v in recs.items()
+            }
+    return out
+
+
+def append_to_record_for_atom(
+    atom_id: str, field: str, entries: list, store_dir: Path | None = None
+) -> list:
+    """Append entries to one rehomed LIST-shaped record field, preserving every
+    other tenant. Returns the field's new full list.
+
+    APPEND, not overwrite -- matching `append_for_atom` and for the same reason:
+    `evidence` is honest history (the artefact trail behind a level move), so
+    rewriting an entry would launder the record. THIS IS THE ONGOING DRAIN: the
+    fold path that used to grow the map's `evidence:` line now grows a store file
+    instead, so the map's byte count no longer tracks how much work was done. That
+    is the difference between this repair and H32's, which moved a stock and left
+    the flow running (the map was back over the ratchet in 24h).
+
+    Refuses to append to a non-list existing value: `exit_evidence` is prose, and
+    silently turning a string into a list is the coercion this tenant exists to
+    avoid. Use `set_record_for_atom` to revise a prose record."""
+    if not is_record_field(field):
+        raise ValueError(
+            f"{field!r} is not a rehomed-record field (class: `evidence` or *_evidence) "
+            "-- structured map fields stay in the map"
+        )
+    if not isinstance(entries, list):
+        raise ValueError(
+            f"entries for {atom_id}.{field} must be a list, got {type(entries).__name__}"
+        )
+    merged = records_for_atom(atom_id, store_dir)
+    existing = merged.get(field, [])
+    if not isinstance(existing, list):
+        raise ValueError(
+            f"{atom_id}.{field} holds a {type(existing).__name__}, not a list "
+            "-- cannot append to a prose record"
+        )
+    merged[field] = existing + list(entries)
+    _write_tenants(atom_id, store_dir, map_records=merged)
+    return merged[field]
+
+
+def set_record_for_atom(
+    atom_id: str, field: str, value, store_dir: Path | None = None
+) -> dict:
+    """Write one rehomed record field WHOLE (the migration's writer), preserving
+    every other tenant. Ongoing evidence writes should use
+    `append_to_record_for_atom`; this exists for the one-shot move, which must
+    reproduce the map's value verbatim in its original shape."""
+    if not is_record_field(field):
+        raise ValueError(
+            f"{field!r} is not a rehomed-record field (class: `evidence` or *_evidence) "
+            "-- structured map fields stay in the map"
+        )
+    if not isinstance(value, (list, str)):
+        raise ValueError(
+            f"{atom_id}.{field} must be a list or a string, got {type(value).__name__}"
+        )
+    merged = records_for_atom(atom_id, store_dir)
+    merged[field] = list(value) if isinstance(value, list) else value
+    _write_tenants(atom_id, store_dir, map_records=merged)
     return merged
 
 
 def hydrate(atom: dict, store_dir: Path | None = None) -> dict:
-    """A map atom dict with its stored notes merged back in -- the pre-rehome
-    shape, for a reader that wants the whole atom in one object. Does not mutate
-    the input. Map-inline values WIN over stored ones: during a partial migration
-    the inline field is the one the spine is actually showing, and a silently
-    preferred store copy would make the two-sources-of-truth test unfalsifiable."""
+    """A map atom dict with its stored notes AND list fields merged back in -- the
+    pre-rehome shape, for a reader that wants the whole atom in one object. Does not
+    mutate the input. Map-inline values WIN over stored ones: during a partial
+    migration the inline field is the one the spine is actually showing, and a
+    silently preferred store copy would make the two-sources-of-truth test
+    unfalsifiable."""
     aid = atom.get("id")
     if not aid:
         return dict(atom)
     merged = dict(notes_for_atom(str(aid), store_dir))
+    merged.update(records_for_atom(str(aid), store_dir))
     merged.update(atom)
     return merged
 
