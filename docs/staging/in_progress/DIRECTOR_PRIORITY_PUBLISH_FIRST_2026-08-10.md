@@ -13,6 +13,33 @@
 >   A tick must NOT start a second publisher — two on one working tree is the concurrent-writer
 >   hazard. Re-surfacing this item is correct until the publish lands; the disposition each time is
 >   *check the gate state, don't launch a rival publisher*.
+>
+> **UPDATE 2026-08-10 ~09:5x (next worker tick) — the draw-3 blocker MOVED, and has been cleared.**
+> - Disposition followed as written: a publisher WAS alive each time I looked (pids 2556007 →
+>   2570489 → 2580542, walking the 2026-08-09 marker queue). **No rival publisher was started.**
+> - **Checking the gate state, as instructed, is what found the real blocker.** Draw 1 cleared the
+>   allowlist red, so `.last_gate_blocking_tests.json` now names a DIFFERENT test:
+>   `test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline`, F841 130→131. The single
+>   new violation was `rank`, assigned-never-used at `tests/tools/test_couple_w2_11_d5.py:2801`,
+>   landed 10:16 by `15125f388` — **the same commit whose side effects caused draw 1's red.** It is
+>   in COMMITTED code (no F841-bearing file is dirty), so it wedged the HEAD checkout the gate
+>   judges and every queued marker failed on it. **Fixed at HEAD, `2d160ee6c`, pushed** — the
+>   draw-1 shape applied to the successor red. Ratchet suite 13 green, the couple file 222 green.
+> - **Do not read the recorded `git_hash` as the gate's subject.** The failures are stamped
+>   `ab8d19b37`/`ad67e713b` — the MARKER's hash (the commit its sim run was produced at), not the
+>   commit the gate judged; the gate's subject is a refreshed checkout of current HEAD. I lost a
+>   step concluding those hashes predated the fix. The blocking-test file is the honest read.
+> - **The 2026-08-09 marker backlog cannot drain by retry alone** (64 queued, episode_failures 109):
+>   each cycle burns minutes re-failing at HEAD. Draw 3's "62 markers drain-superseded" is the act
+>   that ends it, and it is still the publisher's, not a tick's.
+> - **Next tick:** publisher pid 2580542 started ~09:5x is the FIRST cycle whose HEAD checkout
+>   contains the ruff fix. Re-check `.last_gate_blocking_tests.json` (and its age) before assuming
+>   anything — if it names a third test, that is the same species again, fix it at HEAD.
+> - **The freeze clause is LIFTED** by `DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10` ("THE SITE
+>   BREATHES", `2e6d167d1`, merged at `5f6077026`): the three cure draws STAND at first priority,
+>   but "no feature draws" is retired and replaced by that ruling's 4-item WORK block (scoped
+>   publish-path suite, provenance stamps, last-known-good banner, retire the clause). That ruling
+>   sits unprocessed in the staging ROOT, so the next doorbell names it — it is not lost here.
 
 # [DIRECTOR-PRIORITY] — Publish first: three draws, in order, before any feature work (2026-08-10)
 
