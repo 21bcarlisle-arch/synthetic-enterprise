@@ -408,11 +408,11 @@
     },
     "g0": 2189.767928,
     "gap": 1.039324585502501,
-    "measured_at": "2026-07-21T12:00:45.137267+00:00",
+    "measured_at": "2026-08-10T09:27:01.668785+00:00",
     "metric": "prediction",
     "note": "W1_5 premise-demand weather-normalisation: company temperature+wind-chill (CWV, L2) belief vs the real national demand outturn (the W1_5-consistent aggregate truth). SCORE = worst cell (summer, L2 gap 1.039 vs L1 (temperature-only) gap 1.040 -- the CWV term improved the worst cell here); population gap L2 0.661 vs L1 0.662. Honest per R12: the CWV term is measured, not tuned -- it helps the wind-relevant cells it targets and need not fix an unrelated worst cell. Regional-dispersion (2nd L1->L2 refinement) is built+tested but not yet measurable here -- see components.regional_dispersion_remainder.",
     "raw_gap": 2275.879644,
-    "run_git_commit": "e1ab2fe7932c31709d2a79278dac8e4b6c8d3820",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C13_weather_normalisation"
   },
   "W1_6_physics_price_signal": {
@@ -487,11 +487,11 @@
     },
     "g0": 93.722531,
     "gap": 0.3972981670188839,
-    "measured_at": "2026-07-20T11:33:27.040220+00:00",
+    "measured_at": "2026-08-10T09:27:03.658927+00:00",
     "metric": "prediction",
     "note": "W1_6 weather-physics price signal: company linear weather->price belief vs the SIM's convex merit-order DERIVED price. SCORE = worst cell (cold_still_tail, gap 0.397); the company nails the comfortable middle (population gap 0.246) but under-predicts the cold-and-still spike -- a signed under-bias on the tail (belief cannot see residual demand / the convex merit order, by the wall). R12: diagnostic, not a target.",
     "raw_gap": 37.23579,
-    "run_git_commit": "34ee38543a1596a1b7e49ee60486bdb8a00569ee",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C13_weather_normalisation"
   },
   "W2_10_dd_attribution_confound": {
@@ -508,11 +508,11 @@
     },
     "g0": 0.04928565548238689,
     "gap": 0.5158403897351521,
-    "measured_at": "2026-07-13T22:06:40.528539+00:00",
+    "measured_at": "2026-08-10T09:27:04.753027+00:00",
     "metric": "attribution",
     "note": "fraction of the company's DD-discount business case that is SELECTION artefact: C12 delta_naive (observed non-DD arrears rate - DD arrears rate, credited wholesale to the DD channel) vs W2_10 delta_true (the do-operator causal DD effect). The DD cohort is pre-selected clean by the hidden organisation confound, so delta_naive over-credits the channel; the company cannot see this and does not correct for it.",
     "raw_gap": 0.02542353173238689,
-    "run_git_commit": "b318892cea32362e6fdfd0fb41a1e0762c97d2b0",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C12_channel_attribution_analytics"
   },
   "W2_11_payment_behaviour_source": {
@@ -613,15 +613,15 @@
     },
     "g0": 0.5,
     "gap": 0.0859375,
-    "measured_at": "2026-08-10T08:28:34.730131+00:00",
+    "measured_at": "2026-08-10T09:23:06.509616+00:00",
     "metric": "detection",
     "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift. The H27 Expert Hour measured two defects in the old figure and both are now closed at the measure rather than caveated in prose. (1) It was an as_of ARTEFACT: the truth (`result == 'failed'`) does not move with the clock but the belief was held AT the measurement date, so holding company and world fixed and moving only that date walked the figure ~+70% over 60 days. The population is now EVER-FLAGGED -- a detection is a fact about the day it happened, whatever a later oldest-first allocation did to the invoice -- and the as_of sweep is flat. (2) It counted ONE ERROR DIRECTION: a company flagging EVERY invoice scored a perfect 0.0. The headline is now the BALANCED error of both directions on their own denominators, so both degenerate strategies score g0 = 0.5. detection balanced error 0.0859 [0.5 = every prevalence-blind rule, incl. flagging everything] (missed_failure_rate 0.0000 over 31 truly-failed, false_flag_rate 0.1719 = 242 of 1408 never-flaggable cases wrongly flagged = the wrongful-dunning exposure; 118 case(s) in neither population: cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.). The retired recall-only figure is NOT restated: it was scored over a different flagged population, so no arithmetic on these sets reproduces it. Companion per-dimension gaps: belief balanced error 0.1818 [0.5 = every severity-blind rule, incl. right mix / wrong accounts]; under-called severity 0.3636 (4 of 11, mean 2.50 steps); over-called severity 0.0000 (0 of 11); per-case disagreement 0.2222 (4 of 18) [RESHAPED 2026-08-10, atom D19, and NOT comparable with the belief figure any earlier ledger entry carries: that was a population TV distance, which permuting which account holds which severity belief left bit-identical (0.0713 -> 0.0713 while per-case agreement fell 0.9287 -> 0.6432), so the degenerate 'right mix, every individual wrong' scored exactly what the real company scored. The TV figure is not deleted -- it is published as belief_population_mix 0.2222, the question it was always answering]; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 1.742 buckets [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0114 over 1408 truly-current = the ageing-report overstatement at as_of, NOT the wrongful-dunning exposure (atom D16); 118 case(s) in neither population: cases in NEITHER ageing population (atom D16, carrying D11's rule across from the detection dimension of this same instrument): a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really WAS unpaid past grace, so the company carrying it as owed was CORRECT even though the truth bucket at `as_of` reads `current`; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time. Until this band existed, 94 of this dimension's 101 false ageings were cases its sibling dimension holds the company was RIGHT about.) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): 384 credit(s) landed with no invoice reference out of 402 unreferenced record(s); the company's MONEY is unaffected by every penny (portfolio balance GBP 500.89 both ways, delta +0.00) while its DATES are not: ageing.mean_bucket_displacement 1.741935 vs 0.0 remittance-complete -> +1.7419 buckets attributable; ageing.overstated_arrears_rate 0.011364 vs 0.0 remittance-complete -> +0.0114 ageing-overstatement rate attributable; ageing.understated_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 debt-believed-settled rate attributable; arrears_view.unpursued_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 wrongful-non-pursuit rate attributable. Read as: what the no-remittance channel COSTS this company, holding the world literally fixed. R12: a diagnostic, never a target. DISCRIMINATION (D17): ALL 5 measure(s) with a non-zero error (ageing.mean_bucket_displacement, ageing.overstated_arrears_rate, ageing.understated_arrears_rate, arrears_view.unpursued_arrears_rate, detection.false_flag_rate) read attributed == actual, which is a property of a COMPLETE observation channel and NOT evidence that the counterfactual discriminates -- a rubber stamp looks identical from here. The discrimination is proven by injection instead: tests/background/test_live_payment_triad.py::test_R15_the_counterfactual_does_not_attribute_an_injected_non_allocation_error. R12: diagnostic, not a target.",
     "raw_gap": 0.0,
-    "run_git_commit": "f56d68ef3937e794d0cf0308c3796d0c79cdc31b",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
-    "baseline": "TV(truth, national/blind prior) -- the no-book-info belief",
+    "baseline": "TV(truth, national/blind prior) -- the no-book-info belief; PERMUTATION-INVARIANT: this is a distance between POPULATION DISTRIBUTIONS, so it is blind to which case holds which label -- a company that gets the population MIX right and every INDIVIDUAL wrong scores exactly what the real company scores. Where the company's errors run one way it also happens to EQUAL the per-case disagreement rate, which is a coincidence of the error direction, not the quantity. SUPERSEDED as a headline by gap_metric.belief_measures (atom D19_belief_gap_is_distribution_only, landed 2026-08-10), which scores both per-case error directions on their own denominators; a caller still publishing THIS as its belief headline must be registered as named debt in tools.couple_w2_11_d5.AGGREGATE_SCORING_CONTRACT. Read `per_case_disagreement_rate` beside it.",
     "components": {
       "belief_dist": {
         "comfortable": 0.496,
@@ -630,7 +630,11 @@
         "stretched": 0.3527
       },
       "missed_hardship_rate": 0.0,
+      "n_cases": null,
+      "n_cases_misassigned": null,
+      "per_case_disagreement_rate": null,
       "per_customer_accuracy": 0.5573,
+      "permutation_invariant": true,
       "truth_dist": {
         "comfortable": 0.7413,
         "managing": 0.1313,
@@ -642,11 +646,11 @@
     },
     "g0": 0.49133333333333334,
     "gap": 0.6065128900949797,
-    "measured_at": "2026-07-13T21:44:49.715740+00:00",
+    "measured_at": "2026-08-10T09:22:13.587918+00:00",
     "metric": "belief",
     "note": "TV(company belief, hidden truth) over the affordability-band book composition (W2_4 hidden budgets -> observable payment/arrears/consumption -> C6 inference), normalised to the blind national prior. Non-zero and NOT recoverable to zero: the observable channel is strictly coarser than the hidden budget (can't-pay-on-savings pays cleanly; managing vs comfortable are indistinguishable from payments).",
     "raw_gap": 0.298,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C6_affordability_inference"
   },
   "W2_5_life_event_stream": {
@@ -679,11 +683,11 @@
     },
     "g0": 0.5,
     "gap": 0.03286985405829219,
-    "measured_at": "2026-08-09T10:49:52.384130+00:00",
+    "measured_at": "2026-08-10T09:27:05.848126+00:00",
     "metric": "detection",
     "note": "W2_5 hidden life events -> observable payment disruption -> C7 detection, BOTH directions (atom D15). NEGATIVE BASIS = C_settled_low_at_both_ends: settled negative: LOW income stress at BOTH year ends. No false-flag rate on this pair is readable without its basis -- the three candidates swing it several-fold with company behaviour literally fixed. flagging a household that was demonstrably not in distress at any point the harness can name -- and nothing else. RESHAPED 2026-08-09 (atom D15): NOT COMPARABLE WITH ANY LEDGER ENTRY FOR THIS PAIR WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift -- the retired figure counted ONE direction, so a company flagging every customer-year scored a perfect 0.0 on it. No arithmetic on these sets reproduces it and it is deliberately not restated. R12: a diagnostic, never a target.",
     "raw_gap": 0.008141592920353982,
-    "run_git_commit": "3e45a014faa057506ede777b376869fce281b8f3",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C7_life_event_detection"
   },
   "W2_6_sme_distress_twin": {
@@ -704,11 +708,11 @@
     },
     "g0": 1.317037037037037,
     "gap": 0.47452193475815524,
-    "measured_at": "2026-07-13T21:45:59.331340+00:00",
+    "measured_at": "2026-08-10T09:27:07.120314+00:00",
     "metric": "classification",
     "note": "cost-weighted distress-vs-culture misclassification (W2_6 hidden distress/culture -> identical observable is_paying_late -> C8 attribution); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading real distress as mere habit. attribution_gap (fraction of late-payment wrongly attributed to distress) attached in components.",
     "raw_gap": 0.6249629629629629,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C8_sme_credit_risk"
   },
   "W2_7_willingness_classification": {
@@ -737,16 +741,16 @@
   "W2_8_self_rationing": {
     "baseline": "0.5 -- the balanced error EVERY prevalence-blind rule scores: flag nobody (miss 1, false-flag 0), flag EVERYTHING (miss 0, false-flag 1), and any coin-flip at any rate. Unlike the recall-only `detection_gap` this supersedes, 0.0 cannot be bought by over-flagging -- it has to be earned in both directions -- and 1.0 means perfectly wrong, not merely blind.",
     "components": {
-      "caught": 141,
+      "caught": 132,
       "exclusion_reason": "households that ARE genuinely self-rationing but sit ABOVE the TDCV Low floor, so they fall outside `is_silent_hardship` and are not in the truth set. A C10 flag on one of them is CORRECT -- the company is right about the household -- so counting it as a false flag would score the company down for being right (the D11 rule; the defect the D13 DISCOVER found in this file).",
-      "false_flag_rate": 0.05597,
-      "flagged_size": 351,
-      "miss_rate": 0.312195,
-      "missed": 64,
-      "missed_failure_rate": 0.30142,
-      "missed_harm": 61927.89,
+      "false_flag_rate": 0.037313,
+      "flagged_size": 272,
+      "miss_rate": 0.356098,
+      "missed": 73,
+      "missed_failure_rate": 0.361316,
+      "missed_harm": 74233.68000000001,
       "n_excluded": 43,
-      "n_false_flags": 210,
+      "n_false_flags": 140,
       "n_negatives": 3752,
       "negative_basis": "settled_not_rationing",
       "negative_basis_label": "settled negative: label == NOT_RATIONING (the Bernoulli outcome)",
@@ -756,12 +760,12 @@
       "universe_size": 4000
     },
     "g0": 0.5,
-    "gap": 0.1786952129680573,
-    "measured_at": "2026-08-09T11:53:26.000449+00:00",
+    "gap": 0.19931470722586064,
+    "measured_at": "2026-08-10T09:27:07.600191+00:00",
     "metric": "detection",
     "note": "W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection, BOTH directions (atom D14). NEGATIVE BASIS = settled_not_rationing: settled negative: label == NOT_RATIONING (the Bernoulli outcome). The MISS direction is driven by the smart-meter/baseline coverage blind spot (a rationer without a usable prior baseline is indistinguishable from a low-need home); the FALSE-FLAG direction is driven by the world's non-budget drop confounders (a house move, a void, a retrofit, a voluntary cut), which before D14 did not exist -- the rate was 0.0000 for ANY detector and was a property of the world, not of the company.",
-    "raw_gap": 0.30142027668238325,
-    "run_git_commit": "83c2bce93e6ac27e80aa886d0b7eef0224ede3b5",
+    "raw_gap": 0.3613159816159004,
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C10_self_rationing_detection"
   },
   "W2_9_segment_debt_tnc": {
@@ -784,11 +788,11 @@
     },
     "g0": 0.1004,
     "gap": 0.2290836653386454,
-    "measured_at": "2026-08-08T18:15:39.958701+00:00",
+    "measured_at": "2026-08-10T09:27:08.417769+00:00",
     "metric": "misapplication",
     "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier. NOT EVIDENCE ON ITS OWN -- this gap is normalised to the majority-class baseline, so g0 is the minority-class share: prevalence alone moves the score an order of magnitude with company behaviour held fixed, and gap>1 does not mean worse-than-no-skill. Read raw_gap (the company's own error rate) and the directional components instead. Proven in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md; reshape = atom D7_ageing_gap_metric_reshape. Measured on this pair (2026-08-08, D6 class audit): holding C11's misrecording channel fixed and moving only the world's business-segment share 2%->40% moves the company's own error rate 0.0210->0.0365 while this normalised gap moves 1.0000->0.0905. At a 2% business share the pair would read 'no better than blind' on its LOWEST error rate.",
     "raw_gap": 0.023,
-    "run_git_commit": "c9f4a65fb235ebe33ffad1fd675a9ee8904929aa",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C11_segment_debt_policy"
   },
   "WORLD_recontracting_relationship_start": {
@@ -864,11 +868,11 @@
     },
     "g0": 1.9037379268385433,
     "gap": 0.6342817765083042,
-    "measured_at": "2026-08-08T16:50:30+00:00",
+    "measured_at": "2026-08-10T09:27:08+00:00",
     "metric": "prediction",
     "note": "PHANTOM TENURE on a re-contracted customer. Truth = the term boundary the home-move win actually landed on (world answer key); the company's LIVE belief reads the predecessor's genesis anchor out of `acquisition_date`, so every re-contracted account reads as though the relationship never restarted. The headline gap is that LIVE belief -- the mechanism that fixes it (C_supply_start_semantic_separation) is BUILT but not yet ROUTED to the 7 live consumers (C_supply_start_consumer_routing), so the published tenure, cohort and 'Customer since' figures still carry the phantom. `separated_*` is the counterfactual once routed; the regime sweep shows where the world still defeats the built mechanism -- losing the activation event costs COVERAGE (honest UNKNOWN), but losing the `successor_of` link as well makes it CONFIDENTLY WRONG again, because the no-successor rung hands back the anchor. DEFENCE IN DEPTH: `*_caught_by_guard` is how many of those phantoms this atom's R10 class guard (SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE) rejects anyway, from the account's own meter reads and bills -- observables that cannot go missing the way the registration paperwork can.",
     "raw_gap": 1.2075062742413873,
-    "run_git_commit": "7da1f9d2a950eb318db3944125dab098b11f5cac",
+    "run_git_commit": "15125f388f4ba8e36669cb26b88949e5e97da13e",
     "twin_atom_id": "C_supply_start_semantic_separation"
   }
 }

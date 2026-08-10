@@ -168,3 +168,94 @@ def test_every_live_ledger_row_gets_a_verdict_from_the_known_set():
     live_rows = {r["item"] for r in results if r["kind"] == "row"}
     assert live_rows == set(glr.load_ledger())
     assert {r["status"] for r in results} <= known
+
+
+# --- THE WORK LIST: which stale rows a re-run could actually clear ---------------------------
+# The drift set above is only half a control until something can act on it. `refresh_work` is the
+# DRAIN: it names the rows a re-measurement would clear and the command that takes it. These pin
+# the three ways that list could lie -- offering a command that cannot re-take the row, hiding a
+# row that has no runner, and including an item no re-run could ever clear (which would wedge the
+# draw rung that consumes it: background/supervisor.py::_stale_gap_row_draw).
+
+def _runner_writers():
+    return {_WRITER: f"--write-ledger\nWORLD_ATOM_ID = '{_ATOM}'\nif __name__ == '__main__':\n"}
+
+
+def test_a_stale_row_yields_the_command_that_would_re_take_it():
+    results = _reconcile({_ATOM: _row()}, since=3, writers=_runner_writers())
+    work = glr.refresh_work(results, writers=_runner_writers())
+    assert [w["item"] for w in work] == [_ATOM]
+    assert work[0]["command"] == "python3 -m tools.couple_x_c1 --write-ledger"
+    assert work[0]["no_runner"] is False
+
+
+def test_the_command_is_the_MODULE_form_because_the_path_form_dies_on_import():
+    """Found by RUNNING one, not reading it: `python3 tools/couple_w2_4_c6.py --write-ledger`
+    fails with ModuleNotFoundError: simulation, `python3 -m tools.couple_w2_4_c6` writes the row.
+    A work list whose command cannot execute is a work list nobody can act on."""
+    assert glr.refresh_command(["tools/couple_w2_4_c6.py"]).startswith(
+        "python3 -m tools.couple_w2_4_c6")
+    assert ".py" not in glr.refresh_command(["tools/couple_w2_4_c6.py"])
+
+
+def test_a_CURRENT_row_yields_no_work_so_the_drain_can_reach_empty():
+    """Measured live on 2026-08-10: re-running one tool moved the drift set 11 -> 10 and its row
+    read CURRENT. A work list that never empties is a treadmill, not a control."""
+    results = _reconcile({_ATOM: _row()}, since=0, writers=_runner_writers())
+    assert glr.refresh_work(results, writers=_runner_writers()) == []
+
+
+def test_a_row_whose_only_producer_cannot_be_RUN_stays_listed_as_no_runner():
+    """FAIL-CLOSED. `background/fabric_gap_ledger.py` writes rows through a function and has no
+    `__main__` -- it is a producer, not a runner. A refreshable row with no runner is a WORSE
+    defect (a published number nobody can re-take), so it must stay in the list rather than be the
+    one entry that silently disappears (feedback_coverage_derived_from_exclusion_source_is_failopen)."""
+    lib = {"background/fabric_gap_ledger.py": f"write_gap_entry(\nWORLD = '{_ATOM}'\n"}
+    results = _reconcile({_ATOM: _row()}, since=3, writers=lib)
+    work = glr.refresh_work(results, writers=lib)
+    assert [w["item"] for w in work] == [_ATOM]
+    assert work[0]["command"] is None and work[0]["no_runner"] is True
+
+
+def test_a_row_with_no_run_git_commit_is_refreshable_because_re_measuring_clears_it():
+    results = _reconcile({_ATOM: _row(run_git_commit=None)}, since=0, writers=_runner_writers())
+    assert _status(results, _ATOM) == "unattributable"
+    assert [w["item"] for w in glr.refresh_work(results, writers=_runner_writers())] == [_ATOM]
+
+
+def test_NEVER_LANDED_and_NEVER_MEASURED_are_excluded_because_no_re_run_clears_them():
+    """The rung that consumes this list must be able to DRAIN. `tools/couple_cohort.py` has landed
+    no row at all and `WORLD_x` is a declared pair with no row -- re-running changes neither, so
+    including them would make the rung permanently non-empty and therefore ignored
+    (feedback_control_that_can_only_fail_wedges)."""
+    results = glr.reconcile(ledger={}, writers=_runner_writers(), declared={"WORLD_x"},
+                            family=["tools/couple_cohort.py"], since_fn=lambda s, p: 0)
+    assert {r["status"] for r in results} == {"never_measured", "never_landed"}
+    assert glr.refresh_work(results, writers=_runner_writers()) == []
+
+
+def test_a_READER_is_never_offered_as_the_command_that_refreshes_a_row():
+    """The tautology guard, at the work-list layer: attributing the refresh of a row to a module
+    that only reads the ledger would print a command that cannot re-take the measurement."""
+    reader = {"tools/generate_premise_demand_data.py":
+              f"coupled_gap_ledger.json\nif __name__ == '__main__':\n{_ATOM}\n"}
+    assert glr.runners_for(list(reader), reader) == []
+
+
+def test_every_live_refreshable_row_carries_a_status_the_reconcile_can_clear():
+    """Independence: read against live disk, asserting only that the work list is a SUBSET of the
+    drift set and never invents an item the reconcile did not report."""
+    results = glr.reconcile()
+    drifting = {r["item"] for r in glr.drift(results)}
+    work = glr.refresh_work(results)
+    assert {w["item"] for w in work} <= drifting
+    assert all(w["status"] in glr.REFRESHABLE_STATUSES for w in work)
+
+
+def test_a_producer_that_only_MENTIONS_the_flag_is_not_invocable():
+    """The runner test has two halves and both have to bite: writes the ledger AND can be run.
+    A library whose docstring mentions `--write-ledger` (this reconciler's own source does, in the
+    marker regex) is not a command anyone can type at it."""
+    prose = {"background/fabric_gap_ledger.py":
+             f"'''rows land when a tool passes --write-ledger.'''\nwrite_gap_entry(\n{_ATOM}\n"}
+    assert glr.runners_for(list(prose), prose) == []

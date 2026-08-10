@@ -130,6 +130,7 @@ from background.coupled_triad import (  # noqa: E402
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
+from tools import simplifications_store as _atom_store  # noqa: E402 (H41 record tenant)
 
 SESSION_NAME = "claude"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "supervisor-log.md"
@@ -275,6 +276,12 @@ PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mi
 # _is_drained_and_gated. R15-proven both ways in test_operational_red_persistent_draw.py.
 OPERATIONAL_LAYER_SIGNAL_FILE = PROJECT_DIR / "docs" / "observability" / ".operational_layer_signal.json"
 OPERATIONAL_RED_DRAWABLE_THRESHOLD = 3   # director: persistent-RED = >3 consecutive checks -> drawable
+
+# RUNG 4b -- STALE PUBLISHED GAP MEASUREMENTS (H_GAP_fabric_belief_truth_gap residual (d), 2026-08-10).
+# The gap-ledger reconcile is report-only and had no consumer that could ACT on it, so five
+# consecutive ticks cleared its drift set by hand. Detector: _stale_gap_row_draw(); wired as RUNG 4b
+# of _self_refill_draw and mirrored in _is_drained_and_gated. Design: docs/design/GAP_TOOL_RERUN_OWNERSHIP.md.
+_STALE_GAP_SUMMARY_CAP = 4   # how many rows the draw spells out; the overflow is stated, never dropped
 
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
@@ -1026,6 +1033,30 @@ def _normalize_evidence_list(value: Any) -> list:
     return []
 
 
+def _atom_evidence(atom: dict) -> Any:
+    """One atom's `evidence` value, wherever it now lives (H41).
+
+    `evidence` was rehomed out of the map into the per-atom record store
+    (docs/design/simplifications/<id>.yaml, `map_records:`) because it was the bulk
+    of the spine ratchet's refill. Every reader of the field routes through here so
+    the rehome has ONE seam rather than one per call site -- and so a reader added
+    later cannot silently read a field that is no longer inline and conclude the
+    atom has no evidence. That failure would be invisible: `_atom_has_frame_doc`
+    returning False for a FRAMED atom re-hands it to the idle draw forever (the
+    exact treadmill `_normalize_evidence_list`'s docstring documents, reached by a
+    different route), and `_has_harden_surface` returning False silently removes
+    at-target atoms from the HARDEN lane.
+
+    Inline WINS over stored, matching `simplifications_store.hydrate`: during a
+    partial migration the inline value is the one the spine is actually showing."""
+    if "evidence" in atom:
+        return atom["evidence"]
+    aid = atom.get("id")
+    if not aid:
+        return None
+    return _atom_store.records_for_atom(str(aid)).get("evidence")
+
+
 def _atom_has_frame_doc(atom: dict) -> bool:
     """True iff the atom already carries its OWN complete FRAME doc on disk:
     an `evidence` entry anywhere under `docs/design/` whose FILENAME contains
@@ -1063,7 +1094,7 @@ def _atom_has_frame_doc(atom: dict) -> bool:
     remains the intended escape."""
     if not isinstance(atom, dict):
         return False
-    for e in _normalize_evidence_list(atom.get("evidence")):
+    for e in _normalize_evidence_list(_atom_evidence(atom)):
         s = str(e)
         if not s.startswith("docs/design/"):
             continue
@@ -1756,7 +1787,7 @@ def _has_harden_surface(a: dict) -> bool:
             return False
     except TypeError:
         return False
-    ev = a.get("evidence")
+    ev = _atom_evidence(a)
     if not isinstance(ev, list):
         return False
     for e in ev:
@@ -2603,6 +2634,68 @@ def _declared_defect_backlog_draw(register_path: Path | None = None) -> str | No
         f"{str(top.get('evidence', '')).strip()} {plan_clause} It stays drawable until measured shut: "
         f"{str(top.get('closes_when', '')).strip()} On close, set status: closed in "
         f"docs/design/DECLARED_DEFECTS_REGISTER.yaml the SAME commit.{tail}"
+    )
+
+
+def _stale_gap_row_draw(work: list | None = None) -> str | None:
+    """RUNG 4b -- A PUBLISHED GAP MEASUREMENT TAKEN BY CODE WE NO LONGER RUN.
+
+    `background/gap_ledger_reconciler.py` has reported the coupled-gap family's staleness on five
+    consecutive ticks and every one of those re-runs was done BY HAND, because the reconcile is
+    report-only (G-R3) and no lane enumerated its output. That is the same shape as the overnight
+    operational-red incident directly above: a control that pages and pages while no draw rung
+    ever surfaces "go clear it". This is the rung. Ownership rationale, alternatives considered
+    and what this deliberately does NOT do: `docs/design/GAP_TOOL_RERUN_OWNERSHIP.md`.
+
+    Draws ONLY rows a re-run can actually clear (`refresh_work`), so the rung DRAINS: re-measuring
+    W2_4_household_budget took 0.5s and moved the drift set 11 -> 10 with the row reading CURRENT
+    after. `never_landed` / `never_measured` entries are design defects no re-run touches and are
+    deliberately NOT drawn here -- a rung that can never drain wedges the ladder behind it
+    (feedback_control_that_can_only_fail_wedges).
+
+    Sits BELOW the declared-defect backlog (RUNG 4) and ABOVE propose-half / forward-discovery /
+    the HARDEN treadmill: refreshing a stale number on a public door is real evidence work, better
+    than re-verifying a finished atom, but it does not outrank an open product defect.
+
+    FAIL-OPEN BY CONSTRUCTION on its own error (matching the rungs above it): a reconciler that
+    cannot import or cannot read git returns no work and the ladder falls through to lower rungs.
+    It can never invent a hold. `_is_drained_and_gated` mirrors it, so rest cannot be declared
+    while a stale published number is refreshable."""
+    if work is None:
+        try:
+            from background import gap_ledger_reconciler as _glr
+            work = _glr.refresh_work(_glr.reconcile())
+        except Exception:
+            return None
+    if not work:
+        return None
+    listed = work[:_STALE_GAP_SUMMARY_CAP]
+    lines = "; ".join(
+        f"{w['item']} ({w['status']}) -> "
+        + (w["command"] or "NO INVOCABLE PRODUCER -- cannot be re-taken, file it as a defect")
+        for w in listed
+    )
+    overflow = (
+        f" (+{len(work) - len(listed)} more -- `python3 -m background.gap_ledger_reconciler "
+        "--refresh-work` lists them all)"
+        if len(work) > len(listed) else ""
+    )
+    no_runner = [w["item"] for w in work if w["no_runner"]]
+    no_runner_clause = (
+        f" {len(no_runner)} of these have NO invocable producer ({', '.join(no_runner[:3])}) -- "
+        "that is a worse defect than staleness (a published number nobody can re-take) and wants a "
+        "finding, not a re-run."
+        if no_runner else ""
+    )
+    return (
+        f"STALE-GAP-ROW self-refill (RUNG 4b): {len(work)} published coupled-gap measurement(s) "
+        "were taken by code that has since changed -- a public door is showing a number produced "
+        "by a program nobody runs. Re-take them and commit the ledger: "
+        + lines + overflow + no_runner_clause
+        + " ACCEPTANCE is not that the command ran: re-run `python3 -m "
+        "background.gap_ledger_reconciler` and show the row reading CURRENT. Report any number "
+        "that MOVED (a moved gap is a measurement worth a record, not a silent republish); if a "
+        "command needs arguments this draw did not know, say so rather than skipping the row."
     )
 
 
@@ -3542,6 +3635,22 @@ def _self_refill_draw() -> str | None:
         )
         return defect_item
 
+    # RUNG 4b -- STALE PUBLISHED GAP MEASUREMENT (2026-08-10, H_GAP residual (d)): the declared-defect
+    # backlog is empty here -> before any lower rung or rest, re-take any coupled-gap number whose
+    # producing code has changed since it was measured. Its ABSENCE is why five consecutive ticks
+    # re-ran these tools by hand while the reconcile paged: report-only drift with no rung behind it is
+    # exactly the operational-red failure mode one rung up. Below RUNG 4 (an open product defect
+    # outranks a stale number), above propose-half/forward-discovery/HARDEN (real evidence work beats
+    # re-verifying a finished atom).
+    stale_gap_item = _stale_gap_row_draw()
+    if stale_gap_item:
+        log(
+            "STALE-GAP-ROW: below-target + campaign + declared-defect lanes empty/gated -> drawing "
+            "the re-measurement of published coupled-gap rows whose producing code has changed "
+            "(RUNG 4b; docs/design/GAP_TOOL_RERUN_OWNERSHIP.md)"
+        )
+        return stale_gap_item
+
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
@@ -3677,6 +3786,13 @@ def _is_drained_and_gated() -> bool:
         # defect not in the drawable set is a contradiction -- the WHOLE set, defects included, must be
         # empty before rest (ruling rung 4).
         if _declared_defect_backlog_draw():
+            return False
+        # RUNG 4b -- STALE PUBLISHED GAP MEASUREMENT (2026-08-10): rest is illegitimate while a public
+        # door shows a gap number produced by code that has changed and a re-run would clear it. Mirror
+        # of the rung added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light
+        # rest over work the draw itself refuses -- the mirror-drift shape that made the earlier rungs
+        # necessary one at a time.
+        if _stale_gap_row_draw():
             return False
         # PROPOSE-HALF LANE (director ruling 2026-07-23, R17 CLASS FIX): rest is illegitimate while a
         # BUILD-gated item's ungated build-PROPOSAL step is still open. This is the mirror of the rung

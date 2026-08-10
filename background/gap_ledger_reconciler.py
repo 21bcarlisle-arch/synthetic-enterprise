@@ -194,9 +194,101 @@ def summary_lines(results: list) -> list:
     return lines
 
 
+# --- THE WORK LIST -----------------------------------------------------------------------------
+# The reconcile above says WHICH rows are stale. This says WHICH OF THOSE A RE-RUN COULD CLEAR,
+# and by running what. It is the drain the drift set needs: a ratchet with no drain is a cleanup,
+# not a control (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control), and a drift set no
+# lane can act on is the shape that let a red operational signal page for 13 hours with no draw
+# rung behind it. Ownership of the re-run is decided in docs/design/GAP_TOOL_RERUN_OWNERSHIP.md:
+# the DRAW LADDER owns it, not this module and not the watcher -- so this stays REPORT-ONLY by
+# construction (G-R3). It prints commands; it has never run one.
+
+# A row is refreshable iff RE-MEASURING IT would change its verdict. `stale` and `unattributable`
+# both describe a row whose recorded measurement is not gradeable against current code, and both
+# are cleared by taking the measurement again. `never_measured` (a declared pair with no row) and
+# `never_landed` (a tool whose output lands nowhere) are NOT: re-running changes nothing, because
+# the defect is that no row exists to refresh. Keeping them out is what stops the draw rung
+# WEDGING on an item it can never drain (feedback_control_that_can_only_fail_wedges).
+REFRESHABLE_STATUSES = ("stale", "unattributable")
+
+# An INVOCABLE producer: it writes the ledger (already true of every producer) AND can be run as a
+# program with the write flag. `background/fabric_gap_ledger.py` writes rows through a function and
+# has no `__main__` -- it is a producer but not a runner, and offering it as the refresh command
+# would be a command that cannot be typed. The runner for its rows is the tool that imports it.
+_RUNNER_MARKER = re.compile(r"--write-ledger")
+_INVOCABLE_MARKER = re.compile(r"__main__")
+
+
+def runners_for(producers: list, writers: dict) -> list:
+    """The producers of this row that can actually be RUN to re-take its measurement."""
+    return sorted(
+        p for p in producers
+        if _RUNNER_MARKER.search(writers.get(p, "") or "")
+        and _INVOCABLE_MARKER.search(writers.get(p, "") or "")
+    )
+
+
+def refresh_command(runners: list) -> str | None:
+    """The command a tick would run to re-measure the row. None when nothing is invocable.
+
+    `-m dotted.module`, NOT `python3 path/to/tool.py`: every one of these tools imports
+    `simulation.*` / `background.*`, so the path form dies on `ModuleNotFoundError` before it
+    measures anything. Found by RUNNING one rather than reading it -- `python3
+    tools/couple_w2_4_c6.py --write-ledger` failed in 0.2s, `python3 -m tools.couple_w2_4_c6
+    --write-ledger` wrote the row in 0.5s.
+
+    Deliberately the BASE invocation and nothing cleverer: some tools take an optional
+    `--population`, and inventing arguments here would be a second, drifting copy of each tool's
+    CLI. The acceptance test for the re-run is NOT that this exact string ran -- it is that the
+    row reads CURRENT afterwards, which `reconcile()` decides independently of this string.
+    """
+    if not runners:
+        return None
+    module = runners[0][:-3].replace("/", ".") if runners[0].endswith(".py") else runners[0]
+    return f"python3 -m {module} --write-ledger"
+
+
+def refresh_work(results: list, writers=None) -> list:
+    """[{item, status, runners, command, detail}] for every row a re-run could clear.
+
+    FAIL-CLOSED: a refreshable row whose producers are all un-invocable stays IN this list with
+    `command: None` and `no_runner: True`. It is a worse defect than a stale row (a published
+    number with no way to re-take it), so it must not be the one entry that silently vanishes --
+    that is the exclusion-shaped fail-open this project already has memory of
+    (feedback_coverage_derived_from_exclusion_source_is_failopen).
+    """
+    writers = discover_writers() if writers is None else writers
+    work = []
+    for r in results:
+        if r.get("status") not in REFRESHABLE_STATUSES:
+            continue
+        runners = runners_for(r.get("producers") or [], writers)
+        work.append({
+            "item": r["item"],
+            "status": r["status"],
+            "runners": runners,
+            "command": refresh_command(runners),
+            "no_runner": not runners,
+            "detail": r.get("detail", ""),
+        })
+    return work
+
+
+def refresh_lines(work: list) -> list:
+    if not work:
+        return ["[GAP-LEDGER] no refreshable rows -- nothing a re-run would clear."]
+    lines = [f"[GAP-LEDGER] {len(work)} row(s) a re-run would clear:"]
+    for w in work:
+        how = w["command"] or "NO INVOCABLE PRODUCER -- this row cannot be re-taken (defect)"
+        lines.append(f"    -> {w['item']} [{w['status']}]: {how}")
+    return lines
+
+
 def main(argv: list) -> int:
     results = reconcile()
     print("\n".join(summary_lines(results)))
+    if "--refresh-work" in (argv or []):
+        print("\n".join(refresh_lines(refresh_work(results))))
     return 0
 
 
