@@ -36,13 +36,37 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 
 | Run | Wall clock | Notes |
 |---|---|---|
-| In-tree baseline (`PROJECT_DIR`) | *pending* | the pre-ruling subject |
+| In-tree baseline (`PROJECT_DIR`) | *owed* | the pre-ruling subject — the denominator |
 | Reused checkout, first cycle (cold `__pycache__`) | **1291.9s** | measured, HEAD `3ee4541a7`, 23,249 passed / 7 failed, box quiet |
-| Reused checkout, second cycle (warm) | *pending* | the steady state |
+| Reused checkout, second cycle (warm) | **1167.5s** | measured, HEAD `54141b559`, box quiet, 13.2G→4.4G available |
 
-**Ratio warm / in-tree: PENDING** against the exit criterion of ≤ 1.3×. The cold figure is real
-and is already load-bearing — §2's bound is derived from it — but the *exit criterion itself*
-needs warm and baseline, which are still owed.
+**Ratio warm / in-tree: STILL OWED** against the exit criterion of ≤ 1.3×. Cold and warm are
+both banked and load-bearing (§2's bound is derived from the worst of them), but the *exit
+criterion itself* is a ratio, and its denominator has now lost the race for the box three times.
+
+> **STATUS 2026-08-10 (seventh launch, OOM-killed in phase 3 — R9: observed, from the unit's own
+> journal).** `Active: failed (Result: oom-kill)`, 19:25:11 BST, 11.1G peak, after 1h36m41s. It
+> entered BASELINE's quiet-wait at 18:25:58Z, timed out at ~19:11, and — per the then-current
+> fall-through — **started the suite anyway, beside a live publisher.** Two full suites do not
+> fit in 15.9G.
+>
+> **This is now fixed at the cause, and the cause was not the OOM.** The fall-through to
+> "measure anyway, flagged contended" was FAIL-OPEN in the R15 sense: the phase that keeps
+> losing the box is `in_tree_baseline`, which is the ratio's **denominator**, so a contended
+> baseline runs slow → ratio smaller → criterion likelier to read **MEETS**. The kill was the
+> cheap failure; the survivable version would have certified this atom's own exit criterion with
+> a number wrong in the passing direction, with only `box_was_quiet: false` buried in a phase
+> record to say so.
+>
+> Both guards now **defer**: bank the measured phases, record `deferred{reason, at_phase}`,
+> exit 0, and let the next launch resume. Every banked phase is therefore admitted-quiet by
+> construction — an invariant the record is checked against
+> (`test_a_banked_phase_was_always_admitted_quiet`,
+> `test_the_live_record_carries_no_contended_phase`) rather than a caveat. The convergence risk
+> this takes on is visible as a rising `deferral_count`, not silent.
+>
+> Full finding, with the four mutations run both ways:
+> `docs/staging/done/WORKER_FINDING_MEASURE_ANYWAY_BIASED_THE_EXIT_CRITERION_TOWARD_PASS_2026-08-10.md`
 
 > **STATUS 2026-08-10 (fifth launch, OOM-killed in phase 2 — R9: observed, from the unit's own
 > journal, not inferred).** The systemd form HELD: the unit ran 1h33m, banked the cold phase,

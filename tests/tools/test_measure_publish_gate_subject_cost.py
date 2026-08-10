@@ -692,14 +692,19 @@ def test_a_phase_waits_for_memory_headroom_before_timing(monkeypatch):
                   "must be distinguishable from a process that died"
 
 
-def test_a_starved_box_is_measured_anyway_and_flagged(monkeypatch):
-    """Bounded like the quiet wait. A harness that can wait forever is worse than a number
-    labelled starved -- but the flag must actually be FALSE, or the label is decoration."""
+def test_a_starved_box_is_deferred_not_measured_anyway(monkeypatch):
+    """SUPERSEDED CONTRACT, kept under its old subject so the change is legible rather than
+    silently deleted. This test used to assert `is False` -- that the starved box was measured
+    anyway and the number merely FLAGGED. Two launches were OOM-killed proving the flag was not
+    the point, and the survivable version of that path biases the exit-criterion ratio toward
+    MEETS (the contended phase is the denominator). A flag on a number that gets used anyway is
+    decoration; refusing to produce the number is the control."""
     monkeypatch.setattr(measure, "_mem_available_mb", lambda: 1)
     monkeypatch.setattr(measure, "MEMORY_WAIT_SECONDS", -1)
     monkeypatch.setattr(measure.time, "sleep", lambda _s: None)
 
-    assert measure._wait_for_memory_headroom(lambda m: None) is False
+    with pytest.raises(measure._Deferred):
+        measure._wait_for_memory_headroom(lambda m: None)
 
 
 def test_an_unreadable_meminfo_does_not_block_the_measurement(monkeypatch):
@@ -772,3 +777,150 @@ def test_an_unreadable_systemctl_is_treated_as_active(monkeypatch):
     monkeypatch.setattr(measure.subprocess, "run", _boom)
 
     assert measure._unit_is_active() is True
+
+
+# ── THE ADMISSION GUARDS DEFER; THEY NEVER MEASURE ANYWAY ────────────────────────────────────
+#
+# The seventh launch (2026-08-10) was OOM-killed 14 minutes into the BASELINE phase, which it
+# had entered deliberately alongside a live publisher because the quiet-wait's timeout fell
+# through to "measuring anyway, flagged contended". The sixth died the same way in WARM.
+#
+# The kill is the cheap half of the defect. The expensive half is the run that SURVIVES
+# contention: the exit criterion is warm / in-tree <= 1.3 and the contended phase is IN_TREE,
+# the DENOMINATOR -- so a slow, contended baseline makes the ratio smaller and the criterion
+# likelier to read MEETS. That is fail-open in the R15 sense: the guard's degraded mode moves
+# the verdict in the passing direction, and it does so silently, because `box_was_quiet: false`
+# lives inside a phase record while `meets_exit_criterion` is what anyone reads.
+
+def test_the_quiet_wait_defers_rather_than_measuring_into_a_live_publisher(monkeypatch):
+    """MUTATION: restore `return False` in place of the raise and this reds -- the caller then
+    proceeds to time a suite beside the publisher, which is the OOM."""
+    monkeypatch.setattr(measure, "_publisher_is_running", lambda: True)
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # already past the deadline
+
+    with pytest.raises(measure._Deferred) as excinfo:
+        measure._wait_for_quiet(lambda _m: None)
+    assert "publisher still live" in str(excinfo.value)
+
+
+def test_the_memory_wait_defers_rather_than_measuring_into_an_exhausted_box(monkeypatch):
+    """Same defect, the other guard. MUTATION: `return False` instead of the raise and this
+    reds."""
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: 128)
+    monkeypatch.setattr(measure, "MEMORY_WAIT_SECONDS", -1)
+
+    with pytest.raises(measure._Deferred) as excinfo:
+        measure._wait_for_memory_headroom(lambda _m: None)
+    assert "128MB available" in str(excinfo.value)
+
+
+def test_both_guards_pass_through_when_the_box_is_actually_fit(monkeypatch):
+    """The other direction -- a guard that can only refuse would never let the measurement land,
+    which is the failure mode the deferral trade takes on."""
+    monkeypatch.setattr(measure, "_publisher_is_running", lambda: False)
+    monkeypatch.setattr(measure, "_mem_available_mb",
+                        lambda: measure.MIN_MEMORY_HEADROOM_MB + 1)
+
+    assert measure._wait_for_quiet(lambda _m: None) is True
+    assert measure._wait_for_memory_headroom(lambda _m: None) is True
+
+
+def test_a_deferral_banks_what_is_measured_and_times_no_suite(monkeypatch, out):
+    """The whole point of deferring rather than dying: the phases already paid for survive, the
+    record says why it stopped, and the exit code is 0 because a deferral is a correct outcome
+    (a non-zero exit makes the systemd unit report `failed` for a run that did the right thing).
+
+    MUTATION: drop the `except _Deferred` handler in `_run_measurement` and this reds with the
+    exception escaping -- the unit dies and the record never names a reason."""
+    banked = {"phases": {"cold_checkout": {"seconds": 1291.9},
+                         "warm_checkout": {"seconds": 1167.5}}}
+    Path(out).write_text(json.dumps(banked))
+
+    # The guards are driven through their REAL code path -- patching `_time_suite` would bypass
+    # the very calls under test. `subprocess.run` is the honest witness for "did it time a
+    # suite": that is the pytest invocation whose wall-clock IS the measurement.
+    timed = []
+
+    def _record_run(argv, *a, **k):
+        # Only a SUITE counts. The harness also shells out to `git rev-parse` and friends, and
+        # counting those would make this assert on plumbing rather than on the 20-minute run
+        # that is the actual OOM risk.
+        if any("pytest" in str(part) for part in argv):
+            timed.append(argv)
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 1.00s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", _record_run)
+    monkeypatch.setattr(measure, "_publisher_is_running", lambda: True)
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)
+
+    assert measure._run_measurement(out, lambda _m: None) == 0
+
+    rec = _read(out)
+    assert timed == [], "a deferred run timed a suite anyway -- that is the OOM path"
+    assert "publisher still live" in rec["deferred"]["reason"]
+    assert rec["deferred"]["at_phase"] == "in_tree_baseline", (
+        "the deferral must name the phase still owed, or the next launch cannot tell what to "
+        "resume"
+    )
+    assert rec["complete"] is False
+    assert rec["phases_missing"] == ["in_tree_baseline"]
+    assert rec["phases"]["cold_checkout"]["seconds"] == 1291.9, (
+        "a deferral threw away a banked phase -- 21 minutes of measurement lost per deferral"
+    )
+    assert rec["phases"]["warm_checkout"]["seconds"] == 1167.5
+
+
+def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
+    """The convergence risk the deferral takes on -- a box that is never quiet long enough --
+    must surface as a rising number in the artefact, not as a measurement that silently never
+    lands.
+
+    MUTATION: make `_prior_deferral_count` return 0 unconditionally and this reds at the second
+    deferral, which is exactly the blindness it guards."""
+    monkeypatch.setattr(measure, "_wait_for_quiet",
+                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("publisher live")))
+
+    for expected in (1, 2, 3):
+        assert measure._run_measurement(out, lambda _m: None) == 0
+        assert _read(out)["deferral_count"] == expected
+
+
+def test_a_banked_phase_was_always_admitted_quiet(monkeypatch, out):
+    """The invariant the deferral buys, asserted on the ARTEFACT rather than argued in a
+    comment: no phase can be banked with `box_was_quiet: false`, so the ratio can never be
+    computed from a contended number.
+
+    Independent of the guards' own code -- it reads the record the run produced (R15
+    TAUTOLOGY)."""
+    monkeypatch.setattr(measure, "_publisher_is_running", lambda: False)
+    monkeypatch.setattr(measure, "_mem_available_mb",
+                        lambda: measure.MIN_MEMORY_HEADROOM_MB + 1)
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *a, **k: types.SimpleNamespace(
+                            returncode=0, stdout="1 passed in 1.00s", stderr=""))
+    monkeypatch.setattr(measure.prc, "_head_sha", lambda: "deadbeef")
+
+    phase = measure._time_suite(Path("."), lambda _m: None)
+
+    assert phase["box_was_quiet"] is True
+    assert phase["had_memory_headroom"] is True
+
+
+def test_the_live_record_carries_no_contended_phase():
+    """The same invariant, applied to the record actually on disk. A phase banked before this
+    fix could carry `box_was_quiet: false`, and the ratio derived from it would be wrong in the
+    PASSING direction -- so it must be re-run, not inherited."""
+    live = measure.prc.PROJECT_DIR / "docs" / "observability" / "publish_gate_subject_cost.json"
+    if not live.exists():
+        pytest.skip("no live measurement record yet")
+    rec = json.loads(live.read_text())
+
+    contended = sorted(name for name, p in (rec.get("phases") or {}).items()
+                       if isinstance(p, dict)
+                       and (p.get("box_was_quiet") is False
+                            or p.get("had_memory_headroom") is False))
+    assert not contended, (
+        f"banked phases {contended} were timed against a contended box; the exit-criterion "
+        "ratio must not be computed from them -- delete those phases from the record so the "
+        "next launch re-runs them"
+    )

@@ -20,8 +20,11 @@ the verdict is not.
 
 The box is shared with the live publisher, whose own suite would both skew the wall-clock and
 contend for a machine with ~5GB free. Each phase therefore waits for the publisher to be idle
-first, and records loadavg alongside its own number so a contaminated run is visible rather
-than silently averaged in.
+and for memory headroom before timing anything, and DEFERS -- banking what it has measured for
+the next launch to resume -- if either wait times out. It never times a suite into a contended
+box: two full suites do not fit in 15.9G (two runs were OOM-killed proving it), and the run that
+survives contention reports a slow BASELINE, which is the ratio's denominator and so moves the
+exit criterion toward MEETS.
 
 Usage:  python3 -m tools.measure_publish_gate_subject_cost --systemd  [THE committed launch]
         python3 -m tools.measure_publish_gate_subject_cost --detach   [session-detach only]
@@ -42,9 +45,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from background import process_run_complete as prc  # noqa: E402
 
-# A phase must not start while the real publisher is mid-suite. Bounded: if it never goes quiet
-# we measure anyway and say so, because a harness that can hang forever is worse than a noisy
-# number that is labelled noisy.
+# A phase must not start while the real publisher is mid-suite. Bounded -- but the timeout
+# DEFERS rather than measuring anyway (see `_Deferred`): two suites do not fit in this box's
+# memory, and the contended run biases the exit-criterion ratio toward MEETS.
 QUIET_WAIT_SECONDS = 45 * 60
 QUIET_POLL_SECONDS = 30
 
@@ -301,8 +304,50 @@ def _publisher_is_running() -> bool:
     return False
 
 
+# ── "MEASURE ANYWAY" WAS BIASED TOWARD PASS, NOT MERELY NOISY (2026-08-10, seventh launch) ───
+#
+# Both admission guards below were bounded and both fell through to "measure anyway, flagged
+# contended", justified as "a harness that can wait forever is worse than a number labelled
+# noisy". OBSERVED: that trade was wrong twice, and in two different ways.
+#
+#   * IT DOES NOT PRODUCE A NOISY NUMBER, IT PRODUCES NO NUMBER. The seventh launch entered the
+#     BASELINE phase's quiet-wait at 18:25:58Z, timed out at ~19:11, started its suite into a
+#     live publisher, and was OOM-killed at 19:25:11Z -- 11.1G peak, `Result: oom-kill`, unit
+#     `publish-gate-subject-cost.service`. Two full suites do not fit in 15.9G. The sixth launch
+#     died the same way at 13:55:30Z (6.5G peak). Cost: two ~1h36m launches, no baseline.
+#
+#   * WHEN IT DOES NOT KILL THE RUN, IT BIASES THE EXIT CRITERION TOWARD PASS. The criterion is
+#     warm / in-tree <= 1.3, and the phase that keeps losing the race is IN_TREE -- the
+#     DENOMINATOR. A baseline timed against a live publisher runs slow, which makes the ratio
+#     SMALLER, which makes the criterion likelier to read MEETS. A guard whose degraded mode
+#     moves the measured verdict in the passing direction is fail-open (R15), and it would have
+#     done so silently: `box_was_quiet: false` sits inside the phase record, while
+#     `meets_exit_criterion` is what anyone reads.
+#
+# SO: the timeout DEFERS instead. The phases are already resumable -- banked phases are kept and
+# only what is owed is re-run -- so exiting cleanly costs exactly what dying costs, minus the OOM
+# and minus the false number, and the next launch picks up where this one stopped. That makes
+# `box_was_quiet`/`had_memory_headroom` INVARIANTLY true on any banked phase, which is the point:
+# they stop being a caveat attached to a number that is used anyway, and become a property the
+# record can be checked against (`test_a_banked_phase_was_always_admitted_quiet`).
+#
+# The convergence risk this takes on is real and is made VISIBLE rather than argued away: a box
+# that is never quiet for long enough now shows up as a rising `deferral_count` in the record,
+# not as a measurement that quietly never lands.
+class _Deferred(Exception):
+    """Admission was refused. Bank what is measured and let the next launch resume."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
+
+
 def _wait_for_quiet(log, heartbeat=None) -> bool:
     """Wait for the publisher to finish. Returns True if the box went quiet.
+
+    Raises `_Deferred` rather than returning if the wait times out -- see the block above: a
+    phase timed alongside the live publisher is killed by the OOM killer, and on the survivable
+    path it moves the exit-criterion ratio in the PASSING direction.
 
     `heartbeat`, when given, is called on every poll. Both deaths so far happened INSIDE this
     wait, so a record that stops advancing here is the difference between "it is still waiting"
@@ -312,9 +357,9 @@ def _wait_for_quiet(log, heartbeat=None) -> bool:
     waited = False
     while _publisher_is_running():
         if time.time() > deadline:
-            log("  ! publisher still live after {}s -- measuring anyway, flagged contended"
-                .format(QUIET_WAIT_SECONDS))
-            return False
+            log("  ! publisher still live after {}s -- DEFERRING; banked phases are kept and "
+                "the next launch resumes".format(QUIET_WAIT_SECONDS))
+            raise _Deferred("publisher still live after {}s".format(QUIET_WAIT_SECONDS))
         if not waited:
             log("  . waiting for the live publisher to finish before timing")
             waited = True
@@ -379,6 +424,10 @@ def _mem_available_mb():
 def _wait_for_memory_headroom(log, heartbeat=None) -> bool:
     """Wait until the box has room for a full suite. True if the headroom was there.
 
+    Raises `_Deferred` rather than returning if the wait times out, for the same reason as the
+    quiet wait above: starting a suite into a box that is already out of memory is what the OOM
+    killer ends, and the survivable version of it biases the ratio toward MEETS.
+
     A kernel that will not report MemAvailable is treated as "go" rather than as a block: this
     is a measurement harness, and refusing to measure because /proc is unreadable would trade a
     known failure for a permanent one."""
@@ -389,9 +438,11 @@ def _wait_for_memory_headroom(log, heartbeat=None) -> bool:
         if available is None or available >= MIN_MEMORY_HEADROOM_MB:
             return True
         if time.time() > deadline:
-            log("  ! only {}MB available after {}s (want {}MB) -- measuring anyway, flagged"
+            log("  ! only {}MB available after {}s (want {}MB) -- DEFERRING; banked phases are "
+                "kept and the next launch resumes"
                 .format(available, MEMORY_WAIT_SECONDS, MIN_MEMORY_HEADROOM_MB))
-            return False
+            raise _Deferred("only {}MB available after {}s (want {}MB)".format(
+                available, MEMORY_WAIT_SECONDS, MIN_MEMORY_HEADROOM_MB))
         if not waited:
             log("  . waiting for memory headroom: {}MB available, want {}MB"
                 .format(available, MIN_MEMORY_HEADROOM_MB))
@@ -527,8 +578,26 @@ def main(argv=None) -> int:
     return _run_measurement(args.out, log)
 
 
+def _prior_deferral_count(out_path: str) -> int:
+    """How many launches have already deferred. Never raises: an unreadable record means zero.
+
+    Carried across launches so that "the box is never quiet long enough to measure" -- the risk
+    the deferral trade takes on -- surfaces as a rising number in the artefact rather than as a
+    measurement that silently never lands."""
+    try:
+        prior = json.loads(Path(out_path).read_text())
+    except (OSError, ValueError):
+        return 0
+    count = prior.get("deferral_count") if isinstance(prior, dict) else None
+    return count if isinstance(count, int) and count >= 0 else 0
+
+
 def _run_measurement(out_path: str, log) -> int:
-    """The measurement itself, in THIS process. Blocks ~50 minutes."""
+    """The measurement itself, in THIS process. Blocks ~50 minutes.
+
+    Returns 0 on a complete measurement AND on a deferral -- a deferral is a correct outcome,
+    not a failure, and a non-zero exit would make the systemd unit report `failed` for a run
+    that did exactly the right thing."""
     args = argparse.Namespace(out=out_path)
 
     head_sha = prc._head_sha()
@@ -546,7 +615,12 @@ def _run_measurement(out_path: str, log) -> int:
                "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                # RESUMED, not restarted. Phases an earlier launch paid for are kept; only what
                # is still owed is re-run.
-               "phases": _load_banked_phases(out_path)}
+               "phases": _load_banked_phases(out_path),
+               # Read HERE, beside the banked phases, and for the same reason: `_checkpoint`
+               # rewrites the file from `results` before the first phase, so a count read at
+               # deferral time would be reading a record this launch had already blanked --
+               # and the tally would stick at 1 forever.
+               "deferral_count": _prior_deferral_count(out_path)}
     results["resumed_phases"] = sorted(results["phases"])
     # Phases timed at a DIFFERENT commit than this launch's HEAD. Resuming across launches is
     # what makes the measurement converge on a box that keeps killing it, but it means the
@@ -564,95 +638,113 @@ def _run_measurement(out_path: str, log) -> int:
     # run that was never launched at all -- which is the failure this harness just suffered.
     _checkpoint(results, args.out, log)
 
-    log("HEAD={} -- three timed runs, expect ~45-60 min total".format(head_sha))
+    try:
+        log("HEAD={} -- three timed runs, expect ~45-60 min total".format(head_sha))
 
-    # COLD: delete the reused checkout so nothing survives from an earlier cycle.
-    #
-    # WAIT FIRST, THEN DELETE. A live publisher may be running its suite inside that very
-    # directory, and removing it mid-run would corrupt a real publish cycle to take a
-    # measurement -- the harness must never be able to damage the thing it measures.
-    if "cold_checkout" in results["phases"]:
-        # Deleting the reused checkout is the COLD phase's setup, so it lives inside this
-        # branch: a resume that still deleted it would throw away the warmth the next phase is
-        # there to measure.
-        log("phase 1/3 COLD -- banked by an earlier launch at {}s, not re-run".format(
-            results["phases"]["cold_checkout"]["seconds"]))
-    else:
-        _wait_for_quiet(log, heartbeat)
-        reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
-        shutil.rmtree(reused, ignore_errors=True)
-        log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
-        with prc._head_checkout() as path:
-            if path is None:
-                log("! checkout unavailable -- cannot measure the clean subject")
-                results["aborted"] = "checkout unavailable"
-                _checkpoint(results, args.out, log)
-                return 1
-            if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
-                log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, "
-                    "so the warm phase would not be warm. Aborting rather than reporting a wrong "
-                    "ratio.".format(path.name))
-                results["aborted"] = "another publisher held the reuse lock"
-                _checkpoint(results, args.out, log)
-                return 1
-            results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
-        log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
+        # COLD: delete the reused checkout so nothing survives from an earlier cycle.
+        #
+        # WAIT FIRST, THEN DELETE. A live publisher may be running its suite inside that very
+        # directory, and removing it mid-run would corrupt a real publish cycle to take a
+        # measurement -- the harness must never be able to damage the thing it measures.
+        if "cold_checkout" in results["phases"]:
+            # Deleting the reused checkout is the COLD phase's setup, so it lives inside this
+            # branch: a resume that still deleted it would throw away the warmth the next phase is
+            # there to measure.
+            log("phase 1/3 COLD -- banked by an earlier launch at {}s, not re-run".format(
+                results["phases"]["cold_checkout"]["seconds"]))
+        else:
+            _wait_for_quiet(log, heartbeat)
+            reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
+            shutil.rmtree(reused, ignore_errors=True)
+            log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
+            with prc._head_checkout() as path:
+                if path is None:
+                    log("! checkout unavailable -- cannot measure the clean subject")
+                    results["aborted"] = "checkout unavailable"
+                    _checkpoint(results, args.out, log)
+                    return 1
+                if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+                    log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, "
+                        "so the warm phase would not be warm. Aborting rather than reporting a wrong "
+                        "ratio.".format(path.name))
+                    results["aborted"] = "another publisher held the reuse lock"
+                    _checkpoint(results, args.out, log)
+                    return 1
+                results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
+            log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
+            _checkpoint(results, args.out, log)
+
+        # WARM: same directory, refreshed in place. __pycache__ survives the refresh.
+        if "warm_checkout" in results["phases"]:
+            log("phase 2/3 WARM -- banked by an earlier launch at {}s, not re-run".format(
+                results["phases"]["warm_checkout"]["seconds"]))
+        else:
+            # On a RESUME the warmth was established by whoever last ran in that directory -- this
+            # run's own cold phase, an earlier launch's, or the live publisher's ordinary cycle.
+            # All three are the same steady state the real gate pays, but the record says which,
+            # because "warm" is a claim about the directory and not about this process.
+            results["warm_cache_established_by"] = (
+                "this run's cold phase" if "cold_checkout" not in results["resumed_phases"]
+                else "an earlier launch or the live publisher")
+            log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained ({})".format(
+                results["warm_cache_established_by"]))
+            with prc._head_checkout() as path:
+                if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+                    log("! lost the reused checkout between phases -- aborting")
+                    results["aborted"] = "lost the reused checkout between phases"
+                    _checkpoint(results, args.out, log)
+                    return 1
+                results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
+            log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
+            _checkpoint(results, args.out, log)
+
+        # BASELINE: the pre-ruling subject, the live working tree.
+        if "in_tree_baseline" in results["phases"]:
+            log("phase 3/3 BASELINE -- banked by an earlier launch at {}s, not re-run".format(
+                results["phases"]["in_tree_baseline"]["seconds"]))
+        else:
+            log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
+            results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
+            log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
+            _checkpoint(results, args.out, log)
+
+        warm = results["phases"]["warm_checkout"]["seconds"]
+        base = results["phases"]["in_tree_baseline"]["seconds"]
+        results["ratio_warm_over_in_tree"] = round(warm / base, 3) if base else None
+        results["exit_criterion_ratio_max"] = 1.3
+        results["meets_exit_criterion"] = bool(base and (warm / base) <= 1.3)
+        # Criterion 2: the bound is derived from the runtime the gate ACTUALLY pays, which is the
+        # warm steady state -- but a cold cycle is a real outcome (a fallback throwaway, a rebuilt
+        # corrupt checkout), so the bound must clear the worst legitimate case, not the usual one.
+        worst = max(warm, results["phases"]["cold_checkout"]["seconds"], base)
+        results["worst_legitimate_seconds"] = worst
+        results["implied_timeout_floor_2x"] = int(worst * 2)
+
         _checkpoint(results, args.out, log)
-
-    # WARM: same directory, refreshed in place. __pycache__ survives the refresh.
-    if "warm_checkout" in results["phases"]:
-        log("phase 2/3 WARM -- banked by an earlier launch at {}s, not re-run".format(
-            results["phases"]["warm_checkout"]["seconds"]))
-    else:
-        # On a RESUME the warmth was established by whoever last ran in that directory -- this
-        # run's own cold phase, an earlier launch's, or the live publisher's ordinary cycle.
-        # All three are the same steady state the real gate pays, but the record says which,
-        # because "warm" is a claim about the directory and not about this process.
-        results["warm_cache_established_by"] = (
-            "this run's cold phase" if "cold_checkout" not in results["resumed_phases"]
-            else "an earlier launch or the live publisher")
-        log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained ({})".format(
-            results["warm_cache_established_by"]))
-        with prc._head_checkout() as path:
-            if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
-                log("! lost the reused checkout between phases -- aborting")
-                results["aborted"] = "lost the reused checkout between phases"
-                _checkpoint(results, args.out, log)
-                return 1
-            results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
-        log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
+        log("ratio warm/in-tree = {} (criterion <= 1.3) -- {}".format(
+            results["ratio_warm_over_in_tree"],
+            "MEETS" if results["meets_exit_criterion"] else "MISSES"))
+        log("worst legitimate run {}s -> timeout floor at 2x = {}s".format(
+            worst, results["implied_timeout_floor_2x"]))
+        log("written to {}".format(args.out))
+        return 0
+    except _Deferred as deferred:
+        # A deferral is a CORRECT outcome, not a failure: the box was not fit to time a suite
+        # in, the phases already banked are kept, and the next launch resumes from here. It is
+        # recorded rather than merely logged because the journal of a killed unit is not
+        # something the next tick reads -- the artefact is.
+        results["deferred"] = {
+            "reason": deferred.reason,
+            "at_phase": results["phases_missing"][0] if results.get("phases_missing") else None,
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        results["deferral_count"] += 1
         _checkpoint(results, args.out, log)
-
-    # BASELINE: the pre-ruling subject, the live working tree.
-    if "in_tree_baseline" in results["phases"]:
-        log("phase 3/3 BASELINE -- banked by an earlier launch at {}s, not re-run".format(
-            results["phases"]["in_tree_baseline"]["seconds"]))
-    else:
-        log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
-        results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
-        log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
-        _checkpoint(results, args.out, log)
-
-    warm = results["phases"]["warm_checkout"]["seconds"]
-    base = results["phases"]["in_tree_baseline"]["seconds"]
-    results["ratio_warm_over_in_tree"] = round(warm / base, 3) if base else None
-    results["exit_criterion_ratio_max"] = 1.3
-    results["meets_exit_criterion"] = bool(base and (warm / base) <= 1.3)
-    # Criterion 2: the bound is derived from the runtime the gate ACTUALLY pays, which is the
-    # warm steady state -- but a cold cycle is a real outcome (a fallback throwaway, a rebuilt
-    # corrupt checkout), so the bound must clear the worst legitimate case, not the usual one.
-    worst = max(warm, results["phases"]["cold_checkout"]["seconds"], base)
-    results["worst_legitimate_seconds"] = worst
-    results["implied_timeout_floor_2x"] = int(worst * 2)
-
-    _checkpoint(results, args.out, log)
-    log("ratio warm/in-tree = {} (criterion <= 1.3) -- {}".format(
-        results["ratio_warm_over_in_tree"],
-        "MEETS" if results["meets_exit_criterion"] else "MISSES"))
-    log("worst legitimate run {}s -> timeout floor at 2x = {}s".format(
-        worst, results["implied_timeout_floor_2x"]))
-    log("written to {}".format(args.out))
-    return 0
+        log("deferred ({}) -- {} still owed; re-launch with --systemd to resume. "
+            "Deferrals so far: {}".format(
+                deferred.reason, ", ".join(results["phases_missing"]) or "nothing",
+                results["deferral_count"]))
+        return 0
 
 
 if __name__ == "__main__":
