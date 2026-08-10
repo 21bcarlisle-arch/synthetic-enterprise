@@ -339,6 +339,93 @@ def test_the_stale_bound_clears_the_gate_timeout(sandbox):
     assert prc.STALE_HEAD_CHECKOUT_AGE_SECONDS > prc.GATE_SUITE_TIMEOUT_SECONDS * 1.5
 
 
+def _pytest_root(parent, n, age_s=None):
+    d = parent / "pytest-{}".format(n)
+    d.mkdir(parents=True)
+    (d / "f").write_text("x")
+    if age_s is not None:
+        os.utime(d, (age_s, age_s))
+    return d
+
+
+def test_stale_pytest_temp_roots_are_swept_and_the_newest_are_kept(sandbox):
+    """The fifteenth wedge. pytest prunes its own numbered roots, but a suite SIGKILLed mid-run
+    (rc=-9, the known gate outcome) never gets to -- so they pile up exactly when the gate is
+    already in trouble, and on a tmpfs those bytes are RAM.
+
+    Both directions in one test: a sweep that took the newest roots could delete a RUNNING
+    suite's tmp_path out from under it, which is worse than the leak it fixes."""
+    parent = prc.HEAD_CHECKOUT_ROOT / "pytest-of-someone"
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    # Six roots, ALL old enough to be swept on age alone; mtimes ascend with the number.
+    old = [_pytest_root(parent, n, ancient + n) for n in range(6)]
+    fresh = _pytest_root(parent, 99)
+    unrelated = prc.HEAD_CHECKOUT_ROOT / "someone-elses-tmpdir"
+    unrelated.mkdir()
+    os.utime(unrelated, (ancient, ancient))
+
+    removed = prc._sweep_stale_pytest_temp_roots()
+
+    kept = [p for p in old + [fresh] if p.exists()]
+    assert removed == 4, "the four oldest go; the keep-window is not age-gated"
+    assert [p.name for p in kept] == ["pytest-4", "pytest-5", "pytest-99"], kept
+    assert fresh.exists(), "a root inside the keep-window may belong to a LIVE suite"
+    assert unrelated.exists(), "this sweep owns pytest roots and nothing else"
+
+
+def test_a_pytest_current_symlink_is_never_the_thing_deleted(sandbox):
+    """`pytest-current` points INTO a numbered root. Deleting the link would leave the bytes on
+    the tmpfs and lose the only handle to them -- a sweep that makes the leak unreachable."""
+    parent = prc.HEAD_CHECKOUT_ROOT / "pytest-of-someone"
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    targets = [_pytest_root(parent, n, ancient + n) for n in range(5)]
+    link = parent / "pytest-current"
+    link.symlink_to(targets[0], target_is_directory=True)
+
+    prc._sweep_stale_pytest_temp_roots()
+
+    assert link.is_symlink(), "the link itself is never a sweep candidate"
+    assert not targets[0].exists(), "its TARGET is swept on the same rule as any other root"
+
+
+def test_the_checkout_sweep_alone_could_not_reclaim_what_wedged_it(sandbox):
+    """R15, against this control's own named defect.
+
+    The fourteen-wedge claim was that sweeping `publish-gate-head-*` before the disk pre-flight
+    makes exhausted-tmpfs SELF-HEALING. It is not, and the recurrence proves it: of the 3.9G
+    reclaimed by hand on 2026-08-10, the checkout sweep could see none. This reconstructs that
+    measured population and asserts the pre-fix control reclaims NOTHING from it -- so if someone
+    later deletes the pytest sweep, this fails rather than quietly restoring the 22h wedge."""
+    root = prc.HEAD_CHECKOUT_ROOT
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    parent = root / "pytest-of-rich"
+    # The offset only ORDERS the mtimes; it must stay far inside `ancient` or a root drifts back
+    # within the age bound and is spared on age rather than by the keep-window.
+    pytest_roots = [_pytest_root(parent, n, ancient + n * 0.01)
+                    for n in (0, 31, 36, 122, 154, 158, 176, 214, 234, 235, 240, 254, 259)]
+    # The ad-hoc diagnostic checkouts, under the names the investigations actually used.
+    diagnostics = []
+    for name in ("gate_verify", "wedge-diag2-m3fsd036", "headchk", "gatechk2",
+                 "gatechk.GNMR", "headtree_probe", "headprobe2"):
+        d = root / name
+        d.mkdir()
+        os.utime(d, (ancient, ancient))
+        diagnostics.append(d)
+    # The single matching checkout, 20 minutes old -- correctly OUTSIDE the bound.
+    matching = root / (prc.HEAD_CHECKOUT_PREFIX + "9z78t7lu")
+    matching.mkdir()
+
+    assert prc._sweep_stale_head_checkouts() == 0, (
+        "the pre-fix control reclaims nothing from the population that exhausted the tmpfs -- "
+        "this is the false self-healing claim, pinned")
+
+    assert prc._sweep_stale_pytest_temp_roots() == len(pytest_roots) - prc.PYTEST_TEMP_KEEP_NEWEST
+    assert matching.exists(), "a 20-minute-old checkout is a live publisher's, not debris"
+    assert all(d.exists() for d in diagnostics), (
+        "ad-hoc diagnostic names are closed by CONVENTION, not by a glob that would have this "
+        "process deleting directories it does not own")
+
+
 def test_a_corrupt_reused_checkout_is_rebuilt_rather_than_trusted(sandbox):
     """The directory is state that outlives the process, so it can be found in any condition --
     truncated by a full disk, left by an older layout, borrowing an object store that has since

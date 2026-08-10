@@ -1024,6 +1024,75 @@ def _sweep_stale_head_checkouts(now=None):
     return removed
 
 
+# ── THE SWEEP WAS SCOPED TO THE WRONG POPULATION (fifteenth wedge, 2026-08-10) ───────────────
+#
+# `_sweep_stale_head_checkouts` above owns `publish-gate-head-*` "and nothing else", and its test
+# pins that. The scoping is right -- a daemon must not free-fire at directories it does not own --
+# but the claim built on top of it, that the exhausted-tmpfs failure is therefore SELF-HEALING,
+# was false, and publishing wedged on the same exhaustion again for 22h36m / 126 cycles.
+#
+# MEASURED, at the moment of the recurrence: /tmp is a 7.8G tmpfs -- RAM, not disk -- and held
+# 5.0G. Of the 3.9G reclaimed by hand, the sweep above could see NONE of it:
+#
+#   2.4G  /tmp/pytest-of-rich/pytest-{0,31,36,122,154,158,176,214,234,235,240,254,259}
+#   1.1G  ad-hoc diagnostic checkouts: gate_verify, wedge-diag2-*, headchk, gatechk2,
+#         gatechk.GNMR, headtree_probe, headprobe2, publish-gate-verify-*
+#   190M  publish-gate-head-9z78t7lu -- the only match, and at 20 min old CORRECTLY spared
+#
+# The failure presented as `git is not installed` and `fatal: cannot mkdir`, because ENOMEM on a
+# tmpfs surfaces at fork/mkdir, not as "no space". That is the third wedge's signature exactly.
+#
+# THE POPULATION HAS TWO HALVES AND THEY CLOSE DIFFERENTLY:
+#   * PYTEST TEMPS -- mechanised here. pytest retains its last 3 numbered roots itself, but that
+#     pruning is per-invocation and best-effort: a suite SIGKILLed mid-run (rc=-9, the known gate
+#     outcome) never prunes, so the roots accumulate exactly when the gate is already in trouble.
+#     Same 3h bound as above, and the newest few are kept whatever their age, so a running
+#     suite's own root can never be taken out from under it.
+#   * DIAGNOSTIC CHECKOUTS -- NOT mechanised, deliberately. They carry names invented ad-hoc by
+#     whoever was investigating (`headchk`, `gatechk.GNMR`), and no glob can distinguish those
+#     from a directory this process has no business deleting. Closed as a CONVENTION instead:
+#     a wedge investigation materialises HEAD under HEAD_CHECKOUT_PREFIX so the sweep above owns
+#     it. Filed with the finding; the irony is on the record, that the debris of fourteen wedge
+#     investigations is what caused the fifteenth.
+PYTEST_TEMP_ROOT_GLOB = "pytest-of-*"
+PYTEST_TEMP_KEEP_NEWEST = 3
+
+
+def _sweep_stale_pytest_temp_roots(now=None):
+    """Delete abandoned pytest temp roots on the gate's filesystem. Returns the number removed.
+
+    Never raises: like the checkout sweep, a sweep that fails must cost space, never a publish."""
+    now = time.time() if now is None else now
+    removed = 0
+    try:
+        parents = sorted(HEAD_CHECKOUT_ROOT.glob(PYTEST_TEMP_ROOT_GLOB))
+    except OSError:
+        return 0
+    for parent in parents:
+        try:
+            # Numbered roots only. `pytest-current` and friends are SYMLINKS into them; removing
+            # a link would leave the bytes and lose the handle.
+            numbered = [p for p in parent.iterdir()
+                        if p.is_dir() and not p.is_symlink()
+                        and p.name.startswith("pytest-") and p.name[7:].isdigit()]
+        except OSError:
+            continue
+        # Newest-first, so the keep-window is the most recent roots regardless of the age bound.
+        numbered.sort(key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+        for path in numbered[PYTEST_TEMP_KEEP_NEWEST:]:
+            try:
+                if now - path.stat().st_mtime < STALE_HEAD_CHECKOUT_AGE_SECONDS:
+                    continue
+                shutil.rmtree(path, ignore_errors=True)
+                removed += 1
+            except OSError:
+                continue
+    if removed:
+        log("Publish gate: swept {} abandoned pytest temp root(s) from {} -- suites killed "
+            "mid-run never prune their own.".format(removed, HEAD_CHECKOUT_ROOT))
+    return removed
+
+
 @contextmanager
 def _reused_checkout_lock():
     """Hold the reused checkout exclusively for this cycle, or yield None if another holds it.
@@ -1175,6 +1244,7 @@ def _head_checkout():
     (so an exhausted filesystem still names DISK rather than git), then the SHA, then the
     checkout itself."""
     _sweep_stale_head_checkouts()
+    _sweep_stale_pytest_temp_roots()
     tmp_root = str(HEAD_CHECKOUT_ROOT)
     free_mb = _free_mb(tmp_root)
     if free_mb is not None and free_mb < HEAD_CHECKOUT_MIN_FREE_MB:
