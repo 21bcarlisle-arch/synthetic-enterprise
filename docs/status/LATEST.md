@@ -1,5 +1,38 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-09T23:55:50Z
+Last updated: 2026-08-10T01:11:54Z
+
+**FIFTH PUBLISH WEDGE CLOSED — the map declared four notes that were never written.**
+Publishing was RED for ~10.5 hours (66 failures, no pass at HEAD) and is green again.
+The blocking test was `tests/design/test_atom_notes_store.py::test_declarations_match_the_store`:
+commit `192e29792` minted `H38`/`H39` into the maturity map with `notes_rehomed:` declarations and
+added `build_note` to `H36`'s, while touching **no file** in `docs/design/simplifications/`. H32's
+contract checks both directions on purpose, so three atoms declared prose that lived nowhere. The
+four notes were recovered from their real sources — 192e29792's own commit body and the two findings
+in the H36 section of `BAND_NULL_SWEEP.md` — not invented. Commit `f0493363b`.
+A **second** red sat behind it: `test_the_committed_document_agrees_with_the_live_derivation`, the
+derived-artefact staleness class, which deadlocks by construction because the repair can only land
+after a green gate. The 00:58Z cycle had already generated the rendering and lost it to the red gate;
+it is committed at `a06726529`. Both verified at HEAD in a clean `git archive` checkout: 45 passed.
+
+**H38 landed with it — the second entire pass in two commits to be found uncommitted.**
+922 lines (ledger, generator, three test files, doc) sat in the working tree with the map already
+moved to L2, one commit after `192e29792` landed H36 for exactly that reason. `machine_draw` now
+composes space **and water** heat into the one stream the L1 cells net out. Proven not a fail-open
+closure first: with behaviour flattened and both machines standing the cell fires under both readings
+— the water heater supplied DENOMINATOR (~38% more mean), never texture, against a floor derived from
+a gas home's electricity meter where the cylinder is on the other fuel. The 57-gas-home control column
+is bit-for-bit identical under both readings, so it could not have been tuned toward. R12 held: the
+floor is still 0.15, and the direction is stated honestly as a LOOSENING of the affected readings.
+L1.1 on the drawn 60 is 0/60 violating; worst home is now P0036, a **gas** home, at 0.1521.
+`RECORDED NOT GREEN:` H39 is not closed — the band still sits inside its own null's spread
+(margin 0.0550 vs spread 0.0558). L0→L2 self-certified in `gate_authorizations.jsonl` (R16).
+
+**Two records filed, both queued not fixed on sight** (`5039263f8`): the wedge alarm disarms itself
+(at 00:59Z it logged "Publish gate recovered" while HEAD was provably red — `_process()` has two
+early `return 0` paths that never reach the gate), and the eight cited suspects are dispositioned —
+none was the cause, one is the enabler (the pre-commit gate maps zero tests to a non-`.py` path, now
+its second wedge).
+
 
 **KNIFE3 step 5 — NO LEVEL MOVE, and that is the point. The world stops reading the supplier's
 collections policy: the arrears engine now learns the tone of a letter that ARRIVED, not the policy
@@ -1613,7 +1646,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (520s / 9 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
