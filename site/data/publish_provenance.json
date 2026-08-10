@@ -1,25 +1,24 @@
 {
   "annotation": {
-    "checked_at": "2026-08-10T16:14:55Z",
+    "checked_at": "2026-08-10T16:22:58Z",
     "nonblocking_reds": [],
-    "nonblocking_reds_total": 0,
-    "open_findings": 0
+    "open_findings": 51
   },
   "last_verified": {
-    "generated_at": "2026-08-10T16:14:55Z",
-    "git_commit": "abc1234",
-    "run_id": "run_output_abc1234_20260621T104002Z.json",
-    "verified_at": "2026-08-10T16:14:55Z"
+    "generated_at": "2026-08-09T12:41:51Z",
+    "git_commit": "1fd85cb27e55ff11ed541ef329648a3ced9094f4",
+    "run_id": "run_output_dfefd0a14_20260809T031627Z.json",
+    "verified_at": "2026-08-09T12:41:51Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=43ae7c997; blocking tests: see sim-runner-log",
-  "paused_since": "2026-08-10T16:15:08Z",
+  "paused_reason": "scoped publish-path suite red at git=ad67e713b; blocking tests: see sim-runner-log",
+  "paused_since": "2026-08-09T14:30:09Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-10T16:14:55Z",
-    "git_commit": "abc1234",
-    "run_id": "run_output_abc1234_20260621T104002Z.json",
-    "verified_at": "2026-08-10T16:14:55Z"
+    "generated_at": "2026-08-09T12:41:51Z",
+    "git_commit": "1fd85cb27e55ff11ed541ef329648a3ced9094f4",
+    "run_id": "run_output_dfefd0a14_20260809T031627Z.json",
+    "verified_at": "2026-08-09T12:41:51Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-10T16:15:08Z"
+  "written_at": "2026-08-10T16:39:06Z"
 }
