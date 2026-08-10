@@ -50,7 +50,7 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 ## D19_belief_gap_is_distribution_only
 **The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severit**  
-_epoch 3 · lane D_billing_metering · L0→L2 · build_
+_epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
 

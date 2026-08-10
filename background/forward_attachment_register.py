@@ -314,7 +314,24 @@ def verify_rendering(rendered: str, derived: dict) -> list[dict]:
 
 def check(root: Path | None = None, map_path: Path | None = None,
           ledger_md: Path | None = None) -> tuple[list[dict], dict]:
-    """Full check: parse violations + the committed rendering vs a fresh derivation."""
+    """Full check: parse violations + the committed rendering vs a fresh derivation.
+
+    THE ORACLE MUST COVER EVERY DIMENSION ITS BLOCKING TEST ASSERTS (2026-08-10, eighth publish
+    wedge). `verify_rendering` compares (atom_id, source) PAIRS -- a strict SUBSET of what
+    `tests/background/test_forward_attachment_register.py::test_live_rendering_is_current`
+    asserts, which is whole-text equality. So drift in any OTHER dimension of the rendering was
+    invisible here and red at the gate: the live case was an atom's level/stage annotation
+    moving `L0→L2 · build_` -> `L2→L2 · harden_` after an ordinary map edit, with every pair
+    unchanged. That mattered beyond this file, because `background/derived_artefact_register.py`
+    drives `--check` as its STALENESS ORACLE -- the self-healing repair built to close this very
+    wedge class asked a question that could not see the staleness, reported "nothing stale", and
+    let the gate red for hours (episode 8: 91 failures, ~15h).
+
+    So the whole-text comparison is the LAST word here. The pair-level violations are kept
+    because they are independently valuable (they name a fabricated or dropped row precisely,
+    and they fire on a hand-edited rendering that whole-text equality would also catch but not
+    explain) -- but they are no longer the only thing standing between drift and the gate.
+    """
     root = root or PROJECT_DIR
     derived = derive(root=root, map_path=map_path)
     md_path = ledger_md or (root / "docs/design/FORWARD_ATTACHMENT_LEDGER.md")
@@ -326,6 +343,12 @@ def check(root: Path | None = None, map_path: Path | None = None,
         problems.append({"kind": "rendering_missing", "source": str(md_path)})
         return problems, derived
     problems.extend(verify_rendering(rendered, derived))
+    if rendered != render_markdown(derived):
+        problems.append({
+            "kind": "stale_rendering", "source": str(md_path),
+            "detail": "the committed rendering differs from a fresh derivation "
+                      "(regenerate: python3 -m background.forward_attachment_register --write)",
+        })
     return problems, derived
 
 
