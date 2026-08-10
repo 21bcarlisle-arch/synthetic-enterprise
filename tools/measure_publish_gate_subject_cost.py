@@ -108,6 +108,32 @@ def _time_suite(cwd: Path, log) -> dict:
     }
 
 
+# ── A KILLED MEASUREMENT MUST STILL SAY WHAT IT DID (2026-08-10) ─────────────────────────────
+#
+# OBSERVED, not hypothetical: the 05:28 run of this harness was launched from a bounded worker
+# tick, went into `_wait_for_quiet`, and died with the tick. It left NOTHING in the repo -- the
+# only trace was a two-line file in /tmp -- so the next tick could not tell "died in the wait"
+# from "never launched" from "ran and found nothing", and the design doc's instruction to READ
+# the JSON had no JSON to read. Three phases at ~15 minutes each on a box where the OOM killer
+# is a known visitor is exactly the shape that must not be all-or-nothing.
+#
+# So the record is written from BEFORE the first phase and re-written after each one, carrying
+# `complete: false` until the derived figures exist. A reader must therefore check `complete`
+# rather than the file's existence -- `_phases_missing` names what is still owed, so a partial
+# record tells the next tick precisely which phases to resume rather than restart.
+PHASE_ORDER = ("cold_checkout", "warm_checkout", "in_tree_baseline")
+
+
+def _checkpoint(results: dict, out: str, log) -> None:
+    """Persist what is known so far. Never raises: a failed write must not lose a live run."""
+    results["complete"] = all(p in results["phases"] for p in PHASE_ORDER)
+    results["phases_missing"] = [p for p in PHASE_ORDER if p not in results["phases"]]
+    try:
+        Path(out).write_text(json.dumps(results, indent=2) + "\n")
+    except OSError as exc:
+        log("! could not checkpoint to {}: {}".format(out, exc))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(prc.PROJECT_DIR / "docs" / "observability"
@@ -118,7 +144,11 @@ def main() -> int:
         print("[measure] {}".format(msg), flush=True)
 
     head_sha = prc._head_sha()
-    results = {"head_sha_at_launch": head_sha, "phases": {}}
+    results = {"head_sha_at_launch": head_sha, "pid": os.getpid(),
+               "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "phases": {}}
+    # Before the first wait, so that a run killed IN the wait is still distinguishable from a
+    # run that was never launched at all -- which is the failure this harness just suffered.
+    _checkpoint(results, args.out, log)
 
     log("HEAD={} -- three timed runs, expect ~45-60 min total".format(head_sha))
 
@@ -134,28 +164,37 @@ def main() -> int:
     with prc._head_checkout() as path:
         if path is None:
             log("! checkout unavailable -- cannot measure the clean subject")
+            results["aborted"] = "checkout unavailable"
+            _checkpoint(results, args.out, log)
             return 1
         if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
             log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, so "
                 "the warm phase would not be warm. Aborting rather than reporting a wrong ratio."
                 .format(path.name))
+            results["aborted"] = "another publisher held the reuse lock"
+            _checkpoint(results, args.out, log)
             return 1
         results["phases"]["cold_checkout"] = _time_suite(path, log)
     log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
+    _checkpoint(results, args.out, log)
 
     # WARM: same directory, refreshed in place. __pycache__ survives the refresh.
     log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained")
     with prc._head_checkout() as path:
         if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
             log("! lost the reused checkout between phases -- aborting")
+            results["aborted"] = "lost the reused checkout between phases"
+            _checkpoint(results, args.out, log)
             return 1
         results["phases"]["warm_checkout"] = _time_suite(path, log)
     log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
+    _checkpoint(results, args.out, log)
 
     # BASELINE: the pre-ruling subject, the live working tree.
     log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
     results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log)
     log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
+    _checkpoint(results, args.out, log)
 
     warm = results["phases"]["warm_checkout"]["seconds"]
     base = results["phases"]["in_tree_baseline"]["seconds"]
@@ -169,7 +208,7 @@ def main() -> int:
     results["worst_legitimate_seconds"] = worst
     results["implied_timeout_floor_2x"] = int(worst * 2)
 
-    Path(args.out).write_text(json.dumps(results, indent=2) + "\n")
+    _checkpoint(results, args.out, log)
     log("ratio warm/in-tree = {} (criterion <= 1.3) -- {}".format(
         results["ratio_warm_over_in_tree"],
         "MEETS" if results["meets_exit_criterion"] else "MISSES"))

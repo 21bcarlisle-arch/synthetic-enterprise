@@ -42,7 +42,8 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 
 **Ratio warm / in-tree: PENDING** against the exit criterion of ≤ 1.3×.
 
-> **STATUS 2026-08-10 — the measurement is IN FLIGHT, not skipped, and must not be re-derived.**
+> **STATUS 2026-08-10 08:35Z — measurement RE-LAUNCHED (pid 2473243, HEAD `af38e506c`), and the
+> previous attempt's silent death is now closed as a class.**
 > Harness: `python3 -m tools.measure_publish_gate_subject_cost` (in the repo precisely so this
 > claim can be re-run rather than believed). It writes
 > `docs/observability/publish_gate_subject_cost.json` with all three phases, the ratio, and
@@ -51,17 +52,30 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 > so it can never pull the directory out from under a real cycle. **The next worker tick should
 > READ that JSON and fill in this table and §2 — not start another run.**
 >
-> Re-launch only if the JSON is absent AND no `measure_publish_gate_subject_cost` process is
-> running (`pgrep -af`). Do **not** re-launch merely because the recorded SHA is behind HEAD:
-> HEAD moves under a ~50-minute measurement as ordinary commits land, each phase stamps the SHA
-> it actually ran against (`head_sha_at_run`), and the runtime being measured does not turn over
-> commit by commit. Treating "behind HEAD" as death costs another 50 minutes for no information.
+> **What went wrong with the 05:28 attempt, and what changed.** It was launched from a bounded
+> worker tick as a plain background job, entered `_wait_for_quiet`, and died with the tick —
+> before its first phase, having written *nothing* to the repo. The only trace was two lines in
+> `/tmp/ops2_measure.log`, so this tick could not distinguish "died in the wait" from "never
+> launched" from "ran and found nothing" without going outside the repo. Two fixes, both landed
+> with this note:
+>   * the harness **checkpoints from before the first wait** and after every phase, carrying
+>     `complete: false` and `phases_missing` until the derived figures exist, plus `pid` and
+>     `started_at`. A killed run now leaves a record that names what it still owes. **Readers must
+>     therefore test `complete`, not the file's existence** — a checkpoint is not a result;
+>   * it is launched under `setsid` (session leader, reparented to init) so it outlives the tick
+>     that started it. A ~50-minute job started from a bounded invocation must be detached or it
+>     will be killed at the invocation's edge, every time.
 >
-> One schema wrinkle in THIS run only: the in-flight process was launched from the pre-`f9ac47fb6`
-> harness, so its JSON carries a single top-level `head_sha` and its phases have no
-> `head_sha_at_run`. That is the old schema, not a broken run — `phases`, `seconds`,
-> `ratio_warm_over_in_tree` and `implied_timeout_floor_2x` are all present and are what §1 and §2
-> need. Later runs carry the per-phase stamp.
+> Re-launch only if `complete` is false AND no `measure_publish_gate_subject_cost` process is
+> running (`pgrep -af`); resume-worthy phases are listed in `phases_missing`. Do **not** re-launch
+> merely because the recorded SHA is behind HEAD: HEAD moves under a ~50-minute measurement as
+> ordinary commits land, each phase stamps the SHA it actually ran against (`head_sha_at_run`),
+> and the runtime being measured does not turn over commit by commit. Treating "behind HEAD" as
+> death costs another 50 minutes for no information.
+>
+> A live `aborted` field means the run ended for a *named* reason (usually another publisher
+> holding the reuse lock, which makes the warm phase not warm) — that one is worth re-launching
+> promptly, because it costs minutes rather than the full 50 and only needs a quieter window.
 
 Both sides ran on the live box while the publisher's own cycles were running, so the absolute
 numbers carry that load; the ratio is what the criterion is about and both sides carry it alike.
