@@ -87,6 +87,22 @@ send_ntfy(...)  ->  None        (retry,          ~23:46Z)
 The channel has therefore been down for **~95 minutes** (22:13Z → 23:46Z), across at least four
 director-facing messages. Two things this adds to the original finding:
 
+> **CORRECTION (22:36Z, original author of this finding).** The ~95 minutes is wrong and the
+> substance is not. Those readings are **BST labelled `Z`**: `date -u` on this box returned
+> `2026-08-10T22:34:16Z` while this section was already citing 23:45–23:46Z, i.e. timestamps
+> ~70 minutes in the future. 23:46 BST = 22:46 UTC, so the measured outage is **~21–33 minutes**
+> (first verified 429 at 22:13Z), not 95. Left in place rather than overwritten, per R9: the
+> recurrence is real, the sends did fail, the two diagnostic points below are correct and valuable
+> — only the duration was inflated, and by roughly 3x.
+>
+> This matters beyond pedantry for two reasons. It is R14's own rule (no figure without its clock)
+> applied to an *elapsed* rather than a financial figure, and the inflated number was being used as
+> the escalation rationale — "it has now silently eaten every escalation for an hour and a half"
+> promotes this to the next draw on a strength the evidence does not support. **The promotion still
+> stands on the corrected number**, because a P0 channel failing silently for twenty minutes is
+> already unciteable; it just should not be argued from a figure that a clock check refutes.
+> Filed as its own class: `WORKER_FINDING_BST_LABELLED_AS_Z_2026-08-10.md`.
+
 **1. It is not transport, and the obvious diagnostic says the opposite.** `curl -I https://ntfy.sh/`
 returns **200** — the host is up and reachable from this box. Only the *topic* is limited. So the
 first check anyone reaches for ("is ntfy up?") **exonerates the failing channel**, which is the same
