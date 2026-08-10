@@ -40,14 +40,68 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 | Reused checkout, first cycle (cold `__pycache__`) | **1291.9s** | measured, HEAD `3ee4541a7`, 23,249 passed / 7 failed, box quiet |
 | Reused checkout, second cycle (warm) | **1167.5s** | measured, HEAD `54141b559`, box quiet, 13.2G→4.4G available |
 
-> **STATUS 2026-08-10 19:55Z — NINTH launch is LIVE; do not start a tenth.** `systemctl --user
-> status publish-gate-subject-cost.service` → `active (running)`, MainPID 3108903, HEAD
-> `58d40f44b`, `launched_by: "systemd"`. It read the banked cold and warm phases off the record
-> and did not re-run them (*"phase 1/3 COLD — banked by an earlier launch at 1291.9s, not
-> re-run"*) — the resume fix holding for the first time — and is inside phase 3's quiet-wait
-> behind a live publisher suite. A tick that finds this unit active does **no** heavy work on the
-> box: two full suites do not fit in 15.9G, and the memory-headroom guard would defer the
-> baseline rather than OOM, costing a tenth launch.
+> **STATUS 2026-08-10 21:00Z — the ninth launch DEFERRED, and waiting was the defect.**
+> Observed, from the unit's own journal: `20:40:05Z [measure] ! publisher still live after 2700s
+> — DEFERRING`. It resumed both banked phases correctly (*"phase 1/3 COLD — banked by an earlier
+> launch at 1291.9s, not re-run"*, and the same for warm) — the resume fix holding — and then
+> lost the box for the **fourth** time on the same phase.
+>
+> **Nine launches, `deferral_count` rising, `in_tree_baseline` never once timed. That is not bad
+> luck, it is a control that cannot fire.** `docs/staging/` holds **112 pending
+> `run_complete_*.md` markers**; `background_worker.py::process_leftover_run_markers` re-globs
+> them every cycle; one publish cycle is now bounded at `GATE_SUITE_TIMEOUT_SECONDS` = 2600s of
+> gate plus the publish path after it. The publisher therefore runs very nearly back-to-back, and
+> a guard that **waits for a gap** in a queue that refills faster than it drains starves — quietly,
+> one deferral at a time, with every banked phase looking healthy in the record. The phase that
+> keeps losing is the ratio's **denominator**, so the criterion stays unmeasurable rather than
+> wrong, which is the better of the two failures but still a failure.
+>
+> **Closed by taking the gap instead of waiting for one.** The primitive was already in the repo
+> and this harness was not using it: `process_run_complete.py::_run_lock` is a non-blocking
+> `flock` on `.process_run_complete.lock` wrapping the *whole* cycle (`_process`), and a publisher
+> that cannot take it exits `EXIT_LOCK_SKIPPED` (75) with its marker still pending — a path
+> `background_worker.py` already handles as *"still pending, will retry next cycle"*, not as a
+> failure. `_publisher_exclusion` now **holds that lock for the duration of a phase**:
+>
+> * it converges — the acquire waits out at most **one** live publisher, then no further one can
+>   start, where the poll had to win a race against a queue that never empties;
+> * `box_was_quiet` becomes true **by construction**, not by luck. The seventh launch's invariant
+>   (`test_a_banked_phase_was_always_admitted_quiet`) previously rested on nothing having started
+>   in the gap between the last poll and the first test;
+> * the acquire deadline is **derived** from `PUBLISH_PATH_TIMEOUT_SECONDS` — the longest a
+>   publisher may legally hold the lock — not restated as a round `45 * 60`. A wait shorter than
+>   the work it waits on does not bound the wait; it guarantees a deferral. That is the same
+>   defect §2 closed one layer down, where a 900s caller cap sat under a 2600s gate.
+>
+> Cost: **one deferred publish cycle per phase**, on a queue that is already deferred, and nothing
+> to the marker. R15 both ways in `tests/tools/test_measure_publish_gate_subject_cost.py` — the
+> lock is interrogated through `prc._run_lock` itself (so a test cannot pass against a lock the
+> real publisher would not respect), and the four mutations are named in the tests' own
+> docstrings: drop the exclusion, drop the release, fall through instead of deferring, hand-type
+> the deadline.
+>
+> **And the exclusion would have wedged publishing from inside the gate — caught before commit,
+> by running the module rather than reading it.** The publisher holds `_run_lock` for the whole
+> of `_process`, and the gate's suite runs *inside* that hold; this harness's test module is in
+> the gate's own argv. So the tests that drive `_run_measurement` — which enters the exclusion in
+> the COLD and WARM phases itself, past the stubbed `_time_suite` — blocked on the **live**
+> publisher's lock for `QUIET_WAIT_SECONDS` = 3800s (observed: killed at 900s in
+> `test_a_banked_phase_is_resumed_rather_than_re_run`, lock confirmed HELD). Inside the gate that
+> is a 2600s timeout and a **fail-CLOSED** verdict — every cycle, deterministically, on this
+> atom's own wedge class. The free-lock branch is the mirror: a unit test takes the real
+> publisher's lock and live cycles skip.
+>
+> Closed with an **autouse** redirect of `prc.RUN_LOCK_FILE` into each test's `tmp_path` — autouse
+> because two of the three entry points are not nameable at any test's call site — plus two
+> controls, both mutation-proven 2026-08-10: `test_no_test_in_this_module_can_reach_the_live_
+> publishers_lock` (mutation `autouse=False` → reds, naming the live path) and
+> `test_any_test_module_that_enters_the_exclusion_redirects_the_lock`, whose population is
+> **derived from the tree** with a vacuity guard rather than listed (mutation: a probe module
+> driving the harness without the redirect → reds naming it). One older test was also un-stubbed:
+> under the new ordering its `_wait_for_quiet` stub let the run reach the **real**
+> `prc._head_checkout()`, so its verdict turned on whether a publisher held the reuse lock; it now
+> defers at the guard that actually fires first. Module: **900s+ hang → 54 passed in 5.3s**. Full
+> finding: `docs/staging/done/WORKER_FINDING_THE_EXCLUSION_DEADLOCKED_AGAINST_THE_LOCK_IT_TAKES_2026-08-10.md`.
 
 **Ratio warm / in-tree: STILL OWED** against the exit criterion of ≤ 1.3×. Cold and warm are
 both banked and load-bearing (§2's bound is derived from the worst of them), but the *exit

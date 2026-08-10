@@ -32,6 +32,7 @@ process group that started it**. The differential is the point — the same scen
 detach is run alongside, and the undetached child dies, so the survival above is produced by
 `start_new_session` and not by the kill being harmless.
 """
+import fcntl
 import json
 import os
 import signal
@@ -49,6 +50,30 @@ from tools import measure_publish_gate_subject_cost as measure
 @pytest.fixture
 def out(tmp_path):
     return str(tmp_path / "publish_gate_subject_cost.json")
+
+
+# ── THIS MODULE RUNS INSIDE THE THING IT LOCKS, SO IT MUST NEVER TOUCH THE REAL LOCK ─────────
+#
+# OBSERVED, 2026-08-10, before the exclusion was committed. The phases now take
+# `prc._run_lock` -- and this module is IN the publish gate's own argv, which the publisher runs
+# while holding that very lock for the whole of `_process`. So the tests that drive
+# `_run_measurement` (whose COLD and WARM phases enter the exclusion directly, past the stubbed
+# `_time_suite`) blocked on the live publisher's lock for `QUIET_WAIT_SECONDS` = 3800s. A local
+# run was killed at 900s inside `test_a_banked_phase_is_resumed_rather_than_re_run`.
+#
+# That is a publishing WEDGE, not a slow test, and a self-inflicted one: the gate suite would
+# hang until `GATE_SUITE_TIMEOUT_SECONDS` (2600s) and the gate now fail-CLOSES on timeout, so
+# every cycle would block publication -- deterministically, on the exact defect this atom exists
+# to close. The lesser half is as bad in the other direction: when the lock happens to be FREE,
+# a test acquires the real publisher's lock and makes live cycles lock-skip.
+#
+# Autouse rather than per-test, because the entry points are not all obvious -- two of the three
+# phases enter the exclusion from `_run_measurement` itself, which no test opts into by name.
+@pytest.fixture(autouse=True)
+def _the_live_publishers_lock_is_out_of_reach(monkeypatch, tmp_path):
+    """Point `_run_lock`'s file at this test's tmp dir for EVERY test in the module."""
+    monkeypatch.setattr(measure.prc, "RUN_LOCK_FILE",
+                        tmp_path / ".process_run_complete.lock")
 
 
 def _read(path):
@@ -876,13 +901,26 @@ def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
     lands.
 
     MUTATION: make `_prior_deferral_count` return 0 unconditionally and this reds at the second
-    deferral, which is exactly the blindness it guards."""
-    monkeypatch.setattr(measure, "_wait_for_quiet",
-                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("publisher live")))
+    deferral, which is exactly the blindness it guards.
 
-    for expected in (1, 2, 3):
-        assert measure._run_measurement(out, lambda _m: None) == 0
-        assert _read(out)["deferral_count"] == expected
+    It defers at the guard that now fires FIRST -- the exclusion, held here on the redirected
+    lock -- rather than at a stubbed `_wait_for_quiet`. That is not cosmetic: with the wait
+    stubbed, a run reaches the cold phase's REAL `prc._head_checkout()` first, so the test
+    extracted HEAD into /tmp and its verdict turned on whether a live publisher happened to hold
+    the reuse lock."""
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # already past the acquire deadline
+    holder = open(str(measure.prc.RUN_LOCK_FILE), "w")
+    fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        for expected in (1, 2, 3):
+            assert measure._run_measurement(out, lambda _m: None) == 0
+            record = _read(out)
+            assert record["deferral_count"] == expected
+            assert record["deferred"]["at_phase"] == "cold_checkout", (
+                "the deferral must name the phase still owed")
+    finally:
+        fcntl.flock(holder, fcntl.LOCK_UN)
+        holder.close()
 
 
 def test_a_banked_phase_was_always_admitted_quiet(monkeypatch, out):
@@ -924,3 +962,175 @@ def test_the_live_record_carries_no_contended_phase():
         "ratio must not be computed from them -- delete those phases from the record so the "
         "next launch re-runs them"
     )
+
+
+# ── THE EXCLUSION: A PHASE TAKES THE PUBLISHER'S GAP, IT DOES NOT WAIT FOR ONE ───────────────
+#
+# THE DEFECT THESE FIRE ON IS OBSERVED, not hypothetical. Nine launches; `deferral_count`
+# climbing; `in_tree_baseline` -- the exit criterion's DENOMINATOR -- never once timed. The
+# 2026-08-10 19:55Z launch resumed both banked phases and then deferred at 20:40:05Z with
+# *"publisher still live after 2700s"*. With 112 `run_complete_*.md` markers pending and a
+# publish cycle now bounded at `GATE_SUITE_TIMEOUT_SECONDS` (2600s), the publisher runs nearly
+# back-to-back: waiting for a gap in that queue is not a slow control, it is a control that
+# cannot fire, and it fails INVISIBLY -- every banked phase looks healthy and the record simply
+# never completes.
+#
+# So the phase now HOLDS `process_run_complete.py::_run_lock` -- the publisher's own primitive,
+# not a second copy of it -- for its duration. These controls pin the four ways that can be
+# worse than the poll it replaces: not actually excluding, not releasing, measuring anyway when
+# the lock cannot be had, and a deadline shorter than the work it waits on.
+
+def _lock_is_free() -> bool:
+    """True if `_run_lock` can be taken right now -- asked of the publisher's OWN context
+    manager rather than of a second flock written here, so a test cannot pass against a lock
+    the real publisher would not respect."""
+    from background import process_run_complete as prc
+    with prc._run_lock() as acquired:
+        return bool(acquired)
+
+
+def test_a_phase_holds_the_publishers_run_lock_while_it_times(monkeypatch, tmp_path):
+    """MUTATION: drop the `with _publisher_exclusion(...)` from `_time_suite` and this reds --
+    the publisher's lock stays free, so a real cycle starts inside the timed window.
+
+    The lock is interrogated through `prc._run_lock` itself: what matters is not that some file
+    is flocked but that THE publisher would lock-skip."""
+    from background import process_run_complete as prc
+    monkeypatch.setattr(measure, "_publisher_is_running", lambda: False)
+    monkeypatch.setattr(measure, "_mem_available_mb",
+                        lambda: measure.MIN_MEMORY_HEADROOM_MB + 1)
+    seen = {}
+
+    def fake_run(*_a, **_kw):
+        seen["lock_free_during_the_suite"] = _lock_is_free()
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", fake_run)
+    measure._time_suite(tmp_path, lambda _m: None)
+
+    assert seen["lock_free_during_the_suite"] is False, (
+        "a publisher could have started its own cycle inside the timed window")
+
+
+def test_the_exclusion_is_released_when_the_phase_is_over(monkeypatch, tmp_path):
+    """A measurement that kept the lock would wedge publishing outright -- strictly worse than
+    an unmeasured ratio. MUTATION: drop the `finally:` unlock and this reds."""
+    from background import process_run_complete as prc
+
+    with measure._publisher_exclusion(lambda _m: None):
+        assert _lock_is_free() is False
+    assert _lock_is_free() is True
+
+
+def test_the_exclusion_is_released_when_the_phase_raises(monkeypatch, tmp_path):
+    """The path that actually happens: an OOM-adjacent phase blows up mid-run. The lock must not
+    outlive it, or every subsequent publish cycle lock-skips forever."""
+    from background import process_run_complete as prc
+
+    with pytest.raises(RuntimeError):
+        with measure._publisher_exclusion(lambda _m: None):
+            raise RuntimeError("phase died")
+    assert _lock_is_free() is True
+
+
+def test_the_exclusion_is_re_entrant_so_the_cold_phase_can_span_its_setup(monkeypatch, tmp_path):
+    """COLD deletes the reused checkout, rebuilds it and times it under ONE hold. A second
+    `flock` on a second fd of the same file blocks even inside one process, so nesting must be
+    counted rather than re-attempted -- without this the cold phase deadlocks itself into a
+    deferral it would report as a busy publisher."""
+    from background import process_run_complete as prc
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # a real re-acquire would defer here
+
+    with measure._publisher_exclusion(lambda _m: None):
+        with measure._publisher_exclusion(lambda _m: None):
+            assert _lock_is_free() is False
+        # Still held by the outer block -- an inner exit must not release it early.
+        assert _lock_is_free() is False
+    assert _lock_is_free() is True
+
+
+def test_an_unavailable_exclusion_defers_rather_than_measuring_anyway(monkeypatch, tmp_path):
+    """The same fail-open the seventh launch's fix closed, in the new guard. MUTATION: fall
+    through to the suite instead of raising and this reds -- and the run it lets through is
+    timed beside a live publisher, i.e. the OOM, or (surviving) a slow denominator that moves
+    the exit criterion toward MEETS."""
+    lock_path = measure.prc.RUN_LOCK_FILE  # the autouse fixture's, never the live publisher's
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # already past the deadline
+
+    holder = open(str(lock_path), "w")
+    fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        with pytest.raises(measure._Deferred) as excinfo:
+            with measure._publisher_exclusion(lambda _m: None):
+                pytest.fail("timed a suite while the publisher held its own run lock")
+        assert "run lock" in str(excinfo.value)
+    finally:
+        fcntl.flock(holder, fcntl.LOCK_UN)
+        holder.close()
+
+
+def test_a_held_exclusion_makes_a_real_publisher_lock_skip(monkeypatch, tmp_path):
+    """The consumer end, stated as the publisher sees it: `_run_lock` yields False, which is the
+    branch that returns EXIT_LOCK_SKIPPED and leaves the marker pending for the worker's sweep.
+    The cost of this whole design is exactly that -- one deferred cycle, no lost marker."""
+    from background import process_run_complete as prc
+
+    with measure._publisher_exclusion(lambda _m: None):
+        with prc._run_lock() as acquired:
+            assert acquired is False
+
+
+def test_the_exclusion_wait_exceeds_the_longest_a_publisher_may_hold_it():
+    """DERIVED, not restated. A wait shorter than the work it waits on does not bound anything
+    -- it guarantees a deferral, which is the 900s-caller-under-a-2600s-gate defect this atom
+    closed one layer down. `PUBLISH_PATH_TIMEOUT_SECONDS` is how long a publisher may legally
+    hold the lock, so the acquire must outlast it.
+
+    MUTATION: set QUIET_WAIT_SECONDS back to a hand-typed `45 * 60` and this reds."""
+    from background import process_run_complete as prc
+    assert measure.QUIET_WAIT_SECONDS > prc.PUBLISH_PATH_TIMEOUT_SECONDS, (
+        "a phase would defer while a publisher was still legitimately mid-cycle")
+
+
+def test_no_test_in_this_module_can_reach_the_live_publishers_lock():
+    """The isolation above is load-bearing, so it is asserted rather than trusted.
+
+    MUTATION: drop `autouse=True` from `_the_live_publishers_lock_is_out_of_reach` and this reds
+    -- and so does the whole module, by hanging for `QUIET_WAIT_SECONDS` inside the publish
+    gate the publisher runs while holding that lock. A green here is the cheap version of that
+    discovery."""
+    from background import process_run_complete as prc
+    live = Path(prc.PROJECT_DIR).resolve()
+    in_use = Path(prc.RUN_LOCK_FILE).resolve()
+    assert live not in in_use.parents, (
+        "a test in this module is pointed at the live publisher's run lock ({}) -- it will "
+        "either block for {}s inside the gate or make real publish cycles lock-skip".format(
+            in_use, measure.QUIET_WAIT_SECONDS))
+
+
+def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
+    """DERIVED from the tree, not from a list this file remembers to extend.
+
+    The population is every test module that can reach `_publisher_exclusion` -- directly, or
+    through `_time_suite`/`_run_measurement`, which is how it was reached unnoticed here (two of
+    the three phases enter it from `_run_measurement`, which no test names). Each such module
+    must redirect `RUN_LOCK_FILE`, or it inherits the wedge."""
+    entry_points = ("_publisher_exclusion", "_time_suite", "_run_measurement")
+    tests_root = Path(__file__).resolve().parent.parent
+    drivers, offenders = [], []
+    for path in sorted(tests_root.rglob("test_*.py")):
+        source = path.read_text(encoding="utf-8", errors="replace")
+        if "measure_publish_gate_subject_cost" not in source:
+            continue
+        if not any(name in source for name in entry_points):
+            continue
+        drivers.append(str(path.relative_to(tests_root)))
+        if "RUN_LOCK_FILE" not in source:
+            offenders.append(str(path.relative_to(tests_root)))
+    # Vacuity guard: this very module is a driver, so an empty population means the scan has
+    # gone blind (a rename, a moved tests root) rather than that everything is safe.
+    assert str(Path(__file__).resolve().relative_to(tests_root)) in drivers, (
+        "the scan did not find this module -- it is measuring nothing: {}".format(drivers))
+    assert not offenders, (
+        "these modules drive the measurement's phases without redirecting the publisher's run "
+        "lock, so they run against the live one: {}".format(offenders))

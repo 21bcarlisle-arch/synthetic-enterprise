@@ -19,12 +19,18 @@ The suite is expected to be red at HEAD for unrelated reasons; the runtime is th
 the verdict is not.
 
 The box is shared with the live publisher, whose own suite would both skew the wall-clock and
-contend for a machine with ~5GB free. Each phase therefore waits for the publisher to be idle
-and for memory headroom before timing anything, and DEFERS -- banking what it has measured for
-the next launch to resume -- if either wait times out. It never times a suite into a contended
-box: two full suites do not fit in 15.9G (two runs were OOM-killed proving it), and the run that
-survives contention reports a slow BASELINE, which is the ratio's denominator and so moves the
-exit criterion toward MEETS.
+contend for a machine with ~5GB free. Each phase therefore TAKES the publisher's own run lock
+(`process_run_complete.py::_run_lock`) for its duration and waits for memory headroom before
+timing anything, and DEFERS -- banking what it has measured for the next launch to resume -- if
+either wait times out. It never times a suite into a contended box: two full suites do not fit
+in 15.9G (two runs were OOM-killed proving it), and the run that survives contention reports a
+slow BASELINE, which is the ratio's denominator and so moves the exit criterion toward MEETS.
+
+Holding the lock rather than waiting for a gap is what makes this converge: with a queue of
+pending markers the publisher runs nearly back-to-back, so nine launches waiting for idleness
+banked two phases and never once reached the baseline. A publisher that cannot take the lock
+exits `EXIT_LOCK_SKIPPED` with its marker still pending -- an outcome the worker's sweep already
+retries -- so the cost is one deferred publish cycle per phase. See `_publisher_exclusion`.
 
 Usage:  python3 -m tools.measure_publish_gate_subject_cost --systemd  [THE committed launch]
         python3 -m tools.measure_publish_gate_subject_cost --detach   [session-detach only]
@@ -33,12 +39,14 @@ Usage:  python3 -m tools.measure_publish_gate_subject_cost --systemd  [THE commi
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
 import shutil
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -48,7 +56,39 @@ from background import process_run_complete as prc  # noqa: E402
 # A phase must not start while the real publisher is mid-suite. Bounded -- but the timeout
 # DEFERS rather than measuring anyway (see `_Deferred`): two suites do not fit in this box's
 # memory, and the contended run biases the exit-criterion ratio toward MEETS.
-QUIET_WAIT_SECONDS = 45 * 60
+#
+# ── AND WAITING FOR A GAP IS NOT THE SAME AS TAKING ONE (2026-08-10, ninth launch) ───────────
+#
+# OBSERVED. Nine launches, `deferral_count` rising, `in_tree_baseline` never once timed. The
+# 19:55Z launch resumed both banked phases correctly, entered the baseline's quiet-wait, and
+# deferred at 20:40:05Z -- *"publisher still live after 2700s"*. It was not unlucky. There are
+# **112 `run_complete_*.md` markers pending** in `docs/staging/`, `background_worker.py::
+# process_leftover_run_markers` re-globs them every cycle, and one publish cycle is now up to
+# `GATE_SUITE_TIMEOUT_SECONDS` (2600s) of gate plus the publish path after it. The publisher is
+# therefore running very nearly back-to-back, and a guard that WAITS FOR A GAP in a queue that
+# refills faster than it drains does not converge -- it starves, quietly, one deferral at a
+# time, with every banked phase looking healthy in the record.
+#
+# The primitive was already here and this harness was not using it. `process_run_complete.py::
+# _run_lock` is a non-blocking `flock` on `.process_run_complete.lock` wrapping the WHOLE cycle
+# (`_process`), and a publisher that cannot take it exits `EXIT_LOCK_SKIPPED` (75) leaving its
+# marker pending -- a path `background_worker.py` already handles as "still pending, will retry
+# next cycle", not as a failure. So the measurement HOLDS that lock for the duration of a phase
+# instead of polling for its absence:
+#
+#   * it converges -- the acquire waits out at most ONE live publisher, then no further one can
+#     start, where the poll had to win a race against a queue that never empties;
+#   * `box_was_quiet` becomes true BY CONSTRUCTION rather than by luck. The invariant the
+#     seventh launch's fix asserts (`test_a_banked_phase_was_always_admitted_quiet`) previously
+#     rested on nothing having started in the gap between the last poll and the first test;
+#   * it costs the publisher one deferred cycle per phase, on an already-deferred queue, and
+#     costs the marker nothing.
+#
+# The deadline is DERIVED from the longest a publisher may legitimately hold that lock rather
+# than restated as a round number -- the same defect this atom's criterion 2 closed one layer
+# down, where a 900s caller cap sat under a 2600s gate and decided its verdict by stopwatch. A
+# wait shorter than the work it waits on does not bound the wait; it just guarantees a deferral.
+QUIET_WAIT_SECONDS = prc.PUBLISH_PATH_TIMEOUT_SECONDS + 5 * 60
 QUIET_POLL_SECONDS = 30
 
 # ── THE LAUNCH IS PART OF THE HARNESS (2026-08-10, WORKER_FINDING_THE_DETACH_THAT_FIXED_
@@ -369,6 +409,73 @@ def _wait_for_quiet(log, heartbeat=None) -> bool:
     return True
 
 
+# Held across a phase so no NEW publisher can start inside it. RE-ENTRANT because the cold phase
+# needs the exclusion wider than one suite -- it deletes the reused checkout, rebuilds it and
+# then times it, and a publisher slipping in between those steps would be running its own gate
+# inside the directory this harness just deleted. A second `flock` on a second fd of the same
+# file blocks even within one process, so re-entry is counted here rather than attempted.
+_EXCLUSION = {"fh": None, "depth": 0}
+
+
+@contextmanager
+def _publisher_exclusion(log, heartbeat=None):
+    """Hold the publisher's own run lock for the duration of the block.
+
+    Raises `_Deferred` rather than proceeding if the lock cannot be taken inside
+    `QUIET_WAIT_SECONDS` -- for the same reason the waits below defer: a phase timed beside a
+    live publisher is OOM-killed, and on the surviving path it moves the exit-criterion ratio
+    in the PASSING direction. Never "measure anyway".
+
+    Polls `LOCK_EX | LOCK_NB` rather than blocking on `LOCK_EX` so the heartbeat keeps advancing:
+    a record that stops updating is how the next tick tells "still waiting" from "was killed
+    waiting", and a blocking flock would freeze that signal for the whole wait."""
+    if _EXCLUSION["depth"] > 0:
+        _EXCLUSION["depth"] += 1
+        try:
+            yield True
+        finally:
+            _EXCLUSION["depth"] -= 1
+        return
+
+    prc.RUN_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fh = open(str(prc.RUN_LOCK_FILE), "w")
+    deadline = time.time() + QUIET_WAIT_SECONDS
+    waited = False
+    while True:
+        try:
+            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            break
+        except BlockingIOError:
+            if time.time() > deadline:
+                fh.close()
+                log("  ! the publisher's run lock was held for {}s -- DEFERRING; banked phases "
+                    "are kept and the next launch resumes".format(QUIET_WAIT_SECONDS))
+                raise _Deferred(
+                    "publisher held the run lock for {}s".format(QUIET_WAIT_SECONDS))
+            if not waited:
+                log("  . waiting to TAKE the publisher's run lock (not merely for a gap) -- a "
+                    "publisher is mid-cycle; once held, no new one can start inside this phase")
+                waited = True
+            if heartbeat is not None:
+                heartbeat()
+            time.sleep(QUIET_POLL_SECONDS)
+
+    _EXCLUSION["fh"] = fh
+    _EXCLUSION["depth"] = 1
+    try:
+        yield True
+    finally:
+        # Released on EVERY exit, including a raising phase: a measurement that kept the lock
+        # after failing would wedge publishing outright, which is a far worse outcome than an
+        # unmeasured ratio. SIGKILL needs no handling here -- the kernel drops flocks with the fd.
+        _EXCLUSION["depth"] = 0
+        _EXCLUSION["fh"] = None
+        try:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        finally:
+            fh.close()
+
+
 # ── /tmp IS RAM ON THIS BOX, AND EACH PHASE WAS LEAVING GIGABYTES OF IT BEHIND ───────────────
 #
 # OBSERVED. The fifth launch -- the first one init owned, so the detach finally held -- completed
@@ -463,6 +570,14 @@ def _argv_without_x() -> list:
 
 
 def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
+    with _publisher_exclusion(log, heartbeat):
+        return _time_suite_under_exclusion(cwd, log, heartbeat)
+
+
+def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
+    # The exclusion above stops a NEW publisher starting; this drains one that was already live
+    # without the lock (an older build, a hand-run invocation). With the lock held it normally
+    # returns immediately -- it is the belt to the exclusion's braces, not the mechanism.
     quiet = _wait_for_quiet(log, heartbeat)
     had_headroom = _wait_for_memory_headroom(log, heartbeat)
     env = dict(os.environ)
@@ -653,24 +768,27 @@ def _run_measurement(out_path: str, log) -> int:
             log("phase 1/3 COLD -- banked by an earlier launch at {}s, not re-run".format(
                 results["phases"]["cold_checkout"]["seconds"]))
         else:
-            _wait_for_quiet(log, heartbeat)
-            reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
-            shutil.rmtree(reused, ignore_errors=True)
-            log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
-            with prc._head_checkout() as path:
-                if path is None:
-                    log("! checkout unavailable -- cannot measure the clean subject")
-                    results["aborted"] = "checkout unavailable"
-                    _checkpoint(results, args.out, log)
-                    return 1
-                if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
-                    log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, "
-                        "so the warm phase would not be warm. Aborting rather than reporting a wrong "
-                        "ratio.".format(path.name))
-                    results["aborted"] = "another publisher held the reuse lock"
-                    _checkpoint(results, args.out, log)
-                    return 1
-                results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
+            # ONE exclusion spanning delete -> rebuild -> time. Not three: between them a
+            # publisher would be free to start a cycle in the directory just deleted from under
+            # it, and to take the reuse lock this phase is about to need.
+            with _publisher_exclusion(log, heartbeat):
+                reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
+                shutil.rmtree(reused, ignore_errors=True)
+                log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
+                with prc._head_checkout() as path:
+                    if path is None:
+                        log("! checkout unavailable -- cannot measure the clean subject")
+                        results["aborted"] = "checkout unavailable"
+                        _checkpoint(results, args.out, log)
+                        return 1
+                    if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+                        log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse "
+                            "lock, so the warm phase would not be warm. Aborting rather than "
+                            "reporting a wrong ratio.".format(path.name))
+                        results["aborted"] = "another publisher held the reuse lock"
+                        _checkpoint(results, args.out, log)
+                        return 1
+                    results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
             log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
             _checkpoint(results, args.out, log)
 
@@ -688,7 +806,9 @@ def _run_measurement(out_path: str, log) -> int:
                 else "an earlier launch or the live publisher")
             log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained ({})".format(
                 results["warm_cache_established_by"]))
-            with prc._head_checkout() as path:
+            # Same reason as COLD: the reuse lock this phase depends on must not be winnable by
+            # a publisher between the checkout and the timing.
+            with _publisher_exclusion(log, heartbeat), prc._head_checkout() as path:
                 if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
                     log("! lost the reused checkout between phases -- aborting")
                     results["aborted"] = "lost the reused checkout between phases"
