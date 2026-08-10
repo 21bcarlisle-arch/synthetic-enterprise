@@ -1,5 +1,29 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T01:31:26Z
+Last updated: 2026-08-10T01:49:39Z
+
+**H27 EXPERT HOUR #3 — the belief gap is blind to WHO holds the belief. HELD AT L2 (`0470e50f9`).**
+Third pass on the corrected instrument, third major flaw in a published headline. The belief
+dimension is a total-variation distance between two population severity DISTRIBUTIONS, so permuting
+the company's per-case labels — destroying every correct per-case assignment while leaving the label
+multiset alone — takes agreement 0.9287 → 0.6432 and moves the published gap 0.0713 → **0.0713**,
+identical to machine precision. The degenerate that ties the real company is "right mix, every
+individual wrong". It survived the sweep that closed this class four times (D11/D12/D14/D15) because
+`DETECTION_DIRECTION_CONTRACT` is keyed to detection scorers, and it hid because on a book whose
+errors run ONE WAY, TV is *arithmetically equal* to the per-case disagreement rate (0.0700/0.0700,
+0.1033/0.1033, 0.0733/0.0733 at seeds 7/11/23) — so the number reads as a per-case rate and
+numerically is one. R12: nothing tuned, 0.07125 before and after.
+Closed at the CLASS (R10): `AGGREGATE_SCORING_CONTRACT` + a control that permutes labels and
+re-scores through each dimension's OWN shipped scorer, differential on purpose (belief must not
+move; ageing 0.1787→1.1675 and detection 0.0143→0.5020 must). R15 on the SOURCE both ways, plus a
+vacuity guard that caught its own probe on the first run. The reshape is minted as `D19` — **not
+`D17`, which was already taken**; the number-collision class again. Caveat + per-case witness
+stamped at source so they reach all three pairs calling `belief_gap`.
+Two leads were checked and found ALREADY CLOSED, and are recorded rather than re-filed:
+`missed_failure_rate` is exactly 0.0000 on every seed (known, mutation-proven), and ever-flagged
+blindness to un-knowing is filed against D8. 708 tests green across the affected surface.
+**Stated against my own interest:** this mint grew the map 426,560 → 430,962 bytes, i.e. **+4,402
+against the already-red 409,600 ceiling below**. That is H41's thesis measured once more — the
+ratchet refills at mint rate — not a reason to leave an atom unrecorded.
 
 **SIXTH PUBLISH WEDGE CLOSED, AND THE SEVENTH IS NAMED — publishing is still RED.**
 The sixth blocker was two atoms numbered `H38`: `test_b_numeric_part_unique_per_lane_or_allowlisted`
@@ -1674,7 +1698,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (500s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -1789,6 +1813,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1920.8h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
+- Remaining effort: ~1966.5h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
