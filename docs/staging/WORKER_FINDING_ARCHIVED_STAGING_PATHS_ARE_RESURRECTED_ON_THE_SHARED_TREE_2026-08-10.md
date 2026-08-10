@@ -46,6 +46,29 @@ count instead of re-measuring would report a drain it did not achieve.
 I removed the duplicates both times (each verified byte-identical to the committed copy at its new
 canon path first, 15/15 and then 15/15 again — never a blind `rm`), which is why the root reads 64.
 
+## The second-order defect, which is the one that actually cost work
+
+**A pathspec commit silently downgrades a staged rename to an add if the old path comes back
+before the gate finishes.** `git commit -- <paths>` resolves its pathspecs against the WORKING
+TREE, not the index. My `git mv`s were correctly staged as renames; the pre-commit gate then ran
+for a minute or two; the resurrection fired at 15:33:13 *inside* that window; and by the time git
+resolved the pathspecs the old paths existed again. `314f16912` therefore recorded 15 `A` entries
+at the new canon paths and **no deletions at the old ones** — every Group A doc tracked in two
+places at once, with the commit reporting success.
+
+`observed-with-evidence`: `git show --name-status 314f16912 -- <old> <new>` shows `A` for the new
+path and no entry at all for the old one, while `git ls-tree -r origin/main` listed both copies.
+
+The cure used, and the one to reach for again: **`python3 -m tools.surgical_land`**. It builds a
+throwaway index from HEAD and gates the tree the commit WOULD create, so it does not re-read a
+working tree a concurrent writer is editing. Landed as `d32277e3a`, receipt verified (tree
+`47cc1bb5b`, 15 paths, gate-rc 0). This is a second, independent reason the surgical-landing tool
+exists beyond the dirty-index merge case its ruling describes.
+
+**Generalisation worth keeping: on this shared tree, a pathspec commit is not safe for a rename or
+any deletion.** It is fine for content edits, where a racing writer can only cost you a stale
+blob; for a path that must *stop existing*, use `surgical_land`.
+
 ## What I did NOT establish
 
 - **Which process writes them.** `grep` over `background/` and `tools/` for
