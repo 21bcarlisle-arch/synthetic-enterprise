@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**13 attachment(s)** from 11 source doc(s), across 10 atom(s).
+**15 attachment(s)** from 13 source doc(s), across 12 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -53,6 +53,18 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
+
+## D20_belief_truth_rule_is_an_unmeasured_mirror
+**The W2_11<->D5 triad's BELIEF dimension publishes its two sides as 'same threshold shape, different-**  
+_epoch 3 · lane D_billing_metering · L2→L2 · harden_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` (finding) — minted here, built here)
+
+## D21_ageing_truth_side_is_the_organs_own_rule
+**The W2_11<->D5 triad's AGEING dimension -- the one whose whole subject is debt DATING -- computed it**  
+_epoch 3 · lane D_billing_metering · L2→L2 · harden_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` (finding) — minted here, built here)
 
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  

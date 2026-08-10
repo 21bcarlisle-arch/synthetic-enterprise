@@ -424,6 +424,16 @@ REVIEWED_CLOSE_TO_LEARN = {
     # only two moves, sweep four other lanes' staged work into a commit or bypass the hook, and
     # the bypass is what happened. close_to_learn is its TRUE stream, not a dumping-ground default.
     "OPS4_surgical_landing_tool",
+    # 2026-08-10 reviewed: the three deliverables minted from DIRECTOR_RULING_PUBLISH_DECOUPLING
+    # ("THE SITE BREATHES"). All three act on the PUBLISH/EVIDENCE SURFACE -- what the site says
+    # about its own freshness and verification -- exactly the class SITE_EH1_segment_disclosure
+    # was reclassified into on 2026-07-29 for the same reason. None of them moves money, sets a
+    # price, or touches a meter or a bill: OPS6 narrows which reds may block a publish, OPS7
+    # stamps provenance on the rendered page, OPS8 keeps last-known-good served under a dated
+    # banner. close_to_learn is their TRUE stream, not a dumping-ground default (C3).
+    "OPS6_scoped_publish_path_suite",
+    "OPS7_provenance_stamps_on_live_pages",
+    "OPS8_last_known_good_staleness_banner",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

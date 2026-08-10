@@ -4581,3 +4581,63 @@
   notes_rehomed: [origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an intermittent fault traced to the bench before any board is replaced"
+
+- id: OPS6_scoped_publish_path_suite
+  title: "Define the publish-path's own suite, and let it alone block publishing"
+  gain: "The gate conflates 'is the whole repo green at HEAD' with 'may the site update', so a stale ledger row freezes the public surface; 22h of frozen site over bookkeeping is the measured cost."
+  name: "MINTED FROM deliverable 1 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 ('THE SITE BREATHES'). NOT the same scope as H23_publish_gate_scope_marker: H23 deselects @pytest.mark.operational, which still leaves EVERY non-operational red (allowlist rows, map ratchets, lint ratchets) able to wedge the live site. This atom narrows the BLOCKING set to the publish path proper -- the code that produces and renders the published numbers -- and makes reds outside it ANNOTATE the page rather than block it. EXIT: (1) the publish-path suite is a single inspectable surface (an argv/marker factory beside publish_gate_pytest_argv, per R15 'a control's scope must be inspectable'); (2) an R15 mutation test proves a publish-path defect BLOCKS and a non-publish-path red DOES NOT; (3) the annotate path carries the open-findings count onto the page (couples to OPS7); (4) the scoping is measured against the wedge episodes on record -- state, per episode, whether this scope would have blocked or annotated."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS2_publish_gate_head_worktree]
+  couples_with: [H23_publish_gate_scope_marker]
+  records_rehomed: [evidence]
+  file_scope: ['background/process_run_complete.py', 'tests/background/']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a factory that stops the line for a fault on the line, not for an unreconciled invoice in accounts"
+
+- id: OPS7_provenance_stamps_on_live_pages
+  title: "Stamp run id, verifying commit and verification time on the page itself"
+  gain: "A freshness claim is a provenance claim; without the stamp on the pixel a visitor cannot tell what they are seeing or how current it is."
+  name: "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 1: 'the site serves the most recent snapshot that passed its scoped verification, stamped with run id, verifying commit, and verification time -- visible on the page, not in a log.' EXIT: (1) the three fields render on the live public pages; (2) R11-verified by FETCHING the live surface and quoting the rendered values, never the file on origin or the deploy log; (3) R14 -- any financial figure beside the stamp still carries its own clock basis, which the stamp does not replace; (4) the stamp is DERIVED from the verifying run, never hand-set: an R15 mutation proves a re-stamped stale run fails ('fake-fresh remains the cardinal sin', the weekend's four-times-republished figure is the named counterexample)."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS6_scoped_publish_path_suite]
+  couples_with: [OPS8_last_known_good_staleness_banner]
+  records_rehomed: [evidence]
+  file_scope: ['tools/generate_dashboard_data.py', 'site/index.html', 'site/data/']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a printed accounts pack whose cover states the period, the preparer and the sign-off date"
+
+- id: OPS8_last_known_good_staleness_banner
+  title: "Behind, never frozen, never silent: serve last-known-good under a dated banner"
+  gain: "A silently frozen surface is indistinguishable from a current one; the honest failure mode is to keep serving and say how old it is."
+  name: "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 3: if even the scoped gate is red the site keeps serving the last verified snapshot under a dated banner ('verification paused since T; showing run R'). EXIT: (1) a red scoped gate leaves the last verified snapshot SERVED, not blanked; (2) the banner renders T and R on the live page, R11-verified by fetch; (3) R11 'no orphan transitions' -- the banner's RELEASE is tested too: a subsequent green must actually clear it, a banner that never clears is the same defect inverted; (4) an R15 mutation proves the banner CANNOT be shown while the snapshot is in fact current, and cannot be hidden while it is stale (both directions, per the fail-open doctrine)."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS6_scoped_publish_path_suite]
+  couples_with: [OPS7_provenance_stamps_on_live_pages]
+  records_rehomed: [evidence]
+  file_scope: ['background/process_run_complete.py', 'site/index.html', 'site/data/']
+  notes_rehomed: [origin_note]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a departure board that says 'last updated 14:02' instead of going blank"
