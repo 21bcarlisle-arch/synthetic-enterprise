@@ -1,49 +1,64 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T09:16:30Z
+Last updated: 2026-08-10T12:10:18Z
 
-**H27 EXPERT HOUR #5 — THE AGEING DIMENSION GRADED THE COMPANY'S DATING AGAINST THE COMPANY'S OWN
-DATING FUNCTION (atom `D21`, L0→L2). `H27_payment_belief_gap` HELD AT L2 for the fifth Hour.**
+**H27 EXPERT HOUR #6 — THE AGEING HEADLINE SCORES A PERFECT 0.000000 FOR A COMPANY THAT WRONGFULLY
+AGES ITS ENTIRE CURRENT BOOK (atom `D22`, minted not built). `H27_payment_belief_gap` HELD AT L2 for
+the sixth Hour.**
 
-The Hour ran on `ageing` because Hour #4 named that criterion in advance — the only dimension of the
-W2_11↔D5 triad never given an Hour of its own. Both leads Hour #4 handed over were checked and
-**neither was taken**; what was under them: `tools/couple_w2_11_d5.py` built the ageing dimension's
-**truth** labels with the company organ's own function (`from company.billing.arrears_engine import
-age_bucket`) against a days-overdue the scenario constructs to be the organ's own integer. Same
-function, same argument — the two sides could not disagree about the bucket of an invoice they both
-held open. Measured: `wrong_bucket` **0** at seeds 7/11/23 and under every drift tried, so every unit
-of the ordinal headline is a **miss**, rank-weighted — 0 **by construction**, not by luck. The
-dimension whose whole subject is debt **dating** could not see a company dating error, and an edit to
-`age_bucket` would have moved the harness's ground truth with it. R15's **tautology** pattern in the
-direction nobody checks: the wall is enforced company→sim; this is harness→company.
+The Hour ran on the second of the two leads Hour #5 handed over, and it is the defect.
+`mean_bucket_displacement` — the number published as the ageing dimension's headline, the ordinal
+term that exists so the dimension can *"distinguish off-by-one from stone-blind, which an error rate
+cannot"* — is a mean over the **truly-overdue** population, so no amount of **over**-ageing can move
+it. Measured through the shipped scorer at n=4000, seeds 7/11/23: a company that dates every
+truly-overdue invoice perfectly and dumps its **entire** truly-current book into `90+` scores
+**0.000000**, bit-identical to a company that dates every invoice right — **10,758 cases changed and
+the headline did not move**. So does one that over-ages every current invoice by exactly **one**
+bucket. The direction is not invisible to the *dimension* (`overstated_arrears_rate` counts it); it
+is invisible to the *ordinal term*, which is the whole of what this dimension adds over a rate. In
+that direction the measure degrades to the error rate it was built to replace, and a 30-60 wrongful
+ageing and a 90+ one — different collections paths in a real supplier — arrive identical.
 
-It hid under a `COVERAGE_ONLY_CLAIM_CONTRACT` exemption reading *"two different rules, not one rule
-over two coverages"* while the same file's docstring said *"Both sides use the IDENTICAL bucket
-function"* — the control believed the exemption, so **D20's control, built one Hour earlier for
-exactly this failure mode, was switched off for the dimension with the strongest mirror of the
-three**. Residual **0.000000** on the all-DD counterfactual (seeds 7/11/23, non-vacuous) — the
-coverage-only claim's own fingerprint, which the exemption was covering.
+**Third sighting of one class, so the sweep was the defect.** `DETECTION_DIRECTION_CONTRACT` already
+states it — *a one-directional score cannot distinguish a precise company from an indiscriminate
+one* — and D11/D12/D14/D15 fixed it in four detection dimensions. D19 then found it had escaped into
+`belief` **because the register is keyed to detection scorers**. It escaped the same way again, into
+the one dimension that is neither a detection scorer nor a rate.
 
-Closed at the class (R10): the rule is harness-owned (`_ageing_bucket`) and **pinned** against the
-organ's across 126 day values; `TRUTH_SIDE_RULE_OWNERSHIP` is a register that is the **call path**,
-refusing any truth-side labelling rule owned by `company.*`; ageing **enrolled** in the coverage-only
-control and asserted per-dimension (the existing R15 test passes on `any()`). R15 both ways —
-re-pointing the register at the organ fires the ownership control; an organ-only 60→75 dating drift
-takes the ageing residual **0.0 → 0.3627/0.3194/0.3333**. The mutation that reinstates the defect
-**moves no published number at all**, and that is asserted: it is why the control is about ownership
-rather than a value, and why nothing caught this for the instrument's life. R12: every published
-figure byte-identical.
+Closed at the class (R10) by `HEADLINE_DIRECTION_COVERAGE`, the sweep with the keying removed: its
+keyset is **derived** from the dimensions `score_triad` publishes (an unregistered published
+dimension raises; so does a registered one nobody publishes), and each entry is scored against its
+own **indiscriminate degenerate** through its own shipped scorer — detection 0.0→0.5, belief
+0.0→0.5, belief_population_mix 0.0→~0.96, **ageing 0.0→0.0**. Differential on purpose, with a third
+state that is checked rather than trusted: `detection_latency` is honestly truth-conditioned, so it
+**names the sibling** that counts the direction it cannot, and the control asserts both that the
+sibling really distinguishes and that no truly-current case reached the latency population. Ageing
+may not claim that cover — D16 already measured that detection's `false_flag_rate` is a different
+quantity over a different population, so **nothing in this instrument sees over-ageing severity**.
+R15 both ways on six register mutations plus a vacuity guard on the probe itself. The mirrored term
+`mean_overstatement_displacement` and an `ordinal_direction_caveat` are stamped **at source** in
+`gap_metric.ageing_gap` so they reach the scorer's other caller, and `format_ageing_summary` prints
+them so the headline cannot be published bare. R12: **no published number moved** — only witnesses
+were added. The reshape is atom `D22`, minted and deliberately **not** built (it moves a published
+number on every pair calling `ageing_gap`).
 
-Two honest limits recorded and pinned by test, not buried: a **uniform** boundary drift is invisible
-on this book (only three distinct debt ages — 30/51/72 days), and **2 of the 4 buckets** are
-unreachable on the truly-overdue truth side. Both are Hour #6's leads, with the overstated
-direction's missing ordinal term. Also caught: `H27.expert_hour.findings` had **no Hour #4 entry** —
-the Hour log itself had a gap; recorded late and marked as such.
+Hour #5's other lead was checked and **not taken**, recorded because a register listing only the
+leads that paid off is not an honest one: the 2-of-4-buckets limit on a three-age book is the same
+weakness from the other side and stays pinned. Two record-keeping findings: the **Hour #5 entry was
+missing from the atom's simplification record** (Hour #5 caught the identical omission in the map's
+register and recorded it late; its own entry in the other register was then left behind — two
+append-only registers with nothing tying them together), and the map's **per-atom byte budget went
+red on the attempt to record this Hour faithfully** (H27 at 12,685 B against the 12,288 B cap) —
+`H41`'s class recurring in the field its own exit criterion (2) anticipates. `expert_hour` cannot be
+rehomed on sight (class guard + two bare-`safe_load` readers that publish to the Proof door), so the
+map entry is an interim **pointer** with the full text in the store record and the staged finding —
+no record shortened away, but the flow is still running.
 
-15 new tests; **417 green** across every suite touching `gap_metric` and the coupled pairs; 86 green
-in `tests/design`. Five Hours, five defects, none predicted by the previous one, arrival rate not
-falling — and this is the tick that changed the instrument, the worst-placed tick to certify it.
-Hour #4's release criterion (two consecutive clean Hours) still stands at zero.
-
+13 new tests; **554 green** across every suite touching `gap_metric`, the coupled pairs, `tests/design`
+and `tests/controls`. Six Hours, six defects, none predicted by its predecessor, and this is again
+the tick that changed the instrument. Hour #4's release criterion (two consecutive clean Hours)
+stands at **zero**. Hour #7's criterion, stated in advance: the same two clean Hours, starting on
+`detection_latency` — the one dimension no Hour has taken on its own terms, and now the only register
+entry whose honesty rests on a division of labour with a sibling rather than on its own arithmetic.
 
 **H39 LANDED (`317a7b62f`) AND THE FABRIC ROWS WERE RE-MEASURED (`d3f683bd2`) — the map had been
 publishing an L2 for a program the repo did not contain, and the staleness control then caught its
@@ -2021,7 +2036,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (524s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2137,6 +2152,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1875.0h across 75 sized atom(s) (13 of 88 below-target atoms still unsized).
+- Remaining effort: ~2023.8h across 79 sized atom(s) (13 of 92 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
