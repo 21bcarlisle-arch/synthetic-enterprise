@@ -1,0 +1,73 @@
+# [WORKER-FINDING] The only escalation channel fails SILENTLY — a rate-limited NTFY returns None and nothing anywhere says the director was not told (2026-08-10)
+
+**Found:** sending a watch update at 22:13Z. `send_ntfy` returned `None` where earlier sends that
+evening returned real ids (`TFc8F7njXCgA`, `4YyNCElIn9WN`). I checked instead of assuming.
+
+**Severity:** ESCALATION_IS_NTFY_NEVER_WINDOW is a **P0 wall** — the executor may never ask in the
+pane, so NTFY is the *only* path from this machine to the director. That path can be down while
+every caller believes it is up.
+
+## Observed, with evidence
+
+```
+$ curl -s -o /dev/null -w '%{http_code}' -d 'probe' https://ntfy.sh/<topic>
+429
+```
+
+`ntfy.sh` is rate-limiting the topic. Two director-facing messages did not arrive: the 22:13Z watch
+update (the breathing status) and a follow-up probe. Neither raised anything anywhere.
+
+The mechanism, `background/ntfy_utils.py::send_ntfy`:
+
+```python
+    msg_id = json.loads(result.stdout).get("id")
+except json.JSONDecodeError:
+    msg_id = None
+...
+if msg_id:
+    record_sent_id(msg_id)
+```
+
+A 429 response body is not JSON carrying an `id`, so the parse raises, `msg_id` becomes `None`, and
+the function **returns None with no stderr, no log line and no alarm**. The docstring is honest —
+"the id (or None if the request or id-parsing failed)" — but it collapses two very different
+outcomes into one value, and the failure is the quiet one.
+
+## Why this is the fail-silent pattern by this project's own doctrine
+
+R15 names it exactly: *an unavailable check is a FAILED check*. Here an unavailable **channel** is a
+failed notification, and the code treats it as an ordinary return. Worse than a control that cannot
+fail — this is a control that fails and reports nothing, on the one path the P0 rule says must
+always work. Compare `feedback_fail_silent_control_patterns` and
+`feedback_monitor_returning_only_rc_cannot_satisfy_r5`.
+
+Most call sites in this repo do `send_ntfy(msg)` and discard the return, so the honest statement
+after any of them is not "the director was told" but "a POST was attempted". Several of today's
+NTFY-citing completion claims rest on that assumption.
+
+## Contributing cause (stated, not blamed)
+
+`.sent_ntfy_ids.json` holds 500 entries and the token log records 157 lines today. Between the
+autonomous daemons and a long interactive session, per-topic burst limits on the free tier are
+reachable — so this will recur, and did not need anything to be broken.
+
+## Proposed atom (queued, not built — SELF_INTERRUPT_DISCIPLINE)
+
+**`OPS_ntfy_delivery_is_verified`** — three parts, smallest first:
+
+1. **Say so.** `send_ntfy` distinguishes transport failure from id-parse failure, logs the HTTP
+   status to `docs/observability/ntfy-responder-log.md`, and returns something a caller can test.
+   A silent `None` on a 429 is the whole defect.
+2. **Retry with backoff and a durable outbox.** A 429 is transient; the message is not. An
+   undelivered director message must survive the process, not evaporate with it.
+3. **Alarm on deafness.** If no NTFY has been *confirmed delivered* in N minutes while work is
+   escalating, that is itself the alarm — surfaced through the daily self-note and the deadman,
+   which do not depend on the failing channel.
+
+R15 both ways: mutation — force a 429 and the caller must observe a failure (test reds if it
+returns a bare `None`); and a healthy send must stay quiet.
+
+**Recommendation:** part 1 at P1 — it is a few lines and converts a silent P0-channel failure into a
+visible one, which is the whole difference between "the director was not told" and "nobody knew the
+director was not told". Parts 2–3 at normal priority behind the drain. Until part 1 lands, treat
+every "NTFY sent" claim as "POST attempted" unless the returned id was checked.
