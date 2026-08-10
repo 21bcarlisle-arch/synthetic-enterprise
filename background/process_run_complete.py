@@ -1562,6 +1562,37 @@ def _gate_timed_out():
 # `implied_timeout_floor_2x` re-derives this from all three phases.
 GATE_SUITE_TIMEOUT_SECONDS = 2600
 
+# ── THE CALLER'S BOUND IS DERIVED FROM THIS ONE, NOT RESTATED (2026-08-10, the wedge that
+# outlived every red test it was blamed on) ──────────────────────────────────────────────
+#
+# THE SAME DEFECT AS THE BLOCK ABOVE, ONE LAYER UP. `background_worker.py::
+# process_leftover_run_markers` -- the ONLY path that drains a lock-skipped marker, and so
+# the only publisher running while a backlog exists -- wrapped this whole process in an
+# INDEPENDENT `timeout=900`. Independent bounds drift, and this pair drifted apart in the
+# worst possible direction: the gate's own budget was re-derived 600 -> 1800 -> 2600s
+# against the cold-HEAD-checkout subject the ruling moved it to, while the caller's 900s cap
+# stayed calibrated to the warm in-tree gate. The comment at PUSH_THROTTLE_SECONDS above
+# still records the dead premise in its own words -- "fitting inside the 900s cap ... the
+# fast-test gate already spends ~420s of that". It spends up to 2600s now.
+#
+# OBSERVED, not inferred (2026-08-10 17:44Z, docs/observability/background-worker-log.md):
+#   process_leftover_run_markers error: Command '[...process_run_complete.py,
+#   docs/staging/run_complete_20260809T131422Z.md]' timed out after 900 seconds
+# 95 markers pending, 142 consecutive recorded "failures", and the named blocking test
+# (test_every_live_hit_is_dispositioned) PASSING at HEAD. The gate was not red. The caller
+# was killing the gate before it could return a verdict, and a kill with no return code
+# reached the wedge detector as nothing at all.
+#
+# So the caller no longer carries a number. It IMPORTS this one, and this one is the gate's
+# own bound plus what the rest of the publish path costs after the gate returns green (site
+# regeneration, report, mirror, the hook-chain commit at GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+# the push). A wrapper bound BELOW the work it wraps does not bound anything -- it just
+# decides the inner gate's verdict by stopwatch, and loses the log line that would explain
+# it. `tests/background/test_publisher_deadline_exceeds_its_gate.py` reds if this stops
+# exceeding GATE_SUITE_TIMEOUT_SECONDS.
+PUBLISH_PATH_ALLOWANCE_SECONDS = 15 * 60
+PUBLISH_PATH_TIMEOUT_SECONDS = GATE_SUITE_TIMEOUT_SECONDS + PUBLISH_PATH_ALLOWANCE_SECONDS
+
 # Bound on how much of a red gate's output reaches the log (chars).
 GATE_FAILURE_TAIL_CHARS = 4000
 
@@ -2775,6 +2806,8 @@ def _gate_failure_label(kind):
     return {
         "resource_kill": "resource kill (SIGKILL/OOM -- almost certainly memory, NOT a code regression)",
         "signal_kill": "killed by a signal (a resource/environment problem, not a normal test failure)",
+        "deadline_kill": ("killed by the CALLER's deadline before the gate returned a verdict -- "
+                          "NOT a test failure, and the tests it was running are unjudged"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
         "unknown": "unknown cause (return code unavailable)",
     }.get(kind, kind)
@@ -3245,7 +3278,8 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     return msg
 
 
-def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None, send_ntfy_fn=None):
+def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None, send_ntfy_fn=None,
+                                kind=None):
     """Record ONE publish-gate failure and fire a single [ACTION NEEDED] alert
     once N failures accumulate within the window (re-armed by a cooldown so a
     persistently-wedged pipeline can't spam). Returns a small result dict for
@@ -3255,7 +3289,12 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         now = float(now) if now is not None else time.time()
         state = _read_publish_gate_state()
         unavailable = bool(state.get("state_unavailable"))
-        kind = _classify_gate_failure(rc)
+        # An OBSERVED kind beats an inferred one. `_classify_gate_failure` reads a return
+        # code, but a child killed by its caller's deadline never produces one -- and the
+        # classifier's only honest answer for "no rc" is "unknown", while a caller that
+        # invented an rc to get past it would be recording a fabrication. So a caller that
+        # WATCHED the kill states the kind; everyone else still infers it from rc, unchanged.
+        kind = kind if kind else _classify_gate_failure(rc)
         failures = [f for f in state.get("failures", [])
                     if isinstance(f, dict) and now - float(f.get("ts", 0)) <= PUBLISH_GATE_WINDOW_SECONDS]
         failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind, "git_hash": git_hash})
@@ -3356,7 +3395,7 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
         return False
 
 
-def record_publish_gate_outcome(marker, rc):
+def record_publish_gate_outcome(marker, rc, *, kind=None):
     """Route ONE run-complete processing return code into the publish-gate wedge
     detector. THE shared router for every caller that publishes a marker.
 
@@ -3401,8 +3440,11 @@ def record_publish_gate_outcome(marker, rc):
         except Exception:
             pass
         record_publish_gate_failure(
-            "process_run_complete rc={} on {}".format(rc, Path(marker).name),
-            rc=rc, git_hash=git_hash,
+            "process_run_complete {} on {}".format(
+                "killed by the caller's deadline" if kind == "deadline_kill"
+                else "rc={}".format(rc),
+                Path(marker).name),
+            rc=rc, git_hash=git_hash, kind=kind,
         )
         return "failure"
     except Exception as exc:

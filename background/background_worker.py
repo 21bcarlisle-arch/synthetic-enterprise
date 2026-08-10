@@ -366,17 +366,53 @@ def process_leftover_run_markers():
     log(f"Found {len(pending)} leftover run_complete marker(s) — processing")
     processor = Path(__file__).parent / "process_run_complete.py"
     for marker in pending:
-        result = subprocess.run(
-            [sys.executable, str(processor), str(marker)],
-            cwd=str(Path(__file__).resolve().parent.parent),
-            timeout=900,
-            # H30 (2026-08-08): this sweep is the SAFETY NET for every skipped
-            # marker, so "Failed to process (rc=N)" with no payload is the one
-            # log line a backlog diagnosis starts from. Capture what the
-            # publisher actually said.
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                [sys.executable, str(processor), str(marker)],
+                cwd=str(Path(__file__).resolve().parent.parent),
+                # NOT A NUMBER OF OUR OWN (2026-08-10). This was an independent `timeout=900`
+                # and it drifted below the budget of the very process it wraps: the publisher's
+                # gate alone may legitimately run to GATE_SUITE_TIMEOUT_SECONDS (2600s, derived
+                # against the cold HEAD-checkout subject), so every cold cycle was killed here
+                # at 900s before the gate could return a verdict. Observed 17:44Z on 2026-08-10:
+                # 95 markers pending, 142 recorded "failures", and the blocking test they were
+                # blamed on passing at HEAD. A wrapper bound below the work it wraps decides the
+                # inner gate's verdict by stopwatch. Importing the publisher's own declared
+                # budget is what stops the pair drifting again -- re-deriving the gate's bound
+                # now moves this one with it, which no comment could guarantee.
+                timeout=_publisher_deadline_seconds(),
+                # H30 (2026-08-08): this sweep is the SAFETY NET for every skipped
+                # marker, so "Failed to process (rc=N)" with no payload is the one
+                # log line a backlog diagnosis starts from. Capture what the
+                # publisher actually said.
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except subprocess.TimeoutExpired as exc:
+            # UNCAUGHT, THIS ABORTED THE WHOLE SWEEP -- the identical defect this project
+            # already fixed one layer DOWN, for the same reason, in the same words
+            # (process_run_complete.git_commit_push's own TimeoutExpired handler, and
+            # CLAUDE.md's standing learning "sim_runner TimeoutExpired must be caught").
+            # The exception propagated out of this loop to main()'s catch-all, so ONE slow
+            # marker abandoned all 94 behind it, and -- worse -- skipped the three lines
+            # below it: the oldest-outcome memory, the failure log, and the wedge detector.
+            # A kill therefore reached the detector as NOTHING, while the detector's own
+            # docstring claims it sees "OOM SIGKILL rc=-9". It sees return codes; a timeout
+            # kill has none. Fail-silent (R15), and it is why a 27h wedge kept naming a test
+            # that passes.
+            tail = stderr_tail(getattr(exc, "stderr", None))
+            log(f"TIMED OUT processing {marker.name} after {_publisher_deadline_seconds()}s "
+                f"— the publisher outran the deadline this sweep puts on it. NOT a test "
+                f"failure: the gate it was running never returned a verdict. Marker left "
+                f"pending; continuing to the next one."
+                + (f"\n  publisher stderr before the kill (last {STDERR_TAIL_LINES} lines):"
+                   f"\n{tail}" if tail else "\n  publisher stderr: nothing captured before the kill"))
+            if marker is pending[0]:
+                _remember_oldest_outcome(marker.name, None)
+            # rc=None, kind stated: a deadline kill produces no return code, and inventing
+            # one would launder a stopwatch into evidence about the tests.
+            _record_publish_gate_outcome(marker, None, kind="deadline_kill")
+            continue
         # EPISODE4 item 2: remember what actually happened to the OLDEST pending marker, so the
         # zero-progress alarm can report an observed cause instead of inferring one. Written
         # here (not in the alarm) because this is the only place that sees the return code.
@@ -409,7 +445,28 @@ def process_leftover_run_markers():
         _record_publish_gate_outcome(marker, result.returncode)
 
 
-def _record_publish_gate_outcome(marker, rc):
+def _publisher_deadline_seconds():
+    """The deadline this sweep puts on ONE publisher run — the publisher's OWN declared
+    budget, never a number of ours.
+
+    Imported lazily and at CALL time (not bound at import) for the same reason the outcome
+    router below is lazy: this module must not acquire an import-time dependency on the
+    publisher, and a constant snapshotted at import would go stale against a reloaded
+    module in exactly the tests that check this coupling.
+
+    FAIL-LONG, not fail-short. If the publisher is unimportable, the subprocess is going to
+    fail immediately anyway, so the only thing the fallback can do is re-create the bug by
+    being too small. It is deliberately larger than any bound the publisher currently
+    declares; `test_publisher_deadline_exceeds_its_gate.py` pins the real coupling."""
+    try:
+        from background import process_run_complete as prc
+        return prc.PUBLISH_PATH_TIMEOUT_SECONDS
+    except Exception as exc:
+        log(f"publisher deadline falling back (publisher module unreadable: {exc})")
+        return 60 * 60
+
+
+def _record_publish_gate_outcome(marker, rc, *, kind=None):
     """H15: route a run-complete processing return code into the publish-gate
     failure detector (background/process_run_complete.py). Defensive by
     construction -- a monitoring failure must never break the marker sweep or
@@ -435,7 +492,7 @@ def _record_publish_gate_outcome(marker, rc):
     tests/background/test_background_worker.py pins."""
     try:
         from background import process_run_complete as prc
-        prc.record_publish_gate_outcome(marker, rc)
+        prc.record_publish_gate_outcome(marker, rc, kind=kind)
     except Exception as exc:
         log(f"publish-gate outcome recording skipped for {marker.name}: {exc}")
 
