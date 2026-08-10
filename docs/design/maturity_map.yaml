@@ -4273,6 +4273,25 @@
   real_world_twin: "an incident-management rollout that instruments the one service that caused last quarter's outage and leaves the other four with the same resettable timer"
   notes_rehomed: [origin_note]
 
+- id: H41_the_map_ratchet_has_no_ongoing_drain
+  title: "The map ratchet drains once and refills at mint rate"
+  gain: "The spine ratchet stops being a control that goes red every fortnight and gets paid with the record."
+  name: "MINTED FROM docs/staging/WORKER_FINDING_THE_MAP_RATCHET_REPAIR_DID_NOT_HOLD_2026-08-10.md, which carries the measured field-byte table and must not be re-derived. H32 drained the note class 464,110 -> 393,692; the map regrew to 423,947 in ONE DAY of ordinary minting, and the same red is now a PUBLISH WEDGE rather than the backlog item the first finding called it (the publish gate runs tests/design/; the pre-commit gate does not). THE FINDING: a ratchet with no ongoing drain is a one-time cleanup, not a control. EXIT: (1) a drain that runs at MINT RATE, not another one-off migration -- state which of the three candidates it implements and why; (2) if the expert_hour default is omitted, the Proof door figure expert_hour_not_attempted (tools/generate_proof_data.py:359, Counter over .get(status)) is asserted UNCHANGED against the live rendered surface, because an omitted key currently counts as None and silently moves a published number (R11); (3) the ceiling is re-derived only AFTER a drain lands, from what a 258-atom map costs -- raising it while wedged is the make-the-number-green move R12 forbids; (4) R15: a mutation that satisfies the ceiling by TRIMMING a build note must kill a named test, since paying a size warning with the record is the one closure H32 already ruled out; (5) the record may NOT be shortened to close this -- H32's own atom text binds here. R3 IS ARMED: this control has now been repaired once and recurred; a third occurrence means eliminating the fixed-byte ceiling in favour of a per-atom budget the mint path enforces, not patching it again."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: worker_finding
+  depends_on: []
+  couples_with: []
+  evidence: ['docs/staging/WORKER_FINDING_THE_MAP_RATCHET_REPAIR_DID_NOT_HOLD_2026-08-10.md', 'tests/design/test_simplifications_store.py', 'docs/staging/done/WORKER_FINDING_MAP_SIZE_RATCHET_RED_ON_HEAD_2026-08-09.md']
+  file_scope: ['tests/design/test_simplifications_store.py', 'tools/simplifications_store.py', 'tools/generate_proof_data.py', 'docs/design/maturity_map.yaml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a disk-space alarm cleared by deleting last month's logs, which fires again next month because nothing changed the write rate"
+
 - id: PW3_suite_duration_watch
   title: "Nothing watches how long the suite takes"
   gain: "The next time the suite outgrows its wall, it is a trend someone saw coming rather than a timeout that read as a pass."

@@ -142,6 +142,12 @@ REVIEWED_CLOSE_TO_LEARN = {
     # target. What each measures is whether this repo's own gate can be trusted to run.
     "OPS5_retire_the_interim_bypass_shape",
     "H40_full_suite_pollution_bisect",
+    # 2026-08-10 reviewed (worker tick, PW3 build). H41 is harness-integrity work and touches no
+    # revenue flow: the map's own spine ratchet went red again 24h after H32 drained it, and the
+    # publish gate -- unlike the pre-commit gate -- runs tests/design/, so the same red is now a
+    # wedge. What it measures is whether this repo's record-keeping control can survive the repo
+    # keeping its record.
+    "H41_the_map_ratchet_has_no_ongoing_drain",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for
