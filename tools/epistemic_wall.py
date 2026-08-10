@@ -110,6 +110,11 @@ from __future__ import annotations
 
 import ast
 import os
+import shutil
+import subprocess
+import tarfile
+import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 # --------------------------------------------------------------------------
@@ -286,15 +291,196 @@ def sim_reads_company(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
     return out
 
 
-def live_crossings() -> dict[tuple[str, str], RawEdge]:
-    """Every live wall crossing in THIS repo, both directions, keyed by edge.
+def crossings_at(root: str) -> dict[tuple[str, str], RawEdge]:
+    """Every wall crossing in the tree at `root`, both directions, keyed by edge.
 
-    The one call every consumer wants. Provided here so that "the crossings"
-    is a single expression rather than a four-line recipe each instrument
-    spells out for itself — the recipe is where the three definitions drifted.
+    Parameterised by root for one reason: the tree under your feet is not the
+    tree you ship. `live_crossings()` and `crossings_at_head()` are the two
+    call sites, and they differ ONLY in this argument, so neither can drift
+    into a second definition of "a crossing" (the defect this module exists
+    to prevent, now applied to *which tree* as well as *what counts*).
     """
-    raw = build_edges(REPO_ROOT, WALL_DIRS)
+    raw = build_edges(root, WALL_DIRS)
     merged: dict[tuple[str, str], RawEdge] = {}
     merged.update(company_reads_sim(raw))
     merged.update(sim_reads_company(raw))
     return merged
+
+
+def live_crossings() -> dict[tuple[str, str], RawEdge]:
+    """Every live wall crossing in THIS WORKING TREE, both directions.
+
+    The one call every consumer wants. Provided here so that "the crossings"
+    is a single expression rather than a four-line recipe each instrument
+    spells out for itself — the recipe is where the three definitions drifted.
+
+    NOTE WHICH TREE. This reads the working tree, uncommitted edits included.
+    That is the right default for a gate that must red BEFORE you commit a new
+    crossing, and the wrong one for any claim about what LANDED — see
+    `crossings_at_head()`.
+    """
+    return crossings_at(REPO_ROOT)
+
+
+# --------------------------------------------------------------------------
+# The same measurement, against HEAD instead of the working tree.
+# --------------------------------------------------------------------------
+#
+# WHY THIS EXISTS (2026-08-10, third instance of one class in two days)
+# ---------------------------------------------------------------------
+# Every instrument above reads the working tree, and a green working tree
+# proves nothing about what a reader of the repo will find. The class has now
+# been paid for three times:
+#
+#   * KNIFE pass 1 was recorded LANDED in a COMMITTED document while four of
+#     its files sat unstaged, so class (a) was still populated at HEAD while
+#     the record said zero
+#     (`WORKER_FINDING_A_LANDED_PASS_HAD_HALF_ITS_CODE_UNCOMMITTED_2026-08-09`).
+#   * The capability index measured the working tree and reported it as the
+#     repo's state (`WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE`).
+#   * KNIFE pass 3's B7 cut committed NOTHING while its own register asserted
+#     "THIS register is the committed record" — the artefact claiming the
+#     commit was, at the time of writing, proof that no commit had happened
+#     (see WALL_CROSSING_DISPOSITION_REGISTER.md §3a CORRECTION).
+#
+# The first finding named the remedy exactly, and this is it: point the SAME
+# walker at a `git archive HEAD` export. Not a second checker with its own
+# notion of a crossing — one different argument to `crossings_at`. R16's shape
+# applied to trees: verify the tree at HEAD, never the tree under your feet.
+
+
+class HeadExportError(RuntimeError):
+    """HEAD could not be exported or the export could not be trusted.
+
+    Deliberately an ERROR, never an empty result. An export that silently came
+    back short would make every `cut` claim verify against a tree that does not
+    contain the code — the fail-open shape, and the exact failure this whole
+    mechanism was built to catch. "Could not look" and "found nothing" are the
+    same number and opposite facts.
+    """
+
+
+def _head_python_files(repo_root: str, dirs: tuple[str, ...]) -> set[str]:
+    """The .py paths HEAD contains under `dirs`, per git's own record of it.
+
+    This is the INDEPENDENT ORACLE for the export's completeness. It comes from
+    git's object store (`ls-tree` of the commit), not from the exported
+    filesystem, so a truncated or partially-extracted archive disagrees with it
+    rather than being confirmed by it. A checker that validated the export
+    against the export would be the tautology R15 names first.
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "-C", repo_root, "ls-tree", "-r", "--name-only", "HEAD", "--", *dirs],
+            capture_output=True, text=True, check=False,
+        )
+    except OSError as exc:                       # git absent = a FAILED check
+        raise HeadExportError(f"could not run git ls-tree: {exc}") from exc
+    if proc.returncode != 0:
+        raise HeadExportError(
+            f"git ls-tree HEAD failed (rc {proc.returncode}): {proc.stderr.strip()}"
+        )
+    return {
+        line for line in proc.stdout.splitlines()
+        if line.endswith(".py")
+    }
+
+
+@contextmanager
+def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS):
+    """Extract the wall-side packages AT HEAD into a temp dir; yield its path.
+
+    Uses `git archive`, which reads the commit object — never the index and
+    never the working tree, so a staged-but-uncommitted edit is invisible here
+    exactly as it is to someone who clones the repo.
+
+    THREE WAYS THIS REFUSES TO FAIL OPEN, each of which would otherwise hand a
+    caller an empty tree that verifies every claim ever made:
+      1. git missing, or `git archive` rc != 0  -> HeadExportError.
+      2. HEAD carries no .py files under `dirs` -> HeadExportError. A repo that
+         genuinely had none would make the whole measurement meaningless, so
+         "zero" is refused rather than reported.
+      3. the extracted file set != git's own    -> HeadExportError, naming the
+         difference both ways. This is the guard that catches a truncated
+         archive, and it compares against the oracle above, not against itself.
+    """
+    expected = _head_python_files(repo_root, dirs)
+    if not expected:
+        raise HeadExportError(
+            f"HEAD contains no .py files under {list(dirs)} — refusing to "
+            "measure an empty tree, because an empty tree confirms every claim"
+        )
+    # `git archive` errors on a pathspec matching nothing, so archive only the
+    # wall dirs HEAD actually has. Derived from `expected` (git's own listing)
+    # rather than from the filesystem, which is the tree we are trying not to
+    # trust.
+    present = tuple(d for d in dirs if any(p.startswith(d + "/") for p in expected))
+
+    tmp = tempfile.mkdtemp(prefix="wall-head-")
+    try:
+        archive = os.path.join(tmp, "head.tar")
+        dest = os.path.join(tmp, "tree")
+        os.makedirs(dest)
+        with open(archive, "wb") as fh:
+            try:
+                proc = subprocess.run(
+                    ["git", "-C", repo_root, "archive", "--format=tar", "HEAD", "--", *present],
+                    stdout=fh, stderr=subprocess.PIPE, check=False,
+                )
+            except OSError as exc:
+                raise HeadExportError(f"could not run git archive: {exc}") from exc
+        if proc.returncode != 0:
+            raise HeadExportError(
+                f"git archive HEAD failed (rc {proc.returncode}): "
+                f"{proc.stderr.decode('utf-8', 'replace').strip()}"
+            )
+
+        with tarfile.open(archive) as tar:
+            _safe_extract(tar, dest)
+
+        got = {
+            os.path.relpath(os.path.join(dirpath, name), dest).replace(os.sep, "/")
+            for dirpath, _, names in os.walk(dest)
+            for name in names
+            if name.endswith(".py")
+        }
+        if got != expected:
+            missing = sorted(expected - got)[:5]
+            extra = sorted(got - expected)[:5]
+            raise HeadExportError(
+                f"the HEAD export is not what HEAD contains: git lists "
+                f"{len(expected)} .py file(s), the export has {len(got)}. "
+                f"missing={missing} unexpected={extra}"
+            )
+        yield dest
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _safe_extract(tar: tarfile.TarFile, dest: str) -> None:
+    """Extract, refusing any member that would escape `dest`.
+
+    `git archive` of our own HEAD is not hostile input, but a tar extractor
+    without a traversal check is the kind of thing that gets copied to a place
+    where the input IS hostile. The check costs one comparison per member.
+    """
+    dest_abs = os.path.abspath(dest)
+    for member in tar.getmembers():
+        target = os.path.abspath(os.path.join(dest, member.name))
+        if target != dest_abs and not target.startswith(dest_abs + os.sep):
+            raise HeadExportError(f"archive member escapes the export dir: {member.name}")
+        if member.issym() or member.islnk():
+            raise HeadExportError(f"archive member is a link, refused: {member.name}")
+    tar.extractall(dest)                                    # noqa: S202 — checked above
+
+
+def crossings_at_head(repo_root: str = REPO_ROOT) -> dict[tuple[str, str], RawEdge]:
+    """Every wall crossing IN THE COMMITTED TREE — what a fresh clone sees.
+
+    The counterpart to `live_crossings()`. Same walker, same classifiers, same
+    perimeter; the only difference is which tree. Where the two disagree, the
+    working tree carries uncommitted wall work — which is a normal mid-pass
+    state and a defect only when something CLAIMS the work has landed.
+    """
+    with head_export(repo_root) as root:
+        return crossings_at(root)

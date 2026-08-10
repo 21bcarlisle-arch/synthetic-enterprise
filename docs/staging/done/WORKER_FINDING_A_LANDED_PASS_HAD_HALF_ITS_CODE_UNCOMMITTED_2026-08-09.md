@@ -73,3 +73,32 @@ commit* — here, verify the tree at HEAD, never the tree under your feet.
 Committed during this tick as its own commit, ahead of the KNIFE2 commit, so the two passes land
 in their real order and pass 1's claim becomes true of `HEAD`. The full suite was run once over
 both together (KNIFE2's integration run), which is the evidence for the pair.
+
+---
+
+## CLASS CLOSED — 2026-08-10, after a third instance
+
+**Disposition changed from QUEUED to CLOSED.** The remedy is the one this document specified, built
+verbatim rather than re-derived: *"point the KNIFE ledger at a `git archive HEAD` export — same
+probe, one different root."*
+
+**Shipped:** `tools/epistemic_wall.crossings_at_head()` (same walker, same classifiers, same
+perimeter, one different root) and `tools/wall_crossing_dispositions.py --at-head`. Twelve R15 tests
+in `tests/tools/test_wall_crossing_at_head.py`. Narrative in
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §0a.
+
+**What the third instance taught that this document did not predict.** The B7 tick committed
+*nothing* — not the code, not the register that asserted "THIS register is the committed record".
+That is strictly worse than the case above, where a committed doc outran uncommitted code, and it
+defeats the naive fix: comparing HEAD's record with HEAD's code passes, because a pass that commits
+neither leaves HEAD self-consistently in the old state. So the check had to be made **asymmetric** —
+the CLAIM from the working tree, the CODE from HEAD. Had this been built as the obvious symmetric
+probe, it would have shipped green and blind, and this file would have been closed on a control that
+could not fail.
+
+**Verified against the real history rather than a fixture:** the working-tree register replayed
+against the tree at `d06df9514` produces exactly four findings, naming exactly the four B7 edges.
+
+**The generalisable line, for the register of classes:** a claim of "committed" written into the same
+working tree it describes is self-refuting evidence — at the moment of writing, the file asserting
+the commit is proof that no commit has happened. Only `git cat-file -e HEAD:<path>` settles it.

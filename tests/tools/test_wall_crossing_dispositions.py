@@ -464,8 +464,8 @@ def test_the_live_register_is_not_vacuous():
 def test_main_returns_nonzero_when_an_edge_is_unexamined(monkeypatch, capsys):
     real = wcd.measure_crossings
 
-    def with_a_ghost():
-        return real() | {("simulation.ghost", "company.unruled")}
+    def with_a_ghost(at_head: bool = False):
+        return real(at_head=at_head) | {("simulation.ghost", "company.unruled")}
 
     monkeypatch.setattr(wcd, "measure_crossings", with_a_ghost)
     assert wcd.main([]) == 2

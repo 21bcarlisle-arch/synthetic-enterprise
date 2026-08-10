@@ -113,7 +113,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.epistemic_wall import live_crossings  # noqa: E402
+from tools.epistemic_wall import crossings_at_head, live_crossings  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REGISTER_DOC = REPO_ROOT / "docs" / "design" / "WALL_CROSSING_DISPOSITION_REGISTER.md"
@@ -270,12 +270,24 @@ def load_register(path: Path = REGISTER_DOC) -> tuple[list[EdgeRow], list[Design
     return parse_register(text)
 
 
-def measure_crossings() -> set[tuple[str, str]]:
-    """The live crossings, from the ONE shared walker. Zero is a failure."""
+def measure_crossings(at_head: bool = False) -> set[tuple[str, str]]:
+    """The crossings, from the ONE shared walker. Zero is a failure.
+
+    `at_head=False` reads the WORKING TREE — the right default for a gate that
+    must red before you commit a new crossing.
+
+    `at_head=True` reads the COMMITTED tree instead, and the pairing with the
+    working-tree REGISTER is the whole point: the register is the CLAIM, HEAD
+    is what a reader of the repo actually gets. A `cut` row whose edge is still
+    live at HEAD means the cut has been written down but not landed. See the
+    `--at-head` help text for why the obvious HEAD-vs-HEAD comparison is blind
+    to exactly the case that motivated this.
+    """
     try:
-        live = live_crossings()
+        live = crossings_at_head() if at_head else live_crossings()
     except Exception as exc:                                # pragma: no cover
-        raise MeasurementError(f"the wall walker could not run: {exc}") from exc
+        where = "HEAD" if at_head else "the working tree"
+        raise MeasurementError(f"the wall walker could not run against {where}: {exc}") from exc
     if not live:
         raise MeasurementError(
             "the walker measured ZERO crossings — 'none found' and 'could not "
@@ -288,8 +300,20 @@ def reconcile(
     rows: list[EdgeRow],
     designs: list[DesignBlock],
     measured: set[tuple[str, str]],
+    measured_label: str = "THE TREE",
+    measured_source: str = "tools.epistemic_wall.live_crossings",
 ) -> tuple[list[str], dict]:
-    """Return (findings, report). A finding is rc 2. Counts alone never fail."""
+    """Return (findings, report). A finding is rc 2. Counts alone never fail.
+
+    `measured_label` names the tree in the finding text; `measured_source` names
+    the callable that produced the measurement. BOTH are reported, and they are
+    separate on purpose: the report has always named its two sources so a reader
+    can tell what was compared against what, and "which tree" is a third fact
+    that a reader of an at-HEAD run needs and cannot infer from the callable.
+
+    Neither may change WHICH checks run: an at-HEAD pass that quietly skipped a
+    check would be a weaker gate wearing a stronger gate's name.
+    """
     findings: list[str] = []
 
     if not rows:
@@ -327,7 +351,7 @@ def reconcile(
         if row.disposition == "cut":
             if row.key in measured:
                 findings.append(
-                    f"{where}: ruled `cut` but the import IS STILL IN THE TREE — "
+                    f"{where}: ruled `cut` but the import IS STILL IN {measured_label} — "
                     "a cut is verified against the walker, never against the claim"
                 )
             if _decorative(row.reason) or len(row.reason.strip()) < MIN_REASON_CHARS:
@@ -396,7 +420,8 @@ def reconcile(
     }
     report = {
         "ruled_source": str(REGISTER_DOC.relative_to(REPO_ROOT)),
-        "measured_source": "tools.epistemic_wall.live_crossings",
+        "measured_source": measured_source,
+        "measured_tree": measured_label,
         "measured_crossings": len(measured),
         "rows": len(seen),
         "unexamined": len(unexamined),
@@ -411,11 +436,25 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json", action="store_true", help="machine-readable report")
     ap.add_argument("--register", type=Path, default=REGISTER_DOC)
+    ap.add_argument(
+        "--at-head", action="store_true",
+        help=(
+            "measure the COMMITTED tree instead of the working tree, and check the "
+            "register's claims against it. This is the CLOSE-TIME check: a `cut` row "
+            "is a claim about the repo, and until it is committed the repo does not "
+            "contain it. Note the asymmetry that makes this work — the REGISTER is "
+            "read from the working tree (the claim as just written) while the CODE is "
+            "read from HEAD (what a clone gets). Comparing HEAD's register with HEAD's "
+            "code instead would be blind to the case that motivated this flag, where a "
+            "pass wrote its record and its code and committed NEITHER, leaving HEAD "
+            "self-consistently in the old state."
+        ),
+    )
     args = ap.parse_args(argv)
 
     try:
         rows, designs = load_register(args.register)
-        measured = measure_crossings()
+        measured = measure_crossings(at_head=args.at_head)
     except (RegisterError, MeasurementError) as exc:
         if args.json:
             print(json.dumps({"error": str(exc), "findings": [str(exc)]}, indent=2))
@@ -423,12 +462,20 @@ def main(argv=None) -> int:
             print(f"WALL-CROSSING DISPOSITIONS: FAILED — {exc}", file=sys.stderr)
         return 2
 
-    findings, report = reconcile(rows, designs, measured)
+    label = "HEAD (the committed tree)" if args.at_head else "THE WORKING TREE"
+    source = (
+        "tools.epistemic_wall.crossings_at_head" if args.at_head
+        else "tools.epistemic_wall.live_crossings"
+    )
+    findings, report = reconcile(
+        rows, designs, measured, measured_label=label, measured_source=source
+    )
 
     if args.json:
         print(json.dumps(report, indent=2))
     else:
         print(
+            f"measured against {label}: "
             f"{report['measured_crossings']} live crossings; "
             f"{report['rows']} ruled "
             f"(cut {report['by_disposition']['cut']}, "

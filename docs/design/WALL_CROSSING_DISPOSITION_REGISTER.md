@@ -3,6 +3,7 @@
 **Atom:** `KNIFE3_wall_crossing_paydown` (lane `H_harness`, L0→L2), pass 3 of 4 of AO5
 **Plan:** `docs/design/KNIFE_HOTSPOT_PASSES.md` § Pass 3
 **Mechanism:** `python3 tools/wall_crossing_dispositions.py` — rc 2 if any live crossing has no ruling
+**Close-time check:** `python3 tools/wall_crossing_dispositions.py --at-head` — rc 2 if a `cut` row is not cut IN THE COMMITTED TREE (§0a)
 **Measured from:** `tools/epistemic_wall.live_crossings()` — the one shared walker, extracted by this pass's first step
 **Opened:** 2026-08-09
 
@@ -25,6 +26,36 @@ pretending to cover a tree it has not looked at.
 **It does not gate on the count.** Eighty-eight edges each carrying an honest ruling is a pass. One
 edge with no row is a failure. R12 governs: the count is a diagnostic, and pass 4 has already
 withdrawn "the count falls" once in this programme when its own measurement contradicted it.
+
+---
+
+## 0a. The close-time check: a `cut` is a claim about the REPO, not about your desk
+
+Added 2026-08-10, immediately after the correction in §3a, because that correction was the THIRD
+instance of one class in two days and R10 forbids closing an absurdity-class defect with an instance
+fix. The other two: KNIFE pass 1 recorded LANDED in a committed doc with four files unstaged, and
+the capability index reporting the working tree as the repo's state.
+
+Every instrument in this programme read the working tree. That is correct for a GATE — it must red
+before you commit a new crossing — and useless for a CLAIM, because the tree under your feet is not
+the tree anyone else gets. `tools/epistemic_wall.crossings_at_head()` runs the *same walker, same
+classifiers, same perimeter* against a `git archive HEAD` export; the only difference is one
+argument, so a second definition of "a crossing" cannot creep in through the back door.
+
+**The check is deliberately ASYMMETRIC, and this is the part worth reading before changing it.**
+The REGISTER is read from the working tree (the claim, as just written); the CODE is read from HEAD
+(what a clone gets). The obvious symmetric design — HEAD's register against HEAD's code — is
+**blind to the exact case that motivated it**: the B7 tick committed neither its register nor its
+code, so HEAD was self-consistently in the old state and a symmetric check passed. The asymmetry is
+what turns "I have written down that this is cut" into a testable claim.
+
+Proven against real history, not a mock: the working-tree register replayed against the tree at
+`d06df9514` (the commit before the landing) yields **exactly four findings**, naming exactly the four
+B7 edges as `ruled cut but the import IS STILL IN HEAD`. R15 mutation coverage —
+`tests/tools/test_wall_crossing_at_head.py`, 12 tests — pins the anti-tautology property (the two
+modes must be able to DISAGREE, with a vacuity guard proving the disagreement comes from the commit),
+three fail-open paths (empty export, truncated export caught by an independent `git ls-tree` oracle,
+non-repo), and fail-silent (git absent is an ERROR, never a skip).
 
 ---
 
