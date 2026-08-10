@@ -1,5 +1,42 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T05:38:29Z
+Last updated: 2026-08-10T06:10:02Z
+
+**KNIFE3 B4 LANDED — the world stops running the supplier's billing routines (`c98707b91`).**
+Three of B4's four wall crossings cut, in the order the design set: **75 → 72 live crossings, 17 → 14
+files** (16 of 88 now cut; level deliberately still 0 at 18% paid). (1) The **private-function**
+import went first, as B4 says it should — `dd_balance_book` imported `dd_review._recommended_monthly`,
+a dependency on a routine the company may rename without notice; the world is now *told* the standing
+monthly amount through `company/interfaces/dd_review_outcome.py` (the number on the customer's letter)
+while the SLC 27B band, the increase/decrease/maintain call and the rounding stay behind the door.
+(2) The world **stopped operating the company's SLC 14 process** — it used to open a `CreditRefundBook`,
+classify the trigger, pay the record and read the breach verdict back out; it now reports the closure,
+the credit and the date the money *arrived*, and the trigger is classified **behind** the door rather
+than passed in (a `trigger=` argument would have left the taxonomy in the world's hands and made the
+door a spelling change). (3) The third was not a door but the **B1 template**: `staggered_payment_day`
+called itself "a company-observable, not a SIM internal", which is half true and misses the direction
+of the arrow — a household *picks* its collection day and the supplier *observes* it on the mandate.
+Moved to `simulation/dd_payment_day.py`, safe by measurement taken before the move (zero company-side
+importers, stdlib-only imports, so no edge in either direction), not re-exported.
+The one duplication this creates — the 1–28 Bacs range on both sides — is controlled at the
+**relationship**, not the constant: pinning the two constants equal would restore in the suite the
+coupling the cut removes from the code (B3's recorded trap), so the control pins that every day the
+world emits is one the company's mandate register *accepts*, mutation-proven both ways.
+**Behaviour identity measured, not asserted:** 8,640 bills / 240 customers through all four touched
+artefacts, canonical hashes identical against a `git archive HEAD` extraction — zero mismatches, with
+vacuity guards on 55 DD customers, 60 distinct standing amounts, 25 payment days and refunds splitting
+18 on-time / 2 breached. R15 both ways on the real tree; restorations verified byte-equal (`cmp`).
+**The controls caught their own author twice.** Both doors were first written with a *module-level*
+import, so the private routine and the refund taxonomy were importable straight back out **through**
+the door with the ratchet green — fixed with the import inside the function body, as B7's door already
+does. And the mutation harness poisoned its own suite: `28`→`31` changes no file *length*, so the
+mutant's `.pyc` outlived its restoration and a later test failed on a defect no longer in the source.
+Fixed here; **filed as a class** — 17 other suites roll their own copy of that harness.
+**Also unwedged, because a red-at-HEAD ratchet blocks every lane:** the static-quality ratchet was red
+at *pristine* HEAD (F541 28 vs frozen 27), bisected by `git log -L` to `77c1654e0` (D19, same day).
+Fixed at source; the floor is unmoved. I001 shrinks 1385 → 1384 with the per-file census showing this
+pass created **no** new offender.
+**Still owed: 72 edges.** B4's fourth edge *builds* the company's DD book rather than consulting it —
+that is the push, owed to `A_composition_lift`, the same measured blocker B5 recorded.
 
 **D19 LANDED L0→L2 — the belief headline now knows which account it is talking about (`77c1654e0`).**
 The flaw Hour #3 measured is closed at the measure. `gap_metric.belief_measures` scores per-case
@@ -1719,7 +1756,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (506s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
