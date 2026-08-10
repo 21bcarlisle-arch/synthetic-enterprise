@@ -89,6 +89,22 @@ _PROTECTED_WRITE_PATHS = (
     "docs/observability/.pull_loop_health.json",    # deadman alarms on this (the proven leak)
     "docs/observability/.notify_transitions.json",  # notify() transition-dedup store
     "docs/observability/.daemon_boot",              # boot-SHA drift records (dir)
+    # PUBLISHED SURFACE, not just internal state (2026-08-10, caught in the act). The publish
+    # decoupling made `_process()` stamp site/data/publish_provenance.json, and the ordinary
+    # publisher tests that drive `_process()` promptly wrote a run id of "abc1234" into the REAL
+    # file -- which the live publisher then committed as a public freshness claim. It reached
+    # origin only because the branch happened to be diverged.
+    #
+    # This is the class in docs/design/PUBLISH_GATE_TESTS_WRITE_LIVE_SURFACES_FINDING.md, and it
+    # is also why this tuple is the right place for the fix rather than a monkeypatch in the one
+    # test that tripped it: a guard list only protects the paths somebody thought of, so the
+    # answer to finding a hole in it is to fill the hole, not to isolate the caller.
+    #
+    # SCOPED TO THE FILE, NOT site/data/ (blast radius measured first): several generator tests
+    # legitimately rewrite site/data/*.json, and protecting the whole directory would red them
+    # for nothing. This is the one path in there that is a PUBLIC CLAIM ABOUT ITS OWN FRESHNESS,
+    # where a test-authored value is not a stale artefact but a lie.
+    "site/data/publish_provenance.json",            # the published freshness/provenance claim
 )
 
 

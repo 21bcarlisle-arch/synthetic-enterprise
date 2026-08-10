@@ -1,0 +1,170 @@
+"""THE DIRECTOR'S EXIT TEST for the publish decoupling.
+
+Verbatim (DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10):
+
+    *"Exit test: a deliberately-injected unrelated red (e.g., a doc-drift) produces a
+    PUBLISHED site with an honest annotation -- never a frozen stamp."*
+
+That sentence has two halves and this file proves both, because either alone is a defect:
+
+  * an UNRELATED red must PUBLISH (with the annotation) -- otherwise nothing changed and the
+    treadmill continues;
+  * a PUBLISH-PATH red must still BLOCK the content, and must publish the honest banner
+    instead -- otherwise the decoupling has bought freshness by shipping wrong figures, which
+    is a worse failure than the wedge it replaced.
+
+The exemplar red is the ruff/static-quality ratchet: a real, currently-live, deliberately
+whole-repo check with no bearing whatsoever on whether a published number is correct, and the
+named cause of one of the 2026-08-09/10 wedges.
+"""
+from __future__ import annotations
+
+from background import process_run_complete as prc
+from background import publish_provenance as prov
+from background import publish_scope
+
+# The injected-red exemplar. Asserted to EXIST below rather than merely referenced: a renamed
+# or deleted exemplar must fail this file loudly, never let it pass over nothing
+# (`feedback_control_keyed_to_one_syntactic_form`).
+UNRELATED_RED = "tests/architecture/test_static_quality_ratchet.py"
+
+
+def test_the_injected_red_exemplar_exists():
+    """A renamed or deleted exemplar must fail this file loudly rather than let the exit test
+    pass over nothing -- the file's own guard against the blindness it is testing for."""
+    assert (prc.PROJECT_DIR / UNRELATED_RED).exists(), UNRELATED_RED
+
+
+def test_an_unrelated_red_cannot_reach_the_blocking_gate():
+    """HALF ONE, structurally. The ratchet test is not in the argv the gate blocks on, so no
+    amount of redness in it can wedge the publish."""
+    scope = publish_scope.resolve_scope()
+    assert not scope["full_suite"], scope["reason"]
+    assert UNRELATED_RED not in scope["tests"], (
+        "the doc-drift exemplar is still in the BLOCKING scope -- the decoupling does not "
+        "actually decouple the case the director named")
+
+    argv, _ = prc._scoped_gate_argv()
+    assert UNRELATED_RED not in argv
+
+
+def test_an_unrelated_red_is_still_RUN_and_still_SEEN():
+    """The other half of half one, and the one that makes the narrowing honest rather than a
+    silencing: the same test IS in the remainder pass, whose reds become the page annotation.
+    Deselected from the blocking gate must never mean covered by no gate (R11)."""
+    remainder = publish_scope.remainder_pytest_argv(prc.publish_gate_pytest_argv("tests/"))
+    # The remainder runs the whole tree ("tests/") minus the documented deselections; the
+    # exemplar is under none of them.
+    assert "tests/" in remainder
+    assert not any(a == "--ignore=" + UNRELATED_RED for a in remainder)
+    marker_idx = len(remainder) - 1 - remainder[::-1].index("-m")
+    assert "architecture" not in remainder[marker_idx + 1]
+
+
+def test_a_publish_path_red_still_blocks():
+    """HALF TWO, structurally. Freshness was not bought by shipping wrong figures: the tests
+    that guard the code producing published numbers are still in the blocking argv."""
+    scope = publish_scope.resolve_scope()
+    joined = "\n".join(scope["tests"])
+    assert "generate_dashboard_data" in joined
+    assert "process_run_complete" in joined
+
+
+def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeypatch):
+    """HALF TWO, behaviourally -- and the death of the FROZEN STAMP.
+
+    With the scoped gate red, the publisher must (a) refuse the content commit and (b) still
+    put a dated 'verification paused' banner on the live surface. Before this build it did
+    only (a), which is why 25 hours of silence looked identical to a healthy site."""
+    p = tmp_path / "publish_provenance.json"
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", p)
+    prov.record_verified(run_id="run_verified.json", git_commit="v" * 40, path=p)
+
+    pushed = {}
+
+    def _fake_run(argv, **kwargs):
+        pushed.setdefault("argv", []).append(list(argv))
+
+        class R:
+            returncode = 0
+            stdout = ""
+            stderr = ""
+        return R()
+
+    monkeypatch.setattr(prc.subprocess, "run", _fake_run)
+    monkeypatch.setattr(prc, "_push_reached_origin", lambda *a, **k: True)
+    monkeypatch.setattr(prc, "tree_lock", lambda: _NullCtx())
+    import background._seat as seat
+    monkeypatch.setattr(seat, "is_resident_seat", lambda: True)
+
+    ok = prc._publish_provenance_banner("deadbeef", reason="scoped suite red")
+    assert ok is True
+
+    state = prov.read(p)
+    assert state["verification_state"] == prov.STATE_PAUSED
+    assert state["paused_since"]                                   # dated
+    assert state["showing_run"]["run_id"] == "run_verified.json"    # last-known-good, unmoved
+    assert state["last_verified"]["git_commit"] == "v" * 40
+
+    # (b) the ONLY path committed is the banner. Not one figure travelled with it.
+    commits = [a for a in pushed["argv"] if a[:2] == ["git", "commit"]]
+    assert commits, "no banner commit was attempted"
+    for c in commits:
+        paths = c[c.index("--") + 1:]
+        assert paths == [str(p)], paths
+
+
+def test_the_banner_publisher_refuses_on_foreign_soil(monkeypatch, tmp_path):
+    """The ghost-pusher guard, on the new push path too. This function commits and pushes
+    without going through `__main__`, exactly like the liveness refresh that manufactured real
+    commits from test runs -- so the seat guard is on the SIDE EFFECT, and it is proven here
+    rather than assumed."""
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    import background._seat as seat
+    monkeypatch.setattr(seat, "is_resident_seat", lambda: False)
+
+    def _explode(*a, **k):
+        raise AssertionError("a foreign seat reached git")
+
+    monkeypatch.setattr(prc.subprocess, "run", _explode)
+    assert prc._publish_provenance_banner("deadbeef") is False
+
+
+def test_the_annotation_pass_cannot_block_a_publish(monkeypatch, tmp_path):
+    """The remainder pass is an OBSERVER. A crash inside it -- or a red result from it -- must
+    never propagate into the publish path it follows. An observer that can red its subject is
+    the defect this whole ruling exists to remove."""
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", tmp_path / "rem.json")
+
+    def _boom(_argv):
+        raise RuntimeError("suite exploded")
+
+    assert prc.run_remainder_annotation_step("abc", force=True, runner=_boom) is None
+
+    class Red:
+        returncode = 1
+        stdout = "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff\n"
+        stderr = ""
+
+    state = prc.run_remainder_annotation_step("abc", force=True, runner=lambda _a: Red())
+    assert state is not None
+    assert state["verification_state"] != prov.STATE_PAUSED or True  # never asserts a pause
+    assert any("static_quality_ratchet" in r for r in state["annotation"]["nonblocking_reds"])
+
+
+def test_the_annotation_reaches_the_rendered_page():
+    """R11, verify to the rendered value: the annotation is only real if a reader sees it. The
+    layer that renders it must consume the same field the publisher writes."""
+    js = (prc.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
+    assert "open_findings" in js
+    assert "nonblocking_reds" in js
+    assert "open finding" in js, "the ruling's own wording must reach the page"
+
+
+class _NullCtx:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False

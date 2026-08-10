@@ -19,6 +19,11 @@ import background.process_run_complete as prc
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
+    # The blocking-test record and the suspect hit-rate ledger are REAL files on disk that
+    # these tests would otherwise read (and, on a close, write). An alarm test that picks up
+    # this morning's genuine wedge is not a test of anything.
+    monkeypatch.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp_path / ".blocking.json")
+    monkeypatch.setattr(prc, "WEDGE_SUSPECT_HIT_RATE_FILE", tmp_path / ".hit_rate.json")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     # Redirect the durable action_needed register to a temp path so a fired
     # alert's best-effort register_item() never touches the real file.
@@ -278,35 +283,54 @@ def test_markers_pending_unknown_is_not_zero(tmp_path, monkeypatch):
     assert prc.pending_run_complete_markers() is None, (
         "an unreadable staging directory must read as UNKNOWN, never as an empty backlog"
     )
-    assert prc.filed_findings() == [], "the citation degrades quietly; the alarm still goes out"
+    assert prc.linked_findings({"modules": ["background/x.py"]}) == [], (
+        "the citation degrades quietly; the alarm still goes out"
+    )
 
 
 # ── ALARM → DIAL: the alarm names its own cure, and persists it for the draw ──
+#
+# The CITATION SOURCE CHANGED (2026-08-10, H42). It used to be `filed_findings()` — staging's
+# eight most recently modified WORKER_FINDING_*.md, ranked by mtime and linked to the failure by
+# nothing (0/8 named the cause, five episodes running). It is now `linked_findings()`, keyed to
+# the blame trail of the ACTUAL blocking test. The state contract the supervisor's RUNG-1 draw
+# reads (`cited_findings`) is unchanged; what fills it is no longer a coincidence of filing date.
+# The full R15 pair for the new derivation lives in test_wedge_suspects_from_the_red.py.
 
-def test_alarm_cites_filed_findings_and_persists_them_for_the_draw(tmp_path, monkeypatch):
+def test_alarm_cites_linked_findings_and_persists_them_for_the_draw(tmp_path, monkeypatch):
     staging = tmp_path / "staging"
     staging.mkdir()
-    (staging / "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md").write_text("x")
-    (staging / "WORKER_FINDING_RELATIVE_HOOK_PATHS_WEDGE_SESSION_2026-08-08.md").write_text("x")
-    (staging / "ADVISOR_SCOPE_BRIEF_GAS_2026-08-04.md").write_text("x")  # not a finding
+    (staging / "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md").write_text(
+        "the regression is in background/ruff_ratchet.py")
+    (staging / "WORKER_FINDING_UNRELATED_2026-08-08.md").write_text("about customer billing")
+    (staging / "ADVISOR_SCOPE_BRIEF_GAS_2026-08-04.md").write_text(
+        "background/ruff_ratchet.py")  # names the trail, but is not a FINDING
     monkeypatch.setattr(prc, "STAGING_DIR", staging)
+    monkeypatch.setattr(prc, "wedge_suspects",
+                        lambda blocking, **kw: {"test_files": ["tests/test_a.py"],
+                                                "modules": ["background/ruff_ratchet.py"],
+                                                "commits": []})
+    prc.GATE_BLOCKING_TESTS_FILE.write_text(json.dumps(
+        {"ts": 1000.0, "git_hash": "cafe", "node_ids": ["FAILED tests/test_a.py::test_x"]}))
     msg = _fire_and_capture(prc, _Sink())
-    assert "FILED FINDINGS ALREADY HOLDING SUSPECTS" in msg, msg
+    assert "NAMES one of those paths" in msg, msg
     assert "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md" in msg
+    assert "WORKER_FINDING_UNRELATED" not in msg, "an unlinked finding is backlog, not a suspect"
     assert "ADVISOR_SCOPE_BRIEF_GAS" not in msg, "only filed FINDINGS are cures, not scope briefs"
     # The draw reads the STATE FILE, not the NTFY — so the citation must be persisted.
     state = json.loads((tmp_path / ".publish_gate_state.json").read_text())
     assert "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md" in state["cited_findings"]
 
 
-def test_mutation_no_filed_findings_no_citation(tmp_path, monkeypatch):
-    """The other way (R15): with nothing filed the clause must be ABSENT, not an empty
+def test_mutation_no_linked_findings_no_citation(tmp_path, monkeypatch):
+    """The other way (R15): with nothing LINKED the clause must be ABSENT, not an empty
     'draw these: .' — a control that always emits its own success text cannot fail."""
     staging = tmp_path / "staging"
     staging.mkdir()
+    (staging / "WORKER_FINDING_UNRELATED_2026-08-08.md").write_text("about customer billing")
     monkeypatch.setattr(prc, "STAGING_DIR", staging)
     msg = _fire_and_capture(prc, _Sink())
-    assert "FILED FINDINGS" not in msg
+    assert "NAMES one of those paths" not in msg
     assert json.loads((tmp_path / ".publish_gate_state.json").read_text())["cited_findings"] == []
 
 
@@ -315,18 +339,18 @@ def test_archived_findings_are_not_cited(tmp_path, monkeypatch):
     priority of work that is already closed."""
     staging = tmp_path / "staging"
     (staging / "done").mkdir(parents=True)
-    (staging / "done" / "WORKER_FINDING_OLD_2026-07-01.md").write_text("x")
+    (staging / "done" / "WORKER_FINDING_OLD_2026-07-01.md").write_text("background/x.py")
     monkeypatch.setattr(prc, "STAGING_DIR", staging)
-    assert prc.filed_findings() == []
+    assert prc.linked_findings({"modules": ["background/x.py"]}) == []
 
 
 def test_citation_is_bounded(tmp_path, monkeypatch):
     staging = tmp_path / "staging"
     staging.mkdir()
     for i in range(20):
-        (staging / ("WORKER_FINDING_X%02d_2026-08-08.md" % i)).write_text("x")
+        (staging / ("WORKER_FINDING_X%02d_2026-08-08.md" % i)).write_text("background/x.py")
     monkeypatch.setattr(prc, "STAGING_DIR", staging)
-    cited = prc.filed_findings()
+    cited = prc.linked_findings({"modules": ["background/x.py"]})
     assert len(cited) == prc.PUBLISH_GATE_MAX_CITED_FINDINGS, (
         "an unbounded citation list turns the page back into noise"
     )
