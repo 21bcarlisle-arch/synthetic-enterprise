@@ -2428,9 +2428,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: []
-  records_rehomed: [evidence]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  notes_rehomed: [origin_note]
   real_world_twin: "a collections MI pack reporting 'days to identify a missed payment' straight off the batch calendar, so the number is the batch frequency whoever configured it, the team that halved its detection time sees no change, and the one that slipped a day is charged three weeks"
 
 - id: D22_ageing_ordinal_is_one_directional
@@ -3831,8 +3829,6 @@
   provenance: advisor_review
   depends_on: []
   couples_with: []
-  records_rehomed: [evidence]
-  notes_rehomed: [origin_note]
   file_scope: ['tools/scale_probe_10k.py', 'tests/tools/test_scale_probe_10k.py', 'docs/design/SCALE_PROBE_10K.md']
 
 # ===========================================================================

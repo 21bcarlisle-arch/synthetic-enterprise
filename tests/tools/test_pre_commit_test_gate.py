@@ -120,6 +120,41 @@ def test_level_sensitive_test_files_all_exist():
         assert (ROOT / t).exists(), f"level-sensitive test missing: {t}"
 
 
+# ── THE PER-ATOM STORE surface (2026-08-10, the fourteenth publish wedge). A MINT declares ───────
+# `records_rehomed`/`notes_rehomed` from a template while never writing
+# docs/design/simplifications/<id>.yaml, so the map claims a store file that does not exist. The
+# two store-contract tests fire on precisely that, but nothing MAPPED them to a map change -- so
+# four mints in three days each landed red on committed HEAD and were found hours later by the
+# publish gate. The literal paths are asserted, not gate.STORE_CONTRACT_TESTS: a test that reads
+# the constant it is checking cannot fail when the constant empties.
+
+def test_a_map_change_runs_the_store_contract_tests():
+    targets = gate.select_targets(["docs/design/maturity_map.yaml"])
+    assert "tests/design/test_atom_notes_store.py" in targets
+    assert "tests/design/test_atom_records_store.py" in targets
+
+
+def test_a_store_file_change_alone_runs_the_store_contract_tests():
+    # The other direction: deleting or renaming a store file falsifies a declaration living in a
+    # file this commit never touches. docs/design/simplifications/ is under no CODE_PREFIX.
+    targets = gate.select_targets(["docs/design/simplifications/A9_market_at_the_seams.yaml"])
+    assert targets != []                                          # NOT skipped as "pure data"
+    assert "tests/design/test_atom_notes_store.py" in targets
+    assert "tests/design/test_atom_records_store.py" in targets
+
+
+def test_a_non_store_design_doc_is_still_pure_data():
+    # Non-vacuity: the prefix must not swallow docs/design at large, or every design-doc commit
+    # pays the contract suite and the fast path is gone.
+    assert gate.select_targets(["docs/design/THE_STANDARD.md"]) == []
+    assert gate.select_targets(["docs/design/simplifications/README.md"]) == []
+
+
+def test_store_contract_test_files_all_exist():
+    for t in gate.STORE_CONTRACT_TESTS:
+        assert (ROOT / t).exists(), f"store-contract test missing: {t}"
+
+
 def test_staged_mint_marker_runs_the_hygiene_set():
     # A PLANNER_MINTED_*.md parked in in_progress/ is pure DATA (not under CODE_PREFIXES); staging one
     # must still run the mint-block-hygiene test so a reason-less/unresolvable block cannot be committed

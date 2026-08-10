@@ -81,6 +81,12 @@ LEVEL_SURFACE_FILES = (
     "docs/design/maturity_map.yaml",
     "docs/observability/gate_authorizations.jsonl",
 )
+# The map/store contract, named once and shared by both surfaces that can break it (the map
+# below, and the store files themselves via STORE_SURFACE_PREFIX).
+STORE_CONTRACT_TESTS = [
+    "tests/design/test_atom_notes_store.py",
+    "tests/design/test_atom_records_store.py",
+]
 LEVEL_SENSITIVE_TESTS = [
     # tests/background/test_fronts_reconciler.py removed 2026-08-03 with the module itself (the
     # fronts/BUILD-open scope-permission machinery -- see the deletion note in supervisor.py).
@@ -95,7 +101,22 @@ LEVEL_SENSITIVE_TESTS = [
     # and only the full publish gate caught it -> wedge. Registration-time facet violations are now
     # caught at commit, making the whole class (not just this instance) structurally uncommittable.
     "tests/design/test_maturity_map_facets.py",
+    # Same R10 shape, one surface further out (2026-08-10, the fourteenth publish wedge). A MINT
+    # copies `records_rehomed`/`notes_rehomed` into the new map entry from a template while the
+    # store file docs/design/simplifications/<id>.yaml is never written -- the declaration says
+    # "the store holds this" of a file that does not exist. The two store-contract tests below
+    # fire on exactly that, but neither was reachable from a maturity_map.yaml change, so three
+    # successive mints (A9, AO12, D23, H42) each landed red on committed HEAD and were found
+    # hours later by the publish gate. It recurs at MINT RATE, which is why the fix is the DRAIN
+    # (unmintable at commit time) and not the two map lines the instance needed.
+    *STORE_CONTRACT_TESTS,
 ]
+
+# THE PER-ATOM STORE SURFACE (2026-08-10, the other direction of the same contract). The store
+# files are data by every prefix rule here, but the map DECLARES their contents, so removing or
+# renaming one silently falsifies a declaration that lives in a file this commit never touched.
+# Both directions of `check_declarations_match` therefore need both sides of the surface.
+STORE_SURFACE_PREFIX = "docs/design/simplifications/"
 
 
 def staged_files() -> list[str]:
@@ -172,8 +193,13 @@ def select_targets(files: list[str]) -> list[str]:
         f.startswith(MINT_MARKER_PREFIX) and f.endswith(".md") for f in files
     )
     canon_surface_changed = any(f in CANON_SURFACE_FILES for f in files)
-    if not (code_changed or level_surface_changed or mint_marker_changed or canon_surface_changed):
-        return []  # pure docs/data commit touching no control, level surface, mint marker or canon
+    store_surface_changed = any(
+        f.startswith(STORE_SURFACE_PREFIX) and f.endswith(".yaml") for f in files
+    )
+    if not (code_changed or level_surface_changed or mint_marker_changed
+            or canon_surface_changed or store_surface_changed):
+        return []  # pure docs/data commit touching no control, level surface, mint marker,
+        # canon or per-atom store
     targets: set[str] = set()
     if code_changed:
         targets.update(t for t in CONTROL_TESTS if (ROOT / t).exists())
@@ -183,6 +209,8 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in MINT_HYGIENE_TESTS if (ROOT / t).exists())
     if canon_surface_changed:
         targets.update(t for t in CANON_SURFACE_TESTS if (ROOT / t).exists())
+    if store_surface_changed:
+        targets.update(t for t in STORE_CONTRACT_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
     return sorted(targets)
