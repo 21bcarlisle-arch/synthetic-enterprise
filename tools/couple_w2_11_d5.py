@@ -1495,7 +1495,31 @@ def measure_headline_direction_coverage(
     shape in which this control would quietly stop covering something.
     """
     contract = HEADLINE_DIRECTION_COVERAGE if contract is None else contract
-    published = set(published_dimensions(result))
+    _validate_direction_register(contract, set(published_dimensions(result)))
+
+    out: Dict[str, Dict[str, object]] = {}
+    for dim in sorted(contract):
+        out[dim] = _probe_one_dimension(dim, contract, result)
+
+    # The cover claims are resolved AFTER every row is measured, because a
+    # cover is a statement about the sibling's MEASURED behaviour, not about
+    # its declaration.
+    for row in out.values():
+        cover = row.get("covered_by")
+        row["cover_is_two_directional"] = (
+            None if cover is None
+            else bool(out[cover].get("distinguishes"))
+        )
+    return out
+
+
+def _validate_direction_register(
+    contract: Dict[str, Dict[str, object]], published: set
+) -> None:
+    """Both keyset directions, each a way this control could stop covering
+    something: a published dimension nobody registered is one whose headline has
+    never been checked, and a registered dimension nobody publishes is a
+    register describing coverage it is not providing."""
     registered = set(contract)
     if published - registered:
         raise ValueError(
@@ -1513,74 +1537,64 @@ def measure_headline_direction_coverage(
             "providing"
         )
 
-    labels = result.get("labels") or {}
-    out: Dict[str, Dict[str, object]] = {}
 
-    for dim in sorted(contract):
-        decl = contract[dim]
-        cover = decl.get("covered_by")
-        if cover is not None and cover not in contract:
-            raise ValueError(
-                f"'{dim}' declares its direction is covered by '{cover}', "
-                "which is not a registered dimension -- a cover claim naming "
-                "nothing is the fail-open shape this third state could take"
-            )
-        row: Dict[str, object] = {
-            "declared_counts_both_directions": bool(
-                decl["headline_counts_both_directions"]),
-            "covered_by": cover,
-            "debt_atom": decl.get("debt_atom"),
-        }
-
-        strategy_name = decl.get("degenerate")
-        if strategy_name is None:
-            # The conditional-population case: there is no belief-side
-            # degenerate, so what is measured instead is the CONDITION -- that
-            # no truly-current case can reach this headline's population.
-            row.update(_measure_conditional_population(dim, result))
-            out[dim] = row
-            continue
-
-        if strategy_name not in _DEGENERATE_STRATEGIES:
-            raise ValueError(
-                f"'{dim}' declares degenerate strategy '{strategy_name}', which "
-                "is not in `_DEGENERATE_STRATEGIES` -- the register would name a "
-                "probe that never runs"
-            )
-        true_l = labels.get(f"{dim}_truth")
-        if true_l is None:
-            raise ValueError(
-                f"HEADLINE_DIRECTION_COVERAGE declares a degenerate for '{dim}' "
-                "but `score_triad` publishes no per-case truth labels for it -- "
-                "the control cannot be run on a declaration it cannot reach"
-            )
-        true_l = list(true_l)
-        degenerate = list(_DEGENERATE_STRATEGIES[strategy_name](true_l))
-        perfect_gap = _rescore_dimension(dim, list(true_l), list(true_l), result)
-        degenerate_gap = _rescore_dimension(dim, list(true_l), degenerate, result)
-        n_changed = sum(1 for a, b in zip(true_l, degenerate) if a != b)
-        row.update({
-            "degenerate_strategy": strategy_name,
-            "perfect_gap": perfect_gap,
-            "degenerate_gap": degenerate_gap,
-            "distinguishes": (
-                perfect_gap is not None and degenerate_gap is not None
-                and abs(perfect_gap - degenerate_gap) > 1e-12),
-            "probe_bit": n_changed > 0,
-            "n_cases_changed": n_changed,
-        })
-        out[dim] = row
-
-    # The cover claims are resolved AFTER every row is measured, because a
-    # cover is a statement about the sibling's MEASURED behaviour, not about
-    # its declaration.
-    for dim, row in out.items():
-        cover = row.get("covered_by")
-        row["cover_is_two_directional"] = (
-            None if cover is None
-            else bool(out[cover].get("distinguishes"))
+def _probe_one_dimension(
+    dim: str, contract: Dict[str, Dict[str, object]], result: Dict[str, object]
+) -> Dict[str, object]:
+    """Score ONE dimension's indiscriminate degenerate against a perfect company
+    through that dimension's own shipped scorer."""
+    decl = contract[dim]
+    cover = decl.get("covered_by")
+    if cover is not None and cover not in contract:
+        raise ValueError(
+            f"'{dim}' declares its direction is covered by '{cover}', "
+            "which is not a registered dimension -- a cover claim naming "
+            "nothing is the fail-open shape this third state could take"
         )
-    return out
+    row: Dict[str, object] = {
+        "declared_counts_both_directions": bool(
+            decl["headline_counts_both_directions"]),
+        "covered_by": cover,
+        "debt_atom": decl.get("debt_atom"),
+    }
+
+    strategy_name = decl.get("degenerate")
+    if strategy_name is None:
+        # The conditional-population case: there is no belief-side degenerate,
+        # so what is measured instead is the CONDITION -- that no truly-current
+        # case can reach this headline's population.
+        row.update(_measure_conditional_population(dim, result))
+        return row
+
+    if strategy_name not in _DEGENERATE_STRATEGIES:
+        raise ValueError(
+            f"'{dim}' declares degenerate strategy '{strategy_name}', which "
+            "is not in `_DEGENERATE_STRATEGIES` -- the register would name a "
+            "probe that never runs"
+        )
+    true_l = (result.get("labels") or {}).get(f"{dim}_truth")
+    if true_l is None:
+        raise ValueError(
+            f"HEADLINE_DIRECTION_COVERAGE declares a degenerate for '{dim}' "
+            "but `score_triad` publishes no per-case truth labels for it -- "
+            "the control cannot be run on a declaration it cannot reach"
+        )
+    true_l = list(true_l)
+    degenerate = list(_DEGENERATE_STRATEGIES[strategy_name](true_l))
+    perfect_gap = _rescore_dimension(dim, list(true_l), list(true_l), result)
+    degenerate_gap = _rescore_dimension(dim, list(true_l), degenerate, result)
+    n_changed = sum(1 for a, b in zip(true_l, degenerate) if a != b)
+    row.update({
+        "degenerate_strategy": strategy_name,
+        "perfect_gap": perfect_gap,
+        "degenerate_gap": degenerate_gap,
+        "distinguishes": (
+            perfect_gap is not None and degenerate_gap is not None
+            and abs(perfect_gap - degenerate_gap) > 1e-12),
+        "probe_bit": n_changed > 0,
+        "n_cases_changed": n_changed,
+    })
+    return row
 
 
 def check_headline_direction_coverage(
@@ -1612,51 +1626,58 @@ def check_headline_direction_coverage(
     contract = HEADLINE_DIRECTION_COVERAGE if contract is None else contract
     violations: List[str] = []
     for dim in sorted(measured):
-        row = measured[dim]
-        decl = contract[dim]
-        both = bool(decl["headline_counts_both_directions"])
-        if not row.get("probe_bit"):
-            violations.append(
-                f"{dim}: the direction probe is VACUOUS (it changed nothing / "
-                "scored an empty population), so it proves nothing in either "
-                "direction and must not be read as a pass"
-            )
-            continue
-        if both and not row["distinguishes"]:
-            violations.append(
-                f"{dim}: declared to count BOTH error directions, but its "
-                f"indiscriminate degenerate scores {row['degenerate_gap']} -- "
-                f"identical to a perfect company ({row['perfect_gap']}). A "
-                "one-directional headline cannot tell a precise company from "
-                "an indiscriminate one"
-            )
-        if not both and row["distinguishes"]:
-            violations.append(
-                f"{dim}: declared ONE-DIRECTIONAL (debt "
-                f"{decl.get('debt_atom')!r}), but it DOES tell its degenerate "
-                f"apart ({row['perfect_gap']} -> {row['degenerate_gap']}). The "
-                "entry has rotted and must be re-derived"
-            )
-        if not both and not decl.get("debt_atom") and not decl.get("covered_by"):
-            violations.append(
-                f"{dim}: one-directional with neither a `debt_atom` nor a "
-                "`covered_by` -- an unowned hole. This register's own class "
-                "statement requires it to measure both directions or NAME the "
-                "atom that will make it"
-            )
-        if decl.get("covered_by") and not row.get("cover_is_two_directional"):
-            violations.append(
-                f"{dim}: claims its direction is covered by "
-                f"'{decl['covered_by']}', which does not itself count both "
-                "directions -- a cover claim covering nothing"
-            )
-        if dim == "detection_latency" and row.get("n_truly_current_in_population"):
-            violations.append(
-                f"{dim}: {row['n_truly_current_in_population']} truly-current "
-                "case(s) reached the latency population, so the headline is no "
-                "longer truth-conditioned and its cover claim (the sibling "
-                "counts the over-flagging direction) no longer holds"
-            )
+        violations.extend(_check_one_entry(dim, measured[dim], contract[dim]))
+    return violations
+
+
+def _check_one_entry(
+    dim: str, row: Dict[str, object], decl: Dict[str, object]
+) -> List[str]:
+    """One entry's declaration against its measurement. Split out of
+    `check_headline_direction_coverage` so each rule reads on its own."""
+    violations: List[str] = []
+    both = bool(decl["headline_counts_both_directions"])
+    if not row.get("probe_bit"):
+        return [
+            f"{dim}: the direction probe is VACUOUS (it changed nothing / "
+            "scored an empty population), so it proves nothing in either "
+            "direction and must not be read as a pass"
+        ]
+    if both and not row["distinguishes"]:
+        violations.append(
+            f"{dim}: declared to count BOTH error directions, but its "
+            f"indiscriminate degenerate scores {row['degenerate_gap']} -- "
+            f"identical to a perfect company ({row['perfect_gap']}). A "
+            "one-directional headline cannot tell a precise company from "
+            "an indiscriminate one"
+        )
+    if not both and row["distinguishes"]:
+        violations.append(
+            f"{dim}: declared ONE-DIRECTIONAL (debt "
+            f"{decl.get('debt_atom')!r}), but it DOES tell its degenerate "
+            f"apart ({row['perfect_gap']} -> {row['degenerate_gap']}). The "
+            "entry has rotted and must be re-derived"
+        )
+    if not both and not decl.get("debt_atom") and not decl.get("covered_by"):
+        violations.append(
+            f"{dim}: one-directional with neither a `debt_atom` nor a "
+            "`covered_by` -- an unowned hole. This register's own class "
+            "statement requires it to measure both directions or NAME the "
+            "atom that will make it"
+        )
+    if decl.get("covered_by") and not row.get("cover_is_two_directional"):
+        violations.append(
+            f"{dim}: claims its direction is covered by "
+            f"'{decl['covered_by']}', which does not itself count both "
+            "directions -- a cover claim covering nothing"
+        )
+    if dim == "detection_latency" and row.get("n_truly_current_in_population"):
+        violations.append(
+            f"{dim}: {row['n_truly_current_in_population']} truly-current "
+            "case(s) reached the latency population, so the headline is no "
+            "longer truth-conditioned and its cover claim (the sibling "
+            "counts the over-flagging direction) no longer holds"
+        )
     return violations
 
 
