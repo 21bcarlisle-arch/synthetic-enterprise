@@ -1,5 +1,34 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T08:27:51Z
+Last updated: 2026-08-10T08:51:01Z
+
+**H39 LANDED (`317a7b62f`) AND THE FABRIC ROWS WERE RE-MEASURED (`d3f683bd2`) — the map had been
+publishing an L2 for a program the repo did not contain, and the staleness control then caught its
+own author's commit. `H_GAP_fabric_belief_truth_gap` HELD AT L2.**
+
+H39's L1.1n build was complete and green in the working tree from a tick that ended before
+committing, while HEAD's map already carried its measured gain text. **Adopted, not rebuilt** —
+audited, evidence run *before* trusting it (`test_premise_two_level.py` 174 passed 2 xfailed,
+`test_band_null_sweep.py` 34 passed), then landed. That is the **third instance in three days** of a
+level declared for uncommitted code, and the second in two commits; filed with a recommended gate
+(`level_promotion_gate` refusing a raise whose `file_scope` is dirty).
+
+Landing it changed the code behind the two published fabric gap rows, so the gap-ledger reconciler
+immediately read both **STALE** — *the control fired on its own author*. Re-ran
+`tools/couple_fabric.py --population 200 --write-ledger`: drift set **13 → 11**, both rows CURRENT.
+Fourth consecutive reproduction — EPC-vs-actual gap **0.4269**, inferred-vs-actual **0.4042**,
+improvement **+0.0227**; forgone **£548,919** (135,396 kg CO2e/yr) on the EPC belief against
+**£451,832** (113,050) on the inferred one. The new L1.1n cell **passes** on the drawn 200 and the
+two-level test stays **RED on `L2.4_scale_spread_p90_p10` alone** — a generator question owned by
+W1_12, not a harness one. Reported as a measurement, not a win: L1.1n asks only whether *any* of the
+texture is behaviour rather than the home's own diurnal shape; the magnitude question stays open
+with the unmoved 0.15 floor.
+
+Also found and **queued, not fixed**: OPS2's re-launched ~50-minute measurement is **dead** (pid
+gone, `complete:false`, all three phases missing, died ~11.7 min in inside a wait that is bounded at
+45 min and falls through anyway). Its stated fix — *"launched under `setsid`"* — **appears nowhere in
+the repo**; the detach was an uncommitted shell command from a dead tick. OPS2's *checkpoint* half
+worked and is the only reason this was diagnosable. Not re-launched: the same plain background job
+from a bounded tick would die a third time.
 
 **H27 EXPERT HOUR #4 — the fourth defect is in a CLAIM, not an arithmetic; atom `D20` minted and
 built in the same tick. H27 HELD AT L2 for the fourth consecutive Hour.**
@@ -1948,7 +1977,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (514s / 9 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
