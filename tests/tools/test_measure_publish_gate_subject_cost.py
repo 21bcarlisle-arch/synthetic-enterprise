@@ -857,8 +857,13 @@ def test_a_deferral_banks_what_is_measured_and_times_no_suite(monkeypatch, out):
 
     MUTATION: drop the `except _Deferred` handler in `_run_measurement` and this reds with the
     exception escaping -- the unit dies and the record never names a reason."""
-    banked = {"phases": {"cold_checkout": {"seconds": 1291.9},
-                         "warm_checkout": {"seconds": 1167.5}}}
+    # Stamped with the launch's own HEAD so the banked pair is COMPARABLE and survives on its
+    # merits. `_drop_incomparable_ratio_phases` would otherwise re-time warm here -- correctly,
+    # but for a reason this test is not about, and the deferral contract below would then be
+    # asserted against a resume state no real record produces.
+    monkeypatch.setattr(measure.prc, "_head_sha", lambda: "headsha0")
+    banked = {"phases": {"cold_checkout": {"seconds": 1291.9, "head_sha_at_run": "headsha0"},
+                         "warm_checkout": {"seconds": 1167.5, "head_sha_at_run": "headsha0"}}}
     Path(out).write_text(json.dumps(banked))
 
     # The guards are driven through their REAL code path -- patching `_time_suite` would bypass
@@ -1134,3 +1139,94 @@ def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
     assert not offenders, (
         "these modules drive the measurement's phases without redirecting the publisher's run "
         "lock, so they run against the live one: {}".format(offenders))
+
+
+# ── AND THE RATIO MAY NOT SPAN COMMITS (OPS2 criterion 1, 2026-08-11) ────────────────────────
+#
+# The resume above is what makes this measurement converge on a box that keeps killing it, but
+# it retired a phase on the strength of a `seconds` alone. The live record carried a warm phase
+# timed at 54141b5 (*"235 failed ... 14 errors"*) beside a cold one at 3ee4541a (*"7 failed"*) --
+# two different suites -- and the next launch would have timed the in-tree baseline at today's
+# HEAD and divided one by the other. The exit criterion would then have been decided by the diff
+# between two commits, reported as the cost of the checkout.
+#
+# These fire on that: the pair is dropped and re-timed together, COLD is not (it only ever
+# raises the timeout floor), and a pair already banked together is not re-paid for.
+
+def _banked(out, **phases):
+    Path(out).write_text(json.dumps({"phases": phases}))
+    return out
+
+
+def test_a_banked_ratio_phase_from_another_commit_is_dropped(out):
+    """THE LIVE PROPERTY. Warm at an older SHA, baseline owed -- warm must be re-timed."""
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "old111"},
+            warm_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
+    phases = measure._load_banked_phases(out)
+
+    dropped = measure._drop_incomparable_ratio_phases(phases, "head999", print)
+
+    assert dropped == ["warm_checkout"], (
+        "a warm phase timed at another commit cannot be the numerator of a ratio whose "
+        "denominator is timed at HEAD; it must be re-timed, not inherited"
+    )
+    assert "warm_checkout" not in phases
+    assert "cold_checkout" in phases, (
+        "COLD feeds the timeout floor and never the ratio -- an older, slower cold phase can "
+        "only RAISE that bound, so re-paying 21 minutes for it buys nothing"
+    )
+
+
+def test_a_ratio_phase_at_this_head_is_kept(out):
+    """MUTATION-ADJACENT: a rule that drops everything is as useless as one that drops nothing.
+
+    Without this, `_drop_incomparable_ratio_phases` could return every ratio phase it is shown
+    and both the assertion above and the measurement's convergence would still look correct --
+    while every launch re-paid 20 minutes for a phase it already held at the right commit."""
+    _banked(out, warm_checkout={"seconds": 1167.5, "head_sha_at_run": "head999"})
+    phases = measure._load_banked_phases(out)
+
+    assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == []
+    assert "warm_checkout" in phases
+
+
+def test_a_pair_banked_together_at_an_older_commit_is_not_re_timed(out):
+    """Both sides at one (earlier) SHA are comparable TO EACH OTHER, which is all the ratio
+    asks. Re-timing them would cost 40 minutes to learn the same number."""
+    _banked(out, warm_checkout={"seconds": 1100.0, "head_sha_at_run": "old222"},
+            in_tree_baseline={"seconds": 1000.0, "head_sha_at_run": "old222"})
+    phases = measure._load_banked_phases(out)
+
+    assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == []
+    assert set(phases) == {"warm_checkout", "in_tree_baseline"}
+
+
+def test_a_banked_phase_with_no_recorded_commit_is_dropped(out):
+    """FAIL-CLOSED. A phase that cannot be SHOWN to have been timed at this commit is not
+    evidence for a criterion about this commit -- unprovable is not a pass."""
+    _banked(out, warm_checkout={"seconds": 1167.5})
+    phases = measure._load_banked_phases(out)
+
+    assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == ["warm_checkout"]
+    assert "warm_checkout" not in phases
+
+
+def test_the_drop_is_named_in_the_record_not_just_the_log(out, monkeypatch, tmp_path):
+    """A drop only in the log is invisible to the next tick: it must be able to tell "this
+    launch chose to re-pay for warm" from "the record was lost"."""
+    _banked(out, warm_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
+    monkeypatch.setattr(measure.prc, "_head_sha", lambda: "head999")
+    # Defer immediately -- this asserts about the record the launch WRITES, not about a suite.
+    monkeypatch.setattr(measure, "_wait_for_quiet",
+                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("test")))
+    monkeypatch.setattr(measure, "_publisher_exclusion",
+                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("test")))
+
+    measure._run_measurement(out, print)
+
+    rec = json.loads(Path(out).read_text())
+    assert rec["dropped_for_comparability"] == ["warm_checkout"]
+    assert "warm_checkout" not in rec["phases"], (
+        "the dropped phase must be gone from the record too -- a record still carrying it "
+        "would let a reader compute the very ratio this drop exists to prevent"
+    )

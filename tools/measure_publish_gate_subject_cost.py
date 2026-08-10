@@ -651,6 +651,53 @@ def _load_banked_phases(out_path: str) -> dict:
             if name in PHASE_ORDER and isinstance(rec, dict) and rec.get("seconds") is not None}
 
 
+# ── THE RATIO'S TWO SIDES MUST SHARE A COMMIT, AND THAT WAS A COMMENT TOO ────────────────────
+#
+# `_run_measurement` has said since the resume was built that "the exit-criterion ratio is
+# warm/in-tree, and those two are re-run together whenever either is owed, so a stale COLD can
+# move the timeout floor but never the ratio". Nothing did that. `_load_banked_phases` retires
+# any phase carrying a `seconds`, whatever commit it was timed at, so the resume kept a warm
+# phase from an earlier HEAD and would have divided it by a baseline timed at today's.
+#
+# OBSERVED in the live record before this fix: warm banked at 54141b5 summarising *"235 failed,
+# 23069 passed, 14 errors"* against a cold phase at 3ee4541a summarising *"7 failed, 23249
+# passed"*. Those are not the same suite. A ratio across them measures the diff between two
+# commits and reports it as the cost of the checkout -- and `phases_from_an_earlier_head` would
+# have named the problem in the artefact while the exit criterion was decided by it anyway.
+#
+# So the pair is dropped and re-timed together whenever either is owed. A banked phase with no
+# `head_sha_at_run` at all cannot be SHOWN comparable, so it is dropped for the same reason:
+# this is the criterion's own evidence, and unprovable is not a pass.
+#
+# COLD is deliberately exempt. It feeds `implied_timeout_floor_2x` -- a bound that must clear the
+# worst legitimate runtime -- and an older, slower cold phase can only raise that bound. It never
+# enters the ratio.
+RATIO_PHASES = ("warm_checkout", "in_tree_baseline")
+
+
+def _drop_incomparable_ratio_phases(phases: dict, head_sha: str, log) -> list:
+    """Drop banked ratio phases not provably timed at `head_sha`. Returns the names dropped.
+
+    Only when one of the pair is still OWED: once both are banked at the same earlier commit
+    they are comparable to each other, and re-timing them would cost 40 minutes to learn the
+    same number."""
+    if all(name in phases for name in RATIO_PHASES):
+        return []
+    dropped = []
+    for name in RATIO_PHASES:
+        rec = phases.get(name)
+        if rec is None:
+            continue
+        if rec.get("head_sha_at_run") != head_sha:
+            phases.pop(name)
+            dropped.append(name)
+    if dropped:
+        log("  . dropping banked {} -- timed at another commit than this launch's HEAD ({}), "
+            "and the exit-criterion ratio may not span commits".format(
+                ", ".join(sorted(dropped)), head_sha[:9]))
+    return sorted(dropped)
+
+
 def _checkpoint(results: dict, out: str, log) -> None:
     """Persist what is known so far. Never raises: a failed write must not lose a live run."""
     results["complete"] = all(p in results["phases"] for p in PHASE_ORDER)
@@ -716,6 +763,10 @@ def _run_measurement(out_path: str, log) -> int:
     args = argparse.Namespace(out=out_path)
 
     head_sha = prc._head_sha()
+    banked = _load_banked_phases(out_path)
+    # BEFORE `resumed_phases` is taken, so the record names what this launch will actually
+    # re-time rather than what the file happened to hold.
+    dropped_for_comparability = _drop_incomparable_ratio_phases(banked, head_sha, log)
     results = {"head_sha_at_launch": head_sha, "pid": os.getpid(),
                # COMPUTED, never claimed. "Detached" means "session leader", and this is the
                # process asking the kernel about itself -- so a reader can tell from the repo
@@ -730,18 +781,22 @@ def _run_measurement(out_path: str, log) -> int:
                "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                # RESUMED, not restarted. Phases an earlier launch paid for are kept; only what
                # is still owed is re-run.
-               "phases": _load_banked_phases(out_path),
+               "phases": banked,
                # Read HERE, beside the banked phases, and for the same reason: `_checkpoint`
                # rewrites the file from `results` before the first phase, so a count read at
                # deferral time would be reading a record this launch had already blanked --
                # and the tally would stick at 1 forever.
                "deferral_count": _prior_deferral_count(out_path)}
     results["resumed_phases"] = sorted(results["phases"])
+    # What `_drop_incomparable_ratio_phases` refused to inherit, in the artefact: a reader who
+    # sees the warm phase re-timed needs to know it was re-timed on purpose and why, and the
+    # next tick needs to tell "this launch chose to pay for it again" from "the record was lost".
+    results["dropped_for_comparability"] = dropped_for_comparability
     # Phases timed at a DIFFERENT commit than this launch's HEAD. Resuming across launches is
     # what makes the measurement converge on a box that keeps killing it, but it means the
-    # record can span commits -- so it says so rather than letting a reader assume one SHA. The
-    # exit-criterion ratio is warm/in-tree, and those two are re-run together whenever either is
-    # owed, so a stale COLD can move the timeout floor but never the ratio.
+    # record can span commits -- so it says so rather than letting a reader assume one SHA. Only
+    # a stale COLD can survive that: it feeds the timeout floor, never the ratio, and the pair
+    # that DOES feed the ratio is dropped and re-timed together above.
     results["phases_from_an_earlier_head"] = sorted(
         name for name, rec in results["phases"].items()
         if rec.get("head_sha_at_run") and rec["head_sha_at_run"] != head_sha)
