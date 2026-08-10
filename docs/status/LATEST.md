@@ -1,5 +1,51 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T12:10:18Z
+Last updated: 2026-08-10T17:12:00Z
+
+**THE SITE BREATHES — publish decoupling items 1+3 LANDED AND LIVE (commit `1edad80a5`, pushed
+`a1e308049`), closing `DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10`.**
+
+The build was green in the working tree and **absent from HEAD**. HEAD's `process_run_complete.py`
+already imported `background.publish_scope` and `background.publish_provenance`; neither module
+existed at HEAD. Because `DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09` makes the gate's subject
+a clean checkout of HEAD, scope resolution failed there and degraded to the full suite — so the
+decoupling was never in effect in the only place that ships, while the design doc read "Built".
+That gap, not any individual red, is why 25 hours of staleness survived ~18 cured causes.
+
+**Item 1, verified in a clean extract of HEAD:** `resolve_scope()` returns `full_suite: False`,
+**129 blocking test files** derived from 6 publish-path sources via the static import graph, and
+`tests/architecture/test_static_quality_ratchet.py` — the named unrelated red — is **not** in the
+blocking scope. Before the commit that call raised `ImportError`.
+
+**Item 3, verified on the live surface (R11):** `https://poesys.net/assets/freshness-banner.js`
+serves 200 and all five live-data doors reference it (`/project/` 301s to `/proof/`). Executing the
+**shipped asset** against the **live** `/data/publish_provenance.json` renders, with
+`PoesysFreshness.error === null` and `data-freshness-state="paused"`:
+
+> Verification paused since 2026-08-09T14:30:09Z · showing run
+> run_output_dfefd0a14_20260809T031627Z.json (last verified 2026-08-09T12:41:51Z)
+> Published with 51 open findings elsewhere in the repository — these are not defects in the
+> figures above; the suite that produces and renders them is green.
+
+The site is still *showing* the 2026-08-09 run: that is the designed behaviour, not a failure. It
+is now **behind and saying so**, where before it was frozen and silent.
+
+**Four pre-existing blockers found and repaired en route, every one the same class as the bug being
+fixed — a derived artefact committed ahead of the input it was derived from:** (1) `tests/conftest.py`
+held this build's own isolation guard uncommitted, so its test was green in the tree and red as a
+commit; (2) `site/state/live_portfolio.json` was three weeks stale at HEAD (2026-07-20T05:47:26Z)
+under a `proof.json` derived from it at 2026-08-10T13:33:42Z; (3)
+`site/state/track_record_scorecard.json` carried `wall_clock_today=2026-08-09` against a source
+stamped 2026-08-10, so the ledger derived an age of **minus one day**; (4) that set cannot be
+captured by hand while the publisher rewrites `live_portfolio.json` every few minutes — regenerating
+the derived artefact immediately before capture is what makes the landing atomic. Together these had
+`site/proof`'s two live-surface tests red at HEAD for everyone, independent of this build (proven:
+2 failed / 33 passed on a clean `21fcd1ed8`). The build's own
+`test_every_live_data_door_opts_into_the_banner` correctly refused an attempt to land four doors and
+defer the fifth.
+
+**No figure moved:** the `proof.json` delta is freshness stamps, the git ref and maturity-map atom
+counts; `dashboard.json` is untouched and the verification pause still governs every run figure.
+The first cycle under the scoped gate started 17:07 UTC on `git=1edad80a5`.
 
 **H27 EXPERT HOUR #6 — THE AGEING HEADLINE SCORES A PERFECT 0.000000 FOR A COMPANY THAT WRONGFULLY
 AGES ITS ENTIRE CURRENT BOOK (atom `D22`, minted not built). `H27_payment_belief_gap` HELD AT L2 for
@@ -2036,7 +2082,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2152,6 +2198,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2023.8h across 79 sized atom(s) (13 of 92 below-target atoms still unsized).
+- Remaining effort: ~2069.5h across 80 sized atom(s) (13 of 93 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
