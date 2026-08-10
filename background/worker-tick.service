@@ -9,9 +9,31 @@ WorkingDirectory=/home/rich/synthetic-enterprise
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
 # The tick BLOCKS until the bounded invocation it spawns exits (Type=oneshot must not return early,
 # or systemd tears down the cgroup and kills the child). TimeoutStartSec bounds a hung invocation:
-# systemd SIGTERMs the whole cgroup (tick + claude -p) at 30 min, so a hang becomes a skipped tick
+# systemd SIGTERMs the whole cgroup (tick + claude -p), so a hang becomes a skipped tick
 # (the next trigger starts fresh), never a wedge. This is the bounded-invocation guarantee in IaC.
-TimeoutStartSec=1800
+#
+# ── 1800 WAS BELOW HONEST TICK DURATION, AND THE MEASUREMENT WAS CENSORED BY THE BOUND ITSELF ──
+# (2026-08-10, director-flagged: "three ticks were killed by TimeoutStartSec mid-work".) Over the
+# three days to 2026-08-10 this unit was timeout-killed 28 times. The wall-clock distribution from
+# its own journal:  n=31, min 5.0 min, median 30.0, p90 30.0, max 30.0, 29 of 31 over 25 min.
+#
+# Median == p90 == max == exactly the bound is not a distribution, it is a RIGHT-CENSORED one: the
+# control being measured is what truncates the measurement, so the honest duration of a real tick is
+# NOT DERIVABLE from this data. All that can be said is that at least 28 invocations wanted more
+# than 30 minutes. Choosing "a bit above the observed max" would therefore be choosing a bit above
+# the bound that caused the problem -- the number would be an artefact of the defect
+# (cf. feedback_never_pin_generated_values_in_controls, and the as_of-population artefact class).
+#
+# So this is deliberately set FAR above any plausible honest tick (4x the old bound) for one purpose:
+# to UNCENSOR the measurement. Once ticks are free to run to their natural length, the distribution
+# becomes observable and the bound can be re-derived from it at a real percentile. Atom
+# OPS_rederive_tick_timeout carries that follow-up; until it lands this number is a deliberate
+# over-estimate, not a calibrated one, and it is documented as such rather than presented as fitted.
+#
+# The kill was never costless: it tears down the WHOLE cgroup, including Agent forks whose work was
+# still uncommitted (see FORK SALVAGE below) -- so an undersized bound destroyed BUILT WORK, which
+# is why erring long is the safe direction here and erring short is not.
+TimeoutStartSec=7200
 ExecStart=/usr/bin/python3 -m background.worker_tick
 
 # ── FORK SALVAGE (director console, 2026-08-03: "mechanise the merge-or-reap so this can't recur") ──
