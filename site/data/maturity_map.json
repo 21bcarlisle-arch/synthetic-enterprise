@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 443,
+      "stall_consecutive_unchanged": 517,
       "forward_attachments": []
     },
     {
@@ -2428,7 +2428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 109,
+      "stall_consecutive_unchanged": 132,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2492,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50,
+      "stall_consecutive_unchanged": 54,
       "forward_attachments": []
     },
     {
@@ -2800,7 +2800,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 256,
+      "stall_consecutive_unchanged": 288,
       "forward_attachments": []
     },
     {
@@ -3055,6 +3055,37 @@
       "forward_attachments": []
     },
     {
+      "id": "D19_belief_gap_is_distribution_only",
+      "name": "The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severity DISTRIBUTIONS, so it is blind to which account holds which belief: permuting the company's per-case arrears-severity labels among cases takes per-case agreement 0.9287 -> 0.6432 and moves the published gap 0.0713 -> 0.0713, identical to machine precision (4000 customers, seed 7; seeds 11/23 agree at n=600). The degenerate strategy that scores what the real company scores is 'get the population MIX right and every INDIVIDUAL wrong' -- the same dual-degenerate class D11/D12/D14/D15 closed across the four DETECTION dimensions, which their register could not sweep because it is keyed to detection scorers. It hid because on a book whose belief errors run ONE WAY (this company under-calls severity: normal 443->485, watch 114->87, high 36->25) TV is ARITHMETICALLY EQUAL to the per-case disagreement rate -- 0.0700/0.0700, 0.1033/0.1033, 0.0733/0.0733 at seeds 7/11/23 -- so the number reads as a per-case error rate and numerically is one, while being a quantity a permutation leaves untouched. Give the dimension a per-case shape, or declare in the published note that the aggregate is all a reader may take from it. NOT fixed on sight: it moves a published number on all three pairs that call belief_gap (W2_11<->D5, W2_4<->C6, couple_cohort). Acceptance is already measurable: the AGGREGATE_SCORING_CONTRACT permutation sweep must come out MOVED for this dimension, and the shape is known twice over (copy the detection dimension's set-membership scoring, or D7's per-case denominators).",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": ""
+        }
+      ]
+    },
+    {
       "id": "D18_confounder_observable_channel",
       "name": "W2_8's new drop confounders (D14) are ANSWER KEY: the company cannot see that a household MOVED OUT, that a property stood empty, or that its own ECO scheme insulated the home -- so it false-flags 0.0560 of the settled negative with no way to explain any of it away. A real supplier holds several of those records itself: a change-of-tenancy registration on the account, a void notification, its own install file. Detection here is therefore strictly HARDER than reality and the published false-flag rate is an UPPER bound. Give the C10 detector an OBSERVABLE confounder channel -- with realistic DISCOVERY LATENCY, since the CoT scope brief's point is that nobody is told for weeks or months -- and measure the gap between what a supplier could explain away and what it actually does.",
       "lane": "D_billing_metering",
@@ -3167,7 +3198,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1288,
+      "stall_consecutive_unchanged": 1374,
       "forward_attachments": []
     },
     {
@@ -4032,7 +4063,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 22,
+      "stall_consecutive_unchanged": 56,
       "forward_attachments": []
     },
     {
@@ -4278,7 +4309,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 451,
+      "stall_consecutive_unchanged": 521,
       "forward_attachments": []
     },
     {
@@ -4594,7 +4625,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 219,
+      "stall_consecutive_unchanged": 262,
       "forward_attachments": []
     },
     {
@@ -4763,7 +4794,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 191,
+      "stall_consecutive_unchanged": 204,
       "forward_attachments": []
     },
     {
@@ -4785,7 +4816,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 225,
+      "stall_consecutive_unchanged": 235,
       "forward_attachments": []
     },
     {
@@ -4805,7 +4836,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 166,
+      "stall_consecutive_unchanged": 170,
       "forward_attachments": []
     },
     {
@@ -4825,7 +4856,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 184,
+      "stall_consecutive_unchanged": 193,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4854,7 +4885,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 218,
+      "stall_consecutive_unchanged": 229,
       "forward_attachments": []
     },
     {
@@ -4874,7 +4905,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 184,
+      "stall_consecutive_unchanged": 199,
       "forward_attachments": []
     },
     {
@@ -4896,7 +4927,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 199,
+      "stall_consecutive_unchanged": 216,
       "forward_attachments": []
     },
     {
@@ -4918,7 +4949,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 180,
+      "stall_consecutive_unchanged": 190,
       "forward_attachments": []
     },
     {
@@ -4940,7 +4971,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 208,
       "forward_attachments": []
     },
     {
@@ -4962,7 +4993,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 193,
+      "stall_consecutive_unchanged": 206,
       "forward_attachments": []
     },
     {
@@ -4986,7 +5017,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 199,
+      "stall_consecutive_unchanged": 212,
       "forward_attachments": []
     },
     {
@@ -5008,7 +5039,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 195,
+      "stall_consecutive_unchanged": 210,
       "forward_attachments": []
     },
     {
@@ -5030,7 +5061,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 173,
+      "stall_consecutive_unchanged": 191,
       "forward_attachments": []
     },
     {
@@ -5052,7 +5083,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 175,
+      "stall_consecutive_unchanged": 187,
       "forward_attachments": []
     },
     {
@@ -5094,7 +5125,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 194,
+      "stall_consecutive_unchanged": 205,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5129,7 +5160,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 188,
+      "stall_consecutive_unchanged": 201,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5179,7 +5210,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 59,
+      "stall_consecutive_unchanged": 65,
       "forward_attachments": []
     },
     {
@@ -5201,7 +5232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 60,
+      "stall_consecutive_unchanged": 61,
       "forward_attachments": []
     },
     {
@@ -5329,8 +5360,8 @@
       "forward_attachments": []
     },
     {
-      "id": "PW3_suite_duration_watch",
-      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class: 'The suite grew past a fixed wall. The new ceiling is sound and growth now fails loudly rather than silently -- but nothing watches suite duration, so the same shape recurs, just noisily.' The timeout fail-open is closed (1fd85cb27); the growth that reached it is unmeasured. EXIT: A duration series that already exists is preferred to a new collector -- check test_execution_log.jsonl before writing one (AO1/AO2 write-time discipline). EXIT: (1) wall-clock duration of the publish gate's suite run is recorded per run with its commit SHA; (2) a headroom figure -- duration against the current ceiling -- is reported on a surface that is read (the daily self-note or the digest), as a RATIO not a raw second count, so the number is comparable across a changed ceiling; (3) the alarm is a TREND transition (R5): crossing a headroom threshold fires once, and recovery fires once; it must not repeat an unchanged status. R12: duration is a DIAGNOSTIC -- no test may be deselected, marked slow, or moved to a tier to make this number smaller, and the atom states that in its own build note. R15: a mutation that reports headroom from the ceiling alone (ignoring the measured duration) must kill a named test.",
+      "id": "H41_the_map_ratchet_has_no_ongoing_drain",
+      "name": "MINTED FROM docs/staging/WORKER_FINDING_THE_MAP_RATCHET_REPAIR_DID_NOT_HOLD_2026-08-10.md, which carries the measured field-byte table and must not be re-derived. H32 drained the note class 464,110 -> 393,692; the map regrew to 423,947 in ONE DAY of ordinary minting, and the same red is now a PUBLISH WEDGE rather than the backlog item the first finding called it (the publish gate runs tests/design/; the pre-commit gate does not). THE FINDING: a ratchet with no ongoing drain is a one-time cleanup, not a control. EXIT: (1) a drain that runs at MINT RATE, not another one-off migration -- state which of the three candidates it implements and why; (2) if the expert_hour default is omitted, the Proof door figure expert_hour_not_attempted (tools/generate_proof_data.py:359, Counter over .get(status)) is asserted UNCHANGED against the live rendered surface, because an omitted key currently counts as None and silently moves a published number (R11); (3) the ceiling is re-derived only AFTER a drain lands, from what a 258-atom map costs -- raising it while wedged is the make-the-number-green move R12 forbids; (4) R15: a mutation that satisfies the ceiling by TRIMMING a build note must kill a named test, since paying a size warning with the record is the one closure H32 already ruled out; (5) the record may NOT be shortened to close this -- H32's own atom text binds here. R3 IS ARMED: this control has now been repaired once and recurred; a third occurrence means eliminating the fixed-byte ceiling in favour of a per-atom budget the mint path enforces, not patching it again.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
@@ -5344,8 +5375,28 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "PW3_suite_duration_watch",
+      "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class: 'The suite grew past a fixed wall. The new ceiling is sound and growth now fails loudly rather than silently -- but nothing watches suite duration, so the same shape recurs, just noisily.' The timeout fail-open is closed (1fd85cb27); the growth that reached it is unmeasured. EXIT: A duration series that already exists is preferred to a new collector -- check test_execution_log.jsonl before writing one (AO1/AO2 write-time discipline). EXIT: (1) wall-clock duration of the publish gate's suite run is recorded per run with its commit SHA; (2) a headroom figure -- duration against the current ceiling -- is reported on a surface that is read (the daily self-note or the digest), as a RATIO not a raw second count, so the number is comparable across a changed ceiling; (3) the alarm is a TREND transition (R5): crossing a headroom threshold fires once, and recovery fires once; it must not repeat an unchanged status. R12: duration is a DIAGNOSTIC -- no test may be deselected, marked slow, or moved to a tier to make this number smaller, and the atom states that in its own build note. R15: a mutation that reports headroom from the ceiling alone (ignoring the measured duration) must kill a named test.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 144,
+      "stall_consecutive_unchanged": 162,
       "forward_attachments": []
     },
     {
@@ -5365,7 +5416,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50,
+      "stall_consecutive_unchanged": 77,
       "forward_attachments": []
     },
     {
@@ -5467,9 +5518,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5479,9 +5530,57 @@
         "H_GAP_fabric_belief_truth_gap"
       ],
       "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 31,
+      "forward_attachments": []
+    },
+    {
+      "id": "H38_the_behavioural_stream_still_carries_the_water_heater",
+      "name": "MINTED FROM the first finding in the H36 section of docs/design/BAND_NULL_SWEEP.md (2026-08-10), which carries the per-home decomposition (P0008 0.1423 -> 0.2048, P0020 0.1526 -> 0.2177, P0033 0.1653 -> 0.2434) and the open FAIL it dispositions.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H36_the_texture_floor_is_one_number_for_every_home_size"
+      ],
+      "couples_with": [
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
+      "forward_attachments": []
+    },
+    {
+      "id": "H39_the_texture_floor_sits_inside_the_spread_of_its_own_null",
+      "name": "MINTED FROM the second finding in the H36 section of docs/design/BAND_NULL_SWEEP.md (2026-08-10). Candidate named there and NOT as the answer: the L1.4->L1.4n / L2.3->L2.3n own-null-ratio pattern. NEVER a threshold move -- raising the floor until it clears its null is R12 read backwards.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H36_the_texture_floor_is_one_number_for_every_home_size"
+      ],
+      "couples_with": [
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 18,
+      "stall_consecutive_unchanged": 22,
       "forward_attachments": []
     },
     {
@@ -5547,11 +5646,11 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 44,
       "forward_attachments": []
     },
     {
-      "id": "H38_full_suite_pollution_bisect",
+      "id": "H40_full_suite_pollution_bisect",
       "name": "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09 (granted memory-aware: sim-runner stopped for full-suite runs, defer over collide).",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
@@ -5651,7 +5750,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 256,
+  "total_atoms": 260,
   "epoch2_movements": [
     {
       "id": "M1",

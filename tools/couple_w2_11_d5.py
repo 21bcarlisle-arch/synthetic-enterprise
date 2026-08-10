@@ -131,6 +131,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import random
 import subprocess
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, Dict, List, Optional, Tuple
@@ -797,6 +798,219 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# THE AGGREGATE-SCORING CLASS (2026-08-10, H27 Expert-Hour pass #3, atom D19)
+# ---------------------------------------------------------------------------
+# THE CLASS: a dimension scored on POPULATION AGGREGATES is blind to per-case
+# assignment. The company gets the MIX right and every INDIVIDUAL wrong, and the
+# published number does not move. `DETECTION_DIRECTION_CONTRACT` above swept the
+# four DETECTION dimensions for their degenerate (flag EVERYTHING); it is keyed
+# to detection scorers, so the BELIEF dimension -- a total-variation distance
+# between two severity distributions -- was never swept, and carries the same
+# shape with a different degenerate strategy.
+#
+# Measured, seed 7 at n=600: permuting the company's per-case severity beliefs
+# among cases takes per-case agreement 0.9300 -> 0.6333 and moves the published
+# belief gap 0.0700 -> 0.0700, identical to machine precision. Seeds 11 and 23
+# agree. What made it invisible is that on this book the company's errors run
+# ONE WAY (it under-calls severity), and on a one-directional book TV is
+# arithmetically EQUAL to the per-case disagreement rate -- 0.0700/0.0700,
+# 0.1033/0.1033, 0.0733/0.0733. The number reads as a per-case error rate and
+# numerically IS one here, while being a quantity a permutation leaves alone.
+#
+# DIFFERENTIAL ON PURPOSE, the DIMENSION_AS_OF_CONTRACT lesson: a blanket "no
+# dimension may be permutation-invariant" would fire on `belief` as a DESIGN
+# FACT rather than a defect (a distribution distance is supposed to be a
+# distribution distance) and on nothing else usefully. What the control asserts
+# is the DECLARATION: a dimension declared per-case-sensitive must really move
+# under a permutation, and one declared aggregate-only must really not -- and
+# must carry a live `witness_key` naming where a reader finds the direction it
+# cannot see. A register entry is a claim the control puts on trial.
+AGGREGATE_SCORING_CONTRACT: Dict[str, Dict[str, object]] = {
+    "belief": {
+        "is_aggregate_only": True,
+        "scorer": "background.gap_metric.belief_gap",
+        "witness_key": "per_case_disagreement_rate",
+        "why": (
+            "DESIGN FACT, now DECLARED and WITNESSED rather than assumed "
+            "obvious (2026-08-10, H27 Expert-Hour #3). TV between two severity "
+            "distributions cannot see which account holds which label; the "
+            "degenerate here is 'right mix, every individual wrong'. The "
+            "caveat is stamped AT SOURCE in gap_metric.belief_gap so it "
+            "reaches all three pairs that call it (W2_11<->D5, W2_4<->C6, "
+            "couple_cohort), and the per-case witness now rides beside the "
+            "score. Giving the dimension a per-case SHAPE moves a published "
+            "number on all three and is atom D19, not this tick (R12)."
+        ),
+        "debt_atom": "D19_belief_gap_is_distribution_only",
+    },
+    "ageing": {
+        "is_aggregate_only": False,
+        "scorer": "background.gap_metric.ageing_gap",
+        "witness_key": None,
+        "why": (
+            "PER-CASE by construction: `ageing_gap` walks truth and belief "
+            "bucket labels PAIRWISE per invoice and scores the bucket "
+            "DISTANCE, so a permutation really does move it. This entry is "
+            "what makes the control differential rather than a blanket ban -- "
+            "it is the side that must FAIL if the permutation probe is inert."
+        ),
+        "debt_atom": None,
+    },
+    "detection": {
+        "is_aggregate_only": False,
+        "scorer": "background.gap_metric.detection_measures",
+        "witness_key": None,
+        "why": (
+            "PER-CASE: scored on SET MEMBERSHIP (truth_set vs flagged_set over "
+            "(customer, period) keys), so moving a flag from one case to "
+            "another changes both direction rates. Its own degenerate is the "
+            "flag-EVERYTHING strategy, swept by "
+            "DETECTION_DIRECTION_CONTRACT above -- a different blindness, "
+            "which is why it needs an entry in BOTH registers."
+        ),
+        "debt_atom": None,
+    },
+}
+
+
+def _belief_permutation_note(bel: GapResult) -> str:
+    """The published caveat, with its numbers INTERPOLATED FROM THE MEASUREMENT
+    rather than typed into a sentence once and left to rot (the D11/D16
+    precedent -- a hand-typed witness is a claim about a run that has already
+    ended).
+    """
+    c = bel.components
+    rate, n, wrong = (c.get("per_case_disagreement_rate"),
+                      c.get("n_cases"), c.get("n_cases_misassigned"))
+    if rate is None:
+        return (
+            "PERMUTATION-INVARIANT and the per-case witness is UNAVAILABLE on "
+            "this call, so how much per-case error this number hides is "
+            "UNKNOWN -- never read as none (atom "
+            "D19_belief_gap_is_distribution_only)."
+        )
+    return (
+        "PERMUTATION-INVARIANT: this compares POPULATION DISTRIBUTIONS, so "
+        "permuting which account holds which severity belief moves it by "
+        f"exactly zero. Beside it, the direction it cannot see: {wrong} of "
+        f"{n} cases carry the wrong severity label per-case "
+        f"(disagreement {rate:.4f}). Where the company's errors run ONE WAY, "
+        "as they do here (it under-calls severity), TV happens to EQUAL that "
+        "per-case rate -- a coincidence of the error direction, not the "
+        "quantity being measured. Reshape is atom "
+        "D19_belief_gap_is_distribution_only (R12: it moves a published "
+        "number on all three pairs calling belief_gap)."
+    )
+
+
+def permute_belief_labels(labels: List[str], seed: int = 1) -> List[str]:
+    """The probe the control rests on: a DERANGEMENT-flavoured shuffle of the
+    company's per-case labels.
+
+    It preserves the label MULTISET exactly -- so every population aggregate
+    built from it is byte-identical -- while moving which case holds which
+    label. That is precisely the difference an aggregate-only dimension cannot
+    see, and a per-case one must.
+
+    A plain shuffle is used rather than a strict derangement because a strict
+    derangement over a heavily-skewed label multiset (this book is ~74%
+    `normal`) is not achievable case-by-case anyway; what the control needs is
+    that per-case agreement genuinely FALLS, which the vacuity guard asserts
+    rather than assumes.
+    """
+    out = list(labels)
+    random.Random(seed).shuffle(out)
+    return out
+
+
+def measure_permutation_sensitivity(
+    result: Dict[str, object],
+    contract: Optional[Dict[str, Dict[str, object]]] = None,
+    seed: int = 1,
+) -> Dict[str, Dict[str, object]]:
+    """MEASURE the AGGREGATE_SCORING_CONTRACT rather than trust it: for every
+    declared dimension, actually permute the company's per-case labels, re-score
+    through THAT DIMENSION'S OWN SCORER, and report whether the gap moved.
+
+    Returns {dimension: {"declared_aggregate_only", "gap_before", "gap_after",
+    "gap_moved", "agreement_before", "agreement_after", "probe_bit"}}.
+
+    `probe_bit` is the VACUITY guard: the permutation must actually have changed
+    per-case assignment for this dimension (agreement fell). A probe that moved
+    nothing proves nothing in EITHER direction -- it would hand a silent pass to
+    an aggregate-only claim and a silent failure to a per-case one.
+    """
+    contract = AGGREGATE_SCORING_CONTRACT if contract is None else contract
+    labels = result.get("labels") or {}
+    out: Dict[str, Dict[str, object]] = {}
+
+    for dim, decl in contract.items():
+        true_l = labels.get(f"{dim}_truth")
+        bel_l = labels.get(f"{dim}_belief")
+        if true_l is None or bel_l is None:
+            raise ValueError(
+                f"AGGREGATE_SCORING_CONTRACT declares '{dim}' but score_triad "
+                f"published no per-case labels for it -- the control cannot be "
+                f"run on a declaration it cannot reach"
+            )
+        permuted = permute_belief_labels(list(bel_l), seed=seed)
+        agree_before = sum(1 for a, b in zip(true_l, bel_l) if a == b)
+        agree_after = sum(1 for a, b in zip(true_l, permuted) if a == b)
+        n = len(true_l) or 1
+
+        before = _rescore_dimension(dim, list(true_l), list(bel_l), result)
+        after = _rescore_dimension(dim, list(true_l), permuted, result)
+
+        out[dim] = {
+            "declared_aggregate_only": bool(decl["is_aggregate_only"]),
+            "gap_before": before,
+            "gap_after": after,
+            "gap_moved": (before is not None and after is not None
+                          and abs(before - after) > 1e-12),
+            "agreement_before": round(agree_before / n, 6),
+            "agreement_after": round(agree_after / n, 6),
+            "probe_bit": agree_after < agree_before,
+        }
+    return out
+
+
+def _rescore_dimension(dim: str, true_l: List[str], bel_l: List[str],
+                       result: Dict[str, object]) -> Optional[float]:
+    """Re-score ONE dimension from per-case labels through its own scorer.
+
+    Detection is scored on SET MEMBERSHIP, not label sequences, so its labels
+    are the per-case flagged/true booleans rendered as labels and rebuilt into
+    sets here -- the same scorer the headline uses, never a second copy of the
+    formula (R15 independence).
+    """
+    if dim == "belief":
+        return belief_gap(_severity_distribution(true_l),
+                          _severity_distribution(bel_l)).gap
+    if dim == "ageing":
+        # THE D16 EXCLUSION MASK IS CARRIED, not dropped. Re-scoring without it
+        # would make `gap_before` a number the instrument never published, so
+        # "the gap moved" would be measuring the mask's removal as well as the
+        # permutation. The mask is derived from TRUTH and stays aligned to the
+        # case order under a belief-side permutation.
+        ai = result.get("ageing_inputs") or {}
+        return ageing_gap(true_l, bel_l, excluded=ai.get("excluded"),
+                          exclusion_reason=AGEING_EXCLUSION_REASON.format(
+                              grace=DEFAULT_RECONCILIATION_GRACE_DAYS)).gap
+    if dim == "detection":
+        keys = (result.get("labels") or {}).get("detection_keys") or []
+        truth_set = {k for k, lab in zip(keys, true_l) if lab == "positive"}
+        flagged_set = {k for k, lab in zip(keys, bel_l) if lab == "positive"}
+        universe = set(keys)
+        negatives = (result.get("labels") or {}).get("detection_negatives")
+        if not truth_set or not negatives:
+            return None
+        return detection_measures(
+            truth_set, flagged_set, universe=universe,
+            negative_set=set(negatives),
+            exclusion_reason="permutation probe: the headline's own band",
+        ).gap
+    raise ValueError(f"no rescorer for declared dimension '{dim}'")
 
 
 def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, object]:
@@ -1178,12 +1392,19 @@ def score_triad(
     bel = belief_gap(
         _severity_distribution(true_severity_labels),
         _severity_distribution(belief_severity_labels),
+        # THE PER-CASE WITNESS (atom D19). These are the SAME two label lists
+        # the two distributions above are built from, in the same case order,
+        # so the direction the distribution distance is blind to travels with
+        # the headline instead of needing a reader to go and compute it.
+        truth_labels=true_severity_labels,
+        belief_labels=belief_severity_labels,
     )
     bel.note = (
         "population TV distance between the TRUE arrears-severity distribution "
         "(all-channel unresolved-failure count) and D5's own arrears_risk_belief "
         "distribution (DD/rail-observed count only) -- same threshold shape, "
-        "different-coverage inputs."
+        "different-coverage inputs. "
+        + _belief_permutation_note(bel)
     )
 
     age = ageing_gap(
@@ -1421,9 +1642,37 @@ def score_triad(
         "excluded": ageing_excluded,
         "case_keys": ageing_case_keys,
     }
+    # THE PER-CASE LABELS, published for the AGGREGATE_SCORING_CONTROL (atom
+    # D19). Same reason `sets` and `ageing_inputs` are published: the control
+    # permutes these and re-scores through the dimensions' OWN scorers, so it
+    # is measuring the shipped instrument rather than a copy of it (R15
+    # independence). Detection is scored on SET MEMBERSHIP, so its per-case
+    # form is rendered here on ONE shared key order -- the same `universe`
+    # ordering for truth and belief alike, or a permutation of one would be
+    # scored against a different case list.
+    _det_keys = sorted(universe)
+    labels = {
+        "belief_truth": true_severity_labels,
+        "belief_belief": belief_severity_labels,
+        "ageing_truth": true_ageing_labels,
+        "ageing_belief": belief_ageing_labels,
+        "detection_keys": _det_keys,
+        # ONE SHARED VOCABULARY for truth and belief. Rendering these as
+        # failed/ok against flagged/clear would make per-case agreement 0 on
+        # EVERY case by construction, so the probe's vacuity guard could never
+        # be satisfied and the dimension would be silently unprobed -- the
+        # `probe_bit` would report "the permutation changed nothing" when what
+        # it really meant was "these two label sets never agree in the first
+        # place". Caught by the guard on its first run.
+        "detection_truth": ["positive" if k in truth_set else "negative"
+                            for k in _det_keys],
+        "detection_belief": ["positive" if k in flagged_set else "negative"
+                             for k in _det_keys],
+        "detection_negatives": never_flaggable,
+    }
     return {"detection": det, "detection_latency": lat, "belief": bel, "ageing": age,
             "stats": stats, "notes": notes, "sets": sets,
-            "ageing_inputs": ageing_inputs}
+            "ageing_inputs": ageing_inputs, "labels": labels}
 
 
 # UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
@@ -1709,6 +1958,18 @@ def main() -> None:
           f"(both degenerate strategies -- flag nobody AND flag everything)")
     r_bel: GapResult = result["belief"]
     print(f"  [belief] raw_gap={r_bel.raw_gap:.4f}  g0={r_bel.g0:.4f}  GAP={r_bel.gap}")
+    print(f"           {_belief_permutation_note(r_bel)}")
+    # THE PERMUTATION CONTROL, printed every run rather than living only in the
+    # test suite: a limit a reader has to go looking for is one they will read
+    # past. Each row is the DECLARATION put on trial against a measurement.
+    print("  [aggregate-scoring control] permute the company's per-case labels:")
+    for dim, v in measure_permutation_sensitivity(result).items():
+        verdict = ("BLIND to per-case assignment (declared, atom D19)"
+                   if v["declared_aggregate_only"] else "per-case sensitive")
+        print(f"           {dim:<10} agreement {v['agreement_before']:.4f} -> "
+              f"{v['agreement_after']:.4f}, gap {v['gap_before']:.4f} -> "
+              f"{v['gap_after']:.4f} ({'moved' if v['gap_moved'] else 'UNMOVED'})"
+              f" -- {verdict}")
     # Ageing is NOT a g0-normalised score (D7) -- printing it in the same
     # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
     # read as one. Its three measures print with their units instead.

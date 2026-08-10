@@ -2001,3 +2001,173 @@ def test_the_pair_reexports_the_class_register_it_does_not_copy_it():
 
     assert pair.SHARED_QUANTITY_CONTRACT is reg.SHARED_QUANTITY_CONTRACT
     assert pair.shared_quantity_measurements is reg.shared_quantity_measurements
+
+
+# ===========================================================================
+# THE AGGREGATE-SCORING CLASS (atom D19, H27 Expert-Hour pass #3, 2026-08-10)
+#
+# The class the four DETECTION registers never swept: a dimension scored on
+# POPULATION AGGREGATES is blind to per-case assignment. `belief` is a total-
+# variation distance between two severity distributions, so a company that gets
+# the population MIX right and every INDIVIDUAL wrong scores exactly what the
+# real company scores.
+#
+# These are MEASUREMENT tests, not declaration-reading tests: each one actually
+# permutes the company's per-case labels and re-scores through the dimension's
+# OWN shipped scorer. R15 independence -- a test carrying its own copy of the
+# TV formula could not fail if the shipped one changed.
+# ===========================================================================
+
+def test_the_belief_gap_is_blind_to_per_case_assignment():
+    """THE DEFECT, measured rather than reasoned about. Destroy the company's
+    per-case accuracy while leaving the label multiset alone; the published
+    number must not move a bit -- that is what makes it a limit worth printing.
+
+    This test PASSES on the defect deliberately: D19 carries the reshape (it
+    moves a published number on three pairs, R12). What must never regress is
+    that the blindness is MEASURED and DECLARED rather than assumed obvious.
+    """
+    result = _scored()
+    report = pair.measure_permutation_sensitivity(result)
+    bel = report["belief"]
+
+    # VACUITY GUARD FIRST. A permutation that changed no per-case assignment
+    # would make "the gap did not move" prove exactly nothing.
+    assert bel["probe_bit"], (
+        "the permutation did not reduce per-case agreement at all, so this "
+        "control is vacuous -- it would pass on a dimension that IS per-case"
+    )
+    assert bel["agreement_before"] - bel["agreement_after"] > 0.10, (
+        "the probe barely moved per-case assignment; a near-identity "
+        "permutation cannot distinguish blind from sensitive"
+    )
+
+    assert bel["gap_after"] == bel["gap_before"], (
+        "the belief gap moved under a pure permutation -- if that is a real "
+        "change the AGGREGATE_SCORING_CONTRACT declaration is now wrong"
+    )
+    assert not bel["gap_moved"]
+
+
+def test_the_aggregate_scoring_contract_is_differential_not_a_blanket_ban():
+    """The DIMENSION_AS_OF_CONTRACT lesson, applied: a blanket rule that fired
+    on every dimension would jam the gate and teach everyone to skip it. Both
+    sides of the differential must be genuinely exercised -- an aggregate-only
+    dimension that really does not move, AND per-case dimensions that really
+    do."""
+    result = _scored()
+    report = pair.measure_permutation_sensitivity(result)
+
+    assert set(report) == {"belief", "ageing", "detection"}, (
+        "a scored dimension was added or renamed without an aggregate-scoring "
+        "declaration -- no published number escapes this control"
+    )
+
+    blind = {d for d, v in report.items() if v["declared_aggregate_only"]}
+    sensitive = set(report) - blind
+    assert blind and sensitive, (
+        "the control is not differential: every dimension landed on one side, "
+        "so it is a blanket rule wearing a register's clothes"
+    )
+
+    for dim, v in report.items():
+        assert v["probe_bit"], f"{dim}: permutation probe was inert (vacuous)"
+        assert v["gap_moved"] is not v["declared_aggregate_only"], (
+            f"{dim}: AGGREGATE_SCORING_CONTRACT declares "
+            f"is_aggregate_only={v['declared_aggregate_only']} but the measured "
+            f"gap {'moved' if v['gap_moved'] else 'did not move'} "
+            f"({v['gap_before']} -> {v['gap_after']})"
+        )
+
+
+def test_the_rescored_before_value_is_the_published_one():
+    """R15 independence/tautology guard. If the control's `gap_before` were its
+    own re-derivation rather than the shipped scorer's answer, it could agree
+    with itself while the published number said something else -- and this whole
+    control would be measuring a copy. Every dimension's unpermuted rescore must
+    reproduce the headline exactly."""
+    result = _scored()
+    report = pair.measure_permutation_sensitivity(result)
+    for dim in report:
+        assert report[dim]["gap_before"] == result[dim].gap, (
+            f"{dim}: the control's rescore ({report[dim]['gap_before']}) is not "
+            f"the published gap ({result[dim].gap}) -- it is scoring a copy"
+        )
+
+
+def test_a_lying_aggregate_declaration_fails_the_control():
+    """R15, mutating the SOURCE register rather than the test's own copy: flip
+    each declaration in turn and the control must catch every one."""
+    result = _scored()
+
+    for dim in ("belief", "ageing", "detection"):
+        lying = {k: dict(v) for k, v in pair.AGGREGATE_SCORING_CONTRACT.items()}
+        lying[dim]["is_aggregate_only"] = not lying[dim]["is_aggregate_only"]
+        report = pair.measure_permutation_sensitivity(result, contract=lying)
+        v = report[dim]
+        assert v["gap_moved"] is v["declared_aggregate_only"], (
+            f"{dim}: the declaration was inverted and the control did not "
+            f"notice -- it cannot fail on a false claim"
+        )
+
+
+def test_a_declared_dimension_with_no_labels_raises_rather_than_skipping():
+    """FAIL-SILENT is the killer pattern here: a dimension whose labels the
+    scorer stopped publishing would silently drop OUT of the sweep, and a
+    register with an unreachable entry reads exactly like a clean one."""
+    result = _scored()
+    stripped = dict(result)
+    stripped["labels"] = {
+        k: v for k, v in result["labels"].items()
+        if not k.startswith("belief_")
+    }
+    with pytest.raises(ValueError, match="published no per-case labels"):
+        pair.measure_permutation_sensitivity(stripped)
+
+
+def test_the_per_case_witness_rides_beside_the_belief_score():
+    """The direction the distance cannot see must travel WITH the headline, at
+    source, so it lands on all three pairs calling `belief_gap` rather than only
+    where the defect was found."""
+    result = _scored()
+    c = result["belief"].components
+
+    assert c["permutation_invariant"] is True
+    assert c["n_cases"] == len(result["labels"]["belief_truth"])
+    assert 0.0 <= c["per_case_disagreement_rate"] <= 1.0
+    assert c["n_cases_misassigned"] == sum(
+        1 for a, b in zip(result["labels"]["belief_truth"],
+                          result["labels"]["belief_belief"]) if a != b)
+
+    # The caveat is stamped at SOURCE, not typed into this pair's note.
+    from background.gap_metric import BELIEF_GAP_PERMUTATION_CAVEAT
+    assert BELIEF_GAP_PERMUTATION_CAVEAT in result["belief"].baseline
+    # ...and the published note interpolates the witness FROM the measurement,
+    # so it cannot rot into a claim about a run that has already ended.
+    assert str(c["n_cases_misassigned"]) in result["belief"].note
+    assert "PERMUTATION-INVARIANT" in result["belief"].note
+
+
+def test_an_unavailable_per_case_witness_is_none_never_zero():
+    """A caller that cannot supply per-case labels must get `None`, never 0 --
+    a 0 there is the strongest possible claim ('the company got every case
+    right') handed out for free to a caller that simply did not measure. The
+    two other pairs calling `belief_gap` are exactly such callers today."""
+    r = belief_gap([0.5, 0.3, 0.2], [0.4, 0.4, 0.2])
+    assert r.components["per_case_disagreement_rate"] is None
+    assert r.components["n_cases"] is None
+    assert r.components["permutation_invariant"] is True
+    assert "UNKNOWN" in pair._belief_permutation_note(r)
+
+    # An empty population is not a perfect one either.
+    empty = belief_gap([0.5, 0.5], [0.5, 0.5], truth_labels=[], belief_labels=[])
+    assert empty.components["n_cases"] == 0
+    assert empty.components["per_case_disagreement_rate"] is None
+
+
+def test_mismatched_label_populations_raise_rather_than_zip_short():
+    """`zip` truncates silently, which would score the company on a prefix of
+    its own book and report a confident rate over the wrong denominator."""
+    with pytest.raises(ValueError, match="not the same population"):
+        belief_gap([0.5, 0.5], [0.5, 0.5],
+                   truth_labels=["a", "b", "a"], belief_labels=["a", "b"])

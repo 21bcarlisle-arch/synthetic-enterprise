@@ -61,7 +61,7 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Mapping, Optional, Sequence
+from typing import Dict, Iterable, Mapping, Optional, Sequence
 
 from background.coupled_triad import GAP_LEDGER_PATH
 
@@ -298,8 +298,78 @@ def _check_distribution(v: Sequence[float], name: str) -> None:
         raise ValueError(f"{name}: does not sum to 1 (sum={s:g})")
 
 
+# BELIEF_GAP_IS_PERMUTATION_INVARIANT (2026-08-10, H27 Expert-Hour pass #3).
+# This gap compares two POPULATION DISTRIBUTIONS, so it is blind to WHICH case
+# holds which label. Permuting the company's per-case beliefs among cases --
+# destroying every correct per-case assignment while leaving the label multiset
+# alone -- moves this number by EXACTLY ZERO. Measured on the W2_11<->D5
+# payment triad, seeds 7/11/23 at n=600: per-case agreement 0.9300 -> 0.6333,
+# published gap 0.0700 -> 0.0700 (identical to machine precision, all three).
+#
+# WHY IT HID FOR SO LONG, and the reason this caveat is stamped rather than
+# assumed obvious: on a book where the company's errors run ONE WAY (the
+# payment triad under-calls severity -- normal 443->485, watch 114->87,
+# high 36->25), TV is ARITHMETICALLY EQUAL to the per-case disagreement rate.
+# Seed 7: gap 0.0700, disagreement 0.0700. Seed 11: 0.1033 / 0.1033. Seed 23:
+# 0.0733 / 0.0733. The number therefore READS as a per-case error rate, and
+# happens to equal one, while being a different quantity that a permutation
+# leaves untouched. Equality on today's population is a coincidence of the
+# error direction, not a property of the metric.
+#
+# This is the same DUAL-DEGENERATE class D11/D12/D14/D15 closed across the
+# four DETECTION dimensions; those registers cover detection scorers only, so
+# the belief dimension was never swept. Here the degenerate strategy is not
+# "flag everything" but "get the MIX right and every individual wrong".
+#
+# NOT FIXED HERE, and deliberately (R12): giving this dimension a per-case
+# shape moves a published number on all three pairs that call it
+# (W2_11<->D5, W2_4<->C6, couple_cohort). That reshape is atom
+# D19_belief_gap_is_distribution_only. What lands here is the caveat at
+# SOURCE -- so it reaches all three -- and the per-case witness riding beside
+# the score wherever a caller can supply the labels.
+BELIEF_GAP_PERMUTATION_CAVEAT = (
+    "PERMUTATION-INVARIANT: this is a distance between POPULATION "
+    "DISTRIBUTIONS, so it is blind to which case holds which label -- a "
+    "company that gets the population MIX right and every INDIVIDUAL wrong "
+    "scores exactly what the real company scores. Where the company's errors "
+    "run one way it also happens to EQUAL the per-case disagreement rate, "
+    "which is a coincidence of the error direction, not the quantity. Read "
+    "`per_case_disagreement_rate` beside it (atom "
+    "D19_belief_gap_is_distribution_only)."
+)
+
+
+def _per_case_witness(truth_labels: Optional[Sequence],
+                      belief_labels: Optional[Sequence]) -> Dict[str, object]:
+    """The direction the distribution distance cannot see: how often the
+    company put the RIGHT label on the RIGHT case.
+
+    `None`, never 0, when the caller cannot supply per-case labels -- a 0 here
+    would be the strongest possible claim ("the company got every case right")
+    handed out for free to a caller that simply did not measure (the D11 rule
+    for `false_flag_rate`, applied to the same failure shape).
+    """
+    if truth_labels is None or belief_labels is None:
+        return {"n_cases": None, "n_cases_misassigned": None,
+                "per_case_disagreement_rate": None}
+    t, b = list(truth_labels), list(belief_labels)
+    if len(t) != len(b):
+        raise ValueError(
+            f"per-case witness: truth_labels ({len(t)}) and belief_labels "
+            f"({len(b)}) are not the same population")
+    if not t:
+        # A vacuous population is not a perfect one.
+        return {"n_cases": 0, "n_cases_misassigned": None,
+                "per_case_disagreement_rate": None}
+    wrong = sum(1 for x, y in zip(t, b) if x != y)
+    return {"n_cases": len(t), "n_cases_misassigned": wrong,
+            "per_case_disagreement_rate": round(wrong / len(t), 6)}
+
+
 def belief_gap(truth: Sequence[float], belief: Sequence[float],
-               prior: Optional[Sequence[float]] = None) -> GapResult:
+               prior: Optional[Sequence[float]] = None,
+               truth_labels: Optional[Sequence] = None,
+               belief_labels: Optional[Sequence] = None) -> GapResult:
     """Belief-error gap (formula c): total-variation distance between the SIM's
     true segment/budget distribution `truth` and the company's inferred
     distribution `belief`.
@@ -308,27 +378,41 @@ def belief_gap(truth: Sequence[float], belief: Sequence[float],
     assume with zero book-specific info) is given, the gap is normalised
     TV(truth,belief)/TV(truth,prior) for cross-pair comparability (raw TV kept in
     components). Without a prior, the gap IS the raw TV (design 1.4c).
+
+    `truth_labels`/`belief_labels` are the OPTIONAL per-case labels the two
+    distributions were built from, in the same case order. When supplied, the
+    per-case witness this gap is structurally blind to
+    (`per_case_disagreement_rate`) rides beside the score -- see
+    `BELIEF_GAP_PERMUTATION_CAVEAT` for why it is needed and why the headline
+    is not being reshaped here.
     """
     _check_distribution(truth, "truth")
     _check_distribution(belief, "belief")
     raw_tv = _tv(truth, belief)
+    witness = _per_case_witness(truth_labels, belief_labels)
 
     if prior is None:
         # TV is self-normalised; g0 is the [0,1] ceiling.
         return GapResult(
             metric="belief", gap=raw_tv, raw_gap=raw_tv, g0=1.0,
-            baseline="total-variation distance (self-normalised to [0,1])",
-            components={"tv": round(raw_tv, 6)},
-            note="TV(belief, truth); no blind prior supplied, gap = raw TV",
+            baseline=("total-variation distance (self-normalised to [0,1]); "
+                      + BELIEF_GAP_PERMUTATION_CAVEAT),
+            components={"tv": round(raw_tv, 6),
+                        "permutation_invariant": True, **witness},
+            note=("TV(belief, truth); no blind prior supplied, gap = raw TV. "
+                  + BELIEF_GAP_PERMUTATION_CAVEAT),
         )
 
     _check_distribution(prior, "prior")
     g0 = _tv(truth, prior)
-    baseline = "TV(truth, national/blind prior) -- the no-book-info belief"
+    baseline = ("TV(truth, national/blind prior) -- the no-book-info belief; "
+                + BELIEF_GAP_PERMUTATION_CAVEAT)
     return _normalise(
         raw_tv, g0, baseline, "belief",
-        components={"tv": round(raw_tv, 6), "tv_prior": round(g0, 6)},
-        note="belief-error normalised to the blind-prior TV",
+        components={"tv": round(raw_tv, 6), "tv_prior": round(g0, 6),
+                    "permutation_invariant": True, **witness},
+        note=("belief-error normalised to the blind-prior TV. "
+              + BELIEF_GAP_PERMUTATION_CAVEAT),
     )
 
 
