@@ -18,6 +18,33 @@ DONE_DIR = STAGING_DIR / "done"
 LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
+# THE ONE PLACE THE `.last_tested_hash` CONTRACT IS STATED (OPS2, 2026-08-10). It had two
+# readers inferring the semantics from each other's call sites, which is how a cross-check
+# quietly stops being independent.
+LAST_TESTED_HASH_CONTRACT = """\
+`.last_tested_hash` holds ONE line: the 40-char (or abbreviated) SHA of the commit the publish
+gate last ran to GREEN.
+
+WRITTEN by exactly one writer, `_run_gate_in`, and only when the suite returned rc=0. Never on a
+red, never on a timeout, never on an unavailable checkout -- `test_a_timed_out_gate_blocks_the_
+publish` pins the timeout case, because a gate that did not finish must not leave a claim that it
+passed. It is therefore a claim about COMMITTED TRUTH, not about the working tree: since
+DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 the gate's subject is a clean checkout of that
+SHA, so "the tree happened to be green while N lanes were mid-edit" is no longer expressible here.
+
+READ by two consumers, for two different questions:
+  * `run_fast_tests` -- SKIP: this same SHA already passed, so do not re-run the suite. Safe
+    precisely because the subject is the SHA and nothing else.
+  * `supervisor.py::_publish_gate_wedge_draw` -- INDEPENDENCE: the wedge state file says the gate
+    has been failing; if `.last_tested_hash` equals current HEAD then those failures are STALE
+    (a later cycle passed at HEAD) and no wedge work is drawn. The independence only holds while
+    this file is written from the gate's own return code and the state file from the publish
+    OUTCOME record -- two sources, one check. Anything that stamps this file without a green
+    suite collapses that into a tautology and blinds the wedge draw.
+
+Absent/unreadable means "no green is claimed": the gate runs, and the wedge draw treats the
+cross-check as unavailable rather than as a pass. Both directions are the fail-safe one.
+"""
 LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
 RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
 # EX_TEMPFAIL. A lock-skip ("another instance already holds the run lock") is
@@ -844,12 +871,7 @@ def run_fast_tests(git_hash: str):
         # box, not the tree. Only the CODE under test moves to HEAD.
         with _head_checkout() as head_dir:
             if head_dir is None:
-                # R15: an unavailable check is a FAILED check. If committed truth cannot be
-                # materialised there is nothing legitimate to test, so do not publish.
-                log("Publish gate: could NOT materialise a clean HEAD checkout -- not committing. "
-                    "R15: the gate's subject is committed truth; if it cannot be produced, the "
-                    "gate has not run.")
-                return False, False
+                return _checkout_unavailable_verdict()
             _repair_derived_artefacts_in(head_dir)
             return _run_gate_in(head_dir, full_env, git_hash)
     except subprocess.TimeoutExpired:
@@ -935,15 +957,225 @@ def _free_mb(path):
         return None
 
 
+# ── THE CHECKOUT IS REUSED BETWEEN CYCLES (OPS2_publish_gate_head_worktree, 2026-08-10) ──────
+#
+# The minimal implementation extracted HEAD into a fresh `mkdtemp` every cycle. Extraction is
+# cheap (0.46s) but a fresh tree has no `__pycache__`, so ~3,000 modules plus every test module's
+# pytest-rewritten bytecode compiled COLD on every publish cycle -- a permanent per-cycle tax,
+# not a one-off (the first clean-checkout run was still at 41% at 11 minutes against an in-tree
+# suite of 10m33s). Measured both sides after this change: see the atom record in
+# docs/design/OPS2_PUBLISH_GATE_HEAD_CHECKOUT.md.
+#
+# SO: one directory, refreshed IN PLACE to the new SHA (`read-tree -u --reset` + `git clean`
+# keeping bytecode), not recreated. Still not `git worktree add`: that registers state in the
+# real repo which survives a SIGKILL (rc=-9 is a known gate outcome), and the whole point of the
+# archive form is that deleting the directory deletes every trace.
+#
+# THE THREE LIFECYCLE HAZARDS A REUSED DIRECTORY INTRODUCES, each closed here rather than left
+# to convention:
+#   * TWO PUBLISHERS -- a second gate refreshing the tree under a running suite would corrupt
+#     both. An `flock` makes the reuse exclusive; a publisher that cannot take it falls back to
+#     a throwaway checkout (slower, cold, correct) rather than waiting or sharing.
+#   * TEST DEBRIS -- files a suite writes into the checkout would otherwise accumulate and make
+#     the gate non-hermetic (cycle N's leftovers judging cycle N+1). `git clean -xdf` at refresh
+#     removes everything not in HEAD except the bytecode and the DATA overlay.
+#   * CRASH -- `finally:` does not run under SIGKILL. The reused directory is safe by
+#     construction (there is one, and the next cycle reuses it), but throwaway dirs from the old
+#     form and from fallback cycles do leak, so every cycle sweeps stale ones BEFORE the disk
+#     pre-flight -- which makes the third wedge's exhausted-tmpfs failure self-healing.
+HEAD_CHECKOUT_ROOT = Path(tempfile.gettempdir())
+HEAD_CHECKOUT_PREFIX = "publish-gate-head-"
+REUSED_HEAD_CHECKOUT_NAME = HEAD_CHECKOUT_PREFIX + "reused"
+REUSED_HEAD_CHECKOUT_LOCK_NAME = REUSED_HEAD_CHECKOUT_NAME + ".lock"
+# (REUSED_CHECKOUT_KEEP is defined with UNTRACKED_DATA_OVERLAY below, which it extends.)
+# A throwaway checkout older than this was abandoned by a killed process. The bound is well
+# clear of GATE_SUITE_TIMEOUT_SECONDS so a LIVE fallback checkout can never be swept out from
+# under its own suite.
+STALE_HEAD_CHECKOUT_AGE_SECONDS = 3 * 3600
+
+
+def _sweep_stale_head_checkouts(now=None):
+    """Delete abandoned publish-gate checkouts. Returns the number removed.
+
+    `finally:` does not run when the gate is SIGKILLed (rc=-9 is a known outcome and the OOM
+    killer is the known cause), so leaked 130MB directories are expected, not hypothetical --
+    4.4GB of them exhausted the tmpfs on 2026-08-09 and wedged publishing with a message about
+    git. Never raises: a sweep that fails must cost space, never a publish."""
+    now = time.time() if now is None else now
+    removed = 0
+    try:
+        candidates = sorted(HEAD_CHECKOUT_ROOT.glob(HEAD_CHECKOUT_PREFIX + "*"))
+    except OSError:
+        return 0
+    for path in candidates:
+        if path.name in (REUSED_HEAD_CHECKOUT_NAME, REUSED_HEAD_CHECKOUT_LOCK_NAME):
+            continue
+        try:
+            if not path.is_dir() or now - path.stat().st_mtime < STALE_HEAD_CHECKOUT_AGE_SECONDS:
+                continue
+            shutil.rmtree(path, ignore_errors=True)
+            removed += 1
+        except OSError:
+            continue
+    if removed:
+        log("Publish gate: swept {} abandoned HEAD checkout(s) from {} -- these are the debris "
+            "of runs that were killed before their cleanup could run.".format(
+                removed, HEAD_CHECKOUT_ROOT))
+    return removed
+
+
+@contextmanager
+def _reused_checkout_lock():
+    """Hold the reused checkout exclusively for this cycle, or yield None if another holds it.
+
+    NON-BLOCKING on purpose: waiting would serialise two publishers behind a ~10-minute suite for
+    no gain, and sharing would let one refresh the tree the other is running in."""
+    lock_path = HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_LOCK_NAME
+    handle = None
+    try:
+        handle = open(str(lock_path), "a+")
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        if handle is not None:
+            handle.close()
+        yield None
+        return
+    try:
+        yield lock_path
+    finally:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        except OSError:
+            pass
+        handle.close()
+
+
+# A HUNG GIT IS A GATE THAT DID NOT FINISH. The three helpers below re-raise TimeoutExpired
+# rather than folding it into "checkout unavailable": `run_fast_tests` owns the timeout verdict
+# (`_gate_timed_out`), which BLOCKS and records the run as timed-out. Both answers block, so this
+# is not a safety question -- it is a naming one, and a 300s `git archive` that never returned
+# should be recorded as the timeout it was rather than as a generic failure to materialise.
+def _head_sha():
+    """The SHA the gate is about to judge, or None if git cannot say."""
+    try:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
+                              capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        raise
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Publish gate: `git rev-parse HEAD` could not run: {}".format(exc))
+        return None
+    if head.returncode != 0:
+        log("Publish gate: `git rev-parse HEAD` failed rc={} -- {}".format(
+            head.returncode, stderr_tail(head.stderr)))
+        return None
+    return head.stdout.strip()
+
+
+def _materialise_head_into(dest: Path, head_sha: str) -> bool:
+    """Extract HEAD into an EMPTY directory and make it a standalone repo. True on success."""
+    try:
+        archive = subprocess.run(["git", "archive", head_sha], cwd=str(PROJECT_DIR),
+                                 capture_output=True, timeout=300)
+        if archive.returncode != 0:
+            log("Publish gate: `git archive HEAD` failed rc={} -- {}".format(
+                archive.returncode, stderr_tail(archive.stderr.decode("utf-8", "replace"))))
+            return False
+        untar = subprocess.run(["tar", "-x", "-C", str(dest)], input=archive.stdout,
+                               capture_output=True, timeout=300)
+        if untar.returncode != 0:
+            log("Publish gate: extracting HEAD failed rc={}".format(untar.returncode))
+            return False
+    except subprocess.TimeoutExpired:
+        raise
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Publish gate: could not materialise HEAD into {}: {}".format(dest, exc))
+        return False
+    return _make_checkout_a_repo(dest, head_sha)
+
+
+def _checkout_is_usable(path: Path) -> bool:
+    """Is this an existing checkout this process can legitimately refresh in place?
+
+    Deliberately checks the ALTERNATES line too: a directory that borrows a different (or a
+    since-deleted) object store cannot answer git questions about this HEAD, and rebuilding is
+    cheap. Anything unexpected reads as unusable -- the fallback is a rebuild, never a guess."""
+    try:
+        if not (path / ".git" / "HEAD").is_file():
+            return False
+        alternates = path / ".git" / "objects" / "info" / "alternates"
+        return alternates.read_text().strip() == str(PROJECT_DIR / ".git" / "objects")
+    except OSError:
+        return False
+
+
+def _refresh_checkout_to(path: Path, head_sha: str) -> bool:
+    """Move an existing checkout to `head_sha` in place, keeping bytecode. True on success.
+
+    `read-tree -u --reset` is the whole update: it rewrites the index to the new commit and
+    updates the working tree to match, including deleting files the new commit does not have.
+    `git clean` then removes what a previous suite wrote, minus REUSED_CHECKOUT_KEEP."""
+    try:
+        (path / ".git" / "HEAD").write_text(head_sha + "\n")
+        read_tree = subprocess.run(["git", "read-tree", "-u", "--reset", head_sha],
+                                   cwd=str(path), capture_output=True, text=True, timeout=300)
+        if read_tree.returncode != 0:
+            log("Publish gate: refreshing the reused checkout to {} failed rc={} -- {}".format(
+                head_sha[:9], read_tree.returncode, stderr_tail(read_tree.stderr)))
+            return False
+        clean_argv = ["git", "clean", "-xdfq"]
+        for keep in REUSED_CHECKOUT_KEEP:
+            clean_argv += ["-e", keep]
+        clean = subprocess.run(clean_argv, cwd=str(path), capture_output=True, text=True,
+                               timeout=300)
+        if clean.returncode != 0:
+            log("Publish gate: cleaning the reused checkout failed rc={} -- {}".format(
+                clean.returncode, stderr_tail(clean.stderr)))
+            return False
+    except subprocess.TimeoutExpired:
+        raise
+    except (OSError, subprocess.SubprocessError) as exc:
+        log("Publish gate: could not refresh the reused checkout: {}".format(exc))
+        return False
+    return True
+
+
+def _prepare_reused_checkout(head_sha: str):
+    """The reused directory at `head_sha`, or None if it cannot be produced."""
+    path = HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_NAME
+    if _checkout_is_usable(path):
+        if _refresh_checkout_to(path, head_sha):
+            _overlay_untracked_data(path)
+            return path
+        log("Publish gate: the reused HEAD checkout could not be refreshed -- rebuilding it from "
+            "scratch (this cycle pays the cold-bytecode cost).")
+        shutil.rmtree(path, ignore_errors=True)
+    else:
+        shutil.rmtree(path, ignore_errors=True)
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        log("Publish gate: could not create the reused HEAD checkout at {}: {}".format(path, exc))
+        return None
+    if not _materialise_head_into(path, head_sha):
+        shutil.rmtree(path, ignore_errors=True)
+        return None
+    _overlay_untracked_data(path)
+    return path
+
+
 @contextmanager
 def _head_checkout():
-    """Materialise HEAD into a throwaway directory. Yields a Path, or None if unavailable.
+    """Materialise HEAD into a checkout the gate can run in. Yields a Path, or None.
 
-    `git archive` is used rather than `git worktree add` deliberately: it needs no lock on the
-    real repo and cannot leave a registered worktree behind if this process dies. What it also
-    produced -- a tree with no `.git` at all -- was a defect, closed by `_make_checkout_a_repo`
-    below."""
-    tmp_root = tempfile.gettempdir()
+    None means the gate must NOT run (R15: an unavailable check is a failed check) -- the caller
+    treats it as a block, not as a pass.
+
+    Ordering is deliberate: sweep first (it is what frees the space), then the disk pre-flight
+    (so an exhausted filesystem still names DISK rather than git), then the SHA, then the
+    checkout itself."""
+    _sweep_stale_head_checkouts()
+    tmp_root = str(HEAD_CHECKOUT_ROOT)
     free_mb = _free_mb(tmp_root)
     if free_mb is not None and free_mb < HEAD_CHECKOUT_MIN_FREE_MB:
         log("Publish gate: DISK, not code -- only {}MB free on {} and a HEAD checkout needs "
@@ -953,29 +1185,21 @@ def _head_checkout():
                 free_mb, tmp_root, HEAD_CHECKOUT_MIN_FREE_MB, tmp_root))
         yield None
         return
-    tmp = tempfile.mkdtemp(prefix="publish-gate-head-")
+    head_sha = _head_sha()
+    if head_sha is None:
+        yield None
+        return
+    with _reused_checkout_lock() as held:
+        if held is not None:
+            yield _prepare_reused_checkout(head_sha)
+            return
+    # Another publisher owns the reused checkout for the length of its suite. Correctness before
+    # speed: this cycle gets its own throwaway tree, cold bytecode and all, and deletes it.
+    log("Publish gate: the reused HEAD checkout is held by another publisher -- using a "
+        "throwaway checkout for this cycle (correct, but cold).")
+    tmp = tempfile.mkdtemp(prefix=HEAD_CHECKOUT_PREFIX, dir=str(HEAD_CHECKOUT_ROOT))
     try:
-        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
-                              capture_output=True, text=True, timeout=60)
-        if head.returncode != 0:
-            log("Publish gate: `git rev-parse HEAD` failed rc={} -- {}".format(
-                head.returncode, stderr_tail(head.stderr)))
-            yield None
-            return
-        archive = subprocess.run(["git", "archive", "HEAD"], cwd=str(PROJECT_DIR),
-                                 capture_output=True, timeout=300)
-        if archive.returncode != 0:
-            log("Publish gate: `git archive HEAD` failed rc={} -- {}".format(
-                archive.returncode, stderr_tail(archive.stderr.decode("utf-8", "replace"))))
-            yield None
-            return
-        untar = subprocess.run(["tar", "-x", "-C", tmp], input=archive.stdout,
-                               capture_output=True, timeout=300)
-        if untar.returncode != 0:
-            log("Publish gate: extracting HEAD failed rc={}".format(untar.returncode))
-            yield None
-            return
-        if not _make_checkout_a_repo(Path(tmp), head.stdout.strip()):
+        if not _materialise_head_into(Path(tmp), head_sha):
             yield None
             return
         _overlay_untracked_data(Path(tmp))
@@ -1047,6 +1271,12 @@ def _make_checkout_a_repo(checkout: Path, head_sha: str) -> bool:
 # A named, explicit list rather than "everything gitignored" -- sweeping in .venv/.pytest_cache
 # would reintroduce exactly the working-tree coupling the ruling removed.
 UNTRACKED_DATA_OVERLAY = ("sim/cache", "node_modules")
+
+# Kept across a refresh of the reused checkout (see _refresh_checkout_to). `__pycache__` is the
+# entire reason the directory is reused at all; the overlay entries are symlinks to the machine's
+# untracked DATA, which `git clean` would otherwise delete every cycle. Everything else a suite
+# left behind is debris and goes, so cycle N's leftovers can never judge cycle N+1.
+REUSED_CHECKOUT_KEEP = ("__pycache__",) + UNTRACKED_DATA_OVERLAY
 
 
 def _overlay_untracked_data(checkout: Path) -> None:
@@ -1157,6 +1387,21 @@ def _publish_tree_divergence():
                    re_escalate_after=24 * 3600)
     except Exception as exc:  # noqa: BLE001 -- see docstring; never raise into the publish path
         log("Tree-divergence measure unavailable (publish unaffected): {}".format(exc))
+
+
+def _checkout_unavailable_verdict():
+    """The verdict when committed truth could not be materialised: BLOCK.
+
+    Its own function so the branch is nameable and MUTABLE in a test (R15): patch it to return
+    `(True, False)` and the publish path proceeds unverified, which is exactly what this verdict
+    prevents and what `test_publish_gate_subject_is_head.py` demonstrates both ways.
+
+    R15: an unavailable check is a FAILED check. There is no third answer here -- a gate with no
+    subject has not run, and 'has not run' must never read as 'passed'."""
+    log("Publish gate: could NOT materialise a clean HEAD checkout -- not committing. "
+        "R15: the gate's subject is committed truth; if it cannot be produced, the "
+        "gate has not run.")
+    return False, False
 
 
 def _gate_timed_out():

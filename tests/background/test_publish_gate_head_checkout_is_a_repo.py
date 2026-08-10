@@ -82,11 +82,23 @@ def test_nothing_is_registered_in_the_real_repo(head_checkout):
     assert str(head_checkout) not in listing.stdout
 
 
-def test_the_checkout_is_removed_afterwards():
+def test_the_checkout_is_either_reused_or_removed_never_leaked():
+    """Was `test_the_checkout_is_removed_afterwards`. Since OPS2 the gate REUSES one checkout
+    between cycles so `__pycache__` survives, and removal is no longer the property that keeps
+    /tmp from filling -- BOUNDEDNESS is. Two shapes are legitimate and nothing else is: the one
+    reused directory, which persists by design, or a throwaway, which must not outlive its cycle.
+
+    Which one this process gets depends on whether a live publisher holds the reuse lock, so this
+    asserts the disjunction rather than picking a branch. The branch-specific behaviour --
+    bytecode survives a refresh; a throwaway is removed even when the run raises; abandoned
+    checkouts are swept -- is pinned deterministically in test_publish_gate_subject_is_head.py."""
     with prc._head_checkout() as path:
         assert path is not None
         assert path.exists()
-    assert not path.exists(), "the gate leaked a HEAD checkout directory"
+    if path.name == prc.REUSED_HEAD_CHECKOUT_NAME:
+        assert path.exists(), "the reused checkout must survive between cycles"
+    else:
+        assert not path.exists(), "the gate leaked a throwaway HEAD checkout directory"
 
 
 # ── R15 direction 1: the defect is reachable ─────────────────────────────────
