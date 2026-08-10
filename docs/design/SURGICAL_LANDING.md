@@ -165,9 +165,53 @@ A pathspec'd `git add` has covered removals since git 2.0, and the extract's ind
 parent while its working tree is the resulting tree, so `add -A` there stages the same set
 either way. Both are written for the reader, not for the machine, and say so in the source.
 
-## Retirement of the interim shape
+## Retirement of the interim shape — executed 2026-08-10 (atom `OPS5`)
 
-The ruling's sanctioned interim bypass (`d6f894b6e`, four conditions required together)
-expires with this tool. That retirement — and the CLAUDE.md wording that goes with it — is
-`OPS5_retire_the_interim_bypass_shape`, deliberately a separate atom so this one does not
-edit the rulebook it is the mechanism for.
+<!-- INTERIM_BYPASS_SHAPE: RETIRED 2026-08-10 -- replaced by tools/surgical_land.py (OPS5) -->
+
+**The ruling's sanctioned interim bypass (`d6f894b6e`, four conditions required together —
+disclosed in-message, both parents independently gated, docs-only, filed) is RETIRED.** It was
+granted with an expiry attached to exactly one event: the arrival of the tool. The tool landed
+(`a86dc9f3f`, which landed itself), so the expiry has fallen due and is executed here. **There
+is now no sanctioned bypass shape.** A commit that steps past the hook is a violation whatever
+its merge shape, whatever its content, however well disclosed — the disclosure reflex the
+ruling commended stays, but it is now the way you report a *violation*, not a way to license
+one.
+
+The exception was never a permission to keep. It was scaffolding around a missing tool, and it
+was sanctioned *because* the tool was missing: the ruling said in the same breath that the
+class closes by mechanism, not by exception. Leaving it standing after the mechanism exists is
+the failure mode this atom is named for — **a retro-sanctioned exception with no executed
+expiry becomes the rule**, and an expiry nobody executes is an orphan transition (R11).
+
+**What replaced it, and where the wall now lives.** The legal move is
+`python3 -m tools.surgical_land -m "<msg>" -- <paths>` (§ *The legal move* above). CLAUDE.md
+carries the wall and that command together, in the same bullet as the shared-tree commit
+discipline it exists to serve — deliberately together, because a wall stated without its legal
+move is what produced the 2026-08-09 bypass in the first place.
+
+**How this retirement is kept, rather than announced.**
+`tests/tools/test_interim_bypass_retirement.py` is the mechanism (MAKE_IT_STICK: a rule lives
+as enforced code or it evaporates). It asserts four things, each red on its own defect and
+each verified red before it landed:
+
+* the marker above exists and names a replacement path that is really on disk;
+* CLAUDE.md states the wall **and** names the tool (either half alone fails);
+* **no live-canon document describes the four-condition shape without marking it RETIRED** —
+  a class guard scanning `CLAUDE.md` + `docs/design/**.md`, so a *new* doc restating the
+  carve-out is caught without anyone extending a list of filenames (R10);
+* `python3 -m tools.surgical_land --help` runs green **in a subprocess**, because withdrawing
+  the exception while the replacement is dead leaves no legal move at all, and because an
+  in-process import would have been blind to the CLI-entry-point defect class this repo has
+  already paid for.
+
+The class guard deliberately excludes `docs/staging/**`. Those rulings and findings are the
+historical **record** of what was said on the day; the record must keep saying the exception
+was granted. It is the *canon* — what a seat may do today — that had to stop offering it.
+`docs/design/SURGICAL_LANDING.md` is required by a vacuity guard to keep describing what was
+retired, so the control's population is never empty.
+
+The pre-commit gate maps this canon surface to that test (`tools/pre_commit_test_gate.py`,
+`CANON_SURFACE_FILES`), so editing CLAUDE.md or this document re-runs the guard at commit
+time rather than leaving it to the publish suite — the same mechanism as the level surface,
+for the same reason.

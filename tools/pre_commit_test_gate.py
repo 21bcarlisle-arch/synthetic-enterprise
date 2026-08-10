@@ -146,17 +146,34 @@ MINT_HYGIENE_TESTS = [
     "tests/background/test_staging_disposition.py",
 ]
 
+# THE CANON SURFACE (2026-08-10, atom OPS5). CLAUDE.md and the design doc beside it are data by
+# every prefix rule here, but they are the files that tell a seat what it may DO -- and one of the
+# rules they now carry (hook-bypass is a WALL, and the one legal move that replaced the sanctioned
+# interim bypass) is a rule about how commits themselves are made. Editing that text without
+# re-running its guard is how the retirement would quietly un-happen: a wall deleted from CLAUDE.md,
+# or the four-condition carve-out restated as live, would sail through as a "pure docs commit" and
+# only surface in the publish suite, if at all. Third sibling of LEVEL_SURFACE / MINT_MARKER, same
+# reason each time: when a data file's CONTENT is a control, its change is a code change.
+CANON_SURFACE_FILES = (
+    "CLAUDE.md",
+    "docs/design/SURGICAL_LANDING.md",
+)
+CANON_SURFACE_TESTS = [
+    "tests/tools/test_interim_bypass_retirement.py",
+]
+
 
 def select_targets(files: list[str]) -> list[str]:
     """The set of test files to run for this commit, or [] to skip (no code/config/level-surface/
-    mint-marker staged)."""
+    mint-marker/canon-surface staged)."""
     code_changed = any(f.startswith(CODE_PREFIXES) for f in files)
     level_surface_changed = any(f in LEVEL_SURFACE_FILES for f in files)
     mint_marker_changed = any(
         f.startswith(MINT_MARKER_PREFIX) and f.endswith(".md") for f in files
     )
-    if not code_changed and not level_surface_changed and not mint_marker_changed:
-        return []  # pure docs/data commit that touches no control, level surface, or mint marker
+    canon_surface_changed = any(f in CANON_SURFACE_FILES for f in files)
+    if not (code_changed or level_surface_changed or mint_marker_changed or canon_surface_changed):
+        return []  # pure docs/data commit touching no control, level surface, mint marker or canon
     targets: set[str] = set()
     if code_changed:
         targets.update(t for t in CONTROL_TESTS if (ROOT / t).exists())
@@ -164,6 +181,8 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in LEVEL_SENSITIVE_TESTS if (ROOT / t).exists())
     if mint_marker_changed:
         targets.update(t for t in MINT_HYGIENE_TESTS if (ROOT / t).exists())
+    if canon_surface_changed:
+        targets.update(t for t in CANON_SURFACE_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
     return sorted(targets)
