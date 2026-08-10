@@ -807,22 +807,6 @@ def measure_coverage_only_residual(
         n_customers, seed=seed)
     real = score_triad(real_records, real_consumer, real_as_of)
 
-    # WITNESS 1 -- the counterfactual removed something real. The scored
-    # population must genuinely carry the coverage loss the claim is about: a
-    # failed push payment emits no rail event at all, so it is invisible to the
-    # company's severity count. If the real book had none, equalising coverage
-    # would be a no-op and a zero residual would mean nothing.
-    coverage_loss_removed = int(real["stats"]["n_true_non_dd_failures"])
-    # WITNESS 2 -- the counterfactual is not vacuously error-free. Both belief
-    # error directions need a non-empty possible-error population there, or a
-    # 0 residual is arithmetic rather than agreement.
-    cf_bel = cf["belief"].components
-    cf_undercall_pop = int(cf_bel["n_undercall_population"])
-    cf_overcall_pop = int(cf_bel["n_overcall_population"])
-    # WITNESS 3 -- the counterfactual really did close the channel. Zero
-    # non-DD failures there is what "the company saw everything" means here.
-    cf_non_dd_failures = int(cf["stats"]["n_true_non_dd_failures"])
-
     residuals: Dict[str, Dict[str, object]] = {}
     for dim, decl in COVERAGE_ONLY_CLAIM_CONTRACT.items():
         residuals[dim] = {
@@ -831,35 +815,70 @@ def measure_coverage_only_residual(
             "gap_on_the_scored_book": real[dim].gap,
         }
 
-    # WITNESS 4 -- THE DIFFERENTIAL. A counterfactual on which EVERY dimension
-    # read 0 would satisfy the claiming dimensions for a reason that has
-    # nothing to do with the two rules agreeing (an empty book, a scorer
-    # returning zeros, a build that no longer runs). At least one EXEMPT
-    # dimension must come out non-zero on the same population, or the zeros
-    # above are a property of the run rather than of the rules.
-    n_exempt_nonzero = sum(
-        1 for dim, v in residuals.items()
-        if not v["claims_coverage_only"] and v["residual"]
-    )
-
+    witnesses = _coverage_residual_witnesses(cf, real, residuals)
     return {
         "residuals": residuals,
-        "witnesses": {
-            "coverage_loss_removed": coverage_loss_removed,
-            "cf_non_dd_failures": cf_non_dd_failures,
-            "cf_undercall_population": cf_undercall_pop,
-            "cf_overcall_population": cf_overcall_pop,
-            "n_exempt_dimensions_nonzero": n_exempt_nonzero,
-        },
+        "witnesses": witnesses,
+        # ONE PREDICATE FOLDING ALL FOUR, so a witness that is gathered but
+        # never consulted cannot exist -- a reported witness nobody reads is a
+        # report, not a control. Written out rather than derived from the key
+        # names: witness (2) is the one whose healthy value IS zero, and a fold
+        # that inferred polarity from a naming convention would silently invert
+        # the next witness someone adds.
         "is_vacuous": (
-            coverage_loss_removed == 0
-            or cf_non_dd_failures != 0
-            or cf_undercall_pop == 0
-            or cf_overcall_pop == 0
-            or n_exempt_nonzero == 0
+            witnesses["coverage_loss_removed"] == 0
+            or witnesses["cf_non_dd_failures"] != 0
+            or witnesses["cf_undercall_population"] == 0
+            or witnesses["cf_overcall_population"] == 0
+            or witnesses["n_exempt_dimensions_nonzero"] == 0
         ),
         "n_customers": n_customers,
         "seed": seed,
+    }
+
+
+def _coverage_residual_witnesses(
+    cf: Dict[str, object], real: Dict[str, object],
+    residuals: Dict[str, Dict[str, object]],
+) -> Dict[str, int]:
+    """The VACUITY APPARATUS for `measure_coverage_only_residual`, kept as one
+    named unit because its healthy reading is a ZERO and a zero is what a dead
+    control returns too. Four counts, every one of which must be non-degenerate
+    before the residual means anything.
+
+    They live beside the measurement rather than in the test file for the reason
+    R15 keeps naming: a guard a caller can forget to apply is a guard that gets
+    forgotten. `measure_coverage_only_residual` folds all four into a single
+    `is_vacuous`, so there is nothing to remember."""
+    cf_bel = cf["belief"].components
+    return {
+        # (1) THE COUNTERFACTUAL REMOVED SOMETHING REAL. The scored population
+        # must genuinely carry the coverage loss the claim is about: a failed
+        # push payment emits no rail event at all, so it is invisible to the
+        # company's severity count. If the real book had none, equalising
+        # coverage is a no-op and a zero residual means nothing.
+        "coverage_loss_removed": int(real["stats"]["n_true_non_dd_failures"]),
+        # (2) IT REALLY DID CLOSE THE CHANNEL. Zero non-DD failures in the
+        # counterfactual is what "the company saw everything" means here -- and
+        # this is the one witness whose healthy value IS 0, which is why the
+        # vacuity fold treats it as the exception rather than reading it the
+        # same way as the other three.
+        "cf_non_dd_failures": int(cf["stats"]["n_true_non_dd_failures"]),
+        # (3) THE COUNTERFACTUAL IS NOT VACUOUSLY ERROR-FREE. Both belief error
+        # directions need a non-empty possible-error population there, or a 0
+        # residual is arithmetic rather than agreement.
+        "cf_undercall_population": int(cf_bel["n_undercall_population"]),
+        "cf_overcall_population": int(cf_bel["n_overcall_population"]),
+        # (4) THE DIFFERENTIAL. A counterfactual on which EVERY dimension read 0
+        # would satisfy the claiming dimensions for a reason that has nothing to
+        # do with the two rules agreeing (an empty book, a scorer returning
+        # zeros, a build that no longer runs). At least one EXEMPT dimension
+        # must come out non-zero on the same population, or the zeros are a
+        # property of the run rather than of the rules.
+        "n_exempt_dimensions_nonzero": sum(
+            1 for v in residuals.values()
+            if not v["claims_coverage_only"] and v["residual"]
+        ),
     }
 
 
