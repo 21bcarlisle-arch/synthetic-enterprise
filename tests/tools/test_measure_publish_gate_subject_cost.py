@@ -708,3 +708,67 @@ def test_an_unreadable_meminfo_does_not_block_the_measurement(monkeypatch):
     intermittent failure for a permanent one."""
     monkeypatch.setattr(measure, "_mem_available_mb", lambda: None)
     assert measure._wait_for_memory_headroom(lambda m: None) is True
+
+
+# ── THE UNIT NAME MUST BLOCK A LIVE RUN, NOT A DEAD ONE ──────────────────────────────────────
+
+
+class _FakeSystemctl:
+    """Canned `systemctl` replies, recording which subcommands were issued."""
+
+    def __init__(self, active_reply):
+        self.active_reply = active_reply
+        self.calls = []
+
+    def __call__(self, argv, **kwargs):
+        self.calls.append(argv[2] if len(argv) > 2 else "")
+        if argv[2:3] == ["is-active"]:
+            return subprocess.CompletedProcess(argv, 0, stdout=self.active_reply, stderr="")
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+
+def test_a_failed_unit_is_cleared_so_the_next_launch_is_not_blocked_forever(monkeypatch, out):
+    """OBSERVED on the launch right after the OOM. systemd keeps a FAILED unit loaded, and the
+    refusal it produces is byte-identical to a live unit's -- so nothing ever cleared the corpse
+    and every future launch would have been refused by a measurement that died hours earlier.
+
+    DRIVEN THROUGH `_launch_under_systemd`, not through the helper. The first version of this
+    test called `_clear_a_failed_unit` directly and PASSED against a launcher with the call
+    deleted -- a control that proves a helper works while the only caller no longer reaches it.
+
+    MUTATION: drop the `_clear_a_failed_unit(log)` call from `_launch_under_systemd` and this
+    reds."""
+    fake = _FakeSystemctl("failed\n")
+    monkeypatch.setattr(measure.subprocess, "run", fake)
+    monkeypatch.setattr(measure.shutil, "which", lambda _n: "/usr/bin/systemd-run")
+    monkeypatch.setattr(measure, "_record_launch_header", lambda _how: None)
+
+    assert measure._launch_under_systemd(out, lambda m: None) == 0
+    assert "reset-failed" in fake.calls, (
+        "the LAUNCHER left a dead unit's name holding the launch slot -- the corpse-clearing "
+        "helper exists but nothing on the launch path calls it"
+    )
+
+
+def test_a_live_unit_is_never_reset_out_from_under_itself(monkeypatch):
+    """The other direction, and the one that matters more: resetting an ACTIVE unit would free
+    the name for a second measurement, and two of these delete the reused checkout under each
+    other's suite."""
+    fake = _FakeSystemctl("active\n")
+    monkeypatch.setattr(measure.subprocess, "run", fake)
+
+    measure._clear_a_failed_unit(lambda m: None)
+    assert "reset-failed" not in fake.calls, (
+        "reset a LIVE measurement's unit -- the fixed-name protection is gone"
+    )
+
+
+def test_an_unreadable_systemctl_is_treated_as_active(monkeypatch):
+    """FAIL-CLOSED, unlike the memory pre-flight, and deliberately the other way round: this one
+    guards against starting a second suite beside a live one, so an unavailable check is a
+    failed check (R15)."""
+    def _boom(*a, **k):
+        raise OSError("systemctl gone")
+    monkeypatch.setattr(measure.subprocess, "run", _boom)
+
+    assert measure._unit_is_active() is True

@@ -187,16 +187,61 @@ def _systemd_run_argv(out: str) -> list:
             sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out]
 
 
+# ── A CORPSE HOLDS THE NAME JUST AS FIRMLY AS A LIVE RUN ─────────────────────────────────────
+#
+# OBSERVED, on the very next launch after the OOM. The fixed unit name is load-bearing and stays
+# -- but systemd keeps a FAILED unit loaded, so the refusal it produces is identical to the one a
+# live measurement produces:
+#
+#   Failed to start transient service unit: Unit publish-gate-subject-cost.service was already
+#   loaded or has a fragment file
+#
+# and this harness printed "a live unit of this name IS the refusal", which was simply untrue:
+# `systemctl --user is-active` said `failed`. A guard whose message is right in one of the two
+# states it fires in is a guard that misdirects the next reader half the time -- and here it
+# would have blocked every future launch forever, because nothing ever clears the corpse.
+#
+# So a FAILED unit is reset and the launch proceeds; an ACTIVE one still refuses, which is the
+# protection that was actually wanted. Never a blanket reset: that would delete the running
+# measurement's own registration and hand a second one the name.
+def _unit_is_active() -> bool:
+    """True if the measurement unit is running or starting. Unknown reads as ACTIVE.
+
+    The safe direction is the refusing one: a systemctl we cannot interrogate must not be taken
+    as permission to start a second suite next to a live one."""
+    try:
+        res = subprocess.run(["systemctl", "--user", "is-active", MEASUREMENT_UNIT_NAME],
+                             capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return True
+    return res.stdout.strip() in ("active", "activating", "reloading")
+
+
+def _clear_a_failed_unit(log) -> None:
+    """Reset the unit ONLY if it is dead. Never raises: this is a convenience, not a control."""
+    if _unit_is_active():
+        return
+    try:
+        res = subprocess.run(["systemctl", "--user", "reset-failed", MEASUREMENT_UNIT_NAME],
+                             capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return
+    if res.returncode == 0:
+        log("  . cleared the corpse of a previous unit -- it was not active, so its name was "
+            "blocking every future launch rather than protecting a live one")
+
+
 def _launch_under_systemd(out: str, log) -> int:
     """Hand the measurement to the init system. Returns a process exit code, not a pid.
 
-    Fails CLOSED on every unhappy path -- no systemd-run, a name already taken, a non-zero rc --
-    because a launch that silently did nothing is precisely the failure mode of the last four
-    attempts, and the next reader must be able to tell 'refused' from 'running'."""
+    Fails CLOSED on every unhappy path -- no systemd-run, a name held by a LIVE unit, a non-zero
+    rc -- because a launch that silently did nothing is precisely the failure mode of the last
+    four attempts, and the next reader must be able to tell 'refused' from 'running'."""
     if shutil.which("systemd-run") is None:
         log("! systemd-run unavailable -- use --detach, and expect it to die if this tick's "
             "harness reaps its descendants (see the note above)")
         return 1
+    _clear_a_failed_unit(log)
     try:
         res = subprocess.run(_systemd_run_argv(out), capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.SubprocessError) as exc:
@@ -205,7 +250,7 @@ def _launch_under_systemd(out: str, log) -> int:
     if res.returncode != 0:
         log("! systemd-run refused (rc={}): {}".format(
             res.returncode, (res.stderr or "").strip()[-400:]))
-        log("  a live unit of this name IS the refusal -- check: "
+        log("  a LIVE unit of this name IS the refusal (a dead one is cleared above) -- check: "
             "systemctl --user status {}".format(MEASUREMENT_UNIT_NAME))
         return res.returncode
     _record_launch_header("systemd-run --user --unit={}".format(MEASUREMENT_UNIT_NAME))
