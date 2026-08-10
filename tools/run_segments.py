@@ -11,22 +11,11 @@ Key differences from run_phase2b:
   - Risk committee and hedge evolution unchanged (same physics, bigger book)
 
 KNIFE pass 3, `A_composition_lift` PART 2 (2026-08-10): this file lives in `tools/`
-because it is an ENTRY POINT, not the simulated world. It composes a world (segment
-population physics from `simulation/segments.py`, settlement, the risk committee) and
-a company (its pricing, its ledger, its growth mandate) and runs them together; every
-substantive thing it does is delegated to a module on one side of the wall or the
-other, and it defines nothing any walled module imports. The four conditions §3c of
-`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` sets for a lift-not-a-laundering
-were measured per file before it moved -- see §3d/§3e there.
-
-Condition 4 was the one it failed, and the failure was REAL rather than a filing
-question: the two `price_fixed_tariff` calls below derived `naked_fraction` from
-`sim.hedging_strategy.MIN_HEDGE_FLOOR`, i.e. the world's own hedge mandate was
-telling the company what fraction of volume to price capital cost on. That is the
-same leak B7 cut out of `simulation/renewals.py`, and it is repaired here by the same
-template: the fraction now comes from `company.risk.hedge_policy`. The world's copy
-of the floor is still read below -- for the world's OWN hedge book reset and hedge
-evolution, which is where it belongs.
+because it is an ENTRY POINT, not the simulated world -- it composes a world and a
+company and runs them together, delegating every substantive thing to one side or
+the other. Full account, including the condition-4 leak repaired before the move and
+the cold-start residual still owed:
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §3d/§3e.
 """
 
 import statistics
@@ -84,13 +73,10 @@ GAS_ELEC_WEIGHT = 0.25
 ORIGINAL_SCALE_EAC_KWH = 15_000  # treasury sizing reference (same as run_phase2b)
 RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR  # the WORLD's hedge book resets to the world's own floor
 
-# The fraction of EAC the company prices capital cost on: whatever ITS OWN minimum-hedge
-# mandate leaves unhedged. Company canon, not the world's copy -- the B7 template
-# (`company/pricing/renewal_desk.py::NAKED_FRACTION`). Numerically identical to the reading
-# it replaced (both floors are 0.85, so both give the same float 0.15000000000000002), which
-# is why the repair moves no price. Deliberately NOT pinned equal by a test: an assertion that
-# the two floors match would restore in the suite exactly the coupling this removes from the
-# code, the trap B3's design block recorded and B7 refused for the same constant.
+# The fraction of EAC the COMPANY prices capital cost on: whatever its own mandate leaves
+# unhedged. Company canon, not the world's copy -- the B7 template
+# (`company/pricing/renewal_desk.py::NAKED_FRACTION`), and deliberately not pinned equal to
+# `MIN_HEDGE_FLOOR` by a test, which would restore the coupling this removes.
 NAKED_FRACTION = 1 - COMPANY_MIN_HEDGE_FLOOR
 
 SHAPE_LOADERS = {1: load_pc1_shape, 3: load_pc3_shape}
