@@ -2,3 +2,8 @@ atom_id: H21_self_contained_escalation
 simplifications:
 - '2026-07-16 REGISTERED from ESCALATIONS_MUST_BE_SELF_CONTAINED.md (director-decided, tightens H19). H19 fixed the CHANNEL (phone not window); this fixes the CONTENT — the executor-wall NTFY said "I hit a one-way door, decide at your cadence" but not WHAT the door was, pointing at build-executor-log.md on the box (half an escalation; the director cannot answer from his phone). Rule: an escalation NTFY MUST carry WHAT (atom + exact named choice), OPTIONS (single-word-answerable), CONTEXT (minimum to choose, in the body), WHY-DOOR (which one-way-door class), DEFAULT/non-blocking note. Groundwork already landed: the predicate-gated escalation fix (c157f862d) added a self-contained door_reason field the turn must supply and pass through the one_way_door predicate; this atom builds _alert_wall to render that door_reason + options + door-class into the NTFY body, with a mutation-style check that an escalation missing the named decision or options FAILS. Folds into H19.'
 - '2026-07-16 FRAME (first design doc): self-contained escalation payload schema (WHAT/OPTIONS/CONTEXT/WHY-DOOR/DEFAULT), composition with the landed door_reason field (c157f862d), the mutation-style missing-decision-FAILS control spec (R15), worked rewrite of the real half-escalation, L0->L3 DoD + H19 fold. Doc-only, no BUILD code (EPOCH_GATING R1). Level HELD at 0 (BUILD-gated).'
+map_records:
+  evidence:
+  - docs/staging/done/ESCALATIONS_MUST_BE_SELF_CONTAINED.md
+  - background/executor_governor.py
+  - docs/design/H21_SELF_CONTAINED_ESCALATION_FRAME.md

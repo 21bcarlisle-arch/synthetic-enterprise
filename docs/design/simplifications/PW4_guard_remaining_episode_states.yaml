@@ -6,3 +6,10 @@ map_notes:
     AS MINTED (moved verbatim from the map''s `name` field 2026-08-10, at the spine size ratchet -- the record is not lost, it is in the place the ratchet exists to push it):
 
     Follow-on from PW2, which built the census (background/self_clearing_alarm_census.py) and guarded ONE of the five real hits -- .publish_gate_state.json, the instance the director''s steer was about. The remaining four are dispositioned `real` with `guard: registered` in docs/design/self_clearing_alarm_dispositions.json: .operational_layer_signal.json (consecutive_red, read by supervisor._operational_red_persistent_draw for a priority-zero draw), .supervisor_stuck_state.json (first_seen_at, re-stamped whenever the stuck REASON string churns), .atom_stall_tracker.json (consecutive_unchanged per atom), .run_marker_sweep_state.json (cycles of zero progress). They were deliberately NOT guarded in the same pass: each needs its own answer to ''what EVIDENCES an episode close'' -- for the publish gate that was pending_run_complete_markers()==0, an independent signal, and picking that answer is a per-control judgement. Guarding them by reflex, with a close condition nobody chose, is the accretion OPERATIONAL_COHERENCE_DESIGN_PASS forbids and would produce four controls that cannot clear (an always-red detector is as ignored as a blind one). EXIT: (1) for each of the four, the close condition is NAMED and is INDEPENDENT of the state being guarded (R15 anti-tautology -- never derived from the same file); (2) background.episode_monotonic.guard_episode is wired at each write seam; (3) per control, a replay test in the PW2 pattern proving a failure can no longer shorten its own episode, AND the opposite direction proving an evidenced close still clears; (4) the disposition row flips from `registered` to `guarded` naming the test.'
+map_records:
+  evidence:
+  - docs/design/self_clearing_alarm_dispositions.json
+  - docs/observability/self_clearing_alarm_census.json
+  - background/episode_monotonic.py
+  - tests/background/test_pw4_episode_guards.py
+  - background/self_clearing_alarm_census.py

@@ -1,3 +1,7 @@
 atom_id: C1_segment_layers
 simplifications:
 - '2026-07-10: found engagement_level (simulation/household_segments.py, drives active/passive renewal for EVERY segment in run_phase2b.py, not resi-gated) was computed but never surfaced anywhere -- a dangling comment (''same caveat as engagement_level above'') referenced it as if already shown, but it wasn''t in this file at all. Fixed: added to tools/generate_customer_sample.py + a new SIM tab column, verified against real production data (dual-fuel legs share the same level, I&C customers get one too). 4 new tests.'
+map_records:
+  evidence:
+  - tools/generate_customer_sample.py
+  - saas/customers.py

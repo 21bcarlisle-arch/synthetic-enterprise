@@ -159,8 +159,10 @@ from background.gap_metric import (
     GapResult,
     ageing_gap,
     belief_gap,
+    belief_measures,
     detection_measures,
     format_ageing_summary,
+    format_belief_summary,
     format_detection_summary,
     write_gap_entry,
 )
@@ -617,7 +619,24 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
         "truth_is_as_of_invariant": True,
         "truth": "per-account count of unresolved true failures -- as_of-free",
         "gap_is_as_of_invariant": True,
-        "why": "HOLDS. Severity distributions over settled facts.",
+        "why": ("HOLDS. Severity labels over settled facts, on both sides: the "
+                "company's `arrears_risk_belief` counts unresolved observed "
+                "failures, and a failure does not resolve itself by the clock "
+                "moving. STILL HOLDS AFTER THE D19 RESHAPE (2026-08-10), which "
+                "changed what is done with the two label lists and not when "
+                "either is true -- re-measured by the sweep, not assumed to "
+                "carry over."),
+    },
+    "belief_population_mix": {
+        "truth_is_as_of_invariant": True,
+        "truth": "per-account count of unresolved true failures -- as_of-free",
+        "gap_is_as_of_invariant": True,
+        "why": ("HOLDS, and for the same reason as `belief` -- it is scored "
+                "from the identical two label lists (atom D19). It gets its own "
+                "entry rather than an exemption because no published number "
+                "escapes this control, and a dimension that shares another's "
+                "inputs is exactly the one an author is tempted to assume "
+                "inherits its declaration."),
     },
     "ageing": {
         "truth_is_as_of_invariant": False,
@@ -826,23 +845,57 @@ DETECTION_DIRECTION_CONTRACT: Dict[str, Dict[str, object]] = {
 # under a permutation, and one declared aggregate-only must really not -- and
 # must carry a live `witness_key` naming where a reader finds the direction it
 # cannot see. A register entry is a claim the control puts on trial.
+#
+# THE DEFECT IS NOW FIXED (atom D19, landed 2026-08-10), and the register is
+# what makes the fix checkable rather than claimed. The belief HEADLINE moved to
+# `gap_metric.belief_measures` -- balanced per-case error, both directions on
+# their own denominators -- and its declaration flipped to per-case-sensitive,
+# so the control now FAILS if that dimension ever goes blind again. The TV
+# figure did not disappear: it is published as its own dimension,
+# `belief_population_mix`, under a name that says it is about the MIX, which is
+# also what keeps the differential honest (a register where every entry landed
+# on one side is a blanket rule wearing a register's clothes).
 AGGREGATE_SCORING_CONTRACT: Dict[str, Dict[str, object]] = {
     "belief": {
+        "is_aggregate_only": False,
+        "scorer": "background.gap_metric.belief_measures",
+        "witness_key": None,
+        "why": (
+            "FIXED 2026-08-10 (atom D19), the reshape H27's Expert Hour #3 "
+            "named. The headline is now the BALANCED PER-CASE severity error "
+            "-- undercall_rate over the accounts that could be under-called, "
+            "overcall_rate over those that could be over-called -- so "
+            "permuting which account holds which belief really does move it, "
+            "and the 'right mix, every individual wrong' degenerate scores g0 "
+            "= 0.5 like every other severity-blind rule. R12: the reshape was "
+            "designed from the defect, never fitted to a value; the number "
+            "moved (0.0713 -> the balanced error) because the measure was "
+            "wrong, not because it looked wrong. This entry is the side that "
+            "must FAIL if the permutation probe goes inert."
+        ),
+        "debt_atom": None,
+    },
+    "belief_population_mix": {
         "is_aggregate_only": True,
         "scorer": "background.gap_metric.belief_gap",
         "witness_key": "per_case_disagreement_rate",
         "why": (
-            "DESIGN FACT, now DECLARED and WITNESSED rather than assumed "
-            "obvious (2026-08-10, H27 Expert-Hour #3). TV between two severity "
-            "distributions cannot see which account holds which label; the "
-            "degenerate here is 'right mix, every individual wrong'. The "
-            "caveat is stamped AT SOURCE in gap_metric.belief_gap so it "
-            "reaches all three pairs that call it (W2_11<->D5, W2_4<->C6, "
-            "couple_cohort), and the per-case witness now rides beside the "
-            "score. Giving the dimension a per-case SHAPE moves a published "
-            "number on all three and is atom D19, not this tick (R12)."
+            "DESIGN FACT, and now published under a name that says so (atom "
+            "D19). This is the RETIRED headline's own number, kept rather than "
+            "deleted because 'does the company have the right MIX?' is a real "
+            "question about the book -- a portfolio-level severity view is what "
+            "a credit committee actually reads. What was wrong was publishing "
+            "it as 'the belief gap', a name that reads as a per-case error "
+            "rate; on a one-directional book it even EQUALS one, which is what "
+            "hid it. Permutation-invariance is correct behaviour HERE, which is "
+            "what keeps this control differential rather than a blanket ban. "
+            "The two other pairs still calling `belief_gap` as their headline "
+            "(W2_4<->C6, couple_cohort) are NAMED DEBT carried at source in "
+            "gap_metric.BELIEF_GAP_PERMUTATION_CAVEAT: they hold distributions "
+            "with no per-case pairing, so the reshape needs a per-case join "
+            "they do not have, not a scorer swap."
         ),
-        "debt_atom": "D19_belief_gap_is_distribution_only",
+        "debt_atom": None,
     },
     "ageing": {
         "is_aggregate_only": False,
@@ -887,20 +940,23 @@ def _belief_permutation_note(bel: GapResult) -> str:
         return (
             "PERMUTATION-INVARIANT and the per-case witness is UNAVAILABLE on "
             "this call, so how much per-case error this number hides is "
-            "UNKNOWN -- never read as none (atom "
-            "D19_belief_gap_is_distribution_only)."
+            "UNKNOWN -- never read as none. Read the `belief` dimension "
+            "instead, which scores per-case assignment directly (atom D19)."
         )
     return (
-        "PERMUTATION-INVARIANT: this compares POPULATION DISTRIBUTIONS, so "
-        "permuting which account holds which severity belief moves it by "
-        f"exactly zero. Beside it, the direction it cannot see: {wrong} of "
-        f"{n} cases carry the wrong severity label per-case "
+        "PERMUTATION-INVARIANT BY DESIGN: this compares POPULATION "
+        "DISTRIBUTIONS, so permuting which account holds which severity belief "
+        f"moves it by exactly zero. Beside it, the direction it cannot see: "
+        f"{wrong} of {n} cases carry the wrong severity label per-case "
         f"(disagreement {rate:.4f}). Where the company's errors run ONE WAY, "
         "as they do here (it under-calls severity), TV happens to EQUAL that "
         "per-case rate -- a coincidence of the error direction, not the "
-        "quantity being measured. Reshape is atom "
-        "D19_belief_gap_is_distribution_only (R12: it moves a published "
-        "number on all three pairs calling belief_gap)."
+        "quantity being measured, and the coincidence that let this number be "
+        "read as a per-case error rate until 2026-08-10. It is no longer the "
+        "belief HEADLINE (atom D19): the `belief` dimension scores per-case "
+        "assignment in both directions and this one answers the narrower "
+        "question it was always answering -- does the company have the right "
+        "MIX."
     )
 
 
@@ -985,6 +1041,8 @@ def _rescore_dimension(dim: str, true_l: List[str], bel_l: List[str],
     formula (R15 independence).
     """
     if dim == "belief":
+        return belief_measures(true_l, bel_l, order=_SEVERITY_ORDER).gap
+    if dim == "belief_population_mix":
         return belief_gap(_severity_distribution(true_l),
                           _severity_distribution(bel_l)).gap
     if dim == "ageing":
@@ -1389,22 +1447,52 @@ def score_triad(
         n_dd_observed_after_as_of=n_dd_observed_after_as_of,
     )
 
-    bel = belief_gap(
+    # THE BELIEF HEADLINE IS PER-CASE SINCE 2026-08-10 (atom D19). It used to be
+    # the population TV distance below, which a permutation of the company's
+    # per-case labels left bit-identical -- so the degenerate "right mix, every
+    # individual wrong" scored exactly what the real company scored. Both
+    # numbers are published, each under a name that says which question it
+    # answers; neither is a restatement of the other.
+    bel = belief_measures(
+        true_severity_labels, belief_severity_labels, order=_SEVERITY_ORDER,
+    )
+    bel.note = (
+        "BALANCED PER-CASE arrears-severity error: the company's own "
+        "`arrears_risk_belief` (DD/rail-observed unresolved count) vs the TRUE "
+        "severity (all-channel unresolved count) -- same threshold shape, "
+        "different-coverage inputs -- scored ACCOUNT BY ACCOUNT in both "
+        "directions on their own denominators. RESHAPED 2026-08-10 (atom D19) "
+        "and NOT COMPARABLE with any belief figure published before that date: "
+        "the retired headline was a population TV distance, which a permutation "
+        "of the per-case labels left identical to machine precision (0.0713 -> "
+        "0.0713, per-case agreement 0.9287 -> 0.6432). That figure survives as "
+        "the `belief_population_mix` dimension, which is what it always "
+        "measured. R12: the reshape was designed from the defect, never fitted "
+        "to a value; the number moved because the measure was wrong, not "
+        "because it looked wrong."
+    )
+
+    mix = belief_gap(
         _severity_distribution(true_severity_labels),
         _severity_distribution(belief_severity_labels),
         # THE PER-CASE WITNESS (atom D19). These are the SAME two label lists
         # the two distributions above are built from, in the same case order,
         # so the direction the distribution distance is blind to travels with
-        # the headline instead of needing a reader to go and compute it.
+        # the number instead of needing a reader to go and compute it. It stays
+        # here after the reshape: this dimension is STILL blind, by design, and
+        # a reader who takes the mix figure alone must see that in the same
+        # breath rather than one dimension over.
         truth_labels=true_severity_labels,
         belief_labels=belief_severity_labels,
     )
-    bel.note = (
-        "population TV distance between the TRUE arrears-severity distribution "
-        "(all-channel unresolved-failure count) and D5's own arrears_risk_belief "
-        "distribution (DD/rail-observed count only) -- same threshold shape, "
-        "different-coverage inputs. "
-        + _belief_permutation_note(bel)
+    mix.metric = "belief_population_mix"
+    mix.note = (
+        "POPULATION MIX ONLY -- TV distance between the TRUE arrears-severity "
+        "distribution (all-channel unresolved-failure count) and D5's own "
+        "arrears_risk_belief distribution (DD/rail-observed count only). This "
+        "is the pre-2026-08-10 'belief gap' under a name that says what it "
+        "measures (atom D19); the per-case headline is the `belief` dimension. "
+        + _belief_permutation_note(mix)
     )
 
     age = ageing_gap(
@@ -1654,6 +1742,15 @@ def score_triad(
     labels = {
         "belief_truth": true_severity_labels,
         "belief_belief": belief_severity_labels,
+        # THE SAME TWO LISTS under the mix dimension's own key (atom D19). The
+        # control looks up `<dimension>_truth`/`_belief`, and a dimension that
+        # cannot be reached drops silently out of the sweep -- an unreachable
+        # register entry reads exactly like a clean one. Sharing the lists is
+        # the point: the two dimensions score the SAME per-case data and differ
+        # only in what they do with it, which is what makes "one moves, one does
+        # not" a statement about the measures rather than about their inputs.
+        "belief_population_mix_truth": true_severity_labels,
+        "belief_population_mix_belief": belief_severity_labels,
         "ageing_truth": true_ageing_labels,
         "ageing_belief": belief_ageing_labels,
         "detection_keys": _det_keys,
@@ -1670,7 +1767,8 @@ def score_triad(
                              for k in _det_keys],
         "detection_negatives": never_flaggable,
     }
-    return {"detection": det, "detection_latency": lat, "belief": bel, "ageing": age,
+    return {"detection": det, "detection_latency": lat, "belief": bel,
+            "belief_population_mix": mix, "ageing": age,
             "stats": stats, "notes": notes, "sets": sets,
             "ageing_inputs": ageing_inputs, "labels": labels}
 
@@ -1956,9 +2054,18 @@ def main() -> None:
     print(f"  [detection] {format_detection_summary(result['detection'])}")
     print(f"              g0={result['detection'].g0} "
           f"(both degenerate strategies -- flag nobody AND flag everything)")
-    r_bel: GapResult = result["belief"]
-    print(f"  [belief] raw_gap={r_bel.raw_gap:.4f}  g0={r_bel.g0:.4f}  GAP={r_bel.gap}")
-    print(f"           {_belief_permutation_note(r_bel)}")
+    # BELIEF is not a g0-normalised TV distance any more (D19) -- it is a
+    # BALANCED per-case error, and printing it as a bare scalar is how the
+    # retired figure got read as "7% of accounts mis-graded" by a number that
+    # could not say WHICH accounts. Both directions print with their own
+    # denominators.
+    print(f"  [belief] {format_belief_summary(result['belief'])}")
+    print(f"           g0={result['belief'].g0} (every severity-blind rule, "
+          f"incl. right mix / wrong accounts)")
+    r_mix: GapResult = result["belief_population_mix"]
+    print(f"  [belief_population_mix] raw_gap={r_mix.raw_gap:.4f}  "
+          f"g0={r_mix.g0:.4f}  GAP={r_mix.gap}")
+    print(f"           {_belief_permutation_note(r_mix)}")
     # THE PERMUTATION CONTROL, printed every run rather than living only in the
     # test suite: a limit a reader has to go looking for is one they will read
     # past. Each row is the DECLARATION put on trial against a measurement.
@@ -2015,7 +2122,13 @@ def main() -> None:
             "failures the company never observes -- that description was "
             "measured false by D10 and is not what any figure here counts. "
             f"{format_detection_summary(headline)}. Companion per-dimension "
-            f"gaps: belief {result['belief'].gap:.4f}; "
+            f"gaps: {format_belief_summary(result['belief'])} "
+            "[RESHAPED 2026-08-10, atom D19: the population-TV belief figure "
+            "that used to sit here was permutation-invariant -- 'right mix, "
+            "every individual wrong' scored what the real company scored -- and "
+            "is now published as its own dimension, belief_population_mix "
+            f"{result['belief_population_mix'].gap:.4f}, under the name it "
+            "always measured]; "
             f"{format_detection_latency_summary(result['detection_latency'])}; "
             f"{format_ageing_summary(result['ageing'])}; allocation honestly "
             "dropped (metric-shape mismatch). ONE NAME, ONE NUMBER (atom D16, "

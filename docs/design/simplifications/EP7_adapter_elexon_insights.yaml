@@ -1,3 +1,6 @@
 atom_id: EP7_adapter_elexon_insights
 map_notes:
   origin_note: 'CLAUDE.md already records that the legacy Elexon wrappers are partly stale after the Insights migration -- so this adapter has an existing implementation to reconcile against, not a greenfield. Tier 1 of the research''s build order (integrate now, real data), which makes it the most pull-forward-ripe atom in E3. ECVN trading submission is NOT in scope: it consults on an API for June 2027, so the trading path stays legacy-shaped and swappable.'
+map_records:
+  evidence:
+  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

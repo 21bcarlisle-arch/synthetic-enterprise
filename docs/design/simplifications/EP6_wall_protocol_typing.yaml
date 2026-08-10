@@ -1,3 +1,8 @@
 atom_id: EP6_wall_protocol_typing
 map_notes:
   origin_note: 'C-S3 (asynchronous wall contracts: request and response are separate events in time, never same-step) is the whole point and the thing most likely to be quietly dropped, because same-step is easier and works until it doesn''t. The SIMPLICITY GUARD binds equally hard: no adapters-for-future-adapters, no protocol cathedral -- the wall already provides the seam. Gates every named adapter below.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
+  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
+  - docs/design/GO_LIVE_SEAM_AND_INTERNAL_SEAMS_DESIGN.md

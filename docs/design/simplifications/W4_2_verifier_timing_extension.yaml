@@ -8,3 +8,13 @@ simplifications:
 - '2026-07-16 DISCOVER/FRAME (Lane-3, H17 draw): framing artifact written (design exploration of data-flow/timing detection). Level UNCHANGED at 1 — real detection build is Tier-1 director-gated (EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md); no verifier code touched. Any future build must be R15 mutation-tested.'
 - '2026-07-16 FRAME (Lane-3 H17, doc-only, HELD AT L1 -- already built in skeletal form; FRAME cannot move it and BUILD is barred): docs/design/VERIFIER_TIMING_DATAFLOW_EXTENSION_FRAME.md, a companion (not an override) to the existing FRAME. Adds concrete mechanism: AST-taint sources/sinks/one-hop propagation for data-flow detection, a structural pattern table for timing detection built on the bitemporal valid_time/transaction_time axes (not inferred time), >=5 R15 mutation tests per detector (incl. replanting the real hedge-volatility foresight bug), and an R10 registered-simplification list bounding honest coverage. BUILD is gated on the director REOPENING the closed Tier-1 gate EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md; the doc explicitly authorizes no build.'
 - '2026-07-16 Lane-3 H17 RE-DRAW (doc-only, no BUILD code -- EPOCH_GATING Rule 1). FRAME already saturated (existing docs/design/frame/W4_2_verifier_timing_extension_FRAME.md); level HELD at 1, no honest FRAME-stage move possible (target requires BUILD-gated code). BUILD-unblock gate: director re-opens EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md (Tier-1 safety-control WALL, director-reserved) to build real data-flow/timing detection into a named wall control. See LANE3_H17_BUILD_GATE_SURVEY_20260716.md for the full 6-atom gate table.'
+map_records:
+  evidence:
+  - tools/epistemic_verifier.py
+  - docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md
+  - docs/review_gates/done/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md
+  - docs/design/charters/W4_the_wall.md
+  - 'tests/controls/test_control_mutation.py (KL-2b dynamic-import mutation tests: test_verifier_fires_on_dynamic_import_of_sim_internals, test_verifier_dynamic_import_pre_fix_baseline_did_not_fire, test_verifier_dynamic_import_does_not_false_fire_on_lookalikes_or_variables, test_verifier_dynamic_import_syntaxerror_fallback_still_catches_it)'
+  - docs/design/frame/W4_2_verifier_timing_extension_FRAME.md
+  - docs/design/VERIFIER_TIMING_DATAFLOW_EXTENSION_FRAME.md
+  - docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md

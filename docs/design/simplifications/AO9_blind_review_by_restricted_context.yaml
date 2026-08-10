@@ -1,3 +1,14 @@
 atom_id: AO9_blind_review_by_restricted_context
 map_notes:
   origin_note: 'The director named the reconciliation with COLD_EYES_PROTOCOL.md as the worker''s job and as a ONE-MECHANISM requirement -- shipping this beside the existing cold-eyes skill is a failure of the atom, not a follow-up. Depends on AO1 because ''the plain-words capability description'' the reviewer is shown IS a capability-index row; without the index this hand-writes the input and the blindness stops being auditable. R15/outcome-testing (the doctrine''s own carve-out for LLM judges): blindness must be PROVEN by construction, not asserted -- if the committed transcript is the only evidence, a mutation that leaks code into the reviewer''s context must be shown to be detectable from that transcript. 3c is a WALL: this atom may never be described as delivering independence.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md
+  - docs/staging/in_progress/COLD_EYES_PROTOCOL.md
+  - tools/blind_review.py (packet assembled from a two-field whitelist -- plain words + domain; the capability id is deliberately NOT shown, since a module path is a map of the implementation)
+  - tests/tools/test_blind_review.py (36 tests green; 8 leak classes each mutation-proven on its OWN named defect, plus a reachability test that no rule is dead)
+  - 'R15 TAUTOLOGY killer: a record storing leaks:[] over a transcript full of source is still caught -- the audit re-derives from the stored text and never reads the record''s account of itself; load-bearing proof is that removing the SOURCE_CODE rule makes the SAME transcript audit clean'
+  - 'R15 FAIL-OPEN: empty and missing transcripts are findings; an empty ledger prints "an empty pass, not a clean one". FAIL-SILENT: an unparseable ledger returns rc 2, never rc 0. Digest mismatch caught as TAMPERED'
+  - '3c WALL carried in the DATA: every record has independence:false and the audit fails any record claiming otherwise'
+  - 'ONE MECHANISM: .claude/skills/cold-eyes-walk/SKILL.md owns the tool (same five steps, two subjects -- rendered artefact vs capability); a test fails if any other skill grows a rival blind-review path'
+  - '2026-08-08 live run over the real index, 840 rows: 383 blind-safe as derived, 339 refused with a named reason (PHASE_LABEL 201, FILE_PATH 107, REPO_LOCATION 71, IDENTIFIER 50, MAP_INTERNALS 34, PRIOR_JUDGEMENT 16, BUILD_CONTEXT 10), 118 with no description. NOT CLAIMED: no fresh-context battery recorded yet -- the ledger is empty and the tool says so rather than implying coverage'

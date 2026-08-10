@@ -1,3 +1,7 @@
 atom_id: EP12_adapter_css_rec_switching
 map_notes:
   origin_note: Erroneous transfers, objections and failed switches are the substance -- a switching adapter that only models successful switches has modelled the easy half and left out every case that generates a complaint, a credit balance and a regulatory obligation. Interacts with W2_12_change_of_tenancy_debt_physics, where a switch and a tenancy change look identical from the company's side until they don't.
+map_records:
+  evidence:
+  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
+  - docs/staging/ADVISOR_SCOPE_BRIEF_CHANGE_OF_TENANCY_2026-08-07.md

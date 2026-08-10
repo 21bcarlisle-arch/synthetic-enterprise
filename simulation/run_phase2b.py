@@ -90,6 +90,7 @@ from simulation.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
+from background.gap_metric import format_belief_summary as _format_belief_summary
 from background.gap_metric import format_detection_summary as _format_detection_summary
 from background.live_payment_triad import LivePaymentTriad
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
@@ -2541,7 +2542,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 f"{_triad_result['stats']['n_flagged_via_dd_channel_only']}, "
                 f"DD channel buys {_triad_result['stats']['dd_channel_days_earlier']} "
                 f"days earlier detection); "
-                f"belief={_triad_result['belief'].gap:.4f} "
+                # D19: never print the belief headline as a bare scalar either.
+                # It was a population-TV distance until 2026-08-10, and the bare
+                # form is precisely how a number blind to WHICH account holds
+                # which belief got read as a per-case error rate.
+                f"{_format_belief_summary(_triad_result['belief'])} "
+                f"(population mix "
+                f"{_triad_result['belief_population_mix'].gap:.4f}) "
                 # D7: never print the ageing figure as a bare scalar -- it is a
                 # bucket displacement with no baseline, and the bare form is how
                 # the retired one got mis-read as a normalised score.

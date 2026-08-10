@@ -1,3 +1,9 @@
 atom_id: AO7_target_design_doc
 map_notes:
   origin_note: 'Director''s framing: ''drawing the map of A to B is easier once you got there.'' The failure mode to design against is a target document that becomes an aspirational wish-list nobody measures against -- the REPORTED DELTA is the load-bearing half, not the target prose. Depends on AO1 because a target design written without knowing what already exists would re-derive the inventory by hand and get it wrong. Feeds AO6, which is what keeps it current.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md
+  - docs/design/TARGET_DESIGN.md
+  - tools/target_design_delta.py
+  - tests/tools/test_target_design_delta.py

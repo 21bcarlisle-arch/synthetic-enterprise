@@ -1,3 +1,6 @@
 atom_id: EP8_adapter_dcc_duis
 map_notes:
   origin_note: 'An atom whose honest target is a MOCK invites the fail-open shape: a mock that passes because nothing checks it against the real message schema. The exit criterion must therefore be schema-shaped (a DUIS message the real interface would accept), not behaviour-shaped. Its sibling EP9_adapter_n3rgy_consented_metering is the pre-accession route that CAN be exercised for real -- build them as one message model with two transports, or the mock has no oracle.'
+map_records:
+  evidence:
+  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

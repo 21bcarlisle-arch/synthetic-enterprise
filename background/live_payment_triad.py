@@ -99,6 +99,7 @@ from company.billing.payment_observation_consumer import (
 from background.gap_metric import (
     GapResult,
     format_ageing_summary,
+    format_belief_summary,
     format_detection_summary as _format_detection_summary,
     write_gap_entry,
 )
@@ -771,7 +772,17 @@ class LivePaymentTriad:
             "figure is NOT restated: it was scored over a different flagged "
             "population, so no arithmetic on these sets reproduces it. "
             "Companion per-dimension gaps: "
-            f"belief {result['belief'].gap:.4f}; "
+            f"{format_belief_summary(result['belief'])} "
+            "[RESHAPED 2026-08-10, atom D19, and NOT comparable with the "
+            "belief figure any earlier ledger entry carries: that was a "
+            "population TV distance, which permuting which account holds which "
+            "severity belief left bit-identical (0.0713 -> 0.0713 while "
+            "per-case agreement fell 0.9287 -> 0.6432), so the degenerate "
+            "'right mix, every individual wrong' scored exactly what the real "
+            "company scored. The TV figure is not deleted -- it is published as "
+            "belief_population_mix "
+            f"{result['belief_population_mix'].gap:.4f}, the question it was "
+            "always answering]; "
             f"{format_detection_latency_summary(result['detection_latency'])}; "
             f"{format_ageing_summary(result['ageing'])} "
             "[D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing "

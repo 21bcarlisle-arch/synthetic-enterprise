@@ -1,3 +1,7 @@
 atom_id: EP15_forecast_feed
 map_notes:
   origin_note: 'This is the highest-risk atom on the map for the Point-in-Time Blindfold, because a forecast feed is the ONE legitimate channel through which future-dated data crosses the wall -- and the hedge-foresight bug (a point-in-time volatility-calc leak) is the precedent for how that goes wrong. The design constraint is that a forecast is a POINT-IN-TIME ARTEFACT: what was forecast, as of when, with its error unknown at the time. A feed that quietly serves the realised outturn as a forecast is the same bug with a new name. Build the leak test before the feed.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
+  - docs/design/B3_PUBLISHED_FORECAST_ERROR_HORIZONS_FRAME.md

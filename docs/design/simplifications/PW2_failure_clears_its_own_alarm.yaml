@@ -7,3 +7,13 @@ map_notes:
     AS MINTED (moved verbatim from the map''s `name` field 2026-08-10, at the spine size ratchet -- the record is not lost, it is in the place the ratchet exists to push it):
 
     DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class (director: ''That is a class, not an instance. Where else can a check''s failure clear the signal that the check failed?''). The publish failure path wrote to .publish_gate_state.json -- the same state the alarm reads for episode memory -- so each failure reset wedge_since and the alarm truthfully described a fresh 14-minute wedge inside a 10-hour episode. EXIT: A CENSUS first, then a guard -- in that order, because an instance fix on .publish_gate_state.json is exactly what R10 forbids. EXIT: (1) an enumeration of every control in background/ and tools/ whose failure path WRITES to a state file its own alarm/severity READS, produced by a derivation (writer set intersected with reader set per state path) rather than by inspection, with each hit dispositioned real / benign-and-why; (2) the shape is guarded -- for each real hit the episode-scoped field is append-or-monotonic so a failure cannot shorten its own episode, and a test proves the guard fires by replaying the 2026-08-09 sequence and asserting the reported episode length is ~10h and not ~14min; (3) R15 both ways, including a vacuity guard proving the census is non-empty on the live tree (a census that finds nothing is the fail-open shape here).'
+map_records:
+  evidence:
+  - docs/staging/done/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md
+  - docs/staging/WORKER_FINDING_EPISODE_MEMORY_WIPED_MID_EPISODE_2026-08-09.md
+  - background/self_clearing_alarm_census.py
+  - background/episode_monotonic.py
+  - docs/design/self_clearing_alarm_dispositions.json
+  - docs/observability/self_clearing_alarm_census.json
+  - tests/background/test_self_clearing_alarm_census.py
+  - tests/background/test_episode_monotonic_guard.py

@@ -1,3 +1,12 @@
 atom_id: AO10_exhaust_separated_from_record
 map_notes:
   origin_note: 'ARCHIVE, NEVER DELETE is a standing rule and binds here hardest: this atom moves ~4,300 files, so a bug is a mass loss of the run record rather than a tidy-up gone slightly wrong. Do it as a MOVE with the old path recorded, never an rm, and prove the count before equals the count after. R15 shape to hunt: a retention policy that silently drops an INSTRUCTION misclassified as exhaust -- the classifier must be shown to fire on a real director doc, not just on run_complete_*.md. Note the mirror risk to the whole point: 78 instructions is a manageable record and 4,909 is an impenetrable one, but a policy that makes the exhaust UNFINDABLE has only moved the impenetrability.'
+map_records:
+  evidence:
+  - docs/staging/in_progress/ADVISOR_PROPOSAL_CAPABILITY_INDEX_AND_DEMO_2026-08-04.md
+  - background/staging_archive_policy.py (classify/plan_sweep/apply_sweep/locate/iter_marker_paths/verify/retention_review_due + CLI --sweep/--find/--verify/--report)
+  - 'tests/background/test_staging_archive_policy.py (29 tests green): classifier tried on the REAL corpus with a vacuity guard on BOTH classes; a director doc wearing a marker''s name stays RECORD; verify() MUTATED by deleting a moved file and it fires; retention trigger proven both ways; consumer tests that background_worker''s frontier and process_run_complete''s duplicate check survive the move'
+  - '2026-08-09 live sweep: 4,345 markers moved done/ -> docs/staging/exhaust/<YYYY-MM>/, 0 conflicts, count_before == count_after == 4,962, `--verify` 4,345 manifest entries / 0 problems. done/ is now 617 files, all record.'
+  - docs/staging/exhaust/README.md + MANIFEST.jsonl (append-only old_path -> new_path)
+  - 'site/data/method.json: done_total 4,962 -> 615 with exhaust_total 4,345 published separately; tile relabelled "Instructions actioned all-time" + "Sim-run markers archived" -- the old label counted the heartbeat as instructions'
+  - 'RESIDUAL (R11): the method-page tile change is committed and pushed but NOT live-pixel verified -- autonomous ticks have no network. The generator output was asserted instead (method.json: done_total 615, exhaust_total 4345). Fetch site/method and assert both tiles render before treating this half as consumer-verified.'

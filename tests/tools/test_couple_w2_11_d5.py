@@ -23,10 +23,13 @@ import pytest
 import tools.couple_w2_11_d5 as pair
 
 from background.gap_metric import (
+    GapResult,
     ageing_gap,
     belief_gap,
+    belief_measures,
     detection_gap,
     detection_measures,
+    format_belief_summary,
     format_detection_summary,
     misapplication_gap,
     write_gap_entry,
@@ -365,13 +368,19 @@ def _independent_truth_signatures(records, as_of):
     from `records` alone (R15 independence -- reusing the module's own
     intermediate would make this a tautology that cannot fail)."""
     failed = [r for r in records if r.result == "failed"]
+    belief_truth = tuple(sorted(
+        (cid, sum(1 for r in failed if r.customer_id == cid))
+        for cid in {r.customer_id for r in records}))
     return {
         "detection": frozenset((r.customer_id, r.period_index) for r in failed),
         "detection_latency": frozenset(
             (r.customer_id, r.period_index, r.due_date) for r in failed),
-        "belief": tuple(sorted(
-            (cid, sum(1 for r in failed if r.customer_id == cid))
-            for cid in {r.customer_id for r in records})),
+        "belief": belief_truth,
+        # The SAME truth, because the two dimensions are two questions about one
+        # set of per-case labels (atom D19). Sharing it here is deliberate: it
+        # means the sweep can only ever tell them apart by what the SCORERS do,
+        # never by feeding them different facts.
+        "belief_population_mix": belief_truth,
         "ageing": tuple(sorted(
             (r.invoice_ref,
              pair.company_age_bucket((as_of - r.due_date).days)
@@ -422,7 +431,8 @@ def test_every_dimension_declares_its_as_of_contract_and_the_declaration_is_meas
     contract = pair.DIMENSION_AS_OF_CONTRACT
     report = _as_of_contract_report(records, consumer, as_of, contract)
 
-    assert set(contract) == {"detection", "detection_latency", "belief", "ageing"}, (
+    assert set(contract) == {"detection", "detection_latency", "belief",
+                             "belief_population_mix", "ageing"}, (
         "a dimension was added or renamed without an as_of declaration -- the "
         "whole point of this control is that no published number escapes it"
     )
@@ -1524,13 +1534,27 @@ def _rendered_dimension_text(result) -> dict:
     formatter output where there is one, the note otherwise. The phrase sweep
     below runs over this rather than over the contract, because the defect was a
     phrase reaching a reader from a dimension nobody had compared."""
-    return {
+    rendered = {
         "detection": format_detection_summary(result["detection"]),
         "ageing": pair.format_ageing_summary(result["ageing"]),
         "detection_latency": pair.format_detection_latency_summary(
             result["detection_latency"]),
-        "belief": str(result["belief"].note or ""),
+        "belief": format_belief_summary(result["belief"]),
+        "belief_population_mix": str(result["belief_population_mix"].note or ""),
     }
+    # THIS MAP WAS HAND-MAINTAINED AND THEREFORE FAIL-SILENT (caught 2026-08-10
+    # while landing D19). A newly published dimension simply would not appear
+    # here, so the phrase sweep -- the whole point of which is that no phrase
+    # reaches a reader from a dimension nobody compared -- would skip it and
+    # still pass. The set is now DERIVED from the result and asserted, so
+    # forgetting a dimension fails loudly instead of quietly shrinking the sweep.
+    published = {k for k, v in result.items() if isinstance(v, GapResult)}
+    assert set(rendered) == published, (
+        f"published dimensions {sorted(published)} but the phrase sweep renders "
+        f"{sorted(rendered)} -- an unrendered dimension is invisible to every "
+        "control built on this helper"
+    )
+    return rendered
 
 
 @pytest.mark.parametrize("seed,grace", [(7, None), (11, None), (23, 12)])
@@ -2018,18 +2042,49 @@ def test_the_pair_reexports_the_class_register_it_does_not_copy_it():
 # TV formula could not fail if the shipped one changed.
 # ===========================================================================
 
-def test_the_belief_gap_is_blind_to_per_case_assignment():
-    """THE DEFECT, measured rather than reasoned about. Destroy the company's
-    per-case accuracy while leaving the label multiset alone; the published
-    number must not move a bit -- that is what makes it a limit worth printing.
+def test_the_belief_headline_moves_under_a_permutation_since_d19():
+    """THE FIX, measured rather than declared. Until 2026-08-10 this assertion
+    was its own inverse: destroying every correct per-case assignment while
+    leaving the label multiset alone moved the published belief figure by
+    exactly zero, so the degenerate 'right mix, every individual wrong' scored
+    what the real company scored.
 
-    This test PASSES on the defect deliberately: D19 carries the reshape (it
-    moves a published number on three pairs, R12). What must never regress is
-    that the blindness is MEASURED and DECLARED rather than assumed obvious.
-    """
+    D19 reshaped the headline to a balanced PER-CASE error, and this is the
+    acceptance criterion the finding wrote down: the permutation sweep must
+    come out MOVED. It must also come out moved to somewhere USELESS -- a
+    degenerate that still beat the no-skill baseline would mean the reshape
+    changed the number without closing the hole."""
     result = _scored()
     report = pair.measure_permutation_sensitivity(result)
     bel = report["belief"]
+
+    assert bel["probe_bit"], "vacuous probe -- per-case agreement did not fall"
+    assert bel["gap_moved"], (
+        "the belief headline did not move under a pure permutation -- the D19 "
+        "reshape has regressed to the population-distribution shape"
+    )
+    assert bel["gap_after"] > bel["gap_before"], (
+        f"permuting every belief IMPROVED the score "
+        f"({bel['gap_before']} -> {bel['gap_after']})"
+    )
+    g0 = result["belief"].g0
+    assert bel["gap_after"] >= g0 * 0.9, (
+        f"'right mix, every individual wrong' scored {bel['gap_after']}, "
+        f"comfortably better than the no-skill baseline {g0} -- the degenerate "
+        "still buys something"
+    )
+
+
+def test_the_population_mix_dimension_is_blind_by_design_and_says_so():
+    """The retired headline's own number, kept and RENAMED (D19). Its blindness
+    is not a defect here -- 'does the company have the right MIX?' is a real
+    question and a distribution distance is the right shape for it. What was
+    the defect was publishing it under a name that reads as a per-case error
+    rate. So the blindness must stay MEASURED and DECLARED, and this dimension
+    is now the side of the differential that must NOT move."""
+    result = _scored()
+    report = pair.measure_permutation_sensitivity(result)
+    bel = report["belief_population_mix"]
 
     # VACUITY GUARD FIRST. A permutation that changed no per-case assignment
     # would make "the gap did not move" prove exactly nothing.
@@ -2058,7 +2113,8 @@ def test_the_aggregate_scoring_contract_is_differential_not_a_blanket_ban():
     result = _scored()
     report = pair.measure_permutation_sensitivity(result)
 
-    assert set(report) == {"belief", "ageing", "detection"}, (
+    assert set(report) == {"belief", "belief_population_mix", "ageing",
+                           "detection"}, (
         "a scored dimension was added or renamed without an aggregate-scoring "
         "declaration -- no published number escapes this control"
     )
@@ -2125,12 +2181,14 @@ def test_a_declared_dimension_with_no_labels_raises_rather_than_skipping():
         pair.measure_permutation_sensitivity(stripped)
 
 
-def test_the_per_case_witness_rides_beside_the_belief_score():
-    """The direction the distance cannot see must travel WITH the headline, at
+def test_the_per_case_witness_rides_beside_the_population_mix_score():
+    """The direction the distance cannot see must travel WITH the number, at
     source, so it lands on all three pairs calling `belief_gap` rather than only
-    where the defect was found."""
+    where the defect was found. Still required AFTER the D19 reshape: this
+    dimension is still blind, and a reader who takes the mix figure alone must
+    meet that fact in the same breath rather than one dimension over."""
     result = _scored()
-    c = result["belief"].components
+    c = result["belief_population_mix"].components
 
     assert c["permutation_invariant"] is True
     assert c["n_cases"] == len(result["labels"]["belief_truth"])
@@ -2141,11 +2199,12 @@ def test_the_per_case_witness_rides_beside_the_belief_score():
 
     # The caveat is stamped at SOURCE, not typed into this pair's note.
     from background.gap_metric import BELIEF_GAP_PERMUTATION_CAVEAT
-    assert BELIEF_GAP_PERMUTATION_CAVEAT in result["belief"].baseline
+    assert BELIEF_GAP_PERMUTATION_CAVEAT in result["belief_population_mix"].baseline
     # ...and the published note interpolates the witness FROM the measurement,
     # so it cannot rot into a claim about a run that has already ended.
-    assert str(c["n_cases_misassigned"]) in result["belief"].note
-    assert "PERMUTATION-INVARIANT" in result["belief"].note
+    note = result["belief_population_mix"].note
+    assert str(c["n_cases_misassigned"]) in note
+    assert "PERMUTATION-INVARIANT" in note
 
 
 def test_an_unavailable_per_case_witness_is_none_never_zero():
@@ -2171,3 +2230,191 @@ def test_mismatched_label_populations_raise_rather_than_zip_short():
     with pytest.raises(ValueError, match="not the same population"):
         belief_gap([0.5, 0.5], [0.5, 0.5],
                    truth_labels=["a", "b", "a"], belief_labels=["a", "b"])
+
+
+# ===========================================================================
+# THE D19 RESHAPE -- the belief headline scores PER-CASE assignment
+# (atom D19_belief_gap_is_distribution_only, landed 2026-08-10)
+# ===========================================================================
+# The reshape is only worth the discontinuity it causes if the new shape
+# actually closes the hole, so these tests are about the SHAPE, not the value:
+# neither degenerate strategy may buy a score, each direction carries the
+# population on which its error is possible, and the direction that reads
+# 0.0000 on this book must be PROVEN able to fire rather than assumed dead.
+
+_SEVERITY = pair._SEVERITY_ORDER
+
+
+def test_neither_belief_degenerate_can_buy_a_score():
+    """The D11 property, carried across. A recall-only detection score gave a
+    perfect 0.0 to a company that flagged everything; the population-TV belief
+    score gave the real company's own number to a company that got the mix
+    right and every account wrong. A balanced two-direction measure must hand
+    every severity-blind rule the SAME no-skill baseline."""
+    truth = ["normal"] * 60 + ["watch"] * 20 + ["elevated"] * 10 + ["high"] * 10
+
+    all_normal = belief_measures(truth, ["normal"] * 100, order=_SEVERITY)
+    all_high = belief_measures(truth, ["high"] * 100, order=_SEVERITY)
+
+    # Call everyone `normal`: every account that could be under-called is.
+    assert all_normal.components["undercall_rate"] == 1.0
+    assert all_normal.components["overcall_rate"] == 0.0
+    assert all_normal.gap == pytest.approx(0.5)
+    # Call everyone `high`: the mirror image.
+    assert all_high.components["overcall_rate"] == 1.0
+    assert all_high.components["undercall_rate"] == 0.0
+    assert all_high.gap == pytest.approx(0.5)
+    # ...and both land exactly on the declared no-skill baseline.
+    assert all_normal.g0 == all_high.g0 == 0.5
+
+    perfect = belief_measures(truth, list(truth), order=_SEVERITY)
+    assert perfect.gap == 0.0
+
+
+def test_the_overcall_direction_reads_zero_here_and_can_still_fire():
+    """R15 MUST-FIRE on a structurally-quiet direction. This book's company
+    UNDER-calls severity and nothing else -- `overcall_rate` is 0.0000 on every
+    seed -- which is exactly the shape that lets a dead measure pass for a clean
+    one (D11's `missed_failure_rate` is the same shape one dimension over, and
+    its registered open question). A direction that reads 0 must be shown to be
+    measuring, not merely quiet: hand the same scorer a company that over-calls
+    and the rate must move."""
+    result = _scored()
+    c = result["belief"].components
+    assert c["overcall_rate"] == 0.0, (
+        "this book's company now over-calls severity -- the premise of the "
+        "test below has changed and the reading needs re-deriving, not the "
+        "assertion relaxing"
+    )
+    assert c["n_overcall_population"] > 0, (
+        "the over-call DENOMINATOR is empty, so the 0.0 above is vacuity "
+        "wearing a measurement's clothes -- it must publish None, not 0"
+    )
+
+    truth = list(result["labels"]["belief_truth"])
+    # One account escalated a step it did not earn, and nothing else changed.
+    over = list(result["labels"]["belief_belief"])
+    idx = next(i for i, (t, b) in enumerate(zip(truth, over))
+               if t == b == "normal")
+    over[idx] = "watch"
+    moved = belief_measures(truth, over, order=_SEVERITY)
+    assert moved.components["n_overcalled"] == 1
+    assert moved.components["overcall_rate"] > 0.0
+    assert moved.gap > result["belief"].gap, (
+        "over-calling one account did not worsen the balanced error -- the "
+        "second direction is not reaching the headline"
+    )
+
+
+def test_each_direction_is_scored_on_the_population_where_it_is_possible():
+    """The D7 rule, applied at birth. An account already at the bottom of the
+    scale CANNOT be under-called; counting it in that denominator would move the
+    rate with the shape of the book rather than the company's judgement -- the
+    prevalence dependence D6 measured and D7 removed one dimension over."""
+    truth = ["normal"] * 90 + ["high"] * 10
+    belief = ["normal"] * 90 + ["normal"] * 10   # every `high` under-called
+
+    r = belief_measures(truth, belief, order=_SEVERITY)
+    assert r.components["n_undercall_population"] == 10, (
+        "the 90 bottom-of-scale accounts leaked into the under-call "
+        "denominator, which is the prevalence dependence this shape exists to "
+        "avoid"
+    )
+    assert r.components["undercall_rate"] == 1.0
+    # ...and the whole-book rate would have said 0.10 -- the number the company
+    # would have been judged on if the denominator were the population.
+    assert r.components["per_case_disagreement_rate"] == pytest.approx(0.10)
+    # Magnitude rides beside the rate: three steps, not one.
+    assert r.components["mean_undercall_steps"] == pytest.approx(3.0)
+
+
+def test_a_direction_with_no_population_is_none_never_zero():
+    """FAIL-OPEN is the killer pattern for a balanced measure: with nothing to
+    get wrong in one direction, scoring that direction 0 would halve a real
+    error into a flattering headline. Undefined must stay undefined."""
+    # Everyone truly at the top: over-calling is impossible.
+    r = belief_measures(["high"] * 5, ["watch"] * 5, order=_SEVERITY)
+    assert r.components["overcall_rate"] is None
+    assert r.gap is None, (
+        "the headline fell back to the surviving direction alone -- a book on "
+        "which an error is impossible is not one the company got right"
+    )
+    assert "UNDEFINED" in str(r.components["vacuity"])
+    assert "undefined" in format_belief_summary(r)
+
+
+def test_belief_measures_fails_loud_on_every_input_it_cannot_score():
+    """R15 fail-loud. Each of these would otherwise produce a confident number
+    over the wrong population."""
+    with pytest.raises(ValueError, match="not the same population"):
+        belief_measures(["normal", "high"], ["normal"], order=_SEVERITY)
+    with pytest.raises(ValueError, match="empty population"):
+        belief_measures([], [], order=_SEVERITY)
+    with pytest.raises(ValueError, match="outside the declared scale"):
+        belief_measures(["normal", "critical"], ["normal", "normal"],
+                        order=_SEVERITY)
+    with pytest.raises(ValueError, match="at least two severity levels"):
+        belief_measures(["normal"], ["normal"], order=("normal",))
+    with pytest.raises(ValueError, match="duplicate level"):
+        belief_measures(["normal"], ["normal"], order=("normal", "normal"))
+
+
+def test_the_scale_is_declared_never_inferred_from_the_labels_present():
+    """A scale inferred from the labels a run happened to produce would make
+    'over-called' mean something different on every population -- a run where
+    nobody reached the top of the scale would silently redefine the ceiling.
+    The same two labels score differently under two declared scales, and that
+    is the point."""
+    truth, belief = ["watch", "watch"], ["high", "high"]
+
+    full = belief_measures(truth, belief, order=_SEVERITY)
+    assert full.components["overcall_rate"] == 1.0      # `watch` < `high`
+
+    topped = belief_measures(truth, belief, order=("normal", "watch", "high"))
+    assert topped.components["overcall_rate"] == 1.0
+    assert topped.components["mean_overcall_steps"] == pytest.approx(1.0)
+    assert full.components["mean_overcall_steps"] == pytest.approx(2.0), (
+        "the scale's step size did not reach the magnitude witness, so two "
+        "different scales report the same distance"
+    )
+
+
+def test_the_belief_headline_never_prints_as_a_bare_scalar():
+    """The anti-decay mechanism `format_ageing_summary` and
+    `format_detection_summary` carry, for the same reason: this dimension went
+    wrong the moment a bare `belief 0.0700` could be read as a per-case error
+    rate. Both directions, both denominators, every render."""
+    result = _scored()
+    rendered = format_belief_summary(result["belief"])
+    c = result["belief"].components
+
+    assert "under-called severity" in rendered
+    assert "over-called severity" in rendered
+    assert str(c["n_undercall_population"]) in rendered
+    assert str(c["n_overcall_population"]) in rendered
+    assert "0.5 = every severity-blind rule" in rendered
+    # The nouns are parameters (the D15 rule) -- a second pair scoring an
+    # ordinal belief is not measuring arrears severity.
+    other = format_belief_summary(result["belief"],
+                                  undercall_name="under-graded risk",
+                                  overcall_name="over-graded risk")
+    assert "under-graded risk" in other and "under-called severity" not in other
+
+
+def test_the_published_belief_headline_is_the_per_case_measure():
+    """The reshape must reach the PUBLISHED surface, not just the module. A
+    scorer swapped in while the triad still publishes the old dimension is the
+    half-cut this project has caught before."""
+    result = _scored()
+    c = result["belief"].components
+
+    assert "undercall_rate" in c and "overcall_rate" in c
+    assert result["belief"].g0 == 0.5
+    assert "BALANCED PER-CASE" in result["belief"].note
+    assert "D19" in result["belief"].note
+    # The retired figure is not restated inside the new measure (D16: one name,
+    # one number) -- it is its own dimension, on the same labels.
+    assert "tv" not in c
+    assert result["belief_population_mix"].components["tv"] == pytest.approx(
+        result["belief_population_mix"].raw_gap, abs=1e-6)
+    assert result["belief"].gap != result["belief_population_mix"].gap

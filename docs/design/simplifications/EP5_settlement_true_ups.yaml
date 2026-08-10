@@ -1,3 +1,7 @@
 atom_id: EP5_settlement_true_ups
 map_notes:
   origin_note: 'R14 is the acceptance surface: every figure this atom restates must carry its clock (settled/billed/banked), and a restatement that silently replaces a published number rather than superseding it is the defect. C-S1 event-arrival tolerance binds -- true-ups arrive singly, late and out of order by nature, so any logic assuming batch completeness is wrong at birth rather than wrong at scale. Coupled to the world''s timetable atom: the world defeats the derivation or the pair is not done.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
+  - 'docs/design/THE_VALUE_CYCLE_FRAMING.md (C2: three clocks)'

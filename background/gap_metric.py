@@ -321,21 +321,29 @@ def _check_distribution(v: Sequence[float], name: str) -> None:
 # the belief dimension was never swept. Here the degenerate strategy is not
 # "flag everything" but "get the MIX right and every individual wrong".
 #
-# NOT FIXED HERE, and deliberately (R12): giving this dimension a per-case
-# shape moves a published number on all three pairs that call it
-# (W2_11<->D5, W2_4<->C6, couple_cohort). That reshape is atom
-# D19_belief_gap_is_distribution_only. What lands here is the caveat at
-# SOURCE -- so it reaches all three -- and the per-case witness riding beside
-# the score wherever a caller can supply the labels.
+# SUPERSEDED AS A HEADLINE, NOT DELETED (atom D19 landed 2026-08-10).
+# `belief_measures` below is the per-case replacement, and the payment triad's
+# published belief headline now uses it. This function SURVIVES for two honest
+# jobs: (1) callers that hold only two distributions and no per-case pairing
+# (`couple_w2_4_c6`, `couple_cohort`) -- REGISTERED NAMED DEBT, not silent
+# survivors; (2) the payment triad's own `belief_population_mix` dimension,
+# where the question really IS about the mix and permutation-invariance is the
+# correct behaviour rather than a defect. What changed is that the number is no
+# longer published under a name ("belief gap") that reads as a per-case error
+# rate: it is published as what it measures.
 BELIEF_GAP_PERMUTATION_CAVEAT = (
     "PERMUTATION-INVARIANT: this is a distance between POPULATION "
     "DISTRIBUTIONS, so it is blind to which case holds which label -- a "
     "company that gets the population MIX right and every INDIVIDUAL wrong "
     "scores exactly what the real company scores. Where the company's errors "
     "run one way it also happens to EQUAL the per-case disagreement rate, "
-    "which is a coincidence of the error direction, not the quantity. Read "
-    "`per_case_disagreement_rate` beside it (atom "
-    "D19_belief_gap_is_distribution_only)."
+    "which is a coincidence of the error direction, not the quantity. "
+    "SUPERSEDED as a headline by gap_metric.belief_measures (atom "
+    "D19_belief_gap_is_distribution_only, landed 2026-08-10), which scores "
+    "both per-case error directions on their own denominators; a caller still "
+    "publishing THIS as its belief headline must be registered as named debt "
+    "in tools.couple_w2_11_d5.AGGREGATE_SCORING_CONTRACT. Read "
+    "`per_case_disagreement_rate` beside it."
 )
 
 
@@ -413,6 +421,224 @@ def belief_gap(truth: Sequence[float], belief: Sequence[float],
                     "permutation_invariant": True, **witness},
         note=("belief-error normalised to the blind-prior TV. "
               + BELIEF_GAP_PERMUTATION_CAVEAT),
+    )
+
+
+# ---------------------------------------------------------------------------
+# (c2) PER-CASE belief measures -- the D19 reshape
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS. `belief_gap` above answers "does the company have the right
+# MIX?". H27's Expert Hour #3 measured what that cannot answer: permuting the
+# company's per-case labels among cases -- destroying every correct assignment
+# while leaving the multiset alone -- moved the published figure by exactly
+# zero (0.0713 -> 0.0713, per-case agreement 0.9287 -> 0.6432, n=4000 seed 7).
+# The degenerate that scored what the real company scored was "right mix, every
+# individual wrong": a collections report whose portfolio risk mix matches the
+# auditor's exactly while naming the wrong customers in every bucket.
+#
+# THE SHAPE IS D11's, DELIBERATELY. That atom fixed the same class one
+# dimension over (a recall-only detection score could not tell a precise
+# company from an indiscriminate one) by scoring BOTH error directions on their
+# OWN denominators, so that neither degenerate strategy can buy a good score.
+# Severity is ORDINAL, so the two directions here are UNDER-calling and
+# OVER-calling, and each denominator is the population on which that error is
+# structurally POSSIBLE -- you cannot under-call an account that is already at
+# the bottom of the scale, and counting it in the denominator would reward the
+# company for the shape of the book rather than its judgement (the D7 rule:
+# each rate carries the denominator it is about, and no rate carries a
+# prevalence normaliser).
+BELIEF_BALANCED_BASELINE = (
+    "0.5 = every severity-blind rule, INCLUDING calling every account `normal` "
+    "and calling every account `high` -- and including any rule that gets the "
+    "population mix exactly right while assigning it to the wrong accounts. "
+    "0 = the right severity on the right account"
+)
+
+
+def belief_measures(truth_labels: Sequence, belief_labels: Sequence, *,
+                    order: Sequence) -> GapResult:
+    """Two-directional PER-CASE severity-belief measures (formula c2, atom
+    `D19_belief_gap_is_distribution_only`). Supersedes `belief_gap` as a
+    headline wherever the caller can pair truth and belief case by case.
+
+        undercall_rate = |{i: belief_i < truth_i}| / |{i: truth_i > min(order)}|
+        overcall_rate  = |{i: belief_i > truth_i}| / |{i: truth_i < max(order)}|
+        gap (headline) = (undercall_rate + overcall_rate) / 2
+
+    `order` is the ORDINAL severity scale, least severe first. It is required,
+    never inferred from the labels present: inferring it would make the scale --
+    and therefore both directions -- a property of whichever labels a particular
+    run happened to produce, so a run where nobody reached the top of the scale
+    would silently redefine what over-calling means.
+
+    THE DENOMINATORS ARE THE POSSIBLE-ERROR POPULATIONS, not the whole book.
+    A case already at the bottom of the scale cannot be under-called and a case
+    at the top cannot be over-called; including them would mean a book of
+    mostly-`normal` accounts scored a low under-call rate for a reason that has
+    nothing to do with the company (the prevalence dependence D6 measured and D7
+    removed one dimension over).
+
+    FAIL LOUD (R15): an empty population, mismatched lengths, a label outside
+    `order`, a duplicated or single-valued `order` all RAISE. VACUITY IS
+    EXPLICIT: where a direction's population is empty its rate is `None`, never
+    0.0, and the headline is `None` rather than silently becoming the other
+    direction alone -- a book on which an error is impossible is not one the
+    company got right.
+    """
+    t = list(truth_labels)
+    b = list(belief_labels)
+    scale = list(order)
+
+    if len(scale) < 2:
+        raise ValueError(
+            "belief_measures: `order` needs at least two severity levels -- "
+            "with one level no error direction exists and both rates would be "
+            "vacuously 0 (fail-open)."
+        )
+    if len(set(scale)) != len(scale):
+        raise ValueError(f"belief_measures: duplicate level in `order`: {scale}")
+    if len(t) != len(b):
+        raise ValueError(
+            f"belief_measures: truth_labels ({len(t)}) and belief_labels "
+            f"({len(b)}) are not the same population -- the per-case pairing "
+            "this measure rests on does not exist."
+        )
+    if not t:
+        raise ValueError(
+            "belief_measures: empty population -- scoring it 0 would be the "
+            "strongest possible claim handed out for free (R15 fail-open)."
+        )
+    rank = {lbl: i for i, lbl in enumerate(scale)}
+    unknown = {x for x in t + b if x not in rank}
+    if unknown:
+        raise ValueError(
+            f"belief_measures: label(s) outside the declared scale: "
+            f"{sorted(unknown)}. A label drift mapped to a rank by guesswork "
+            "would move both direction rates with nothing firing."
+        )
+
+    lo, hi = 0, len(scale) - 1
+    pairs = [(rank[x], rank[y]) for x, y in zip(t, b)]
+
+    undercall_pop = [(tr, be) for tr, be in pairs if tr > lo]
+    overcall_pop = [(tr, be) for tr, be in pairs if tr < hi]
+    undercalled = [(tr, be) for tr, be in undercall_pop if be < tr]
+    overcalled = [(tr, be) for tr, be in overcall_pop if be > tr]
+
+    undercall_rate = (len(undercalled) / len(undercall_pop)
+                      if undercall_pop else None)
+    overcall_rate = (len(overcalled) / len(overcall_pop)
+                     if overcall_pop else None)
+    if undercall_rate is None or overcall_rate is None:
+        gap: Optional[float] = None
+    else:
+        gap = (undercall_rate + overcall_rate) / 2.0
+
+    n_wrong = sum(1 for tr, be in pairs if tr != be)
+
+    def _mean_steps(cases) -> Optional[float]:
+        if not cases:
+            return None
+        return round(sum(abs(tr - be) for tr, be in cases) / len(cases), 6)
+
+    components: Dict[str, object] = {
+        "undercall_rate": (None if undercall_rate is None
+                           else round(undercall_rate, 6)),
+        "overcall_rate": (None if overcall_rate is None
+                          else round(overcall_rate, 6)),
+        "n_undercalled": len(undercalled),
+        "n_overcalled": len(overcalled),
+        "n_undercall_population": len(undercall_pop),
+        "n_overcall_population": len(overcall_pop),
+        "n_cases": len(pairs),
+        "n_cases_misassigned": n_wrong,
+        "per_case_disagreement_rate": round(n_wrong / len(pairs), 6),
+        # MAGNITUDE, beside the rates and never instead of them. How FAR wrong
+        # the company was when it was wrong, in scale steps -- a company one
+        # step out on every case is not the same company as one that called a
+        # `high` account `normal`, and a pure rate cannot tell them apart.
+        # Named per direction so neither can be read as the other (the D16 law:
+        # one name, one number).
+        "mean_undercall_steps": _mean_steps(undercalled),
+        "mean_overcall_steps": _mean_steps(overcalled),
+        "scale": list(scale),
+        # CONTINUITY, stated rather than restated. The retired figure is NOT
+        # recomputed here: it is a different quantity over the same cases, and a
+        # component that looked like it belonged to this measure is how one name
+        # comes to carry two numbers (D16). Callers that want it publish it as
+        # its own dimension under a name that says it is about the MIX.
+        "supersedes": (
+            "belief_gap as a HEADLINE (population TV, permutation-invariant -- "
+            "atom D19, 2026-08-10). The TV figure is not restated here: it "
+            "measures the population MIX, a different question about the same "
+            "cases, and belongs to a dimension named for it."
+        ),
+    }
+    if gap is None:
+        components["vacuity"] = (
+            "one error direction has an EMPTY population on this book "
+            f"(undercall population {len(undercall_pop)}, overcall population "
+            f"{len(overcall_pop)}), so the balanced headline is UNDEFINED "
+            "(None), not 0.0 and not the surviving direction alone."
+        )
+
+    return GapResult(
+        metric="belief",
+        gap=gap,
+        raw_gap=(0.0 if undercall_rate is None else float(undercall_rate)),
+        g0=0.5,
+        baseline=BELIEF_BALANCED_BASELINE,
+        components=components,
+        note=(
+            "BALANCED per-case severity-belief error (atom D19, superseding the "
+            "population-TV `belief_gap` as a headline): the mean of "
+            "undercall_rate (over the accounts that COULD be under-called) and "
+            "overcall_rate (over the accounts that COULD be over-called), each "
+            "on its own denominator. Permuting which account holds which belief "
+            "MOVES this number, which is the whole reason it exists. R12: a "
+            "diagnostic, never a target."
+        ),
+    )
+
+
+def format_belief_summary(
+    result: GapResult, *,
+    undercall_name: str = "under-called severity",
+    overcall_name: str = "over-called severity",
+) -> str:
+    """Render a `belief_measures` result as BOTH directions with their
+    denominators, never as a bare scalar -- the `format_detection_summary`
+    mechanism, for the same reason: this dimension went wrong the moment a bare
+    `belief 0.0700` could be read as "7% of accounts mis-graded" when the
+    quantity behind it could not tell which accounts they were.
+
+    THE TWO NOUNS ARE PARAMETERS (the D15 rule): a second pair scoring an
+    ordinal belief through this renderer is not measuring arrears severity, and
+    hardcoding one pair's wording into a shared renderer is how a name ends up
+    describing two different quantities.
+    """
+    c = result.components
+
+    def _num(key: str, fmt: str) -> str:
+        v = c.get(key)
+        return "undefined (no such population)" if v is None else format(v, fmt)
+
+    def _steps(key: str) -> str:
+        v = c.get(key)
+        return "" if v is None else f", mean {v:.2f} steps"
+
+    return (
+        "belief balanced error "
+        + ("undefined" if result.gap is None else format(result.gap, ".4f"))
+        + " [0.5 = every severity-blind rule, incl. right mix / wrong accounts]"
+        + f"; {undercall_name} " + _num("undercall_rate", ".4f")
+        + f" ({c.get('n_undercalled')} of {c.get('n_undercall_population')}"
+        + _steps("mean_undercall_steps") + ")"
+        + f"; {overcall_name} " + _num("overcall_rate", ".4f")
+        + f" ({c.get('n_overcalled')} of {c.get('n_overcall_population')}"
+        + _steps("mean_overcall_steps") + ")"
+        + f"; per-case disagreement " + _num("per_case_disagreement_rate", ".4f")
+        + f" ({c.get('n_cases_misassigned')} of {c.get('n_cases')})"
     )
 
 

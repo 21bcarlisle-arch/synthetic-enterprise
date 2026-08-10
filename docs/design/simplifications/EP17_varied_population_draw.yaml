@@ -1,3 +1,8 @@
 atom_id: EP17_varied_population_draw
 map_notes:
   origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population draw shares a stream with anything else, adding one customer shifts every other subsystem''s outputs and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed. Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run variation.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
+  - docs/design/THE_VALUE_CYCLE_FRAMING.md (C4)
+  - docs/design/EPOCH2_EVIDENCE.md (Q6, fixed population)

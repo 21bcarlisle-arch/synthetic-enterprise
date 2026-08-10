@@ -1,3 +1,6 @@
 atom_id: F2_sanity_daemon
 simplifications:
 - Qwen skeptic prompt has no memory of adjudicated false positives yet -- registered in PRIORITIES.md
+map_records:
+  evidence:
+  - background/sanity_daemon.py

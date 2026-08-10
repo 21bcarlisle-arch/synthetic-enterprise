@@ -1,3 +1,7 @@
 atom_id: EP14_adapter_published_cost_stack
 map_notes:
   origin_note: 'Schema-drift tolerance is the requirement that makes this real: a published spreadsheet whose columns move between periods is the normal case, not the edge case, and a parser that fails silently on a moved column produces a cost stack that is confidently wrong. Fail-LOUD on an unparseable publication (R15: an unavailable input is a failed input, never a zero). Regulation-commons doctrine applies -- the TEXT is readable by every lane; the company''s READING of it stays its own and is allowed to be wrong.'
+map_records:
+  evidence:
+  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
+  - docs/staging/ADVISOR_SCOPE_BRIEF_NONCOMMODITY_COST_STACK_2026-08-07.md

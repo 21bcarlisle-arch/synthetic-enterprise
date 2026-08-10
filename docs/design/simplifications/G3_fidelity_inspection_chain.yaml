@@ -2,3 +2,7 @@ atom_id: G3_fidelity_inspection_chain
 simplifications:
 - '2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py builds + validates a real 4-layer chain per run from the L3 payment triad (EVIDENCE payment-detection -> WORLD payment-truth series -> BELIEF_ACTION D5 observed-failures + measured gap), truth_ref left None and assert_no_belief_leak proven, validate_chain proven (no dangling link). R1 consumer-verified in a real run_phase2b. 10 R15 tests incl. the truth_ref-mutation wall-leak firing (the load-bearing control), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (section 0); blocked_on -> director_level_up. Commits 3f36e3776 + this run-loop wire.'
 - '2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): 4 record types + bidirectional link graph + assert_no_belief_leak (truth_ref harness-only, R15-proven) + fail-closed dangling-link; 25 tests, epistemic PASS. L1->L2 = render the chain as the director fidelity instrument (G4, SITE) + wire live records.'
+map_records:
+  evidence:
+  - docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md
+  - docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md

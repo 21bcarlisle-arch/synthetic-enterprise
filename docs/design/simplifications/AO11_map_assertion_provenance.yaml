@@ -1,3 +1,9 @@
 atom_id: AO11_map_assertion_provenance
 map_notes:
   origin_note: 'This is the STALE-CELL CLASS, not a tidy-up -- the addendum''s own words, and the most recent instance is the DD cell reading level 0 with no ledger entry while all six sub-parts were built, committed and live. The company layer is already bitemporal (company/**/bitemporal_event_log.py, valid-time and transaction-time); the governance layer that steers it is not. Reuse of that primitive is the obvious candidate AND the obvious trap -- the parent programme''s own wall says forced reuse that couples two purposes is the mirror error of duplication, so check whether it fits before taking it, and record the answer either way (that check is exactly what AO2''s gate is for). NOT delivered by AO1: the index makes no assertions to timestamp, because it re-derives on every query. Additive by design -- assert nothing the draw reads until proven, per the addendum''s own mitigation.'
+map_records:
+  evidence:
+  - docs/staging/in_progress/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md
+  - 'tools/map_assertion_provenance.py (three clocks per cell: asserted_at from git blame of the cell''s OWN level_current line, artefacts_moved_at from the newest commit touching its file_scope, verified_at from the append-only ledgers)'
+  - tests/tools/test_map_assertion_provenance.py (24 tests green, every fixture a real git repo with controlled commit times -- no mocked git, because a mocked git would only prove the mock returns what the test told it to)
+  - '2026-08-08 first live run, 205 cells: 4 CONTRADICTED, 59 STALE, 2 TAUTOLOGICAL, 66 DIRECTORY_SCOPE, 1 UNTRACKED_ARTEFACTS, 48 NO_ARTEFACTS, 25 CURRENT, ~1.5s. Findings QUEUED not swept, per SELF_INTERRUPT_DISCIPLINE and the addendum''s own warning that a 185-atom field sweep is the probable failure.'

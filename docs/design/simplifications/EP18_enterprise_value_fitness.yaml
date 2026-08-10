@@ -1,3 +1,8 @@
 atom_id: EP18_enterprise_value_fitness
 map_notes:
   origin_note: 'A fitness function is the one place in this project where R12''s anti-goal-seek rule is deliberately INVERTED -- selection pressure is the point -- which makes it the place where a badly-chosen measure does the most damage, since every surviving strategy will have been shaped by it. That asymmetry is why the definition is its own atom rather than a parameter inside the harness. It is also why it must be director-authored curriculum: an agent that both writes the fitness function and runs the tournament is grading its own exam.'
+map_records:
+  evidence:
+  - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
+  - docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md
+  - docs/design/B11_EVOLUTIONARY_TOURNAMENT_HARNESS_FRAME.md
