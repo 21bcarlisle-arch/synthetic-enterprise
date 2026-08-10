@@ -53,8 +53,8 @@ from __future__ import annotations
 import dataclasses
 from dataclasses import dataclass, field
 
-from company.billing.direct_debit import staggered_payment_day
 from simulation.dd_balance_book import DDBalanceBook
+from simulation.dd_payment_day import staggered_payment_day
 
 # How many per-customer collection schedules to carry on the serialised surface
 # so a business page can render a REAL customer's fixed monthly collections (not

@@ -179,9 +179,34 @@ BASELINE_DATE = "2026-08-06"
 #     The floor therefore SHRINKS by one: a drop caused sideways is still a drop,
 #     and leaving it unrecorded is the exact stale-entry failure the 2026-08-09
 #     episode-3 note above describes, which wedged the publish gate for hours.
+#   2026-08-10  I001 1385 -> 1384  (KNIFE pass 3, B4 — the DD/refund cuts)
+#     Design B4 moved `staggered_payment_day` from `company/billing/direct_debit.py`
+#     to `simulation/dd_payment_day.py` and repointed the SIM consumers, two seam
+#     doors and five test modules at the new path. The 08-09 B1 entry above led this
+#     pass to EXPECT the same sideways breakage (a rename shifts alphabetical
+#     position, so clean blocks sort dirty at the new path) — it did not happen, and
+#     the per-file census is why that is stated rather than assumed: the ten touched
+#     files carried 9 I001 at `git archive HEAD` and carry 8 now, the same blocks in
+#     the same files minus one. NO new offender was created. The single drop is
+#     `tests/simulation/test_dd_collection_book.py:145`, a two-name
+#     `from company.billing.direct_debit import (...)` block that was already dirty
+#     and became two sorted single-line imports when the moved name left it. A drop
+#     caused sideways is still a drop, so the floor SHRINKS rather than being left
+#     stale — the exact stale-entry failure the 08-09 episode-3 entry records.
+#   2026-08-10  F541 stays 27, and the tree was made to MEET it (not the reverse)
+#     The ratchet was red at PRISTINE HEAD when B4 was drawn — 28 vs the frozen 27 —
+#     and it was NOT this pass's doing: bisected by `git log -L` over the census to
+#     77c1654e0 (D19, the same day), which added a placeholder-less f-string at
+#     `background/gap_metric.py:640`. Measured against a `git archive HEAD`
+#     extraction rather than inferred, because a working-tree count cannot tell a
+#     regression from a concurrent writer's unsaved fix — the exact confusion the
+#     08-09 episode-3 entry above records. Fixed at source (one prefix deleted, no
+#     behaviour), so the floor is unmoved and HEAD now meets it. A red-at-HEAD
+#     ratchet wedges every lane's commit, so this is repaired here rather than
+#     queued: it is a blocker, not a self-interrupt.
 #
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392  (now 1385)
+#   I001 unsorted-imports .............. 1392  (now 1384)
 #   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194  (now  193)
 #   F841 unused-variable ...............  130
@@ -195,7 +220,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1385,
+    "I001": 1384,
     "F401": 279,
     "E402": 193,
     "F841": 130,
@@ -215,7 +240,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2411  # was 2421 at the 08-06 freeze; -10 per the shrink log above
+RUFF_BASELINE_TOTAL = 2410  # was 2421 at the 08-06 freeze; -11 per the shrink log above
 
 
 # --------------------------------------------------------------------------

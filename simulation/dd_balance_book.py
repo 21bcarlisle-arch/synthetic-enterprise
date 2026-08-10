@@ -42,9 +42,12 @@ artefact where none existed before, with NO existing number changed:
   the two sibling artefacts so the three stay mutually consistent: the DD
   population is ``payment_method(...) == "direct_debit"`` (same gate as
   ``dd_collection_book``); the standing monthly DD is the first issued bill's
-  amount in the first year, then each subsequent year is the prior year's
-  ``dd_review._recommended_monthly(actual)`` -- the very same year-on-year
-  re-estimation chain ``dd_review_runner`` walks.
+  amount in the first year, then each subsequent year is the amount the supplier
+  SET after reviewing the prior year's actual spend, asked for through
+  ``company/interfaces/dd_review_outcome.py`` -- the very same year-on-year
+  re-estimation chain ``dd_review_runner`` walks. (KNIFE pass 3, B4: this used to
+  import the company's PRIVATE ``dd_review._recommended_monthly``. The world is
+  told the amount; the routine that chose it stays behind the door.)
 
 Deferred / NOT built here (registered, not silently dropped):
 
@@ -96,7 +99,7 @@ import dataclasses
 from dataclasses import dataclass, field
 from datetime import date
 
-from company.billing.dd_review import _recommended_monthly
+from company.interfaces.dd_review_outcome import reviewed_monthly_amount
 from simulation.arrears_engine import payment_method
 
 # How many per-customer trajectories to carry on the serialised surface so a
@@ -239,8 +242,9 @@ def build_dd_balance_book(bills: list[dict]) -> DDBalanceBook:
         # Standing level DD per 12-month window: window 0 = the naive initial
         # estimate (first issued bill amount, exactly dd_review_runner's and
         # dd_collection_book's initial mandate sizing); each later year resets to
-        # the prior year's actual/12 recommendation (dd_review._recommended_
-        # monthly) -- the identical year-on-year chain dd_review_runner walks.
+        # the amount the supplier set at that review, asked for at the seam
+        # (reviewed_monthly_amount) -- the identical year-on-year chain
+        # dd_review_runner walks.
         windows: dict[int, list[tuple[date, float]]] = {}
         for d, amt in seq:
             windows.setdefault(_months_between(anchor, d) // 12, []).append((d, amt))
@@ -250,7 +254,7 @@ def build_dd_balance_book(bills: list[dict]) -> DDBalanceBook:
             standing_dd_by_window[wi] = standing
             actual_annual = sum(a for _, a in windows[wi])
             # Reset for NEXT year from this completed year's actual spend.
-            standing = _recommended_monthly(actual_annual)
+            standing = reviewed_monthly_amount(actual_annual)
 
         # Carry the balance across every billed month. Opening balance is ZERO
         # (a non-zero prior-tenancy opening balance is W2_12's physics -- see the

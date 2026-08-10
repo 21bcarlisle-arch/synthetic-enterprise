@@ -19,8 +19,8 @@ from company.billing.direct_debit import (
     DDPaymentAttempt,
     DirectDebitBook,
     next_collection_on_day,
-    staggered_payment_day,
 )
+from simulation.dd_payment_day import staggered_payment_day
 
 
 def book_with_mandate(customer_id="C1", amount=95.0, setup="2024-01-01", payment_day=0):

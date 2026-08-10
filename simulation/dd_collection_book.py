@@ -151,7 +151,6 @@ from company.billing.direct_debit import (
     DirectDebitBook,
     DDPaymentAttempt,
     next_collection_on_day,
-    staggered_payment_day,
 )
 from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS, bill_substream, payment_method, payment_outcome,
@@ -161,6 +160,7 @@ from simulation.bacs_rails import (
     ARUDD_REASON_CODES, resolve_submission, submit_amendment,
     submit_collection, submit_mandate_setup,
 )
+from simulation.dd_payment_day import staggered_payment_day
 
 # 2026-07-12, L2->L3 attempt: a DD amendment only fires when the mandate's
 # stored amount has drifted from the customer's ROLLING MEAN bill amount by

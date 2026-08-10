@@ -20,9 +20,9 @@ from company.billing.direct_debit import (
     _MAX_PAYMENT_DAY,
     _MIN_PAYMENT_DAY,
     next_collection_on_day,
-    staggered_payment_day,
 )
 from simulation.dd_collection_book import build_dd_collection_book
+from simulation.dd_payment_day import staggered_payment_day
 
 
 # --------------------------------------------------------------------------

@@ -142,9 +142,8 @@ class TestMandateSetupWiredThroughRails:
         # staggered payment day, on-or-after the gated due date -- so the
         # independent baseline must snap the same way the code does, else it
         # would be replaying a submission date the code never uses.
-        from company.billing.direct_debit import (
-            next_collection_on_day, staggered_payment_day,
-        )
+        from company.billing.direct_debit import next_collection_on_day
+        from simulation.dd_payment_day import staggered_payment_day
         collection_date = date.fromisoformat(
             next_collection_on_day(gated_due_date.isoformat(), staggered_payment_day("C1"))
         )

@@ -637,7 +637,7 @@ def format_belief_summary(
         + f"; {overcall_name} " + _num("overcall_rate", ".4f")
         + f" ({c.get('n_overcalled')} of {c.get('n_overcall_population')}"
         + _steps("mean_overcall_steps") + ")"
-        + f"; per-case disagreement " + _num("per_case_disagreement_rate", ".4f")
+        + "; per-case disagreement " + _num("per_case_disagreement_rate", ".4f")
         + f" ({c.get('n_cases_misassigned')} of {c.get('n_cases')})"
     )
 

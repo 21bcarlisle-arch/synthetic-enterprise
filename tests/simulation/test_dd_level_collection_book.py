@@ -11,8 +11,8 @@ itself flips False on a hand-built varying schedule.
 """
 from __future__ import annotations
 
-from company.billing.direct_debit import staggered_payment_day
-from company.billing.dd_review import _recommended_monthly
+from simulation.dd_payment_day import staggered_payment_day
+from company.interfaces.dd_review_outcome import reviewed_monthly_amount
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_level_collection_book import (
     build_dd_level_collection_book,
@@ -98,7 +98,7 @@ def test_re_estimation_moves_the_fixed_amount_between_years():
     12-month boundary the standing DD resets to the prior year's actual/12
     recommendation, so year-2 collections differ from year-1 when spend drifted."""
     # Year 0: first bill 100, other 11 months 200 -> annual 2300.
-    # Year 1 standing = _recommended_monthly(2300) != 100.
+    # Year 1 standing = reviewed_monthly_amount(2300) != 100.
     y0 = [100] + [200] * 11
     y1 = [150] * 12
     book = _level_book(_monthly_bills(_DD_ID, y0 + y1))
@@ -106,7 +106,7 @@ def test_re_estimation_moves_the_fixed_amount_between_years():
     year0_amt = round(cols[0].amount_gbp, 2)
     year1_amt = round(cols[12].amount_gbp, 2)
     assert year0_amt == 100.0
-    assert year1_amt == float(_recommended_monthly(sum(y0)))
+    assert year1_amt == float(reviewed_monthly_amount(sum(y0)))
     assert year1_amt != year0_amt, "re-estimate must move the fixed amount"
     # Still fixed WITHIN each year.
     assert len({round(c.amount_gbp, 2) for c in cols[:12]}) == 1

@@ -10,7 +10,6 @@ Failed DDs trigger debt escalation after 2 missed payments.
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal
@@ -21,27 +20,13 @@ _MIN_PAYMENT_DAY = 1
 _MAX_PAYMENT_DAY = 28  # UK convention: DD payment days are capped at 28 so every
 # month has the date (avoids the 29/30/31 short-month problem).
 
-
-def staggered_payment_day(customer_id: str) -> int:
-    """The fixed day-of-month (1-28) a customer's level DD collects on.
-
-    DD1 (2026-07-27, DD_seasonal_cashflow_physics): real households pick (or
-    are assigned) a collection day, and across a supplier's book those days
-    are spread through the month -- so collections STAGGER rather than every
-    mandate landing on the same relative offset from its bill date. This is a
-    company-observable (the supplier knows its own customers' chosen DD days),
-    not a SIM internal.
-
-    Derived DETERMINISTICALLY from the customer id via a stable digest -- no
-    RNG draw is consumed, so this can never shift another subsystem's random
-    stream (C-S2: deterministic, idempotent replay; a pure per-customer
-    function is the strongest form of the named-substream discipline -- it
-    draws from nothing shared at all). Same customer id -> same day, every
-    replay.
-    """
-    digest = hashlib.sha256(customer_id.encode("utf-8")).hexdigest()
-    span = _MAX_PAYMENT_DAY - _MIN_PAYMENT_DAY + 1
-    return _MIN_PAYMENT_DAY + (int(digest[:8], 16) % span)
+# `staggered_payment_day` MOVED to `simulation/dd_payment_day.py` (KNIFE pass 3,
+# B4_billing_mechanics_reached_directly, 2026-08-10). The customer picks the day;
+# the supplier observes it on the mandate. It is deliberately NOT re-exported here
+# -- a re-export would make this module import the SIM, which is the class-(a)
+# direction the ratchet holds at zero. The bounds below stay because validating the
+# day it is TOLD is the company's own job; see the moved module's docstring on why
+# the two readings of the 1-28 Bacs range are allowed to be stated separately.
 
 
 def next_collection_on_day(from_date_str: str, payment_day: int) -> str:

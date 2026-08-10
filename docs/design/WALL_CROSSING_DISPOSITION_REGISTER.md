@@ -228,7 +228,10 @@ suggests. It stays `owed` until (a)–(c) are answered.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B4_billing_mechanics_reached_directly
-4 edges. `credit_refund_events`, `dd_balance_book`, `dd_collection_book` and
+4 edges, of which THREE WERE CUT 2026-08-10 (§3a) and ONE remains — this block stays a plan
+only for `simulation.dd_collection_book -> company.billing.direct_debit`.
+
+The design, unchanged: `credit_refund_events`, `dd_balance_book`, `dd_collection_book` and
 `dd_level_collection_book` reach into `company/billing/` for refund construction, direct-debit
 scheduling and — in the worst case — a PRIVATE function, `dd_review._recommended_monthly`. What
 the world legitimately knows here is what a customer would experience: money left the account
@@ -238,6 +241,17 @@ contract (C-S3), and the world's books apply what they receive rather than recom
 the company's internals. The private-function import goes first: it is a dependency on a
 routine the company is free to change without notice, which is the one property a real supplier
 does not grant the world.
+
+WHAT IS LEFT, AND WHY IT IS THE HARD ONE. `dd_collection_book` does not merely CONSULT the
+company's billing module — it BUILDS the company's artefact: it opens a `DirectDebitBook`,
+creates mandates on it and records `DDPaymentAttempt`s, so the world is operating the supplier's
+collection register. Two of the four names it imports have already been dealt with elsewhere
+(`staggered_payment_day` moved to the world with the B1-shaped cut; `next_collection_on_day` has
+REAL company-side callers inside `direct_debit.py`, so it can neither move nor be duplicated
+without becoming `one name, two numbers`). What is left is the book itself, and handing it over
+is the push B4 actually asks for: the company emits a collection instruction, the world reports
+what happened to the money. That needs a company-side emitter, which is `A_composition_lift`'s
+work — the same structural blocker measured for B5 and re-measured here, not inherited.
 WALL-CROSSING-DESIGN -->
 
 ---
@@ -468,12 +482,121 @@ What was correctly reasoned and is unaffected: the map/simplifications deferral 
 are still mid-transformation by the `map_records:` rehoming lane at this tick, and this commit still
 does not touch them. The deferral was right; the assertion that everything ELSE had landed was not.
 
+### B4_billing_mechanics_reached_directly — EXECUTED IN PART 2026-08-10 (3 of 4 edges)
+
+Three edges cut, in the order the design itself set. The design block stays in §3 because its
+fourth edge is still `owed`, and what remains is named there rather than implied.
+
+**The private-function import went first, as B4 said it should.**
+`simulation/dd_balance_book.py` imported `dd_review._recommended_monthly` — a PRIVATE helper.
+That is worse than an ordinary crossing for a reason unrelated to the edge count: a real
+supplier is free to rename its internal review routine without telling anyone, and here doing so
+would have broken the simulated world. The world is now told the standing monthly amount through
+`company/interfaces/dd_review_outcome.py` — the number on the customer's letter. The ±5% SLC 27B
+variance band, the increase/decrease/maintain classification, `DDReviewResult` and the rounding
+convention stay behind the door.
+
+**The world stopped operating the company's SLC 14 compliance process.**
+`simulation/credit_refund_events.py` opened a `CreditRefundBook`, classified the trigger, raised
+the record, paid it and read the company's own breach verdict back out. It now reports what the
+household experienced — an account closed on a date holding £X, and the money arrived on a later
+date — to `company/interfaces/credit_refund_requests.py`, and logs the dict that comes back. The
+trigger is classified BEHIND the door rather than passed in, and that is the substance of the cut
+rather than a detail: accepting a `trigger=` argument would have left SLC 14's four-way taxonomy
+in the world's hands and made the door a spelling change.
+
+**The third was not a door at all — it was the B1 template, and the ruling is the interesting
+part.** `staggered_payment_day` (the day of the month a customer's DD collects) lived in
+`company/billing/direct_debit.py`, and its own docstring claimed it as "a company-observable, not
+a SIM internal". That is half true and the half it misses is the direction of the arrow: a
+household PICKS its collection day, and the supplier OBSERVES it on the mandate. Filed
+company-side, it made the world ask the company to invent its own customers' habits. The module
+moved to `simulation/dd_payment_day.py`; the world now holds the habit and hands it over at
+mandate setup (`payment_day=`), exactly as a customer tells their supplier which day suits them.
+Safe by MEASUREMENT taken immediately before the move, not by the ruling: zero company-side
+importers (so no class-(a) edge could be created) AND stdlib-only imports (so no
+sim-reads-company edge could be created either). Deliberately NOT re-exported from the old home —
+a re-export would make `company/billing/` import `simulation/`, which is the direction held at
+zero.
+
+**THE ONE DUPLICATION THIS CREATED, AND THE CONTROL THAT MAKES IT SAFE.** The 1–28 Bacs range is
+now stated on both sides: the world assigns within it, the company validates against it. A test
+pinning the two constants EQUAL would restore in the suite exactly the coupling the cut removes
+from the code — the trap B3's design block already recorded — and no control at all would be
+`one name, two numbers`. So `tests/simulation/test_dd_payment_day.py` pins the RELATIONSHIP:
+every day the world can emit is a day the company's mandate register accepts. It holds under any
+consistent pair of readings, and it is mutation-proven in BOTH directions — widen the world's
+range and mandate setup raises; narrow the company's and days the world legitimately assigns
+start being refused. The divergence is loud at the seam by construction, never silent.
+
+**BEHAVIOUR IDENTITY MEASURED, NOT ASSERTED.** 8,640 bills across 240 customers, 3 segments and
+2 commodities with a seasonal shape and a sustained year-2 step, run through all four artefacts
+the cuts touch (`dd_balance_book`, `dd_level_collection_book`, `dd_collection_book` and the
+credit-refund log). Canonical hashes are IDENTICAL before and after, measured against a
+`git archive HEAD` extraction of the pre-cut tree rather than against memory — zero mismatches.
+Vacuity guarded on the branches that matter: 55 of the 240 customers land in the DD population
+(so the non-DD exclusion is exercised), 60 distinct standing amounts appear (so the year-on-year
+review chain really re-sizes), 25 distinct payment days appear, and the 20 refund events split
+18 on-time / 2 breached — a population landing on one arm only would have passed against a door
+hard-wired to `False`.
+
+**R15, PROVEN BOTH WAYS ON THE REAL TREE.** Re-introducing all three imports reds the ratchet,
+naming `simulation/credit_refund_events.py:42`, `simulation/dd_balance_book.py:102` and
+`simulation/dd_level_collection_book.py:57`; with the rows now ruled `cut`, it also reds
+`tools/wall_crossing_dispositions.py`. The mutations were restored and the restoration VERIFIED
+byte-equal against backups (`cmp`), not assumed.
+
+**THREE NEW R15 CONTROLS**, policing properties no other instrument sees — 25 tests across
+`tests/company/interfaces/test_dd_review_outcome_seam.py`,
+`tests/company/interfaces/test_credit_refund_requests_seam.py` and
+`tests/simulation/test_dd_payment_day.py`. The door-widening property is the one the epistemic
+ratchet is blind to BY CONSTRUCTION: re-exporting `_recommended_monthly` or `RefundTrigger`
+restores the removed dependency while the ratchet stays green, because the SIM's import still
+terminates on the exempt seam package.
+
+**THE CONTROL FAILED ON ITS FIRST RUN AND NAMED ITS OWN AUTHOR — TWICE.**
+1. Both doors were first written with a MODULE-LEVEL import of the machinery they wrap, which
+   put `_recommended_monthly` and `RefundTrigger` in the seam module's own namespace: a caller
+   could have imported them straight back out THROUGH the door, ratchet green. Fixed the way
+   B7's door already does it — the import sits inside the function body, so the walker (which
+   descends into function bodies via `ast.walk`) measures exactly the same edge while the door's
+   namespace holds only what it exports. The mutation that reproduces the original mistake is
+   now test (a) in the DD-review suite.
+2. The mutation HARNESS poisoned its own suite. Mutating `_MAX_PAYMENT_DAY = 28` to `31` changes
+   no file LENGTH, so after restoration CPython considered the mutant's cached `.pyc` still valid
+   (same size, same mtime second) and every later import in the session silently got the mutated
+   module back — the world started emitting day 29 and the acceptance control failed on a defect
+   that no longer existed in the source. Fixed at source in all three new harnesses:
+   `sys.dont_write_bytecode` for the duration plus an explicit `cache_from_source` unlink and
+   `invalidate_caches()`. This is a CLASS, and the class is filed rather than swept up here:
+   several older suites roll their own copy of this harness and are latently exposed the moment
+   one of them mutates a same-length token —
+   `docs/staging/WORKER_FINDING_A_SAME_LENGTH_MUTATION_SURVIVES_VIA_THE_PYC_CACHE_2026-08-10.md`.
+
+**HONEST RESIDUAL, NAMED NOT IMPLIED.** The refund LATENCY is still drawn world-side
+(`ON_TIME_PROBABILITY` and the two working-day ranges live in `credit_refund_events.py`), so how
+long the supplier takes to pay is modelled as a property of the world rather than of the
+company's operations — arguably backwards, since the 2022 enforcement notices this mechanic
+models were issued precisely because suppliers CHOSE to sit on credit balances. It is preserved
+rather than repaired because moving an RNG draw across the wall in the same commit that moves an
+import would move published SLC 14 breach figures and make neither change reviewable. Both
+doors are also PULLS where B4 asks for a PUSH, blocked by the same measured
+`A_composition_lift` dependency B5 recorded: the bills are assembled by
+`simulation/run_phase4c_on_phase2b.py`, a SIM composition root, so there is no company-side
+emitter to stamp an instruction onto.
+
+**MEASURED:** 75 → 72 live crossings, 17 → 14 files (`tools/knife_hotspot_measure.py` and
+`tools/wall_crossing_dispositions.py` agree). The three allowlist tuples are DELETED from the
+ratchet, so the floor moved down with the code and the edges cannot return silently.
+`tools/epistemic_wall.py` NOT EDITED in this cutting commit, which is the wall the pass set for
+itself.
+
 ---
 
-## 4. The register — all 88 examined crossings, 75 of them still live
+## 4. The register — all 88 examined crossings, 72 of them still live
 
-88 was the count when every crossing was ruled on (2026-08-09, step 2). THIRTEEN have since
-been CUT (§3a), so the tree carries 75 and this section carries 88 rows: a cut row is not deleted,
+88 was the count when every crossing was ruled on (2026-08-09, step 2). SIXTEEN have since
+been CUT (§3a), so the tree carries 72 and this section carries 88 rows: a cut row is not deleted,
 because a deleted row is how a re-entry becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
@@ -500,10 +623,10 @@ edge: simulation.satisfaction_churn -> saas.churn_model | disposition=owed | des
 # --- B3_world_needs_its_own_cap_physics ---
 edge: simulation.hedged_settlement -> company.pricing.ofgem_price_cap | disposition=owed | design=B3_world_needs_its_own_cap_physics
 # --- B4_billing_mechanics_reached_directly ---
-edge: simulation.credit_refund_events -> company.billing.credit_refund | disposition=owed | design=B4_billing_mechanics_reached_directly
-edge: simulation.dd_balance_book -> company.billing.dd_review | disposition=owed | design=B4_billing_mechanics_reached_directly
+edge: simulation.credit_refund_events -> company.billing.credit_refund | disposition=cut | reason=B4 executed 2026-08-10 — the world no longer opens the company's SLC 14 book. It reports a closure, the credit left in the account and the date the money ARRIVED to `company/interfaces/credit_refund_requests.py` and logs what comes back; the deadline, the record type, the status lifecycle and the four-way refund taxonomy are unreachable from the SIM. The trigger is CLASSIFIED behind the door rather than passed in, which is the substance of the cut: accepting a `trigger=` argument would have left the taxonomy in the world's hands and made this a spelling change.
+edge: simulation.dd_balance_book -> company.billing.dd_review | disposition=cut | reason=B4 executed 2026-08-10, and this was the one the design said goes FIRST — it imported the PRIVATE `_recommended_monthly`, i.e. depended on a routine the company is free to rename without notice. The world is now TOLD the standing monthly amount through `company/interfaces/dd_review_outcome.py` (the number on the customer's letter); the ±5% SLC 27B band, the increase/decrease/maintain classification and the rounding convention stay behind the door.
 edge: simulation.dd_collection_book -> company.billing.direct_debit | disposition=owed | design=B4_billing_mechanics_reached_directly
-edge: simulation.dd_level_collection_book -> company.billing.direct_debit | disposition=owed | design=B4_billing_mechanics_reached_directly
+edge: simulation.dd_level_collection_book -> company.billing.direct_debit | disposition=cut | reason=B4 executed 2026-08-10 by the B1 template, not a door: `staggered_payment_day` was WORLD PHYSICS FILED COMPANY-SIDE. A household picks its collection day and the supplier observes it on the mandate, so the module moved to `simulation/dd_payment_day.py` and the world now holds its own customers' habit. Safe by measurement taken immediately before the move: zero company-side importers (so no class-(a) edge is created) and stdlib-only imports (so no sim-reads-company edge is either). Deliberately NOT re-exported from the old home — that would make the company import the SIM.
 # --- B5_collections_tone_is_an_event_attribute ---
 edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=cut | reason=B5 executed 2026-08-10 — the tone is now read off `company/interfaces/collections_communication.py::collections_tone_for`, so the world learns the tone of a letter that ARRIVED while `DecisionPolicy` (its tone_mode, its A/B split) stays unreachable from the SIM. HALF the design, stated as such: this is a PULL and B5 asks for a PUSH (tone stamped on an emitted event). Blocked structurally, by measurement not assumption — the bill dicts are built by `simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, a SIM composition root, so there is no company-side emitter to stamp; that is A_composition_lift's work. See B5 residual in §3a.
 # --- B6_cpa_is_company_accounting ---

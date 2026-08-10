@@ -8,6 +8,13 @@ in simulation/ for a caller returned nothing -- dead code (Phase 1 audit
 finding #3). This module is the activation: it gives the mechanic something
 real to fire on.
 
+KNIFE pass 3 (B4, 2026-08-10) moved the mechanic itself back behind the wall.
+This module no longer opens the company's compliance book: it reports the
+closure, the credit left in the account and the date the money arrived to
+``company/interfaces/credit_refund_requests.py``, and logs what comes back.
+The SLC 14 deadline, the refund taxonomy and the breach verdict are the
+supplier's, and are no longer readable from here.
+
 Real DD billing pays a flat monthly amount, reconciled periodically -- not
 the exact bill each month. `saas/bill_generator.py` bills exact consumption
 with no DD smoothing anywhere in the codebase before this. DD smoothing is
@@ -32,11 +39,7 @@ import datetime as dt
 import random
 import statistics
 
-from company.billing.credit_refund import (
-    CreditRefundBook,
-    CreditRefundRecord,
-    RefundTrigger,
-)
+from company.interfaces.credit_refund_requests import refund_on_account_closure
 from simulation.arrears_engine import payment_method
 
 # Probability the refund is paid within the SLC 14 10-working-day deadline.
@@ -91,7 +94,6 @@ def generate_credit_refund_log(
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         by_customer.setdefault(bill["customer_id"], []).append(bill)
 
-    book = CreditRefundBook()
     log: list[dict] = []
     for cid, customer_bills in by_customer.items():
         if cid not in churned_ids or not customer_bills:
@@ -106,28 +108,24 @@ def generate_credit_refund_log(
         if balance <= 0:
             continue
 
-        request_date = dt.date.fromisoformat(last_bill["period_end"])
-        book.raise_refund(CreditRefundRecord(
-            account_id=cid,
-            request_date=request_date,
-            trigger=RefundTrigger.ACCOUNT_CLOSURE,
-            credit_amount_gbp=round(balance, 2),
-        ))
+        closure_date = dt.date.fromisoformat(last_bill["period_end"])
 
+        # How long the money took to ARRIVE is what the household observes. The
+        # deadline it is judged against, and the verdict, are the company's -- see
+        # the seam module's residual (1) on why this draw is still world-side.
         rng = random.Random(f"creditrefund_{cid}_{last_bill['period_end']}")
         on_time = rng.random() < ON_TIME_PROBABILITY
         lo, hi = ON_TIME_WORKING_DAYS if on_time else LATE_WORKING_DAYS
         working_days = rng.randint(lo, hi)
-        paid_date = _add_working_days(request_date, working_days)
+        paid_date = _add_working_days(closure_date, working_days)
 
-        record = book.pay(cid, paid_date)
         log.append({
             "customer_id": cid,
-            "trigger": record.trigger.value,
-            "request_date": record.request_date.isoformat(),
-            "credit_amount_gbp": record.credit_amount_gbp,
-            "paid_date": record.paid_date.isoformat(),
-            "working_days_to_pay": record.working_days_to_pay(),
-            "breached_slc14_deadline": record.breached_deadline(),
+            **refund_on_account_closure(
+                account_id=cid,
+                closure_date=closure_date,
+                credit_amount_gbp=round(balance, 2),
+                paid_date=paid_date,
+            ),
         })
     return log

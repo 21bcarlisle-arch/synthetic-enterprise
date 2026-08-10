@@ -144,16 +144,16 @@ def test_replay_reproduces_identical_book():
 def test_standing_dd_resets_from_prior_year_actual():
     """Year 1's standing level DD is the DD4a recommendation off year 0's actual
     -- the same chain dd_review_runner walks (mutual consistency)."""
-    from company.billing.dd_review import _recommended_monthly
+    from company.interfaces.dd_review_outcome import reviewed_monthly_amount
     # Year 0: first bill 100, rest 100 -> actual 1200 -> recommended 100.
     # Year 1: all 200 -> the collected each month in year1 should be the year0
-    # recommendation, i.e. _recommended_monthly(1200) == 100, NOT 200.
+    # recommendation, i.e. reviewed_monthly_amount(1200) == 100, NOT 200.
     y0 = [100.0] * 12
     y1 = [200.0] * 12
     bills = _monthly_bills(_DD_ID, y0 + y1)
     book = build_dd_balance_book(bills)
     pts = book.trajectories[_DD_ID]
-    expected_y1_dd = _recommended_monthly(sum(y0))
+    expected_y1_dd = reviewed_monthly_amount(sum(y0))
     for p in pts[12:24]:
         assert p.collected_gbp == round(expected_y1_dd, 2)
 
