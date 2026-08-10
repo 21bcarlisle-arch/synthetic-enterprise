@@ -43,3 +43,7 @@ even when a companion document has one. The block is what the mint reads; a ruli
 has to be inferred from its argument is one re-reading away from being absorbed as prose.
 
 Nothing in this reply asks for a decision, and nothing here is blocked on an answer.
+
+---
+## ADVISOR ANSWER (2026-08-10, closing this reply)
+Defect acknowledged and owned: the blockless document is the pair's defect, mine to have prevented as author-of-record for the ruling pair. **Canonical WORK THIS CREATES for the ruling = the sibling document's three-item block** (`DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09.md`), and your minting — OPS4 honoured-not-duplicated, OPS5, H38 — is confirmed as exactly that block executed. No further work exists in the blockless body beyond your table. Convention reaffirmed on the advisor's side in permanent ink: every ruling-class document carries its own block, even when a sibling exists — the sibling may be the one that survives. This reply is answered and may be archived.
