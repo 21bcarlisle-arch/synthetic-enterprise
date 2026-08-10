@@ -37,6 +37,7 @@ import os
 import signal
 import subprocess
 import sys
+import types
 import time
 from pathlib import Path
 
@@ -313,4 +314,155 @@ def test_the_record_computes_whether_it_was_detached_rather_than_claiming_it():
     assert "getsid" in match.group(1), (
         "is_session_leader is set to {} -- a claimed value is exactly what could not be "
         "verified about the run that died".format(match.group(1))
+    )
+
+
+# ── AND FOR THE FOURTH DEATH: SESSION-DETACH IS NOT THE SAME PROTECTION AS SYSTEMD ────────────
+#
+# The 10:42:36Z run went through `--detach` and its own record says `is_session_leader: true`,
+# so the detach HELD -- and it died anyway, 3.5 minutes in, still in the quiet-wait. The control
+# above proves `--detach` survives a kill of the launcher's process GROUP. It never asked the
+# other question, and these do: a session-detached child is STILL A DESCENDANT of its launcher,
+# so anything that reaps a tick by walking /proc reaches it regardless of session.
+#
+# The differential is the point. `test_session_detach_does_not_hide_a_child_from_a_descendant
+# _walk` is the counterfactual that makes the systemd assertion mean something: if a
+# session-detached child were already invisible to a descendant walk, handing the job to init
+# would buy nothing and the test below would pass vacuously.
+
+def _descendants(root_pid: int) -> set:
+    """Every pid whose parent chain reaches `root_pid` -- the shape of a tree-walking reaper."""
+    found, pids = set(), []
+    for entry in Path("/proc").iterdir():
+        if entry.name.isdigit():
+            pids.append(int(entry.name))
+    parent_of = {}
+    for pid in pids:
+        try:
+            stat = (Path("/proc") / str(pid) / "stat").read_text()
+            parent_of[pid] = int(stat.rsplit(")", 1)[1].split()[1])
+        except (OSError, IndexError, ValueError):
+            continue
+    for pid in parent_of:
+        seen, cur = set(), pid
+        while cur in parent_of and cur not in seen:
+            seen.add(cur)
+            cur = parent_of[cur]
+            if cur == root_pid:
+                found.add(pid)
+                break
+    return found
+
+
+def test_session_detach_does_not_hide_a_child_from_a_descendant_walk():
+    """THE DIAGNOSIS of the fourth death, as a control rather than a paragraph.
+
+    `start_new_session` changes the session and the process group. It does not change the
+    child's `ppid`, so a reaper that enumerates a launcher's descendants still finds it. This
+    is why a run whose record says `is_session_leader: true` could still be killed inside the
+    quiet-wait -- and why the escalation is init ownership, not a fifth identical launch."""
+    child = measure._detached_popen([sys.executable, "-c", "import time; time.sleep(30)"], None)
+    try:
+        assert child.pid in _descendants(os.getpid()), (
+            "a session-detached child was NOT a descendant of its launcher -- if that were so, "
+            "`--detach` would already defeat a tree-walking reaper and the systemd launch below "
+            "would be buying nothing"
+        )
+    finally:
+        child.kill()
+        child.wait(timeout=10)
+
+
+def test_the_systemd_launch_hands_the_job_to_init_under_a_fixed_unit_name():
+    """The argv is the committed launch, so its shape is asserted rather than typed.
+
+    The FIXED unit name is load-bearing: it is what makes double-launch refusal a fact stated
+    by init. Six launches got past the `pgrep` guard within three minutes on 2026-08-10 --
+    correctly, since each previous child had already died -- which is precisely a guard that
+    cannot see what it is guarding against."""
+    argv = measure._systemd_run_argv("/tmp/out.json")
+
+    assert argv[:2] == ["systemd-run", "--user"]
+    assert "--unit={}".format(measure.MEASUREMENT_UNIT_NAME) in argv
+    assert any(a.startswith("--property=WorkingDirectory=") for a in argv), (
+        "without an explicit WorkingDirectory the transient unit inherits the manager's cwd and "
+        "`-m tools.…` does not resolve"
+    )
+    assert "-m" in argv and "tools.measure_publish_gate_subject_cost" in argv
+    assert "--systemd" not in argv and "--detach" not in argv, (
+        "the unit must run the MEASUREMENT, not another launcher"
+    )
+    assert "/tmp/out.json" in argv
+
+
+def test_an_unavailable_systemd_refuses_rather_than_reporting_a_launch(monkeypatch, out):
+    """R15 fail-closed. A launcher that returns 0 having started nothing is the exact failure
+    of the last four attempts: the next reader sees success and waits for a run that is not
+    there. No systemd-run means rc != 0 and a message naming the alternative."""
+    monkeypatch.setattr(measure.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *a, **k: pytest.fail("must not try to launch without systemd-run"))
+
+    assert measure._launch_under_systemd(out, lambda _m: None) != 0
+
+
+def test_a_refused_transient_unit_is_reported_as_a_failure(monkeypatch, out):
+    """systemd refusing the name (a live unit already holds it) must surface as non-zero.
+
+    This is the double-launch guard that the `pgrep` one could not be: it is asserted by init
+    about its own state, not parsed by this harness out of a command line."""
+    monkeypatch.setattr(measure.shutil, "which", lambda _name: "/usr/bin/systemd-run")
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *a, **k: types.SimpleNamespace(
+                            returncode=1, stdout="", stderr="Unit publish-gate-subject-cost.service already exists."))
+
+    assert measure._launch_under_systemd(out, lambda _m: None) == 1
+
+
+def test_the_systemd_launch_is_refused_while_a_measurement_is_live(monkeypatch, out):
+    """`--systemd` runs the same liveness guard as `--detach` before it asks init for a unit."""
+    monkeypatch.setattr(measure, "_measurement_is_running", lambda: True)
+    monkeypatch.setattr(measure, "_launch_under_systemd",
+                        lambda *a: pytest.fail("a second measurement must never be launched"))
+
+    assert measure.main(["--systemd", "--out", out]) == 1
+
+
+def test_the_record_computes_how_it_was_launched_rather_than_being_told():
+    """Same discipline as `is_session_leader`, one level finer. The fourth death showed that
+    "detached" is not one property but two -- group-kill survival and descendant-walk
+    invisibility -- so the record must say WHICH one the run had."""
+    import inspect
+    import re
+
+    src = inspect.getsource(measure._run_measurement)
+    assert '"launched_by": _launched_by()' in src, "the record no longer stamps launched_by"
+
+    fn = inspect.getsource(measure._launched_by)
+    assert "INVOCATION_ID" in fn and "getsid" in fn, (
+        "launched_by must be derived from the environment systemd sets and from the kernel's "
+        "own answer about this process -- a hardcoded string is what could not be verified "
+        "about the runs that died"
+    )
+    del re
+
+
+def test_launched_by_says_systemd_only_when_systemd_actually_started_the_process(monkeypatch):
+    """BEHAVIOURAL, because the source-reading version of this test was itself fail-open: it
+    passed against a `_launched_by` that returned "systemd" unconditionally (mutation M5,
+    2026-08-10). A stamp that always says systemd is worse than no stamp -- the whole reason it
+    exists is to let the NEXT reader of a dead run's record tell which protection it had.
+
+    Both directions, so neither arm can pass vacuously."""
+    monkeypatch.delenv("INVOCATION_ID", raising=False)
+    without = measure._launched_by()
+    assert without != "systemd", (
+        "launched_by claimed systemd with no INVOCATION_ID in the environment -- it is asserting, "
+        "not observing"
+    )
+    assert without in ("session-detach", "inline", "unknown")
+
+    monkeypatch.setenv("INVOCATION_ID", "a6a7087cea2f4c8682621049f22fbc50")
+    assert measure._launched_by() == "systemd", (
+        "a process systemd really did start is not recorded as systemd-launched"
     )
