@@ -1,5 +1,31 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T17:12:00Z
+Last updated: 2026-08-10T21:51:28Z
+
+**THE MACHINE CAN SEE ITS OWN CONTENTION WINDOW — resource-headroom governor LANDED
+(commit `f89afcd96`, pushed), against `ADVISOR_FLAG_RESOURCE_HEADROOM_GOVERNOR_2026-08-09` and
+`DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10` step 2.**
+
+`/proc/vmstat oom_kill` reads **64 lifetime kills** on this box. Nothing knew how much memory was
+left or what else was running, so the kernel picked victims by size — and an oom-kill is
+indistinguishable downstream from a test regression (gate dies mid-suite, no summary line,
+publisher records `kind: test_regression`), so cycles were spent hunting bugs that never existed.
+
+`background/resource_headroom.py` adds a watchdog (MemAvailable/Shmem/PSI, episode memory carrying
+since-when / worst / victims from the monotonic oom counter) and a concurrency budget where heavy
+jobs declare a measured weight and are **admitted or deferred**, every deferral leaving a receipt.
+Admission needs BOTH the declared ledger and measured availability — independent sources, so
+neither blind spot passes alone (R15). 18 tests; **6 mutations run for real**, each killed by a
+named test. It is a governor, not a gate: its only verdict is start-now or start-later.
+
+**Live evidence, taken while the red census was running (21:50Z):** 4,782 MB available of 15,912 MB
+(the real total — the 32 GB constant was fiction); the governor DEFERS `sim_run` (6,144 MB) and
+`subject_cost` (9,728 MB) — precisely the pair whose collision produced the kills — while still
+admitting `publish_gate`.
+
+**Not yet wired, deliberately:** `process_run_complete`/`sim_runner`/the census tool do not call
+`admit()` yet. Those are publish-path files and `enumerate_publish_gate_reds` is mid-census against
+HEAD; committing there would move HEAD under it, which `DIRECTOR_PRIORITY_ENUMERATE_THE_STACK`
+forbids by name. Wiring goes in with that batch. Flag parked in `docs/staging/in_progress/`.
 
 **THE SITE BREATHES — publish decoupling items 1+3 LANDED AND LIVE (commit `1edad80a5`, pushed
 `a1e308049`), closing `DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10`.**
@@ -2082,7 +2108,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
