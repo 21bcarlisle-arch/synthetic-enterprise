@@ -94,9 +94,29 @@ _CARVE_OUT_PHRASES = ("four conditions", "interim exception", "interim shape", "
 _BYPASS_PHRASES = ("--no-verify", "commit-tree", "bypass")
 
 
+# The two phrase sets must land in the SAME PARAGRAPH, not merely the same file.
+#
+# 2026-08-10: whole-file co-occurrence was too loose and it wedged publishing for a full gate
+# cycle. `docs/design/KNIFE_HOTSPOT_PASSES.md` says "Four conditions, measured per file" about
+# the epistemic WALKER's lift test (zero walled importers, nothing the codebase uses, an entry
+# point, only observables) and, 150 lines away, calls a seam crossing a "comment-shaped bypass".
+# Neither sentence is about hook-bypass; together they read as the carve-out. That is precisely
+# the "reds on innocent text" failure this predicate's own comment set out to avoid -- and the
+# cost was not theoretical, since a red here blocks every publish.
+#
+# Proximity is the discriminator that survives both ways: a document actually RESTATING the
+# carve-out has to say what is being bypassed next to the conditions for bypassing it, because
+# that is the only way the sentence means anything. Splitting on blank lines keeps the window
+# tied to the author's own unit of argument rather than to an arbitrary character count.
+def _paragraphs(text: str) -> list[str]:
+    return [p for p in re.split(r"\n\s*\n", text) if p.strip()]
+
+
 def _mentions_the_carve_out(text: str) -> bool:
-    low = text.lower()
-    return any(p in low for p in _CARVE_OUT_PHRASES) and any(p in low for p in _BYPASS_PHRASES)
+    return any(
+        any(p in low for p in _CARVE_OUT_PHRASES) and any(p in low for p in _BYPASS_PHRASES)
+        for low in (para.lower() for para in _paragraphs(text))
+    )
 
 
 def test_the_retirement_is_recorded_as_a_marker_naming_a_replacement_that_exists():
