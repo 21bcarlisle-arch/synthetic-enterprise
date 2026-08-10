@@ -277,14 +277,24 @@ class PeriodRecord:
 
 
 def build_scenario(
-    n_customers: int, seed: Optional[int] = None
+    n_customers: int, seed: Optional[int] = None,
+    force_payment_method: Optional[str] = None,
 ) -> Tuple[List[PeriodRecord], PaymentObservationConsumer, LedgerBook, date]:
     """Run the coupled loop over `n_customers` resi households x `N_PERIODS`
     billing periods each. Returns (truth_records, consumer, ledger_book,
     as_of). The consumer is fed EXCLUSIVELY through
     `simulation.payment_seam_adapter.emit_wall_responses` -- it never sees a
     `PeriodRecord`/`PaymentEvent` (R15 independence, proven in the test
-    suite's `test_consumer_never_receives_theta`)."""
+    suite's `test_consumer_never_receives_theta`).
+
+    `force_payment_method` overrides `generate_payment_method` for every
+    customer. It exists for ONE named purpose -- the COUNTERFACTUAL population
+    `measure_coverage_only_residual` needs (atom `D20`), on which the company
+    observes every failure channel -- and is never used by the scored
+    population. It is a declared parameter rather than a monkeypatch precisely
+    so the counterfactual is legible in the repo (IaC) instead of living in a
+    test's `setattr`. R13: it does NOT change the baseline world; it builds a
+    SECOND, explicitly-labelled world used only to isolate one term."""
     ledger_book = LedgerBook()
     consumer = PaymentObservationConsumer(
         ledger_book=ledger_book, dd_failure_window_days=DD_FAILURE_WINDOW_DAYS
@@ -307,7 +317,8 @@ def build_scenario(
     for i in range(n_customers):
         cid = f"{namespace}C{i:06d}"
         stress = _pick_stress(cid)
-        method = generate_payment_method(cid, fuel="electricity")
+        method = (force_payment_method if force_payment_method is not None
+                  else generate_payment_method(cid, fuel="electricity"))
         account_id = f"ACC-{cid}"
 
         for p in range(N_PERIODS):
@@ -673,6 +684,183 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
         ),
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# THE COVERAGE-ONLY CLAIM (atom D20_belief_truth_rule_is_an_unmeasured_mirror)
+# ---------------------------------------------------------------------------
+# WHAT THE DEFECT WAS. The belief dimension publishes its two sides as "same
+# threshold shape, different-coverage inputs": the TRUTH side is
+# `_severity_label` (this module) and the BELIEF side is
+# `PaymentObservationConsumer._arrears_risk_belief` (the company organ), and
+# the claim is that the ONLY difference between them is which failures the
+# company got to see. That claim is what makes the published number a measure
+# of the WALL. It was asserted in a docstring and in the ledger note the Proof
+# door reads, and nothing measured it -- `_severity_label` was a HAND-COPY of
+# the organ's thresholds with no test naming the pair (H27 Expert Hour #4,
+# 2026-08-10).
+#
+# MEASURED, not argued. Three plausible drifts of the organ's own rule, applied
+# to the organ ALONE, with the world and the truth-side rule untouched:
+#
+#   organ drift (company rule only)      published belief headline   what fired
+#   -----------------------------------  -------------------------  -------------------------
+#   one failure no longer raises WATCH   0.1424 -> 0.4146 (2.9x)    a permutation-probe
+#                                                                   VACUITY guard
+#   hardship amplification 2 -> 1        0.1424 -> (overcall > 0)   "this book's company now
+#                                                                   over-calls" -- a POPULATION
+#                                                                   premise, not the rule
+#   HIGH bar 3+ -> 4+                    0.1424 -> 0.1551           the WALL-LEAK R15 control
+#
+# Exactly one test fired each time and not one of them named the divergence;
+# two gave an actively wrong diagnosis (a weak probe; an epistemic-wall leak).
+# A reader would have chased the wrong organ while the headline silently became
+# a mixture of coverage loss and rule divergence, still published as coverage.
+#
+# THE CONTROL. Equalise the coverage and the residual must be ZERO. On a
+# counterfactual population where every customer pays by DIRECT DEBIT the
+# company observes every failure, so any surviving gap is rule divergence by
+# construction -- and it needs no copy of either rule to say so, which is the
+# R15 independence a threshold-table test could not have had.
+COVERAGE_ONLY_CLAIM_PHRASE = "different-coverage"
+
+COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
+    "belief": {
+        "claims_coverage_only": True,
+        "why": (
+            "Its two sides run the SAME thresholding shape (`_severity_label` "
+            "mirrors `PaymentObservationConsumer._arrears_risk_belief`) over "
+            "different-coverage counts: all-channel unresolved failures on the "
+            "truth side, DD/rail-OBSERVED failures on the belief side. So with "
+            "coverage equalised the residual must be exactly 0."
+        ),
+    },
+    "belief_population_mix": {
+        "claims_coverage_only": True,
+        "why": (
+            "Scored from the IDENTICAL two label lists as `belief` (atom D19), "
+            "so it inherits the claim in substance. It gets its own entry "
+            "rather than an exemption for the same reason it does in "
+            "`DIMENSION_AS_OF_CONTRACT`: a dimension that shares another's "
+            "inputs is exactly the one an author assumes inherits a declaration."
+        ),
+    },
+    "detection": {
+        "claims_coverage_only": False,
+        "why": (
+            "EXEMPT: its two sides are not one rule over two coverages at all "
+            "-- truth is `result == 'failed'` and belief is an ever-flagged set "
+            "built by expected-collection reconciliation, a DIFFERENT rule. It "
+            "HAPPENS to measure 0.0000 on the all-DD counterfactual (seeds "
+            "7/11/23), and that coincidence is exactly why the exemption is "
+            "recorded rather than inferred from the number: a control that read "
+            "the residual and concluded the claim would license this dimension "
+            "into a claim it does not make. Nothing here may assert on it."
+        ),
+    },
+    "detection_latency": {
+        "claims_coverage_only": False,
+        "why": ("EXEMPT. An absolute mean in DAYS with no truth-side label to "
+                "agree with -- there is no 'same rule' to hold. It is also the "
+                "LIVE SIDE of this control's differential: it reads ~0.93-1.07 "
+                "on the counterfactual (seeds 7/11/23), which is what stops a "
+                "population that collapsed every dimension to 0 -- a broken "
+                "build, an empty book -- from passing as agreement."),
+    },
+    "ageing": {
+        "claims_coverage_only": False,
+        "why": ("EXEMPT. Truth is a clock fact about the due date and belief is "
+                "the open-item report; two different rules, not one rule over "
+                "two coverages."),
+    },
+}
+
+
+def measure_coverage_only_residual(
+    n_customers: int = 800, seed: Optional[int] = None,
+) -> Dict[str, object]:
+    """Score the COUNTERFACTUAL all-Direct-Debit population and report, per
+    dimension, the gap that survives when coverage loss is removed.
+
+    For a dimension declaring `claims_coverage_only`, that residual IS its
+    rule divergence: the truth-side rule and the company organ's rule
+    disagreeing on inputs they both fully saw. It must be 0.
+
+    INDEPENDENCE (R15 tautology): nothing here re-derives, copies or inspects
+    either side's thresholds. Both labels come out of the shipped code paths --
+    `_severity_label` on the harness side, `consumer.snapshot(...)` on the
+    company side -- over a population built by `build_scenario` and fed through
+    the real seam. The control can only be satisfied by the two rules actually
+    agreeing.
+
+    VACUITY (R15 fail-open): a residual of 0 proves nothing unless the
+    counterfactual really did remove coverage loss that really was there. Both
+    halves travel in `witnesses`, and `is_vacuous` is True if either fails --
+    the caller must assert on it, because "0" on a population with no coverage
+    loss to remove, or with no possible-error population at all, is the
+    strongest possible claim handed out for free."""
+    cf_records, cf_consumer, _cf_ledger, cf_as_of = build_scenario(
+        n_customers, seed=seed, force_payment_method=DIRECT_DEBIT)
+    cf = score_triad(cf_records, cf_consumer, cf_as_of)
+
+    real_records, real_consumer, _r_ledger, real_as_of = build_scenario(
+        n_customers, seed=seed)
+    real = score_triad(real_records, real_consumer, real_as_of)
+
+    # WITNESS 1 -- the counterfactual removed something real. The scored
+    # population must genuinely carry the coverage loss the claim is about: a
+    # failed push payment emits no rail event at all, so it is invisible to the
+    # company's severity count. If the real book had none, equalising coverage
+    # would be a no-op and a zero residual would mean nothing.
+    coverage_loss_removed = int(real["stats"]["n_true_non_dd_failures"])
+    # WITNESS 2 -- the counterfactual is not vacuously error-free. Both belief
+    # error directions need a non-empty possible-error population there, or a
+    # 0 residual is arithmetic rather than agreement.
+    cf_bel = cf["belief"].components
+    cf_undercall_pop = int(cf_bel["n_undercall_population"])
+    cf_overcall_pop = int(cf_bel["n_overcall_population"])
+    # WITNESS 3 -- the counterfactual really did close the channel. Zero
+    # non-DD failures there is what "the company saw everything" means here.
+    cf_non_dd_failures = int(cf["stats"]["n_true_non_dd_failures"])
+
+    residuals: Dict[str, Dict[str, object]] = {}
+    for dim, decl in COVERAGE_ONLY_CLAIM_CONTRACT.items():
+        residuals[dim] = {
+            "claims_coverage_only": bool(decl["claims_coverage_only"]),
+            "residual": cf[dim].gap,
+            "gap_on_the_scored_book": real[dim].gap,
+        }
+
+    # WITNESS 4 -- THE DIFFERENTIAL. A counterfactual on which EVERY dimension
+    # read 0 would satisfy the claiming dimensions for a reason that has
+    # nothing to do with the two rules agreeing (an empty book, a scorer
+    # returning zeros, a build that no longer runs). At least one EXEMPT
+    # dimension must come out non-zero on the same population, or the zeros
+    # above are a property of the run rather than of the rules.
+    n_exempt_nonzero = sum(
+        1 for dim, v in residuals.items()
+        if not v["claims_coverage_only"] and v["residual"]
+    )
+
+    return {
+        "residuals": residuals,
+        "witnesses": {
+            "coverage_loss_removed": coverage_loss_removed,
+            "cf_non_dd_failures": cf_non_dd_failures,
+            "cf_undercall_population": cf_undercall_pop,
+            "cf_overcall_population": cf_overcall_pop,
+            "n_exempt_dimensions_nonzero": n_exempt_nonzero,
+        },
+        "is_vacuous": (
+            coverage_loss_removed == 0
+            or cf_non_dd_failures != 0
+            or cf_undercall_pop == 0
+            or cf_overcall_pop == 0
+            or n_exempt_nonzero == 0
+        ),
+        "n_customers": n_customers,
+        "seed": seed,
+    }
 
 
 # THE AGEING EXCLUSION BAND'S PUBLISHED REASON (atom D16). One constant, so the
@@ -1461,7 +1649,22 @@ def score_triad(
         "`arrears_risk_belief` (DD/rail-observed unresolved count) vs the TRUE "
         "severity (all-channel unresolved count) -- same threshold shape, "
         "different-coverage inputs -- scored ACCOUNT BY ACCOUNT in both "
-        "directions on their own denominators. RESHAPED 2026-08-10 (atom D19) "
+        "directions on their own denominators. "
+        "THE 'SAME THRESHOLD SHAPE' CLAIM IS MEASURED, NOT ASSERTED, SINCE "
+        "2026-08-10 (atom D20). It is the claim that makes this number a "
+        "measure of the WALL, and until that date it lived only in a docstring: "
+        "the truth-side rule is a HAND-COPY of the company organ's own "
+        "thresholds, so an organ-only change would have turned this figure into "
+        "a mixture of coverage loss and rule divergence while it went on being "
+        "published as coverage. Measured: three plausible organ drifts moved it "
+        "by up to 2.9x, and the single test that fired each time named a weak "
+        "permutation probe or an epistemic-wall leak -- never the divergence. "
+        "`measure_coverage_only_residual` now equalises the coverage (an all-DD "
+        "counterfactual population on which the company observes every failure) "
+        "and the surviving residual, which is rule divergence by construction "
+        "and needs no copy of either rule to say so, must be exactly 0. It is, "
+        "on seeds 7/11/23, with every vacuity witness non-empty. "
+        "RESHAPED 2026-08-10 (atom D19) "
         "and NOT COMPARABLE with any belief figure published before that date: "
         "the retired headline was a population TV distance, which a permutation "
         "of the per-case labels left identical to machine precision (0.0713 -> "
@@ -2031,6 +2234,12 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--write-ledger", action="store_true",
                     help="persist the measured gaps into coupled_gap_ledger.json")
+    ap.add_argument("--coverage-residual", action="store_true",
+                    help=("also score the all-DD counterfactual and print the "
+                          "coverage-only residual (atom D20) -- builds a "
+                          "SECOND population, so it is opt-in"))
+    ap.add_argument("--coverage-residual-customers", type=int, default=800,
+                    help="population size for --coverage-residual (default 800)")
     args = ap.parse_args()
 
     result = measure(args.customers, seed=args.seed)
@@ -2087,6 +2296,29 @@ def main() -> None:
     print(f"  [detection_latency] {format_detection_latency_summary(result['detection_latency'])}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
+
+    # THE COVERAGE-ONLY RESIDUAL (atom D20). Printed beside the headline it
+    # qualifies rather than left to the test suite: the claim that the belief
+    # dimension's two sides differ ONLY in coverage is what makes that number a
+    # measure of the wall, and a reader of this output is exactly who is
+    # entitled to it. It builds a second population, so it is off by default at
+    # the CLI's 4000-customer setting and sized separately.
+    if args.coverage_residual:
+        cov = measure_coverage_only_residual(
+            n_customers=args.coverage_residual_customers, seed=args.seed)
+        w = cov["witnesses"]
+        print(f"  [coverage-only residual] counterfactual all-DD population, "
+              f"n={cov['n_customers']}, VACUOUS={cov['is_vacuous']}")
+        for dim, v in cov["residuals"].items():
+            claim = "CLAIMS coverage-only" if v["claims_coverage_only"] else "exempt"
+            print(f"      {dim:<24} {claim:<21} residual={v['residual']:.6f} "
+                  f"(on the scored book {v['gap_on_the_scored_book']:.6f})")
+        print(f"      witnesses: coverage loss removed from the scored book "
+              f"{w['coverage_loss_removed']} non-DD true failures; "
+              f"counterfactual non-DD failures {w['cf_non_dd_failures']}; "
+              f"error populations {w['cf_undercall_population']}/"
+              f"{w['cf_overcall_population']}; exempt dimensions reading "
+              f"non-zero {w['n_exempt_dimensions_nonzero']}")
 
     if args.write_ledger:
         measured_at = datetime.now(timezone.utc).isoformat()

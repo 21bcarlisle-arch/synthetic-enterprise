@@ -1,5 +1,54 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T08:09:56Z
+Last updated: 2026-08-10T08:27:51Z
+
+**H27 EXPERT HOUR #4 — the fourth defect is in a CLAIM, not an arithmetic; atom `D20` minted and
+built in the same tick. H27 HELD AT L2 for the fourth consecutive Hour.**
+
+The W2_11↔D5 belief dimension publishes its two sides as *"same threshold shape, different-coverage
+inputs"* — the clause that makes the number a measure of the **wall** rather than of two different
+rules. It was asserted in a docstring and in the ledger note the Proof door carries, and **measured
+nowhere**: the truth-side rule (`_severity_label`) is a **hand-copy** of the company organ's own
+thresholds (`_arrears_risk_belief`), and no test in the repository mentioned it.
+
+**Measured, not argued.** Three plausible drifts of the *company organ alone* — world, seam and
+truth-side rule untouched (n=1200, seed 7):
+
+| organ drift | published belief headline | what fired |
+|---|---|---|
+| one failure no longer raises WATCH | 0.1424 → **0.4146** (2.9×) | a permutation probe's vacuity guard |
+| hardship amplification 2 → 1 | over-call direction leaves 0 | *"this book's company now over-calls"* |
+| HIGH bar 3+ → 4+ | 0.1424 → **0.1551** | the epistemic-**wall-leak** control |
+
+Exactly one test fired each time; **none named the divergence** and two gave an actively wrong
+diagnosis. A reader would have chased the wrong organ while the headline became a mixture of
+coverage loss and rule divergence, still published as coverage.
+
+**Closed by equalising the coverage instead of comparing the rules.** The tempting control — assert
+the two threshold tables match — is the R15 tautology (a third copy, passing whenever all three
+drift together). On an all-DD counterfactual the company observes every failure, so the coverage
+term is zero **by construction** and the surviving residual *is* the divergence, with no copy of
+either rule anywhere in it. Residual **0.000000** on seeds 7/11/23. The claim held at HEAD — which is
+the point: it was true and unmeasured, the state in which it silently stops being true.
+
+**Vacuity is the hard part, because the healthy reading is a zero.** Four witnesses, all asserted:
+the scored book really carried the coverage loss removed; the counterfactual really removed it; both
+belief error populations non-empty there; and **the differential** — at least one *exempt* dimension
+reading non-zero, so a run that collapsed every gap to zero cannot pass as agreement.
+
+**The class control (R10)** sweeps the *published text*: a dimension telling a reader its two sides
+differ only in coverage must be declared, which is what puts it under the measurement. **Its own
+first draft was vacuous** — it swept the CLI formatter, where the phrase does not appear, so it
+passed while never looking at its own headline dimension. Its vacuity guard caught it on first run.
+Recorded, not quietly fixed: the same fail-silent shape, appearing inside the control written to
+close it.
+
+**R12:** nothing tuned — the belief gap is `0.145933` before and after. **8 new tests; 195 green**
+across every coupled-pair suite. **Why still L2:** four Hours, four defects, none predicted by the
+previous Hour, arrival rate not falling — and two of the four were in claims *about* the instrument,
+which is the part of L3 that keeps failing. The next Hour should state its criterion in advance:
+**two consecutive clean Hours**, and start on `ageing`, the only dimension never given an Hour.
+
+---
 
 **KNIFE3 step 10 LANDED — `A_composition_lift` PART 2: the leak had to be repaired BEFORE the lift
 (`d7ca5a13d`, `bb5e4e002`; the enabling ratchet fix `fc450fde3`). 59 → 55 live crossings (56 → 52

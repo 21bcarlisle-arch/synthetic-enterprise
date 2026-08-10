@@ -1,0 +1,70 @@
+atom_id: D20_belief_truth_rule_is_an_unmeasured_mirror
+map_notes:
+  origin_note: >-
+    Minted 2026-08-10 by H27 Expert Hour #4, and BUILT in the same tick
+    (docs/staging/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md).
+    The W2_11<->D5 triad's belief dimension publishes its two sides as "same
+    threshold shape, different-coverage inputs" -- the clause that makes the
+    number a measure of the WALL rather than of two different rules. The truth
+    side, tools/couple_w2_11_d5.py::_severity_label, is a HAND-COPY of
+    company/billing/payment_observation_consumer.py::_arrears_risk_belief's
+    thresholds, and no test in the repository mentioned _severity_label at all.
+    Measured, three organ-only drifts (world, seam and truth-side rule
+    untouched, n=1200 seed 7): "one failure no longer raises WATCH" moved the
+    published headline 0.1424 -> 0.4146 (2.9x); "hardship amplification 2 -> 1"
+    took the over-call direction off zero; "HIGH bar 3+ -> 4+" moved it 0.1424
+    -> 0.1551. Exactly ONE test fired each time and none named the divergence
+    -- two gave an actively wrong diagnosis (a weak permutation probe; an
+    epistemic-wall leak). PROVENANCE: the claim was TRUE at HEAD and
+    UNMEASURED, which is the state in which it silently stops being true.
+  build_note: >-
+    BUILT 2026-08-10, same tick as the mint. The tempting control -- assert the
+    two threshold tables match -- is the tautology R15 names (a third copy of
+    the rule, passing whenever all three drift together). Instead EQUALISE THE
+    COVERAGE and the residual IS the divergence: on a counterfactual population
+    where every customer pays by Direct Debit the company observes every
+    failure, so the coverage term is zero by construction and anything left is
+    the two rules disagreeing on inputs they both fully saw -- with no copy of
+    either rule anywhere in the control. Delivered: (1)
+    measure_coverage_only_residual, reaching the counterfactual through a
+    DECLARED build_scenario(force_payment_method=...) parameter rather than a
+    monkeypatch, so it is legible in the repo (IaC); R13 -- it does not touch
+    the baseline world, it builds a second explicitly-labelled one to isolate
+    one term. (2) COVERAGE_ONLY_CLAIM_CONTRACT, DIFFERENTIAL on purpose (the
+    DIMENSION_AS_OF_CONTRACT lesson): a blanket "every residual must be zero"
+    would fire on detection_latency, where non-zero is correct, and a control
+    that false-positives teaches everyone to skip it. (3) The claim now travels
+    with the number -- in the belief note the ledger and Proof door carry, and
+    in the CLI under --coverage-residual. VACUITY IS THE HARD PART because the
+    healthy reading is a ZERO: four witnesses, all asserted -- the scored book
+    really carried the coverage loss removed (non-DD true failures > 0); the
+    counterfactual really removed it (non-DD failures == 0 there); both belief
+    error populations non-empty there; and THE DIFFERENTIAL, at least one
+    EXEMPT dimension reading non-zero on the same population, so a run that
+    collapsed every gap to zero cannot pass as agreement. CLASS CONTROL (R10):
+    a dimension whose PUBLISHED TEXT tells a reader its two sides differ only
+    in coverage must be declared in the contract, swept over the text a reader
+    actually sees with the register DERIVED from the published dimensions. The
+    first draft of that sweep was ITSELF vacuous -- it swept the CLI formatter
+    output alone, where the phrase does not appear, so it passed while never
+    looking at its own headline dimension; its own vacuity guard caught it on
+    first run and the swept text is now the summary AND the note. Recorded, not
+    quietly fixed: the same fail-silent shape appeared inside the control
+    written to close it. R15 both ways -- the three organ drifts are permanent
+    in-suite mutation tests and all fire; making force_payment_method silently
+    ignored fires 6 tests on the VACUITY witnesses (the diagnostic names the
+    dead counterfactual, the true cause); undeclaring the claim fires the class
+    sweep. Measured at HEAD: belief and belief_population_mix residual
+    0.000000 on seeds 7/11/23, detection_latency 0.93-1.07 (the live side of
+    the differential). NOT DONE, deliberately: _severity_label stays a mirror
+    -- making the harness call the organ's own thresholding function would
+    delete the independence the mirror exists to provide, and rewriting the
+    truth-side rule moves a published number for a reason no measurement
+    supports (R12). The mirror is the right design; the control was what was
+    missing. 8 new tests; 195 green across every coupled-pair suite.
+map_records:
+  evidence:
+    - tools/couple_w2_11_d5.py
+    - tests/tools/test_couple_w2_11_d5.py
+    - company/billing/payment_observation_consumer.py
+    - docs/staging/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md

@@ -2418,3 +2418,158 @@ def test_the_published_belief_headline_is_the_per_case_measure():
     assert result["belief_population_mix"].components["tv"] == pytest.approx(
         result["belief_population_mix"].raw_gap, abs=1e-6)
     assert result["belief"].gap != result["belief_population_mix"].gap
+
+
+# ---------------------------------------------------------------------------
+# THE COVERAGE-ONLY CLAIM (atom D20_belief_truth_rule_is_an_unmeasured_mirror)
+# ---------------------------------------------------------------------------
+# H27 Expert Hour #4, 2026-08-10. The belief dimension publishes its two sides
+# as "same threshold shape, different-coverage inputs" -- and that claim, not
+# the arithmetic, is what makes the number a measure of the WALL. It lived in a
+# docstring: `pair._severity_label` is a HAND-COPY of the company organ's
+# `_arrears_risk_belief` thresholds and no test named the pair. Three plausible
+# organ-only drifts moved the published headline by up to 2.9x; exactly one
+# test fired each time and none named the divergence.
+
+
+def _organ_drift(monkeypatch, transform):
+    """Mutate the COMPANY ORGAN's own thresholding rule and nothing else.
+
+    The world, the seam and the harness's truth-side rule are untouched, so any
+    movement in a coverage-only dimension is rule divergence by construction --
+    which is exactly what these controls have to be able to see."""
+    original = PaymentObservationConsumer._arrears_risk_belief
+
+    def drifted(self, account_id, as_of):
+        return transform(original(self, account_id, as_of))
+
+    monkeypatch.setattr(
+        PaymentObservationConsumer, "_arrears_risk_belief", drifted)
+
+
+@pytest.mark.parametrize("seed", [7, 11, 23])
+def test_the_coverage_only_claim_is_measured_not_asserted(seed):
+    """Equalise the coverage and the residual IS the rule divergence.
+
+    INDEPENDENCE (R15 tautology): nothing here reads, copies or compares either
+    side's thresholds. Both labels come out of the shipped paths over a real
+    population fed through the real seam, so the only way to pass is for the
+    two rules to actually agree on inputs they both fully saw."""
+    cov = pair.measure_coverage_only_residual(n_customers=600, seed=seed)
+    w = cov["witnesses"]
+
+    # VACUITY FIRST -- a zero on a population with no coverage loss to remove,
+    # or with no possible-error population, is the strongest possible claim
+    # handed out for free.
+    assert not cov["is_vacuous"], f"vacuous counterfactual: {w}"
+    assert w["coverage_loss_removed"] > 0, (
+        "the scored book carried no non-DD true failures, so equalising "
+        "coverage removed nothing and a zero residual means nothing")
+    assert w["cf_non_dd_failures"] == 0, (
+        "the counterfactual still contains push-channel failures -- coverage "
+        "was not actually equalised")
+    assert w["cf_undercall_population"] > 0 and w["cf_overcall_population"] > 0
+    # THE DIFFERENTIAL. If every dimension read 0 the zeros below would be a
+    # property of the run, not of the rules.
+    assert w["n_exempt_dimensions_nonzero"] > 0, (
+        "no exempt dimension read non-zero on this population -- a build that "
+        "collapsed every gap to 0 would pass this control as agreement")
+
+    for dim, v in cov["residuals"].items():
+        if not v["claims_coverage_only"]:
+            continue
+        assert v["residual"] == 0, (
+            f"{dim} publishes its two sides as differing ONLY in coverage, but "
+            f"with coverage equalised {v['residual']} survives -- the "
+            "truth-side rule and the company organ's rule have diverged, and "
+            f"the number published on the scored book "
+            f"({v['gap_on_the_scored_book']}) is a mixture of coverage loss "
+            "and rule divergence being read as coverage")
+
+
+def test_the_coverage_only_contract_reaches_every_published_dimension():
+    """The register is DERIVED from what is published, not hand-maintained.
+
+    The same fail-silent shape D19 closed on the phrase sweep: a newly
+    published dimension that is simply absent from the contract is a dimension
+    this control skips while still passing."""
+    published = {k for k, v in _scored().items() if isinstance(v, GapResult)}
+    declared = set(pair.COVERAGE_ONLY_CLAIM_CONTRACT)
+    assert declared == published, (
+        f"published dimensions {sorted(published)} but the coverage-only "
+        f"contract declares {sorted(declared)} -- an undeclared dimension is "
+        "invisible to this control")
+    for dim, decl in pair.COVERAGE_ONLY_CLAIM_CONTRACT.items():
+        assert isinstance(decl["claims_coverage_only"], bool)
+        assert decl["why"].strip(), f"{dim} declares nothing about why"
+
+
+def test_a_dimension_whose_published_text_makes_the_claim_must_declare_it():
+    """THE CLASS, not the instance (R10). The defect was a coverage-only claim
+    reaching a reader from a dimension nobody had measured for it. So the sweep
+    runs over the text a reader ACTUALLY SEES, and any dimension making the
+    claim there must carry it in the contract -- which is what puts it under
+    the measurement above.
+
+    THE SWEPT TEXT IS THE SUMMARY *AND* THE NOTE, and the first draft of this
+    control got that wrong -- it swept the formatter output alone, where the
+    phrase does not appear, so it was vacuous on its own headline dimension.
+    Its vacuity guard caught it on first run, which is the whole reason the
+    guard is there. The NOTE is the surface the ledger and the Proof door
+    carry, so a claim reaching a reader there is every bit as published as one
+    in the CLI summary."""
+    result = _scored()
+    rendered = {
+        dim: text + " " + str(result[dim].note or "")
+        for dim, text in _rendered_dimension_text(result).items()
+    }
+    for dim, text in rendered.items():
+        makes_claim = pair.COVERAGE_ONLY_CLAIM_PHRASE in text
+        declared = bool(
+            pair.COVERAGE_ONLY_CLAIM_CONTRACT[dim]["claims_coverage_only"])
+        if makes_claim:
+            assert declared, (
+                f"{dim}'s published text tells a reader its two sides differ "
+                f"only in coverage ({pair.COVERAGE_ONLY_CLAIM_PHRASE!r}) but "
+                "the contract does not declare the claim, so nothing measures "
+                "it -- this is the exact shape of the D20 defect")
+    # VACUITY: a sweep over text that never contains the phrase would pass on
+    # an instrument that had quietly stopped publishing the claim at all.
+    assert any(pair.COVERAGE_ONLY_CLAIM_PHRASE in t for t in rendered.values()), (
+        "no published dimension makes the coverage-only claim any more -- this "
+        "control is now vacuous and either the claim moved or it was dropped")
+
+
+@pytest.mark.parametrize("label,transform", [
+    # (1) the company decides a single observed failure is noise
+    ("one failure no longer raises WATCH",
+     lambda v: type(v).NORMAL if v is type(v).WATCH else v),
+    # (2) the hardship amplification fires on one observation instead of two
+    ("hardship amplification 2 -> 1",
+     lambda v: type(v).HIGH if v is type(v).ELEVATED else v),
+    # (3) the organ raises its HIGH bar
+    ("HIGH bar raised",
+     lambda v: type(v).ELEVATED if v is type(v).HIGH else v),
+])
+def test_R15_an_organ_only_rule_drift_breaks_the_coverage_only_residual(
+        label, transform, monkeypatch):
+    """MUTATE THE SOURCE OF THE CLAIM, not the test's copy of it.
+
+    Each drift changes the COMPANY's own thresholding rule and nothing else --
+    no world change, no truth-side change, so the coverage-only claim becomes
+    FALSE and the residual must say so. Before this control existed each of
+    these moved the published headline (up to 2.9x) while exactly one unrelated
+    test fired, blaming a weak permutation probe or an epistemic-wall leak."""
+    _organ_drift(monkeypatch, transform)
+    cov = pair.measure_coverage_only_residual(n_customers=600, seed=7)
+
+    assert not cov["is_vacuous"], (
+        f"{label}: the counterfactual went vacuous, so this mutation proves "
+        "nothing about the control")
+    claiming = {d: v["residual"] for d, v in cov["residuals"].items()
+                if v["claims_coverage_only"]}
+    assert any(r != 0 for r in claiming.values()), (
+        f"{label}: the company's own severity rule changed with the truth-side "
+        f"rule untouched and every coverage-only residual stayed 0 ({claiming})"
+        " -- the control cannot see rule divergence, which is the only thing "
+        "it exists to see")
