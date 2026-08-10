@@ -10,7 +10,7 @@
     "run_id": "run_output_dfefd0a14_20260809T031627Z.json",
     "verified_at": "2026-08-09T12:41:51Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=1fd85cb27; blocking tests: see sim-runner-log",
+  "paused_reason": "scoped publish-path suite red at git=ad67e713b; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_the_timeout_clears_the_floor_the_measurement_implies",
   "paused_since": "2026-08-09T14:30:09Z",
   "schema": 1,
   "showing_run": {
@@ -20,5 +20,5 @@
     "verified_at": "2026-08-09T12:41:51Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-10T19:19:41Z"
+  "written_at": "2026-08-10T19:27:32Z"
 }
