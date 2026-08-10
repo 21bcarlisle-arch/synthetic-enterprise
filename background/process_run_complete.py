@@ -1235,25 +1235,47 @@ def _reused_checkout_is_in_use(path: Path) -> bool:
     that is exiting or not ours to see, never a reason to declare the directory busy forever
     -- a guard that latches on would wedge publishing exactly as hard as the bug it prevents.
     A /proc that cannot be enumerated at all reads as not-in-use: on a box without procfs this
-    guard simply does not apply, and the pre-existing behaviour stands."""
+    guard simply does not apply, and the pre-existing behaviour stands.
+
+    SELF-OCCUPANCY IS THE STRONGEST SIGHTING, NOT AN EXCLUSION (2026-08-10, the RECURRENCE).
+    The first version of this guard skipped `os.getpid()`, on the reasonable-sounding ground
+    that a process asking "is anyone in there" cannot mean itself. It can, and that is the one
+    case that matters: `tests/background/test_publish_gate_head_checkout_is_a_repo.py` calls
+    `_head_checkout()` against the REAL root (it does not redirect `HEAD_CHECKOUT_ROOT` the way
+    the sandboxed modules do), and it is inside the gate's own blocking scope. So when a killed
+    publisher orphans its suite, the lock is free AND the caller standing in the directory IS
+    the occupant -- the guard answered False about itself and the refresh reset the tree under
+    the running suite. The same red therefore came back TWICE after the fix landed at 19:08Z:
+
+        20:18Z  ModuleNotFoundError: No module named 'tools.test_execution_metric'
+        20:47Z  the same, and the traceback is the proof of the swap -- the suite STARTED at a
+                commit whose conftest imports at line 219 and the traceback rendered lines
+                250/265, i.e. two LATER commits' conftest. The files changed under the run."""
     try:
         target = path.resolve()
     except OSError:
         return False
-    me = os.getpid()
+
+    def _inside(cwd: Path) -> bool:
+        return cwd == target or target in cwd.parents
+
+    # Asked first, and first-hand: `os.getcwd()` needs no procfs, so this half of the guard
+    # still holds on a box where /proc cannot be enumerated at all.
+    try:
+        if _inside(Path(os.getcwd())):
+            return True
+    except OSError:
+        pass
     try:
         pids = [entry for entry in os.listdir("/proc") if entry.isdigit()]
     except OSError:
         return False
     for entry in pids:
-        pid = int(entry)
-        if pid == me:
-            continue
         try:
             cwd = Path(os.readlink("/proc/{}/cwd".format(entry)))
         except OSError:
             continue
-        if cwd == target or target in cwd.parents:
+        if _inside(cwd):
             return True
     return False
 

@@ -683,6 +683,43 @@ def test_a_live_suite_in_the_reused_checkout_is_seen_even_with_the_lock_free():
         )
 
 
+def test_the_caller_standing_in_the_checkout_is_itself_an_occupant(tmp_path, monkeypatch):
+    """The RECURRENCE, 2026-08-10: the guard above was blind to the one occupant that matters.
+
+    It skipped `os.getpid()`, so a process asking about a directory it was ITSELF standing in
+    got False. That is not a hypothetical caller. `test_publish_gate_head_checkout_is_a_repo.py`
+    calls `_head_checkout()` against the real root and runs inside the gate's own blocking
+    scope, so an ORPHANED gate suite (killed publisher, lock released) reaches this guard as the
+    sole occupant of the directory it is executing from -- and refreshed the tree under itself.
+
+    MUTATION, and it is the code this replaces: restore `if pid == os.getpid(): continue` and
+    this test fails while every other occupancy test still passes -- which is exactly how the
+    same red survived the 19:08Z fix and returned at 20:18Z and 20:47Z."""
+    occupied = tmp_path / "occupied"
+    (occupied / "inner").mkdir(parents=True)
+
+    assert prc._reused_checkout_is_in_use(occupied) is False, (
+        "reachability -- from outside, the directory must read as free, or the guard would "
+        "wedge every cycle rather than only the orphaned ones"
+    )
+
+    # No subprocess and nothing mocked: THIS process becomes the occupant, which is precisely
+    # the shape the previous version could not see.
+    monkeypatch.chdir(occupied)
+    assert prc._reused_checkout_is_in_use(occupied) is True, (
+        "the caller is standing in the directory and the guard called it free -- "
+        "`_prepare_reused_checkout` would now `read-tree --reset` the tree under this very "
+        "process, which is the 2026-08-10 corruption"
+    )
+
+    # A child directory counts too: pytest's own cwd sits below the checkout root, not on it.
+    monkeypatch.chdir(occupied / "inner")
+    assert prc._reused_checkout_is_in_use(occupied) is True, (
+        "occupancy was read as the root only -- a suite cwd'd in a SUBDIRECTORY of the checkout "
+        "is just as much inside it"
+    )
+
+
 def test_an_occupied_reused_checkout_is_not_refreshed_under_its_orphan(
         sandbox, logged, monkeypatch):
     """The wiring, not just the predicate. With the lock genuinely FREE but the directory
