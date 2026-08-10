@@ -65,19 +65,43 @@ _WRITE_MARKER = re.compile(r"write_gap_entry\s*\(|write_fabric_gap_entries\s*\(|
 
 CURRENT = "current"
 
+# A row re-measured on disk and never committed. Drift (the door still shows the old number), but
+# NOT `stale`: the repair is to land the measurement, not to take it again. See `landed_ledger`.
+MEASURED_NOT_LANDED = "measured_not_landed"
+
+
+# THE GRADER IS NOT A PRODUCER, and excluding it is not cosmetic (2026-08-11).
+# This module quotes `--write-ledger` (in `_RUNNER_MARKER` and in the commands it prints), so it
+# matches `_WRITE_MARKER` and has ALWAYS been discovered as a ledger writer. That was latent only
+# because its text happened to name no atom id: `producers_for` attributes a row to any writer
+# whose SOURCE CONTAINS THE ATOM ID, so the first comment, docstring or evidence note here that
+# mentions one silently makes this module a "producer" of that row -- and every commit to the
+# GRADER then marks the row it grades as stale. That is the module's own stated tautology
+# ("attributing a row to its READER would make freshness true by construction") pointing at
+# itself, and it fails in the direction that manufactures work rather than hiding it.
+# Caught the same tick it was armed, by reading the producer list in the module's own output.
+_SELF = "background/gap_ledger_reconciler.py"
+
 
 def discover_writers(project_dir: Path | None = None) -> dict:
-    """{repo-relative path: source text} for every module that WRITES the gap ledger."""
+    """{repo-relative path: source text} for every module that WRITES the gap ledger.
+
+    Excludes this module itself -- see `_SELF`. A grader that can appear in its own producer set
+    grades its own commits, which is not a fact about any measurement.
+    """
     root = Path(project_dir or PROJECT_DIR)
     found = {}
     for d in _WRITER_DIRS:
         for p in sorted((root / d).glob("*.py")):
+            rel = str(p.relative_to(root))
+            if rel == _SELF:
+                continue
             try:
                 text = p.read_text(errors="ignore")
             except OSError:
                 continue
             if _WRITE_MARKER.search(text):
-                found[str(p.relative_to(root))] = text
+                found[rel] = text
     return found
 
 
@@ -135,6 +159,66 @@ def load_ledger(path=None) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+# --- THE GRADED SUBJECT IS THE COMMITTED LEDGER, NOT THE ONE ON DISK ---------------------------
+# 2026-08-11. This module graded `LEDGER_PATH` -- the WORKING TREE file -- and that made it
+# fail-open in the exact dimension it exists to watch. The door renders a COMMITTED artefact:
+# `site/data/proof.json` is built from the ledger and both are committed and pushed. So a re-run
+# that updates the file on disk and is never committed moves the checked value while leaving the
+# published one untouched, and this control then reports `clean` over a stale public number.
+#
+# Observed, with evidence (2026-08-11, worker tick, the draw that found it):
+#     working tree  -> [GAP-LEDGER] clean -- all 14 gap rows measured by current code.
+#     HEAD          -> [GAP-LEDGER] DRIFT -- 1 of 14: W2_11_payment_behaviour_source,
+#                      6 commit(s) touched tools/couple_w2_11_d5.py since e6402d536
+# `site/data/proof.json` carries a `W2_11_payment_behaviour_source` entry, so the stale reading
+# was on the door while the control read clean. This is the working-tree-subject class the repo
+# already has memory of (feedback_capability_index_reads_the_working_tree,
+# feedback_gate_lints_working_tree_so_uncommitted_wedges_everyone) landing on a gap control.
+#
+# It is also why RUNG 4b could not have drawn the work: `_is_drained_and_gated` mirrors this
+# module so rest cannot be declared over a stale published number, and an uncommitted re-run
+# silenced exactly that guarantee.
+#
+# The fix is NOT "read HEAD and stop there". A row can be stale at HEAD because the measurement
+# was taken and not committed -- and there the work is to LAND it, not to take it again. Re-taking
+# is not free: this atom's own record spent a paragraph on a 4th-decimal move it declined to
+# attribute, and re-running republishes a changed public figure. So the two cases get two statuses
+# and two commands.
+
+
+def _repo_relative(path) -> str | None:
+    """`path` as a repo-relative string, or None when it is outside the repo (test fixtures)."""
+    try:
+        return str(Path(path).resolve().relative_to(PROJECT_DIR))
+    except (ValueError, OSError):
+        return None
+
+
+def landed_ledger(path=None, project_dir: Path | None = None):
+    """The ledger AS COMMITTED AT HEAD -- the version the public door renders from.
+
+    Returns the parsed dict, or None when it cannot be read at HEAD for ANY reason (path outside
+    the repo, path untracked, malformed blob, git unavailable). None is NOT an empty ledger and
+    the caller must never treat it as one: an unavailable check is a FAILED check (R15).
+    """
+    rel = _repo_relative(path or LEDGER_PATH)
+    if rel is None:
+        return None
+    root = str(project_dir or PROJECT_DIR)
+    try:
+        proc = subprocess.run(["git", "-C", root, "show", f"HEAD:{rel}"],
+                              capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        data = json.loads(proc.stdout)
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def _row_status(atom_id: str, row, writers: dict, since_fn) -> dict:
     """Reconcile ONE ledger row. Every non-`current` branch is a fact about the row or about
     git, never an inference about intent (R9)."""
@@ -162,9 +246,16 @@ def _row_status(atom_id: str, row, writers: dict, since_fn) -> dict:
     return {**out, "status": CURRENT, "detail": f"producers unchanged since {sha[:9]}"}
 
 
-def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=None) -> list:
-    """DECLARED (the coupling authority + the discovered family) vs ACTUAL (the ledger on disk).
-    Every argument is injectable so tests pin their own world and never read live disk."""
+def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=None,
+              unlanded=None) -> list:
+    """DECLARED (the coupling authority + the discovered family) vs ACTUAL (the COMMITTED ledger).
+
+    The graded subject is the ledger at HEAD, because that is what the public door renders -- see
+    the block above `landed_ledger`. `unlanded` is the working-tree ledger, used ONLY to tell a
+    row that was never re-measured from one that was re-measured and never committed.
+
+    Every argument is injectable so tests pin their own world and never read live disk.
+    """
     if ledger is None:
         # An UNREADABLE ledger is one defect, not one per declared pair and one per family tool.
         # Reported as itself and nothing else -- see `ledger_is_readable`. It is drift (an
@@ -175,7 +266,18 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
                      "status": "ledger_unreadable",
                      "detail": "the gap ledger is absent or malformed -- no row, pair or tool "
                                "verdict can be graded until it reads"}]
-        ledger = load_ledger()
+        ledger = landed_ledger()
+        if ledger is None:
+            # The file reads on disk but NOT at HEAD. Distinct from unreadable, and distinct from
+            # stale: nothing about the numbers is known to be wrong, but nothing about them is
+            # PUBLISHED either, so no row verdict here would describe the door. Drift, and not
+            # refreshable by a gap tool -- the repair is to commit the ledger.
+            return [{"item": str(LEDGER_PATH), "kind": "ledger", "producers": [],
+                     "status": "ledger_not_committed",
+                     "detail": "the gap ledger reads on disk but not at HEAD -- the published "
+                               "door renders a committed ledger, so no row can be graded"}]
+        if unlanded is None:
+            unlanded = load_ledger()
     writers = discover_writers() if writers is None else writers
     family = family_members() if family is None else family
     if since_fn is None:
@@ -186,6 +288,23 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
 
     results = [_row_status(atom_id, row, writers, since_fn)
                for atom_id, row in sorted(ledger.items())]
+    # A row that is not current AT HEAD may still have been re-measured on disk. That is a
+    # different defect with a different repair, so it gets its own status rather than being
+    # folded into `stale` (which would send a tick to re-run a tool whose measurement already
+    # exists, republishing a figure that can move) or into `current` (the fail-open being fixed).
+    if unlanded:
+        for r in results:
+            if r.get("kind") != "row" or r.get("status") in (CURRENT, "no_producer"):
+                continue
+            disk_row = unlanded.get(r["item"])
+            if disk_row is None:
+                continue
+            if _row_status(r["item"], disk_row, writers, since_fn).get("status") == CURRENT:
+                r["status"] = MEASURED_NOT_LANDED
+                r["detail"] = (
+                    f"HEAD's row is not current ({r['detail']}), but the working-tree ledger "
+                    "holds a measurement taken by current code -- the number was re-taken and "
+                    "never committed, so the door still shows the old one")
     for world_id in sorted(declared):
         if world_id not in ledger:
             results.append({"item": world_id, "kind": "pair", "producers": [],
@@ -316,6 +435,17 @@ def refresh_work(results: list, writers=None) -> list:
     work = []
     for r in results:
         status = r.get("status")
+        if status == MEASURED_NOT_LANDED:
+            # The measurement exists; the command is to LAND it, not to re-take it. Re-running
+            # here would be the worst of both: it republishes a figure that can move, to fix a
+            # problem that was only ever that the existing figure was never committed.
+            work.append({
+                "item": r["item"], "status": status, "runners": [],
+                "command": (f"python3 -m tools.surgical_land -m 'chore(gap-ledger): land the "
+                            f"{r['item']} measurement' -- {_repo_relative(LEDGER_PATH)}"),
+                "no_runner": False, "detail": r.get("detail", ""),
+            })
+            continue
         if status not in REFRESHABLE_STATUSES:
             continue
         runners = runners_for(r.get("producers") or [], writers)

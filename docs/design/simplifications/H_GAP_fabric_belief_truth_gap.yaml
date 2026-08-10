@@ -446,6 +446,71 @@ simplifications:
   site/data/proof.json now renders pair_count 14, worse_than_blind 2, with W2_2_population_draw at 1.0344827586206897
   chip=worse_than_blind severity=RED. That red is the metric reading its own worst cell correctly and
   it is PUBLISHED rather than hidden, with the shape objection filed beside it.'
+- '2026-08-11 THE CONTROL THIS ATOM BUILT WAS GRADING THE WRONG LEDGER, and the level still does not move
+  (worker tick, L2->L3 draw). background/gap_ledger_reconciler.py read LEDGER_PATH -- the WORKING TREE
+  file -- while the number it exists to protect is published from the COMMITTED one (site/data/proof.json
+  is built from the ledger; both are committed and pushed). So a gap tool re-run that updates the file
+  on disk and is never committed MOVES THE CHECKED VALUE AND LEAVES THE PUBLISHED ONE STALE, and this
+  control then reports clean over it. OBSERVED, WITH EVIDENCE, by running the same module against both
+  subjects: working tree ''[GAP-LEDGER] clean -- all 14 gap rows measured by current code''; HEAD ''[GAP-LEDGER]
+  DRIFT -- 1 of 14: W2_11_payment_behaviour_source, 6 commit(s) touched tools/couple_w2_11_d5.py since
+  e6402d536''. site/data/proof.json carries a W2_11_payment_behaviour_source entry, so the stale reading
+  was ON THE DOOR while the control read clean. SEVENTH TIME THIS ATOM HAS SURFACED SOMETHING BY RUNNING
+  A THING RATHER THAN READING IT. This is the working-tree-subject class the repo already has memory of
+  (feedback_capability_index_reads_the_working_tree, feedback_gate_lints_working_tree_so_uncommitted_wedges_everyone)
+  landing on a gap control, and it is fail-open in the ONE dimension the control was built for. IT ALSO
+  SILENTLY VOIDED RUNG 4b''s GUARANTEE: supervisor::_is_drained_and_gated mirrors this module so rest
+  cannot be declared over a stale published number -- an uncommitted re-run made the work list empty while
+  the door stayed stale, i.e. the rung could not have drawn the one row it was built to draw.
+
+  THE FIX IS TWO STATUSES, NOT ONE, and the second is the part with a reason. Grading HEAD alone would
+  send a tick to RE-RUN a tool whose measurement already exists, and re-taking is not free -- this atom
+  spent a paragraph on 2026-08-10 on a 4th-decimal move it declined to attribute, and a re-run republishes
+  a public figure. So: `stale` (nothing was re-taken; the repair is the tool) vs `measured_not_landed`
+  (HEAD''s row is not current but the working-tree row grades CURRENT; the measurement exists and the
+  repair is to LAND it, drawn as tools.surgical_land, never --write-ledger). Both are DRIFT; neither can
+  read clean. A whole ledger that reads on disk but not at HEAD is `ledger_not_committed` -- distinct
+  from unreadable, and fail-closed: no row verdict is emitted, because none of them would describe the
+  door.
+
+  AND THE TAUTOLOGY THE FIX ARMED, caught the same tick by reading the producer list in the module''s
+  own output. This module quotes `--write-ledger` (in _RUNNER_MARKER and in the commands it prints), so
+  it has ALWAYS matched _WRITE_MARKER and has ALWAYS been discovered as a ledger WRITER. That was latent
+  only because its text named no atom id: producers_for attributes a row to any writer whose SOURCE CONTAINS
+  THE ATOM ID, so the first comment here that names one makes the GRADER a producer of the row it grades,
+  and every commit to the grader then marks that row stale. My own evidence comment naming W2_11_payment_behaviour_source
+  armed it -- the first run after the fix reported ''background/gap_ledger_reconciler.py, tools/couple_w2_11_d5.py''
+  as the producers. That is this module''s own stated tautology (''attributing a row to its READER would
+  make freshness true by construction'') pointing at ITSELF, and it fails in the direction that MANUFACTURES
+  work rather than hiding it. Fixed at the cause (_SELF excluded from discover_writers), not by rewording
+  the comment, with a population test over every live ledger row plus an assertion that the write marker
+  really does match this file, so the exclusion cannot decay into decoration.
+
+  R15 BOTH WAYS, six SOURCE mutations with byte-clean restore (md5 aa05ededc5f07c2233331794d88f3630 before
+  and after): grade the working tree again / drop the unlanded overlay / fold measured_not_landed into
+  the re-run drain / remove the grader self-exclusion -- each fired its own named test with the rest green.
+  ONE MUTATION SURVIVED THE FIRST PASS AND THAT IS THE PART WORTH KEEPING: landed_ledger falling back
+  to load_ledger on a git failure was caught by NO test. The reason is a lesson about how a fail-closed
+  test can prove nothing -- the test I had written pins a path OUTSIDE the repo, which returns before
+  git is ever called, so it exercised the cheap branch and never the checker-unavailable one (feedback_a_test_isolates_the_paths_it_thought_of).
+  Closed with three tests that patch subprocess.run to a non-zero return and to OSError and assert None-never-disk,
+  plus the population form asserting the whole reconcile reports ledger_not_committed rather than row
+  verdicts it cannot ground; the mutation now fires two of them. A seventh mutation was mis-anchored (the
+  pattern matched commits_since first, not landed_ledger) and fired a DIFFERENT test -- recorded because
+  a mutation that fires the wrong test is not evidence for the branch you meant to kill, and re-anchoring
+  it was what exposed the surviving one.
+
+  THE ROW ITSELF REPRODUCED EXACTLY, which is why landing it is safe to do in the same tick: the W2_11
+  detection gap is 0.0859375 at HEAD and 0.0859375 on disk, and the ONLY fields that moved are measured_at
+  and run_git_commit. Landing it republishes no changed figure -- it is a pure freshness stamp, and it
+  is reported as such rather than as a result.
+
+  THE LEVEL DOES NOT MOVE. Residuals unchanged and unchanged in reason: (a) L1.4 MAGNITUDE still needs
+  per-day half-hourly readings the LCL extract does not carry; (b) L1.2h heating-shape repeatability still
+  has no published statistic and is vacuous at population scale; (c) L2.4 scale spread is still RED and
+  is still a GENERATOR question owned by W1_12; (e) Expert Hour still not_attempted. An exit test is not
+  renegotiated to fit what got done, and a tick that repaired the atom''s own control has not thereby
+  measured the fabric gap any better.'
 map_records:
   evidence:
   - docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md

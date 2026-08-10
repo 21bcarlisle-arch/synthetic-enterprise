@@ -326,3 +326,136 @@ def test_a_producer_that_only_MENTIONS_the_flag_is_not_invocable():
     prose = {"background/fabric_gap_ledger.py":
              f"'''rows land when a tool passes --write-ledger.'''\nwrite_gap_entry(\n{_ATOM}\n"}
     assert glr.runners_for(list(prose), prose) == []
+
+
+# --- THE GRADED SUBJECT IS THE COMMITTED LEDGER (2026-08-11) ---------------------------------
+# Named defect: this module graded the WORKING TREE file while the public door renders the
+# COMMITTED one, so a re-run that was never committed moved the checked value and left the
+# published value stale -- and the control reported `clean` over it. Live evidence at the time:
+# working tree read "clean -- all 14 rows", HEAD read DRIFT on W2_11_payment_behaviour_source.
+
+def test_a_row_stale_at_HEAD_but_re_measured_on_disk_is_MEASURED_NOT_LANDED_not_current():
+    """THE FAIL-OPEN ITSELF. The disk row is current; the committed row is not. Reporting this
+    as `current` (grading disk) is the defect -- the door still shows the old number."""
+    results = _reconcile({_ATOM: _row()}, since=3, unlanded={_ATOM: _row()})
+    # since_fn is injected as a constant, so the disk row would grade stale too -- pin the
+    # asymmetry explicitly instead, with a since_fn that answers per-sha.
+    results = glr.reconcile(
+        ledger={_ATOM: _row(run_git_commit="a" * 40)},
+        unlanded={_ATOM: _row(run_git_commit="b" * 40)},
+        writers=_writers(), declared=set(), family=[],
+        since_fn=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.MEASURED_NOT_LANDED
+    assert _status(results, _ATOM) != glr.CURRENT, "grading the working tree is the fail-open"
+    assert glr.drift(results), "a measured-but-unlanded row must not read clean"
+
+
+def test_MEASURED_NOT_LANDED_is_drawn_as_a_LAND_not_a_RE_RUN():
+    """The repair is to commit the measurement. Re-running republishes a figure that can move,
+    to fix a problem that was only ever that the existing figure was never committed."""
+    results = glr.reconcile(
+        ledger={_ATOM: _row(run_git_commit="a" * 40)},
+        unlanded={_ATOM: _row(run_git_commit="b" * 40)},
+        writers=_writers(), declared=set(), family=[],
+        since_fn=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    work = glr.refresh_work(results, writers=_writers())
+    entry = next(w for w in work if w["item"] == _ATOM)
+    assert "surgical_land" in entry["command"]
+    assert "--write-ledger" not in entry["command"], "must not re-take an existing measurement"
+
+
+def test_a_row_stale_at_HEAD_with_NO_disk_measurement_stays_STALE():
+    """The overlay must not swallow the ordinary case: no disk row means nothing was re-taken,
+    so the work really is a re-run. Without this the new status could mask every stale row."""
+    results = glr.reconcile(
+        ledger={_ATOM: _row()}, unlanded={}, writers=_writers(), declared=set(), family=[],
+        since_fn=lambda sha, paths: 3)
+    assert _status(results, _ATOM) == "stale"
+
+
+def test_a_ledger_that_reads_on_disk_but_NOT_at_HEAD_is_drift_not_clean(monkeypatch, tmp_path):
+    """FAIL-CLOSED. An uncommitted ledger cannot describe the door. It must not fall back to
+    the working tree and report row verdicts as though they were published."""
+    path = tmp_path / "coupled_gap_ledger.json"
+    path.write_text('{"%s": {"gap": 0.4}}' % _ATOM)
+    monkeypatch.setattr(glr, "LEDGER_PATH", path)
+    assert glr.ledger_is_readable() is True
+    assert glr.landed_ledger() is None, "a path outside the repo is not readable at HEAD"
+    assert [r["status"] for r in glr.reconcile()] == ["ledger_not_committed"]
+
+
+# The REAL ledger, explicitly: this directory's conftest pins `glr.LEDGER_PATH` at an absent file
+# to keep the rest-ladder tests off live disk, so a bare `landed_ledger()` here reads None and
+# every assertion below it would be vacuous rather than true.
+_REAL_LEDGER = glr.PROJECT_DIR / "docs" / "observability" / "coupled_gap_ledger.json"
+
+
+def test_landed_ledger_CAN_read_so_the_HEAD_branch_can_pass():
+    """The HEAD read must be able to succeed on the real tracked ledger -- a branch that can
+    only fail would wedge every live reconcile at `ledger_not_committed`."""
+    landed = glr.landed_ledger(_REAL_LEDGER)
+    assert isinstance(landed, dict) and landed, "the real ledger must read at HEAD"
+
+
+# --- THE GRADER IS NOT ITS OWN PRODUCER (2026-08-11) -----------------------------------------
+
+def test_the_reconciler_is_never_discovered_as_a_writer_of_the_ledger_it_grades():
+    """TAUTOLOGY, pointing at itself. This module quotes `--write-ledger`, so it matches the
+    write marker; `producers_for` attributes a row to any writer whose source contains the atom
+    id. The first comment here that names an atom would make every commit to the GRADER mark
+    that row stale. Latent at HEAD only because the text named no atom -- armed by one comment.
+    """
+    writers = glr.discover_writers()
+    assert glr._SELF not in writers
+    # and the marker really does match it, i.e. the exclusion is load-bearing, not decorative
+    from pathlib import Path
+    assert glr._WRITE_MARKER.search((glr.PROJECT_DIR / glr._SELF).read_text())
+
+
+def test_a_real_ledger_row_never_attributes_itself_to_the_grader():
+    """Population form of the above, over the live ledger: no row may name this module as a
+    producer, on any atom id, however the module's prose changes."""
+    writers = glr.discover_writers()
+    landed = glr.landed_ledger(_REAL_LEDGER)
+    assert landed, "vacuity guard -- an unread ledger would pass this loop trivially"
+    for atom_id in landed:
+        assert glr._SELF not in glr.producers_for(atom_id, writers), atom_id
+
+
+# FAIL-SILENT, the third killer pattern: the checker itself unavailable. Added 2026-08-11 because
+# a mutation survived -- `landed_ledger` falling back to `load_ledger(path)` on a git failure was
+# caught by NO test. The outside-the-repo test above returns before git is ever called, so it
+# proved nothing about what happens when git answers badly. An unavailable check is a FAILED
+# check, and here the fail-open is silent: it would resume grading the working tree, which is the
+# precise defect this whole section exists to remove.
+
+def _failing_run(*a, **k):
+    class _P:
+        returncode = 1
+        stdout = ""
+        stderr = "fatal: path does not exist in HEAD"
+    return _P()
+
+
+def test_landed_ledger_returns_None_when_git_CANNOT_answer_and_never_falls_back_to_disk(
+        monkeypatch):
+    monkeypatch.setattr(glr.subprocess, "run", _failing_run)
+    assert glr.landed_ledger(_REAL_LEDGER) is None, (
+        "a git failure must not fall back to the working-tree ledger -- that silently restores "
+        "the working-tree-subject fail-open")
+
+
+def test_landed_ledger_returns_None_when_git_is_UNAVAILABLE(monkeypatch):
+    def _boom(*a, **k):
+        raise OSError("git not found")
+    monkeypatch.setattr(glr.subprocess, "run", _boom)
+    assert glr.landed_ledger(_REAL_LEDGER) is None
+
+
+def test_a_git_failure_makes_the_whole_reconcile_report_drift_not_row_verdicts(monkeypatch):
+    """Population form: the reconcile must not emit per-row verdicts it cannot ground."""
+    monkeypatch.setattr(glr, "LEDGER_PATH", _REAL_LEDGER)
+    monkeypatch.setattr(glr.subprocess, "run", _failing_run)
+    results = glr.reconcile()
+    assert [r["status"] for r in results] == ["ledger_not_committed"]
+    assert glr.drift(results)
