@@ -85,3 +85,52 @@ a mint, not a fifth observation.
 - Fix verified at the gate's real subject: clean `git archive` of `818b3212a`, `pytest tests/background/test_forward_attachment_register.py` → **19 passed**.
 - Pre-commit state check: `far.check()` → `problems == []`, 13 entries (vacuity guard non-empty), tree rendering byte-equal to `far.render_markdown(far.derive())`.
 - Diffs were pure re-derivations: ledger 12/10/9 → 13/11/10; visibility 258 → 260 atoms.
+
+---
+
+## RECURRENCE — 2026-08-10, episode 4, scheduled worker tick. Same class, landed at `70d23b088`.
+
+**The class recurred within hours of being filed, unchanged.** The gate was red at HEAD `750cdff15`
+on `tests/background/test_blocked_atom_visibility.py::test_the_committed_document_agrees_with_the_
+live_derivation`, and the publisher was re-rendering the repair every cycle and discarding it:
+
+```
+- [2026-08-10 12:17 UTC] Derived-artefact repair: re-rendered 2 stale projection(s) from HEAD --
+    docs/design/BLOCKED_ATOM_VISIBILITY.md, docs/design/FORWARD_ATTACHMENT_LEDGER.md.
+    Committed with this run.
+- [2026-08-10 12:17 UTC] Tests FAILED - not committing
+```
+
+Those two log lines are one cycle apart and contradict each other: "Committed with this run" is
+written **before** the gate decides, and the gate then refuses the commit. The repair was recomputed
+and thrown away on every cycle of the episode.
+
+Measured both sides, so the deadlock is evidence and not inference:
+
+- `python3 -m background.blocked_atom_visibility --check` → **rc=0 in the working tree**,
+  **rc=2 in a clean `git archive HEAD` checkout** (`DOC DRIFT ... rerun with --write`).
+- Trigger: a newly minted atom moved the map 265 → 266 (`D_billing_metering` 26 → 27), so the
+  committed projection disagreed with the live derivation. Diff was a pure re-render.
+
+Recommendation (1) above — **commit the repair pre-gate by pathspec** — is the correct fix and is
+still unbuilt. This instance was closed by hand with `tools.surgical_land`, which is the manual
+version of exactly that.
+
+### An amplifier this instance exposes: ARCHIVING A STAGED DOC RE-WEDGES PUBLISHING
+
+`background/forward_attachment_register.py` scopes over `docs/staging/` **including `done/`**
+(module line 69 / SCOPE at line 43) and each row records the source doc's *path*. So moving a
+finding from `docs/staging/` to `docs/staging/done/` **changes the derivation** — visible directly
+in the diff this tick landed, where rows flipped from `docs/staging/X` to `docs/staging/done/X`.
+
+The consequence is sharp, and it inverts the normal staging protocol:
+
+> While the gate is red, **archiving a staged doc deepens the wedge**. The archive changes the
+> derivation, the projection drifts, the gate reds on the drift, and the repair that would fix it
+> is downstream of that same gate.
+
+That makes "poll staging, action, archive" — the standing workflow — an *unsafe* operation during a
+wedge, which nothing currently says. This tick therefore deliberately archived **nothing**, and the
+77-marker `run_complete` backlog was flushed without touching the staging root. Once recommendation
+(1) lands, the coupling becomes harmless; until then it is a live trap for the next worker, and it
+is the reason a wedge can appear to be "caused by" whichever doc was most recently archived.

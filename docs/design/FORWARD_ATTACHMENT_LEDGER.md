@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**14 attachment(s)** from 12 source doc(s), across 13 atom(s).
+**17 attachment(s)** from 15 source doc(s), across 14 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -39,6 +39,7 @@ _epoch 3 · lane C_customer_ops · L3→L3 · harden_
 **Reshape the coupled-triad DETECTION dimension, which has two defects the 2026-08-09 H27 Expert Hour **  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
+- `2026-08-09` · `docs/staging/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
 
 ## D12_detection_cell_grid_is_recall_only
@@ -75,6 +76,7 @@ _epoch 3 · lane D_billing_metering · L0→L2 · build_
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
+- `2026-08-09` · `docs/staging/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
 
 ## EP16_anchored_generators
@@ -95,3 +97,9 @@ _epoch 4 · lane W2_customer_generator · L0→L3 · idle_
 _epoch 2 · lane C_customer_ops · L0→L3 · idle_
 
 - `2026-08-08` · `docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md` (discover) — Clayton's-Case appropriation of unreferenced payments misdates debt while leaving the balance exactly right, so the collections road from missed payment to resolution is walked against wrong dates; the wrongful-dunning exposure this creates
+
+## OPS2_publish_gate_head_worktree
+**The HEAD-checkout publish gate gets a real lifecycle**  
+_epoch 3 · lane H_harness · L0→L2 · build_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` (finding) — the gate's subject is now HEAD, so the only
