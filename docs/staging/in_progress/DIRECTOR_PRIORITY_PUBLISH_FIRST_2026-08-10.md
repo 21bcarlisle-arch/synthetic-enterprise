@@ -35,6 +35,34 @@
 > - **Next tick:** publisher pid 2580542 started ~09:5x is the FIRST cycle whose HEAD checkout
 >   contains the ruff fix. Re-check `.last_gate_blocking_tests.json` (and its age) before assuming
 >   anything — if it names a third test, that is the same species again, fix it at HEAD.
+> **UPDATE 2026-08-10 ~10:5x (next worker tick) — a THIRD named red, and it was our own uncommitted cure.**
+> - Disposition followed as written: publisher pid **2649948** (started 10:50Z, on
+>   `run_complete_20260810T104205Z.md`) was alive throughout. **No rival publisher was started.**
+> - The prior tick's instruction was right — `.last_gate_blocking_tests.json` (10:33Z) names a third
+>   test: `test_forward_discovery_draw.py::test_may_rest_with_genuinely_empty_authorized_set`. Same
+>   species, with one extra turn of the screw: **the cure was already BUILT in the working tree and
+>   never committed.** `tests/background/conftest.py` carried the RUNG-4b pin as an unstaged diff and
+>   `tests/background/test_rest_ladder_isolation.py` was UNTRACKED — so every local run was green and
+>   every gate run (which judges a clean HEAD checkout) was red. **Untracked work is not a fix.**
+> - Mechanism: `_is_drained_and_gated()` is a ladder of `if <rung>(): return False`, and RUNG 4b
+>   (`_stale_gap_row_draw`, landed `627278f8c` today) holds no path of its own — it reconciles the REAL
+>   `coupled_gap_ledger.json` against the REAL git history. When code lands ahead of a re-measure the
+>   rung fires and refuses rest, flipping every "authorized set empty → rest permitted" proof in
+>   `tests/background/` regardless of subject.
+> - **Landed at HEAD, `66fe14899`, pushed** (verified against `origin/main`): the conftest pin plus the
+>   CLASS control, which derives the rung set by parsing the shipped source and fails BY NAME on the
+>   leaker. Fifth instance of this class (RUNG 4, 1, 7, 1b, 4b) and the first one closed AT the class.
+>   42 green across the isolation test + both rest proofs; pre-commit gate green on 10 mapped files.
+> - **Honest limit on the causal claim:** I could not re-observe the rung firing — re-measures have
+>   since taken HEAD's ledger drift to **0 refreshable rows**, so the rung is silent at HEAD *right
+>   now*. The failure→cure link is `observed` for the mechanism (the control's own R15 both-ways
+>   direction shows a leaking rung flips `_is_drained_and_gated()` to False) and `inferred` for the
+>   10:33Z instance. The isolation is correct either way: with the pin absent, the next drift reds
+>   eleven tests again.
+> - **Next tick:** pid 2649948's cycle predates `66fe14899`, so the first cycle judging a HEAD with the
+>   isolation is the one after it. Re-check `.last_gate_blocking_tests.json` **and its mtime** — if it
+>   names a fourth test, same species, fix at HEAD. Draw 3 (62 markers drain-superseded) remains the
+>   publisher's act, not a tick's.
 > - **The freeze clause is LIFTED** by `DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10` ("THE SITE
 >   BREATHES", `2e6d167d1`, merged at `5f6077026`): the three cure draws STAND at first priority,
 >   but "no feature draws" is retired and replaced by that ruling's 4-item WORK block (scoped
