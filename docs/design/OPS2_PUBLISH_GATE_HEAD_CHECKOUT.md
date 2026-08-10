@@ -56,6 +56,12 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 > HEAD moves under a ~50-minute measurement as ordinary commits land, each phase stamps the SHA
 > it actually ran against (`head_sha_at_run`), and the runtime being measured does not turn over
 > commit by commit. Treating "behind HEAD" as death costs another 50 minutes for no information.
+>
+> One schema wrinkle in THIS run only: the in-flight process was launched from the pre-`f9ac47fb6`
+> harness, so its JSON carries a single top-level `head_sha` and its phases have no
+> `head_sha_at_run`. That is the old schema, not a broken run — `phases`, `seconds`,
+> `ratio_warm_over_in_tree` and `implied_timeout_floor_2x` are all present and are what §1 and §2
+> need. Later runs carry the per-phase stamp.
 
 Both sides ran on the live box while the publisher's own cycles were running, so the absolute
 numbers carry that load; the ratio is what the criterion is about and both sides carry it alike.
