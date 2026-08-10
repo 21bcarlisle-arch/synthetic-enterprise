@@ -138,6 +138,24 @@ definitions are all private helpers of that `main()`. Relocating the file change
 dependency, and moves only the walker's reach. It fails pass 3's own second exit clause — *nothing is
 routed through a package the walker does not walk* — and it is precisely the move pass 1 refused.
 
+> **SCOPED 2026-08-10, when this design was drawn for execution — see §3c. Not a correction: the
+> paragraph above is right, and step 7 had already measured where its reach ends.**
+> The refusal's evidence is `run_phase2b` — 2,961 lines, `main()` ~2,100, walled in-edges. Written
+> as "all ten", it reads wider than that evidence, and step 7's own record already drew the line
+> before any file moved: *"seven of them are 75-153 line files that are `main()` plus its private
+> helpers. That is the criterion that separates a lift from a laundering, and it DERIVES section
+> 2b's own refusal for `run_phase2b` rather than contradicting it."* Those seven define nothing any
+> module imports and describe themselves in their own opening lines as scripts ("*the orchestration
+> glue wiring the five Phase 0b deliverables together — not itself a delegated deliverable, just
+> the script that drives them and prints the result*"). For them, "the composition **is** the
+> substance" holds in the opposite sense from the one intended: there is nothing else in the file,
+> so "extract the thin composition and leave the substantive module walked and clean" has no
+> residue to leave behind. They were **misfiled** — the mirror of B1's three behavioural-physics
+> modules filed company-side — and the mirror-image cut applies. The refusal stands as written for
+> the three files whose measurement supports it: `run_phase2b`, `run_phase4c_on_phase2b`,
+> `run_segments`. Recorded because the ban and the exception now live in one place; a reader who
+> finds only the ban would put back what §3c cut.
+
 The honest cut is in **B7's** shape, applied ten times: the harness keeps the composition, but the
 world-side work it inlines is separated from the company-side decisions it inlines, and only genuine
 entry-point composition sits above both layers. That is XL on its own and it is the bulk of what
@@ -162,17 +180,26 @@ class is stated here so that a future row appearing in it is a visible event rat
 Each block is referenced by the rows in §4. A design no row references is rc 2.
 
 <!-- WALL-CROSSING-DESIGN A_composition_lift
-65 edges, 10 files, all `simulation/run_phase*.py` + `run_segments`. These are scenario
-harnesses, not the simulated world: nine of the ten are leaves inside the wall and every one
-has a `main()`. The cut is NOT a bulk move of the files to `tools/` — see section 2b. The
-composition is the substance of these files, so relocating them would remove the measurement
-rather than the dependency, and pass 3's second exit clause forbids exactly that. The cut is
-per-harness separation: the world-side setup the harness inlines is pushed down into
-`simulation/`, the company-side decisions it inlines are pushed into the company layer behind
-`company.interfaces`, and what remains above both layers is genuine entry-point composition.
-Constraints measured, not assumed: `simulation.run_scenario` imports `run_phase2b` and must be
-re-pointed or moved with it; `run_phase2b` carries 135 referrers outside `simulation/`, so the
-mechanical rename lands in its own commit, separate from any behaviour question.
+Was 65 direct edges over 10 files (+3 indirect, §3b). PART 1 EXECUTED 2026-08-10 — the SEVEN
+MISFILED harnesses, 16 edges, see §3c. THREE FILES REMAIN and they are the substantive ones:
+`run_phase2b` (32 direct + the 3 indirect), `run_phase4c_on_phase2b` (13) and `run_segments`
+(4) — 49 direct + 3 indirect.
+
+For these three the §2b refusal stands UNAMENDED and it is now load-bearing rather than
+blanket: all three have walled in-edges, and `run_phase2b` is 2,961 lines of which `main()` is
+~2,100, so the composition genuinely IS the substance and moving the file would remove the
+measurement rather than the dependency. The part-1 cut does NOT generalise to them and §3c
+records the four conditions that separate the two cases, each measured per file.
+
+The cut for the remaining three is per-harness separation: the world-side setup the harness
+inlines is pushed down into `simulation/`, the company-side decisions it inlines are pushed into
+the company layer behind `company.interfaces`, and what remains above both layers is genuine
+entry-point composition. Constraints measured, not assumed: `simulation.run_scenario` imports
+`run_phase2b` and must be re-pointed or moved with it; `run_phase2b` carries 135 referrers
+outside `simulation/`, so the mechanical rename lands in its own commit, separate from any
+behaviour question. Two other designs wait on this half specifically and not on part 1 — the B5
+residual and the B4 remainder both need a company-side EMITTER, and the bills they need it for
+are assembled by `run_phase4c_on_phase2b`, which is one of the three still standing.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
@@ -309,6 +336,74 @@ an argument.
 pass 1 drove the direct forbidden direction to zero; nothing had asked the indirect question.
 `interface/` and `background/` are named in the census and reported on by name, so a clean bridge
 is an explicit verdict rather than a silence.
+
+---
+
+## 3c. `A_composition_lift` PART 1 — the seven harnesses were MISFILED, not relocated
+
+**EXECUTED 2026-08-10. 16 edges, 7 files, 75 → 59 live crossings (72 → 56 direct; the 3 indirect
+are untouched and that is the proof, see below).**
+
+This is the cut §2b banned, executed on the subset §2b's evidence never covered, against the
+criterion **step 7 recorded before any file moved** — so the burden here is not "did the number
+fall" but **"is this the laundering the pass banned in writing?"** Four conditions separate the two
+cases. Each was measured per file BEFORE the move, and all four must
+hold; any one failing puts the file back with `run_phase2b`.
+
+| Condition | Why it is the dividing line | Measured |
+|---|---|---|
+| **1. Zero importers anywhere inside the wall** | If a walled module imports the harness, moving it hides that module's dependency behind a bridge. That is laundering, exactly. With no walled importer, **no walled module's dependency set changes at all**. | 0 for all seven (`company/`, `saas/`, `sim/`, `simulation/`). The only importers in the tree are three `_resolve_book` imports in one test. |
+| **2. The file defines nothing the codebase uses** | "Extract the thin composition, leave the substantive module walked and clean" needs a residue to leave behind. If every symbol is a private helper of `main()`, the whole file IS the composition and there is no second thing to strand. | 75–153 lines each; every module-level symbol unimported outside tests. |
+| **3. It is an entry point by its own account** | A misfiling claim has to rest on something other than convenience. | All seven have `main()` + `if __name__ == "__main__"`, and say so in their docstrings — `run_phase0b`: *"the orchestration glue wiring the five Phase 0b deliverables together — not itself a delegated deliverable, just the script that drives them and prints the result"*. |
+| **4. What it hands the company is an OBSERVABLE** | The wall's actual claim. A harness that passed sim internals into a company function would be a real violation wearing composition's clothes, and moving it would bury the violation instead of the edge. | Published SSP history, published PC1 shapes, forward prices off the published curve, the supplier's own settled records, the supplier's own supply book. **No sim internal crosses in any of the seven.** Per-edge in §4. |
+
+`run_phase0b`, `run_phase0c`, `run_phase1c`, `run_phase1c_full_window`, `run_phase1c_renewals`,
+`run_phase3a`, `run_phase4b_on_phase2b` → `tools/`, which is where `run_annual_report.py`,
+`run_segment_report.py` and `run_phase4c_pipeline.py` already live. `git mv`, so the history
+follows. The 16 tuples are DELETED from `LEGACY_SIM_READS_COMPANY`: the ratchet floor moved down
+with the code and none of the sixteen can return silently.
+
+**The count fell by 16 and the dependency graph did not change. Both halves of that sentence are
+true and the register states it rather than letting the number speak.** The same functions call the
+same functions in the same order. What changed is that seven files filed as *the simulated world*
+are now filed as *entry points*, which is what they always were — the mirror image of B1, where
+three files filed as *the company* were behavioural physics. A count that moves because a
+misfiling was corrected is the ratchet working; the identical count movement obtained by pushing a
+live dependency behind an unwalked hop is the laundering, and condition 1 is what tells them apart.
+
+### The proof that this is condition 1 and not a promise — injected into the real tree
+
+The lift is a cut only while nothing walked reaches the company back through a moved file. That is
+not an argument, it is the thing the step-7 indirect ratchet was landed to measure, one commit
+before this one, for exactly this reason. Tested by injection rather than assertion:
+
+`simulation/_knife3_reentry_probe.py`, one line — `from tools.run_phase1c import
+build_priced_customers` — the precise re-entry that would retroactively turn this cut into a
+laundering.
+
+* `live_indirect_crossings()` went 3 → **6**, naming all three:
+  `simulation._knife3_reentry_probe -> saas.{clv_seed, customer_reaction, tariff_pricing}`,
+  each `via ('tools.run_phase1c',)`.
+* `tests/architecture/test_epistemic_wall_indirect_ratchet.py`: **4 failed, 16 passed** — the
+  frozen census, the redundancy pin, `test_no_new_indirect_crossings` and the per-bridge verdict
+  for `tools`.
+* `tests/architecture/test_epistemic_wall_ratchet.py`: **12 passed.** The direct ratchet is blind
+  to it, which is the clearest available statement of why part 1 could not honestly have landed
+  before step 7 did.
+* Probe deleted; indirect ratchet back to **20 passed**, `live_indirect_crossings()` back to 3.
+
+No new control was added for this, deliberately. A `test_no_walled_module_imports_a_lifted_root`
+would red on exactly the trees `test_no_new_indirect_crossings` already reds on — a second name for
+one measurement, which is the accretion this project forbids and the redundancy the union metric in
+§3b was already caught hiding. The existing guard covers the case; the injection above is the
+evidence that it covers *this* case.
+
+### What this does NOT unblock, stated because the adjacent designs name it
+
+B5's residual and B4's remainder are both blocked on a company-side EMITTER, and both name
+`A_composition_lift` as the blocker. Part 1 does **not** move either: the bills they need stamped
+are assembled by `simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, which is one of the
+three files still standing. Their blocker is part 2, and it was part 2 all along.
 
 ---
 
@@ -649,11 +744,13 @@ itself.
 
 ---
 
-## 4. The register — all 88 examined crossings, 72 of them still live
+## 4. The register — all 91 examined crossings, 59 of them still live
 
-88 was the count when every crossing was ruled on (2026-08-09, step 2). SIXTEEN have since
-been CUT (§3a), so the tree carries 72 and this section carries 88 rows: a cut row is not deleted,
-because a deleted row is how a re-entry becomes invisible. The live count is not maintained by
+88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
+walker could not see (§3b), making 91 rows. THIRTY-TWO have since been CUT — sixteen by B1/B4–B8
+(§3a) and sixteen by `A_composition_lift` part 1 (§3c) — so the tree carries 59 and this section
+carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry becomes
+invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
 
@@ -695,18 +792,18 @@ edge: simulation.renewals -> saas.tariff_pricing | disposition=cut | reason=B7 e
 # --- B8_market_feed_is_the_observable ---
 edge: simulation.publish_market_feed -> company.market.price_feed | disposition=cut | reason=B8 executed 2026-08-09 — `publish_feed` moved to `company/interfaces/market_feed_publication.py`, so the (legitimate) world-publishes-prices crossing now lands on the walked seam package and is exempt by the published SEAM rule. Deliberately NOT re-exported from `company/market/price_feed.py`, which would have left the non-seam path alive.
 # --- A_composition_lift ---
-edge: simulation.run_phase0b -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase0c -> saas.clv_seed | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase0c -> saas.customer_reaction | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase0c -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c -> saas.clv_seed | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c -> saas.customer_reaction | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c_full_window -> saas.clv_seed | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c_full_window -> saas.customer_reaction | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c_full_window -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c_renewals -> saas.clv_seed | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase1c_renewals -> saas.customer_reaction | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase0b -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase0b` is 100% composition (`86` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (30-day published SSP history). It moved to `tools/run_phase0b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase0c -> saas.clv_seed | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase0c` is 100% composition (`104` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase0c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase0c -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase0c` is 100% composition (`104` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase0c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase0c -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase0c` is 100% composition (`104` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (published SSP history). It moved to `tools/run_phase0c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c -> saas.clv_seed | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c` is 100% composition (`107` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c` is 100% composition (`107` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c` is 100% composition (`107` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (a forward price off the published curve). It moved to `tools/run_phase1c.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c_full_window -> saas.clv_seed | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_full_window` is 100% composition (`136` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_full_window.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c_full_window -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_full_window` is 100% composition (`136` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_full_window.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c_full_window -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_full_window` is 100% composition (`136` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (a forward price off the published curve). It moved to `tools/run_phase1c_full_window.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c_renewals -> saas.clv_seed | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_renewals` is 100% composition (`153` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_renewals.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase1c_renewals -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_renewals` is 100% composition (`153` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_renewals.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase2b -> company.analytics.churn_accuracy_report | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.churn_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.complaints | disposition=owed | design=A_composition_lift
@@ -739,10 +836,10 @@ edge: simulation.run_phase2b -> saas.ledger | disposition=owed | design=A_compos
 edge: simulation.run_phase2b -> saas.property_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.smart_meter_rollout | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase3a -> saas.customer_reaction | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4b_on_phase2b -> saas.churn_model | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4b_on_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4b_on_phase2b -> saas.enterprise_value | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase3a -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase3a` is 100% composition (`94` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase3a.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase4b_on_phase2b -> saas.churn_model | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase4b_on_phase2b -> saas.cost_to_serve | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
+edge: simulation.run_phase4b_on_phase2b -> saas.enterprise_value | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase4c_on_phase2b -> company.billing.account_adjustment_register | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> company.billing.back_billing | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> company.billing.dd_review_runner | disposition=owed | design=A_composition_lift

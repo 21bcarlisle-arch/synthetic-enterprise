@@ -27,9 +27,9 @@ Two directions, per R15 (a wire must be able to FAIL on its own named defect):
 import pytest
 
 from saas.customers import CUSTOMERS, customer_to_settlement_input
-from simulation.run_phase0c import _resolve_book as resolve_0c
-from simulation.run_phase1c import _resolve_book as resolve_1c
-from simulation.run_phase1c_full_window import _resolve_book as resolve_1c_fw
+from tools.run_phase0c import _resolve_book as resolve_0c
+from tools.run_phase1c import _resolve_book as resolve_1c
+from tools.run_phase1c_full_window import _resolve_book as resolve_1c_fw
 
 _ACTIVATION_ENV = "SE_DRAW_POPULATION"
 

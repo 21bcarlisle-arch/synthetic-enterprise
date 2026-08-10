@@ -28,7 +28,64 @@ map_records:
   - tests/simulation/test_dd_payment_day.py
   - tests/architecture/test_epistemic_wall_indirect_ratchet.py
   - tools/knife_hotspot_measure.py
-  exit_evidence: 'STEP 8 (THE INSTRUMENT, NOT A CUT), 2026-08-10 -- this atom is PARTIALLY built and must
+  - tools/run_phase0b.py
+  - tools/run_phase0c.py
+  - tools/run_phase1c.py
+  - tools/run_phase1c_full_window.py
+  - tools/run_phase1c_renewals.py
+  - tools/run_phase3a.py
+  - tools/run_phase4b_on_phase2b.py
+  - docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md
+  exit_evidence: 'STEP 9 (A_composition_lift PART 1), 2026-08-10 -- this atom is PARTIALLY built and
+    must NOT be re-drawn as if from zero; 32 of 91 crossings now CUT, LEVEL DELIBERATELY STILL 0 because
+    part 2, B2, B3 and the B4/B5 residuals remain. 16 EDGES CUT, 75 -> 59 LIVE (72 -> 56 direct; the 3
+    indirect deliberately UNMOVED, and that is the proof, see below). THE SEVEN MISFILED HARNESSES --
+    run_phase0b/0c/1c/1c_full_window/1c_renewals/3a/4b_on_phase2b -- git mv''d simulation/ -> tools/, where
+    run_annual_report.py and run_phase4c_pipeline.py already live. Pure renames: git diff -M --stat reports
+    7 files changed, 0 insertions, 0 deletions. THIS IS THE CUT SECTION 2b BANNED IN WRITING, and the
+    reason it is legal here is that STEP 8 RECORDED THE CRITERION BEFORE ANY FILE MOVED (''seven of them
+    are 75-153 line files that are main() plus its private helpers ... that DERIVES section 2b''''s own
+    refusal for run_phase2b rather than contradicting it''). Part 1 EXECUTES that recorded criterion; it
+    did not discover it, and section 2b is now SCOPED IN PLACE to the three files its evidence supports
+    (run_phase2b 2,961 lines, run_phase4c_on_phase2b, run_segments -- all three with walled in-edges) so
+    a reader finding only the ban cannot put back what part 1 cut. FOUR CONDITIONS, MEASURED PER FILE,
+    ALL FOUR REQUIRED, any one failing puts the file back with run_phase2b: (1) ZERO importers anywhere
+    inside the wall -- so NO WALLED MODULE''''S DEPENDENCY SET CHANGES AT ALL, which is the condition that
+    separates a misfiling correction from a laundering; (2) the file defines nothing the codebase uses,
+    so ''extract the thin composition and leave the substantive module walked and clean'' has no residue
+    to leave behind; (3) an entry point by its own account -- main() + __main__ + a docstring calling itself
+    a script (run_phase0b: ''the orchestration glue ... not itself a delegated deliverable, just the script
+    that drives them and prints the result''); (4) what it hands the company is an OBSERVABLE -- published
+    SSP history, published PC1 shapes, forward prices off the published curve, the supplier''''s own settled
+    records and its own supply book. NO SIM INTERNAL CROSSES IN ANY OF THE SEVEN, per-edge in register
+    section 4. CONDITION 1 PROVEN BY INJECTION ON THE REAL TREE, NOT ASSERTED: simulation/_knife3_reentry_probe.py,
+    one line importing a lifted harness -- the exact re-entry that would retroactively turn this into a
+    laundering -- took live_indirect_crossings() 3 -> 6 (all three named, each via tools.run_phase1c) and
+    test_epistemic_wall_indirect_ratchet.py to 4 failed / 16 passed, WHILE test_epistemic_wall_ratchet.py
+    passed 12/12 on the same injection. That green direct ratchet is why part 1 could not honestly have
+    landed before step 8 did. Probe deleted; indirect ratchet back to 20 passed, crossings back to 3. NO
+    NEW CONTROL WAS ADDED, deliberately -- a lift-specific guard would red on exactly the trees
+    test_no_new_indirect_crossings already reds on, which is accretion and the redundancy section 3b was
+    already caught hiding. STATED PLAINLY RATHER THAN LEFT TO THE NUMBER: the count fell by 16 and THE
+    DEPENDENCY GRAPH DID NOT CHANGE -- same functions calling the same functions in the same order; seven
+    files filed as the simulated world are now filed as entry points, the mirror of B1''''s three
+    behavioural-physics modules filed company-side. The 16 tuples are DELETED from LEGACY_SIM_READS_COMPANY
+    so the floor moved down with the code. tools/epistemic_wall.py NOT EDITED in this cutting commit.
+    SIZE RATCHET: tools/ IS in SCOPE_ROOTS, so no debt escaped the ratchet by the move, and the seven
+    baseline keys were carried across the rename BY HAND so the frozen floors did not reset -- the three
+    pre-existing debts (run_phase1c_renewals 153>143, run_phase3a 94>89, run_phase4b 75>70) still fire at
+    the new path. A rename must not be a way to reset a ratchet floor. ONE DEFECT QUEUED, NOT FIXED ON
+    SIGHT (SELF_INTERRUPT_DISCIPLINE): rule 2b reads head_texts BY PATH, so a pure git mv reads as a NEW
+    oversized function -- docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md.
+    WHAT PART 1 DOES NOT UNBLOCK, stated because two designs name A as their blocker: B5''''s residual and
+    B4''''s remainder both need a company-side EMITTER for bills assembled by run_phase4c_on_phase2b, which
+    is one of the three files STILL STANDING. Their blocker is part 2, and it was part 2 all along.
+    SUITES GREEN, measured after the last edit: tests/architecture/ + test_wall_crossing_dispositions.py
+    + test_wall_crossing_at_head.py + test_knife_hotspot_measure.py + tests/controls/ +
+    test_run_phase_settlement_population_seam.py = 329 passed, 1 xfailed, rc 0. python3 -m tools.epistemic_verifier
+    PASS over 539 company/+saas/ files. ruff clean on all seven moved files and both edited tests.
+    wall_crossing_dispositions.py OK, ''59 live crossings (56 direct, 3 indirect); 91 ruled (cut 32, owed
+    59, grandfathered 0)''. --- PRIOR STEP BELOW --- STEP 8 (THE INSTRUMENT, NOT A CUT), 2026-08-10 -- this atom is PARTIALLY built and must
     NOT be re-drawn as if from zero; 16 of 88 direct crossings CUT, LEVEL DELIBERATELY STILL 0. THIS TICK
     CUT NOTHING ON PURPOSE AND THE COUNT WENT UP, 72 -> 75. The shared walker''s own docstring had named
     the hazard since step 1 -- ''routing a dependency through a package the walker does not walk (tools/)

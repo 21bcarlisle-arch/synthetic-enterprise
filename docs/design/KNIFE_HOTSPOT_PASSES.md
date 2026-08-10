@@ -496,11 +496,50 @@ Also caught and fixed in passing: `test_main_returns_nonzero_when_an_edge_is_une
 drifted off the live code path. It failed loudly rather than passing green against a ghost it was
 no longer injecting.
 
-**Status: steps 1, 2 and 7 landed (instruments); B1, B8, B6, B7 and part of B4/B5 cut, 88 -> 72
-direct.** The remaining work is the four designs still in §3, and `A_composition_lift` is now
-unblocked: its per-file measurement is taken (nine of the ten harnesses have ZERO importers
-anywhere inside the wall; only `run_phase2b` has walked in-edges), and the instrument that tells a
-lift from a laundering exists.
+##### Step 9 — LANDED 2026-08-10: `A_composition_lift` PART 1, the seven misfiled harnesses
+
+*Numbering, because it disagrees across the record: the bridge step is headed "Step 7" in the
+section above but recorded as "step 8" in the atom's `exit_evidence` and in the commit history
+(`970c61e6f KNIFE3 step 8`). Same work. This is the step after it, numbered to match the commits,
+which are what a reader outside this tree sees.*
+
+**16 edges cut, 75 -> 59 live crossings (72 -> 56 direct; the 3 indirect deliberately unmoved).**
+Full record + the four dividing conditions: `WALL_CROSSING_DISPOSITION_REGISTER.md` §3c.
+
+The pass had banned this cut in writing (§2b: "move all ten to `tools/` and watch 65 edges
+vanish ... that would be laundering") — and step 7 had already measured where that ban's reach ends,
+recording the criterion before any file moved: seven of the ten are **75-153-line files that are
+`main()` plus its private helpers**, define nothing anyone imports, and call themselves scripts in
+their own docstrings, which "DERIVES section 2b's own refusal for `run_phase2b` rather than
+contradicting it". Part 1 executes that recorded criterion rather than discovering it. For those
+seven, "extract the thin composition and leave the substantive module walked and clean" has no
+residue to leave: they were MISFILED, the mirror of B1's three behavioural-physics modules filed
+company-side. §2b is now SCOPED in place to the three files its evidence supports (`run_phase2b`,
+`run_phase4c_on_phase2b`, `run_segments`), so a reader finding only the ban cannot put back what
+part 1 cut.
+
+Four conditions, measured per file, all four required: zero walled importers (so no walled module's
+dependency set changes), nothing defined that the codebase uses, an entry point by its own account,
+and **only observables handed to the company** (published prices/profiles, the supplier's own
+settled records — no sim internal crosses in any of the seven). Condition 1 is the one that
+separates a misfiling correction from a laundering, and it was proven by INJECTION on the real tree,
+not asserted: a one-line re-entry (`simulation/_knife3_reentry_probe.py` importing a lifted harness)
+took the indirect ratchet to 4 failed / 16 passed and `live_indirect_crossings()` 3 -> 6, while the
+DIRECT ratchet passed 12/12 — which is why part 1 could not have honestly landed before step 7 did.
+Probe deleted, back to 20 passed. **No new control was added**: a lift-specific guard would red on
+exactly the trees `test_no_new_indirect_crossings` already reds on.
+
+Stated plainly rather than left to the number: **the count fell by 16 and the dependency graph did
+not change.** The same functions call the same functions in the same order; seven files filed as the
+simulated world are now filed as entry points.
+
+**Status: steps 1, 2, 7 and 8 landed; B1, B8, B6, B7, part of B4/B5 and `A_composition_lift`
+part 1 cut, 88 -> 56 direct (59 with the indirect three).** What remains: `A_composition_lift`
+part 2 — the three substantive harnesses (`run_phase2b` 32 edges, `run_phase4c_on_phase2b` 13,
+`run_segments` 4), where the §2b refusal stands unamended and the cut is per-harness separation —
+plus B2 (a coupled-triad build), B3 (blocked on its own three design questions (a)-(c)), and the
+B4/B5 residuals, which wait on part 2 specifically: the bills needing a company-side emitter are
+assembled by `run_phase4c_on_phase2b`.
 
 ### Pass 4 — `KNIFE4_orphan_disposition` (size L, position free)
 **Cut:** dispose of the 258 company-side orphans — wire or retire, **archive, never delete**.
