@@ -466,3 +466,245 @@ def test_launched_by_says_systemd_only_when_systemd_actually_started_the_process
     assert measure._launched_by() == "systemd", (
         "a process systemd really did start is not recorded as systemd-launched"
     )
+
+
+# ── RESUME: the checkpoint is only worth writing if something READS it ───────────────────────
+#
+# The harness has been killed five times: twice by a bounded tick ending under it, once by a
+# descendant walk the session-detach could not hide it from, and -- the fifth, the first one
+# init owned -- by the kernel OOM killer 6m20s into phase 2, with phase 1's 1291.9s already
+# banked on disk. Until this suite existed, launch six would have deleted the reused checkout
+# and re-paid that 21 minutes, and a run that never survives three phases in a row never
+# converges. Both directions on every property below.
+
+
+def _stub_phases(monkeypatch, timed):
+    """Make the three phases instantaneous and record which ones actually ran."""
+    def _fake_time_suite(cwd, log, heartbeat=None):
+        timed.append(str(cwd))
+        return {"cwd": str(cwd), "head_sha_at_run": "deadbeef", "seconds": 1.0,
+                "returncode": 0, "summary": "", "loadavg_before": 0.0, "loadavg_after": 0.0,
+                "box_was_quiet": True}
+    monkeypatch.setattr(measure, "_time_suite", _fake_time_suite)
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, hb=None: True)
+    monkeypatch.setattr(measure.prc, "_head_sha", lambda: "deadbeef")
+
+
+class _FakeCheckout:
+    """Stands in for prc._head_checkout(), yielding the REUSED directory name."""
+
+    def __init__(self, path):
+        self._path = path
+
+    def __call__(self):
+        return self
+
+    def __enter__(self):
+        return self._path
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _banked(out_path, **phases):
+    Path(out_path).write_text(json.dumps({"phases": phases}))
+
+
+def test_a_banked_phase_is_resumed_rather_than_re_run(monkeypatch, out, tmp_path):
+    """THE defect: `_run_measurement` opened with `phases: {}` while the comment above
+    PHASE_ORDER claimed a partial record "tells the next tick precisely which phases to resume
+    rather than restart". It told it nothing, because nothing read it.
+
+    MUTATION: seed `results["phases"]` with `{}` instead of `_load_banked_phases(out_path)` and
+    the cold phase is timed again -- this reds."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
+
+    assert measure._run_measurement(out, lambda m: None) == 0
+
+    record = _read(out)
+    assert record["resumed_phases"] == ["cold_checkout"]
+    assert record["phases"]["cold_checkout"]["seconds"] == 1291.9, (
+        "the banked cold phase was overwritten -- 21 minutes of measured runtime re-paid"
+    )
+    assert len(timed) == 2, "a resumed run re-timed a phase it already had: {}".format(timed)
+    assert record["complete"] is True
+
+
+def test_without_a_partial_record_all_three_phases_are_timed(monkeypatch, out, tmp_path):
+    """The other direction. A resume that skipped phases it never had would report a ratio
+    built from nothing, which is worse than re-running them."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+
+    assert measure._run_measurement(out, lambda m: None) == 0
+    assert len(timed) == 3
+    assert _read(out)["resumed_phases"] == []
+
+
+def test_a_phase_with_no_duration_is_not_treated_as_banked(monkeypatch, out, tmp_path):
+    """A half-written checkpoint must not retire a phase that was never timed. The record is
+    rewritten on every heartbeat, so a run killed mid-write is the expected case, not the
+    exotic one."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+    _banked(out, cold_checkout={"head_sha_at_run": "deadbeef"})  # no `seconds`
+
+    measure._run_measurement(out, lambda m: None)
+    assert len(timed) == 3, "a phase with no measured duration was accepted as measured"
+
+
+def test_an_unparseable_record_starts_over_rather_than_raising(out):
+    """Never raises: a corrupt record must cost a re-measurement, never the launch."""
+    Path(out).write_text("{ not json")
+    assert measure._load_banked_phases(out) == {}
+    assert measure._load_banked_phases(str(Path(out).parent / "absent.json")) == {}
+
+
+def test_a_resume_does_not_delete_the_reused_checkout(monkeypatch, out, tmp_path):
+    """The rmtree is the COLD phase's SETUP. Left outside the branch it would delete exactly
+    the warmth the next phase exists to measure, and the warm number would silently be a second
+    cold number.
+
+    MUTATION: hoist the `shutil.rmtree(reused, ...)` back above the `if` and this reds."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    (reused / "__pycache__").mkdir()
+    monkeypatch.setattr(measure.prc, "HEAD_CHECKOUT_ROOT", tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
+
+    measure._run_measurement(out, lambda m: None)
+
+    assert (reused / "__pycache__").exists(), (
+        "the resume deleted the reused checkout's bytecode -- the warm phase it went on to "
+        "time was a cold run wearing the warm phase's name"
+    )
+
+
+def test_a_resumed_warm_phase_says_who_warmed_the_cache(monkeypatch, out, tmp_path):
+    """"Warm" is a claim about the DIRECTORY, not about this process. When the cold phase came
+    from an earlier launch, the record must not imply this run established it."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
+
+    measure._run_measurement(out, lambda m: None)
+    assert _read(out)["warm_cache_established_by"] == "an earlier launch or the live publisher"
+
+
+def test_the_record_names_a_phase_timed_at_a_different_commit(monkeypatch, out, tmp_path):
+    """Resuming across launches is what makes this converge on a box that keeps killing it --
+    and it means the record can span commits. A reader who assumed one SHA would compare
+    runtimes of two different suites without knowing it."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "3ee4541a7"})
+
+    measure._run_measurement(out, lambda m: None)
+    record = _read(out)
+    assert record["phases_from_an_earlier_head"] == ["cold_checkout"]
+    # And the other direction: a phase timed at THIS head is not flagged as stale.
+    assert "warm_checkout" not in record["phases_from_an_earlier_head"]
+
+
+# ── /tmp IS RAM: the reclaim that stopped the OOM ────────────────────────────────────────────
+
+
+def test_every_timed_phase_gets_its_own_basetemp(monkeypatch):
+    """Phase 1 left 2.0G of pytest temp roots in a 7.8G tmpfs -- which is RAM -- and phase 2
+    started a full suite on top of them and was OOM-killed. pytest clears `--basetemp` at the
+    start of each run, so at most one phase's temps exist at a time.
+
+    MUTATION: drop the `--basetemp` from `_argv_without_x` and this reds."""
+    argv = measure._argv_without_x()
+    basetemps = [a for a in argv if a.startswith("--basetemp=")]
+    assert len(basetemps) == 1, "expected exactly one --basetemp, got {}".format(basetemps)
+    assert "-x" not in argv, "-x makes a red run's duration a time-to-first-failure"
+
+
+def test_the_measurements_basetemp_is_on_the_same_filesystem_as_the_real_gates():
+    """The runtime IS the measurement and the timeout is derived from it, so the temps must
+    stay where the real gate puts them. Moving them off tmpfs would buy headroom by measuring a
+    different machine."""
+    basetemp = measure.prc.HEAD_CHECKOUT_ROOT / measure.MEASURE_BASETEMP_NAME
+    assert basetemp.parent == measure.prc.HEAD_CHECKOUT_ROOT
+
+
+def test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep(tmp_path, monkeypatch):
+    """`finally:` does not run under SIGKILL and this harness has now been SIGKILLed twice, so
+    the basetemp WILL leak. It is named under HEAD_CHECKOUT_PREFIX for exactly that reason --
+    the machine's own sweep already owns anything wearing that name.
+
+    MUTATION: rename MEASURE_BASETEMP_NAME to anything outside the prefix and this reds, which
+    is the fifteenth wedge's lesson (debris nothing owns is debris nobody reclaims)."""
+    monkeypatch.setattr(measure.prc, "HEAD_CHECKOUT_ROOT", tmp_path)
+    leaked = tmp_path / measure.MEASURE_BASETEMP_NAME
+    leaked.mkdir()
+    (leaked / "junk").write_text("x" * 100)
+    stale = time.time() - measure.prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    os.utime(leaked, (stale, stale))
+
+    assert measure.prc._sweep_stale_head_checkouts() == 1
+    assert not leaked.exists(), (
+        "the measurement's basetemp is invisible to the sweep that owns /tmp debris"
+    )
+
+
+def test_a_live_basetemp_is_never_swept_from_under_a_running_measurement(tmp_path, monkeypatch):
+    """The other direction. A sweep that took the temp dir out from under a running suite would
+    turn a slow measurement into a corrupt one."""
+    monkeypatch.setattr(measure.prc, "HEAD_CHECKOUT_ROOT", tmp_path)
+    live = tmp_path / measure.MEASURE_BASETEMP_NAME
+    live.mkdir()
+
+    assert measure.prc._sweep_stale_head_checkouts() == 0
+    assert live.exists()
+
+
+def test_a_phase_waits_for_memory_headroom_before_timing(monkeypatch):
+    """The fifth launch died with 6.5G peak on a 15G box whose /tmp already held 3.5G of RAM.
+    Starting a full suite into a box with no room left is the observed failure.
+
+    MUTATION: return True unconditionally from `_wait_for_memory_headroom` and this reds."""
+    readings = iter([128, 128, 99999])
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: next(readings))
+    monkeypatch.setattr(measure.time, "sleep", lambda _s: None)
+    beats = []
+
+    assert measure._wait_for_memory_headroom(lambda m: None, lambda: beats.append(1)) is True
+    assert beats, "waited for memory without heartbeating -- a record that stops advancing " \
+                  "must be distinguishable from a process that died"
+
+
+def test_a_starved_box_is_measured_anyway_and_flagged(monkeypatch):
+    """Bounded like the quiet wait. A harness that can wait forever is worse than a number
+    labelled starved -- but the flag must actually be FALSE, or the label is decoration."""
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: 1)
+    monkeypatch.setattr(measure, "MEMORY_WAIT_SECONDS", -1)
+    monkeypatch.setattr(measure.time, "sleep", lambda _s: None)
+
+    assert measure._wait_for_memory_headroom(lambda m: None) is False
+
+
+def test_an_unreadable_meminfo_does_not_block_the_measurement(monkeypatch):
+    """DELIBERATE fail-open, and it is the right direction here: this is a measurement harness,
+    not a safety control. Refusing to measure because /proc is unreadable would trade a known
+    intermittent failure for a permanent one."""
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: None)
+    assert measure._wait_for_memory_headroom(lambda m: None) is True

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import ast
 import fcntl
 import json
 import os
@@ -1384,10 +1385,20 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     # here and recorded against the SHA it judged. A timeout is recorded too — the run that hits
     # the wall is the most informative point in the series, and it is the one that would
     # otherwise be missing from it.
+    #
+    # SCOPED TO WHAT IT PROTECTS (2026-08-10, DIRECTOR_RULING_PUBLISH_DECOUPLING). The argv
+    # below is no longer the whole tree: `background/publish_scope.py` narrows the BLOCKING
+    # set to the tests that transitively import the code producing or rendering a published
+    # number. Reds outside that set no longer wedge the public surface -- they are run by the
+    # remainder pass after the publish and ANNOTATE the page instead. Every failure path in
+    # that module degrades to this same argv unnarrowed, so the worst case of the scoping
+    # machinery breaking is exactly today's behaviour.
     started = time.monotonic()
+    gate_argv, gate_scope = _scoped_gate_argv()
+    log("Publish gate scope: {}".format(gate_scope["reason"]))
     try:
         result = subprocess.run(
-            publish_gate_pytest_argv("tests/"),
+            gate_argv,
             cwd=str(cwd),
             env=full_env,
             timeout=GATE_SUITE_TIMEOUT_SECONDS,
@@ -1402,9 +1413,24 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
                           "pass" if result.returncode == 0 else "fail")
     if result.returncode == 0:
         LAST_TESTED_HASH_FILE.write_text(git_hash)
+        _clear_blocking_tests()
     else:
-        _log_gate_failure_payload(result)
+        _log_gate_failure_payload(result, git_hash)
     return result.returncode == 0, False
+
+
+def _scoped_gate_argv():
+    """(argv, scope) for the BLOCKING gate. Never raises: an unresolvable scope is the full
+    suite, i.e. the pre-decoupling gate (see background/publish_scope.py, R15)."""
+    base = publish_gate_pytest_argv("tests/")
+    try:
+        from background import publish_scope
+        scope = publish_scope.resolve_scope()
+        return publish_scope.scoped_pytest_argv(base, scope), scope
+    except Exception as exc:  # noqa: BLE001 -- an unavailable scoper must not narrow anything
+        return base, {"full_suite": True, "tests": [], "sources": [],
+                      "reason": "scope module unavailable ({}: {}) -- full suite blocks, as "
+                                "before the decoupling.".format(type(exc).__name__, exc)}
 
 
 def _record_gate_duration(elapsed: float, git_hash: str, outcome: str) -> None:
@@ -1500,34 +1526,143 @@ def _gate_timed_out():
     return False, True
 
 
-# Publish-gate suite timeout. Was 600s, which the suite itself exceeded (612.94s measured on
-# 2026-08-09 for 22,525 tests), so the gate timed out on essentially every cycle. 3x the measured
-# runtime: enough headroom that a timeout means something is genuinely wrong (a hang, a runaway
-# fixture, a box under extreme load) rather than "the suite is its normal size".
-GATE_SUITE_TIMEOUT_SECONDS = 1800
+# ── THE BOUND IS DERIVED FROM THE SUBJECT THE GATE ACTUALLY RUNS (OPS2 criterion 2) ─────────
+#
+# Was 600s, which the suite itself exceeded (612.94s measured 2026-08-09 for 22,525 tests), so
+# the gate timed out on essentially every cycle. That was raised to 1800s as "3x the measured
+# runtime" -- but the 613s it was 3x OF was the IN-TREE subject, and the ruling has since moved
+# the gate's subject to a clean HEAD checkout. The bound was never re-derived against the thing
+# it now bounds.
+#
+# MEASURED on the new subject (docs/observability/publish_gate_subject_cost.json, HEAD
+# 3ee4541a7, 2026-08-10): a COLD checkout run takes **1291.9s** for 23,249 passed. 1800s is
+# 1.39x that -- and a cold cycle is not exotic, it is what every fallback throwaway checkout and
+# every rebuilt-corrupt checkout pays. Since the timeout now fail-CLOSES (`_gate_timed_out`
+# BLOCKS), an undersized bound does not degrade the gate, it WEDGES PUBLISHING -- the same
+# defect as the 600s bound, in the same direction, against a subject nobody re-measured.
+#
+# So: >= 2x the worst runtime measured on the real subject. 2 * 1291.9 = 2583.8 -> 2600s.
+# `test_the_gate_timeout_exceeds_the_suites_own_runtime` carries the same measured constant and
+# reds if this drops back under it. INTERIM: the warm and in-tree phases of that measurement are
+# still owed (the run was OOM-killed in phase 2 -- see the design doc's R9 account), so 1291.9s
+# is the worst runtime measured SO FAR, not the final worst; when the record completes,
+# `implied_timeout_floor_2x` re-derives this from all three phases.
+GATE_SUITE_TIMEOUT_SECONDS = 2600
 
 # Bound on how much of a red gate's output reaches the log (chars).
 GATE_FAILURE_TAIL_CHARS = 4000
 
 
-def _log_gate_failure_payload(result):
+def _parse_failed_node_ids(out):
+    """pytest's own ``FAILED <nodeid>`` / ``ERROR <nodeid>`` short-summary lines.
+
+    Factored out of `_log_gate_failure_payload` so the BLOCKING gate and the non-blocking
+    remainder pass read a red the same way -- two parsers would eventually disagree about what
+    counts as a failure, and the annotation would quietly stop matching the block."""
+    return [ln.strip() for ln in (out or "").splitlines()
+            if ln.startswith(("FAILED ", "ERROR "))]
+
+
+def _log_gate_failure_payload(result, git_hash="unknown"):
     """Log WHICH tests blocked the publish, not just THAT they did.
 
     Called only on a red gate. Emits the failing node IDs (pytest's own
     ``FAILED <nodeid>`` / ``ERROR <nodeid>`` short-summary lines) plus a bounded
     tail of the combined output, so a wedge is diagnosable from the log alone
-    after the underlying site data has been regenerated away."""
+    after the underlying site data has been regenerated away.
+
+    ALSO PUBLISHES those node IDs to GATE_BLOCKING_TESTS_FILE, because the log is not
+    readable by the process that raises the alarm -- see that constant's own note."""
     out = "{}\n{}".format(result.stdout or "", result.stderr or "")
-    node_ids = [ln.strip() for ln in out.splitlines()
-                if ln.startswith(("FAILED ", "ERROR "))]
+    node_ids = _parse_failed_node_ids(out)
     if node_ids:
         log("Publish gate RED -- blocking test(s): {}".format("; ".join(node_ids[:20])))
     else:
         log("Publish gate RED (rc={}) -- no FAILED/ERROR summary line found".format(
             result.returncode))
+    _write_blocking_tests(node_ids, git_hash)
     tail = out.strip()[-GATE_FAILURE_TAIL_CHARS:]
     if tail:
         log("Publish gate RED output tail:\n{}".format(tail))
+
+
+# ── THE ALARM MUST CARRY THE ONE FACT THAT IDENTIFIES THE WEDGE (2026-08-10, seventh
+# publish wedge; R5 "alerts carry the diagnostic payload", R10 class closure) ────────────
+#
+# WHY. `_log_gate_failure_payload` above has always extracted the blocking node IDs -- and
+# then dropped them into a log file that the ALARM cannot read. `record_publish_gate_failure`
+# runs in a DIFFERENT PROCESS (background_worker sweeps markers by shelling out to this file,
+# so it only ever sees an exit code), and was given `reason="process_run_complete rc=1 on
+# run_complete_<stamp>.md"` -- the marker's name, which identifies nothing. To fill the hole
+# the alarm cited `filed_findings()`: the eight most recently modified WORKER_FINDING_*.md in
+# staging, ranked by mtime and linked to the failure by nothing at all. Measured outcome, four
+# consecutive episodes (see WORKER_REPORT_{PUBLISH,FIFTH,SIXTH}_WEDGE_*): 0/8, 0/8, 0/8, and
+# this one's cause -- a ruff-ratchet regression at HEAD -- was not on the list either. The
+# list was near-identical every time while the cause differed every time, which is the tell.
+#
+# WHAT. One file, written by the only code that knows the answer, read by the alarm. Same
+# cross-process shape as `.last_tested_hash`, and the same fail-safe discipline:
+#   * WRITTEN on every red gate (including the empty-list case: "the gate was red and printed
+#     no FAILED line" is itself diagnostic, and distinguishable from "nobody wrote anything").
+#   * DELETED on a green gate -- a stale red's node IDs must never be citable against a later,
+#     unrelated failure. That is this mechanism's own version of the tautology it replaces.
+#   * STALE (older than GATE_BLOCKING_TESTS_MAX_AGE_SECONDS) or malformed reads as UNKNOWN,
+#     and the alarm then SAYS "unrecorded". It never falls back to a guess: fabricating a
+#     plausible suspect is the defect being closed, so an absent answer must read as absent.
+GATE_BLOCKING_TESTS_FILE = PROJECT_DIR / "docs" / "observability" / ".last_gate_blocking_tests.json"
+# Two full gate timeouts. Comfortably longer than any real red-to-alarm gap (the recorder runs
+# seconds after the gate returns) and far short of the multi-hour episodes, so a wedge whose
+# cause has since been repaired cannot keep re-citing yesterday's test.
+GATE_BLOCKING_TESTS_MAX_AGE_SECONDS = 2 * GATE_SUITE_TIMEOUT_SECONDS
+GATE_MAX_CITED_BLOCKING_TESTS = 5
+
+
+def _write_blocking_tests(node_ids, git_hash):
+    """Publish the red gate's blocking node IDs for the alarm process. Never raises."""
+    try:
+        GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        GATE_BLOCKING_TESTS_FILE.write_text(json.dumps(
+            {"ts": time.time(), "git_hash": str(git_hash),
+             "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
+            sort_keys=True))
+    except OSError as exc:
+        log("Publish gate: could not record the blocking test(s) for the alarm: {}".format(exc))
+
+
+def _clear_blocking_tests():
+    """A green gate retires the previous red's node IDs. Never raises."""
+    try:
+        GATE_BLOCKING_TESTS_FILE.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError as exc:
+        log("Publish gate: could not clear the stale blocking-test record: {}".format(exc))
+
+
+def last_blocking_tests(now=None, path=None):
+    """(node_ids, git_hash) from the last red gate, or ([], None) if not knowably recent.
+
+    ([], None) is returned for absent, unreadable, malformed AND stale -- all four mean the
+    same thing to a reader, which is "this alarm does not know", and the alarm says so."""
+    p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
+    now = time.time() if now is None else float(now)
+    try:
+        rec = json.loads(p.read_text())
+        if not isinstance(rec, dict):
+            return [], None
+        ts = rec.get("ts")
+        if not isinstance(ts, (int, float)):
+            return [], None
+        if now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
+            return [], None
+        node_ids = rec.get("node_ids")
+        if not isinstance(node_ids, list):
+            return [], None
+        gh = rec.get("git_hash")
+        return ([str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]],
+                str(gh) if isinstance(gh, str) else None)
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        return [], None
 
 
 def _run_weather_data(git_hash="unknown"):
@@ -2040,6 +2175,12 @@ def git_commit_push(git_hash, net_margin):
         files.append(str(site_index))
     if site_data.exists():
         files.append(str(site_data))
+    # The provenance/freshness banner travels WITH the content it describes on a green cycle
+    # (on a red cycle it goes alone, via _publish_provenance_banner). Same commit = the stamp
+    # and the figures it vouches for can never be a cycle apart on origin.
+    site_provenance = PROJECT_DIR / "site" / "data" / "publish_provenance.json"
+    if site_provenance.exists():
+        files.append(str(site_provenance))
     if site_customers.exists():
         files.append(str(site_customers))
     if site_sample.exists():
@@ -2392,49 +2533,195 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
         return False
     msg = ("chore(liveness): publish heartbeat while sim output unchanged (git={}) -- "
            "decouples published liveness from content-change (Fault#1 2026-07-25)".format(git_hash))
-    with tree_lock():
-        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30,
-                       stderr=subprocess.PIPE, text=True)  # H30
-        # Commit ONLY these paths (never the whole index): a concurrent publisher's
-        # staged files must not be swept into a liveness commit.
-        result = subprocess.run(["git", "commit", "-m", msg, "--"] + files,
-                                cwd=str(PROJECT_DIR), timeout=30,
-                                capture_output=True, text=True)  # H30
-        if result.returncode != 0:
-            # Heartbeat byte-identical to the committed copy -> nothing to commit,
-            # which is the EXPECTED case and stays quiet. H30: anything else --
-            # a gate refusal, a lock, a broken index -- now says what it was,
-            # instead of being silently absorbed by the same early return.
-            _tail = (stderr_tail(getattr(result, "stderr", None))
-                     or stderr_tail(getattr(result, "stdout", None)))
-            if _tail and "nothing to commit" not in _tail.lower():
-                log("Liveness heartbeat commit FAILED (rc={}) -- not the usual "
-                    "nothing-to-commit:\n{}".format(result.returncode, _tail))
-            return False
-        push = subprocess.run(["git", "push", "origin", "HEAD:main"],
-                              cwd=str(PROJECT_DIR), timeout=60,
-                              stderr=subprocess.PIPE, text=True)  # H30
-        local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
-                                    capture_output=True, text=True, timeout=15).stdout.strip()
-        remote_head = ""
-        try:
-            ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
-                                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
-            remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
-        except Exception as exc:
-            log("Liveness push verify: ls-remote failed ({})".format(exc))
-        if _push_reached_origin(push.returncode, remote_head, local_head):
-            _record_push_time()
-            log("Liveness heartbeat published to origin (sim output unchanged, "
-                "published-liveness decoupled from content-change).")
-            return True
-        _tail = stderr_tail(getattr(push, "stderr", None))
-        log("Liveness heartbeat push did NOT advance origin (rc={}, origin={}, head={}) -- "
-            "throttle untouched, retry next cycle.{}".format(
-                push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9],
-                "\n  git push stderr:\n{}".format(_tail) if _tail
-                else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
+    # Shared with the provenance banner (_commit_and_push_paths): same narrow-pathspec,
+    # never-hold-the-lock-across-commit, self-verifying-push discipline. Extracted rather than
+    # cloned when the banner needed the identical shape -- SP3's own instruction.
+    if not _commit_and_push_paths(files, msg, label="Liveness heartbeat"):
         return False
+    _record_push_time()
+    return True
+
+
+# ── THE ANNOTATION PASS: reds that no longer block still have to be SEEN ─────────────────
+#
+# Narrowing the blocking scope is only honest if the rest keeps being measured. "Other reds
+# become the page annotation" (the ruling) is a promise that the site TELLS you about them --
+# and a promise nobody can keep if nothing runs them. So the complement runs here: after the
+# publish (never before -- it must not add a second of latency to the thing it is not allowed
+# to block), on its own cadence (the suite is slow; the same self-throttle shape as the
+# operational-layer signal), writing what it finds into the published banner.
+#
+# R11, NO ORPHAN TRANSITIONS: this is the RELEASE side of the deselection. A test dropped from
+# the blocking set and picked up by nothing would be strictly worse than the wedge -- it would
+# be a green-looking site over an unmeasured tree. `feedback_deselecting_a_marker_orphans_the
+# _tier` is the same defect one layer down, and it is the reason this function exists at all
+# rather than the scoping landing on its own.
+REMAINDER_ANNOTATION_INTERVAL_SECONDS = 60 * 60
+REMAINDER_ANNOTATION_STATE_FILE = (
+    PROJECT_DIR / "docs" / "observability" / ".remainder_annotation.json")
+
+
+def _open_findings_count():
+    """How many worker findings are staged and unactioned -- the "N open findings" the ruling
+    puts on the page. Counted from the same glob the gate's alarm cites, so the page and the
+    alarm cannot disagree about what "open" means."""
+    try:
+        docs = [p for p in STAGING_DIR.glob(PUBLISH_GATE_FINDING_GLOB) if p.is_file()]
+    except OSError:
+        return None
+    return len(docs)
+
+
+def _remainder_due(now=None):
+    now = time.time() if now is None else float(now)
+    try:
+        last = json.loads(REMAINDER_ANNOTATION_STATE_FILE.read_text()).get("last_run_ts")
+        return now - float(last) >= REMAINDER_ANNOTATION_INTERVAL_SECONDS
+    except (OSError, ValueError, TypeError, AttributeError):
+        return True
+
+
+def _remainder_argv():
+    from background import publish_scope
+    return publish_scope.remainder_pytest_argv(publish_gate_pytest_argv("tests/"))
+
+
+def _default_remainder_runner(argv):
+    env = dict(os.environ)
+    env["SIM_FAST_MODE"] = "1"
+    return subprocess.run(argv, cwd=str(PROJECT_DIR), env=env,
+                          timeout=GATE_SUITE_TIMEOUT_SECONDS,
+                          capture_output=True, text=True, errors="replace")
+
+
+def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
+    """Run the NON-BLOCKING remainder and record its reds into the published banner.
+
+    Returns the annotation state written, or None if not due / unavailable. Wrapped whole:
+    this observes the publish it follows and must never be able to affect it.
+    """
+    try:
+        from background import publish_provenance as _prov
+        findings = _open_findings_count()
+        if not (force or _remainder_due()):
+            # Findings are cheap to count, so refresh that half every cycle even when the
+            # suite is throttled -- a stale finding count on a live page is a small lie that
+            # costs nothing to avoid.
+            return _prov.record_annotation(open_findings=findings) if findings is not None else None
+
+        result = (runner or _default_remainder_runner)(_remainder_argv())
+        reds = _parse_failed_node_ids(getattr(result, "stdout", "") or "")
+        REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
+            {"last_run_ts": time.time(), "rc": result.returncode, "reds": reds[:32],
+             "git_hash": git_hash}, indent=2) + "\n")
+        state = _prov.record_annotation(open_findings=findings, nonblocking_reds=reds)
+        log("Remainder annotation: rc={}, {} non-blocking red(s), {} open finding(s) -- "
+            "published as page annotation, NOT as a block.".format(
+                result.returncode, len(reds), findings))
+        return state
+    except Exception as exc:  # noqa: BLE001 -- an observer that can red its subject is a defect
+        log("Remainder annotation skipped (non-fatal): {}".format(exc))
+        return None
+
+
+def _publish_provenance_banner(git_hash, *, reason=None):
+    """Publish the staleness BANNER while the numbers stay put (ruling property 3).
+
+    THE ONE THING THAT MUST NOT FREEZE. On a red scoped gate the publisher returns before
+    `git_commit_push`, so the live site keeps serving the last verified snapshot -- correct,
+    and until now completely silent about it. This pushes `site/data/publish_provenance.json`
+    ALONE, so the visitor is told "verification paused since T; showing run R" without a
+    single unverified figure reaching the surface.
+
+    WHY THIS CANNOT SMUGGLE CONTENT OUT. The pathspec is one file, and the freshness fields
+    inside it are unreachable from here: `record_paused` cannot write `showing_run` or
+    `last_verified` (background/publish_provenance.py, mutation-proven). So the worst this
+    path can do is publish a MORE pessimistic statement about the same numbers.
+
+    Returns True iff a banner commit reached origin this call. Never raises into the publish
+    path: a banner that cannot be published must not also break the return code that says the
+    gate was red.
+    """
+    try:  # seat guard, FIRST act -- same reasoning as the liveness refresh above
+        from background._seat import is_resident_seat
+    except ModuleNotFoundError:  # launched as `python3 background/process_run_complete.py`
+        from _seat import is_resident_seat  # type: ignore[no-redef]
+    if not is_resident_seat():
+        print("seat-guard: foreign, provenance banner publish refused "
+              "(process_run_complete._publish_provenance_banner)", file=sys.stderr)
+        return False
+    try:
+        from background import publish_provenance as _prov
+        state = _prov.record_paused(reason=reason)
+        log("Provenance banner: {}".format(_prov.banner_line(state)))
+        target = str(_prov.PROVENANCE_FILE)
+    except Exception as exc:  # noqa: BLE001 -- see docstring
+        log("Provenance banner write failed (non-fatal): {}".format(exc))
+        return False
+
+    msg = ("chore(provenance): verification paused banner (git={}) -- the site keeps serving "
+           "the last VERIFIED run and now says so; no unverified figure published "
+           "(DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)".format(git_hash))
+    try:
+        return _commit_and_push_paths([target], msg, label="Provenance banner")
+    except Exception as exc:  # noqa: BLE001 -- see docstring
+        log("Provenance banner publish raised (non-fatal): {}".format(exc))
+        return False
+
+
+def _commit_and_push_paths(paths, msg, *, label):
+    """Commit exactly `paths` and self-verify the push against origin. Returns True iff origin
+    ADVANCED to this HEAD.
+
+    THE SHARED PRIMITIVE, extracted rather than cloned (SP3 size+clone ratchet: "extract a
+    shared primitive rather than obfuscating the duplicate"). Two callers need the same narrow
+    publish -- the liveness heartbeat refresh on a change-detection SKIP, and the provenance
+    banner on a red gate -- and both for the same reason: a surface whose whole job is to say
+    the system is alive/behind must not be published as a side-effect of publishing content,
+    because the case it exists for is exactly the case where content does not publish.
+
+    Three properties every caller inherits, none of them optional:
+      * NARROW PATHSPEC -- commits ONLY these paths, never the whole index, so a concurrent
+        writer's staged work can never be swept into a heartbeat or a banner commit.
+      * NEVER HOLDS THE LOCK ACROSS THE COMMIT -- the pre-commit gate takes the real tree lock
+        itself, so committing under it deadlocks (2026-08-03, 8 TreeLockTimeout). `git add`
+        under the lock; commit unlocked, by pathspec.
+      * SELF-VERIFYING PUSH -- ground-truth `ls-remote`, never the push's own rc. A phantom
+        "up to date" must not be recorded as a publish.
+    """
+    with tree_lock():
+        subprocess.run(["git", "add"] + list(paths), cwd=str(PROJECT_DIR), timeout=30,
+                       stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(["git", "commit", "-m", msg, "--"] + list(paths),
+                            cwd=str(PROJECT_DIR), timeout=600, capture_output=True, text=True)
+    if result.returncode != 0:
+        _tail = (stderr_tail(getattr(result, "stderr", None))
+                 or stderr_tail(getattr(result, "stdout", None)))
+        # Byte-identical to the committed copy is the EXPECTED steady state (a banner whose
+        # paused_since does not re-stamp; a heartbeat that has not ticked) and stays quiet.
+        # Anything else -- a hook refusal, a lock, a broken index -- says what it was, because
+        # a banner silently refused by a gate is the failure this whole build exists to end.
+        if _tail and "nothing to commit" not in _tail.lower():
+            log("{} commit FAILED (rc={}):\n{}".format(label, result.returncode, _tail))
+        return False
+    push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
+                          timeout=60, stderr=subprocess.PIPE, text=True)
+    local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
+                                capture_output=True, text=True, timeout=15).stdout.strip()
+    remote_head = ""
+    try:
+        ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
+                            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+        remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
+    except Exception as exc:  # noqa: BLE001 -- an unverifiable push reads as NOT pushed
+        log("{} push verify: ls-remote failed ({})".format(label, exc))
+    if _push_reached_origin(push.returncode, remote_head, local_head):
+        log("{} published to origin.".format(label))
+        return True
+    log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- retry next cycle.".format(
+        label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+    return False
 
 
 def _run_history_max_net():
@@ -2509,11 +2796,18 @@ def _read_publish_gate_state():
         # UNDER-report a live episode -- the fail-open direction).
         st.setdefault("episode_failures", len(st.get("failures") or []))
         st.setdefault("cited_findings", [])
+        # The blocking node IDs of the latest red (see GATE_BLOCKING_TESTS_FILE). Empty means
+        # "not known", never "nothing blocked" -- the reader must not treat it as the latter.
+        st.setdefault("blocking_tests", [])
+        # The blame trail derived from those node ids (H42). {} means "no blocking test was
+        # recorded", never "the trail is clean".
+        st.setdefault("suspects", {})
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
         return {"failures": [], "alerted_at": None, "wedge_since": None,
-                "episode_failures": 0, "cited_findings": [], "state_unavailable": True}
+                "episode_failures": 0, "cited_findings": [], "blocking_tests": [],
+                "suspects": {}, "state_unavailable": True}
 
 
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
@@ -2534,7 +2828,9 @@ def _write_publish_gate_state(state, *, episode_closed=False):
     out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at"),
            "wedge_since": state.get("wedge_since"),
            "episode_failures": state.get("episode_failures", 0),
-           "cited_findings": state.get("cited_findings", [])}
+           "cited_findings": state.get("cited_findings", []),
+           "blocking_tests": state.get("blocking_tests", []),
+           "suspects": state.get("suspects", {})}
     out = guard_episode(_read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -2558,21 +2854,301 @@ def pending_run_complete_markers(staging_dir=None):
         return None
 
 
-def filed_findings(staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FINDINGS):
-    """Worker findings sitting UNACTIONED in docs/staging/ — the alarm's own work list.
+# ── THE SUSPECTS COME FROM THE RED, NOT FROM THE INBOX ────────────────────────────────
+# (2026-08-10, atom H42_wedge_suspect_list_rederived_from_the_red, ratified as a mint by
+#  DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10.)
+#
+# WHAT WAS HERE. `filed_findings()`: the eight most recently modified WORKER_FINDING_*.md in
+# docs/staging/, printed under the wedge alarm's blocking test as "also filed and unactioned".
+# Ranked by mtime; linked to the failure by NOTHING. Its own clause had to confess the
+# measurement -- 0/8 named the cause in each of FIVE consecutive episodes (WORKER_REPORT_
+# {PUBLISH,FIFTH,SIXTH,THIRTEENTH}_WEDGE_SUSPECT_DISPOSITION_*) -- and the director priced it
+# at twenty minutes of every responder's time per episode. The tell was that the list was
+# near-identical every time while the cause differed every time: a set that does not move when
+# the thing it describes moves is not measuring that thing.
+#
+# WHAT REPLACES IT. A blame trail rooted in the ONE fact the alarm already knows for certain:
+# the blocking node id from `.last_gate_blocking_tests.json`. Its test FILE, the first-party
+# modules that file IMPORTS, and the recent commits touching either. A staged finding is cited
+# only if its text NAMES something on that trail -- a link, not a coincidence of filing date.
+#
+# THE DISCIPLINE IT INHERITS. `_blocking_clause` never degrades to a guess, and neither does
+# this: no recorded blocking test => NO suspect block at all. Unreadable, malformed and STALE
+# gate state all read as "unrecorded" (see `last_blocking_tests`), never as "no suspects" --
+# that distinction is the FAIL-SILENT killer pattern and it is what the recency list violated.
+#
+# AND IT IS MEASURED (R12: the hit rate is a DIAGNOSTIC, never a target; no finding may be
+# archived to move it). Every closed episode appends a hit/miss to WEDGE_SUSPECT_HIT_RATE_FILE
+# and the alarm carries the running rate, so a re-derivation that is ALSO useless is visible
+# rather than assumed better -- the failure mode of the thing it replaces.
+WEDGE_SUSPECT_BLAME_DAYS = 7          # a wedge's cause older than a week is not a recent change
+WEDGE_MAX_SUSPECT_MODULES = 8         # bounded: an alarm is a page, not an import graph
+WEDGE_MAX_SUSPECT_COMMITS = 6
+WEDGE_GIT_TIMEOUT_SECONDS = 30
+# Top-level packages that are OURS. An import outside these (pytest, json, yaml) cannot be the
+# regression the gate is reporting, and blaming a stdlib module is how a suspect list becomes
+# noise again.
+FIRST_PARTY_PACKAGES = frozenset({
+    "background", "company", "interface", "saas", "sim", "simulation", "site", "tools",
+})
+WEDGE_SUSPECT_HIT_RATE_FILE = PROJECT_DIR / "docs" / "observability" / ".wedge_suspect_hit_rate.json"
+WEDGE_SUSPECT_HIT_RATE_MAX_EPISODES = 20
 
-    Only the scanned ROOT counts: a finding moved to done/ has been dispositioned and is no
-    longer a candidate cure. Newest first (the cure for today's wedge was filed today), and
-    bounded — a page that lists thirty files is read as noise, which is the failure mode
-    this whole mechanism exists to cure. Never raises: an alarm must go out even if this
-    enumeration cannot."""
+
+def blocking_test_files(node_ids):
+    """The repo-relative test FILES named by a gate's blocking node ids.
+
+    Accepts pytest's short-summary form as recorded (`FAILED path::test`, `ERROR path - msg`)
+    and the bare node id. Anything that does not resolve to a `.py` path is dropped rather
+    than guessed at."""
+    files = []
+    for raw in node_ids or []:
+        s = str(raw).strip()
+        for prefix in ("FAILED ", "ERROR "):
+            if s.startswith(prefix):
+                s = s[len(prefix):].strip()
+        s = s.split("::")[0].split(" ")[0].strip()
+        if s.endswith(".py") and s not in files:
+            files.append(s)
+    return files
+
+
+def first_party_imports(test_file, project_dir=None):
+    """The repo module FILES a test file imports — the blame surface of its red.
+
+    Parsed from the source (ast), never imported: the module that wedged the gate may be the
+    one that cannot be imported. Unreadable or unparseable reads as an EMPTY trail, which the
+    caller renders as "none resolvable" — an honest absence, not a fabricated suspect."""
+    root = Path(project_dir) if project_dir is not None else PROJECT_DIR
+    try:
+        tree = ast.parse((root / test_file).read_text(errors="replace"), filename=str(test_file))
+    except (OSError, SyntaxError, ValueError):
+        return []
+    mods = []
+
+    def _add(dotted):
+        parts = [p for p in str(dotted or "").split(".") if p]
+        if not parts or parts[0] not in FIRST_PARTY_PACKAGES:
+            return
+        # Longest resolvable prefix wins: `background.a.b` resolves to background/a/b.py if it
+        # exists, else background/a/b/__init__.py, else back off to background/a.py.
+        for i in range(len(parts), 0, -1):
+            stem = Path(*parts[:i])
+            for rel in (stem.with_suffix(".py"), stem / "__init__.py"):
+                if (root / rel).is_file():
+                    name = rel.as_posix()
+                    if name not in mods:
+                        mods.append(name)
+                    return
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                _add(alias.name)
+        elif isinstance(node, ast.ImportFrom) and not node.level:
+            base = node.module or ""
+            _add(base)
+            for alias in node.names:
+                _add("{}.{}".format(base, alias.name) if base else alias.name)
+    return mods[:WEDGE_MAX_SUSPECT_MODULES]
+
+
+def blame_commits(paths, days=WEDGE_SUSPECT_BLAME_DAYS, limit=WEDGE_MAX_SUSPECT_COMMITS,
+                  project_dir=None):
+    """Recent commits touching any of `paths`. Never raises; an unavailable git reads EMPTY,
+    which the caller renders as "no commit touched these", so a git failure cannot invent a
+    suspect either."""
+    if not paths:
+        return []
+    root = Path(project_dir) if project_dir is not None else PROJECT_DIR
+    try:
+        res = subprocess.run(
+            ["git", "log", "--no-merges", "--since={} days ago".format(days),
+             "--pretty=format:%h %s", "-n", str(limit), "--"] + [str(p) for p in paths],
+            cwd=str(root), capture_output=True, text=True, timeout=WEDGE_GIT_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if res.returncode != 0:
+        return []
+    return [ln.strip() for ln in (res.stdout or "").splitlines() if ln.strip()][:limit]
+
+
+def wedge_suspects(blocking, project_dir=None):
+    """The suspect set DERIVED FROM THE RED: {} when the blocking test is unrecorded.
+
+    An empty dict is the whole point — the caller must print NO suspect block rather than
+    fall back to whatever happens to be lying in staging."""
+    files = blocking_test_files(blocking)
+    if not files:
+        return {}
+    modules = []
+    for f in files:
+        for m in first_party_imports(f, project_dir=project_dir):
+            if m not in modules:
+                modules.append(m)
+    modules = modules[:WEDGE_MAX_SUSPECT_MODULES]
+    return {"test_files": files, "modules": modules,
+            "commits": blame_commits(files + modules, project_dir=project_dir)}
+
+
+def linked_findings(suspects, staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FINDINGS):
+    """Staged findings whose TEXT names something on the red's blame trail.
+
+    The link is the point: a finding filed five minutes ago about an unrelated subsystem is
+    not evidence, and citing it is the defect this replaces. Ranked by how much of the trail
+    a finding names (ties by filename, so the list is deterministic), bounded, and EMPTY when
+    the trail is empty. Only the scanned staging ROOT counts — a finding in done/ has been
+    dispositioned. Never raises."""
+    trail = list(suspects.get("test_files") or []) + list(suspects.get("modules") or []) if suspects else []
+    if not trail:
+        return []
+    needles = set()
+    for t in trail:
+        needles.add(str(t))
+        needles.add(Path(str(t)).name)
+        needles.add(Path(str(t)).stem)
     sd = Path(staging_dir) if staging_dir is not None else STAGING_DIR
     try:
         docs = [p for p in sd.glob(PUBLISH_GATE_FINDING_GLOB) if p.is_file()]
     except OSError:
         return []
-    docs.sort(key=lambda p: (-p.stat().st_mtime, p.name))
-    return [p.name for p in docs[:limit]]
+    scored = []
+    for p in docs:
+        try:
+            text = p.read_text(errors="replace")
+        except OSError:
+            continue
+        hits = sum(1 for n in needles if n in text)
+        if hits:
+            scored.append((-hits, p.name))
+    scored.sort()
+    return [name for _, name in scored[:limit]]
+
+
+def _load_suspect_hit_rate(path=None):
+    """The measured record of past suspect lists. Unreadable/malformed reads as EMPTY, which
+    the phrase below renders as "not yet measured" — never as a flattering score."""
+    p = Path(path) if path is not None else WEDGE_SUSPECT_HIT_RATE_FILE
+    try:
+        rec = json.loads(p.read_text())
+    except (json.JSONDecodeError, OSError, ValueError):
+        return []
+    eps = rec.get("episodes") if isinstance(rec, dict) else None
+    return [e for e in eps if isinstance(e, dict)] if isinstance(eps, list) else []
+
+
+def _append_suspect_outcome(entry, path=None):
+    """Append one closed episode's outcome, bounded. Never raises."""
+    p = Path(path) if path is not None else WEDGE_SUSPECT_HIT_RATE_FILE
+    try:
+        eps = _load_suspect_hit_rate(p)
+        eps.append(entry)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({"episodes": eps[-WEDGE_SUSPECT_HIT_RATE_MAX_EPISODES:]},
+                                sort_keys=True))
+    except (OSError, TypeError, ValueError) as exc:
+        log("Publish gate: could not record the suspect-list outcome: {}".format(exc))
+
+
+def suspect_hit_rate_phrase(path=None):
+    """The running hit rate, carried in every alarm.
+
+    MEASURED, not asserted: "hit" means the commits that landed while the episode was open
+    touched a path this alarm had NAMED. That is weaker than "the list named the cause" (the
+    human judgement the old 0/8 came from) and the phrase says so, because overstating a
+    self-measurement is how the thing being replaced survived five episodes. Episodes where NO
+    list was emitted (the blocking test was unrecorded) are counted separately, never as hits:
+    a list that was never printed cannot have been useful.
+
+    R12: a diagnostic. It is not a target, and no finding may be archived to move it."""
+    eps = _load_suspect_hit_rate(path)
+    scored = [e for e in eps if isinstance(e.get("hit"), bool)]
+    no_list = len(eps) - len(scored)
+    if not scored:
+        return ("SUSPECT HIT RATE: not yet measured ({} closed episode(s) emitted no suspect "
+                "list because the blocking test was unrecorded).".format(no_list))
+    hits = sum(1 for e in scored if e["hit"])
+    return ("SUSPECT HIT RATE: {}/{} closed episodes where the repair touched a path this "
+            "alarm had named ({} more emitted no list at all). Diagnostic only -- never a "
+            "target (R12); if it stays at 0 the re-derivation is as useless as the recency "
+            "list it replaced and should be said so.".format(hits, len(scored), no_list))
+
+
+def _paths_changed_since(since, project_dir=None):
+    """Repo paths touched by commits landed since `since` (epoch seconds).
+
+    None means UNMEASURABLE (no start time, git unavailable) — which the scorer records as an
+    unmeasured episode, never as a hit. A self-measurement that fails open flatters itself."""
+    if not isinstance(since, (int, float)):
+        return None
+    root = Path(project_dir) if project_dir is not None else PROJECT_DIR
+    stamp = datetime.fromtimestamp(float(since), timezone.utc).isoformat()
+    try:
+        res = subprocess.run(
+            ["git", "log", "--no-merges", "--since={}".format(stamp), "--name-only",
+             "--pretty=format:"],
+            cwd=str(root), capture_output=True, text=True, timeout=WEDGE_GIT_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    return {ln.strip() for ln in (res.stdout or "").splitlines() if ln.strip()}
+
+
+def _measure_suspect_list(prev, now, project_dir=None):
+    """Score a CLOSING episode's suspect list and append it to the hit-rate record.
+
+    The score is deliberately narrow and deliberately stated as such (see
+    `suspect_hit_rate_phrase`): did the repair that closed the episode touch a path this alarm
+    had NAMED? Three outcomes, and only one of them is a hit:
+      * no list emitted (blocking test unrecorded)  -> hit=None, counted as "emitted no list"
+      * emitted, but the change set is unmeasurable -> hit=None, flagged unmeasurable
+      * emitted and measurable                      -> hit=True/False
+    Never raises: an accounting failure must not break the recovery path it observes."""
+    prev = prev if isinstance(prev, dict) else {}
+    suspects = prev.get("suspects")
+    paths = ((list(suspects.get("test_files") or []) + list(suspects.get("modules") or []))
+             if isinstance(suspects, dict) else [])
+    entry = {"closed_at": now, "suspects": len(paths),
+             "blocking_tests": [str(b) for b in (prev.get("blocking_tests") or [])][
+                 :GATE_MAX_CITED_BLOCKING_TESTS]}
+    if not paths:
+        entry["hit"] = None
+    else:
+        touched = _paths_changed_since(prev.get("wedge_since"), project_dir=project_dir)
+        if touched is None:
+            entry["hit"] = None
+            entry["unmeasurable"] = True
+        else:
+            entry["hit"] = any(p in touched for p in paths)
+    _append_suspect_outcome(entry)
+    return entry
+
+
+def _suspect_clause(blocking, suspects, linked):
+    """The suspect block — derived from the red above, or ABSENT.
+
+    No recorded blocking test => the empty string. `_blocking_clause` has already told the
+    reader the id is unrecorded and told them not to infer a cause; appending a guess here
+    would undo exactly that."""
+    if not blocking or not suspects:
+        return ""
+    modules = suspects.get("modules") or []
+    out = (" SUSPECTS (re-derived from the blocking test above -- NOT what was filed most "
+           "recently): first-party modules that test imports: {}.".format(
+               ", ".join(modules) if modules else "none resolvable"))
+    commits = suspects.get("commits") or []
+    if commits:
+        out += " Commits touching those paths in the last {} days: {}.".format(
+            WEDGE_SUSPECT_BLAME_DAYS, "; ".join(commits))
+    else:
+        out += (" NO commit in the last {} days touched those paths -- so the cause is more "
+                "likely environmental (memory, a stale derived artefact, a data file) than a "
+                "code change.".format(WEDGE_SUSPECT_BLAME_DAYS))
+    if linked:
+        out += " Filed findings whose text NAMES one of those paths (draw these first): {}.".format(
+            ", ".join(linked))
+    return out
 
 
 def _episode_phrase(wedge_since, episode_failures, now):
@@ -2588,15 +3164,32 @@ def _episode_phrase(wedge_since, episode_failures, now):
                 since_iso, age_min // 60, age_min % 60, episode_failures)
 
 
+def _blocking_clause(blocking, blocking_hash):
+    """The one line that identifies the wedge -- or an honest statement that it is unknown.
+
+    NEVER degrades to a guess. "Unrecorded" is a fact a reader can act on (go read the gate log);
+    a fabricated suspect is the defect this whole payload replaces."""
+    if blocking:
+        at = " (gate subject {})".format(blocking_hash) if blocking_hash else ""
+        return ("BLOCKING TEST{}: {}. Run exactly that node id against a clean checkout of "
+                "HEAD.".format(at, "; ".join(blocking)))
+    return ("BLOCKING TEST: UNRECORDED -- the gate's failing node id was not captured (no red "
+            "gate has run since this record was last cleared, or the record went stale). Read "
+            "docs/observability/sim-runner-log.md for the last 'Publish gate RED' line; do NOT "
+            "infer a cause from the backlog list below.")
+
+
 def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_fn,
                              *, wedge_since=None, episode_failures=0, now=None,
-                             cited=None, markers_pending=None):
+                             cited=None, markers_pending=None, blocking=None,
+                             blocking_hash=None, suspects=None):
     now = time.time() if now is None else float(now)
     window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
     n = len(recent)
     detail = _gate_failure_label(kind)
     count_phrase = "an unknown number of" if unavailable else str(n)
-    cited = list(cited if cited is not None else filed_findings())
+    suspects = wedge_suspects(blocking) if suspects is None else dict(suspects or {})
+    cited = list(cited if cited is not None else linked_findings(suspects))
     markers = markers_pending if markers_pending is not None else pending_run_complete_markers()
     markers_phrase = "unknown (staging unreadable)" if markers is None else str(markers)
     what = ("The run-complete PUBLISH GATE has failed {} time(s) in a row within the "
@@ -2608,14 +3201,13 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
-    how = ("Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure "
-           "lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
-           "NOT a code bug; rc>0 means run the fast suite locally to find the regression. "
+    how = _blocking_clause(blocking, blocking_hash) + (
+           " rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
+           "NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full "
+           "output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. "
            "The alarm clears automatically on the next clean publish.")
-    if cited:
-        how += (" FILED FINDINGS ALREADY HOLDING SUSPECTS -- draw these BEFORE any feature "
-                "work; a chronic red on the publish surface self-prioritises its own cure: "
-                + ", ".join(cited) + ".")
+    how += _suspect_clause(blocking, suspects, cited)
+    how += " " + suspect_hit_rate_phrase()
     why = ("A silently-wedged publish gate stops the live site and report updating with "
            "NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).")
     msg = "[ACTION NEEDED] {}\nWhat: {}\nHow: {}\nWhy: {}".format(PUBLISH_GATE_ITEM_ID, what, how, why)
@@ -2669,21 +3261,30 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         armed = last_alert is None or (now - float(last_alert)) >= PUBLISH_GATE_COOLDOWN_SECONDS
         fired = False
         alerted_at = last_alert
-        cited = state.get("cited_findings") or []
+        # EVIDENCE BEFORE SUSPICION (R9): re-read on every failure, not only at fire time, so
+        # the state file the RUNG-1 draw reads names the CURRENT red's test even between pages.
+        blocking, blocking_hash = last_blocking_tests(now=now)
+        # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
+        # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
+        # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
+        # never the recency fallback this replaced.
+        suspects = wedge_suspects(blocking)
+        cited = linked_findings(suspects)
         if threshold_met and armed:
-            # ALARM->DIAL: re-enumerated at FIRE time (a finding filed since the last page is
-            # the likeliest cure) and persisted, because the supervisor's RUNG-1 unwedge draw
-            # reads the state file, not the NTFY.
-            cited = filed_findings()
+            # ALARM->DIAL: the citation is persisted as well as paged, because the supervisor's
+            # RUNG-1 unwedge draw reads the state file, not the NTFY.
             _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn,
                                      wedge_since=wedge_since, episode_failures=episode_failures,
-                                     now=now, cited=cited)
+                                     now=now, cited=cited, blocking=blocking,
+                                     blocking_hash=blocking_hash, suspects=suspects)
             alerted_at = now
             fired = True
         _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at,
                                    "wedge_since": wedge_since,
                                    "episode_failures": episode_failures,
-                                   "cited_findings": cited})
+                                   "cited_findings": cited,
+                                   "blocking_tests": blocking,
+                                   "suspects": suspects})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
         return {"count": count, "kind": kind, "threshold_met": threshold_met, "fired": fired}
@@ -2710,13 +3311,19 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
     episode memory, so a resumed wedge is still measured from where it really began."""
     try:
         had_state = False
+        prev = {}
         if PUBLISH_GATE_STATE_FILE.exists():
             prev = _read_publish_gate_state()
             had_state = bool(prev.get("failures")) or prev.get("alerted_at") is not None
         pending = (pending_run_complete_markers() if markers_pending is None else markers_pending)
         episode_closed = (pending == 0)
+        # THE SUSPECT LIST IS SCORED WHEN THE EPISODE IT DESCRIBED CLOSES (H42). Only on a
+        # demonstrated close of a real episode -- a green gate with no wedge behind it has no
+        # list to score, and scoring it would pad the denominator with free wins.
+        if episode_closed and had_state:
+            _measure_suspect_list(prev, float(now) if now is not None else time.time())
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
-                                   "episode_failures": 0, "cited_findings": []},
+                                   "episode_failures": 0, "cited_findings": [], "suspects": {}},
                                   episode_closed=episode_closed)
         if had_state:
             log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
@@ -3032,7 +3639,17 @@ def _process(marker_path_str):
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)
     if not tests_ok:
-        log("Tests FAILED - not committing")
+        # BEHIND, NEVER FROZEN, NEVER SILENT (ruling property 3). The content publish is
+        # correctly refused -- do not ship figures the publish path's own suite says may be
+        # wrong -- but the site must not go quiet about it. The banner (and ONLY the banner)
+        # goes to origin, so the visitor sees the last verified run under a dated
+        # "verification paused since T" line instead of a stamp that has silently stopped
+        # moving. 25 hours of exactly that silence is what this ruling was written from.
+        log("Scoped publish-path gate FAILED - not committing content")
+        _publish_provenance_banner(
+            git_hash,
+            reason="scoped publish-path suite red at git={}; blocking tests: {}".format(
+                git_hash, ", ".join(last_blocking_tests()[0]) or "see sim-runner-log"))
         return 1
     if timed_out:
         log("WARNING: tests timed out — results unverified but committing")
@@ -3050,6 +3667,20 @@ def _process(marker_path_str):
         else:
             log("WARNING: {} vanished from staging and not in done/".format(marker.name))
 
+    # NEWEST-VERIFIED ALWAYS FLOWS (ruling property 1). Stamped BEFORE the commit so the
+    # provenance lands in the SAME commit as the run it describes -- a stamp published a cycle
+    # later would claim a verification time for figures that were already on the site, which
+    # is the fake-fresh sin with an off-by-one. This is the only advance of `last_verified`
+    # there is, and it is reachable only from here, downstream of a green scoped gate.
+    try:
+        from background import publish_provenance as _prov
+        _state = _prov.record_verified(
+            run_id=json_path.name, git_commit=git_hash,
+            generated_at=(data.get("meta") or {}).get("generated_at"))
+        log("Provenance: {}".format(_prov.banner_line(_state)))
+    except Exception as exc:  # noqa: BLE001 -- provenance must never break a green publish
+        log("Provenance stamp skipped (non-fatal): {}".format(exc))
+
     log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
     if not git_commit_push(git_hash, net_margin):
         log("Commit/push failed (possibly nothing changed)")
@@ -3059,6 +3690,11 @@ def _process(marker_path_str):
     # commit was a no-op (nothing changed) -- that is exactly the state we want
     # future identical cycles to short-circuit on.
     _write_last_fingerprint(fingerprint)
+
+    # The complement of the scoped gate: run it AFTER the publish (it may not add latency to
+    # what it may not block) and put its reds on the page as an annotation. See the function's
+    # own docstring for why the narrowing is only honest with this in place.
+    run_remainder_annotation_step(git_hash)
 
     # Keep agent_status.json financial metrics current (phase/tests preserved by phase-close)
     try:

@@ -279,16 +279,100 @@ def _wait_for_quiet(log, heartbeat=None) -> bool:
     return True
 
 
+# ── /tmp IS RAM ON THIS BOX, AND EACH PHASE WAS LEAVING GIGABYTES OF IT BEHIND ───────────────
+#
+# OBSERVED. The fifth launch -- the first one init owned, so the detach finally held -- completed
+# phase 1 (cold, 1291.9s) and was OOM-KILLED 6m20s into phase 2:
+#
+#   publish-gate-subject-cost.service: The kernel OOM killer killed some processes in this unit.
+#   Active: failed (Result: oom-kill) ... Mem peak: 6.5G
+#
+# The box has **15G of RAM**, not 32 (WSL2 hands the VM half), 4G of swap with 3G already in use,
+# and `/tmp` is a **7.8G tmpfs** -- which is RAM, not disk. A suite run leaves its pytest temp
+# roots there: measured live, `/tmp/pytest-of-rich` held **2.0G** across roots of 775M, 676M and
+# 570M, all from that day's runs.
+#
+# So a three-phase measurement was accumulating a phase's worth of RAM-resident temp per phase
+# and then starting the next full suite on top of it. `_sweep_stale_pytest_temp_roots` cannot
+# reclaim any of it: its bound is 3h old, keep-newest-3, and this debris is MINUTES old and only
+# three roots deep. That sweep is scoped for the debris of killed runs across cycles; it was
+# never a within-run reclaim, and the OOM is what within-run accumulation looks like.
+#
+# CLOSED BY GIVING THE MEASUREMENT ITS OWN BASETEMP, which pytest clears at the start of every
+# run. Reclaim then happens by construction, before each phase rather than after -- at most one
+# phase's temps exist at a time, and the three phases start from the same tmpfs state, which
+# also makes them more comparable than they were.
+#
+# Two properties this basetemp has to keep:
+#   * SAME FILESYSTEM as the real gate's default (both under `/tmp`, both tmpfs), because the
+#     runtime is the measurement -- moving temps to spinning disk would change the number the
+#     timeout is derived from.
+#   * SWEEPABLE. It is named under `HEAD_CHECKOUT_PREFIX` so `_sweep_stale_head_checkouts`
+#     already owns it, per the convention the fifteenth wedge established: anything this
+#     machine leaves in /tmp carries a name the machine's own sweep can see. `finally:` does
+#     not run under SIGKILL, and this harness has now been SIGKILLed twice.
+MEASURE_BASETEMP_NAME = prc.HEAD_CHECKOUT_PREFIX + "measure-tmp"
+
+# A phase must not start into a box that is already out of memory -- the fifth launch died
+# exactly there. Bounded like the quiet wait: we say so and measure anyway rather than hang,
+# because a harness that can wait forever is worse than a number labelled contended.
+MIN_MEMORY_HEADROOM_MB = 4096
+MEMORY_WAIT_SECONDS = 20 * 60
+
+
+def _mem_available_mb():
+    """MemAvailable in MB, or None if the kernel will not say (never raises)."""
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) // 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
+def _wait_for_memory_headroom(log, heartbeat=None) -> bool:
+    """Wait until the box has room for a full suite. True if the headroom was there.
+
+    A kernel that will not report MemAvailable is treated as "go" rather than as a block: this
+    is a measurement harness, and refusing to measure because /proc is unreadable would trade a
+    known failure for a permanent one."""
+    deadline = time.time() + MEMORY_WAIT_SECONDS
+    waited = False
+    while True:
+        available = _mem_available_mb()
+        if available is None or available >= MIN_MEMORY_HEADROOM_MB:
+            return True
+        if time.time() > deadline:
+            log("  ! only {}MB available after {}s (want {}MB) -- measuring anyway, flagged"
+                .format(available, MEMORY_WAIT_SECONDS, MIN_MEMORY_HEADROOM_MB))
+            return False
+        if not waited:
+            log("  . waiting for memory headroom: {}MB available, want {}MB"
+                .format(available, MIN_MEMORY_HEADROOM_MB))
+            waited = True
+        if heartbeat is not None:
+            heartbeat()
+        time.sleep(QUIET_POLL_SECONDS)
+
+
 def _argv_without_x() -> list:
-    """The gate's own argv, minus -x. See the module docstring for why."""
-    return [a for a in prc.publish_gate_pytest_argv("tests/") if a != "-x"]
+    """The gate's own argv, minus -x, plus the measurement's own basetemp.
+
+    See the module docstring for why -x goes, and the MEASURE_BASETEMP_NAME comment for why the
+    basetemp arrives. Both apply identically to all three phases, so neither can move the ratio
+    the exit criterion is read from."""
+    argv = [a for a in prc.publish_gate_pytest_argv("tests/") if a != "-x"]
+    return argv + ["--basetemp={}".format(prc.HEAD_CHECKOUT_ROOT / MEASURE_BASETEMP_NAME)]
 
 
 def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
     quiet = _wait_for_quiet(log, heartbeat)
+    had_headroom = _wait_for_memory_headroom(log, heartbeat)
     env = dict(os.environ)
     env["SIM_FAST_MODE"] = "1"
     load_before = os.getloadavg()[0]
+    mem_before = _mem_available_mb()
     started = time.monotonic()
     result = subprocess.run(_argv_without_x(), cwd=str(cwd), env=env,
                             capture_output=True, text=True, errors="replace")
@@ -306,6 +390,11 @@ def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
         "loadavg_before": round(load_before, 2),
         "loadavg_after": round(os.getloadavg()[0], 2),
         "box_was_quiet": quiet,
+        # The conditions the OOM happened in, recorded so a short phase can be told from a
+        # starved one without going back to the journal.
+        "mem_available_before_mb": mem_before,
+        "mem_available_after_mb": _mem_available_mb(),
+        "had_memory_headroom": had_headroom,
     }
 
 
@@ -323,6 +412,32 @@ def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
 # rather than the file's existence -- `_phases_missing` names what is still owed, so a partial
 # record tells the next tick precisely which phases to resume rather than restart.
 PHASE_ORDER = ("cold_checkout", "warm_checkout", "in_tree_baseline")
+
+
+# ── AND THE RESUME HAS TO BE CODE, NOT A COMMENT ABOUT THE RECORD ────────────────────────────
+#
+# The paragraph above has said since it was written that "a partial record tells the next tick
+# precisely which phases to resume rather than restart". It did not. `_run_measurement` opened
+# with `"phases": {}` every time, so each launch re-ran all three from the top, and every launch
+# so far has been killed before finishing three -- which is precisely the shape that never
+# converges. The fifth launch banked a real 1291.9s cold phase and the sixth would have thrown
+# it away and re-paid 21 minutes for it.
+#
+# A checkpoint nothing reads is a log line. This is the read side.
+def _load_banked_phases(out_path: str) -> dict:
+    """Phases an earlier launch already timed. Never raises: a bad record means start over.
+
+    A phase counts as banked only if it carries a `seconds`, so a half-written checkpoint or a
+    hand-edited record cannot retire a phase that was never timed."""
+    try:
+        prior = json.loads(Path(out_path).read_text())
+    except (OSError, ValueError):
+        return {}
+    phases = prior.get("phases") if isinstance(prior, dict) else None
+    if not isinstance(phases, dict):
+        return {}
+    return {name: rec for name, rec in phases.items()
+            if name in PHASE_ORDER and isinstance(rec, dict) and rec.get("seconds") is not None}
 
 
 def _checkpoint(results: dict, out: str, log) -> None:
@@ -383,7 +498,19 @@ def _run_measurement(out_path: str, log) -> int:
                # the launcher's descendants. A record that says only "detached" cannot tell the
                # next reader which of the two failed.
                "launched_by": _launched_by(),
-               "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "phases": {}}
+               "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+               # RESUMED, not restarted. Phases an earlier launch paid for are kept; only what
+               # is still owed is re-run.
+               "phases": _load_banked_phases(out_path)}
+    results["resumed_phases"] = sorted(results["phases"])
+    # Phases timed at a DIFFERENT commit than this launch's HEAD. Resuming across launches is
+    # what makes the measurement converge on a box that keeps killing it, but it means the
+    # record can span commits -- so it says so rather than letting a reader assume one SHA. The
+    # exit-criterion ratio is warm/in-tree, and those two are re-run together whenever either is
+    # owed, so a stale COLD can move the timeout floor but never the ratio.
+    results["phases_from_an_earlier_head"] = sorted(
+        name for name, rec in results["phases"].items()
+        if rec.get("head_sha_at_run") and rec["head_sha_at_run"] != head_sha)
 
     def heartbeat():
         results["last_heartbeat"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -399,44 +526,67 @@ def _run_measurement(out_path: str, log) -> int:
     # WAIT FIRST, THEN DELETE. A live publisher may be running its suite inside that very
     # directory, and removing it mid-run would corrupt a real publish cycle to take a
     # measurement -- the harness must never be able to damage the thing it measures.
-    _wait_for_quiet(log, heartbeat)
-    reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
-    shutil.rmtree(reused, ignore_errors=True)
-    log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
-    with prc._head_checkout() as path:
-        if path is None:
-            log("! checkout unavailable -- cannot measure the clean subject")
-            results["aborted"] = "checkout unavailable"
-            _checkpoint(results, args.out, log)
-            return 1
-        if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
-            log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, so "
-                "the warm phase would not be warm. Aborting rather than reporting a wrong ratio."
-                .format(path.name))
-            results["aborted"] = "another publisher held the reuse lock"
-            _checkpoint(results, args.out, log)
-            return 1
-        results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
-    log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
-    _checkpoint(results, args.out, log)
+    if "cold_checkout" in results["phases"]:
+        # Deleting the reused checkout is the COLD phase's setup, so it lives inside this
+        # branch: a resume that still deleted it would throw away the warmth the next phase is
+        # there to measure.
+        log("phase 1/3 COLD -- banked by an earlier launch at {}s, not re-run".format(
+            results["phases"]["cold_checkout"]["seconds"]))
+    else:
+        _wait_for_quiet(log, heartbeat)
+        reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
+        shutil.rmtree(reused, ignore_errors=True)
+        log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
+        with prc._head_checkout() as path:
+            if path is None:
+                log("! checkout unavailable -- cannot measure the clean subject")
+                results["aborted"] = "checkout unavailable"
+                _checkpoint(results, args.out, log)
+                return 1
+            if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+                log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse lock, "
+                    "so the warm phase would not be warm. Aborting rather than reporting a wrong "
+                    "ratio.".format(path.name))
+                results["aborted"] = "another publisher held the reuse lock"
+                _checkpoint(results, args.out, log)
+                return 1
+            results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
+        log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
+        _checkpoint(results, args.out, log)
 
     # WARM: same directory, refreshed in place. __pycache__ survives the refresh.
-    log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained")
-    with prc._head_checkout() as path:
-        if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
-            log("! lost the reused checkout between phases -- aborting")
-            results["aborted"] = "lost the reused checkout between phases"
-            _checkpoint(results, args.out, log)
-            return 1
-        results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
-    log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
-    _checkpoint(results, args.out, log)
+    if "warm_checkout" in results["phases"]:
+        log("phase 2/3 WARM -- banked by an earlier launch at {}s, not re-run".format(
+            results["phases"]["warm_checkout"]["seconds"]))
+    else:
+        # On a RESUME the warmth was established by whoever last ran in that directory -- this
+        # run's own cold phase, an earlier launch's, or the live publisher's ordinary cycle.
+        # All three are the same steady state the real gate pays, but the record says which,
+        # because "warm" is a claim about the directory and not about this process.
+        results["warm_cache_established_by"] = (
+            "this run's cold phase" if "cold_checkout" not in results["resumed_phases"]
+            else "an earlier launch or the live publisher")
+        log("phase 2/3 WARM -- same directory refreshed in place, bytecode retained ({})".format(
+            results["warm_cache_established_by"]))
+        with prc._head_checkout() as path:
+            if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+                log("! lost the reused checkout between phases -- aborting")
+                results["aborted"] = "lost the reused checkout between phases"
+                _checkpoint(results, args.out, log)
+                return 1
+            results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
+        log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
+        _checkpoint(results, args.out, log)
 
     # BASELINE: the pre-ruling subject, the live working tree.
-    log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
-    results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
-    log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
-    _checkpoint(results, args.out, log)
+    if "in_tree_baseline" in results["phases"]:
+        log("phase 3/3 BASELINE -- banked by an earlier launch at {}s, not re-run".format(
+            results["phases"]["in_tree_baseline"]["seconds"]))
+    else:
+        log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
+        results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
+        log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
+        _checkpoint(results, args.out, log)
 
     warm = results["phases"]["warm_checkout"]["seconds"]
     base = results["phases"]["in_tree_baseline"]["seconds"]

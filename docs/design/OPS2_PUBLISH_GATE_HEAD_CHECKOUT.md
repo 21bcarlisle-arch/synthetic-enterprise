@@ -37,10 +37,52 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 | Run | Wall clock | Notes |
 |---|---|---|
 | In-tree baseline (`PROJECT_DIR`) | *pending* | the pre-ruling subject |
-| Reused checkout, first cycle (cold `__pycache__`) | *pending* | what every cycle used to pay |
+| Reused checkout, first cycle (cold `__pycache__`) | **1291.9s** | measured, HEAD `3ee4541a7`, 23,249 passed / 7 failed, box quiet |
 | Reused checkout, second cycle (warm) | *pending* | the steady state |
 
-**Ratio warm / in-tree: PENDING** against the exit criterion of ≤ 1.3×.
+**Ratio warm / in-tree: PENDING** against the exit criterion of ≤ 1.3×. The cold figure is real
+and is already load-bearing — §2's bound is derived from it — but the *exit criterion itself*
+needs warm and baseline, which are still owed.
+
+> **STATUS 2026-08-10 (fifth launch, OOM-killed in phase 2 — R9: observed, from the unit's own
+> journal, not inferred).** The systemd form HELD: the unit ran 1h33m, banked the cold phase,
+> and was not reaped. It died of memory:
+>
+>     publish-gate-subject-cost.service: The kernel OOM killer killed some processes in this unit
+>     Active: failed (Result: oom-kill) since 13:55:30 BST ... Mem peak: 6.5G
+>
+> **Measured cause, not inferred.** The box has **15G of RAM** (WSL2 hands the VM half of 32),
+> 4G swap with 3G already used, and `/tmp` is a **7.8G tmpfs — RAM, not disk**. A suite leaves
+> its pytest temp roots there: `/tmp/pytest-of-rich` held **2.0G** across roots of 775M, 676M
+> and 570M, all from that day. Phase 1 left its gigabytes resident and phase 2 started a full
+> suite on top of them, 6m20s before the kernel intervened.
+>
+> `_sweep_stale_pytest_temp_roots` could not have helped and was never meant to: its bound is
+> 3h-old, keep-newest-3, and this debris was minutes old and three roots deep. That sweep is a
+> *between-cycles* reclaim; the OOM is what *within-run* accumulation looks like. The two are
+> different controls and only one of them existed.
+>
+> **Two defects closed in response, both mutation-proven** (`tests/tools/`):
+>
+> 1. **The measurement now gets its own `--basetemp`,** which pytest clears at the start of every
+>    run — so at most one phase's temps are resident, and the three phases start from the same
+>    tmpfs state, which also makes them more comparable than they were. It stays under `/tmp`
+>    (same filesystem as the real gate's, because the runtime *is* the measurement and §2's bound
+>    comes off it) and is named under `HEAD_CHECKOUT_PREFIX` so the existing sweep already owns
+>    the leak `finally:` cannot clean after a SIGKILL.
+> 2. **The resume is now code.** The comment above `PHASE_ORDER` has claimed since it was written
+>    that "a partial record tells the next tick precisely which phases to resume rather than
+>    restart". It did not: `_run_measurement` opened with `"phases": {}` every time. Five launches
+>    have now been killed and none has survived three phases in a row, so a harness that restarts
+>    from the top never converges — and launch six would have deleted the reused checkout and
+>    re-paid 21 minutes for a cold number already banked on disk. A checkpoint nothing reads is a
+>    log line.
+>
+> The record can now span commits, so it says so: `phases_from_an_earlier_head` names any phase
+> timed at a different SHA, and `warm_cache_established_by` records that a resumed warm phase was
+> warmed by an earlier launch or the live publisher rather than by this run's own cold phase.
+> The ratio the exit criterion reads is warm/in-tree and those two are re-run together whenever
+> either is owed, so a stale cold can move §2's floor but never the ratio.
 
 > **STATUS 2026-08-10 11:22Z — FOURTH launch, and the first one init owns:
 > `python3 -m tools.measure_publish_gate_subject_cost --systemd` → transient unit
@@ -145,14 +187,30 @@ which on a shared box would be a flake generator.
 
 ## 2. `GATE_SUITE_TIMEOUT_SECONDS`, re-derived
 
-**PENDING the §1 measurement — still 1800s, which is the constant justified against the OLD
-in-tree subject.** This is the one exit criterion of the five that is not yet met, and it is
-named here rather than quietly left: the bound moves to ≥ 2× the *worst legitimate* run
-(`implied_timeout_floor_2x` in the JSON), not 2× the usual one, because a cold cycle is a real
-outcome — a fallback throwaway when another publisher holds the reuse lock, or a rebuilt corrupt
-checkout. `test_the_gate_timeout_exceeds_the_suites_own_runtime`'s `MEASURED_SUITE_SECONDS = 613`
-moves with it in the same commit; that constant currently describes the in-tree subject and so
-under-states what the gate now actually runs.
+**1800s → 2600s, and the test constant 613s → 1291.9s, in the same commit.** Derived from the
+one phase that is measured, and re-derivable when the other two land.
+
+The bound is ≥ 2× the *worst legitimate* run (`implied_timeout_floor_2x` in the JSON), not 2× the
+usual one, because a cold cycle is a real outcome — a fallback throwaway when another publisher
+holds the reuse lock, or a rebuilt corrupt checkout. The worst legitimate run measured so far is
+the **1291.9s cold**, so the floor is 2583.8s and the bound is **2600s**.
+
+**1800s was already undersized against the subject the gate had been running since the ruling.**
+It was 1.39× a runtime the gate really pays, and `test_the_gate_timeout_exceeds_the_suites_own_
+runtime` did not notice because its constant was 613 — the *in-tree* suite, the pre-ruling
+subject. A control calibrated to a subject its target had stopped running is the fail-open shape
+R15 names: it could pass while the thing it guards sat one contended box away from wedging. The
+constant now reads 1291.9 with the record and SHA it came from named in the docstring.
+
+The direction of danger has flipped since the constant was first set. A timeout used to return
+`True` (publish unverified); since 2026-08-09 it **fail-CLOSES**, so an undersized bound no longer
+publishes garbage — it wedges publishing, which is the same defect as the original 600s bound, in
+the same direction, against a subject nobody had re-measured.
+
+**INTERIM, and labelled as such:** 1291.9s is the worst runtime measured *so far*, not the final
+worst — warm and in-tree are still owed. When the record completes, `implied_timeout_floor_2x` is
+computed across all three phases and this constant is re-derived from it. Criterion 2 is met
+against the evidence that exists; it is re-checked against the evidence that is coming.
 
 The direction of danger has flipped since the constant was first set. A timeout used to return
 `True` (publish unverified); since 2026-08-09 it **fail-CLOSES**, so an undersized bound no longer
