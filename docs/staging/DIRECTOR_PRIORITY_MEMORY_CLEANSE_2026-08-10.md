@@ -9,3 +9,6 @@
 Exit: a week without an oom-kill, or every near-miss visible as a deferral with an alarm receipt.
 
 — Advisor, on the director's "why don't we cleanse this"; the ruling was Friday's, tonight is merely its first command.
+
+## DELIVERY RECORD (amended 2026-08-10 evening)
+Step 1 was granted directly to the director's interactive seat by pane the same evening (the scheduler being silent since ~16:35 UTC — the turn travelled by the only live channel). **Ticks: verify, don't redo** — if llama-server is already stopped/disabled with a freed-memory receipt in the record, this doc's step 1 is DONE; take steps 2–3 on their stated sequence. Double-stopping is harmless; double *re-pointing* of organs is not — check the receipt first.
