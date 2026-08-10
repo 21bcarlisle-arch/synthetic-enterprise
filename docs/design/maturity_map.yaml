@@ -4280,18 +4280,18 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 2
   provenance: director_steer
   depends_on: []
   couples_with: []
-  evidence: ['docs/staging/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md', 'background/process_run_complete.py (publish gate timeout)', 'docs/observability/test_execution_log.jsonl']
-  file_scope: []
+  evidence: ['docs/staging/done/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md', 'background/suite_duration_watch.py', 'tests/background/test_suite_duration_watch.py', 'docs/observability/publish_gate_duration.jsonl']
+  file_scope: ['background/suite_duration_watch.py', 'background/process_run_complete.py', 'background/daily_self_note.py', 'tests/background/test_suite_duration_watch.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a nightly batch that creeps from 2h to 7h across a year with no duration chart, discovered the night it misses the morning cut-off"
-  notes_rehomed: [origin_note]
+  notes_rehomed: [build_note, origin_note]
 
 - id: OPS2_publish_gate_head_worktree
   title: "The HEAD-checkout publish gate gets a real lifecycle"
@@ -4510,7 +4510,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a temporary permit with an expiry date that someone actually checks"
 
-- id: H38_full_suite_pollution_bisect
+- id: H40_full_suite_pollution_bisect
   title: "Name the module that pollutes the full suite, then close its class"
   gain: "Instance-fixing a moving target is how three days went; the ruling granted the bisect precisely so the cause gets named once."
   name: "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09 (granted memory-aware: sim-runner stopped for full-suite runs, defer over collide)."

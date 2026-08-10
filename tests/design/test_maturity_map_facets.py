@@ -141,7 +141,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     # tests pass alone and fail together, so the class stops being instance-fixed on a moving
     # target. What each measures is whether this repo's own gate can be trusted to run.
     "OPS5_retire_the_interim_bypass_shape",
-    "H38_full_suite_pollution_bisect",
+    "H40_full_suite_pollution_bisect",
     # 2026-08-08 reviewed (worker tick, D6 CLASS closure). Classified on its merits, not to
     # clear the gate: D9 is a MEASUREMENT-REPORTING atom -- the Proof panel prints the red
     # verdict "worse than blind" from the number alone, a reading D6 refuted for

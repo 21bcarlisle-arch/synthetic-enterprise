@@ -1078,20 +1078,46 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     # alarm must carry its diagnostic payload, so capture the run and log
     # the failing node IDs. Capture is bounded (tail only) so a pathological
     # suite can never balloon the log.
-    result = subprocess.run(
-        publish_gate_pytest_argv("tests/"),
-        cwd=str(cwd),
-        env=full_env,
-        timeout=GATE_SUITE_TIMEOUT_SECONDS,
-        capture_output=True,
-        text=True,
-        errors="replace",
-    )
+    #
+    # PW3_suite_duration_watch: the wall-clock of THIS run is the only place the gate's duration
+    # exists (the checkout's own docs/observability is thrown away with it), so it is measured
+    # here and recorded against the SHA it judged. A timeout is recorded too — the run that hits
+    # the wall is the most informative point in the series, and it is the one that would
+    # otherwise be missing from it.
+    started = time.monotonic()
+    try:
+        result = subprocess.run(
+            publish_gate_pytest_argv("tests/"),
+            cwd=str(cwd),
+            env=full_env,
+            timeout=GATE_SUITE_TIMEOUT_SECONDS,
+            capture_output=True,
+            text=True,
+            errors="replace",
+        )
+    except subprocess.TimeoutExpired:
+        _record_gate_duration(time.monotonic() - started, git_hash, "timeout")
+        raise
+    _record_gate_duration(time.monotonic() - started, git_hash,
+                          "pass" if result.returncode == 0 else "fail")
     if result.returncode == 0:
         LAST_TESTED_HASH_FILE.write_text(git_hash)
     else:
         _log_gate_failure_payload(result)
     return result.returncode == 0, False
+
+
+def _record_gate_duration(elapsed: float, git_hash: str, outcome: str) -> None:
+    """Hand the gate's measured wall-clock to the duration watch (PW3_suite_duration_watch).
+
+    Import is local and the whole call is guarded: the watch is an OBSERVER of the publish path
+    and must never be able to red it — an unavailable watch costs one missing point in a series,
+    which is strictly better than a blocked publish."""
+    try:
+        from background.suite_duration_watch import record_gate_run
+        record_gate_run(elapsed, GATE_SUITE_TIMEOUT_SECONDS, git_hash, outcome)
+    except Exception as exc:  # noqa: BLE001 -- see docstring; never raise into the publish path
+        log("Suite duration watch unavailable (publish unaffected): {}".format(exc))
 
 
 def _publish_tree_divergence():

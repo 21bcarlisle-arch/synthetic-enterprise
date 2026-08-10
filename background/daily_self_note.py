@@ -416,6 +416,17 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
         lines.append(f"- {_red(f'solvency belief-vs-truth gap unavailable: {e}')}")
 
+    # PW3: how much room the publish gate's suite has left before its wall, as a RATIO (a raw
+    # second count is not comparable across a changed ceiling, and the ceiling moved 600->1800s
+    # the day this was built). R12: a diagnostic — never a number to make smaller by running
+    # fewer tests. Fail-closed on import/read.
+    lines += ["", "**Suite headroom** _(PW3 — publish-gate duration against its own ceiling)_"]
+    try:
+        from background.suite_duration_watch import note_line as _suite_headroom_line
+        lines.append(f"- {_suite_headroom_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated headroom
+        lines.append(f"- {_red(f'suite headroom unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 
