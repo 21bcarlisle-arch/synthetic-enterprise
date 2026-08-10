@@ -23,7 +23,8 @@ contend for a machine with ~5GB free. Each phase therefore waits for the publish
 first, and records loadavg alongside its own number so a contaminated run is visible rather
 than silently averaged in.
 
-Usage:  python3 -m tools.measure_publish_gate_subject_cost [--out PATH]
+Usage:  python3 -m tools.measure_publish_gate_subject_cost --detach   [the committed launch]
+        python3 -m tools.measure_publish_gate_subject_cost [--out PATH]   [inline, blocks ~50min]
 """
 from __future__ import annotations
 
@@ -46,6 +47,101 @@ from background import process_run_complete as prc  # noqa: E402
 QUIET_WAIT_SECONDS = 45 * 60
 QUIET_POLL_SECONDS = 30
 
+# ── THE LAUNCH IS PART OF THE HARNESS (2026-08-10, WORKER_FINDING_THE_DETACH_THAT_FIXED_
+# THE_DEATH_IS_NOT_IN_THE_REPO) ──────────────────────────────────────────────────────────────
+#
+# OBSERVED TWICE. This job takes ~50 minutes and has twice been started from a BOUNDED worker
+# tick as an ad-hoc background job; both times it died inside `_wait_for_quiet`, ~12 minutes in,
+# before its first phase, because the invocation that started it ended and took its process
+# group with it. `3cc60f133` said the second fix was "launched under setsid" -- and `setsid`
+# appeared nowhere in the repository. The body was committed; the launch was typed. A harness
+# whose launch lives outside the repo cannot be reconstructed from the repo, which is the IaC
+# constraint OPS1/OPERATIONAL_LAYER_DESIGN names as the core one.
+#
+# So `--detach` is the launch, and it is code. The parent re-execs this module through
+# `start_new_session=True` (setsid: the child becomes a session AND process-group leader, so a
+# group-directed kill aimed at the tick cannot reach it), then returns immediately.
+#
+# The record does not TAKE THE CALLER'S WORD for any of this. `main` stamps
+# `is_session_leader`, computed from the running process's own `os.getsid`, so the next reader
+# can tell from the repo artefact alone whether the run that produced it was really detached --
+# which is exactly what could not be checked about the 08:35Z run.
+DETACHED_LOG_FILE = prc.PROJECT_DIR / "docs" / "observability" / "publish-gate-subject-cost-log.md"
+
+
+def _ancestor_pids() -> set:
+    """This process and every parent of it, as strings.
+
+    The whole ancestor chain, not just the pid: a launch typed at a shell arrives with the
+    module name in the command line of the shell, of its `bash -c` wrapper, and of whatever
+    spawned that. Excluding only `getpid()` would make the harness see its own launch as a
+    competing run and refuse every time -- a guard that can only say no."""
+    pids, pid = set(), os.getpid()
+    while pid and pid != 1 and str(pid) not in pids:
+        pids.add(str(pid))
+        try:
+            stat = Path("/proc/{}/stat".format(pid)).read_text()
+            pid = int(stat.rsplit(")", 1)[1].split()[1])
+        except (OSError, IndexError, ValueError):
+            break
+    return pids
+
+
+def _measurement_is_running() -> bool:
+    """True if another instance of this harness is already live (this process excepted).
+
+    A second concurrent run would delete the reused checkout under the first one's suite and
+    both would report a wrong number, so a launch must refuse rather than race."""
+    try:
+        out = subprocess.run(["pgrep", "-af", "measure_publish_gate_subject_cost"],
+                             capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        # An unavailable liveness check is a FAILED check (R15): refuse the launch rather than
+        # assume the box is free. A missed launch costs one tick; a double run costs 50 minutes
+        # AND produces a number that is wrong without saying so.
+        return True
+    ours = _ancestor_pids()
+    for line in out.splitlines():
+        pid, _, cmd = line.partition(" ")
+        # Only a real invocation of the module counts -- a `grep`, an editor, or this finding's
+        # own text on someone's command line is not a running measurement.
+        if pid in ours or "pgrep" in cmd or "pytest" in cmd:
+            continue
+        if "-m tools.measure_publish_gate_subject_cost" in cmd or \
+                "measure_publish_gate_subject_cost.py" in cmd:
+            return True
+    return False
+
+
+def _detached_popen(argv: list, stdout_handle) -> subprocess.Popen:
+    """Start `argv` in a NEW SESSION, so it outlives this process and its process group.
+
+    This one line is the whole fix, which is why it is a named function with its own control
+    (`test_a_detached_child_survives_the_death_of_its_launchers_process_group`) rather than a
+    keyword buried in a call the tests never reach."""
+    return subprocess.Popen(argv, cwd=str(prc.PROJECT_DIR), stdin=subprocess.DEVNULL,
+                            stdout=stdout_handle, stderr=subprocess.STDOUT,
+                            start_new_session=True)
+
+
+def _spawn_detached(out: str, log) -> int:
+    """Re-exec this harness in its own session and return, leaving it running.
+
+    Returns the child's pid. The child's argv deliberately does NOT carry `--detach`: it is the
+    measurement, not another launcher."""
+    DETACHED_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(str(DETACHED_LOG_FILE), "a")
+    handle.write("\n## detached launch {}\n".format(
+        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
+    handle.flush()
+    child = _detached_popen(
+        [sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out], handle)
+    handle.close()
+    log("detached: pid {} in its own session, logging to {}".format(
+        child.pid, DETACHED_LOG_FILE))
+    log("it writes {} -- read `complete`, not the file's existence".format(out))
+    return child.pid
+
 
 def _publisher_is_running() -> bool:
     """True if a real process_run_complete cycle is live (this process excepted)."""
@@ -62,8 +158,13 @@ def _publisher_is_running() -> bool:
     return False
 
 
-def _wait_for_quiet(log) -> bool:
-    """Wait for the publisher to finish. Returns True if the box went quiet."""
+def _wait_for_quiet(log, heartbeat=None) -> bool:
+    """Wait for the publisher to finish. Returns True if the box went quiet.
+
+    `heartbeat`, when given, is called on every poll. Both deaths so far happened INSIDE this
+    wait, so a record that stops advancing here is the difference between "it is still waiting"
+    and "it was killed waiting" -- and the latter would mean the detach did not hold and the
+    next escalation is a systemd unit, not a third identical launch."""
     deadline = time.time() + QUIET_WAIT_SECONDS
     waited = False
     while _publisher_is_running():
@@ -74,6 +175,8 @@ def _wait_for_quiet(log) -> bool:
         if not waited:
             log("  . waiting for the live publisher to finish before timing")
             waited = True
+        if heartbeat is not None:
+            heartbeat()
         time.sleep(QUIET_POLL_SECONDS)
     return True
 
@@ -83,8 +186,8 @@ def _argv_without_x() -> list:
     return [a for a in prc.publish_gate_pytest_argv("tests/") if a != "-x"]
 
 
-def _time_suite(cwd: Path, log) -> dict:
-    quiet = _wait_for_quiet(log)
+def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
+    quiet = _wait_for_quiet(log, heartbeat)
     env = dict(os.environ)
     env["SIM_FAST_MODE"] = "1"
     load_before = os.getloadavg()[0]
@@ -134,18 +237,44 @@ def _checkpoint(results: dict, out: str, log) -> None:
         log("! could not checkpoint to {}: {}".format(out, exc))
 
 
-def main() -> int:
+def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(prc.PROJECT_DIR / "docs" / "observability"
                                          / "publish_gate_subject_cost.json"))
-    args = ap.parse_args()
+    ap.add_argument("--detach", action="store_true",
+                    help="re-exec in a new session and return immediately; the committed way to "
+                         "start this from a bounded invocation")
+    args = ap.parse_args(argv)
 
     def log(msg):
         print("[measure] {}".format(msg), flush=True)
 
+    if args.detach:
+        if _measurement_is_running():
+            log("! a measurement is already live -- refusing to start a second one, which "
+                "would delete the reused checkout under the first one's suite")
+            return 1
+        _spawn_detached(args.out, log)
+        return 0
+    return _run_measurement(args.out, log)
+
+
+def _run_measurement(out_path: str, log) -> int:
+    """The measurement itself, in THIS process. Blocks ~50 minutes."""
+    args = argparse.Namespace(out=out_path)
+
     head_sha = prc._head_sha()
     results = {"head_sha_at_launch": head_sha, "pid": os.getpid(),
+               # COMPUTED, never claimed. "Detached" means "session leader", and this is the
+               # process asking the kernel about itself -- so a reader can tell from the repo
+               # artefact alone whether the run that wrote it really was detached. The 08:35Z
+               # run's detachment could only be re-typed, never checked; this one can.
+               "is_session_leader": os.getpid() == os.getsid(0),
                "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "phases": {}}
+
+    def heartbeat():
+        results["last_heartbeat"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        _checkpoint(results, args.out, log)
     # Before the first wait, so that a run killed IN the wait is still distinguishable from a
     # run that was never launched at all -- which is the failure this harness just suffered.
     _checkpoint(results, args.out, log)
@@ -157,7 +286,7 @@ def main() -> int:
     # WAIT FIRST, THEN DELETE. A live publisher may be running its suite inside that very
     # directory, and removing it mid-run would corrupt a real publish cycle to take a
     # measurement -- the harness must never be able to damage the thing it measures.
-    _wait_for_quiet(log)
+    _wait_for_quiet(log, heartbeat)
     reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
     shutil.rmtree(reused, ignore_errors=True)
     log("phase 1/3 COLD -- reused checkout deleted, bytecode compiles from source")
@@ -174,7 +303,7 @@ def main() -> int:
             results["aborted"] = "another publisher held the reuse lock"
             _checkpoint(results, args.out, log)
             return 1
-        results["phases"]["cold_checkout"] = _time_suite(path, log)
+        results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
     log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
     _checkpoint(results, args.out, log)
 
@@ -186,13 +315,13 @@ def main() -> int:
             results["aborted"] = "lost the reused checkout between phases"
             _checkpoint(results, args.out, log)
             return 1
-        results["phases"]["warm_checkout"] = _time_suite(path, log)
+        results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
     log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
     _checkpoint(results, args.out, log)
 
     # BASELINE: the pre-ruling subject, the live working tree.
     log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
-    results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log)
+    results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
     log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
     _checkpoint(results, args.out, log)
 
