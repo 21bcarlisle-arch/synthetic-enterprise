@@ -55,7 +55,11 @@ AGE_BUCKETS = ("current", "30-60", "60-90", "90+")
 
 
 def age_bucket(days_overdue: int) -> str:
-    """30 / 60 / 90+ day ageing. days_overdue is days PAST the due date."""
+    """30 / 60 / 90+ day ageing. days_overdue is days PAST the due date, and it
+    is SIGNED (atom D24): a bill not yet due reads NEGATIVE, and every negative
+    day falls in "current" exactly as day 0 does. The bucketing is unchanged by
+    D24 -- no published bucket moved -- but the DOMAIN is now the whole integer
+    line, which is why `assert_age_buckets_partition` probes below zero."""
     if days_overdue >= 90:
         return "90+"
     if days_overdue >= 60:
@@ -70,12 +74,24 @@ class AgedItem:
     reference: str          # invoice_ref (open-item) or account_id (balance-based)
     outstanding_gbp: float
     due_date: dt.date
+    # SIGNED days past the due date (atom D24, 2026-08-10): negative BEFORE the
+    # bill falls due, 0 ON the due date, positive after. It was `max(0, days)`,
+    # which made "issued today, due in a fortnight" and "due today" ONE reading
+    # -- see `assert_overdue_clock_resolves_before_due` for the class and
+    # `is_overdue` for the predicate callers should use instead of `> 0`.
     days_overdue: int
     disputed: bool = False
 
     @property
     def bucket(self) -> str:
         return age_bucket(self.days_overdue)
+
+    @property
+    def is_overdue(self) -> bool:
+        """Past its due date. The due date itself is the last day to pay, so
+        day 0 is NOT yet overdue -- the same convention the dunning path's
+        trigger 0 ("reminder" on the due date) already encoded."""
+        return self.days_overdue > 0
 
 
 def age_open_items(
@@ -86,19 +102,45 @@ def age_open_items(
 ) -> List[AgedItem]:
     """Open-item ageing: one AgedItem per undisputed open invoice, aged from its
     due date (issue_date + payment_terms_days). Disputed invoices are returned
-    with disputed=True but callers exclude them from ageing/dunning."""
+    with disputed=True but callers exclude them from ageing/dunning.
+
+    THE CLOCK IS SIGNED (atom D24, 2026-08-10). It was `max(0, days)`. A floor
+    at zero is not a smaller reading, it is a COLLAPSE: an invoice issued today
+    and due in a fortnight published the same `days_overdue` as one due today,
+    so nothing downstream could tell "not yet due" from "due now". Two live
+    consequences, both measured before the change and both real:
+
+      * `collections_snapshot` selected the dunning path's trigger-0 step from
+        the moment a bill was ISSUED -- the company chased a residential
+        customer for a bill it had given them 14 days to pay (an SLC-27-shaped
+        misstep, and the sort of thing a real supplier is fined for);
+      * `PaymentObservationConsumer.expected_collection_misses` compares this
+        number against its reconciliation grace, so every company with a grace
+        of zero or less fired on the issue date. A -5d detector and a -20d
+        detector -- a fortnight apart in fact -- published ONE latency and ONE
+        detection gap (`ORGAN_QUERY_GRID`, atom D23, which declared the floor
+        as this organ's debt rather than its own grid's).
+
+    Nothing at the SHIPPED parameters moves: a positive grace and a bucket
+    scheme whose lowest band is "current" both read a negative day exactly as
+    they read zero. What changes is that the organ can now be asked a question
+    about the days BEFORE the due date and answer it (R12: the clock was
+    repaired, no output was tuned).
+
+    The floor that REMAINS is the company's own and is not this organ's to
+    lift: nothing here exists before the invoice is issued, so no detector can
+    be dated earlier however fast it reconciles."""
     alloc = ledger.allocate(disputed_refs=disputed_refs, as_of=as_of)
     items: List[AgedItem] = []
     for oi in alloc.open_items:
         if oi.is_settled:
             continue
         due = oi.issue_date + dt.timedelta(days=payment_terms_days)
-        days = (as_of - due).days
         items.append(AgedItem(
             reference=oi.invoice_ref,
             outstanding_gbp=oi.outstanding_gbp,
             due_date=due,
-            days_overdue=max(0, days),
+            days_overdue=(as_of - due).days,
             disputed=oi.disputed,
         ))
     return items
@@ -160,12 +202,13 @@ def age_balance(
     if oldest is None:
         oldest = as_of  # residual is non-bill (interest/adjustment); not an aged bill
     due = oldest + dt.timedelta(days=payment_terms_days)
-    days = (as_of - due).days
     return AgedItem(
         reference=ledger.account_id,
         outstanding_gbp=round(bal, 2),
         due_date=due,
-        days_overdue=max(0, days),
+        # SIGNED, the same clock as `age_open_items` (atom D24) -- a balance
+        # whose oldest unpaid bill is not yet due is not "0 days overdue".
+        days_overdue=(as_of - due).days,
         disputed=False,
     )
 
@@ -267,6 +310,18 @@ class AgeingPartitionError(Exception):
     money relative to the underlying items."""
 
 
+class OverdueClockFloorError(Exception):
+    """Raised when the organ's overdue clock FLOORS -- when two `as_of` dates a
+    day apart publish one `days_overdue`, so two companies whose collections
+    differ by a day are one reading (atom D24)."""
+
+
+class DunningWithoutAnItemError(Exception):
+    """Raised when a dunning step is selected with no overdue item behind it --
+    the sentinel-zero shape, where "nothing here" and "due today" are both 0 and
+    the trigger-0 step fires on an account that owes nothing yet (atom D24)."""
+
+
 class DunningPathError(Exception):
     """Raised when a segment's dunning path is empty or its triggers are not
     strictly ascending (which would make step selection order-dependent)."""
@@ -290,7 +345,9 @@ class WriteOffAuditError(Exception):
     event (a silent status flip)."""
 
 
-def assert_age_buckets_partition(bucket_fn=age_bucket, max_days: int = 400) -> None:
+def assert_age_buckets_partition(
+    bucket_fn=age_bucket, max_days: int = 400, min_days: int = -400,
+) -> None:
     """R15 CONTROL — the ageing buckets must PARTITION days-overdue: every day maps
     to exactly one bucket in AGE_BUCKETS (exhaustive + in-set), and severity is
     monotonic non-decreasing as days rise (no overlap / no regression).
@@ -298,9 +355,17 @@ def assert_age_buckets_partition(bucket_fn=age_bucket, max_days: int = 400) -> N
     Independent: it PROBES the bucket function across the whole domain rather than
     trusting its boundaries. Fail-closed: an out-of-set or non-monotonic result
     RAISES. Mutation defect this fires on: a bucket function with a gap (a day in
-    no bucket) or an overlap (severity going backwards)."""
+    no bucket) or an overlap (severity going backwards).
+
+    THE DOMAIN NOW STARTS BELOW ZERO (atom D24, R10 — the class, not the
+    instance). Until the clock was signed this control could only ever be handed
+    non-negative days, so a bucket function that fell off the end of the world on
+    a not-yet-due invoice (a `KeyError`, an out-of-set label, a severity that
+    regressed below zero) was unreachable BY CONSTRUCTION rather than by proof.
+    The clamp was the only thing holding that domain shut; lifting it without
+    widening this probe would have moved an untested region into production."""
     last_sev = -1
-    for d in range(0, max_days + 1):
+    for d in range(min_days, max_days + 1):
         b = bucket_fn(d)
         if b not in _AGE_SEVERITY:
             raise AgeingPartitionError(f"day {d} → out-of-set bucket {b!r} (gap)")
@@ -333,6 +398,132 @@ def assert_ageing_conserves_value(items, aggregator=ageing_buckets) -> None:
     if direct_count != agg_count:
         raise AgeingPartitionError(
             f"ageing count not conserved: items {direct_count} != buckets {agg_count}"
+        )
+
+
+_CLOCK_PROBE_ISSUE_DATE = dt.date(2024, 1, 1)   # fixed: the probe is deterministic (C-S2)
+
+
+def assert_overdue_clock_resolves_before_due(
+    clock=age_open_items, payment_terms_days: int = 14, span_days: int = 3,
+) -> None:
+    """R15 CONTROL — the organ's overdue clock must RESOLVE ONE DAY EVERYWHERE in
+    its domain: a day of elapsed time moves `days_overdue` by exactly one day on
+    the days BEFORE the bill falls due as much as on the days after (atom D24).
+
+    THE DEFECT IT FIRES ON, which shipped: `days_overdue=max(0, days)`. Under a
+    floor the pre-due deltas are all ZERO, so every `as_of` from the issue date to
+    the due date publishes one number and no consumer can tell a bill issued today
+    from a bill due today. That collapse reached the dunning selector (the
+    trigger-0 step fired from the ISSUE date) and `expected_collection_misses`
+    (every grace <= 0 fired from the issue date, so detectors a fortnight apart
+    published one latency and one detection gap).
+
+    INDEPENDENT, and this is the whole reason the control is shaped as a
+    DIFFERENCE: it never re-derives `due = issue + terms` or the day count -- a
+    harness copy of the organ's arithmetic is R15's TAUTOLOGY pattern and could
+    not fail if the organ's rule changed. It asserts the reading against ELAPSED
+    CALENDAR TIME, which it holds independently, so it fires on any floor, cap,
+    rounding or quantisation the clock might grow, not just on this `max(0, …)`.
+
+    FAIL-CLOSED: a probe that yields no aged item, or a domain with fewer than two
+    pre-due sample points (which would make the pre-due claim vacuous), RAISES --
+    an unrunnable check is a FAILED check, never a pass.
+
+    WHAT IT DOES NOT ASSERT, because the company genuinely cannot: anything before
+    the invoice EXISTS. The probe starts at the issue date, and no organ can be
+    dated earlier however fast it reconciles -- that floor is a bound on the
+    company's knowledge, not a defect in its clock."""
+    issue = _CLOCK_PROBE_ISSUE_DATE
+    due = issue + dt.timedelta(days=payment_terms_days)
+    ledger = AccountLedger("__clock_probe__")
+    ledger.post(LedgerEvent(
+        "__clock_probe_bill__", "__clock_probe__", LedgerEventType.BILL_DEBIT,
+        100.0, issue, dt.datetime(2024, 1, 1, 0, 0, 0), invoice_ref="__PROBE__",
+    ))
+    sweep = [issue + dt.timedelta(days=i)
+             for i in range(payment_terms_days + span_days + 1)]
+    readings: List[int] = []
+    for as_of in sweep:
+        items = [it for it in clock(ledger, as_of, payment_terms_days) if not it.disputed]
+        if len(items) != 1:
+            raise OverdueClockFloorError(
+                f"overdue-clock probe yielded {len(items)} open items at {as_of} "
+                "-- the probe cannot evidence a floor either way (fail-closed)"
+            )
+        readings.append(items[0].days_overdue)
+    pre_due = [i for i, as_of in enumerate(sweep) if as_of < due]
+    if len(pre_due) < 2:
+        raise OverdueClockFloorError(
+            f"overdue-clock probe has {len(pre_due)} sample point(s) before the "
+            "due date -- the pre-due claim would be vacuous (fail-closed)"
+        )
+    for (a, b), as_of in zip(zip(readings, readings[1:]), sweep):
+        if b - a != 1:
+            raise OverdueClockFloorError(
+                f"the overdue clock does not resolve a day at {as_of}: one day of "
+                f"elapsed time moved it {a} -> {b}. Two companies whose "
+                "collections differ by a day are ONE reading here"
+            )
+
+
+def select_dunning_step(
+    items: Sequence[AgedItem], segment: Segment,
+) -> tuple:
+    """The dunning selection, as ONE function of the aged items rather than an
+    expression inside `collections_snapshot` -- so it can be PROBED by a control
+    (atom D24). Returns `(max_days_overdue, step)`, both None when no undisputed
+    item is present.
+
+    NONE, NOT ZERO, when there is nothing to dun. `max(..., default=0)` made
+    "this account has no open items" indistinguishable from "an item falls due
+    today", and the trigger-0 step then fired on an account that owed nothing --
+    the same sentinel collision D24 lifted out of the clock itself, one layer up.
+    """
+    undisputed = [it for it in items if not it.disputed]
+    if not undisputed:
+        return None, None
+    max_overdue = max(it.days_overdue for it in undisputed)
+    return max_overdue, current_dunning_step(segment, max_overdue)
+
+
+def assert_dunning_requires_an_item(
+    selector=select_dunning_step, segment: Segment = Segment.RESIDENTIAL,
+) -> None:
+    """R15 CONTROL — a dunning step must never be selected without an undisputed
+    item that has actually reached its trigger (atom D24).
+
+    Three defects it fires on, each of which has been live in this module:
+      * NO items at all selecting the trigger-0 step (the `default=0` sentinel);
+      * only DISPUTED items selecting a step (a held dispute does not dun);
+      * a NOT-YET-DUE item selecting the trigger-0 step (the clamped clock).
+
+    Independent: it constructs its own aged items and probes the selector, rather
+    than re-reading a selection made elsewhere. FAIL-CLOSED, with a VACUITY GUARD
+    that is the point of the last check -- a selector that returned `(None, None)`
+    for everything would satisfy the three negatives trivially, so a genuinely
+    overdue item MUST select a step or this raises."""
+    due = _CLOCK_PROBE_ISSUE_DATE + dt.timedelta(days=14)
+
+    def _item(days: int, disputed: bool = False) -> AgedItem:
+        return AgedItem("__PROBE__", 100.0, due, days, disputed)
+
+    for label, items in (
+        ("no items at all", []),
+        ("only a disputed item", [_item(120, disputed=True)]),
+        ("an item that is not yet due", [_item(-1)]),
+    ):
+        max_overdue, step = selector(items, segment)
+        if step is not None:
+            raise DunningWithoutAnItemError(
+                f"dunning step {step.action!r} selected with {label} "
+                f"(max_days_overdue={max_overdue!r})"
+            )
+    max_overdue, step = selector([_item(120)], segment)
+    if step is None:
+        raise DunningWithoutAnItemError(
+            "the dunning selector returned NO step for an item 120 days overdue "
+            "-- an inert selector passes the negative checks vacuously"
         )
 
 
@@ -620,18 +811,22 @@ def collections_snapshot(
     #   - the 30/60/90+ scheme still PARTITIONS days-overdue (no gap/overlap);
     #   - bucketing these very items CONSERVES their undisputed value + count;
     #   - this segment's dunning path is well-formed before a step is selected;
-    #   - a B2C segment's path advertises NO statutory-interest action (LPCDA B2B-only).
+    #   - a B2C segment's path advertises NO statutory-interest action (LPCDA B2B-only);
+    #   - the overdue clock still RESOLVES A DAY before the due date (atom D24);
+    #   - no dunning step is selected without an item that reached its trigger (D24).
     assert_age_buckets_partition(age_bucket)
     assert_ageing_conserves_value(items, aggregator=ageing_buckets)
     assert_dunning_path_valid(segment)
     assert_dunning_path_scope_valid(segment)
+    assert_overdue_clock_resolves_before_due(
+        age_open_items, payment_terms_days=payment_terms_days)
+    assert_dunning_requires_an_item(select_dunning_step, segment=segment)
 
     undisputed = [it for it in items if not it.disputed]
-    max_overdue = max((it.days_overdue for it in undisputed), default=0)
+    max_overdue, step = select_dunning_step(items, segment)
     total_undisputed_overdue = round(
-        sum(it.outstanding_gbp for it in undisputed if it.days_overdue > 0), 2
+        sum(it.outstanding_gbp for it in undisputed if it.is_overdue), 2
     )
-    step = current_dunning_step(segment, max_overdue)
     return {
         "account_id": ledger.account_id,
         "segment": segment.value,

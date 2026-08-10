@@ -10,6 +10,7 @@ Killer patterns probed per control: TAUTOLOGY (checked value re-derived from the
 same source), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT
 (passes when the checker itself is unavailable).
 """
+import dataclasses
 import datetime as dt
 
 import pytest
@@ -23,6 +24,7 @@ from company.billing.account_ledger import (
     LedgerEventType,
     LedgerReconciliationError,
 )
+from company.billing import arrears_engine
 from company.billing.arrears_engine import (
     AGE_BUCKETS,
     AgedItem,
@@ -30,21 +32,28 @@ from company.billing.arrears_engine import (
     DunningPathError,
     DunningScopeError,
     DunningStep,
+    DunningWithoutAnItemError,
     FixedCompensationError,
+    OverdueClockFloorError,
     StatutoryInterestScopeError,
     WriteOffAuditError,
     age_bucket,
+    age_open_items,
     ageing_buckets,
     assert_age_buckets_partition,
     assert_ageing_conserves_value,
     assert_dunning_path_scope_valid,
     assert_dunning_path_valid,
+    assert_dunning_requires_an_item,
+    assert_overdue_clock_resolves_before_due,
     assert_fixed_compensation_once,
     assert_interest_is_b2b_only,
     assert_write_off_audited,
     build_interest_event,
     build_write_off_event,
+    collections_snapshot,
     current_dunning_step,
+    select_dunning_step,
     statutory_interest_gbp,
 )
 from company.crm.account_hierarchy import Segment
@@ -476,3 +485,141 @@ def test_fixed_comp_suppressed_accrual_omits_the_statutory_sum():
     assert delta == 70.0                              # £5,000 debt -> £70 band
     assert "fixed compensation" in with_fixed.reason
     assert "fixed compensation" not in interest_only.reason
+
+
+# ===========================================================================
+# CONTROL 9 — assert_overdue_clock_resolves_before_due (atom D24). The organ's
+# overdue clock must resolve ONE DAY everywhere in its domain, before the due
+# date as much as after. Named defect: `days_overdue = max(0, days)`, which
+# shipped, and which made every pre-due `as_of` publish one number.
+# ===========================================================================
+
+def _clamped_clock(ledger, as_of, payment_terms_days=14, disputed_refs=()):
+    """MUTATION: the pre-D24 organ, floored at zero."""
+    return [dataclasses.replace(it, days_overdue=max(0, it.days_overdue))
+            for it in age_open_items(ledger, as_of, payment_terms_days, disputed_refs)]
+
+
+def test_overdue_clock_control_passes_on_the_shipped_organ():
+    assert_overdue_clock_resolves_before_due(age_open_items)
+
+
+def test_overdue_clock_control_FIRES_on_the_clamp_that_shipped():
+    with pytest.raises(OverdueClockFloorError) as exc:
+        assert_overdue_clock_resolves_before_due(_clamped_clock)
+    # The diagnostic must carry the payload (R5): which day, and what it read.
+    assert "does not resolve a day" in str(exc.value)
+    assert "0 -> 0" in str(exc.value)
+
+
+def test_overdue_clock_control_FIRES_on_a_quantisation_that_is_not_the_clamp():
+    """The control is a DIFFERENCE against elapsed calendar time, not a test for
+    `max(0, …)` — so it fires on any floor, cap or quantisation the clock might
+    grow. A weekly-rounded clock is unfloored and still cannot resolve a day."""
+    def weekly(ledger, as_of, payment_terms_days=14, disputed_refs=()):
+        return [dataclasses.replace(it, days_overdue=(it.days_overdue // 7) * 7)
+                for it in age_open_items(ledger, as_of, payment_terms_days, disputed_refs)]
+    with pytest.raises(OverdueClockFloorError):
+        assert_overdue_clock_resolves_before_due(weekly)
+
+
+def test_overdue_clock_control_is_FAIL_CLOSED_on_a_clock_that_returns_nothing():
+    # FAIL-SILENT probe: an unavailable/empty organ is a FAILED check, never a pass.
+    with pytest.raises(OverdueClockFloorError) as exc:
+        assert_overdue_clock_resolves_before_due(lambda *a, **k: [])
+    assert "fail-closed" in str(exc.value)
+
+
+def test_overdue_clock_control_is_FAIL_CLOSED_when_the_domain_has_no_pre_due_days():
+    """VACUITY probe: with zero payment terms every sample point is on or after
+    the due date, so the pre-due claim would be true of nothing. The control must
+    refuse to run rather than report a pass it did not earn."""
+    with pytest.raises(OverdueClockFloorError) as exc:
+        assert_overdue_clock_resolves_before_due(age_open_items, payment_terms_days=0)
+    assert "vacuous" in str(exc.value)
+
+
+def test_collections_snapshot_FIRES_at_read_time_if_the_clock_is_re_clamped(monkeypatch):
+    """R15 WIRING, and the reason the control is not merely available: a snapshot
+    taken against a re-floored organ RAISES rather than quietly publishing a
+    dunning action for a bill that is not due."""
+    monkeypatch.setattr(arrears_engine, "age_open_items", _clamped_clock)
+    led = AccountLedger("A")
+    led.post(_bill("b1", "A", 100.0, 1, ref="INV1"))
+    with pytest.raises(OverdueClockFloorError):
+        collections_snapshot(led, Segment.IC, True, dt.date(2024, 4, 1),
+                             payment_terms_days=14)
+
+
+# ===========================================================================
+# CONTROL 10 — assert_dunning_requires_an_item (atom D24). No dunning step may
+# be selected without an undisputed item that has actually reached its trigger.
+# Named defects: the `max(…, default=0)` sentinel, a disputed-only account, and
+# a not-yet-due item selecting the trigger-0 step.
+# ===========================================================================
+
+def test_dunning_selector_control_passes_on_the_shipped_selector():
+    assert_dunning_requires_an_item(select_dunning_step)
+
+
+def test_dunning_selector_control_FIRES_on_the_zero_sentinel():
+    def sentinel(items, segment):
+        # MUTATION: the pre-D24 expression — "nothing here" reads as day 0.
+        undisputed = [it for it in items if not it.disputed]
+        worst = max((it.days_overdue for it in undisputed), default=0)
+        return worst, current_dunning_step(segment, worst)
+    with pytest.raises(DunningWithoutAnItemError) as exc:
+        assert_dunning_requires_an_item(sentinel)
+    assert "no items at all" in str(exc.value)
+
+
+def test_dunning_selector_control_FIRES_when_a_disputed_item_duns():
+    def duns_disputes(items, segment):
+        # MUTATION: the disputed exclusion dropped.
+        if not items:
+            return None, None
+        worst = max(it.days_overdue for it in items)
+        return worst, current_dunning_step(segment, worst)
+    with pytest.raises(DunningWithoutAnItemError) as exc:
+        assert_dunning_requires_an_item(duns_disputes)
+    assert "only a disputed item" in str(exc.value)
+
+
+def test_dunning_selector_control_FIRES_when_a_not_yet_due_item_duns():
+    """The D24 defect itself, one layer up from the clock: with the clamp back in
+    the selector, an invoice that is not yet due reaches the trigger-0 step."""
+    def clamped(items, segment):
+        undisputed = [it for it in items if not it.disputed]
+        if not undisputed:
+            return None, None
+        worst = max(max(0, it.days_overdue) for it in undisputed)   # MUTATION
+        return worst, current_dunning_step(segment, worst)
+    with pytest.raises(DunningWithoutAnItemError) as exc:
+        assert_dunning_requires_an_item(clamped)
+    assert "not yet due" in str(exc.value)
+
+
+def test_dunning_selector_control_FIRES_on_an_INERT_selector():
+    """VACUITY guard — the check that keeps the other three from being free. A
+    selector that never duns anyone satisfies every negative trivially."""
+    with pytest.raises(DunningWithoutAnItemError) as exc:
+        assert_dunning_requires_an_item(lambda items, segment: (None, None))
+    assert "inert selector" in str(exc.value)
+
+
+# ===========================================================================
+# CONTROL 3a EXTENDED — assert_age_buckets_partition over the SIGNED domain
+# (atom D24, R10: the class, not the instance). The clamp was the only thing
+# keeping negative days out of the bucket function; the probe now goes there.
+# ===========================================================================
+
+def test_bucket_partition_FIRES_on_a_bucket_function_that_breaks_below_zero():
+    def falls_off_below_zero(days):
+        if days < 0:
+            return "not_yet_due"      # MUTATION: out-of-set label for a pre-due day
+        return age_bucket(days)
+    with pytest.raises(AgeingPartitionError):
+        assert_age_buckets_partition(falls_off_below_zero)
+    # ...and this is what the pre-D24 domain could see of it: nothing. The defect
+    # was unreachable BY CONSTRUCTION rather than by proof.
+    assert_age_buckets_partition(falls_off_below_zero, min_days=0)

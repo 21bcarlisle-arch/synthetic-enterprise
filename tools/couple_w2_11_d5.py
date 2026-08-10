@@ -582,10 +582,12 @@ def detection_latency_gap(
         "normalisation": DETECTION_LATENCY_NO_NORMALISER_REASON,
         # GRID RESOLUTION (atom D23) -- stamped AT SOURCE, so it reaches every
         # caller of this scorer rather than only the one whose Hour found it.
-        # The recon arm now resolves the organ to the DAY in both directions;
-        # what it cannot resolve is a detector faster than the invoice's own
-        # issue date, and that floor is the ORGAN's clamped `days_overdue`
-        # (atom D24), not this grid's. Measured, not asserted --
+        # The recon arm resolves the organ to the DAY in both directions, and
+        # since atom D24 that holds on both sides of the due date too (the
+        # organ's clock is signed). What it cannot resolve is a detector faster
+        # than the invoice's own ISSUE date -- a bound on what the company can
+        # know, owned as such in the register rather than filed as a debt
+        # nobody can close. Measured, not asserted --
         # `ORGAN_QUERY_GRID` and its control re-derive every number here on
         # every run, and `organ_improvement_is_visible` is READ FROM the
         # register rather than typed, so a reshape that lost the property again
@@ -1829,21 +1831,81 @@ def _measure_conditional_population(
 # +1d -> 6.0 at all three). `n_recon_detected_undated` is 0 everywhere: no case
 # leaves the population for want of a candidate.
 #
-# THE RESIDUAL IS THE COMPANY'S FLOOR, NOT THE GRID'S, and it is why this
-# register survives its own repair rather than being deleted. Every drift of -5
-# or beyond reads -14.0 -- one number for companies 15 days apart -- because
-# `age_open_items` clamps `days_overdue=max(0, days)`, so any grace <= 0 fires
-# from the day the invoice is issued and no earlier detector is representable.
-# That is a question about the ORGAN (atom D24), and no candidate grid can
-# answer it: the register therefore now declares COLLAPSED PAIRS (two different
-# companies that must read alike) where it used to declare invisibilities, and
-# the control fails in both directions on those exactly as it did before.
+# THE RESIDUAL WAS THE COMPANY'S FLOOR, NOT THE GRID'S, and it is why this
+# register survived its own repair rather than being deleted. Every drift of -5
+# or beyond read -14.0 -- one number for companies 15 days apart -- because
+# `age_open_items` clamped `days_overdue=max(0, days)`, so any grace <= 0 fired
+# from the day the invoice was issued and no earlier detector was representable.
+# That was a question about the ORGAN, filed as atom D24, and no candidate grid
+# could answer it: the register declared COLLAPSED PAIRS (two different
+# companies that must read alike) where it used to declare invisibilities.
 #
-# THE ENTRIES ARE STILL DIFFERENTIAL, and after the reshape more sharply so: the
-# +1d company moves the DATE reading by a day and leaves the SET reading exactly
-# where it was, because a detector one day slower still flags the same invoices
-# by `as_of`. They part company upward and collapse together downward -- which
-# is the evidence that what is left is the organ's floor and not the grid.
+# ------------------------------------------------------------------------
+# AND THEN D24 LANDED, SAME DAY (2026-08-10), and this register's own control
+# fired BY NAME the moment it did -- a declared collapse whose two companies
+# now read differently is a debt entry outliving its debt. What follows is the
+# re-derivation the control demanded, measured on the same probe (n=300, seeds
+# 7/11/23), and the shape it leaves is the general lesson:
+#
+#   organ drift    recon first-knowledge mean    detection    at-issue-floor
+#      -30 d                     -14.0            0.500000     102 of 102
+#      -20 d                     -14.0            0.500000     102 of 102
+#      -15 d                     -10.0            0.500000       0
+#       -5 d                       0.0            0.025597       0
+#       -1 d                       4.0            0.018771       0
+#        0 d (as shipped)          5.0            0.014505       0
+#       +1 d                       6.0            0.014505       0
+#       +7 d                      12.0            0.009386       0
+#
+# The -5d/-20d pair is fifteen days apart in fact and is now fifteen days apart
+# in BOTH readings. It is therefore declared as a DISTINCT PAIR: two companies
+# that must NOT read alike. That declaration is the only thing in this file
+# that fails if the clamp comes back, and it is the direction the old register
+# could not check -- `collapsed_pairs` could only catch the repair, never the
+# reversion.
+#
+# NOT EVERY RESIDUAL IS A DEBT, and conflating the two is how a register like
+# this rots. Three residuals are left and they are three DIFFERENT kinds:
+#
+#   * -20d and -30d read alike in both readings, and the witness says why:
+#     `n_recon_dated_at_issue_floor` is the WHOLE population for both and zero
+#     at the baseline. Nothing exists to be reconciled before the invoice is
+#     issued, so no company can be built that resolves them. That is a bound on
+#     the COMPANY'S KNOWLEDGE, not a debt -- no atom will ever close it, and an
+#     entry naming an atom for it would be a promise nobody can keep.
+#   * -15d and -20d read alike in the SET reading (both 0.500000: each flags
+#     every invoice by `as_of`) while the DATE reading separates them (-10.0 vs
+#     -14.0). That is a property of the READING'S SHAPE -- a saturated set has
+#     nowhere further to go -- and the sibling entry is its witness.
+#   * +1d moves the DATE reading and not the SET one, for the same reason.
+#
+# So each residual now carries an OWNERSHIP RECORD naming which of the three it
+# is, and the control refuses a claim it cannot witness: a "company knowledge"
+# bound whose readings are NOT at the floor is a debt in disguise, and a
+# "reading shape" bound the sibling reading is equally blind to is a dead
+# instrument in disguise. `debt_atom` survives for residuals that ARE debts;
+# both entries now carry None, because none of what is left is one.
+#
+# THE ENTRIES ARE STILL DIFFERENTIAL, and now in two directions rather than
+# one: the +1d company moves the DATE reading and leaves the SET reading where
+# it was, and the -15d company moves the DATE reading while the SET reading has
+# already saturated. They collapse together only at the point where the company
+# itself goes blind.
+# The atom whose landing separated the pair this register used to declare as a
+# collapse. Named in the DISTINCT-pair violation so a reversion says whose
+# repair it is reverting, not merely that two numbers agree.
+ORGAN_CLOCK_REPAIR_ATOM = "D24_the_latency_floor_is_the_organs_clamped_overdue"
+
+# The witness for a COMPANY-KNOWLEDGE bound on these two readings: a case first
+# known on the invoice's own issue date is at the earliest date the company
+# could possibly hold the invoice at all. Saturation of this witness (the whole
+# latency population sitting on it) is what tells a bound from a debt.
+_AT_ISSUE_FLOOR_WITNESS = {
+    "dimension": "detection_latency",
+    "key": "n_recon_dated_at_issue_floor",
+    "population_key": "n_latency_population",
+}
+
 ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
     "recon_lag_days": {
         "reading": "date",
@@ -1852,55 +1914,111 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         # Drifts of the COMPANY's own detector that must move the reading by
         # EXACTLY ZERO, and those that must move it.
         "invisible_drifts": (),
-        "visible_drifts": (-1, 1),
-        # THE RESIDUAL, AND IT IS NOT AN INVISIBILITY (D23's reshape). No drift
-        # leaves this reading where the baseline is any more -- so a register
-        # built only on `invisible_drifts` would now be all-visible and could
-        # not fail. What remains is a COLLAPSE: two DIFFERENT companies that
-        # publish ONE number. Declared as pairs that must read EQUAL, which is
-        # falsifiable in both directions exactly as the invisibility list was.
-        "collapsed_pairs": ((-5, -20),),
+        "visible_drifts": (-15, -5, -1, 1),
+        # Two DIFFERENT companies that must read ALIKE. What is left after D24
+        # is where the company itself goes blind: a detector wanting to fire
+        # more than a payment term before the due date is asking about an
+        # invoice that has not been issued.
+        "collapsed_pairs": ((-20, -30),),
+        # Two different companies that must NOT read alike -- the D24 repair,
+        # and the only declaration here that fails if the clamp comes back.
+        # `collapsed_pairs` can catch a residual being fixed; only this catches
+        # a fix being undone.
+        "distinct_pairs": ((-5, -20),),
         # The measured quantisation: what a ONE-day company degradation is
         # published as.
         "reported_days_for_a_one_day_drift": 1.0,
-        "debt_atom": "D24_the_latency_floor_is_the_organs_clamped_overdue",
+        "debt_atom": None,   # nothing left here is a debt -- see the ownership
+        "residual_ownership": {
+            (-20, -30): {
+                "kind": "company_knowledge",
+                "witness": _AT_ISSUE_FLOOR_WITNESS,
+                "why": (
+                    "Both read -14.0 because both are dated at the invoice's "
+                    "own ISSUE date, and `n_recon_dated_at_issue_floor` is the "
+                    "whole latency population for both against 0 at the "
+                    "baseline. `expected_collection_misses` reads "
+                    "`age_open_items`, which holds nothing for an invoice that "
+                    "has not been issued, so no company can be built that "
+                    "separates them. A bound on what the company can KNOW, "
+                    "never a debt: naming an atom for it would be promising a "
+                    "fix nobody can write."
+                ),
+            },
+        },
         "why": (
-            "The grid is DAILY from the invoice's issue date to `as_of`, so "
-            "the reading tracks the organ day for day in both directions "
-            "(-1d reads 4.0, +1d reads 6.0 against a 5.0 baseline). What it "
-            "still cannot resolve is a detector that would fire BEFORE the "
-            "due date, and that floor is the COMPANY's rather than this "
-            "grid's: `age_open_items` clamps `days_overdue=max(0, days)`, so "
-            "every grace <= 0 fires from the issue date and -5d and -20d are "
-            "one reading (-14.0). Owned by D24, which is a question about the "
-            "ORGAN, not about this harness."
+            "The grid is DAILY from the invoice's issue date to `as_of` (D23), "
+            "and since D24 the ORGAN's own overdue clock is signed, so the "
+            "reading tracks the company day for day in both directions across "
+            "the due date: -15d reads -10.0, -5d reads 0.0, -1d reads 4.0 and "
+            "+1d reads 6.0 against a 5.0 baseline. What it cannot resolve is "
+            "two detectors that both want to fire before the invoice exists."
         ),
     },
     "flagged_via_reconciliation": {
         "reading": "set_membership",
         "feeds": "detection",
         "headline_key": None,   # the dimension's own `gap`
-        # A SET IS NOT A CLOCK, and after the reshape that is the whole
-        # difference between the two entries: the date reading now moves on a
-        # +1d company and this one does not, because a detector one day slower
-        # still flags the SAME invoices by `as_of`. That is a true property of
-        # a membership reading, not a grid defect -- and it is why this entry
-        # is the one that keeps the register from being a rule about days.
+        # A SET IS NOT A CLOCK, and that is the whole difference between the
+        # two entries: the date reading moves on a +1d company and this one
+        # does not, because a detector one day slower still flags the SAME
+        # invoices by `as_of`. That is a true property of a membership reading,
+        # not a grid defect -- and it is why this entry keeps the register from
+        # being a rule about days.
         "invisible_drifts": (1,),
         "visible_drifts": (-1, 7),
-        "collapsed_pairs": ((-5, -20),),
+        # TWO collapses of two different kinds, which is what makes this entry
+        # worth keeping: one where the READING saturates and the sibling can
+        # still tell the companies apart, one where the COMPANY goes blind and
+        # neither can.
+        "collapsed_pairs": ((-15, -20), (-20, -30)),
+        "distinct_pairs": ((-5, -20),),
         "reported_days_for_a_one_day_drift": None,   # not a reading in days
-        "debt_atom": "D24_the_latency_floor_is_the_organs_clamped_overdue",
+        "debt_atom": None,
+        "residual_ownership": {
+            1: {
+                "kind": "reading_shape",
+                "witness": {"entry": "recon_lag_days"},
+                "why": (
+                    "A detector one day slower still flags the same invoices "
+                    "by `as_of`, so the SET is identical while the DATE "
+                    "reading moves 5.0 -> 6.0 on the same drift and the same "
+                    "population. The sibling entry is the witness: if it were "
+                    "blind here too, this would be a dead instrument rather "
+                    "than a property of a membership reading."
+                ),
+            },
+            (-15, -20): {
+                "kind": "reading_shape",
+                "witness": {"entry": "recon_lag_days"},
+                "why": (
+                    "Both read 0.500000 -- the flag-everything gap. A company "
+                    "flagging from ten days before due and one flagging from "
+                    "the issue date have both flagged every invoice by "
+                    "`as_of`, so a SET has nowhere further to go. The DATE "
+                    "reading separates the same pair (-10.0 vs -14.0), which "
+                    "is what proves this is saturation of this reading rather "
+                    "than the instrument or the company going blind."
+                ),
+            },
+            (-20, -30): {
+                "kind": "company_knowledge",
+                "witness": _AT_ISSUE_FLOOR_WITNESS,
+                "why": (
+                    "The one collapse the two readings SHARE, and the witness "
+                    "is the same: the whole population dated at the invoice's "
+                    "issue date. Neither reading can separate them because the "
+                    "company cannot."
+                ),
+            },
+        },
         "why": (
             "SET membership off the same grid, and it is the DIFFERENTIAL "
             "entry that keeps this register from being a rule about one "
-            "reading. It shares the -5d/-20d COLLAPSE exactly -- both read "
-            "0.5, the flag-everything gap -- which is the evidence that the "
-            "remaining floor is the ORGAN's clamped `days_overdue` and not "
-            "the candidate grid: a grid defect would not bind a reading that "
-            "has no days in it. It parts company with the date reading "
-            "upward, where a +1d detector moves the latency by a day and "
-            "leaves this set untouched."
+            "reading. It parts company with the date reading in BOTH "
+            "directions -- upward at +1d (a set is not a clock) and downward "
+            "at -15d (a saturated set has nowhere to go) -- and joins it only "
+            "at the issue-date floor, where the company itself is blind."
         ),
     },
 }
@@ -1942,6 +2060,9 @@ def measure_organ_query_grid_resolution(
         # checked against readings that were never taken (atom D23's reshape).
         | {k for e in register.values()
            for pair in tuple(e.get("collapsed_pairs") or ()) for k in pair}
+        # ...and the DISTINCT members likewise (atom D24's re-derivation).
+        | {k for e in register.values()
+           for pair in tuple(e.get("distinct_pairs") or ()) for k in pair}
     )
     scored = {k: runner(k) for k in drifts}
 
@@ -1949,6 +2070,9 @@ def measure_organ_query_grid_resolution(
         dim = result[str(entry["feeds"])]
         key = entry["headline_key"]
         return dim.gap if key is None else dim.components[str(key)]
+
+    def _component(result: Dict[str, object], dimension: str, key: str) -> object:
+        return result[dimension].components[key]
 
     out: Dict[str, Dict[str, object]] = {}
     any_movement = False
@@ -1977,6 +2101,31 @@ def measure_organ_query_grid_resolution(
                 }
                 for pair in tuple(entry.get("collapsed_pairs") or ())
             },
+            # Which declared DISTINCTIONS actually hold (atom D24): two
+            # companies the register says must NOT read alike.
+            "distinctions": {
+                pair: {
+                    "readings": (all_readings.get(pair[0]), all_readings.get(pair[1])),
+                    "distinct": (all_readings.get(pair[0])
+                                 != all_readings.get(pair[1])),
+                }
+                for pair in tuple(entry.get("distinct_pairs") or ())
+            },
+            # The WITNESS behind every COMPANY-KNOWLEDGE ownership claim, read
+            # per drift as (witness, population) so the control can tell a
+            # bound (saturated for the residual, not at the baseline) from a
+            # debt wearing a bound's clothes (atom D24).
+            "bound_witness": {
+                res_key: {
+                    k: (_component(scored[k], rec["witness"]["dimension"],
+                                   rec["witness"]["key"]),
+                        _component(scored[k], rec["witness"]["dimension"],
+                                   rec["witness"]["population_key"]))
+                    for k in all_readings
+                }
+                for res_key, rec in (entry.get("residual_ownership") or {}).items()
+                if rec.get("kind") == "company_knowledge"
+            },
             # How many DAYS a one-day company degradation is published as --
             # None where the reading is not in days, or where either side is.
             "one_day_report": (
@@ -1987,6 +2136,130 @@ def measure_organ_query_grid_resolution(
         }
     for row in out.values():
         row["probe_bit"] = any_movement
+    return out
+
+
+def _reading_at(row: Dict[str, object], k: int) -> object:
+    """One measured row's reading at drift `k` (0 is the baseline)."""
+    return row["baseline"] if k == 0 else row["by_drift"].get(k)
+
+
+def _check_residual_ownership(
+    name: str,
+    entry: Dict[str, object],
+    row: Dict[str, object],
+    measured: Dict[str, Dict[str, object]],
+) -> List[str]:
+    """Every DECLARED residual must say which KIND of residual it is, and the
+    claim must be WITNESSED (atom D24).
+
+    Before this, every residual in the register was a debt: it named an atom
+    that would close it. That was true while one was outstanding and false the
+    moment D24 landed, because what D24 left behind is not closeable by anyone
+    -- nothing exists to reconcile before the invoice is issued. A register with
+    only a debt shape has two bad options at that point: name an atom for a
+    residual no atom can close (a promise nobody can keep), or delete the entry
+    (and lose the only declaration that would catch the repair being undone).
+
+    So a residual is owned as one of three kinds, and NONE of them is takeable
+    on trust -- each has a measurement that refutes it:
+
+      * `debt` -- names the atom that will close it (the pre-D24 shape);
+      * `company_knowledge` -- no company can resolve it. Refuted unless the
+        readings sit ON the company's floor, witnessed by a counter that is NOT
+        saturated at the baseline (else the witness is a constant, and a
+        constant witnesses nothing);
+      * `reading_shape` -- this reading cannot express it. Refuted unless a
+        SIBLING reading, on the same grid and the same population, CAN separate
+        exactly what this one cannot. Two readings blind to the same thing are
+        a dead instrument, not a property of either reading.
+    """
+    out: List[str] = []
+    owned = entry.get("residual_ownership") or {}
+    declared = (list(tuple(entry["invisible_drifts"]))
+                + list(tuple(entry.get("collapsed_pairs") or ())))
+    for res in declared:
+        rec = owned.get(res)
+        if rec is None:
+            if entry.get("debt_atom"):
+                continue        # entry-level debt ownership, the pre-D24 shape
+            out.append(
+                f"{name}: residual {res!r} has no `debt_atom` and no ownership "
+                "record -- an unowned hole; say whether it is a DEBT (name the "
+                "atom), a bound on what the COMPANY can know, or a property of "
+                "this READING's shape, and let the control test the claim"
+            )
+            continue
+        kind = rec.get("kind")
+        if kind == "debt":
+            if not rec.get("atom"):
+                out.append(
+                    f"{name}: residual {res!r} is owned as a DEBT with no atom "
+                    "named -- an unowned hole"
+                )
+        elif kind == "company_knowledge":
+            witness = row["bound_witness"].get(res) or {}
+            members = res if isinstance(res, tuple) else (res,)
+            base = witness.get(0)
+            if not witness or base is None or base[1] in (None, 0):
+                out.append(
+                    f"{name}: residual {res!r} claims a bound on what the "
+                    "COMPANY can know, but its witness was not measured (or its "
+                    "population is empty) -- an unwitnessed bound is a FAILED "
+                    "check, never a pass"
+                )
+                continue
+            if base[0] >= base[1]:
+                out.append(
+                    f"{name}: residual {res!r} claims a COMPANY-KNOWLEDGE bound "
+                    f"whose witness is already saturated at the BASELINE "
+                    f"({base[0]}/{base[1]}) -- a constant witnesses nothing; the "
+                    "bound is unproven"
+                )
+                continue
+            for k in members:
+                wit = witness.get(k)
+                if wit is None or wit[1] in (None, 0) or wit[0] != wit[1]:
+                    out.append(
+                        f"{name}: residual {res!r} is owned as a bound on what "
+                        f"the COMPANY can know, but drift {k:+d}d reads "
+                        f"{wit!r} against that floor rather than sitting ON it. "
+                        "It is a DEBT wearing a bound's clothes -- name the "
+                        "atom that will close it"
+                    )
+        elif kind == "reading_shape":
+            sib_name = str((rec.get("witness") or {}).get("entry"))
+            sib = measured.get(sib_name)
+            if sib is None:
+                out.append(
+                    f"{name}: residual {res!r} claims a property of this "
+                    f"READING's shape witnessed by `{sib_name}`, which was not "
+                    "measured -- an unwitnessed bound is a FAILED check"
+                )
+                continue
+            if isinstance(res, tuple):
+                readings = tuple(_reading_at(sib, k) for k in res)
+                if readings[0] == readings[1]:
+                    out.append(
+                        f"{name}: residual {res!r} is owned as a property of "
+                        f"this READING's shape, but `{sib_name}` cannot "
+                        f"separate those companies either ({readings!r}). Two "
+                        "readings blind to the same thing are a dead "
+                        "instrument, not a shape"
+                    )
+            elif res not in sib["moved"]:
+                out.append(
+                    f"{name}: drift {res:+d}d is owned as a property of this "
+                    f"READING's shape, but `{sib_name}` did not move on it "
+                    "either. Two readings blind to the same thing are a dead "
+                    "instrument, not a shape"
+                )
+        else:
+            out.append(
+                f"{name}: residual {res!r} is owned as {kind!r}, which is not a "
+                "kind this control can put on trial -- an ownership claim "
+                "nothing checks is worse than none"
+            )
     return out
 
 
@@ -2012,6 +2285,20 @@ def check_organ_query_grid_resolution(
       * a declared collapse whose two companies read the BASELINE is not a
         collapse at all, it is plain invisibility wearing a pair's clothes,
         and would let an entry claim a falsifiable residual it does not have;
+      * a declared DISTINCTION whose two companies read ALIKE means a repair
+        this register recorded has been REVERTED (atom D24's clock going back
+        behind its clamp is the named cause) -- the direction `collapsed_pairs`
+        structurally cannot check, since a collapse rule only ever fires when a
+        residual is FIXED;
+      * a residual owned as a COMPANY-KNOWLEDGE bound whose readings are not
+        actually at the company's floor -- or whose witness is saturated at the
+        BASELINE too, so it is a constant rather than a reading -- is a debt
+        wearing a bound's clothes, and "no atom can close this" is the one
+        claim in a register that must never be takeable on trust;
+      * a residual owned as a READING-SHAPE bound that the SIBLING reading is
+        equally blind to is a dead instrument wearing a shape's clothes;
+      * a residual owned as a DEBT with no atom named is the unowned hole the
+        `debt_atom` rule has always caught, now keyed per residual;
       * an entry declaring NEITHER an invisibility NOR a collapse is
         all-visible and cannot fail on the defect this register exists for --
         the same vacuity the all-invisible blanket claim is, from the other
@@ -2025,6 +2312,15 @@ def check_organ_query_grid_resolution(
     """
     register = ORGAN_QUERY_GRID if register is None else register
     violations: List[str] = []
+
+    def _owner(entry: Dict[str, object], res_key) -> str:
+        """Who owns this residual, for the RE-DERIVE diagnostics. An entry-level
+        `debt_atom` still answers where one is declared; otherwise the residual's
+        own ownership record does."""
+        rec = (entry.get("residual_ownership") or {}).get(res_key) or {}
+        return str(rec.get("atom") or entry.get("debt_atom")
+                   or f"the {rec.get('kind') or 'unrecorded'} residual owner")
+
     for name in sorted(measured):
         row, entry = measured[name], register[name]
         if not row["probe_bit"]:
@@ -2038,7 +2334,7 @@ def check_organ_query_grid_resolution(
                 violations.append(
                     f"{name}: drift {k:+d}d is declared INVISIBLE but moved the "
                     f"reading {row['baseline']!r} -> {row['by_drift'][k]!r}. If "
-                    f"{entry['debt_atom']} has landed, RE-DERIVE this entry; a "
+                    f"{_owner(entry, k)} has landed, RE-DERIVE this entry; a "
                     "debt entry outliving its debt misleads worse than none"
                 )
         for k in entry["visible_drifts"]:
@@ -2062,7 +2358,7 @@ def check_organ_query_grid_resolution(
                     f"{name}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
                     f"declared to COLLAPSE to one reading but read "
                     f"{got.get('readings')!r}. If "
-                    f"{entry['debt_atom']} has landed, RE-DERIVE this entry; a "
+                    f"{_owner(entry, pair)} has landed, RE-DERIVE this entry; a "
                     "debt entry outliving its debt misleads worse than none"
                 )
             elif not got.get("distinct_from_baseline"):
@@ -2072,6 +2368,19 @@ def check_organ_query_grid_resolution(
                     "not a collapse; declare it in `invisible_drifts` where "
                     "the rule that checks it lives"
                 )
+        # THE REVERSION DIRECTION (atom D24). A collapse rule fires when a
+        # residual is FIXED; nothing here fired when a fix was UNDONE.
+        for pair in tuple(entry.get("distinct_pairs") or ()):
+            got = row["distinctions"].get(pair, {})
+            if not got.get("distinct"):
+                violations.append(
+                    f"{name}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
+                    f"declared DISTINCT -- two companies {abs(pair[0] - pair[1])} "
+                    f"days apart -- but both read {got.get('readings')!r}. The "
+                    f"repair recorded by {ORGAN_CLOCK_REPAIR_ATOM} has been "
+                    "REVERTED, or this reading has re-collapsed some other way"
+                )
+        violations.extend(_check_residual_ownership(name, entry, row, measured))
         expected = entry["reported_days_for_a_one_day_drift"]
         if expected is not None and row["one_day_report"] != expected:
             violations.append(
@@ -2080,11 +2389,17 @@ def check_organ_query_grid_resolution(
                 "the grid's quantisation has moved and the caveat travelling "
                 "with the number now states the wrong step"
             )
-        if ((row["unmoved"] or pairs or expected not in (None, 1.0))
-                and not entry["debt_atom"]):
+        # The per-residual ownership check above covers the DECLARED residuals.
+        # This is the entry-level remainder: a reading whose quantisation is
+        # coarser than a day, or which sits blind on drifts it never declared,
+        # still owes an owner and has no residual key to hang one on.
+        if ((row["unmoved"] or expected not in (None, 1.0))
+                and not entry["debt_atom"]
+                and not (entry.get("residual_ownership") or {})):
             violations.append(
-                f"{name}: declares a blindness with no `debt_atom` -- an "
-                "unowned hole; name the atom that will close it"
+                f"{name}: declares a blindness with no `debt_atom` and no "
+                "ownership record -- an unowned hole; name the atom that will "
+                "close it, or the bound that means nobody can"
             )
     return violations
 
@@ -2106,12 +2421,15 @@ def organ_query_grid_caveat(one_day_report: Optional[float] = None) -> str:
         "ONE candidate per period at the harness's own `due + grace`, which "
         "published that PARAMETER back for every faster company and reported a "
         "one-day degradation as 21 days. THE REMAINING FLOOR IS THE COMPANY'S, "
-        "NOT THE GRID'S: `age_open_items` clamps `days_overdue` at zero, so a "
-        "detector that would fire before the due date fires at the issue date "
-        "instead and every such company reads alike (atom D24). Cases sitting "
-        "on that floor are counted in `n_recon_dated_at_issue_floor` and are "
-        "'at or before', never exact. R12: a diagnostic in days, never a "
-        "target."
+        "NOT THE GRID'S, and since atom D24 it is only that: the organ's own "
+        "overdue clock no longer clamps at zero, so a detector that fires "
+        "BEFORE the due date is read as firing before the due date (a company "
+        "flagging on the due date reads 0.0, one flagging ten days early reads "
+        "-10.0). What no reading can separate is two detectors that would both "
+        "fire before the invoice was ISSUED, because nothing exists to "
+        "reconcile until it is. Cases sitting on that floor are counted in "
+        "`n_recon_dated_at_issue_floor` and are 'at or before', never exact. "
+        "R12: a diagnostic in days, never a target."
     )
 
 

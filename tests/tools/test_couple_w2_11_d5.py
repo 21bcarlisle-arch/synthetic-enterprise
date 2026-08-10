@@ -36,6 +36,7 @@ from background.gap_metric import (
     misapplication_gap,
     write_gap_entry,
 )
+from company.billing import arrears_engine, payment_observation_consumer
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from interface.contracts.wall_envelope import WallResponse
 from simulation.payment_behaviour_source import PaymentEvent
@@ -3244,9 +3245,16 @@ def test_no_case_leaves_the_latency_population_for_want_of_a_candidate():
 def test_the_floor_witness_counts_the_readings_that_are_at_or_before():
     """`n_recon_dated_at_issue_floor` is the honest half of the residual: a case
     first known on the invoice's own ISSUE date is 'at or before', never exact,
-    because the organ's `days_overdue` is clamped at zero. Zero on the shipped
-    organ, the whole population on one at the floor -- so it is a reading, not a
-    constant."""
+    because nothing exists to reconcile until the invoice is issued. Zero on the
+    shipped organ, the whole population on one at the floor -- so it is a
+    reading, not a constant.
+
+    RE-DERIVED 2026-08-10 (atom D24): this used to say the floor was the organ's
+    clamped `days_overdue`. It is not, any more -- the clock is signed and a -15d
+    company is now dated 10 days BEFORE the due date without touching this
+    witness. What saturates it is a detector reaching past the invoice's own
+    existence, which is the bound this witness now carries the evidence for in
+    `ORGAN_QUERY_GRID`'s ownership records."""
     shipped = pair.measure(n_customers=_GRID_N, seed=7
                            )["detection_latency"].components
     assert shipped["n_recon_dated_at_issue_floor"] == 0
@@ -3309,40 +3317,90 @@ def test_the_grid_control_fires_when_the_grid_goes_coarse_again():
         "the resolution pin is what keeps the published caveat honest")
 
 
-def test_the_grid_control_fires_when_the_declared_collapse_is_resolved():
-    """R15, the direction the reshape MOVED this register into. With no
-    invisibility left on the date reading, the only falsifiable residual is the
-    COLLAPSE -- two companies 15 days apart publishing one number because the
-    organ clamps `days_overdue` at zero. A D24-shaped repair separates them, and
-    the entry must then fail as a stale debt exactly as a repaired invisibility
-    did, naming the atom to re-derive."""
-    real = {k: pair.measure(n_customers=_GRID_N, seed=7,
-                            organ_reconciliation_drift_days=k)
-            for k in (-20, -5, -1, 0, 1, 7)}
+def test_the_grid_control_fires_when_the_ORGANS_CLOCK_IS_RE_CLAMPED():
+    """R15 on the REAL organ, and the direction this register could not check
+    until D24 landed.
 
-    def unclamped(k):
-        """The organ's overdue clock no longer floored at zero: -20d is now a
-        different company from -5d, as it always was in fact."""
-        result = copy.deepcopy(real[k])
-        if k >= 0:
-            return result
-        lat = result["detection_latency"]
-        comps = dict(lat.components)
-        comps["mean_lag_days_without_dd_channel"] = float(
-            pair.DEFAULT_RECONCILIATION_GRACE_DAYS + k)
-        result["detection_latency"] = dataclasses.replace(lat, components=comps)
-        det = result["detection"]
-        result["detection"] = dataclasses.replace(det, gap=det.gap + 0.001 * k)
-        return result
+    Until 2026-08-10 this test simulated the D24 repair with a hand-built runner
+    and asserted the then-declared collapse failed as a stale debt. The repair
+    is real now, so the mutation is its REVERSION: put `max(0, days)` back into
+    `company.billing.arrears_engine.age_open_items` -- the exact code that
+    shipped -- and re-score the same population through the same probe.
 
-    measured = pair.measure_organ_query_grid_resolution(
-        n_customers=_GRID_N, seed=7, runner=unclamped)
+    A `collapsed_pairs` rule structurally cannot catch this: a collapse rule
+    fires when a residual is FIXED. `distinct_pairs` is the declaration that
+    fires when a fix is UNDONE, and it must name whose repair it was."""
+    def clamped(ledger, as_of, payment_terms_days=14, disputed_refs=()):
+        """The organ exactly as it shipped before D24."""
+        return [dataclasses.replace(it, days_overdue=max(0, it.days_overdue))
+                for it in arrears_engine.age_open_items(
+                    ledger, as_of, payment_terms_days, disputed_refs)]
+    with mock.patch.object(payment_observation_consumer, "age_open_items", clamped):
+        measured = pair.measure_organ_query_grid_resolution(
+            n_customers=_GRID_N, seed=7)
     violations = pair.check_organ_query_grid_resolution(measured)
     assert violations
-    assert any("declared to COLLAPSE to one reading but read" in v
-               for v in violations)
-    assert any("D24_the_latency_floor_is_the_organs_clamped_overdue" in v
-               for v in violations), "the violation must name the atom to re-derive"
+    assert any("declared DISTINCT" in v for v in violations), (
+        "-5d and -20d are fifteen days apart; a re-clamped organ publishes one "
+        "number for both and nothing else in this register notices"
+    )
+    assert any(pair.ORGAN_CLOCK_REPAIR_ATOM in v for v in violations), (
+        "a reversion must name whose repair it reverted")
+
+
+def test_a_company_knowledge_bound_that_is_not_at_the_floor_is_refused():
+    """R15, mutating the REGISTER: "no atom can close this" is the one claim in
+    a register that must never be takeable on trust. A pair collapsing anywhere
+    OTHER than the company's own knowledge floor is a DEBT, and the witness --
+    the whole population dated at the invoice's issue date -- is what tells them
+    apart.
+
+    The mutation moves the declared bound onto a pair that does collapse (+1d
+    and +1d read alike trivially) but is nowhere near the floor."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    entry = register["recon_lag_days"]
+    entry["collapsed_pairs"] = ((1, 1),)
+    entry["distinct_pairs"] = ()
+    entry["residual_ownership"] = {
+        (1, 1): dict(entry["residual_ownership"][(-20, -30)]),
+    }
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, register=register)
+    violations = pair.check_organ_query_grid_resolution(measured, register=register)
+    assert any("DEBT wearing a bound's clothes" in v for v in violations)
+
+
+def test_a_reading_shape_bound_the_sibling_is_blind_to_is_refused():
+    """R15, the other ownership kind: "this READING cannot express it" is only
+    true if some other reading CAN. The witness is the sibling entry on the same
+    grid and the same population -- and if the sibling is blind to the same
+    thing, the instrument has gone dead and calling it a property of the reading
+    would launder that.
+
+    The mutation points the set entry's shape-bound at a drift the DATE reading
+    cannot see either."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    date_entry, set_entry = register["recon_lag_days"], register["flagged_via_reconciliation"]
+    # A drift the date reading is blind to as well: zero drift is the baseline,
+    # so neither reading moves on it.
+    date_entry["visible_drifts"] = (-1,)
+    set_entry["invisible_drifts"] = (2,)
+    set_entry["residual_ownership"] = {
+        2: dict(set_entry["residual_ownership"][1]),
+        (-15, -20): set_entry["residual_ownership"][(-15, -20)],
+        (-20, -30): set_entry["residual_ownership"][(-20, -30)],
+    }
+
+    def blind_sibling(k):
+        """Both readings frozen at the baseline for the +2d company."""
+        return pair.measure(
+            n_customers=_GRID_N, seed=7,
+            organ_reconciliation_drift_days=(0 if k == 2 else k))
+
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, register=register, runner=blind_sibling)
+    violations = pair.check_organ_query_grid_resolution(measured, register=register)
+    assert any("dead instrument, not a shape" in v for v in violations)
 
 
 def test_a_declared_collapse_that_sits_on_the_baseline_is_refused():
@@ -3379,13 +3437,37 @@ def test_an_entry_declaring_no_residual_at_all_is_refused():
 
 def test_the_grid_register_cannot_declare_a_blindness_with_no_owner():
     """R15, mutating the REGISTER: an unowned blindness is a hole nobody has
-    promised to close."""
+    promised to close -- or, since D24, one nobody has explained why nobody can.
+
+    RE-DERIVED 2026-08-10: this used to blank `debt_atom`, which was the only
+    ownership shape the register had. Both entries now carry `debt_atom: None`
+    honestly, because what is left is a bound rather than a debt, so the
+    mutation is to strip the OWNERSHIP RECORD instead. Every declared residual
+    must say which kind it is."""
     register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
     register["recon_lag_days"]["debt_atom"] = None
+    register["recon_lag_days"]["residual_ownership"] = {}
     measured = pair.measure_organ_query_grid_resolution(
         n_customers=_GRID_N, seed=7, register=register)
     violations = pair.check_organ_query_grid_resolution(measured, register=register)
-    assert any("no `debt_atom`" in v for v in violations)
+    assert any("no `debt_atom` and no ownership record" in v for v in violations)
+
+
+def test_every_declared_residual_in_the_shipped_register_is_owned():
+    """The register's own shape, asserted rather than assumed: every residual it
+    declares carries an ownership record, and every record is a kind the control
+    can put on trial. A kind nothing checks is worse than none."""
+    checkable = {"debt", "company_knowledge", "reading_shape"}
+    for name, entry in pair.ORGAN_QUERY_GRID.items():
+        owned = entry["residual_ownership"]
+        declared = (list(entry["invisible_drifts"])
+                    + list(entry["collapsed_pairs"]))
+        assert declared, name
+        for res in declared:
+            assert res in owned, f"{name}: residual {res!r} is unowned"
+            assert owned[res]["kind"] in checkable, f"{name}: {res!r}"
+            if owned[res]["kind"] == "debt":
+                assert owned[res].get("atom"), f"{name}: {res!r}"
 
 
 def test_the_grid_register_is_differential_not_a_blanket_claim():

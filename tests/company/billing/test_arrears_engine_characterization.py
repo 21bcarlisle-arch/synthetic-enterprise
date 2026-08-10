@@ -195,13 +195,20 @@ def test_age_balance_ages_from_the_oldest_unpaid_bill_plus_payment_terms():
 def test_age_balance_of_a_non_bill_residual_ages_from_as_of_and_reads_current():
     """When every bill is covered and the residual is interest/adjustment, the item
     ages from as_of — so a purely interest-driven arrears never leaves "current"
-    and never escalates through dunning."""
+    and never escalates through dunning.
+
+    RE-DERIVED 2026-08-10 (atom D24): the anchor is unchanged (`as_of`, then the
+    payment terms), but the clock beneath it is now SIGNED, so the reading is the
+    full payment term BEFORE due rather than a floored 0. The characterized
+    behaviour — never leaves "current", never dunned — is what actually matters
+    here and is unchanged."""
     led = _two_bill_ledger()
     led.post(ev("p1", LedgerEventType.PAYMENT_CREDIT, 200.0, "2024-04-01"))
     led.post(ev("i1", LedgerEventType.INTEREST_DEBIT, 25.0, "2024-04-02"))
     item = age_balance(led, dt.date(2024, 6, 1))
     assert item.outstanding_gbp == 25.0
-    assert item.days_overdue == 0
+    assert item.days_overdue == -14   # was 0 under `max(0, days)`
+    assert item.is_overdue is False
     assert item.bucket == "current"
 
 
@@ -224,12 +231,22 @@ def test_age_open_items_marks_disputed_but_still_returns_them():
     assert ageing_buckets([item])["90+"]["count"] == 0  # excluded at aggregation
 
 
-def test_days_overdue_is_floored_at_zero_for_a_not_yet_due_invoice():
+def test_days_overdue_runs_negative_for_a_not_yet_due_invoice():
+    """RE-DERIVED 2026-08-10 (atom D24). This test used to be
+    `test_days_overdue_is_floored_at_zero_for_a_not_yet_due_invoice`, and its
+    body ended `assert item.days_overdue == 0  # max(0, -10) — the -10 is
+    discarded`: a characterization test doing its job, freezing a defect it had
+    correctly identified as one and named in its own comment. The floor made
+    "issued four days ago, due in ten" and "due today" ONE reading, and the
+    collapse reached the dunning selector and the reconciliation detector. The
+    clock is signed now; the discarded -10 is the reading."""
     led = AccountLedger("A1")
     led.post(ev("b1", LedgerEventType.BILL_DEBIT, 100.0, "2024-06-01", invoice_ref="INV1"))
     (item,) = age_open_items(led, dt.date(2024, 6, 5))
     assert item.due_date == dt.date(2024, 6, 15)
-    assert item.days_overdue == 0  # max(0, -10) — the -10 is discarded
+    assert item.days_overdue == -10
+    assert item.is_overdue is False
+    assert item.bucket == "current"   # a negative day buckets exactly as day 0 did
 
 
 # ---------------------------------------------------------------------------
