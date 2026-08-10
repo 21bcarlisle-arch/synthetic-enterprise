@@ -200,6 +200,14 @@ outside `simulation/`, so the mechanical rename lands in its own commit, separat
 behaviour question. Two other designs wait on this half specifically and not on part 1 — the B5
 residual and the B4 remainder both need a company-side EMITTER, and the bills they need it for
 are assembled by `run_phase4c_on_phase2b`, which is one of the three still standing.
+
+STATUS 2026-08-10, and read this before re-deriving the numbers above. `run_segments` was cut at
+STEP 10 (§3e), so TWO files remain, not three. STEP 11 (§3f) then executed the company-side half of
+the separation described in this block for `run_phase4c_on_phase2b`: bill assembly moved behind
+`company.interfaces.bill_assembly`, 3 of its 13 edges cut, leaving 10 on `main()`. The EMITTER that
+the last paragraph above says B5's residual and B4's remainder are waiting for NOW EXISTS —
+`company/billing/monthly_bill_assembly.py`. Neither push is built; both are unblocked. What remains
+of this design is `run_phase2b` (32 direct + 2 indirect) and `run_phase4c_on_phase2b`'s remaining 10.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
@@ -401,6 +409,14 @@ was never a walled importer: it is that the file is a LIBRARY holding the bill-a
 B5's residual and B4's remainder need a company-side emitter for. Naming its real blocker is what
 makes the sentence in §3c above — *"their blocker is part 2"* — mean something specific.
 
+**And naming it is what made it actionable — STEP 11 (§3f) acted on this exact row.** The blocker
+this table identified was not "the file cannot move", it was "the bill-assembly routine is on the
+wrong side of the wall". Those are different problems with different fixes, and only the second one
+has a cut. Step 11 moved the routine and left the file where it is; the row's condition-2 and
+condition-3 verdicts BOTH still stand, because `main()` still holds ten crossings and the module is
+still a library with no CLI. That is the payoff of measuring per file rather than per group: the
+refusal survived intact while the thing it was really about got cut.
+
 The conditions are also now stated as what they are: **per-file, not per-group.** Seven were lifted
 together in part 1 because all seven passed all four, not because they were a batch.
 
@@ -452,6 +468,101 @@ history?* One answer closes both.
 **The count fell by 4, and the dependency graph changed in exactly one place** — the naked-fraction
 constant now comes from the company instead of the world. Everything else is the same functions
 calling the same functions in the same order.
+
+---
+
+## 3f. Bill assembly is the supplier's own — added 2026-08-10 (step 11)
+
+**3 edges cut, 53 → 50 live. This is the emitter two other designs named as their blocker.**
+
+`simulation/run_phase4c_on_phase2b.py::build_monthly_bills` reached into
+`company/billing/back_billing.py`, `company/billing/account_adjustment_register.py` and
+`saas/bill_generator.py` — three of that module's thirteen crossings. Assembling a customer's
+monthly bill from that customer's settled records is not world physics. It decides the billing
+period, whether the bill goes out on a real read or an ESTIMATE, and — when a real read arrives —
+how a run of estimated bills reconciles under the Ofgem SLC 31A back-billing cap, including the
+SLC 21BA write-off. Every line of that is the supplier's own routine, which a real supplier is free
+to change without telling the world. It sat SIM-side for composition reasons only.
+
+Moved to `company/billing/monthly_bill_assembly.py`, behind `company/interfaces/bill_assembly.py`.
+
+### Why this is a cut and not a file move — the read direction is INVERTED
+
+The refusal in §2b/§3d is about moving a file past the walker. This is the other half of the
+`A_composition_lift` design as written — *"the company-side decisions it inlines are pushed into the
+company layer behind `company.interfaces`"* — and the test that separates the two is what happened
+to the dependency, not to the path.
+
+`build_monthly_bills` also called `simulation.meter_reads`: `simulate_read`,
+`meter_type_for_customer`, and `MeterReadEvent` for the forced final read. **Carrying those imports
+across would have traded three class-(b) edges for three class-(a) ones** — company reading SIM
+internals, the STRICTLY FORBIDDEN direction, which is at zero. The count would have fallen by three
+and the wall would have been in worse shape. That is the laundering, and it is the reason this cut
+took a design rather than a `git mv`.
+
+So the dependency is inverted instead. Whether a read ARRIVES is world physics; a supplier
+*observes* reads. The company therefore imports nothing from the world and receives a
+`ReadArrivalFeed` (a `runtime_checkable` Protocol) from its caller. The world's implementation is
+`simulation/meter_reads.py::SimulatedReadFeed`. At go-live it is a real D0010/DTC adapter behind the
+same unchanged Protocol — the swap `tools/meter_read_port.py::MeterReadPort` was built for, and the
+typed-flow seam preference applied rather than quoted.
+
+### Behaviour is unchanged BY CONSTRUCTION, which is a stronger claim than measured
+
+`SimulatedReadFeed` is a pass-through: the same `meter_type_for_customer` / `simulate_read` /
+`MeterReadEvent` called with the same arguments in the same order the inline code used, so the
+identical objects come back. There is no seed to re-derive and no second code path to keep in step.
+
+This was deliberately NOT done the other way. The obvious alternative — have `main()` pass in the
+`generate_meter_read_log()` events it already builds — would also have cut the edges AND closed the
+read DUPLICATION the function's own docstring records as a follow-up. It was refused because the
+two paths agreeing rests on an *asserted* identical seed, so that version would move numbers if the
+assertion were ever wrong, and a wall pass is not where a behaviour change gets discovered. The
+duplication stays recorded as owed.
+
+### The blocker two designs recorded is now gone, and neither push was built
+
+`company/interfaces/collections_communication.py` (B5) and `company/interfaces/dd_review_outcome.py`
+(B4) each stated the same structural blocker in their own docstrings: they could deliver a PULL and
+not the PUSH their design asks for, because *there was no company-side bill emitter to stamp an
+attribute onto*. There is one now. Both docstrings are corrected in the same commit.
+
+**Neither push is built here, on purpose.** B5's own words are that a push with the substance of a
+pull is *"a strictly worse artefact than an honest pull through a named door"*; shipping the emitter
+and claiming the pushes in one commit would be the same error one layer up. The emitter is the
+enabling condition, not the work. Both remain owed, now against a live seam rather than a missing one.
+
+### What did NOT move
+
+`main()` keeps its other ten crossings — `dd_review_runner`, `pre_bill_validation`,
+`domain_invariants`, and the seven `saas/` builders. Those are `run_phase4c_on_phase2b`'s remaining
+composition problem and §3d's per-file conditions still refuse the file itself. `build_monthly_bills`
+survives at its old path as a thin world-side wrapper supplying the feed: it is the world's own call
+site, it is what `saas/ledger.py` and `simulation/meter_reads.py` document by name, and keeping it
+meant no test and no caller had to learn about the feed.
+
+### The two ways this cut could rot silently, and the control that fires on each
+
+Added 2026-08-10 with the cut: `tests/company/interfaces/test_bill_assembly_seam.py`, the same
+shape passes 1 and 2 gave their seams. The wall ratchet already polices the STATIC half of the
+inversion — a module-scope `company.billing.monthly_bill_assembly -> simulation.*` import is a new
+class-(a) edge with no grandfathering left to hide behind. Two exposures it cannot see, per R15:
+
+1. **A lazy import.** The ratchet's own docstring states the limit: static imports only, and an
+   in-function or `importlib` import escapes it. The natural convenience change here is exactly
+   that — make `read_feed` optional and construct the world's feed inside the function so callers
+   "don't have to bother" — and it would re-cross the wall in the forbidden direction with every
+   static instrument in the tree still green. The control is therefore BEHAVIOURAL: it runs the
+   real billing run in a CLEAN interpreter (in-process, `simulation.*` is already in `sys.modules`
+   from the rest of the suite, so a lazy import would be served from cache and leave no trace) and
+   reports which modules loaded. Observed: 2 bills built, zero `sim`/`simulation` modules loaded.
+   Its mutation copies the module's real source with `import simulation.meter_reads` inserted into
+   `build_monthly_bills` and asserts the probe reds — it does, naming `simulation.meter_reads`.
+2. **A reordered feed.** `ReadArrivalFeed` is `runtime_checkable`, and that checks method PRESENCE
+   only, never signatures — a documented stdlib fail-open, and it bites here because every feed
+   call site passes POSITIONALLY. So the second control compares parameter names AND order between
+   `SimulatedReadFeed` and the Protocol, and its mutation exhibits a feed with two parameters
+   swapped that `isinstance()` still accepts. The `isinstance` check alone was not evidence.
 
 ---
 
@@ -973,12 +1084,12 @@ edge: simulation.run_phase3a -> saas.customer_reaction | disposition=cut | reaso
 edge: simulation.run_phase4b_on_phase2b -> saas.churn_model | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase4b_on_phase2b -> saas.cost_to_serve | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase4b_on_phase2b -> saas.enterprise_value | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
-edge: simulation.run_phase4c_on_phase2b -> company.billing.account_adjustment_register | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> company.billing.back_billing | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> company.billing.account_adjustment_register | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
+edge: simulation.run_phase4c_on_phase2b -> company.billing.back_billing | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> company.billing.dd_review_runner | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> company.billing.pre_bill_validation | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> company.compliance.domain_invariants | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> saas.bill_generator | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.bill_generator | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> saas.churn_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.contact_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift

@@ -234,3 +234,58 @@ def generate_meter_read_log(
             "forced_catch_up": event.forced_catch_up,
         })
     return log
+
+
+class SimulatedReadFeed:
+    """The world's side of `company.interfaces.bill_assembly.ReadArrivalFeed`.
+
+    Added by KNIFE pass 3 (`A_composition_lift`, step 11, 2026-08-10) when
+    monthly bill assembly moved to `company/billing/monthly_bill_assembly.py`.
+    Deciding whether a read ARRIVES is world physics; assembling a bill from
+    what arrived is the supplier's own work. This class is the whole of the
+    world's half of that split.
+
+    It is deliberately a thin pass-through and MUST stay one: it calls the same
+    `meter_type_for_customer` / `simulate_read` / `MeterReadEvent` with the same
+    arguments in the same order the billing code used inline before the move, so
+    the identical objects come back and no run's numbers change. Any physics
+    added here would be physics the old inline path did not have.
+    """
+
+    def meter_type_for(self, customer: Optional[dict]) -> str:
+        """Carries the inline path's own `if customer_data else` fallback."""
+        return meter_type_for_customer(customer) if customer else "traditional"
+
+    def read_for(
+        self,
+        customer_id: str,
+        period_end: str,
+        meter_type: str,
+        true_consumption_kwh: float,
+        trailing_actuals_kwh: list,
+        consecutive_estimated_count: int,
+    ) -> MeterReadEvent:
+        return simulate_read(
+            customer_id, period_end, meter_type, true_consumption_kwh,
+            trailing_actuals_kwh, consecutive_estimated_count,
+        )
+
+    def final_read_for(
+        self,
+        customer_id: str,
+        period_end: str,
+        meter_type: str,
+        true_consumption_kwh: float,
+    ) -> MeterReadEvent:
+        """A closing read for an account leaving supply.
+
+        The company decides WHEN to demand one (SLC 21B final bill); what such a
+        read looks like is the world's business, which is why the construction
+        lives here and not in the billing code.
+        """
+        return MeterReadEvent(
+            customer_id=customer_id, period_end=period_end,
+            meter_type=meter_type, delay_days=0, status="actual",
+            true_consumption_kwh=true_consumption_kwh,
+            consecutive_estimated_count=0, forced_catch_up=True,
+        )

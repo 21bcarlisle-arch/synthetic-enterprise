@@ -94,7 +94,7 @@ def test_build_monthly_bills_uses_customer_contract_type():
     assert bills[0]["clarity_score"] == pytest.approx(1.0)
 
 
-from simulation.run_phase4c_on_phase2b import _billing_month
+from company.billing.monthly_bill_assembly import _billing_month
 
 
 def test_billing_month_standard():
@@ -217,7 +217,7 @@ def test_main_produces_credit_refund_log():
 # 2026-07-10 per phase-close-evaluator NEEDS_WORK finding -- the feature
 # shipped with zero test coverage on the new fields themselves) --
 
-from simulation.run_phase4c_on_phase2b import _prior_calendar_month, _year_ago_month
+from company.billing.monthly_bill_assembly import _prior_calendar_month, _year_ago_month
 
 
 def test_prior_calendar_month_normal():
@@ -301,9 +301,9 @@ def test_bill_shock_likely_seasonal_false_for_shock_aftermath_month(force_actual
 import calendar
 import random
 
+from company.billing.monthly_bill_assembly import _estimated_settlement_records
 from saas.bill_generator import generate_bill
 from saas.customers import get_customer
-from simulation.run_phase4c_on_phase2b import _estimated_settlement_records
 
 
 def _sc_month_records(cid, year, month, kwh, unit_rate, sc_per_day=0.50):
@@ -437,7 +437,7 @@ def test_estimated_bills_priced_at_real_rate_with_quantity_divergence():
 # instance checks), never with a constructed scenario asserting the actual
 # numbers. ------------------------------------------------------------------
 
-from simulation.run_phase4c_on_phase2b import _resolve_catchup
+from company.billing.monthly_bill_assembly import _resolve_catchup
 
 
 def test_resolve_catchup_returns_none_for_empty_run():
@@ -551,7 +551,7 @@ def test_build_monthly_bills_suppresses_immaterial_catchup(force_actual_reads, m
     Controls the scenario directly (rather than hunting for a real run that
     happens to produce a sub-threshold divergence) by monkeypatching
     _resolve_catchup itself to return a fixed immaterial result."""
-    import simulation.run_phase4c_on_phase2b as mod
+    import company.billing.monthly_bill_assembly as mod
 
     immaterial = {
         "period_start": "2022-01-01", "period_end": "2022-01-31",

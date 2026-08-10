@@ -189,6 +189,23 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 # `extract_report_data`, a reporting concern the run module had absorbed; that
 # code now lives in `tools/run_annual_report.py`.
 #
+# 2026-08-10, KNIFE pass 3 (atom `KNIFE3_wall_crossing_paydown`, step 11,
+# `A_composition_lift`): three edges deleted —
+# `simulation.run_phase4c_on_phase2b -> {company.billing.back_billing,
+# company.billing.account_adjustment_register, saas.bill_generator}`. Monthly
+# bill assembly moved to `company/billing/monthly_bill_assembly.py` behind
+# `company.interfaces.bill_assembly`: assembling a bill from settled records,
+# deciding estimated-vs-actual, and reconciling a run of estimates under the
+# Ofgem SLC 31A cap are the supplier's own routine, not world physics. The world
+# now hands over records and a read feed and takes back bills.
+#
+# The direction the read goes is the reason this is a cut rather than a file
+# move. Whether a read ARRIVES is world physics, so the company does not import
+# `simulation.meter_reads`; it receives a `ReadArrivalFeed`
+# (`simulation.meter_reads.SimulatedReadFeed`). Carrying those imports across
+# would have traded three class-(b) edges for three class-(a) ones — the
+# forbidden direction, which is at zero and stays there.
+#
 # 2026-08-09, KNIFE pass 2 (atom `KNIFE2_customer_straddle`): 104 -> 88. All
 # SIXTEEN `simulation.* -> saas.customers` edges deleted — the customer module
 # straddling the wall, the single most-reached company module in the codebase.
@@ -246,12 +263,9 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "saas.property_model"),
     ("simulation.run_phase2b", "saas.smart_meter_rollout"),
     ("simulation.run_phase2b", "saas.tariff_pricing"),
-    ("simulation.run_phase4c_on_phase2b", "company.billing.account_adjustment_register"),
-    ("simulation.run_phase4c_on_phase2b", "company.billing.back_billing"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation"),
     ("simulation.run_phase4c_on_phase2b", "company.compliance.domain_invariants"),
-    ("simulation.run_phase4c_on_phase2b", "saas.bill_generator"),
     ("simulation.run_phase4c_on_phase2b", "saas.churn_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.cost_to_serve"),

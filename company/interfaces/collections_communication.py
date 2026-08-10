@@ -52,6 +52,19 @@ one of the ten shape-A files carrying 14 owed edges of its own. Stamping `collec
 onto a bill at emission therefore cannot happen until bill emission itself sits on the
 company side, which is `A_composition_lift`'s work and not this pass's.
 
+THE BLOCKER ABOVE IS GONE — UPDATED 2026-08-10 (KNIFE pass 3, `A_composition_lift` step 11).
+Bill emission now sits on the company side: `company/billing/monthly_bill_assembly.py`,
+behind `company/interfaces/bill_assembly.py`. The emitter this module said it was waiting
+for exists, so the PUSH is now buildable and the paragraph above records why it was not
+built before, not why it cannot be.
+
+What has NOT changed is this module: it is still a PULL, and the push is still owed. Step 11
+moved the emitter and deliberately built neither push on top of it — claiming otherwise in
+the same commit would be the "shape of a push with the substance of a pull" this docstring
+already refuses. Whoever draws that work: `assemble_monthly_bills` is where a
+`collections_tone` attribute would be stamped at emission, and the arrears engine would then
+react to what it RECEIVES rather than calling `collections_tone_for` per bill.
+
 Doing it anyway, from where the code stands today, would mean the SIM stamping the bill
 with a value it pulled from the company and then reading its own stamp back — the shape of
 a push with the substance of a pull, and a strictly worse artefact than an honest pull

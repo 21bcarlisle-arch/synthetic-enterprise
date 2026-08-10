@@ -69,6 +69,17 @@ back — the shape of a push with the substance of a pull, and a worse artefact 
 honest pull, because the next reader would believe the event contract existed. The push
 is owed to `A_composition_lift` and is recorded as owed in §3a of the register.
 
+THE BLOCKER ABOVE IS GONE — UPDATED 2026-08-10 (KNIFE pass 3, `A_composition_lift` step 11).
+`build_monthly_bills` is no longer a SIM composition root: bill assembly moved to
+`company/billing/monthly_bill_assembly.py`, behind `company/interfaces/bill_assembly.py`.
+The company-side emitter this module named as its blocker exists.
+
+This module is still a PULL and the push is still owed — step 11 moved the emitter and
+built neither push on top of it, on purpose. Whoever draws that work:
+`assemble_monthly_bills` is where a `reviewed_monthly_amount` instruction would be carried,
+with `build_dd_balance_book` applying what it receives instead of calling
+`reviewed_monthly_amount` per customer-year.
+
 What the pull buys now: the private helper, the review policy and its result type are
 unreachable from the SIM, and the remaining dependency is one float at one reviewable
 chokepoint.
