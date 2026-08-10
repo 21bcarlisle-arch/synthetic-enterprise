@@ -40,6 +40,27 @@ VALID_STREAMS = {"meter_to_cash", "price_to_bill", "wholesale_to_price", "close_
 # A `close_to_learn` atom absent from this set = the unreviewed default = a
 # violation (this is the mechanism that forces every new atom to be classified).
 REVIEWED_CLOSE_TO_LEARN = {
+    # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
+    # not"). Both classified on their merits, not to clear the gate.
+    # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction
+    # register and reports where the first seam tears. It explicitly forbids itself any fix,
+    # substrate adoption or schema work, so it moves no money and touches no revenue flow -- what
+    # it produces is knowledge about whether the current shape scales, which is the same
+    # close_to_learn class as its 111 H_harness siblings.
+    "AO12_scale_probe_10k",
+    # A9 is a DESIGN-LAW atom: it makes the portability constraint (no counterparty hardcoded
+    # across a seam; market-varying quantities reachable as tables) fail when broken, instead of
+    # being a review lens someone remembers. It builds no market and sells nothing; it measures
+    # whether an architectural claim already made is still true -- close_to_learn, same class as
+    # its A-lane governance siblings A1/A2/A6.
+    "A9_market_at_the_seams_design_law",
+    # 2026-08-10 reviewed (worker tick, ratified mint per DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION).
+    # H42 changes what an ALARM says, not what the company does: the wedge payload's suspect block
+    # is re-derived from the gate's actual red instead of a recency ranking that measured 0/8 for
+    # five consecutive episodes. No money moves and no revenue flow is touched -- what improves is
+    # whether the machine can say why it is stuck, the same close_to_learn class as H30 (sim_runner
+    # discarding child stderr) and its other H_harness siblings.
+    "H42_wedge_suspect_list_rederived_from_the_red",
     "G1_fidelity_grid_scorer", "G2_fidelity_evidence_ledger", "G3_fidelity_inspection_chain",
     # 2026-07-19 reviewed: Epoch-2 campaign fidelity/measurement atoms authored from their DISCOVER
     # docs (A scoring frame, D cascade estimation) per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF

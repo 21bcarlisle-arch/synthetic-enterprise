@@ -2,7 +2,29 @@
 
 # [PLANNER-MINTED] One node filled to full depth, with charts (ruling's pilot output) (2026-07-28)
 
-> **[IN-PROGRESS DISPOSITION 2026-07-29 worker tick] — BUILD DONE; marker flipped self-drawable→blocked (only the director LEVEL move remains, R16).**
+> **[UNBLOCKED 2026-08-10, worker tick] — `DIRECTOR_NOTE_UNBLOCK_CHARTS_2026-08-10.md`, director 4A.**
+> Marker flipped `blocked` → self-drawable. Scope and mechanism are the worker's; it feeds THE SITE
+> BREATHES work block and the lab's exploration surface, and it draws on **normal priority** once the
+> triage drain is moving — not priority zero.
+>
+> **Receipt for the class (the defect the director asked be recorded):** this item sat blocked for 13
+> days on a reason that had been ABOLISHED. The block was `director_level_up`; that act was abolished
+> 2026-07-29 and swept 2026-08-03 (PROPOSE, RECORD, ACT — levels are self-certified with evidence into
+> `gate_authorizations.jsonl`, and nothing authorises a move). The `BLOCK_RELEASE` header was updated
+> to `propose_then_proceed` in the sweep but **the body was not**, so the two lines below still read
+> "only the director LEVEL move remains (R16, no self-bump)" and the marker stayed blocked behind a
+> dead mechanism. That is the *park reason names a dead mechanism* class: a sweep that rewrites the
+> release header without rewriting the prose leaves the item just as parked as before. Both stale
+> lines are struck through where they appear below.
+>
+> **What is actually owed** (nothing to do with authority): the level is self-certifiable on evidence,
+> and the evidence this doc cites is a pre-deploy proxy — `pytest site/` 388 passed / 7 skipped, with
+> the render harness executing the page's real JS against the published JSON. R11 verification *to the
+> live rendered pixel* was explicitly deferred to "the next publish", and publishing has been wedged
+> across the intervening episodes. So the draw is: verify on the live surface, then self-certify with
+> that evidence. No director act is involved, and none ever was after 2026-07-29.
+
+> **[IN-PROGRESS DISPOSITION 2026-07-29 worker tick] — BUILD DONE; ~~marker flipped self-drawable→blocked (only the director LEVEL move remains, R16)~~ STRUCK 2026-08-10: the block named an abolished act; marker is self-drawable again, see the UNBLOCKED note above.**
 > The chosen deep node is `electricity-wholesale` (topic map §3.2 recommendation, argued). It was RE-HOMED from the pilot `wholesale-price-formation` page: `git mv` of the page dir; `knowledge_wholesale.json` `meta.topic_id`, the page-topic `id`+`title` ("GB electricity wholesale"), and all seven edges touching it repointed; `_render_harness.mjs` + the 31-test suite slug-updated (incl. the cycle/dup/orphan mutation targets, which would otherwise stop firing); the two `site/world/` links repointed; a `noindex` meta-refresh redirect left at the old URL (R11 — no orphan/dead backlink). The four rung-5 charts render on the new path and the DoD chartless-cannot-ship gate (R15 both ways) now guards `site/knowledge/electricity-wholesale/`. `pytest site/` = 388 passed, 7 skipped (broad-trigger full run, the render harness executing the page's real JS against the published JSON = the pre-deploy R11 proxy; live-deploy R11 verification lands on the next publish). Coordinated file_scope with #4 (`stubs_and_content_rehome`): this owned the deep node's dir; #4 still owns the rest + the hub re-home and stays self-drawable/open.
 
 **✅ SEQUENCING UNBLOCKED (2026-07-29):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) is DONE — the graph now exists at `docs/design/KPILOT_WHOLESALE_DOMAIN_TOPIC_MAP.md`. It RECOMMENDS `electricity-wholesale` as the deep node for this deliverable (argued §3.2: the price-formation charts + SRMC reconstruction already sit there, and the director's product-structure steer lands squarely on it). If a different node is chosen, engage that steer per the exit criteria. The graph's §5 machine-readable block is the target #4 reconciles the live JSON to.
@@ -12,7 +34,7 @@
 **Real-world fidelity gained:** exactly ONE node of the domain graph filled to full depth — a real explanation with charts — proving the graph structure carries depth, not just breadth. Ruling §5.2: fill one node to full depth, agent's choice with reasoning; the director's steer is that **product structure and shape is "possibly the most important thing we use."**
 
 **Lane:** SITE + BUILD (site page render on the chosen node + its chart set; disjoint `site/knowledge/<node>/**` file_scope). SITE lane is standing-open (THREE_LANES L2).
-**Target level:** SITE L2 (rendered, live-verified — R11 verify-to-pixel). Level move stays `blocked_on director_level_up` (R16 — agent builds L2-quality, no self-bump).
+**Target level:** SITE L2 (rendered, live-verified — R11 verify-to-pixel). ~~Level move stays `blocked_on director_level_up` (R16 — agent builds L2-quality, no self-bump).~~ **STRUCK 2026-08-10:** `director_level_up` was abolished 2026-07-29 and swept 2026-08-03. The level is SELF-CERTIFIED with evidence into `gate_authorizations.jsonl` (R16 records, it does not authorise). What the move needs is the R11 live-surface verification this doc deferred to "the next publish" — evidence, not an act.
 
 **Exit criteria:**
 - Exactly ONE node is chosen and the choice is ARGUED (ruling §5.2: "your choice which, with your reasoning"). If the choice is NOT the traded-product-structure node, the argument must engage the director's steer that product structure/shape is possibly the most important thing.

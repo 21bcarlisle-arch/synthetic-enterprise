@@ -1,3 +1,22 @@
+> **STATUS 2026-08-10 (worker tick) — PARTIALLY EXECUTED, parked here because the drain is not finished.**
+> **Blocking sub-item: the root is at 79 non-marker files (down from 98), not <20, so the product interleave has NOT armed.**
+> What unblocks it: continued triage of Groups C, D and the E remainder. Receipts for what has been
+> dispositioned so far: `docs/staging/done/TRIAGE_RECEIPTS_2026-08-10.md`.
+>
+> - **Group A — DONE (15 files).** Moved to `docs/design/refs/` with an index (`refs/README.md`).
+>   Both "verify the atom exists; mint if not" rows were verified and BOTH were missing:
+>   minted `AO12_scale_probe_10k` and `A9_market_at_the_seams_design_law`.
+> - **Group B — DONE for the unambiguous set (17 files, incl. `DIRECTOR_PRIORITY_PUBLISH_FIRST`
+>   from `in_progress/`).** Five findings this page lists as fix-landed were read first and their own
+>   status lines say QUEUED / class-open, so this page's own override sends them to Group D instead;
+>   they are named in the receipts.
+> - **Group C — STARTED.** `DIRECTOR_NOTE_SUSPECT_LIST` consumed (ratified mint landed as
+>   `H42_wedge_suspect_list_rederived_from_the_red`). `DIRECTOR_NOTE_UNBLOCK_CHARTS` consumed (the
+>   charts mint is unblocked, and the abolished-block receipt is recorded on the mint doc).
+>   The rest of Group C is OPEN.
+> - **Group D — OPEN.** No finding-atoms minted yet beyond the three above.
+> - **Group E — OPEN.**
+
 # [DIRECTOR-PRIORITY] — Backlog triage: the whole root, classified; drain to <20 then auto-arm the product interleave (2026-08-10)
 
 **Type:** [PRIORITY — director decision 2C+3C]. This page IS the drain: execute it above feature draws until staging root < 20 files. Each disposition = one-line receipt in the tick digest. **When root < 20: the product interleave ARMS automatically** — one world/customer/product atom drawn per harness atom thereafter (director 3C, no further instruction needed). Where a row says worker-judges, the group rule decides; nothing here overrides a finding's own status line if it says its fix already landed.

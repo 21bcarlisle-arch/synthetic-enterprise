@@ -1676,6 +1676,23 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an org that cannot afford to run the experiments its own strategy requires until it makes experiments cheap"
   depends_on: [ARCH1_internal_seams]
+- id: A9_market_at_the_seams_design_law
+  title: "A second market must fit behind the seams that already exist"
+  gain: "Portability stops being a review lens someone remembers to apply and becomes a check that fails when a counterparty gets hardcoded."
+  name: "Minted 2026-08-10 under the backlog-triage Group A instruction (verify the market-at-the-seams design law has its atom; mint if not -- it did not). From docs/design/refs/ADVISOR_ANALYSIS_MARKET_PORTABILITY_2026-08-07.md: the analysis decomposes Poesys into INVARIANT (harness/method, the epistemic wall as law, the bitemporal spine, population + affordability machinery), PARAMETERISE (cost-stack line items, tariff structures, cap-analogues, calendars, loss factors, weather anchors -- tables not code), ADAPTER-SWAP (settlement body, metering/data infrastructure, switching registry, payment rails, market comms -- the SAME operation go-live already defines, with a different endpoint set), and REBUILD (compliance organs, consumer-protection surfaces, language layers, local credit/debt law). The DESIGN LAW this atom owns is the middle two: no counterparty identity hardcoded across a seam, and every market-varying quantity reachable as a table rather than a literal. Standing constraint, mechanised -- the existing PORTABILITY_DEBT.md register records breaches in shipped code (remediation-on-touch, never speculative retrofit) and this atom is what makes a NEW breach fail rather than get logged. NOT in scope: building a second market or segment; GB SME/I&C is the analysis's recommended first extension and is a separate future draw."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: advisor_analysis
+  depends_on: []
+  couples_with: []
+  records_rehomed: [evidence]
+  notes_rehomed: [origin_note]
+  file_scope: ['docs/design/PORTABILITY_DEBT.md', 'tests/architecture/test_market_at_the_seams.py']
 - id: H17_autonomous_build_executor
   name: "Autonomous build-executor: a governed headless-turn executor that CONSUMES the Rule-0 self-refill draw and lands work (the map moves without the interactive session as sole executor); ALSO the Epoch-4 tournament substrate"
   lane: H_harness
@@ -3783,6 +3800,23 @@
   records_rehomed: [evidence]
   file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
   notes_rehomed: [origin_note]
+- id: AO12_scale_probe_10k
+  title: "Find the first seam that tears at 10k customers, with a number on it"
+  gain: "The scale question stops being an extrapolation argument and becomes a measurement -- and the measurement is cheap enough to repeat."
+  name: "The 10k probe defined by docs/design/refs/ADVISOR_REVIEW_DATA_ARCHITECTURE_AND_SCALE_PROBE_2026-08-05.md, minted 2026-08-10 under the backlog-triage Group A instruction (verify the probe atom exists; mint if not -- it did not). Synthetic 10k-customer book from the existing per-run population draw, instrumented for peak RSS, per-stage wall time and per-artefact output size. Bounded: 1 year x 10k before any decade attempt, hard wall-time cap, scratch outputs only (canonical files untouched). A PREDICTION REGISTER is written BEFORE the run (advisor ranking: in-run RAM at settlement build > run-output serialization > per-customer site publish > git transport) and the probe confirms or refutes the ordering -- a surprise ordering is the most valuable outcome. KNOWLEDGE is the success criterion: the probe succeeds even if the run dies, provided it dies measurably. EXPLICITLY NOT IN SCOPE: any fix, any database or substrate adoption, any schema work -- measure first (R4); a storage swap is an architecture door, not a build, and findings return to the director before any substrate decision."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: advisor_review
+  depends_on: []
+  couples_with: []
+  records_rehomed: [evidence]
+  notes_rehomed: [origin_note]
+  file_scope: ['tools/scale_probe_10k.py', 'tests/tools/test_scale_probe_10k.py', 'docs/design/SCALE_PROBE_10K.md']
 
 # ===========================================================================
 # THE FUTURES GO ON THE MAP -- E2..E5 commitment sets
@@ -4340,6 +4374,25 @@
   file_scope: ['tests/design/test_simplifications_store.py', 'tools/simplifications_store.py', 'tools/generate_proof_data.py', 'docs/design/maturity_map.yaml']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a disk-space alarm cleared by deleting last month's logs, which fires again next month because nothing changed the write rate"
+
+- id: H42_wedge_suspect_list_rederived_from_the_red
+  title: "The wedge alarm's suspects come from the actual red, not from what was filed most recently"
+  gain: "The responder reads a list that can name the cause, instead of eight recent findings that provably never do."
+  name: "RATIFIED AS A MINT by DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10 (the 12:32 report's recommendation). The publish-gate alarm's 'Also filed and unactioned in staging' block is built by background/process_run_complete.py::filed_findings() -- a RECENCY ranking over staged findings, structurally unrelated to the failure it is printed beside. Its own text already confesses the measurement: 0/8 named the cause in each of the FIVE preceding episodes, and the director's note prices it at twenty minutes of every responder's time per episode. THE FIX: re-derive the suspect set from the gate's ACTUAL red -- the named blocking test in .last_gate_blocking_tests.json and its blame trail (the commits touching that test's file and the modules it imports) -- never from a frozen recency set. EXIT: (1) suspects are derived from the blocking node id, so an alarm with no recorded blocking test yields NO suspect list rather than a recency fallback -- _blocking_clause's existing 'never degrades to a guess' discipline extends to the suspect block; (2) R15 both ways -- a mutation that reinstates the recency ranking, and one that emits suspects when the blocking test is unrecorded, each kill a NAMED test; (3) the 0/N hit-rate is MEASURED and carried in the payload, so a re-derivation that is also useless is visible rather than assumed better (R12: the hit rate is a diagnostic, never a target, and no finding may be archived to improve it); (4) fail-open check -- an unreadable or stale gate-state file must read as 'unrecorded', not as 'no suspects', per the FAIL-SILENT killer pattern. DRAW ORDER: the director's note sequences this AFTER the folded-site verification the same report proposes."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_ratified_mint
+  depends_on: []
+  couples_with: []
+  records_rehomed: [evidence]
+  notes_rehomed: [origin_note]
+  file_scope: ['background/process_run_complete.py', 'tests/background/test_process_run_complete_alarm.py']
+  real_world_twin: "an incident page that lists the last eight tickets anyone opened instead of the change that broke the thing"
 
 - id: PW3_suite_duration_watch
   title: "Nothing watches how long the suite takes"
