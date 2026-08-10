@@ -18,6 +18,7 @@ import dataclasses
 import json
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 
@@ -3179,46 +3180,81 @@ def test_the_organ_query_grid_register_is_measured_not_asserted():
         "an inert drift probe hands every invisibility declaration a free pass")
 
 
-def test_the_latency_arm_is_blind_without_bound_to_a_faster_company():
-    """THE FINDING, pinned (H27 Expert Hour #7). A company whose reconciliation
-    detector fires the day an invoice falls due -- or a fortnight BEFORE it is
-    due -- publishes a first-knowledge arm bit-identical to the shipped organ's,
-    because the only date the organ is ever asked at is the harness's own
-    `due + grace`.
+@pytest.mark.parametrize("seed", (7, 11, 23))
+def test_the_latency_arm_resolves_the_company_to_the_day(seed):
+    """THE RESHAPE (atom D23). A company whose reconciliation detector runs one
+    day faster publishes a first-knowledge arm one day earlier, and one running
+    a day slower publishes it one day later -- because the organ is now asked on
+    a DAILY grid from the invoice's issue date rather than at the harness's own
+    `due + grace` alone.
 
-    This is a CHARACTERIZATION test and it must FAIL when D23 lands. That is the
-    point: the register beside it names the atom, and a debt that stops being
-    true has to be re-derived rather than left standing."""
-    base = pair.measure(n_customers=_GRID_N, seed=7)["detection_latency"].components
-    for drift in (-20, -5, -1):
-        faster = pair.measure(
-            n_customers=_GRID_N, seed=7,
-            organ_reconciliation_drift_days=drift)["detection_latency"].components
-        for key in ("mean_lag_days", "mean_lag_days_without_dd_channel",
-                    "dd_channel_days_earlier", "n_latency_population"):
-            assert faster[key] == base[key], (
-                f"{key} moved under a {drift:+d}d organ improvement -- if D23 "
-                "has landed, re-derive ORGAN_QUERY_GRID and delete this pin")
-    assert base["mean_lag_days_without_dd_channel"] == float(
-        pair.DEFAULT_RECONCILIATION_GRACE_DAYS), (
-        "the counterfactual arm IS the harness's own grace parameter echoed "
-        "back, which is why no company improvement can move it")
-
-
-def test_a_one_day_slower_company_is_published_as_a_twenty_one_day_step():
-    """The other half of the same defect: the grid's step is
-    `PERIOD_SPACING_DAYS`, so the smallest visible degradation is reported at
-    21x its size, and +1 / +7 / +21 are one number."""
-    readings = {
-        k: pair.measure(n_customers=_GRID_N, seed=7,
+    This replaces the characterization test that pinned the defect. That one had
+    to fail when D23 landed, and this is the re-derivation it demanded: the same
+    quantity, asserted from the other side."""
+    read = {
+        k: pair.measure(n_customers=_GRID_N, seed=seed,
                         organ_reconciliation_drift_days=k
                         )["detection_latency"].components[
                             "mean_lag_days_without_dd_channel"]
-        for k in (0, 1, 7, 21)
+        for k in (-1, 0, 1, 7)
     }
-    assert readings[1] - readings[0] == pair.PERIOD_SPACING_DAYS
-    assert readings[1] == readings[7] == readings[21], (
-        "a 1-day and a 21-day degradation are indistinguishable on this grid")
+    assert read[0] == float(pair.DEFAULT_RECONCILIATION_GRACE_DAYS)
+    assert read[-1] == read[0] - 1, (
+        "a one-day-FASTER company must publish one day earlier -- the "
+        "direction the old grid could not see at all")
+    assert read[1] == read[0] + 1, (
+        "a one-day-SLOWER company must publish one day later, not a "
+        "PERIOD_SPACING_DAYS step")
+    assert read[7] == read[0] + 7, (
+        "+1 / +7 must be different numbers -- they were one number on the "
+        "one-candidate-per-period grid")
+
+
+def test_the_grid_is_daily_from_the_issue_date_to_as_of():
+    """The mechanism the day-for-day resolution rests on, asserted at its
+    source: consecutive days, floored at the invoice's own issue date (the
+    earliest a supplier can know it billed), ceilinged at `as_of`."""
+    import datetime as _dt
+
+    records, _consumer, _book, as_of = pair.build_scenario(2, seed=7)
+    periods = [r for r in records if r.customer_id == records[0].customer_id]
+    dates = pair.organ_query_dates(periods, as_of)
+    assert dates[0] == min(r.issue_date for r in periods)
+    assert dates[-1] == as_of
+    assert len(dates) == (dates[-1] - dates[0]).days + 1, "not a DAILY grid"
+    assert len(set(dates)) == len(dates)
+    # The bound is the COMPANY's: it cannot know an unissued bill went unpaid.
+    assert pair.organ_query_dates(periods, dates[0] - _dt.timedelta(days=1)) == []
+
+
+def test_no_case_leaves_the_latency_population_for_want_of_a_candidate():
+    """The coarse grid's other casualty: the LAST period had no later candidate,
+    so a slower company's cases fell out of the population entirely rather than
+    being dated (undated 0 -> 59 at seed 7). A grid running to `as_of` cannot do
+    that, and the witness says so rather than a comment claiming it."""
+    for drift in (0, 1, 7):
+        comps = pair.measure(
+            n_customers=_GRID_N, seed=7,
+            organ_reconciliation_drift_days=drift)["detection_latency"].components
+        assert comps["n_recon_detected_undated"] == 0, (
+            f"a {drift:+d}d company has cases reconciliation reports at `as_of` "
+            "but at no candidate date -- the grid has holes in it")
+
+
+def test_the_floor_witness_counts_the_readings_that_are_at_or_before():
+    """`n_recon_dated_at_issue_floor` is the honest half of the residual: a case
+    first known on the invoice's own ISSUE date is 'at or before', never exact,
+    because the organ's `days_overdue` is clamped at zero. Zero on the shipped
+    organ, the whole population on one at the floor -- so it is a reading, not a
+    constant."""
+    shipped = pair.measure(n_customers=_GRID_N, seed=7
+                           )["detection_latency"].components
+    assert shipped["n_recon_dated_at_issue_floor"] == 0
+    floored = pair.measure(
+        n_customers=_GRID_N, seed=7,
+        organ_reconciliation_drift_days=-20)["detection_latency"].components
+    assert floored["n_recon_dated_at_issue_floor"] == floored[
+        "n_latency_population"] > 0
 
 
 def test_the_grid_control_fires_when_the_drift_goes_inert():
@@ -3235,37 +3271,110 @@ def test_the_grid_control_fires_when_the_drift_goes_inert():
     assert any("declared VISIBLE but left the reading" in v for v in violations)
 
 
-def test_the_grid_control_fires_when_the_blindness_is_repaired():
-    """R15, the direction that matters most: when D23 gives the grid a real
-    resolution, the register's entries become LIES and must fail by name. A
-    control that only fires on the defect getting worse lets a stale debt entry
-    outlive its debt."""
+def test_the_grid_control_fires_when_the_grid_goes_coarse_again():
+    """R15, the regression direction: put the PRE-D23 grid back -- every
+    improvement reads the `grace` parameter, a +1d company reads +21 -- and the
+    re-derived register must fail by name rather than quietly re-describing a
+    coarser instrument.
+
+    This is the mutation the finding said no test in the repository had: seven
+    tests fired on a +1d organ drift and not one named latency."""
     real = {k: pair.measure(n_customers=_GRID_N, seed=7,
                             organ_reconciliation_drift_days=k)
-            for k in (-20, -5, -1, 0, 1)}
+            for k in (-20, -5, -1, 0, 1, 7)}
 
-    def fine_grid(k):
-        """A D23-shaped repair: the reading tracks the organ day for day."""
+    def coarse_grid(k):
+        """One candidate per period at `due + grace`: improvements invisible,
+        degradation quantised to PERIOD_SPACING_DAYS."""
         result = copy.deepcopy(real[0])
         lat = result["detection_latency"]
         comps = dict(lat.components)
-        comps["mean_lag_days_without_dd_channel"] = (
-            float(comps["mean_lag_days_without_dd_channel"]) + k)
+        comps["mean_lag_days_without_dd_channel"] = float(
+            pair.DEFAULT_RECONCILIATION_GRACE_DAYS
+            + (pair.PERIOD_SPACING_DAYS if k > 0 else 0))
+        result["detection_latency"] = dataclasses.replace(lat, components=comps)
+        det = result["detection"]
+        result["detection"] = dataclasses.replace(
+            det, gap=det.gap + (0.01 if k > 0 else 0.0))
+        return result
+
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, runner=coarse_grid)
+    violations = pair.check_organ_query_grid_resolution(measured)
+    assert violations
+    assert any("declared VISIBLE but left the reading" in v for v in violations), (
+        "-1d is declared visible; a coarse grid leaves it at the baseline")
+    assert any("published as 21.0 days, not the declared 1.0" in v
+               for v in violations), (
+        "the resolution pin is what keeps the published caveat honest")
+
+
+def test_the_grid_control_fires_when_the_declared_collapse_is_resolved():
+    """R15, the direction the reshape MOVED this register into. With no
+    invisibility left on the date reading, the only falsifiable residual is the
+    COLLAPSE -- two companies 15 days apart publishing one number because the
+    organ clamps `days_overdue` at zero. A D24-shaped repair separates them, and
+    the entry must then fail as a stale debt exactly as a repaired invisibility
+    did, naming the atom to re-derive."""
+    real = {k: pair.measure(n_customers=_GRID_N, seed=7,
+                            organ_reconciliation_drift_days=k)
+            for k in (-20, -5, -1, 0, 1, 7)}
+
+    def unclamped(k):
+        """The organ's overdue clock no longer floored at zero: -20d is now a
+        different company from -5d, as it always was in fact."""
+        result = copy.deepcopy(real[k])
+        if k >= 0:
+            return result
+        lat = result["detection_latency"]
+        comps = dict(lat.components)
+        comps["mean_lag_days_without_dd_channel"] = float(
+            pair.DEFAULT_RECONCILIATION_GRACE_DAYS + k)
         result["detection_latency"] = dataclasses.replace(lat, components=comps)
         det = result["detection"]
         result["detection"] = dataclasses.replace(det, gap=det.gap + 0.001 * k)
         return result
 
     measured = pair.measure_organ_query_grid_resolution(
-        n_customers=_GRID_N, seed=7, runner=fine_grid)
+        n_customers=_GRID_N, seed=7, runner=unclamped)
     violations = pair.check_organ_query_grid_resolution(measured)
     assert violations
-    assert any("declared INVISIBLE but moved" in v for v in violations)
-    assert any("D23_organ_query_grid_cannot_resolve_latency" in v
+    assert any("declared to COLLAPSE to one reading but read" in v
+               for v in violations)
+    assert any("D24_the_latency_floor_is_the_organs_clamped_overdue" in v
                for v in violations), "the violation must name the atom to re-derive"
-    assert any("published as 1.0 days, not the declared 21.0" in v
-               for v in violations), (
-        "the quantisation pin is what keeps the published caveat honest")
+
+
+def test_a_declared_collapse_that_sits_on_the_baseline_is_refused():
+    """R15, mutating the REGISTER: `collapsed_pairs` is the falsifiable residual
+    that replaced `invisible_drifts` on the date reading, so it must not be
+    satisfiable by a pair that simply does not move. Two drifts reading the
+    BASELINE are an invisibility -- checked by the rule written for
+    invisibilities -- and a register allowed to launder one as the other could
+    claim a residual it does not have."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    register["recon_lag_days"]["collapsed_pairs"] = ((99, 98),)
+    frozen = pair.measure(n_customers=_GRID_N, seed=7)
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, register=register,
+        runner=lambda k: (frozen if k in (98, 99)
+                          else pair.measure(n_customers=_GRID_N, seed=7,
+                                            organ_reconciliation_drift_days=k)))
+    violations = pair.check_organ_query_grid_resolution(measured, register=register)
+    assert any("that is an INVISIBILITY, not a collapse" in v for v in violations)
+
+
+def test_an_entry_declaring_no_residual_at_all_is_refused():
+    """R15, the vacuity guard from the other end. The pre-reshape rule was 'not
+    all-invisible'; the reshape needs its mirror, because an entry that declares
+    nothing it cannot see is a register that cannot fail."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    register["recon_lag_days"]["invisible_drifts"] = ()
+    register["recon_lag_days"]["collapsed_pairs"] = ()
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, register=register)
+    violations = pair.check_organ_query_grid_resolution(measured, register=register)
+    assert any("declares NO invisibility and NO collapse" in v for v in violations)
 
 
 def test_the_grid_register_cannot_declare_a_blindness_with_no_owner():
@@ -3280,17 +3389,42 @@ def test_the_grid_register_cannot_declare_a_blindness_with_no_owner():
 
 
 def test_the_grid_register_is_differential_not_a_blanket_claim():
-    """Both keysets non-empty on every entry: an all-invisible register is a
+    """Every entry declares BOTH a residual it cannot resolve (an invisibility
+    or a collapse) and a drift it must see: an all-invisible register is a
     blanket blindness claim wearing a register's clothes, and an all-visible one
     could not fail on the defect it was built for (the DIMENSION_AS_OF_CONTRACT
     lesson this instrument has now learned four times)."""
     for name, entry in pair.ORGAN_QUERY_GRID.items():
-        assert entry["invisible_drifts"], name
+        assert entry["invisible_drifts"] or entry["collapsed_pairs"], name
         assert entry["visible_drifts"], name
     kinds = {e["reading"] for e in pair.ORGAN_QUERY_GRID.values()}
     assert kinds == {"date", "set_membership"}, (
         "the set-membership entry is what makes this a finding about the GRID "
         "rather than about the latency formula")
+
+
+def test_the_two_readings_part_company_where_the_reshape_put_them():
+    """The register earns 'differential' by the two entries DISAGREEING, and
+    after D23 they disagree in a way that localises what is left. A +1d company
+    moves the DATE reading by a day and leaves the SET reading untouched -- a
+    set is not a clock -- while both COLLAPSE together at the organ's zero-floor.
+    A residual binding a reading with no days in it is the organ's, not the
+    grid's, which is the whole reason D24 owns it rather than this module."""
+    assert 1 in pair.ORGAN_QUERY_GRID["recon_lag_days"]["visible_drifts"]
+    assert 1 in pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"][
+        "invisible_drifts"]
+    shared = (set(pair.ORGAN_QUERY_GRID["recon_lag_days"]["collapsed_pairs"])
+              & set(pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"][
+                  "collapsed_pairs"]))
+    assert shared, "the shared collapse is the evidence the floor is the organ's"
+
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7)
+    assert 1 in measured["recon_lag_days"]["moved"]
+    assert 1 in measured["flagged_via_reconciliation"]["unmoved"]
+    for name in measured:
+        for pair_key in shared:
+            assert measured[name]["collapses"][pair_key]["collapsed"]
 
 
 def test_the_grid_resolution_caveat_travels_with_the_number():
@@ -3301,10 +3435,21 @@ def test_the_grid_resolution_caveat_travels_with_the_number():
         {("c", 0): 1}, {("c", 0): 5}, n_true_failures=1)
     caveat = result.components["organ_query_grid_caveat"]
     assert "atom D23" in caveat
-    assert "BLIND WITHOUT BOUND" in caveat
-    assert "21.0 days later" in caveat
-    assert result.components["organ_improvement_is_visible"] is False
-    assert result.components["organ_query_grid_step_days"] == 21.0
+    assert "DAILY grid" in caveat
+    assert "1.0 days" in caveat
+    assert "atom D24" in caveat, (
+        "the caveat must carry the residual it still has, not only the one it "
+        "closed")
+    assert result.components["organ_improvement_is_visible"] is True
+    assert result.components["organ_query_grid_step_days"] == 1.0
+    # READ FROM the register, never retyped: flipping the register flips the
+    # published claim, so the two cannot drift apart the way a prose caveat did.
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    register["recon_lag_days"]["visible_drifts"] = (1,)
+    with mock.patch.object(pair, "ORGAN_QUERY_GRID", register):
+        blinded = pair.detection_latency_gap(
+            {("c", 0): 1}, {("c", 0): 5}, n_true_failures=1)
+    assert blinded.components["organ_improvement_is_visible"] is False
 
 
 def test_the_grid_resolution_control_runs_in_the_cli_not_only_in_tests():
