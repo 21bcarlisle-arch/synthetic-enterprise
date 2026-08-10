@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**15 attachment(s)** from 13 source doc(s), across 12 atom(s).
+**14 attachment(s)** from 12 source doc(s), across 13 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -39,7 +39,6 @@ _epoch 3 · lane C_customer_ops · L3→L3 · harden_
 **Reshape the coupled-triad DETECTION dimension, which has two defects the 2026-08-09 H27 Expert Hour **  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
-- `2026-08-09` · `docs/staging/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
 
 ## D12_detection_cell_grid_is_recall_only
@@ -66,11 +65,16 @@ _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` (finding) — minted here, built here)
 
+## D22_ageing_ordinal_is_one_directional
+**The W2_11<->D5 triad's AGEING dimension publishes an ORDINAL headline -- `mean_bucket_displacement`,**  
+_epoch 3 · lane D_billing_metering · L0→L2 · build_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md` (finding) — minted here, **not** built here) · `H41_the_map_ratchet_has_no_ongoing_drain` (recurrence measured)
+
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
-- `2026-08-09` · `docs/staging/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
 
 ## EP16_anchored_generators
