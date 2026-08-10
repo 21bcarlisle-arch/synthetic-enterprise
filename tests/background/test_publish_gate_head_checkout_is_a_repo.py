@@ -82,7 +82,7 @@ def test_nothing_is_registered_in_the_real_repo(head_checkout):
     assert str(head_checkout) not in listing.stdout
 
 
-def test_the_checkout_is_either_reused_or_removed_never_leaked():
+def test_the_checkout_is_either_reused_or_removed_never_leaked(monkeypatch):
     """Was `test_the_checkout_is_removed_afterwards`. Since OPS2 the gate REUSES one checkout
     between cycles so `__pycache__` survives, and removal is no longer the property that keeps
     /tmp from filling -- BOUNDEDNESS is. Two shapes are legitimate and nothing else is: the one
@@ -91,7 +91,40 @@ def test_the_checkout_is_either_reused_or_removed_never_leaked():
     Which one this process gets depends on whether a live publisher holds the reuse lock, so this
     asserts the disjunction rather than picking a branch. The branch-specific behaviour --
     bytecode survives a refresh; a throwaway is removed even when the run raises; abandoned
-    checkouts are swept -- is pinned deterministically in test_publish_gate_subject_is_head.py."""
+    checkouts are swept -- is pinned deterministically in test_publish_gate_subject_is_head.py.
+
+    WHY THE TREE COPY IS STUBBED (2026-08-10, episode-4 wedge cause -- the tenth failure at
+    HEAD 88181441a was this test, and it was a RESOURCE failure, not a false property).
+
+    When this module runs INSIDE the publish gate, the gate itself holds the reuse lock, so
+    `_head_checkout()` here can only take the THROWAWAY branch: a full 190MB extraction of HEAD
+    on top of the 190MB the gate is already running from, on a `/tmp` that is tmpfs, i.e. RAM.
+    Measured at the failure: 15.9GB total, 3.0GB available, swap 4074/4096MB used, two full
+    suites live -- and `git read-tree` in that second materialisation exceeded its 120s timeout,
+    so `_make_checkout_a_repo` returned False, `_head_checkout()` correctly yielded None (R15
+    fail-closed), and `assert path is not None` failed. Nothing about HEAD was unpublishable.
+
+    The property under test is the CONTEXTMANAGER's lifecycle -- sweep, disk pre-flight, SHA,
+    lock, mkdtemp, `finally: rmtree`, and the reused-vs-throwaway naming branch. None of that is
+    a property of the extracted TREE, so the tree is stubbed to a bare directory and the whole
+    branch/cleanup path stays real. The module fixture above still pays ONE real materialisation,
+    which is what the tree-shaped assertions (rev-parse, blame, clean) actually need; this halves
+    the gate's tmpfs high-water and removes the timeout-prone second read-tree entirely.
+
+    R15: the mutation this still catches is deleting `shutil.rmtree(tmp)` from `_head_checkout`'s
+    `finally` -- the throwaway then survives and the else-branch below fails. The stub is asserted
+    to have been used, so a silent regression to the expensive form cannot pass unnoticed."""
+    calls = []
+
+    def _stub_materialise(dest, head_sha):
+        """Everything `_head_checkout` needs downstream, minus the 190MB: a directory that
+        exists. `_overlay_untracked_data` symlinks into it unchanged."""
+        calls.append((Path(dest), head_sha))
+        Path(dest).mkdir(parents=True, exist_ok=True)
+        return True
+
+    monkeypatch.setattr(prc, "_materialise_head_into", _stub_materialise)
+
     with prc._head_checkout() as path:
         assert path is not None
         assert path.exists()
@@ -99,6 +132,8 @@ def test_the_checkout_is_either_reused_or_removed_never_leaked():
         assert path.exists(), "the reused checkout must survive between cycles"
     else:
         assert not path.exists(), "the gate leaked a throwaway HEAD checkout directory"
+        assert calls, ("the throwaway branch materialised a real 190MB tree instead of the stub "
+                       "-- the second full extraction is back and so is the wedge")
 
 
 # ── R15 direction 1: the defect is reachable ─────────────────────────────────
