@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**12 attachment(s)** from 10 source doc(s), across 9 atom(s).
+**13 attachment(s)** from 11 source doc(s), across 10 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -47,6 +47,12 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md` (finding)
+
+## D19_belief_gap_is_distribution_only
+**The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severit**  
+_epoch 3 · lane D_billing_metering · L0→L2 · build_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
 
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
