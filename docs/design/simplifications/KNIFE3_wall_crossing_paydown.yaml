@@ -36,56 +36,123 @@ map_records:
   - tools/run_phase3a.py
   - tools/run_phase4b_on_phase2b.py
   - docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md
-  exit_evidence: 'STEP 9 (A_composition_lift PART 1), 2026-08-10 -- this atom is PARTIALLY built and
-    must NOT be re-drawn as if from zero; 32 of 91 crossings now CUT, LEVEL DELIBERATELY STILL 0 because
-    part 2, B2, B3 and the B4/B5 residuals remain. 16 EDGES CUT, 75 -> 59 LIVE (72 -> 56 direct; the 3
-    indirect deliberately UNMOVED, and that is the proof, see below). THE SEVEN MISFILED HARNESSES --
-    run_phase0b/0c/1c/1c_full_window/1c_renewals/3a/4b_on_phase2b -- git mv''d simulation/ -> tools/, where
-    run_annual_report.py and run_phase4c_pipeline.py already live. Pure renames: git diff -M --stat reports
-    7 files changed, 0 insertions, 0 deletions. THIS IS THE CUT SECTION 2b BANNED IN WRITING, and the
-    reason it is legal here is that STEP 8 RECORDED THE CRITERION BEFORE ANY FILE MOVED (''seven of them
-    are 75-153 line files that are main() plus its private helpers ... that DERIVES section 2b''''s own
-    refusal for run_phase2b rather than contradicting it''). Part 1 EXECUTES that recorded criterion; it
-    did not discover it, and section 2b is now SCOPED IN PLACE to the three files its evidence supports
-    (run_phase2b 2,961 lines, run_phase4c_on_phase2b, run_segments -- all three with walled in-edges) so
-    a reader finding only the ban cannot put back what part 1 cut. FOUR CONDITIONS, MEASURED PER FILE,
-    ALL FOUR REQUIRED, any one failing puts the file back with run_phase2b: (1) ZERO importers anywhere
-    inside the wall -- so NO WALLED MODULE''''S DEPENDENCY SET CHANGES AT ALL, which is the condition that
-    separates a misfiling correction from a laundering; (2) the file defines nothing the codebase uses,
-    so ''extract the thin composition and leave the substantive module walked and clean'' has no residue
-    to leave behind; (3) an entry point by its own account -- main() + __main__ + a docstring calling itself
-    a script (run_phase0b: ''the orchestration glue ... not itself a delegated deliverable, just the script
-    that drives them and prints the result''); (4) what it hands the company is an OBSERVABLE -- published
-    SSP history, published PC1 shapes, forward prices off the published curve, the supplier''''s own settled
-    records and its own supply book. NO SIM INTERNAL CROSSES IN ANY OF THE SEVEN, per-edge in register
-    section 4. CONDITION 1 PROVEN BY INJECTION ON THE REAL TREE, NOT ASSERTED: simulation/_knife3_reentry_probe.py,
-    one line importing a lifted harness -- the exact re-entry that would retroactively turn this into a
-    laundering -- took live_indirect_crossings() 3 -> 6 (all three named, each via tools.run_phase1c) and
-    test_epistemic_wall_indirect_ratchet.py to 4 failed / 16 passed, WHILE test_epistemic_wall_ratchet.py
-    passed 12/12 on the same injection. That green direct ratchet is why part 1 could not honestly have
-    landed before step 8 did. Probe deleted; indirect ratchet back to 20 passed, crossings back to 3. NO
-    NEW CONTROL WAS ADDED, deliberately -- a lift-specific guard would red on exactly the trees
-    test_no_new_indirect_crossings already reds on, which is accretion and the redundancy section 3b was
-    already caught hiding. STATED PLAINLY RATHER THAN LEFT TO THE NUMBER: the count fell by 16 and THE
-    DEPENDENCY GRAPH DID NOT CHANGE -- same functions calling the same functions in the same order; seven
-    files filed as the simulated world are now filed as entry points, the mirror of B1''''s three
-    behavioural-physics modules filed company-side. The 16 tuples are DELETED from LEGACY_SIM_READS_COMPANY
-    so the floor moved down with the code. tools/epistemic_wall.py NOT EDITED in this cutting commit.
-    SIZE RATCHET: tools/ IS in SCOPE_ROOTS, so no debt escaped the ratchet by the move, and the seven
-    baseline keys were carried across the rename BY HAND so the frozen floors did not reset -- the three
-    pre-existing debts (run_phase1c_renewals 153>143, run_phase3a 94>89, run_phase4b 75>70) still fire at
-    the new path. A rename must not be a way to reset a ratchet floor. ONE DEFECT QUEUED, NOT FIXED ON
-    SIGHT (SELF_INTERRUPT_DISCIPLINE): rule 2b reads head_texts BY PATH, so a pure git mv reads as a NEW
-    oversized function -- docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md.
-    WHAT PART 1 DOES NOT UNBLOCK, stated because two designs name A as their blocker: B5''''s residual and
-    B4''''s remainder both need a company-side EMITTER for bills assembled by run_phase4c_on_phase2b, which
-    is one of the three files STILL STANDING. Their blocker is part 2, and it was part 2 all along.
+  - tools/run_segments.py
+  - tools/run_segment_report.py
+  - tools/size_ratchet.py
+  - tools/size_ratchet_gate.py
+  - tests/tools/test_size_ratchet_gate.py
+  exit_evidence: 'STEP 10 (A_composition_lift PART 2, run_segments), 2026-08-10 -- this atom is PARTIALLY
+    built and must NOT be re-drawn as if from zero; 36 of 91 crossings now CUT, LEVEL DELIBERATELY STILL
+    0 because run_phase2b, run_phase4c_on_phase2b, B2, B3 and the B4/B5 residuals remain. 4 EDGES CUT,
+    59 -> 55 LIVE (56 -> 52 direct; the 3 indirect deliberately UNMOVED again, and that is again the proof).
+    FIRST, THE MEASUREMENT THAT SHOULD HAVE EXISTED AT STEP 9: part 1 lifted seven files as a GROUP and
+    described the three it left with one sentence -- ''all three with walled in-edges'' -- which is FALSE
+    for two of the three and was never measured. An AST census over company/+saas/+sim/+simulation/ finds
+    walled importers ONLY for run_phase2b (simulation/run_scenario.py). run_phase4c_on_phase2b and run_segments
+    have ZERO. The ban is right for all three and rests on a DIFFERENT condition in each: run_phase2b
+    fails 1 AND 2 (18 module-level symbols imported elsewhere); run_phase4c_on_phase2b fails 3 BY ITS
+    OWN DOCSTRING (''this module is a pure LIBRARY -- it has no CLI and no __main__ block'') and fails
+    2 on build_monthly_bills, the 225-line bill assembly B5''s residual and B4''s remainder need a company-side
+    emitter for -- so ''their blocker is part 2'' now names something specific. A group refusal resting
+    on a property two of its three members do not have is a refusal nobody can check. Recorded as register
+    section 3d; the conditions are now stated as PER-FILE, not per-group. SECOND, THE CUT. run_segments
+    passes conditions 1, 2 and 3 by measurement (zero walled importers; `main` the only symbol anything
+    imports and only from tools/; main() + __main__ + a docstring calling itself a run; its population
+    physics delegated to simulation/segments.py, so no residue to strand). CONDITION 4 FAILED, and on
+    something REAL rather than a filing question: naked_fraction=1 - sim.hedging_strategy.MIN_HEDGE_FLOOR
+    handed the WORLD''S hedge mandate into the COMPANY''S price_fixed_tariff -- the exact leak B7 cut
+    out of simulation/renewals.py five steps earlier, found live a SECOND time, which makes the class
+    real rather than anecdotal (R10). Lifting with the leak in it would have moved the leak to tools/
+    where no instrument counts it -- condition 4''s own words, ''moving it would bury the violation instead
+    of the edge''. SO THE REPAIR AND THE LIFT LAND IN ONE COMMIT, REPAIR FIRST: naked_fraction now comes
+    from company.risk.hedge_policy.COMPANY_MIN_HEDGE_FLOOR, as renewal_desk.py::NAKED_FRACTION does and
+    as simulation/run_phase2b.py already did. NO PRICE MOVES AND THAT IS MEASURED, NOT ASSERTED: both
+    floors are 0.85, so both readings produce the identical float 0.15000000000000002 -- the same bits
+    reach the pricing function, so there is nothing to re-run. Deliberately NOT pinned by a test that
+    the two floors are equal: that would restore in the suite exactly the coupling the cut removes from
+    the code (B3''s recorded trap, B7''s refusal for this same constant). The world''s copy of the floor
+    is still read for RESET_HEDGE_FRACTION and evolve_hedge_fraction -- the world''s OWN book. run_phase2b
+    also uses company_evolve_hedge_fraction; whether the segment run should follow WOULD move numbers,
+    so it is not bundled into a wall pass. CONDITION 1 PROVEN BY INJECTION ON THE REAL TREE, NOT ASSERTED:
+    simulation/_knife3_part2_reentry_probe.py, one line importing tools.run_segments, took live_indirect_crossings()
+    3 -> 8 and test_epistemic_wall_indirect_ratchet.py to 4 failed / 16 passed, WHILE test_epistemic_wall_ratchet.py
+    passed 12/12 on the same injection. Probe deleted; indirect back to 3, indirect ratchet back to 20
+    passed. NO NEW CONTROL ADDED, same reasoning as part 1. THE HONEST RESIDUAL, AND IT IS B7''S: on a
+    segment''s first gas term the forward comes from _bootstrap_gas_price, built out of sim.forward_curve''s
+    private _ewma/_seasonal_shape, and that number is handed to company pricing. Same cold-start leak
+    B7 named and preserved as fallback_forward_price_gbp_per_mwh. B7 kept it visible in a seam signature;
+    here the edge stops being counted on the lift, so it is recorded OWED in register section 3e against
+    the same open company-side question -- what does a supplier quote with no price history? One answer
+    closes both. STEP 10a, ITS OWN COMMIT (fc450fde3): the size ratchet''s rule 2b read a touched file''s
+    prior state BY PATH, so a pure git mv minted every function in the moved file as NEW -- run_segments''
+    435-line main() would have read as a fresh oversized function with zero lines changed. Queued at step
+    9 as WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md and drawn now because
+    this lift hits it. The map comes from git''s own -M detection, never a filename heuristic (the only
+    thing that makes a move safe to wave through is that the CONTENT is unchanged, which is what git measures);
+    evaluate() stays pure, the caller resolves the map. R15 both ways: the rename-blind mutation reds
+    both new tests, restored byte-equal by cmp, 30 passed -- and the vacuity guard is its own test, so
+    a commit that renames AND appends a fresh giant still reds naming only the appended one. NOTE THE
+    RATCHET IS IN rollout_state=warn, so it would not have BLOCKED the lift; the fix removes a false positive
+    that would otherwise have been logged against it. SIZE RATCHET: the baseline key was carried across
+    the rename BY HAND (simulation/run_segments.py 631 -> tools/run_segments.py 631), one key moved and
+    nothing else, so the frozen floor did not reset. RUFF: the 5 pre-existing F401s on this file are byte-identical
+    before and after the move (compared against git show HEAD~1 through --stdin-filename); my edits introduce
+    none, and the static-quality ratchet''s total count is unchanged, which is why tests/architecture/
+    stays 60 passed. SUITES GREEN, measured after the last edit: tests/architecture/ 60 passed; the combined
+    run tests/architecture/ + test_wall_crossing_dispositions.py + test_wall_crossing_at_head.py + test_knife_hotspot_measure.py
+    + test_size_ratchet_gate.py + tests/controls/ + test_segment_report.py = 316 passed, 1 xfailed, rc
+    0. python3 -m tools.epistemic_verifier PASS over 539 company/+saas/ files. wall_crossing_dispositions.py
+    OK, ''55 live crossings (52 direct, 3 indirect); 91 ruled (cut 36, owed 55, grandfathered 0)''. tools/epistemic_wall.py
+    NOT EDITED in this cutting commit. --- PRIOR STEP BELOW --- STEP 9 (A_composition_lift PART 1), 2026-08-10
+    -- this atom is PARTIALLY built and must NOT be re-drawn as if from zero; 32 of 91 crossings now CUT,
+    LEVEL DELIBERATELY STILL 0 because part 2, B2, B3 and the B4/B5 residuals remain. 16 EDGES CUT, 75
+    -> 59 LIVE (72 -> 56 direct; the 3 indirect deliberately UNMOVED, and that is the proof, see below).
+    THE SEVEN MISFILED HARNESSES -- run_phase0b/0c/1c/1c_full_window/1c_renewals/3a/4b_on_phase2b -- git
+    mv''d simulation/ -> tools/, where run_annual_report.py and run_phase4c_pipeline.py already live.
+    Pure renames: git diff -M --stat reports 7 files changed, 0 insertions, 0 deletions. THIS IS THE CUT
+    SECTION 2b BANNED IN WRITING, and the reason it is legal here is that STEP 8 RECORDED THE CRITERION
+    BEFORE ANY FILE MOVED (''seven of them are 75-153 line files that are main() plus its private helpers
+    ... that DERIVES section 2b''''s own refusal for run_phase2b rather than contradicting it''). Part
+    1 EXECUTES that recorded criterion; it did not discover it, and section 2b is now SCOPED IN PLACE
+    to the three files its evidence supports (run_phase2b 2,961 lines, run_phase4c_on_phase2b, run_segments
+    -- all three with walled in-edges) so a reader finding only the ban cannot put back what part 1 cut.
+    FOUR CONDITIONS, MEASURED PER FILE, ALL FOUR REQUIRED, any one failing puts the file back with run_phase2b:
+    (1) ZERO importers anywhere inside the wall -- so NO WALLED MODULE''''S DEPENDENCY SET CHANGES AT
+    ALL, which is the condition that separates a misfiling correction from a laundering; (2) the file
+    defines nothing the codebase uses, so ''extract the thin composition and leave the substantive module
+    walked and clean'' has no residue to leave behind; (3) an entry point by its own account -- main()
+    + __main__ + a docstring calling itself a script (run_phase0b: ''the orchestration glue ... not itself
+    a delegated deliverable, just the script that drives them and prints the result''); (4) what it hands
+    the company is an OBSERVABLE -- published SSP history, published PC1 shapes, forward prices off the
+    published curve, the supplier''''s own settled records and its own supply book. NO SIM INTERNAL CROSSES
+    IN ANY OF THE SEVEN, per-edge in register section 4. CONDITION 1 PROVEN BY INJECTION ON THE REAL TREE,
+    NOT ASSERTED: simulation/_knife3_reentry_probe.py, one line importing a lifted harness -- the exact
+    re-entry that would retroactively turn this into a laundering -- took live_indirect_crossings() 3
+    -> 6 (all three named, each via tools.run_phase1c) and test_epistemic_wall_indirect_ratchet.py to
+    4 failed / 16 passed, WHILE test_epistemic_wall_ratchet.py passed 12/12 on the same injection. That
+    green direct ratchet is why part 1 could not honestly have landed before step 8 did. Probe deleted;
+    indirect ratchet back to 20 passed, crossings back to 3. NO NEW CONTROL WAS ADDED, deliberately --
+    a lift-specific guard would red on exactly the trees test_no_new_indirect_crossings already reds on,
+    which is accretion and the redundancy section 3b was already caught hiding. STATED PLAINLY RATHER
+    THAN LEFT TO THE NUMBER: the count fell by 16 and THE DEPENDENCY GRAPH DID NOT CHANGE -- same functions
+    calling the same functions in the same order; seven files filed as the simulated world are now filed
+    as entry points, the mirror of B1''''s three behavioural-physics modules filed company-side. The 16
+    tuples are DELETED from LEGACY_SIM_READS_COMPANY so the floor moved down with the code. tools/epistemic_wall.py
+    NOT EDITED in this cutting commit. SIZE RATCHET: tools/ IS in SCOPE_ROOTS, so no debt escaped the
+    ratchet by the move, and the seven baseline keys were carried across the rename BY HAND so the frozen
+    floors did not reset -- the three pre-existing debts (run_phase1c_renewals 153>143, run_phase3a 94>89,
+    run_phase4b 75>70) still fire at the new path. A rename must not be a way to reset a ratchet floor.
+    ONE DEFECT QUEUED, NOT FIXED ON SIGHT (SELF_INTERRUPT_DISCIPLINE): rule 2b reads head_texts BY PATH,
+    so a pure git mv reads as a NEW oversized function -- docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md.
+    WHAT PART 1 DOES NOT UNBLOCK, stated because two designs name A as their blocker: B5''''s residual
+    and B4''''s remainder both need a company-side EMITTER for bills assembled by run_phase4c_on_phase2b,
+    which is one of the three files STILL STANDING. Their blocker is part 2, and it was part 2 all along.
     SUITES GREEN, measured after the last edit: tests/architecture/ + test_wall_crossing_dispositions.py
-    + test_wall_crossing_at_head.py + test_knife_hotspot_measure.py + tests/controls/ +
-    test_run_phase_settlement_population_seam.py = 329 passed, 1 xfailed, rc 0. python3 -m tools.epistemic_verifier
-    PASS over 539 company/+saas/ files. ruff clean on all seven moved files and both edited tests.
-    wall_crossing_dispositions.py OK, ''59 live crossings (56 direct, 3 indirect); 91 ruled (cut 32, owed
-    59, grandfathered 0)''. --- PRIOR STEP BELOW --- STEP 8 (THE INSTRUMENT, NOT A CUT), 2026-08-10 -- this atom is PARTIALLY built and must
+    + test_wall_crossing_at_head.py + test_knife_hotspot_measure.py + tests/controls/ + test_run_phase_settlement_population_seam.py
+    = 329 passed, 1 xfailed, rc 0. python3 -m tools.epistemic_verifier PASS over 539 company/+saas/ files.
+    ruff clean on all seven moved files and both edited tests. wall_crossing_dispositions.py OK, ''59
+    live crossings (56 direct, 3 indirect); 91 ruled (cut 32, owed 59, grandfathered 0)''. --- PRIOR STEP
+    BELOW --- STEP 8 (THE INSTRUMENT, NOT A CUT), 2026-08-10 -- this atom is PARTIALLY built and must
     NOT be re-drawn as if from zero; 16 of 88 direct crossings CUT, LEVEL DELIBERATELY STILL 0. THIS TICK
     CUT NOTHING ON PURPOSE AND THE COUNT WENT UP, 72 -> 75. The shared walker''s own docstring had named
     the hazard since step 1 -- ''routing a dependency through a package the walker does not walk (tools/)

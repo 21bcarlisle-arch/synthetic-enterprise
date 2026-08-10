@@ -30,7 +30,7 @@ from saas.reporting.segment_report import (
     extract_segment_data,
     generate_segment_report,
 )
-from simulation.run_segments import main as run_segments
+from tools.run_segments import main as run_segments
 
 
 def _save_json(data: dict, path: Path) -> None:

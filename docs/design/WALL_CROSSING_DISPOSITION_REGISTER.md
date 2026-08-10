@@ -407,6 +407,82 @@ three files still standing. Their blocker is part 2, and it was part 2 all along
 
 ---
 
+## 3d. The three standing files, measured ONE AT A TIME — added 2026-08-10 (step 10)
+
+Part 1 lifted seven files as a group and left three, and both §2b's scoped refusal and the atom's
+own step-9 record describe those three with a single sentence: *"all three with walled in-edges."*
+**That sentence is FALSE for two of the three, and it was never measured.** An AST census over
+`company/`, `saas/`, `sim/` and `simulation/` — the same instrument §3c used, pointed at the files
+it did *not* move — finds walled importers only for `run_phase2b`:
+
+| File | 1. zero walled importers | 2. defines nothing the codebase uses | 3. entry point by its own account | 4. hands the company only observables |
+|---|---|---|---|---|
+| `run_phase2b` (2,961) | **NO** — `simulation/run_scenario.py` | **NO** — 18 module-level symbols imported elsewhere, incl. `tools/fabric_settlement_gap.py` and `run_scenario` | yes | not reached |
+| `run_phase4c_on_phase2b` (822) | yes | **NO** — `build_monthly_bills`, 225 lines, assembles the company's bills | **NO — by its own docstring**: *"this module is a pure LIBRARY — it has no CLI and no `__main__` block"* | not reached |
+| `run_segments` (631) | yes | yes — `main` is the only symbol anything imports, and only from `tools/` | yes — `main()` + `__main__` + a docstring calling itself a run | **NO, and repairable** — see §3e |
+
+Why the correction matters rather than being pedantry: a group refusal resting on a property two
+of its three members do not have is a refusal that cannot be checked. Anyone re-deriving it would
+find the claim false and be entitled to conclude the ban was wrong — when in fact the ban is right
+for all three and rests on a *different* condition in each case. `run_phase4c_on_phase2b`'s blocker
+was never a walled importer: it is that the file is a LIBRARY holding the bill-assembly routine
+B5's residual and B4's remainder need a company-side emitter for. Naming its real blocker is what
+makes the sentence in §3c above — *"their blocker is part 2"* — mean something specific.
+
+The conditions are also now stated as what they are: **per-file, not per-group.** Seven were lifted
+together in part 1 because all seven passed all four, not because they were a batch.
+
+## 3e. `A_composition_lift` PART 2 — `run_segments`, and the leak that had to be repaired first
+
+**EXECUTED 2026-08-10. 4 edges, 1 file, 59 → 55 live crossings (56 → 52 direct; the 3 indirect
+untouched again, and again that is the proof).**
+
+Conditions 1–3 hold by the §3d measurement. **Condition 4 failed, and it failed on something
+real** — not a filing question:
+
+```
+price_fixed_tariff(fwd, current_eac, term_start, naked_fraction=1 - MIN_HEDGE_FLOOR)
+                                                                  ^ sim.hedging_strategy
+```
+
+The world's own minimum-hedge mandate was deciding what fraction of volume the COMPANY prices
+capital cost on. That is precisely the leak B7 cut out of `simulation/renewals.py` five steps
+earlier, and finding a second live instance of it makes the class real rather than anecdotal (R10:
+an absurdity-class defect is not closed by an instance fix). Had this file been lifted with the
+leak in it, the leak would have moved to `tools/`, where no instrument counts it — condition 4's
+own words, *"moving it would bury the violation instead of the edge."*
+
+**So the repair and the lift land in ONE commit, repair first.** `naked_fraction` now comes from
+`company.risk.hedge_policy.COMPANY_MIN_HEDGE_FLOOR`, exactly as `renewal_desk.py::NAKED_FRACTION`
+does and as `simulation/run_phase2b.py` already did. **No price moves, and that is measured, not
+asserted:** both floors are `0.85`, so both readings produce the identical float
+`0.15000000000000002` — the same bits reach `price_fixed_tariff`, so the argument is unchanged and
+there is nothing to re-run. Deliberately NOT pinned by a test that the two floors are equal: such
+a test would restore in the suite exactly the coupling the cut removes from the code — the trap
+B3's design block recorded and B7 refused for this same constant.
+
+The world's copy of the floor is still read in the file, for `RESET_HEDGE_FRACTION` and
+`evolve_hedge_fraction` — the world's OWN hedge book and its OWN evolution. Only the argument
+crossing into company pricing changed hands. (`run_phase2b` goes further and uses
+`company_evolve_hedge_fraction` too; whether the segment run should follow is a behaviour question
+that would move numbers, so it is NOT bundled into a wall pass — B7's rule that a pass must never
+move a price in the same commit as an import.)
+
+**THE HONEST RESIDUAL, and it is B7's.** On a segment's first gas term the forward comes from
+`_bootstrap_gas_price`, built out of `sim.forward_curve`'s private `_ewma`/`_seasonal_shape`, and
+that number is handed to the company's pricing function. It is the same cold-start leak B7 named
+and preserved in `simulation/renewals.py` (`fallback_forward_price_gbp_per_mwh`) — a supplier's
+cold-start rule should be its own. B7 kept it VISIBLE by naming it in a seam signature; here the
+edge stops being counted the moment the file is lifted, so it is recorded HERE instead, **owed**,
+against the same open company-side question: *what does a supplier quote when it has no price
+history?* One answer closes both.
+
+**The count fell by 4, and the dependency graph changed in exactly one place** — the naked-fraction
+constant now comes from the company instead of the world. Everything else is the same functions
+calling the same functions in the same order.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -853,10 +929,10 @@ edge: simulation.run_phase4c_on_phase2b -> saas.enterprise_value | disposition=o
 edge: simulation.run_phase4c_on_phase2b -> saas.home_move_win_rate | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.ledger | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.payment_behaviour | disposition=owed | design=A_composition_lift
-edge: simulation.run_segments -> saas.growth_mandate | disposition=owed | design=A_composition_lift
-edge: simulation.run_segments -> saas.ledger | disposition=owed | design=A_composition_lift
-edge: simulation.run_segments -> saas.property_model | disposition=owed | design=A_composition_lift
-edge: simulation.run_segments -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
+edge: simulation.run_segments -> saas.growth_mandate | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: the mandate string and the £50/month overhead are the company's own constants, read back out — no sim internal crosses.
+edge: simulation.run_segments -> saas.ledger | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: `make_fixed_cost_event(month, FIXED_COST_MONTHLY)` is handed a month and the company's own constant — no sim internal crosses.
+edge: simulation.run_segments -> saas.property_model | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: nothing is handed to the company here at all — the dwelling defaults flow the other way, INTO `simulation.demand_model`. Whether those dwelling facts are world physics filed company-side (the B1 shape) is a real open question, and lifting this file does NOT bury it: `simulation.run_phase2b -> saas.property_model` is still live and still ruled.
+edge: simulation.run_segments -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4 FAILED here and was REPAIRED, not relocated: `naked_fraction` was `1 - sim.hedging_strategy.MIN_HEDGE_FLOOR` — the world's hedge mandate deciding what the company prices capital cost on, the same leak B7 cut out of `simulation/renewals.py`. It now reads `company.risk.hedge_policy.COMPANY_MIN_HEDGE_FLOOR`. Both floors are 0.85, so the argument is the identical float and no price moves. The cold-start forward remains the world's number — B7's named residual, restated in §3e.
 # --- A_composition_lift (INDIRECT — added 2026-08-10, step 7) ---
 # These three do not appear as import statements in `run_phase2b.py` naming a company
 # module. They reach `company/billing/` through `background.live_payment_triad` and

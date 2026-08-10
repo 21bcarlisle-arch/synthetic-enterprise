@@ -255,10 +255,12 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase4c_on_phase2b", "saas.home_move_win_rate"),
     ("simulation.run_phase4c_on_phase2b", "saas.ledger"),
     ("simulation.run_phase4c_on_phase2b", "saas.payment_behaviour"),
-    ("simulation.run_segments", "saas.growth_mandate"),
-    ("simulation.run_segments", "saas.ledger"),
-    ("simulation.run_segments", "saas.property_model"),
-    ("simulation.run_segments", "saas.tariff_pricing"),
+    # ("simulation.run_segments", "saas.{growth_mandate,ledger,property_model,tariff_pricing}")
+    # -- 4 tuples DELETED 2026-08-10 by `A_composition_lift` PART 2. The file moved to
+    # `tools/run_segments.py`, where entry points live, having passed the four conditions §3c of
+    # the disposition register sets; its condition-4 leak (the world's hedge mandate deciding the
+    # company's naked fraction) was REPAIRED by the B7 template in the same commit rather than
+    # relocated. The floor moves down with the code: none of the four can return silently.
     ("simulation.satisfaction_churn", "saas.churn_model"),
 })
 
