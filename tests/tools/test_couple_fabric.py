@@ -406,6 +406,17 @@ def _flatten_to_own_mean_profile(behavioural):
     ]
 
 
+def population_homes(panel):
+    return [entry[0] for entry in panel]
+
+
+def panel_systems(panel):
+    """The panel's REGISTER heating systems, read off the household record rather
+    than inferred from the trace — the same fact the cell is keyed on."""
+    return [str(getattr(entry[2].source.system, "value", entry[2].source.system))
+            for entry in panel]
+
+
 def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, weather):
     """CLOSED 2026-08-10 (H36), and the direction is the one that has to be
     argued for: this cell was RED, and it went green without the floor moving.
@@ -446,9 +457,21 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #     is a different measurement and must be read, not absorbed.
     assert (texture.homes_judged, texture.homes_unjudged) == (15, 0), texture.note
     assert texture.homes_violating == 0, texture.note
-    assert texture.worst_home == "E15", texture.note
-    assert texture.worst_value == pytest.approx(0.1533, abs=5e-4), texture.note
-    assert "net of space heat" in texture.note
+    # H38 (2026-08-10) moved the worst home OFF the electrically heated set: with
+    # the water heater out of the denominator too, the panel's marginal home is a
+    # GAS home the netting never touched. That is the same tell the drawn 60 gives,
+    # and it is the shape a load-set repair leaves behind.
+    assert texture.worst_home == "D7", texture.note
+    assert texture.worst_value == pytest.approx(0.1782, abs=5e-4), texture.note
+    assert "net of space AND water heat" in texture.note
+    electric = {
+        home for home, system in zip(population_homes(panel), panel_systems(panel))
+        if fgl.HEAT_ON_THE_JUDGED_METER.get(system, False)
+    }
+    assert texture.worst_home not in electric, (
+        "after both machines come out, the marginal home must be one whose meter "
+        "the netting is the identity on — otherwise this is a rescaling"
+    )
 
     # (c) The verdict is INSUFFICIENT rather than PASS, and that is the honest
     #     reading: fifteen homes cannot rule out a 5% violation rate. The breach
@@ -461,10 +484,13 @@ def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, we
     #     of zeros and its reading is bit-for-bit what it was.
     population = fgl.premise_trace_population([entry[2] for entry in panel], weather)
     for index, (home, grid) in enumerate(zip(population.homes, population.grids)):
-        heat = [list(day) for day in population.space_heat_grids[index]]
+        heat = fgl.machine_draw(
+            [list(day) for day in population.space_heat_grids[index]],
+            [list(day) for day in population.water_heat_grids[index]],
+        )
         grid = [list(day) for day in grid]
         if not any(any(day) for day in heat):
-            assert fgl.half_hourly_texture(grid, space_heat=heat) == (
+            assert fgl.half_hourly_texture(grid, machines=heat) == (
                 fgl.half_hourly_texture(grid)
             ), f"{home} carries no heat on this meter and must be untouched"
 
@@ -514,7 +540,7 @@ def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
         heated += 1
         grid = [list(day) for day in population.grids[index]]
         heat = [list(day) for day in population.space_heat_grids[index]]
-        behavioural = fgl.meter_net_of_space_heat(grid, heat)
+        behavioural = fgl.meter_net_of_machines(grid, heat)
         flat = _flatten_to_own_mean_profile(behavioural)
         mutated = [
             [b + h for b, h in zip(flat_day, heat_day)]
@@ -524,7 +550,7 @@ def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
             passed_the_old_floor.append(home)
         # The reading the cell takes now fails every one of them.
         assert fgl.BANDS[fgl.TEXTURE_STATISTIC].judge(
-            fgl.half_hourly_texture(mutated, space_heat=heat)
+            fgl.half_hourly_texture(mutated, machines=heat)
         ) is fgl.Verdict.FAIL, home
 
     assert heated == 6, "the six homes the H35 widening put on the panel"

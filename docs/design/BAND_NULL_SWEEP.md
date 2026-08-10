@@ -725,3 +725,136 @@ and both the fires-on-it and stops-firing arms are asserted on that.
   boiler research is real and correctly sourced; it is marked as no longer
   anchoring a live control rather than deleted, because the 53.0% derived share is
   what made the fixed-floor defect visible in the first place.
+
+---
+
+# H38 — the second machine, and a floor that finally asks every home the same question
+
+**Atom:** `H38_the_behavioural_stream_still_carries_the_water_heater` (lane H_harness, L0 -> L2)
+**Changed:** `machine_draw` composes space + water heat into the ONE stream the L1 cells net out
+**Renamed:** `meter_net_of_space_heat` -> `meter_net_of_machines`; the `space_heat=` kwarg -> `machines=`
+**Added:** `PopulationTraces.water_heat_grids`, filled from the trace's own `dhw_fuel_kwh`
+**R15:** `tests/harness/test_premise_two_level.py` (four new arms), `tests/harness/test_band_null_sweep.py`, `tests/tools/test_couple_fabric.py`
+
+## What was open, and what it turned out to be
+
+H36 left one home in sixty under the floor — P0008 at 0.1423 against 0.15 — and
+named the cause without fixing it: what is left after the space heater comes out
+is the WATER heater, 36-40% of what the cell then calls behaviour.
+
+The first thing to check was whether that was a fail-open. It is not, and saying
+so matters because it changes what the repair has to prove. Replace a home's
+behaviour with its own flat daily mean, leave both machines standing, and the
+cell fires under BOTH readings (texture 0.0000 either way): three 12-minute
+draws a day move six steps in 47, and this statistic's numerator is a MEDIAN,
+which is exactly robust to that. **The water heater was never supplying texture.
+It was supplying DENOMINATOR** — ~38% more mean, against a floor derived where it
+was absent.
+
+Absent where? The 0.15 anchor reasons from a gas-heated home's electricity meter,
+and a gas-heated home heats its water with gas. The anchor population never
+carried this load at all.
+
+## The measurement that decides it
+
+Raw values across regimes are not comparable, so this is measured in H36's unit:
+how much of its own behaviour a home must lose before the cell fires. Drawn 60,
+`base_seed=17`, real Open-Meteo 2022-01-01..2022-04-30.
+
+| homes | net of space heat | net of BOTH machines |
+|---|---|---|
+| 57 gas homes (median) | 0.3066 | **0.3066 — identical** |
+| P0008 electric_direct | 0.0000 | 0.2721 |
+| P0020 electric_direct | 0.0168 | 0.3119 |
+| P0033 electric_storage | 0.0914 | 0.3892 |
+
+An electrically heated home was firing at **1.7% breakage where a gas home needed
+31%** — an 18x gap — and P0008 at 0.0000 was already under the floor with nothing
+done to it at all. Net of both machines the three land astride the gas median.
+
+**The gas column is the control and it could not have been tuned toward.** It is
+bit-for-bit identical under both readings, because a gas home's cylinder is on
+the other meter. That is what makes this a load-set repair rather than a
+loosening, and it is asserted both ways — an electric home that became HARDER to
+fail than a gas home would trip
+`test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING`.
+
+## Honest about the direction
+
+Netting space heat was a STRENGTHENING and could be proven as one. **This is not.**
+Every affected reading moves UP (0.1423 -> 0.2048) and the affected homes get
+easier to pass. The claim is not "stricter" — it is *parity with the population
+whose meters derived the floor*, and it is measured rather than argued. R12
+holds: the floor is still 0.15, the gas number this cell was born with.
+
+## Why all three L1 cells and not just L1.1
+
+H36's invariant is that the behavioural stream is computed ONCE and handed to
+L1.1, L1.2 and L1.3, because two cells deriving "this home's behaviour"
+separately is how they come to hold two ideas of it. Netting the water heater
+from L1.1 alone would have bought exactly that defect. So the other two were
+MEASURED rather than assumed:
+
+| cell | net of space heat | net of BOTH | verdict |
+|---|---|---|---|
+| L1.2 shape correlation (median / worst / violating) | 0.2104 / 0.4386 / 0 | 0.2143 / 0.4386 / 0 | no material change |
+| L1.3 away detection (detected / false pos / recall) | 849 / 8 / 1.000 | 849 / **0** / 1.000 | strictly better |
+
+L1.3 was the surprise. The prior was that a hot-water draw is an EVENT on the
+household's own clock, so netting it should cost recall. It does not, and the
+mechanism is H37's exactly, one machine over: the away signature DIVIDES BY the
+00:00-06:00 base-load window, and an early-rising household draws hot water
+inside it. Day 68 on P0008 is the clean case — 1.674 kWh of water heat in the
+base window, 0.000 in the active window — and the ratio falls 4.17 -> 1.15, under
+the 1.30 threshold, on a day nobody left. All 8 false positives are that shape.
+Recall does not move because a water heater draws nothing on an away day, so the
+netting is the identity on precisely the days L1.3 exists to find.
+
+## The panel and the population, re-read
+
+`L1.1` on the drawn 60: **0 of 60 violating, verdict PASS**, and the worst home is
+now **P0036, a GAS home, at 0.1521**. That is the tell that this was a load-set
+repair: after it, the marginal home in the population is one the netting is the
+identity on. The panel says the same — worst home D7 (gas) at 0.1782, where H36
+left E15 (resistive) at 0.1533.
+
+**A prediction H36 wrote down was paid off on a row it deliberately left red.**
+H36 recorded ED1, the panel heater, at 0.1313 — not clearing 0.15 — and said its
+whole deficit was the water heater. ED1 now reads 0.2050. The diagnosis was made
+before the repair and it held.
+
+## The sweep
+
+`python3 tools/band_null_sweep.py` still exits **0**, and L1.1 improved without
+being touched:
+
+| band | n | threshold | null (best) | null spread | margin | verdict |
+|---|---|---|---|---|---|---|
+| L1.1 (H36) | 15 | 0.15 | 0.1166 | 0.0763 | +0.0334 | same_order |
+| L1.1 (H38) | 15 | 0.15 | 0.0950 | 0.0558 | **+0.0550** | same_order |
+
+Margin-to-spread goes 0.44 -> 0.99. **H39 is NOT closed** — the band still sits
+inside its own null's spread, which is a separate defect with a separate repair,
+and this is a note that its numbers moved, not that it went away.
+
+## A stale docstring that mattered
+
+`PremiseDayTrace.behavioural_electricity_kwh` claimed to be "appliances +
+lighting + electronics + base load + **electric DHW**". It is not and never was:
+on P0008, meter 17.8475 = behavioural 9.8144 + dhw 6.2700 + space heat 1.7630,
+exactly. Corrected, because a reader checking this atom's netting against that
+line would have concluded it double-counts.
+
+## What was NOT done
+
+* **The floor did not move.** Still 0.15.
+* **Nobody was excluded.** All 60 homes judged on every anchored cell.
+* **H39 was not folded in.** The band still clears its null by less than the
+  null's own spread; that is its own atom and its own measurement.
+* **The netting is not claimed to be complete.** EV charging is also on the judged
+  meter of some homes and is also not an appliance event. Nothing here measured
+  it, so nothing here says anything about it — the drawn 60 has no EV home under
+  the floor, which is an absence of evidence and not a clearance.
+* **`_flatten_blend` was kept** even though `_smooth` is a valid mutation again
+  once both machines are out. It attacks the defect this cell is really about;
+  the reversal is recorded as an assertion rather than used as a reason to delete.

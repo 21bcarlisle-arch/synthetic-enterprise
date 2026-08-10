@@ -245,6 +245,13 @@ def _electrically_heated_population(*, homes: int = 10) -> fgl.PopulationTraces:
         ),
         heating_systems=tuple("electric_direct" for _ in range(homes)),
         space_heat_grids=tuple(heat for _ in range(homes)),
+        # ZEROS, NOT ABSENCE (H38). These homes have a panel heater and no electric
+        # water heater, and that is a stated fact. Leaving the field off would mean
+        # "this generator cannot say", which since H38 fails closed onto the WHOLE
+        # meter and would quietly un-net the space heat this fixture exists to net.
+        water_heat_grids=tuple(
+            tuple((0.0,) * PERIODS for _ in range(DAYS)) for _ in range(homes)
+        ),
     )
 
 
@@ -261,8 +268,8 @@ def test_H37_the_behavioural_null_LEAVES_THE_HEATING_MACHINE_ALONE(electric_popu
     assert null.space_heat_grids == electric_population.space_heat_grids
     for k, (real, made) in enumerate(zip(electric_population.grids, null.grids)):
         heat = bns._heat_of(electric_population, k)
-        before = fgl.meter_net_of_space_heat([list(d) for d in real], heat)
-        after = fgl.meter_net_of_space_heat([list(d) for d in made], heat)
+        before = fgl.meter_net_of_machines([list(d) for d in real], heat)
+        after = fgl.meter_net_of_machines([list(d) for d in made], heat)
         for b_day, a_day in zip(before, after):
             assert sum(a_day) == pytest.approx(sum(b_day), rel=1e-9)
         assert fgl.day_to_day_shape_correlation(after) == pytest.approx(1.0, abs=1e-9)
@@ -313,7 +320,10 @@ def test_H37_the_sweep_reads_L1_3_on_the_SAME_load_set_the_ledger_judges(electri
         float(
             fgl.trough_statistics(
                 [list(d) for d in home],
-                space_heat=[list(d) for d in electric_population.space_heat_grids[k]],
+                machines=fgl.machine_draw(
+                    [list(d) for d in electric_population.space_heat_grids[k]],
+                    [list(d) for d in electric_population.water_heat_grids[k]],
+                ),
             ).away_signature_days
         )
         for k, home in enumerate(electric_population.grids)
@@ -484,6 +494,9 @@ def test_the_floor_is_read_NET_OF_SPACE_HEAT_and_so_is_its_null(population):
         annual_kwh=population.annual_kwh, weather_driver=population.weather_driver,
         heating_systems=tuple("heat_pump_air" for _ in population.homes),
         space_heat_grids=heat,
+        water_heat_grids=tuple(
+            tuple((0.0,) * PERIODS for _ in home) for home in population.grids
+        ),
     )
     netted = bns._per_home_texture(with_heat)
     raw = [fgl.half_hourly_texture(home) for home in population.grids]
@@ -494,6 +507,14 @@ def test_the_floor_is_read_NET_OF_SPACE_HEAT_and_so_is_its_null(population):
     # A home carrying no heat on this meter is untouched, which is what makes the
     # netting a load-set correction rather than a rescaling of everybody.
     assert bns._per_home_texture(population) == raw
+    # HALF A SPLIT IS NOT A SPLIT (H38), asserted at the SWEEP's seam and not only
+    # at the cell's: drop the water-heat fact and the sweep falls all the way back
+    # to the raw meter rather than netting the half it still has. A sweep that
+    # netted on a partial split would report a margin for a load set the ledger
+    # refuses to judge on.
+    assert bns._per_home_texture(
+        dataclasses.replace(with_heat, water_heat_grids=())
+    ) == raw
 
 
 # ---------------------------------------------------------------------------

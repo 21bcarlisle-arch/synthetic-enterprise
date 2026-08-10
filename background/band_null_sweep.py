@@ -232,6 +232,7 @@ def _replace_grids(
         pc1_is_an_input=population.pc1_is_an_input,
         heating_systems=population.heating_systems,
         space_heat_grids=population.space_heat_grids,
+        water_heat_grids=population.water_heat_grids,
     )
 
 
@@ -315,7 +316,7 @@ def _flat_behavioural_day_null(
     So the null is taken where the reading is taken. Every day's behavioural
     stream becomes that home's own mean behavioural profile at that day's own
     behavioural total, and the meter is rebuilt as `flat_behavioural + heat` so
-    that `meter_net_of_space_heat` recovers exactly the flattened stream and the
+    that `meter_net_of_machines` recovers exactly the flattened stream and the
     heat stream is still a genuine component of the meter it is subtracted from.
 
     What survives: the home's level, its mean behavioural shape, its daily
@@ -335,7 +336,7 @@ def _flat_behavioural_day_null(
     out: list[list[list[float]]] = []
     for k, home in enumerate(population.grids):
         heat = _heat_of(population, k)
-        behavioural = fgl.meter_net_of_space_heat([list(day) for day in home], heat)
+        behavioural = fgl.meter_net_of_machines([list(day) for day in home], heat)
         flat = _flatten_home(behavioural)
         if heat is None:
             out.append(flat)
@@ -415,6 +416,7 @@ def _no_scale_diversity_null(
         pc1_is_an_input=population.pc1_is_an_input,
         heating_systems=population.heating_systems,
         space_heat_grids=population.space_heat_grids,
+        water_heat_grids=population.water_heat_grids,
     )
 
 
@@ -436,7 +438,7 @@ def _per_home_texture(population: PopulationTraces) -> list[float]:
     is the reading H36 removed from the cell.
     """
     return [
-        fgl.half_hourly_texture(home, space_heat=_heat_of(population, k))
+        fgl.half_hourly_texture(home, machines=_heat_of(population, k))
         for k, home in enumerate(population.grids)
     ]
 
@@ -457,7 +459,7 @@ def _judged_by_texture_band(band_name: str) -> Callable[[PopulationTraces], list
 
     def select(population: PopulationTraces) -> list[int]:
         systems = population.heating_systems or (None,) * len(population.homes)
-        has_split = bool(population.space_heat_grids)
+        has_split = bool(population.space_heat_grids and population.water_heat_grids)
         return [
             i
             for i, system in enumerate(systems)
@@ -472,25 +474,34 @@ def _per_home_day_correlation(population: PopulationTraces) -> list[float]:
 
 
 def _per_home_away_days(population: PopulationTraces) -> list[float]:
-    """Read on the load set the live cell judges — net of space heat (H37).
+    """Read on the load set the live cell judges — net of both machines (H37, H38).
 
     Reading the raw meter here would measure the null of a statistic nobody
-    applies: `evaluate_population` passes the space-heat split to
+    applies: `evaluate_population` passes the machine split to
     `trough_statistics`, so a sweep that did not would report a margin for a
     band that is not the one in the ledger.
     """
     return [
-        float(fgl.trough_statistics(home, space_heat=_heat_of(population, k)).away_signature_days)
+        float(fgl.trough_statistics(home, machines=_heat_of(population, k)).away_signature_days)
         for k, home in enumerate(population.grids)
     ]
 
 
 def _heat_of(population: PopulationTraces, k: int) -> list[list[float]] | None:
-    """Home `k`'s space-heat stream, or None where the generator supplies no
-    split — the fail-closed reading `meter_net_of_space_heat` already defines."""
-    if not population.space_heat_grids:
-        return None
-    return [list(day) for day in population.space_heat_grids[k]]
+    """Home `k`'s HEATING-MACHINE stream — space heat plus water heat (H38) — or
+    None where the generator supplies no split.
+
+    The composition is `fgl.machine_draw`, the same call the live cell makes, so
+    the sweep nets exactly what `evaluate_population` nets. Re-deriving it here
+    is the tautology this module's own header forbids one level down: a null
+    measured on a load set the ledger does not use reports a margin for a band
+    nobody applies."""
+    return fgl.machine_draw(
+        [list(day) for day in population.space_heat_grids[k]]
+        if population.space_heat_grids else None,
+        [list(day) for day in population.water_heat_grids[k]]
+        if population.water_heat_grids else None,
+    )
 
 
 def _smoothing_ratio(population: PopulationTraces) -> list[float]:
@@ -906,6 +917,7 @@ def truncated(population: PopulationTraces, days: int) -> PopulationTraces:
         pc1_is_an_input=population.pc1_is_an_input,
         heating_systems=population.heating_systems,
         space_heat_grids=tuple(g[:days] for g in population.space_heat_grids),
+        water_heat_grids=tuple(g[:days] for g in population.water_heat_grids),
     )
 
 

@@ -283,10 +283,10 @@ def _pearson(a: Sequence[float], b: Sequence[float]) -> float:
 def half_hourly_texture(
     days: Sequence[Sequence[float]],
     *,
-    space_heat: Sequence[Sequence[float]] | None = None,
+    machines: Sequence[Sequence[float]] | None = None,
 ) -> float:
     """L1.1 — median |x[t] - x[t-1]| over the whole window, divided by mean(x),
-    read on the meter NET OF SPACE HEAT.
+    read on the meter NET OF THE HEATING MACHINES.
 
     Dimensionless, so a big house and a small house are judged the same way.
     Steps are taken WITHIN each day and across the midnight boundary, because a
@@ -310,15 +310,45 @@ def half_hourly_texture(
     (H36) for the per-home tables.
 
     So the floor stops moving and the LOAD SET does, which is the netting L1.2
-    and L1.3 already apply (`meter_net_of_space_heat`). One number, every home
+    and L1.3 already apply (`meter_net_of_machines`). One number, every home
     size, no published efficiency for any machine — a heating regime this file
     has no figure for is now judged like any other rather than needing its own.
 
-    FAIL-CLOSED on absence: `space_heat=None` judges the whole meter, exactly as
+    THE WATER HEATER IS THE SECOND MACHINE (H38, 2026-08-10). Taking the space
+    heater out left one, and it is 36-40% of what this cell then called
+    behaviour. It is not caught by being spiky or smooth — three 12-minute draws
+    a day move six steps in 47, and this statistic's numerator is a MEDIAN, which
+    is exactly robust to that. It is caught in the DENOMINATOR: it adds ~38% to
+    the mean of a stream whose floor was derived where it was absent. The 0.15
+    anchor reasons from a gas-heated home's electricity meter, and a gas-heated
+    home heats its water with gas — so the anchor population never carried this
+    load, and the netting restores the load set the floor was derived on rather
+    than granting anyone leniency.
+
+    MEASURED IN THE UNIT THAT COMPARES REGIMES, on the drawn 60 (`base_seed=17`,
+    real Open-Meteo 2022-01-01..2022-04-30), as "how much of its behaviour must
+    this home lose before the cell fires" — the same critical-flattening weight
+    H36 used, because raw values across regimes are not comparable and this is:
+
+        homes                      net of space heat    net of BOTH machines
+        57 gas homes (median)             0.3066               0.3066
+        P0008   electric_direct           0.0000               0.2721
+        P0020   electric_direct           0.0168               0.3119
+        P0033   electric_storage          0.0914               0.3892
+
+    An electrically heated home was firing at 1.7% breakage where a gas home
+    needed 31% — an 18x gap, and P0008 at 0.0000 was already under the floor
+    with nothing done to it at all. Net of both machines the three land at
+    0.2721-0.3892, astride the gas median. The gas column is IDENTICAL in both
+    readings and is not a target that was tuned toward: it is the untouched
+    anchor population, and it is what makes this a load-set repair rather than a
+    loosening. R12 holds — the floor is still 0.15.
+
+    FAIL-CLOSED on absence: `machines=None` judges the whole meter, exactly as
     before. The leniency is bought with a stated fact and the fact is checked.
     """
     grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name="half_hourly_texture")
-    grid = meter_net_of_space_heat(grid, space_heat)
+    grid = meter_net_of_machines(grid, machines)
     flat = [v for day in grid for v in day]
     mean = sum(flat) / len(flat)
     if mean <= 0.0:
@@ -354,12 +384,19 @@ def day_to_day_shape_correlation(days: Sequence[Sequence[float]]) -> float:
     return statistics.median(rs)
 
 
-def meter_net_of_space_heat(
+def meter_net_of_machines(
     days: Sequence[Sequence[float]],
-    space_heat: Sequence[Sequence[float]] | None,
+    machines: Sequence[Sequence[float]] | None,
 ) -> list[list[float]]:
-    """The judged meter with the SPACE-HEATING MACHINE taken back out — the load
-    set L1.2's band was actually derived to judge.
+    """The judged meter with the HEATING MACHINES taken back out — the load set
+    L1.2's band was actually derived to judge.
+
+    TWO MACHINES, ONE STREAM (H38, 2026-08-10). `machines` is the combined draw
+    of the space heater and the water heater, summed by `machine_draw` before it
+    gets here. It was the space heater alone until H38 measured the second one;
+    the per-cell arguments for including the water heater are on the three
+    statistics that consume this, because they are three different arguments and
+    only one of them is about the denominator.
 
     WHY THIS EXISTS, and it is a measurement rather than a preference. L1.2's
     0.85 band is a statement about HOUSEHOLDS ("meals, showers and departures
@@ -390,7 +427,7 @@ def meter_net_of_space_heat(
     would be a number I chose. Comparing the same load set needs no new number at
     all, and the 0.85 band is untouched.
 
-    FAIL-CLOSED. `space_heat=None` (a generator that supplies no split) returns
+    FAIL-CLOSED. `machines=None` (a generator that supplies no split) returns
     the meter UNCHANGED, so the whole meter is judged — the strict reading. The
     leniency has to be bought with a stated fact, and the fact is checked: the
     stream must be finite and non-negative everywhere (a heating machine draws,
@@ -405,47 +442,93 @@ def meter_net_of_space_heat(
     positivity.
     """
     grid = [list(day) for day in days]
-    if space_heat is None:
+    if machines is None:
         return grid
-    heat = _require_component_of_meter(grid, space_heat)
+    heat = _require_component_of_meter(grid, machines)
     return [[v - h for v, h in zip(meter_day, heat_day)]
             for meter_day, heat_day in zip(grid, heat)]
 
 
+def machine_draw(
+    space_heat: Sequence[Sequence[float]] | None,
+    water_heat: Sequence[Sequence[float]] | None,
+) -> list[list[float]] | None:
+    """The two machine streams added into the one stream the L1 cells net out.
+
+    Separated from the subtraction because the ABSENCE rule is the whole of it,
+    and it is fail-closed in the direction that costs the harness rather than the
+    generator: a stream that is not supplied is not zero, it is UNKNOWN, and a
+    machine that might be on the judged meter and cannot be pointed to must stay
+    IN the judged meter. So `None` anywhere makes the whole result `None` and the
+    caller judges the WHOLE meter — the strict reading — instead of quietly
+    netting the half it happens to have been given.
+
+    A home whose heat is on the other commodity supplies ZEROS, which is a stated
+    fact ("no machine on this meter") and a different thing from silence. That is
+    why the nine gas homes read bit-for-bit what they read before H38 rather than
+    being excused from the netting.
+    """
+    if space_heat is None or water_heat is None:
+        return None
+    space = [list(day) for day in space_heat]
+    water = [list(day) for day in water_heat]
+    if len(space) != len(water):
+        raise InsufficientEvidence(
+            f"the space-heat stream spans {len(space)} days and the water-heat "
+            f"stream {len(water)} — they are streams off the same meter"
+        )
+    for k, (s_day, w_day) in enumerate(zip(space, water)):
+        if len(s_day) != len(w_day):
+            raise InsufficientEvidence(
+                f"day {k}: the space-heat stream has {len(s_day)} periods and the "
+                f"water-heat stream {len(w_day)}"
+            )
+    return [[s + w for s, w in zip(s_day, w_day)]
+            for s_day, w_day in zip(space, water)]
+
+
 def _require_component_of_meter(
     grid: list[list[float]],
-    space_heat: Sequence[Sequence[float]],
+    machines: Sequence[Sequence[float]],
 ) -> list[list[float]]:
     """Check the claim before acting on it: is this stream actually a PART of that
     meter? Separated from the subtraction because it is the whole of the guard —
     the netting itself is one line, and an unchecked subtraction would let a
-    generator declare its behaviour to be heat and walk out of the cell."""
-    heat = [list(day) for day in space_heat]
+    generator declare its behaviour to be heat and walk out of the cell.
+
+    What it can NOT check is that the stream is the machine it says it is —
+    only that it fits inside the meter. That hole is the same size it was
+    when the stream was space heat alone (H36) and H38 did not widen it: the
+    streams come off the generator's own `heating_fuel_kwh` and
+    `dhw_fuel_kwh`, keyed on the trace's stated heating commodity, and a
+    generator that could lie about which of its own components is a machine
+    can already lie about the meter."""
+    heat = [list(day) for day in machines]
     if len(heat) != len(grid):
         raise InsufficientEvidence(
-            f"the space-heat stream spans {len(heat)} days and the meter {len(grid)}"
+            f"the machine stream spans {len(heat)} days and the meter {len(grid)}"
         )
     total_meter = 0.0
     total_heat = 0.0
     for k, (meter_day, heat_day) in enumerate(zip(grid, heat)):
         if len(heat_day) != len(meter_day):
             raise InsufficientEvidence(
-                f"day {k}: the space-heat stream has {len(heat_day)} periods and "
+                f"day {k}: the machine stream has {len(heat_day)} periods and "
                 f"the meter {len(meter_day)}"
             )
         for v in heat_day:
             if not math.isfinite(v):
-                raise NonFiniteTrace(f"day {k}: a non-finite space-heat value {v!r}")
+                raise NonFiniteTrace(f"day {k}: a non-finite machine-draw value {v!r}")
             if v < 0.0:
                 raise InsufficientEvidence(
-                    f"day {k}: a space-heat draw of {v!r} — a heating machine draws "
+                    f"day {k}: a machine draw of {v!r} — a heating machine draws "
                     "energy, it does not generate it"
                 )
         total_meter += sum(meter_day)
         total_heat += sum(heat_day)
     if total_heat > total_meter:
         raise InsufficientEvidence(
-            f"a space-heat stream of {total_heat:.4g} kWh over a meter that read "
+            f"a machine stream of {total_heat:.4g} kWh over a meter that read "
             f"{total_meter:.4g} kWh is not a COMPONENT of that meter"
         )
     return heat
@@ -503,7 +586,7 @@ def away_signature(day: Sequence[float]) -> float:
     00:00-06:00, so on the electricity meter of an electrically-heated home the
     denominator is the thermostat, not the fridge, and the ratio collapses towards
     1.0 for a household that never left. Read the behavioural stream
-    (`meter_net_of_space_heat`) — `trough_statistics(days, space_heat=...)` does
+    (`meter_net_of_machines`) — `trough_statistics(days, machines=...)` does
     it — or this function will call an occupied house empty. It takes no view of
     its own input: give it the wrong stream and it will answer about that one.
     """
@@ -520,7 +603,7 @@ def away_signature(day: Sequence[float]) -> float:
 def trough_statistics(
     days: Sequence[Sequence[float]],
     *,
-    space_heat: Sequence[Sequence[float]] | None = None,
+    machines: Sequence[Sequence[float]] | None = None,
     signature_max: float = AWAY_SIGNATURE_MAX,
 ) -> TroughStats:
     """L1.3 — the minimum half-hour, and the count of days on which this home was
@@ -531,7 +614,7 @@ def trough_statistics(
     so it does not re-tautologise the check.
 
     THE AWAY SIGNATURE IS READ ON THE BEHAVIOURAL STREAM (H37), for the same
-    reason L1.2 is (`meter_net_of_space_heat`) and by the same netting, but the
+    reason L1.2 is (`meter_net_of_machines`) and by the same netting, but the
     argument here is a different one and stands on its own. L1.2's is that a
     thermostat is supposed to repeat, so a correlation band about households is
     unfair to a home whose heat is on the judged meter. L1.3's is stronger: the
@@ -550,10 +633,30 @@ def trough_statistics(
     gas-heated homes read bit-for-bit what they did before, because a home whose
     heat is on the other meter contributes a stream of zeros.
 
+    THE WATER HEATER IS THE SAME ARGUMENT, ONE MACHINE OVER (H38, 2026-08-10),
+    and this was the surprise rather than the expectation. A hot-water draw is
+    an EVENT on the household's own clock, so the prior was that netting it would
+    remove a genuine occupancy signal and cost recall. Measured on the drawn 60
+    (`base_seed=17`, 120 days, 849 true away days, against each trace's own
+    `is_away` calendar) it does the opposite:
+
+        stream                 detected   false positives   recall
+        net of space heat           849                 8    1.000
+        net of BOTH machines        849                 0    1.000
+
+    All eight false positives are P0008, and the mechanism is H37's exactly: an
+    early-rising household draws hot water INSIDE the 00:00-06:00 base-load
+    window, which is the denominator. Day 68 is the clean case — 1.674 kWh of
+    water heat in the base window and 0.000 kWh in the active window — and the
+    ratio falls from 4.17 to 1.15, under the 1.30 threshold, on a day nobody
+    left. Recall does not move because a water heater draws nothing on an away
+    day (`draw_dhw_events` returns none when the house is empty), so the netting
+    is the identity on exactly the days this statistic exists to find.
+
     `min_half_hour_kwh` stays on the METER, unnetted: it is a statement about what
     the meter can read, not about occupancy.
 
-    FAIL-CLOSED, inherited. `space_heat=None` judges the WHOLE meter, exactly as
+    FAIL-CLOSED, inherited. `machines=None` judges the WHOLE meter, exactly as
     before this argument existed — the leniency has to be bought with a stated,
     checked fact. And netting can only make this statistic's base-load window
     MORE of a base load: what is left after the heating machine comes out is the
@@ -569,7 +672,7 @@ def trough_statistics(
             "the away signature threshold must be finite and greater than 1.0"
         )
     grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name="trough_statistics")
-    behavioural = meter_net_of_space_heat(grid, space_heat)
+    behavioural = meter_net_of_machines(grid, machines)
     signatures = [away_signature(day) for day in behavioural]
     return TroughStats(
         min_half_hour_kwh=min(v for day in grid for v in day),
@@ -1327,7 +1430,7 @@ class Band:
 # machine's own movement stood in for the behaviour that was gone.
 #
 # So the floor stops moving and the LOAD SET moves instead: L1.1 is read net of
-# space heat (`half_hourly_texture(space_heat=...)`), where the 0.15 denominator
+# space heat (`half_hourly_texture(machines=...)`), where the 0.15 denominator
 # argument is the one that was always meant, and every home is judged by it. What
 # the register is still needed for is the ONE case the netting cannot cover — a
 # home whose heat is on this meter and whose generator supplies no split. That
@@ -1403,7 +1506,7 @@ BANDS: dict[str, Band] = {
             "THE THRESHOLD IS UNMOVED SINCE IT WAS WRITTEN; what changed on "
             "2026-08-09 is WHAT IT IS APPLIED TO. The sentence above describes a "
             "HOUSEHOLD, so it is judged on the meter NET OF SPACE HEAT "
-            "(`meter_net_of_space_heat`) — otherwise the same band judges "
+            "(`meter_net_of_machines`) — otherwise the same band judges "
             "behaviour in a gas-heated home and a thermostat in an electrically "
             "heated one, and a thermostat is supposed to repeat. The heating "
             "stream's own repeatability is reported separately and never judged."
@@ -2057,15 +2160,27 @@ class PopulationTraces:
     heating_systems: tuple[str, ...] = ()
     # THE PART OF THE JUDGED METER DRAWN BY THE SPACE-HEATING MACHINE, per home,
     # for the cells that must compare the same load set across regimes
-    # (`meter_net_of_space_heat`). Zeros — not absence — where a home's heat is on
+    # (`meter_net_of_machines`). Zeros — not absence — where a home's heat is on
     # the OTHER commodity: that is a stated fact ("no heat on this meter"), which
     # is different from a generator that cannot say.
     #
     # FAIL-CLOSED when empty: a generator that supplies no split has its WHOLE
     # meter judged by L1.2, which is the strict reading and the one that keeps the
     # shipped path red. The lenient direction has to be bought with a fact, and
-    # `meter_net_of_space_heat` checks the fact it is given.
+    # `meter_net_of_machines` checks the fact it is given.
     space_heat_grids: tuple[tuple[tuple[float, ...], ...], ...] = ()
+    # THE SAME, FOR THE WATER-HEATING MACHINE (H38, 2026-08-10). Carried as its
+    # OWN field rather than added into `space_heat_grids` because they are two
+    # facts about a home and a caller must be able to supply one without
+    # asserting the other — and because a summed field could not tell "this home
+    # heats its water on the other meter" (zeros) from "this generator cannot say"
+    # (absence), which is the distinction the netting fails closed on.
+    #
+    # FAIL-CLOSED when empty, and it fails closed HARDER than the space-heat
+    # field alone did: `machine_draw` returns None if EITHER stream is missing, so
+    # a builder that supplies space heat and forgets water heat judges the whole
+    # meter rather than netting the half it has.
+    water_heat_grids: tuple[tuple[tuple[float, ...], ...], ...] = ()
 
     def __post_init__(self) -> None:
         if len(self.homes) != len(self.grids):
@@ -2090,6 +2205,16 @@ class PopulationTraces:
                 if len(g) != len(self.is_weekend):
                     raise InsufficientEvidence(
                         "every space-heat stream must span the day-type calendar"
+                    )
+        if self.water_heat_grids:
+            if len(self.water_heat_grids) != len(self.homes):
+                raise InsufficientEvidence(
+                    "the water-heat streams must align with the home ids"
+                )
+            for g in self.water_heat_grids:
+                if len(g) != len(self.is_weekend):
+                    raise InsufficientEvidence(
+                        "every water-heat stream must span the day-type calendar"
                     )
 
     @property
@@ -2270,17 +2395,38 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     # --- L1 ---------------------------------------------------------------
     # THE SAME LOAD SET FOR EVERY L1 CELL, computed ONCE and passed down. L1.1,
     # L1.2 and L1.3 are all statements about a household's behaviour, and all three
-    # are read on the meter net of space heat: two cells deriving "this home's
-    # behaviour" separately is how they come to hold two ideas of it.
+    # are read on the meter net of the heating machines: two cells deriving "this
+    # home's behaviour" separately is how they come to hold two ideas of it.
+    #
+    # BOTH MACHINES SINCE H38, and the invariant above is why the water heater was
+    # netted from all three rather than from L1.1 alone. L1.1 is the cell with the
+    # argument that forced it (the water heater is 36-40% of the denominator, and
+    # the floor's anchor population heats its water with gas), but keeping it in
+    # for the other two would have bought exactly the two-ideas-of-behaviour defect
+    # this comment forbids. The other two were MEASURED rather than assumed, on the
+    # drawn 60: L1.3 loses 8 false away days and holds recall at 1.000 (the water
+    # heater draws nothing on an away day, so the netting is the identity on the
+    # days that cell is about); L1.2 moves its median 0.2104 -> 0.2143 with the
+    # worst home and the violation count both unchanged. Neither is the reason —
+    # they are the check that the reason costs nothing elsewhere.
     heat_streams: list[list[list[float]] | None] = [
-        [list(day) for day in population.space_heat_grids[k]]
-        if population.space_heat_grids else None
+        machine_draw(
+            [list(day) for day in population.space_heat_grids[k]]
+            if population.space_heat_grids else None,
+            [list(day) for day in population.water_heat_grids[k]]
+            if population.water_heat_grids else None,
+        )
         for k in range(len(grids))
     ]
-    behavioural = [meter_net_of_space_heat(g, h) for g, h in zip(grids, heat_streams)]
+    behavioural = [meter_net_of_machines(g, h) for g, h in zip(grids, heat_streams)]
     netted = sum(
         1 for h in heat_streams if h is not None and any(any(day) for day in h)
     )
+    # A SPLIT IS BOTH MACHINES OR IT IS NOT A SPLIT (H38). `machine_draw` already
+    # fails closed per home; this is the same fact for the notes, so a population
+    # carrying only half the split says "no split" rather than reporting a netting
+    # it did not do.
+    split_supplied = all(h is not None for h in heat_streams)
 
     # L1.1's band was keyed on the MACHINE for as long as the statistic was read on
     # the whole meter, because the heat sat in the denominator of a ratio to the
@@ -2301,11 +2447,11 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
         bands=texture_bands,
         homes=homes,
         note=(
-            f"judged on the meter net of space heat; {netted} of {len(grids)} homes "
-            f"carry heat on the judged meter; {unjudged_for_no_split} unjudged for "
-            "want of a split"
-            if population.space_heat_grids
-            else "no space-heat split supplied — the WHOLE meter is judged where the "
+            f"judged on the meter net of space AND water heat; {netted} of {len(grids)} "
+            f"homes carry a heating machine on the judged meter; "
+            f"{unjudged_for_no_split} unjudged for want of a split"
+            if split_supplied
+            else "no machine split supplied — the WHOLE meter is judged where the "
             f"register says the heat is elsewhere, and {unjudged_for_no_split} of "
             f"{len(grids)} homes are counted rather than judged"
         ),
@@ -2314,17 +2460,17 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     # L1.2 is judged on the SAME LOAD SET for every home. Its band is a statement
     # about households; where the heating machine is on the judged meter it is
     # taken back out, so the cell cannot fail a home for owning a thermostat
-    # (`meter_net_of_space_heat` carries the measurement that forced this).
+    # (`meter_net_of_machines` carries the measurement that forced this).
     cells.append(_l1_rate_cell(
         "L1.2_day_to_day_shape_correlation",
         values=[day_to_day_shape_correlation(g) for g in behavioural],
         bands=(BANDS["L1.2_day_to_day_shape_correlation"],) * len(grids),
         homes=homes,
         note=(
-            f"judged on the meter net of space heat; {netted} of {len(grids)} homes "
-            "carry heat on the judged meter"
-            if population.space_heat_grids
-            else "no space-heat split supplied — the WHOLE meter is judged (fail-closed)"
+            f"judged on the meter net of space AND water heat; {netted} of {len(grids)} "
+            "homes carry a heating machine on the judged meter"
+            if split_supplied
+            else "no machine split supplied — the WHOLE meter is judged (fail-closed)"
         ),
     ))
     # THE QUANTITY THAT WAS NETTED OUT, said out loud. Measured on the homes whose
@@ -2362,16 +2508,16 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     cells.append(_l1_rate_cell(
         "L1.3_away_days_per_year",
         values=[
-            trough_statistics(g, space_heat=h).away_days_per_year
+            trough_statistics(g, machines=h).away_days_per_year
             for g, h in zip(grids, heat_streams)
         ],
         bands=(BANDS["L1.3_away_days_per_year"],) * len(grids),
         homes=homes,
         note=(
-            f"away signature read net of space heat; {netted} of {len(grids)} homes "
-            "carry heat on the judged meter"
-            if population.space_heat_grids
-            else "no space-heat split supplied — the WHOLE meter is judged (fail-closed)"
+            f"away signature read net of space AND water heat; {netted} of {len(grids)} "
+            "homes carry a heating machine on the judged meter"
+            if split_supplied
+            else "no machine split supplied — the WHOLE meter is judged (fail-closed)"
         ),
     ))
 
@@ -2622,6 +2768,27 @@ def premise_trace_population(
             tuple(
                 tuple(day.heating_fuel_kwh) if t.heating_commodity == commodity
                 else (0.0,) * len(day.heating_fuel_kwh)
+                for day in t.days
+            )
+            for t in traces
+        ),
+        # The WATER-heating machine, by the same rule and keyed on the same stated
+        # plumbing fact (H38). `dhw_fuel_kwh` is the fuel the water heater drew,
+        # whichever commodity it drew it on, and this generator puts hot water on
+        # the same meter as space heat — so keying on `heating_commodity` puts a
+        # gas home's cylinder on the gas meter, where L1.1 cannot see it, and
+        # contributes zeros to the electricity meter it is judged on.
+        #
+        # THE FAILURE DIRECTION IF THAT EVER STOPS BEING TRUE (a gas-heated home
+        # with an electric immersion) IS THE STRICT ONE: this would contribute
+        # zeros, the water heater would stay in the judged meter, and the home
+        # would be held to a floor derived without it. That is the reading this
+        # atom calls too strict — it is not a hole, and it is asserted rather than
+        # hoped for in `test_a_water_heater_on_the_OTHER_commodity_is_not_netted`.
+        water_heat_grids=tuple(
+            tuple(
+                tuple(day.dhw_fuel_kwh) if t.heating_commodity == commodity
+                else (0.0,) * len(day.dhw_fuel_kwh)
                 for day in t.days
             )
             for t in traces

@@ -176,13 +176,18 @@ _ERA_BAND = {
 # `simulation/premise_trace.py` contains no charge window, no thermal store and no
 # Economy-7 calendar (`WORKER_FINDING_THE_MODELS_STORAGE_HEATER_IS_NOT_ONE`,
 # owner atom W1_12). A home labelled `electric_storage` here would be a panel
-# heater wearing a storage heater's register value, and L1.1r's null would then be
-# reported as measured on a load set half of which is a mislabel. A panel heater is
-# exactly what `ELECTRIC_DIRECT` already is, and L1.1r's own anchor covers
-# "resistive (storage or panel)" — so the band becomes measurable on the
+# heater wearing a storage heater's register value, and the texture null would then
+# be reported as measured on a load set half of which is a mislabel. A panel heater
+# is exactly what `ELECTRIC_DIRECT` already is — so the reading is taken on the
 # sub-regime the physics genuinely represents, and the storage sub-regime stays
 # openly unexercised until the storage-heater fidelity work lands, rather than
 # being quietly claimed.
+#
+# H36 (2026-08-10) removed the regime-conditioned texture FLOORS these homes were
+# put here to exercise — L1.1 is now read net of space heat against one floor — but
+# not the reason for the widening: a panel with no electrically heated home cannot
+# measure what the netting does, and the storage/panel distinction above is a
+# statement about the WORLD that survives any change to the control.
 PANEL = (
     # id, property type, era, insulation, bedrooms, people, heating, meter cadence
     ("F1", PropertyType.FLAT, BuildEra.POST_2000, InsulationLevel.FULL, 1, 1,

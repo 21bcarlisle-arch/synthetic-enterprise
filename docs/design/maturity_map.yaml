@@ -4417,22 +4417,22 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: worker_finding
   depends_on: [H36_the_texture_floor_is_one_number_for_every_home_size]
   couples_with: [H_GAP_fabric_belief_truth_gap]
-  evidence: ['docs/design/BAND_NULL_SWEEP.md']
-  file_scope: ['background/fabric_gap_ledger.py', 'tests/harness/test_premise_two_level.py']
-  notes_rehomed: [origin_note]
+  evidence: ['docs/design/BAND_NULL_SWEEP.md', 'docs/observability/band_null_sweep.json', 'tests/harness/test_premise_two_level.py', 'tests/harness/test_band_null_sweep.py', 'tests/tools/test_couple_fabric.py']
+  file_scope: ['background/fabric_gap_ledger.py', 'background/band_null_sweep.py', 'tests/harness/test_premise_two_level.py', 'tests/harness/test_band_null_sweep.py', 'tests/tools/test_couple_fabric.py']
+  notes_rehomed: [build_note, origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a step counter that counts the escalator because it was only ever calibrated against lifts"
 
 - id: H39_the_texture_floor_sits_inside_the_spread_of_its_own_null
   title: "A texture statistic whose null is not the home's own diurnal profile"
-  gain: "The surviving L1.1 floor clears its null by 0.0334 against a spread of 0.0763 -- separated by the draw, not by construction, with the p95 set by whichever home has the peakiest mean profile."
+  gain: "The surviving L1.1 floor clears its null by 0.0550 against a spread of 0.0558 -- separated by the draw, not by construction, with the p95 set by whichever home has the peakiest mean profile. RESTATED 2026-08-10: H38 moved these from 0.0334/0.0763 (margin-to-spread 0.44 -> 0.99) by taking the water heater out of the load set; the band is still INSIDE its own null spread and the defect is unchanged in kind."
   name: "MINTED FROM the second finding in the H36 section of docs/design/BAND_NULL_SWEEP.md (2026-08-10). Candidate named there and NOT as the answer: the L1.4->L1.4n / L2.3->L2.3n own-null-ratio pattern. NEVER a threshold move -- raising the floor until it clears its null is R12 read backwards."
   lane: H_harness
   value_stream: close_to_learn

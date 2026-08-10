@@ -1239,7 +1239,16 @@ class PremiseDayTrace:
     heat_delivered_kwh: tuple[float, ...]
     heating_fuel_kwh: tuple[float, ...]
     behavioural_electricity_kwh: tuple[float, ...]
-    """Appliances + lighting + electronics + base load + electric DHW.
+    """Appliances + lighting + electronics + base load. NOT hot water.
+
+    THE "+ electric DHW" IN THIS LINE WAS WRONG AND IS CORRECTED (2026-08-10,
+    H38). Water heating is added to the METER further down (`electricity[period]
+    += dhw_fuel[period]`) and has never been part of this stream — measured on
+    P0008, a resistive home: meter 17.8475 = behavioural 9.8144 + dhw 6.2700 +
+    space heat 1.7630, exactly. The stale line mattered because the harness reads
+    both fields to net the water heater out of L1.1's denominator, and a reader
+    checking that work against this docstring would have concluded it
+    double-counts.
 
     NOT fabric-independent as a whole, and the part that is not is broken out as
     `cold_appliance_kwh` below. The separability control checks this series NET of

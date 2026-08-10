@@ -484,7 +484,7 @@ def test_the_premise_trace_generator_meets_the_two_level_test(population_result)
       physically is, against the premise's own setpoint.
     * L1.2 day-to-day shape correlation 2/200 -> 0/200 (2026-08-09), AND THIS ONE
       WAS THE CONTROL'S DEFECT, NOT THE GENERATOR'S. The two violators were
-      electric-storage homes; decomposing them (`meter_net_of_space_heat`) put the
+      electric-storage homes; decomposing them (`meter_net_of_machines`) put the
       whole deficit in the heating stream — 0.9133 on a storage home's ELECTRICITY
       meter against 0.9197 and 0.9080 on gas homes' GAS meters, i.e. the same
       repeatability in every regime — while their behaviour scored 0.32 and 0.11
@@ -496,7 +496,7 @@ def test_the_premise_trace_generator_meets_the_two_level_test(population_result)
     assert not population_result.is_red, population_result.summary()
 
 
-def test_MEASURED_population_values(population_result):
+def test_MEASURED_population_values(population, population_result):
     """The population verdict, pinned cell by cell, so "RED at population scale" is
     a checkable claim and not an adjective.
 
@@ -525,6 +525,7 @@ def test_MEASURED_population_values(population_result):
     """
     assert population_result.homes >= fgl.MIN_HOMES_FOR_L1_RATE
     expected = {
+        fgl.TEXTURE_STATISTIC: (fgl.Verdict.PASS, 0.0),
         "L1.2_day_to_day_shape_correlation": (fgl.Verdict.PASS, 0.0),
         "L1.3_away_days_per_year": (fgl.Verdict.PASS, 0.0),
         "L1.5_max_multiplicity_share": (fgl.Verdict.PASS, 0.0),
@@ -536,14 +537,19 @@ def test_MEASURED_population_values(population_result):
         assert cell.homes_judged == 60 and cell.homes_unjudged == 0, cell.note
         assert cell.resolution == pytest.approx(0.05)
 
-    # L1.1 IS THE OPEN ONE, and it opened when the cell got SHARPER (H36,
-    # 2026-08-10). See `test_the_L1_1_BREACH_is_the_WATER_HEATER_in_the_denominator`
-    # for the decomposition; the breach is one home in sixty and it is reported
-    # rather than absorbed, because absorbing it means moving a floor.
+    # L1.1 CLOSED ON 2026-08-10 (H38) AND THE FLOOR STILL HAS NOT MOVED. H36 made
+    # this cell sharper and opened a 1-in-60 breach (P0008 at 0.1423); H38 took the
+    # WATER heater out of the denominator alongside the space heater and it reads
+    # 0/60. The worst home is now a GAS home, which is the tell that this was a
+    # load-set repair and not a leniency: after it, the marginal home in the
+    # population is one the netting never touched.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
-    assert texture.verdict is fgl.Verdict.FAIL, texture.note
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
-    assert (texture.homes_violating, texture.worst_home) == (1, "P0008"), texture.note
+    assert texture.worst_home == "P0036", texture.note
+    assert texture.worst_value == pytest.approx(0.1521, abs=5e-4), texture.note
+    assert "gas" in population.heating_systems[
+        population.homes.index(texture.worst_home)
+    ], "the marginal home after the repair must be one the netting did not touch"
     # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
@@ -555,7 +561,6 @@ def test_MEASURED_population_values(population_result):
     # still-red flag: 60 drawn homes span 2.17x between their 10th and 90th
     # percentile against real households' 5.38x (floor 4.88).
     assert {c.statistic for c in population_result.failed} == {
-        fgl.TEXTURE_STATISTIC,
         "L2.4_scale_spread_p90_p10",
     }, population_result.summary()
     spread = population_result.cell("L2.4_scale_spread_p90_p10")
@@ -566,32 +571,27 @@ def test_MEASURED_population_values(population_result):
     ).worst_value == pytest.approx(0.4386, abs=0.01), "the worst home is a GAS home"
 
 
-def test_the_L1_1_BREACH_is_the_WATER_HEATER_in_the_denominator(drawn_traces,
-                                                               population_result):
-    """R4 — the breach H36 opened, decomposed rather than tolerated or absorbed.
+def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
+    drawn_traces, population, population_result
+):
+    """H38, and it is the decomposition H36 recorded, now run as the closure.
 
-    WHAT OPENED IT. L1.1 used to be read on the WHOLE meter with the floor
-    rescaled per heating regime. Read net of space heat against one floor (H36)
-    the cell got sharper — five of the six electrically heated homes on the live
-    panel had been clearing their rescaled band with their behaviour replaced by
-    their own mean profile — and one home in this drawn sixty now sits under the
-    floor: P0008 at 0.1423 against 0.15.
+    WHAT WAS OPEN. H36 made this cell sharper by reading it net of SPACE heat, and
+    one home in the drawn sixty went under the floor: P0008 at 0.1423 against 0.15.
+    The floor was not moved, P0008 was not excluded and the cell was not marked
+    UNVALIDATED — any of the three turns it green in one edit while making the
+    measurement worse (R12).
 
-    WHAT IT IS, MEASURED. The same wrong-load-set shape one level in. Taking the
-    space heater out leaves the WATER heater, which is 36-40% of what is left for
-    every electrically heated home here — and it is a machine, not an appliance
-    event: a large, regular draw that raises the MEAN of the stream while the
-    MEDIAN step barely moves, which is the numerator/denominator argument that
-    forced the space-heat netting in the first place. Net of both machines, all
-    three homes read 0.2048-0.2434 and the breach is not merely gone but
-    comfortable.
+    WHAT IT WAS. The same wrong-load-set shape one machine over. What is left after
+    the space heater comes out is the WATER heater, 36-40% of what this cell then
+    called behaviour, and the floor's own anchor is a gas-heated home's electricity
+    meter — where the water is heated by gas. So the anchor population never
+    carried this load and the netting restores the load set the floor was derived
+    on. It is a DENOMINATOR effect and not a spikiness one: three 12-minute draws a
+    day move six steps in 47, and the numerator is a median.
 
-    WHAT WAS NOT DONE. The floor was not moved, P0008 was not excluded, and the
-    cell was not marked UNVALIDATED. Any of the three turns this green in one
-    edit while making the measurement worse (R12). It is dispositioned to atom
-    `H38_the_behavioural_stream_still_carries_the_water_heater`, and until that
-    lands the cell reports FAIL — which is the correct reading of a control that
-    is asking a home about a machine.
+    WHAT CLOSED IT. `machine_draw` puts both machines into the one stream the L1
+    cells net out. The floor is still 0.15.
     """
     heated = [t for t in drawn_traces if t.heating_commodity == "electricity"]
     assert len(heated) >= 3, "the diagnosis needs the homes it is about"
@@ -600,39 +600,261 @@ def test_the_L1_1_BREACH_is_the_WATER_HEATER_in_the_denominator(drawn_traces,
         meter = [list(day) for day in trace.half_hourly("electricity")]
         space_heat = [list(day.heating_fuel_kwh) for day in trace.days]
         water_heat = [list(day.dhw_fuel_kwh) for day in trace.days]
-        behavioural = fgl.meter_net_of_space_heat(meter, space_heat)
-        net_of_both = [
-            [max(b - w, 0.0) for b, w in zip(beh_day, water_day)]
-            for beh_day, water_day in zip(behavioural, water_heat)
-        ]
-        water_share = (
-            sum(map(sum, water_heat)) / sum(map(sum, behavioural))
-        )
+        behavioural = fgl.meter_net_of_machines(meter, space_heat)
+        water_share = sum(map(sum, water_heat)) / sum(map(sum, behavioural))
         assert 0.30 <= water_share <= 0.45, (
             f"{trace.premise_id}: the water heater is {water_share:.1%} of what "
-            "L1.1 currently calls behaviour — if this has moved, the diagnosis "
-            "below is about a different stream"
+            "L1.1 called behaviour before this repair — if this has moved, the "
+            "diagnosis below is about a different stream"
         )
-        assert (
-            fgl.half_hourly_texture(net_of_both)
-            > fgl.half_hourly_texture(meter, space_heat=space_heat)
-        ), (
+        net_of_both = fgl.half_hourly_texture(
+            meter, machines=fgl.machine_draw(space_heat, water_heat)
+        )
+        assert net_of_both > fgl.half_hourly_texture(meter, machines=space_heat), (
             f"{trace.premise_id}: taking the water heater out must RAISE texture "
-            "— if it does not, this breach is the generator's and not the load "
-            "set's, and the disposition has to change"
+            "— if it does not, this breach was the generator's and not the load "
+            "set's, and the repair has to be reconsidered"
         )
         assert fgl.BANDS[fgl.TEXTURE_STATISTIC].judge(
-            fgl.half_hourly_texture(net_of_both)
+            net_of_both
         ) is fgl.Verdict.PASS, (
             f"{trace.premise_id} does not clear the floor even net of both "
-            "machines — then the water heater is not the whole story"
+            "machines — then the water heater was not the whole story"
         )
 
-    # ...and the cell that reports it names the home, so the finding cannot be
-    # read off as a population-level smudge.
+    # ...and the CELL is the thing that had to move, not just the statistic.
     cell = population_result.cell(fgl.TEXTURE_STATISTIC)
-    assert cell.worst_home == "P0008" and cell.homes_violating == 1, cell.note
-    assert cell.worst_value == pytest.approx(0.1423, abs=5e-4), cell.note
+    assert cell.verdict is fgl.Verdict.PASS, cell.note
+    assert cell.homes_violating == 0 and cell.homes_unjudged == 0, cell.note
+
+
+def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
+    drawn_traces, population
+):
+    """R15's hard direction for H38, and the reason it needs its own test.
+
+    Netting space heat was a STRENGTHENING and could be proven as one: homes that
+    had been passing with their behaviour destroyed started failing. Netting the
+    water heater moves every affected reading UP (0.1423 -> 0.2048), so the same
+    proof is not available and the honest question is a different one — is the cell
+    now asking an electrically heated home an EASIER question than it asks the gas
+    homes whose meters derived the floor?
+
+    Measured in the only unit in which two regimes are comparable: how much of its
+    own behaviour a home must lose before the cell fires (`_critical_behaviour_
+    weight`, H36's). Raw values are not comparable across regimes; this is.
+
+    THE GAS COLUMN IS THE CONTROL AND IT IS NOT A TARGET. It is identical under
+    both readings — a gas home heats its water with gas, so its water-heat stream
+    on the electricity meter is zeros — which makes it an independent reference
+    rather than something this repair could have tuned toward.
+    """
+    gas_criticals, electric_before, electric_after = [], [], []
+    for trace in drawn_traces:
+        meter = [list(day) for day in trace.half_hourly("electricity")]
+        on_meter = trace.heating_commodity == "electricity"
+        space = [list(day.heating_fuel_kwh) if on_meter else [0.0] * 48
+                 for day in trace.days]
+        water = [list(day.dhw_fuel_kwh) if on_meter else [0.0] * 48
+                 for day in trace.days]
+        behaviour = [list(day.behavioural_electricity_kwh) for day in trace.days]
+        before = _critical_true_behaviour_weight(meter, behaviour, space)
+        after = _critical_true_behaviour_weight(
+            meter, behaviour, fgl.machine_draw(space, water)
+        )
+        if on_meter:
+            electric_before.append(before)
+            electric_after.append(after)
+        else:
+            gas_criticals.append(before)
+            assert after == pytest.approx(before, abs=1e-9), (
+                f"{trace.premise_id}: a gas home must be BIT-FOR-BIT unmoved by the "
+                "water-heat netting, or the reference this is measured against is "
+                "not independent of the repair"
+            )
+
+    assert len(electric_after) >= 3 and len(gas_criticals) >= 30
+    gas_median = statistics.median(gas_criticals)
+    assert gas_median == pytest.approx(0.3066, abs=0.01)
+
+    # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
+    # home needed — P0008 at 0.0000 was already under the floor untouched.
+    assert max(electric_before) < gas_median / 3, (
+        f"electric homes fired at {sorted(round(v, 4) for v in electric_before)} "
+        f"against a gas median of {gas_median:.4f}"
+    )
+    # AFTER: they answer the same question the anchor population answers. Bounded
+    # on BOTH sides — a netting that made them markedly HARDER to fail than a gas
+    # home would be a leniency, and this is the assertion that would catch it.
+    for value in electric_after:
+        assert 0.6 * gas_median <= value <= 1.6 * gas_median, (
+            f"after the repair an electrically heated home fires at {value:.4f} "
+            f"against a gas median of {gas_median:.4f} — parity with the anchor "
+            "population is the claim, and it is not holding"
+        )
+
+
+def _critical_true_behaviour_weight(meter, behaviour, machines):
+    """How much of its TRUE behavioural stream a home loses before L1.1 fires.
+
+    Distinct from `_critical_behaviour_weight` further down, and the difference is
+    the point of it: that one flattens the RESIDUAL (whatever is left after the
+    netting), which is the right mutation for the reading under test. This one
+    flattens the generator's own `behavioural_electricity_kwh` and rebuilds the
+    meter around it, so the SAME defect is posed to two different readings and the
+    answers can be compared. Flattening the residual would pose a different defect
+    to each and the comparison would be meaningless.
+    """
+    flat = [[sum(day) / 48.0] * 48 for day in behaviour]
+    rest = [[m - b for m, b in zip(m_day, b_day)]
+            for m_day, b_day in zip(meter, behaviour)]
+    lo, hi = 0.0, 1.0
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        mutated = [
+            [(1 - mid) * b + mid * f + r for b, f, r in zip(b_day, f_day, r_day)]
+            for b_day, f_day, r_day in zip(behaviour, flat, rest)
+        ]
+        if fgl.half_hourly_texture(mutated, machines=machines) < 0.15:
+            hi = mid
+        else:
+            lo = mid
+    return (lo + hi) / 2
+
+
+def test_a_water_heater_on_the_OTHER_commodity_is_not_netted(drawn_traces, weather):
+    """The netting must be the IDENTITY on a home that heats its water with gas,
+    and the population builder is where that is decided.
+
+    This is the arm that keeps the repair a load-set correction rather than a
+    rescaling of everybody: 57 of the 60 drawn homes must be bit-for-bit what they
+    were, because a gas home's cylinder is on the gas meter and contributes zeros
+    to the electricity meter it is judged on.
+
+    THE FAILURE DIRECTION IF THE KEYING IS EVER WRONG IS THE STRICT ONE. A home
+    with gas space heat and an electric immersion would contribute zeros here, its
+    water heater would stay in the judged meter, and it would be held to a floor
+    derived without one — the reading H38 calls too strict. That is a finding, not
+    a hole, and it is asserted rather than hoped for.
+    """
+    population = fgl.premise_trace_population(drawn_traces, weather)
+    off_meter = 0
+    for k, trace in enumerate(drawn_traces):
+        water = population.water_heat_grids[k]
+        on_this_meter = trace.heating_commodity == "electricity"
+        if on_this_meter:
+            assert any(any(day) for day in water), (
+                f"{trace.premise_id} heats on the judged meter and must declare a "
+                "water-heat stream, or the netting is silently a no-op on it"
+            )
+            continue
+        off_meter += 1
+        assert not any(any(day) for day in water), (
+            f"{trace.premise_id} heats its water on the OTHER commodity — its "
+            "electricity-meter water stream must be zeros, not its gas draw"
+        )
+        assert sum(sum(d.dhw_fuel_kwh) for d in trace.days) > 0.0, (
+            "...and it must genuinely HAVE a water heater, or this asserts nothing"
+        )
+        grid = [list(day) for day in population.grids[k]]
+        assert fgl.half_hourly_texture(
+            grid, machines=_machines_of(population, k)
+        ) == fgl.half_hourly_texture(grid), f"{trace.premise_id} was not left alone"
+    assert off_meter >= 30, "the no-op arm needs a population to be a no-op on"
+
+
+def test_HALF_a_split_is_NOT_a_split_and_the_WHOLE_meter_is_JUDGED(population):
+    """R15 fail-closed, on the rule H38 added rather than the one it inherited.
+
+    `machine_draw` returns None if EITHER stream is absent, so a builder that
+    supplies space heat and forgets water heat judges the WHOLE meter instead of
+    netting the half it has. The lenient-looking alternative — net what you were
+    given — is the fail-open shape: it would report "judged net of the machines"
+    over a load set that still carries one, and nothing downstream could tell.
+
+    Both directions, because a rule that only ever returns None is not fail-closed,
+    it is broken.
+    """
+    assert fgl.machine_draw(None, None) is None
+    assert fgl.machine_draw([[1.0]], None) is None
+    assert fgl.machine_draw(None, [[1.0]]) is None
+    assert fgl.machine_draw([[1.0]], [[0.5]]) == [[1.5]]
+
+    full = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
+    assert "net of space AND water heat" in full.note
+
+    for missing in ("space_heat_grids", "water_heat_grids"):
+        half = fgl.evaluate_two_level(
+            dataclasses.replace(population, **{missing: ()})
+        ).cell(fgl.TEXTURE_STATISTIC)
+        assert "no machine split supplied" in half.note, (
+            f"dropping {missing} left the cell claiming a netting it did not do"
+        )
+        # THE WITNESS IS THE UNJUDGED COUNT AND NOT THE WORST VALUE, which is
+        # itself a small finding: after the repair the worst home is a GAS home,
+        # and a gas home reads the same netted or not — so `worst_value` is blind
+        # to this change and an assertion on it would have passed vacuously.
+        assert full.homes_unjudged == 0 and half.homes_unjudged == 3, (
+            f"dropping {missing} left {half.homes_unjudged} homes unjudged — the "
+            "three homes whose heat is on this meter must lose their split with it"
+        )
+        assert half.verdict is not fgl.Verdict.PASS, half.note
+
+
+def test_the_REPAIR_ITSELF_fires_its_own_named_defect(population):
+    """R15 for H38 as a whole: put the water heater back and the breach it closed
+    comes back.
+
+    The mutation is the repair reversed — net only space heat, exactly the H36
+    reading — and it must return the cell to FAIL with P0008 named. A repair whose
+    removal changes nothing was not the thing that fixed it, and the alternative
+    explanations (a population that drifted, a floor that moved, a home that got
+    dropped) are all excluded by this going red on the same home and the same
+    value H36 recorded.
+    """
+    live = fgl.evaluate_two_level(population).cell(fgl.TEXTURE_STATISTIC)
+    assert live.verdict is fgl.Verdict.PASS and live.homes_violating == 0, live.note
+
+    reverted = fgl.evaluate_two_level(
+        dataclasses.replace(
+            population,
+            water_heat_grids=tuple(
+                tuple((0.0,) * len(day) for day in home)
+                for home in population.water_heat_grids
+            ),
+        )
+    ).cell(fgl.TEXTURE_STATISTIC)
+    assert reverted.verdict is fgl.Verdict.FAIL, reverted.note
+    assert reverted.homes_violating == 1 and reverted.worst_home == "P0008", reverted.note
+    assert reverted.worst_value == pytest.approx(0.1423, abs=5e-4), reverted.note
+
+
+def test_the_WATER_HEAT_stream_is_CHECKED_against_the_meter_it_claims_to_be_in(
+    population,
+):
+    """The guard applies to the summed stream, so a water-heat claim is checked as
+    hard as a space-heat one. Without this a generator could declare its behaviour
+    to be hot water and walk out of the cell — the exact escape
+    `_require_component_of_meter` was built to close, re-armed on the second
+    stream rather than assumed to extend to it."""
+    inflated = dataclasses.replace(
+        population,
+        water_heat_grids=tuple(
+            tuple(tuple(v * 10.0 for v in day) for day in home)
+            for home in population.grids
+        ),
+    )
+    with pytest.raises(fgl.InsufficientEvidence, match="COMPONENT"):
+        fgl.evaluate_two_level(inflated)
+
+    ragged = dataclasses.replace(
+        population,
+        water_heat_grids=tuple(
+            tuple(day[:-1] for day in home) for home in population.water_heat_grids
+        ),
+    )
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl.evaluate_two_level(ragged)
 
 
 def test_the_DRAWN_population_actually_contains_the_regime_the_fix_is_about(
@@ -802,6 +1024,42 @@ def _homes_with_heat_on_the_judged_meter(population):
     ]
 
 
+def _machines_of(population, k):
+    """Home `k`'s heating-machine stream composed EXACTLY as the live cell composes
+    it — `fgl.machine_draw` of the space and water streams (H38).
+
+    Every mutation below has to rebuild a meter that the cell can then take apart
+    again. Composing the machine stream by hand here would let a mutation net a
+    different load set from the one under test, and the failure mode is silent: the
+    residual picks up the difference between two machine streams and reads as
+    behaviour that is not there.
+    """
+    return fgl.machine_draw(
+        [list(d) for d in population.space_heat_grids[k]]
+        if population.space_heat_grids else None,
+        [list(d) for d in population.water_heat_grids[k]]
+        if population.water_heat_grids else None,
+    )
+
+
+def _machines_of_trace(trace, *, on_this_meter=True):
+    """A TRACE's heating-machine stream as the shipped cell composes it (H38).
+
+    `on_this_meter=False` returns None — the fail-closed reading for a home whose
+    generator states no split. Every mutation below goes through this rather than
+    reaching for `heating_fuel_kwh` alone, because a mutation proved against a
+    load set the ledger does not judge on is an R15 proof of nothing: that is the
+    live-mechanism-with-a-dead-input shape, and it is how H36's proofs would have
+    silently stopped covering the shipped reading the moment H38 landed.
+    """
+    if not on_this_meter:
+        return None
+    return fgl.machine_draw(
+        [list(d.heating_fuel_kwh) for d in trace.days],
+        [list(d.dhw_fuel_kwh) for d in trace.days],
+    )
+
+
 def test_the_DRAWN_population_contains_a_home_whose_HEAT_IS_ON_THE_JUDGED_METER(population):
     """THE VACUITY GUARD on the netting, and it is not a formality: a population of
     gas-heated homes exercises none of this and would pass whatever the netting
@@ -819,8 +1077,8 @@ def test_the_DRAWN_population_contains_a_home_whose_HEAT_IS_ON_THE_JUDGED_METER(
 
 
 def test_L1_2_still_FIRES_when_an_ELECTRICALLY_HEATED_homes_BEHAVIOUR_is_replayed(population):
-    """R15, THE ARM THAT MATTERS. Netting space heat out of L1.2 buys leniency;
-    this proves it did not buy immunity.
+    """R15, THE ARM THAT MATTERS. Netting the heating machines out of L1.2 buys
+    leniency; this proves it did not buy immunity.
 
     The mutation is the cell's own named defect (`_replay_one_day`) applied to the
     stream that is actually judged, on the very home the netting rescued, with its
@@ -837,8 +1095,8 @@ def test_L1_2_still_FIRES_when_an_ELECTRICALLY_HEATED_homes_BEHAVIOUR_is_replaye
     clean = fgl.evaluate_two_level(population).cell("L1.2_day_to_day_shape_correlation")
     assert clean.verdict is fgl.Verdict.PASS, clean.note
 
-    heat = [list(day) for day in population.space_heat_grids[k]]
-    behaviour = fgl.meter_net_of_space_heat([list(d) for d in population.grids[k]], heat)
+    heat = _machines_of(population, k)
+    behaviour = fgl.meter_net_of_machines([list(d) for d in population.grids[k]], heat)
     replayed = _replay_one_day(behaviour)
     poisoned = [
         tuple(b + h for b, h in zip(bd, hd)) for bd, hd in zip(replayed, heat)
@@ -883,7 +1141,7 @@ def test_the_netting_CHANGES_NOTHING_for_a_home_heated_off_the_judged_meter(popu
     for k, grid in enumerate(population.grids):
         whole = fgl.day_to_day_shape_correlation([list(d) for d in grid])
         net = fgl.day_to_day_shape_correlation(
-            fgl.meter_net_of_space_heat(
+            fgl.meter_net_of_machines(
                 [list(d) for d in grid],
                 [list(d) for d in population.space_heat_grids[k]],
             )
@@ -901,21 +1159,21 @@ def test_the_netting_REFUSES_a_stream_that_is_not_a_COMPONENT_of_the_meter(popul
     would let a generator declare its behaviour to be heat and walk out of the
     cell."""
     meter = [list(day) for day in population.grids[0]]
-    ok = fgl.meter_net_of_space_heat(meter, [[0.0] * len(d) for d in meter])
+    ok = fgl.meter_net_of_machines(meter, [[0.0] * len(d) for d in meter])
     assert ok == meter, "the unmutated call must pass, or this proves nothing"
 
     with pytest.raises(fgl.InsufficientEvidence):
-        fgl.meter_net_of_space_heat(meter, [[v * 2 for v in d] for d in meter])
+        fgl.meter_net_of_machines(meter, [[v * 2 for v in d] for d in meter])
     with pytest.raises(fgl.InsufficientEvidence):
-        fgl.meter_net_of_space_heat(meter, [[-1e-6] + [0.0] * (len(d) - 1) for d in meter])
+        fgl.meter_net_of_machines(meter, [[-1e-6] + [0.0] * (len(d) - 1) for d in meter])
     with pytest.raises(fgl.NonFiniteTrace):
-        fgl.meter_net_of_space_heat(
+        fgl.meter_net_of_machines(
             meter, [[float("nan")] + [0.0] * (len(d) - 1) for d in meter]
         )
     with pytest.raises(fgl.InsufficientEvidence):
-        fgl.meter_net_of_space_heat(meter, [[0.0] * len(d) for d in meter][:-1])
+        fgl.meter_net_of_machines(meter, [[0.0] * len(d) for d in meter][:-1])
     with pytest.raises(fgl.InsufficientEvidence):
-        fgl.meter_net_of_space_heat(meter, [[0.0] * (len(d) - 1) for d in meter])
+        fgl.meter_net_of_machines(meter, [[0.0] * (len(d) - 1) for d in meter])
 
 
 def test_the_NETTED_OUT_quantity_is_reported_and_is_ABOVE_the_band_it_left(population_result):
@@ -1050,7 +1308,7 @@ def test_H37_an_OCCUPIED_home_is_not_called_empty_in_any_regime(regime):
     """The direction the repair is FOR. A household that never left must read zero
     away days whatever its heating machine is, and after netting it does."""
     meter, heat = _h37_home(regime, occupied=True)
-    assert fgl.trough_statistics(meter, space_heat=heat).away_signature_days == 0
+    assert fgl.trough_statistics(meter, machines=heat).away_signature_days == 0
 
 
 @pytest.mark.parametrize("regime", ["gas", "heat_pump", "resistive"])
@@ -1062,7 +1320,7 @@ def test_H37_a_genuinely_EMPTY_home_is_still_detected_in_any_regime(regime):
     RECOVERS an absence the meter had hidden, which is the same result the live
     panel gives (E15, recall 0.75 -> 1.00)."""
     meter, heat = _h37_home(regime, occupied=False)
-    stats = fgl.trough_statistics(meter, space_heat=heat)
+    stats = fgl.trough_statistics(meter, machines=heat)
     assert stats.away_signature_days == _H37_DAYS
     assert fgl.BANDS["L1.3_away_days_per_year"].judge(stats.away_days_per_year) is fgl.Verdict.PASS
 
@@ -1073,19 +1331,19 @@ def test_H37_a_generator_with_no_absences_at_all_still_FAILS_the_band():
     every regime, netted."""
     for regime in _H37_HEAT:
         meter, heat = _h37_home(regime, occupied=True)
-        stats = fgl.trough_statistics(meter, space_heat=heat)
+        stats = fgl.trough_statistics(meter, machines=heat)
         assert fgl.BANDS["L1.3_away_days_per_year"].judge(
             stats.away_days_per_year
         ) is fgl.Verdict.FAIL, regime
 
 
 def test_H37_no_split_supplied_judges_the_WHOLE_meter_fail_closed():
-    """`space_heat=None` is the strict reading, not a lenient one: it is exactly
+    """`machines=None` is the strict reading, not a lenient one: it is exactly
     the pre-H37 behaviour, so a generator that supplies no split buys nothing by
     staying silent."""
     meter, _ = _h37_home("heat_pump", occupied=True)
     assert (
-        fgl.trough_statistics(meter, space_heat=None).away_signature_days
+        fgl.trough_statistics(meter, machines=None).away_signature_days
         == fgl.trough_statistics(meter).away_signature_days
         == _H37_DAYS
     )
@@ -1096,11 +1354,11 @@ def test_H37_a_gas_home_is_bit_for_bit_what_it_was(generated, traces):
     subtract to nothing. Asserted on the LIVE generator rather than the synthetic
     homes, so a change to the netting cannot pass here while moving the panel."""
     for k, grid in enumerate(_grids(generated)):
-        heat = [list(day) for day in generated.space_heat_grids[k]]
+        heat = _machines_of(generated, k)
         if any(any(day) for day in heat):
             continue
         assert (
-            fgl.trough_statistics(grid, space_heat=heat)
+            fgl.trough_statistics(grid, machines=heat)
             == fgl.trough_statistics(grid)
         ), generated.homes[k]
 
@@ -1110,10 +1368,10 @@ def test_H37_the_L1_3_CELL_reads_the_netted_stream_not_the_meter(generated):
     repaired one. The cell must carry the netting AND say so — an exclusion nobody
     can see in the note is how a netting becomes a quiet one."""
     cell = fgl.evaluate_two_level(generated).cell("L1.3_away_days_per_year")
-    assert "net of space heat" in cell.note
+    assert "net of space AND water heat" in cell.note
     netted = [
         fgl.trough_statistics(
-            g, space_heat=[list(d) for d in generated.space_heat_grids[k]]
+            g, machines=_machines_of(generated, k)
         ).away_days_per_year
         for k, g in enumerate(_grids(generated))
     ]
@@ -1451,6 +1709,7 @@ def test_L2_3n_and_the_SWEEPS_null_are_ONE_implementation(generated):
         is_weekend=generated.is_weekend[:60],
         weather_driver=generated.weather_driver[:60],
         space_heat_grids=tuple(tuple(tuple(d) for d in g[:60]) for g in generated.space_heat_grids),
+        water_heat_grids=tuple(tuple(tuple(d) for d in g[:60]) for g in generated.water_heat_grids),
     )
     via_sweep = bns._exchangeable_homes_null(population, random.Random(11))
     via_ledger = fgl.deal_preserving_counts(
@@ -2518,20 +2777,41 @@ def test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result(tmp_path
     # cells carry their denominator whatever the verdict — a green cell with no n
     # behind it is exactly the fail-open this suite spent a day removing.
     assert two_level["homes"] == fgl.MIN_HOMES_FOR_L1_RATE
-    for statistic in ("L1.2_day_to_day_shape_correlation",
+    for statistic in ("L1.1_half_hourly_texture",
+                      "L1.2_day_to_day_shape_correlation",
                       "L1.3_away_days_per_year", "L1.5_max_multiplicity_share"):
         cell = two_level["cells"][statistic]
         assert cell["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
         assert cell["homes_violating"] == 0
         assert cell["worst_home"]
-    # L1.1 carries the same denominator while it is RED, which is the direction
-    # that matters: a cell that stops reporting its n the moment it fails is a
-    # cell whose failure cannot be sized (H36's open breach is 1 in 60, and the
-    # wire has to say so).
-    texture = two_level["cells"]["L1.1_half_hourly_texture"]
-    assert texture["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
-    assert texture["homes_violating"] == 1
-    assert texture["worst_home"] == "P0008"
+    # L1.1 JOINED THAT LOOP ON 2026-08-10 (H38): its 1-in-60 breach closed when
+    # the water heater came out of the denominator, so the live population no
+    # longer has a red RATE cell for this to ride on. The direction that matters —
+    # a cell that stops reporting its n the moment it FAILS is a cell whose
+    # failure cannot be sized — therefore keeps its own arm below rather than
+    # being quietly dropped along with the breach that used to witness it.
+    red = dataclasses.replace(
+        population_result,
+        cells=tuple(
+            dataclasses.replace(c, verdict=fgl.Verdict.FAIL, homes_violating=1)
+            if c.statistic == fgl.TEXTURE_STATISTIC else c
+            for c in population_result.cells
+        ),
+    )
+    red_ledger = tmp_path / "red_fabric_gap.json"
+    fgl.write_fabric_gap_entries(
+        _observations(epc_bias=1.3, inferred_bias=1.1),
+        unit_rate_p_per_kwh=25.0,
+        measured_at="2026-08-03T00:00:00Z",
+        run_git_commit="deadbeef",
+        two_level=red,
+        path=red_ledger,
+    )
+    red_texture = json.loads(red_ledger.read_text())[fgl.GENERATOR_WORLD_ATOM][
+        "components"]["two_level"]["cells"]["L1.1_half_hourly_texture"]
+    assert red_texture["homes_judged"] == fgl.MIN_HOMES_FOR_L1_RATE
+    assert red_texture["homes_violating"] == 1
+    assert red_texture["worst_home"]
     for statistic in two_level["failed"]:
         # ONLY THE PER-HOME CELLS NAME A HOME. An L2 cell is one number over the
         # whole population and has no worst home to name — this loop asserted
@@ -2686,9 +2966,9 @@ def _flatten_behaviour(grid, space_heat, weight):
     Every day's behavioural TOTAL is preserved at every weight, so the mutation
     attacks within-day behavioural shape and nothing else, and the meter it
     rebuilds still has the heat stream as a genuine component of it — so
-    `meter_net_of_space_heat` recovers exactly the flattened stream.
+    `meter_net_of_machines` recovers exactly the flattened stream.
     """
-    behavioural = fgl.meter_net_of_space_heat(grid, space_heat)
+    behavioural = fgl.meter_net_of_machines(grid, space_heat)
     flat = [[sum(day) / 48.0] * 48 for day in behavioural]
     mutated = [
         [(1 - weight) * behavioural[d][p] + weight * flat[d][p] for p in range(48)]
@@ -2710,7 +2990,7 @@ def _critical_behaviour_weight(grid, space_heat, threshold):
     for _ in range(40):
         mid = (lo + hi) / 2
         value = fgl.half_hourly_texture(
-            _flatten_behaviour(grid, space_heat, mid), space_heat=space_heat
+            _flatten_behaviour(grid, space_heat, mid), machines=space_heat
         )
         if value < threshold:
             hi = mid
@@ -2816,30 +3096,55 @@ def test_the_SMOOTH_mutation_is_VALID_AGAIN_once_the_MACHINE_IS_OUT(matched_pair
     A mutation that raises the statistic cannot demonstrate that a band fires, so
     `_flatten_blend` had to be built for the electric bands.
 
-    Read net of space heat the anomaly is gone: the machine that inverted the
-    mutation is no longer in the stream, and the ordinary mutation destroys
-    texture on a heat-pump home exactly as it does on a gas home. That is a
-    property of the repair, not a convenience — it says the statistic is now
-    measuring the same thing in both regimes.
+    Read net of space heat the INVERSION is gone but the mutation was still not
+    valid: smoothing the space-heat-netted stream RAISED it, 0.2118 -> 0.2312.
+    H36 recorded that and said in this test that if it ever reversed, the reason
+    was to be RE-STATED and not deleted. It has reversed, so here is the reason.
+
+    THE SECOND MACHINE WAS DOING IT, AND THIS IS EVIDENCE FOR H38 RATHER THAN A
+    CONSEQUENCE OF IT. What was left after the space heater came out was a stream
+    carrying three enormous 12-minute water-heating draws a day among 48 periods.
+    Against that, `_smooth` — a mean across the same period on neighbouring days —
+    SMEARS each rare spike across its neighbours, which turns a few huge steps
+    into many medium ones and RAISES a median step while lowering the peak. That
+    is why the mutation kept inverting; it was reading the machine, not the
+    behaviour. Net of BOTH machines it behaves on a heat-pump home exactly as it
+    does on a gas home (0.2118 -> 0.1925), which is a statement about the load
+    set and not about the mutation: the residual is now a behavioural stream, so
+    a mutation that destroys behavioural texture destroys it.
     """
     heat_pump, gas = matched_pair
     hp_grid = [list(day) for day in heat_pump.half_hourly("electricity")]
     gas_grid = [list(day) for day in gas.half_hourly("electricity")]
-    hp_heat = [list(day.heating_fuel_kwh) for day in heat_pump.days]
+    hp_heat = _machines_of_trace(heat_pump)
 
     # The whole-meter reading, pinned so the anomaly this repair removed stays on
     # the record rather than becoming folklore.
     assert fgl.half_hourly_texture(_smooth(hp_grid)) > fgl.half_hourly_texture(hp_grid)
 
-    hp_behavioural = fgl.meter_net_of_space_heat(hp_grid, hp_heat)
     assert fgl.half_hourly_texture(_smooth(gas_grid)) < fgl.half_hourly_texture(gas_grid)
+
+    # THE MIDDLE READING, pinned so the two-stage story stays checkable rather
+    # than becoming a claim about a stream nobody can reconstruct: net of SPACE
+    # heat alone the mutation still inverted.
+    hp_space_only = fgl.meter_net_of_machines(
+        hp_grid, [list(d.heating_fuel_kwh) for d in heat_pump.days]
+    )
+    assert (
+        fgl.half_hourly_texture(_smooth(hp_space_only))
+        > fgl.half_hourly_texture(hp_space_only)
+    ), "the water heater is what kept _smooth inverted — if not, re-state the reason"
+
+    # AND NET OF BOTH MACHINES IT IS A VALID MUTATION AGAIN, on the load set the
+    # cell actually reads. `_flatten_blend` is kept anyway (it attacks the defect
+    # this cell is really about), but the electric bands no longer NEED it.
+    hp_behavioural = fgl.meter_net_of_machines(hp_grid, hp_heat)
     assert (
         fgl.half_hourly_texture(_smooth(hp_behavioural))
-        > fgl.half_hourly_texture(hp_behavioural)
+        < fgl.half_hourly_texture(hp_behavioural)
     ), (
-        "if this ever reverses, _smooth has become a valid mutation on the "
-        "BEHAVIOURAL stream of an electrically heated home and _flatten_blend's "
-        "reason should be re-stated, not deleted"
+        "if this reverses again, the residual has stopped behaving like a "
+        "behavioural stream and H38's load set needs re-examining, not this line"
     )
 
 
@@ -2853,16 +3158,16 @@ def test_L1_1_FIRES_when_a_real_heat_pump_homes_BEHAVIOUR_is_FLATTENED(matched_p
     """
     heat_pump, _ = matched_pair
     grid = [list(day) for day in heat_pump.half_hourly("electricity")]
-    heat = [list(day.heating_fuel_kwh) for day in heat_pump.days]
+    heat = _machines_of_trace(heat_pump)
     band = fgl.BANDS[fgl.TEXTURE_STATISTIC]
 
-    before = fgl.half_hourly_texture(grid, space_heat=heat)
+    before = fgl.half_hourly_texture(grid, machines=heat)
     assert band.judge(before) is fgl.Verdict.PASS, (
         f"the unmutated heat-pump trace should clear the floor: {before}"
     )
     # Monotone in the mutation, so "it fired" is not an artefact of one weight.
     values = [
-        fgl.half_hourly_texture(_flatten_behaviour(grid, heat, w), space_heat=heat)
+        fgl.half_hourly_texture(_flatten_behaviour(grid, heat, w), machines=heat)
         for w in (0.0, 0.25, 0.5, 0.75, 1.0)
     ]
     assert values == sorted(values, reverse=True), values
@@ -2880,20 +3185,31 @@ def test_the_floor_is_NOT_LOOSER_for_an_ELECTRIC_home_against_the_same_defect(
     could only be compared through how broken each home had to be before its own
     band fired. That comparison is now direct — one floor, one load set — and the
     unit is kept anyway, because it is the one that answers the charge. Measured:
-    the heat-pump home's behaviour must be flattened 0.169 of the way to a flat
-    day before the floor fires, the gas home's 0.385. The electric home is
-    judged STRICTLY MORE harshly than before (its old critical weight against the
-    rescaled band was 0.349), which is the opposite of a relaxation.
+    the heat-pump home's behaviour must be flattened 0.292 of the way to a flat
+    day before the floor fires, the gas home's 0.385.
+
+    THE ELECTRIC HOME'S NUMBER MOVED 0.169 -> 0.292 WHEN H38 TOOK THE WATER
+    HEATER OUT (2026-08-10), and that direction is the charge restated rather
+    than dodged: this is the netting making the cell EASIER on the home it
+    affects. It is defensible only because the gas home is the reference and the
+    gas home is untouched — 0.385 under both readings, its water heated by gas —
+    and 0.292 is still BELOW it. The electric home remains judged at least as
+    harshly as the population whose meters derived the floor, which is the claim.
+    It is bounded on both sides here for that reason: an electric home that
+    became HARDER to fail than the gas home would be the relaxation this test
+    exists to catch, and the old 0.169 was not a virtue but the 18x over-strictness
+    measured across the drawn 60 in
+    `test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING`.
     """
     heat_pump, gas = matched_pair
     hp_grid = [list(day) for day in heat_pump.half_hourly("electricity")]
     gas_grid = [list(day) for day in gas.half_hourly("electricity")]
-    hp_heat = [list(day.heating_fuel_kwh) for day in heat_pump.days]
+    hp_heat = _machines_of_trace(heat_pump)
 
     hp_critical = _critical_behaviour_weight(hp_grid, hp_heat, 0.15)
     gas_critical = _critical_behaviour_weight(gas_grid, None, 0.15)
 
-    assert hp_critical == pytest.approx(0.169, abs=0.02)
+    assert hp_critical == pytest.approx(0.292, abs=0.02)
     assert gas_critical == pytest.approx(0.385, abs=0.02)
     assert hp_critical <= gas_critical, (
         f"the electrically heated home tolerates more damage than the gas home "
@@ -3226,13 +3542,15 @@ def test_the_goal_seek_warning_needs_a_PREVALENCE_not_a_single_home(population_r
     when_the_coupling_is_REMOVED`, which restores the ambient-invariant duty and
     watches the real statistic go back over the real band.
     """
-    # THE TEXTURE ARM IS SYNTHETIC TOO SINCE H36 (2026-08-10), and saying so is
-    # again the point. The warning only speaks when texture PASSES, and the live
-    # drawn population's L1.1 cell now FAILS on its one open breach — so a test
-    # that read the live cell would be silent for the wrong reason and would prove
-    # nothing about prevalence. Both cells are set explicitly here; what stays
-    # genuinely under test is `goal_seek_warning` itself, which is not stubbed.
-    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.FAIL
+    # THE TEXTURE ARM WAS SYNTHETIC FOR ONE DAY (H36, 2026-08-10) BECAUSE THE LIVE
+    # CELL WAS RED, AND IS NOT ANY MORE. The warning only speaks when texture
+    # PASSES; H36 opened a 1-in-60 breach that would have made this test silent for
+    # the wrong reason, and H38 closed it by taking the water heater out of the
+    # denominator. The live cell is asserted GREEN here rather than the assertion
+    # being deleted with the breach — if L1.1 goes red again this test must be
+    # rewritten and not merely observed to still pass, because a stubbed-PASS arm
+    # over a red live cell proves nothing about prevalence.
+    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.PASS
 
     def with_structural(value: float, verdict: fgl.Verdict) -> fgl.TwoLevelResult:
         def rewrite(c):
@@ -3349,29 +3667,32 @@ def test_each_REGIME_is_judged_by_the_SAME_band_on_ITS_OWN_load_set(
     """Every registered machine reaches the SAME floor, on a real trace, once its
     own machine is out of the denominator.
 
-    THE ROW THAT MOVED, and it is reported rather than smoothed: ED1, the panel
-    heater, reads 0.1313 net of space heat and does NOT clear 0.15. Its whole
-    deficit is the water heater still in the stream (H36's named residual, atom
-    `H38`) — the same wrong-load-set shape one level in, decomposed on the drawn
-    population in `test_the_L1_1_BREACH_is_the_WATER_HEATER_in_the_denominator`.
-    The floor was not moved to accommodate it and the fixture was not dropped.
+    THE ROW THAT MOVED, AND THEN CLOSED. H36 recorded ED1 — the panel heater —
+    reading 0.1313 net of space heat and NOT clearing 0.15, said its whole deficit
+    was the water heater still in the stream, and left the row red rather than
+    moving the floor or dropping the fixture. H38 took the water heater out and
+    ED1 reads 0.2050. That is the prediction H36 wrote down being paid off on a
+    row it deliberately left failing, which is worth more than a row that was
+    green all along: the diagnosis was made BEFORE the repair and it held.
+
+    EVERY registered regime now clears the same floor on its own load set, so the
+    expected verdict is PASS for all of them and there is no per-regime exception
+    left in this test. A regime that goes red here is a finding, not a row to
+    re-pin.
     """
     trace = matched_regimes[heating]
     grid = [list(d) for d in trace.half_hourly("electricity")]
-    heat = [list(d.heating_fuel_kwh) for d in trace.days] if heat_is_on_this_meter else None
+    heat = _machines_of_trace(trace, on_this_meter=heat_is_on_this_meter)
     assert (trace.heating_commodity == "electricity") is heat_is_on_this_meter
 
     band = fgl.texture_band_for(heating.value, has_split=True)
     assert band.statistic == fgl.TEXTURE_STATISTIC
     assert band.threshold == 0.15
 
-    texture = fgl.half_hourly_texture(grid, space_heat=heat)
-    expected = fgl.Verdict.FAIL if heating is HeatingSystem.ELECTRIC_DIRECT else (
-        fgl.Verdict.PASS
-    )
-    assert band.judge(texture) is expected, (
+    texture = fgl.half_hourly_texture(grid, machines=heat)
+    assert band.judge(texture) is fgl.Verdict.PASS, (
         f"{premise_id} texture {texture:.4g} against the shared floor 0.15 — if "
-        "this row has moved, the H36 record is out of date and the reason has to "
+        "this row has moved, the H38 record is out of date and the reason has to "
         "be written down, not the assertion changed"
     )
     if heat is not None:
@@ -3404,12 +3725,12 @@ def test_the_MUTATION_that_proves_the_floor_is_VALID_on_EVERY_regime(
     """
     trace = matched_regimes[heating]
     grid = [list(d) for d in trace.half_hourly("electricity")]
-    heat = [list(d.heating_fuel_kwh) for d in trace.days] if heat_is_on_this_meter else None
+    heat = _machines_of_trace(trace, on_this_meter=heat_is_on_this_meter)
     band = fgl.texture_band_for(heating.value, has_split=True)
 
-    before = fgl.half_hourly_texture(grid, space_heat=heat)
+    before = fgl.half_hourly_texture(grid, machines=heat)
     after = fgl.half_hourly_texture(
-        _flatten_behaviour(grid, heat, 0.9), space_heat=heat
+        _flatten_behaviour(grid, heat, 0.9), machines=heat
     )
     assert after < before, (
         f"the mutation must DESTROY texture on a {heating.value} home, not raise "
