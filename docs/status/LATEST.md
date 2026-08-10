@@ -1,5 +1,33 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T01:11:54Z
+Last updated: 2026-08-10T01:31:26Z
+
+**SIXTH PUBLISH WEDGE CLOSED, AND THE SEVENTH IS NAMED — publishing is still RED.**
+The sixth blocker was two atoms numbered `H38`: `test_b_numeric_part_unique_per_lane_or_allowlisted`
+refuses a lane+number collision and says renumber, not allowlist. The landed atom kept its number;
+the unbuilt full-suite-pollution bisect moved to `H40`. Commit `82007ad44`.
+Behind it, measured under the gate's own argv, is the SEVENTH: the map size ratchet, 423,947 bytes
+against a 409,600 ceiling, red on committed HEAD. That is H32's control, closed yesterday — its
+rehoming worked (464,110 → 393,692) and the map **regrew 30,255 bytes in one day** of ordinary
+minting. The finding is not that the map is too big: H32 drained the field that was largest at that
+moment and added nothing that keeps draining. A ratchet with no ongoing drain is a one-time cleanup,
+not a control. Filed with the measured field-byte table and minted as `H41` (`aab38e6dd`), NOT fixed
+on sight — the cheap fix (omit the `expert_hour` default, ~35KB) would silently move the Proof
+door's published `expert_hour_not_attempted` count, since an absent key reads as `None`. R3 is armed
+on the third occurrence. **Publishing stays wedged until H41 lands.**
+
+**PW3 LANDED — the publish gate now watches its own duration (L0→L2, `82007ad44`).**
+The suite reached 612.94s against a 600s wall; the fail-open is closed but the GROWTH that reached
+it was unmeasured. The gate now times its own run and appends `{sha, duration, ceiling,
+headroom_ratio, band, outcome}` per run to `docs/observability/publish_gate_duration.jsonl` —
+including on the timeout, the most informative point in the series. Headroom is reported on the
+daily self-note as a **RATIO**, because the ceiling moved 600→1800s and every historical second-count
+silently changed meaning that day. The alarm is a trend TRANSITION (R5): once on crossing, once on
+recovery, never on an unchanged band. R12 is on its face and in the page it sends — the cheapest way
+to make the number green is to run fewer tests, which is forbidden; `headroom()` cannot see suite
+size. The existing series was read first, as the atom demanded, and rejected with reasons (no
+duration, no SHA, every 2-test run mixed in, and gate runs never reach it). R15 both ways: four
+source mutations, each killing named tests. `RECORDED NOT GREEN:` the series starts EMPTY and
+forward-only — the first cycles report RED "unmeasured", never a fabricated green.
 
 **FIFTH PUBLISH WEDGE CLOSED — the map declared four notes that were never written.**
 Publishing was RED for ~10.5 hours (66 failures, no pass at HEAD) and is green again.
@@ -1646,7 +1674,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (520s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -1761,6 +1789,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1966.5h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
+- Remaining effort: ~1920.8h across 76 sized atom(s) (13 of 89 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
