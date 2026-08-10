@@ -78,12 +78,21 @@ from tools.epistemic_wall import (  # noqa: E402
 # only SHRINK, a stale entry is a failure, and a NEW indirect crossing must be
 # cut rather than added here.
 #
-# All three are class (b) (the world reading the company), all three leave
-# `simulation/run_phase2b.py:95` through `background.live_payment_triad`, and
-# one of them continues through `tools.couple_w2_11_d5`. They are ruled in
-# `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` under
+# All are class (b) (the world reading the company) and all leave
+# `simulation/run_phase2b.py:95` through `background.live_payment_triad`. They
+# are ruled in `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` under
 # `A_composition_lift`: run_phase2b is that design's own densest file, and the
 # composition lift is the cut that kills these with the other 32 it carries.
+#
+# SHRUNK 3 -> 2 on 2026-08-10 (the ratchet's first real shrink, and it was not
+# this pass's own work): `("simulation.run_phase2b",
+# "company.billing.arrears_engine")` is DELETED because the crossing no longer
+# exists. It was the one that continued through `tools.couple_w2_11_d5`, whose
+# module-scope `from company.billing.arrears_engine import age_bucket` was
+# removed by `15125f388` (atom D21, H27 Expert Hour #5) when that dimension's
+# truth side stopped being the company organ's own rule. Verified as a real cut
+# and not a blind walker: the other two entries are still reported live, from
+# the same file and line, by the same walk.
 #
 # CLASS (a) — company-side reaching SIM through a bridge — is at ZERO, and that
 # is a measurement made here for the first time, not an inheritance. The direct
@@ -91,7 +100,6 @@ from tools.epistemic_wall import (  # noqa: E402
 # it was zero by the indirect route as well.
 LEGACY_INDIRECT_CROSSINGS: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "company.billing.account_ledger"),
-    ("simulation.run_phase2b", "company.billing.arrears_engine"),
     ("simulation.run_phase2b", "company.billing.payment_observation_consumer"),
 })
 

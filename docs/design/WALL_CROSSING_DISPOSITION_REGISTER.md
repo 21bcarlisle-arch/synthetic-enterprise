@@ -306,6 +306,16 @@ Each is carried by **two independent bridges** — `background.live_payment_tria
 `IndirectEdge` reports every entry point and not just the shortest chain it happened to walk
 first: a checker that printed one route would have told a reader to make a cut that does not cut.
 
+**CORRECTED 2026-08-10, by an event rather than by a re-read.** "Each is carried by two
+independent bridges" was an over-claim: it held for two of the three. When `15125f388` removed
+`tools/couple_w2_11_d5`'s `from company.billing.arrears_engine import age_bucket` for an unrelated
+R15 reason, the `-> company.billing.arrears_engine` route DIED — so that one was carried by that
+bridge ALONE, and `background.live_payment_triad` never imported `arrears_engine` at all. The
+per-edge entry-point list the checker prints was right; the sentence summarising it across all
+three was not. Three indirect edges became two, and the allowlist shrank accordingly. Worth
+keeping because the correction cost nothing only because the ratchet reds on a stale entry: an
+allowlist that merely *permitted* these would have carried the dead one silently.
+
 **A hazard named in prose and left unmeasured is the fail-open shape R15 names third** — the
 check that passes because nobody ran it. Three instruments were affected and all three now share
 the wider perimeter, because a report measuring a narrower one than its gate is the third-register
@@ -943,7 +953,7 @@ edge: simulation.run_segments -> saas.tariff_pricing | disposition=cut | reason=
 # module and the route stops crossing the wall. Cutting only the printed bridge is NOT the
 # cut — each is carried by BOTH bridges, which is why the checker prints every entry point.
 edge: simulation.run_phase2b -> company.billing.account_ledger | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.billing.arrears_engine | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.billing.arrears_engine | disposition=cut | reason=CUT 2026-08-10 as a SIDE EFFECT, not by this design: `15125f388` (atom D21, H27 Expert Hour #5) removed `tools/couple_w2_11_d5`'s module-scope `from company.billing.arrears_engine import age_bucket` when that dimension's truth side stopped being the company organ's own rule, and that import was the second bridge hop carrying this route. Recorded as cut rather than owed because a debt against a corpse hides that the register is stale. Verified as a real cut and not a blind walker: the sibling edges out of the same file and line are still reported live by the same walk. The remaining TWO stay owed to A_composition_lift.
 edge: simulation.run_phase2b -> company.billing.payment_observation_consumer | disposition=owed | design=A_composition_lift
 WALL-CROSSING-EDGES -->
 
