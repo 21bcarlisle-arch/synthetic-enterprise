@@ -40,6 +40,15 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 | Reused checkout, first cycle (cold `__pycache__`) | **1291.9s** | measured, HEAD `3ee4541a7`, 23,249 passed / 7 failed, box quiet |
 | Reused checkout, second cycle (warm) | **1167.5s** | measured, HEAD `54141b559`, box quiet, 13.2G→4.4G available |
 
+> **STATUS 2026-08-10 19:55Z — NINTH launch is LIVE; do not start a tenth.** `systemctl --user
+> status publish-gate-subject-cost.service` → `active (running)`, MainPID 3108903, HEAD
+> `58d40f44b`, `launched_by: "systemd"`. It read the banked cold and warm phases off the record
+> and did not re-run them (*"phase 1/3 COLD — banked by an earlier launch at 1291.9s, not
+> re-run"*) — the resume fix holding for the first time — and is inside phase 3's quiet-wait
+> behind a live publisher suite. A tick that finds this unit active does **no** heavy work on the
+> box: two full suites do not fit in 15.9G, and the memory-headroom guard would defer the
+> baseline rather than OOM, costing a tenth launch.
+
 **Ratio warm / in-tree: STILL OWED** against the exit criterion of ≤ 1.3×. Cold and warm are
 both banked and load-bearing (§2's bound is derived from the worst of them), but the *exit
 criterion itself* is a ratio, and its denominator has now lost the race for the box three times.
@@ -231,16 +240,44 @@ The direction of danger has flipped since the constant was first set. A timeout 
 publishes garbage — it wedges publishing, which is the same defect as the original 600s bound, in
 the same direction, against a subject nobody had re-measured.
 
-**INTERIM, and labelled as such:** 1291.9s is the worst runtime measured *so far*, not the final
-worst — warm and in-tree are still owed. When the record completes, `implied_timeout_floor_2x` is
-computed across all three phases and this constant is re-derived from it. Criterion 2 is met
-against the evidence that exists; it is re-checked against the evidence that is coming.
+**INTERIM, and labelled as such:** 1291.9s is the worst runtime measured *so far*. The warm phase
+has since banked at **1167.5s** (slower than nothing, faster than cold, so it does not move the
+floor); `in_tree_baseline` is the one still owed.
 
-The direction of danger has flipped since the constant was first set. A timeout used to return
-`True` (publish unverified); since 2026-08-09 it **fail-CLOSES**, so an undersized bound no longer
-publishes garbage — it wedges publishing. The bound is therefore derived from the measured
-runtime of the subject the gate actually runs, and
-`test_the_gate_timeout_exceeds_the_suites_own_runtime` carries the measured constant with it.
+### The re-derivation is now checked against its evidence, not against a copy of itself
+
+Until 2026-08-10 the only control on this constant was
+`test_the_gate_timeout_exceeds_the_suites_own_runtime`, which compares it against
+`MEASURED_SUITE_SECONDS = 1291.9` — **a second hand-copied transcription of the same phase of the
+same record.** Two copies of one number cannot disagree unless a human re-copies one of them, so
+that control could fail on a typo and on nothing else — least of all on the failure this bound has
+actually suffered twice: the measured runtime moving out from under it. And the harness was
+already computing `implied_timeout_floor_2x` into the record, where **nothing read it** — a
+derived value with no consumer, this project's no-caller class exactly.
+
+`prc.measured_gate_timeout_floor()` is that consumer and
+`test_the_timeout_clears_the_floor_the_measurement_implies` is the control. It reads the committed
+record, takes the worst banked phase × `GATE_TIMEOUT_SAFETY_FACTOR` (never below the harness's own
+stated floor), and reds when the bound stops clearing it. Live now: floor **2583s**, bound 2600s.
+
+Two properties it needed, both of them the reason the earlier control was inert:
+
+* **It works on a PARTIAL record.** Eight launches have been killed or deferred and `complete` has
+  never once been true; a floor that waits for completeness is a control that never fires. Every
+  banked phase is admitted-quiet by construction (the harness defers rather than timing beside a
+  live publisher), so the worst banked phase is a real runtime whether its siblings exist or not.
+* **A record that cannot answer FAILS the check** rather than yielding a small floor the constant
+  happens to clear — absent, malformed, wrong shape, `seconds: None/True/"1291.9"`, or a
+  checkpoint written before phase one.
+
+R15 both ways, run 2026-08-10: dropping the bound back to the pre-OPS2 1800s reds it (*"the
+measured runtimes imply a floor of 2583s"*), and pointing it at a missing record reds it (*"the
+bound's evidence is gone, which is a FAILED check, not a pass"*). Plus a mutation on the
+**evidence** — a 1500s phase puts the floor at 3000s, above the constant — so the live green is
+demonstrably falsifiable rather than merely never-yet-observed-red.
+
+When `in_tree_baseline` lands, this control decides whether 2600s survives; nobody has to remember
+to re-derive it.
 
 ## 3. Crash-safe lifecycle
 

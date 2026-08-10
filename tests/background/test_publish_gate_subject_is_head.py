@@ -20,6 +20,7 @@ test (`git archive` -> standalone repo -> `read-tree --reset` refresh) is exerci
 the tree it operates on is a stand-in.
 """
 import fcntl
+import json
 import os
 import subprocess
 import sys
@@ -221,6 +222,98 @@ def test_the_hash_contract_is_stated_in_one_place():
     contract = prc.LAST_TESTED_HASH_CONTRACT
     assert "_run_gate_in" in contract and "rc=0" in contract, "the WRITER must be named"
     assert "run_fast_tests" in contract and "wedge" in contract, "both READERS must be named"
+
+
+# ── THE BOUND IS CHECKED AGAINST ITS EVIDENCE, NOT AGAINST A COPY OF ITSELF ──
+#
+# OPS2 criterion 2 asks for GATE_SUITE_TIMEOUT_SECONDS to be re-derived from the measured
+# runtime. It was -- but the only control on the result compared the constant against
+# `MEASURED_SUITE_SECONDS = 1291.9`, a second hand-copied transcription of the same phase of the
+# same record. Two copies of one number cannot disagree unless someone re-copies one of them, so
+# that control could fail on a typo and on nothing else -- least of all on the failure this bound
+# has actually suffered twice, the measured runtime moving out from under it (600s and 1800s were
+# both undersized, and the timeout fail-CLOSES, so undersized WEDGES PUBLISHING).
+#
+# Meanwhile the harness computed `implied_timeout_floor_2x` into the record and nothing read it.
+# These tests are that consumer, and the mutation below proves they can fail.
+
+def _cost_record(tmp_path, **record):
+    path = tmp_path / "publish_gate_subject_cost.json"
+    path.write_text(json.dumps(record))
+    return path
+
+
+def test_the_timeout_clears_the_floor_the_measurement_implies():
+    """THE LIVE CONTROL. The committed record is the evidence the bound was derived from; this
+    asserts the bound still clears it. Reds when a measured phase comes in slower than the one
+    2600s was derived against -- which is precisely what the in-tree baseline, still owed at the
+    time of writing, may yet do."""
+    floor = prc.measured_gate_timeout_floor()
+
+    assert floor is not None, (
+        "{} answers no floor -- the bound's evidence is gone, which is a FAILED check, not a "
+        "pass: re-run `python3 -m tools.measure_publish_gate_subject_cost --systemd`"
+        .format(prc.GATE_SUBJECT_COST_RECORD))
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS >= floor, (
+        "the gate's timeout is {}s but the measured runtimes imply a floor of {}s at {}x. An "
+        "undersized bound does not degrade this gate, it WEDGES PUBLISHING -- raise the constant "
+        "and move test_the_gate_timeout_exceeds_the_suites_own_runtime's with it."
+        .format(prc.GATE_SUITE_TIMEOUT_SECONDS, floor, prc.GATE_TIMEOUT_SAFETY_FACTOR))
+
+
+def test_the_floor_rises_when_a_measured_phase_gets_slower(tmp_path):
+    """MUTATION (R15), on the evidence rather than on the source: one phase measured slower and
+    the floor overtakes the constant, so the control above goes red. Without this the live
+    assertion is unfalsifiable -- a check that has only ever been observed passing."""
+    slower = _cost_record(tmp_path, phases={"cold_checkout": {"seconds": 1500.0}})
+
+    floor = prc.measured_gate_timeout_floor(slower)
+
+    assert floor == 3000
+    assert floor > prc.GATE_SUITE_TIMEOUT_SECONDS, (
+        "a 1500s phase must put the floor above 2600s -- if it does not, the live control cannot "
+        "red on the only thing that goes wrong with this bound")
+
+
+def test_a_partial_record_still_yields_a_floor(tmp_path):
+    """The measurement has been killed or deferred eight times and `complete` has never once been
+    true. A floor that waits for a complete record is a control that never fires, so every banked
+    phase counts -- each one is admitted-quiet by construction."""
+    partial = _cost_record(tmp_path, complete=False, phases_missing=["in_tree_baseline"],
+                           phases={"cold_checkout": {"seconds": 1000.0},
+                                   "warm_checkout": {"seconds": 900.0}})
+
+    assert prc.measured_gate_timeout_floor(partial) == 2000, "the WORST banked phase, x2"
+
+
+def test_the_harness_stated_floor_is_never_under_read(tmp_path):
+    """`implied_timeout_floor_2x` is the harness's own answer. If a re-derivation here ever drifts
+    below it, the higher of the two wins -- one name must not end up meaning two numbers, and the
+    safe direction on a timeout is up."""
+    stated = _cost_record(tmp_path, phases={"cold_checkout": {"seconds": 100.0}},
+                          implied_timeout_floor_2x=4000)
+
+    assert prc.measured_gate_timeout_floor(stated) == 4000
+
+
+@pytest.mark.parametrize("record", [
+    None,                                            # absent
+    "{not json",                                     # malformed
+    json.dumps([1, 2, 3]),                           # right file, wrong shape
+    json.dumps({"phases": {}}),                      # a checkpoint written before phase one
+    json.dumps({"phases": {"cold": {"seconds": None}}}),      # phase banked with no runtime
+    json.dumps({"phases": {"cold": {"seconds": True}}}),      # bool is not a duration
+    json.dumps({"phases": {"cold": {"seconds": "1291.9"}}}),  # string is not a duration
+])
+def test_a_record_that_cannot_answer_yields_no_floor(tmp_path, record):
+    """FAIL-CLOSED, not fail-open: an unanswerable record must produce None so the live control
+    reds, never a small floor the constant happens to clear. `seconds: 0` and `seconds: True`
+    are the shapes that would sneak a 0-second floor past a naive `if seconds:`."""
+    path = tmp_path / "publish_gate_subject_cost.json"
+    if record is not None:
+        path.write_text(record)
+
+    assert prc.measured_gate_timeout_floor(path) is None
 
 
 # ── THE REUSED CHECKOUT'S LIFECYCLE ──────────────────────────────────────────

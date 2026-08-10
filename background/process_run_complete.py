@@ -1613,12 +1613,70 @@ def _gate_timed_out():
 # defect as the 600s bound, in the same direction, against a subject nobody re-measured.
 #
 # So: >= 2x the worst runtime measured on the real subject. 2 * 1291.9 = 2583.8 -> 2600s.
-# `test_the_gate_timeout_exceeds_the_suites_own_runtime` carries the same measured constant and
-# reds if this drops back under it. INTERIM: the warm and in-tree phases of that measurement are
-# still owed (the run was OOM-killed in phase 2 -- see the design doc's R9 account), so 1291.9s
-# is the worst runtime measured SO FAR, not the final worst; when the record completes,
-# `implied_timeout_floor_2x` re-derives this from all three phases.
+#
+# AND THE DERIVATION IS CHECKED AGAINST ITS OWN EVIDENCE, NOT AGAINST A SECOND COPY OF IT. Until
+# now the only control on this number was `test_the_gate_timeout_exceeds_the_suites_own_runtime`,
+# which compares this constant against `MEASURED_SUITE_SECONDS = 1291.9` -- a second HAND-COPIED
+# transcription of the same phase. Two constants copied from one measurement cannot disagree
+# unless a human re-copies one of them, so the control could only ever fail on a typo, never on
+# the thing that actually goes wrong here: the measured runtime MOVING. That is not hypothetical
+# and it is not slow -- this bound has been undersized twice (600s, then 1800s), both times
+# because the suite grew or the subject changed underneath a number nobody re-derived, and since
+# the timeout fail-CLOSES an undersized bound WEDGES PUBLISHING.
+#
+# Meanwhile the measurement harness computes `implied_timeout_floor_2x` into the record and
+# NOTHING READ IT -- a derived value with no consumer, this project's no-caller class exactly.
+# `measured_gate_timeout_floor` below is that consumer, and
+# `test_the_timeout_clears_the_floor_the_measurement_implies` reds when the record says the floor
+# has risen past this constant. The record is the evidence; this is the claim; a control that
+# compares them can fail.
 GATE_SUITE_TIMEOUT_SECONDS = 2600
+
+# The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
+# bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's
+# own `implied_timeout_floor_2x` is read when present -- so a completed record can never be
+# under-read by a re-derivation that drifted from it.
+GATE_SUBJECT_COST_RECORD = PROJECT_DIR / "docs" / "observability" / "publish_gate_subject_cost.json"
+GATE_TIMEOUT_SAFETY_FACTOR = 2.0
+
+
+def measured_gate_timeout_floor(record_path=None):
+    """The lowest `GATE_SUITE_TIMEOUT_SECONDS` the MEASURED runtimes justify, or None.
+
+    None means the record cannot answer -- absent, unreadable, malformed, or carrying no phase
+    with a numeric runtime. None is NOT "no floor": the caller (a control) treats a record that
+    cannot answer as a failed check, because this bound's whole history is of being justified
+    against evidence nobody re-read.
+
+    WORKS ON A PARTIAL RECORD, deliberately. The measurement is a ~50-minute three-phase job that
+    has been killed or deferred eight times; a floor that waits for `complete: true` is a control
+    that has never once fired. Every phase the record banks is admitted-quiet by construction
+    (the harness DEFERS rather than timing a suite beside a live publisher), so the worst banked
+    phase is a real runtime whether or not its siblings exist yet.
+
+    WORST OF ALL PHASES, including `in_tree_baseline`, mirroring the harness's own
+    `worst_legitimate_seconds` rather than inventing a second rule for the same name. The gate no
+    longer runs in-tree, but the in-tree suite is the same tests: if it is the slowest thing
+    measured, the bound clears it. Erring high costs a longer wait on a genuinely hung gate;
+    erring low wedges publishing, which is the failure this atom exists to close."""
+    try:
+        record = json.loads(Path(record_path or GATE_SUBJECT_COST_RECORD).read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(record, dict):
+        return None
+    seconds = []
+    phases = record.get("phases")
+    if isinstance(phases, dict):
+        for phase in phases.values():
+            value = phase.get("seconds") if isinstance(phase, dict) else None
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+                seconds.append(float(value))
+    floors = [s * GATE_TIMEOUT_SAFETY_FACTOR for s in seconds]
+    stated = record.get("implied_timeout_floor_2x")
+    if isinstance(stated, (int, float)) and not isinstance(stated, bool) and stated > 0:
+        floors.append(float(stated))
+    return int(max(floors)) if floors else None
 
 # ── THE CALLER'S BOUND IS DERIVED FROM THIS ONE, NOT RESTATED (2026-08-10, the wedge that
 # outlived every red test it was blamed on) ──────────────────────────────────────────────
