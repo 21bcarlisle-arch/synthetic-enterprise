@@ -1,5 +1,53 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T09:20:00Z
+Last updated: 2026-08-10T09:12:00Z
+
+**KNIFE3 step 9 LANDED — `A_composition_lift` PART 1: the seven harnesses were MISFILED, not
+relocated (`ced39c799`). 75 → 59 live crossings (72 → 56 direct; the 3 indirect deliberately
+unmoved, and that is the proof).**
+This is the cut §2b **banned in writing** — *"move all ten to `tools/` and watch 65 edges vanish …
+that would be laundering"* — executed on the subset that ban's evidence never covered, against the
+criterion **step 8 recorded before any file moved**. `run_phase0b`, `run_phase0c`, `run_phase1c`,
+`run_phase1c_full_window`, `run_phase1c_renewals`, `run_phase3a`, `run_phase4b_on_phase2b` →
+`tools/`, by `git mv`: **7 files changed, 0 insertions, 0 deletions.**
+**Four conditions, measured per file, all four required** (any one failing puts the file back with
+`run_phase2b`): zero importers anywhere inside the wall — so **no walled module's dependency set
+changes at all**, which is what separates a misfiling correction from a laundering; the file defines
+nothing the codebase uses, so *"leave the substantive module walked and clean"* has no residue to
+leave; an entry point by its own account (`main()` + a docstring calling itself *"just the script
+that drives them and prints the result"*); and **only OBSERVABLES handed to the company** — published
+SSP history, published PC1 shapes, forward prices off the published curve, the supplier's own settled
+records. **No sim internal crosses in any of the seven.**
+**Condition 1 proven BY INJECTION on the real tree, not asserted:** a one-line re-entry
+(`simulation/_knife3_reentry_probe.py` importing a lifted harness — the exact move that would
+retroactively turn this into a laundering) took `live_indirect_crossings()` **3 → 6** and the indirect
+ratchet to **4 failed / 16 passed**, while `test_epistemic_wall_ratchet.py` passed **12/12 on the same
+injection**. That green direct ratchet is why part 1 could not honestly have landed before step 8 did.
+Probe deleted; back to 20 passed, crossings back to 3.
+**No new control was added, deliberately** — a lift-specific guard would red on exactly the trees
+`test_no_new_indirect_crossings` already reds on, which is accretion and the redundancy §3b was
+already caught hiding.
+**Stated plainly rather than left to the number: the count fell by 16 and the dependency graph did
+not change.** Same functions calling the same functions in the same order; seven files filed as *the
+simulated world* are now filed as *entry points* — the mirror of B1's three behavioural-physics
+modules filed company-side. The 16 tuples are DELETED from `LEGACY_SIM_READS_COMPANY`, so the floor
+moved down with the code; `tools/epistemic_wall.py` NOT edited in this cutting commit.
+**§2b is SCOPED IN PLACE, not corrected**, to the three files its evidence supports (`run_phase2b`
+2,961 lines, `run_phase4c_on_phase2b`, `run_segments` — all three with walled in-edges), so a reader
+finding only the ban cannot put back what part 1 cut.
+**Size ratchet:** `tools/` **is** in `SCOPE_ROOTS`, so no debt escaped the move, and the seven
+baseline keys were carried across the rename by hand — the three pre-existing debts still fire at the
+new path. A rename must not be a way to reset a ratchet floor. One defect **queued, not fixed on
+sight**: rule 2b reads `head_texts` by PATH, so a pure `git mv` reads as a new oversized function
+(`WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md`).
+**What part 1 does NOT unblock**, stated because two designs name A as their blocker: B5's residual
+and B4's remainder both need a company-side emitter for bills assembled by `run_phase4c_on_phase2b`,
+one of the three files **still standing**. Their blocker is part 2, and it was part 2 all along.
+**Evidence:** `wall_crossing_dispositions.py` **OK** in both modes — `--at-head` reports *59 live
+(56 direct, 3 indirect); 91 ruled (cut 32, owed 59, grandfathered 0)*, so the cut is a claim about
+the repo and not about a desk; **329 passed / 1 xfailed**; verifier **PASS** over 539 files; ruff
+clean on all seven moved files. **Level held at 0** — part 2, B2, B3 and the B4/B5 residuals remain.
+
+---
 
 **KNIFE3 step 8 LANDED — the wall had a bridge under it (`970c61e6f`). The count went UP, 72 → 75,
 and that is the result.** This commit cuts nothing on purpose.
@@ -1800,7 +1848,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
