@@ -1,5 +1,49 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T06:10:02Z
+Last updated: 2026-08-10T09:20:00Z
+
+**KNIFE3 step 8 LANDED — the wall had a bridge under it (`970c61e6f`). The count went UP, 72 → 75,
+and that is the result.** This commit cuts nothing on purpose.
+`tools/epistemic_wall.py` has carried the sentence *"routing a dependency through a package the walker
+does not walk moves the measurement rather than the dependency"* since the step-1 extraction — true,
+correct, and **never measured**. Nothing had asked whether the tree ALREADY contained such a route.
+It did: **three**, all class (b), all leaving `simulation/run_phase2b.py:95`, reaching
+`company/billing/{account_ledger, arrears_engine, payment_observation_consumer}` through
+`background.live_payment_triad` and `tools.couple_w2_11_d5`. Invisible to the ratchet, to the KNIFE
+ledger, and to the register that claims to examine **every** crossing. A hazard named in prose and
+left unmeasured is R15's third killer pattern.
+**Why the instrument landed before the cut, in a commit that cuts nothing:** `A_composition_lift` (the
+65-edge bulk that remains) moves thin scenario harnesses above both layers, which here means into
+`tools/` — a CUT only if nothing walked still reaches the company through the moved file, otherwise
+the laundering the register refuses in writing (§2b). Pass 3 could not honestly make that move while
+`tools/` was an unmeasured channel. Direct allowlists byte-unchanged; step 1's rule applied to its own
+consequence.
+**Proven able to fail on the REAL tree, not a fixture:** a laundered route injected into
+`simulation/settlement.py` reds exactly three tests in the new module — while
+`test_epistemic_wall_ratchet.py` passes **12/12 on the same injected route**. That green direct ratchet
+is the measurement, not the argument, for what was missing.
+**Three findings the build itself turned up.** (1) *The shortest chain is a redundant-channel trap* —
+all three are carried by **both** bridges, so cutting the one route a checker printed removes nothing
+and reads as a failed cut; `IndirectEdge.entries` now names every entry point. (2) *The union hid a
+fail-open the moment it was introduced* — an empty direct walker still returned 3, so the
+"ZERO crossings is a failure" guard stopped firing; neither source may be refused for being zero alone
+(an empty indirect set is this pass's **goal** state), so the guard stays on the total and the
+**breakdown** is printed. (3) *A mutation point had drifted off the live code path* — it failed loudly
+rather than passing green against a ghost it was no longer injecting.
+**Class (a) via a bridge is at ZERO**, measured here for the first time rather than inherited;
+`interface/` launders nothing, also measured rather than asserted, with a named verdict per bridge so a
+clean one is explicit instead of silent.
+**All three instruments now share the wider perimeter:** the ratchet gate
+(`tests/architecture/test_epistemic_wall_indirect_ratchet.py`, 20 tests, own dated shrink-only
+allowlist), the register (**91 rows / 75 live**), and the KNIFE ledger (**75 edges, "72 direct + 3
+indirect"**). Evidence: `wall_crossing_dispositions.py` **OK** in both working-tree and `--at-head`
+modes; **320 passed / 1 xfailed**; verifier **PASS** over 539 files; ruff `I001` fixed at source.
+**`A_composition_lift` is unblocked and its per-file measurement is taken** (AST census, not grep):
+**nine of the ten** shape-A harnesses have **zero importers anywhere inside the wall**, only
+`run_phase2b` has walked in-edges, and seven are 75–153 line files that are `main()` plus its private
+helpers. The criterion — *a lift is a cut iff nothing walked still reaches the company through the
+moved file* — **derives §2b's own refusal for `run_phase2b`** rather than contradicting it.
+
+---
 
 **KNIFE3 B4 LANDED — the world stops running the supplier's billing routines (`c98707b91`).**
 Three of B4's four wall crossings cut, in the order the design set: **75 → 72 live crossings, 17 → 14
@@ -1756,7 +1800,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
