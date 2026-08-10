@@ -1,5 +1,26 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T03:08:08Z
+Last updated: 2026-08-10T05:38:29Z
+
+**D19 LANDED L0→L2 — the belief headline now knows which account it is talking about (`77c1654e0`).**
+The flaw Hour #3 measured is closed at the measure. `gap_metric.belief_measures` scores per-case
+severity assignment in BOTH directions on their own denominators — undercall_rate over the accounts
+that *could* be under-called, overcall_rate over those that *could* be over-called (D11's shape,
+D7's denominator rule, `order` required and never inferred). Seeds 7/11/23 at n=600: headline
+0.0700→**0.1338**, 0.1033→0.1950, 0.0733→0.1325, and the "right mix, every individual wrong"
+degenerate now scores **0.5007/0.4934/0.5003** — the no-skill baseline — where it used to score the
+real company's own number. R12: all reshape, no company change. The TV figure is renamed rather than
+deleted (`belief_population_mix`), which also keeps `AGGREGATE_SCORING_CONTRACT` differential instead
+of a blanket ban. `overcall_rate` is structurally 0.0000 on this book over a non-empty 564-account
+denominator — declared as a property of the population and mutation-proven able to fire, never banked
+as precision. R15 both ways at the SOURCE: reverting the headline to `belief_gap` fires 5 tests
+including the acceptance criterion; deleting a dimension from the D16 phrase sweep's rendered-text map
+fires 3 (that map was hand-maintained and fail-silent — it now derives its dimension set from the
+scored result). 76 green in `test_couple_w2_11_d5.py` (9 new), 696 across every file touching
+`gap_metric` and the three pairs calling `belief_gap`.
+**H27 stays at L2 and gains no `depends_on`** — this is the tick that changed the instrument, so Hour
+#4 belongs to the next draw, which is now unblocked. It should start on the two dimensions that now
+publish a structurally-zero error direction, and on the belief directions the D8 counterfactual does
+not attribute.
 
 **H27 EXPERT HOUR #3 — the belief gap is blind to WHO holds the belief. HELD AT L2 (`0470e50f9`).**
 Third pass on the corrected instrument, third major flaw in a published headline. The belief
@@ -1698,7 +1719,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (506s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -1808,11 +1829,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] What actual invariant does the word "physics" in `DD_seasonal_cashflow_physics` refer to — a genuine conservation identity (e.g. direct-debit cash in must equal consumption billed plus balance carried, to the penny), or merely a seasonal shape that looked stable in past data? And if the parked residual was "waiting on" something, what observable event would have to occur for it to resolve, versus what would prove it is simply an unexplained gap being deferred?
 - (T3_inherence) [unanswered >24h] Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
 - (T3_inherence) [unanswered >24h] What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
-- (T3_inherence) Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
+- (T3_inherence) [unanswered >24h] Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1932.4h across 77 sized atom(s) (13 of 90 below-target atoms still unsized).
+- Remaining effort: ~1875.0h across 75 sized atom(s) (13 of 88 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
