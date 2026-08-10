@@ -71,3 +71,40 @@ returns a bare `None`); and a healthy send must stay quiet.
 visible one, which is the whole difference between "the director was not told" and "nobody knew the
 director was not told". Parts 2–3 at normal priority behind the drain. Until part 1 lands, treat
 every "NTFY sent" claim as "POST attempted" unless the returned id was checked.
+
+---
+
+## RECURRENCE — measured ~23:45Z the same evening, and it is still down
+
+The census tick (`WORKER_REPORT_THE_STACK_WAS_ONE_DEEP_2026-08-10`) tried to send its transition
+NTFY and **checked the return value because of this finding**. Two sends, ~90 seconds apart:
+
+```
+send_ntfy(...)  ->  None        (first attempt, ~23:44Z)
+send_ntfy(...)  ->  None        (retry,          ~23:46Z)
+```
+
+The channel has therefore been down for **~95 minutes** (22:13Z → 23:46Z), across at least four
+director-facing messages. Two things this adds to the original finding:
+
+**1. It is not transport, and the obvious diagnostic says the opposite.** `curl -I https://ntfy.sh/`
+returns **200** — the host is up and reachable from this box. Only the *topic* is limited. So the
+first check anyone reaches for ("is ntfy up?") **exonerates the failing channel**, which is the same
+shape as `feedback_named_blocking_test_passes_when_you_run_it`. A future part-1 implementation must
+report the status of the **POST to the topic**, never a reachability probe of the host.
+
+**2. `HEAD` on the topic URL is not a probe either** — it returns **404** whether the topic is
+healthy or limited, because ntfy publishes by POST. There is no way to test this channel without
+sending on it, which is precisely why part 2's durable outbox matters more than it first looked: you
+cannot ask "am I deaf?" cheaply, so the only honest design is to make every real send observable.
+
+**Consequence for tonight's record, stated plainly:** the census batch is landed and pushed
+(`origin/main` @ `474467179`, fetch-verified) but **the director has not been told by NTFY**. The
+receipt on origin is the only channel that worked. Nothing was retried a third time — a third
+identical POST into a rate limit is not evidence-gathering, it is noise against the limit that is
+already the cause.
+
+This recurrence promotes part 1 from "P1 recommendation" to **the next harness draw**: the defect is
+no longer hypothetical-under-load, it has now silently eaten every escalation from this machine for
+an hour and a half, and the only reason that is known is that two ticks in a row happened to check a
+return value they were not obliged to check.
