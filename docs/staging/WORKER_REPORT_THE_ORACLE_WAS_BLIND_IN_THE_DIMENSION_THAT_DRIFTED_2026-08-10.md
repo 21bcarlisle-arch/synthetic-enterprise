@@ -68,6 +68,36 @@ To reproduce a gate red faithfully, rebuild the checkout the way
 `objects/info/alternates`, raw SHA into `.git/HEAD`, `git read-tree <sha>`, then symlink `sim/cache`
 and `node_modules`. Without that, a run manufactures failures that do not exist at HEAD.
 
+## The SECOND cause, found only by running the full gate (`3975775e0`)
+
+The gate runs `-x`. Fixing the first red does not tell you HEAD is green — so the full suite was run
+against the fixed HEAD, and a second blocker was sitting behind it:
+`tests/background/test_publish_gate_disk_preflight.py`, **3 failed / 5 passed**.
+
+At HEAD the anti-vacuity tripwire armed on `prc.tempfile.mkdtemp`. Since OPS2 the HEAD checkout is
+**reused**, so the ordinary path takes the reused-checkout lock and calls `_prepare_reused_checkout`
+— `mkdtemp` is never reached. Every test asserting the guard is PASSED (ample space, unmeasurable
+space, zero-threshold mutation) fails `DID NOT RAISE`.
+
+**It only passes when another publisher happens to hold the lock** and the throwaway `mkdtemp` path
+is taken — which is why the real gate never saw it: the gate always runs while its own parent
+publisher holds that lock. A tripwire whose firing depends on concurrent lock state is not a control.
+
+Re-armed on `_head_sha`, called on **both** paths. 8/8 green.
+
+## A live landmine, defused
+
+`tests/background/test_publish_gate_blocking_payload.py` was sitting **staged in the shared index**
+with its code counterpart (`background/process_run_complete.py`, +125 lines) still uncommitted.
+Against HEAD's code it is **11 errors**. Any process doing a plain `git commit` with no pathspec
+would have landed it alone and re-wedged publishing instantly.
+
+Unstaged (file untouched on disk). Restore with
+`git add tests/background/test_publish_gate_blocking_payload.py` — but land it **with** its code.
+That lane's work is coherent as a unit (53 passed with the working-tree module + its tests), but
+`background/supervisor.py` is also modified and may hold the reader; landing the writer alone would
+be a publish-with-no-consumer seam. Left for its own lane.
+
 ## Still open — NOT closed by this commit
 
 The repair remains **downstream of the gate it exists to unwedge**: it writes correct bytes, but the
