@@ -1683,9 +1683,9 @@
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden   # AT TARGET 2026-08-10: the design law is mechanised (tests/architecture/test_market_at_the_seams.py, 19 green) with PORTABILITY_DEBT.md's baseline block as the allowlist. R15 proven by four LIVE mutations of the real repo (new counterparty / new market-quantity / departed register row / deleted block -> fail-closed). L3 would need HARDEN + Expert Hour and is not claimed.
   dial_inherited: 3
   provenance: advisor_analysis
   depends_on: []

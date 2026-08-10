@@ -53,6 +53,64 @@ value. All items are **remediation-on-touch** debt unless a director opens an at
 | 6 | **Price-cap invariant structurally assumes a GB institution** — the domestic price-cap check presumes a cap *exists*; Ireland has **no** domestic cap, so the invariant must become **regime-optional, not re-anchored** (a class change, not a value change) | brain (invariant class) | 2 | `company/compliance/domain_invariants.py` cap invariant; contrast the already-present `jurisdiction` field (lines 85, 104) which the brain layer *does* honour | class (make cap invariant regime-optional) | OPEN |
 | 7 | **No PSO-levy-class bill-line abstraction** — IE has a mandatory **per-customer PSO levy** with **no GB bill-line analogue** (€1.46/mo ex-VAT 2025/26; total €125.38m; historically zero or a negative rebate — its value can **flip sign**). It is STRUCTURE, a missing regime-keyed line item, not a value tweak | transactional core | 2 | no regime-keyed extensible non-commodity line-item slot for a market-mandated levy (F4 §9) | class (regime-keyed bill-line registry) | OPEN |
 
+## The design law at the seams — this register is now the ALLOWLIST (A9, 2026-08-10)
+
+Atom `A9_market_at_the_seams_design_law`, from
+`docs/design/refs/ADVISOR_ANALYSIS_MARKET_PORTABILITY_2026-08-07.md`. The analysis splits the machine
+into INVARIANT / PARAMETERISE / ADAPTER-SWAP / REBUILD. The middle two imply a design law, and this
+atom owns it:
+
+> **RULE 1** — no counterparty identity is hardcoded across a seam.
+> **RULE 2** — every market-varying quantity is reachable as a table, not a literal.
+
+Everything above this section RECORDS breaches under remediation-on-touch. That is the right rule for
+shipped code and it stays. But a register that only records is a **cleanup, not a control**: it grows
+monotonically and nothing stops the next breach from being added to it. `tests/architecture/test_market_at_the_seams.py`
+is the other half — it makes a **NEW** breach FAIL, so the maintenance rule this file has always
+stated ("add a row here **in the same change**") is now enforced rather than hoped for.
+
+**How it works.** The test derives the seam surface (the two boundary packages plus the `*seam*.py`
+naming convention — derived, never hand-listed, because a hand-list is fail-open by omission), scans
+it by AST, and compares against the baseline block below. Prose is exempt and contract is not:
+"this seam carries what Elexon publishes" is documentation of provenance; `mpan` as an argument name
+or a payload key is the GB market spelled into the contract. Rows here are exact in **both**
+directions — a new breach fails, and so does a row whose code has been remediated (that is the drain;
+without it the ratchet is a cleanup again). The truth side (an AST scan of real code) and the
+allowlist side (this hand-maintained file) share no source, so a wrong register cannot make the scan
+agree with it.
+
+**What it is not.** It builds no second market and no second segment — GB SME/I&C is the analysis's
+recommended first extension and is a separate future draw. It sweep-renames none of the 58 baseline
+sites: remediation-on-touch stands. It adds no scale-debt axis (C-S1..C-S5 stay at their own touch
+points, per the cross-reference below).
+
+**The baseline is the live core of rows #1 and #5** — the currency-in-field-name break and the
+GB-baked seam vocabulary — measured at the seam surface only, which is why the counts here are far
+smaller than row #1's repo-wide 6,850. Remediating a seam means **shrinking a row here in the same
+change** and marking the table row above CLOSED with the commit that did it. Never widen a row to
+make the test green.
+
+<!-- BEGIN market-at-the-seams baseline -->
+```text
+# kind            path                                                 token        sites
+# Recorded debt at the seam surface, 2026-08-10. Machine-read by
+# tests/architecture/test_market_at_the_seams.py. Exact in both directions.
+counterparty      company/interfaces/recorded_sim_interface.py         mpan         2
+counterparty      company/interfaces/sim_interface.py                  mpan         7
+counterparty      company/interfaces/sim_interface.py                  nbp          1
+market_quantity   company/interfaces/credit_refund_requests.py         gbp          5
+market_quantity   company/interfaces/dd_review_outcome.py              gbp          2
+market_quantity   company/interfaces/internal_seams.py                 gbp          5
+market_quantity   company/interfaces/point_in_time_view.py             gbp          4
+market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
+market_quantity   company/interfaces/renewal_offer.py                  gbp          3
+market_quantity   company/interfaces/sim_interface.py                  gbp          12
+market_quantity   interface/contracts/flex_observable_seam.py          gbp          3
+market_quantity   interface/contracts/payment_observable_seam.py       gbp          5
+market_quantity   simulation/payment_seam_adapter.py                   gbp          4
+```
+<!-- END market-at-the-seams baseline -->
+
 ## What ABSORBS (the portable-where-it-reasons half — recorded so the register is honest both ways)
 
 Not debt — carried here so the split is legible and a future build doesn't "remediate" what already works:
