@@ -1,6 +1,57 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T09:12:00Z
+Last updated: 2026-08-10T08:09:56Z
 
+**KNIFE3 step 10 LANDED — `A_composition_lift` PART 2: the leak had to be repaired BEFORE the lift
+(`d7ca5a13d`, `bb5e4e002`; the enabling ratchet fix `fc450fde3`). 59 → 55 live crossings (56 → 52
+direct; the 3 indirect deliberately unmoved again, and that is again the proof).**
+
+**First, the measurement step 9 should have had.** Part 1 lifted seven files as a GROUP and
+described the three it left with one sentence — *"all three with walled in-edges"* — which is
+**FALSE for two of the three and was never measured.** An AST census over `company/`, `saas/`,
+`sim/` and `simulation/` finds walled importers **only** for `run_phase2b`. The ban is right for all
+three and rests on a **different condition in each**: `run_phase4c_on_phase2b` fails condition 3
+**by its own docstring** (*"a pure LIBRARY — no CLI and no `__main__` block"*) and condition 2 on
+`build_monthly_bills`, the 225-line bill assembly B5's residual and B4's remainder need a
+company-side emitter for. A group refusal resting on a property two of its three members do not have
+is a refusal nobody can check. Recorded as §3d of the disposition register; the four conditions are
+now stated **per-file, not per-group**.
+
+**Then the cut.** `run_segments` passes conditions 1–3 by measurement. **Condition 4 failed, on
+something real rather than a filing question:** `naked_fraction = 1 - sim.hedging_strategy.
+MIN_HEDGE_FLOOR` handed the **world's** hedge mandate into the **company's** `price_fixed_tariff` —
+the exact leak B7 cut out of `simulation/renewals.py` five steps earlier, found live a **second**
+time, which makes the class real rather than anecdotal (R10). Lifting with the leak in it would have
+moved the leak to `tools/` where no instrument counts it — condition 4's own words, *"moving it
+would bury the violation instead of the edge."* **So the repair and the lift landed in one commit,
+repair first.** Both floors are 0.85, so both readings produce the identical float
+`0.15000000000000002` — the same bits reach the pricing function and **no price moves**. Deliberately
+**not** pinned equal by a test: that would restore in the suite exactly the coupling the cut removes
+from the code.
+
+**Condition 1 proven BY INJECTION on the real tree, not asserted:** a one-line probe importing
+`tools.run_segments` from inside the wall took `live_indirect_crossings()` **3 → 8** and the indirect
+ratchet to **4 failed / 16 passed**, while the direct ratchet passed **12/12** on the same injection.
+Probe deleted; back to 3 and 20 passed.
+
+**The honest residual, and it is B7's:** the cold-start gas forward is still the world's number. The
+edge stops being counted the moment the file is lifted, so it is recorded **owed** in §3e against
+B7's own open question — *what does a supplier quote when it has no price history?* One answer closes
+both.
+
+**Enabling fix, its own commit:** the size ratchet's rule 2b read a touched file's prior state **by
+path**, so a pure `git mv` minted every function in the moved file as new. It now follows git's own
+`-M` rename detection — never a filename heuristic, because the only thing that makes a move safe to
+wave through is that the **content** is unchanged. R15 both ways, with the vacuity guard as its own
+test: a commit that renames *and* appends a fresh giant still reds, naming only the appended one.
+
+**Evidence:** `tests/architecture/` 60 passed; combined run 316 passed, 1 xfailed, rc 0;
+`python3 -m tools.epistemic_verifier` PASS over 539 `company/`+`saas/` files;
+`tools/wall_crossing_dispositions.py` OK — *55 live crossings (52 direct, 3 indirect); 91 ruled
+(cut 36, owed 55, grandfathered 0)*. Pushed: `origin/main` at `bb5e4e002`.
+
+---
+
+### PREVIOUS — KNIFE3 step 9
 **KNIFE3 step 9 LANDED — `A_composition_lift` PART 1: the seven harnesses were MISFILED, not
 relocated (`ced39c799`). 75 → 59 live crossings (72 → 56 direct; the 3 indirect deliberately
 unmoved, and that is the proof).**
@@ -1848,7 +1899,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (516s / 9 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -1959,6 +2010,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
 - (T3_inherence) [unanswered >24h] What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
 - (T3_inherence) [unanswered >24h] Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
+- (T3_inherence) What concrete, testable difference does re-filing "simulated world" items as "entry points" make to the supplier's modelled cash, margin, or insolvency risk — or is this purely a renaming of documentation, and if so, what independent evidence shows B1's "three behavioural-physics" are actual mechanisms in the simulation rather than labels asserted to mirror each other?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
