@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**15 attachment(s)** from 13 source doc(s), across 14 atom(s).
+**16 attachment(s)** from 14 source doc(s), across 15 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -67,9 +67,15 @@ _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 ## D22_ageing_ordinal_is_one_directional
 **The W2_11<->D5 triad's AGEING dimension publishes an ORDINAL headline -- `mean_bucket_displacement`,**  
-_epoch 3 · lane D_billing_metering · L0→L2 · build_
+_epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md` (finding) — minted here, **not** built here) · `H41_the_map_ratchet_has_no_ongoing_drain` (recurrence measured)
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md` (finding) — minted here, **not** built here) · `H41_the_map_ratchet_has_no_ongoing_drain` (recurrence measured)
+
+## D23_organ_query_grid_cannot_resolve_latency
+**The W2_11<->D5 triad's DETECTION_LATENCY dimension -- the one whose whole subject is HOW LATE the co**  
+_epoch 3 · lane D_billing_metering · L2→L2 · harden_
+
+- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_INSTRUMENT_CANNOT_RESOLVE_ITS_OWN_LATENCY_2026-08-10.md` (finding) — minted here, **not** built here)
 
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
