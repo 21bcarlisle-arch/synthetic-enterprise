@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from background import supervisor
+from background import gap_ledger_reconciler, supervisor
 from tests.background import env_constant_sync as _env_sync
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -73,6 +73,22 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     monkeypatch.setattr(
         supervisor, "OPERATIONAL_LAYER_SIGNAL_FILE",
         tmp_path / ".operational_layer_signal_absent.json", raising=False,
+    )
+    # RUNG 4b STALE-GAP-ROW (2026-08-10) -- the FIFTH instance of this same class, and the one that
+    # wedged publishing for the ~13 minutes it took to find it. `_stale_gap_row_draw` holds no path
+    # of its own: it imports `background.gap_ledger_reconciler` and reconciles the REAL
+    # docs/observability/coupled_gap_ledger.json against the REAL git history. At HEAD that ledger
+    # had 13 refreshable rows, so the rung fired and refused rest -- reddening ELEVEN tests across
+    # this directory whose subjects (forward-discovery, propose-half) have nothing to do with gap
+    # measurements. The tree passed the identical tests only because the working copy of the ledger
+    # happened to be freshly re-rendered; the gate judges a clean HEAD checkout, so the wedge was
+    # invisible locally. Pin the reconciler's LEDGER_PATH at an ABSENT tmp file: absent => an empty
+    # ledger => no row is refreshable => the rung is silent (asserted, not assumed, by
+    # test_rest_ladder_isolation.py::test_the_gap_rung_is_silent_under_this_fixture). The rung's own
+    # tests inject `work=` directly, so this pin cannot weaken them.
+    monkeypatch.setattr(
+        gap_ledger_reconciler, "LEDGER_PATH",
+        tmp_path / "coupled_gap_ledger_absent.json", raising=False,
     )
 
 
