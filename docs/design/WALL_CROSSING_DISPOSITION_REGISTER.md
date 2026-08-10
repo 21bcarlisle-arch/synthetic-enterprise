@@ -209,16 +209,6 @@ routine the company is free to change without notice, which is the one property 
 does not grant the world.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B7_renewal_is_a_company_decision
-4 edges. `simulation.renewals` imports the company's tariff engine, its SaaS pricing function,
-its approval interface and its decision-rights table — that is, a SIM module runs the company's
-renewal pricing decision, including its internal governance. This is the shape-A composition
-problem outside a `run_phase*` file, and it is the smallest instance of it, which makes it the
-right place to prove the template before the ten big harnesses are touched. Cut: the renewal
-DECISION moves to the company layer; the world keeps the renewal EVENT (a contract reached its
-term end) and receives the resulting offer through the seam.
-WALL-CROSSING-DESIGN -->
-
 ---
 
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
@@ -346,12 +336,113 @@ byte for byte — but `tools/run_frozen_baseline.py` runs a NAIVE arm whose `ton
 wall pass would have changed simulated payment outcomes in the same commit that moved an import,
 which is the one thing this pass's own walls forbid.
 
+### B7_renewal_is_a_company_decision — EXECUTED 2026-08-10 (4 edges)
+
+4 edges. `simulation.renewals` imported the company's tariff engine, its SaaS pricing function,
+its approval interface and its decision-rights table — a SIM module running the company's renewal
+pricing decision, its governance escalation and its approval workflow. §2b named this the smallest
+instance of the shape-A composition problem outside a `run_phase*` file, and therefore the right
+place to prove the template before the ten big harnesses.
+
+**As executed, and the split is the whole of it.** What stayed in `simulation/renewals.py` is the
+renewal EVENT: the term calendar, the contiguity rule, the 42-day statutory notice period, the
+deemed gap, the world's own forward estimate, and the published levy/network schedules for the
+term. What left is the renewal OFFER — decided in a new module `company/pricing/renewal_desk.py`
+and asked for through a new door, `company/interfaces/renewal_offer.py`, which returns four
+numbers: the rate quoted, the forward the company priced off, and the two cost components it chose
+to lock. Which forward it used, what it locks for which product, how it priced, and whether the
+move needed an approval are no longer readable from the world.
+
+**The desk is deliberately NOT in `company/interfaces/`.** The seam package is meant to read as a
+list of doors; letting a 300-line pricing-and-governance organ live there would make it the second
+place company decisions are made, which is how a chokepoint stops being one. Both packages are
+WALKED by `tools/epistemic_wall.py` byte for byte, so this is the ratchet's own published
+`SEAM_PACKAGE` remedy — the same reasoning as B5 and B8, applied not assumed, and the opposite of
+the `tools/` relocation §2b refused.
+
+**Two constants changed hands, and that is the point of the cut.** Both were numerically identical
+before and after; what changed is whose number it is.
+
+  * The naked fraction came from `sim.hedging_strategy.MIN_HEDGE_FLOOR` (0.85). It now comes from
+    `company.risk.hedge_policy.COMPANY_MIN_HEDGE_FLOOR` (0.85) — the company's own mandate, whose
+    module docstring already claimed ownership of the hedging decision from Phase 2b onward, and
+    which `simulation/run_phase2b.py` already reads in preference to the SIM copy. Reading
+    `sim.hedging_strategy` from the desk would have been a class-(a) crossing, the direction the
+    ratchet holds at ZERO.
+  * The escalation threshold was `simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD` (0.20). It is
+    now the desk's own constant, CALIBRATED to the same 20% step. The original comment argued the
+    import gave "one architecture, not two"; that intent survives as a calibration and deliberately
+    not as a coupling. The world's tracker counts what customers experienced; the escalation
+    threshold is the company's governance rule about when a pricing move stops being routine, and a
+    real supplier sets that for itself and can set it wrong. **The divergence is NOT pinned by a
+    test** — a test asserting the two readings equal would restore in the suite exactly the coupling
+    the cut removes from the code, which is the trap B3's design block already recorded.
+
+**BEHAVIOUR IDENTITY MEASURED, NOT ASSERTED.** 876 combinations of (price shape × tariff type ×
+segment × EAC × deemed gap × weather function × term window), covering 3,504 terms and 1,896
+governance events, compared between the pre-cut and post-cut code: the canonicalised schedules AND
+the decision log hash to the same value, `225f5d13cfeed4f2746d1f575dec2003f85ec18637b2f49306d1d550732fe471`,
+before and after. Vacuity guarded on both branches that matter: 144 of the events are non-routine
+(the pending→resolved approval pair), and 12 calls exercise the cold-start fallback — a grid landing
+only on routine, warm-start fixed terms would have passed against a stub.
+
+**THE HONEST RESIDUAL — the cold-start forward is still the world's number.** `quote_renewal` takes
+`fallback_forward_price_gbp_per_mwh`. On a customer's first term the company's notice-date lookback
+window can be empty, its engine raises, and the pre-cut code fell back to the SIM's own forward
+estimate. That is a real leak: a supplier's cold-start rule should be its own. It is preserved
+rather than repaired because repairing it moves priced rates, and a wall pass that moves a price in
+the same commit as an import has given up the only thing that makes the move reviewable. The
+parameter is NAMED for what it is so the next reader sees the leak instead of inheriting it
+invisibly. **Owed**, and unlike B5's residual this one is not blocked on anything structural — it is
+a company-side design question (what does a supplier quote when it has no price history?) that a
+later pass can answer on its own.
+
+Unlike B5, this is not half a design: B7 as written asks for the world to "receive the resulting
+offer through the seam", so a request answered at the door IS the shape, not a substitute for a
+push that could not be built.
+
+**One record write is DEFERRED, and it is recorded here rather than skipped.** At this tick
+`docs/design/maturity_map.yaml` and all 259 files under `docs/design/simplifications/` are mid-
+transformation by a concurrent writer — a third rehoming tenant (`map_records:`) that HEAD's
+`tools/simplifications_store.py` does not yet support. Committing either would have swept another
+lane's uncommitted work into this pass's commit, so this pass committed neither, and the atom's
+step-6 `exit_evidence` is written in the working tree awaiting that landing. Nothing about the cut
+depends on it: THIS register is the committed record, `tools/wall_crossing_dispositions.py` reads it
+every tick and prints `cut 13, owed 75`, so a re-draw cannot re-cut B7 as if from zero. Tracked in
+`docs/staging/WORKER_REPORT_B7_CUT_AND_A_DEFERRED_ATOM_RECORD_2026-08-10.md`.
+
+**CORRECTION 2026-08-10, the next tick: the paragraph above was written BEFORE the commit it
+describes, and that commit never happened.** The tick that cut B7 wrote every word of this section
+and then exited without landing anything. When the next scheduled tick drew this same atom, `git
+status` carried the whole cut as working-tree state: `company/pricing/renewal_desk.py`,
+`company/interfaces/renewal_offer.py` and `tests/company/interfaces/test_renewal_offer_seam.py`
+UNTRACKED, `simulation/renewals.py`, `tests/simulation/test_renewals_approval_routing.py`, this
+register and the ratchet's own four-tuple shrink all unstaged. Nothing was in HEAD.
+
+So the sentence "THIS register is the committed record" was **the exact opposite of true at the
+moment it was written**, and the re-draw protection it promised did not exist: had the tree been
+discarded, B7 would have been re-cut from zero with a register claiming it was already done. This is
+the repeat class `WORKER_FINDING_A_LANDED_PASS_HAD_HALF_ITS_CODE_UNCOMMITTED_2026-08-09.md` named
+one day earlier — and the sharper lesson is that the earlier finding was about a pass that committed
+SOME of its code. This one committed NONE, while stating in the artefact itself that it had.
+
+The generalisable defect is that **a claim of "committed" written into the same working tree it
+describes is self-refuting evidence**: the file asserting the commit is, at the time of writing,
+proof that no commit has happened. Nothing but `git cat-file -e HEAD:<path>` can settle it, which is
+what the next tick ran, and the entire cut is landed by the commit carrying this correction. The
+paragraph above is left standing rather than edited into truth, because a register that quietly
+rewrites its own false claims teaches the next reader to trust the claims.
+
+What was correctly reasoned and is unaffected: the map/simplifications deferral itself. Those files
+are still mid-transformation by the `map_records:` rehoming lane at this tick, and this commit still
+does not touch them. The deferral was right; the assertion that everything ELSE had landed was not.
+
 ---
 
-## 4. The register — all 88 examined crossings, 79 of them still live
+## 4. The register — all 88 examined crossings, 75 of them still live
 
-88 was the count when every crossing was ruled on (2026-08-09, step 2). NINE have since been
-CUT (§3a), so the tree carries 79 and this section carries 88 rows: a cut row is not deleted,
+88 was the count when every crossing was ruled on (2026-08-09, step 2). THIRTEEN have since
+been CUT (§3a), so the tree carries 75 and this section carries 88 rows: a cut row is not deleted,
 because a deleted row is how a re-entry becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
@@ -387,10 +478,10 @@ edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=
 # --- B6_cpa_is_company_accounting ---
 edge: simulation.acquisition_funnel -> saas.growth_mandate | disposition=cut | reason=B6 executed 2026-08-10 — the lazy `COST_PER_ACQUISITION` import is deleted and `total_amount_gbp` is a REQUIRED argument, so the funnel is told the cost and cannot consult company accounting even by accident. Measured safe before the cut: the sole live caller already passed the value, so the default branch was dead in production.
 # --- B7_renewal_is_a_company_decision ---
-edge: simulation.renewals -> company.governance.approval_interface | disposition=owed | design=B7_renewal_is_a_company_decision
-edge: simulation.renewals -> company.governance.decision_rights | disposition=owed | design=B7_renewal_is_a_company_decision
-edge: simulation.renewals -> company.pricing.tariff_engine | disposition=owed | design=B7_renewal_is_a_company_decision
-edge: simulation.renewals -> saas.tariff_pricing | disposition=owed | design=B7_renewal_is_a_company_decision
+edge: simulation.renewals -> company.governance.approval_interface | disposition=cut | reason=B7 executed 2026-08-10 — the approval workflow moved with the decision to `company/pricing/renewal_desk.py`. The world serves notice and asks; whether the move was routine or needed an approval is decided behind `company/interfaces/renewal_offer.py` and is not visible from the SIM. A real supplier's customers do not read its approval queue.
+edge: simulation.renewals -> company.governance.decision_rights | disposition=cut | reason=B7 executed 2026-08-10 — the PRICING_MOVE decision-event is logged by the desk, company-side. The world no longer holds a DecisionClass, the decision log or the routine that classifies a renewal as routine.
+edge: simulation.renewals -> company.pricing.tariff_engine | disposition=cut | reason=B7 executed 2026-08-10 — WHICH forward the company prices off (its own notice-date estimate) is now its own choice, made behind the door. One residual is named not hidden: `fallback_forward_price_gbp_per_mwh` is the world's estimate handed over for the cold-start case, owed to a later pass — see §3a.
+edge: simulation.renewals -> saas.tariff_pricing | disposition=cut | reason=B7 executed 2026-08-10 — the world stopped pricing the company's tariff. `price_fixed_tariff` is called by the desk, on the company's own `COMPANY_MIN_HEDGE_FLOOR`-derived naked fraction rather than the SIM's copy of the mandate, and what comes back across the seam is four numbers.
 # --- B8_market_feed_is_the_observable ---
 edge: simulation.publish_market_feed -> company.market.price_feed | disposition=cut | reason=B8 executed 2026-08-09 — `publish_feed` moved to `company/interfaces/market_feed_publication.py`, so the (legitimate) world-publishes-prices crossing now lands on the walked seam package and is exempt by the published SEAM rule. Deliberately NOT re-exported from `company/market/price_feed.py`, which would have left the non-seam path alive.
 # --- A_composition_lift ---

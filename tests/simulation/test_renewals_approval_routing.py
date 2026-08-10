@@ -2,12 +2,18 @@
 approval workflow from the LIVE renewals pricing path -- OUTCOME-NEUTRAL.
 
 docs/design/maturity_map.yaml A3_approval_interface's own 2026-07-13 L2-PATH
-FRAME: simulation/renewals.py already logs a PRICING_MOVE decision-event for
-every fixed-rate renewal. A move whose rate increase versus the customer's
-previous fixed term exceeds NON_ROUTINE_RATE_INCREASE_THRESHOLD (reused from
-the company's own bill-shock definition, not invented) is NON-ROUTINE and is
-routed through A3's approval workflow (submit->pending->resolve, real latency),
-giving A2's submit/resolve pending path its first genuine LIVE-pipeline caller.
+FRAME: every fixed-rate renewal logs a PRICING_MOVE decision-event. A move whose
+rate increase versus the customer's previous fixed term exceeds
+NON_ROUTINE_RATE_INCREASE_THRESHOLD is NON-ROUTINE and is routed through A3's
+approval workflow (submit->pending->resolve, real latency), giving A2's
+submit/resolve pending path its first genuine LIVE-pipeline caller.
+
+KNIFE pass 3 (B7_renewal_is_a_company_decision) moved the pricing organ and its
+governance routing OUT of simulation/renewals.py and into
+company/pricing/renewal_desk.py, reached from the world through
+company/interfaces/renewal_offer.py. These tests drive the same live pipeline
+through build_renewal_schedule and patch the desk, because that is where the
+decision is now made.
 
 The CORE risk control this pass: the wiring is OUTCOME-NEUTRAL -- routing a
 non-routine move records the approval EVENT + latency but the tariff actually
@@ -25,12 +31,12 @@ from company.governance.decision_rights import (
 )
 import datetime as dt
 
-import simulation.renewals as renewals
-from simulation.renewals import (
+import company.pricing.renewal_desk as renewal_desk
+from company.pricing.renewal_desk import (
     APPROVAL_LATENCY_DAYS,
     NON_ROUTINE_RATE_INCREASE_THRESHOLD,
-    build_renewal_schedule,
 )
+from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 
 
 @pytest.fixture(autouse=True)
@@ -86,8 +92,8 @@ def test_outcome_neutral_tariff_identical_with_and_without_approval_wiring(monke
     # "Without the approval wiring": neutralise the two approval-workflow calls
     # to no-ops. If the applied tariff depended on the wiring in ANY way, the
     # returned rates would diverge here.
-    monkeypatch.setattr(renewals, "request_governance_approval", lambda *a, **k: None)
-    monkeypatch.setattr(renewals, "record_governance_decision", lambda *a, **k: None)
+    monkeypatch.setattr(renewal_desk, "request_governance_approval", lambda *a, **k: None)
+    monkeypatch.setattr(renewal_desk, "record_governance_decision", lambda *a, **k: None)
     reset_decision_log()
     without_wiring = build_renewal_schedule("C_NEUTRAL", "2016-01-01", "2017-06-30", records, 2800)
 
@@ -124,14 +130,14 @@ def test_applied_fixed_rate_is_exactly_the_priced_rate_approval_cannot_alter_it(
     """
     records = _spiked_records()
     priced: list[float] = []
-    real_price = renewals.price_fixed_tariff
+    real_price = renewal_desk.price_fixed_tariff
 
     def _spy(*a, **k):
         rate = real_price(*a, **k)
         priced.append(rate)
         return rate
 
-    monkeypatch.setattr(renewals, "price_fixed_tariff", _spy)
+    monkeypatch.setattr(renewal_desk, "price_fixed_tariff", _spy)
     schedule = build_renewal_schedule("C_PRICED", "2016-01-01", "2017-06-30", records, 2800)
 
     applied = [
@@ -261,7 +267,7 @@ def test_every_governance_decision_is_transacted_strictly_before_it_takes_effect
     # The structural precondition that keeps every non-routine approval inside
     # the window -- independent constants (statutory notice vs approval SLA),
     # not a tautology. Widening APPROVAL_LATENCY_DAYS to >= NOTICE_DAYS fires.
-    assert APPROVAL_LATENCY_DAYS < renewals.NOTICE_DAYS
+    assert APPROVAL_LATENCY_DAYS < NOTICE_DAYS
 
     records = _spiked_records()
     build_renewal_schedule("C_WINDOW", "2016-01-01", "2017-06-30", records, 2800)
