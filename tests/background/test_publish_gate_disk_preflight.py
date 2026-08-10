@@ -57,10 +57,15 @@ def logged(monkeypatch):
 
 @pytest.fixture
 def extraction_tripwire(monkeypatch):
-    """Make any attempt to materialise a checkout raise, so passing the guard is observable."""
+    """Make any attempt to materialise a checkout raise, so passing the guard is observable.
+
+    Armed on `_head_sha`, the first thing `_head_checkout` does AFTER the pre-flight, rather than
+    on `tempfile.mkdtemp`: since OPS2 the checkout is reused between cycles, so the ordinary path
+    refreshes an existing directory and never calls `mkdtemp` at all -- a tripwire left there
+    would have quietly stopped tripping while still passing."""
     def _boom(*args, **kwargs):
         raise _Reached()
-    monkeypatch.setattr(prc.tempfile, "mkdtemp", _boom)
+    monkeypatch.setattr(prc, "_head_sha", _boom)
 
 
 def _run_checkout():
