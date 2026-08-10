@@ -190,7 +190,31 @@ def auto_process_marker(marker):
         proc_result = subprocess.run(
             [sys.executable, str(processor), str(marker)],
             cwd=str(PROJECT_DIR),
-            timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
+            # NOT A NUMBER OF OUR OWN -- the SIBLING HALF of the wrapper-deadline defect
+            # (2026-08-10, the wedge that outlived the fix aimed at it). `background_worker`'s
+            # independent `timeout=900` was replaced that morning by a derivation from the
+            # publisher's own budget, and `test_publisher_deadline_exceeds_its_gate.py` pinned
+            # it -- for THAT caller. This one, the path that publishes in the STEADY STATE
+            # every ~10 min, kept its own literal 1200s and a comment citing a 600s internal
+            # test timeout that has since been re-derived 600 -> 1800 -> 2600s against the cold
+            # HEAD-checkout subject. So the class was closed on one half and left open on the
+            # half that runs most often, and the wedge continued for another 3 hours after the
+            # "fix" landed.
+            #
+            # OBSERVED, not inferred (docs/observability/sim-runner-log.md, 2026-08-10 18:51Z):
+            #   Auto-process timed out after 1200s -- marker left for background_worker
+            # recorded against the wedge detector as rc=124 / `test_regression`, at a HEAD
+            # whose gate was never allowed to return a verdict.
+            #
+            # AND IT DID NOT ONLY MISREPORT -- IT CORRUPTED THE NEXT CYCLE. The SIGKILL reaches
+            # this direct child only; the gate's pytest grandchild keeps running inside
+            # /tmp/publish-gate-head-reused while the dead parent's flock is released. The next
+            # cycle then takes that lock and refreshes the directory under the live orphan,
+            # which is the other half of what the log shows: `ModuleNotFoundError: No module
+            # named 'tools.test_execution_metric'` at 18:25Z and `FileNotFoundError:
+            # '/tmp/publish-gate-head-reused'` at 18:51Z -- two reds that say nothing about any
+            # test. `process_run_complete._reused_checkout_is_in_use` closes that second half.
+            timeout=_publisher_deadline_seconds(),
             stderr=subprocess.PIPE,  # H30: same defect as run_simulation's, same file
             text=True,
         )
@@ -219,18 +243,46 @@ def auto_process_marker(marker):
         return rc
     except subprocess.TimeoutExpired as exc:
         tail = stderr_tail(exc.stderr)
-        log('Auto-process timed out after 1200s -- marker left for background_worker{}'.format(
-            '\n  publisher stderr before the kill:\n{}'.format(tail) if tail
-            else '\n  publisher stderr: nothing captured before the kill'))
-        # A timeout IS a publish failure (the marker stays unpublished), and it
-        # is exactly how the 4-day 2026-07-25 blackout presented. rc=None would
-        # be ambiguous, so report the timeout as a distinct non-zero code
-        # rather than letting the detector see nothing at all.
-        _record_publish_gate_outcome(marker, 124)
+        log('Auto-process timed out after {}s -- the publisher outran the deadline this loop '
+            'puts on it. NOT a test failure: the gate it was running never returned a verdict. '
+            'Marker left for background_worker{}'.format(
+                _publisher_deadline_seconds(),
+                '\n  publisher stderr before the kill:\n{}'.format(tail) if tail
+                else '\n  publisher stderr: nothing captured before the kill'))
+        # A timeout IS a publish failure (the marker stays unpublished), and it is exactly how
+        # the 4-day 2026-07-25 blackout presented -- so it must reach the detector rather than
+        # being swallowed. But it is NOT evidence about the tests, and rc=124 WAS: the
+        # classifier maps any rc>0 to `test_regression`, which is how a stopwatch became
+        # 145 recorded test failures and sent the RUNG-1 draw after a gate that was never
+        # judged. `kind="deadline_kill"` with no invented return code is the same contract
+        # background_worker's sweep already states (test_publisher_deadline_exceeds_its_gate).
+        _record_publish_gate_outcome(marker, None, kind='deadline_kill')
         return 124
 
 
-def _record_publish_gate_outcome(marker, rc):
+def _publisher_deadline_seconds():
+    """The deadline this loop puts on ONE publisher run -- the publisher's OWN declared
+    budget, never a number of ours.
+
+    Imported lazily and at CALL time (not bound at import) for the same reason the outcome
+    router below is lazy: this module must not acquire an import-time dependency on the
+    publish pipeline, and a constant snapshotted at import would go stale against a reloaded
+    module in exactly the tests that check this coupling.
+
+    FAIL-LONG, not fail-short. If the publisher is unimportable the subprocess is going to
+    fail immediately anyway, so the only thing a fallback can do is re-create the bug by
+    being too small. Deliberately larger than any bound the publisher currently declares;
+    `tests/background/test_publisher_deadline_exceeds_its_gate.py` pins the real coupling for
+    EVERY caller that spawns the publisher, this one included."""
+    try:
+        from background import process_run_complete as prc
+        return prc.PUBLISH_PATH_TIMEOUT_SECONDS
+    except Exception as exc:
+        log('publisher deadline falling back (publisher module unreadable: {})'.format(exc))
+        return 60 * 60
+
+
+def _record_publish_gate_outcome(marker, rc, *, kind=None):
     """Report this publisher's outcome to the shared publish-gate wedge
     detector (`process_run_complete.record_publish_gate_outcome`).
 
@@ -240,7 +292,7 @@ def _record_publish_gate_outcome(marker, rc):
     monitoring failure must never break the run loop it monitors."""
     try:
         from background import process_run_complete as prc
-        return prc.record_publish_gate_outcome(marker, rc)
+        return prc.record_publish_gate_outcome(marker, rc, kind=kind)
     except Exception as exc:
         log('publish-gate outcome recording failed (non-fatal): {}'.format(exc))
         return None

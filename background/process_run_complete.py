@@ -1210,6 +1210,54 @@ def _refresh_checkout_to(path: Path, head_sha: str) -> bool:
     return True
 
 
+def _reused_checkout_is_in_use(path: Path) -> bool:
+    """Is a LIVE process still working inside `path`? Asked while holding the reuse lock.
+
+    THE LOCK IS NOT ENOUGH, AND THE LOG SHOWS WHY (2026-08-10). `flock` is held on a file
+    descriptor owned by the publisher PROCESS, but the suite runs in a GRANDCHILD. When the
+    publisher is SIGKILLed by a caller's deadline, `subprocess.run`'s kill reaches the direct
+    child only: the pytest process keeps running, `cwd` still inside this directory, while the
+    dead parent's descriptor closes and RELEASES the lock. The next cycle then legitimately
+    takes that lock and calls `read-tree -u --reset` / `git clean -xdf` / `rmtree` on a tree a
+    live suite is reading. Both reds of 2026-08-10 are that, and neither is about any test:
+
+        18:25Z  ModuleNotFoundError: No module named 'tools.test_execution_metric'
+                  -- at pytest_sessionfinish, the module gone from under the run
+        18:51Z  FileNotFoundError: '/tmp/publish-gate-head-reused'
+                  -- at os.chdir(session.startpath), the directory itself gone
+
+    So the lock answers "is another publisher COORDINATING with me", and this answers "is
+    anyone actually IN there" -- which is the question that matters to a destructive refresh.
+    `/proc/<pid>/cwd` is the only first-hand answer available; a process that has the path as
+    its working directory is in it, whatever it believes about locks.
+
+    FAIL-SAFE IS `True` ONLY ON A POSITIVE SIGHTING. An unreadable /proc entry is a process
+    that is exiting or not ours to see, never a reason to declare the directory busy forever
+    -- a guard that latches on would wedge publishing exactly as hard as the bug it prevents.
+    A /proc that cannot be enumerated at all reads as not-in-use: on a box without procfs this
+    guard simply does not apply, and the pre-existing behaviour stands."""
+    try:
+        target = path.resolve()
+    except OSError:
+        return False
+    me = os.getpid()
+    try:
+        pids = [entry for entry in os.listdir("/proc") if entry.isdigit()]
+    except OSError:
+        return False
+    for entry in pids:
+        pid = int(entry)
+        if pid == me:
+            continue
+        try:
+            cwd = Path(os.readlink("/proc/{}/cwd".format(entry)))
+        except OSError:
+            continue
+        if cwd == target or target in cwd.parents:
+            return True
+    return False
+
+
 def _prepare_reused_checkout(head_sha: str):
     """The reused directory at `head_sha`, or None if it cannot be produced."""
     path = HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_NAME
@@ -1262,12 +1310,22 @@ def _head_checkout():
         return
     with _reused_checkout_lock() as held:
         if held is not None:
-            yield _prepare_reused_checkout(head_sha)
-            return
-    # Another publisher owns the reused checkout for the length of its suite. Correctness before
-    # speed: this cycle gets its own throwaway tree, cold bytecode and all, and deletes it.
-    log("Publish gate: the reused HEAD checkout is held by another publisher -- using a "
-        "throwaway checkout for this cycle (correct, but cold).")
+            if not _reused_checkout_is_in_use(HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_NAME):
+                yield _prepare_reused_checkout(head_sha)
+                return
+            # The lock is free but the directory is NOT: an earlier publisher was killed and
+            # left its suite running in there (see `_reused_checkout_is_in_use`). Refreshing it
+            # now would corrupt that run AND produce a red here that says nothing about the
+            # code. Same fallback as lock contention, for the same reason.
+            reason = ("free of its lock but a live process is still running inside it -- an "
+                      "orphaned suite from a killed publisher")
+        else:
+            # Another publisher owns the reused checkout for the length of its suite.
+            reason = "held by another publisher"
+    # Correctness before speed: this cycle gets its own throwaway tree, cold bytecode and all,
+    # and deletes it.
+    log("Publish gate: the reused HEAD checkout is {} -- using a throwaway checkout for this "
+        "cycle (correct, but cold).".format(reason))
     tmp = tempfile.mkdtemp(prefix=HEAD_CHECKOUT_PREFIX, dir=str(HEAD_CHECKOUT_ROOT))
     try:
         if not _materialise_head_into(Path(tmp), head_sha):

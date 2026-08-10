@@ -439,3 +439,72 @@ def test_a_corrupt_reused_checkout_is_rebuilt_rather_than_trusted(sandbox):
         assert second == first
         assert prc._checkout_is_usable(second) is True
         assert _git(["rev-parse", "HEAD"], second).stdout.strip() == _sha(sandbox)
+
+
+# ── THE LOCK IS NOT THE OCCUPANCY (2026-08-10, the wedge that outlived its own fix) ──────────
+
+def test_a_live_suite_in_the_reused_checkout_is_seen_even_with_the_lock_free():
+    """R15 direction 1 -- the defect is REACHABLE, and it is not hypothetical.
+
+    `flock` is held on a descriptor owned by the publisher PROCESS; the suite runs in a
+    GRANDCHILD. A caller's deadline SIGKILLs the direct child only, so the pytest keeps running
+    with its cwd inside the checkout while the dead parent's lock is released. The lock then
+    says 'free' about a directory that is occupied, and the next cycle's `read-tree --reset` /
+    `git clean` / `rmtree` lands on a live run. That produced both reds of 2026-08-10 --
+    `ModuleNotFoundError: tools.test_execution_metric` at 18:25Z and `FileNotFoundError:
+    '/tmp/publish-gate-head-reused'` at 18:51Z -- neither of which is about any test."""
+    import tempfile as _tempfile
+
+    with _tempfile.TemporaryDirectory() as tmp:
+        occupied = Path(tmp) / "occupied"
+        occupied.mkdir()
+        assert prc._reused_checkout_is_in_use(occupied) is False, (
+            "an empty directory reads as occupied -- the guard would wedge every cycle"
+        )
+        # A real process, really cwd'd in there. Nothing is mocked: the guard's whole claim is
+        # that it reads first-hand occupancy, so a stubbed /proc would prove nothing.
+        child = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()"],
+                                 cwd=str(occupied), stdin=subprocess.PIPE)
+        try:
+            assert prc._reused_checkout_is_in_use(occupied) is True, (
+                "a live process cwd'd in the checkout was not seen -- this is the sighting the "
+                "lock cannot make"
+            )
+        finally:
+            child.stdin.close()
+            child.wait(timeout=30)
+        assert prc._reused_checkout_is_in_use(occupied) is False, (
+            "the guard LATCHED after the process exited -- a guard that never clears wedges "
+            "publishing exactly as hard as the bug it prevents"
+        )
+
+
+def test_an_occupied_reused_checkout_is_not_refreshed_under_its_orphan(
+        sandbox, logged, monkeypatch):
+    """The wiring, not just the predicate. With the lock genuinely FREE but the directory
+    occupied, the cycle must take the throwaway branch and leave the occupant's tree alone.
+
+    MUTATION: drop the `_reused_checkout_is_in_use` call from `_head_checkout` and the reused
+    directory is handed out, its marker file wiped by the refresh -- which is precisely what
+    corrupted the orphaned suite in the live incident."""
+    with prc._head_checkout() as first:
+        assert first is not None
+        assert first.name == prc.REUSED_HEAD_CHECKOUT_NAME
+    # An artefact of the "still running" suite. `git clean -xdf` at refresh removes exactly this.
+    (first / "orphan_was_here.txt").write_text("a live suite's working file\n")
+
+    monkeypatch.setattr(prc, "_reused_checkout_is_in_use", lambda path: path == first)
+    with prc._head_checkout() as second:
+        assert second is not None, "occupancy must not block the publish, only slow it"
+        assert second.name != prc.REUSED_HEAD_CHECKOUT_NAME, (
+            "the gate took the occupied reused checkout and refreshed the tree under a live "
+            "suite -- the 2026-08-10 corruption, reintroduced"
+        )
+
+    assert (first / "orphan_was_here.txt").exists(), (
+        "the orphaned suite's tree was cleaned under it"
+    )
+    assert any("orphaned suite" in line for line in logged), (
+        "R5 -- the fallback must say WHICH condition caused it; 'held by another publisher' "
+        "would send the next diagnosis to the wrong mechanism"
+    )

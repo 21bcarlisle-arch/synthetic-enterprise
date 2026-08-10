@@ -152,12 +152,29 @@ def test_sim_runner_lock_skip_leaves_streak_untouched(monkeypatch, tmp_path):
 def test_sim_runner_timeout_is_recorded_as_a_failure(monkeypatch, tmp_path):
     """The 4-day 2026-07-25 blackout presented as a publish TIMEOUT. A timeout
     leaves the marker unpublished, so it is a failure -- the detector must not
-    see silence. MUTATION: drop the recorder from the except branch -> red."""
+    see silence. MUTATION: drop the recorder from the except branch -> red.
+
+    IT MUST NOT BE RECORDED AS A TEST FAILURE EITHER (2026-08-10). This test
+    used to assert `rc == 124` reached the detector, which reads as diligence
+    and was in fact pinning the defect: `_classify_gate_failure` maps any rc>0
+    to `test_regression`, so every deadline kill on this path arrived at the
+    RUNG-1 unwedge draw as evidence about tests that were never run -- 145
+    consecutive "test regressions" at a HEAD whose gate never returned a
+    verdict. The CALLER still gets 124 (it needs a non-zero rc); the DETECTOR
+    gets no invented return code and the kind stated outright. Same contract
+    background_worker's sweep already has
+    (tests/background/test_publisher_deadline_exceeds_its_gate.py)."""
     _marker_path, rc = _drive_auto_process(monkeypatch, tmp_path, timeout=True)
 
-    assert rc == 124
+    assert rc == 124, "the caller still needs a distinct non-zero code"
     failures = prc._read_publish_gate_state().get("failures")
-    assert len(failures) == 1 and failures[0]["rc"] == 124
+    assert len(failures) == 1, "the detector saw silence -- the blackout's own signature"
+    assert failures[0]["kind"] == "deadline_kill", (
+        "a stopwatch was recorded as a claim about the tests"
+    )
+    assert failures[0]["rc"] is None, (
+        "an invented return code launders the kill back into a test regression"
+    )
 
 
 def test_sim_runner_and_worker_share_one_router(tmp_path):
