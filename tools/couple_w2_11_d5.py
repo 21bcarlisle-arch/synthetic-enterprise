@@ -1333,12 +1333,21 @@ AGGREGATE_SCORING_CONTRACT: Dict[str, Dict[str, object]] = {
 #     belief_population_mix  0.0 -> ~0.96    distinguishes
 #     ageing                 0.0 -> 0.0      DOES NOT -- 10,758 cases changed
 #                                            and the number did not move
+#                            0.0 -> 1.5      distinguishes, after D22 landed
 # The ageing entry is the finding this register was built for: its ORDINAL
-# headline is taken over the truly-overdue alone, so a company that dates every
-# overdue invoice perfectly and puts its entire current book in `90+` scores a
-# perfect 0.000000. Its over-ageing direction is not unmeasured -- the DIMENSION
-# publishes `overstated_arrears_rate` -- but the ORDINAL severity, which is the
-# whole of what this dimension adds over a rate, exists in one direction only.
+# headline was taken over the truly-overdue alone, so a company that dated every
+# overdue invoice perfectly and put its entire current book in `90+` scored a
+# perfect 0.000000. Its over-ageing direction was never unmeasured -- the
+# DIMENSION publishes `overstated_arrears_rate` -- but the ORDINAL severity,
+# which is the whole of what this dimension adds over a rate, existed in one
+# direction only. D22 reshaped the headline onto the BALANCED displacement (the
+# mean of the two directions, each on its own denominator: `gap_metric`'s own
+# comment carries the measurement that rejected the pooled-mean alternative for
+# re-importing D6's prevalence sensitivity). The register caught its own entry
+# rotting the moment the reshape landed, which is the behaviour the second rule
+# in `_check_one_entry` exists for -- and the published offline headline moved
+# 0.178744 -> 0.095732 at seed 7, which is why this was a mint and not a fix on
+# sight.
 #
 # THE THIRD STATE, and why it is not a loophole. `detection_latency` is honestly
 # conditional: it is a mean over cases the company DID detect, so an
@@ -1410,32 +1419,34 @@ HEADLINE_DIRECTION_COVERAGE: Dict[str, Dict[str, object]] = {
         ),
     },
     "ageing": {
-        "headline_counts_both_directions": False,
+        "headline_counts_both_directions": True,
         "degenerate": "age_the_current_book_at_90_plus",
         "covered_by": None,
-        "debt_atom": "D22_ageing_ordinal_is_one_directional",
+        "debt_atom": None,
         "why": (
-            "NAMED DEBT, found by this register's first run (H27 Expert Hour "
-            "#6, 2026-08-10). `mean_bucket_displacement` -- the published "
-            "headline -- is a mean over the TRULY-OVERDUE population, so the "
-            "over-ageing direction cannot move it by any amount: a company "
-            "dating its whole current book at `90+` scores 0.000000, "
-            "bit-identical to a perfect dater, at seeds 7/11/23. The "
-            "dimension is not blind to that direction (it publishes "
-            "`overstated_arrears_rate`), but its ORDINAL term is, and the "
-            "ordinal term is the whole of what this dimension adds over a "
-            "rate -- its own docstring's claim to 'distinguish off-by-one "
-            "from stone-blind, which an error rate cannot' holds in one "
-            "direction only. NOT COVERED BY A SIBLING: D16 measured that "
-            "detection's false_flag_rate is a DIFFERENT quantity over a "
-            "different population from this dimension's overstatement, so "
-            "nothing in this instrument sees over-ageing SEVERITY. Until D22 "
-            "reshapes the headline (which moves a published number on every "
-            "pair calling `ageing_gap`, so it is a mint, not a fix on sight), "
-            "`gap_metric` stamps the mirrored term "
-            "`mean_overstatement_displacement` and the "
-            "`ordinal_direction_caveat` AT SOURCE so every caller gets the "
-            "severity the headline cannot express."
+            "FIXED 2026-08-10 (atom D22), the debt this register was built to "
+            "find and the entry it then caught rotting. The headline was "
+            "`mean_bucket_displacement`, a mean over the TRULY-OVERDUE "
+            "population, so no amount of over-ageing could move it: a company "
+            "dating its whole current book at `90+` scored 0.000000, "
+            "bit-identical to a perfect dater, at seeds 7/11/23 with 10,758 "
+            "cases changed. The dimension was never blind to that direction "
+            "(it publishes `overstated_arrears_rate`), but its ORDINAL term "
+            "was, and the ordinal term is the whole of what this dimension "
+            "adds over a rate -- so its own docstring's claim to 'distinguish "
+            "off-by-one from stone-blind, which an error rate cannot' held in "
+            "one direction only. It is now the BALANCED displacement: the "
+            "mean of the two directions, each on its own denominator, so this "
+            "degenerate scores 1.5 against a perfect dater's 0.0 and the "
+            "pooled-mean alternative -- which would have re-imported D6's "
+            "prevalence sensitivity, measured at a 5.05x swing with company "
+            "behaviour held fixed -- is pinned as a rejected mutant in "
+            "tests/tools/test_d7_ageing_measures.py. NO SIBLING COVER WAS "
+            "EVER AVAILABLE HERE, which is why the fix had to be the "
+            "headline's own: D16 measured that detection's false_flag_rate is "
+            "a DIFFERENT quantity over a different population from this "
+            "dimension's overstatement, so nothing else in this instrument "
+            "sees over-ageing SEVERITY."
         ),
     },
     "detection_latency": {

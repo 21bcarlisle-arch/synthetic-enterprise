@@ -11,6 +11,7 @@ real measurement, never a value the metric is stuck at.
 from __future__ import annotations
 
 import ast
+import contextlib
 import inspect
 import copy
 import dataclasses
@@ -2857,15 +2858,41 @@ def _hdc(result=None, contract=None):
     return result, pair.measure_headline_direction_coverage(result, contract)
 
 
-def test_the_ageing_ordinal_headline_cannot_see_the_over_ageing_direction():
-    """THE FINDING (atom D22), pinned as a number rather than a paragraph.
+@contextlib.contextmanager
+def _pre_d22_ageing_scorer():
+    """Restore the ONE-DIRECTIONAL ageing headline this register found: `gap`
+    taken from the truly-overdue displacement alone.
+
+    Not a hypothetical shape -- it is what `ageing_gap` shipped until 2026-08-10
+    and what every gap-ledger entry before that date carries. It is the only
+    genuinely one-directional scorer this instrument has ever published, so it
+    is what the R15 mutations below use now that no live dimension is blind.
+    """
+    real = pair.ageing_gap
+
+    def _one_directional(*a, **kw):
+        result = real(*a, **kw)
+        return dataclasses.replace(
+            result, gap=result.components["mean_bucket_displacement"])
+
+    pair.ageing_gap = _one_directional
+    try:
+        yield
+    finally:
+        pair.ageing_gap = real
+
+
+def test_the_ageing_headline_now_sees_the_over_ageing_direction():
+    """THE FINDING AND ITS FIX (atom D22), pinned as numbers rather than a
+    paragraph.
 
     A company that dates every truly-overdue invoice perfectly and dumps its
-    ENTIRE truly-current book into `90+` -- maximal wrongful ageing -- scores
-    the published ageing headline identically to a company that dates every
-    invoice right. If this test ever fails, the reshape has landed (or the
-    dimension has changed under it) and the register entry must be re-derived,
-    not silenced.
+    ENTIRE truly-current book into `90+` -- maximal wrongful ageing -- used to
+    score the published ageing headline identically to a company that dates
+    every invoice right (0.000000, 10,758 cases changed, seeds 7/11/23). It now
+    scores 1.5 buckets. Both halves are asserted here: the old shape is still
+    exercised, through the pre-D22 scorer, so this test says what CHANGED and
+    not merely what is true today.
     """
     result, measured = _hdc()
     row = measured["ageing"]
@@ -2874,24 +2901,33 @@ def test_the_ageing_ordinal_headline_cannot_see_the_over_ageing_direction():
         "the degenerate changed no case at all -- the probe is VACUOUS and "
         "proves nothing in either direction")
     assert row["perfect_gap"] == 0.0
-    assert row["degenerate_gap"] == row["perfect_gap"], (
-        f"the ageing headline now MOVES under the over-ageing degenerate "
-        f"({row['perfect_gap']} -> {row['degenerate_gap']}). That is the D22 "
-        "reshape landing -- flip `headline_counts_both_directions` to True and "
-        "re-derive the entry")
-    assert row["distinguishes"] is False
+    assert row["degenerate_gap"] == pytest.approx(1.5), (
+        "the balanced headline scores maximal wrongful ageing (3 buckets over "
+        "the truly-current, 0 over the truly-overdue) at half of 3")
+    assert row["distinguishes"] is True
+
+    # THE DEFECT, still exercised: with the pre-D22 headline the same probe on
+    # the same population cannot tell them apart at all.
+    with _pre_d22_ageing_scorer():
+        was = pair.measure_headline_direction_coverage(result)["ageing"]
+    assert was["perfect_gap"] == was["degenerate_gap"] == 0.0
+    assert was["distinguishes"] is False
 
     # AND THE OFF-BY-ONE / STONE-BLIND DISTINCTION, which is the claim the
-    # ordinal term exists to support, is unavailable in this direction: an
-    # over-ageing of ONE bucket and one of THREE score the same.
+    # ordinal term exists to support, is now available in this direction too:
+    # an over-ageing of ONE bucket and one of THREE no longer score the same.
     true_l = list(result["labels"]["ageing_truth"])
     off_by_one = [t if t != "current" else "30-60" for t in true_l]
     stone_blind = [t if t != "current" else "90+" for t in true_l]
     g1 = pair._rescore_dimension("ageing", list(true_l), off_by_one, result)
     g3 = pair._rescore_dimension("ageing", list(true_l), stone_blind, result)
-    assert g1 == g3 == row["perfect_gap"], (
-        "the ordinal term now separates an off-by-one over-ageing from a "
-        f"stone-blind one ({g1} vs {g3}) -- D22 has landed")
+    assert 0.0 < g1 < g3, (
+        f"off-by-one over-ageing ({g1}) must score better than stone-blind "
+        f"({g3}) and neither may score as a perfect dater")
+    with _pre_d22_ageing_scorer():
+        was1 = pair._rescore_dimension("ageing", list(true_l), off_by_one, result)
+        was3 = pair._rescore_dimension("ageing", list(true_l), stone_blind, result)
+    assert was1 == was3 == 0.0
 
 
 def test_the_register_is_derived_from_what_is_published_not_from_a_list():
@@ -2929,14 +2965,18 @@ def test_every_declaration_holds_at_head():
 
 
 def test_a_both_directions_claim_that_is_false_is_caught():
-    """R15, direction one: reinstate the defect as a DECLARATION -- claim the
-    one-directional ageing headline counts both -- and the control must fire."""
+    """R15, direction one: reinstate the defect in the SCORER -- the real
+    pre-D22 one-directional ageing headline -- while the register goes on
+    declaring both directions, and the control must fire.
+
+    Stronger than the version this replaces, which reinstated the defect as a
+    declaration over a scorer that was genuinely blind. Now that D22 has landed,
+    nothing this instrument publishes is one-directional, so the mutation has to
+    put the blindness back where it actually lived."""
     result, _ = _hdc()
-    lying = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
-    lying["ageing"]["headline_counts_both_directions"] = True
-    lying["ageing"]["debt_atom"] = None
-    measured = pair.measure_headline_direction_coverage(result, lying)
-    violations = pair.check_headline_direction_coverage(measured, lying)
+    with _pre_d22_ageing_scorer():
+        measured = pair.measure_headline_direction_coverage(result)
+    violations = pair.check_headline_direction_coverage(measured)
     assert any("ageing" in v and "BOTH error directions" in v
                for v in violations), violations
 
@@ -2959,8 +2999,13 @@ def test_a_one_directional_entry_must_name_an_owner_or_a_cover():
     atom that will make it. An unowned hole is the third fail-open shape."""
     result, _ = _hdc()
     unowned = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    # The pre-D22 ageing headline, honestly declared one-directional, with
+    # nobody named to fix it -- the state the real register was never allowed
+    # to be in between the finding and the reshape.
+    unowned["ageing"]["headline_counts_both_directions"] = False
     unowned["ageing"]["debt_atom"] = None
-    measured = pair.measure_headline_direction_coverage(result, unowned)
+    with _pre_d22_ageing_scorer():
+        measured = pair.measure_headline_direction_coverage(result, unowned)
     violations = pair.check_headline_direction_coverage(measured, unowned)
     assert any("unowned hole" in v for v in violations), violations
 
@@ -2979,10 +3024,13 @@ def test_a_cover_claim_is_measured_against_its_sibling():
     assert row["probe_bit"] is True, "the latency population is empty"
 
     # MUTATION: point the cover at a sibling that does NOT count both
-    # directions -- a cover claim covering nothing.
+    # directions -- a cover claim covering nothing. The sibling has to be
+    # genuinely one-directional for this to prove anything, so the pre-D22
+    # ageing scorer supplies it.
     bad = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
     bad["detection_latency"]["covered_by"] = "ageing"
-    m2 = pair.measure_headline_direction_coverage(result, bad)
+    with _pre_d22_ageing_scorer():
+        m2 = pair.measure_headline_direction_coverage(result, bad)
     assert any("covering nothing" in v
                for v in pair.check_headline_direction_coverage(m2, bad))
 
@@ -3039,10 +3087,11 @@ def test_a_declared_strategy_that_does_not_exist_raises():
         pair.measure_headline_direction_coverage(result, bad)
 
 
-def test_the_mirrored_ordinal_term_travels_with_the_ageing_headline():
-    """Stamped AT SOURCE in `gap_metric.ageing_gap`, so it reaches every caller
-    of the scorer -- not only the pair whose Expert Hour found it (the D19
-    pattern). And it must MOVE where the headline cannot."""
+def test_the_over_ageing_term_is_half_the_headline_at_source():
+    """Reshaped AT SOURCE in `gap_metric.ageing_gap` (atom D22), so every caller
+    of the scorer gets it -- not only the pair whose Expert Hour found it (the
+    D19 pattern). The direction the old headline could not see must now move
+    it, and must still be readable on its own."""
     truth = ["current"] * 8 + ["30-60", "60-90"]
     right = list(truth)
     over_by_one = ["30-60"] * 8 + ["30-60", "60-90"]
@@ -3052,41 +3101,50 @@ def test_the_mirrored_ordinal_term_travels_with_the_ageing_headline():
     c_one = ageing_gap(truth, over_by_one).components
     c_blind = ageing_gap(truth, over_stone_blind).components
 
-    # The headline is blind to all three differences...
+    # The OLD headline was blind to all three differences -- the term is still
+    # published, and still one-directional, which is why it is no longer the
+    # headline.
     assert (c_right["mean_bucket_displacement"]
             == c_one["mean_bucket_displacement"]
             == c_blind["mean_bucket_displacement"] == 0.0)
     # ...and the rate cannot separate the last two either.
     assert c_one["overstated_arrears_rate"] == c_blind["overstated_arrears_rate"]
-    # The mirrored term is what does.
+    # The over-ageing term is what does, and it is half the headline now.
     assert c_right["mean_overstatement_displacement"] == 0.0
     assert c_one["mean_overstatement_displacement"] == 1.0
     assert c_blind["mean_overstatement_displacement"] == 3.0
+    assert c_right["balanced_bucket_displacement"] == 0.0
+    assert c_one["balanced_bucket_displacement"] == pytest.approx(0.5)
+    assert c_blind["balanced_bucket_displacement"] == pytest.approx(1.5)
     assert c_one["n_overaged_beyond_one_bucket"] == 0
     assert c_blind["n_overaged_beyond_one_bucket"] == 8
     assert c_blind["max_overstatement_displacement"] == 3
 
     # VACUITY IS EXPLICIT, never 0.0: with no truly-current population the
-    # mirrored term is undefined, and the caveat says so rather than reading
-    # as "no over-ageing".
-    vac = ageing_gap(["30-60", "60-90"], ["30-60", "60-90"]).components
-    assert vac["mean_overstatement_displacement"] is None
-    assert "UNKNOWN" in vac["ordinal_direction_caveat"]
+    # over-ageing term is undefined -- and so is the headline, rather than
+    # falling back to the half that is defined.
+    vac = ageing_gap(["30-60", "60-90"], ["30-60", "60-90"])
+    assert vac.components["mean_overstatement_displacement"] is None
+    assert vac.gap is None
+    assert "UNKNOWN" in vac.components["ordinal_direction_caveat"]
 
 
 def test_the_ordinal_direction_caveat_is_published_where_a_reader_sees_it():
-    """The D7 anti-decay mechanism applied to the new limit: no consumer prints
-    this headline without the direction it cannot see beside it."""
+    """The D7 anti-decay mechanism applied to the reshaped headline: no consumer
+    prints it without both of its halves, and no ledger reader can diff a
+    pre-D22 entry against a later one without being told they differ."""
     from background.gap_metric import format_ageing_summary
 
     result = ageing_gap(["current"] * 5 + ["30-60"], ["90+"] * 5 + ["30-60"])
-    assert "atom D22" in result.components["ordinal_direction_caveat"]
-    assert "TRULY-OVERDUE" in result.components["ordinal_direction_caveat"]
+    caveat = result.components["ordinal_direction_caveat"]
+    assert "atom D22" in caveat
+    assert "TRULY-OVERDUE" in caveat
+    assert "not comparable with this headline" in caveat
     summary = format_ageing_summary(result)
     assert "mean_overstatement_displacement" in summary, (
-        "the headline is printable without the direction it cannot see -- the "
-        "exact shape that let a bare ageing scalar be misread twice")
-    assert "CANNOT see" in summary
+        "the headline is printable without the direction it used not to see -- "
+        "the exact shape that let a bare ageing scalar be misread twice")
+    assert "BALANCED over both directions" in summary
 
 
 def test_the_headline_direction_control_runs_in_the_cli_not_only_in_tests():

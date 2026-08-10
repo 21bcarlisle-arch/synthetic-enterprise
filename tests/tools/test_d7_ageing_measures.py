@@ -7,6 +7,15 @@ with three measures, each on the denominator it is about:
     understated_arrears_rate = misses        / n_truly_overdue
     overstated_arrears_rate  = false_ageings / n_truly_current
     mean_bucket_displacement = mean |rank(belief) - rank(truth)| over TRULY-OVERDUE
+    mean_overstatement_displacement = the same, over TRULY-CURRENT
+    balanced_bucket_displacement    = mean of the two          # THE HEADLINE
+
+Atom `D22_ageing_ordinal_is_one_directional` (2026-08-10) added the last two and
+moved the headline onto the balanced term. Before it, `gap` was the truly-overdue
+displacement alone and an indiscriminate over-ager -- a company dating its whole
+current book at `90+` -- scored 0.000000, bit-identical to a perfect dater. The
+D22 section at the bottom of this file holds that measurement, and the mutants
+that make both halves of the repair falsifiable.
 
 R15 IS THE POINT OF THIS FILE, not a footnote. Every property below is asserted
 against the real measures AND against a NAMED MUTANT that breaks exactly that
@@ -36,6 +45,11 @@ _MEASURE_KEYS = (
     "understated_arrears_rate",
     "overstated_arrears_rate",
     "mean_bucket_displacement",
+    # The two D22 measures are swept by the SAME properties as the three
+    # originals, deliberately: a headline exempt from the prevalence check is
+    # how the pooled-mean repair would have got in.
+    "mean_overstatement_displacement",
+    "balanced_bucket_displacement",
 )
 
 N_CURRENT = 1000
@@ -173,12 +187,20 @@ def test_measures_are_what_the_population_was_built_to_contain():
     assert m["understated_arrears_rate"] == pytest.approx(MISS_FRACTION)
     assert m["overstated_arrears_rate"] == pytest.approx(N_FALSE_AGEINGS / N_CURRENT)
     assert m["mean_bucket_displacement"] == pytest.approx(MISS_FRACTION * 3)
+    # The over-ageing half, from the same construction: 15 settled invoices
+    # dated `90+` is 3 buckets each over the whole truly-current book.
+    over = N_FALSE_AGEINGS * 3 / N_CURRENT
+    assert m["mean_overstatement_displacement"] == pytest.approx(over)
+    assert m["balanced_bucket_displacement"] == pytest.approx(
+        (MISS_FRACTION * 3 + over) / 2)
 
     perfect = _real_measures(truth, truth)
     assert perfect == {
         "understated_arrears_rate": 0.0,
         "overstated_arrears_rate": 0.0,
         "mean_bucket_displacement": 0.0,
+        "mean_overstatement_displacement": 0.0,
+        "balanced_bucket_displacement": 0.0,
     }
 
 
@@ -376,7 +398,8 @@ def test_the_headline_is_displacement_and_says_it_has_no_baseline():
     result = ageing_gap(truth, belief)
 
     assert result.metric == "ageing"
-    assert result.gap == pytest.approx(result.components["mean_bucket_displacement"])
+    assert result.gap == pytest.approx(
+        result.components["balanced_bucket_displacement"])
     assert result.g0 == 0.0
     assert "NONE" in result.baseline
     entry = result.to_ledger_entry("D5_account_hierarchy_payments")
@@ -387,6 +410,169 @@ def test_the_headline_is_displacement_and_says_it_has_no_baseline():
     assert "buckets" in summary and "no baseline" in summary
     assert "understated_arrears_rate" in summary and "overstated_arrears_rate" in summary
     assert "wrongful-dunning" in summary
+
+
+# ---------------------------------------------------------------------------
+# ATOM D22 -- the headline must count BOTH error directions
+# ---------------------------------------------------------------------------
+# The defect this section closes was found by a register that scores every
+# published dimension's own INDISCRIMINATE DEGENERATE through its own shipped
+# scorer (`tools.couple_w2_11_d5.HEADLINE_DIRECTION_COVERAGE`). The ageing
+# headline was a mean over the truly-overdue invoices alone, so the degenerate
+# that is perfect in that direction and maximally wrong in the other scored
+# EXACTLY what a perfect dater scores. Two mutants below hold the repair
+# falsifiable in both of the ways it could have been done wrong: reverting to the
+# one-directional headline, and taking the pooled mean that would have re-imported
+# the D6 prevalence defect.
+
+# The two degenerates, in the vocabulary of the population above: a company that
+# dates every truly-overdue invoice perfectly and dumps its whole current book in
+# `90+`, and its mirror.
+def _over_ager(truth):
+    return [t if t != _CURRENT else "90+" for t in truth]
+
+
+def _under_dater(truth):
+    return [_CURRENT] * len(truth)
+
+
+def _assert_headline_counts_both_directions(measures: MeasuresFn) -> None:
+    """The D22 property: an INDISCRIMINATE company must not score what a PERFECT
+    one scores, in EITHER direction. Written as one property so the real measure
+    and the mutants below are held to the same words."""
+    truth, _ = population(100)
+    perfect = measures(truth, list(truth))["balanced_bucket_displacement"]
+    for name, degenerate in (("over-ageing", _over_ager(truth)),
+                             ("under-dating", _under_dater(truth))):
+        assert sum(1 for a, b in zip(truth, degenerate) if a != b) > 0, (
+            f"the {name} degenerate changed nothing -- it proves nothing")
+        got = measures(truth, degenerate)["balanced_bucket_displacement"]
+        assert got != pytest.approx(perfect), (
+            f"the headline cannot tell an indiscriminate {name} company "
+            f"({got}) from a perfect dater ({perfect})"
+        )
+
+
+def _MUTANT_headline_is_the_overdue_term_only(truth, belief):
+    """THE PRE-D22 HEADLINE, restored exactly: `gap` is the displacement over the
+    truly-overdue population alone. This is not a hypothetical -- it is the shape
+    this scorer shipped with until 2026-08-10, and it is what every ledger entry
+    before that date carries."""
+    m = _real_measures(truth, belief)
+    m["balanced_bucket_displacement"] = m["mean_bucket_displacement"]
+    return m
+
+
+def _MUTANT_headline_is_the_pooled_mean(truth, belief):
+    """THE OBVIOUS REPAIR, and the wrong one: average the displacement over every
+    invoice. It counts both directions -- and its denominator counts the truth's
+    class balance, so it re-imports D6 Defect 2 that the atom before this one
+    removed."""
+    m = _real_measures(truth, belief)
+    m["balanced_bucket_displacement"] = (
+        sum(abs(_RANK[b] - _RANK[t]) for t, b in zip(truth, belief)) / len(truth)
+    )
+    return m
+
+
+def test_D22_the_headline_counts_both_error_directions():
+    _assert_headline_counts_both_directions(_real_measures)
+
+
+def test_R15_the_direction_check_FIRES_on_the_pre_D22_headline():
+    """R15: the property above must be able to FAIL. Restore the one-directional
+    headline and it must reject it -- naming the over-ageing direction, not the
+    one the old measure could already see."""
+    with pytest.raises(AssertionError,
+                       match="indiscriminate over-ageing company"):
+        _assert_headline_counts_both_directions(
+            _MUTANT_headline_is_the_overdue_term_only)
+
+
+def test_R15_the_prevalence_check_FIRES_on_a_pooled_mean_headline():
+    """The second way the repair could have gone wrong. A pooled mean passes the
+    direction check honestly, so only the prevalence check convicts it -- which
+    is why the headline is swept by BOTH properties and not just the new one."""
+    _assert_headline_counts_both_directions(_MUTANT_headline_is_the_pooled_mean)
+    with pytest.raises(AssertionError, match="moved with world prevalence"):
+        _assert_prevalence_invariant(_MUTANT_headline_is_the_pooled_mean)
+
+
+def test_D22_the_measured_numbers_the_atom_was_opened_on():
+    """The measurement itself, pinned: what the old headline scored on the two
+    degenerates and what this one scores. The atom's whole claim is that these
+    were EQUAL, so the equality has to be visible in the test that closed it."""
+    truth = ["current"] * 900 + ["30-60"] * 40 + ["60-90"] * 30 + ["90+"] * 30
+    perfect = ageing_gap(truth, list(truth)).components
+    over = ageing_gap(truth, _over_ager(truth)).components
+    over_by_one = ageing_gap(
+        truth, ["30-60" if t == "current" else t for t in truth]).components
+
+    # The old headline: all three identical, which is the defect.
+    assert (perfect["mean_bucket_displacement"]
+            == over["mean_bucket_displacement"]
+            == over_by_one["mean_bucket_displacement"] == 0.0)
+    # The headline that replaced it: graded, ordinal, and non-zero in exactly
+    # the direction the old one could not see. Stone-blind over-ageing (3
+    # buckets on every current invoice, halved) scores 1.5; off-by-one scores
+    # 0.5 -- the off-by-one/stone-blind distinction this dimension exists to
+    # make, now available in BOTH directions.
+    assert perfect["balanced_bucket_displacement"] == 0.0
+    assert over["balanced_bucket_displacement"] == pytest.approx(1.5)
+    assert over_by_one["balanced_bucket_displacement"] == pytest.approx(0.5)
+    # ...and the rate cannot separate those last two, which is why the ordinal
+    # term has to.
+    assert over["overstated_arrears_rate"] == over_by_one["overstated_arrears_rate"]
+
+
+def test_D22_a_missing_truth_class_leaves_the_headline_UNDEFINED_not_halved():
+    """VACUITY, the D22 half. With one truth class empty the headline must be
+    `None` -- NOT the surviving term, which would silently restore the
+    one-directional headline on exactly the populations where it cannot be
+    checked. Both directions, because the fail-open is symmetric."""
+    no_current = ageing_gap(["30-60", "90+"], ["30-60", "60-90"])
+    assert no_current.components["n_truly_current"] == 0
+    assert no_current.components["mean_overstatement_displacement"] is None
+    assert no_current.components["mean_bucket_displacement"] == pytest.approx(0.5)
+    assert no_current.gap is None, (
+        "the headline fell back to the term that IS defined -- the "
+        "one-directional shape D22 removed, on the population where nobody "
+        "would notice")
+    assert "truly-current" in no_current.components["vacuity"]
+
+    no_overdue = ageing_gap(["current"] * 4, ["current", "current", "30-60", "90+"])
+    assert no_overdue.gap is None
+    assert no_overdue.components["mean_overstatement_displacement"] == pytest.approx(1.0)
+    assert "truly-overdue" in no_overdue.components["vacuity"]
+
+    # And the caveat says UNKNOWN rather than letting a reader infer zero.
+    for r in (no_current, no_overdue):
+        assert "UNKNOWN" in r.components["ordinal_direction_caveat"]
+
+
+def test_D22_the_headline_says_it_is_balanced_wherever_it_is_printed():
+    """The D7 anti-decay mechanism applied to the new headline: this dimension
+    went wrong twice by being quotable as a bare scalar. The rendered line must
+    carry the headline's TWO halves, and the components that travel into the gap
+    ledger must say which measurement this is -- a reader diffing a pre-2026-08-10
+    entry against a later one is comparing two different quantities."""
+    truth, belief = population(50)
+    result = ageing_gap(truth, belief)
+    summary = format_ageing_summary(result)
+
+    assert "BALANCED over both directions" in summary
+    assert "mean_bucket_displacement" in summary
+    assert "mean_overstatement_displacement" in summary
+    assert "cannot say which direction it came from" in summary
+
+    entry = result.to_ledger_entry("D5_account_hierarchy_payments")
+    caveat = entry["components"]["ordinal_direction_caveat"]
+    assert "atom D22" in caveat
+    assert "TRULY-OVERDUE" in caveat
+    assert "not comparable with this headline" in caveat, (
+        "a ledger reader can compare the pre-D22 figure with this one and be "
+        "told nothing")
+    assert "BALANCED" in entry["components"]["headline_units"]
 
 
 def test_bucket_order_matches_the_companys_own_ageing_vocabulary():

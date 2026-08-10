@@ -1172,55 +1172,88 @@ AGEING_NO_NORMALISER_REASON: str = (
 
 AGEING_HEADLINE_UNITS: str = (
     "BUCKETS of ordinal displacement (0 = dated right, 3 = a 90+ debt believed "
-    "current). NOT a [0,1] no-skill ratio -- do not read 1.0 here as 'no better "
-    "than blind'; there is no baseline in this number. ONE-DIRECTIONAL: the "
-    "population is the truly-overdue, so 0 does NOT mean 'dated right' -- see "
-    "`ordinal_direction_caveat`."
+    "current), BALANCED over the two truth classes: the mean of the "
+    "truly-overdue displacement and the truly-current displacement, each taken "
+    "on its OWN denominator. NOT a [0,1] no-skill ratio -- do not read 1.0 here "
+    "as 'no better than blind'; there is no baseline in this number. What it "
+    "cannot say is WHICH direction the displacement came from -- see "
+    "`ordinal_direction_caveat` and read the two terms beside it."
 )
 
-# ATOM D22 (H27 Expert Hour #6, 2026-08-10). MEASURED, not asserted: a company
-# that dates every truly-overdue invoice perfectly and dumps EVERY truly-current
-# invoice into `90+` scores this headline 0.000000 -- bit-identical to a company
-# that dates every invoice right (seeds 7/11/23 on the W2_11<->D5 book, 10,758
-# cases changed and the number did not move). So does one that over-ages every
-# current invoice by exactly ONE bucket. The over-ageing direction is not
-# invisible to the DIMENSION -- `overstated_arrears_rate` counts it -- but it is
+# ATOM D22 (found H27 Expert Hour #6, 2026-08-10; reshaped here the same day).
+# THE DEFECT, measured rather than asserted: the headline used to be
+# `mean_bucket_displacement`, a mean over the TRULY-OVERDUE invoices alone, so a
+# company that dated every overdue invoice perfectly and dumped EVERY
+# truly-current invoice into `90+` scored 0.000000 -- bit-identical to a company
+# that dated every invoice right (seeds 7/11/23 on the W2_11<->D5 book, 10,758
+# cases changed and the number did not move). So did one that over-aged every
+# current invoice by exactly ONE bucket. The over-ageing direction was never
+# invisible to the DIMENSION (`overstated_arrears_rate` counted it) but it was
 # invisible to the ORDINAL term, which is the whole of what this dimension adds
-# over a rate. In that direction the measure degrades to the error rate it was
-# built to replace. The reshape (a headline covering both directions) moves a
-# published number on every pair that calls this scorer and is therefore its own
-# atom, D22; until it lands, the mirrored term travels beside the headline as a
-# witness so no reader has to infer it.
+# over a rate: in that direction the measure degraded to the error rate it was
+# built to replace.
+#
+# THE RESHAPE, and why it is THIS shape. The obvious repair -- average the
+# displacement over the WHOLE population -- re-imports the D6 defect the atom
+# before this one removed: its denominator counts the truth's class balance, so
+# with company behaviour held LITERALLY FIXED (every overdue invoice one bucket
+# out, 5% of the current book over-aged by two) it swings 0.1089 -> 0.5500, a
+# factor of 5.05, as arrears prevalence moves 1% -> 50%. That shape is pinned as
+# a named mutant, `_MUTANT_displacement_over_whole_population`, and it must fail
+# the prevalence test. What survives is the shape this module's own detection
+# dimension already uses (atom D11): the BALANCED mean of the two directions,
+# each on the denominator it is about --
+#
+#     balanced_bucket_displacement = (mean_bucket_displacement          # overdue
+#                                     + mean_overstatement_displacement) / 2
+#
+# -- which is flat across the same prevalence sweep (swing x1.00), scores both
+# indiscriminate degenerates 1.5 against a perfect dater's 0.0, and stays in
+# buckets with no baseline. It is UNDEFINED (None), never 0.0, when either truth
+# class is empty: with nothing to over-age, a company has not proved it would
+# not, which is the same rule `detection_measures` applies to an empty negative
+# population.
 AGEING_ORDINAL_DIRECTION_CAVEAT: str = (
-    "ONE-DIRECTIONAL ORDINAL TERM (atom D22): `mean_bucket_displacement` is "
-    "taken over the TRULY-OVERDUE population only, so no amount of over-ageing "
-    "can move it -- a truly-current invoice believed `30-60` and one believed "
-    "`90+` score identically (zero), and a company dating its whole current "
-    "book at `90+` scores a PERFECT headline. Read it with "
-    "`overstated_arrears_rate` and the mirrored `mean_overstatement_"
-    "displacement` beside it, never alone."
+    "TWO-DIRECTIONAL ORDINAL HEADLINE (atom D22, 2026-08-10). `gap` is "
+    "`balanced_bucket_displacement`: the mean of the displacement over the "
+    "TRULY-OVERDUE invoices and the displacement over the truly-current ones, "
+    "each on its own denominator, so neither direction can hide behind the "
+    "other and neither can be bought by the world's arrears prevalence. TWO "
+    "THINGS IT STILL DOES NOT SAY. (1) WHICH direction: a company one bucket "
+    "out on every overdue invoice and one over-ageing half its current book "
+    "score alike -- read the two terms, never the headline alone. (2) "
+    "`mean_bucket_displacement` on its own -- the pre-D22 headline, and the "
+    "figure carried by every ledger entry written before 2026-08-10 -- is the "
+    "TRULY-OVERDUE term only, which no amount of over-ageing can move; it is "
+    "not comparable with this headline and must not be quoted as one."
 )
 
 
 def _ageing_direction_note(components: dict) -> str:
-    """The caveat with its witnesses INTERPOLATED FROM THE MEASUREMENT rather
+    """The caveat with its two terms INTERPOLATED FROM THE MEASUREMENT rather
     than typed once into a sentence and left to rot (the D11/D16/D19 precedent).
-    Says UNKNOWN, never zero, where the population cannot supply the witness."""
+    Says UNKNOWN, never zero, where a population cannot supply its term."""
     mean_over = components.get("mean_overstatement_displacement")
-    if mean_over is None:
+    mean_under = components.get("mean_bucket_displacement")
+    if mean_over is None or mean_under is None:
+        missing = ("truly-current" if mean_over is None else "truly-overdue")
         return (
-            AGEING_ORDINAL_DIRECTION_CAVEAT + " On THIS call the mirrored term "
-            "is UNAVAILABLE (no truly-current population), so how much "
-            "over-ageing severity the headline hides is UNKNOWN -- never read "
-            "as none."
+            AGEING_ORDINAL_DIRECTION_CAVEAT + " On THIS call the headline is "
+            f"UNDEFINED: there is no {missing} population, so the "
+            "displacement in that direction is UNKNOWN -- never read as none, "
+            "and never substituted by the term that IS defined (that "
+            "substitution is exactly the one-directional headline D22 removed)."
         )
     return (
-        AGEING_ORDINAL_DIRECTION_CAVEAT + " Beside it, the severity it cannot "
-        f"see: mean overstatement {mean_over:.6f} buckets over "
-        f"{components.get('n_truly_current')} truly-current invoices (max "
-        f"{components.get('max_overstatement_displacement')}), of which "
+        AGEING_ORDINAL_DIRECTION_CAVEAT + " On THIS call the headline "
+        f"{components.get('balanced_bucket_displacement'):.6f} is the mean of "
+        f"under-dating {mean_under:.6f} buckets over "
+        f"{components.get('n_truly_overdue')} truly-overdue invoices and "
+        f"over-ageing {mean_over:.6f} buckets over "
+        f"{components.get('n_truly_current')} truly-current ones (max "
+        f"{components.get('max_overstatement_displacement')}, of which "
         f"{components.get('n_overaged_beyond_one_bucket')} were over-aged by "
-        "MORE than one bucket."
+        "MORE than one bucket)."
     )
 
 
@@ -1295,18 +1328,24 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
     displacements = [
         abs(rank[b] - rank[t]) for t, b in scored if t != current
     ]
-    # THE MIRRORED ORDINAL TERM, over the truly-CURRENT population (atom D22,
-    # H27 Expert Hour #6). The headline above is taken over the truly-overdue
-    # only, so a truly-current invoice dated `30-60` and one dated `90+` are
-    # the SAME number to it -- zero -- and the off-by-one/stone-blind
-    # distinction this dimension exists to make is unavailable in exactly the
-    # direction where wrongful dunning lives. These are WITNESSES beside the
-    # headline, never inside it: folding them in would move a published figure
-    # on every pair that calls this scorer, which is D22's job, not a witness's.
+    # THE OVER-AGEING ORDINAL TERM, over the truly-CURRENT population (atom
+    # D22). Without it a truly-current invoice dated `30-60` and one dated `90+`
+    # are the SAME number to this dimension -- zero -- and the
+    # off-by-one/stone-blind distinction it exists to make is unavailable in
+    # exactly the direction where wrongful dunning lives. Since D22 it is not a
+    # witness beside the headline but HALF OF IT.
     overstatement_displacements = [
         abs(rank[b] - rank[t]) for t, b in scored if t == current
     ]
     over_only = [d for d in overstatement_displacements if d > 0]
+
+    mean_under = (
+        sum(displacements) / len(displacements) if displacements else None
+    )
+    mean_over = (
+        sum(overstatement_displacements) / len(overstatement_displacements)
+        if overstatement_displacements else None
+    )
 
     return {
         "n": n,
@@ -1318,25 +1357,33 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
         "wrong_bucket": wrong_bucket,
         "understated_arrears_rate": (misses / n_truly_overdue) if n_truly_overdue else None,
         "overstated_arrears_rate": (false_ageings / n_truly_current) if n_truly_current else None,
-        "mean_bucket_displacement": (
-            sum(displacements) / len(displacements) if displacements else None
-        ),
+        # The UNDER-DATING term: debt believed newer (or settled) than it is,
+        # over the truly-overdue invoices. This was the headline until D22; it
+        # is now one of the two halves.
+        "mean_bucket_displacement": mean_under,
         "max_bucket_displacement": max(displacements) if displacements else None,
         # Over the whole truly-current population (the denominator
         # `overstated_arrears_rate` uses), so it is a severity for that RATE and
         # not a mean over the errors alone -- a mean over errors only would rise
         # as the company made FEWER of them. `None`, never 0.0, on a vacuous
         # current population.
-        "mean_overstatement_displacement": (
-            sum(overstatement_displacements) / len(overstatement_displacements)
-            if overstatement_displacements else None
-        ),
+        "mean_overstatement_displacement": mean_over,
         "max_overstatement_displacement": (
             max(overstatement_displacements) if overstatement_displacements else None
         ),
-        # How many of the over-ageings were worse than off-by-one -- the
-        # distinction the headline cannot draw, stated as a count.
+        # How many of the over-ageings were worse than off-by-one -- a
+        # distinction no rate can draw, stated as a count.
         "n_overaged_beyond_one_bucket": sum(1 for d in over_only if d > 1),
+        # THE HEADLINE (atom D22): the two directions balanced on their own
+        # denominators, so prevalence cannot move it and neither direction can
+        # hide behind the other. UNDEFINED, never 0.0, when either truth class
+        # is empty -- a company with nothing to over-age has not shown it would
+        # not, the same rule `detection_measures` applies to an empty negative
+        # population.
+        "balanced_bucket_displacement": (
+            None if (mean_under is None or mean_over is None)
+            else (mean_under + mean_over) / 2.0
+        ),
     }
 
 
@@ -1350,13 +1397,16 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     borrow from `misapplication_gap` (atom `D7_ageing_gap_metric_reshape`). That
     scalar was refuted three ways in the D6 DISCOVER: gap>1 did not mean
     worse-than-no-skill, prevalence alone moved it twentyfold with the company
-    held fixed, and a Hamming error rate is blind to bucket ORDER. Three measures
+    held fixed, and a Hamming error rate is blind to bucket ORDER. Four measures
     replace it, each with the denominator it is actually about:
 
         understated_arrears_rate = misses        / n_truly_overdue
         overstated_arrears_rate  = false_ageings / n_truly_current
         mean_bucket_displacement = mean |rank(belief) - rank(truth)|
                                    over the TRULY-OVERDUE invoices, absolute
+        mean_overstatement_displacement
+                                 = the same, over the TRULY-CURRENT invoices
+        balanced_bucket_displacement = mean of the two displacements  # HEADLINE
 
     * **understated** -- debt the company believes settled. What a real supplier
       under-provisions for and never chases.
@@ -1366,16 +1416,23 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
       the name "the wrongful-dunning exposure" until atom D16 measured that it is
       NOT that quantity and must not carry its name -- see the EXCLUSION note
       below and `background.shared_quantity_contract`.
-    * **mean_bucket_displacement** -- the ORDINAL severity, which is what a dating
+    * **the two displacements** -- the ORDINAL severity, which is what a dating
       dimension is really about. Distinguishes off-by-one from stone-blind, which
       an error rate cannot. Reported ABSOLUTE, in buckets, with NO baseline
       (see `AGEING_NO_NORMALISER_REASON` -- the ratio version was drafted, mutated,
       and rejected for re-importing the very defect this atom exists to remove).
+      ONE PER DIRECTION since atom D22: over-ageing has its own severity term
+      because a headline over the truly-overdue alone could not see it at all.
 
-    `GapResult.gap` carries the mean displacement as the dimension's headline
-    (a dating dimension's headline is date displacement, not a classification
-    rate) and `g0` is 0.0 because there IS no baseline -- `baseline` says so in
-    words so a ledger reader cannot mistake it for a normalised score.
+    `GapResult.gap` carries `balanced_bucket_displacement` -- the mean of the two
+    -- as the dimension's headline (a dating dimension's headline is date
+    displacement, not a classification rate), and `g0` is 0.0 because there IS no
+    baseline: `baseline` says so in words so a ledger reader cannot mistake it
+    for a normalised score. BEFORE 2026-08-10 the headline was the truly-overdue
+    term alone; entries written before that date are a different measurement and
+    are not comparable with this one (atom D22, and the comment above it for the
+    measurement that convicted the old shape and the one that convicted the
+    obvious repair).
 
     THE EXCLUSION BAND (atom `D16_ageing_negative_population_is_unexcluded`,
     2026-08-09). `excluded` is a parallel truthy/falsy mask marking cases in
@@ -1398,7 +1455,9 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     unknown label would score as displacement 0 -- a bucket-vocabulary drift
     would then read as perfect dating. VACUITY IS EXPLICIT, not zero: with no
     truly-overdue invoices the two overdue-denominated measures are `None`, not
-    0.0, and so is `gap`.
+    0.0; with no truly-current invoices the two current-denominated ones are; and
+    `gap` is `None` if EITHER class is empty, because a half-population headline
+    is the one-directional shape D22 removed.
     """
     order = list(bucket_order)
     measured = _ageing_counts(truth_labels, belief_labels, order, excluded)
@@ -1409,14 +1468,15 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
             "unexplained exclusion silently shrinks a denominator -- the D10 "
             "rule: the exclusion is published, not silent."
         )
-    mean_disp = measured["mean_bucket_displacement"]
+    headline = measured["balanced_bucket_displacement"]
 
     def _r(x: Optional[float]) -> Optional[float]:
         return None if x is None else round(x, 6)
 
     components = dict(measured)
     for key in ("understated_arrears_rate", "overstated_arrears_rate",
-                "mean_bucket_displacement", "mean_overstatement_displacement"):
+                "mean_bucket_displacement", "mean_overstatement_displacement",
+                "balanced_bucket_displacement"):
         components[key] = _r(components[key])
     components["bucket_order"] = order
     components["headline_units"] = AGEING_HEADLINE_UNITS
@@ -1431,34 +1491,48 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     components["exclusion_reason"] = (
         exclusion_reason if measured["n_excluded"] else None
     )
-    if measured["n_truly_overdue"] == 0:
+    # VACUITY, ONE SIDE OR BOTH (atom D22 widened this from the overdue side
+    # alone): the headline needs BOTH classes, so name whichever is missing and
+    # say the headline is undefined rather than letting the surviving half be
+    # read as the whole measurement.
+    empty = [name for name, key in (("truly-overdue", "n_truly_overdue"),
+                                    ("truly-current", "n_truly_current"))
+             if measured[key] == 0]
+    if empty:
         components["vacuity"] = (
-            "NO truly-overdue invoices in this population: the two "
-            "overdue-denominated measures are UNDEFINED (None), not 0.0. A "
-            "vacuous population is not a perfect one."
+            f"NO {' and no '.join(empty)} invoices in this population: the "
+            "measures denominated on it are UNDEFINED (None), not 0.0, and so "
+            "is the balanced headline -- a company that cannot make an error in "
+            "one direction has not been shown not to make it. A vacuous "
+            "population is not a perfect one."
         )
 
     baseline = (
         "NONE -- absolute ordinal displacement in buckets "
-        f"{'/'.join(str(b) for b in order)}; there is no no-skill divisor here "
-        "and 1.0 does not mean 'no better than blind'."
+        f"{'/'.join(str(b) for b in order)}, balanced over the two truth "
+        "classes; there is no no-skill divisor here and 1.0 does not mean 'no "
+        "better than blind'."
     )
     return GapResult(
         metric="ageing",
-        gap=(None if mean_disp is None else float(mean_disp)),
-        raw_gap=float(mean_disp) if mean_disp is not None else 0.0,
+        gap=(None if headline is None else float(headline)),
+        raw_gap=float(headline) if headline is not None else 0.0,
         g0=0.0,
         baseline=baseline,
         components=components,
         note=(
-            "debt DATE displacement (buckets) over the truly-overdue population, "
-            "with the two error directions reported separately on their own "
-            "denominators: understated_arrears_rate (debt believed settled) and "
+            "BALANCED debt-DATE displacement (buckets) -- the mean of the "
+            "displacement over the truly-overdue invoices and the displacement "
+            "over the truly-current ones, each on its own denominator (atom "
+            "D22, superseding the truly-overdue-only headline: an indiscriminate "
+            "over-ager scored that one 0.000000). The two error RATES are "
+            "reported separately on the same denominators: "
+            "understated_arrears_rate (debt believed settled) and "
             "overstated_arrears_rate (the AGEING-REPORT OVERSTATEMENT at `as_of` "
             "-- NOT the wrongful-dunning exposure, which is a different "
             "measurement over a different belief population and is published by "
-            "the detection dimension; atom D16). R12: all three are diagnostics, "
-            "never targets."
+            "the detection dimension; atom D16). R12: every one of them is a "
+            "diagnostic, never a target."
         ),
     )
 
@@ -1491,23 +1565,26 @@ def format_ageing_summary(result: GapResult) -> str:
             + str(c.get("exclusion_reason"))
         )
     return (
-        "ageing displacement " + _num("mean_bucket_displacement", ".3f")
-        + " buckets [no baseline; not a 0-1 ratio]"
+        "ageing displacement " + _num("balanced_bucket_displacement", ".3f")
+        + " buckets, BALANCED over both directions"
+        + " [no baseline; not a 0-1 ratio]"
         + " (understated_arrears_rate " + _num("understated_arrears_rate", ".4f")
         + " over " + str(c.get("n_truly_overdue")) + " truly-overdue"
         + ", overstated_arrears_rate " + _num("overstated_arrears_rate", ".4f")
         + " over " + str(c.get("n_truly_current")) + " truly-current"
         + " = the ageing-report overstatement at as_of, NOT the wrongful-dunning"
         + " exposure (atom D16)"
-        # THE MIRRORED ORDINAL TERM RIDES WITH THE HEADLINE (atom D22), for the
-        # same anti-decay reason the two rates do: this dimension went wrong the
-        # moment a bare scalar could be read as something it is not, and a
-        # headline of 0.000 printed alone reads as "dated right" from a company
-        # that has aged its entire current book at 90+.
-        + ", mean_overstatement_displacement "
+        # BOTH HALVES RIDE WITH THE HEADLINE (atom D22), for the same anti-decay
+        # reason the two rates do: this dimension went wrong the moment a bare
+        # scalar could be read as something it is not, and the balanced headline
+        # cannot say WHICH direction it came from.
+        + "; the headline's two halves: mean_bucket_displacement "
+        + _num("mean_bucket_displacement", ".3f")
+        + " buckets of UNDER-dating over the truly-overdue and"
+        + " mean_overstatement_displacement "
         + _num("mean_overstatement_displacement", ".3f")
-        + " buckets over the truly-current = the severity the headline CANNOT"
-        + " see, since the headline is over the truly-overdue alone (atom D22)"
+        + " buckets of OVER-ageing over the truly-current -- the headline is"
+        + " their mean and cannot say which direction it came from (atom D22)"
         + excl + ")"
     )
 

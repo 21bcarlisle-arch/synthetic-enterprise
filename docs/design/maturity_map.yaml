@@ -2404,14 +2404,16 @@
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: []
-  file_scope: ['background/gap_metric.py', 'tests/tools/test_d7_ageing_measures.py']
+  records_rehomed: [evidence]
+  file_scope: ['background/gap_metric.py', 'tests/tools/test_d7_ageing_measures.py', 'tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
+  notes_rehomed: [build_note]
   real_world_twin: "an ageing report whose exception summary counts how many invoices were dated wrong but not by how much, so a debt shown one bucket early and one shown in 90+ that was paid last week arrive at the credit committee as the same single line"
 
 - id: D21_ageing_truth_side_is_the_organs_own_rule
