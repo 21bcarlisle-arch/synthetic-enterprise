@@ -2649,9 +2649,16 @@ def _stale_gap_row_draw(work: list | None = None) -> str | None:
 
     Draws ONLY rows a re-run can actually clear (`refresh_work`), so the rung DRAINS: re-measuring
     W2_4_household_budget took 0.5s and moved the drift set 11 -> 10 with the row reading CURRENT
-    after. `never_landed` / `never_measured` entries are design defects no re-run touches and are
-    deliberately NOT drawn here -- a rung that can never drain wedges the ladder behind it
-    (feedback_control_that_can_only_fail_wedges).
+    after. `never_measured` -- a pair the map declares with no row and no producer to point at --
+    is genuinely un-drainable and stays out, because a rung that can never drain wedges the ladder
+    behind it (feedback_control_that_can_only_fail_wedges).
+
+    `never_landed` USED TO BE EXCLUDED ALONGSIDE IT AND SHOULD NOT HAVE BEEN (2026-08-10). That
+    status means a tool exists on disk and its output reaches no row -- if it is invocable, one
+    command lands the row, and `tools/couple_cohort.py` sat in the drift set for two days as a
+    permanent member no rung could act on while `python3 -m tools.couple_cohort` ran clean in
+    seconds. It is drawn now when it has an invocable runner, and only then; the wedge guard
+    survives as that narrower rule rather than as a ban on the whole status.
 
     Sits BELOW the declared-defect backlog (RUNG 4) and ABOVE propose-half / forward-discovery /
     the HARDEN treadmill: refreshing a stale number on a public door is real evidence work, better

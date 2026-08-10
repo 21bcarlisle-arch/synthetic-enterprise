@@ -55,9 +55,20 @@ def test_reflects_real_ledger_exactly():
     # them would hide what the company's inference bought over the register.
     # + the RE-CONTRACTING pair (2026-08-08, ledger-only, defensive branch):
     # WORLD_recontracting_relationship_start<->C_supply_start_semantic_separation,
-    # the phantom tenure a won-back customer carries. = 13, all measured.
-    assert cg["pair_count"] == 13
-    assert cg["measured"] == 13
+    # the phantom tenure a won-back customer carries.
+    # + the COHORT pair (2026-08-10, ledger-only, defensive branch):
+    # W2_2_population_draw<->C_cohort_discovery. tools/couple_cohort.py carried
+    # --write-ledger and a green test since 2026-07-21 and had never put a number
+    # anywhere; RUNG 4b drew it once never_landed became refreshable. It renders
+    # RED (gap 1.0345 > 1, chip worse_than_blind) and that is the metric reading
+    # its worst cell correctly -- but see
+    # docs/staging/WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md:
+    # 12 of its 20 cells are pinned at exactly 1.0 by construction, so this
+    # headline cannot read below the no-skill baseline. Published, not hidden;
+    # the finding is queued against the headline's SHAPE, not its arithmetic.
+    # = 14, all measured.
+    assert cg["pair_count"] == 14
+    assert cg["measured"] == 14
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -93,7 +104,7 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 12  # 13 live pairs, W2_7 nulled
+    assert cg["measured"] == 13  # 14 live pairs, W2_7 nulled
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -106,10 +117,10 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
     # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured),
-    # W1_6 and the re-contracting pair still appear (live ledger, defensive
-    # branch), and the two fabric pairs appear (map coupling)
-    # -> 11 map pairs + W1_6 + re-contracting = 13.
-    assert cg["pair_count"] == 13
+    # W1_6, the re-contracting pair and the cohort pair still appear (live
+    # ledger, defensive branch), and the two fabric pairs appear (map coupling)
+    # -> 11 map pairs + W1_6 + re-contracting + cohort = 14.
+    assert cg["pair_count"] == 14
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"

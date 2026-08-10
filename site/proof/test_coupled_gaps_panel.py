@@ -72,9 +72,15 @@ def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
     expected = len(cg["pairs"])
-    assert cg["pair_count"] == expected == 13, (
-        "13 coupled pairs (7 affordability + payment + weather demand + "
-        "weather price + 2 fabric + re-contracting)"
+    assert cg["pair_count"] == expected == 14, (
+        "14 coupled pairs (7 affordability + payment + weather demand + "
+        "weather price + 2 fabric + re-contracting + cohort). The cohort pair "
+        "W2_2_population_draw<->C_cohort_discovery landed 2026-08-10 when RUNG 4b "
+        "first drew a never_landed gap tool; tools/couple_cohort.py had carried "
+        "--write-ledger and a green test since 2026-07-21 and had never put a "
+        "number anywhere. It renders RED (1.0345 > 1) -- see docs/staging/"
+        "WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md "
+        "for why that headline cannot read below the no-skill baseline."
     )
 
     out = _render(cg)

@@ -164,9 +164,15 @@ def test_every_live_ledger_row_gets_a_verdict_from_the_known_set():
     row it would silently drop."""
     known = {glr.CURRENT, "stale", "unattributable", "no_producer", "never_measured",
              "never_landed"}
-    results = glr.reconcile()
+    # The REAL ledger, explicitly. This directory's conftest pins `glr.LEDGER_PATH` at an absent
+    # file to keep the rest-ladder tests off live disk, so a bare `reconcile()` here graded an
+    # empty dict and this test asserted nothing about any real row (it read as green throughout).
+    real = glr.PROJECT_DIR / "docs" / "observability" / "coupled_gap_ledger.json"
+    ledger = glr.load_ledger(real)
+    assert ledger, f"no live gap rows at {real} -- this test is vacuous, not passing"
+    results = glr.reconcile(ledger=ledger)
     live_rows = {r["item"] for r in results if r["kind"] == "row"}
-    assert live_rows == set(glr.load_ledger())
+    assert live_rows == set(ledger)
     assert {r["status"] for r in results} <= known
 
 
@@ -223,15 +229,76 @@ def test_a_row_with_no_run_git_commit_is_refreshable_because_re_measuring_clears
     assert [w["item"] for w in glr.refresh_work(results, writers=_runner_writers())] == [_ATOM]
 
 
-def test_NEVER_LANDED_and_NEVER_MEASURED_are_excluded_because_no_re_run_clears_them():
-    """The rung that consumes this list must be able to DRAIN. `tools/couple_cohort.py` has landed
-    no row at all and `WORLD_x` is a declared pair with no row -- re-running changes neither, so
-    including them would make the rung permanently non-empty and therefore ignored
+def test_an_UNREADABLE_ledger_is_ONE_defect_not_one_per_pair_and_tool(monkeypatch, tmp_path):
+    """FAIL-OPEN, found by the never_landed repair above breaking a rest-ladder fixture.
+
+    `load_ledger` returns `{}` for a file that is absent or malformed, and the reconcile then
+    graded that empty dict as though the ledger legitimately held no rows: every declared pair
+    came back `never_measured` and every couple_* tool came back `never_landed`. Eleven work items
+    were manufactured out of ONE unread file, and the only thing that had been hiding it was the
+    blanket never_landed exclusion. The verdicts were artefacts of the read failing, not facts
+    about any tool (feedback_population_defined_at_as_of_is_an_artefact)."""
+    monkeypatch.setattr(glr, "LEDGER_PATH", tmp_path / "not_here.json")
+    results = glr.reconcile()
+    assert [r["status"] for r in results] == ["ledger_unreadable"]
+    assert glr.refresh_work(results, writers=_runner_writers()) == []
+
+    (tmp_path / "not_here.json").write_text("{ this is not json")
+    assert [r["status"] for r in glr.reconcile()] == ["ledger_unreadable"]
+
+
+def test_a_READABLE_ledger_never_reports_unreadable_so_the_branch_can_pass(monkeypatch, tmp_path):
+    """The other direction: a control nobody has seen read clean is indistinguishable from one
+    that cannot. An EMPTY-but-present ledger is a real state and is NOT the unreadable defect --
+    the distinction is file existence, never row count."""
+    path = tmp_path / "ledger.json"
+    path.write_text("{}")
+    monkeypatch.setattr(glr, "LEDGER_PATH", path)
+    assert glr.ledger_is_readable() is True
+    assert "ledger_unreadable" not in {r["status"] for r in glr.reconcile()}
+
+
+def test_a_NEVER_MEASURED_pair_is_excluded_because_there_is_nothing_to_run():
+    """A pair the MAP declares with no ledger row and no producer to point at. No command exists,
+    so including it would make the rung permanently non-empty and therefore ignored
     (feedback_control_that_can_only_fail_wedges)."""
     results = glr.reconcile(ledger={}, writers=_runner_writers(), declared={"WORLD_x"},
-                            family=["tools/couple_cohort.py"], since_fn=lambda s, p: 0)
-    assert {r["status"] for r in results} == {"never_measured", "never_landed"}
+                            family=[], since_fn=lambda s, p: 0)
+    assert {r["status"] for r in results} == {"never_measured"}
     assert glr.refresh_work(results, writers=_runner_writers()) == []
+
+
+def test_a_NEVER_LANDED_tool_that_CAN_BE_RUN_is_drawn_because_the_run_lands_the_row():
+    """THE 2026-08-10 REPAIR. The first cut swept never_landed in with never_measured under one
+    sentence -- "no re-run clears a row that does not exist" -- and that is false for a tool that
+    exists on disk and is invocable: running it is precisely what lands the row.
+    `tools/couple_cohort.py` sat in the live drift set for two days as a permanent member no rung
+    could act on, and `python3 -m tools.couple_cohort` runs clean in seconds. An exclusion that
+    hides the one item a single command would close is a cleanup, not a control
+    (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control)."""
+    orphan = "tools/couple_cohort.py"
+    writers = {orphan: "--write-ledger\nWORLD_ATOM_ID = 'W2_2'\nif __name__ == '__main__':\n"}
+    results = glr.reconcile(ledger={}, writers=writers, declared=set(),
+                            family=[orphan], since_fn=lambda s, p: 0)
+    assert _status(results, orphan) == "never_landed"
+    work = glr.refresh_work(results, writers=writers)
+    assert [w["item"] for w in work] == [orphan]
+    assert work[0]["command"] == "python3 -m tools.couple_cohort --write-ledger"
+    assert work[0]["no_runner"] is False
+
+
+def test_a_NEVER_LANDED_tool_that_CANNOT_BE_RUN_stays_off_the_work_list():
+    """The wedge guard, kept as the NARROW rule rather than as a ban on the status. Here the item
+    IS the tool: no invocable runner means no command could ever land its row, so listing it would
+    make the rung permanently non-empty. This is the one place the fail-closed listing used for
+    ROWS is deliberately reversed -- a stale ROW hides a live public figure behind its absence, a
+    dead TOOL hides nothing. It stays reported in the DRIFT set either way."""
+    orphan = "tools/couple_dead.py"
+    lib = {orphan: "write_gap_entry(\n"}          # writes, but no __main__ and no flag
+    results = glr.reconcile(ledger={}, writers=lib, declared=set(),
+                            family=[orphan], since_fn=lambda s, p: 0)
+    assert _status(results, orphan) == "never_landed"           # still visible as drift
+    assert glr.refresh_work(results, writers=lib) == []         # but never offered as work
 
 
 def test_a_READER_is_never_offered_as_the_command_that_refreshes_a_row():

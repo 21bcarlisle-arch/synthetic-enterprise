@@ -108,6 +108,25 @@ def commits_since(sha: str, paths: list, project_dir: Path | None = None):
     return len([ln for ln in proc.stdout.splitlines() if ln.strip()])
 
 
+def ledger_is_readable(path=None) -> bool:
+    """Whether the ledger FILE could be read and parsed at all.
+
+    Separate from "the ledger has no rows", and the distinction is load-bearing (2026-08-10).
+    `load_ledger` fails open to `{}` for a file that is absent or malformed, and every verdict
+    downstream is then computed as though the ledger legitimately held nothing: every declared
+    pair reads `never_measured` and every family tool reads `never_landed`. Those are not eleven
+    orphaned tools, they are ONE missing file, and reporting them per-item would be an artefact of
+    the read failing rather than a fact about any tool (feedback_population_defined_at_as_of_is_an
+    _artefact). Caught by tests/background/test_rest_ladder_isolation.py, which pins the path at an
+    absent file and got eleven work items back.
+    """
+    try:
+        json.loads(Path(path or LEDGER_PATH).read_text())
+    except (OSError, ValueError):
+        return False
+    return True
+
+
 def load_ledger(path=None) -> dict:
     try:
         data = json.loads(Path(path or LEDGER_PATH).read_text())
@@ -146,7 +165,17 @@ def _row_status(atom_id: str, row, writers: dict, since_fn) -> dict:
 def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=None) -> list:
     """DECLARED (the coupling authority + the discovered family) vs ACTUAL (the ledger on disk).
     Every argument is injectable so tests pin their own world and never read live disk."""
-    ledger = load_ledger() if ledger is None else ledger
+    if ledger is None:
+        # An UNREADABLE ledger is one defect, not one per declared pair and one per family tool.
+        # Reported as itself and nothing else -- see `ledger_is_readable`. It is drift (an
+        # unavailable check is a FAILED check, R15), and it is not refreshable: no gap tool
+        # re-run repairs a file that cannot be read.
+        if not ledger_is_readable():
+            return [{"item": str(LEDGER_PATH), "kind": "ledger", "producers": [],
+                     "status": "ledger_unreadable",
+                     "detail": "the gap ledger is absent or malformed -- no row, pair or tool "
+                               "verdict can be graded until it reads"}]
+        ledger = load_ledger()
     writers = discover_writers() if writers is None else writers
     family = family_members() if family is None else family
     if since_fn is None:
@@ -205,11 +234,30 @@ def summary_lines(results: list) -> list:
 
 # A row is refreshable iff RE-MEASURING IT would change its verdict. `stale` and `unattributable`
 # both describe a row whose recorded measurement is not gradeable against current code, and both
-# are cleared by taking the measurement again. `never_measured` (a declared pair with no row) and
-# `never_landed` (a tool whose output lands nowhere) are NOT: re-running changes nothing, because
-# the defect is that no row exists to refresh. Keeping them out is what stops the draw rung
-# WEDGING on an item it can never drain (feedback_control_that_can_only_fail_wedges).
-REFRESHABLE_STATUSES = ("stale", "unattributable")
+# are cleared by taking the measurement again.
+#
+# `never_landed` JOINED THEM on 2026-08-10, and the reason the first cut got it wrong is worth
+# keeping. The original exclusion read "no re-run clears a row that does not exist" and swept
+# `never_measured` and `never_landed` into one sentence. They are not the same fact:
+#
+#   never_measured -- a pair the MAP declares with no ledger row and no producer to point at.
+#                     There is nothing to run. Genuinely un-drainable; still excluded.
+#   never_landed   -- a tool that EXISTS, on disk, in the discovered family. If it is invocable
+#                     it can be run right now and the run is exactly what lands the row.
+#
+# `tools/couple_cohort.py` was reported never_landed for two days as a permanent member of a
+# drift set no rung could act on -- and `python3 -m tools.couple_cohort` runs clean in seconds.
+# The exclusion was not protecting the ladder from a wedge, it was hiding the one item on the
+# list that a single command would have closed (feedback_a_ratchet_with_no_drain_is_a_cleanup).
+#
+# The wedge concern was real, and it survives as a NARROWER rule below rather than as a status
+# ban: a never_landed tool with no invocable runner is still excluded from the work list, because
+# there the ITEM IS THE TOOL and no command exists that could ever land its row.
+REFRESHABLE_STATUSES = ("stale", "unattributable", "never_landed")
+
+# Statuses whose item is a TOOL (the thing to run) rather than a ROW (a number on a public door).
+# The distinction decides what happens when nothing is invocable -- see `refresh_work`.
+_TOOL_ITEM_STATUSES = ("never_landed",)
 
 # An INVOCABLE producer: it writes the ledger (already true of every producer) AND can be run as a
 # program with the write flag. `background/fabric_gap_ledger.py` writes rows through a function and
@@ -251,18 +299,28 @@ def refresh_command(runners: list) -> str | None:
 def refresh_work(results: list, writers=None) -> list:
     """[{item, status, runners, command, detail}] for every row a re-run could clear.
 
-    FAIL-CLOSED: a refreshable row whose producers are all un-invocable stays IN this list with
-    `command: None` and `no_runner: True`. It is a worse defect than a stale row (a published
-    number with no way to re-take it), so it must not be the one entry that silently vanishes --
-    that is the exclusion-shaped fail-open this project already has memory of
+    FAIL-CLOSED FOR A ROW: a refreshable ROW whose producers are all un-invocable stays IN this
+    list with `command: None` and `no_runner: True`. It is a worse defect than a stale row (a
+    published number with no way to re-take it), so it must not be the one entry that silently
+    vanishes -- that is the exclusion-shaped fail-open this project already has memory of
     (feedback_coverage_derived_from_exclusion_source_is_failopen).
+
+    THE ASYMMETRY, and it is deliberate: a `never_landed` item is a TOOL, not a row. Nothing is
+    published, so there is no number anyone could act on wrongly, and no command exists that
+    could ever land one -- listing it would make the rung permanently non-empty, which is the
+    wedge (feedback_control_that_can_only_fail_wedges). It stays in the DRIFT set, where it is
+    reported and visible; it is only kept off the WORK list. A row hides a live public figure
+    behind its absence; a dead tool hides nothing.
     """
     writers = discover_writers() if writers is None else writers
     work = []
     for r in results:
-        if r.get("status") not in REFRESHABLE_STATUSES:
+        status = r.get("status")
+        if status not in REFRESHABLE_STATUSES:
             continue
         runners = runners_for(r.get("producers") or [], writers)
+        if not runners and status in _TOOL_ITEM_STATUSES:
+            continue
         work.append({
             "item": r["item"],
             "status": r["status"],
