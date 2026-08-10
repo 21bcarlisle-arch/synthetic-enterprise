@@ -561,6 +561,16 @@ def detection_latency_gap(
         "n_dd_observed_after_as_of": int(n_dd_observed_after_as_of),
         "headline_units": DETECTION_LATENCY_HEADLINE_UNITS,
         "normalisation": DETECTION_LATENCY_NO_NORMALISER_REASON,
+        # GRID RESOLUTION (atom D23) -- stamped AT SOURCE, so it reaches every
+        # caller of this scorer rather than only the one whose Hour found it.
+        # The recon arm is quantised to the harness's own candidate grid: it
+        # cannot see a FASTER company at all, and reports a one-day-slower one
+        # as a 21-day step. Measured, not asserted -- `ORGAN_QUERY_GRID` and its
+        # control re-derive both numbers every run.
+        "organ_query_grid_caveat": organ_query_grid_caveat(),
+        "organ_query_grid_step_days": (
+            ORGAN_QUERY_GRID["recon_lag_days"]["reported_days_for_a_one_day_drift"]),
+        "organ_improvement_is_visible": False,
     }
     if n_pop == 0:
         components["vacuity"] = (
@@ -1731,6 +1741,257 @@ def _measure_conditional_population(
     }
 
 
+# ---------------------------------------------------------------------------
+# ORGAN_QUERY_GRID -- can this instrument RESOLVE what it publishes? (atom D23,
+# H27 Expert Hour #7, 2026-08-10)
+#
+# THE CLASS. Two of this module's readings are not computed from the company's
+# output at all: they are taken by ASKING the company's organ a yes/no question
+# on a grid of candidate DATES that the harness builds itself, from the organ's
+# own rule (`candidates = {r.due_date + reconciliation_grace_days}`). Wherever a
+# harness reads a QUANTITY by querying an organ on a grid of its own making, the
+# reading is QUANTISED TO THAT GRID -- and the resolution is a property of the
+# harness, not of the company. `detection_latency_gap`'s own docstring claims
+# the opposite in as many words ("asked of the organ itself, never re-derived
+# here (R15 independence -- a harness re-implementation of `due + grace` would
+# be a tautology that could not fail if the organ's rule changed)"). The organ
+# is indeed asked; it is asked at exactly ONE date per period, and that date is
+# the harness's re-derivation of `due + grace`. Independent in FORM, tautologous
+# in VALUE.
+#
+# MEASURED 2026-08-10 (n=300/600, seeds 7/11/23, via the declared
+# `organ_reconciliation_drift_days` counterfactual -- world and every truth-side
+# rule untouched, so all movement is the company's detector moving):
+#
+#   organ drift    recon first-knowledge mean    latency headline    detection
+#     -20 d (flags 15 days BEFORE due)   5.0        2.132353          0.012100
+#      -5 d (flags the day it is due)    5.0        2.132353          0.012100
+#      -1 d                              5.0        2.132353          0.012100
+#       0 d (as shipped)                 5.0        2.132353          0.012100
+#      +1 d                             26.0        7.124088          0.024362
+#      +7 d                             26.0        7.124088          0.024362
+#     +21 d                             26.0        7.124088          0.024362
+#
+# Bit-identical at seeds 7/11/23. Two blindnesses, in opposite directions:
+#
+#   IMPROVEMENT -- UNBOUNDED. `recon_lag_days` is the CONSTANT 5 for all 204
+#   dated cases at seed 7: it is `reconciliation_grace_days`, a harness input
+#   parameter, echoed back. A company that reconciles INSTANTLY, or one that
+#   flags an invoice a fortnight before it is even due, publishes the same
+#   5.0 -- so `mean_lag_days_without_dd_channel` (the counterfactual arm the
+#   docstring calls "the whole point of the dimension") is not a reading of the
+#   company at all, and `dd_channel_days_earlier` is that constant minus the DD
+#   lag. NOT ONE test in the repository fires on any improvement drift.
+#
+#   DEGRADATION -- QUANTISED TO 21 DAYS (`PERIOD_SPACING_DAYS`). A one-day-later
+#   detector cannot fire at its period's only candidate, so the next candidate
+#   that dates it is the NEXT PERIOD's, 21 days on: a 1-day degradation is
+#   published as +21.0 days, a 21x overstatement, and +1 / +7 / +21 are one
+#   number. The LAST period has no later candidate at all, so its cases leave
+#   the population (undated 0 -> 59 at seed 7, n=600).
+#
+# WHY THE REGISTER RATHER THAN A FIX. Repairing the grid moves published figures
+# on all three coupled pairs that call this scorer -- it is atom D23, minted,
+# not fixed on sight. What lands today is the MEASUREMENT: each grid reading
+# declares which company drifts it can and cannot see, the control re-measures
+# every declaration each run, and the entry ROTS LOUDLY the moment D23 lands
+# (the D22 second rule -- a debt entry that stops being blind must be
+# re-derived, never left claiming a blindness the code no longer has).
+ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
+    "recon_lag_days": {
+        "reading": "date",
+        "feeds": "detection_latency",
+        "headline_key": "mean_lag_days_without_dd_channel",
+        # Drifts of the COMPANY's own detector that must move the reading by
+        # EXACTLY ZERO, and those that must move it. Both lists are required:
+        # an entry that is all-invisible is a blanket blindness claim, and one
+        # that is all-visible cannot fail on the defect this register exists
+        # for.
+        "invisible_drifts": (-20, -5, -1),
+        "visible_drifts": (1,),
+        # The measured quantisation: what a ONE-day company degradation is
+        # published as. 1.0 once D23 lands.
+        "reported_days_for_a_one_day_drift": 21.0,
+        "debt_atom": "D23_organ_query_grid_cannot_resolve_latency",
+        "why": (
+            "The grid is one candidate per period, at the harness's own "
+            "`due + grace`, so a dated first-knowledge can only ever BE "
+            "`grace` or `grace + 21k`. Improvement is invisible without "
+            "bound; degradation is reported in 21-day steps."
+        ),
+    },
+    "flagged_via_reconciliation": {
+        "reading": "set_membership",
+        "feeds": "detection",
+        "headline_key": None,   # the dimension's own `gap`
+        "invisible_drifts": (-20, -5, -1),
+        "visible_drifts": (1,),
+        "reported_days_for_a_one_day_drift": None,   # not a reading in days
+        "debt_atom": "D23_organ_query_grid_cannot_resolve_latency",
+        "why": (
+            "SET membership off the same grid, and it is the DIFFERENTIAL "
+            "entry that keeps this register from being a rule about one "
+            "reading: a set is not quantised in days, so it has no step to "
+            "declare -- but it shares the improvement blindness exactly, "
+            "because a detector that fires EARLIER still fires at the same "
+            "single candidate date and flags the same set. That both the "
+            "date reading and the set reading go blind together is the "
+            "evidence that the GRID is the defect, not the latency formula."
+        ),
+    },
+}
+
+
+def measure_organ_query_grid_resolution(
+    *,
+    n_customers: int = 300,
+    seed: int = 7,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    runner: Optional[Callable[[int], Dict[str, object]]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """MEASURE `ORGAN_QUERY_GRID` rather than trust it: re-score the SAME
+    population against a counterfactual COMPANY whose reconciliation detector is
+    drifted by each declared number of days, and record which drifts the reading
+    actually saw.
+
+    Returns {reading: {"baseline", "by_drift", "moved", "unmoved",
+    "one_day_report", "probe_bit"}}.
+
+    `probe_bit` is the VACUITY guard on the probe ITSELF: at least one declared
+    drift must move SOMETHING somewhere in the register. A drift parameter that
+    had silently stopped drifting the company would otherwise hand every
+    `invisible_drifts` declaration a free pass -- the fail-silent shape this
+    instrument has now produced five times, most recently inside the control
+    written to close the previous one.
+    """
+    register = ORGAN_QUERY_GRID if register is None else register
+    if runner is None:
+        def runner(k: int) -> Dict[str, object]:
+            return measure(n_customers=n_customers, seed=seed,
+                           organ_reconciliation_drift_days=k)
+
+    drifts = sorted({0} | {k for e in register.values()
+                     for k in tuple(e["invisible_drifts"]) + tuple(e["visible_drifts"])}
+                    | {1})
+    scored = {k: runner(k) for k in drifts}
+
+    def _read(entry: Dict[str, object], result: Dict[str, object]) -> object:
+        dim = result[str(entry["feeds"])]
+        key = entry["headline_key"]
+        return dim.gap if key is None else dim.components[str(key)]
+
+    out: Dict[str, Dict[str, object]] = {}
+    any_movement = False
+    for name in sorted(register):
+        entry = register[name]
+        base = _read(entry, scored[0])
+        by_drift = {k: _read(entry, scored[k]) for k in drifts if k != 0}
+        moved = sorted(k for k, v in by_drift.items() if v != base)
+        unmoved = sorted(k for k, v in by_drift.items() if v == base)
+        any_movement = any_movement or bool(moved)
+        one_day = by_drift.get(1)
+        out[name] = {
+            "baseline": base,
+            "by_drift": by_drift,
+            "moved": moved,
+            "unmoved": unmoved,
+            # How many DAYS a one-day company degradation is published as --
+            # None where the reading is not in days, or where either side is.
+            "one_day_report": (
+                None if entry["reported_days_for_a_one_day_drift"] is None
+                or base is None or one_day is None
+                else round(float(one_day) - float(base), 6)
+            ),
+        }
+    for row in out.values():
+        row["probe_bit"] = any_movement
+    return out
+
+
+def check_organ_query_grid_resolution(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put every `ORGAN_QUERY_GRID` declaration on trial against the measurement
+    and return the VIOLATIONS (empty = the register is honest).
+
+    Each rule closes a shape in which this register could stop describing the
+    code:
+
+      * a drift declared INVISIBLE that moves the reading means the blindness
+        has been REPAIRED (D23 landing is the expected cause) and the entry has
+        rotted -- it must be re-derived, never left claiming a blindness the
+        code no longer has;
+      * a drift declared VISIBLE that moves nothing means the reading has gone
+        blinder than the register admits, or the probe is dead;
+      * a `reported_days_for_a_one_day_drift` that no longer matches the
+        measurement means the quantisation moved and the published caveat, which
+        interpolates this number, is now wrong;
+      * a vacuous probe (`probe_bit` false) proves NOTHING in either direction
+        and must never be read as a pass;
+      * a declared blindness with no `debt_atom` is an unowned hole.
+    """
+    register = ORGAN_QUERY_GRID if register is None else register
+    violations: List[str] = []
+    for name in sorted(measured):
+        row, entry = measured[name], register[name]
+        if not row["probe_bit"]:
+            violations.append(
+                f"{name}: the drift probe moved NOTHING anywhere in the "
+                "register -- an inert counterfactual company cannot evidence "
+                "either a blindness or a repair"
+            )
+        for k in entry["invisible_drifts"]:
+            if k in row["moved"]:
+                violations.append(
+                    f"{name}: drift {k:+d}d is declared INVISIBLE but moved the "
+                    f"reading {row['baseline']!r} -> {row['by_drift'][k]!r}. If "
+                    f"{entry['debt_atom']} has landed, RE-DERIVE this entry; a "
+                    "debt entry outliving its debt misleads worse than none"
+                )
+        for k in entry["visible_drifts"]:
+            if k in row["unmoved"]:
+                violations.append(
+                    f"{name}: drift {k:+d}d is declared VISIBLE but left the "
+                    f"reading at {row['baseline']!r} -- the reading is blinder "
+                    "than this register admits"
+                )
+        expected = entry["reported_days_for_a_one_day_drift"]
+        if expected is not None and row["one_day_report"] != expected:
+            violations.append(
+                f"{name}: a one-day company degradation is published as "
+                f"{row['one_day_report']} days, not the declared {expected} -- "
+                "the grid's quantisation has moved and the caveat travelling "
+                "with the number now states the wrong step"
+            )
+        if (row["unmoved"] or expected not in (None, 1.0)) and not entry["debt_atom"]:
+            violations.append(
+                f"{name}: declares a blindness with no `debt_atom` -- an "
+                "unowned hole; name the atom that will close it"
+            )
+    return violations
+
+
+def organ_query_grid_caveat(one_day_report: Optional[float] = None) -> str:
+    """The resolution caveat that travels WITH the latency number, interpolated
+    from the measurement rather than written as prose (the D19/D20/D22 pattern:
+    a caveat nobody re-derives decays into a claim).
+    """
+    step = (ORGAN_QUERY_GRID["recon_lag_days"]["reported_days_for_a_one_day_drift"]
+            if one_day_report is None else one_day_report)
+    return (
+        "GRID RESOLUTION (atom D23, measured 2026-08-10): the reconciliation "
+        "first-knowledge date behind this number is read by asking the "
+        "company's organ on a grid of ONE candidate date per period, at the "
+        "harness's own `due + grace`. So this arm is BLIND WITHOUT BOUND to a "
+        "company that reconciles FASTER -- an instant reconciler and one that "
+        "flags an invoice a fortnight before it is due both publish "
+        f"`grace` exactly -- and reports a one-day-SLOWER company as {step} "
+        "days later. Read it as 'no worse than', never as the company's "
+        "latency. R12: a diagnostic, and a coarse one until D23."
+    )
+
+
 def _belief_permutation_note(bel: GapResult) -> str:
     """The published caveat, with its numbers INTERPOLATED FROM THE MEASUREMENT
     rather than typed into a sentence once and left to rot (the D11/D16
@@ -1875,7 +2136,8 @@ def _rescore_dimension(dim: str, true_l: List[str], bel_l: List[str],
     raise ValueError(f"no rescorer for declared dimension '{dim}'")
 
 
-def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, object]:
+def measure(n_customers: int = 4000, seed: Optional[int] = None,
+            organ_reconciliation_drift_days: int = 0) -> Dict[str, object]:
     """Build the OFFLINE scenario and score all three gap dimensions. Returns a
     dict of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
     "stats": {...}, "notes": {...}}.
@@ -1887,7 +2149,10 @@ def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, ob
     not two (the reason the live path reuses this module rather than a bespoke
     metric: R15 independence / no second scorer)."""
     records, consumer, ledger_book, as_of = build_scenario(n_customers, seed=seed)
-    return score_triad(records, consumer, as_of)
+    return score_triad(
+        records, consumer, as_of,
+        organ_reconciliation_drift_days=organ_reconciliation_drift_days,
+    )
 
 
 def score_triad(
@@ -1896,6 +2161,7 @@ def score_triad(
     as_of: date,
     payment_terms_days: int = PAYMENT_TERMS_DAYS,
     reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+    organ_reconciliation_drift_days: int = 0,
 ) -> Dict[str, object]:
     """Score the four gap dimensions (detection / detection_latency / belief /
     ageing) for a coupled-triad population.
@@ -1904,6 +2170,18 @@ def score_triad(
     left to its default, because the detection-LATENCY dimension asks the same
     organ for its earliest detection date -- a scorer using one grace window and
     a consumer using another would read a latency that belongs to neither.
+
+    `organ_reconciliation_drift_days` is the DECLARED COUNTERFACTUAL COMPANY the
+    `ORGAN_QUERY_GRID_RESOLUTION` control needs (atom D23, Expert Hour #7): it
+    shifts the company's OWN reconciliation detector by `k` days -- the organ
+    stays silent until an invoice is `grace + k` days overdue -- while leaving
+    the harness's candidate-date grid, the world, and every truth-side rule
+    untouched. Any movement in a published figure under it is therefore the
+    company's detector moving, by construction. It lives here as a declared
+    parameter rather than in a test's `monkeypatch` for the D20 reason: a
+    counterfactual a reader cannot find in the repo is not part of the design.
+    R13: it does not touch the baseline world; it builds a second, explicitly
+    labelled COMPANY. Default 0 -- the scored book is never drifted.
 
     `records` are the harness-held TRUTH (`PeriodRecord`, one per customer x
     period); `consumer` is the company's BELIEF surface, already fed EXCLUSIVELY
@@ -2000,7 +2278,8 @@ def score_triad(
         account_id = periods[0].account_id
         snapshot = consumer.snapshot(
             account_id, as_of=as_of, payment_terms_days=payment_terms_days,
-            reconciliation_grace_days=reconciliation_grace_days,
+            reconciliation_grace_days=(
+                reconciliation_grace_days + organ_reconciliation_drift_days),
         )
 
         due_to_period = {r.due_date: r.period_index for r in periods}
@@ -2083,7 +2362,9 @@ def score_triad(
             if cand > as_of:
                 continue
             for m in consumer.expected_collection_misses(
-                account_id, as_of=cand, grace_days=reconciliation_grace_days,
+                account_id, as_of=cand,
+                grace_days=(
+                    reconciliation_grace_days + organ_reconciliation_drift_days),
                 payment_terms_days=payment_terms_days,
             ):
                 # An unjoinable ref is counted once, at `as_of`, in the snapshot
@@ -2960,6 +3241,24 @@ def main() -> None:
     # days (D10). It prints with its counterfactual because the counterfactual
     # is the finding: the DD channel moves THIS and not the detection gap.
     print(f"  [detection_latency] {format_detection_latency_summary(result['detection_latency'])}")
+    # THE GRID RESOLUTION (atom D23). Printed where the latency number is read,
+    # for the reason the direction control is: a control living only in the test
+    # suite is one a reader of the instrument's own output never meets -- and
+    # this reader is exactly the one about to quote a latency in days.
+    _oqg = measure_organ_query_grid_resolution(n_customers=300, seed=7)
+    print("           organ-query grid resolution (D23), company detector "
+          "drifted, world untouched:")
+    for name, row in _oqg.items():
+        step = ("" if row["one_day_report"] is None
+                else f", a +1d company reads as {row['one_day_report']:+g}d")
+        print(f"           {name:<26} blind to {row['unmoved']}, "
+              f"sees {row['moved']}{step}")
+    _oqg_violations = check_organ_query_grid_resolution(_oqg)
+    print("           verdict: "
+          + ("every declaration held" if not _oqg_violations
+             else f"{len(_oqg_violations)} VIOLATION(S)"))
+    for v in _oqg_violations:
+        print(f"           !! {v}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
 

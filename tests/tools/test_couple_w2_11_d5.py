@@ -3154,3 +3154,162 @@ def test_the_headline_direction_control_runs_in_the_cli_not_only_in_tests():
     src = inspect.getsource(pair.main)
     assert "measure_headline_direction_coverage(result)" in src
     assert "check_headline_direction_coverage" in src
+
+
+# ---------------------------------------------------------------------------
+# ORGAN_QUERY_GRID -- can this instrument RESOLVE what it publishes? (atom D23,
+# H27 Expert Hour #7, 2026-08-10). The class: a harness reading taken by asking
+# the company's organ on a grid of candidate dates the HARNESS built from the
+# organ's own rule is QUANTISED TO THAT GRID, and the resolution is a property
+# of the harness, not of the company being graded.
+# ---------------------------------------------------------------------------
+
+_GRID_N = 300      # the grid probe re-scores the population once per drift
+
+
+def test_the_organ_query_grid_register_is_measured_not_asserted():
+    """Every declaration in `ORGAN_QUERY_GRID` re-derived from a fresh
+    measurement each run. Green at HEAD means the declared blindness is the
+    blindness the code has -- not that there is none."""
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7)
+    assert pair.check_organ_query_grid_resolution(measured) == []
+    assert set(measured) == set(pair.ORGAN_QUERY_GRID)
+    assert all(row["probe_bit"] for row in measured.values()), (
+        "an inert drift probe hands every invisibility declaration a free pass")
+
+
+def test_the_latency_arm_is_blind_without_bound_to_a_faster_company():
+    """THE FINDING, pinned (H27 Expert Hour #7). A company whose reconciliation
+    detector fires the day an invoice falls due -- or a fortnight BEFORE it is
+    due -- publishes a first-knowledge arm bit-identical to the shipped organ's,
+    because the only date the organ is ever asked at is the harness's own
+    `due + grace`.
+
+    This is a CHARACTERIZATION test and it must FAIL when D23 lands. That is the
+    point: the register beside it names the atom, and a debt that stops being
+    true has to be re-derived rather than left standing."""
+    base = pair.measure(n_customers=_GRID_N, seed=7)["detection_latency"].components
+    for drift in (-20, -5, -1):
+        faster = pair.measure(
+            n_customers=_GRID_N, seed=7,
+            organ_reconciliation_drift_days=drift)["detection_latency"].components
+        for key in ("mean_lag_days", "mean_lag_days_without_dd_channel",
+                    "dd_channel_days_earlier", "n_latency_population"):
+            assert faster[key] == base[key], (
+                f"{key} moved under a {drift:+d}d organ improvement -- if D23 "
+                "has landed, re-derive ORGAN_QUERY_GRID and delete this pin")
+    assert base["mean_lag_days_without_dd_channel"] == float(
+        pair.DEFAULT_RECONCILIATION_GRACE_DAYS), (
+        "the counterfactual arm IS the harness's own grace parameter echoed "
+        "back, which is why no company improvement can move it")
+
+
+def test_a_one_day_slower_company_is_published_as_a_twenty_one_day_step():
+    """The other half of the same defect: the grid's step is
+    `PERIOD_SPACING_DAYS`, so the smallest visible degradation is reported at
+    21x its size, and +1 / +7 / +21 are one number."""
+    readings = {
+        k: pair.measure(n_customers=_GRID_N, seed=7,
+                        organ_reconciliation_drift_days=k
+                        )["detection_latency"].components[
+                            "mean_lag_days_without_dd_channel"]
+        for k in (0, 1, 7, 21)
+    }
+    assert readings[1] - readings[0] == pair.PERIOD_SPACING_DAYS
+    assert readings[1] == readings[7] == readings[21], (
+        "a 1-day and a 21-day degradation are indistinguishable on this grid")
+
+
+def test_the_grid_control_fires_when_the_drift_goes_inert():
+    """R15, mutating the PROBE: a counterfactual company that is not actually
+    drifted would silently confirm every invisibility declaration. The vacuity
+    guard must catch it, and the diagnostic must name the probe rather than the
+    reading."""
+    frozen = pair.measure(n_customers=_GRID_N, seed=7)
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, runner=lambda k: frozen)
+    violations = pair.check_organ_query_grid_resolution(measured)
+    assert violations
+    assert any("moved NOTHING anywhere" in v for v in violations)
+    assert any("declared VISIBLE but left the reading" in v for v in violations)
+
+
+def test_the_grid_control_fires_when_the_blindness_is_repaired():
+    """R15, the direction that matters most: when D23 gives the grid a real
+    resolution, the register's entries become LIES and must fail by name. A
+    control that only fires on the defect getting worse lets a stale debt entry
+    outlive its debt."""
+    real = {k: pair.measure(n_customers=_GRID_N, seed=7,
+                            organ_reconciliation_drift_days=k)
+            for k in (-20, -5, -1, 0, 1)}
+
+    def fine_grid(k):
+        """A D23-shaped repair: the reading tracks the organ day for day."""
+        result = copy.deepcopy(real[0])
+        lat = result["detection_latency"]
+        comps = dict(lat.components)
+        comps["mean_lag_days_without_dd_channel"] = (
+            float(comps["mean_lag_days_without_dd_channel"]) + k)
+        result["detection_latency"] = dataclasses.replace(lat, components=comps)
+        det = result["detection"]
+        result["detection"] = dataclasses.replace(det, gap=det.gap + 0.001 * k)
+        return result
+
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, runner=fine_grid)
+    violations = pair.check_organ_query_grid_resolution(measured)
+    assert violations
+    assert any("declared INVISIBLE but moved" in v for v in violations)
+    assert any("D23_organ_query_grid_cannot_resolve_latency" in v
+               for v in violations), "the violation must name the atom to re-derive"
+    assert any("published as 1.0 days, not the declared 21.0" in v
+               for v in violations), (
+        "the quantisation pin is what keeps the published caveat honest")
+
+
+def test_the_grid_register_cannot_declare_a_blindness_with_no_owner():
+    """R15, mutating the REGISTER: an unowned blindness is a hole nobody has
+    promised to close."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    register["recon_lag_days"]["debt_atom"] = None
+    measured = pair.measure_organ_query_grid_resolution(
+        n_customers=_GRID_N, seed=7, register=register)
+    violations = pair.check_organ_query_grid_resolution(measured, register=register)
+    assert any("no `debt_atom`" in v for v in violations)
+
+
+def test_the_grid_register_is_differential_not_a_blanket_claim():
+    """Both keysets non-empty on every entry: an all-invisible register is a
+    blanket blindness claim wearing a register's clothes, and an all-visible one
+    could not fail on the defect it was built for (the DIMENSION_AS_OF_CONTRACT
+    lesson this instrument has now learned four times)."""
+    for name, entry in pair.ORGAN_QUERY_GRID.items():
+        assert entry["invisible_drifts"], name
+        assert entry["visible_drifts"], name
+    kinds = {e["reading"] for e in pair.ORGAN_QUERY_GRID.values()}
+    assert kinds == {"date", "set_membership"}, (
+        "the set-membership entry is what makes this a finding about the GRID "
+        "rather than about the latency formula")
+
+
+def test_the_grid_resolution_caveat_travels_with_the_number():
+    """The caveat is stamped AT SOURCE in `detection_latency_gap`, so it reaches
+    every coupled pair calling this scorer -- not only the one whose Hour found
+    it -- and its step is INTERPOLATED from the register, never retyped."""
+    result = pair.detection_latency_gap(
+        {("c", 0): 1}, {("c", 0): 5}, n_true_failures=1)
+    caveat = result.components["organ_query_grid_caveat"]
+    assert "atom D23" in caveat
+    assert "BLIND WITHOUT BOUND" in caveat
+    assert "21.0 days later" in caveat
+    assert result.components["organ_improvement_is_visible"] is False
+    assert result.components["organ_query_grid_step_days"] == 21.0
+
+
+def test_the_grid_resolution_control_runs_in_the_cli_not_only_in_tests():
+    """Same reason as the direction control: the reader about to quote a latency
+    in days is exactly the one who needs to be told what it can resolve."""
+    src = inspect.getsource(pair.main)
+    assert "measure_organ_query_grid_resolution(" in src
+    assert "check_organ_query_grid_resolution" in src
