@@ -2797,8 +2797,7 @@ def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
     """
     result = _scored(seed=seed, n=600)
     c = result["ageing"].components
-    order = list(c["bucket_order"])
-    rank = {b: i for i, b in enumerate(order)}
+    rank = {b: i for i, b in enumerate(c["bucket_order"])}
 
     assert c["wrong_bucket"] == 0, (
         f"seed {seed}: {c['wrong_bucket']} truly-overdue invoice(s) are now "
@@ -2822,13 +2821,17 @@ def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
         "is what bounds `max_bucket_displacement` at 2")
     # THE CONSEQUENCE, checked rather than described: if every unit of
     # displacement is a miss, and the only reachable truth buckets are 30-60
-    # (rank 1) and 60-90 (rank 2), then total displacement must land exactly in
-    # [misses, 2 x misses]. A headline outside that band is a headline carrying
-    # something other than the miss count.
+    # and 60-90, then total displacement must land exactly in
+    # [lo x misses, hi x misses], where lo/hi are those buckets' own ranks read
+    # off `bucket_order` rather than written in as 1 and 2 -- a re-ordered or
+    # re-named bucket space then moves this bound with it instead of leaving a
+    # literal that quietly stops matching the dimension it bounds.
+    lo = min(rank[b] for b in ("30-60", "60-90"))
+    hi = max(rank[b] for b in ("30-60", "60-90"))
     total = c["mean_bucket_displacement"] * c["n_truly_overdue"]
-    assert c["misses"] - 1e-9 <= total <= 2 * c["misses"] + 1e-9, (
+    assert lo * c["misses"] - 1e-9 <= total <= hi * c["misses"] + 1e-9, (
         f"seed {seed}: total ordinal displacement {total:.4f} over "
-        f"{c['misses']} miss(es) falls outside [misses, 2 x misses] -- the "
+        f"{c['misses']} miss(es) falls outside [{lo} x misses, {hi} x misses] -- the "
         "headline is no longer a rank-weighted restatement of "
         "understated_arrears_rate, so the two published numbers are no longer "
         "the one reading this witness says they are")
