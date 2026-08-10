@@ -1,0 +1,25 @@
+{
+  "annotation": {
+    "checked_at": "2026-08-10T16:14:55Z",
+    "nonblocking_reds": [],
+    "nonblocking_reds_total": 0,
+    "open_findings": 0
+  },
+  "last_verified": {
+    "generated_at": "2026-08-10T16:14:55Z",
+    "git_commit": "abc1234",
+    "run_id": "run_output_abc1234_20260621T104002Z.json",
+    "verified_at": "2026-08-10T16:14:55Z"
+  },
+  "paused_reason": "scoped publish-path suite red at git=43ae7c997; blocking tests: see sim-runner-log",
+  "paused_since": "2026-08-10T16:15:08Z",
+  "schema": 1,
+  "showing_run": {
+    "generated_at": "2026-08-10T16:14:55Z",
+    "git_commit": "abc1234",
+    "run_id": "run_output_abc1234_20260621T104002Z.json",
+    "verified_at": "2026-08-10T16:14:55Z"
+  },
+  "verification_state": "paused",
+  "written_at": "2026-08-10T16:15:08Z"
+}
