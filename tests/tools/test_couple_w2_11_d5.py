@@ -3458,3 +3458,226 @@ def test_the_grid_resolution_control_runs_in_the_cli_not_only_in_tests():
     src = inspect.getsource(pair.main)
     assert "measure_organ_query_grid_resolution(" in src
     assert "check_organ_query_grid_resolution" in src
+
+
+# ---------------------------------------------------------------------------
+# DIMENSION_DRIFT_RESOLUTION -- how wrong must the company be before each
+# published headline notices? (atom D25, H27 Expert Hour #8, 2026-08-10)
+#
+# One keying wider than D23's register, which asked this of the two readings
+# off the reconciliation candidate grid alone. The ageing dimension's grid is
+# not made of dates: it is where this population's invoices SIT relative to the
+# 30/60/90 boundaries, and that placement is built from harness constants.
+# ---------------------------------------------------------------------------
+
+_RES_N = 300
+
+
+@pytest.fixture(scope="module")
+def drift_resolution():
+    """Measured ONCE for the module: the sweep re-scores three populations
+    against every declared counterfactual company, and every register mutation
+    below is a trial of a DECLARATION against this same measurement."""
+    return pair.measure_dimension_drift_resolution(n_customers=_RES_N)
+
+
+def test_the_drift_resolution_register_is_measured_not_asserted(drift_resolution):
+    """Every declaration re-derived from a fresh measurement each run. Green
+    means the declared blindness is the blindness the code has -- not that
+    there is none."""
+    assert pair.check_dimension_drift_resolution(drift_resolution) == []
+    assert set(drift_resolution) == set(pair.DIMENSION_DRIFT_RESOLUTION)
+    assert all(row["probe_bit"] for row in drift_resolution.values()), (
+        "an inert counterfactual company hands every invisibility a free pass")
+
+
+def test_the_ageing_headline_cannot_see_a_week_of_over_ageing(drift_resolution):
+    """THE FINDING. A supplier that dates every debt one to eight days OLDER
+    than the world did -- over-ageing, the direction that posts an early
+    dunning letter -- publishes a BIT-IDENTICAL ageing headline on every seed.
+
+    The counterfactual company is not inert while it does so, which is what
+    makes this a blindness rather than a dead probe: the DETECTION dimension of
+    the same instrument moves on every one of those drifts."""
+    row = drift_resolution["ageing"]
+    band = tuple(pair.DIMENSION_DRIFT_RESOLUTION["ageing"]["invisible_drifts"])
+    assert band == (-8, -7, -6, -5, -4, -3, -2, -1)
+    for k in band:
+        assert k in row["unmoved"], k
+        for s in row["seeds"]:
+            assert (row["by_seed"][s]["by_drift"][k]
+                    == row["by_seed"][s]["baseline"]), (s, k)
+        assert k in drift_resolution["detection"]["moved"], (
+            "the drifted company must be a DIFFERENT company -- if nothing "
+            "anywhere moves, this test is measuring an inert probe")
+
+
+def test_the_ageing_reading_collapses_in_the_other_direction(drift_resolution):
+    """And where it does move, it cannot say by how much: a company one day out
+    and a company twelve days out are ONE published number, so the movement
+    from a drift cannot be read as days."""
+    got = pair._collapse_state(drift_resolution["ageing"], (1, 12))
+    assert got["collapsed"] and got["distinct_from_baseline"]
+
+
+def test_the_blind_band_is_the_harness_calendar_not_the_company():
+    """WHY it is blind, asserted rather than narrated: every truly-overdue
+    invoice in this scenario is 30, 51 or 72 days overdue at `as_of`, three
+    distances fixed by the harness's own constants. A dating error is visible
+    only where it carries an invoice across a 30/60/90 boundary, so the
+    measurable step is a property of the calendar -- 1 day one way (the 30-day
+    cases sit ON the boundary), 9 days the other."""
+    records, _consumer, _ledger, as_of = pair.build_scenario(120, seed=7)
+    overdue = {(as_of - r.due_date).days for r in records if r.result == "failed"}
+    assert overdue == {30, 51, 72}
+    expected = {
+        pair.AS_OF_BUFFER_DAYS + pair.PERIOD_SPACING_DAYS * i
+        for i in range(pair.N_PERIODS)
+    }
+    assert overdue == expected, (
+        "the population's distance from every bucket boundary is arithmetic "
+        "over AS_OF_BUFFER_DAYS, PERIOD_SPACING_DAYS and N_PERIODS")
+    # The boundary crossings those three distances allow, which IS the band.
+    assert pair._ageing_bucket(30) != pair._ageing_bucket(29)
+    assert pair._ageing_bucket(72) == pair._ageing_bucket(72 + 8)
+    assert pair._ageing_bucket(51) == pair._ageing_bucket(51 + 8)
+
+
+def test_the_two_dimensions_go_blind_in_opposite_directions(drift_resolution):
+    """The DIFFERENTIAL, and it is the evidence this is about the population's
+    placement rather than one formula: the same one-day company error is seen
+    by exactly one of the two dimensions in each direction. A reader must not
+    take either headline as covering the other's blind side (the D16 rule --
+    aligned denominators are still different questions)."""
+    assert 1 in drift_resolution["ageing"]["moved"]
+    assert 1 in drift_resolution["detection"]["unmoved"]
+    assert -1 in drift_resolution["ageing"]["unmoved"]
+    assert -1 in drift_resolution["detection"]["moved"]
+
+
+def test_the_off_path_dimensions_are_exercised_not_merely_exempt(drift_resolution):
+    """`belief` and `belief_population_mix` cannot be reached by a terms drift
+    at all -- their organ counts observed FAILURE EVENTS and never reads the
+    ledger's dating. That is the exemption shape D21 hid behind, so the
+    register makes each name a probe that DOES move it, and the sweep measures
+    that probe rather than believing the declaration."""
+    for dim in ("belief", "belief_population_mix"):
+        assert drift_resolution[dim]["moved"] == []
+        assert pair.DIMENSION_DRIFT_RESOLUTION[dim]["exercised_by"]
+        assert drift_resolution[dim]["exercised"] is True
+    src = inspect.getsource(pair.PaymentObservationConsumer._arrears_risk_belief)
+    assert "days_overdue" not in src and "aged" not in src, (
+        "the off-path claim is about this organ's inputs; if it starts reading "
+        "the ledger's dating the register entry is a lie")
+
+
+@pytest.mark.parametrize("mutate,expected", (
+    (lambda r: r["ageing"].__setitem__("invisible_drifts",
+                                       (-8, -7, -6, -5, -4, -3, -2)),
+     "understates the blindness"),
+    (lambda r: r["ageing"].__setitem__("visible_drifts", (-9, 1, -1)),
+     "blinder than this register admits"),
+    (lambda r: r["ageing"].__setitem__("collapsed_pairs", ((1, 99),)),
+     "readings nobody took"),
+    (lambda r: r["ageing"].__setitem__("collapsed_pairs", ((-1, -2),)),
+     "INVISIBILITY, not a collapse"),
+    (lambda r: r["ageing"].__setitem__("debt_atom", None),
+     "unowned hole"),
+    (lambda r: (r["belief"].__setitem__("in_causal_path", True),
+                r["belief"].__setitem__("visible_drifts", (1,))),
+     "blinder than this register admits"),
+    (lambda r: r["belief"].pop("exercised_by"),
+     "unfalsifiable, not exempt"),
+    (lambda r: r["detection_latency"].__setitem__("invisible_drifts", (1,)),
+     "no on-path and SIGHTED entry"),
+))
+def test_a_lying_resolution_declaration_fires_by_name(drift_resolution, mutate,
+                                                      expected):
+    """R15 BOTH WAYS on the register itself. Each mutation is a way this
+    register could stop describing the code -- an understated band (which the
+    caveat interpolates), an overstated sight, a collapse checked against
+    readings nobody took, a collapse that is really an invisibility, an unowned
+    hole, a rotted off-path claim, a believed exemption, and an all-blind
+    register that would pass whatever the instrument did."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    mutate(register)
+    violations = pair.check_dimension_drift_resolution(
+        drift_resolution, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_a_dimension_with_no_entry_raises_rather_than_passing(drift_resolution):
+    """The keyset is DERIVED from what `score_triad` publishes, in both
+    directions: a published dimension nothing sweeps is exactly how this class
+    escaped the register before it, and an entry nobody publishes reads like a
+    clean one."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    register.pop("ageing")
+    with pytest.raises(AssertionError, match="no DIMENSION_DRIFT_RESOLUTION"):
+        pair.check_dimension_drift_resolution(drift_resolution, register=register)
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    register["invented_dimension"] = dict(register["ageing"])
+    with pytest.raises(AssertionError, match="nobody publishes"):
+        pair.check_dimension_drift_resolution(drift_resolution, register=register)
+
+
+def test_an_inert_counterfactual_company_is_not_a_pass():
+    """THE VACUITY GUARD, on the probe rather than on the instrument: a drift
+    parameter that had silently stopped drifting would hand every invisibility
+    declaration a free pass -- the fail-silent shape this instrument has now
+    produced six times, twice inside the control written to close the previous
+    one."""
+    inert = pair.measure_dimension_drift_resolution(
+        n_customers=120, seeds=(7,),
+        runner=lambda s, k: pair.measure(n_customers=120, seed=s))
+    assert all(not row["probe_bit"] for row in inert.values())
+    violations = pair.check_dimension_drift_resolution(inert)
+    assert any("moved NOTHING anywhere" in v for v in violations), violations
+
+
+def test_the_terms_drift_reaches_the_company_and_not_the_world():
+    """The counterfactual is a second COMPANY over ONE world (R13), and it is a
+    DECLARED `score_triad` parameter rather than a test monkeypatch (the D20
+    rule: a counterfactual a reader cannot find in the repo is not part of the
+    design). The truth side is untouched, so every movement under it is the
+    company's dating moving."""
+    records, consumer, _ledger, as_of = pair.build_scenario(120, seed=7)
+    base = pair.score_triad(records, consumer, as_of)
+    drifted = pair.score_triad(records, consumer, as_of,
+                               organ_terms_drift_days=-9)
+    assert drifted["ageing"].gap != base["ageing"].gap
+    # The world's own records are the same objects, unmutated.
+    assert [(r.customer_id, r.due_date, r.result) for r in records] == [
+        (r.customer_id, r.due_date, r.result) for r in records]
+    assert base["stats"]["n_true_failures"] == drifted["stats"]["n_true_failures"]
+    assert base["stats"]["as_of"] == drifted["stats"]["as_of"]
+    assert "organ_terms_drift_days" in inspect.signature(
+        pair.score_triad).parameters
+
+
+def test_the_resolution_caveat_travels_with_the_ageing_number():
+    """The limit is published WITH the figure -- in `components` as well as the
+    prose, because the ledger writer and the live wiring never read `note` --
+    and its band is INTERPOLATED from the register, never retyped. Flip the
+    register and the published claim flips with it, so the two cannot drift
+    apart the way a hand-typed caveat did."""
+    result = pair.measure(n_customers=120, seed=7)
+    caveat = result["ageing"].components["drift_resolution_caveat"]
+    assert "atom D25" in caveat
+    assert "1 to 8 days" in caveat
+    assert result["ageing"].components["drift_blind_band_days"] == (
+        -8, -7, -6, -5, -4, -3, -2, -1)
+    assert caveat in result["ageing"].note
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    register["ageing"]["invisible_drifts"] = (-3, -2, -1)
+    with mock.patch.object(pair, "DIMENSION_DRIFT_RESOLUTION", register):
+        assert "1 to 3 days" in pair.ageing_resolution_caveat()
+
+
+def test_the_drift_resolution_control_runs_in_the_cli_not_only_in_tests():
+    """Same reason as the two controls before it: a limit a reader has to go
+    looking for is one they will read past, and the reader about to quote an
+    ageing displacement is exactly who needs the step beside it."""
+    src = inspect.getsource(pair.main)
+    assert "measure_dimension_drift_resolution(" in src
+    assert "check_dimension_drift_resolution" in src

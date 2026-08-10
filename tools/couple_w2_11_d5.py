@@ -143,7 +143,7 @@ import hashlib
 import random
 import subprocess
 from datetime import date, datetime, time, timedelta, timezone
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
@@ -2115,6 +2115,450 @@ def organ_query_grid_caveat(one_day_report: Optional[float] = None) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# DIMENSION_DRIFT_RESOLUTION -- what is the SMALLEST company error each
+# PUBLISHED dimension can see? (atom D25, H27 Expert Hour #8, 2026-08-10)
+#
+# THE CLASS, ONE KEYING WIDER THAN D23's. `ORGAN_QUERY_GRID` asks whether a
+# reading taken on a grid of the HARNESS's own making is quantised to that
+# grid, and answers it for the two readings off the RECONCILIATION candidate
+# grid. Every dimension owes that question, and the grid is not always made of
+# dates: the AGEING dimension's grid is where this population's invoices SIT
+# relative to the 30/60/90 bucket boundaries, and that placement is built
+# entirely from harness constants -- `FIRST_DUE_DATE`, `PERIOD_SPACING_DAYS`,
+# `N_PERIODS`, `AS_OF_BUFFER_DAYS`. Every truly-overdue invoice in the scenario
+# is 30, 51 or 72 days overdue at `as_of`; nothing else exists. Keyed to the
+# reconciliation grid, D23's register could not reach that -- the THIRD time a
+# register of this instrument has been escaped by its own keying (D19 out of
+# the detection scorers, D22 out of the rate-shaped dimensions, this out of the
+# date-grid readings).
+#
+# So the keyset is DERIVED from `published_dimensions`, exactly as
+# `HEADLINE_DIRECTION_COVERAGE`'s is, and the perturbation is a DECLARED
+# COUNTERFACTUAL COMPANY (`organ_terms_drift_days`) rather than a test's
+# monkeypatch (the D20 rule: a counterfactual a reader cannot find in the repo
+# is not part of the design).
+#
+# THREE STATES, CHECKED SEPARATELY -- a register whose entries all land on one
+# side is a blanket claim wearing a register's clothes (the Hour #6 lesson):
+#   * ON PATH AND BLIND -- declares the drifts it cannot see, and OWES a
+#     `debt_atom`;
+#   * ON PATH AND SIGHTED -- no blindness at all, which is what keeps the
+#     register from being an excuse;
+#   * OFF PATH -- the drift has no causal route to this dimension's organ at
+#     all. That is the exemption shape D21 was hidden by, so it is the one
+#     state that must name ANOTHER probe and have it MEASURED to move the
+#     dimension: an unexercised dimension is unfalsifiable, not exempt.
+# ---------------------------------------------------------------------------
+
+RESOLUTION_SEEDS = (7, 11, 23)
+
+DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
+    "ageing": {
+        "drift": "organ_terms_drift_days",
+        "in_causal_path": True,
+        # A company that dates every debt 1 to 8 days OLDER than the world did
+        # publishes a BIT-IDENTICAL headline. This is the defect.
+        "invisible_drifts": (-8, -7, -6, -5, -4, -3, -2, -1),
+        "visible_drifts": (-9, 1),
+        # And in the other direction the reading COLLAPSES: a company one day
+        # out and a company twelve days out are one published number.
+        "collapsed_pairs": ((1, 12),),
+        "structural": True,
+        "debt_atom": "D25_ageing_resolution_is_the_harness_calendar",
+        "why": (
+            "The headline is BUCKETS of ordinal displacement, so a dating "
+            "error is visible only where it carries an invoice across a "
+            "30/60/90 boundary -- and this population sits at exactly THREE "
+            "distances from those boundaries (30, 51 and 72 days overdue at "
+            "`as_of`), fixed by FIRST_DUE_DATE + PERIOD_SPACING_DAYS x "
+            "N_PERIODS and AS_OF_BUFFER_DAYS. So the measurable step is a "
+            "property of the HARNESS's calendar, not of the company: 1 day of "
+            "under-ageing moves it (the 30-day cases sit ON the boundary) "
+            "while 8 days of OVER-ageing move nothing, and the asymmetry is "
+            "an accident of where the three due dates fell. R12: the number "
+            "at HEAD is right; what was missing is what it can resolve."
+        ),
+    },
+    "detection": {
+        "drift": "organ_terms_drift_days",
+        "in_causal_path": True,
+        "invisible_drifts": (1,),
+        "visible_drifts": (-1,),
+        "collapsed_pairs": (),
+        "structural": True,
+        "debt_atom": "D25_ageing_resolution_is_the_harness_calendar",
+        "why": (
+            "SET membership by `as_of`, and it goes blind in the OPPOSITE "
+            "direction to its ageing sibling -- which is the differential "
+            "that makes this a finding about the population's placement "
+            "rather than about one formula. A company holding terms one day "
+            "LONGER still finds every one of these invoices past grace by "
+            "`as_of` (they are 30+ days overdue), so the flagged set is "
+            "identical; one day SHORTER pulls extra invoices over the grace "
+            "line and the set moves. Same population, same drift, opposite "
+            "blind side to `ageing`: a reader must not take either headline "
+            "as covering the other's direction (the D16 rule -- aligned "
+            "denominators are still different questions)."
+        ),
+    },
+    "detection_latency": {
+        "drift": "organ_terms_drift_days",
+        "in_causal_path": True,
+        # THE SIGHTED ENTRY. Without one, this register would be a blanket
+        # 'everything is quantised' claim and could not fail.
+        "invisible_drifts": (),
+        "visible_drifts": (-1, 1),
+        "collapsed_pairs": (),
+        "structural": True,
+        "debt_atom": None,
+        "why": (
+            "The one dimension that resolves this company to the DAY in both "
+            "directions, because D23 gave it a DAILY candidate grid rather "
+            "than one date per period. It is the evidence that the ageing "
+            "blindness above is the population's placement and not something "
+            "inherent to reading a company through this wall -- and it is the "
+            "entry this register cannot do without: an all-blind register is "
+            "an excuse, not a control."
+        ),
+    },
+    "belief": {
+        "drift": "organ_terms_drift_days",
+        "in_causal_path": False,
+        "invisible_drifts": (),
+        "visible_drifts": (),
+        "collapsed_pairs": (),
+        "structural": True,
+        "debt_atom": None,
+        "exercised_by": "HEADLINE_DIRECTION_COVERAGE",
+        "why": (
+            "OFF PATH, and this is a claim about the ORGAN's inputs, not an "
+            "exemption: `PaymentObservationConsumer._arrears_risk_belief` "
+            "counts observed DD/rail FAILURE EVENTS and never reads the "
+            "ledger's dating, so no terms drift can reach it -- measured "
+            "unmoved at every drift on every seed, including drifts that take "
+            "the detection dimension to its flag-everything degenerate. An "
+            "off-path entry is where D21's defect hid (a control that "
+            "BELIEVED an exemption), so this one must name a probe that DOES "
+            "move the dimension and have it measured -- its own indiscriminate "
+            "degenerate, scored through its own shipped scorer."
+        ),
+    },
+    "belief_population_mix": {
+        "drift": "organ_terms_drift_days",
+        "in_causal_path": False,
+        "invisible_drifts": (),
+        "visible_drifts": (),
+        "collapsed_pairs": (),
+        "structural": True,
+        "debt_atom": None,
+        "exercised_by": "HEADLINE_DIRECTION_COVERAGE",
+        "why": (
+            "OFF PATH for the same organ reason as `belief` -- it is the same "
+            "labels under a distribution distance (atom D19). Its exercising "
+            "probe is the one that separated the two dimensions in the first "
+            "place: the indiscriminate degenerate moves it, a per-case "
+            "permutation deliberately does not."
+        ),
+    },
+}
+
+
+def measure_dimension_drift_resolution(
+    *,
+    n_customers: int = 300,
+    seeds: Sequence[int] = RESOLUTION_SEEDS,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    runner: Optional[Callable[[int, int], Dict[str, object]]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """MEASURE `DIMENSION_DRIFT_RESOLUTION` rather than trust it: re-score the
+    SAME population against a counterfactual COMPANY holding the wrong payment
+    terms, and record which drifts each published dimension's OWN shipped
+    scorer actually saw.
+
+    Returns {dimension: {"by_seed", "unmoved", "moved", "collapses",
+    "probe_bit", "exercised", "seeds"}} where `unmoved`/`moved` are the drifts
+    that behaved that way on EVERY measured seed -- the register's claims are
+    structural (they follow from the scenario calendar), so a band that holds
+    on one seed and not another is a claim this register must refuse.
+
+    `probe_bit` is the vacuity guard on the probe ITSELF: the counterfactual
+    company must move SOMETHING somewhere, or every invisibility declaration in
+    the register is being handed a free pass by a drift parameter that has
+    silently stopped drifting -- the fail-silent shape this instrument has now
+    produced six times, twice inside the control written to close the previous
+    one.
+    """
+    register = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    drifts = sorted(
+        {0}
+        | {k for e in register.values()
+           for k in tuple(e["invisible_drifts"]) + tuple(e["visible_drifts"])}
+        | {k for e in register.values()
+           for pair in tuple(e.get("collapsed_pairs") or ()) for k in pair}
+    )
+    if runner is None:
+        def runner(seed: int, k: int) -> Dict[str, object]:
+            # ONE population per seed, re-scored per drift: the counterfactual
+            # is a different COMPANY over the same world, never a different
+            # world (R13).
+            recs, cons, _ledger, as_of = _resolution_population(n_customers, seed)
+            return score_triad(recs, cons, as_of, organ_terms_drift_days=k)
+
+    scored = {(s, k): runner(s, k) for s in seeds for k in drifts}
+    dims = published_dimensions(scored[(seeds[0], 0)])
+    out: Dict[str, Dict[str, object]] = {}
+    any_movement = False
+    for dim in dims:
+        by_seed: Dict[int, Dict[str, object]] = {}
+        for s in seeds:
+            base = scored[(s, 0)][dim].gap
+            by_drift = {k: scored[(s, k)][dim].gap for k in drifts if k != 0}
+            by_seed[s] = {
+                "baseline": base,
+                "by_drift": by_drift,
+                "moved": sorted(k for k, v in by_drift.items() if v != base),
+                "unmoved": sorted(k for k, v in by_drift.items() if v == base),
+            }
+        moved = sorted(set.intersection(
+            *[set(by_seed[s]["moved"]) for s in seeds]))
+        unmoved = sorted(set.intersection(
+            *[set(by_seed[s]["unmoved"]) for s in seeds]))
+        any_movement = any_movement or bool(moved)
+        out[dim] = {
+            "seeds": tuple(seeds),
+            "by_seed": by_seed,
+            "moved": moved,
+            "unmoved": unmoved,
+            "exercised": None,
+        }
+    for dim in dims:
+        out[dim]["collapses"] = {
+            pair: _collapse_state(out[dim], pair)
+            for pair in tuple(
+                (register.get(dim) or {}).get("collapsed_pairs") or ())
+            if _collapse_state(out[dim], pair) is not None
+        }
+    # THE OFF-PATH ENTRIES' OTHER PROBE, measured rather than believed: a
+    # dimension nothing in this register can move must still be moved by
+    # SOMETHING, or its entry is an exemption no evidence can ever remove.
+    hdc = measure_headline_direction_coverage(scored[(seeds[0], 0)])
+    for dim, row in out.items():
+        row["probe_bit"] = any_movement
+        named = (register.get(dim) or {}).get("exercised_by")
+        if named == "HEADLINE_DIRECTION_COVERAGE" and dim in hdc:
+            row["exercised"] = bool(hdc[dim].get("distinguishes"))
+    return out
+
+
+def _resolution_population(n_customers: int, seed: int):
+    """One built scenario per (n, seed), cached: the resolution sweep re-scores
+    the SAME population once per drift, and rebuilding it per drift would make
+    a slow control slower without changing a single number."""
+    key = (n_customers, seed)
+    if key not in _RESOLUTION_POPULATIONS:
+        _RESOLUTION_POPULATIONS[key] = build_scenario(n_customers, seed=seed)
+    return _RESOLUTION_POPULATIONS[key]
+
+
+_RESOLUTION_POPULATIONS: Dict[tuple, tuple] = {}
+
+
+def _collapse_state(row: Dict[str, object], pair: Tuple[int, int]):
+    """Whether a declared pair of counterfactual companies really do publish ONE
+    reading, on EVERY measured seed -- re-derived from the raw per-seed readings.
+    `None` where either member was never scored."""
+    states = []
+    for s in row["seeds"]:
+        readings = {**row["by_seed"][s]["by_drift"],
+                    0: row["by_seed"][s]["baseline"]}
+        if pair[0] not in readings or pair[1] not in readings:
+            return None
+        states.append((readings[pair[0]] == readings[pair[1]],
+                       readings[pair[0]] != row["by_seed"][s]["baseline"],
+                       (readings[pair[0]], readings[pair[1]])))
+    return {
+        "collapsed": all(s[0] for s in states),
+        "distinct_from_baseline": all(s[1] for s in states),
+        "readings": states[0][2],
+    }
+
+
+def check_dimension_drift_resolution(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put every `DIMENSION_DRIFT_RESOLUTION` declaration on trial against the
+    measurement and return the VIOLATIONS (empty = the register is honest).
+
+    The keyset is DERIVED, so the two ways a register stops describing the code
+    both RAISE rather than passing quietly: a dimension published with no entry
+    would be swept by nothing (how this class escaped D23's register), and an
+    entry for a dimension nobody publishes reads exactly like a clean one.
+    """
+    register = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    missing = sorted(set(measured) - set(register))
+    if missing:
+        raise AssertionError(
+            f"published dimensions with no DIMENSION_DRIFT_RESOLUTION entry: "
+            f"{missing} -- a dimension nothing sweeps is exactly how this class "
+            "escaped the register before it"
+        )
+    orphan = sorted(set(register) - set(measured))
+    if orphan:
+        raise AssertionError(
+            f"DIMENSION_DRIFT_RESOLUTION entries for dimensions nobody "
+            f"publishes: {orphan} -- an unreachable register entry reads like a "
+            "clean one"
+        )
+    violations: List[str] = []
+    for dim in sorted(measured):
+        row, entry = measured[dim], register[dim]
+        if not row["probe_bit"]:
+            violations.append(
+                f"{dim}: the terms-drift probe moved NOTHING anywhere in the "
+                "register -- an inert counterfactual company cannot evidence "
+                "either a blindness or a resolution"
+            )
+        blind = bool(tuple(entry["invisible_drifts"])
+                     or tuple(entry.get("collapsed_pairs") or ()))
+        if not entry["in_causal_path"]:
+            if row["moved"]:
+                violations.append(
+                    f"{dim}: declared OFF the drift's causal path but drifts "
+                    f"{row['moved']} moved it -- the entry has rotted; "
+                    "re-derive it as an on-path entry with a measured band"
+                )
+            if not entry.get("exercised_by"):
+                violations.append(
+                    f"{dim}: declared off-path and names no `exercised_by` "
+                    "probe -- a dimension nothing in this repo can move is "
+                    "unfalsifiable, not exempt"
+                )
+            elif row["exercised"] is not True:
+                violations.append(
+                    f"{dim}: its declared `exercised_by` probe "
+                    f"({entry['exercised_by']}) did NOT move it "
+                    f"(exercised={row['exercised']!r}) -- the exemption is "
+                    "believed, which is the shape D21 hid behind"
+                )
+            continue
+        for k in entry["invisible_drifts"]:
+            if k not in row["unmoved"]:
+                violations.append(
+                    f"{dim}: drift {k:+d}d is declared INVISIBLE but moved the "
+                    f"reading on at least one seed "
+                    f"({ {s: (row['by_seed'][s]['baseline'], row['by_seed'][s]['by_drift'][k]) for s in row['seeds']} }). "
+                    f"If {entry['debt_atom']} has landed, RE-DERIVE this entry; "
+                    "a debt entry outliving its debt misleads worse than none"
+                )
+        for k in entry["visible_drifts"]:
+            if k not in row["moved"]:
+                violations.append(
+                    f"{dim}: drift {k:+d}d is declared VISIBLE but left the "
+                    "reading where it was on at least one seed -- the "
+                    "dimension is blinder than this register admits"
+                )
+        # THE BAND MUST BE EXACT, NOT MERELY TRUE. Caught by this sweep on its
+        # own first draft: with only the two rules above, UNDER-stating the
+        # blindness passed silently -- drop -1 from the ageing band and every
+        # declaration still held, while `ageing_resolution_caveat` (which
+        # interpolates the band) went on publishing a narrower blind spot than
+        # the instrument has. A caveat that can only shrink is the decay this
+        # register exists to stop.
+        undeclared = [k for k in row["unmoved"]
+                      if k not in tuple(entry["invisible_drifts"])]
+        if undeclared:
+            violations.append(
+                f"{dim}: drifts {undeclared} were MEASURED invisible and are "
+                "not declared -- the band understates the blindness, and the "
+                "caveat that interpolates it now publishes a narrower blind "
+                "spot than the instrument has"
+            )
+        for pair in tuple(entry.get("collapsed_pairs") or ()):
+            # Re-derived from the RAW readings rather than read out of the
+            # measurement's own summary, so a claim is never checked against a
+            # reading that was never taken: `measure` is told the register only
+            # to choose which drifts to score, and this rule fails loudly if a
+            # declared pair is outside them.
+            got = _collapse_state(row, pair)
+            if got is None:
+                violations.append(
+                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
+                    "declared to COLLAPSE but were never scored -- a "
+                    "declaration checked against readings nobody took"
+                )
+                continue
+            if not got.get("collapsed"):
+                violations.append(
+                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
+                    f"declared to COLLAPSE to one reading but read "
+                    f"{got.get('readings')!r}. If {entry['debt_atom']} has "
+                    "landed, RE-DERIVE this entry"
+                )
+            elif not got.get("distinct_from_baseline"):
+                violations.append(
+                    f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d read the "
+                    "BASELINE -- that is an INVISIBILITY, not a collapse; "
+                    "declare it where the rule that checks it lives"
+                )
+        if blind and not entry["debt_atom"]:
+            violations.append(
+                f"{dim}: declares a blindness with no `debt_atom` -- an "
+                "unowned hole; name the atom that will close it"
+            )
+        if not blind and not tuple(entry["visible_drifts"]):
+            violations.append(
+                f"{dim}: on-path and declares neither a blindness nor a drift "
+                "it must see -- an entry that cannot fail either way"
+            )
+    kinds = {
+        (bool(e["in_causal_path"]),
+         bool(tuple(e["invisible_drifts"]) or tuple(e.get("collapsed_pairs") or ())))
+        for e in register.values()
+    }
+    for want, label in (((True, True), "on-path and BLIND"),
+                        ((True, False), "on-path and SIGHTED"),
+                        ((False, False), "OFF-path")):
+        if want not in kinds:
+            violations.append(
+                f"register: no {label} entry -- with every entry on one side "
+                "this is a blanket claim wearing a register's clothes, and it "
+                "would pass whatever the instrument did"
+            )
+    return violations
+
+
+def ageing_resolution_caveat() -> str:
+    """The resolution limit that travels WITH the ageing number, with its band
+    INTERPOLATED FROM THE REGISTER the control re-derives each run (the
+    D19/D20/D22/D23 pattern: a caveat nobody re-derives decays into a claim).
+    """
+    e = DIMENSION_DRIFT_RESOLUTION["ageing"]
+    blind = tuple(e["invisible_drifts"])
+    pair = tuple(e["collapsed_pairs"])[0]
+    return (
+        "RESOLUTION IS THIS POPULATION'S CALENDAR (atom D25, measured "
+        "2026-08-10, seeds "
+        + "/".join(str(s) for s in RESOLUTION_SEEDS) + "). An ordinal bucket "
+        "headline can only see a dating error that carries an invoice across a "
+        "30/60/90 boundary, and every truly-overdue invoice here is 30, 51 or "
+        "72 days overdue at `as_of` -- three distances fixed by FIRST_DUE_DATE, "
+        "PERIOD_SPACING_DAYS, N_PERIODS and AS_OF_BUFFER_DAYS, all harness "
+        "constants. MEASURED against the declared `organ_terms_drift_days` "
+        "counterfactual company (world and truth-side rule untouched): a "
+        f"supplier dating every debt {abs(blind[-1])} to {abs(blind[0])} days "
+        "OLDER than the world did -- over-ageing, the direction that posts an "
+        "early dunning letter -- publishes a BIT-IDENTICAL headline on every "
+        f"seed, and a supplier {pair[0]} day out and one {pair[1]} days out are "
+        "ONE number. The step is a property of the harness's calendar, not of "
+        "the company being graded, and it is ASYMMETRIC by accident of where "
+        "the due dates fell. Do not read a movement here as days, and do not "
+        "read a zero as accurate dating. R12: nothing was tuned -- the figure "
+        "at HEAD is unchanged; what was missing is what it can resolve."
+    )
+
+
 def _belief_permutation_note(bel: GapResult) -> str:
     """The published caveat, with its numbers INTERPOLATED FROM THE MEASUREMENT
     rather than typed into a sentence once and left to rot (the D11/D16
@@ -2260,7 +2704,8 @@ def _rescore_dimension(dim: str, true_l: List[str], bel_l: List[str],
 
 
 def measure(n_customers: int = 4000, seed: Optional[int] = None,
-            organ_reconciliation_drift_days: int = 0) -> Dict[str, object]:
+            organ_reconciliation_drift_days: int = 0,
+            organ_terms_drift_days: int = 0) -> Dict[str, object]:
     """Build the OFFLINE scenario and score all three gap dimensions. Returns a
     dict of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
     "stats": {...}, "notes": {...}}.
@@ -2275,6 +2720,7 @@ def measure(n_customers: int = 4000, seed: Optional[int] = None,
     return score_triad(
         records, consumer, as_of,
         organ_reconciliation_drift_days=organ_reconciliation_drift_days,
+        organ_terms_drift_days=organ_terms_drift_days,
     )
 
 
@@ -2333,6 +2779,7 @@ def score_triad(
     payment_terms_days: int = PAYMENT_TERMS_DAYS,
     reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
     organ_reconciliation_drift_days: int = 0,
+    organ_terms_drift_days: int = 0,
 ) -> Dict[str, object]:
     """Score the four gap dimensions (detection / detection_latency / belief /
     ageing) for a coupled-triad population.
@@ -2353,6 +2800,19 @@ def score_triad(
     counterfactual a reader cannot find in the repo is not part of the design.
     R13: it does not touch the baseline world; it builds a second, explicitly
     labelled COMPANY. Default 0 -- the scored book is never drifted.
+
+    `organ_terms_drift_days` is the SECOND declared counterfactual company (atom
+    D25, Expert Hour #8): the supplier holds the wrong PAYMENT TERMS on every
+    account, so it dates each invoice's due date `k` days later than the world
+    did -- k > 0 means it believes every debt is k days YOUNGER (it under-ages),
+    k < 0 that every debt is k days OLDER (it over-ages, the direction that
+    sends a dunning letter early). It reaches the organ ONLY: the harness's
+    truth side ages from the world's own `PeriodRecord.due_date`, and the
+    truth-side bucket rule (`_ageing_bucket`, atom D21) is untouched, so every
+    movement under it is the company's dating moving. A real and common
+    supplier error -- migrated accounts landing on the default terms -- and the
+    drift the `DIMENSION_DRIFT_RESOLUTION` register puts each dimension's
+    resolution on trial against. Default 0 -- the scored book is never drifted.
 
     `records` are the harness-held TRUTH (`PeriodRecord`, one per customer x
     period); `consumer` is the company's BELIEF surface, already fed EXCLUSIVELY
@@ -2450,8 +2910,9 @@ def score_triad(
 
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
+        organ_terms_days = payment_terms_days + organ_terms_drift_days
         snapshot = consumer.snapshot(
-            account_id, as_of=as_of, payment_terms_days=payment_terms_days,
+            account_id, as_of=as_of, payment_terms_days=organ_terms_days,
             reconciliation_grace_days=(
                 reconciliation_grace_days + organ_reconciliation_drift_days),
         )
@@ -2549,7 +3010,7 @@ def score_triad(
                 account_id, as_of=cand,
                 grace_days=(
                     reconciliation_grace_days + organ_reconciliation_drift_days),
-                payment_terms_days=payment_terms_days,
+                payment_terms_days=organ_terms_days,
             ):
                 # An unjoinable ref is counted once, at `as_of`, in the snapshot
                 # loop above -- same key convention, so witnessing it twice would
@@ -2835,8 +3296,16 @@ def score_triad(
         "denominator alignment and LOSES the name: it is the AGEING-REPORT "
         "OVERSTATEMENT at `as_of`. The wrongful-dunning exposure is published "
         "ONCE, by the detection dimension. R12: neither number was chosen; the "
-        "band was, and the rate followed it."
+        "band was, and the rate followed it. "
+        + ageing_resolution_caveat()
     )
+    # AND AS A COMPONENT, not only inside the prose: a reader who takes
+    # `components` programmatically -- the ledger writer, the live wiring, the
+    # dashboard -- never reads `note`, and a limit only the prose carries is one
+    # the machine strips off (the D22 stamping lesson).
+    age.components["drift_resolution_caveat"] = ageing_resolution_caveat()
+    age.components["drift_blind_band_days"] = tuple(
+        DIMENSION_DRIFT_RESOLUTION["ageing"]["invisible_drifts"])
 
     n_customers = len(by_customer)
     _od = sorted(recon_days_overdue_at_as_of)
@@ -3459,6 +3928,33 @@ def main() -> None:
           + ("every declaration held" if not _oqg_violations
              else f"{len(_oqg_violations)} VIOLATION(S)"))
     for v in _oqg_violations:
+        print(f"           !! {v}")
+
+    # THE DIMENSION RESOLUTION CONTROL (atom D25). Printed for the same reason
+    # the two above are, and this one answers the question a reader of ANY of
+    # these headlines is entitled to ask: how wrong does the company have to be
+    # before this number notices?
+    _ddr = measure_dimension_drift_resolution(n_customers=300)
+    print("  [drift-resolution control] company holds the wrong payment terms "
+          f"(world untouched), seeds {RESOLUTION_SEEDS}:")
+    for dim, row in _ddr.items():
+        entry = DIMENSION_DRIFT_RESOLUTION[dim]
+        if not entry["in_causal_path"]:
+            print(f"           {dim:<22} OFF the drift's path (organ reads "
+                  f"failure events, not dating) -- moved by "
+                  f"{entry['exercised_by']}: {row['exercised']}")
+            continue
+        print(f"           {dim:<22} blind to {row['unmoved']}, "
+              f"sees {row['moved']}")
+        for (a, b), got in row["collapses"].items():
+            print(f"           {'':<22} {a:+d}d and {b:+d}d COLLAPSE to "
+                  f"{got['readings'][0]!r} (residual, atom "
+                  f"{entry['debt_atom']})")
+    _ddr_violations = check_dimension_drift_resolution(_ddr)
+    print("           verdict: "
+          + ("every declaration held" if not _ddr_violations
+             else f"{len(_ddr_violations)} VIOLATION(S)"))
+    for v in _ddr_violations:
         print(f"           !! {v}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
