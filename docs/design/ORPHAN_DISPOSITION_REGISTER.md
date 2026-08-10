@@ -192,10 +192,10 @@ company.carbon.carbon_ledger | unhooked | none:company.carbon | E5 — the carbo
 company.compliance.board_meeting_register | unhooked | background.sanity_daemon | Board Meeting Minutes Register (Phase DR).; 2 test(s); no importer
 company.compliance.consumer_duty_board_report | unhooked | background.sanity_daemon | Consumer Duty Annual Board Report Register (Phase FW).; 1 test(s); no importer
 company.compliance.fair_value_assessment_register | unhooked | background.sanity_daemon | Consumer Duty Fair Value Assessment Register (Phase GP).; 3 test(s); no importer
-company.core.account_intelligence | unhooked | simulation.churn_journey | Account Intelligence Report (Phase EI).; 1 test(s); no importer
-company.core.adr_register | unhooked | simulation.churn_journey | Architectural Decision Record (ADR) Register (Phase EE).; 1 test(s); no importer
-company.core.event_ledger | unhooked | simulation.churn_journey | Event Ledger Core (Phase DZ).; 1 test(s); no importer
-company.core.three_horizon_clv | unhooked | simulation.churn_journey | no docstring; 1 test(s); no importer
+company.core.account_intelligence | unhooked | none:company.core | Account Intelligence Report (Phase EI).; 1 test(s); no importer
+company.core.adr_register | unhooked | none:company.core | Architectural Decision Record (ADR) Register (Phase EE).; 1 test(s); no importer
+company.core.event_ledger | unhooked | none:company.core | Event Ledger Core (Phase DZ).; 1 test(s); no importer
+company.core.three_horizon_clv | unhooked | none:company.core | no docstring; 1 test(s); no importer
 company.crm.acquisition_cohort | unhooked | simulation.run_phase2b | Customer acquisition cohort CLV analysis: cohort tracking, payback period.; 2 test(s); no importer
 company.crm.acquisition_journey | unhooked | simulation.run_phase2b | no docstring; 1 test(s); no importer
 company.crm.acquisition_strategy_book | unhooked | simulation.run_phase2b | Acquisition Strategy Intelligence Book.; 2 test(s); no importer
