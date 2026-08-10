@@ -61,11 +61,20 @@ METRIC CHOICE per dimension (design section 1.4, "pick the shape that fits"):
     pair already established, not a tautology (the rule is not re-deriving
     its own answer from its own inputs).
   * ageing -> `ageing_gap` (formula g, atom D7_ageing_gap_metric_reshape).
-    Per invoice, the TRUE 30/60/90+ bucket (`company.billing.arrears_engine.
-    age_bucket`, applied to the true "did this genuinely resolve by as_of"
-    fact) vs the BELIEF bucket read off the company's own open-item ageing
-    (`PaymentObservationConsumer.snapshot().aged_items`). Both sides use the
-    IDENTICAL bucket function.
+    Per invoice, the TRUE 30/60/90+ bucket (this module's own `_ageing_bucket`,
+    applied to the true "did this genuinely resolve by as_of" fact) vs the
+    BELIEF bucket read off the company's own open-item ageing
+    (`PaymentObservationConsumer.snapshot().aged_items`).
+    THE TWO SIDES RUN THE SAME RULE OVER DIFFERENT COVERAGE, and until
+    2026-08-10 they ran the same rule because the truth side IMPORTED the
+    organ's `age_bucket` (atom D21, H27 Expert Hour #5). That made the
+    dimension whose subject is debt DATING structurally unable to see a
+    company dating error -- `wrong_bucket` was 0 by construction, not by luck
+    -- and it sat under a `COVERAGE_ONLY_CLAIM_CONTRACT` exemption asserting
+    the opposite of this paragraph. The rule is now harness-owned and pinned
+    against the organ's; the dimension is enrolled in the coverage-only
+    control, where it measures a residual of exactly 0 and an organ-only
+    dating drift takes it off 0.
     THIS DIMENSION USED `misapplication_gap` AND NO LONGER DOES. The D6
     DISCOVER (docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md) refuted
     that shape three ways against the unchanged criterion: gap>1 did NOT mean
@@ -149,7 +158,6 @@ from company.billing.account_ledger import (
     LedgerEvent,
     LedgerEventType,
 )
-from company.billing.arrears_engine import age_bucket as company_age_bucket
 from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
     PaymentObservationConsumer,
@@ -231,6 +239,44 @@ def _severity_label(n_unresolved: int, n_hardship: int) -> str:
     if n_unresolved == 2:
         return "high" if n_hardship >= 2 else "elevated"
     return "high"
+
+
+def _ageing_bucket(days_overdue: int) -> str:
+    """The HARNESS's own 30/60/90+ dating rule for the ageing dimension's TRUTH
+    side (atom `D21`, H27 Expert Hour #5, 2026-08-10).
+
+    Until this function existed the truth side CALLED
+    `company.billing.arrears_engine.age_bucket` -- the company organ's own
+    function, imported at module scope -- against a `days_overdue` the scenario
+    constructs to be the same integer the organ computes (world
+    `issue = due - PAYMENT_TERMS_DAYS`; organ `due = issue_date +
+    payment_terms_days`, same 14). Same rule, same input: the two sides could
+    not disagree about the bucket of an invoice they both held open, and
+    `wrong_bucket` measured 0 at every seed and under every drift tried because
+    it was 0 by construction. Worse than the D20 hand-copy, which could at
+    least drift apart and be caught: an EDIT to the organ's `age_bucket` moved
+    the harness's notion of ground truth with it, so the harness would have
+    certified the company's dating correct by definition -- R15's TAUTOLOGY
+    pattern, the checked value derived from the source it checks.
+
+    `background.gap_metric` had already written this discipline down for the
+    bucket ORDER -- "Redeclared here rather than imported: `background/` is
+    harness code and must not take a company import for a constant", pinned
+    against the company's by `test_d7_ageing_measures.py` -- and the same
+    dimension imported the bucket RULE anyway.
+
+    So: redeclared here, and PINNED against the organ's rule by
+    `test_the_truth_side_dating_rule_is_pinned_against_the_organs`, which fails
+    loudly and NAMES the divergence if either side moves. R12: logically
+    identical to the organ's rule at HEAD, so no published number moves.
+    """
+    if days_overdue >= 90:
+        return "90+"
+    if days_overdue >= 60:
+        return "60-90"
+    if days_overdue >= 30:
+        return "30-60"
+    return "current"
 
 
 def _severity_distribution(labels: List[str]) -> List[float]:
@@ -687,6 +733,114 @@ DIMENSION_AS_OF_CONTRACT: Dict[str, Dict[str, object]] = {
 
 
 # ---------------------------------------------------------------------------
+# WHO OWNS THE TRUTH SIDE (atom D21, H27 Expert Hour #5, 2026-08-10)
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS. D20 found the belief dimension's truth-side rule was a
+# hand-copy of the company organ's rule, asserted as "coverage-only" and
+# measured nowhere. Expert Hour #5 asked the obvious next question -- which
+# OTHER truth sides are the company's own code? -- and found the ageing
+# dimension is not a copy of the organ's dating rule but literally IS it:
+# `from company.billing.arrears_engine import age_bucket as company_age_bucket`
+# at module scope, called to build `true_ageing_labels`.
+#
+# That is the R15 TAUTOLOGY pattern in the direction nobody checks. The
+# epistemic wall is normally enforced company -> sim (can the company see
+# something a real supplier could not?). This is the harness -> company
+# direction: the GROUND TRUTH a dimension grades against being computed by the
+# thing it is grading. A supplier ageing its debt from the wrong date is the
+# commonest real ageing-report failure there is, and this dimension -- the one
+# whose whole subject is debt DATING -- could not see it, because any edit to
+# `age_bucket` moved both sides together.
+#
+# THE CLASS CONTROL, and it is a call path rather than a declaration (the D19
+# lesson: a hand-maintained register skips exactly the entry nobody added).
+# `score_triad` resolves its truth-side labelling rules THROUGH this register,
+# so `rule.__module__` is a fact about what actually ran, not about what an
+# author wrote down. The invariant:
+#
+#     no dimension's TRUTH-side labelling rule may be owned by `company.*`
+#
+# `rule: None` is the honest entry for a dimension whose truth is a raw world
+# fact with no labelling rule to own -- it is spelled out rather than omitted,
+# because an absent entry is how a register fails silent.
+#
+# NOTE the mutation that reinstates this defect moves NO published number at
+# all (the two rules are logically identical at HEAD). That is precisely why
+# nothing caught it for the instrument's whole life, and why the control has to
+# be about ownership rather than about a value.
+TRUTH_SIDE_RULE_OWNERSHIP: Dict[str, Dict[str, object]] = {
+    "ageing": {
+        "rule": _ageing_bucket,
+        "labels": "the TRUE 30/60/90+ bucket of (as_of - due_date)",
+        "why": (
+            "HARNESS-OWNED SINCE 2026-08-10 (atom D21). It was "
+            "`company.billing.arrears_engine.age_bucket` -- the organ's own "
+            "function on an input the scenario constructs to be the organ's "
+            "own integer, so `wrong_bucket` was 0 by construction at every "
+            "seed and the dimension could not see a company dating error at "
+            "all. Now redeclared here and PINNED against the organ's rule so "
+            "a drift on either side fails loudly and by name."
+        ),
+    },
+    "belief": {
+        "rule": _severity_label,
+        "labels": "the TRUE arrears severity from the all-channel failure count",
+        "why": (
+            "HARNESS-OWNED. A deliberate mirror of the organ's thresholding "
+            "shape over a different-coverage input, which is what makes the "
+            "number a measure of the wall -- and the mirror is MEASURED, not "
+            "asserted, by the coverage-only residual (atom D20)."
+        ),
+    },
+    "belief_population_mix": {
+        "rule": _severity_label,
+        "labels": "the same truth labels as `belief` (atom D19)",
+        "why": (
+            "HARNESS-OWNED, via the identical label list. It gets its own "
+            "entry rather than an exemption for the reason it does in the "
+            "other two contracts: a dimension sharing another's inputs is the "
+            "one an author assumes inherits a declaration."
+        ),
+    },
+    "detection": {
+        "rule": None,
+        "labels": "`result == 'failed'` -- a raw world fact, no labelling rule",
+        "why": ("NO RULE TO OWN. The truth side is a field on the world's own "
+                "`PaymentEvent`, read directly. Recorded as None rather than "
+                "omitted: an absent entry is how a register fails silent."),
+    },
+    "detection_latency": {
+        "rule": None,
+        "labels": "due dates of truly-failed invoices -- raw world facts",
+        "why": ("NO RULE TO OWN. Days between two dates the world fixed; "
+                "there is no label to derive and so no rule to own."),
+    },
+}
+
+
+def truth_side_rule(dimension: str):
+    """Resolve a dimension's truth-side labelling rule THROUGH the ownership
+    register, so the register is the call path and not a parallel declaration
+    that can quietly stop describing the code (atom D21)."""
+    try:
+        entry = TRUTH_SIDE_RULE_OWNERSHIP[dimension]
+    except KeyError:
+        raise KeyError(
+            f"no TRUTH_SIDE_RULE_OWNERSHIP entry for '{dimension}' -- a "
+            "dimension scoring truth labels through an unregistered rule is "
+            "the fail-silent shape this register exists to close"
+        ) from None
+    rule = entry["rule"]
+    if rule is None:
+        raise ValueError(
+            f"'{dimension}' declares no truth-side labelling rule (its truth "
+            "is a raw world fact); asking for one means the scorer and the "
+            "register disagree about what this dimension does"
+        )
+    return rule
+
+
+# ---------------------------------------------------------------------------
 # THE COVERAGE-ONLY CLAIM (atom D20_belief_truth_rule_is_an_unmeasured_mirror)
 # ---------------------------------------------------------------------------
 # WHAT THE DEFECT WAS. The belief dimension publishes its two sides as "same
@@ -768,10 +922,24 @@ COVERAGE_ONLY_CLAIM_CONTRACT: Dict[str, Dict[str, object]] = {
                 "build, an empty book -- from passing as agreement."),
     },
     "ageing": {
-        "claims_coverage_only": False,
-        "why": ("EXEMPT. Truth is a clock fact about the due date and belief is "
-                "the open-item report; two different rules, not one rule over "
-                "two coverages."),
+        "claims_coverage_only": True,
+        "why": (
+            "ENROLLED 2026-08-10 (atom D21). It was EXEMPT, on the stated "
+            "ground that 'truth is a clock fact about the due date and belief "
+            "is the open-item report; two different rules, not one rule over "
+            "two coverages'. Both clauses were false, and this module's own "
+            "docstring said so four hundred lines up ('Both sides use the "
+            "IDENTICAL bucket function') -- the control believed the "
+            "exemption. The two sides run ONE rule (`_ageing_bucket`, which "
+            "until D21 was the organ's own `age_bucket`) over ONE integer the "
+            "scenario constructs identically on both sides; the only "
+            "difference is WHICH invoices the company holds open, which is "
+            "coverage exactly. Measured, and this is the signature the "
+            "exemption was hiding: residual 0.000000 on the all-DD "
+            "counterfactual at seeds 7/11/23, non-vacuous. So the one control "
+            "in the repository able to catch the D20 class was switched off "
+            "for the dimension with the strongest mirror of the three."
+        ),
     },
 }
 
@@ -1512,7 +1680,11 @@ def score_triad(
             1 for r in periods
             if r.result == "failed" and r.dd_failure_reason == INSUFFICIENT_FUNDS
         )
-        true_severity_labels.append(_severity_label(n_unresolved_true, n_hardship_true))
+        # Through the ownership register (atom D21), same as the ageing
+        # truth side -- the register is the call path for every truth-side
+        # labelling rule this module has, not just the one that was wrong.
+        true_severity_labels.append(
+            truth_side_rule("belief")(n_unresolved_true, n_hardship_true))
         belief_severity_labels.append(snapshot.arrears_risk_belief.value)
 
         aged_by_ref = {ai.reference: ai for ai in snapshot.aged_items}
@@ -1535,7 +1707,12 @@ def score_triad(
                 n_true_dd_failures += 1 if r.payment_method == DIRECT_DEBIT else 0
                 n_true_non_dd_failures += 1 if r.payment_method != DIRECT_DEBIT else 0
                 true_days_overdue = (as_of - r.due_date).days
-                true_ageing_labels.append(company_age_bucket(true_days_overdue))
+                # Resolved THROUGH the ownership register (atom D21) rather
+                # than by a bare name, so what the control inspects is what
+                # actually runs. This call used to be the company organ's own
+                # `age_bucket`.
+                true_ageing_labels.append(
+                    truth_side_rule("ageing")(true_days_overdue))
             else:
                 true_ageing_labels.append("current")
 

@@ -383,7 +383,11 @@ def _independent_truth_signatures(records, as_of):
         "belief_population_mix": belief_truth,
         "ageing": tuple(sorted(
             (r.invoice_ref,
-             pair.company_age_bucket((as_of - r.due_date).days)
+             # Through the ownership register (atom D21), which is what the
+             # scorer resolves too -- so a truth side quietly re-pointed at the
+             # company organ moves this signature with it rather than leaving
+             # the sweep comparing against a stale independent copy.
+             pair.truth_side_rule("ageing")((as_of - r.due_date).days)
              if r.result == "failed" else "current")
             for r in records)),
     }
@@ -2573,3 +2577,262 @@ def test_R15_an_organ_only_rule_drift_breaks_the_coverage_only_residual(
         f"rule untouched and every coverage-only residual stayed 0 ({claiming})"
         " -- the control cannot see rule divergence, which is the only thing "
         "it exists to see")
+
+
+# ---------------------------------------------------------------------------
+# WHO OWNS THE TRUTH SIDE (atom D21, H27 Expert Hour #5, 2026-08-10)
+# ---------------------------------------------------------------------------
+# THE DEFECT. The ageing dimension's truth side was
+# `company.billing.arrears_engine.age_bucket` -- the company organ's own
+# function -- applied to a `days_overdue` the scenario constructs to be the
+# same integer the organ computes. Same rule, same input, so the two sides
+# could not disagree about the bucket of an invoice they both held open:
+# `wrong_bucket` measured 0 at every seed and under every drift tried, by
+# construction rather than by luck, and the dimension whose whole subject is
+# debt DATING could not see a company dating error at all.
+#
+# It sat under a COVERAGE_ONLY_CLAIM_CONTRACT exemption reading "two different
+# rules, not one rule over two coverages" -- while the module's own docstring
+# four hundred lines up said "Both sides use the IDENTICAL bucket function".
+# The control believed the exemption, so the one mechanism in the repository
+# able to catch the D20 class was switched off for the dimension with the
+# strongest mirror of the three.
+
+
+def test_the_truth_side_of_every_published_dimension_is_harness_owned():
+    """THE CLASS CONTROL (R10): no dimension's TRUTH-side labelling rule may be
+    owned by `company.*`.
+
+    This is the epistemic wall in the direction nobody checks. The usual
+    enforcement is company -> sim: can the company see something a real
+    supplier could not? This is harness -> company: the ground truth a
+    dimension grades against being computed by the thing it is grading, which
+    is R15's TAUTOLOGY pattern (the checked value derived from the source it
+    checks).
+
+    INDEPENDENCE: it reads `__module__` off the callable `score_triad` actually
+    resolves through `truth_side_rule`, so it is a fact about what ran, not
+    about what an author wrote down.
+
+    COMPLETENESS: the dimension set is DERIVED from what is published, the D19
+    lesson -- a hand-maintained register skips exactly the entry nobody added.
+    """
+    published = {k for k, v in _scored().items() if isinstance(v, GapResult)}
+    declared = set(pair.TRUTH_SIDE_RULE_OWNERSHIP)
+    assert declared == published, (
+        f"published dimensions {sorted(published)} but the truth-side "
+        f"ownership register declares {sorted(declared)} -- an undeclared "
+        "dimension is one this control silently skips while still passing")
+
+    for dim in sorted(published):
+        entry = pair.TRUTH_SIDE_RULE_OWNERSHIP[dim]
+        assert entry["why"].strip(), f"{dim}: ownership declared with no reason"
+        rule = entry["rule"]
+        if rule is None:
+            # The honest "no labelling rule to own" entry -- spelled out rather
+            # than omitted, because an absent entry is how a register fails
+            # silent. It must still say what the truth actually is.
+            assert entry["labels"].strip(), (
+                f"{dim}: declares no rule and does not say what its truth is")
+            continue
+        owner = rule.__module__
+        assert not owner.startswith("company."), (
+            f"{dim}: its TRUTH-side labelling rule is `{owner}."
+            f"{rule.__name__}` -- the harness is grading the company against "
+            "the company's own code, so an edit to that rule moves the ground "
+            "truth with it and the dimension certifies the company correct by "
+            "definition (R15 tautology). This is the D21 defect exactly")
+
+
+def test_R15_pointing_the_ageing_truth_rule_at_the_organ_fires_the_control(
+        monkeypatch):
+    """MUTATE THE SOURCE: put the defect back and the control must fire.
+
+    And the second assertion is the whole reason this control has to be about
+    OWNERSHIP rather than about a value: reinstating the defect moves NO
+    published number at all, because the two rules are logically identical at
+    HEAD. That is why nothing caught it for the instrument's whole life -- no
+    number was ever wrong, only unable to become wrong.
+    """
+    from company.billing.arrears_engine import age_bucket as organ_rule
+
+    before = _scored()["ageing"].components
+
+    monkeypatch.setitem(
+        pair.TRUTH_SIDE_RULE_OWNERSHIP["ageing"], "rule", organ_rule)
+
+    with pytest.raises(AssertionError, match="own code"):
+        test_the_truth_side_of_every_published_dimension_is_harness_owned()
+
+    after = _scored()["ageing"].components
+    for key in ("mean_bucket_displacement", "understated_arrears_rate",
+                "overstated_arrears_rate", "misses", "false_ageings",
+                "wrong_bucket", "n_truly_overdue", "n_truly_current"):
+        assert before[key] == after[key], (
+            f"{key} moved when the truth side was pointed back at the organ "
+            "-- if a published number CAN see this defect, the ownership "
+            "control is not the only thing standing between it and a reader, "
+            "and this test's premise needs re-measuring")
+
+
+def test_R15_an_unregistered_or_ruleless_dimension_cannot_be_scored_silently():
+    """The register is the CALL PATH, so the two ways it could fail open --
+    a dimension not in it, and a dimension declaring no rule -- must RAISE at
+    the point of use rather than fall back to some default."""
+    with pytest.raises(KeyError, match="no TRUTH_SIDE_RULE_OWNERSHIP entry"):
+        pair.truth_side_rule("a_dimension_nobody_registered")
+    # `detection`'s truth is a raw world fact; asking it for a labelling rule
+    # means the scorer and the register disagree about what it does.
+    with pytest.raises(ValueError, match="raw world fact"):
+        pair.truth_side_rule("detection")
+
+
+@pytest.mark.parametrize("days_overdue", list(range(-5, 121)))
+def test_the_truth_side_dating_rule_is_pinned_against_the_organs(days_overdue):
+    """The `AGEING_BUCKET_ORDER` discipline, finally applied to the RULE.
+
+    `background.gap_metric` already wrote this down for the bucket ORDER --
+    "Redeclared here rather than imported: `background/` is harness code and
+    must not take a company import for a constant", pinned against the
+    company's so a drift on either side fails loudly -- and the same dimension
+    imported the bucket RULE anyway.
+
+    Harness-owned does NOT mean free to drift: the two sides are MEANT to run
+    the same rule (that is what makes the residual a coverage measurement).
+    What they may not do is run the SAME OBJECT, because then a divergence is
+    unrepresentable. So they are pinned, and the pin NAMES the divergence.
+    """
+    from company.billing.arrears_engine import age_bucket as organ_rule
+
+    harness = pair._ageing_bucket(days_overdue)
+    organ = organ_rule(max(0, days_overdue))
+    assert harness == organ, (
+        f"at {days_overdue} days overdue the harness's truth-side dating rule "
+        f"says '{harness}' and the company organ's says '{organ}'. The ageing "
+        "dimension's residual is published as pure coverage loss; a rule "
+        "divergence makes it a mixture read under the coverage name (atom "
+        "D20's defect, in the dimension D21 found it in). Either the organ's "
+        "ageing vocabulary changed -- in which case decide whether the "
+        "harness's ground truth should follow it, deliberately -- or one of "
+        "the two is now wrong")
+
+
+@pytest.mark.parametrize("seed", [7, 11, 23])
+def test_the_ageing_dimension_measures_a_zero_coverage_only_residual(seed):
+    """The enrolment's forward half, asserted PER DIMENSION.
+
+    The suite-wide coverage-only test asserts over every dimension that claims
+    coverage-only, and the R15 organ-drift test passes on `any()` of them --
+    so with `belief` in the set, `ageing` could be enrolled and never actually
+    exercised. This names it.
+    """
+    cov = pair.measure_coverage_only_residual(n_customers=600, seed=seed)
+    assert not cov["is_vacuous"], f"vacuous counterfactual: {cov['witnesses']}"
+    entry = cov["residuals"]["ageing"]
+    assert entry["claims_coverage_only"] is True, (
+        "ageing was un-enrolled from the coverage-only control -- it was "
+        "exempt on a false premise until D21 and the exemption is what hid "
+        "the mirror")
+    assert entry["residual"] == 0, (
+        f"ageing residual {entry['residual']} survives on the all-DD "
+        "counterfactual, where the company observes every failure -- so the "
+        "surviving gap is the truth-side dating rule and the organ's dating "
+        "rule disagreeing, published under the name of coverage loss")
+
+
+@pytest.mark.parametrize("seed", [7, 11, 23])
+def test_R15_an_organ_only_dating_drift_breaks_the_ageing_residual(
+        seed, monkeypatch):
+    """The enrolment's reverse half, on the ageing dimension BY NAME.
+
+    An organ-only drift of the 60-day boundary to 75 -- a supplier ageing on
+    calendar months -- with the world and the harness's truth-side rule
+    untouched. Measured 0.0 -> 0.3627 / 0.3194 / 0.3333 at seeds 7 / 11 / 23.
+
+    HONEST LIMIT, recorded rather than left for a reader to discover: a drift
+    that shifts EVERY boundary by 7 days is invisible to this control on this
+    book, because `build_scenario` exposes only three distinct ages (30, 51
+    and 72 days) and that drift crosses none of their boundaries. The control
+    sees a dating drift only where the book has an invoice near the boundary
+    that moved. See `test_the_ageing_headline_is_entirely_miss_driven_here`.
+    """
+    import company.billing.arrears_engine as arrears_engine
+
+    def drifted(days_overdue: int) -> str:
+        if days_overdue >= 90:
+            return "90+"
+        if days_overdue >= 75:
+            return "60-90"
+        if days_overdue >= 30:
+            return "30-60"
+        return "current"
+
+    monkeypatch.setattr(arrears_engine, "age_bucket", drifted)
+
+    cov = pair.measure_coverage_only_residual(n_customers=600, seed=seed)
+    assert not cov["is_vacuous"], (
+        "the counterfactual went vacuous, so this mutation proves nothing")
+    assert cov["residuals"]["ageing"]["residual"] != 0, (
+        "the company's own dating rule moved its 60-day boundary to 75 with "
+        "the truth side untouched, and the ageing residual stayed 0 -- the "
+        "dimension cannot see a company dating error, which before D21 it "
+        "structurally could not")
+
+
+@pytest.mark.parametrize("seed", [7, 11, 23])
+def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
+    """A WITNESS, not a target (R12): record what the ordinal headline is
+    actually made of on this book, so no reader takes it for an independent
+    second reading of the dimension.
+
+    `mean_bucket_displacement` is published as the measure that "distinguishes
+    off-by-one from stone-blind, which an error rate cannot". On this book
+    there is no off-by-one to distinguish: `wrong_bucket` is 0, so every unit
+    of displacement comes from a MISS -- the same cases
+    `understated_arrears_rate` reports, rank-weighted. Before D21 that was true
+    BY CONSTRUCTION (one rule, one input). It is now a property of the book and
+    of the two rules agreeing, which is a different and checkable thing -- and
+    if it ever stops being true, this test says so rather than a reader
+    noticing a headline that quietly started measuring something new.
+    """
+    result = _scored(seed=seed, n=600)
+    c = result["ageing"].components
+    order = list(c["bucket_order"])
+    rank = {b: i for i, b in enumerate(order)}
+
+    assert c["wrong_bucket"] == 0, (
+        f"seed {seed}: {c['wrong_bucket']} truly-overdue invoice(s) are now "
+        "dated into the WRONG OVERDUE bucket. That is a real ordinal error, "
+        "which this dimension could not previously represent -- the headline "
+        "is no longer a rank-weighted miss count and the D21 witness needs "
+        "rewriting, not silencing")
+
+    # The arithmetic identity, derived independently of the scorer.
+    records, consumer, _ledger, as_of = pair.build_scenario(600, seed=seed)
+    ages = {(as_of - r.due_date).days for r in records}
+    assert len(ages) == 3, (
+        f"seed {seed}: build_scenario now exposes {len(ages)} distinct debt "
+        f"ages {sorted(ages)}, not 3. The ordinal dimension's coverage of the "
+        "bucket space changed; the D21 limit recorded on the organ-drift "
+        "control (a uniform boundary shift is invisible on a three-age book) "
+        "must be re-measured")
+    assert {pair._ageing_bucket(d) for d in ages} == {"30-60", "60-90"}, (
+        f"seed {seed}: the reachable truth-side buckets changed -- `90+` and "
+        "`current` are still never exercised on the truly-overdue side, which "
+        "is what bounds `max_bucket_displacement` at 2")
+    # THE CONSEQUENCE, checked rather than described: if every unit of
+    # displacement is a miss, and the only reachable truth buckets are 30-60
+    # (rank 1) and 60-90 (rank 2), then total displacement must land exactly in
+    # [misses, 2 x misses]. A headline outside that band is a headline carrying
+    # something other than the miss count.
+    total = c["mean_bucket_displacement"] * c["n_truly_overdue"]
+    assert c["misses"] - 1e-9 <= total <= 2 * c["misses"] + 1e-9, (
+        f"seed {seed}: total ordinal displacement {total:.4f} over "
+        f"{c['misses']} miss(es) falls outside [misses, 2 x misses] -- the "
+        "headline is no longer a rank-weighted restatement of "
+        "understated_arrears_rate, so the two published numbers are no longer "
+        "the one reading this witness says they are")
+    assert (c["misses"] == 0) == (total == 0), (
+        f"seed {seed}: misses={c['misses']} but total displacement {total} -- "
+        "displacement with no miss, or a miss with no displacement, means the "
+        "two are no longer the same cases")

@@ -1,5 +1,49 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T08:51:01Z
+Last updated: 2026-08-10T09:16:30Z
+
+**H27 EXPERT HOUR #5 — THE AGEING DIMENSION GRADED THE COMPANY'S DATING AGAINST THE COMPANY'S OWN
+DATING FUNCTION (atom `D21`, L0→L2). `H27_payment_belief_gap` HELD AT L2 for the fifth Hour.**
+
+The Hour ran on `ageing` because Hour #4 named that criterion in advance — the only dimension of the
+W2_11↔D5 triad never given an Hour of its own. Both leads Hour #4 handed over were checked and
+**neither was taken**; what was under them: `tools/couple_w2_11_d5.py` built the ageing dimension's
+**truth** labels with the company organ's own function (`from company.billing.arrears_engine import
+age_bucket`) against a days-overdue the scenario constructs to be the organ's own integer. Same
+function, same argument — the two sides could not disagree about the bucket of an invoice they both
+held open. Measured: `wrong_bucket` **0** at seeds 7/11/23 and under every drift tried, so every unit
+of the ordinal headline is a **miss**, rank-weighted — 0 **by construction**, not by luck. The
+dimension whose whole subject is debt **dating** could not see a company dating error, and an edit to
+`age_bucket` would have moved the harness's ground truth with it. R15's **tautology** pattern in the
+direction nobody checks: the wall is enforced company→sim; this is harness→company.
+
+It hid under a `COVERAGE_ONLY_CLAIM_CONTRACT` exemption reading *"two different rules, not one rule
+over two coverages"* while the same file's docstring said *"Both sides use the IDENTICAL bucket
+function"* — the control believed the exemption, so **D20's control, built one Hour earlier for
+exactly this failure mode, was switched off for the dimension with the strongest mirror of the
+three**. Residual **0.000000** on the all-DD counterfactual (seeds 7/11/23, non-vacuous) — the
+coverage-only claim's own fingerprint, which the exemption was covering.
+
+Closed at the class (R10): the rule is harness-owned (`_ageing_bucket`) and **pinned** against the
+organ's across 126 day values; `TRUTH_SIDE_RULE_OWNERSHIP` is a register that is the **call path**,
+refusing any truth-side labelling rule owned by `company.*`; ageing **enrolled** in the coverage-only
+control and asserted per-dimension (the existing R15 test passes on `any()`). R15 both ways —
+re-pointing the register at the organ fires the ownership control; an organ-only 60→75 dating drift
+takes the ageing residual **0.0 → 0.3627/0.3194/0.3333**. The mutation that reinstates the defect
+**moves no published number at all**, and that is asserted: it is why the control is about ownership
+rather than a value, and why nothing caught this for the instrument's life. R12: every published
+figure byte-identical.
+
+Two honest limits recorded and pinned by test, not buried: a **uniform** boundary drift is invisible
+on this book (only three distinct debt ages — 30/51/72 days), and **2 of the 4 buckets** are
+unreachable on the truly-overdue truth side. Both are Hour #6's leads, with the overstated
+direction's missing ordinal term. Also caught: `H27.expert_hour.findings` had **no Hour #4 entry** —
+the Hour log itself had a gap; recorded late and marked as such.
+
+15 new tests; **417 green** across every suite touching `gap_metric` and the coupled pairs; 86 green
+in `tests/design`. Five Hours, five defects, none predicted by the previous one, arrival rate not
+falling — and this is the tick that changed the instrument, the worst-placed tick to certify it.
+Hour #4's release criterion (two consecutive clean Hours) still stands at zero.
+
 
 **H39 LANDED (`317a7b62f`) AND THE FABRIC ROWS WERE RE-MEASURED (`d3f683bd2`) — the map had been
 publishing an L2 for a program the repo did not contain, and the staleness control then caught its
@@ -1977,7 +2021,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (514s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (524s / 9 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
