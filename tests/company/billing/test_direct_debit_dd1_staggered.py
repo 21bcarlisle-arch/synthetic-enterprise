@@ -159,9 +159,20 @@ class TestLiveStaggeringBothWays:
         # date), the two customers land on the SAME date -- proving the test
         # above is actually load-bearing on the staggering, not passing for
         # some incidental reason.
+        #
+        # THE MUTATION'S TARGET MOVED, 2026-08-10 (KNIFE pass 3, B4's last edge).
+        # It used to patch `next_collection_on_day` on the SIM module, which held the
+        # name because the world snapped its own collection dates. It no longer does:
+        # deciding when to collect is the supplier's, and the name now lives on
+        # `company/billing/dd_collections_desk.py`. Re-pointing the patch is what
+        # keeps this control aimed at its subject -- patching a name the world no
+        # longer has would have made it fail-silent, catching nothing while looking
+        # green (`a test isolates the paths it thought of`). The property under test
+        # is unchanged: with the snap mutated out, staggering must collapse.
         import simulation.dd_collection_book as mod
+        import company.billing.dd_collections_desk as desk_mod
         monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
-        monkeypatch.setattr(mod, "next_collection_on_day", lambda due_iso, day: due_iso)
+        monkeypatch.setattr(desk_mod, "next_collection_on_day", lambda due_iso, day: due_iso)
         book = build_dd_collection_book(self._bills(), {})
         at_a = book.attempts_for_customer(self.CID_A)[0]
         at_b = book.attempts_for_customer(self.CID_B)[0]

@@ -227,32 +227,6 @@ estimate; the harness measures the gap between them. This is a coupled-triad bui
 mechanical move, and it must not be attempted as one.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B4_billing_mechanics_reached_directly
-4 edges, of which THREE WERE CUT 2026-08-10 (§3a) and ONE remains — this block stays a plan
-only for `simulation.dd_collection_book -> company.billing.direct_debit`.
-
-The design, unchanged: `credit_refund_events`, `dd_balance_book`, `dd_collection_book` and
-`dd_level_collection_book` reach into `company/billing/` for refund construction, direct-debit
-scheduling and — in the worst case — a PRIVATE function, `dd_review._recommended_monthly`. What
-the world legitimately knows here is what a customer would experience: money left the account
-on a day, a refund arrived, the monthly amount changed. It does not know the routine that chose
-the amount. Cut: the company EMITS these as instructions/outcomes over the existing async wall
-contract (C-S3), and the world's books apply what they receive rather than recomputing it from
-the company's internals. The private-function import goes first: it is a dependency on a
-routine the company is free to change without notice, which is the one property a real supplier
-does not grant the world.
-
-WHAT IS LEFT, AND WHY IT IS THE HARD ONE. `dd_collection_book` does not merely CONSULT the
-company's billing module — it BUILDS the company's artefact: it opens a `DirectDebitBook`,
-creates mandates on it and records `DDPaymentAttempt`s, so the world is operating the supplier's
-collection register. Two of the four names it imports have already been dealt with elsewhere
-(`staggered_payment_day` moved to the world with the B1-shaped cut; `next_collection_on_day` has
-REAL company-side callers inside `direct_debit.py`, so it can neither move nor be duplicated
-without becoming `one name, two numbers`). What is left is the book itself, and handing it over
-is the push B4 actually asks for: the company emits a collection instruction, the world reports
-what happened to the money. That needs a company-side emitter, which is `A_composition_lift`'s
-work — the same structural blocker measured for B5 and re-measured here, not inherited.
-WALL-CROSSING-DESIGN -->
 
 ---
 
@@ -651,6 +625,124 @@ narrow.
 
 ---
 
+## 3h. The world was OPERATING the supplier's collection register — added 2026-08-10 (step 13)
+
+**`simulation.dd_collection_book -> company.billing.direct_debit` is cut. 49 → 48 live (47 → 46
+direct). `B4_billing_mechanics_reached_directly` is DONE — 4 of 4 edges, the first design in this
+register to close completely.**
+
+### The edge B4 called the hard one, and why it was harder than the other three
+
+B4's other three edges were the world *consulting* the company: a private helper, a compliance
+book, a constant. This one was different in kind and the block said so —
+
+> `dd_collection_book` does not merely CONSULT the company's billing module — it BUILDS the
+> company's artefact ... so the world is operating the supplier's collection register.
+
+Concretely, inside the world's own loop: `DirectDebitBook()` opened, `create_mandate(...)` called
+with the masked bank details the supplier files, a rolling-median re-estimate deciding when the
+standing amount had drifted far enough to write to the customer's bank, `next_collection_on_day`
+snapping the collection onto the customer's anniversary, and `DDPaymentAttempt(...)` appended with
+the register's own `"collected"`/`"failed"` vocabulary. A household does not run its supplier's
+collections desk. It is told an amount and a date, the money moves or it does not, and the
+supplier writes that down.
+
+### This one is a PUSH, and that is the difference from B4's other two doors
+
+`credit_refund_requests.py` and `dd_review_outcome.py` both landed as PULLS through named doors,
+and both docstrings record the same honest limit: B4 asks the company to EMIT and the world to
+APPLY, and there was no company-side emitter to emit from. Step 11 removed that blocker
+(`company/billing/monthly_bill_assembly.py`) and both pushes stayed owed against it.
+
+**This edge did not need to borrow that emitter, and noticing that is the finding.** The blocker
+those two doors recorded is specific — a *bill* attribute needs a *bill* emitter. What this edge
+needs is a **collection instruction**, and the desk that decides collections is its own emitter.
+Reading "A_composition_lift's work" off the sibling rows would have parked this edge behind
+`run_phase2b`'s 32-edge composition problem indefinitely. **A blocker inherited from a sibling row
+is a claim to re-measure, not a fact to adopt** — the same shape as step 12's finding one section
+up, where an edge sat in the wrong design class while every count above it stayed correct.
+
+So: `company/billing/dd_collections_desk.py` owns the register and issues three instructions —
+`MandateSetupInstruction`, `AmendmentInstruction`, `CollectionInstruction`. The world puts each on
+the Bacs rails, and reports back what the rails did: the AUDDIS confirmation date, the ADDACS
+confirmation date, the date a collection resolved, whether the money arrived, and the ARUDD reason
+text when it did not. Rails timing is industry physics — the supplier observes it, it does not
+choose it. What no longer crosses: `DirectDebitBook`, `DirectDebitMandate`, `DDPaymentAttempt`,
+`next_collection_on_day`, the materiality floor and the re-estimation window.
+
+### What stayed world-side, deliberately
+
+**Whether the money arrives.** `simulation/arrears_engine.py::payment_outcome` keeps it, drawn
+from its own per-bill substream. A desk that decided its own collection outcomes would be the B2
+inversion in miniature — the company's belief constituting the fact it is a belief about — and it
+would silently flatter every collection-success figure the register feeds. `record_collection_outcome`
+takes `collected` as an argument and has no other route to it.
+
+**The customer's collection day.** `staggered_payment_day` moved to the world at step 9 for
+exactly this reason; the world hands it over at mandate setup, as a customer tells their supplier
+which day suits them.
+
+### No number moves, and it is measured rather than asserted
+
+Every routine was lifted with its arithmetic, its ordering and its reference strings unchanged. A
+140-customer, 30-month population (seasonal swing, a sustained step change in a fifth of the book,
+mixed segments and commodities) built through `build_dd_collection_book` before and after:
+**74 mandates, 2,220 attempts, sha256
+`fb084d0d52a9136576d71652d7a6430e7d39e21366f84609cde2d42f79bc2fb0` on both sides.** The rails RNG
+substream matters here and was preserved by construction: `rails_rng` is drawn only by the
+collection's own `resolve_submission`, and this cut changes which module *issues* a submission,
+never how many are issued or in what order.
+
+That hash is deliberately **not** pinned in a test. It is an equivalence claim about a moment in
+history, and a control asserting it would fail on the next legitimate change to the re-estimation
+routine while proving nothing about that routine's correctness — `never pin generated values in
+controls`.
+
+### The way this cut could rot silently, and the control that fires on it
+
+`tests/company/interfaces/test_dd_collection_instructions_seam.py` (9 tests) and
+`tests/company/billing/test_dd_collections_desk.py` (17 tests).
+
+**The exposure is the door widening, and no existing instrument can see it.** Adding
+`DirectDebitBook` to the seam's imports — the obvious convenience, since
+`build_dd_collection_book`'s return is now deliberately unannotated for want of a name — would
+hand the world the register's construction back **with the epistemic ratchet still green**,
+because the SIM's import still terminates on the exempt seam package. R15 evidence, both
+mutations performed on the real tree rather than named:
+
+  1. **The widening reds the control.** `DirectDebitBook` re-exported at the seam →
+     `test_the_door_exposes_only_the_desk_and_its_instructions` and its paired mutation test fail
+     (2 failed / 7 passed). Two further widenings are parametrised: `DDPaymentAttempt` (the
+     register's construction) and `AMENDMENT_WINDOW_BILLS` (the supplier's re-estimation routine
+     handed over as a constant).
+  2. **THE VACUITY GUARD, which is the one with teeth.** Mutation 1 proves nothing on its own if
+     something else already catches it — that would make this suite a `donated residual`. Under
+     the *same live widening*, `tests/architecture/test_epistemic_wall_ratchet.py` is **12 passed
+     / 0 failed**. The ratchet is blind to it by construction, measured rather than argued. The
+     in-suite version compares `live_crossings()` before and after and asserts the sets are
+     identical.
+  3. **Re-injecting the deleted import is caught** by a control that asks the WALKER, never a
+     substring — the docstrings recording why the import went away contain both
+     `company.billing.direct_debit` and `DirectDebitBook`, so a text scan fails on its own
+     subject. That is the `REVIEW_GATE must match idleness, not prose mentioning the string`
+     class, which bit this programme at §3a and again at §3g.
+
+**The limit, stated rather than glossed:** neither control can see a COPY. A re-implementation of
+`next_collection_on_day`'s arithmetic inside `simulation/` under a different name would create no
+edge and expose no forbidden name — the `one name, two numbers` defect this register names
+elsewhere. Nothing here detects that.
+
+### The honest residual
+
+`collection_register()` returns the desk's own `DirectDebitBook` so the run's report serialiser
+can read it, and the world holds that object for one hop on the way. It cannot name the type,
+construct one, or write to it through any exported name, so the property B4 asked for holds. What
+remains is one layer up and belongs to `A_composition_lift`:
+`simulation/run_phase4c_on_phase2b.py::main` is what threads the register into the report. That is
+a routing residual, not a decision the world takes.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -962,10 +1054,13 @@ What was correctly reasoned and is unaffected: the map/simplifications deferral 
 are still mid-transformation by the `map_records:` rehoming lane at this tick, and this commit still
 does not touch them. The deferral was right; the assertion that everything ELSE had landed was not.
 
-### B4_billing_mechanics_reached_directly — EXECUTED IN PART 2026-08-10 (3 of 4 edges)
+### B4_billing_mechanics_reached_directly — EXECUTED IN FULL, 2026-08-10 (4 of 4 edges)
 
-Three edges cut, in the order the design itself set. The design block stays in §3 because its
-fourth edge is still `owed`, and what remains is named there rather than implied.
+Three edges cut at step 9 in the order the design itself set; the fourth — the one the block
+called the hard one — at **step 13, §3h**, which is where that cut is written up. The design
+block has now left §3 entirely: with no `owed` row referencing it, a block there would be "a plan
+for nothing" and `tools/wall_crossing_dispositions.py` returns rc 2 on one. The three paragraphs
+below are the step-9 record, unchanged.
 
 **The private-function import went first, as B4 said it should.**
 `simulation/dd_balance_book.py` imported `dd_review._recommended_monthly` — a PRIVATE helper.
@@ -1073,13 +1168,13 @@ itself.
 
 ---
 
-## 4. The register — all 91 examined crossings, 49 of them still live
+## 4. The register — all 91 examined crossings, 48 of them still live
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
-walker could not see (§3b), making 91 rows. FORTY-TWO have since been CUT — by B1/B3–B8 (§3a,
-including B3's second application at §3g), by `A_composition_lift` parts 1 and 2 (§3c/§3e), by the
-bill-assembly cut (§3f), and one as a side effect of another atom entirely — so the tree carries 49
-and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
+walker could not see (§3b), making 91 rows. FORTY-THREE have since been CUT — by B1/B3–B8 (§3a,
+including B3's second application at §3g and B4's completion at §3h), by `A_composition_lift` parts
+1 and 2 (§3c/§3e), by the bill-assembly cut (§3f), and one as a side effect of another atom
+entirely — so the tree carries 48 and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
 becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
@@ -1108,7 +1203,7 @@ edge: simulation.hedged_settlement -> company.pricing.ofgem_price_cap | disposit
 # --- B4_billing_mechanics_reached_directly ---
 edge: simulation.credit_refund_events -> company.billing.credit_refund | disposition=cut | reason=B4 executed 2026-08-10 — the world no longer opens the company's SLC 14 book. It reports a closure, the credit left in the account and the date the money ARRIVED to `company/interfaces/credit_refund_requests.py` and logs what comes back; the deadline, the record type, the status lifecycle and the four-way refund taxonomy are unreachable from the SIM. The trigger is CLASSIFIED behind the door rather than passed in, which is the substance of the cut: accepting a `trigger=` argument would have left the taxonomy in the world's hands and made this a spelling change.
 edge: simulation.dd_balance_book -> company.billing.dd_review | disposition=cut | reason=B4 executed 2026-08-10, and this was the one the design said goes FIRST — it imported the PRIVATE `_recommended_monthly`, i.e. depended on a routine the company is free to rename without notice. The world is now TOLD the standing monthly amount through `company/interfaces/dd_review_outcome.py` (the number on the customer's letter); the ±5% SLC 27B band, the increase/decrease/maintain classification and the rounding convention stay behind the door.
-edge: simulation.dd_collection_book -> company.billing.direct_debit | disposition=owed | design=B4_billing_mechanics_reached_directly
+edge: simulation.dd_collection_book -> company.billing.direct_debit | disposition=cut | reason=B4 COMPLETED 2026-08-10 (step 13, §3h) — the design's last edge and the one its block called the hard one, because the world did not consult the company's billing module, it OPERATED the supplier's collection register: it opened a `DirectDebitBook`, created mandates on it, decided when a standing amount had drifted far enough to write to the customer's bank, and appended `DDPaymentAttempt`s. The supplier now runs its own desk (`company/billing/dd_collections_desk.py`) and ISSUES setup, amendment and collection instructions through `company/interfaces/dd_collection_instructions.py`; the world puts them on the Bacs rails and reports what happened to the money. This is B4's PUSH, not another pull — the instruction the edge needed is a collection instruction and the desk emits it. Register bit-identical across the cut (74 mandates / 2,220 attempts, sha256 fb084d0d52a9136576d71652d7a6430e7d39e21366f84609cde2d42f79bc2fb0).
 edge: simulation.dd_level_collection_book -> company.billing.direct_debit | disposition=cut | reason=B4 executed 2026-08-10 by the B1 template, not a door: `staggered_payment_day` was WORLD PHYSICS FILED COMPANY-SIDE. A household picks its collection day and the supplier observes it on the mandate, so the module moved to `simulation/dd_payment_day.py` and the world now holds its own customers' habit. Safe by measurement taken immediately before the move: zero company-side importers (so no class-(a) edge is created) and stdlib-only imports (so no sim-reads-company edge is either). Deliberately NOT re-exported from the old home — that would make the company import the SIM.
 # --- B5_collections_tone_is_an_event_attribute ---
 edge: simulation.arrears_engine -> company.policy.decision_policy | disposition=cut | reason=B5 executed 2026-08-10 — the tone is now read off `company/interfaces/collections_communication.py::collections_tone_for`, so the world learns the tone of a letter that ARRIVED while `DecisionPolicy` (its tone_mode, its A/B split) stays unreachable from the SIM. HALF the design, stated as such: this is a PULL and B5 asks for a PUSH (tone stamped on an emitted event). Blocked structurally, by measurement not assumption — the bill dicts are built by `simulation/run_phase4c_on_phase2b.py::build_monthly_bills`, a SIM composition root, so there is no company-side emitter to stamp; that is A_composition_lift's work. See B5 residual in §3a.

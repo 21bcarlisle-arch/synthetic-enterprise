@@ -144,14 +144,9 @@ company-observable artefact where none existed before.
 from __future__ import annotations
 
 import random
-import statistics
 from datetime import date, timedelta
 
-from company.billing.direct_debit import (
-    DirectDebitBook,
-    DDPaymentAttempt,
-    next_collection_on_day,
-)
+from company.interfaces.dd_collection_instructions import open_collections_desk
 from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS, bill_substream, payment_method, payment_outcome,
     stress_for_year, _fuel_poor_for_bill, _tone_for_bill,
@@ -162,28 +157,36 @@ from simulation.bacs_rails import (
 )
 from simulation.dd_payment_day import staggered_payment_day
 
-# 2026-07-12, L2->L3 attempt: a DD amendment only fires when the mandate's
-# stored amount has drifted from the customer's ROLLING MEAN bill amount by
-# more than this floor (see build_dd_collection_book's rolling-mean
-# comparison, fixed after Expert Hour review found the original version
-# compared against a single bill's raw amount -- modelling on-demand
-# billing, not smoothed Variable DD). No sourced real trigger threshold
-# exists for how much drift triggers a real re-estimate, so this remains a
-# deliberately conservative, documented choice, not a fabricated precision
-# claim.
-_AMENDMENT_MATERIALITY_THRESHOLD_GBP = 1.00
+# The amendment materiality floor and the trailing re-estimation window MOVED to
+# `company/billing/dd_collections_desk.py` (KNIFE pass 3,
+# B4_billing_mechanics_reached_directly, 2026-08-10). How far a standing amount must
+# drift before the supplier writes to the customer's bank, and how much history the
+# estimate looks back over, are the supplier's re-estimation routine -- a routine it
+# is free to change without telling anyone, which is the one property this world had
+# no business holding. They are deliberately NOT re-exported here.
 
 
 def build_dd_collection_book(
     bills: list[dict], behavioral: dict, monthly_amount_by_customer: dict[str, float] | None = None,
     seed: int = 42,
-) -> DirectDebitBook:
-    """Build a DirectDebitBook populated with real, Bacs-rails-timed
-    collection attempts for every direct_debit-method bill. Resolves each
-    bill from the same per-bill substream compute_emergent_bad_debt() uses
-    (`arrears_engine.bill_substream`, C-S2) -- the resulting success/failure
-    pattern matches the real ground truth exactly, this just adds the missing
-    rails-timing/reason-code layer around it."""
+):
+    """Run this world's Bacs rails against the supplier's collection instructions,
+    and hand back the supplier's own collection register.
+
+    Resolves each bill from the same per-bill substream compute_emergent_bad_debt()
+    uses (`arrears_engine.bill_substream`, C-S2) -- the resulting success/failure
+    pattern matches the real ground truth exactly; this adds the rails-timing and
+    reason-code layer around it.
+
+    DELIBERATELY UNANNOTATED (KNIFE pass 3, B4_billing_mechanics_reached_directly,
+    2026-08-10). The return is a `DirectDebitBook`, and this module can no longer
+    NAME that type -- which is the cut. Re-exporting the class through
+    `company/interfaces/dd_collection_instructions.py` just to satisfy an annotation
+    would hand the world back the ability to construct the supplier's register, with
+    every static instrument in the tree still green, because an import terminating on
+    the seam package is exempt by construction. An honest missing annotation is a
+    smaller cost than a laundered dependency, and the seam module records the refusal.
+    """
     # Separate, independently-seeded RNG for bacs_rails' own lag-day
     # randomization (resolve_submission()'s `rng` arg) -- deliberately NOT a
     # payment-outcome substream. Keeping the rails draws on their own stream
@@ -192,25 +195,8 @@ def build_dd_collection_book(
     # impossible, since each bill's outcome is keyed by its own identity
     # rather than by the state of a stream this loop shares.
     rails_rng = random.Random(seed + 1)
-    book = DirectDebitBook()
+    desk = open_collections_desk()
     monthly_amount_by_customer = monthly_amount_by_customer or {}
-    # Rolling reference for the amendment trigger -- amounts seen so far per
-    # customer, oldest first. Compared against the mandate's stored amount
-    # as a MEDIAN over a trailing window (an EAC/"estimated annual
-    # consumption"-style smoothed estimate, matching dd_mandate_register.py's
-    # own docstring), never a single bill's raw amount -- fixes the Expert
-    # Hour finding that comparing raw per-bill amounts fired an amendment
-    # almost every month for a seasonal customer. MEDIAN (not mean) is
-    # deliberate: a single anomalous/seasonal bill inside an otherwise
-    # steady window does not shift a median at all, whereas a mean would
-    # still be dragged by it; a genuinely SUSTAINED step change still moves
-    # the median once more than half the window reflects the new level. A
-    # trailing window (not the full cumulative history) is used because an
-    # unbounded all-time average would keep chasing a sustained step-change
-    # forever without ever converging, which is not what a real annual
-    # re-estimate does.
-    customer_bill_history: dict[str, list[float]] = {}
-    _AMENDMENT_WINDOW_BILLS = 12  # roughly a year of monthly billing
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
@@ -240,31 +226,30 @@ def build_dd_collection_book(
         issue_date = date.fromisoformat(period_end)
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
 
-        mandate = book.get_mandate(cid)
-        if mandate is None:
+        if not desk.has_mandate(cid):
             monthly_amount = monthly_amount_by_customer.get(cid, amount)
-            # Mandate SETUP goes through the same rails-timing wiring as
-            # collections -- submit, then resolve on the real AUDDIS 2-day
-            # confirmation window. Deterministic "success" outcome; see the
-            # module docstring for the corrected, honest basis for that
-            # choice.
-            setup_ref = f"MANDATE-{cid}-{due_date.isoformat()}"
-            setup_submission = submit_mandate_setup(setup_ref, cid, due_date)
-            setup_resolved = resolve_submission(setup_submission, "success")
-            mandate = book.create_mandate(
+            # The SUPPLIER issues the setup instruction (reference, amount, the day
+            # the customer picked); the WORLD puts it on the rails. Mandate setup
+            # goes through the same rails-timing wiring as collections -- submit,
+            # then resolve on the real AUDDIS 2-day confirmation window.
+            # Deterministic "success" outcome; see the module docstring for the
+            # corrected, honest basis for that choice.
+            setup = desk.open_mandate(
                 customer_id=cid,
-                sort_code="00-00-**",  # masked, matches DirectDebitMandate's own convention -- no real bank data exists to carry
-                account_last4="0000",
                 monthly_amount_gbp=monthly_amount,
-                setup_date=due_date.isoformat(),
-                setup_rails_reference=setup_ref,
-                setup_confirmed_date=setup_resolved.expected_outcome_date.isoformat(),
+                requested_date=due_date.isoformat(),
                 # DD1 (2026-07-27): the customer's own staggered collection day
                 # (1-28), deterministic per-customer so replay is identical and
                 # no shared RNG stream moves. Spreads the book's collections
-                # across the month onto real anniversaries.
+                # across the month onto real anniversaries. The customer picks it,
+                # so the world holds it and TELLS the supplier.
                 payment_day=staggered_payment_day(cid),
             )
+            setup_submission = submit_mandate_setup(setup.reference, cid, due_date)
+            setup_resolved = resolve_submission(setup_submission, "success")
+            # The mandate exists once AUDDIS confirms it -- the world reports the
+            # confirmation date and the desk registers it.
+            desk.confirm_mandate(setup, setup_resolved.expected_outcome_date.isoformat())
             # FIXED (2026-07-12, third pass): a real Bacs integration cannot
             # submit a collection against an unconfirmed mandate -- this
             # bill's own collection due_date is now genuinely gated on the
@@ -280,31 +265,28 @@ def build_dd_collection_book(
             # financial figure, so no existing number is affected either way.
             due_date = max(due_date, setup_resolved.expected_outcome_date)
         else:
-            history = (customer_bill_history.get(cid) or [])[-_AMENDMENT_WINDOW_BILLS:]
-            if history:
-                rolling_median = statistics.median(history)
-                if abs(rolling_median - mandate.monthly_amount_gbp) > _AMENDMENT_MATERIALITY_THRESHOLD_GBP:
-                    # 2026-07-12, L2->L3 attempt: an ADDACS-style amendment
-                    # fires when the customer's own established (median)
-                    # bill level has genuinely drifted from the mandate's
-                    # collection amount -- not on a single bill's seasonal
-                    # swing (fixed after Expert Hour review). Same
-                    # deterministic-success reasoning as mandate setup -- see
-                    # module docstring for the corrected, honest basis (a
-                    # real ~5% GoCardless-cited non-confirmation rate exists,
-                    # but modelling a rejected amendment needs a fallback
-                    # mechanism this codebase doesn't have yet).
-                    amend_ref = f"AMEND-{mandate.mandate_reference}-{period_end}"
-                    amend_submission = submit_amendment(amend_ref, cid, due_date)
-                    amend_resolved = resolve_submission(amend_submission, "success")
-                    book.amend_mandate(
-                        customer_id=cid,
-                        new_monthly_amount_gbp=round(rolling_median, 2),
-                        rails_reference=amend_ref,
-                        confirmed_date=amend_resolved.expected_outcome_date.isoformat(),
-                    )
+            # 2026-07-12, L2->L3 attempt: an ADDACS-style amendment fires when the
+            # customer's own established bill level has genuinely drifted from the
+            # mandate's collection amount -- not on a single bill's seasonal swing
+            # (fixed after Expert Hour review). WHETHER it has drifted is now the
+            # supplier's own re-estimation call, taken behind the door; the world
+            # learns only that an amendment was issued and puts it on the rails.
+            # Same deterministic-success reasoning as mandate setup -- see module
+            # docstring for the corrected, honest basis (a real ~5%
+            # GoCardless-cited non-confirmation rate exists, but modelling a
+            # rejected amendment needs a fallback mechanism this codebase doesn't
+            # have yet).
+            amendment = desk.review_amendment(cid, period_end)
+            if amendment is not None:
+                amend_submission = submit_amendment(amendment.reference, cid, due_date)
+                amend_resolved = resolve_submission(amend_submission, "success")
+                desk.confirm_amendment(
+                    amendment, amend_resolved.expected_outcome_date.isoformat()
+                )
 
-        customer_bill_history.setdefault(cid, []).append(amount)
+        # The supplier records what it billed. This is the only input its
+        # re-estimation reads, and it is its own record, not a window onto the world.
+        desk.note_billed_amount(cid, amount)
 
         # DD1 (2026-07-27): the actual collection lands on the customer's own
         # staggered day-of-month (on-or-after the rails-confirmed due date),
@@ -315,11 +297,18 @@ def build_dd_collection_book(
         # not date, and this book reaches only the DD-rails business surface
         # (extract_dd_rails), never the ledger/cash-timing pipeline -- so no
         # existing financial figure moves, only the observed collection date.
-        collection_date = date.fromisoformat(
-            next_collection_on_day(due_date.isoformat(), mandate.payment_day)
+        instruction = desk.instruct_collection(
+            customer_id=cid,
+            period_end=period_end,
+            amount_gbp=amount,
+            earliest_date=due_date.isoformat(),
         )
-        reference = f"{mandate.mandate_reference}-{period_end}"
-        submission = submit_collection(reference, cid, amount, collection_date)
+        submission = submit_collection(
+            instruction.reference,
+            cid,
+            instruction.amount_gbp,
+            date.fromisoformat(instruction.collection_date),
+        )
         decided = "success" if outcome == "success" else "failed"
         resolved = resolve_submission(submission, decided, rng=rails_rng)
 
@@ -327,14 +316,14 @@ def build_dd_collection_book(
         if resolved.status == "failed" and resolved.reason_code is not None:
             failure_reason = ARUDD_REASON_CODES.get(resolved.reason_code, "")
 
-        attempt = DDPaymentAttempt(
-            mandate_reference=mandate.mandate_reference,
-            customer_id=cid,
+        # What happened to the money, reported back. The world states the fact
+        # (`collected`) and the industry's own ARUDD reason text; the vocabulary the
+        # register files it under is the supplier's, behind the door.
+        desk.record_collection_outcome(
+            instruction,
             attempt_date=resolved.expected_outcome_date.isoformat(),
-            amount_gbp=amount,
-            outcome="collected" if resolved.status == "success" else "failed",
+            collected=resolved.status == "success",
             failure_reason=failure_reason,
         )
-        book.record_attempt(attempt)
 
-    return book
+    return desk.collection_register()

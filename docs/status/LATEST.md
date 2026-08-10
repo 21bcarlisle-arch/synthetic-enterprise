@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T21:51:28Z
+Last updated: 2026-08-10T23:11:31Z
 
 **THE MACHINE CAN SEE ITS OWN CONTENTION WINDOW — resource-headroom governor LANDED
 (commit `f89afcd96`, pushed), against `ADVISOR_FLAG_RESOURCE_HEADROOM_GOVERNOR_2026-08-09` and
@@ -2108,9 +2108,9 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (282s / 5 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
-- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
+- Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 

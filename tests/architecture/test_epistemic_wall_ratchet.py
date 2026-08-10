@@ -225,7 +225,16 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.customer_events", "saas.churn_model"),
     ("simulation.customer_events", "saas.customer_reaction"),
     ("simulation.customer_events", "saas.home_move_win_rate"),
-    ("simulation.dd_collection_book", "company.billing.direct_debit"),
+    # ("simulation.dd_collection_book", "company.billing.direct_debit") — CUT
+    # 2026-08-10 by KNIFE pass 3, design B4, the LAST of that design's four edges
+    # and the one its block called the hard one: the world was not consulting the
+    # supplier's billing module, it was OPERATING the supplier's collection
+    # register — opening a `DirectDebitBook`, creating mandates on it, deciding
+    # when the standing amount had drifted far enough to amend, and appending
+    # `DDPaymentAttempt`s. The supplier now runs its own desk
+    # (`company/billing/dd_collections_desk.py`) and ISSUES setup, amendment and
+    # collection instructions through `company/interfaces/dd_collection_instructions.py`;
+    # the world puts them on the Bacs rails and reports what happened to the money.
     # ("simulation.hedged_settlement", "company.pricing.ofgem_price_cap") — CUT
     # 2026-08-10 by KNIFE pass 3, design B3. The world now enforces the cap from
     # its own reading of the published commons artefact
