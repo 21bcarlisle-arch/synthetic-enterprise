@@ -21,8 +21,24 @@ checkpoint has exactly one way to be worse than useless, which is to look like a
 MUTATION-PROVEN: setting `results["complete"] = True` unconditionally in `_checkpoint` reds
 `test_a_partial_record_is_not_complete` and `test_an_aborted_record_is_not_complete`; deleting
 the `except OSError` reds `test_an_unwritable_checkpoint_never_kills_the_run`.
+
+AND FOR THE LAUNCH (2026-08-10, second section below). The checkpoint fix held; its sibling did
+not, because it was never in the repo to hold. `3cc60f133` claimed the job was "launched under
+setsid" and `setsid` appeared nowhere in the repository — so the ~50-minute run was still an
+ad-hoc background job of a bounded tick, and it died in the quiet-wait for the second time, at
+the same point, before its first phase. `--detach` is now that launch, in code, and these
+controls pin the property it exists for: **a child started this way survives the death of the
+process group that started it**. The differential is the point — the same scenario without the
+detach is run alongside, and the undetached child dies, so the survival above is produced by
+`start_new_session` and not by the kill being harmless.
 """
 import json
+import os
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
 
 import pytest
 
@@ -110,12 +126,191 @@ def test_every_phase_the_harness_times_is_named_in_the_phase_order():
     import inspect
     import re
 
-    src = inspect.getsource(measure.main)
+    src = inspect.getsource(measure._run_measurement)
     assigned = set(re.findall(r'results\["phases"\]\["(\w+)"\]', src))
 
-    assert assigned, "could not find the phase assignments in main() -- this oracle has gone blind"
+    assert assigned, "no phase assignments found in _run_measurement -- this oracle has gone blind"
     assert assigned == set(measure.PHASE_ORDER), (
-        f"main() times {sorted(assigned)} but PHASE_ORDER declares "
+        f"_run_measurement times {sorted(assigned)} but PHASE_ORDER declares "
         f"{sorted(measure.PHASE_ORDER)}; a phase missing from PHASE_ORDER is never reported "
         "as owed"
+    )
+
+
+# ── THE LAUNCH (2026-08-10) ──────────────────────────────────────────────────────────────────
+
+def _launcher_source(detached: bool) -> str:
+    """A stand-in launcher: spawns a sleeper the same way the harness spawns itself, prints the
+    sleeper's pid, and exits — leaving the sleeper as the only member of its old process group.
+
+    The `detached=False` arm is the counterfactual, written here rather than by mutating the
+    production file, so the differential runs on every suite: if the group-kill below could not
+    kill an undetached child, the survival assertion would be vacuous."""
+    spawn = ("measure._detached_popen(argv, None)" if detached else
+             "subprocess.Popen(argv, stdin=subprocess.DEVNULL)")
+    return (
+        "import subprocess, sys\n"
+        "sys.path.insert(0, {repo!r})\n"
+        "from tools import measure_publish_gate_subject_cost as measure\n"
+        "argv = [sys.executable, '-c', 'import time; time.sleep(60)']\n"
+        "child = {spawn}\n"
+        "print(child.pid, flush=True)\n"
+    ).format(repo=str(measure.prc.PROJECT_DIR), spawn=spawn)
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except (ProcessLookupError, PermissionError):
+        return False
+    return True
+
+
+def _spawn_then_group_kill(detached: bool) -> bool:
+    """Run a launcher in its own group, kill that group, and report whether its child lived."""
+    launcher = subprocess.Popen([sys.executable, "-c", _launcher_source(detached)],
+                                stdout=subprocess.PIPE, text=True, start_new_session=True)
+    # `start_new_session` makes the launcher its own group leader, so its pgid IS its pid --
+    # read here rather than after `wait()`, which reaps it and makes `getpgid` raise.
+    group = launcher.pid
+    try:
+        child_pid = int(launcher.stdout.readline().strip())
+        launcher.wait(timeout=30)
+        try:
+            os.killpg(group, signal.SIGKILL)
+        except ProcessLookupError:
+            # The group is already empty: the launcher is reaped and nothing else is in it,
+            # which is itself the detached outcome. The aliveness poll below is the verdict.
+            pass
+        deadline = time.time() + 5
+        while _alive(child_pid) and time.time() < deadline:
+            time.sleep(0.1)
+        return _alive(child_pid)
+    finally:
+        launcher.stdout.close()
+        try:
+            os.kill(child_pid, signal.SIGKILL)
+        except (NameError, ProcessLookupError, PermissionError):
+            pass
+
+
+def test_a_detached_child_survives_the_death_of_its_launchers_process_group():
+    """THE property the `--detach` flag exists for, and the one the un-committed `setsid` was
+    supposed to provide: the ~50-minute measurement must outlive the bounded tick that starts it.
+
+    Both arms in one test on purpose. The undetached arm is what actually happened twice on
+    2026-08-10 — a run that died with its launcher, inside the quiet-wait, before phase one."""
+    assert _spawn_then_group_kill(detached=False) is False, (
+        "the undetached child survived a kill of its launcher's group, so this test cannot tell "
+        "the two apart and the assertion below proves nothing"
+    )
+    assert _spawn_then_group_kill(detached=True) is True, (
+        "a child started through `_detached_popen` died with its launcher's group -- the detach "
+        "is not holding, and a 50-minute job started from a bounded tick will die again"
+    )
+
+
+def test_the_detach_flag_hands_the_run_to_a_child_that_is_not_another_launcher(monkeypatch, out):
+    """`--detach` spawns the MEASUREMENT, never a second launcher: a child carrying `--detach`
+    would fork forever without ever timing anything."""
+    seen = {}
+    # `_spawn_detached` opens the real launch log before it spawns anything; without this the
+    # test would append a launch header to a live observability file on every suite run.
+    monkeypatch.setattr(measure, "DETACHED_LOG_FILE", Path(out).parent / "launch-log.md")
+    monkeypatch.setattr(measure, "_measurement_is_running", lambda: False)
+    monkeypatch.setattr(measure, "_detached_popen",
+                        lambda argv, handle: seen.setdefault("argv", argv) and None
+                        or type("P", (), {"pid": 4242})())
+    monkeypatch.setattr(measure, "_run_measurement",
+                        lambda *a: pytest.fail("--detach must not measure inline"))
+
+    assert measure.main(["--detach", "--out", out]) == 0
+    assert "--detach" not in seen["argv"]
+    assert seen["argv"][1:3] == ["-m", "tools.measure_publish_gate_subject_cost"]
+    assert out in seen["argv"]
+
+
+def test_without_the_flag_the_measurement_runs_in_this_process(monkeypatch, out):
+    """The other direction: no flag means no spawn. A launcher that ALWAYS detached would make
+    the harness impossible to run in the foreground and impossible to debug."""
+    monkeypatch.setattr(measure, "_detached_popen",
+                        lambda *a, **k: pytest.fail("spawned without --detach"))
+    monkeypatch.setattr(measure, "_run_measurement", lambda out_path, log: 0)
+
+    assert measure.main(["--out", out]) == 0
+
+
+def test_a_second_launch_is_refused_while_a_measurement_is_live(monkeypatch, out):
+    """Two concurrent runs would delete the reused checkout under each other's suite and both
+    would report a wrong ratio without saying so."""
+    monkeypatch.setattr(measure, "_measurement_is_running", lambda: True)
+    monkeypatch.setattr(measure, "_detached_popen",
+                        lambda *a, **k: pytest.fail("launched a second concurrent measurement"))
+
+    assert measure.main(["--detach", "--out", out]) == 1
+
+
+def _pgrep_returning(text):
+    """Stand in for the `pgrep -af` the guard shells out to. Canned rather than observed: the
+    real answer depends on whether a 50-minute measurement happens to be live on this box, and a
+    control whose verdict depends on that is a flake, not a control."""
+    class _Result:
+        stdout = text
+
+    return lambda *a, **k: _Result()
+
+
+def test_the_liveness_guard_ignores_its_own_ancestors(monkeypatch):
+    """A guard that counted the launch's OWN command line — which appears in this process, in its
+    shell, and in the `bash -c` wrapper above it — would refuse every launch: a control that can
+    only say no. The pytest and grep lines are here for the same reason; this module's own path
+    on a test runner's argv is not a running measurement."""
+    lines = "\n".join([
+        "{} /usr/bin/python3 -m tools.measure_publish_gate_subject_cost --detach".format(
+            os.getpid()),
+        "{} /bin/bash -c python3 -m tools.measure_publish_gate_subject_cost --detach".format(
+            os.getppid()),
+        "99991 grep -rn measure_publish_gate_subject_cost .",
+        "99992 python3 -m pytest tests/tools/test_measure_publish_gate_subject_cost.py",
+    ])
+    monkeypatch.setattr(measure.subprocess, "run", _pgrep_returning(lines))
+
+    assert measure._measurement_is_running() is False
+    assert str(os.getpid()) in measure._ancestor_pids()
+    assert str(os.getppid()) in measure._ancestor_pids()
+
+
+def test_the_liveness_guard_sees_a_foreign_measurement(monkeypatch):
+    """The other direction — without this, the test above is satisfied by a guard hard-wired to
+    False, and the refusal that protects the reused checkout would never fire."""
+    monkeypatch.setattr(measure.subprocess, "run", _pgrep_returning(
+        "99993 /usr/bin/python3 -m tools.measure_publish_gate_subject_cost --out /x.json"))
+
+    assert measure._measurement_is_running() is True
+
+
+def test_an_unavailable_liveness_check_refuses_the_launch(monkeypatch):
+    """R15: an unavailable check is a FAILED check. If the guard cannot see the box it must
+    refuse, not assume it is free — a double run costs 50 minutes AND a wrong ratio."""
+    def _boom(*a, **k):
+        raise OSError("pgrep is missing")
+
+    monkeypatch.setattr(measure.subprocess, "run", _boom)
+
+    assert measure._measurement_is_running() is True
+
+
+def test_the_record_computes_whether_it_was_detached_rather_than_claiming_it():
+    """`is_session_leader` must be asked of the kernel, not asserted by the caller. The 08:35Z
+    run's detachment could only be re-typed, never checked — that is the whole finding."""
+    import inspect
+    import re
+
+    src = inspect.getsource(measure._run_measurement)
+    match = re.search(r'"is_session_leader":\s*([^,\n]+)', src)
+
+    assert match, "the record no longer stamps is_session_leader"
+    assert "getsid" in match.group(1), (
+        "is_session_leader is set to {} -- a claimed value is exactly what could not be "
+        "verified about the run that died".format(match.group(1))
     )
