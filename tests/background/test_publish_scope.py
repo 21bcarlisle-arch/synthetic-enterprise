@@ -144,3 +144,108 @@ def test_every_declared_publish_path_source_exists(source):
     to the full suite (safe, but the decoupling stops working and nobody is told), so it is
     named here rather than discovered as a mystery slowdown."""
     assert (publish_scope.PROJECT_DIR / source).exists(), source
+
+
+# ── THE SUBJECT-MISMATCH GUARD (2026-08-10) ──────────────────────────────────────────────
+#
+# The fifth way this control could fail, and the one it actually did: it narrows correctly,
+# but names its tests by a PATH resolved against a DIFFERENT tree than the gate runs in. The
+# gate's subject is a clean HEAD checkout (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09);
+# the scope was resolved against the shared working tree. A test file existing only as one
+# lane's UNCOMMITTED work therefore reached a checkout that had never seen it, pytest
+# answered rc=4 "file or directory not found" -- a usage error, not a red test -- and the
+# publisher, which reads only the return code, wedged the public surface on it.
+#
+# These fail-CLOSED rather than fail-open, so they are not caught by any guard above: the
+# whole module is written against the risk of narrowing too far, and this narrowed to
+# something UNRUNNABLE. Measured cost: 141 consecutive publish failures, unbreakable by
+# construction -- the commit that would have made the paths exist could only land after a
+# green gate.
+
+
+def _fake_head_root(tmp_path):
+    """A minimal stand-in for the HEAD checkout: has `tests/`, but not every tree file."""
+    (tmp_path / "tests" / "background").mkdir(parents=True)
+    (tmp_path / "tests" / "background" / "test_committed.py").write_text("def test_x(): pass\n")
+    return tmp_path
+
+
+def test_a_scope_naming_a_path_absent_from_the_run_root_falls_back_to_the_full_suite(tmp_path):
+    """THE MUTATION: hand the argv builder a scope carrying one path that does not exist in
+    the tree the gate will run against -- exactly the untracked-test-file case. It must NOT
+    emit that path (pytest would rc=4 and the publisher would read it as a red)."""
+    from background import process_run_complete as prc
+    root = _fake_head_root(tmp_path)
+    base = prc.publish_gate_pytest_argv("tests/")
+    scope = {"full_suite": False, "sources": [], "reason": "narrowed",
+             "tests": ["tests/background/test_committed.py",
+                       "tests/background/test_only_in_the_working_tree.py"]}
+    argv = publish_scope.scoped_pytest_argv(base, scope, run_root=root)
+    assert argv == base, "a scope that cannot RUN must degrade to the full suite"
+    assert scope["full_suite"] is True
+    assert "SUBJECT MISMATCH" in scope["reason"]
+    assert "test_only_in_the_working_tree.py" in scope["reason"], (
+        "the alarm must carry the path that broke it (R5: diagnostic payload)")
+
+
+def test_the_guard_does_not_fire_when_every_scoped_path_exists(tmp_path):
+    """The other direction -- a guard that always fires is as useless as one that never
+    does, and this one degrades to the SLOW gate, so an over-eager version would quietly
+    undo the whole decoupling."""
+    from background import process_run_complete as prc
+    root = _fake_head_root(tmp_path)
+    base = prc.publish_gate_pytest_argv("tests/")
+    scope = {"full_suite": False, "sources": [], "reason": "narrowed",
+             "tests": ["tests/background/test_committed.py"]}
+    argv = publish_scope.scoped_pytest_argv(base, scope, run_root=root)
+    assert argv != base and "tests/background/test_committed.py" in argv
+    assert scope["full_suite"] is False
+
+
+def test_the_publisher_resolves_the_scope_against_the_tree_it_runs_the_gate_in(tmp_path):
+    """THE CAUSE-SIDE FIX, proven at the seam that owns both halves. `_scoped_gate_argv` must
+    derive the scope from the root the suite will execute in, not from PROJECT_DIR.
+
+    ASSERTED ON WHICH CONTROL FIRED, NOT ON full_suite/argv, AND THAT IS THE POINT. Both the
+    fix and the defect end at `full_suite=True` here -- with the scope resolved against the
+    working tree, the argv builder's SUBJECT-MISMATCH guard catches the foreign paths and
+    degrades to the full suite anyway. The outer guard SHADOWS the inner fix (this project's
+    `feedback_guard_shadowed_by_an_outer_guard`), so a test asserting the OUTCOME passes
+    against both and proves nothing -- confirmed by mutation: the outcome-only version of
+    this test survived reverting the fix.
+
+    The discriminator is the source-declaration guard. `resolve_scope` checks
+    `(root / source).exists()` for every declared publish-path source, so rooted at this tiny
+    stand-in it reports the declaration as rotted -- an answer that is only reachable if the
+    resolve was rooted at `run_root`. Rooted at PROJECT_DIR every source exists, the scope
+    narrows to the live tree, and the reason that comes back is the mismatch guard's."""
+    from background import process_run_complete as prc
+    root = _fake_head_root(tmp_path)
+    argv, scope = prc._scoped_gate_argv(run_root=root)
+    assert scope["full_suite"] is True
+    assert argv == prc.publish_gate_pytest_argv("tests/")
+    assert "SUBJECT MISMATCH" not in scope["reason"], (
+        "the scope was resolved against the working tree and only rescued by the mismatch "
+        "guard -- the cause-side fix is not in place: " + scope["reason"])
+    assert "declaration has rotted" in scope["reason"], (
+        "expected the source-existence check to have been rooted at run_root: "
+        + scope["reason"])
+
+
+def test_no_scoped_path_is_ever_absent_from_the_head_checkout_the_gate_runs_in():
+    """THE LIVE END-TO-END PROPERTY, on the real repo: resolve the scope the way the gate now
+    does -- against committed truth -- and every path it names must exist there. This is the
+    assertion that was false for 141 consecutive publishes."""
+    import subprocess
+    import tempfile
+    from pathlib import Path
+    with tempfile.TemporaryDirectory() as td:
+        archive = subprocess.run(["git", "archive", "HEAD"], cwd=str(publish_scope.PROJECT_DIR),
+                                 capture_output=True)
+        if archive.returncode != 0:
+            pytest.skip("no git HEAD available in this environment")
+        subprocess.run(["tar", "-x", "-C", td], input=archive.stdout, check=True)
+        head = Path(td)
+        scope = publish_scope.resolve_scope(root=head)
+        absent = [t for t in scope["tests"] if not (head / t).exists()]
+        assert not absent, "scoped paths absent from the gate's own subject: {}".format(absent)

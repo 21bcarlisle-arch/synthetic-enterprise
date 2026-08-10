@@ -186,8 +186,8 @@ def resolve_scope(sources=None, root: Path = PROJECT_DIR) -> dict:
     }
 
 
-def scoped_pytest_argv(base_argv, scope=None):
-    """The argv the BLOCKING gate runs.
+def scoped_pytest_argv(base_argv, scope=None, run_root: Path = PROJECT_DIR):
+    """The argv the BLOCKING gate runs, for a suite that will execute with cwd=`run_root`.
 
     `base_argv` is `process_run_complete.publish_gate_pytest_argv("tests/")` — passed in
     rather than imported so this module has no import cycle with the publisher, and so the
@@ -196,9 +196,41 @@ def scoped_pytest_argv(base_argv, scope=None):
 
     On a full-suite scope this returns `base_argv` UNCHANGED — the pre-decoupling gate,
     byte-for-byte.
+
+    SUBJECT-MISMATCH GUARD (2026-08-10, the wedge this whole module was built to end, which
+    it then re-created one layer up). A narrowed scope names test files by PATH, and a path
+    only means something relative to the tree it is run against. The gate resolved its scope
+    from the working tree but ran it in a clean HEAD checkout
+    (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09, "the working tree belongs to the
+    lanes"), so a test file that existed only as one lane's UNCOMMITTED work was handed to a
+    checkout that had never seen it. pytest answers a missing positional with rc=4 and "no
+    tests ran" — a usage error, not a red test — and the publisher, which only reads the
+    return code, wedged the public surface on it. Measured 2026-08-10: two untracked files
+    (`test_publish_gate_blocking_payload.py`, `test_wedge_suspects_from_the_red.py`) made a
+    131-file tree scope unrunnable against a 129-file HEAD, and because the publish path
+    commits only AFTER a green gate, the commit that would have made those paths exist could
+    never land. That is the same lane-couples-the-machine defect the checkout ruling removed,
+    reintroduced through the scope.
+
+    The cause is fixed at the caller (the scope is now resolved against the run root). This
+    guard is the seam's own control: `scoped_pytest_argv` is the ONE place that knows both
+    the scope and the root it will be run against, so it is the one place that can check they
+    agree. A disagreement degrades to the FULL suite — the module's standing safe direction
+    (an uncomputable scope never narrows) — which is runnable against any root because
+    `tests/` exists in all of them. A wedge becomes a slower gate, never a quiet publish.
     """
-    scope = resolve_scope() if scope is None else scope
+    scope = resolve_scope(root=run_root) if scope is None else scope
     if scope["full_suite"]:
+        return list(base_argv)
+    absent = [t for t in scope["tests"] if not (Path(run_root) / t).exists()]
+    if absent:
+        scope["full_suite"] = True
+        scope["reason"] = (
+            "SUBJECT MISMATCH: {} scoped test path(s) do not exist under the root this gate "
+            "runs against ({}) -- the scope was derived from a different tree than the one "
+            "under test, and pytest answers a missing path with a usage error, not a red "
+            "test. Falling back to the full suite.".format(
+                len(absent), ", ".join(sorted(absent)[:5])))
         return list(base_argv)
     # Replace the test-root positional with the resolved file list; every other flag
     # (-x, -q, --tb, -m, --ignore) is inherited untouched.

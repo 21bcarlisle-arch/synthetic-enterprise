@@ -1394,7 +1394,7 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     # that module degrades to this same argv unnarrowed, so the worst case of the scoping
     # machinery breaking is exactly today's behaviour.
     started = time.monotonic()
-    gate_argv, gate_scope = _scoped_gate_argv()
+    gate_argv, gate_scope = _scoped_gate_argv(run_root=cwd)
     log("Publish gate scope: {}".format(gate_scope["reason"]))
     try:
         result = subprocess.run(
@@ -1419,14 +1419,27 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     return result.returncode == 0, False
 
 
-def _scoped_gate_argv():
-    """(argv, scope) for the BLOCKING gate. Never raises: an unresolvable scope is the full
-    suite, i.e. the pre-decoupling gate (see background/publish_scope.py, R15)."""
+def _scoped_gate_argv(run_root=None):
+    """(argv, scope) for the BLOCKING gate, for a suite that will run with cwd=`run_root`.
+
+    Never raises: an unresolvable scope is the full suite, i.e. the pre-decoupling gate (see
+    background/publish_scope.py, R15).
+
+    `run_root` IS THE GATE'S SUBJECT, and the scope must be derived from it rather than from
+    PROJECT_DIR. The gate's subject has been a clean HEAD checkout since
+    DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 ("the working tree belongs to the
+    lanes"), but the scope introduced on 2026-08-10 kept resolving against the working tree
+    -- so the argv named test files by a path that only existed in an uncommitted lane's
+    tree, and the checkout answered with rc=4 rather than a red. That re-coupled every lane's
+    uncommitted work to the public surface through the new layer, one day after the checkout
+    ruling decoupled it at the old one. Resolving here against `run_root` makes both halves
+    of the gate -- what it runs, and what it runs it against -- the same committed truth."""
     base = publish_gate_pytest_argv("tests/")
+    root = PROJECT_DIR if run_root is None else Path(run_root)
     try:
         from background import publish_scope
-        scope = publish_scope.resolve_scope()
-        return publish_scope.scoped_pytest_argv(base, scope), scope
+        scope = publish_scope.resolve_scope(root=root)
+        return publish_scope.scoped_pytest_argv(base, scope, run_root=root), scope
     except Exception as exc:  # noqa: BLE001 -- an unavailable scoper must not narrow anything
         return base, {"full_suite": True, "tests": [], "sources": [],
                       "reason": "scope module unavailable ({}: {}) -- full suite blocks, as "
