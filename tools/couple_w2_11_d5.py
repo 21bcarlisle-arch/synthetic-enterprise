@@ -201,6 +201,58 @@ AS_OF_BUFFER_DAYS = 30           # comfortably past payment_terms + the ARUDD la
 # window (default 90d in PaymentObservationConsumer) confound the reading.
 DD_FAILURE_WINDOW_DAYS = 400
 
+# ---------------------------------------------------------------------------
+# THE STAGGERED BILLING BOOK (atom D25_ageing_resolution_is_the_harness_calendar)
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS, and it is a RESOLUTION change, never a tuning (R12). Before
+# this constant every customer in the book fell due on the SAME three dates, so
+# at `as_of` every truly-overdue invoice sat at exactly one of {30, 51, 72}
+# days overdue -- three distances, all of them arithmetic over FIRST_DUE_DATE,
+# PERIOD_SPACING_DAYS, N_PERIODS and AS_OF_BUFFER_DAYS. The AGEING dimension
+# publishes BUCKETS of ordinal displacement (30/60/90), so it can only see a
+# company's dating error where that error carries an invoice ACROSS a bucket
+# boundary -- and against a book with three ages, that made the smallest
+# visible company error a property of the HARNESS's calendar rather than of the
+# company being graded. Measured under the declared `organ_terms_drift_days`
+# counterfactual (Expert Hour #8, seeds 7/11/23, bit-identical): a supplier
+# dating every debt 1 TO 8 DAYS OLDER than the world did -- over-ageing, the
+# direction that posts an early dunning letter -- published a BIT-IDENTICAL
+# headline, and companies +1d and +12d out published ONE number.
+#
+# The real-world twin is the whole point: a collections MI pack built from one
+# month-end snapshot of a book that all falls due on the same day cannot tell a
+# team dating its debts a week early from one dating them right. Real suppliers
+# do not bill like that -- a domestic book is spread across the billing cycle,
+# one cohort of accounts per working day -- so the fidelity fix and the
+# resolution fix are the same change: give each account its own place in the
+# cycle. The book then presents a CONTIGUOUS span of ages at `as_of` instead of
+# three, every bucket boundary has invoices sitting next to it, and a one-day
+# dating error moves the published figure in both directions.
+#
+# NOT A DIAL ON THE OUTPUT. The spread is the cycle length itself -- accounts
+# are distributed over exactly one `PERIOD_SPACING_DAYS` window, the only
+# non-arbitrary choice available -- and it was fixed before any post-reshape
+# figure was read. R13: this changes the harness's illustrative scaffolding
+# (which customers get billed when), not a baseline-world fidelity claim and
+# not director curriculum.
+BILLING_CYCLE_SPREAD_DAYS = PERIOD_SPACING_DAYS
+
+
+def _billing_cycle_offset(customer_id: str, spread_days: int) -> int:
+    """This account's place in the billing cycle, in days after
+    `FIRST_DUE_DATE` -- a deterministic per-customer draw from its OWN named
+    substream (C-S2), so adding it never shifts `_pick_stress`,
+    `generate_payment_method` or `generate_payment_event`'s draws.
+
+    `spread_days == 1` is the FLAT BOOK: every account falls due on the same
+    three dates, which is the pre-D25 scenario and is kept reachable as a
+    DECLARED counterfactual population (see `build_scenario`'s
+    `cycle_spread_days`) so the resolution this atom bought can be measured
+    against the book that did not have it."""
+    key = f"h27_billing_cycle:{customer_id}"
+    draw = int.from_bytes(hashlib.sha256(key.encode()).digest()[:8], "big")
+    return draw % spread_days
+
 # Illustrative stress-tier population mix (harness scaffolding, see module
 # docstring's R13 CURRICULUM NOTE) -- gives a real mixture of on-time /
 # DD-failed / non-DD-failed cases across the population.
@@ -325,6 +377,7 @@ class PeriodRecord:
 def build_scenario(
     n_customers: int, seed: Optional[int] = None,
     force_payment_method: Optional[str] = None,
+    cycle_spread_days: Optional[int] = None,
 ) -> Tuple[List[PeriodRecord], PaymentObservationConsumer, LedgerBook, date]:
     """Run the coupled loop over `n_customers` resi households x `N_PERIODS`
     billing periods each. Returns (truth_records, consumer, ledger_book,
@@ -340,7 +393,21 @@ def build_scenario(
     population. It is a declared parameter rather than a monkeypatch precisely
     so the counterfactual is legible in the repo (IaC) instead of living in a
     test's `setattr`. R13: it does NOT change the baseline world; it builds a
-    SECOND, explicitly-labelled world used only to isolate one term."""
+    SECOND, explicitly-labelled world used only to isolate one term.
+
+    `cycle_spread_days` overrides `BILLING_CYCLE_SPREAD_DAYS` -- how many days
+    of the billing cycle the book is spread over. It exists for ONE named
+    purpose too: `cycle_spread_days=1` is the FLAT BOOK, every account due on
+    the same three dates, which is the population this pair scored before atom
+    D25 and the one whose ageing headline could not see a working week of
+    over-ageing. `measure_ageing_resolution` is run against BOTH so the
+    resolution claim is differential rather than a bare assertion about the
+    shipped book. Declared here rather than monkeypatched for the same D20
+    reason as `force_payment_method`. Never used by the scored population."""
+    spread = (BILLING_CYCLE_SPREAD_DAYS if cycle_spread_days is None
+              else cycle_spread_days)
+    if spread < 1:
+        raise ValueError(f"cycle_spread_days must be >= 1, got {spread}")
     ledger_book = LedgerBook()
     consumer = PaymentObservationConsumer(
         ledger_book=ledger_book, dd_failure_window_days=DD_FAILURE_WINDOW_DAYS
@@ -367,8 +434,15 @@ def build_scenario(
                   else generate_payment_method(cid, fuel="electricity"))
         account_id = f"ACC-{cid}"
 
+        # This account's place in the billing cycle (atom D25): the book is
+        # spread across one cycle rather than all falling due on the same day,
+        # so the ages the ageing dimension reads at `as_of` are a contiguous
+        # span and not three harness constants.
+        cycle_offset = _billing_cycle_offset(cid, spread)
+
         for p in range(N_PERIODS):
-            due = FIRST_DUE_DATE + timedelta(days=PERIOD_SPACING_DAYS * p)
+            due = FIRST_DUE_DATE + timedelta(
+                days=PERIOD_SPACING_DAYS * p + cycle_offset)
             issue = due - timedelta(days=PAYMENT_TERMS_DAYS)
             invoice_ref = f"{cid}::{p}"
 
@@ -420,7 +494,14 @@ def build_scenario(
                 days_late=event.days_late,
             ))
 
-    last_due = FIRST_DUE_DATE + timedelta(days=PERIOD_SPACING_DAYS * (N_PERIODS - 1))
+    # `as_of` is taken from the LATEST due date the cycle can produce, not from
+    # the latest one this draw happened to produce: AS_OF_BUFFER_DAYS means
+    # "every account's newest invoice is at least this far past due" (its stated
+    # job -- clearing payment_terms + the ARUDD lag window for everyone), and a
+    # population-dependent `as_of` would quietly shorten that for a small n and
+    # make the reading depend on how many customers were drawn.
+    last_due = FIRST_DUE_DATE + timedelta(
+        days=PERIOD_SPACING_DAYS * (N_PERIODS - 1) + spread - 1)
     as_of = last_due + timedelta(days=AS_OF_BUFFER_DAYS)
     return records, consumer, ledger_book, as_of
 
@@ -2475,27 +2556,38 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
     "ageing": {
         "drift": "organ_terms_drift_days",
         "in_causal_path": True,
-        # A company that dates every debt 1 to 8 days OLDER than the world did
-        # publishes a BIT-IDENTICAL headline. This is the defect.
-        "invisible_drifts": (-8, -7, -6, -5, -4, -3, -2, -1),
-        "visible_drifts": (-9, 1),
-        # And in the other direction the reading COLLAPSES: a company one day
-        # out and a company twelve days out are one published number.
-        "collapsed_pairs": ((1, 12),),
+        # RE-DERIVED 2026-08-10 WHEN D25 LANDED, which is what the debt entry
+        # it replaces demanded. On the staggered book nothing is invisible and
+        # nothing collapses: the headline moves on every declared drift in
+        # both directions, down to the one-day error the flat book could not
+        # see eight days of.
+        "invisible_drifts": (),
+        "visible_drifts": (-8, -1, 1, 12),
+        "collapsed_pairs": (),
         "structural": True,
-        "debt_atom": "D25_ageing_resolution_is_the_harness_calendar",
+        "debt_atom": None,
         "why": (
-            "The headline is BUCKETS of ordinal displacement, so a dating "
-            "error is visible only where it carries an invoice across a "
-            "30/60/90 boundary -- and this population sits at exactly THREE "
-            "distances from those boundaries (30, 51 and 72 days overdue at "
-            "`as_of`), fixed by FIRST_DUE_DATE + PERIOD_SPACING_DAYS x "
-            "N_PERIODS and AS_OF_BUFFER_DAYS. So the measurable step is a "
-            "property of the HARNESS's calendar, not of the company: 1 day of "
-            "under-ageing moves it (the 30-day cases sit ON the boundary) "
-            "while 8 days of OVER-ageing move nothing, and the asymmetry is "
-            "an accident of where the three due dates fell. R12: the number "
-            "at HEAD is right; what was missing is what it can resolve."
+            "THE ENTRY D25 RE-DERIVED. The headline is BUCKETS of ordinal "
+            "displacement, so a dating error is visible only where it carries "
+            "an invoice across a 30/60/90 boundary -- which makes what it can "
+            "resolve a property of where the BOOK's invoices sit. On the flat "
+            "book (every account due on the same three dates) that was three "
+            "distances, 30/51/72 days overdue at `as_of`, all arithmetic over "
+            "FIRST_DUE_DATE + PERIOD_SPACING_DAYS x N_PERIODS and "
+            "AS_OF_BUFFER_DAYS: 1 day of under-ageing moved it while EIGHT "
+            "days of over-ageing -- the direction that posts an early dunning "
+            "letter -- moved nothing, and a company 1 day out and one 12 days "
+            "out published ONE number. D25 spread the book across one billing "
+            "cycle (`BILLING_CYCLE_SPREAD_DAYS`, the real-world twin: a "
+            "domestic book is billed a cohort a day, not all on one date), so "
+            "the ages are contiguous and every boundary is straddled. The four "
+            "drifts declared visible here are exactly the four the flat book "
+            "could not tell apart, kept as the band so a future flattening "
+            "fails BY NAME rather than quietly narrowing the caveat. The flat "
+            "book stays reachable as `build_scenario(cycle_spread_days=1)` and "
+            "`check_ageing_resolution` measures both. R12: nothing was tuned "
+            "-- the reshape moves every published ageing figure on this pair "
+            "and not one of them was chosen."
         ),
     },
     "detection": {
@@ -2505,18 +2597,26 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "visible_drifts": (-1,),
         "collapsed_pairs": (),
         "structural": True,
-        "debt_atom": "D25_ageing_resolution_is_the_harness_calendar",
+        # RE-POINTED WHEN D25 LANDED. This entry cited D25 while D25 was the
+        # ageing dimension's reshape; a debt entry outliving its debt is the
+        # rot this register's own mutation suite fires on, so the residual has
+        # been re-owned rather than left pointing at a closed atom.
+        "debt_atom": "D26_detection_grace_line_has_no_book_beside_it",
         "why": (
-            "SET membership by `as_of`, and it goes blind in the OPPOSITE "
-            "direction to its ageing sibling -- which is the differential "
-            "that makes this a finding about the population's placement "
-            "rather than about one formula. A company holding terms one day "
+            "SET membership by `as_of`, and it is now the register's ONLY "
+            "on-path blindness -- D25 spread the book across the billing "
+            "cycle, which fixed the ageing dimension's placement problem and "
+            "left this one untouched, because this blindness is the GRACE "
+            "LINE and not the bucket grid. A company holding terms one day "
             "LONGER still finds every one of these invoices past grace by "
-            "`as_of` (they are 30+ days overdue), so the flagged set is "
-            "identical; one day SHORTER pulls extra invoices over the grace "
-            "line and the set moves. Same population, same drift, opposite "
-            "blind side to `ageing`: a reader must not take either headline "
-            "as covering the other's direction (the D16 rule -- aligned "
+            "`as_of` (the youngest is AS_OF_BUFFER_DAYS overdue and the grace "
+            "window is far shorter), so the flagged set is identical; one day "
+            "SHORTER pulls extra invoices over the line and the set moves. "
+            "Same shape as the defect D25 closed -- the book has no invoice "
+            "sitting BESIDE the boundary this dimension reads -- one boundary "
+            "further out, which is why it is owned by its own atom (D26) "
+            "rather than closed on sight. A reader must not take the ageing "
+            "headline as covering this direction (the D16 rule -- aligned "
             "denominators are still different questions)."
         ),
     },
@@ -2882,33 +2982,213 @@ def _check_register_is_differential(
     return out
 
 
-def ageing_resolution_caveat() -> str:
-    """The resolution limit that travels WITH the ageing number, with its band
-    INTERPOLATED FROM THE REGISTER the control re-derives each run (the
-    D19/D20/D22/D23 pattern: a caveat nobody re-derives decays into a claim).
+# ---------------------------------------------------------------------------
+# AGEING RESOLUTION -- what THIS book can resolve, predicted from the book
+# (atom D25_ageing_resolution_is_the_harness_calendar)
+# ---------------------------------------------------------------------------
+# THE POINT OF THE PREDICTOR, and why it is not the drift sweep again. The sweep
+# above ANSWERS "did drift k move the reading" by re-scoring; it can only ever
+# report on the drifts somebody thought to declare, and it needs the scorer to
+# run. This predicts the same answer from the POPULATION and the TRUTH-SIDE
+# BUCKET RULE alone -- no scorer, no consumer, no organ -- so the two are
+# genuinely independent computations of one quantity and `check_ageing_
+# resolution` can put them against each other (R15 independence: a checker
+# derived from the thing it checks cannot fail).
+#
+# The arithmetic is the whole finding in three lines. The organ's dating drift
+# `k` shifts what the COMPANY thinks each open invoice's age is (`k < 0` ->
+# `age + |k|`, over-ageing; `k > 0` -> `age - k`, under-ageing) while the truth
+# side ages from the world's own due date. An ordinal bucket headline changes
+# only when some invoice's believed age crosses a bucket BOUNDARY. So the
+# smallest company dating error this book can resolve is simply the smallest
+# distance from any invoice to the next boundary -- in each direction.
+#
+# On the flat book that is 9 days one way and 1 the other, which is exactly the
+# asymmetry Expert Hour #8 measured by re-scoring. That agreement, checked in
+# both directions on both books, is what makes the predictor trustworthy enough
+# to travel with a live population whose calendar nobody has swept.
+AGEING_RESOLUTION_TARGET_DAYS = 1
+
+
+def ageing_bucket_boundaries(max_days: int = 400) -> Tuple[int, ...]:
+    """The days at which the TRUTH-side dating rule changes bucket, DERIVED by
+    walking `truth_side_rule("ageing")` rather than hand-listed as (30, 60, 90).
+
+    Hand-listing them would be the D21 tautology in miniature: an edit to the
+    bucket rule would move the boundaries the resolution is measured against
+    without moving this list, and the predictor would go on certifying a
+    resolution the instrument no longer has."""
+    rule = truth_side_rule("ageing")
+    out: List[int] = []
+    prev = rule(0)
+    for d in range(1, max_days + 1):
+        cur = rule(d)
+        if cur != prev:
+            out.append(d)
+            prev = cur
+    return tuple(out)
+
+
+def measure_ageing_resolution(
+    records: Sequence[PeriodRecord],
+    as_of: date,
+    boundaries: Optional[Sequence[int]] = None,
+) -> Dict[str, object]:
+    """The smallest company dating error THIS book's ageing headline could
+    resolve, in each direction, predicted from the population alone.
+
+    Returns `{"over_ageing_days", "under_ageing_days", "n_aged", "ages",
+    "boundaries"}`. `over_ageing_days` is `k < 0` (the company believes every
+    debt is older -- the direction that posts an early dunning letter);
+    `under_ageing_days` is `k > 0`. Either is `None` where no invoice in the
+    book has a boundary on that side at all, which is a book that cannot
+    resolve ANY error in that direction -- distinct from a small number, and
+    the callers must not silently read it as one (a fail-open None is the
+    shape R15 names third)."""
+    bounds = tuple(sorted(ageing_bucket_boundaries() if boundaries is None
+                          else boundaries))
+    # The set the ageing truth side actually ages: the truly-failed invoices
+    # (`score_triad` labels every other case "current" without consulting a
+    # date, so no dating drift can move them across a boundary).
+    ages = sorted((as_of - r.due_date).days
+                  for r in records if r.result == "failed")
+    over: List[int] = []
+    under: List[int] = []
+    for a in ages:
+        above = [b for b in bounds if b > a]
+        if above:
+            over.append(min(above) - a)
+        at_or_below = [b for b in bounds if b <= a]
+        if at_or_below:
+            under.append(a - max(at_or_below) + 1)
+    return {
+        "over_ageing_days": min(over) if over else None,
+        "under_ageing_days": min(under) if under else None,
+        "n_aged": len(ages),
+        "n_distinct_ages": len(set(ages)),
+        "age_span_days": (max(ages) - min(ages)) if ages else None,
+        "ages": tuple(sorted(set(ages))),
+        "boundaries": bounds,
+    }
+
+
+def check_ageing_resolution(
+    resolution: Dict[str, object],
+    drift_measurement: Optional[Dict[str, Dict[str, object]]] = None,
+    target_days: int = AGEING_RESOLUTION_TARGET_DAYS,
+) -> List[str]:
+    """Put the predicted resolution on trial and return the VIOLATIONS.
+
+    Two rules, and the second is the one that makes the first mean anything:
+
+    1. THE DELIVERABLE. Atom D25 exists to give the ageing dimension a book
+       that resolves a `target_days` dating error in BOTH directions. A book
+       that cannot -- the flat book, or a future edit that flattens this one
+       back -- fails here by name.
+    2. THE AGREEMENT. The prediction must match what the drift sweep MEASURED
+       by re-scoring: every declared drift at least as large as the predicted
+       resolution must have MOVED the reading, and every declared drift smaller
+       than it must NOT have. Two independent computations of one quantity
+       disagreeing means one of them is wrong, and neither is allowed to be the
+       one that is believed.
+
+    A vacuous book (nothing aged) is a VIOLATION, not a pass -- an empty
+    population is exactly how a resolution claim fail-opens.
     """
+    out: List[str] = []
+    if not resolution["n_aged"]:
+        return ["ageing resolution measured over an EMPTY book -- a resolution "
+                "claim over no invoices is vacuous, not satisfied"]
+    for key, label in (("over_ageing_days", "OVER-ageing (k<0, the early "
+                        "dunning letter)"),
+                       ("under_ageing_days", "UNDER-ageing (k>0)")):
+        got = resolution[key]
+        if got is None:
+            out.append(
+                f"ageing resolution: this book has NO invoice with a bucket "
+                f"boundary on the {label} side, so no dating error in that "
+                "direction can ever move the headline")
+        elif got > target_days:
+            out.append(
+                f"ageing resolution: the smallest {label} error this book can "
+                f"resolve is {got}d, worse than the {target_days}d target -- "
+                "the headline is quantised to the harness's calendar again "
+                "(atom D25); spread the book across the billing cycle")
+    if drift_measurement is None or "ageing" not in drift_measurement:
+        return out
+    row = drift_measurement["ageing"]
+    for k in sorted(set(row["moved"]) | set(row["unmoved"])):
+        predicted = resolution["over_ageing_days" if k < 0
+                               else "under_ageing_days"]
+        if predicted is None:
+            continue
+        should_move = abs(k) >= predicted
+        did_move = k in row["moved"]
+        if should_move != did_move:
+            out.append(
+                f"ageing resolution: drift {k:+d}d was PREDICTED "
+                f"{'visible' if should_move else 'invisible'} from this book's "
+                f"{predicted}d resolution but MEASURED "
+                f"{'visible' if did_move else 'invisible'} by re-scoring -- "
+                "the population-side predictor and the drift sweep disagree, "
+                "so one of them is describing an instrument that is not there")
+    return out
+
+
+def ageing_resolution_caveat(
+    resolution: Optional[Dict[str, object]] = None) -> str:
+    """The resolution limit that travels WITH the ageing number.
+
+    Given a `resolution` it describes THE BOOK THE FIGURE WAS COMPUTED ON --
+    which matters because `score_triad` also scores LIVE run_phase2b
+    populations whose calendar no sweep has ever visited, and until this atom
+    those readings carried a caveat written about the offline scenario's three
+    due dates. Without one it falls back to the register's declaration for the
+    offline book, re-derived each call (the D19/D20/D22/D23 pattern: a caveat
+    nobody re-derives decays into a claim)."""
     e = DIMENSION_DRIFT_RESOLUTION["ageing"]
     blind = tuple(e["invisible_drifts"])
-    pair = tuple(e["collapsed_pairs"])[0]
-    return (
-        "RESOLUTION IS THIS POPULATION'S CALENDAR (atom D25, measured "
-        "2026-08-10, seeds "
-        + "/".join(str(s) for s in RESOLUTION_SEEDS) + "). An ordinal bucket "
-        "headline can only see a dating error that carries an invoice across a "
-        "30/60/90 boundary, and every truly-overdue invoice here is 30, 51 or "
-        "72 days overdue at `as_of` -- three distances fixed by FIRST_DUE_DATE, "
-        "PERIOD_SPACING_DAYS, N_PERIODS and AS_OF_BUFFER_DAYS, all harness "
-        "constants. MEASURED against the declared `organ_terms_drift_days` "
-        "counterfactual company (world and truth-side rule untouched): a "
-        f"supplier dating every debt {abs(blind[-1])} to {abs(blind[0])} days "
-        "OLDER than the world did -- over-ageing, the direction that posts an "
-        "early dunning letter -- publishes a BIT-IDENTICAL headline on every "
-        f"seed, and a supplier {pair[0]} day out and one {pair[1]} days out are "
-        "ONE number. The step is a property of the harness's calendar, not of "
-        "the company being graded, and it is ASYMMETRIC by accident of where "
-        "the due dates fell. Do not read a movement here as days, and do not "
-        "read a zero as accurate dating. R12: nothing was tuned -- the figure "
-        "at HEAD is unchanged; what was missing is what it can resolve."
+    pairs = tuple(e["collapsed_pairs"] or ())
+    head = (
+        "RESOLUTION IS THIS BOOK'S CALENDAR (atom D25, measured 2026-08-10, "
+        "seeds " + "/".join(str(s) for s in RESOLUTION_SEEDS) + "). An ordinal "
+        "bucket headline can only see a company dating error that carries an "
+        "invoice across a 30/60/90 boundary, so what it can resolve is a "
+        "property of where THIS book's invoices sit -- not of the company "
+        "being graded. "
+    )
+    if resolution is not None:
+        over, under = (resolution["over_ageing_days"],
+                       resolution["under_ageing_days"])
+        return head + (
+            f"This book: {resolution['n_aged']} aged invoices at "
+            f"{resolution['n_distinct_ages']} distinct ages spanning "
+            f"{resolution['age_span_days']} days, so the smallest dating error "
+            f"it can resolve is {over}d of OVER-ageing (the direction that "
+            f"posts an early dunning letter) and {under}d of UNDER-ageing. "
+            "Predicted from the population and the truth-side bucket rule "
+            "alone and cross-checked against the drift sweep's re-scoring "
+            "(`check_ageing_resolution`). A movement smaller than that is not "
+            "readable as days, and a zero is not proof of accurate dating."
+        )
+    if blind or pairs:
+        return head + (
+            "The offline book's declared band: a supplier dating every debt "
+            f"{abs(blind[-1])} to {abs(blind[0])} days OLDER than the world "
+            "did publishes a BIT-IDENTICAL headline on every seed"
+            + (f", and a supplier {pairs[0][0]} day out and one {pairs[0][1]} "
+               "days out are ONE number" if pairs else "")
+            + ". Do not read a movement here as days, and do not read a zero "
+            "as accurate dating."
+        )
+    return head + (
+        "The offline book is spread across one billing cycle "
+        f"({BILLING_CYCLE_SPREAD_DAYS} days), and the drift sweep measures its "
+        "ageing headline moving on every declared drift in both directions -- "
+        f"including {AGEING_RESOLUTION_TARGET_DAYS}d, the smallest a bucket "
+        "headline can express. R12: this is a RESOLUTION change, not a tuning "
+        "-- the reshaped book moves every published ageing figure on this pair "
+        "and none of them was chosen."
     )
 
 
@@ -3612,6 +3892,11 @@ def score_triad(
         + _belief_permutation_note(mix)
     )
 
+    # What THIS book can resolve (atom D25), predicted from the population and
+    # the truth-side bucket rule before the figure is published, so the caveat
+    # travelling with the number describes the book the number came from.
+    ageing_resolution = measure_ageing_resolution(records, as_of)
+
     age = ageing_gap(
         true_ageing_labels, belief_ageing_labels,
         excluded=ageing_excluded,
@@ -3650,15 +3935,29 @@ def score_triad(
         "OVERSTATEMENT at `as_of`. The wrongful-dunning exposure is published "
         "ONCE, by the detection dimension. R12: neither number was chosen; the "
         "band was, and the rate followed it. "
-        + ageing_resolution_caveat()
+        + ageing_resolution_caveat(ageing_resolution)
     )
     # AND AS A COMPONENT, not only inside the prose: a reader who takes
     # `components` programmatically -- the ledger writer, the live wiring, the
     # dashboard -- never reads `note`, and a limit only the prose carries is one
     # the machine strips off (the D22 stamping lesson).
-    age.components["drift_resolution_caveat"] = ageing_resolution_caveat()
+    age.components["drift_resolution_caveat"] = ageing_resolution_caveat(
+        ageing_resolution)
     age.components["drift_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["ageing"]["invisible_drifts"])
+    # THIS BOOK's own resolution, not the offline scenario's (atom D25). The
+    # live wiring scores populations no drift sweep has ever visited, so the
+    # only honest resolution to stamp on a figure is the one predicted from the
+    # book that figure was computed over.
+    age.components["ageing_resolution_days"] = {
+        "over_ageing": ageing_resolution["over_ageing_days"],
+        "under_ageing": ageing_resolution["under_ageing_days"],
+    }
+    age.components["ageing_resolution_book"] = {
+        "n_aged": ageing_resolution["n_aged"],
+        "n_distinct_ages": ageing_resolution["n_distinct_ages"],
+        "age_span_days": ageing_resolution["age_span_days"],
+    }
 
     n_customers = len(by_customer)
     _od = sorted(recon_days_overdue_at_as_of)
@@ -4308,6 +4607,37 @@ def main() -> None:
           + ("every declaration held" if not _ddr_violations
              else f"{len(_ddr_violations)} VIOLATION(S)"))
     for v in _ddr_violations:
+        print(f"           !! {v}")
+
+    # THE AGEING RESOLUTION (atom D25), predicted from THIS run's own book and
+    # printed beside the sweep it is checked against -- the reader about to
+    # quote an ageing displacement is exactly who needs to know how wrong the
+    # company would have to be for that number to move. The flat book beside it
+    # is what makes the claim differential rather than an assertion.
+    # Read back off the published components rather than re-measured here: what
+    # the CLI prints is then literally the caveat the figure carries, and a
+    # stamping that silently stopped happening cannot be papered over by the
+    # printer recomputing it (the D22 stamping lesson).
+    _ac = result["ageing"].components
+    _res = {**_ac["ageing_resolution_book"],
+            "over_ageing_days": _ac["ageing_resolution_days"]["over_ageing"],
+            "under_ageing_days": _ac["ageing_resolution_days"]["under_ageing"]}
+    _flat_recs, _fc, _fl, _flat_as_of = build_scenario(
+        min(args.customers, 300), seed=args.seed, cycle_spread_days=1)
+    _flat = measure_ageing_resolution(_flat_recs, _flat_as_of)
+    print("  [ageing-resolution control] smallest company dating error this "
+          "book can resolve, predicted from the population:")
+    for label, r in (("this book (staggered)", _res), ("flat book", _flat)):
+        print(f"           {label:<22} over-ageing {r['over_ageing_days']}d / "
+              f"under-ageing {r['under_ageing_days']}d "
+              f"({r['n_distinct_ages']} distinct ages over "
+              f"{r['age_span_days']} days)")
+    _res_violations = check_ageing_resolution(_res, _ddr)
+    print("           verdict: "
+          + ("prediction and drift sweep agree, target met"
+             if not _res_violations
+             else f"{len(_res_violations)} VIOLATION(S)"))
+    for v in _res_violations:
         print(f"           !! {v}")
 
     print(f"  allocation note: {result['notes']['allocation']}")

@@ -2416,19 +2416,36 @@
   notes_rehomed: [build_note, origin_note]
   real_world_twin: "two board packs quoting 'customers wrongly chased' at 2.7% and 9.5% in the same meeting, because one team counts a customer who paid three weeks late as wrongly chased and the other does not"
 
-- id: D25_ageing_resolution_is_the_harness_calendar
-  name: "The W2_11<->D5 triad's AGEING dimension publishes BUCKETS of ordinal displacement, which reads as dating accuracy -- but a 30/60/90 bucket can only see a dating error that carries an invoice ACROSS a boundary, and every truly-overdue invoice in the scenario is 30, 51 or 72 days overdue at `as_of`. Those three distances are arithmetic over FIRST_DUE_DATE + PERIOD_SPACING_DAYS x N_PERIODS and AS_OF_BUFFER_DAYS -- all HARNESS constants -- so the measurable step is a property of the harness's calendar rather than of the company being graded. MEASURED 2026-08-10 (H27 Expert Hour #8) against the declared `organ_terms_drift_days` counterfactual company (the supplier holds the wrong payment terms, so it dates every debt k days out; world and truth-side rule untouched), n=300, seeds 7/11/23 and bit-identical at all three: a company dating every debt ONE TO EIGHT DAYS OLDER than truth -- OVER-ageing, the direction that posts an early dunning letter -- publishes the same headline as the shipped company (0.078649 / 0.146341 / 0.078706, unchanged to machine precision), while the DETECTION dimension of the same instrument moves on every one of those drifts, which is what makes it a blindness rather than an inert probe. In the other direction the reading COLLAPSES (+1d and +12d are one number), so a movement cannot be read as days either. The asymmetry -- 1 day visible one way, 9 the other -- is an accident of where three due dates fell. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit at distances that can actually resolve a dating error (spread due dates and/or several `as_of` readings), which moves every published ageing figure on this pair and is therefore a mint rather than a fix on sight. ALREADY LANDED UNDER H27's HOUR: the class control DIMENSION_DRIFT_RESOLUTION (keyset DERIVED from the dimensions score_triad publishes, so the reconciliation-grid keying that let this class escape D23's register is gone; three declared states, the OFF-path one required to name a probe that is MEASURED to move the dimension), the declared counterfactual itself, and `ageing_resolution_caveat` stamped into the ageing result's note AND components with its band interpolated from the register."
+- id: D26_detection_grace_line_has_no_book_beside_it
+  name: "SPUN OUT OF D25 (2026-08-10, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). D25 spread the W2_11<->D5 book across one billing cycle and the AGEING dimension went from an 8-day blind band to resolving a one-day company dating error in both directions. The DETECTION dimension of the same instrument did not move, and it must not have: its blindness is the RECONCILIATION GRACE LINE, not the 30/60/90 bucket grid. Measured under the same declared `organ_terms_drift_days` counterfactual, seeds 7/11/23, on the RESHAPED book: a company holding payment terms one day LONGER (+1d) publishes a bit-identical detection headline, because the youngest truly-overdue invoice in the book is AS_OF_BUFFER_DAYS (30) days past due and the grace window is far shorter -- nothing sits BESIDE the line the detector reads, so no small drift can carry a case across it. Same class as the defect D25 closed, one boundary further out. THE ATOM IS THE MEASUREMENT AND THE RESHAPE, in that order: how far from the grace line the book actually sits, whether a population with cases near it changes what the detection headline can resolve, and what a reader may take a movement in that number to mean. It owes the `DIMENSION_DRIFT_RESOLUTION` register the re-derived detection entry -- that register is where its debt is recorded and where its closure has to be proven (the entry's `debt_atom` points here)."
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
   level_target: 2
-  loop_stage: build
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
+  depends_on: [D25_ageing_resolution_is_the_harness_calendar]
+  file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
+  real_world_twin: "a collections team whose 'did we spot it' KPI is measured only on debts already a month old, so no reasonable change to when the team starts chasing can move the number -- the report cannot distinguish a team that chases at day 15 from one that chases at day 29"
+
+- id: D25_ageing_resolution_is_the_harness_calendar
+  name: "The W2_11<->D5 triad's AGEING dimension publishes BUCKETS of ordinal displacement, which reads as dating accuracy -- but a 30/60/90 bucket can only see a dating error that carries an invoice ACROSS a boundary, and every truly-overdue invoice in the scenario is 30, 51 or 72 days overdue at `as_of`. Those three distances are arithmetic over FIRST_DUE_DATE + PERIOD_SPACING_DAYS x N_PERIODS and AS_OF_BUFFER_DAYS -- all HARNESS constants -- so the measurable step is a property of the harness's calendar rather than of the company being graded. MEASURED 2026-08-10 (H27 Expert Hour #8) against the declared `organ_terms_drift_days` counterfactual company (the supplier holds the wrong payment terms, so it dates every debt k days out; world and truth-side rule untouched), n=300, seeds 7/11/23 and bit-identical at all three: a company dating every debt ONE TO EIGHT DAYS OLDER than truth -- OVER-ageing, the direction that posts an early dunning letter -- publishes the same headline as the shipped company (0.078649 / 0.146341 / 0.078706, unchanged to machine precision), while the DETECTION dimension of the same instrument moves on every one of those drifts, which is what makes it a blindness rather than an inert probe. In the other direction the reading COLLAPSES (+1d and +12d are one number), so a movement cannot be read as days either. The asymmetry -- 1 day visible one way, 9 the other -- is an accident of where three due dates fell. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit at distances that can actually resolve a dating error (spread due dates and/or several `as_of` readings), which moves every published ageing figure on this pair and is therefore a mint rather than a fix on sight. ALREADY LANDED UNDER H27's HOUR: the class control DIMENSION_DRIFT_RESOLUTION (keyset DERIVED from the dimensions score_triad publishes, so the reconciliation-grid keying that let this class escape D23's register is gone; three declared states, the OFF-path one required to name a probe that is MEASURED to move the dimension), the declared counterfactual itself, and `ageing_resolution_caveat` stamped into the ageing result's note AND components with its band interpolated from the register."
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: []
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
+  notes_rehomed: [build_note]
+  records_rehomed: [evidence]
   real_world_twin: "a collections MI pack whose ageing profile is built from one month-end snapshot of a book that all falls due on the same day, so the report cannot tell a team dating its debts a week early from one dating them right -- and the week early is the one that posts the dunning letter"
 
 - id: D24_the_latency_floor_is_the_organs_clamped_overdue

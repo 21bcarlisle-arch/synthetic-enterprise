@@ -1,0 +1,62 @@
+atom_id: D25_ageing_resolution_is_the_harness_calendar
+map_notes:
+  build_note: 'BUILT 2026-08-10 (worker tick, L0->L2). THE RESHAPE, and it is a RESOLUTION
+    change rather than a tuning (R12): the W2_11<->D5 book no longer falls due on three
+    dates. `build_scenario` now draws a per-account BILLING CYCLE OFFSET from its own
+    named substream (C-S2, `_billing_cycle_offset`, spread = `BILLING_CYCLE_SPREAD_DAYS`
+    = `PERIOD_SPACING_DAYS`, the cycle length itself and the only non-arbitrary choice),
+    so the truly-overdue invoices span a CONTIGUOUS 30..92 days at `as_of` instead of
+    {30, 51, 72}. The real-world twin and the fix are the same change: a domestic supplier
+    bills a cohort of accounts a day, not the whole book on one date, and an MI pack built
+    from a book that all falls due together cannot tell a team dating its debts a week
+    early from one dating them right. MEASURED, seeds 7/11/23, against the declared
+    `organ_terms_drift_days` counterfactual company (world and truth-side rule untouched):
+    the four drifts the flat book could not tell apart -- an 8-day OVER-ageing blind band
+    (the direction that posts an early dunning letter) and a +1d/+12d collapse into one
+    number -- ALL move the headline now, on every seed, and the register''s ageing entry
+    is re-derived to `invisible_drifts: ()`, `collapsed_pairs: ()`, `debt_atom: None`.
+    They stay declared as `visible_drifts` rather than dropped, so a future flattening
+    fails BY NAME instead of quietly narrowing the caveat. THE NEW CONTROL IS INDEPENDENT
+    OF THE SWEEP, which is the point: `measure_ageing_resolution` PREDICTS the smallest
+    dating error the book can resolve from the population and the truth-side bucket rule
+    ALONE -- no scorer, no consumer, no organ -- as the minimum distance from any invoice
+    to the next bucket boundary in each direction, with boundaries DERIVED by walking
+    `truth_side_rule("ageing")` (hand-listing 30/60/90 would be the D21 tautology in
+    miniature). It reproduces the flat book''s measured asymmetry exactly -- 9 days
+    over-ageing, 1 day under-ageing, which nobody designed -- so `check_ageing_resolution`
+    can put the two independent computations against each other: every declared drift at
+    least as large as the prediction must have MOVED and every smaller one must not have.
+    R15 BOTH WAYS: the flat book (kept reachable as the declared `build_scenario(
+    cycle_spread_days=1)` counterfactual, the D20 rule -- never a monkeypatch) is REFUSED
+    by name in the over-ageing direction; a lying prediction is caught by the sweep''s own
+    readings; an empty book and a book with no boundary beside it are VIOLATIONS, not the
+    fail-open `None` R15 names third; the register''s mutation suite gains the post-D25 rot
+    (an entry claiming the headline still cannot see a drift it now sees) and the all-SIGHTED
+    register, the mirror of the all-blind one and only reachable now that a second entry is
+    sighted. THE CAVEAT NOW DESCRIBES THE BOOK THE FIGURE CAME FROM: `score_triad` also
+    scores LIVE run_phase2b populations whose calendar no sweep has visited, and until this
+    atom those readings carried a caveat written about three fixed due dates -- it is stamped
+    into the ageing note AND components (`ageing_resolution_days`, `ageing_resolution_book`)
+    and printed in the CLI beside the flat book, read back OFF the published components so a
+    stamping that silently stopped cannot be papered over by the printer recomputing it.
+    `as_of` is taken from the latest due date the CYCLE can produce, not the latest this DRAW
+    produced, so `AS_OF_BUFFER_DAYS` keeps its stated job at every population size and the
+    reading does not depend on how many customers were sampled. RESIDUAL, SPUN OUT NOT FIXED
+    ON SIGHT (self-interrupt discipline): the DETECTION dimension is still blind at +1d and
+    must be -- its blindness is the reconciliation GRACE LINE, not the bucket grid, and the
+    book has nothing sitting beside that line. Its register entry cited D25 as owner; a debt
+    entry outliving its debt is the rot this register''s own mutations fire on, so it is
+    re-pointed at newly-minted `D26_detection_grace_line_has_no_book_beside_it` (L0, idle).
+    R12: every published ageing figure on this pair MOVED (seed 7 n=300: 0.078649 ->
+    0.112963) and not one of them was chosen -- the spread was fixed at the cycle length
+    before any post-reshape figure was read. C-S2 proven: the offset draws from its own
+    substream, so every customer''s stress tier, payment method and outcome are BIT-IDENTICAL
+    between the flat and staggered books. EVIDENCE: 284 green in
+    tests/tools/test_couple_w2_11_d5.py (was 271), sibling coupled-pair suites green,
+    epistemic verifier PASS.'
+map_records:
+  evidence:
+  - tools/couple_w2_11_d5.py
+  - tests/tools/test_couple_w2_11_d5.py
+  - docs/staging/done/WORKER_FINDING_THE_AGEING_RESOLUTION_IS_THE_HARNESS_CALENDAR_2026-08-10.md
+  - docs/staging/WORKER_REPORT_D25_THE_BOOK_IS_SPREAD_ACROSS_THE_BILLING_CYCLE_2026-08-10.md

@@ -16,6 +16,7 @@ import inspect
 import copy
 import dataclasses
 import json
+from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -2812,16 +2813,26 @@ def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
     # The arithmetic identity, derived independently of the scorer.
     records, consumer, _ledger, as_of = pair.build_scenario(600, seed=seed)
     ages = {(as_of - r.due_date).days for r in records}
-    assert len(ages) == 3, (
-        f"seed {seed}: build_scenario now exposes {len(ages)} distinct debt "
-        f"ages {sorted(ages)}, not 3. The ordinal dimension's coverage of the "
-        "bucket space changed; the D21 limit recorded on the organ-drift "
-        "control (a uniform boundary shift is invisible on a three-age book) "
-        "must be re-measured")
-    assert {pair._ageing_bucket(d) for d in ages} == {"30-60", "60-90"}, (
-        f"seed {seed}: the reachable truth-side buckets changed -- `90+` and "
-        "`current` are still never exercised on the truly-overdue side, which "
-        "is what bounds `max_bucket_displacement` at 2")
+    # ATOM D25 RESHAPED THIS. Until 2026-08-10 the book had exactly THREE debt
+    # ages -- every account fell due on the same three dates -- and that made
+    # the ageing headline's resolution a property of the harness's calendar.
+    # The book is now spread across one billing cycle, so the ages are a
+    # CONTIGUOUS span whose ends are still pure arithmetic over the constants.
+    lo_age = pair.AS_OF_BUFFER_DAYS
+    hi_age = (pair.AS_OF_BUFFER_DAYS
+              + pair.PERIOD_SPACING_DAYS * (pair.N_PERIODS - 1)
+              + pair.BILLING_CYCLE_SPREAD_DAYS - 1)
+    assert ages == set(range(lo_age, hi_age + 1)), (
+        f"seed {seed}: the book's debt ages are {sorted(ages)}, not the "
+        f"contiguous {lo_age}..{hi_age} the staggered cycle produces. If the "
+        "span has holes or has collapsed, the ageing dimension has lost "
+        "resolution and `check_ageing_resolution` is the control that says by "
+        "how much (atom D25)")
+    reachable = {pair._ageing_bucket(d) for d in ages}
+    assert reachable == {"30-60", "60-90", "90+"}, (
+        f"seed {seed}: the reachable truth-side buckets are {sorted(reachable)}"
+        " -- `current` is still never exercised on the truly-overdue side, and "
+        "the three that are exercised are what bounds the displacement below")
     # THE CONSEQUENCE, checked rather than described: if every unit of
     # displacement is a miss, and the only reachable truth buckets are 30-60
     # and 60-90, then total displacement must land exactly in
@@ -2829,8 +2840,8 @@ def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
     # off `bucket_order` rather than written in as 1 and 2 -- a re-ordered or
     # re-named bucket space then moves this bound with it instead of leaving a
     # literal that quietly stops matching the dimension it bounds.
-    lo = min(rank[b] for b in ("30-60", "60-90"))
-    hi = max(rank[b] for b in ("30-60", "60-90"))
+    lo = min(rank[b] for b in reachable)
+    hi = max(rank[b] for b in reachable)
     total = c["mean_bucket_displacement"] * c["n_truly_overdue"]
     assert lo * c["misses"] - 1e-9 <= total <= hi * c["misses"] + 1e-9, (
         f"seed {seed}: total ordinal displacement {total:.4f} over "
@@ -3573,67 +3584,99 @@ def test_the_drift_resolution_register_is_measured_not_asserted(drift_resolution
         "an inert counterfactual company hands every invisibility a free pass")
 
 
-def test_the_ageing_headline_cannot_see_a_week_of_over_ageing(drift_resolution):
-    """THE FINDING. A supplier that dates every debt one to eight days OLDER
-    than the world did -- over-ageing, the direction that posts an early
-    dunning letter -- publishes a BIT-IDENTICAL ageing headline on every seed.
+def test_the_ageing_headline_now_sees_the_week_of_over_ageing_it_could_not(
+        drift_resolution):
+    """THE ATOM D25 DELIVERABLE, on the drifts that named it. A supplier dating
+    every debt one to eight days OLDER than the world did -- over-ageing, the
+    direction that posts an early dunning letter -- published a BIT-IDENTICAL
+    ageing headline on the flat book. On the staggered book every one of the
+    four drifts that band and its collapse were built from moves the reading,
+    on every seed.
 
-    The counterfactual company is not inert while it does so, which is what
-    makes this a blindness rather than a dead probe: the DETECTION dimension of
-    the same instrument moves on every one of those drifts."""
+    The drifts stay declared as `visible_drifts` rather than being dropped once
+    fixed, so a future flattening of the book fails HERE, by name, instead of
+    quietly narrowing the caveat."""
     row = drift_resolution["ageing"]
-    band = tuple(pair.DIMENSION_DRIFT_RESOLUTION["ageing"]["invisible_drifts"])
-    assert band == (-8, -7, -6, -5, -4, -3, -2, -1)
+    band = tuple(pair.DIMENSION_DRIFT_RESOLUTION["ageing"]["visible_drifts"])
+    assert set(band) >= {-8, -1, 1, 12}, (
+        "the four drifts the flat book could not tell apart are the band this "
+        "atom exists to have made visible; dropping one from the register "
+        "removes the only thing that would catch its return")
+    assert tuple(pair.DIMENSION_DRIFT_RESOLUTION["ageing"]
+                 ["invisible_drifts"]) == ()
+    assert row["unmoved"] == []
     for k in band:
-        assert k in row["unmoved"], k
+        assert k in row["moved"], k
         for s in row["seeds"]:
             assert (row["by_seed"][s]["by_drift"][k]
-                    == row["by_seed"][s]["baseline"]), (s, k)
-        assert k in drift_resolution["detection"]["moved"], (
-            "the drifted company must be a DIFFERENT company -- if nothing "
-            "anywhere moves, this test is measuring an inert probe")
+                    != row["by_seed"][s]["baseline"]), (s, k)
 
 
-def test_the_ageing_reading_collapses_in_the_other_direction(drift_resolution):
-    """And where it does move, it cannot say by how much: a company one day out
-    and a company twelve days out are ONE published number, so the movement
-    from a drift cannot be read as days."""
-    got = pair._collapse_state(drift_resolution["ageing"], (1, 12))
-    assert got["collapsed"] and got["distinct_from_baseline"]
+def test_the_ageing_reading_no_longer_collapses_in_the_other_direction(
+        drift_resolution):
+    """The other half of the flat book's defect: a company one day out and one
+    twelve days out published ONE number, so a movement could not be read as
+    days in either direction. They are now distinct readings on every seed."""
+    row = drift_resolution["ageing"]
+    assert tuple(pair.DIMENSION_DRIFT_RESOLUTION["ageing"]
+                 ["collapsed_pairs"] or ()) == ()
+    got = pair._collapse_state(row, (1, 12))
+    assert got is not None and not got["collapsed"], got
 
 
-def test_the_blind_band_is_the_harness_calendar_not_the_company():
-    """WHY it is blind, asserted rather than narrated: every truly-overdue
-    invoice in this scenario is 30, 51 or 72 days overdue at `as_of`, three
-    distances fixed by the harness's own constants. A dating error is visible
-    only where it carries an invoice across a 30/60/90 boundary, so the
-    measurable step is a property of the calendar -- 1 day one way (the 30-day
-    cases sit ON the boundary), 9 days the other."""
-    records, _consumer, _ledger, as_of = pair.build_scenario(120, seed=7)
-    overdue = {(as_of - r.due_date).days for r in records if r.result == "failed"}
-    assert overdue == {30, 51, 72}
-    expected = {
+def test_the_book_is_spread_across_the_billing_cycle_not_three_dates():
+    """WHY it can now see it, asserted rather than narrated. The flat book put
+    every truly-overdue invoice at 30, 51 or 72 days overdue -- three distances,
+    all arithmetic over the harness's own constants -- so a dating error was
+    visible only where it carried an invoice across a 30/60/90 boundary. The
+    staggered book spans those boundaries continuously.
+
+    Measured on BOTH books through the same declared parameter, so this is a
+    differential and not an assertion about the shipped one."""
+    flat, _c, _l, flat_as_of = pair.build_scenario(
+        120, seed=7, cycle_spread_days=1)
+    flat_ages = {(flat_as_of - r.due_date).days
+                 for r in flat if r.result == "failed"}
+    assert flat_ages == {
         pair.AS_OF_BUFFER_DAYS + pair.PERIOD_SPACING_DAYS * i
         for i in range(pair.N_PERIODS)
-    }
-    assert overdue == expected, (
-        "the population's distance from every bucket boundary is arithmetic "
-        "over AS_OF_BUFFER_DAYS, PERIOD_SPACING_DAYS and N_PERIODS")
-    # The boundary crossings those three distances allow, which IS the band.
-    assert pair._ageing_bucket(30) != pair._ageing_bucket(29)
-    assert pair._ageing_bucket(72) == pair._ageing_bucket(72 + 8)
-    assert pair._ageing_bucket(51) == pair._ageing_bucket(51 + 8)
+    } == {30, 51, 72}
+
+    records, _consumer, _ledger, as_of = pair.build_scenario(300, seed=7)
+    ages = sorted({(as_of - r.due_date).days
+                   for r in records if r.result == "failed"})
+    assert len(ages) > 3 * len(flat_ages)
+
+    # The property that actually buys the resolution, and it is a property of
+    # SOME boundary rather than of every one: a one-day dating error is visible
+    # as soon as ONE invoice sits within a day of a boundary the rule has --
+    # which is exactly what the predictor minimises over. Boundaries are
+    # derived from the rule, never retyped.
+    bounds = pair.ageing_bucket_boundaries()
+    assert any(b in ages for b in bounds), (
+        f"no invoice in {ages} sits ON any of the {bounds} boundaries, so one "
+        "day of UNDER-ageing carries nothing across")
+    assert any(b - 1 in ages for b in bounds), (
+        f"no invoice in {ages} sits one day BELOW any of the {bounds} "
+        "boundaries, so one day of OVER-ageing carries nothing across -- the "
+        "flat book's defect exactly")
 
 
-def test_the_two_dimensions_go_blind_in_opposite_directions(drift_resolution):
-    """The DIFFERENTIAL, and it is the evidence this is about the population's
-    placement rather than one formula: the same one-day company error is seen
-    by exactly one of the two dimensions in each direction. A reader must not
-    take either headline as covering the other's blind side (the D16 rule --
-    aligned denominators are still different questions)."""
+def test_the_two_dimensions_no_longer_share_a_blind_direction(drift_resolution):
+    """The DIFFERENTIAL, kept and re-derived. Before D25 the same one-day
+    company error was seen by exactly ONE of `ageing`/`detection` in each
+    direction, which is what localised the defect to the population's
+    placement rather than to one formula. The placement is fixed, so `ageing`
+    now sees both directions while `detection` -- whose blindness is its GRACE
+    LINE, not the bucket grid -- is unchanged. A reader must still not take
+    either headline as covering the other (the D16 rule)."""
     assert 1 in drift_resolution["ageing"]["moved"]
+    assert -1 in drift_resolution["ageing"]["moved"]
+    # Unchanged by the reshape, and it must be: every invoice here is 30+ days
+    # overdue, so holding terms one day LONGER still finds all of them past
+    # grace. This is the register's remaining on-path-and-BLIND entry, without
+    # which the differential check would have nothing to hold.
     assert 1 in drift_resolution["detection"]["unmoved"]
-    assert -1 in drift_resolution["ageing"]["unmoved"]
     assert -1 in drift_resolution["detection"]["moved"]
 
 
@@ -3654,33 +3697,50 @@ def test_the_off_path_dimensions_are_exercised_not_merely_exempt(drift_resolutio
 
 
 @pytest.mark.parametrize("mutate,expected", (
-    (lambda r: r["ageing"].__setitem__("invisible_drifts",
-                                       (-8, -7, -6, -5, -4, -3, -2)),
+    (lambda r: r["detection"].__setitem__("invisible_drifts", ()),
      "understates the blindness"),
-    (lambda r: r["ageing"].__setitem__("visible_drifts", (-9, 1, -1)),
+    (lambda r: r["detection"].__setitem__("visible_drifts", (-1, 1)),
      "blinder than this register admits"),
+    # THE POST-D25 ROT, and the one this atom adds: the register going back to
+    # claiming the ageing headline cannot see a drift it now sees. An entry
+    # that outlives its debt misleads worse than no entry at all.
+    (lambda r: (r["ageing"].__setitem__("invisible_drifts", (-1,)),
+                r["ageing"].__setitem__("debt_atom", "D25_x")),
+     "declared INVISIBLE but moved the reading"),
     (lambda r: r["ageing"].__setitem__("collapsed_pairs", ((1, 99),)),
      "readings nobody took"),
-    (lambda r: r["ageing"].__setitem__("collapsed_pairs", ((-1, -2),)),
+    (lambda r: (r["belief"].__setitem__("in_causal_path", True),
+                r["belief"].__setitem__("collapsed_pairs", ((-1, 1),)),
+                r["belief"].__setitem__("debt_atom", "D25_x")),
      "INVISIBILITY, not a collapse"),
-    (lambda r: r["ageing"].__setitem__("debt_atom", None),
+    (lambda r: r["detection"].__setitem__("debt_atom", None),
      "unowned hole"),
     (lambda r: (r["belief"].__setitem__("in_causal_path", True),
                 r["belief"].__setitem__("visible_drifts", (1,))),
      "blinder than this register admits"),
     (lambda r: r["belief"].pop("exercised_by"),
      "unfalsifiable, not exempt"),
-    (lambda r: r["detection_latency"].__setitem__("invisible_drifts", (1,)),
+    (lambda r: (r["detection_latency"].__setitem__("invisible_drifts", (1,)),
+                r["detection_latency"].__setitem__("debt_atom", "D25_x"),
+                r["ageing"].__setitem__("invisible_drifts", (-1,)),
+                r["ageing"].__setitem__("debt_atom", "D25_x")),
      "no on-path and SIGHTED entry"),
+    # The mirror of the one above, and it only became reachable when D25 made
+    # a second entry sighted: a register with nothing blind left is as much a
+    # blanket claim as one with nothing sighted.
+    (lambda r: (r["detection"].__setitem__("invisible_drifts", ()),
+                r["detection"].__setitem__("debt_atom", None)),
+     "no on-path and BLIND entry"),
 ))
 def test_a_lying_resolution_declaration_fires_by_name(drift_resolution, mutate,
                                                       expected):
     """R15 BOTH WAYS on the register itself. Each mutation is a way this
     register could stop describing the code -- an understated band (which the
-    caveat interpolates), an overstated sight, a collapse checked against
-    readings nobody took, a collapse that is really an invisibility, an unowned
-    hole, a rotted off-path claim, a believed exemption, and an all-blind
-    register that would pass whatever the instrument did."""
+    caveat interpolates), an overstated sight, a debt entry that outlived its
+    debt, a collapse checked against readings nobody took, a collapse that is
+    really an invisibility, an unowned hole, a rotted off-path claim, a
+    believed exemption, and an all-blind or all-sighted register that would
+    pass whatever the instrument did."""
     register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
     mutate(register)
     violations = pair.check_dimension_drift_resolution(
@@ -3746,10 +3806,29 @@ def test_the_resolution_caveat_travels_with_the_ageing_number():
     result = pair.measure(n_customers=120, seed=7)
     caveat = result["ageing"].components["drift_resolution_caveat"]
     assert "atom D25" in caveat
-    assert "1 to 8 days" in caveat
-    assert result["ageing"].components["drift_blind_band_days"] == (
-        -8, -7, -6, -5, -4, -3, -2, -1)
+    assert result["ageing"].components["drift_blind_band_days"] == ()
     assert caveat in result["ageing"].note
+
+    # SINCE D25 THE CAVEAT DESCRIBES THE BOOK THE FIGURE CAME FROM, not the
+    # offline scenario -- `score_triad` also scores live run_phase2b
+    # populations whose calendar no sweep has visited, and until this atom
+    # those readings carried a caveat written about three fixed due dates.
+    res = result["ageing"].components["ageing_resolution_days"]
+    assert res == {"over_ageing": 1, "under_ageing": 1}
+    assert f"{res['over_ageing']}d of OVER-ageing" in caveat
+    assert str(result["ageing"].components["ageing_resolution_book"]
+               ["n_distinct_ages"]) in caveat
+
+    # And it is INTERPOLATED, never retyped: a book with a worse resolution
+    # publishes the worse number rather than this one.
+    flat, _c, _l, flat_as_of = pair.build_scenario(
+        120, seed=7, cycle_spread_days=1)
+    flat_res = pair.measure_ageing_resolution(flat, flat_as_of)
+    assert "9d of OVER-ageing" in pair.ageing_resolution_caveat(flat_res)
+
+    # The register-only fallback (no book in hand) interpolates the declared
+    # band the same way, so a register that rots back to a blind claim
+    # publishes that claim rather than this atom's.
     register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
     register["ageing"]["invisible_drifts"] = (-3, -2, -1)
     with mock.patch.object(pair, "DIMENSION_DRIFT_RESOLUTION", register):
@@ -3763,3 +3842,147 @@ def test_the_drift_resolution_control_runs_in_the_cli_not_only_in_tests():
     src = inspect.getsource(pair.main)
     assert "measure_dimension_drift_resolution(" in src
     assert "check_dimension_drift_resolution" in src
+    assert "check_ageing_resolution(" in src
+
+
+# ---------------------------------------------------------------------------
+# THE RESHAPE ITSELF (atom D25_ageing_resolution_is_the_harness_calendar)
+# ---------------------------------------------------------------------------
+# The register above ANSWERS "did drift k move the reading" by re-scoring, and
+# can only ever report on the drifts somebody declared. `measure_ageing_
+# resolution` PREDICTS the same quantity from the population and the truth-side
+# bucket rule alone -- no scorer, no consumer, no organ -- so the two are
+# independent computations of one thing and can be put against each other.
+# These tests are the D25 deliverable's own R15 pass.
+
+
+@pytest.fixture(scope="module")
+def _books():
+    """The shipped (staggered) book and the DECLARED flat counterfactual, one
+    build each -- every claim below is differential across the two."""
+    out = {}
+    for label, spread in (("staggered", None), ("flat", 1)):
+        recs, _c, _l, as_of = pair.build_scenario(
+            300, seed=7, cycle_spread_days=spread)
+        out[label] = pair.measure_ageing_resolution(recs, as_of)
+    return out
+
+
+def test_the_predicted_resolution_reproduces_the_flat_books_measured_asymmetry(
+        _books):
+    """THE INDEPENDENCE EVIDENCE, and it is what makes the predictor worth
+    trusting on a book no sweep has visited. Expert Hour #8 measured the flat
+    book by RE-SCORING: 9 days of over-ageing invisible, 1 day of under-ageing
+    visible -- an asymmetry nobody designed. The predictor, which never runs
+    the scorer, derives exactly that pair from the population and the bucket
+    rule."""
+    assert _books["flat"]["over_ageing_days"] == 9
+    assert _books["flat"]["under_ageing_days"] == 1
+    assert _books["flat"]["n_distinct_ages"] == 3
+    assert _books["staggered"]["over_ageing_days"] == 1
+    assert _books["staggered"]["under_ageing_days"] == 1
+
+
+def test_the_flat_book_fails_the_resolution_target_by_name(_books):
+    """R15: the control fires on its OWN named defect. The book this atom
+    replaced -- still reachable as a declared parameter, not deleted -- is
+    refused, and the refusal names the direction and the remedy."""
+    violations = pair.check_ageing_resolution(_books["flat"])
+    assert any("OVER-ageing" in v and "9d" in v for v in violations), violations
+    assert pair.check_ageing_resolution(_books["staggered"]) == []
+
+
+def test_the_predictor_and_the_drift_sweep_must_agree(drift_resolution, _books):
+    """The cross-check that stops either computation being the one believed.
+    Green on the shipped pair; and a predictor that lied about the resolution
+    would be caught by the sweep's own readings rather than by nobody."""
+    assert pair.check_ageing_resolution(
+        _books["staggered"], drift_resolution) == []
+    lying = {**_books["staggered"], "over_ageing_days": 20,
+             "under_ageing_days": 20}
+    violations = pair.check_ageing_resolution(lying, drift_resolution)
+    assert any("PREDICTED invisible" in v and "MEASURED visible" in v
+               for v in violations), violations
+
+
+def test_an_empty_or_boundaryless_book_is_a_violation_not_a_pass():
+    """The two fail-open shapes R15 names. A resolution claim measured over no
+    invoices, or over a book with no bucket boundary anywhere near it, must
+    RAISE rather than sail through on a `None` nobody looked at."""
+    empty = pair.measure_ageing_resolution([], date(2024, 4, 16))
+    assert empty["n_aged"] == 0
+    assert any("vacuous" in v for v in pair.check_ageing_resolution(empty))
+
+    records, _c, _l, as_of = pair.build_scenario(120, seed=7)
+    # A rule with no boundary below the book at all: nothing can cross
+    # downwards, so no amount of under-ageing is visible.
+    far = pair.measure_ageing_resolution(records, as_of, boundaries=(400,))
+    assert far["under_ageing_days"] is None
+    assert any("NO invoice with a bucket boundary" in v
+               for v in pair.check_ageing_resolution(far))
+
+
+def test_the_boundaries_are_derived_from_the_rule_not_retyped():
+    """The D21 tautology in miniature, refused: hand-listing (30, 60, 90) would
+    let an edit to the truth-side bucket rule move the boundaries the
+    resolution is measured against while this list went on certifying a
+    resolution the instrument no longer has."""
+    assert pair.ageing_bucket_boundaries() == (30, 60, 90)
+    # Moved at the OWNERSHIP REGISTER (atom D21), which is the call path the
+    # truth side actually takes -- patching the bare function name would prove
+    # nothing about what runs.
+    with mock.patch.object(
+            pair, "truth_side_rule",
+            lambda dim: (lambda d: "90+" if d >= 45 else "current")):
+        assert pair.ageing_bucket_boundaries() == (45,)
+
+
+def test_the_staggered_book_never_perturbed_the_other_substreams():
+    """C-S2, the reason the cycle offset draws from its own named substream:
+    adding a draw must not shift the draws that were already there. The stress
+    tier and payment method of every customer are unchanged by the reshape,
+    which is what keeps this a change to WHEN the book is billed rather than a
+    silent change of population."""
+    staggered, _c, _l, _a = pair.build_scenario(200, seed=7)
+    flat, _c2, _l2, _a2 = pair.build_scenario(200, seed=7, cycle_spread_days=1)
+    by_ref = {(r.customer_id, r.period_index): r for r in flat}
+    assert len(by_ref) == len(staggered)
+    for r in staggered:
+        was = by_ref[(r.customer_id, r.period_index)]
+        assert r.payment_method == was.payment_method
+        assert r.result == was.result
+        assert r.dd_failure_reason == was.dd_failure_reason
+
+
+def test_the_cycle_spread_is_the_cycle_and_a_flat_book_is_reachable():
+    """The spread is `PERIOD_SPACING_DAYS` -- the cycle length itself, the only
+    non-arbitrary choice -- and `cycle_spread_days=1` reproduces the pre-D25
+    book exactly, so the counterfactual lives in the repo rather than in a
+    test's monkeypatch (the D20 rule)."""
+    assert pair.BILLING_CYCLE_SPREAD_DAYS == pair.PERIOD_SPACING_DAYS
+    flat, _c, _l, flat_as_of = pair.build_scenario(
+        60, seed=7, cycle_spread_days=1)
+    assert {r.due_date for r in flat} == {
+        pair.FIRST_DUE_DATE + timedelta(days=pair.PERIOD_SPACING_DAYS * p)
+        for p in range(pair.N_PERIODS)}
+    assert (flat_as_of - max(r.due_date for r in flat)).days == \
+        pair.AS_OF_BUFFER_DAYS
+    with pytest.raises(ValueError, match="must be >= 1"):
+        pair.build_scenario(10, seed=7, cycle_spread_days=0)
+
+
+def test_as_of_clears_the_buffer_for_every_account_not_just_the_average():
+    """`AS_OF_BUFFER_DAYS` means "every account's newest invoice is at least
+    this far past due" -- its stated job. Taking `as_of` from the latest due
+    date the CYCLE can produce rather than the latest this DRAW produced keeps
+    that true at every population size, so the reading does not depend on how
+    many customers were sampled."""
+    for n in (10, 60, 300):
+        records, _c, _l, as_of = pair.build_scenario(n, seed=7)
+        newest = max((as_of - r.due_date).days for r in records)
+        assert newest >= pair.AS_OF_BUFFER_DAYS, (n, newest)
+    small = pair.build_scenario(10, seed=7)[3]
+    large = pair.build_scenario(300, seed=7)[3]
+    assert small == large, (
+        "`as_of` moved with the sample size -- the ageing reading would then "
+        "depend on how many customers were drawn, not on the company")
