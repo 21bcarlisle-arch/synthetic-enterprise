@@ -119,6 +119,10 @@
       "verdict": "benign",
       "why": "An append-only JSONL decision log. Same reasoning as run_history.json."
     },
+    "publish_gate_duration.jsonl": {
+      "verdict": "benign",
+      "why": "PW3's gate-duration series. Flagged because record/record_gate_run are on the publish FAILURE path and process_run_complete transitively reads the file, but it is an append-only JSONL carrying no episode-scoped field -- no episode-start timestamp, no consecutive-failure counter -- so no write can shorten an episode (same shape as run_history.json and live_decisions_log.jsonl). The alarm is an R5 band TRANSITION against the immediately preceding row; appending never erases the history that transition is read from. NOT guarded, deliberately: the `real` guard is append-or-monotonic on an episode field this control does not have, and inventing a close condition nobody chose is the reflex-guarding the _scope_note above forbids. SEPARATELY DEFECTIVE, and filed rather than folded in here: record_gate_run is called with the elapsed time of RED runs too, and a `-x` gate aborts early (276s and 392s on 2026-08-10 vs ~500s green), so failures append short durations that inflate headroom and can flip the band toward `ok`. That corrupts the trend STATISTIC; it does not shorten an episode, so it is a measurement-validity defect and not this class -- see WORKER_FINDING_THE_DURATION_SERIES_RECORDS_ABORTED_RUNS_2026-08-10.md."
+    },
     "run_output_latest.json": {
       "verdict": "benign",
       "why": "The latest simulation run's output figures -- a report artefact consumed by the dashboard, not a control's own memory. No alarm derives severity from it."
