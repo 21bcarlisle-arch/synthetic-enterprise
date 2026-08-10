@@ -43,7 +43,6 @@ from tests.background.test_forward_discovery_draw import (
     _point_register_at,
 )
 
-
 # --------------------------------------------------------------------------- #
 # PURE helpers (mutation-testable without touching disk)
 # --------------------------------------------------------------------------- #

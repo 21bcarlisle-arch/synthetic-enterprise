@@ -37,8 +37,8 @@ import os
 import signal
 import subprocess
 import sys
-import types
 import time
+import types
 from pathlib import Path
 
 import pytest
