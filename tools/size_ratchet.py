@@ -340,9 +340,16 @@ def evaluate(
     touched: set[str],
     index_texts: dict[str, str] | None = None,
     head_texts: dict[str, str] | None = None,
+    renames: dict[str, str] | None = None,
 ) -> list[Finding]:
     """Apply the four ruling-decided rules to a measured index. Pure: no I/O, no git, no exit
-    codes -- so the same detection logic runs identically under both rollout states (R15 test 7)."""
+    codes -- so the same detection logic runs identically under both rollout states (R15 test 7).
+
+    `renames` maps a staged path to the path the SAME content had at HEAD (git's own -M detection,
+    resolved by the caller so this stays pure). Rule 2b reads its prior state BY PATH, so without
+    the map a `git mv` presents every function in the moved file as brand new -- see
+    `docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md`.
+    """
     findings: list[Finding] = []
     base_files: dict[str, int] = baseline["files"]
 
@@ -371,7 +378,9 @@ def evaluate(
 
     # Rule 2b (s3.2): a NEW function in a touched file is capped.
     if index_texts is not None:
-        findings.extend(_new_function_findings(touched, index_texts, head_texts or {}))
+        findings.extend(
+            _new_function_findings(touched, index_texts, head_texts or {}, renames or {})
+        )
 
     # Rule 4 (s3.4): the clone ceiling. NEVER a target of zero -- there is no lower-bound check
     # here and there must never be one (ruling s7).
@@ -386,14 +395,19 @@ def evaluate(
 
 
 def _new_function_findings(
-    touched: set[str], index_texts: dict[str, str], head_texts: dict[str, str]
+    touched: set[str], index_texts: dict[str, str], head_texts: dict[str, str],
+    renames: dict[str, str] | None = None,
 ) -> list[Finding]:
     out: list[Finding] = []
+    renames = renames or {}
     for path in sorted(touched):
         if path not in index_texts:
             continue
         new_spans = function_spans(index_texts[path])
-        old = set(function_spans(head_texts[path])) if path in head_texts else set()
+        # A renamed file's prior state lives under its OLD path. Resolve through the rename map
+        # first, so a pure `git mv` carries its functions across instead of minting them anew.
+        prior = path if path in head_texts else renames.get(path, path)
+        old = set(function_spans(head_texts[prior])) if prior in head_texts else set()
         for qual, span in sorted(new_spans.items()):
             if qual not in old and span > NEW_FUNCTION_LINE_CAP:
                 out.append(

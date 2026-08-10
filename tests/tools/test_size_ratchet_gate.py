@@ -87,7 +87,8 @@ def _findings(repo: Path) -> list[size_ratchet.Finding]:
     index = size_ratchet.census_at(None, project_dir=repo)
     head_lines, head_texts = gate._head_state(repo)
     return size_ratchet.evaluate(
-        baseline, index, head_lines, touched, gate._index_texts(repo, touched), head_texts
+        baseline, index, head_lines, touched, gate._index_texts(repo, touched), head_texts,
+        gate.staged_renames(repo),
     )
 
 
@@ -204,6 +205,51 @@ def test_new_function_over_cap_fires_then_clears(repo: Path) -> None:
 
     _stage(repo, "background/beta.py", original)
     assert not [f for f in _findings(repo) if f.rule == size_ratchet.RULE_NEW_FUNCTION_OVER_CAP]
+
+
+def _oversized_module(name: str) -> str:
+    return f"def {name}():\n" + "    q = 1\n" * (size_ratchet.NEW_FUNCTION_LINE_CAP + 10)
+
+
+def test_a_pure_rename_does_not_mint_its_functions_as_new(repo: Path) -> None:
+    """Rule 2b reads a file's prior state BY PATH, so a `git mv` used to present every function in
+    the moved file as brand new -- an oversized-but-grandfathered `main()` fired the moment its
+    file was refiled, with zero lines changed. Landed 2026-08-10 from
+    `WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md`, which the
+    `A_composition_lift` cuts hit twice.
+
+    The rename must be recognised through git's own `-M` detection, never through a filename
+    heuristic: the ONLY thing that makes a move safe to wave through is that the content is
+    unchanged, which is precisely what git measures and a name comparison does not.
+    """
+    body = _oversized_module("grandfathered_giant")
+    (repo / "background" / "legacy_home.py").write_text(body, encoding="utf-8")
+    _run(repo, "add", "background/legacy_home.py")
+    _run(repo, "commit", "-qm", "the oversized function, already in history")
+    gate.freeze(repo, repo / "baseline.json")
+
+    _run(repo, "mv", "background/legacy_home.py", "tools/new_home.py")
+    assert gate.staged_renames(repo) == {"tools/new_home.py": "background/legacy_home.py"}
+    assert not [
+        f for f in _findings(repo) if f.rule == size_ratchet.RULE_NEW_FUNCTION_OVER_CAP
+    ], "a pure rename changed no code and must mint no new function"
+
+
+def test_a_rename_that_also_adds_an_oversized_function_still_fires(repo: Path) -> None:
+    """The vacuity guard on the test above. Carrying functions across a rename must not become a
+    way to smuggle a NEW oversized one in under cover of the move -- so the same commit that
+    renames the file and appends a fresh giant must still red, naming only the appended one.
+    """
+    body = _oversized_module("grandfathered_giant")
+    (repo / "background" / "legacy_home.py").write_text(body, encoding="utf-8")
+    _run(repo, "add", "background/legacy_home.py")
+    _run(repo, "commit", "-qm", "the oversized function, already in history")
+    gate.freeze(repo, repo / "baseline.json")
+
+    _run(repo, "mv", "background/legacy_home.py", "tools/new_home.py")
+    _stage(repo, "tools/new_home.py", body + _oversized_module("smuggled_giant"))
+    hits = [f for f in _findings(repo) if f.rule == size_ratchet.RULE_NEW_FUNCTION_OVER_CAP]
+    assert [h.path for h in hits] == ["tools/new_home.py::smuggled_giant"]
 
 
 # ------------------------------------------- 5. the touched-file rule (the one that DRAINS debt)

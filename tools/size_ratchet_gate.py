@@ -61,6 +61,25 @@ def staged_paths(project_dir: Path) -> set[str]:
     return {p for p in raw.splitlines() if in_scope(p)}
 
 
+def staged_renames(project_dir: Path) -> dict[str, str]:
+    """Staged path -> the path that content had at HEAD, from git's own rename detection (`-M`).
+
+    Only in-scope pairs are returned; a rename that leaves or enters the scope roots has no
+    comparable prior state inside the ratchet's world and is correctly treated as new.
+    """
+    raw = _git("diff", "--cached", "--name-status", "-M", "--diff-filter=R",
+               project_dir=project_dir)
+    out: dict[str, str] = {}
+    for line in raw.splitlines():
+        parts = line.split("\t")
+        if len(parts) != 3 or not parts[0].startswith("R"):
+            continue
+        old, new = parts[1], parts[2]
+        if in_scope(old) and in_scope(new):
+            out[new] = old
+    return out
+
+
 def _head_state(project_dir: Path) -> tuple[dict[str, int], dict[str, str]]:
     """Line counts and texts at HEAD. An empty repo (no HEAD) yields empty state -- every file is
     then new, which is the correct reading for an initial commit."""
@@ -234,7 +253,10 @@ def run(project_dir: Path, baseline_path: Path, report: bool = False) -> int:
         index = census_at(None, project_dir=project_dir)
         head_lines, head_texts = _head_state(project_dir)
         index_texts = _index_texts(project_dir, touched)
-        findings = evaluate(baseline, index, head_lines, touched, index_texts, head_texts)
+        renames = staged_renames(project_dir)
+        findings = evaluate(
+            baseline, index, head_lines, touched, index_texts, head_texts, renames
+        )
     except RatchetUnavailable as exc:
         # An unavailable check is a FAILED check (R15 fail-silent pattern), in BOTH rollout states:
         # the warn rail exists to absorb false positives from the RULES, never to swallow the
