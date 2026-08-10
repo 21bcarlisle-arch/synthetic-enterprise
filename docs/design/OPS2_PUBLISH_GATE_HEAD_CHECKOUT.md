@@ -49,8 +49,13 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 > `implied_timeout_floor_2x`. A ~50-minute run that must not overlap the live publisher's own
 > suite — it waits for the box to go quiet, and deletes the reused checkout only AFTER that wait
 > so it can never pull the directory out from under a real cycle. **The next worker tick should
-> READ that JSON and fill in this table and §2 — not start another run.** If the JSON is absent
-> or its `head_sha` is older than HEAD, the run died; re-launch the harness.
+> READ that JSON and fill in this table and §2 — not start another run.**
+>
+> Re-launch only if the JSON is absent AND no `measure_publish_gate_subject_cost` process is
+> running (`pgrep -af`). Do **not** re-launch merely because the recorded SHA is behind HEAD:
+> HEAD moves under a ~50-minute measurement as ordinary commits land, each phase stamps the SHA
+> it actually ran against (`head_sha_at_run`), and the runtime being measured does not turn over
+> commit by commit. Treating "behind HEAD" as death costs another 50 minutes for no information.
 
 Both sides ran on the live box while the publisher's own cycles were running, so the absolute
 numbers carry that load; the ratio is what the criterion is about and both sides carry it alike.

@@ -95,6 +95,10 @@ def _time_suite(cwd: Path, log) -> dict:
     tail = [ln for ln in result.stdout.strip().splitlines() if ln.strip()][-1:]
     return {
         "cwd": str(cwd),
+        # The SHA THIS phase actually ran against. Stamped per phase, not once at launch: HEAD
+        # moves under a long measurement (ordinary commits land while it waits for the box), and
+        # a single launch-time stamp would make a sound result look stale to whoever reads it.
+        "head_sha_at_run": prc._head_sha(),
         "seconds": round(elapsed, 1),
         "returncode": result.returncode,
         "summary": tail[0][:300] if tail else "",
@@ -114,7 +118,7 @@ def main() -> int:
         print("[measure] {}".format(msg), flush=True)
 
     head_sha = prc._head_sha()
-    results = {"head_sha": head_sha, "phases": {}}
+    results = {"head_sha_at_launch": head_sha, "phases": {}}
 
     log("HEAD={} -- three timed runs, expect ~45-60 min total".format(head_sha))
 
