@@ -216,44 +216,6 @@ estimate; the harness measures the gap between them. This is a coupled-triad bui
 mechanical move, and it must not be attempted as one.
 WALL-CROSSING-DESIGN -->
 
-<!-- WALL-CROSSING-DESIGN B3_world_needs_its_own_cap_physics
-1 edge. `simulation.hedged_settlement` imports `company.pricing.ofgem_price_cap` to get the cap
-unit rate. The regulation-commons doctrine is what makes this subtle and what settles it: the
-regulatory TEXT is a shared commons readable by every lane, because law is published in reality
-— but each lane's IMPLEMENTATION of that law stays independently owned, precisely so that a
-company misreading the cap stays structurally possible, matching real suppliers who get fined
-for exactly that. Importing the company's READING of the cap collapses the two and makes a
-misread impossible. Cut: the world enforces the cap from the published figures in the domain
-artefact library, the company keeps its own reading, and the two are allowed to differ.
-
-REFINED 2026-08-10, when this was picked up for execution alongside B6 and put back down. As
-written above, the cut is UNDERSPECIFIED in exactly the place it can go wrong, and the tempting
-execution is one this pass has already refused once in writing. "The world reads the published
-figures" does not say WHERE the published schedule lives, and the cheapest home for it — a
-lane-neutral module under `tools/` — is not walked by `tools/epistemic_wall.py`. Routing the
-crossing through an unwalked module would drop the edge count by one while changing nothing
-about who depends on whom: the same laundering the step-2 ruling refused for the shape-A
-harnesses, and the same class as `moving a file past the walker is not a cut`. The
-regulation-commons doctrine sanctions a shared home for regulatory TEXT, so a commons is not
-forbidden — but "doctrine permits a commons" is not the same claim as "this particular
-relocation is a cut," and the two must not be allowed to stand in for each other.
-
-Three things this block must settle BEFORE any edge moves, none of which are mechanical:
-  (a) WHERE the published window schedule lives, and whether that home is walked. If it is not
-      walked, the design must say what makes it a commons rather than a blind spot.
-  (b) HOW divergence is controlled. The world getting its own reading is the entire point — a
-      test pinning the two readings equal would restore the coupling in the test suite that the
-      cut removes from the code. But with no control at all this becomes `one name, two numbers`:
-      two cap tables drifting apart silently, which is a fidelity defect in both lanes.
-  (c) WHAT each side is allowed to get wrong. `get_cap_unit_rate_for_date` carries real policy
-      beyond the published levels — carry-forward past the last window, `min(Ofgem, EPG)`, the
-      VAT/standing-charge basis (R14). Those are READINGS of the law. The published windows are
-      the law. The split between them is the cut, and it has not been drawn yet.
-
-Sized honestly, that is a design step plus a build, not the one-line import swap the edge count
-suggests. It stays `owed` until (a)–(c) are answered.
-WALL-CROSSING-DESIGN -->
-
 <!-- WALL-CROSSING-DESIGN B4_billing_mechanics_reached_directly
 4 edges, of which THREE WERE CUT 2026-08-10 (§3a) and ONE remains — this block stays a plan
 only for `simulation.dd_collection_book -> company.billing.direct_debit`.
@@ -545,6 +507,91 @@ WHERE the crossing happens, not WHAT crosses; typing the payload as a versioned 
 to `EP7_adapter_elexon_insights` (level 0 / idle when this cut was made — coordination wall
 checked first, as the atom's origin_note requires).
 
+### B3_world_needs_its_own_cap_physics — EXECUTED 2026-08-10 (1 edge)
+
+**`simulation.hedged_settlement -> company.pricing.ofgem_price_cap` is cut. 54 → 53 live.**
+
+This block was picked up for execution once before, alongside B6, and PUT BACK DOWN with three
+questions written into it that had to be settled before any edge moved. They are settled here, and
+the answers are the substance of the cut — the import swap itself is two lines.
+
+**(a) WHERE the published schedule lives, and whether that home is walked.**
+`docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json` — the regulation
+commons, which is **not walked**, and the block was right to treat that as the danger. The
+resolution is not an exemption, it is a difference in KIND: the objection to an unwalked home is
+that a module living there can import from either side of the wall, so a crossing routed through it
+moves the measurement rather than the dependency. **A JSON artefact has no import statement to hide
+a dependency in.** That is the whole of the argument, and because the argument rests entirely on
+the home staying data, that is what is enforced rather than asserted —
+`test_the_commons_home_is_data_only_and_therefore_cannot_hide_a_dependency` fails on any `.py`
+appearing under the commons directory, empty ones included.
+
+So no shared *module* was created, deliberately. Each lane parses the artefact with its own loader,
+about a dozen lines each. The duplication is the point: a shared loader would have to live
+somewhere, and everywhere it could live is either unwalked code or one lane's territory.
+
+**(b) HOW divergence is controlled**, without the test that would restore in the suite the coupling
+the cut removes from the code. The control splits on the law/reading line:
+
+  * **THE LAW CANNOT DRIFT.** One artefact, and `test_neither_lane_hand_writes_the_published_schedule`
+    fails if either module restates a published window boundary in code. Two hand-written cap tables
+    drifting apart silently is `one name, two numbers`, a fidelity defect in both lanes at once, and
+    it is now unrepresentable rather than merely discouraged.
+  * **THE READINGS MAY DRIFT, and that is reported, never gated (R12).**
+    `cap_reading_divergence()` sweeps the published span and names every (date, fuel) where the two
+    lanes disagree. Nothing asserts it is empty. What IS asserted, by mutation, is that it *can* be
+    non-empty and that the world does not move when the company's reading is mutated — a divergence
+    report that could never fire would be as blind as no report.
+
+**(c) WHAT each side is allowed to get wrong.** THE LAW: window boundaries, the published
+typical-household unit rate per window per fuel, and the EPG level where in force — published as a
+**separate overlay, never pre-combined**, so that a lane which fails to notice the EPG has MISREAD
+the law rather than been handed a different one. A READING: which instrument binds, what happens
+past the end of the published schedule, which customers the ceiling reaches, and whether a
+sub-annual window is used at all. The company's annual blend (`get_cap_unit_rate_gbp_per_mwh`) is a
+reading by this definition and stays company-owned — Ofgem never published annual averages.
+
+**No number moved, and that is measured rather than asserted.** Both readings return identical
+values across the whole published span plus the carry-forward tail (2,324 tests green, including
+every pre-existing cap test unchanged — `test_intra_year_cap_window.py` still imports `_CAP_WINDOWS`
+and still pins the Apr-2022 step against Ofgem's published 208.0/283.4). What changed is who depends
+on whom: the world's enforced ceiling no longer passes through the supplier's opinion of it.
+
+**Why this was worth a design step rather than an import swap.** With the old import, a company
+misreading of the cap was not unlikely — it was **unrepresentable**. Whatever the company believed
+the ceiling was, that is what the world charged, so the belief could not be wrong. That is B2's
+shape (a belief constituting the fact it is a belief about) at one edge instead of five, and it
+silently flattered every cap-compliance figure derived from it. The COUPLED TRIAD scores the
+belief-vs-truth gap; an edge that pins the gap to zero by construction is not a small edge.
+
+**R15 — the five mutations were RUN, not named.** Each was injected into the real tree and the
+named control observed to fail, then reverted: (1) a `.py` in the commons → data-only guard reds;
+(2) a window boundary restated in the world's module → single-source guard reds; (3) the world's
+lookup delegating to the company's → independence guard reds, with its vacuity guard proving the
+injected misreading actually moved the company's answer first; (4) both loaders returning `[]`
+instead of raising on a missing/empty/malformed artefact → fail-open guard reds (this is the one
+with teeth: `None` means "do not clamp" downstream, so a swallowed load error would silently un-cap
+every domestic customer, in the direction that flatters margin); (5) the import restored → both this
+pass's named-edge control AND the wall ratchet's frozen census red.
+
+**Two controls in this batch were WRONG ON THEIR FIRST RUN, on this file's real contents, and the
+repairs are recorded because both are repeat classes here.** The named-edge control was a substring
+scan, and it failed on its own subject — the comment recording *why* the import went away contains
+the module's dotted name (the `REVIEW_GATE must match idleness, not prose mentioning the string`
+class). It now asks `tools.epistemic_wall.live_crossings()`, the walker this pass extracted as its
+first step, so there is no second definition of "an import". The single-source control first scanned
+for published *levels* as code literals and flagged `35.0` — which is `_GAS_CAP_GBP_PER_MWH[2021]`,
+a value in the company's annual blend that collides with the Apr-2020 published gas level by
+coincidence. Exempting `35.0` would have been moving the threshold to fit the answer; the statistic
+was narrowed instead, to window BOUNDARIES, which cannot collide because a `date(2021, 10, 1)` in
+code is a cap-window edge and nothing else. Levels alone are not a schedule.
+
+**What this does NOT close.** `simulation.run_phase2b -> company.pricing.ofgem_price_cap` is the
+same import in a different file and it stays `owed` under `A_composition_lift`, not here: that file
+is the 2,961-line composition root §2b refuses to lift, and swapping one import inside it would
+leave 31 other edges and hand a false impression of progress. It is a two-line change the moment
+that file is dealt with.
+
 ### B6_cpa_is_company_accounting — EXECUTED 2026-08-10 (1 edge)
 
 1 edge. `simulation.acquisition_funnel` imported `COST_PER_ACQUISITION` from
@@ -833,10 +880,10 @@ itself.
 ## 4. The register — all 91 examined crossings, 59 of them still live
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
-walker could not see (§3b), making 91 rows. THIRTY-TWO have since been CUT — sixteen by B1/B4–B8
-(§3a) and sixteen by `A_composition_lift` part 1 (§3c) — so the tree carries 59 and this section
-carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry becomes
-invisible. The live count is not maintained by
+walker could not see (§3b), making 91 rows. THIRTY-EIGHT have since been CUT — seventeen by B1/B3–B8
+(§3a), sixteen by `A_composition_lift` part 1 (§3c) and four by part 2 (§3e) — so the tree carries 53
+and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
+becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
 
@@ -860,7 +907,7 @@ edge: simulation.customer_events -> saas.customer_reaction | disposition=owed | 
 edge: simulation.customer_events -> saas.home_move_win_rate | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.satisfaction_churn -> saas.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
 # --- B3_world_needs_its_own_cap_physics ---
-edge: simulation.hedged_settlement -> company.pricing.ofgem_price_cap | disposition=owed | design=B3_world_needs_its_own_cap_physics
+edge: simulation.hedged_settlement -> company.pricing.ofgem_price_cap | disposition=cut | reason=B3 executed 2026-08-10 — the published cap schedule moved to the regulation commons as a DATA artefact (which has no import statement to launder a dependency through, unlike the unwalked-module home the block refused), and each lane now reads it with its own loader. The world enforces the ceiling from `simulation/price_cap_enforcement.py`; the company keeps its own reading and the two are free to differ. No value moved — both readings agree across the whole published span today, and nothing pins them there.
 # --- B4_billing_mechanics_reached_directly ---
 edge: simulation.credit_refund_events -> company.billing.credit_refund | disposition=cut | reason=B4 executed 2026-08-10 — the world no longer opens the company's SLC 14 book. It reports a closure, the credit left in the account and the date the money ARRIVED to `company/interfaces/credit_refund_requests.py` and logs what comes back; the deadline, the record type, the status lifecycle and the four-way refund taxonomy are unreachable from the SIM. The trigger is CLASSIFIED behind the door rather than passed in, which is the substance of the cut: accepting a `trigger=` argument would have left the taxonomy in the world's hands and made this a spelling change.
 edge: simulation.dd_balance_book -> company.billing.dd_review | disposition=cut | reason=B4 executed 2026-08-10, and this was the one the design said goes FIRST — it imported the PRIVATE `_recommended_monthly`, i.e. depended on a routine the company is free to rename without notice. The world is now TOLD the standing monthly amount through `company/interfaces/dd_review_outcome.py` (the number on the customer's letter); the ±5% SLC 27B band, the increase/decrease/maintain classification and the rounding convention stay behind the door.

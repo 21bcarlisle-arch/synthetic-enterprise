@@ -35,11 +35,28 @@ figures INCLUDING VAT at 5% and EXCLUDING standing charge — the same basis the
 existing annual table and ``company/regulatory/price_cap.py`` are already on. The
 standing-charge leg is a separate, declared simplification; the cap here is a
 unit-rate ceiling only.
+
+THIS FILE HOLDS A READING, NOT THE LAW (KNIFE pass 3, B3, 2026-08-10)
+---------------------------------------------------------------------
+The window schedule below is no longer written here. It is LOADED from the
+regulation commons — ``docs/domain_artefact_library/regulatory/
+ofgem_default_tariff_cap_windows.json`` — which holds the published boundaries
+and levels and nothing else.
+
+What stays here is this company's READING of that law, and it is allowed to be
+wrong: the carry-forward past the last published window, the ``min(Ofgem, EPG)``
+selection, the segment filter, and the annual blend in
+``get_cap_unit_rate_gbp_per_mwh``. The world enforces the cap from its OWN
+reading of the same published artefact (``simulation/price_cap_enforcement.py``)
+and the two are deliberately NOT pinned equal — a supplier that misreads the cap
+is exactly what the regulation-commons doctrine keeps structurally possible.
 """
 
 from __future__ import annotations
 
+import json
 from datetime import date
+from pathlib import Path
 
 # Electricity domestic unit rate cap (£/MWh), annual averages.
 # Pre-2019: no cap (competitive market).
@@ -96,60 +113,63 @@ def get_cap_unit_rate_gbp_per_mwh(fuel: str, year: int) -> float | None:
 
 # --- Sub-annual cap-window schedule (W3_1b_intra_year_price_cap_granularity) ---
 #
-# The WINDOW BOUNDARIES are Ofgem's own published cap periods (six-monthly
-# Apr/Oct from 1 Jan 2019 through 30 Sep 2022, quarterly from 1 Oct 2022):
-#   https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/
-#     energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels
-# The UNIT RATES are the published typical-household p/kWh for each of those
-# periods (electricityprices.org.uk's cap history, whose Oct-2021 20.8p/4.07p and
-# Apr-2022 28.34p/7.37p are independently corroborated by the House of Commons
-# Library CBP-9714 "20.8p → 28.3p electricity, 4.1p → 7.4p gas"), converted
-# p/kWh × 10 → £/MWh.
+# THE SCHEDULE IS NOT WRITTEN HERE. It is the published law, and it lives in the
+# regulation commons where every lane can read it. This company reads it here,
+# with its own loader, and interprets it below with its own rules; the world
+# reads the same file with its own loader in `simulation/price_cap_enforcement.py`.
 #
-# R13 WALL: every date and level here is real published regulatory history,
-# sourced blind to company P&L. No value in this table may be moved because a
-# simulation result looks wrong. Full sourcing: docs/market_research/
-# ofgem_cap_windows.md.
+# WHY THE COMMONS IS A DATA FILE AND NOT A SHARED MODULE. A shared Python module
+# would have to live somewhere `tools/epistemic_wall.py` does not walk, and a
+# route through an unwalked package moves the measurement rather than the
+# dependency — the laundering this pass refused for the shape-A harnesses. A
+# JSON artefact cannot express a dependency at all: it has no import statement to
+# hide one in. That is why the unwalked home is safe HERE and was not safe there,
+# and `tests/architecture/test_price_cap_commons.py` holds it to being data.
 #
-# PORTABILITY: this is a schedule of (from, to, rates) tuples, not `if year ==
-# 2022`. A second market or a changed regime supplies its own window list behind
-# the same accessor.
-#
-# EPG: between Oct-2022 and Jun-2023 the Energy Price Guarantee held a typical
-# dual-fuel bill at £2,500, well below the Ofgem cap (which peaked at £4,279 for
-# Jan-Mar 2023). The binding domestic ceiling in those windows is therefore
-# min(Ofgem cap, EPG), which is modelled as a separate overlay column rather than
-# baked into one number, so the two instruments stay legible.
-_CAP_WINDOWS: list[dict] = [
-    # (effective_from, effective_to, elec £/MWh, gas £/MWh, elec EPG, gas EPG)
-    {"from": date(2019, 1, 1), "to": date(2019, 3, 31), "elec": 165.2, "gas": 37.3},
-    {"from": date(2019, 4, 1), "to": date(2019, 9, 30), "elec": 185.6, "gas": 41.4},
-    {"from": date(2019, 10, 1), "to": date(2020, 3, 31), "elec": 178.5, "gas": 36.8},
-    {"from": date(2020, 4, 1), "to": date(2020, 9, 30), "elec": 178.1, "gas": 35.0},
-    {"from": date(2020, 10, 1), "to": date(2021, 3, 31), "elec": 171.9, "gas": 30.0},
-    {"from": date(2021, 4, 1), "to": date(2021, 9, 30), "elec": 189.5, "gas": 33.4},
-    # The Oct-2021 cap ran THROUGH 31 Mar 2022 — this is the window the annual
-    # blend erases, and the one the crisis was fought in.
-    {"from": date(2021, 10, 1), "to": date(2022, 3, 31), "elec": 208.0, "gas": 40.7},
-    # +54% step, 1 Apr 2022 (£1,277 → £1,971 typical dual-fuel bill).
-    {"from": date(2022, 4, 1), "to": date(2022, 9, 30), "elec": 283.4, "gas": 73.7},
-    {"from": date(2022, 10, 1), "to": date(2022, 12, 31), "elec": 518.9, "gas": 147.6,
-     "elec_epg": 340.0, "gas_epg": 103.2},
-    {"from": date(2023, 1, 1), "to": date(2023, 3, 31), "elec": 674.7, "gas": 170.8,
-     "elec_epg": 340.0, "gas_epg": 103.2},
-    {"from": date(2023, 4, 1), "to": date(2023, 6, 30), "elec": 506.0, "gas": 126.1,
-     "elec_epg": 340.0, "gas_epg": 103.2},
-    {"from": date(2023, 7, 1), "to": date(2023, 9, 30), "elec": 301.1, "gas": 75.1},
-    {"from": date(2023, 10, 1), "to": date(2023, 12, 31), "elec": 273.5, "gas": 68.9},
-    {"from": date(2024, 1, 1), "to": date(2024, 3, 31), "elec": 286.2, "gas": 74.2},
-    {"from": date(2024, 4, 1), "to": date(2024, 6, 30), "elec": 245.0, "gas": 60.4},
-    {"from": date(2024, 7, 1), "to": date(2024, 9, 30), "elec": 223.6, "gas": 54.8},
-    {"from": date(2024, 10, 1), "to": date(2024, 12, 31), "elec": 245.0, "gas": 62.4},
-    {"from": date(2025, 1, 1), "to": date(2025, 3, 31), "elec": 248.6, "gas": 63.4},
-    {"from": date(2025, 4, 1), "to": date(2025, 6, 30), "elec": 270.3, "gas": 69.9},
-    {"from": date(2025, 7, 1), "to": date(2025, 9, 30), "elec": 257.3, "gas": 63.3},
-    {"from": date(2025, 10, 1), "to": date(2025, 12, 31), "elec": 263.5, "gas": 62.9},
-]
+# R13 WALL: every date and level in that artefact is real published regulatory
+# history, sourced blind to company P&L.
+_CAP_WINDOWS_ARTEFACT = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "ofgem_default_tariff_cap_windows.json"
+)
+
+
+def _load_published_windows() -> list[dict]:
+    """Read the published cap windows from the regulation commons.
+
+    NO FAIL-OPEN PATH (R15). A missing, empty or malformed artefact raises. The
+    tempting alternative — return `[]` and let the lookup fall through to
+    "no cap" — would silently un-cap every domestic customer, which is the exact
+    fail-open shape the carry-forward rule below was written to avoid.
+    """
+    if not _CAP_WINDOWS_ARTEFACT.exists():
+        raise FileNotFoundError(
+            f"Ofgem cap-window commons artefact missing: {_CAP_WINDOWS_ARTEFACT}. "
+            "The published cap schedule is required; there is no uncapped default."
+        )
+    raw = json.loads(_CAP_WINDOWS_ARTEFACT.read_text())
+    windows = raw.get("windows")
+    if not windows:
+        raise ValueError(
+            f"Ofgem cap-window commons artefact has no windows: {_CAP_WINDOWS_ARTEFACT}"
+        )
+    parsed: list[dict] = []
+    for w in windows:
+        entry = {
+            "from": date.fromisoformat(w["from"]),
+            "to": date.fromisoformat(w["to"]),
+            "elec": float(w["elec"]),
+            "gas": float(w["gas"]),
+        }
+        for epg_key in ("elec_epg", "gas_epg"):
+            if epg_key in w:
+                entry[epg_key] = float(w[epg_key])
+        parsed.append(entry)
+    return sorted(parsed, key=lambda w: w["from"])
+
+
+_CAP_WINDOWS: list[dict] = _load_published_windows()
 
 _CAP_FIRST_DAY = _CAP_WINDOWS[0]["from"]
 _CAP_LAST_DAY = _CAP_WINDOWS[-1]["to"]

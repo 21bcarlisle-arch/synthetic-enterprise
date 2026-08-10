@@ -41,7 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh
 from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
@@ -308,7 +308,15 @@ def run_deemed_term(
                 # settlement date, not the calendar-year blend. The real cap
                 # stepped +54% on 1 Apr 2022 mid-year; a year-keyed lookup
                 # smooths that step away.
-                _cap = get_cap_unit_rate_for_date(commodity, current_date)
+                #
+                # B3 (KNIFE pass 3, 2026-08-10): this ceiling is the WORLD's
+                # reading of the published cap, not the company's. It used to be
+                # `company.pricing.ofgem_price_cap.get_cap_unit_rate_for_date`,
+                # which made the supplier's belief about the cap into the cap —
+                # a misread became unrepresentable. Both lanes read the same
+                # published law from the regulation commons; neither reads the
+                # other's interpretation of it.
+                _cap = binding_cap_unit_rate_gbp_per_mwh(commodity, current_date)
                 if _cap is not None:
                     billed_rate_gbp_per_mwh = min(uncapped_rate_gbp_per_mwh, _cap)
 

@@ -209,7 +209,11 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.customer_events", "saas.customer_reaction"),
     ("simulation.customer_events", "saas.home_move_win_rate"),
     ("simulation.dd_collection_book", "company.billing.direct_debit"),
-    ("simulation.hedged_settlement", "company.pricing.ofgem_price_cap"),
+    # ("simulation.hedged_settlement", "company.pricing.ofgem_price_cap") — CUT
+    # 2026-08-10 by KNIFE pass 3, design B3. The world now enforces the cap from
+    # its own reading of the published commons artefact
+    # (`simulation/price_cap_enforcement.py`); the company keeps its reading and
+    # the two are free to differ.
     ("simulation.run_phase2b", "company.analytics.churn_accuracy_report"),
     ("simulation.run_phase2b", "company.crm.churn_model"),
     ("simulation.run_phase2b", "company.crm.complaints"),
