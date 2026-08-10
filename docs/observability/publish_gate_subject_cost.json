@@ -1,0 +1,51 @@
+{
+  "head_sha_at_launch": "58d40f44bebc6db2da22ad2fdda22169b6bc55fe",
+  "pid": 3108903,
+  "is_session_leader": true,
+  "launched_by": "systemd",
+  "started_at": "2026-08-10T18:55:05Z",
+  "phases": {
+    "cold_checkout": {
+      "cwd": "/tmp/publish-gate-head-reused",
+      "head_sha_at_run": "3ee4541a7c403f13deac45a44be4a7ab12f0de4a",
+      "seconds": 1291.9,
+      "returncode": 1,
+      "summary": "7 failed, 23249 passed, 5 skipped, 1107 deselected, 14 xfailed, 114 warnings, 4 subtests passed in 1175.66s (0:19:35)",
+      "loadavg_before": 15.65,
+      "loadavg_after": 2.43,
+      "box_was_quiet": true
+    },
+    "warm_checkout": {
+      "cwd": "/tmp/publish-gate-head-reused",
+      "head_sha_at_run": "54141b5597aa3f2ec797cbb82e08ac8f29da5adf",
+      "seconds": 1167.5,
+      "returncode": 1,
+      "summary": "235 failed, 23069 passed, 33 skipped, 1107 deselected, 14 xfailed, 98 warnings, 14 errors, 4 subtests passed in 1158.14s (0:19:18)",
+      "loadavg_before": 1.81,
+      "loadavg_after": 8.39,
+      "box_was_quiet": true,
+      "mem_available_before_mb": 13218,
+      "mem_available_after_mb": 4384,
+      "had_memory_headroom": true
+    }
+  },
+  "deferral_count": 1,
+  "resumed_phases": [
+    "cold_checkout",
+    "warm_checkout"
+  ],
+  "phases_from_an_earlier_head": [
+    "cold_checkout",
+    "warm_checkout"
+  ],
+  "complete": false,
+  "phases_missing": [
+    "in_tree_baseline"
+  ],
+  "last_heartbeat": "2026-08-10T19:39:35Z",
+  "deferred": {
+    "reason": "publisher still live after 2700s",
+    "at_phase": "in_tree_baseline",
+    "at": "2026-08-10T19:40:05Z"
+  }
+}
