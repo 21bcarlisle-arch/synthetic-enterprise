@@ -120,6 +120,19 @@ REVIEWED_CLOSE_TO_LEARN = {
     # certifies once any home's heat lands on the judged meter.
     "H36_the_texture_floor_is_one_number_for_every_home_size",
     "H37_the_away_signature_reads_a_heat_pump_as_an_empty_house",
+    # 2026-08-10 reviewed (worker tick, H36's own build). H36 replaced the per-regime texture
+    # floors with ONE floor read on the meter net of space heat, which measured the old reading
+    # passing five of six electrically heated homes with every appliance event removed from
+    # them. Both dispositions below are close_to_learn on the same grounds as their parent —
+    # neither moves money, neither touches a revenue flow, and each is about whether a band this
+    # repo already ships can fail at all —
+    #   H38: taking the space heater out leaves the WATER heater, 36-40% of what L1.1 now calls
+    # behaviour, and it fails one drawn home in sixty for owning a second machine.
+    #   H39: the surviving floor clears its own null by less than the null's own spread, because
+    # the flat-day null preserves each home's mean diurnal profile and the statistic then reads
+    # that profile's roughness.
+    "H38_the_behavioural_stream_still_carries_the_water_heater",
+    "H39_the_texture_floor_sits_inside_the_spread_of_its_own_null",
     # 2026-08-09 reviewed (worker tick, minting the WORK THIS CREATES block of
     # DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING). Both are harness-integrity work and
     # neither touches a revenue flow: OPS5 executes the expiry the ruling put on the one

@@ -428,27 +428,40 @@ def _no_scale_diversity_null(
 
 
 def _per_home_texture(population: PopulationTraces) -> list[float]:
-    return [fgl.half_hourly_texture(home) for home in population.grids]
+    """Read on the load set the live cell judges — net of space heat (H36).
+
+    Reading the raw meter here would measure the null of a statistic nobody
+    applies, and it would measure it flatteringly: the heating machine's own
+    period-to-period movement lands in the observed value AND in the null, which
+    is the reading H36 removed from the cell.
+    """
+    return [
+        fgl.half_hourly_texture(home, space_heat=_heat_of(population, k))
+        for k, home in enumerate(population.grids)
+    ]
 
 
 def _judged_by_texture_band(band_name: str) -> Callable[[PopulationTraces], list[int]]:
     """The homes a texture band ACTUALLY judges, routed through the live
     `texture_band_for` rather than by re-reading the register here.
 
-    The three L1.1 bands are regime-conditioned: one gas, one heat pump, one
-    resistive. Measuring the heat-pump band's null on a panel of gas homes would
-    report a defect in the wrong load set — the band would look fail-open because
-    gas homes are spikier, which says nothing about the homes it governs. Routing
-    through the shipped router also means a change to `HEATING_REGIMES` moves the
-    sweep's sub-populations with it instead of desyncing them.
+    Since H36 there is one judged texture band and one NEED band, and what routes
+    a home between them is whether its behavioural stream can be recovered at all.
+    A home that lands in the NEED band is not judged by the floor, so measuring
+    the floor's null over it would report a margin for a home nobody judges —
+    the same wrong-load-set shape that made this router necessary when the bands
+    were regime-conditioned. Routing through the shipped function also means a
+    change to `HEAT_ON_THE_JUDGED_METER` moves the sweep's sub-population with it
+    instead of desyncing them.
     """
 
     def select(population: PopulationTraces) -> list[int]:
         systems = population.heating_systems or (None,) * len(population.homes)
+        has_split = bool(population.space_heat_grids)
         return [
             i
             for i, system in enumerate(systems)
-            if fgl.texture_band_for(system).statistic == band_name
+            if fgl.texture_band_for(system, has_split=has_split).statistic == band_name
         ]
 
     return select
@@ -516,26 +529,16 @@ class NullSpec:
 
 NULL_SPECS: dict[str, NullSpec] = {
     "L1.1_half_hourly_texture": NullSpec(
-        "L1.1_half_hourly_texture", "per_home", "flat_day",
-        "every day becomes the home's own mean profile at its own total: level "
-        "and diurnal shape survive, appliance events do not",
-        _flat_day_null, _per_home_texture, is_point_mass=True,
+        "L1.1_half_hourly_texture", "per_home", "flat_behavioural_day",
+        "every day's BEHAVIOURAL stream becomes the home's own mean behavioural "
+        "profile at that day's own behavioural total, and the heating machine is "
+        "left in the meter untouched: level and diurnal shape survive, appliance "
+        "events do not. The heat stream has to survive intact — flattening the "
+        "meter instead would leave `flat_meter - real_heat`, which hands the band "
+        "the machine's own movement as though it were behaviour, and that is "
+        "precisely what H36 took out of the reading",
+        _flat_behavioural_day_null, _per_home_texture, is_point_mass=True,
         subpopulation=_judged_by_texture_band("L1.1_half_hourly_texture"),
-    ),
-    "L1.1e_half_hourly_texture_electric_heat": NullSpec(
-        "L1.1e_half_hourly_texture_electric_heat", "per_home", "flat_day",
-        "same null as L1.1, read only on the HEAT-PUMP homes this band governs — "
-        "the band differs only in where the threshold sits, but the load set it "
-        "sits over is not the same one",
-        _flat_day_null, _per_home_texture, is_point_mass=True,
-        subpopulation=_judged_by_texture_band("L1.1e_half_hourly_texture_electric_heat"),
-    ),
-    "L1.1r_half_hourly_texture_resistive_heat": NullSpec(
-        "L1.1r_half_hourly_texture_resistive_heat", "per_home", "flat_day",
-        "same null as L1.1, read only on the RESISTIVE-heat homes this band "
-        "governs",
-        _flat_day_null, _per_home_texture, is_point_mass=True,
-        subpopulation=_judged_by_texture_band("L1.1r_half_hourly_texture_resistive_heat"),
     ),
     "L1.2_day_to_day_shape_correlation": NullSpec(
         "L1.2_day_to_day_shape_correlation", "per_home", "flat_day",

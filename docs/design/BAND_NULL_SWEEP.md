@@ -475,6 +475,10 @@ by this repair, and it is why the applied window is 120 days.
 
 ## What the sweep and the coupling run say now
 
+> **Superseded 2026-08-10 (H36).** L1.1r no longer exists: the fixed floor was
+> the defect, the statistic is read net of space heat and the sweep exits 0. The
+> paragraph below is the reading of the run H37 produced.
+
 `python3 tools/band_null_sweep.py --persist` exits **1**, naming
 **L1.1r alone** (`docs/observability/band_null_sweep.json`, `randomisation:
 flat_behavioural_day`, `margin: 1.0`, `verdict: separated` for L1.3). L1.1r stays
@@ -517,6 +521,207 @@ an explicit message saying so.
   away. Netting makes that branch *less* plausible, not more: what is left after
   the heating machine comes out is the fridge, measured minimum 0.034 kWh per
   half hour over the panel. Recorded rather than pre-emptively rewritten.
-* **L1.1r was not touched** (H36), and the sweep still exits 1 because of it.
+* **L1.1r was not touched** (H36), and the sweep still exited 1 because of it.
+  *Superseded 2026-08-10:* H36 retired L1.1r along with the whole regime-
+  conditioned floor and the sweep now exits 0 — see the H36 section.
 * **`min_half_hour_kwh` stays on the meter**, unnetted — it is a statement about
   what the meter can read, not about occupancy.
+
+---
+
+# H36 — one floor, read where the floor's own argument holds
+
+**Atom:** `H36_the_texture_floor_is_one_number_for_every_home_size` (lane H_harness, L0 -> L2)
+**Changed:** `half_hourly_texture` takes `space_heat=`; the L1.1 cell and the sweep both pass it
+**Retired:** `L1.1e`, `L1.1r`, `heating_texture_threshold` and its two callers, `HEATING_REGIMES`
+**Null moved to:** `band_null_sweep._flat_behavioural_day_null` (H37's, unchanged)
+**R15:** `tests/harness/test_premise_two_level.py` §8, `tests/tools/test_couple_fabric.py`, `tests/harness/test_band_null_sweep.py`
+
+## The argument, which is one sentence and then the evidence for it
+
+L1.1 is `median |x[t] - x[t-1]| / mean(x)` and its 0.15 floor reasons entirely
+about the DENOMINATOR — "a kettle is 2.8 kW for three minutes on a ~0.7 kWh
+half-hour". Where the heating machine is on the judged meter that denominator is
+not the one the argument is about, and the fix this replaces compensated in the
+THRESHOLD: `0.15 x behavioural share`, with the share taken from ONE published
+typical home (Ofgem TDCV medium against a DESNZ/ESC median-SPFH4 heat pump =
+47.0% behavioural, resistive = 24.2%). One number, every home size.
+
+The panel's homes are not that home. Measured behavioural share and what the
+band's own arithmetic gives at each home's own share (the table H35 produced):
+
+| home | regime | heat share | own-share floor | fixed floor | verdict under the fixed floor |
+|---|---|---|---|---|---|
+| H10 | heat pump | 0.305 | 0.1043 | 0.0705 | pass |
+| H11 | heat pump | **0.624** | **0.0564** | 0.0705 | **FAIL by 0.2%** |
+| H12 | heat pump | 0.316 | 0.1026 | 0.0705 | pass |
+| E13 | resistive | 0.428 | 0.0858 | 0.0363 | pass |
+| E14 | resistive | 0.356 | 0.0966 | 0.0363 | pass |
+| E15 | resistive | 0.738 | 0.0393 | 0.0363 | pass |
+
+25% too strict at one end. The other end is the one that matters.
+
+## The fail-open, measured — why this is a STRENGTHENING and not a rescaling
+
+Replace each home's behaviour with its own mean behavioural profile, rescaled to
+that day's own behavioural total — level, diurnal shape and daily totals all
+preserved, every appliance event gone — and leave the heating machine untouched.
+That is the smooth-by-construction generator the floor exists to catch, in a
+house that still has a real heat pump in it. Read on the WHOLE meter against the
+rescaled floors that used to judge these homes:
+
+| home | regime | mutated, whole meter | its old floor | old verdict | mutated, net of space heat | new verdict |
+|---|---|---|---|---|---|---|
+| H10 | heat pump | 0.0730 | 0.0705 | **PASS** | 0.0869 | fail |
+| H11 | heat pump | 0.0415 | 0.0705 | fail | 0.0514 | fail |
+| H12 | heat pump | 0.0814 | 0.0705 | **PASS** | 0.1094 | fail |
+| E13 | resistive | 0.1137 | 0.0363 | **PASS** | 0.1334 | fail |
+| E14 | resistive | 0.0693 | 0.0363 | **PASS** | 0.0932 | fail |
+| E15 | resistive | 0.0407 | 0.0363 | **PASS** | 0.0665 | fail |
+
+**Five of six.** The machine's own period-to-period movement stood in for the
+behaviour that had been removed, and the rescaled floor was low enough to let it
+— E13 cleared its band by 3x with no appliance event anywhere in 120 days. A
+control that cannot fail on its own named defect is worse than none (R15), and
+that is what the previous reading was for an electrically heated home. Pinned by
+`test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home`.
+
+## The repair, and what it deletes
+
+The floor stops moving and the LOAD SET moves instead — the netting L1.2 (and,
+since H37, L1.3) already apply. `half_hourly_texture(space_heat=...)` reads the
+meter net of space heat; the cell computes the behavioural stream ONCE and hands
+the same one to all three L1 cells, so they cannot come to hold two ideas of what
+a home's behaviour is.
+
+What that DELETES is the point, and it is an R10 class closure rather than an
+instance fix: there is no per-regime threshold, no published seasonal efficiency
+for any machine, and no NEED band for a ground-source heat pump — a machine this
+file has never heard of is judged like every other one, because the split takes
+it out whatever its efficiency is. The heating register survives with one job
+left: deciding whether a home with NO split has a meter that is already
+behavioural, or a thermostat in it that cannot be taken out. The second case is
+COUNTED, never judged (`L1.1u_half_hourly_texture_no_behavioural_stream`), which
+is the same visible-hole treatment the unregistered-regime band had.
+
+## The panel, re-read (15 homes x 120 days, same window)
+
+| home | regime | whole meter | net of space heat | vs 0.15 |
+|---|---|---|---|---|
+| nine gas homes | gas combi | 0.1782-0.2874 | **bit-for-bit unchanged** | pass |
+| H10 | heat pump | 0.1261 | 0.1766 | pass |
+| H11 | heat pump | **0.0704** | **0.1537** | pass |
+| H12 | heat pump | 0.1664 | 0.2452 | pass |
+| E13 | resistive | 0.1031 | 0.1618 | pass |
+| E14 | resistive | 0.1213 | 0.1655 | pass |
+| E15 | resistive | 0.0567 | 0.1533 | pass |
+
+Every home now reads in one comparable range (0.1533-0.2874) against one floor.
+The gas homes are unchanged because their heat is on the other meter and the
+netting is the identity on them — asserted on the live panel, not argued.
+
+**H11's breach is closed and the floor did not move.** `tools/couple_fabric.py`
+reports RED on `L2.4_scale_spread_p90_p10` alone; L1.1's cell reads 0 of 15
+violating, worst home E15 at 0.1533, verdict INSUFFICIENT — fifteen homes cannot
+rule out a 5% violation rate. The breach is gone; the power was never there.
+
+## The sweep
+
+`python3 tools/band_null_sweep.py` now exits **0**. L1.1r's `inside_null` and
+L1.1e's `same_order` are gone with the bands; the surviving floor is measured
+over all 15 homes on the load set it is read on:
+
+| band | n | threshold | null (best) | null spread | margin | verdict |
+|---|---|---|---|---|---|---|
+| L1.1_half_hourly_texture | 15 | 0.15 | 0.1166 | 0.0763 | **+0.0334** | **same_order** |
+
+`SAME_ORDER` is a FINDING, not a defect, and it is dispositioned below rather
+than left as a colour in a table.
+
+## Two findings this opened, both named and neither folded in
+
+### 1. The behavioural stream still carries the WATER heater
+
+On the drawn 60-home population (the one the ledger's judged verdict comes from,
+not the panel) the sharper cell puts **one home in sixty** under the floor:
+P0008 at 0.1423. Decomposed:
+
+| home | regime | whole meter | net of space heat | net of BOTH machines | water heat as a share of "behaviour" |
+|---|---|---|---|---|---|
+| P0008 | resistive | 0.1382 | **0.1423** | 0.2048 | 0.403 |
+| P0020 | resistive | 0.1228 | 0.1526 | 0.2177 | 0.357 |
+| P0033 | storage | 0.0378 | 0.1653 | 0.2434 | 0.387 |
+
+The same wrong-load-set shape one level in. Taking the space heater out leaves
+the water heater, which is 36-40% of what is left, and it is a MACHINE rather
+than an appliance event: a large regular draw that lifts the MEAN while the
+MEDIAN step barely moves — the exact numerator/denominator argument that forced
+the space-heat netting. Net of both, all three read 0.2048-0.2434.
+
+`observed-with-evidence`, on the live generator, and the floor was NOT moved,
+P0008 was NOT excluded and no cell was marked UNVALIDATED — each would go green
+in one edit while making the measurement worse. **Disposition: REPAIR THE
+STATISTIC** — atom `H38_the_behavioural_stream_still_carries_the_water_heater`.
+Until it lands the cell reports FAIL, which is the correct reading of a control
+asking a home about a machine. Held by
+`test_the_L1_1_BREACH_is_the_WATER_HEATER_in_the_denominator`.
+
+### 2. The floor sits inside the spread of its own null
+
+The surviving band clears its null by 0.0334 against a spread of 0.0763 —
+separated by the draw, not by construction. `inferred`: the flat-day null
+preserves each home's mean diurnal profile, and the statistic then reads that
+profile's own roughness, which is a property of the home rather than of the
+generator's honesty — so the null's spread ACROSS homes is large and the p95 is
+set by whichever home has the peakiest mean profile (E13 at 0.1334 against a
+population median near 0.06). **Disposition: REPAIR THE STATISTIC** — atom
+`H39_the_texture_floor_sits_inside_the_spread_of_its_own_null`, with the
+`L1.4 -> L1.4n` / `L2.3 -> L2.3n` own-null-ratio pattern named as the candidate
+and NOT as the answer. Not a threshold move in either direction: raising the
+floor until it clears its null is fitting the threshold to the population, which
+is R12 read backwards.
+
+## R15, both ways
+
+| direction | test |
+|---|---|
+| **the old reading was fail-open** | `test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home` — 5 of 6 homes passed with every appliance event removed |
+| the floor can still fail, every regime | `test_the_MUTATION_that_proves_the_floor_is_VALID_on_EVERY_regime`, five machines |
+| the mutation attacks BEHAVIOUR, not the machine | `_flatten_behaviour` rebuilds the meter with the heat stream intact |
+| there is only ONE judged floor | `test_the_FLOOR_is_ONE_NUMBER_and_no_regime_has_its_own`, which also asserts the retired derivations are gone |
+| the floor does not move with heat share | `test_the_floor_does_not_move_with_a_homes_HEAT_SHARE` |
+| a gas home is untouched | `test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED` (d), on the live panel |
+| **the closure control still fires** | `test_the_CLOSURE_CONTROL_still_fires_when_the_JUDGING_BAND_IS_MOVED` — floor raised to 0.20, real homes breach, control raises |
+| ...and accepts the real cell | `test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one`, pass arm now measured rather than constructed |
+| the register still fails CLOSED | `test_the_MISSING_register_fact_still_fails_CLOSED_onto_the_gas_band`, `test_an_UNKNOWN_machine_fails_CLOSED_rather_than_onto_the_floor` |
+| an unjudgeable home is COUNTED | `test_a_home_with_NO_RECOVERABLE_behaviour_is_COUNTED_never_folded_in` |
+| ...and a population of them is INSUFFICIENT | `test_a_population_MOSTLY_unjudgeable_is_INSUFFICIENT_not_clean`, `..._with_NO_judgeable_band_at_all_...` |
+| every machine is classified (R10) | `test_EVERY_heating_system_is_registered_or_explicitly_UNANCHORED` |
+| the unjudged home cannot become the worst cell | `test_the_worst_L1_1_cell_is_the_worst_MARGIN_not_the_lowest_RAW_value` |
+| the sweep reads the same load set | `test_the_floor_is_read_NET_OF_SPACE_HEAT_and_so_is_its_null`, both directions |
+| **the vacuity guard survives the collapse** | `test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported` + `test_the_SAME_band_stops_being_fatal_once_a_home_EXERCISES_it` — re-aimed at the population that now empties the floor's load set |
+
+The H35 guard (`UNMEASURABLE` is fatal) is kept live rather than orphaned: with
+the regime bands gone, the population that empties the floor's load set is one
+where every home carries its heat on the judged meter and no split is supplied,
+and both the fires-on-it and stops-firing arms are asserted on that.
+
+## What was NOT done
+
+* **R12 held.** The floor is still 0.15 — the gas number this cell was born with.
+  Nothing was raised to clear a null and nothing was lowered to clear a home.
+* **The water-heater netting was not folded in.** It is a second application of
+  the same repair with its own measurement to take, and doing it inside this one
+  would have made both unreviewable. Atom `H38`, evidence already in hand.
+* **The panel was not trimmed and P0008 was not dropped.** The one open breach is
+  reported at the cell, on the wire (`homes_violating`, `worst_home`), and in the
+  test that decomposes it.
+* **`_smooth` was left in place.** It inverts on a heat-pump home's METER and no
+  longer does on its behavioural stream; that reversal is now an assertion
+  (`test_the_SMOOTH_mutation_is_VALID_AGAIN_once_the_MACHINE_IS_OUT`) rather than
+  a deleted comment, because it is evidence that the statistic measures the same
+  thing in both regimes now.
+* **`docs/market_research/ASSUMPTIONS.md` kept its rows.** The SPFH4 and in-situ
+  boiler research is real and correctly sourced; it is marked as no longer
+  anchoring a live control rather than deleted, because the 53.0% derived share is
+  what made the fixed-floor defect visible in the first place.

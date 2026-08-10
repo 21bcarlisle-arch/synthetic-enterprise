@@ -280,15 +280,45 @@ def _pearson(a: Sequence[float], b: Sequence[float]) -> float:
 # ===========================================================================
 
 
-def half_hourly_texture(days: Sequence[Sequence[float]]) -> float:
-    """L1.1 — median |x[t] - x[t-1]| over the whole window, divided by mean(x).
+def half_hourly_texture(
+    days: Sequence[Sequence[float]],
+    *,
+    space_heat: Sequence[Sequence[float]] | None = None,
+) -> float:
+    """L1.1 — median |x[t] - x[t-1]| over the whole window, divided by mean(x),
+    read on the meter NET OF SPACE HEAT.
 
     Dimensionless, so a big house and a small house are judged the same way.
     Steps are taken WITHIN each day and across the midnight boundary, because a
     generator that is smooth inside the day but jumps at midnight is not spiky,
     it is discontinuous.
+
+    WHY THE NETTING (H36, 2026-08-10), and it is a measurement rather than a
+    preference. This statistic is a ratio to the home's OWN MEAN, and its 0.15
+    floor reasons from a purely behavioural denominator ("a kettle is 2.8 kW for
+    three minutes on a ~0.7 kWh half-hour"). Where the heating machine is on the
+    judged meter that denominator is not behavioural, and the previous repair —
+    rescale the FLOOR by the heat share of ONE published typical home — bought a
+    fixed number for every home size. Measured on the live panel, the behavioural
+    share ranges 0.30-0.74 across six electrically heated homes, so the single
+    rescaled floor was 25% too strict for the largest and (the part that matters)
+    fail-open for the smallest: with each home's behaviour replaced by its own
+    mean profile — smooth by construction, no appliance event anywhere — FIVE of
+    the six still cleared their rescaled band on the whole meter, because the
+    heating machine's own movement stood in for the behaviour that was gone.
+    Read net of space heat, all six fail. See `docs/design/BAND_NULL_SWEEP.md`
+    (H36) for the per-home tables.
+
+    So the floor stops moving and the LOAD SET does, which is the netting L1.2
+    and L1.3 already apply (`meter_net_of_space_heat`). One number, every home
+    size, no published efficiency for any machine — a heating regime this file
+    has no figure for is now judged like any other rather than needing its own.
+
+    FAIL-CLOSED on absence: `space_heat=None` judges the whole meter, exactly as
+    before. The leniency is bought with a stated fact and the fact is checked.
     """
     grid = _require_days(days, minimum=MIN_DAYS_FOR_TEXTURE, name="half_hourly_texture")
+    grid = meter_net_of_space_heat(grid, space_heat)
     flat = [v for day in grid for v in day]
     mean = sum(flat) / len(flat)
     if mean <= 0.0:
@@ -1275,139 +1305,34 @@ class Band:
 
 
 # ---------------------------------------------------------------------------
-# The L1.1 texture band is HEATING-SYSTEM CONDITIONED, and the second band is
-# DERIVED from published sources rather than declared
+# The L1.1 texture band is ONE NUMBER, and what moves by regime is the LOAD SET
 # ---------------------------------------------------------------------------
 #
-# WHY THERE ARE TWO. L1.1 is `median |x[t] - x[t-1]| / mean(x)` — a RATIO to the
-# home's own mean. A heat pump puts a large, thermally-driven, slowly-varying
-# load into the DENOMINATOR while adding almost nothing to the numerator, so an
-# electrically-heated home is arithmetically smoother in relative terms than a
-# gas-heated home with identical appliance behaviour. Judging both against one
-# national floor is the same one-national-constant defect W1_12 exists to
-# remove, reappearing in the CONTROL rather than in the generator
-# (`docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`,
-# where the whole of the failing home's deficit was decomposed to the denominator).
+# WHY THERE WAS EVER MORE THAN ONE, and why there is no longer (H36, 2026-08-10).
+# L1.1 is `median |x[t] - x[t-1]| / mean(x)` — a RATIO to the home's own mean. A
+# heat pump puts a large, thermally-driven load into the DENOMINATOR while adding
+# little to the numerator, so on the WHOLE METER an electrically heated home is
+# arithmetically smoother than a gas home with identical appliance behaviour.
+# Judging both by one national floor on that reading is the one-national-constant
+# defect W1_12 exists to remove, reappearing in the CONTROL
+# (`docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`).
 #
-# WHERE THE ELECTRIC THRESHOLD COMES FROM. Not from the generator, and not from
-# a judgement about what would make it pass — from four published figures and one
-# division. Each is a constant below so the arithmetic is RE-DERIVABLE in a test
-# and a change to any input is visible in a diff rather than buried in prose.
+# The first repair rescaled the FLOOR by the heat share of one published typical
+# home, once per heating regime. That put a fixed number against every home size,
+# and H35 measured what it cost on the six electrically heated homes of the live
+# panel (`docs/design/BAND_NULL_SWEEP.md`): behavioural shares of 0.30-0.74, so the
+# floor was 25% too strict for the largest home and fail-open for the smallest —
+# five of the six cleared their rescaled band with their behaviour replaced by
+# their own mean profile, no appliance event left in it, because the heating
+# machine's own movement stood in for the behaviour that was gone.
+#
+# So the floor stops moving and the LOAD SET moves instead: L1.1 is read net of
+# space heat (`half_hourly_texture(space_heat=...)`), where the 0.15 denominator
+# argument is the one that was always meant, and every home is judged by it. What
+# the register is still needed for is the ONE case the netting cannot cover — a
+# home whose heat is on this meter and whose generator supplies no split. That
+# home is COUNTED, not guessed at.
 _GAS_TEXTURE_THRESHOLD = 0.15
-
-# Ofgem, Typical Domestic Consumption Values applying from 1 July 2026 (medium
-# band). The electricity TDCV is for a home that is NOT electrically heated, so
-# it is exactly the behavioural/appliance baseline this derivation needs.
-# Recorded in `docs/market_research/ons_consumption_profiles.md`.
-_TDCV_ELECTRICITY_MEDIUM_KWH = 2500.0
-_TDCV_GAS_MEDIUM_KWH = 9500.0
-
-# Energy Saving Trust / DECC, "In-situ monitoring of efficiencies of condensing
-# boilers" final report: mean MEASURED in-situ efficiency of the trial set of
-# COMBINATION boilers = 82.5% (sd 4.0%) against a SEDBUK rating of 90.4%. Combi
-# is the right figure here because every gas home in the fabric panel is
-# GAS_BOILER_COMBI.
-_COMBI_BOILER_IN_SITU_EFFICIENCY = 0.825
-
-# DESNZ / Energy Systems Catapult, Electrification of Heat demonstration project
-# summary report: median ASHP SPFH4 = 2.78, IQR [2.55, 3.05], n=428.
-_ASHP_MEDIAN_SPFH4 = 2.78
-
-
-# The seasonal delivered efficiency of RESISTIVE electric heat. Not a measurement
-# and not a citation — conservation of energy. Every kWh drawn by a storage heater
-# or a panel heater ends up in the dwelling as heat, so the ratio is 1.0 and there
-# is no published spread to quote. It is stated as a constant so the arithmetic
-# below reads the same way for every regime.
-_RESISTIVE_SEASONAL_EFFICIENCY = 1.0
-
-
-def heating_texture_threshold(seasonal_efficiency: float) -> float:
-    """The L1.1 band for a home whose ELECTRICITY meter carries its heat, derived
-    from the delivered efficiency of the machine that carries it.
-
-    THE BAND IS KEYED ON A RATIO, NOT ON A CATEGORY, and that is the whole point
-    of this function. The previous version conditioned on `is_gas_heated`, a
-    BOOLEAN, while the physics is keyed on how much electricity the heating draws
-    to deliver a fixed amount of heat — so a resistive storage heater (SPF ~1.0)
-    was judged by a band derived for a heat pump (SPFH4 2.78) and failed for being
-    a different machine, not for being unrealistic
-    (`docs/staging/WORKER_FINDING_HEATING_REGIME_CONDITIONING_IS_BINARY_2026-08-09.md`).
-    Every regime with its own delivered efficiency now gets its own rescaling of
-    the SAME behavioural floor, which closes the class rather than the instance
-    (R10): a new heating system needs an efficiency in `HEATING_REGIMES`, not a
-    new branch here.
-
-        heat        = 9500 * 0.825                        (useful heat, kWh/yr)
-        heat_elec   = heat / seasonal_efficiency          (what the meter sees)
-        behav_share = 2500 / (2500 + heat_elec)
-        band        = 0.15 * behav_share
-
-    CONSERVATIVE BY CONSTRUCTION, and this is the assumption to attack first: the
-    scaling credits the heating with ZERO period-to-period movement, so it is a
-    LOWER bound on what a correct electrically-heated home should show in an
-    `at_least` direction. A real ASHP cycles and a real storage heater switches in
-    blocks, so a correct generator clears its band with room; a generator that is
-    smooth by construction still cannot.
-    """
-    if not math.isfinite(seasonal_efficiency) or seasonal_efficiency <= 0.0:
-        raise InsufficientEvidence(
-            f"a seasonal delivered efficiency of {seasonal_efficiency!r} is not a machine"
-        )
-    heat_kwh = _TDCV_GAS_MEDIUM_KWH * _COMBI_BOILER_IN_SITU_EFFICIENCY
-    heating_electricity_kwh = heat_kwh / seasonal_efficiency
-    behavioural_share = _TDCV_ELECTRICITY_MEDIUM_KWH / (
-        _TDCV_ELECTRICITY_MEDIUM_KWH + heating_electricity_kwh
-    )
-    return _GAS_TEXTURE_THRESHOLD * behavioural_share
-
-
-def electric_heat_texture_threshold() -> float:
-    """The L1.1 band for an ASHP home, derived not declared.
-
-    Gas TDCV -> useful heat at the measured in-situ combi efficiency -> the
-    electricity an ASHP needs to deliver that heat at the measured median SPFH4.
-    The heat pump's share of total household electricity follows, and the band is
-    the gas band scaled by what is LEFT for behaviour:
-
-        heat        = 9500 * 0.825            = 7837.5 kWh/yr
-        hp_elec     = 7837.5 / 2.78           = 2818.9 kWh/yr
-        behav_share = 2500 / (2500 + 2818.9)  = 0.4700
-        band        = 0.15 * 0.4700           = 0.0705
-
-    CONSERVATIVE BY CONSTRUCTION, and this is the assumption to attack first: the
-    scaling credits the heat pump with ZERO period-to-period movement, so it is a
-    LOWER bound on what a correct electrically-heated home should show in an
-    `at_least` direction. A real ASHP cycles, so a correct generator clears this
-    band with room; a generator that is smooth by construction still cannot.
-
-    NOT A TAUTOLOGY (R15): every input is external to this repository's
-    generators, and none of them is measured on a trace. Sensitivity across the
-    published spreads, taken JOINTLY at their corners — SPFH4 over its IQR
-    [2.55, 3.05] crossed with boiler efficiency over +/-1sd [0.785, 0.865] — moves
-    the band across 0.0655-0.0758, so the number does not rest on any one point
-    estimate. `test_the_electric_band_is_ROBUST_across_the_published_spreads`
-    pins that envelope.
-    """
-    return heating_texture_threshold(_ASHP_MEDIAN_SPFH4)
-
-
-def resistive_heat_texture_threshold() -> float:
-    """The L1.1 band for a home heated by RESISTIVE electricity (storage or
-    panel), on the same arithmetic and the same published inputs:
-
-        heat_elec   = 7837.5 / 1.0            = 7837.5 kWh/yr
-        behav_share = 2500 / (2500 + 7837.5)  = 0.2418
-        band        = 0.15 * 0.2418           = 0.0363
-
-    A third of the gas band, because a resistive heater puts nearly three times
-    the ASHP's electricity into the same denominator for the same delivered heat.
-    Judging such a home by the heat-pump band fails it for having the wrong
-    machine — measured, on the first drawn population: P0197 (terraced, pre-1919,
-    EPC C, electric storage) scores 0.0414, which clears this band and fails the
-    ASHP one.
-    """
-    return heating_texture_threshold(_RESISTIVE_SEASONAL_EFFICIENCY)
 
 
 # The bands. Every `observed_on_shipped` value below was MEASURED on the shipped
@@ -1428,10 +1353,12 @@ BANDS: dict[str, Band] = {
             "below the low end of the 20-40% domain expectation, deliberately "
             "loose so that it can only fire on a generator that is smooth by "
             "construction rather than on one that is merely at the calm end of real. "
-            "APPLIES TO NON-ELECTRICALLY-HEATED HOMES ONLY — the kettle-on-a-0.7-kWh-"
-            "half-hour reasoning is a statement about the denominator, and an "
-            "electrically-heated home has a different one. See "
-            "L1.1e_half_hourly_texture_electric_heat."
+            "APPLIES TO THE METER NET OF SPACE HEAT, WHICH IS EVERY HOME — the "
+            "kettle-on-a-0.7-kWh-half-hour reasoning is a statement about the "
+            "DENOMINATOR, so it holds for any home once the heating machine is out "
+            "of it. That is where the regime conditioning went (H36): the floor is "
+            "one number for every home size because the load set it is read on is "
+            "the same load set in every regime."
         ),
         observed_on_shipped=None,
         rationale=(
@@ -1439,83 +1366,28 @@ BANDS: dict[str, Band] = {
             "is the texture of a hundred thousand homes already summed."
         ),
     ),
-    "L1.1e_half_hourly_texture_electric_heat": Band(
-        statistic="L1.1e_half_hourly_texture_electric_heat",
-        level="L1",
-        direction="at_least",
-        threshold=electric_heat_texture_threshold(),
-        anchor=AnchorStatus.PUBLISHED,
-        anchor_source=(
-            "published, derived — Ofgem Typical Domestic Consumption Values from "
-            "1 July 2026 (medium: electricity 2,500 kWh/yr for a non-electrically-"
-            "heated home, gas 9,500 kWh/yr); Energy Saving Trust/DECC 'In-situ "
-            "monitoring of efficiencies of condensing boilers' final report, mean "
-            "measured in-situ efficiency of the trial COMBINATION boilers 82.5% "
-            "(sd 4.0%, vs SEDBUK 90.4%); DESNZ/Energy Systems Catapult Electrification "
-            "of Heat demonstration project summary report, median ASHP SPFH4 = 2.78 "
-            "(IQR [2.55, 3.05], n=428). Those give a heat-pump share of household "
-            "electricity of 53.0%, so the behavioural stream carries 47.0% of the "
-            "mean that L1.1 divides by. See `electric_heat_texture_threshold` for "
-            "the arithmetic and its sensitivity (0.0655-0.0758 across the joint "
-            "corners of the published spreads). NOT a relaxation of the gas band "
-            "and not set by looking at "
-            "what any generator scores: the ratio of the two bands is the ratio of "
-            "the two denominators, and nothing else."
-        ),
-        observed_on_shipped=None,
-        rationale=(
-            "The shipped path has no electrically-heated home to observe — it "
-            "rescales one national PC1 shape regardless of heating system, which is "
-            "the defect. A heat pump is a large slowly-varying load in the "
-            "DENOMINATOR of a ratio-to-own-mean statistic, so the same appliance "
-            "behaviour scores lower in an ASHP home than in a gas home. Judging both "
-            "with one national floor would fail a correct generator for being "
-            "correct."
-        ),
-    ),
-    "L1.1r_half_hourly_texture_resistive_heat": Band(
-        statistic="L1.1r_half_hourly_texture_resistive_heat",
-        level="L1",
-        direction="at_least",
-        threshold=resistive_heat_texture_threshold(),
-        anchor=AnchorStatus.PUBLISHED,
-        anchor_source=(
-            "published, derived — the SAME Ofgem TDCV and in-situ combi efficiency "
-            "as the heat-pump band, with the ASHP SPFH4 replaced by the seasonal "
-            "delivered efficiency of RESISTIVE heat, which is 1.0 by conservation of "
-            "energy and has no spread to quote. Heating then carries 75.8% of the "
-            "electricity mean and the behavioural stream 24.2%. This band is NOT a "
-            "relaxation of anything: it is the same floor divided by the same "
-            "denominator argument, applied to the machine the register says is "
-            "actually in the house."
-        ),
-        observed_on_shipped=None,
-        rationale=(
-            "A storage heater is resistive, so the same delivered heat costs ~2.8x "
-            "the electricity an ASHP would draw and lands in the DENOMINATOR of a "
-            "ratio-to-own-mean statistic. Judging it by the heat-pump band fails a "
-            "correct generator for having the wrong machine."
-        ),
-    ),
-    "L1.1u_half_hourly_texture_unregistered_regime": Band(
-        statistic="L1.1u_half_hourly_texture_unregistered_regime",
+    "L1.1u_half_hourly_texture_no_behavioural_stream": Band(
+        statistic="L1.1u_half_hourly_texture_no_behavioural_stream",
         level="L1",
         direction="at_least",
         threshold=None,
         anchor=AnchorStatus.NEED,
         anchor_source=(
-            "NEED — a published seasonal delivered efficiency for this heating "
-            "regime. A home whose register fact names a machine with no efficiency "
-            "in `HEATING_REGIMES` is MEASURED AND COUNTED, never judged and never "
-            "silently folded into another regime's band. Both silent folds are "
-            "wrong in a different direction: reading an unknown machine as gas "
-            "fails a correct heat pump, and reading it as a heat pump passes a "
-            "smooth resistive home. The unjudged count is reported on the cell and "
+            "NEED — the space-heat split for a home whose register says its heat "
+            "is on the JUDGED meter. Nothing published can stand in for it: the "
+            "0.15 floor is a statement about a behavioural denominator, and for "
+            "this home the behavioural stream is not recoverable from what the "
+            "generator supplied. It is MEASURED AND COUNTED, never judged and "
+            "never folded into the floor. Both silent folds are wrong in a "
+            "different direction: judging the whole meter at 0.15 fails a correct "
+            "heat pump for owning a thermostat, and rescaling the floor by an "
+            "assumed home is the fixed-number-for-every-home-size defect this "
+            "band replaced (H36). The unjudged count is reported on the cell and "
             "the cell goes INSUFFICIENT if too much of the population lands here, "
-            "so a register hole cannot be mistaken for a green suite."
+            "so a missing split cannot be mistaken for a green suite."
         ),
         observed_on_shipped=None,
-        rationale="A register hole is a visible hole, not a default.",
+        rationale="A generator that cannot say is a visible hole, not a default.",
     ),
     "L1.2_day_to_day_shape_correlation": Band(
         statistic="L1.2_day_to_day_shape_correlation",
@@ -1820,63 +1692,85 @@ BANDS: dict[str, Band] = {
 
 
 # ---------------------------------------------------------------------------
-# THE HEATING REGISTER — which band judges which house, keyed on the machine
+# THE HEATING REGISTER — which meter each machine's heat lands on
 # ---------------------------------------------------------------------------
 #
 # A REGISTER fact, never a reading of the trace: `main_heating_fuel` is what a real
 # supplier holds, and inferring "this home looks like it has a heat pump" from the
 # very smoothness the band is judging is the tautology R15 names first.
 #
+# WHAT THIS REGISTER IS FOR, SINCE H36. It used to map a machine to its OWN texture
+# band, via a published seasonal efficiency per regime. That is gone: L1.1 is read
+# net of space heat, so once a generator supplies the split, the machine is out of
+# the denominator and the band that judges the home is the same one in every regime
+# — no efficiency figure required, and a machine this file has never heard of is
+# judged like any other. What is left is a PLUMBING fact with exactly one job: when
+# a generator supplies NO split, decide whether the meter in front of us is already
+# behavioural (heat elsewhere: judge it) or has a thermostat hiding in it that
+# cannot be taken out (heat here: count it, do not guess).
+#
 # The keys are the string VALUES of `simulation.household.HeatingSystem`, written
 # out rather than imported: the harness must not depend on the generator it judges.
 # `tests/harness/test_premise_two_level.py::test_EVERY_heating_system_is_registered`
 # is the class guard that fails when a new member appears in that enum with no entry
-# here — which is the R10 half of this design. A member may legitimately map to the
-# NEED band; what it may not do is fall through to somebody else's band.
+# here — which is the R10 half of this design. A member may legitimately be either
+# side; what it may not do is fall through unclassified.
 NON_ELECTRIC_TEXTURE_BAND = "L1.1_half_hourly_texture"
-UNREGISTERED_TEXTURE_BAND = "L1.1u_half_hourly_texture_unregistered_regime"
+NO_BEHAVIOURAL_STREAM_BAND = "L1.1u_half_hourly_texture_no_behavioural_stream"
 
-HEATING_REGIMES: dict[str, str] = {
-    # The electricity meter carries no heat at all — the gas band applies because
-    # the denominator is purely behavioural. District heat and no-heating are here
-    # for the same reason as gas: whatever the heat costs, it is not on this meter.
-    "gas_boiler_combi": NON_ELECTRIC_TEXTURE_BAND,
-    "gas_boiler_system": NON_ELECTRIC_TEXTURE_BAND,
-    "district_heat": NON_ELECTRIC_TEXTURE_BAND,
-    "none": NON_ELECTRIC_TEXTURE_BAND,
-    # The meter carries the heat, at a published delivered efficiency.
-    "heat_pump_air": "L1.1e_half_hourly_texture_electric_heat",
-    "electric_storage": "L1.1r_half_hourly_texture_resistive_heat",
-    "electric_direct": "L1.1r_half_hourly_texture_resistive_heat",
-    # The meter carries the heat and this file has no published efficiency for the
-    # machine. A GSHP's SPF is at least an ASHP's, and a HIGHER efficiency implies a
-    # HIGHER (stricter) band — so borrowing the ASHP band here would be lenient in
-    # exactly the direction R15 calls fail-open. Measured and counted instead.
-    "heat_pump_ground": UNREGISTERED_TEXTURE_BAND,
+HEAT_ON_THE_JUDGED_METER: dict[str, bool] = {
+    # The electricity meter carries no heat at all, so it IS the behavioural
+    # stream and needs no split. District heat and no-heating are here for the
+    # same reason as gas: whatever the heat costs, it is not on this meter.
+    "gas_boiler_combi": False,
+    "gas_boiler_system": False,
+    "district_heat": False,
+    "none": False,
+    # The meter carries the heat. WHICH machine no longer matters — a ground-source
+    # heat pump needed its own published SPF under the rescaled-floor design and
+    # needs nothing at all under this one, because the split takes the machine out
+    # whatever its efficiency is.
+    "heat_pump_air": True,
+    "heat_pump_ground": True,
+    "electric_storage": True,
+    "electric_direct": True,
 }
 
-# How much of a population may land in the unregistered band before the L1.1 cell
-# stops being evidence. Not a fidelity band — a coverage floor on the CONTROL, of
-# the same family as `REQUIRED_RATE_RESOLUTION`. A population control that reports
-# a clean rate while most of its homes were never judged is the vacuity failure
-# this codebase has already been bitten by.
+# How much of a population may go unjudged before the L1.1 cell stops being
+# evidence. Not a fidelity band — a coverage floor on the CONTROL, of the same
+# family as `REQUIRED_RATE_RESOLUTION`. A population control that reports a clean
+# rate while most of its homes were never judged is the vacuity failure this
+# codebase has already been bitten by.
 MAX_UNJUDGED_SHARE = 0.10
 
 
-def texture_band_for(heating_system: str | None) -> Band:
-    """The L1.1 band that judges a home with this register fact.
+def texture_band_for(heating_system: str | None, *, has_split: bool = False) -> Band:
+    """The L1.1 band that judges a home, given its register fact and whether its
+    generator supplied a space-heat split.
 
-    FAIL-CLOSED on ABSENCE, VISIBLE on the UNKNOWN, and the two are deliberately
-    different. `None`/empty means the caller asserted nothing, which reads as the
-    default UK home and gets the STRICTEST band — a builder who forgets to supply
-    the register fact makes an electrically-heated home fail, never pass. A NAMED
-    machine that is not in `HEATING_REGIMES` is a hole in this register rather than
-    a silent caller, and pretending it is gas would fail a correct heat pump, so it
-    lands in the NEED band and is counted.
+    WITH A SPLIT there is nothing to decide: the machine comes out of the
+    denominator and every home is judged by the one behavioural floor. The
+    register is not consulted at all, which is the H36 result stated as code — a
+    band keyed on the machine was a band compensating for the wrong load set.
+
+    WITHOUT ONE, the register is the only thing that can say whether this meter is
+    already behavioural. FAIL-CLOSED on ABSENCE, VISIBLE on the UNKNOWN, and the
+    two are deliberately different. `None`/empty means the caller asserted
+    nothing, which reads as the default UK home and gets JUDGED — a builder who
+    forgets the register fact makes an electrically-heated home fail, never pass.
+    A machine the register says is on this meter, with no split to take it out,
+    cannot be judged on the load set the floor is about, so it is counted rather
+    than guessed at. A NAMED machine absent from `HEAT_ON_THE_JUDGED_METER` is a
+    hole in this register, and the fail-closed reading of a hole is the same as
+    for a heated meter: counted, never quietly judged as if it were gas.
     """
+    if has_split:
+        return BANDS[NON_ELECTRIC_TEXTURE_BAND]
     if not heating_system:
         return BANDS[NON_ELECTRIC_TEXTURE_BAND]
-    return BANDS[HEATING_REGIMES.get(str(heating_system), UNREGISTERED_TEXTURE_BAND)]
+    if HEAT_ON_THE_JUDGED_METER.get(str(heating_system), True):
+        return BANDS[NO_BEHAVIOURAL_STREAM_BAND]
+    return BANDS[NON_ELECTRIC_TEXTURE_BAND]
 
 
 # ---------------------------------------------------------------------------
@@ -2148,15 +2042,18 @@ class PopulationTraces:
     # inferring "this home looks like it has a heat pump" from the very smoothness
     # the band is judging would be the tautology R15 names first.
     #
-    # This replaced a BOOLEAN (`electrically_heated`) on 2026-08-09, because the
-    # boolean was the defect: the physics is keyed on delivered efficiency, not on
-    # electric-vs-not, and a resistive storage heater was being judged by a band
-    # derived for a heat pump. See `heating_texture_threshold`.
+    # WHAT IT IS STILL FOR. It replaced a BOOLEAN (`electrically_heated`) on
+    # 2026-08-09 and then stopped choosing a threshold at all on 2026-08-10 (H36):
+    # L1.1 is read net of space heat, so where a split is supplied the machine is
+    # out of the denominator and every home meets the same floor. This field now
+    # decides ONE thing — whether a home whose generator supplied no split has a
+    # meter that is already behavioural, or a thermostat in it that cannot be
+    # taken out. See `HEAT_ON_THE_JUDGED_METER`.
     #
-    # FAIL-CLOSED when empty: an empty tuple means every home is judged by the
-    # STRICTER gas band, so a builder that forgets to supply it makes an
-    # electrically-heated home fail, never pass. The lenient direction requires
-    # someone to assert the fact.
+    # FAIL-CLOSED when empty: an empty tuple means every home is judged on its
+    # whole meter against the behavioural floor, so a builder that forgets to
+    # supply it makes an electrically-heated home fail, never pass. The lenient
+    # direction requires someone to assert the fact.
     heating_systems: tuple[str, ...] = ()
     # THE PART OF THE JUDGED METER DRAWN BY THE SPACE-HEATING MACHINE, per home,
     # for the cells that must compare the same load set across regimes
@@ -2371,26 +2268,10 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     cells: list[CellResult] = []
 
     # --- L1 ---------------------------------------------------------------
-    # L1.1's band is keyed on the MACHINE, because the statistic is a ratio to the
-    # home's own mean and how much heat sits in that denominator depends on the
-    # heating system's delivered efficiency, not on a gas/electric boolean.
-    registers = population.heating_systems or ("",) * len(homes)
-    texture_bands = tuple(texture_band_for(r) for r in registers)
-    regime_counts: dict[str, int] = {}
-    for b in texture_bands:
-        regime_counts[b.statistic] = regime_counts.get(b.statistic, 0) + 1
-    cells.append(_l1_rate_cell(
-        TEXTURE_STATISTIC,
-        values=[half_hourly_texture(g) for g in grids],
-        bands=texture_bands,
-        homes=homes,
-        note="regimes " + ", ".join(f"{k}={v}" for k, v in sorted(regime_counts.items())),
-    ))
-
-    # L1.2 is judged on the SAME LOAD SET for every home. Its band is a statement
-    # about households; where the heating machine is on the judged meter it is
-    # taken back out, so the cell cannot fail a home for owning a thermostat
-    # (`meter_net_of_space_heat` carries the measurement that forced this).
+    # THE SAME LOAD SET FOR EVERY L1 CELL, computed ONCE and passed down. L1.1,
+    # L1.2 and L1.3 are all statements about a household's behaviour, and all three
+    # are read on the meter net of space heat: two cells deriving "this home's
+    # behaviour" separately is how they come to hold two ideas of it.
     heat_streams: list[list[list[float]] | None] = [
         [list(day) for day in population.space_heat_grids[k]]
         if population.space_heat_grids else None
@@ -2400,6 +2281,40 @@ def evaluate_two_level(population: PopulationTraces) -> TwoLevelResult:
     netted = sum(
         1 for h in heat_streams if h is not None and any(any(day) for day in h)
     )
+
+    # L1.1's band was keyed on the MACHINE for as long as the statistic was read on
+    # the whole meter, because the heat sat in the denominator of a ratio to the
+    # home's own mean. Read net of space heat there is one floor for every home
+    # size (H36), and the register only decides the ONE case netting cannot reach:
+    # a home whose heat is on this meter and whose generator supplied no split.
+    registers = population.heating_systems or ("",) * len(homes)
+    texture_bands = tuple(
+        texture_band_for(r, has_split=h is not None)
+        for r, h in zip(registers, heat_streams)
+    )
+    unjudged_for_no_split = sum(
+        1 for b in texture_bands if b.statistic == NO_BEHAVIOURAL_STREAM_BAND
+    )
+    cells.append(_l1_rate_cell(
+        TEXTURE_STATISTIC,
+        values=[half_hourly_texture(b) for b in behavioural],
+        bands=texture_bands,
+        homes=homes,
+        note=(
+            f"judged on the meter net of space heat; {netted} of {len(grids)} homes "
+            f"carry heat on the judged meter; {unjudged_for_no_split} unjudged for "
+            "want of a split"
+            if population.space_heat_grids
+            else "no space-heat split supplied — the WHOLE meter is judged where the "
+            f"register says the heat is elsewhere, and {unjudged_for_no_split} of "
+            f"{len(grids)} homes are counted rather than judged"
+        ),
+    ))
+
+    # L1.2 is judged on the SAME LOAD SET for every home. Its band is a statement
+    # about households; where the heating machine is on the judged meter it is
+    # taken back out, so the cell cannot fail a home for owning a thermostat
+    # (`meter_net_of_space_heat` carries the measurement that forced this).
     cells.append(_l1_rate_cell(
         "L1.2_day_to_day_shape_correlation",
         values=[day_to_day_shape_correlation(g) for g in behavioural],

@@ -342,19 +342,23 @@ def test_the_two_level_result_rides_along_with_the_gap(panel, weather):
     cell's problem here is power. The judged verdict comes from `--population`,
     which is what the gap is measured on for the record.
 
-    THE PANEL ALSO BREACHES TWO BANDS. L2.4 is a POPULATION statistic rather than
+    THE PANEL ALSO BREACHES ONE BAND. L2.4 is a POPULATION statistic rather than
     a per-home one, so the panel is enough to judge it and it is red — the two
     readings are kept apart below because "under-powered" and "wrong" are
-    different states and this panel is both. L1.1 joined it on 2026-08-09 when the
-    panel was widened to exercise the resistive and heat-pump texture bands (H35):
-    the worst home is H11 at 0.07037 against the 0.07050 heat-pump floor. That
-    breach is diagnosed, not tolerated — see the test below and atom
-    `H36_the_texture_floor_is_one_number_for_every_home_size`.
+    different states and this panel is both.
+
+    L1.1 JOINED IT ON 2026-08-09 AND LEFT AGAIN ON 2026-08-10, and the exit is
+    worth the sentence because of HOW. The H35 widening put H11 in breach at
+    0.07037 against a 0.07050 heat-pump floor; H36 diagnosed the floor as one
+    fixed number applied to every home size and repaired the STATISTIC — L1.1 is
+    read net of space heat and judged by the single untouched 0.15 floor, on which
+    every home on the panel clears. Nothing was tuned to get here: see
+    `test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED` and the
+    fail-open the old reading is measured to have had.
     """
     result = cf.two_level(panel, weather)
     assert result.generator.startswith("premise_trace")
     assert {c.statistic for c in result.failed} == {
-        "L1.1_half_hourly_texture",
         "L2.4_scale_spread_p90_p10",
     }, result.summary()
     assert result.inconclusive, (
@@ -383,81 +387,151 @@ def _worst_cell_clears_its_own_floor(texture) -> None:
     )
 
 
-def test_the_TEXTURE_CELL_has_ONE_OPEN_BREACH_and_the_band_is_the_diagnosis(panel, weather):
-    """RE-STATED AGAIN 2026-08-09 (H35), and the direction is the uncomfortable
-    one: this cell was closed, and widening the panel re-opened it.
+def _flatten_to_own_mean_profile(behavioural):
+    """MUTATION — every day becomes the home's own mean behavioural profile,
+    rescaled to that day's own behavioural total.
 
-    WHAT CHANGED. The panel judged one heat-pump home and no resistive home at
-    all, so two of the three regime-conditioned texture bands were carried and
-    never exercised — L1.1r judged ZERO homes and reported nothing. H35 put three
-    heat pumps and three panel-heater homes on it. The gas homes are untouched and
-    all nine still clear the untouched 0.15 floor; ONE new home does not clear
-    its own: H11 at 0.07037 against the 0.07050 heat-pump floor, a shortfall of
-    0.2%.
+    The realistic smooth-by-construction defect, and deliberately NOT a flat day:
+    the home keeps its level, its diurnal shape and its daily totals, and loses
+    every appliance event. It is the same construction as the sweep's own
+    `_flat_behavioural_day_null`, written out here so this file's evidence does
+    not depend on a private helper in another module.
+    """
+    days = len(behavioural)
+    mean = [sum(behavioural[d][p] for d in range(days)) / days for p in range(48)]
+    total = sum(mean)
+    return [
+        [v / total * sum(day) for v in mean] if total > 0 else [0.0] * 48
+        for day in behavioural
+    ]
 
-    WHY THIS IS NOT "THE GENERATOR IS SMOOTH", and the decomposition is asserted
-    below rather than argued. Both electric bands are `0.15 x behavioural share`,
-    where the share comes from ONE published typical home: Ofgem TDCV medium
-    (2,500 kWh behavioural) against a DESNZ/ESC median-SPFH4 heat pump, giving
-    47.0%. H11 is a detached 1965-80 home with partial insulation, and its heat is
-    62.4% of its own electricity — so the behavioural stream it actually has is
-    37.6%, and the floor that follows from the band's OWN arithmetic at H11's own
-    share is 0.0564, which H11 clears by 25%. The same holds for every home on the
-    panel. The number that does not fit is the band's assumed home, not the trace:
-    a fixed floor derived at one home size, applied to a home twice that size, is
-    the wrong-load-set shape one level in from the one H35 was minted for.
 
-    WHAT WAS NOT DONE, and this is the part that matters: the floor was not moved,
-    H11 was not taken off the panel, and no home was marked UNVALIDATED. Any of
-    the three would have turned this suite green in one edit while making the
-    measurement worse. The breach is REPORTED and dispositioned as repair-the-
-    statistic, on its own atom
-    (`H36_the_texture_floor_is_one_number_for_every_home_size`) — a breach is a
-    mechanism to diagnose (R4), never a tolerance to raise (R12).
+def test_the_TEXTURE_CELL_BREACH_CLOSED_when_the_LOAD_SET_WAS_REPAIRED(panel, weather):
+    """CLOSED 2026-08-10 (H36), and the direction is the one that has to be
+    argued for: this cell was RED, and it went green without the floor moving.
 
-    THE CONTROL IS STILL LIVE. `_worst_cell_clears_its_own_floor` is asserted
-    below to RAISE on the real measured cell, so the open breach is held by the
-    same expression the R15 mutations exercise — it has not been quietly relaxed
-    to accommodate the finding.
+    WHAT WAS RED. The H35 widening put three heat pumps and three panel-heater
+    homes on the panel, and H11 read 0.07037 against the 0.07050 heat-pump floor —
+    a shortfall of 0.2%. The diagnosis recorded then was that the number that did
+    not fit was the BAND'S ASSUMED HOME: both electric floors were `0.15 x
+    behavioural share` at one published typical home, and the panel's homes run
+    0.30-0.74 behavioural share, so one fixed number was 25% too strict for H11.
+
+    WHAT CHANGED, AND WHY IT IS NOT THE GOAL-SEEK MOVE. The floor was not raised,
+    lowered or rescaled: there is one texture floor, still 0.15, still the gas
+    number this cell was born with. What moved is the LOAD SET — L1.1 is read on
+    the meter net of space heat, which is the denominator its 0.15 was always an
+    argument about. Read there, every home on the panel clears it, the nine gas
+    homes are bit-for-bit unchanged (their heat is on the other meter, so the
+    netting is the identity on them), and the electrically heated homes stop being
+    judged on a number that includes their boiler.
+
+    AND IT IS A STRENGTHENING, WHICH IS THE PART THAT MATTERS —
+    `test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home`
+    below measures the old reading passing five of these six homes with every
+    appliance event removed from them.
     """
     result = cf.two_level(panel, weather)
     texture = result.cell(fgl.TEXTURE_STATISTIC)
 
-    # (a) The original closure still holds where it was closed: the GAS band is
-    #     untouched at 0.15 and no home judged by it is in breach.
+    # (a) The floor is UNTOUCHED and it is the only judged one.
     assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold == 0.15, (
-        "the gas floor is the one the original closure rests on and it stays put"
+        "the closure rests on the floor NOT having moved"
     )
-    assert "L1.1_half_hourly_texture=9" in texture.note, texture.note
+    assert texture.band.statistic == fgl.TEXTURE_STATISTIC
+    assert texture.band.threshold == 0.15
 
-    # (b) The breach is EXACTLY ONE and it is pinned by identity, not by value.
-    #     A second home crossing over, or a different home, is a different finding
-    #     and must fail here rather than be absorbed into a remembered count.
-    assert texture.homes_violating == 1, texture.note
-    assert texture.worst_home == "H11", texture.note
-    assert texture.band.statistic == "L1.1e_half_hourly_texture_electric_heat", texture.band
-    assert texture.verdict is fgl.Verdict.FAIL, texture.note
+    # (b) Every home is judged — none excluded to get here — and none is in
+    #     breach. Pinned by identity as well as by count: a different worst home
+    #     is a different measurement and must be read, not absorbed.
+    assert (texture.homes_judged, texture.homes_unjudged) == (15, 0), texture.note
+    assert texture.homes_violating == 0, texture.note
+    assert texture.worst_home == "E15", texture.note
+    assert texture.worst_value == pytest.approx(0.1533, abs=5e-4), texture.note
+    assert "net of space heat" in texture.note
 
-    # (c) THE DIAGNOSIS. Every home clears the floor that the band's OWN
-    #     arithmetic gives at that home's OWN behavioural share — including the
-    #     one in breach. This is what says "the band's assumed home is wrong"
-    #     rather than "the traces are smooth", and it is measured here rather
-    #     than quoted from the docstring.
+    # (c) The verdict is INSUFFICIENT rather than PASS, and that is the honest
+    #     reading: fifteen homes cannot rule out a 5% violation rate. The breach
+    #     is gone; the power was never there.
+    assert texture.verdict is fgl.Verdict.INSUFFICIENT, texture.note
+
+    # (d) THE GAS HOMES ARE UNCHANGED BY THE REPAIR, which is what makes it a
+    #     load-set correction rather than a rescaling of everybody. Measured, not
+    #     asserted: a home whose heat is on the other meter contributes a stream
+    #     of zeros and its reading is bit-for-bit what it was.
     population = fgl.premise_trace_population([entry[2] for entry in panel], weather)
     for index, (home, grid) in enumerate(zip(population.homes, population.grids)):
-        total = sum(sum(day) for day in grid)
-        heat = sum(sum(day) for day in population.space_heat_grids[index])
-        own_floor = fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold * (1.0 - heat / total)
-        assert fgl.half_hourly_texture(grid) >= own_floor, (
-            f"{home} falls below the floor implied by its OWN behavioural share "
-            f"({own_floor:.4f}) — that would be a generator finding, and it is a "
-            "different one from the band-scope finding this test records"
-        )
+        heat = [list(day) for day in population.space_heat_grids[index]]
+        grid = [list(day) for day in grid]
+        if not any(any(day) for day in heat):
+            assert fgl.half_hourly_texture(grid, space_heat=heat) == (
+                fgl.half_hourly_texture(grid)
+            ), f"{home} carries no heat on this meter and must be untouched"
 
-    # (d) The control that carries the claim is the live one, and it FIRES on the
-    #     breach rather than having been loosened around it.
-    with pytest.raises(AssertionError, match="fell"):
-        _worst_cell_clears_its_own_floor(texture)
+    # (e) The control that carries the claim is the live one and it PASSES on the
+    #     real measured cell — the arm that was unreachable while the breach was
+    #     open.
+    _worst_cell_clears_its_own_floor(texture)
+
+
+def test_the_OLD_WHOLE_METER_reading_was_FAIL_OPEN_on_a_BEHAVIOURALLY_FLAT_home(
+    panel, weather
+):
+    """THE EVIDENCE THAT H36 IS A STRENGTHENING AND NOT A CONVENIENCE, measured on
+    the six homes it is about.
+
+    THE MUTATION. Each home's behaviour is replaced by its own mean behavioural
+    profile — level, diurnal shape and daily totals all preserved, every appliance
+    event gone — and its heating machine is put back on top, untouched. This is
+    the smooth-by-construction generator the L1.1 floor exists to catch, in a
+    house that still has a real heat pump in it.
+
+    THE RESULT. Read on the WHOLE meter against the rescaled floors that used to
+    judge these homes (0.0705 heat pump, 0.0363 resistive), FIVE of the six PASS:
+    the machine's own period-to-period movement stands in for the behaviour that
+    was removed, and the rescaled floor is low enough to let it. Read net of space
+    heat against 0.15, all six fail. A control that cannot fail on its own named
+    defect is worse than none (R15), and that is what the previous reading was for
+    an electrically heated home.
+    """
+    population = fgl.premise_trace_population([entry[2] for entry in panel], weather)
+    # The floors that used to judge these homes, re-derived here from the published
+    # figures rather than imported — the functions are gone, and the point of this
+    # test is what they USED to accept.
+    old_floors = {
+        "heat_pump_air": 0.15 * (2500.0 / (2500.0 + (9500.0 * 0.825) / 2.78)),
+        "electric_direct": 0.15 * (2500.0 / (2500.0 + (9500.0 * 0.825) / 1.0)),
+    }
+    assert old_floors["heat_pump_air"] == pytest.approx(0.0705, abs=1e-4)
+    assert old_floors["electric_direct"] == pytest.approx(0.0363, abs=1e-4)
+
+    passed_the_old_floor = []
+    heated = 0
+    for index, home in enumerate(population.homes):
+        regime = population.heating_systems[index]
+        if not fgl.HEAT_ON_THE_JUDGED_METER[regime]:
+            continue
+        heated += 1
+        grid = [list(day) for day in population.grids[index]]
+        heat = [list(day) for day in population.space_heat_grids[index]]
+        behavioural = fgl.meter_net_of_space_heat(grid, heat)
+        flat = _flatten_to_own_mean_profile(behavioural)
+        mutated = [
+            [b + h for b, h in zip(flat_day, heat_day)]
+            for flat_day, heat_day in zip(flat, heat)
+        ]
+        if fgl.half_hourly_texture(mutated) >= old_floors[regime]:
+            passed_the_old_floor.append(home)
+        # The reading the cell takes now fails every one of them.
+        assert fgl.BANDS[fgl.TEXTURE_STATISTIC].judge(
+            fgl.half_hourly_texture(mutated, space_heat=heat)
+        ) is fgl.Verdict.FAIL, home
+
+    assert heated == 6, "the six homes the H35 widening put on the panel"
+    assert sorted(passed_the_old_floor) == ["E13", "E14", "E15", "H10", "H12"], (
+        "the fail-open this repair closed has moved — five of six is the measured "
+        f"figure on the record, got {sorted(passed_the_old_floor)}"
+    )
 
 
 def test_the_CELL_INVENTORY_is_EXACT_so_a_cell_cannot_arrive_or_leave_unnoticed(panel, weather):
@@ -506,33 +580,38 @@ def test_the_CELL_INVENTORY_is_EXACT_so_a_cell_cannot_arrive_or_leave_unnoticed(
 
 
 def test_the_CLOSURE_CONTROL_still_fires_when_the_JUDGING_BAND_IS_MOVED(panel, weather, monkeypatch):
-    """R15 arm one for the control above: the goal-seek move — closing the cell by
-    MOVING the band rather than by diagnosing what it judges — must be visible.
+    """R15 arm one for the control above: the mutation must REACH the real
+    measurement, through the real band, on the real panel.
 
-    The mutation is applied to the band that ACTUALLY JUDGES the worst cell, which
-    since the H35 widening is the heat-pump band rather than the gas one. That
-    matters: mutating a band no home is judged by would leave the measurement
-    unchanged and prove nothing, which is the same wrong-load-set error one level
-    down that H35 was minted for. Dropping the heat-pump floor to 0.05 is exactly
-    the edit that would turn today's RED cell green in one line.
+    RE-AIMED BY H36, and the direction flipped with the cell. While the cell was
+    in breach the goal-seek move was to DROP the floor under the failing home, so
+    the mutation dropped it and watched the breach disappear. The cell is green
+    now, so the mutation that proves the same wiring is the other way up: raise
+    the one judged floor above what the panel actually reads, and the closure
+    control must fire. Both mutations exercise the same path — cell value read off
+    the live population, band read off the live table — and neither is a
+    re-implementation of the control beside it.
 
-    Both halves are asserted: the mutation REACHES the real measurement, and what
-    it produces is the green cell the finding above refuses to buy that way.
+    Raising the floor is NOT a proposal about the band. It is the only mutation
+    available that changes the verdict without touching the traces, which is
+    exactly what makes it the test of whether the control is wired to the band at
+    all.
     """
-    electric = "L1.1e_half_hourly_texture_electric_heat"
-    published_floor = fgl.BANDS[electric].threshold
-    moved = dataclasses.replace(fgl.BANDS[electric], threshold=0.05)
-    monkeypatch.setitem(fgl.BANDS, electric, moved)
+    published_floor = fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold
+    moved = dataclasses.replace(fgl.BANDS[fgl.TEXTURE_STATISTIC], threshold=0.20)
+    monkeypatch.setitem(fgl.BANDS, fgl.TEXTURE_STATISTIC, moved)
 
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
 
     # The mutation reached the real measurement...
-    assert fgl.BANDS[electric].threshold != published_floor
-    # ...and it is what "closes" the cell: the breach the untouched panel reports
-    # disappears the moment the floor is lowered under it. That is the whole
-    # reason the breach above is recorded rather than edited away.
-    assert texture.homes_violating == 0, texture.note
-    _worst_cell_clears_its_own_floor(texture)
+    assert fgl.BANDS[fgl.TEXTURE_STATISTIC].threshold != published_floor
+    assert texture.band.threshold == 0.20
+    # ...and the cell it produces is one the control refuses. Every home on the
+    # panel reads between 0.153 and 0.288, so a 0.20 floor puts real homes in
+    # breach rather than an invented one.
+    assert texture.homes_violating > 0, texture.note
+    with pytest.raises(AssertionError, match="fell"):
+        _worst_cell_clears_its_own_floor(texture)
 
 
 def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one(panel, weather):
@@ -546,19 +625,21 @@ def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one
     my own writing would prove only that Python compares floats — the tautology
     shape this project keeps finding inside its own R15 evidence.
 
-    The accept arm is CONSTRUCTED rather than measured, and that is a statement
-    about the tree rather than about the control: at HEAD the panel's worst
-    texture cell is in breach (H11, the open finding above), so there is no
-    unmutated cell to demonstrate the pass side with. Constructing it from the
-    real cell and the real band keeps both arms on the same expression — and the
-    arm above shows the pass side IS reachable from a real measurement.
+    THE ACCEPT ARM IS REAL AGAIN SINCE H36 (2026-08-10). While the panel's worst
+    texture cell was in breach there was no unmutated cell to demonstrate the pass
+    side with, and it had to be constructed from the real cell and the real band.
+    The cell clears now, so the pass arm below is asserted on the measurement
+    itself first and the constructed one is kept as the boundary check.
 
     Generator-side proof that the real physics can drive this statistic through
     the real band lives one suite over (`tests/harness/test_premise_two_level.py`,
-    the `_flatten_blend` mutation).
+    the `_flatten_behaviour` mutation), and the fail-open the old reading had is
+    measured above.
     """
     texture = cf.two_level(panel, weather).cell(fgl.TEXTURE_STATISTIC)
     floor = texture.band.threshold
+
+    _worst_cell_clears_its_own_floor(texture)          # the measured cell itself
 
     clearing = dataclasses.replace(texture, worst_value=floor + 0.01)
     _worst_cell_clears_its_own_floor(clearing)

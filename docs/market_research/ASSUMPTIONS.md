@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-08-09 from current codebase.
+Last seeded: 2026-08-10 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -122,8 +122,18 @@ Filed because the two-level harness judged an electrically-heated home against a
 band whose own anchor text reasons from a gas premise, and closing that needed a
 real source rather than a chosen number
 (`docs/staging/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md`).
-Consumed by `background/fabric_gap_ledger.electric_heat_texture_threshold`, which
-re-derives the band from these figures rather than storing it.
+**SUPERSEDED AS A BAND ANCHOR, 2026-08-10 (H36, `docs/design/BAND_NULL_SWEEP.md`).**
+These figures used to be consumed by
+`background/fabric_gap_ledger.electric_heat_texture_threshold`, which rescaled the
+L1.1 floor by the behavioural share of ONE published typical home. Measured across
+the live panel the real behavioural share runs 0.30-0.74, so that fixed number was
+25% too strict for the largest electrically heated home and fail-open for the
+smallest — five of six cleared it with every appliance event removed. L1.1 is now
+read on the meter NET OF SPACE HEAT against the single untouched 0.15 floor, and no
+band consumes these figures any more. The rows are kept because the underlying
+research is real and correctly sourced, and because the derived 53.0% share is the
+measurement that made the fixed-floor defect visible; they are no longer an anchor
+for any live control.
 
 | Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
 |---|---|---|---|---|---|
@@ -131,7 +141,7 @@ re-derives the band from these figures rather than storing it.
 | In-situ efficiency of a domestic gas COMBI boiler | `simulation/fabric_physics._BOILER_EFFICIENCY` is keyed by boiler age (not reconciled to this figure — see note) | Mean 82.5% measured in situ (sd 4.0%), against a SEDBUK rating of 90.4%. Regular boilers 85.3%, or 80.3% adjusted for storage losses | Energy Saving Trust / DECC, *In-situ monitoring of efficiencies of condensing boilers* final report (60 monitored boilers) | 2026-08-09 | ✓ OK — measured, not rated; the gap to SEDBUK is the point |
 | Household electricity, non-electrically-heated (TDCV medium) | `simulation/population_draw.TDCV_BANDS_KWH` | 2,500 kWh/yr (low 1,600 / high 3,800) from 1 July 2026 | Ofgem TDCV review; already recorded in `docs/market_research/ons_consumption_profiles.md` | 2026-08-09 | ✓ OK |
 | Household gas (TDCV medium) | `simulation/population_draw.TDCV_BANDS_KWH` | 9,500 kWh/yr (low 6,000 / high 14,000) from 1 July 2026 | Ofgem TDCV review | 2026-08-09 | ✓ OK |
-| **Derived: heat-pump share of a heat-pump home's electricity** | Used as the ratio between the two L1.1 bands | **53.0%** — 9,500 × 0.825 = 7,838 kWh useful heat; ÷ 2.78 = 2,819 kWh electricity; against a 2,500 kWh behavioural baseline. Joint-corner envelope across the SPF IQR and boiler-efficiency ±1sd: **51-56%** | Derived from the four rows above | 2026-08-09 | ✓ OK — arithmetic re-done in `test_the_electric_band_is_DERIVED_from_published_figures_not_declared` |
+| **Derived: heat-pump share of a heat-pump home's electricity** | Used as the ratio between the two L1.1 bands | **53.0%** — 9,500 × 0.825 = 7,838 kWh useful heat; ÷ 2.78 = 2,819 kWh electricity; against a 2,500 kWh behavioural baseline. Joint-corner envelope across the SPF IQR and boiler-efficiency ±1sd: **51-56%** | Derived from the four rows above | 2026-08-09 | ✓ OK — arithmetic was re-done in `test_the_electric_band_is_DERIVED_from_published_figures_not_declared` until H36 retired the band |
 
 **Note on the boiler-efficiency row.** The 82.5% figure is used ONLY to derive the
 harness band; it was deliberately not pushed into

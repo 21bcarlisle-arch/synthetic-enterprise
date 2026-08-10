@@ -409,42 +409,91 @@ def test_the_null_is_REPRODUCIBLE_at_a_fixed_seed(population):
 
 
 def test_a_bands_null_is_read_only_on_the_homes_it_JUDGES():
-    """L1.1e governs heat pumps and L1.1 governs gas homes, and gas homes are
-    spikier. Reading the heat-pump band's null off a gas panel would report a
-    defect in a load set the band never touches — the wrong-load-set shape."""
+    """RE-AIMED BY H36 (2026-08-10), because the load set it protects moved.
+
+    The floor used to be regime-conditioned — one band for gas, one for heat
+    pumps, one for resistive — and the shape this test closed was reading the
+    heat-pump band's null off a panel of spikier gas homes. Read net of space
+    heat there is ONE floor, and the split it can be read on is the one that
+    still matters: a home whose heat is on the judged meter with no split to take
+    it out is NOT judged by the floor, so its texture must not appear in the
+    floor's null either. It is spikier there for exactly the reason H36 removed
+    from the reading — the heating machine is still in the numerator.
+    """
     mixed = _population(
         homes=10,
         heating=tuple(["gas_boiler_combi"] * 8 + ["heat_pump_air", "electric_storage"]),
     )
-    gas = bns.measure_null("L1.1_half_hourly_texture", mixed, replications=10)
-    pump = bns.measure_null("L1.1e_half_hourly_texture_electric_heat", mixed, replications=10)
-    resistive = bns.measure_null(
-        "L1.1r_half_hourly_texture_resistive_heat", mixed, replications=10
+    assert not mixed.space_heat_grids, "this fixture is the NO-SPLIT case on purpose"
+    m = bns.measure_null("L1.1_half_hourly_texture", mixed, replications=10)
+    assert m.homes_judged == 8, (
+        "the two homes whose heat is on the judged meter have no recoverable "
+        "behavioural stream, so the floor does not judge them and its null may "
+        "not be read on them"
     )
-    assert (gas.homes_judged, pump.homes_judged, resistive.homes_judged) == (8, 1, 1)
 
 
 def test_a_band_with_NO_home_to_judge_is_unmeasurable_not_clean():
-    """The vacuity guard at the band level. A band no home is judged by has an
-    unknown null, and 'unknown' must not render as 'separated' — it is reported
-    as its own state and counts as a hit needing disposition."""
-    gas_only = _population(homes=6)
-    m = bns.measure_null("L1.1e_half_hourly_texture_electric_heat", gas_only, replications=5)
+    """The vacuity guard at the band level (H35), still live after H36 with the
+    population that now empties the floor's load set: every home electrically
+    heated and no split supplied, so there is nothing the floor can judge. A band
+    no home is judged by has an unknown null, and 'unknown' must not render as
+    'separated' — it is its own state and counts as a hit needing disposition."""
+    heated_and_unsplit = _population(
+        homes=6, heating=tuple(["heat_pump_air"] * 3 + ["electric_direct"] * 3)
+    )
+    m = bns.measure_null(
+        "L1.1_half_hourly_texture", heated_and_unsplit, replications=5
+    )
     assert m.verdict is bns.NullVerdict.UNMEASURABLE
     assert m.homes_judged == 0
     assert m.is_hit
 
 
 def test_the_subpopulation_follows_the_LIVE_router(population):
-    """Routed through `texture_band_for`, so a change to `HEATING_REGIMES` moves
-    the sweep's load sets with it instead of desyncing them."""
+    """Routed through `texture_band_for`, so a change to
+    `HEAT_ON_THE_JUDGED_METER` moves the sweep's load set with it instead of
+    desyncing them. Mutated in the direction that EMPTIES the load set — the gas
+    homes this population is made of become homes whose heat is on the judged
+    meter, and with no split supplied the floor judges none of them."""
+    assert bns.measure_null(
+        "L1.1_half_hourly_texture", population, replications=5
+    ).homes_judged == len(population.homes)
     with pytest.MonkeyPatch.context() as mp:
-        mp.setitem(fgl.HEATING_REGIMES, "gas_boiler_combi",
-                   "L1.1e_half_hourly_texture_electric_heat")
-        m = bns.measure_null(
-            "L1.1e_half_hourly_texture_electric_heat", population, replications=5
-        )
-        assert m.homes_judged == len(population.homes)
+        mp.setitem(fgl.HEAT_ON_THE_JUDGED_METER, "gas_boiler_combi", True)
+        m = bns.measure_null("L1.1_half_hourly_texture", population, replications=5)
+        assert m.homes_judged == 0
+        assert m.verdict is bns.NullVerdict.UNMEASURABLE
+
+
+def test_the_floor_is_read_NET_OF_SPACE_HEAT_and_so_is_its_null(population):
+    """H36's own R15 pair, at the sweep's seam rather than the cell's.
+
+    A sweep that read the floor's null off the WHOLE meter would be measuring a
+    statistic nobody applies, and measuring it flatteringly: the heating
+    machine's own period-to-period movement would sit in the observed value and
+    in the null together. Both directions are asserted — the reading MOVES when a
+    heat stream is present, and is bit-for-bit unchanged when it is not.
+    """
+    heat = tuple(
+        tuple(tuple(0.6 * v for v in day) for day in home) for home in population.grids
+    )
+    with_heat = fgl.PopulationTraces(
+        generator=population.generator, homes=population.homes,
+        grids=population.grids, is_weekend=population.is_weekend,
+        annual_kwh=population.annual_kwh, weather_driver=population.weather_driver,
+        heating_systems=tuple("heat_pump_air" for _ in population.homes),
+        space_heat_grids=heat,
+    )
+    netted = bns._per_home_texture(with_heat)
+    raw = [fgl.half_hourly_texture(home) for home in population.grids]
+    assert netted != raw, (
+        "the sweep read the whole meter — the heating machine is still in the "
+        "numerator and the denominator of the null it reports"
+    )
+    # A home carrying no heat on this meter is untouched, which is what makes the
+    # netting a load-set correction rather than a rescaling of everybody.
+    assert bns._per_home_texture(population) == raw
 
 
 # ---------------------------------------------------------------------------
@@ -538,17 +587,25 @@ def test_to_json_carries_the_window_and_the_exclusions(population):
 
 
 def test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported():
-    """THE DEFECT DIRECTION. A gas-only population leaves the heat-pump band with
-    nothing to judge; the run must fail, not report.
+    """THE DEFECT DIRECTION. A population the floor cannot judge must fail the
+    run, not report.
 
-    The mutation is applied to the POPULATION rather than to a verdict object,
-    so what is exercised is the same path a real unexercised band takes —
-    asserting `fatal([NullMeasurement(verdict=UNMEASURABLE)])` would prove only
-    that a list comprehension filters, the tautology shape R15 names first.
+    RE-AIMED BY H36 (2026-08-10) at the population that now empties the floor's
+    load set. The mutation used to be a gas-only panel leaving the heat-pump band
+    with nothing to judge; the regime-conditioned bands are gone and the same
+    hole is now a population every home of which carries its heat on the judged
+    meter with no split supplied — nothing whose behavioural stream the floor can
+    be read on. The mutation is still applied to the POPULATION rather than to a
+    verdict object, so what is exercised is the path a real unexercised band
+    takes — asserting `fatal([NullMeasurement(verdict=UNMEASURABLE)])` would
+    prove only that a list comprehension filters, the tautology shape R15 names
+    first.
     """
-    gas_only = _population(homes=6)
+    heated_and_unsplit = _population(
+        homes=6, heating=("heat_pump_air",) * 3 + ("electric_storage",) * 3
+    )
     measurement = bns.measure_null(
-        "L1.1e_half_hourly_texture_electric_heat", gas_only, replications=5
+        "L1.1_half_hourly_texture", heated_and_unsplit, replications=5
     )
     assert measurement.verdict is bns.NullVerdict.UNMEASURABLE
     assert bns.fatal([measurement]) == [measurement], (
@@ -560,29 +617,28 @@ def test_a_band_that_judges_NO_HOME_is_FATAL_and_not_merely_reported():
 def test_the_SAME_band_stops_being_fatal_once_a_home_EXERCISES_it():
     """THE OTHER DIRECTION, and it is the one that matters for whether the guard
     is a control or a wedge. The same band, the same window, the same call — one
-    heat-pump home added to the population and the run is no longer fatal FOR
-    THAT REASON.
+    home the floor can be read on and the run is no longer fatal FOR THAT REASON.
 
     A guard that can only ever fire is worth no more than one that never does:
     it would make every future sweep red regardless of what was fixed, and the
-    fix this guard exists to demand (put a home of that regime on the panel)
-    would be indistinguishable from doing nothing.
+    fix this guard exists to demand (give the floor a home it can judge) would be
+    indistinguishable from doing nothing.
     """
     mixed = _population(
-        homes=6, heating=("gas_boiler_combi",) * 5 + ("heat_pump_air",)
+        homes=6, heating=("heat_pump_air",) * 5 + ("gas_boiler_combi",)
     )
     measurement = bns.measure_null(
-        "L1.1e_half_hourly_texture_electric_heat", mixed, replications=5
+        "L1.1_half_hourly_texture", mixed, replications=5
     )
     assert measurement.homes_judged == 1
     assert measurement.verdict is not bns.NullVerdict.UNMEASURABLE, (
-        "one home of the regime is enough to MEASURE the band's null — whether "
-        "the null then clears it is the sweep's own separate question"
+        "one home the floor judges is enough to MEASURE its null — whether the "
+        "null then clears it is the sweep's own separate question"
     )
     # ...and the guard is genuinely capable of returning nothing, which is the
     # half a control that could only ever fire would be missing. Measured on a
     # band the fixture separates from its own null, through the same `fatal`.
-    gas = bns.measure_null("L1.1_half_hourly_texture", mixed, replications=5)
+    gas = bns.measure_null("L1.2_day_to_day_shape_correlation", mixed, replications=5)
     assert gas.verdict in (bns.NullVerdict.SEPARATED, bns.NullVerdict.SAME_ORDER), gas.note
     assert bns.fatal([gas]) == [], (
         "a band that is measured and not inside its null must leave the run "
@@ -612,23 +668,26 @@ def test_the_RUNNERS_EXIT_CODE_is_the_one_the_module_declares():
     import sys
 
     runner = importlib.import_module("tools.band_null_sweep")
-    gas_only = _population(homes=6)
+    unjudgeable = _population(
+        homes=6, heating=("heat_pump_air",) * 3 + ("electric_direct",) * 3
+    )
     mixed = _population(
         homes=6,
         heating=("gas_boiler_combi",) * 4 + ("heat_pump_air", "electric_direct"),
     )
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(sys, "argv", ["band_null_sweep.py", "--replications", "3"])
-        mp.setattr(runner, "live_population", lambda: gas_only)
+        mp.setattr(runner, "live_population", lambda: unjudgeable)
         assert runner.main() == 1, (
-            "a population that exercises neither electric band must exit non-zero"
+            "a population with no home the texture floor can be read on must exit "
+            "non-zero"
         )
         mp.setattr(runner, "live_population", lambda: mixed)
         exercised = runner.main()
-    # The second population exercises every texture band; it may still exit 1 for
-    # a band that is genuinely inside its null on a synthetic fixture, so what is
-    # asserted is that the UNMEASURABLE reason is gone — not a bare 0, which would
-    # make this test a hostage to the fixture's own realism.
+    # The second population gives the floor homes to judge; it may still exit 1
+    # for a band that is genuinely inside its null on a synthetic fixture, so what
+    # is asserted is that the UNMEASURABLE reason is gone — not a bare 0, which
+    # would make this test a hostage to the fixture's own realism.
     fatal_bands = {
         m.band
         for m in bns.fatal(bns.sweep(mixed, replications=3))
