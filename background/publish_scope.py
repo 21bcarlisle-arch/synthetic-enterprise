@@ -240,8 +240,13 @@ def scoped_pytest_argv(base_argv, scope=None, run_root: Path = PROJECT_DIR):
     return argv + list(scope["tests"])
 
 
+# The blocking gate's fail-fast flag. Right for the gate (the verdict is the same either way,
+# and stopping early is free), WRONG for the pass whose only job is to enumerate.
+FAIL_FAST_FLAG = "-x"
+
+
 def remainder_pytest_argv(base_argv):
-    """The argv the NON-BLOCKING annotation run uses: the full gate, unchanged.
+    """The argv the NON-BLOCKING annotation run uses: the full gate, MINUS its fail-fast flag.
 
     Deliberately NOT `full minus scoped`. Two reasons. (1) The remainder only ever runs when
     the scoped gate was GREEN, so the scoped tests re-run green and cannot double-count a red
@@ -250,5 +255,21 @@ def remainder_pytest_argv(base_argv):
     the shared-lineage failure this project has filed before
     (`feedback_agreeing_sources_may_share_lineage`). The annotation run is independent of the
     scoping entirely, so a scope that is too narrow still shows up here as an annotated red.
+
+    WHY `-x` COMES OUT (2026-08-10, the twelfth publish wedge). Everything above is about
+    which TESTS the annotation runs; none of it survives running them under `-x`. pytest stops
+    at the FIRST red, so this pass — whose entire contract is "the reds that no longer block
+    still have to be SEEN" — could report at most ONE of them, and the caller's `reds[:32]`
+    cap could never bind. The same flag, on the same argv, is why the eleventh wedge read as
+    four flapping tests across six gate cycles and was actually a STACK of three simultaneous
+    reds, each tick paying one layer and reporting it as *the* cause
+    (`WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md`). An enumerator
+    that stops at one is not an enumerator: it reports "1 red" identically whether there is
+    one or thirty, so the annotation's number carried no information about depth.
+
+    `-x` STAYS ON THE BLOCKING GATE, which is why this is a seam and not an edit to
+    `publish_gate_pytest_argv`. There, fail-fast is right — the verdict is `rc != 0` either
+    way and stopping early returns the publish path's latency to the lanes. Here the cost of
+    running on is one already-throttled, already-non-blocking, post-publish suite.
     """
-    return list(base_argv)
+    return [a for a in base_argv if a != FAIL_FAST_FLAG]

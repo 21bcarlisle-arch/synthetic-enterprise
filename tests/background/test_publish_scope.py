@@ -117,11 +117,35 @@ def test_scoped_argv_keeps_every_deselection_the_full_gate_carries():
 def test_the_remainder_pass_is_independent_of_the_scope():
     """The annotation must not inherit the scope's blind spot. If the remainder were computed
     as 'full minus scoped', a scope that is too narrow would ALSO be missing from the
-    annotation -- one control's blind spot becoming the other's (shared lineage). It is the
-    full gate, unchanged, so an over-narrow scope still shows up as an annotated red."""
+    annotation -- one control's blind spot becoming the other's (shared lineage). It runs the
+    full gate's SUBJECT, so an over-narrow scope still shows up as an annotated red.
+
+    Asserted as the property (same subject, same deselections) rather than as `== base`, which
+    is what previously pinned the fail-fast flag the test below has to be able to remove."""
     from background import process_run_complete as prc
     base = prc.publish_gate_pytest_argv("tests/")
-    assert publish_scope.remainder_pytest_argv(base) == base
+    remainder = publish_scope.remainder_pytest_argv(base)
+
+    assert "tests/" in remainder, "the remainder's subject is the whole tree, never the scope"
+    marker_idx = len(remainder) - 1 - remainder[::-1].index("-m")
+    assert remainder[marker_idx + 1] == prc.PUBLISH_GATE_MARKER_EXPR
+    for ignore in prc.PUBLISH_GATE_HEAVY_IGNORES:
+        assert "--ignore=" + ignore in remainder
+    assert set(remainder) <= set(base), "the remainder may drop flags, never add a new subject"
+
+
+def test_the_remainder_drops_the_gates_fail_fast_flag():
+    """An enumerator that stops at the first red cannot enumerate. `-x` is right on the
+    blocking gate (the verdict is rc != 0 either way) and wrong here, where the whole contract
+    is that the reds which no longer block still get SEEN -- and where the caller's `reds[:32]`
+    cap is dead code for as long as pytest can only ever print one."""
+    from background import process_run_complete as prc
+    base = prc.publish_gate_pytest_argv("tests/")
+
+    assert publish_scope.FAIL_FAST_FLAG in base, (
+        "precondition: the blocking gate still fails fast -- if this changes, the removal "
+        "below is a no-op and this whole test is vacuous")
+    assert publish_scope.FAIL_FAST_FLAG not in publish_scope.remainder_pytest_argv(base)
 
 
 def test_the_publisher_wires_the_scope_and_degrades_to_full_on_a_broken_module(monkeypatch):
@@ -249,3 +273,48 @@ def test_no_scoped_path_is_ever_absent_from_the_head_checkout_the_gate_runs_in()
         scope = publish_scope.resolve_scope(root=head)
         absent = [t for t in scope["tests"] if not (head / t).exists()]
         assert not absent, "scoped paths absent from the gate's own subject: {}".format(absent)
+
+
+def _one_failing_test_file(directory, name):
+    path = directory / "test_{}.py".format(name)
+    path.write_text("def test_{}():\n    assert False\n".format(name))
+    return path
+
+
+def test_the_remainder_argv_enumerates_a_STACK_where_the_gates_argv_reports_one(tmp_path):
+    """R15 OUTCOME test, on pytest's real behaviour rather than on our belief about `-x`.
+
+    Three independent reds, one suite, two argvs. The blocking gate's argv reports ONE (and
+    would report one identically if there were thirty -- the number carries no depth); the
+    remainder's argv reports all THREE. This is the differential that makes the annotation an
+    enumeration, and it is the measurement the eleventh wedge did not have: six gate cycles
+    named four different 'the' blocking test while three were red simultaneously.
+
+    Written as a real subprocess because the defect lives in pytest's own early exit -- an
+    in-process assertion about the flag list would pass just as happily on an argv that does
+    not do what we think `-x` does."""
+    import subprocess
+    import sys
+
+    from background import process_run_complete as prc
+
+    for name in ("alpha", "bravo", "charlie"):
+        _one_failing_test_file(tmp_path, name)
+    fail_fast = [sys.executable, "-m", "pytest", str(tmp_path), publish_scope.FAIL_FAST_FLAG,
+                 "-q", "--tb=no", "-p", "no:randomly", "-p", "no:cacheprovider"]
+
+    def _reds(argv):
+        done = subprocess.run(argv, cwd=str(tmp_path), capture_output=True, text=True,
+                              errors="replace", timeout=300)
+        return prc._parse_failed_node_ids("{}\n{}".format(done.stdout or "", done.stderr or ""))
+
+    blocking = _reds(fail_fast)
+    remainder = _reds(publish_scope.remainder_pytest_argv(fail_fast))
+
+    assert len(blocking) == 1, (
+        "MUTATION arm: with `-x` the run reports one red out of three -- if this ever reports "
+        "three, `-x` no longer means what the remainder's removal of it is for, and the "
+        "assertion below stops proving anything")
+    assert len(remainder) == 3, (
+        "the remainder must report the WHOLE red set; got {}".format(remainder))
+    assert set(blocking) < set(remainder), "the fail-fast red must be one OF the enumerated set"

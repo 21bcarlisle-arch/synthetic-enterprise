@@ -47,13 +47,61 @@ def logged(monkeypatch):
     return lines
 
 
+def _project_dir_paths_this_module_writes(module=None):
+    """Module-level path constants declared off `PROJECT_DIR` that the module WRITES.
+
+    DERIVED FROM THE SOURCE, never hand-listed -- that is the whole point. The `sandbox`
+    fixture below used to redirect the three live paths whoever wrote it happened to think of
+    (`PROJECT_DIR`, `LAST_TESTED_HASH_FILE`, `LOG_FILE`), and every path constant added by a
+    LATER atom escaped it silently, because a constant declared as `PROJECT_DIR / ...` is
+    resolved at IMPORT time -- re-pointing `prc.PROJECT_DIR` afterwards moves nothing.
+
+    Observed cost (2026-08-10, 20:56:35Z): `GATE_BLOCKING_TESTS_FILE` escaped, so running this
+    file wrote the machine's live `docs/observability/.last_gate_blocking_tests.json` with a
+    SANDBOX commit SHA (`1c0414e9f...`, which `git cat-file -t` calls a bad object) and an
+    empty `node_ids`. That file is the wedge alarm's ONE non-guessing source of "which test is
+    blocking publishing", and a fresh-but-empty record does not read as absent -- it reads as
+    "the gate printed no FAILED line", so the alarm falls back to citing findings by mtime,
+    the exact 0/8-hit-rate guess that constant's own comment was written to end. The file is
+    in the gate's own scoped blocking list, so this fired on every publish cycle.
+    """
+    import ast
+
+    module = prc if module is None else module
+    source = ast.parse(Path(module.__file__).read_text())
+    declared = {
+        node.targets[0].id
+        for node in source.body
+        if isinstance(node, ast.Assign) and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and ast.unparse(node.value).startswith("PROJECT_DIR")
+    }
+    mutating = {"write_text", "write_bytes", "unlink", "touch", "mkdir", "open", "rmdir"}
+    written = set()
+    for node in ast.walk(source):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
+            continue
+        if node.func.attr not in mutating:
+            continue
+        receiver = node.func.value
+        while isinstance(receiver, ast.Attribute):   # NAME.parent.mkdir(...)
+            receiver = receiver.value
+        if isinstance(receiver, ast.Name) and receiver.id in declared:
+            written.add(receiver.id)
+    return written
+
+
 @pytest.fixture
 def sandbox(tmp_path, monkeypatch, logged):
     """A real git repo standing in for the shared tree, with one committed source file.
 
     Returns the repo path. `prc.PROJECT_DIR` and `prc.HEAD_CHECKOUT_ROOT` are redirected here so
     the whole checkout lifecycle runs for real without touching the machine's tree or its live
-    reused checkout."""
+    reused checkout.
+
+    Every writable `PROJECT_DIR`-derived constant is redirected too, DERIVED rather than listed
+    (see above): the named ones below are kept for readability, but the loop is what makes a
+    constant added tomorrow isolated tomorrow instead of at the next incident."""
     repo = tmp_path / "tree"
     (repo / "pkg").mkdir(parents=True)
     (repo / "pkg" / "thing.py").write_text("VALUE = 'committed'\n")
@@ -72,6 +120,13 @@ def sandbox(tmp_path, monkeypatch, logged):
     monkeypatch.setattr(prc, "REUSED_CHECKOUT_KEEP", ("__pycache__",))
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    # Must EXIST: not every writer in prc mkdirs its parent first (LAST_TESTED_HASH_FILE
+    # writes straight into a directory the live tree already has), so a redirect into a
+    # nonexistent dir would turn this isolation into a new failure of its own.
+    isolated = tmp_path / "isolated"
+    isolated.mkdir()
+    for name in sorted(_project_dir_paths_this_module_writes()):
+        monkeypatch.setattr(prc, name, isolated / name)
     return repo
 
 
@@ -222,6 +277,62 @@ def test_the_hash_contract_is_stated_in_one_place():
     contract = prc.LAST_TESTED_HASH_CONTRACT
     assert "_run_gate_in" in contract and "rc=0" in contract, "the WRITER must be named"
     assert "run_fast_tests" in contract and "wedge" in contract, "both READERS must be named"
+
+
+# ── THIS FILE MUST NOT WRITE THE MACHINE'S OWN OBSERVABILITY STATE ───────────
+#
+# R10: the instance was `GATE_BLOCKING_TESTS_FILE`; the CLASS is "the sandbox isolates the
+# paths its author thought of". Closed by DERIVING the population from prc's source, so the
+# fixture cannot fall behind the module. The three tests below are that derivation's own R15:
+# it must be non-empty, it must discriminate written from merely-read, and the redirect must
+# demonstrably move every member off the real tree.
+
+def test_the_isolated_population_is_not_empty_and_names_the_path_that_escaped():
+    """VACUITY GUARD. A derivation that quietly returns the empty set would make the fixture's
+    redirect loop a no-op and this whole control theatre -- the same fail-open shape as a
+    scope that narrows to nothing. `GATE_BLOCKING_TESTS_FILE` is asserted BY NAME because it
+    is the one that actually reached the machine's live state."""
+    population = _project_dir_paths_this_module_writes()
+
+    assert len(population) >= 3, "suspiciously small writable-path population: {}".format(
+        sorted(population))
+    assert "GATE_BLOCKING_TESTS_FILE" in population, (
+        "the wedge alarm's blocking-test record is written by this module and MUST be "
+        "isolated -- it escaping is what put a sandbox SHA in the live file on 2026-08-10")
+
+
+def test_the_derivation_tells_a_written_path_from_a_read_one(tmp_path):
+    """MUTATION on the DERIVATION, not on the source. Two near-identical modules: one only
+    reads its PROJECT_DIR constant, one writes it. If the derivation cannot separate them it
+    is returning 'every constant' and its agreement with reality is a coincidence."""
+    import types
+
+    def _derive(body):
+        path = tmp_path / "m{}.py".format(abs(hash(body)))
+        path.write_text(body)
+        return _project_dir_paths_this_module_writes(
+            types.SimpleNamespace(__file__=str(path)))
+
+    read_only = _derive('PROJECT_DIR = 1\nA = PROJECT_DIR / "x"\ndef f():\n    return A.read_text()\n')
+    written = _derive('PROJECT_DIR = 1\nA = PROJECT_DIR / "x"\ndef f():\n    A.write_text("y")\n')
+    nested = _derive('PROJECT_DIR = 1\nA = PROJECT_DIR / "x"\ndef f():\n    A.parent.mkdir()\n')
+
+    assert read_only == set(), "a path that is only READ needs no isolation"
+    assert written == {"A"} and nested == {"A"}, "a written path must be caught, incl. via .parent"
+
+
+def test_the_sandbox_moves_every_writable_path_off_the_real_tree(sandbox):
+    """THE LIVE CONTROL. Reds if any writable constant still resolves inside this repo while
+    the fixture is active -- which is exactly the state that let a gate test overwrite the
+    alarm's diagnostic payload every publish cycle."""
+    real_repo = Path(__file__).resolve().parents[2]
+
+    escaped = [name for name in sorted(_project_dir_paths_this_module_writes())
+               if real_repo in Path(getattr(prc, name)).resolve().parents]
+
+    assert not escaped, (
+        "{} still point inside {} under the sandbox fixture -- running this test file writes "
+        "the machine's live observability state".format(escaped, real_repo))
 
 
 # ── THE BOUND IS CHECKED AGAINST ITS EVIDENCE, NOT AGAINST A COPY OF ITSELF ──

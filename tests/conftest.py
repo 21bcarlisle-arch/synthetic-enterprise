@@ -105,6 +105,21 @@ _PROTECTED_WRITE_PATHS = (
     # for nothing. This is the one path in there that is a PUBLIC CLAIM ABOUT ITS OWN FRESHNESS,
     # where a test-authored value is not a stale artefact but a lie.
     "site/data/publish_provenance.json",            # the published freshness/provenance claim
+    # THE WEDGE ALARM'S ONLY NON-GUESSING EVIDENCE (2026-08-10, caught in the act, twelfth
+    # publish wedge). `_write_blocking_tests` publishes "which test is blocking publishing"
+    # here for the alarm, which runs in a different process and otherwise has only an exit
+    # code. `tests/background/test_publish_gate_subject_is_head.py` drives the real
+    # `run_fast_tests` against a sandbox repo, and its fixture redirected the three path
+    # constants its author thought of -- so every run of it stamped this file with a SANDBOX
+    # commit SHA (observed: `1c0414e9f...`, a bad object in this repo) and an empty node list.
+    # A fresh-but-empty record does not read as absent: `last_blocking_tests` returns it, and
+    # the alarm reports "the gate printed no FAILED line" and falls back to citing findings by
+    # mtime -- the 0/8-hit-rate guess this file was built to replace. That test file is in the
+    # gate's own scoped blocking list, so it fired on every publish cycle.
+    #
+    # Same reasoning as the entry above: the caller was fixed (the fixture now DERIVES its
+    # redirect set from the module's source), but a guard list is where the class dies.
+    "docs/observability/.last_gate_blocking_tests.json",   # the wedge alarm's diagnostic payload
 )
 
 
