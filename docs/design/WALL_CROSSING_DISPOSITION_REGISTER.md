@@ -256,6 +256,62 @@ WALL-CROSSING-DESIGN -->
 
 ---
 
+## 3b. The walker could not see three of them — added 2026-08-10 (step 7)
+
+**This section is not a cut. It is the count going UP, and the reason that is progress.**
+
+`tools/epistemic_wall.py` has carried this sentence since the step-1 extraction:
+
+> *routing a dependency through a package the walker does not walk (`tools/`) moves the
+> measurement rather than the dependency, and ... KNIFE pass 1 refused that move.*
+
+True, correct, and **never measured**. Nothing asked whether the tree ALREADY contained such a
+route. It did — three, all class (b), all out of `simulation/run_phase2b.py:95`:
+
+```
+simulation.run_phase2b -> company.billing.account_ledger
+simulation.run_phase2b -> company.billing.arrears_engine
+simulation.run_phase2b -> company.billing.payment_observation_consumer
+```
+
+Each is carried by **two independent bridges** — `background.live_payment_triad` and
+`tools.couple_w2_11_d5` — so cutting either one alone removes nothing. That is why
+`IndirectEdge` reports every entry point and not just the shortest chain it happened to walk
+first: a checker that printed one route would have told a reader to make a cut that does not cut.
+
+**A hazard named in prose and left unmeasured is the fail-open shape R15 names third** — the
+check that passes because nobody ran it. Three instruments were affected and all three now share
+the wider perimeter, because a report measuring a narrower one than its gate is the third-register
+drift the step-1 extraction exists to prevent, wearing a friendlier face:
+
+| Instrument | Before | Now |
+|---|---|---|
+| ratchet (the GATE) | 72 direct, shrink-only | + `test_epistemic_wall_indirect_ratchet.py`, 20 tests, its own dated shrink-only allowlist |
+| this register (the EXAMINATION) | 88 rows / 72 live | 91 rows / 75 live — the three are ruled below |
+| KNIFE ledger (the REPORT) | `wall_crossings 72 edges` | `75 edges`, `72 direct + 3 indirect` |
+
+**Why it landed BEFORE the composition lift, and in a commit that cuts nothing.**
+`A_composition_lift` moves thin scenario harnesses out of `simulation/` and above both layers,
+which in this repo means into `tools/`. That move is a CUT only if nothing walked still reaches
+the company through the moved file; otherwise it is exactly the laundering §2b refuses in writing.
+Pass 3 could not honestly make it while `tools/` was an unmeasured channel. Instrument first, in
+its own commit, with the direct allowlists byte-unchanged — the same rule this pass applied to the
+step-1 extraction, applied to its own consequence.
+
+**Proven able to fail, on the real tree, not a fixture.** A laundered route injected into
+`simulation/settlement.py` via a throwaway `tools/` module reds three tests in the new module
+(`test_no_new_indirect_crossings`, the frozen census, and the per-bridge verdict for `tools`) —
+while `test_epistemic_wall_ratchet.py` passes **12/12 on the same injected route**. That green
+direct ratchet is the clearest statement of what was missing, and it is a measurement rather than
+an argument.
+
+**Class (a) via a bridge is at ZERO** — measured here for the first time, not inherited. KNIFE
+pass 1 drove the direct forbidden direction to zero; nothing had asked the indirect question.
+`interface/` and `background/` are named in the census and reported on by name, so a clean bridge
+is an explicit verdict rather than a silence.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -704,6 +760,18 @@ edge: simulation.run_segments -> saas.growth_mandate | disposition=owed | design
 edge: simulation.run_segments -> saas.ledger | disposition=owed | design=A_composition_lift
 edge: simulation.run_segments -> saas.property_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_segments -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
+# --- A_composition_lift (INDIRECT — added 2026-08-10, step 7) ---
+# These three do not appear as import statements in `run_phase2b.py` naming a company
+# module. They reach `company/billing/` through `background.live_payment_triad` and
+# `tools.couple_w2_11_d5`, and were invisible to every instrument in this programme until
+# the walker learned to look through the bridge packages (§3b). They are ruled to the same
+# design as the 32 direct edges out of the same file, because the same cut kills them: once
+# run_phase2b's composition sits above both layers, its source endpoint stops being a walled
+# module and the route stops crossing the wall. Cutting only the printed bridge is NOT the
+# cut — each is carried by BOTH bridges, which is why the checker prints every entry point.
+edge: simulation.run_phase2b -> company.billing.account_ledger | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.billing.arrears_engine | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.billing.payment_observation_consumer | disposition=owed | design=A_composition_lift
 WALL-CROSSING-EDGES -->
 
 ---

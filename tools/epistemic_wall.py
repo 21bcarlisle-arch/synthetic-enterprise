@@ -143,6 +143,32 @@ SEAM_PATH_PREFIX = SEAM_PACKAGE.replace(".", "/") + "/"
 # neither wall side and cannot host a wall edge.
 WALL_DIRS = ("company", "saas", "sim", "simulation")
 
+# BRIDGE packages — in-repo, importable, and NOT walked as wall sides.
+#
+# WHY THESE EXIST AS A NAMED SET (2026-08-10, KNIFE pass 3 step 7).
+# The docstring above states that routing a dependency through a package the
+# walker does not walk "moves the measurement rather than the dependency". That
+# was true, correct, and UNMEASURED: nothing checked whether the tree already
+# contained such a route. It did — three of them, all `simulation.run_phase2b
+# -> tools.couple_w2_11_d5 -> company.billing.*`. A hazard named in prose and
+# left unmeasured is the fail-open shape R15 names, and this pass could not
+# honestly lift a composition root INTO `tools/` while `tools/` was an
+# unmeasured laundering channel.
+#
+# Perimeter by CENSUS, not by assumption (the lesson at the top of the ratchet,
+# applied a third time). Every top-level dotted name imported by walked code
+# was counted; exactly three resolve to in-repo directories that are not wall
+# sides: `tools` (7 import statements), `background` (7), `interface` (13).
+# Everything else is stdlib or a third-party distribution, which cannot be a
+# laundering hop because it cannot import this repo's company or SIM packages.
+#
+# `interface/` is included DESPITE the ratchet's standing claim that it "cannot
+# host a wall edge nor launder one". That claim is about direct edges and is
+# correct; the indirect question is a different one and was never asked. It is
+# now asked and answered by measurement — `interface/` launders nothing today —
+# which is a stronger statement than the prose it replaces.
+BRIDGE_PACKAGES = ("tools", "background", "interface")
+
 WALL_DOCTRINE = (
     "Epistemic wall (CLAUDE.md, Architectural Laws): the company/business layer "
     "must only cross the SIM boundary through the sanctioned seam "
@@ -192,13 +218,26 @@ def _resolve_relative(src: str, module: str | None, level: int) -> str:
     return ".".join(base + tail)
 
 
-def build_edges(root: str, dirs: tuple[str, ...]) -> list[RawEdge]:
+def build_edges(
+    root: str,
+    dirs: tuple[str, ...],
+    submodule_targets: bool = False,
+) -> list[RawEdge]:
     """Walk `dirs` under `root` and return every static import edge.
 
     Pure static read: parses each file with `ast`, extracts `Import` and
     `ImportFrom` nodes. A file that fails to parse is skipped (it cannot import
     anything at runtime either). Parameterised by root so the R15 mutation
     fixtures can point it at a synthetic tmp tree.
+
+    `submodule_targets` additionally emits, for `from PKG import NAME`, the
+    candidate edge to `PKG.NAME` — because that form imports a SUBMODULE when
+    `NAME` is one, and recording only `PKG` would lose the hop. It defaults to
+    OFF so the direct-crossing measurement (`crossings_at`, and the frozen
+    ratchet census that rests on it) is byte-unchanged by this addition; the
+    indirect walk below is its only caller. One walker with one flag, rather
+    than a second walker that would drift — the defect this module exists to
+    prevent.
     """
     edges: list[RawEdge] = []
     for top in dirs:
@@ -224,6 +263,14 @@ def build_edges(root: str, dirs: tuple[str, ...]) -> list[RawEdge]:
                         else:
                             dst = node.module or ""
                         edges.append(RawEdge(src, dst, relpath, node.lineno))
+                        if submodule_targets and dst and not node.level:
+                            for alias in node.names:
+                                if alias.name != "*":
+                                    edges.append(
+                                        RawEdge(
+                                            src, f"{dst}.{alias.name}", relpath, node.lineno
+                                        )
+                                    )
     return edges
 
 
@@ -320,6 +367,179 @@ def live_crossings() -> dict[tuple[str, str], RawEdge]:
     `crossings_at_head()`.
     """
     return crossings_at(REPO_ROOT)
+
+
+# --------------------------------------------------------------------------
+# INDIRECT crossings — the wall breached through a package nobody walks.
+#
+# WHAT THIS MEASURES, AND WHY IT IS NOT THE DIRECT WALK
+# -----------------------------------------------------
+# `crossings_at` answers "does a walled module import across the wall?". It is
+# blind, by construction, to `simulation.X -> tools.Y -> saas.Z`: neither of
+# those two edges has both endpoints on the wall, so neither is a crossing, and
+# the dependency survives with the instrument looking straight through it.
+#
+# The dependency is real. At the time this was written the tree carried three
+# such routes, every one of them class (b) and every one through a single
+# bridge module. They were invisible to the ratchet, absent from the KNIFE
+# ledger, and absent from the disposition register that claims to examine every
+# crossing.
+#
+# WHAT COUNTS AS INDIRECT, STATED SO IT CANNOT QUIETLY WIDEN
+#   * The SOURCE is a walled module (company/, saas/, sim/, simulation/).
+#   * The path leaves the wall through a BRIDGE_PACKAGES module and may pass
+#     through any number of further bridge modules.
+#   * The path re-enters the wall at a company- or SIM-side module, and the
+#     (source, that module) pair would be a crossing if it were a direct
+#     import — judged by `company_reads_sim` / `sim_reads_company` THEMSELVES,
+#     never by a re-implementation of them. The seam exemption therefore
+#     applies here identically and automatically.
+#   * The walk STOPS at re-entry. Anything the re-entered module imports is
+#     back inside the direct walker's reach and is its business, not this
+#     one's; continuing would report the whole transitive closure of the
+#     codebase as laundering and drown the real finding.
+# --------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class IndirectEdge:
+    """A wall crossing that reaches its target through unwalked packages.
+
+    `src`/`dst` are the two WALL endpoints, so an indirect edge keys the same
+    way a direct one does and the two sets union without translation. `hops`
+    is the bridge chain in order, which is the only part a reader needs to
+    find and cut it.
+    """
+
+    src: str                  # walled module doing the importing
+    dst: str                  # walled module ultimately reached
+    hops: tuple[str, ...]     # SHORTEST bridge chain, first hop first
+    path: str                 # file (repo-relative) of the FIRST hop's import
+    lineno: int
+    # EVERY first-hop bridge module through which `src` reaches `dst`, sorted.
+    #
+    # `hops` alone is a redundant-channel trap, and this repo has the class
+    # written down: a reader who cuts the one chain the checker printed would
+    # believe the edge dead while a second route still carries it. Measured on
+    # the live tree at the time this was built, that was not hypothetical —
+    # `simulation.run_phase2b` reached `company.billing.arrears_engine` through
+    # BOTH `background.live_payment_triad` and `tools.couple_w2_11_d5`, and
+    # only the shorter one was being reported. Cutting the edge means clearing
+    # all of these.
+    entries: tuple[str, ...] = ()
+
+
+def _bridge_dirs_present(root: str) -> tuple[str, ...]:
+    """The bridge packages that actually exist under `root`.
+
+    Derived from the filesystem rather than assumed, because the mutation
+    fixtures build partial trees and `os.walk` of a missing directory yields
+    nothing silently — which would make an absent bridge look like a clean one.
+    """
+    return tuple(d for d in BRIDGE_PACKAGES if os.path.isdir(os.path.join(root, d)))
+
+
+def module_names(root: str, dirs: tuple[str, ...]) -> set[str]:
+    """Every dotted module name that EXISTS as a .py file under `dirs`.
+
+    Read from the filesystem, not from the edge list. Deriving it from
+    `{e.src for e in edges}` would silently omit any module that imports
+    nothing — an import-free module would then look like a name that does not
+    exist, and a route ending there would be dropped. Fail-open by omission.
+    """
+    names: set[str] = set()
+    for top in dirs:
+        for dirpath, _dirnames, filenames in os.walk(os.path.join(root, top)):
+            for fn in filenames:
+                if fn.endswith(".py"):
+                    names.add(_module_name(root, os.path.join(dirpath, fn)))
+    return names
+
+
+def indirect_crossings(root: str) -> dict[tuple[str, str], IndirectEdge]:
+    """Every wall crossing at `root` that routes through a bridge package.
+
+    Keyed by (src, dst) exactly as the direct crossings are, so a caller that
+    wants "every crossing, however it travels" can union the two dicts.
+    """
+    bridges = _bridge_dirs_present(root)
+    if not bridges:
+        return {}
+
+    walked = WALL_DIRS + bridges
+    edges = build_edges(root, walked, submodule_targets=True)
+
+    # Which dotted names name a module that EXISTS? `from tools import helper`
+    # is recorded both as `tools` and as `tools.helper`, and `from x import
+    # SomeClass` yields a name that is a CLASS, not a module. Following or
+    # reporting either without this filter invents hops and reports symbols as
+    # crossings.
+    known = module_names(root, walked)
+
+    bridge_out: dict[str, set[str]] = {}
+    entries: list[RawEdge] = []
+    for e in edges:
+        if top_package(e.src) in BRIDGE_PACKAGES:
+            bridge_out.setdefault(e.src, set()).add(e.dst)
+        elif top_package(e.dst) in BRIDGE_PACKAGES and e.dst in known:
+            entries.append(e)
+
+    def _reentries(start: str) -> dict[str, tuple[str, ...]]:
+        """Walled modules reachable from bridge module `start`, with the chain.
+
+        BREADTH-first and `seen`-guarded, for two reasons that are not style:
+        the reported chain is then the SHORTEST route (the one a reader should
+        cut), and it is DETERMINISTIC — a control whose evidence string changes
+        between identical runs cannot be diffed or trusted. An import cycle
+        inside a bridge package is a normal thing to find and must not hang the
+        checker.
+        """
+        found: dict[str, tuple[str, ...]] = {}
+        seen: set[str] = {start}
+        queue: list[tuple[str, tuple[str, ...]]] = [(start, (start,))]
+        while queue:
+            cur, chain = queue.pop(0)
+            for dst in sorted(bridge_out.get(cur, ())):
+                top = top_package(dst)
+                if top in BRIDGE_PACKAGES:
+                    if dst in known and dst not in seen:
+                        seen.add(dst)
+                        queue.append((dst, chain + (dst,)))
+                elif (top in COMPANY_PACKAGES or top in SIM_PACKAGES) and dst in known:
+                    found.setdefault(dst, chain)
+        return found
+
+    reentry_cache: dict[str, dict[str, tuple[str, ...]]] = {}
+    out: dict[tuple[str, str], IndirectEdge] = {}
+    all_entries: dict[tuple[str, str], set[str]] = {}
+    for entry in sorted(entries, key=lambda e: (e.src, e.dst, e.lineno)):
+        if entry.dst not in reentry_cache:
+            reentry_cache[entry.dst] = _reentries(entry.dst)
+        for target, chain in sorted(reentry_cache[entry.dst].items()):
+            # Classify the (source, target) pair with the SHARED classifiers,
+            # by handing them a synthetic direct edge. This is the whole point:
+            # a second opinion about what a crossing is would be a second
+            # definition, and the seam exemption would drift out of it first.
+            probe = [RawEdge(entry.src, target, entry.path, entry.lineno)]
+            if not (company_reads_sim(probe) or sim_reads_company(probe)):
+                continue
+            key = (entry.src, target)
+            all_entries.setdefault(key, set()).add(entry.dst)
+            prior = out.get(key)
+            if prior is None or len(chain) < len(prior.hops):
+                out[key] = IndirectEdge(
+                    entry.src, target, chain, entry.path, entry.lineno
+                )
+    return {
+        k: IndirectEdge(e.src, e.dst, e.hops, e.path, e.lineno,
+                        tuple(sorted(all_entries[k])))
+        for k, e in out.items()
+    }
+
+
+def live_indirect_crossings() -> dict[tuple[str, str], IndirectEdge]:
+    """Every indirect wall crossing in THIS WORKING TREE. See `live_crossings`
+    for which tree this is and why that matters."""
+    return indirect_crossings(REPO_ROOT)
 
 
 # --------------------------------------------------------------------------
@@ -484,3 +704,18 @@ def crossings_at_head(repo_root: str = REPO_ROOT) -> dict[tuple[str, str], RawEd
     """
     with head_export(repo_root) as root:
         return crossings_at(root)
+
+
+def indirect_crossings_at_head(
+    repo_root: str = REPO_ROOT,
+) -> dict[tuple[str, str], IndirectEdge]:
+    """Every INDIRECT wall crossing in the committed tree.
+
+    Note the wider export: the bridge packages must be present or every route
+    through them disappears and the answer is a confident zero. That is the
+    fail-open shape, so the export is widened rather than the walk narrowed —
+    and `head_export` still refuses an export that does not match git's own
+    listing of the same wider path set.
+    """
+    with head_export(repo_root, WALL_DIRS + BRIDGE_PACKAGES) as root:
+        return indirect_crossings(root)

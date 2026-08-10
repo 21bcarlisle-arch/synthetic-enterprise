@@ -450,10 +450,57 @@ walked and clean; here the composition IS the substance (`run_phase2b.py` is 2,9
 walker's reach — failing this pass's own second exit clause. The register says so in writing so the
 next draw inherits the ruling instead of rediscovering the temptation.
 
-**Status: first and second steps landed; the cut has not started.** Recorded loudly rather than left
-implicit, because the orphaned duplicate found in finding (1) is what a silent partial pass looks
-like from the next draw. The remaining work is the eight named designs in the register, and B8
-(one edge, relocate a publication surface under the seam) is the cheapest genuine cut available.
+##### Step 7 — LANDED 2026-08-10: the walker learns to see through the bridge
+
+**The count went UP, from 72 to 75, and that is the result.** This step cut nothing on purpose.
+
+The shared walker's own docstring had named the hazard since step 1 — *routing a dependency
+through a package the walker does not walk (`tools/`) moves the measurement rather than the
+dependency* — and nothing had ever asked whether the tree already contained such a route. It did.
+Three, all class (b), all leaving `simulation/run_phase2b.py:95`, reaching `company/billing/`
+through `background.live_payment_triad` and `tools.couple_w2_11_d5`. Invisible to the ratchet,
+absent from this ledger, and absent from the register that claims to examine every crossing.
+
+**Why it had to land before `A_composition_lift`, and in a commit that cuts nothing.** The A cut
+moves thin scenario harnesses out of `simulation/` and above both layers — which in this repo
+means into `tools/`. That is a CUT only if nothing walked still reaches the company through the
+moved file; otherwise it is precisely the laundering §2b refuses in writing. The pass could not
+honestly make that move while `tools/` was an unmeasured channel. Instrument first, in its own
+commit, direct allowlists byte-unchanged: the step-1 rule applied to its own consequence.
+
+Four things worth carrying forward:
+
+1. **Proven able to fail on the REAL tree.** A laundered route injected into
+   `simulation/settlement.py` through a throwaway `tools/` module reds three tests in
+   `tests/architecture/test_epistemic_wall_indirect_ratchet.py` (20 tests) — while
+   `test_epistemic_wall_ratchet.py` passes **12/12 on the same injected route**. The green direct
+   ratchet is the measurement, not the argument, for what was missing.
+2. **The shortest chain is a redundant-channel trap.** Every one of the three is carried by BOTH
+   bridges, so cutting the one route a checker printed would remove nothing and look like a
+   failed cut. `IndirectEdge.entries` names every entry point; a test pins the property and a
+   second pins today's concrete redundancy so its disappearance is a visible event.
+3. **The perimeter is a census, for the third time in this programme.** Every top-level name
+   imported by walled code was counted; exactly three resolve to in-repo non-wall directories
+   (`tools`, `background`, `interface`). A test fails if a fourth ever appears. `interface/` is
+   included despite the ratchet's standing claim that it cannot launder — that claim was about
+   DIRECT edges and had never been tested for indirect ones. It holds, by measurement now.
+4. **The union hid a fail-open the moment it was introduced.** `measure_crossings` stubbed with an
+   empty direct walker still returned 3, so the "ZERO crossings is a failure" guard stopped
+   firing on it. Neither source can be refused for being zero on its own — an empty indirect set
+   is this pass's goal state — so the guard stays on the total and the BREAKDOWN is printed
+   (`72 direct, 3 indirect`), making a silent source visible instead of inferred. Caught by the
+   existing suite going red, which is the only reason it is a footnote.
+
+Also caught and fixed in passing: `test_main_returns_nonzero_when_an_edge_is_unexamined` patched
+`measure_crossings` while `main` had moved to `measure_crossings_split` — the mutation point had
+drifted off the live code path. It failed loudly rather than passing green against a ghost it was
+no longer injecting.
+
+**Status: steps 1, 2 and 7 landed (instruments); B1, B8, B6, B7 and part of B4/B5 cut, 88 -> 72
+direct.** The remaining work is the four designs still in §3, and `A_composition_lift` is now
+unblocked: its per-file measurement is taken (nine of the ten harnesses have ZERO importers
+anywhere inside the wall; only `run_phase2b` has walked in-edges), and the instrument that tells a
+lift from a laundering exists.
 
 ### Pass 4 — `KNIFE4_orphan_disposition` (size L, position free)
 **Cut:** dispose of the 258 company-side orphans — wire or retire, **archive, never delete**.

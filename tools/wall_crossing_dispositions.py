@@ -113,7 +113,12 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.epistemic_wall import crossings_at_head, live_crossings  # noqa: E402
+from tools.epistemic_wall import (  # noqa: E402
+    crossings_at_head,
+    indirect_crossings_at_head,
+    live_crossings,
+    live_indirect_crossings,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REGISTER_DOC = REPO_ROOT / "docs" / "design" / "WALL_CROSSING_DISPOSITION_REGISTER.md"
@@ -282,18 +287,51 @@ def measure_crossings(at_head: bool = False) -> set[tuple[str, str]]:
     live at HEAD means the cut has been written down but not landed. See the
     `--at-head` help text for why the obvious HEAD-vs-HEAD comparison is blind
     to exactly the case that motivated this.
+
+    INDIRECT crossings are included (2026-08-10, KNIFE pass 3 step 7). The
+    exit clause this tool serves says *no edge survives unexamined*, and until
+    the walker learned to see through the bridge packages, three edges were
+    surviving unexamined by construction: `simulation.run_phase2b` reaches
+    three `company.billing` modules through `background/` and `tools/`, and
+    neither the register nor the ratchet could see them. An examination whose
+    perimeter excludes the edges hardest to find is not an examination.
+
+    Direct and indirect edges key identically — (src, dst) between the same two
+    WALL endpoints — so the union needs no translation and a pair reachable
+    both ways is one edge, ruled once.
+    """
+    direct, indirect = measure_crossings_split(at_head=at_head)
+    return direct | indirect
+
+
+def measure_crossings_split(at_head: bool = False) -> tuple[set, set]:
+    """`measure_crossings`, with the two sources kept apart.
+
+    Reported separately for a reason that surfaced the moment the union was
+    introduced: a union is blind to one of its inputs going silent. The total
+    can stay comfortably non-zero while the direct walker returns nothing at
+    all, and the "ZERO crossings is a failure" guard below would never fire.
+    Neither source can be refused for being zero on its own — an empty indirect
+    set is this pass's GOAL STATE, and the direct set may reach zero too — so
+    the guard stays on the total and the BREAKDOWN is printed instead, which
+    makes a source going quiet a visible event rather than an inference.
     """
     try:
-        live = crossings_at_head() if at_head else live_crossings()
+        if at_head:
+            direct = set(crossings_at_head())
+            indirect = set(indirect_crossings_at_head())
+        else:
+            direct = set(live_crossings())
+            indirect = set(live_indirect_crossings())
     except Exception as exc:                                # pragma: no cover
         where = "HEAD" if at_head else "the working tree"
         raise MeasurementError(f"the wall walker could not run against {where}: {exc}") from exc
-    if not live:
+    if not (direct or indirect):
         raise MeasurementError(
             "the walker measured ZERO crossings — 'none found' and 'could not "
             "look' are the same number and opposite facts (R15 fail-open)"
         )
-    return set(live)
+    return direct, indirect
 
 
 def reconcile(
@@ -454,7 +492,8 @@ def main(argv=None) -> int:
 
     try:
         rows, designs = load_register(args.register)
-        measured = measure_crossings(at_head=args.at_head)
+        direct, indirect = measure_crossings_split(at_head=args.at_head)
+        measured = direct | indirect
     except (RegisterError, MeasurementError) as exc:
         if args.json:
             print(json.dumps({"error": str(exc), "findings": [str(exc)]}, indent=2))
@@ -470,13 +509,16 @@ def main(argv=None) -> int:
     findings, report = reconcile(
         rows, designs, measured, measured_label=label, measured_source=source
     )
+    report["direct_crossings"] = len(direct)
+    report["indirect_crossings"] = len(indirect)
 
     if args.json:
         print(json.dumps(report, indent=2))
     else:
         print(
             f"measured against {label}: "
-            f"{report['measured_crossings']} live crossings; "
+            f"{report['measured_crossings']} live crossings "
+            f"({len(direct)} direct, {len(indirect)} indirect via a bridge package); "
             f"{report['rows']} ruled "
             f"(cut {report['by_disposition']['cut']}, "
             f"owed {report['by_disposition']['owed']}, "

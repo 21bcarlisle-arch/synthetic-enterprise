@@ -244,12 +244,30 @@ def probe_wall_crossings() -> Population:
     merged, scanned = _wall_edges()
     if scanned <= 0:
         raise ProbeUnavailable("the wall walker scanned nothing")
-    files = {e.path for e in merged.values()}
+
+    # INDIRECT crossings count too (2026-08-10, KNIFE pass 3 step 7). This
+    # ledger is the REPORT half of the single-source extraction, and a report
+    # that measured a narrower perimeter than the gate and the register would
+    # be the third-register drift that extraction exists to prevent — this time
+    # with the ledger flattering the count. Keyed identically, so the union is
+    # a union and not a translation.
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.epistemic_wall import live_indirect_crossings  # noqa: PLC0415
+        indirect = live_indirect_crossings()
+    except Exception as exc:  # pragma: no cover - mirrors _wall_edges
+        raise ProbeUnavailable(f"the indirect wall walker is unavailable: {exc}") from exc
+
+    files = {e.path for e in merged.values()} | {e.path for e in indirect.values()}
     return Population(
         files=frozenset(files),
-        edges=frozenset(merged),
+        edges=frozenset(set(merged) | set(indirect)),
         scanned=scanned,
-        notes=(f"seam: company/interfaces/sim_interface.py ({_count_lines(['company/interfaces/sim_interface.py'])} lines)",),
+        notes=(
+            f"seam: company/interfaces/sim_interface.py ({_count_lines(['company/interfaces/sim_interface.py'])} lines)",
+            f"{len(merged)} direct + {len(indirect)} indirect (routed through a bridge package)",
+        ),
     )
 
 

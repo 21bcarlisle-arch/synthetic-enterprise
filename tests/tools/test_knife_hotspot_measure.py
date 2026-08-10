@@ -322,10 +322,21 @@ def test_probe_populations_use_the_same_walker_as_the_ratchet():
     """One definition of 'a crossing', two consumers. A second AST walk here would be the
     write-time blindness the whole programme exists to end."""
     import tests.architecture.test_epistemic_wall_ratchet as ratchet
+    from tools.epistemic_wall import live_indirect_crossings
 
     raw = ratchet.build_edges(ratchet.REPO_ROOT, ratchet.WALL_DIRS)
-    expected = set(ratchet.company_reads_sim(raw)) | set(ratchet.sim_reads_company(raw))
-    assert knife.probe_wall_crossings().edges == frozenset(expected)
+    direct = set(ratchet.company_reads_sim(raw)) | set(ratchet.sim_reads_company(raw))
+    # The perimeter widened on 2026-08-10 (KNIFE pass 3 step 7): a crossing that
+    # routes through an unwalked bridge package is still a crossing. The ledger
+    # must measure the SAME perimeter the gate and the register do, or it is the
+    # narrow third register — flattering the count instead of drifting on the
+    # definition, which is the same defect wearing a friendlier face.
+    indirect = set(live_indirect_crossings())
+    assert indirect, (
+        "VACUITY: with no indirect crossing in the tree this test would pass "
+        "whether or not the ledger measured them at all"
+    )
+    assert knife.probe_wall_crossings().edges == frozenset(direct | indirect)
 
 
 def test_orphan_probe_reports_that_orphans_carry_tests():

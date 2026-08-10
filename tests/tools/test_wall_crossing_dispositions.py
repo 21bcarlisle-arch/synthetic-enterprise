@@ -277,6 +277,7 @@ def test_zero_rows_and_zero_crossings_is_still_a_finding():
 
 def test_a_walker_measuring_zero_crossings_raises(monkeypatch):
     monkeypatch.setattr(wcd, "live_crossings", lambda: {})
+    monkeypatch.setattr(wcd, "live_indirect_crossings", lambda: {})
     with pytest.raises(wcd.MeasurementError, match="ZERO crossings"):
         wcd.measure_crossings()
 
@@ -288,6 +289,35 @@ def test_a_walker_that_cannot_run_raises_rather_than_skipping(monkeypatch):
     monkeypatch.setattr(wcd, "live_crossings", boom)
     with pytest.raises(wcd.MeasurementError, match="could not run"):
         wcd.measure_crossings()
+
+
+def test_the_indirect_walker_failing_raises_rather_than_being_shrugged_off(monkeypatch):
+    """The measurement grew a second source (2026-08-10, step 7). A source
+    that throws must fail the whole measurement, not be quietly dropped from
+    the union — the union's own arithmetic would hide it perfectly."""
+    def boom():
+        raise ImportError("no indirect walker here")
+
+    monkeypatch.setattr(wcd, "live_indirect_crossings", boom)
+    with pytest.raises(wcd.MeasurementError, match="could not run"):
+        wcd.measure_crossings()
+
+
+def test_the_two_sources_are_reported_separately(monkeypatch):
+    """A union is blind to one input going silent, so the breakdown is the
+    control. If the direct walker returned nothing while the indirect one still
+    found edges, the total would look healthy — the split is what makes that
+    visible."""
+    monkeypatch.setattr(wcd, "live_crossings", lambda: {})
+    monkeypatch.setattr(
+        wcd, "live_indirect_crossings", lambda: {("simulation.a", "saas.b"): object()}
+    )
+    direct, indirect = wcd.measure_crossings_split()
+    assert direct == set()
+    assert indirect == {("simulation.a", "saas.b")}, (
+        "the split collapsed into one number — a silent direct walker would be "
+        "invisible again"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -462,14 +492,45 @@ def test_the_live_register_is_not_vacuous():
 
 
 def test_main_returns_nonzero_when_an_edge_is_unexamined(monkeypatch, capsys):
-    real = wcd.measure_crossings
+    # Patches `measure_crossings_split`, which is what `main` calls — NOT
+    # `measure_crossings`. It patched the latter until 2026-08-10, when the
+    # measurement gained its indirect half and main moved to the split; the
+    # mutation point drifted off the live code path and the test went green
+    # against a ghost it was no longer injecting. It failed loudly rather than
+    # silently, which is the only reason this is a footnote and not an
+    # incident — but "the mutation point is still on the path the tool takes"
+    # is a property worth stating, because a patch of a now-unused name is
+    # indistinguishable from a working control until something else breaks.
+    real = wcd.measure_crossings_split
 
     def with_a_ghost(at_head: bool = False):
-        return real(at_head=at_head) | {("simulation.ghost", "company.unruled")}
+        direct, indirect = real(at_head=at_head)
+        return direct | {("simulation.ghost", "company.unruled")}, indirect
 
-    monkeypatch.setattr(wcd, "measure_crossings", with_a_ghost)
+    monkeypatch.setattr(wcd, "measure_crossings_split", with_a_ghost)
     assert wcd.main([]) == 2
     assert "NO DISPOSITION" in capsys.readouterr().out
+
+
+def test_an_unexamined_INDIRECT_edge_also_fails(monkeypatch, capsys):
+    """The half that was previously unreachable.
+
+    Before step 7 an indirect crossing could not fail this tool no matter what
+    the register said, because the tool could not see one. Injected on the
+    indirect side specifically, so a union that silently dropped its second
+    input would red here and nowhere else.
+    """
+    real = wcd.measure_crossings_split
+
+    def with_a_ghost(at_head: bool = False):
+        direct, indirect = real(at_head=at_head)
+        return direct, indirect | {("simulation.ghost", "company.unruled")}
+
+    monkeypatch.setattr(wcd, "measure_crossings_split", with_a_ghost)
+    assert wcd.main([]) == 2
+    out = capsys.readouterr().out
+    assert "NO DISPOSITION" in out
+    assert "indirect via a bridge package" in out
 
 
 def test_main_returns_zero_on_the_live_tree(capsys):
