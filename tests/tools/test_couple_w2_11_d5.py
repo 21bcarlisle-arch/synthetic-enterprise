@@ -2839,3 +2839,260 @@ def test_the_ageing_headline_is_entirely_miss_driven_here(seed):
         f"seed {seed}: misses={c['misses']} but total displacement {total} -- "
         "displacement with no miss, or a miss with no displacement, means the "
         "two are no longer the same cases")
+
+
+# ---------------------------------------------------------------------------
+# THE HEADLINE-DIRECTION CLASS (atom D22, H27 Expert Hour #6, 2026-08-10)
+# ---------------------------------------------------------------------------
+# The class `DETECTION_DIRECTION_CONTRACT` states -- a one-directional score
+# cannot distinguish a precise company from an indiscriminate one -- found for
+# the THIRD time somewhere the existing sweeps could not reach. These tests
+# MEASURE the new register rather than reading it, and every mutation below
+# reinstates a shape in which it would stop covering something.
+
+
+def _hdc(result=None, contract=None):
+    """Measure the register on a real scored result."""
+    result = pair.measure(_N, seed=_SEED) if result is None else result
+    return result, pair.measure_headline_direction_coverage(result, contract)
+
+
+def test_the_ageing_ordinal_headline_cannot_see_the_over_ageing_direction():
+    """THE FINDING (atom D22), pinned as a number rather than a paragraph.
+
+    A company that dates every truly-overdue invoice perfectly and dumps its
+    ENTIRE truly-current book into `90+` -- maximal wrongful ageing -- scores
+    the published ageing headline identically to a company that dates every
+    invoice right. If this test ever fails, the reshape has landed (or the
+    dimension has changed under it) and the register entry must be re-derived,
+    not silenced.
+    """
+    result, measured = _hdc()
+    row = measured["ageing"]
+
+    assert row["n_cases_changed"] > 0, (
+        "the degenerate changed no case at all -- the probe is VACUOUS and "
+        "proves nothing in either direction")
+    assert row["perfect_gap"] == 0.0
+    assert row["degenerate_gap"] == row["perfect_gap"], (
+        f"the ageing headline now MOVES under the over-ageing degenerate "
+        f"({row['perfect_gap']} -> {row['degenerate_gap']}). That is the D22 "
+        "reshape landing -- flip `headline_counts_both_directions` to True and "
+        "re-derive the entry")
+    assert row["distinguishes"] is False
+
+    # AND THE OFF-BY-ONE / STONE-BLIND DISTINCTION, which is the claim the
+    # ordinal term exists to support, is unavailable in this direction: an
+    # over-ageing of ONE bucket and one of THREE score the same.
+    true_l = list(result["labels"]["ageing_truth"])
+    off_by_one = [t if t != "current" else "30-60" for t in true_l]
+    stone_blind = [t if t != "current" else "90+" for t in true_l]
+    g1 = pair._rescore_dimension("ageing", list(true_l), off_by_one, result)
+    g3 = pair._rescore_dimension("ageing", list(true_l), stone_blind, result)
+    assert g1 == g3 == row["perfect_gap"], (
+        "the ordinal term now separates an off-by-one over-ageing from a "
+        f"stone-blind one ({g1} vs {g3}) -- D22 has landed")
+
+
+def test_the_register_is_derived_from_what_is_published_not_from_a_list():
+    """The keying that let this class escape twice is gone: the sweep's keyset
+    IS the published dimension set, so a dimension cannot avoid it by not being
+    a detection scorer, by being ordinal, or by being added later."""
+    result = pair.measure(_N, seed=_SEED)
+    assert set(pair.published_dimensions(result)) == set(
+        pair.HEADLINE_DIRECTION_COVERAGE)
+
+    # MUTATION: a dimension published without a register entry must RAISE, not
+    # drop silently out of the sweep.
+    extra = dict(result)
+    extra["a_new_dimension"] = result["ageing"]
+    with pytest.raises(ValueError, match="no entry for published dimension"):
+        pair.measure_headline_direction_coverage(extra)
+
+    # MUTATION, the other way: a register entry for a dimension nobody
+    # publishes reads as coverage that is not being provided.
+    ghost = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    ghost["a_retired_dimension"] = dict(ghost["ageing"])
+    with pytest.raises(ValueError, match="which `score_triad` does not publish"):
+        pair.measure_headline_direction_coverage(result, ghost)
+
+
+def test_every_declaration_holds_at_head():
+    """The control's own verdict, green at HEAD."""
+    _result, measured = _hdc()
+    assert pair.check_headline_direction_coverage(measured) == []
+    # ...and it is DIFFERENTIAL rather than a blanket rule: entries land on
+    # both sides. A register where every entry is debt is a blanket ban
+    # wearing a register's clothes.
+    assert any(v["distinguishes"] for v in measured.values())
+    assert any(not v["distinguishes"] for v in measured.values())
+
+
+def test_a_both_directions_claim_that_is_false_is_caught():
+    """R15, direction one: reinstate the defect as a DECLARATION -- claim the
+    one-directional ageing headline counts both -- and the control must fire."""
+    result, _ = _hdc()
+    lying = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    lying["ageing"]["headline_counts_both_directions"] = True
+    lying["ageing"]["debt_atom"] = None
+    measured = pair.measure_headline_direction_coverage(result, lying)
+    violations = pair.check_headline_direction_coverage(measured, lying)
+    assert any("ageing" in v and "BOTH error directions" in v
+               for v in violations), violations
+
+
+def test_a_debt_entry_that_has_been_fixed_must_be_re_derived():
+    """R15, direction two: a register entry that outlives the blindness it
+    describes misleads worse than none, so declaring a genuinely two-directional
+    dimension as debt must also fire."""
+    result, _ = _hdc()
+    rotted = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    rotted["detection"]["headline_counts_both_directions"] = False
+    rotted["detection"]["debt_atom"] = "D_NOT_A_REAL_ATOM"
+    measured = pair.measure_headline_direction_coverage(result, rotted)
+    violations = pair.check_headline_direction_coverage(measured, rotted)
+    assert any("detection" in v and "rotted" in v for v in violations), violations
+
+
+def test_a_one_directional_entry_must_name_an_owner_or_a_cover():
+    """The register's own class statement: measure both directions or NAME the
+    atom that will make it. An unowned hole is the third fail-open shape."""
+    result, _ = _hdc()
+    unowned = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    unowned["ageing"]["debt_atom"] = None
+    measured = pair.measure_headline_direction_coverage(result, unowned)
+    violations = pair.check_headline_direction_coverage(measured, unowned)
+    assert any("unowned hole" in v for v in violations), violations
+
+
+def test_a_cover_claim_is_measured_against_its_sibling():
+    """`detection_latency` is honestly truth-conditioned and names the sibling
+    that counts the direction it cannot. That is only not a loophole because
+    the sibling's behaviour is MEASURED."""
+    result, measured = _hdc()
+    row = measured["detection_latency"]
+    assert row["covered_by"] == "detection"
+    assert row["cover_is_two_directional"] is True
+    assert row["n_truly_current_in_population"] == 0, (
+        "a truly-current case reached the latency population, so the headline "
+        "is no longer truth-conditioned and the cover claim no longer holds")
+    assert row["probe_bit"] is True, "the latency population is empty"
+
+    # MUTATION: point the cover at a sibling that does NOT count both
+    # directions -- a cover claim covering nothing.
+    bad = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    bad["detection_latency"]["covered_by"] = "ageing"
+    m2 = pair.measure_headline_direction_coverage(result, bad)
+    assert any("covering nothing" in v
+               for v in pair.check_headline_direction_coverage(m2, bad))
+
+    # MUTATION: a cover naming a dimension that does not exist must RAISE.
+    ghost = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    ghost["detection_latency"]["covered_by"] = "no_such_dimension"
+    with pytest.raises(ValueError, match="not a registered dimension"):
+        pair.measure_headline_direction_coverage(result, ghost)
+
+
+def test_the_latency_population_claim_can_actually_fail():
+    """R15 on the conditional-population probe itself: it must fire when a
+    truly-current case reaches the latency population, not merely report 0."""
+    result, _ = _hdc()
+    leaked = dict(result)
+    inputs = copy.deepcopy(result["latency_inputs"])
+    truly = set(map(tuple, inputs["truly_failed_keys"]))
+    intruder = next(k for k in result["labels"]["detection_keys"]
+                    if tuple(k) not in truly)
+    inputs["recon_lag_days"] = dict(inputs["recon_lag_days"])
+    inputs["recon_lag_days"][tuple(intruder)] = 3
+    leaked["latency_inputs"] = inputs
+    measured = pair.measure_headline_direction_coverage(leaked)
+    assert measured["detection_latency"]["n_truly_current_in_population"] == 1
+    assert any("no longer truth-conditioned" in v
+               for v in pair.check_headline_direction_coverage(measured))
+
+
+def test_the_probe_has_a_vacuity_guard():
+    """A degenerate that changes nothing proves nothing. Without this guard an
+    inert strategy would hand a silent PASS to every debt entry -- the exact
+    fail-silent shape D19's probe_bit was built for, one register over."""
+    result, _ = _hdc()
+    inert = dict(pair._DEGENERATE_STRATEGIES)
+    inert["age_the_current_book_at_90_plus"] = lambda true_l: list(true_l)
+    original = pair._DEGENERATE_STRATEGIES
+    try:
+        pair._DEGENERATE_STRATEGIES = inert
+        measured = pair.measure_headline_direction_coverage(result)
+    finally:
+        pair._DEGENERATE_STRATEGIES = original
+    assert measured["ageing"]["probe_bit"] is False
+    assert any("VACUOUS" in v
+               for v in pair.check_headline_direction_coverage(measured))
+
+
+def test_a_declared_strategy_that_does_not_exist_raises():
+    """The register names the strategy that RUNS (the D19 call-path lesson): a
+    declaration pointing at no code must raise rather than skip."""
+    result, _ = _hdc()
+    bad = copy.deepcopy(pair.HEADLINE_DIRECTION_COVERAGE)
+    bad["ageing"]["degenerate"] = "a_strategy_nobody_wrote"
+    with pytest.raises(ValueError, match="not in `_DEGENERATE_STRATEGIES`"):
+        pair.measure_headline_direction_coverage(result, bad)
+
+
+def test_the_mirrored_ordinal_term_travels_with_the_ageing_headline():
+    """Stamped AT SOURCE in `gap_metric.ageing_gap`, so it reaches every caller
+    of the scorer -- not only the pair whose Expert Hour found it (the D19
+    pattern). And it must MOVE where the headline cannot."""
+    truth = ["current"] * 8 + ["30-60", "60-90"]
+    right = list(truth)
+    over_by_one = ["30-60"] * 8 + ["30-60", "60-90"]
+    over_stone_blind = ["90+"] * 8 + ["30-60", "60-90"]
+
+    c_right = ageing_gap(truth, right).components
+    c_one = ageing_gap(truth, over_by_one).components
+    c_blind = ageing_gap(truth, over_stone_blind).components
+
+    # The headline is blind to all three differences...
+    assert (c_right["mean_bucket_displacement"]
+            == c_one["mean_bucket_displacement"]
+            == c_blind["mean_bucket_displacement"] == 0.0)
+    # ...and the rate cannot separate the last two either.
+    assert c_one["overstated_arrears_rate"] == c_blind["overstated_arrears_rate"]
+    # The mirrored term is what does.
+    assert c_right["mean_overstatement_displacement"] == 0.0
+    assert c_one["mean_overstatement_displacement"] == 1.0
+    assert c_blind["mean_overstatement_displacement"] == 3.0
+    assert c_one["n_overaged_beyond_one_bucket"] == 0
+    assert c_blind["n_overaged_beyond_one_bucket"] == 8
+    assert c_blind["max_overstatement_displacement"] == 3
+
+    # VACUITY IS EXPLICIT, never 0.0: with no truly-current population the
+    # mirrored term is undefined, and the caveat says so rather than reading
+    # as "no over-ageing".
+    vac = ageing_gap(["30-60", "60-90"], ["30-60", "60-90"]).components
+    assert vac["mean_overstatement_displacement"] is None
+    assert "UNKNOWN" in vac["ordinal_direction_caveat"]
+
+
+def test_the_ordinal_direction_caveat_is_published_where_a_reader_sees_it():
+    """The D7 anti-decay mechanism applied to the new limit: no consumer prints
+    this headline without the direction it cannot see beside it."""
+    from background.gap_metric import format_ageing_summary
+
+    result = ageing_gap(["current"] * 5 + ["30-60"], ["90+"] * 5 + ["30-60"])
+    assert "atom D22" in result.components["ordinal_direction_caveat"]
+    assert "TRULY-OVERDUE" in result.components["ordinal_direction_caveat"]
+    summary = format_ageing_summary(result)
+    assert "mean_overstatement_displacement" in summary, (
+        "the headline is printable without the direction it cannot see -- the "
+        "exact shape that let a bare ageing scalar be misread twice")
+    assert "CANNOT see" in summary
+
+
+def test_the_headline_direction_control_runs_in_the_cli_not_only_in_tests():
+    """A control that lives only in the test suite is one a reader of the
+    instrument's own output never meets -- the same reason the permutation
+    control prints every run."""
+    src = inspect.getsource(pair.main)
+    assert "measure_headline_direction_coverage(result)" in src
+    assert "check_headline_direction_coverage" in src

@@ -1302,6 +1302,403 @@ AGGREGATE_SCORING_CONTRACT: Dict[str, Dict[str, object]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# THE HEADLINE-DIRECTION CLASS (2026-08-10, H27 Expert-Hour pass #6, atom D22)
+# ---------------------------------------------------------------------------
+# THE CLASS is the one `DETECTION_DIRECTION_CONTRACT` above already states:
+#
+#     a one-directional score cannot distinguish a precise company from an
+#     indiscriminate one, so it MUST either measure both directions or name
+#     the atom that will make it
+#
+# That register swept the DETECTION dimensions and D11/D12/D14/D15 fixed four.
+# D19 then found the same class had escaped into `belief`, because the register
+# is KEYED TO DETECTION SCORERS, and fixed it. This is the third time the class
+# has been found somewhere the sweep could not reach -- so the sweep, not the
+# instance, is what is wrong, and this register is the sweep with the keying
+# removed: its keyset is DERIVED from the dimensions `score_triad` actually
+# publishes, so a dimension cannot escape by not being a detection scorer, by
+# being ordinal instead of a rate, or by being added later.
+#
+# WHAT IT MEASURES, per published dimension: score that dimension's own
+# INDISCRIMINATE DEGENERATE -- the strategy that is PERFECT in the direction the
+# headline counts and maximally wrong in the other -- through the dimension's
+# OWN shipped scorer, beside a company that is perfect in both. A headline that
+# counts both directions must tell those two apart. One that does not is DEBT,
+# and must name the atom that will make it.
+#
+# MEASURED 2026-08-10 (n=4000, seeds 7/11/23), perfect -> degenerate:
+#     detection              0.0 -> 0.5      distinguishes
+#     belief                 0.0 -> 0.5      distinguishes
+#     belief_population_mix  0.0 -> ~0.96    distinguishes
+#     ageing                 0.0 -> 0.0      DOES NOT -- 10,758 cases changed
+#                                            and the number did not move
+# The ageing entry is the finding this register was built for: its ORDINAL
+# headline is taken over the truly-overdue alone, so a company that dates every
+# overdue invoice perfectly and puts its entire current book in `90+` scores a
+# perfect 0.000000. Its over-ageing direction is not unmeasured -- the DIMENSION
+# publishes `overstated_arrears_rate` -- but the ORDINAL severity, which is the
+# whole of what this dimension adds over a rate, exists in one direction only.
+#
+# THE THIRD STATE, and why it is not a loophole. `detection_latency` is honestly
+# conditional: it is a mean over cases the company DID detect, so an
+# indiscriminate flagger's extra flags never enter its population at all. Its
+# entry therefore names a SIBLING dimension that counts the direction it cannot
+# (`detection`, made two-directional by D11) -- and the control MEASURES that
+# claim rather than accepting it: the named sibling must itself be a
+# both-directions entry that really does tell the degenerate apart, and the
+# latency population must really contain no truly-current case. `ageing` may NOT
+# claim the same cover, and the reason is already measured: D16 established that
+# detection's false_flag_rate and ageing's overstated_arrears_rate are DIFFERENT
+# quantities over different populations (that was the "one name, two numbers"
+# finding), so nothing in this instrument sees over-ageing SEVERITY.
+_DEGENERATE_STRATEGIES: Dict[str, object] = {
+    # Perfect on the truly-overdue book; every truly-current invoice dumped in
+    # the oldest arrears bucket -- maximal wrongful ageing, zero missed debt.
+    "age_the_current_book_at_90_plus":
+        lambda true_l: [t if t != "current" else "90+" for t in true_l],
+    # Every account graded at the top severity -- no under-call is possible, and
+    # every over-call is made.
+    "call_every_account_max_severity":
+        lambda true_l: [_SEVERITY_ORDER[-1]] * len(true_l),
+    # The flag-EVERYTHING strategy DETECTION_DIRECTION_CONTRACT already sweeps,
+    # re-expressed in per-case labels so it runs through the same probe as the
+    # others rather than through a second copy of the idea.
+    "flag_every_case":
+        lambda true_l: ["positive"] * len(true_l),
+}
+
+HEADLINE_DIRECTION_COVERAGE: Dict[str, Dict[str, object]] = {
+    "detection": {
+        "headline_counts_both_directions": True,
+        "degenerate": "flag_every_case",
+        "covered_by": None,
+        "debt_atom": None,
+        "why": (
+            "FIXED 2026-08-09 (atom D11) and re-proven here through a second, "
+            "independently-built probe: balanced error over both directions on "
+            "their own denominators, so flag-nobody and flag-EVERYTHING both "
+            "score 0.5. This entry is one of the sides that must FAIL if the "
+            "probe ever goes inert -- a register whose every entry sits on the "
+            "debt side is a blanket rule wearing a register's clothes."
+        ),
+    },
+    "belief": {
+        "headline_counts_both_directions": True,
+        "degenerate": "call_every_account_max_severity",
+        "covered_by": None,
+        "debt_atom": None,
+        "why": (
+            "FIXED 2026-08-10 (atom D19). Balanced per-case severity error -- "
+            "undercall_rate over the accounts that could be under-called, "
+            "overcall_rate over those that could be over-called -- so grading "
+            "every account `high` scores 0.5, not 0."
+        ),
+    },
+    "belief_population_mix": {
+        "headline_counts_both_directions": True,
+        "degenerate": "call_every_account_max_severity",
+        "covered_by": None,
+        "debt_atom": None,
+        "why": (
+            "A total-variation distance between two severity DISTRIBUTIONS is "
+            "symmetric in the error direction by construction: collapsing the "
+            "book onto one severity moves the mix as far as it can go "
+            "(~0.96). It is blind to per-case ASSIGNMENT, which is a different "
+            "blindness, declared and swept by AGGREGATE_SCORING_CONTRACT -- "
+            "which is why this dimension needs an entry in both registers."
+        ),
+    },
+    "ageing": {
+        "headline_counts_both_directions": False,
+        "degenerate": "age_the_current_book_at_90_plus",
+        "covered_by": None,
+        "debt_atom": "D22_ageing_ordinal_is_one_directional",
+        "why": (
+            "NAMED DEBT, found by this register's first run (H27 Expert Hour "
+            "#6, 2026-08-10). `mean_bucket_displacement` -- the published "
+            "headline -- is a mean over the TRULY-OVERDUE population, so the "
+            "over-ageing direction cannot move it by any amount: a company "
+            "dating its whole current book at `90+` scores 0.000000, "
+            "bit-identical to a perfect dater, at seeds 7/11/23. The "
+            "dimension is not blind to that direction (it publishes "
+            "`overstated_arrears_rate`), but its ORDINAL term is, and the "
+            "ordinal term is the whole of what this dimension adds over a "
+            "rate -- its own docstring's claim to 'distinguish off-by-one "
+            "from stone-blind, which an error rate cannot' holds in one "
+            "direction only. NOT COVERED BY A SIBLING: D16 measured that "
+            "detection's false_flag_rate is a DIFFERENT quantity over a "
+            "different population from this dimension's overstatement, so "
+            "nothing in this instrument sees over-ageing SEVERITY. Until D22 "
+            "reshapes the headline (which moves a published number on every "
+            "pair calling `ageing_gap`, so it is a mint, not a fix on sight), "
+            "`gap_metric` stamps the mirrored term "
+            "`mean_overstatement_displacement` and the "
+            "`ordinal_direction_caveat` AT SOURCE so every caller gets the "
+            "severity the headline cannot express."
+        ),
+    },
+    "detection_latency": {
+        "headline_counts_both_directions": False,
+        "degenerate": None,
+        "covered_by": "detection",
+        "debt_atom": None,
+        "why": (
+            "HONESTLY CONDITIONAL, and the condition is checked rather than "
+            "asserted. The headline is a mean over cases the company DID "
+            "detect and that are truly failures, so an indiscriminate "
+            "flagger's extra flags never enter its population -- there is no "
+            "belief-side degenerate that can move it, which is why this entry "
+            "carries no strategy. That is not licence: the control asserts "
+            "(a) the named sibling `detection` is itself a both-directions "
+            "entry that really does tell its own degenerate apart, and (b) "
+            "the latency population really does contain no truly-current "
+            "case, so the direction this headline cannot see is the direction "
+            "the sibling counts. If either stops holding, this entry is a lie "
+            "and the control fails."
+        ),
+    },
+}
+
+
+def published_dimensions(result: Dict[str, object]) -> List[str]:
+    """The dimensions `score_triad` actually PUBLISHES, derived from the result
+    rather than listed -- so a dimension added later cannot escape the
+    direction sweep by not being written down (the D19 lesson, and the reason
+    this register is not keyed to a scorer family the way its predecessor was).
+    """
+    return sorted(k for k, v in result.items() if isinstance(v, GapResult))
+
+
+def measure_headline_direction_coverage(
+    result: Dict[str, object],
+    contract: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """MEASURE `HEADLINE_DIRECTION_COVERAGE` rather than trust it: for every
+    published dimension, score its INDISCRIMINATE DEGENERATE and a PERFECT
+    company through that dimension's OWN shipped scorer and report whether the
+    headline tells them apart.
+
+    Returns {dimension: {"declared_counts_both_directions", "perfect_gap",
+    "degenerate_gap", "distinguishes", "probe_bit", "covered_by",
+    "cover_is_two_directional", "debt_atom"}}.
+
+    `probe_bit` is the VACUITY guard: the degenerate must actually differ from
+    the perfect company per-case. A probe that changed nothing proves nothing
+    in EITHER direction -- it would hand a silent pass to a both-directions
+    claim and a silent failure to a debt entry.
+
+    FAIL LOUD (R15): a published dimension with no register entry, a register
+    entry for a dimension that is not published, a `covered_by` naming an
+    unregistered dimension, and an entry whose declared degenerate strategy
+    does not exist all RAISE at the point of use -- every one of them is a
+    shape in which this control would quietly stop covering something.
+    """
+    contract = HEADLINE_DIRECTION_COVERAGE if contract is None else contract
+    published = set(published_dimensions(result))
+    registered = set(contract)
+    if published - registered:
+        raise ValueError(
+            f"HEADLINE_DIRECTION_COVERAGE has no entry for published "
+            f"dimension(s) {sorted(published - registered)} -- an unregistered "
+            "dimension is one whose headline nobody has checked for direction "
+            "coverage, and dropping it silently is how this class escaped the "
+            "detection-keyed register twice"
+        )
+    if registered - published:
+        raise ValueError(
+            f"HEADLINE_DIRECTION_COVERAGE registers {sorted(registered - published)} "
+            "which `score_triad` does not publish -- a register describing a "
+            "dimension that no longer exists reads as coverage it is not "
+            "providing"
+        )
+
+    labels = result.get("labels") or {}
+    out: Dict[str, Dict[str, object]] = {}
+
+    for dim in sorted(contract):
+        decl = contract[dim]
+        cover = decl.get("covered_by")
+        if cover is not None and cover not in contract:
+            raise ValueError(
+                f"'{dim}' declares its direction is covered by '{cover}', "
+                "which is not a registered dimension -- a cover claim naming "
+                "nothing is the fail-open shape this third state could take"
+            )
+        row: Dict[str, object] = {
+            "declared_counts_both_directions": bool(
+                decl["headline_counts_both_directions"]),
+            "covered_by": cover,
+            "debt_atom": decl.get("debt_atom"),
+        }
+
+        strategy_name = decl.get("degenerate")
+        if strategy_name is None:
+            # The conditional-population case: there is no belief-side
+            # degenerate, so what is measured instead is the CONDITION -- that
+            # no truly-current case can reach this headline's population.
+            row.update(_measure_conditional_population(dim, result))
+            out[dim] = row
+            continue
+
+        if strategy_name not in _DEGENERATE_STRATEGIES:
+            raise ValueError(
+                f"'{dim}' declares degenerate strategy '{strategy_name}', which "
+                "is not in `_DEGENERATE_STRATEGIES` -- the register would name a "
+                "probe that never runs"
+            )
+        true_l = labels.get(f"{dim}_truth")
+        if true_l is None:
+            raise ValueError(
+                f"HEADLINE_DIRECTION_COVERAGE declares a degenerate for '{dim}' "
+                "but `score_triad` publishes no per-case truth labels for it -- "
+                "the control cannot be run on a declaration it cannot reach"
+            )
+        true_l = list(true_l)
+        degenerate = list(_DEGENERATE_STRATEGIES[strategy_name](true_l))
+        perfect_gap = _rescore_dimension(dim, list(true_l), list(true_l), result)
+        degenerate_gap = _rescore_dimension(dim, list(true_l), degenerate, result)
+        n_changed = sum(1 for a, b in zip(true_l, degenerate) if a != b)
+        row.update({
+            "degenerate_strategy": strategy_name,
+            "perfect_gap": perfect_gap,
+            "degenerate_gap": degenerate_gap,
+            "distinguishes": (
+                perfect_gap is not None and degenerate_gap is not None
+                and abs(perfect_gap - degenerate_gap) > 1e-12),
+            "probe_bit": n_changed > 0,
+            "n_cases_changed": n_changed,
+        })
+        out[dim] = row
+
+    # The cover claims are resolved AFTER every row is measured, because a
+    # cover is a statement about the sibling's MEASURED behaviour, not about
+    # its declaration.
+    for dim, row in out.items():
+        cover = row.get("covered_by")
+        row["cover_is_two_directional"] = (
+            None if cover is None
+            else bool(out[cover].get("distinguishes"))
+        )
+    return out
+
+
+def check_headline_direction_coverage(
+    measured: Dict[str, Dict[str, object]],
+    contract: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put every declaration in `HEADLINE_DIRECTION_COVERAGE` on trial against
+    the measurement and return the VIOLATIONS (empty = the register is honest).
+
+    Separate from `measure_...` so the CLI can print the rows every run without
+    raising, and so the test suite asserts on named violations rather than on a
+    traceback. Each rule below closes a shape in which this register could stop
+    describing the code:
+
+      * a both-directions claim that does NOT tell its degenerate apart is the
+        original defect, wearing a register entry;
+      * a debt entry that DOES tell them apart has been fixed and the entry has
+        rotted -- it must be re-derived, not left claiming a blindness the code
+        no longer has (the D10 lesson: a characterization note that outlives the
+        thing it characterises misleads worse than none);
+      * a one-directional entry with neither a `debt_atom` nor a `covered_by` is
+        an unowned hole -- the register's own class statement says it MUST name
+        the atom that will make it;
+      * a `covered_by` whose sibling does not itself count both directions is a
+        cover claim covering nothing;
+      * a vacuous probe (`probe_bit` false) proves NOTHING in either direction
+        and must never be read as a pass.
+    """
+    contract = HEADLINE_DIRECTION_COVERAGE if contract is None else contract
+    violations: List[str] = []
+    for dim in sorted(measured):
+        row = measured[dim]
+        decl = contract[dim]
+        both = bool(decl["headline_counts_both_directions"])
+        if not row.get("probe_bit"):
+            violations.append(
+                f"{dim}: the direction probe is VACUOUS (it changed nothing / "
+                "scored an empty population), so it proves nothing in either "
+                "direction and must not be read as a pass"
+            )
+            continue
+        if both and not row["distinguishes"]:
+            violations.append(
+                f"{dim}: declared to count BOTH error directions, but its "
+                f"indiscriminate degenerate scores {row['degenerate_gap']} -- "
+                f"identical to a perfect company ({row['perfect_gap']}). A "
+                "one-directional headline cannot tell a precise company from "
+                "an indiscriminate one"
+            )
+        if not both and row["distinguishes"]:
+            violations.append(
+                f"{dim}: declared ONE-DIRECTIONAL (debt "
+                f"{decl.get('debt_atom')!r}), but it DOES tell its degenerate "
+                f"apart ({row['perfect_gap']} -> {row['degenerate_gap']}). The "
+                "entry has rotted and must be re-derived"
+            )
+        if not both and not decl.get("debt_atom") and not decl.get("covered_by"):
+            violations.append(
+                f"{dim}: one-directional with neither a `debt_atom` nor a "
+                "`covered_by` -- an unowned hole. This register's own class "
+                "statement requires it to measure both directions or NAME the "
+                "atom that will make it"
+            )
+        if decl.get("covered_by") and not row.get("cover_is_two_directional"):
+            violations.append(
+                f"{dim}: claims its direction is covered by "
+                f"'{decl['covered_by']}', which does not itself count both "
+                "directions -- a cover claim covering nothing"
+            )
+        if dim == "detection_latency" and row.get("n_truly_current_in_population"):
+            violations.append(
+                f"{dim}: {row['n_truly_current_in_population']} truly-current "
+                "case(s) reached the latency population, so the headline is no "
+                "longer truth-conditioned and its cover claim (the sibling "
+                "counts the over-flagging direction) no longer holds"
+            )
+    return violations
+
+
+def _measure_conditional_population(
+    dim: str, result: Dict[str, object]
+) -> Dict[str, object]:
+    """The probe for a dimension whose population is TRUTH-CONDITIONED, so no
+    belief-side degenerate exists (`detection_latency`). What is measurable is
+    the CONDITION: that no truly-current case can reach the headline at all,
+    which is what makes 'the sibling counts that direction' a division of
+    labour rather than a hole."""
+    if dim != "detection_latency":
+        raise ValueError(
+            f"no conditional-population probe for '{dim}' -- an entry with no "
+            "degenerate strategy and no probe would be unmeasured"
+        )
+    inputs = result.get("latency_inputs")
+    if not inputs:
+        raise ValueError(
+            "score_triad published no `latency_inputs`, so the latency "
+            "dimension's population claim cannot be checked -- an unreachable "
+            "entry reads exactly like a clean one"
+        )
+    scored = set(inputs["recon_lag_days"]) | set(inputs["dd_lag_days"])
+    truly_failed = set(inputs["truly_failed_keys"])
+    intruders = scored - truly_failed
+    return {
+        "degenerate_strategy": None,
+        "perfect_gap": None,
+        "degenerate_gap": None,
+        # A truth-conditioned headline cannot tell a precise company from an
+        # indiscriminate one BY CONSTRUCTION -- stated as the measurement it is,
+        # not left absent.
+        "distinguishes": False,
+        "n_latency_population": len(scored),
+        "n_truly_current_in_population": len(intruders),
+        # The probe is vacuous if the population is empty: nothing was checked.
+        "probe_bit": len(scored) > 0,
+        "n_cases_changed": 0,
+    }
+
+
 def _belief_permutation_note(bel: GapResult) -> str:
     """The published caveat, with its numbers INTERPOLATED FROM THE MEASUREMENT
     rather than typed into a sentence once and left to rot (the D11/D16
@@ -2166,10 +2563,23 @@ def score_triad(
                              for k in _det_keys],
         "detection_negatives": never_flaggable,
     }
+    # THE LATENCY DIMENSION'S OWN INPUTS (atom D22). Published for the same
+    # reason `ageing_inputs` and the per-case `labels` are: a dimension a
+    # control cannot reach drops silently out of the sweep, and an unreachable
+    # entry reads exactly like a clean one. This dimension has no per-case
+    # belief labels to permute -- its population is TRUTH-CONDITIONED -- so what
+    # `measure_headline_direction_coverage` checks is the condition itself.
+    # ADDITIVE: it moves no published figure, it only makes one checkable.
+    latency_inputs = {
+        "recon_lag_days": dict(recon_lag_days),
+        "dd_lag_days": dict(dd_lag_days),
+        "truly_failed_keys": sorted(truth_set),
+    }
     return {"detection": det, "detection_latency": lat, "belief": bel,
             "belief_population_mix": mix, "ageing": age,
             "stats": stats, "notes": notes, "sets": sets,
-            "ageing_inputs": ageing_inputs, "labels": labels}
+            "ageing_inputs": ageing_inputs, "latency_inputs": latency_inputs,
+            "labels": labels}
 
 
 # UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
@@ -2482,6 +2892,34 @@ def main() -> None:
               f"{v['agreement_after']:.4f}, gap {v['gap_before']:.4f} -> "
               f"{v['gap_after']:.4f} ({'moved' if v['gap_moved'] else 'UNMOVED'})"
               f" -- {verdict}")
+    # THE HEADLINE-DIRECTION CONTROL, printed every run for the same reason the
+    # permutation control above is: a limit a reader has to go looking for is
+    # one they will read past. Each row scores that dimension's own
+    # indiscriminate degenerate through its own shipped scorer.
+    print("  [headline-direction control] score each dimension's indiscriminate "
+          "degenerate:")
+    _hdc = measure_headline_direction_coverage(result)
+    for dim, v in _hdc.items():
+        if v["degenerate_strategy"] is None:
+            print(f"           {dim:<22} TRUTH-CONDITIONED population "
+                  f"(n={v['n_latency_population']}, truly-current in it: "
+                  f"{v['n_truly_current_in_population']}) -- direction counted "
+                  f"by `{v['covered_by']}`, which distinguishes: "
+                  f"{v['cover_is_two_directional']}")
+            continue
+        verdict = ("counts BOTH directions"
+                   if v["declared_counts_both_directions"]
+                   else f"ONE-DIRECTIONAL, named debt: {v['debt_atom']}")
+        print(f"           {dim:<22} perfect {v['perfect_gap']:.6f} -> "
+              f"degenerate {v['degenerate_gap']:.6f} "
+              f"({'distinguishes' if v['distinguishes'] else 'IDENTICAL'}, "
+              f"{v['n_cases_changed']} cases changed) -- {verdict}")
+    _hdc_violations = check_headline_direction_coverage(_hdc)
+    print("           verdict: "
+          + ("every declaration held" if not _hdc_violations
+             else f"{len(_hdc_violations)} VIOLATION(S)"))
+    for v in _hdc_violations:
+        print(f"           !! {v}")
     # Ageing is NOT a g0-normalised score (D7) -- printing it in the same
     # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
     # read as one. Its three measures print with their units instead.

@@ -1173,8 +1173,55 @@ AGEING_NO_NORMALISER_REASON: str = (
 AGEING_HEADLINE_UNITS: str = (
     "BUCKETS of ordinal displacement (0 = dated right, 3 = a 90+ debt believed "
     "current). NOT a [0,1] no-skill ratio -- do not read 1.0 here as 'no better "
-    "than blind'; there is no baseline in this number."
+    "than blind'; there is no baseline in this number. ONE-DIRECTIONAL: the "
+    "population is the truly-overdue, so 0 does NOT mean 'dated right' -- see "
+    "`ordinal_direction_caveat`."
 )
+
+# ATOM D22 (H27 Expert Hour #6, 2026-08-10). MEASURED, not asserted: a company
+# that dates every truly-overdue invoice perfectly and dumps EVERY truly-current
+# invoice into `90+` scores this headline 0.000000 -- bit-identical to a company
+# that dates every invoice right (seeds 7/11/23 on the W2_11<->D5 book, 10,758
+# cases changed and the number did not move). So does one that over-ages every
+# current invoice by exactly ONE bucket. The over-ageing direction is not
+# invisible to the DIMENSION -- `overstated_arrears_rate` counts it -- but it is
+# invisible to the ORDINAL term, which is the whole of what this dimension adds
+# over a rate. In that direction the measure degrades to the error rate it was
+# built to replace. The reshape (a headline covering both directions) moves a
+# published number on every pair that calls this scorer and is therefore its own
+# atom, D22; until it lands, the mirrored term travels beside the headline as a
+# witness so no reader has to infer it.
+AGEING_ORDINAL_DIRECTION_CAVEAT: str = (
+    "ONE-DIRECTIONAL ORDINAL TERM (atom D22): `mean_bucket_displacement` is "
+    "taken over the TRULY-OVERDUE population only, so no amount of over-ageing "
+    "can move it -- a truly-current invoice believed `30-60` and one believed "
+    "`90+` score identically (zero), and a company dating its whole current "
+    "book at `90+` scores a PERFECT headline. Read it with "
+    "`overstated_arrears_rate` and the mirrored `mean_overstatement_"
+    "displacement` beside it, never alone."
+)
+
+
+def _ageing_direction_note(components: dict) -> str:
+    """The caveat with its witnesses INTERPOLATED FROM THE MEASUREMENT rather
+    than typed once into a sentence and left to rot (the D11/D16/D19 precedent).
+    Says UNKNOWN, never zero, where the population cannot supply the witness."""
+    mean_over = components.get("mean_overstatement_displacement")
+    if mean_over is None:
+        return (
+            AGEING_ORDINAL_DIRECTION_CAVEAT + " On THIS call the mirrored term "
+            "is UNAVAILABLE (no truly-current population), so how much "
+            "over-ageing severity the headline hides is UNKNOWN -- never read "
+            "as none."
+        )
+    return (
+        AGEING_ORDINAL_DIRECTION_CAVEAT + " Beside it, the severity it cannot "
+        f"see: mean overstatement {mean_over:.6f} buckets over "
+        f"{components.get('n_truly_current')} truly-current invoices (max "
+        f"{components.get('max_overstatement_displacement')}), of which "
+        f"{components.get('n_overaged_beyond_one_bucket')} were over-aged by "
+        "MORE than one bucket."
+    )
 
 
 def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
@@ -1248,6 +1295,18 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
     displacements = [
         abs(rank[b] - rank[t]) for t, b in scored if t != current
     ]
+    # THE MIRRORED ORDINAL TERM, over the truly-CURRENT population (atom D22,
+    # H27 Expert Hour #6). The headline above is taken over the truly-overdue
+    # only, so a truly-current invoice dated `30-60` and one dated `90+` are
+    # the SAME number to it -- zero -- and the off-by-one/stone-blind
+    # distinction this dimension exists to make is unavailable in exactly the
+    # direction where wrongful dunning lives. These are WITNESSES beside the
+    # headline, never inside it: folding them in would move a published figure
+    # on every pair that calls this scorer, which is D22's job, not a witness's.
+    overstatement_displacements = [
+        abs(rank[b] - rank[t]) for t, b in scored if t == current
+    ]
+    over_only = [d for d in overstatement_displacements if d > 0]
 
     return {
         "n": n,
@@ -1263,6 +1322,21 @@ def _ageing_counts(truth_labels: Sequence, belief_labels: Sequence,
             sum(displacements) / len(displacements) if displacements else None
         ),
         "max_bucket_displacement": max(displacements) if displacements else None,
+        # Over the whole truly-current population (the denominator
+        # `overstated_arrears_rate` uses), so it is a severity for that RATE and
+        # not a mean over the errors alone -- a mean over errors only would rise
+        # as the company made FEWER of them. `None`, never 0.0, on a vacuous
+        # current population.
+        "mean_overstatement_displacement": (
+            sum(overstatement_displacements) / len(overstatement_displacements)
+            if overstatement_displacements else None
+        ),
+        "max_overstatement_displacement": (
+            max(overstatement_displacements) if overstatement_displacements else None
+        ),
+        # How many of the over-ageings were worse than off-by-one -- the
+        # distinction the headline cannot draw, stated as a count.
+        "n_overaged_beyond_one_bucket": sum(1 for d in over_only if d > 1),
     }
 
 
@@ -1342,10 +1416,13 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
 
     components = dict(measured)
     for key in ("understated_arrears_rate", "overstated_arrears_rate",
-                "mean_bucket_displacement"):
+                "mean_bucket_displacement", "mean_overstatement_displacement"):
         components[key] = _r(components[key])
     components["bucket_order"] = order
     components["headline_units"] = AGEING_HEADLINE_UNITS
+    # STAMPED AT SOURCE (atom D22), so it reaches every caller of this scorer
+    # rather than only the pair whose Expert Hour found it -- the D19 pattern.
+    components["ordinal_direction_caveat"] = _ageing_direction_note(components)
     components["normalisation"] = AGEING_NO_NORMALISER_REASON
     # THE PUBLISHED EXCLUSION (D10's rule, carried across by D16), in the
     # components rather than in prose a ledger reader never sees -- and `None`
@@ -1421,7 +1498,17 @@ def format_ageing_summary(result: GapResult) -> str:
         + ", overstated_arrears_rate " + _num("overstated_arrears_rate", ".4f")
         + " over " + str(c.get("n_truly_current")) + " truly-current"
         + " = the ageing-report overstatement at as_of, NOT the wrongful-dunning"
-        + " exposure (atom D16)" + excl + ")"
+        + " exposure (atom D16)"
+        # THE MIRRORED ORDINAL TERM RIDES WITH THE HEADLINE (atom D22), for the
+        # same anti-decay reason the two rates do: this dimension went wrong the
+        # moment a bare scalar could be read as something it is not, and a
+        # headline of 0.000 printed alone reads as "dated right" from a company
+        # that has aged its entire current book at 90+.
+        + ", mean_overstatement_displacement "
+        + _num("mean_overstatement_displacement", ".3f")
+        + " buckets over the truly-current = the severity the headline CANNOT"
+        + " see, since the headline is over the truly-overdue alone (atom D22)"
+        + excl + ")"
     )
 
 
