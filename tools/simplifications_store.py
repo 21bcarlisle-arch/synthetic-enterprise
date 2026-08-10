@@ -331,16 +331,39 @@ def set_note_for_atom(
 # the map held them; nothing here coerces, because a coercion in a migration is a
 # silent content edit (`list("some prose")` would have exploded a string into
 # characters and still round-tripped through a naive hash).
-RECORD_FIELDS = ("evidence", "exit_evidence")
+RECORD_FIELDS = ("evidence", "exit_evidence", "expert_hour_findings")
 
-# The map-side declaration naming which record fields an atom keeps in the store.
+# THE SECOND UNBOUNDED FLOW, found one level down (2026-08-10, the fourteenth publish wedge).
+# H41 drained the TOP-LEVEL record lists and the map's growth did slow -- but `expert_hour` is a
+# structured mapping whose `findings:` member is the same shape hiding inside it: one narrative
+# entry appended per Expert Hour, forever, and nothing above the map's top level was looking.
+# H27_payment_belief_gap took its seventh Hour and crossed the 12,288 B per-atom cap by 617 B,
+# wedging publishing behind a control that was working exactly as designed ("accreting prose into
+# one atom always must red this"). 53,526 B live in this member across 176 atoms, power-law
+# distributed: two atoms carry 22,000 B of it.
+#
+# The map keeps `expert_hour: {last, status}` -- the STRUCTURED members every consumer reads
+# (generate_proof_data's status counts, generate_maturity_map_data's expert_hour_status,
+# supervisor's re-stamp check). Only the unbounded list moves, and it moves ONE ATOM AT A TIME as
+# the cap names it: the declaration is per-atom, so a partial migration is representable, and an
+# atom whose findings are in the store never grows the map again because the next Hour appends
+# through `append_to_record_for_atom`. That is the drain H32 lacked.
 RECORDS_DECLARATION_FIELD = "records_rehomed"
 
 
 def is_record_field(field: str) -> bool:
     """Membership in the rehomed-record CLASS: `evidence` itself, plus anything
-    ending `_evidence`."""
-    return field == "evidence" or field.endswith("_evidence")
+    ending `_evidence` or `_findings`.
+
+    The `_findings` half is a CLASS guard, not an instance (R10): a future
+    `coldwalk_findings` or `harden_sweep_findings` -- the same append-per-review shape
+    under a different review name -- is admissible here by construction, rather than by
+    someone remembering to extend a tuple after the next wedge."""
+    return (
+        field == "evidence"
+        or field.endswith("_evidence")
+        or field.endswith("_findings")
+    )
 
 
 def records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:

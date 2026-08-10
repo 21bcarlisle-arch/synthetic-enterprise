@@ -222,6 +222,24 @@ def test_inline_check_fires_on_an_inline_record():
     assert not check_no_inline_records([{"id": "A1", DECL: ["evidence"]}])
 
 
+def test_the_record_class_covers_the_APPEND_PER_REVIEW_findings_shape():
+    """The second unbounded flow (2026-08-10, the fourteenth publish wedge). `expert_hour`'s
+    `findings:` member is the same append-forever narrative list as `evidence`, one level down
+    inside a structured mapping, so H41's top-level drain never saw it -- 53,526 B across 176
+    atoms, and the seventh Hour on one atom crossed the per-atom cap and wedged publishing.
+
+    `*_findings` is a CLASS, not the one instance: a future `coldwalk_findings` (the same shape
+    under a different review name) is admissible by construction, and would fail the inline check
+    without this test being edited."""
+    assert store.is_record_field("expert_hour_findings")
+    assert store.is_record_field("coldwalk_findings")
+    assert check_no_inline_records([{"id": "A1", "expert_hour_findings": ["an Hour"]}])
+    # ...and the class has not swallowed the structured map fields it must never claim
+    assert not store.is_record_field("expert_hour")
+    assert not store.is_record_field("simplifications_count")
+    assert not store.is_record_field("findings")
+
+
 def test_declaration_check_fires_in_both_directions():
     atoms = [{"id": "A1", DECL: ["evidence"]}]
     # declared but not stored -- a lost artefact trail

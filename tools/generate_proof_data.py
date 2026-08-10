@@ -317,6 +317,30 @@ def _held_note(atom):
     return None
 
 
+def _expert_hour_findings(atom, expert_hour):
+    """The Expert-Hour findings for one atom, wherever they live.
+
+    THIS PAGE IS WHY THE REHOME NEEDED A CONSUMER CHANGE (2026-08-10). `expert_hour.findings`
+    is the append-per-Hour narrative list that crossed the per-atom map budget and wedged
+    publishing; it now moves to the sibling record store one atom at a time, as the cap names
+    each one. So the migration is PARTIAL by design and this reader must see both shapes, or
+    rehoming an atom would silently delete its defect history from THE PROOF -- the surface
+    whose whole claim is that the NEEDS_WORK history is visible.
+
+    Inline wins, matching `simplifications_store.hydrate`'s rule and for the same reason: the
+    inline value is what the spine is actually showing, so a silently-preferred store copy would
+    make the two-sources-of-truth contract unfalsifiable."""
+    inline = expert_hour.get("findings")
+    if inline:
+        return inline
+    from tools import simplifications_store as store
+
+    stored = store.records_for_atom(
+        str(atom.get("id") or ""), MATURITY_MAP_YAML.parent / "simplifications"
+    ).get("expert_hour_findings")
+    return stored if isinstance(stored, list) else []
+
+
 def _verification_stack(atoms):
     """The NEEDS_WORK history made visible: Expert-Hour passes and the defects
     they caught (findings), plus the honest-hold register. Every entry is an
@@ -326,7 +350,7 @@ def _verification_stack(atoms):
     for a in atoms:
         eh = a.get("expert_hour") or {}
         status = eh.get("status")
-        findings = eh.get("findings") or []
+        findings = _expert_hour_findings(a, eh)
         if status in ("passed", "reviewed_readonly_no_defects") and findings:
             findings_total += len(findings)
             eh_reviews.append(dict(
