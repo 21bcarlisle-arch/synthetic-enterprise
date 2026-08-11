@@ -141,11 +141,15 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
+import importlib
 import inspect
+import json
 import random
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -5952,6 +5956,13 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "renderer": "format_belief_summary",
         "carrier": ("gap", None),
         "decimals": 4,
+        # MEASURED, not read off the format spec (Expert Hour #19). Until this
+        # Hour this figure had NO artefact-side site at all: the component sweep
+        # found none, and its control was silent about that, so the 4dp came
+        # from D34's AST read of this renderer and nothing else.
+        "reader_renders": (
+            ("renderer:background/gap_metric.py::format_belief_summary", 4),
+        ),
     },
     "belief_population_mix": {
         # NOT a formatter of its own: the mix figure is rendered inline by the
@@ -5967,12 +5978,42 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # undeclared site, and this one was invisible to a control anchored to
         # a named function in a named module.
         "component_renders": (("belief_population_mix.note", 4),),
+        # ITS RENDERER IS A METHOD, so no call on a bare result reproduces the
+        # string its reader is handed; its coverage comes from the component
+        # site above. Expert Hour #19 recorded that explicitly rather than
+        # letting an uncallable renderer read as a clean one.
+        "reader_renders": (),
+        # THE SIBLING COINCIDENCE (Expert Hour #19). This figure's value turns
+        # up at 4dp inside `format_belief_summary`, which does not render it:
+        # what that renderer prints there is belief's PER-CASE DISAGREEMENT
+        # rate, and the two are equal on every book measured (seeds 7, 11, 23,
+        # 101, 999 -- 0.0800/0.1033/0.0767/0.0867/0.0767 both sides). They are
+        # not the same quantity: the D19 note records that they separate under a
+        # permutation of which account holds which severity belief (TV distance
+        # held at 0.0713 while per-case agreement fell 0.9287 -> 0.6432), and no
+        # real book performs that permutation. So a value-only sweep can never
+        # tell them apart, and must not move this figure's epsilon on the
+        # strength of the other one's render precision.
+        "value_collisions": (
+            "renderer:background/gap_metric.py::format_belief_summary",
+        ),
     },
     "detection": {
         "module": "background/gap_metric.py",
         "renderer": "format_detection_summary",
         "carrier": ("gap", None),
         "decimals": 4,
+        # THE FIRST SITE ANY SWEEP OF THIS MODULE HAS FOUND OUTSIDE ITS OWN
+        # PROCESS (Expert Hour #19, closing Hour #18's lead 1). This is the only
+        # figure `measure_and_write` hands downstream as a NUMBER, so it is the
+        # only one the Proof door can render at a precision of its own: it does,
+        # at 3dp, via `fmtGap`. Coarser than the declared 4dp, so no epsilon
+        # moves -- but it is now measured on the rendered pixel every run
+        # instead of having been looked at once by hand.
+        "reader_renders": (
+            ("door:coupled-gaps", 3),
+            ("renderer:background/gap_metric.py::format_detection_summary", 4),
+        ),
     },
     "detection_latency": {
         # A HUNDRED TIMES COARSER THAN THE GLOBAL CONSTANT CLAIMED. The reader
@@ -5981,6 +6022,14 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "renderer": "format_detection_latency_summary",
         "carrier": ("component", "mean_lag_days"),
         "decimals": 2,
+        # The coarsest figure of the five, and until Expert Hour #19 the one
+        # with the widest gap between what was declared and what any artefact
+        # had been shown to do: the global constant D34 replaced claimed 4dp
+        # for a number its reader gets two decimals of, and nothing on the
+        # artefact side had ever confirmed the 2 either.
+        "reader_renders": (
+            ("renderer:tools/couple_w2_11_d5.py::format_detection_latency_summary", 2),
+        ),
     },
     "ageing": {
         # `format_ageing_summary` never renders `.gap` at all -- the headline
@@ -6005,8 +6054,24 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # component key alone does not say whose components carry it, and the
         # figure a string renders need not be the figure whose result holds it.
         "component_renders": (("ageing.ordinal_direction_caveat", 6),),
+        # The renderer's own output shows the carrier at 3dp -- the artefact-side
+        # confirmation of the number D34 read off this function's format spec by
+        # AST. Two independent methods, agreeing; the 6dp above still governs the
+        # epsilon, because it is the FINEST site and this one is coarser.
+        "reader_renders": (
+            ("renderer:background/gap_metric.py::format_ageing_summary", 3),
+        ),
     },
 }
+
+# THE RENDER SITES PAST THE COMPONENT STRINGS (atom D35, Expert Hour #19).
+# `reader_renders` is where each figure meets a reader on a surface the
+# component sweep structurally cannot see -- its own declared renderer's output,
+# and the Proof door -- as (site key, decimals), MEASURED on two scorings and on
+# the door's rendered pixel. `value_collisions` is the other resolution the
+# walk's cross-attribution demands: a surface where this figure's digits appear
+# but a DIFFERENT quantity is what is being printed.
+_READER_WALK_FIELDS = ("reader_renders", "value_collisions")
 
 # THE RENDER SITES OUTSIDE THE DECLARED RENDERER (atom D35, Expert Hour #17).
 # `also_rendered_at` is every OTHER precision this figure legitimately reaches a
@@ -6576,6 +6641,406 @@ def check_component_render_sites(
                 f"already quantised at {quantum}dp before any render -- the "
                 "digits past that are a decoration, and half a step of them is "
                 "not a difference this reader can ever be shown"
+            )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# A RENDER IS DIGITS. A CARRIER IS A NUMBER.
+# (atom D35, H27 Expert Hour #19 -- Hour #18's leads 1 and 2, which turned out
+# to be one repair, because neither can be done without the other)
+# ---------------------------------------------------------------------------
+# THE DEFECT, MEASURED. The component sweep above finds ZERO render sites for
+# `belief`, `detection` and `detection_latency` -- THREE OF THE FIVE PUBLISHED
+# FIGURES -- and `check_component_render_sites` says nothing about any of them.
+# Every finding it can emit is keyed either to a site it FOUND or to a site the
+# register DECLARED, and those three dimensions declare no `component_renders`,
+# so the whole artefact-side control passes vacuously on 60% of its population.
+# Their reader precisions (4dp, 4dp, 2dp) rest on D34's AST read of ONE named
+# function each and have never been confronted with an artefact at all.
+#
+# The only vacuity guard the sweep carries is a GLOBAL `any(row["sites"] ...)`
+# -- which is the panel-wide-substring shape Hour #18 named on the door, having
+# reappeared one level up INSIDE the instrument that found it: it passes because
+# SOME dimension has a site, exactly as the door's per-panel search passed on a
+# number legible two rows away. A population control needs its guard per member.
+#
+# WHY IT COULD NOT BE CLOSED BY EITHER LEAD ALONE. Per-dimension vacuity is
+# UNSATISFIABLE in-process: those three figures reach their reader through the
+# note `measure_and_write` composes and through the Proof door, both past this
+# process's edge (Hour #18 lead 1). And the walk out to them crosses
+# `coupled_gap_ledger.json`, where the headline is written UNROUNDED -- so the
+# register's rule ("the epsilon is half a step of the FINEST render") applied to
+# the serialised bytes finds `detection` at 18dp and collapses every epsilon
+# this instrument publishes to 1e-18 (lead 2). Measured, not supposed:
+# `json.dumps` of seed 7's headline is `0.014505119453924915`.
+#
+# THE BOUNDARY, AND IT IS A TYPE RATHER THAN A DECLARATION:
+#   * a RENDER is the figure's digits inside a STRING a reader is handed. Some
+#     code chose that precision, so it is a precision, and it sets the epsilon.
+#   * a CARRIER is the figure as a NUMBER in a machine hand-off. Nobody chose
+#     the digits in the serialised bytes -- they are the double's -- so a
+#     carrier can NEVER set an epsilon. It must be WALKED THROUGH to the render
+#     beyond it, and a carrier that reaches no render is a figure the reader is
+#     never shown, which is a thing to report and not a thing to pass.
+# No register field says which is which, deliberately: a declaration is the
+# hand-typed keyset this module has now been escaped by nine times. The walk
+# classifies by the TYPE of the hand-off it is holding, and never searches
+# serialised text -- that one restraint is the whole of lead 2, and the R15
+# mutation for it restores the search and asserts the 18dp site comes back.
+_DOOR_HARNESS = Path(__file__).resolve().parent.parent / "site" / "proof" / "_render_harness.mjs"
+_DOOR_INDEX = Path(__file__).resolve().parent.parent / "site" / "proof" / "index.html"
+# The panel element the door renders this pair into. The pair itself is
+# `WORLD_ATOM_ID`/`TWIN_ATOM_ID` above -- re-typing those two strings here would
+# make a walk that still passed after a rename, against a door showing nothing.
+_DOOR_SITE_KEY = "door:coupled-gaps"
+# Enough of the carried note to prove the door printed it rather than
+# re-rendering it -- taken from the note itself at walk time, never a literal
+# typed here (a fixture value in a control is the D30 defect).
+_NOTE_VERBATIM_PROBE_CHARS = 60
+
+
+def _declared_renderer(entry: Dict[str, object]) -> Tuple[Optional[Callable], str]:
+    """The register's declared renderer, IMPORTED and returned, with a reason
+    when it is not callable on a result.
+
+    A register entry naming a renderer nobody can call is not skipped quietly:
+    the walk records why, and the dimension then has to earn its coverage from
+    another surface or fail the vacuity guard.
+    """
+    module_path = str(entry["module"])
+    name = str(entry["renderer"])
+    dotted = module_path[:-3].replace("/", ".") if module_path.endswith(".py") else module_path
+    try:
+        module = importlib.import_module(dotted)
+    except Exception as exc:                                    # pragma: no cover
+        return None, f"module {dotted} is not importable ({exc.__class__.__name__})"
+    fn = getattr(module, name, None)
+    if fn is None:
+        return None, (
+            f"{dotted} has no module-level `{name}` -- it composes its render "
+            "inside a method, so no call on a bare result reproduces the string "
+            "its reader is handed"
+        )
+    if not callable(fn):                                        # pragma: no cover
+        return None, f"{dotted}.{name} is not callable"
+    return fn, ""
+
+
+def _door_render(payload: Dict[str, object]) -> str:
+    """The Proof door's coupled-gap panel, rendered by the page's OWN inline
+    JavaScript against `payload` -- the rendered pixel (R11), never the source.
+    """
+    node = shutil.which("node")
+    if node is None:                                            # pragma: no cover
+        raise RuntimeError("node is not available")
+    proc = subprocess.run(
+        [node, str(_DOOR_HARNESS), str(_DOOR_INDEX)],
+        input=json.dumps({"coupled_gaps": payload}),
+        capture_output=True, text=True, timeout=120,
+    )
+    if proc.returncode != 0:                                    # pragma: no cover
+        raise RuntimeError(f"door harness failed: {proc.stderr[:400]}")
+    return str(json.loads(proc.stdout)["coupled-gaps"]["innerHTML"])
+
+
+def _walk_to_the_door(result: Dict[str, object]) -> Dict[str, object]:
+    """Carry ONE scoring down the real chain to the door and return what the
+    reader is shown, plus what each hand-off carried it as.
+
+    The chain is walked by calling the shipped code at every step --
+    `to_ledger_entry` -> `coupled_gap_ledger.json` -> `_coupled_gaps` -> the
+    page's inline script -- because a hand-built row is the harness supplying
+    the very call list it is meant to be auditing.
+    """
+    import background.coupled_triad as coupled_triad
+    from tools.generate_proof_data import _coupled_gaps, _load_atoms
+
+    headline = result["detection"]
+    with tempfile.TemporaryDirectory() as td:
+        ledger_path = Path(td) / "coupled_gap_ledger.json"
+        write_gap_entry(
+            WORLD_ATOM_ID, TWIN_ATOM_ID, headline,          # type: ignore[arg-type]
+            measured_at="1970-01-01T00:00:00+00:00", run_git_commit=None,
+            ledger_path=ledger_path,
+        )
+        raw = json.loads(ledger_path.read_text(encoding="utf-8"))[WORLD_ATOM_ID]
+        previous = coupled_triad.GAP_LEDGER_PATH
+        try:
+            # The generator reads the ledger off a module global and takes no
+            # path. Pointing it at this walk's ledger is the only way to drive
+            # the REAL row builder on a scoring the live run has not written.
+            coupled_triad.GAP_LEDGER_PATH = ledger_path
+            panel = _coupled_gaps(_load_atoms())
+        finally:
+            coupled_triad.GAP_LEDGER_PATH = previous
+    row = next((r for r in panel.get("pairs", [])
+                if r.get("world_atom") == WORLD_ATOM_ID), None)
+    if row is None:                                             # pragma: no cover
+        raise RuntimeError(
+            f"{WORLD_ATOM_ID} has no row in the generated panel -- the walk "
+            "cannot measure a door that is not showing this figure"
+        )
+    html = _door_render(panel)
+    note = raw.get("note") or ""
+    probe = note[:_NOTE_VERBATIM_PROBE_CHARS]
+    return {
+        "html": html,
+        # THE HAND-OFFS, classified by what they are holding rather than by
+        # what anyone declared them to be.
+        "carriers": {
+            "ledger.gap": type(raw.get("gap")).__name__,
+            "panel.value": type(row.get("value")).__name__,
+        },
+        "carrier_value": row.get("value"),
+        # Hour #18 established on the live page that the door escapes and
+        # prints the carried note VERBATIM, which is what makes the renderer
+        # stage below a measurement of a READER surface rather than of an
+        # internal string. Nothing asserted it would stay true; this does.
+        "note_verbatim": bool(probe) and probe in html,
+    }
+
+
+def measure_reader_render_sites(
+    *,
+    results: Optional[Sequence[Dict[str, object]]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    n_customers: int = 300,
+    seeds: Sequence[int] = _RENDER_SITE_SEEDS,
+    door: bool = True,
+) -> Dict[str, Dict[str, object]]:
+    """Every site PAST the component strings at which each published figure
+    meets a reader, and at what precision (atom D35, Expert Hour #19).
+
+    Two surfaces the component sweep structurally cannot see:
+      * `renderer:<module>.<fn>` -- the string the register's own declared
+        renderer produces, which `measure_and_write` concatenates verbatim into
+        the ledger note. This is the artefact-side confirmation of the precision
+        D34 read off the format spec by AST; the two methods are independent
+        (one executes the renderer and looks for the figure's value, the other
+        parses the source), so agreement is evidence and disagreement is a
+        defect in one of them.
+      * `door:coupled-gaps` -- the Proof door's own rendering, produced by the
+        page's inline JavaScript from the ledger CARRIER. Reached only by the
+        detection headline, because that is the only figure `measure_and_write`
+        hands downstream as a number.
+
+    The two-seed discrimination rule of the component sweep applies unchanged: a
+    literal only counts as a render of THIS figure if it moves with the figure.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    if results is None:
+        results = []
+        for seed in seeds:
+            recs, cons, _ledger, as_of = _resolution_population(n_customers, seed)
+            results.append(score_triad(recs, cons, as_of))
+    if len(results) < 2:
+        raise AssertionError(
+            "measure_reader_render_sites needs TWO scorings, for the same "
+            "reason the component sweep does: with one, a constant that spells "
+            "the figure's digits is indistinguishable from a render of it"
+        )
+
+    def carrier_of(res: Dict[str, object], dim: str) -> Optional[float]:
+        kind, key = tuple(register[dim]["carrier"])            # type: ignore[misc]
+        g = res[dim]                                           # type: ignore[index]
+        v = g.gap if kind == "gap" else g.components.get(str(key))
+        return None if v is None else float(v)
+
+    # --- the renderer surface -------------------------------------------------
+    # Each surface carries its OWNER -- the dimension whose register entry put
+    # it there. That provenance is the whole of this Hour's second finding: a
+    # value-only match in ANOTHER figure's renderer is not evidence that this
+    # figure is rendered there (see `_cross_attributed_reason` below).
+    renderer_texts: List[Dict[str, str]] = [{} for _ in results]
+    surface_owner: Dict[str, str] = {}
+    renderer_status: Dict[str, str] = {}
+    for dim in sorted(register):
+        fn, why = _declared_renderer(register[dim])
+        if fn is None:
+            renderer_status[dim] = why
+            continue
+        key = f"renderer:{register[dim]['module']}::{register[dim]['renderer']}"
+        renderer_status[dim] = "called"
+        surface_owner.setdefault(key, dim)
+        for texts, res in zip(renderer_texts, results):
+            texts[key] = str(fn(res[dim]))                     # type: ignore[index]
+
+    # --- the door surface -----------------------------------------------------
+    door_state: Dict[str, object] = {"attempted": bool(door)}
+    door_texts: List[Dict[str, str]] = [{} for _ in results]
+    door_carriers: List[Optional[float]] = [None for _ in results]
+    if door:
+        try:
+            walks = [_walk_to_the_door(res) for res in results]
+        except Exception as exc:
+            # R15: an unavailable check is a FAILED check. The walk records the
+            # unavailability as state so `check_reader_render_sites` can fire on
+            # it -- it never degrades to "no sites found", which reads exactly
+            # like a clean door.
+            door_state.update(available=False,
+                              reason=f"{exc.__class__.__name__}: {exc}"[:300])
+        else:
+            for texts, walk in zip(door_texts, walks):
+                texts[_DOOR_SITE_KEY] = str(walk["html"])
+            door_carriers = [w["carrier_value"] for w in walks]
+            door_state.update(
+                available=True,
+                carriers=walks[0]["carriers"],
+                note_verbatim=all(bool(w["note_verbatim"]) for w in walks),
+            )
+    else:
+        door_state.update(available=False,
+                          reason="the door stage was switched off by the caller")
+
+    out: Dict[str, Dict[str, object]] = {}
+    for dim in sorted(register):
+        values = [carrier_of(r, dim) for r in results]
+        sites: List[Tuple[str, int]] = []
+        # The door only ever shows the figure it was handed as a number. Asking
+        # it about the other four would find their digits inside the printed
+        # note and report the note's precision as the door's own.
+        has_door_carrier = (
+            door_state.get("available") is True
+            and all(v is not None for v in door_carriers)
+            and all(a is not None and b is not None and float(a) == float(b)
+                    for a, b in zip(values, door_carriers))
+        )
+        surfaces = [dict(t) for t in renderer_texts]
+        if has_door_carrier:
+            for s, t in zip(surfaces, door_texts):
+                s.update(t)
+        keys = sorted(set.intersection(*[set(s) for s in surfaces])) if surfaces else []
+        cross: List[Tuple[str, int]] = []
+        if all(v is not None for v in values):
+            for dp in range(1, _RENDER_SITE_MAX_DECIMALS + 1):
+                literals = {format(v, f".{dp}f") for v in values}   # type: ignore[arg-type]
+                if len(literals) < len(values):
+                    continue                # the discrimination rule, unchanged
+                for key in keys:
+                    if all(_rendered_at(v, dp, s[key])                # type: ignore[arg-type]
+                           for v, s in zip(values, surfaces)):
+                        # PROVENANCE, NOT VALUE. A site in this figure's own
+                        # declared renderer -- or on the door, which is reached
+                        # only by the figure whose carrier the ledger holds --
+                        # is a render OF this figure. A match inside ANOTHER
+                        # figure's renderer is a value coincidence until
+                        # something other than the digits says otherwise.
+                        owner = surface_owner.get(key, dim)
+                        (sites if owner == dim else cross).append((key, dp))
+        out[dim] = {
+            "sites": tuple(sorted(sites)),
+            "cross_attributed": tuple(sorted(cross)),
+            "renderer_status": renderer_status.get(dim, "not attempted"),
+            "reaches_the_door": bool(has_door_carrier),
+            "carrier_by_seed": {s: v for s, v in zip(seeds, values)},
+            "seeds": tuple(seeds),
+        }
+    out["_walk"] = door_state                                  # type: ignore[assignment]
+    return out
+
+
+def check_reader_render_sites(
+    measured: Dict[str, Dict[str, object]],
+    component_measured: Optional[Dict[str, Dict[str, object]]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the reader walk on trial (atom D35, Expert Hour #19).
+
+    Three failures the component control could not express: a site the walk
+    finds and no entry declares (the reader is given a precision the epsilon
+    does not know about); a site an entry declares and the walk cannot find
+    (a debt entry outliving its debt); and -- the one this Hour exists for --
+    a published figure found rendered at NO site by ANY sweep, whose declared
+    reader precision has therefore never met an artefact.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    walk = measured.get("_walk") or {}
+    out: List[str] = []
+
+    if walk.get("available") is not True:
+        out.append(
+            "the reader walk never reached the Proof door "
+            f"({walk.get('reason', 'no reason recorded')}) -- the door renders "
+            "the ledger carrier at a precision of its own choosing, so an "
+            "unreached door is an unmeasured reader step, and an unavailable "
+            "check is a failed check (R15)"
+        )
+    elif not walk.get("note_verbatim"):
+        out.append(
+            "the Proof door no longer prints the carried note verbatim -- every "
+            "`renderer:` site below is counted as a reader surface ONLY because "
+            "the door concatenates that string unchanged, so this failing turns "
+            "four of the five figures' measured precisions back into claims "
+            "about an internal string"
+        )
+
+    for dim in sorted(d for d in measured if d != "_walk"):
+        entry = register.get(dim)
+        if entry is None:                                       # pragma: no cover
+            out.append(f"{dim}: walked with no PUBLISHED_GAP_CONSUMERS entry at all")
+            continue
+        found = set(measured[dim]["sites"])                     # type: ignore[arg-type]
+        declared = {(str(k), int(d))
+                    for k, d in (entry.get("reader_renders") or ())}
+        for key, dp in sorted(found - declared):
+            out.append(
+                f"{dim}: reaches its reader at {dp}dp through `{key}`, which no "
+                "entry declares -- a reader given that surface can separate two "
+                "companies this figure's epsilon calls identical"
+            )
+        for key, dp in sorted(declared - found):
+            out.append(
+                f"{dim}: declares a {dp}dp reader site `{key}` that this walk "
+                "cannot find -- a render site nobody can reach cannot be what "
+                "set this figure's epsilon"
+            )
+        for key, dp in sorted(found):
+            if key.startswith("carrier:"):                      # pragma: no cover
+                out.append(
+                    f"{dim}: a CARRIER (`{key}`) was counted as a {dp}dp render. "
+                    "Nobody chose those digits -- they are the double's -- so "
+                    "this would set the epsilon from the float's own width"
+                )
+        # THE SIBLING-COINCIDENCE HOLE (Expert Hour #19's second finding). Every
+        # cross-attributed match must be resolved by the register in ONE of two
+        # directions, and neither may be silent: `reader_renders` says "this
+        # figure really is rendered there, move the epsilon", `value_collisions`
+        # says "that is a different quantity which happens to equal mine".
+        collisions = {str(k) for k in (entry.get("value_collisions") or ())}
+        for key, dp in sorted(measured[dim].get("cross_attributed") or ()):
+            if key in collisions or (key, dp) in declared:
+                continue
+            out.append(
+                f"{dim}: its value appears at {dp}dp inside `{key}`, which is "
+                "ANOTHER figure's declared renderer. The two-seed rule tells a "
+                "figure from a constant, never from a sibling quantity that "
+                "moves with it, so this is unresolved: declare it in "
+                "`reader_renders` if the figure is rendered there (and move the "
+                "epsilon), or in `value_collisions` with the reason it is not"
+            )
+        widest = max([int(entry["decimals"])] + [d for _k, d in found])
+        if int(entry["decimals"]) != widest:
+            out.append(
+                f"{dim}: sets its epsilon from {entry['decimals']}dp while a "
+                f"reader surface renders it at {widest}dp"
+            )
+        # THE GUARD THIS HOUR EXISTS FOR, and it is PER DIMENSION. The union is
+        # taken across both sweeps because the two surfaces are complementary --
+        # `belief_population_mix` renders itself into its own note and has no
+        # callable module-level renderer, and `detection` has no component site
+        # at all. What may not happen is a figure found NOWHERE, which is what
+        # three of the five were until this Hour.
+        union = set(found)
+        if component_measured:
+            union |= set(component_measured.get(dim, {}).get("sites") or ())
+        if not union:
+            out.append(
+                f"{dim}: is rendered at NO site either sweep can find, so the "
+                f"{entry['decimals']}dp its epsilon is set from has never been "
+                "confronted with an artefact -- it is an AST read of "
+                f"`{entry['renderer']}` and nothing else, which is the shape of "
+                "the defect D34 and D35 were both minted to close"
             )
     return out
 
@@ -8486,9 +8951,15 @@ def main() -> None:
     # read off one of its TWO render sites.
     _prec = measure_published_reading_precision(result=result)
     _sites = measure_component_render_sites()
+    # ...AND PAST THIS PROCESS'S EDGE (atom D35, Expert Hour #19): the string
+    # each figure's own declared renderer produces, and the Proof door's render
+    # of the ledger carrier. Three of the five figures had no artefact-side site
+    # of any kind before this walk existed.
+    _reader = measure_reader_render_sites()
     print("           reader precision (D34/D35), per figure:")
     for dim in sorted(_prec):
         extra = [f"{k}@{d}dp" for k, d in _sites[dim]["sites"]]
+        extra += [f"{k}@{d}dp" for k, d in _reader[dim]["sites"]]
         print(f"           {dim:<26} epsilon "
               f"{published_reading_epsilon(dim):g} "
               f"({published_reading_decimals(dim)}dp finest; renderer "
@@ -8496,10 +8967,15 @@ def main() -> None:
               + (f"; also {', '.join(extra)}" if extra else "")
               + f"; carrier quantised at "
               f"{_sites[dim]['carrier_quantum_decimals']}dp)")
+    _walk_state = _reader["_walk"]
+    print(f"           reader walk: door {_walk_state.get('available')}"
+          f" (carriers {_walk_state.get('carriers')}, note verbatim "
+          f"{_walk_state.get('note_verbatim')})")
     _prec_violations = (
         check_published_reading_precision(
             _prec, published=published_dimensions(result))
-        + check_component_render_sites(_sites))
+        + check_component_render_sites(_sites)
+        + check_reader_render_sites(_reader, _sites))
     print("           verdict: "
           + ("every declared reader precision held" if not _prec_violations
              else f"{len(_prec_violations)} VIOLATION(S)"))

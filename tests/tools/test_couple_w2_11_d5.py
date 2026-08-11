@@ -15,6 +15,7 @@ import contextlib
 import inspect
 import copy
 import dataclasses
+import shutil
 import json
 import textwrap
 from datetime import date, timedelta
@@ -6107,3 +6108,245 @@ def test_the_floor_sweep_refuses_a_book_with_no_bound():
         pair.measure_published_resolution_floor(
             n_customers=60, seeds=(7,),
             runner=lambda knob, seed, k: (empty, scored, as_of))
+
+
+# ---------------------------------------------------------------------------
+# THE READER WALK -- atom D35, H27 Expert Hour #19
+# ---------------------------------------------------------------------------
+# Hour #18 left two leads and they turned out to be one repair. Lead 1: the
+# component sweep stops at this process's edge, so the register cannot declare
+# the Proof door's own render without the control immediately firing on a
+# declared site nobody can find. Lead 2: the walk out to that door crosses
+# `coupled_gap_ledger.json`, where the headline is written UNROUNDED, and the
+# rule "the epsilon is half a step of the finest render" applied to serialised
+# bytes collapses every epsilon this instrument publishes to 1e-18.
+#
+# THE DEFECT THIS HOUR FOUND while building that walk: the component sweep finds
+# ZERO sites for three of the five published figures and its control says
+# nothing, because every finding it can emit is keyed to a site it FOUND or a
+# site the register DECLARED. Its only vacuity guard is a global
+# `any(row["sites"])`, which is Hour #18's own panel-wide-substring shape one
+# level up inside the instrument that found it.
+
+NODE_AVAILABLE = shutil.which("node") is not None
+needs_node = pytest.mark.skipif(
+    not NODE_AVAILABLE,
+    reason="the reader walk drives the door's real JavaScript; with no node the "
+           "door stage reports UNAVAILABLE and the control FIRES (R15) -- which "
+           "is the correct behaviour, but not a thing this assertion can show")
+
+
+@pytest.fixture(scope="module")
+def reader_walk():
+    return pair.measure_reader_render_sites()
+
+
+@pytest.fixture(scope="module")
+def component_walk():
+    return pair.measure_component_render_sites()
+
+
+def test_three_of_the_five_figures_had_no_artefact_side_site_at_all(component_walk):
+    """THE DEFECT, AS FOUND. Recorded as a fact about the shipped component
+    sweep, so that a future surface which DOES render one of these three into a
+    component moves this list rather than passing silently."""
+    assert [d for d in sorted(component_walk) if not component_walk[d]["sites"]] == [
+        "belief", "detection", "detection_latency"]
+    # ...and the shipped control was silent on every one of them.
+    assert pair.check_component_render_sites(component_walk) == []
+
+
+@needs_node
+def test_the_walk_reaches_the_door_and_measures_its_undeclared_precision(reader_walk):
+    """HOUR #18's LEAD 1, CLOSED. The door renders the ledger carrier at 3dp via
+    `fmtGap` -- the first render site any sweep of this module has found outside
+    its own process. Coarser than the declared 4dp, so no epsilon moves."""
+    walk = reader_walk["_walk"]
+    assert walk["available"] is True, walk
+    assert ("door:coupled-gaps", 3) in reader_walk["detection"]["sites"]
+    assert reader_walk["detection"]["reaches_the_door"] is True
+    # ONLY the headline reaches it: the other four ride inside the note as
+    # digits already chosen, so the door renders none of them itself.
+    assert [d for d in sorted(reader_walk) if d != "_walk"
+            and reader_walk[d]["reaches_the_door"]] == ["detection"]
+
+
+@needs_node
+def test_every_published_figure_now_meets_an_artefact_and_no_epsilon_moved(
+        reader_walk, component_walk):
+    """R12: this Hour changed what is MEASURED, never what is computed."""
+    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+    assert pair.check_component_render_sites(component_walk) == []
+    assert {d: pair.published_reading_decimals(d)
+            for d in pair.PUBLISHED_GAP_CONSUMERS} == {
+        "ageing": 6, "belief": 4, "belief_population_mix": 4,
+        "detection": 4, "detection_latency": 2}
+
+
+# --- R15: the reader walk fires on each defect it names ---------------------
+
+@needs_node
+def test_a_carrier_read_as_text_collapses_every_epsilon_to_the_doubles_width():
+    """HOUR #18's LEAD 2, MECHANISED AND PROVEN LOAD-BEARING.
+
+    The walk classifies a hand-off by the TYPE it is holding and never searches
+    serialised text. This mutation restores the search the rule's literal
+    reading demands -- look for the figure in the ledger's BYTES -- and asserts
+    the 18dp site comes straight back. Nobody chose those digits; they are the
+    double's. An epsilon set from them is 1e-18, which no reader can ever be
+    shown a difference at, and every band, floor and collapse this instrument
+    certifies rests on it."""
+    results = [pair.score_triad(*pair._resolution_population(300, s)[:2],
+                                pair._resolution_population(300, s)[3])
+               for s in pair._RENDER_SITE_SEEDS]
+    texts, values = [], []
+    for res in results:
+        headline = res["detection"]
+        entry = headline.to_ledger_entry(pair.TWIN_ATOM_ID)
+        texts.append(json.dumps({pair.WORLD_ATOM_ID: entry}))
+        values.append(float(headline.gap))
+    # The type-classified walk finds NO site in a hand-off: `gap` is a number.
+    assert all(isinstance(json.loads(t)[pair.WORLD_ATOM_ID]["gap"], float)
+               for t in texts)
+    # The text-searched one finds the figure far past any declared precision.
+    deep = [dp for dp in range(1, 19)
+            if len({format(v, f".{dp}f") for v in values}) == len(values)
+            and all(pair._rendered_at(v, dp, t) for v, t in zip(values, texts))]
+    assert max(deep) >= 17, deep
+    assert 0.5 * 10 ** -max(deep) < 1e-16
+    # ...and that is smaller than the shipped epsilon by 13 orders of magnitude.
+    assert pair.published_reading_epsilon("detection") / (0.5 * 10 ** -max(deep)) > 1e12
+
+
+@needs_node
+def test_a_door_rendering_finer_than_the_declared_epsilon_fires(tmp_path, monkeypatch):
+    """THE ALARM THE DOOR SITE EXISTS FOR. `fmtGap` at 3dp is coarser than the
+    declared 4dp today; the moment it is not, the reader can separate two
+    companies the epsilon calls identical -- and before this Hour nothing would
+    have said so."""
+    mutated = tmp_path / "index.html"
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    assert 'Number(v).toFixed(3); }' in original
+    mutated.write_text(
+        original.replace("function fmtGap(v){ return v==null?\"—\":Number(v).toFixed(3); }",
+                         "function fmtGap(v){ return v==null?\"—\":Number(v).toFixed(6); }"),
+        encoding="utf-8")
+    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
+    measured = pair.measure_reader_render_sites()
+    assert ("door:coupled-gaps", 6) in measured["detection"]["sites"]
+    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
+    assert any("sets its epsilon from 4dp while a reader surface renders it at "
+               "6dp" in v for v in got), got
+
+
+@needs_node
+def test_a_door_that_stops_printing_the_note_verbatim_fires(tmp_path, monkeypatch):
+    """THE SEAM THE RENDERER STAGE RESTS ON. Four of the five figures are
+    measured on their renderer's OUTPUT, and that string is a reader surface
+    only because the door concatenates it unchanged -- which Hour #18 verified
+    once, by hand, and nothing has asserted since."""
+    mutated = tmp_path / "index.html"
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    assert "esc(p.note)" in original
+    mutated.write_text(original.replace("esc(p.note)", '"[note withheld]"'),
+                       encoding="utf-8")
+    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
+    measured = pair.measure_reader_render_sites()
+    assert measured["_walk"]["note_verbatim"] is False
+    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
+    assert any("no longer prints the carried note verbatim" in v for v in got), got
+
+
+def test_an_unreachable_door_is_a_failed_check_never_a_clean_one():
+    """R15's third killer pattern. A walk that could not reach the door must not
+    degrade to "no sites found", which reads exactly like a clean door."""
+    measured = pair.measure_reader_render_sites(door=False)
+    assert measured["_walk"]["available"] is False
+    assert measured["detection"]["reaches_the_door"] is False
+    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
+    assert any("never reached the Proof door" in v
+               and "an unavailable check is a failed check" in v for v in got), got
+
+
+@needs_node
+def test_a_declared_reader_site_the_walk_cannot_find_fires(reader_walk):
+    """BOTH DIRECTIONS, as the component control already does."""
+    ghost = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    ghost["ageing"] = dict(ghost["ageing"],
+                           reader_renders=(("door:coupled-gaps", 3),))
+    got = pair.check_reader_render_sites(reader_walk, register=ghost)
+    assert any("declares a 3dp reader site `door:coupled-gaps` that this walk "
+               "cannot find" in v for v in got), got
+
+
+@needs_node
+def test_a_figure_rendered_at_no_site_anywhere_fires(reader_walk, component_walk):
+    """THE GUARD THIS HOUR EXISTS FOR, and it is PER DIMENSION. The shipped
+    global `any()` passes while three of five figures are unmeasured; this one
+    names each of them."""
+    blanked = {k: (dict(v) if k != "_walk" else v) for k, v in reader_walk.items()}
+    blanked_components = {k: dict(v) for k, v in component_walk.items()}
+    for dim in ("belief", "detection", "detection_latency"):
+        blanked[dim]["sites"] = ()
+        blanked_components[dim]["sites"] = ()
+    got = pair.check_reader_render_sites(blanked, blanked_components)
+    for dim in ("belief", "detection", "detection_latency"):
+        assert any(v.startswith(f"{dim}: is rendered at NO site either sweep "
+                                "can find") for v in got), (dim, got)
+    # AND THE UNION IS REAL: the mix figure has no reader-walk site of its own
+    # and passes only on the component sweep's, so dropping that half fires.
+    assert reader_walk["belief_population_mix"]["sites"] == ()
+    lone = pair.check_reader_render_sites(reader_walk)
+    assert any(v.startswith("belief_population_mix: is rendered at NO site")
+               for v in lone), lone
+
+
+@needs_node
+def test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it(
+        reader_walk, component_walk):
+    """EXPERT HOUR #19's SECOND FINDING. The two-seed rule tells a figure from a
+    CONSTANT -- it cannot tell it from a sibling quantity that moves with it.
+
+    `belief_population_mix` (a population TV distance) equals belief's PER-CASE
+    DISAGREEMENT rate on every book measured, so its digits appear at 4dp inside
+    `format_belief_summary`, which does not render it. They are different
+    quantities: the D19 note records that they separate under a permutation of
+    which account holds which severity belief, and no real book performs that
+    permutation. A value-only sweep would have moved this figure's epsilon on
+    the strength of another figure's render precision."""
+    site = "renderer:background/gap_metric.py::format_belief_summary"
+    assert (site, 4) in reader_walk["belief_population_mix"]["cross_attributed"]
+    assert (site, 4) not in reader_walk["belief_population_mix"]["sites"]
+    # THE COINCIDENCE IS REAL, on more books than the walk itself uses.
+    for seed in (23, 101, 999):
+        records, consumer, _b, as_of = pair._resolution_population(300, seed)
+        scored = pair.score_triad(records, consumer, as_of)
+        rendered = format_belief_summary(scored["belief"])
+        mix = format(scored["belief_population_mix"].gap, ".4f")
+        assert f"per-case disagreement {mix} " in rendered, (seed, mix)
+    # AND THE DECLARATION IS LOAD-BEARING: without it the walk refuses to guess.
+    undeclared = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    undeclared["belief_population_mix"] = dict(
+        undeclared["belief_population_mix"], value_collisions=())
+    got = pair.check_reader_render_sites(reader_walk, component_walk,
+                                         register=undeclared)
+    assert any("ANOTHER figure's declared renderer" in v
+               and "never from a sibling quantity that moves with it" in v
+               for v in got), got
+
+
+def test_an_uncallable_declared_renderer_is_recorded_not_skipped(reader_walk):
+    """A register naming a renderer nobody can call must say so: a silent skip
+    is a dimension whose surface was never looked at, reading as one that was."""
+    assert reader_walk["belief_population_mix"]["renderer_status"].startswith(
+        "background.live_payment_triad has no module-level `measure_and_write`")
+    assert all(reader_walk[d]["renderer_status"] == "called"
+               for d in ("ageing", "belief", "detection", "detection_latency"))
+
+
+def test_the_reader_walk_runs_in_the_cli_not_only_in_tests():
+    """A control that lives only in the test suite is one a reader of the
+    instrument's own output never meets."""
+    src = inspect.getsource(pair.main)
+    assert "measure_reader_render_sites" in src
+    assert "check_reader_render_sites" in src
