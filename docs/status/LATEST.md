@@ -1,23 +1,30 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T17:23:18Z
+Last updated: 2026-08-11T19:05:00Z
 
-**H27 EXPERT HOUR #15 — THE CAVEAT'S NUMBER WAS THE BOOK'S, ON TWO FIGURES THAT DO NOT SHARE A
-RESOLUTION (`12f61b089`, pushed). Held at L2; fifteen Hours, fifteen defects.** Hour #14's lead 2
-was that its contract checks one cell's number against the published figure and the other six state
-bands and edges nothing compares with the figure they ride on. Asked of the two BELIEF cells, the
-number is neither figure's: `belief_resolution_caveat` published the BOOK's bound (headroom + 1) as
-*"the smallest memory error **it** can resolve at all"*, byte-identically on both dimensions,
-because one function rendered one sentence for both. Measured through each organ at the 4dp its
-consumers render (n=300, seeds 7/11/23): bound **310/309/309**, `belief` resolves **310/310/309**,
-`belief_population_mix` resolves **310/314/312** — a day out on one figure, **five days out** on the
-other, understating the instrument's blindness. Both halves were already written down and neither
-was a control (the predictor's docstring called the gap "the organ's business"; the mix entry's
-`own_why` already said it was blunter). Closed at the class: `number_source` on every moving cell
-with its SUBJECT checked, plus a per-figure floor measured on a book-derived grid at an epsilon
-that is half a step of the reader's own precision, read back out of the consumers' source. R12: no
-published number moved. Reshape minted as `D33_the_collapse_predicate_is_bit_equality` — bit-equality
-counts a 1.4e-17 difference as resolution, which is what put the mix ceiling at −309 where the
-reader's precision puts it at −313. 401 passed in 393s.
+**H27 EXPERT HOUR #16 — THE READER'S PRECISION WAS ONE FIGURE'S, DECLARED AS EVERY FIGURE'S
+(`7e8985c4c`, pushed). Held at L2; sixteen Hours, sixteen defects.** Hour #15's two leads needed
+one number between them — *what precision is the reader actually given?* — and Hour #15 had
+installed exactly that number one Hour earlier as `PUBLISHED_GAP_DECIMALS = 4`, "the precision
+every consumer renders these gaps at", with an independence re-read so a consumer moving to 6dp
+would fail the control. It is not every consumer's precision and it does not fail. The re-read
+collected **every** `.Nf` in the anchored function and asked only whether `4` was among them, so
+mutating the belief gap's own render to `.6f` still passed. And the keyset was two hand-typed
+BELIEF sites while **five** dimensions are published: read off the shipped renderers by AST,
+`ageing` reaches its reader at **3dp** (as a component, `balanced_bucket_displacement`) and
+`detection_latency` at **2dp** (through a local alias) — neither renders `.gap` at all, so a walker
+looking for `.gap` finds nothing and falls back to the house default. The one constant was 10× too
+fine for one published figure and 100× for another, and the caveat sentence saying "the 4dp every
+consumer renders these gaps at" was false of both — the same one-sentence-for-figures-that-differ
+shape as #15, inside the clause #15 wrote to close it. Closed at the class: precision is now
+**per dimension**, keyset derived from `published_dimensions` both ways (unlisted figure RAISES,
+orphan entry RAISES), read off the format spec rendering **that dimension's** gap, with the
+component carrier checked *numerically* (delta 4.1e-7 inside its own 5e-4 step) rather than taken
+on its name, and `published_reading_epsilon()` **refusing** a caller that names no figure. Lead 1
+answered by measurement: bit-equality and reader precision agree on every declared edge outside the
+belief cells, which **bounds D33's blast radius**. R12: no published number moved — all five
+figures bit-identical. R15: eleven mutations firing by name, including a vacuity guard pinning the
+2–4dp spread so the register cannot become the old constant wearing a dict. Reshape minted as
+`D34_the_resolution_floor_covers_two_of_five_figures`. 411 passed in 395s.
 
 **PUBLISH-GATE TIMEOUT RE-DERIVED 2900s → 3600s, second time today (`60dd656cd`, pushed).** The
 gate's suite bound fail-CLOSES, so an undersized bound wedges publishing rather than degrading the
