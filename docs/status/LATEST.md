@@ -1,5 +1,23 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T16:20:27Z
+Last updated: 2026-08-11T16:32:58Z
+
+**H27 EXPERT HOUR #15 — THE CAVEAT'S NUMBER WAS THE BOOK'S, ON TWO FIGURES THAT DO NOT SHARE A
+RESOLUTION (`12f61b089`, pushed). Held at L2; fifteen Hours, fifteen defects.** Hour #14's lead 2
+was that its contract checks one cell's number against the published figure and the other six state
+bands and edges nothing compares with the figure they ride on. Asked of the two BELIEF cells, the
+number is neither figure's: `belief_resolution_caveat` published the BOOK's bound (headroom + 1) as
+*"the smallest memory error **it** can resolve at all"*, byte-identically on both dimensions,
+because one function rendered one sentence for both. Measured through each organ at the 4dp its
+consumers render (n=300, seeds 7/11/23): bound **310/309/309**, `belief` resolves **310/310/309**,
+`belief_population_mix` resolves **310/314/312** — a day out on one figure, **five days out** on the
+other, understating the instrument's blindness. Both halves were already written down and neither
+was a control (the predictor's docstring called the gap "the organ's business"; the mix entry's
+`own_why` already said it was blunter). Closed at the class: `number_source` on every moving cell
+with its SUBJECT checked, plus a per-figure floor measured on a book-derived grid at an epsilon
+that is half a step of the reader's own precision, read back out of the consumers' source. R12: no
+published number moved. Reshape minted as `D33_the_collapse_predicate_is_bit_equality` — bit-equality
+counts a 1.4e-17 difference as resolution, which is what put the mix ceiling at −309 where the
+reader's precision puts it at −313. 401 passed in 393s.
 
 **PUBLISH-GATE TIMEOUT RE-DERIVED 2900s → 3600s, second time today (`60dd656cd`, pushed).** The
 gate's suite bound fail-CLOSES, so an undersized bound wedges publishing rather than degrading the
