@@ -2908,6 +2908,38 @@ def _publish_provenance_banner(git_hash, *, reason=None):
         return False
 
 
+def _provenance_is_publishable(paths, *, label="publish") -> bool:
+    """True unless `paths` includes the provenance file and its contents must not be published.
+
+    Returns True when the provenance is not in this commit at all -- this guards one file, and
+    is not a general commit gate. Every refusal is LOGGED with the violations, because the
+    defect it closes published in silence and a quiet refusal would only move the silence.
+    """
+    prov_path = PROJECT_DIR / "site" / "data" / "publish_provenance.json"
+    try:
+        if not any(Path(p).resolve() == prov_path.resolve() for p in paths):
+            return True
+    except OSError:
+        return True
+    try:
+        from background import publish_provenance as _prov
+        state = _prov.read(prov_path)
+        violations = _prov.publishable_violations(state, repo_root=PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001 -- an unavailable checker is a FAILED check
+        log("{} REFUSED: the provenance check could not run ({}: {}) -- an unavailable check "
+            "is a failed check, so nothing is published this cycle.".format(
+                label, type(exc).__name__, exc))
+        return False
+    if violations:
+        log("{} REFUSED -- REFUSING TO PUBLISH A FALSE PROVENANCE:\n  {}\n  Nothing was "
+            "committed. The site keeps serving its last honest state. This is the fixture-value "
+            "class (WORKER_FINDING_TEST_FIXTURE_VALUES_REACHED_THE_LIVE_PUBLISH_STATE_"
+            "2026-08-11); the values above name the cycle that produced it.".format(
+                label, "\n  ".join(violations)))
+        return False
+    return True
+
+
 def _commit_and_push_paths(paths, msg, *, label):
     """Commit exactly `paths` and self-verify the push against origin. Returns True iff origin
     ADVANCED to this HEAD.
@@ -2928,6 +2960,20 @@ def _commit_and_push_paths(paths, msg, *, label):
       * SELF-VERIFYING PUSH -- ground-truth `ls-remote`, never the push's own rc. A phantom
         "up to date" must not be recorded as a publish.
     """
+    # PUBLISHING A FALSE PROVENANCE IS IMPOSSIBLE FROM HERE (2026-08-11, director P1).
+    #
+    # This is the ONE chokepoint every provenance commit passes through -- the red-cycle banner
+    # and the green-cycle content commit both arrive here -- so the check lives here rather than
+    # at each caller. A guard placed per-caller protects the callers somebody thought of; this
+    # one protects the FILE, which is the thing with a public consequence.
+    #
+    # It asserts on the VALUE, not the writer, because the writer is unknown: a test fixture
+    # literal ("run_verified.json") was rendered into a banner and pushed to origin at 08:58Z
+    # and the mechanism is still NOT ESTABLISHED. Fail-closed -- if git cannot confirm the
+    # commit is real, we refuse and the site stays honestly paused rather than publishing a
+    # claim we cannot stand behind.
+    if not _provenance_is_publishable(paths, label=label):
+        return False
     with tree_lock():
         subprocess.run(["git", "add"] + list(paths), cwd=str(PROJECT_DIR), timeout=30,
                        stderr=subprocess.PIPE, text=True)

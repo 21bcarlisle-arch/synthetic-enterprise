@@ -13,6 +13,17 @@ from datetime import datetime, timedelta, timezone
 from background import publish_provenance as prov
 
 
+# PUBLISHER-SHAPED, NOT FIXTURE-SHAPED (2026-08-11). The recorders now REFUSE a run id or
+# sha that no run could have produced, because the literal "run_verified.json" reached the
+# live banner and was pushed to origin. These stand-ins keep the a/b contrast these tests
+# are built on while being values the publisher would actually emit; existence of the sha is
+# not checked at the write, so they need not be commits in this repo.
+SHA_A = "a1b2c3d4e"
+SHA_B = "b2c3d4e5f"
+RUN_A = "run_output_{}_20260809T031627Z.json".format(SHA_A)
+RUN_B = "run_output_{}_20260810T041627Z.json".format(SHA_B)
+
+
 def _at(minutes):
     return datetime(2026, 8, 10, 12, 0, tzinfo=timezone.utc) + timedelta(minutes=minutes)
 
@@ -23,10 +34,10 @@ def _p(tmp_path):
 
 def test_a_verified_publish_advances_freshness(tmp_path):
     p = _p(tmp_path)
-    state = prov.record_verified(run_id="run_a.json", git_commit="abc123", path=p, now=_at(0))
+    state = prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     assert state["verification_state"] == prov.STATE_VERIFIED
-    assert state["showing_run"]["run_id"] == "run_a.json"
-    assert state["last_verified"]["git_commit"] == "abc123"
+    assert state["showing_run"]["run_id"] == RUN_A
+    assert state["last_verified"]["git_commit"] == SHA_A
     assert state["paused_since"] is None
 
 
@@ -34,7 +45,7 @@ def test_a_pause_cannot_move_the_served_run_by_a_byte(tmp_path):
     """THE CARDINAL SIN, attempted directly. A red gate must never be able to make the served
     figures look newer than the last run that was actually verified."""
     p = _p(tmp_path)
-    prov.record_verified(run_id="run_a.json", git_commit="abc123", path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     before = json.loads(p.read_text())
 
     for i in range(1, 40):
@@ -51,7 +62,7 @@ def test_paused_since_is_stamped_once_not_re_stamped_every_cycle(tmp_path):
     ago' for 25 hours is a fresh-looking lie about staleness -- the pause timestamp must be the
     TRANSITION, not the last time anything ran."""
     p = _p(tmp_path)
-    prov.record_verified(run_id="run_a.json", git_commit="abc123", path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     first = prov.record_paused(path=p, now=_at(5))["paused_since"]
     for i in range(6, 60):
         prov.record_paused(path=p, now=_at(i))
@@ -64,12 +75,12 @@ def test_recovery_clears_the_pause_and_advances(tmp_path):
     would be an orphan transition -- and a site permanently branded stale is as ignored as one
     that never says anything."""
     p = _p(tmp_path)
-    prov.record_verified(run_id="run_a.json", git_commit="aaa", path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
-    state = prov.record_verified(run_id="run_b.json", git_commit="bbb", path=p, now=_at(90))
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
     assert state["paused_since"] is None
     assert state["verification_state"] == prov.STATE_VERIFIED
-    assert state["showing_run"]["run_id"] == "run_b.json"
+    assert state["showing_run"]["run_id"] == RUN_B
 
 
 def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
@@ -77,13 +88,13 @@ def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
     paused site into a verified-looking one either. The annotation is a different KIND of
     claim and has no write access to the state that says how fresh the numbers are."""
     p = _p(tmp_path)
-    prov.record_verified(run_id="run_a.json", git_commit="aaa", path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
     state = prov.record_annotation(open_findings=140, nonblocking_reds=["FAILED x"] * 50,
                                    path=p, now=_at(6))
     assert state["verification_state"] == prov.STATE_PAUSED
     assert state["paused_since"] is not None
-    assert state["showing_run"]["run_id"] == "run_a.json"
+    assert state["showing_run"]["run_id"] == RUN_A
     # Bounded payload, but the TOTAL is preserved -- a truncated list that also truncated the
     # count would understate repo health on the public page.
     assert len(state["annotation"]["nonblocking_reds"]) == prov.MAX_ANNOTATED_REDS
@@ -128,16 +139,16 @@ def test_a_test_cannot_write_the_published_provenance_claim():
 
 def test_the_banner_sentence_names_the_pause_and_the_run(tmp_path):
     p = _p(tmp_path)
-    prov.record_verified(run_id="run_a.json", git_commit="aaa", path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     verified_line = prov.banner_line(prov.read(p))
-    assert "Verified" in verified_line and "run_a.json" in verified_line
+    assert "Verified" in verified_line and RUN_A in verified_line
 
     prov.record_paused(path=p, now=_at(5))
     paused_line = prov.banner_line(prov.read(p))
     # The three facts the ruling requires a visitor to be able to read off the page.
     assert "Verification paused since" in paused_line
     assert "12:05" in paused_line          # since WHEN
-    assert "run_a.json" in paused_line      # showing WHAT
+    assert RUN_A in paused_line      # showing WHAT
 
 
 def test_the_python_sentence_and_the_rendered_one_carry_the_same_facts():

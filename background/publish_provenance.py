@@ -65,6 +65,8 @@ INDEX: searched "provenance", "freshness", "staleness banner" -- 22 rows mention
 from __future__ import annotations
 
 import json
+import re
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -78,6 +80,109 @@ STATE_PAUSED = "paused"
 # Bounded: the banner is a page, not a directory listing (same reasoning as
 # PUBLISH_GATE_MAX_CITED_FINDINGS).
 MAX_ANNOTATED_REDS = 8
+
+
+# ===========================================================================================
+# THE PUBLISHED PROVENANCE MUST BE A REAL RUN AND A REAL COMMIT (2026-08-11, director P1)
+# ===========================================================================================
+# THE DEFECT THIS CLOSES, observed on the live surface:
+#
+#   [08:58Z] Provenance banner: Verification paused since 2026-08-11T08:58:57Z
+#            . showing run run_verified.json (last verified 2026-08-11T08:58:57Z)
+#   [08:58Z] Provenance banner published to origin.
+#
+# `run_verified.json` is a TEST FIXTURE literal. A fabricated run id was, for a period, the
+# public claim about how current this site was. The gate being wedged is an availability
+# problem; this is an INTEGRITY problem, and it published in silence.
+#
+# WHY THIS ASSERTS ON THE VALUE, NOT ON THE WRITER. The mechanism that put that literal there
+# is NOT ESTABLISHED (WORKER_FINDING_TEST_FIXTURE_VALUES_REACHED_THE_LIVE_PUBLISH_STATE_
+# 2026-08-11 rules out the three obvious candidates and says so). A control keyed to a writer
+# would therefore be a control keyed to a guess. This one asks the only question that has a
+# knowable answer -- *is what we are about to publish a real run and a real commit?* -- so it
+# closes the class whatever the source turns out to be, and its refusals will name the cycle
+# for whoever runs the mechanism down.
+#
+# FAIL-CLOSED, deliberately (R15, and the director's "an honest pause outranks a full page").
+# If the repo cannot be asked whether a commit exists, the answer is REFUSE, not publish: an
+# unavailable check is a FAILED check. The cost of that direction is a pause the banner is
+# built to state honestly. The cost of the other direction is a false public claim.
+
+#: `run_output_<sha>_<UTC stamp>.json` -- the only shape the runner ever produces.
+RUN_ID_RE = re.compile(r"^run_output_[0-9a-f]{7,40}_\d{8}T\d{6}Z\.json$")
+#: An abbreviated-or-full hex sha. Shape only; existence is checked separately.
+COMMIT_RE = re.compile(r"^[0-9a-f]{7,40}$")
+
+# Named fixtures seen on, or adjacent to, the live surface. The regexes above already reject
+# every one of these, and they are listed ANYWAY: a shape check silently admits the next
+# fixture that happens to look real, and this list is what makes the intent legible and
+# testable. Belt and braces on the one surface where a wrong value is a public lie.
+FIXTURE_VOCABULARY = frozenset({
+    "run_verified.json", "run_paused.json", "abc1234", "deadbeef", "unknown",
+    "v" * 40, "0" * 40, "1234567", "fixture", "dummy", "example",
+})
+
+
+class ProvenanceRefused(Exception):
+    """A provenance value that must never reach a published surface. Loud by construction."""
+
+
+def _commit_exists(sha: str, repo_root: Path = None) -> bool:
+    """Does `sha` name a real commit in this repo? Unavailable git => False (fail-closed)."""
+    try:
+        proc = subprocess.run(
+            ["git", "cat-file", "-e", sha + "^{commit}"],
+            cwd=str(repo_root or PROJECT_DIR),
+            capture_output=True, timeout=30,
+        )
+        return proc.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def publishable_violations(state, *, repo_root: Path = None, check_commit_exists=True) -> list:
+    """Every reason `state` must not be published. Empty list == publishable.
+
+    Checks the freshness stamps only. `paused_since`/`annotation` carry no run identity, and a
+    PAUSED state with nothing ever verified (`showing_run is None`) is legitimate -- it is what
+    a fresh machine looks like -- so it is not a violation to publish it.
+    """
+    out = []
+    if not isinstance(state, dict):
+        return ["provenance is not an object: {!r}".format(type(state).__name__)]
+
+    for field in ("showing_run", "last_verified"):
+        stamp = state.get(field)
+        if stamp is None:
+            continue
+        if not isinstance(stamp, dict):
+            out.append("{}: not an object".format(field))
+            continue
+
+        run_id = stamp.get("run_id")
+        if not isinstance(run_id, str) or not RUN_ID_RE.match(run_id):
+            out.append("{}.run_id is not a real run id: {!r}".format(field, run_id))
+        elif run_id in FIXTURE_VOCABULARY:
+            out.append("{}.run_id is fixture vocabulary: {!r}".format(field, run_id))
+
+        sha = stamp.get("git_commit")
+        if not isinstance(sha, str) or not COMMIT_RE.match(sha):
+            out.append("{}.git_commit is not a sha: {!r}".format(field, sha))
+        elif sha in FIXTURE_VOCABULARY:
+            out.append("{}.git_commit is fixture vocabulary: {!r}".format(field, sha))
+        elif check_commit_exists and not _commit_exists(sha, repo_root):
+            out.append("{}.git_commit names no commit in this repo: {!r} (an unavailable git "
+                       "reads as absent -- fail-closed)".format(field, sha))
+    return out
+
+
+def assert_publishable(state, *, repo_root: Path = None, check_commit_exists=True) -> None:
+    """Raise `ProvenanceRefused` if `state` must not be published. Loud, never a bare bool."""
+    violations = publishable_violations(
+        state, repo_root=repo_root, check_commit_exists=check_commit_exists)
+    if violations:
+        raise ProvenanceRefused(
+            "REFUSING TO PUBLISH A FALSE PROVENANCE -- " + "; ".join(violations))
 
 
 def _now_iso(now=None) -> str:
@@ -133,6 +238,13 @@ def record_verified(*, run_id, git_commit, generated_at=None, path: Path = None,
         "generated_at": generated_at or _now_iso(now),
         "verified_at": _now_iso(now),
     }
+    # REFUSE AT THE WRITE, as well as at the commit (below, in the publisher). This is the
+    # shape check only -- deliberately NOT the commit-existence check, because this runs inside
+    # the publish path and must stay cheap and repo-independent. It costs nothing and it turns
+    # "a fixture reached the file" into a loud failure at the moment it happens, which is the
+    # difference between a diagnosable event and the silent one that started this.
+    assert_publishable({"showing_run": stamp, "last_verified": stamp},
+                       check_commit_exists=False)
     state["verification_state"] = STATE_VERIFIED
     state["showing_run"] = stamp
     state["last_verified"] = stamp

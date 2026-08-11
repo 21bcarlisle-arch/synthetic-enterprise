@@ -28,6 +28,14 @@ from background import publish_scope
 # (`feedback_control_keyed_to_one_syntactic_form`).
 UNRELATED_RED = "tests/architecture/test_static_quality_ratchet.py"
 
+# The publisher's real output shape. `VERIFIED_SHA` is resolved from the repo at import
+# time rather than hardcoded, so it is a commit that genuinely exists -- the provenance
+# guard checks existence, and pinning a literal sha here would rot into a false red.
+import subprocess as _sp
+VERIFIED_SHA = _sp.run(["git", "rev-parse", "--short=9", "HEAD"], cwd=str(prc.PROJECT_DIR),
+                       capture_output=True, text=True).stdout.strip() or "0" * 9
+VERIFIED_RUN_ID = "run_output_{}_20260809T171913Z.json".format(VERIFIED_SHA)
+
 
 def test_the_injected_red_exemplar_exists():
     """A renamed or deleted exemplar must fail this file loudly rather than let the exit test
@@ -78,7 +86,12 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     only (a), which is why 25 hours of silence looked identical to a healthy site."""
     p = tmp_path / "publish_provenance.json"
     monkeypatch.setattr(prov, "PROVENANCE_FILE", p)
-    prov.record_verified(run_id="run_verified.json", git_commit="v" * 40, path=p)
+    # A REAL-SHAPED run id and a REAL commit, not a fixture literal: since 2026-08-11 the
+    # recorders refuse anything that could not have come from a run, because a fixture
+    # ("run_verified.json") reached the live banner and was pushed to origin. A test that
+    # needs a value the publisher would never emit is a test asserting on an impossible
+    # state -- so this uses a value the publisher WOULD emit.
+    prov.record_verified(run_id=VERIFIED_RUN_ID, git_commit=VERIFIED_SHA, path=p)
 
     pushed = {}
 
@@ -103,8 +116,8 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     state = prov.read(p)
     assert state["verification_state"] == prov.STATE_PAUSED
     assert state["paused_since"]                                   # dated
-    assert state["showing_run"]["run_id"] == "run_verified.json"    # last-known-good, unmoved
-    assert state["last_verified"]["git_commit"] == "v" * 40
+    assert state["showing_run"]["run_id"] == VERIFIED_RUN_ID   # last-known-good, unmoved
+    assert state["last_verified"]["git_commit"] == VERIFIED_SHA
 
     # (b) the ONLY path committed is the banner. Not one figure travelled with it.
     commits = [a for a in pushed["argv"] if a[:2] == ["git", "commit"]]
