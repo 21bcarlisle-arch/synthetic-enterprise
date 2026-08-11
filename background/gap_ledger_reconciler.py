@@ -395,7 +395,26 @@ def runners_for(producers: list, writers: dict) -> list:
     )
 
 
-def refresh_command(runners: list) -> str | None:
+_SAFE_REFRESH_ARG = re.compile(r"^(--[a-z][a-z0-9-]*|-?\d+(\.\d+)?)$")
+
+
+def safe_refresh_args(recorded) -> list[str]:
+    """The subset of a row's declared `refresh_args` that may be put into a command line.
+
+    THE LEDGER IS DATA AND THIS OUTPUT IS RUN. A row declares how to reproduce itself, and a
+    tick pastes that string into a shell -- so the row must not be able to say anything except
+    "a flag" or "a number". Anything else (a path, a quote, a semicolon, a `--flag=value` pair,
+    an env assignment) is dropped and the caller falls back to the base invocation, which is
+    the behaviour that existed before rows declared anything at all. Fail-safe, not fail-open:
+    the worst case is the pre-existing wrong-population refresh, never an arbitrary command.
+    """
+    if not isinstance(recorded, (list, tuple)):
+        return []
+    args = [str(a) for a in recorded]
+    return args if all(_SAFE_REFRESH_ARG.match(a) for a in args) else []
+
+
+def refresh_command(runners: list, recorded_args=None) -> str | None:
     """The command a tick would run to re-measure the row. None when nothing is invocable.
 
     `-m dotted.module`, NOT `python3 path/to/tool.py`: every one of these tools imports
@@ -408,14 +427,31 @@ def refresh_command(runners: list) -> str | None:
     `--population`, and inventing arguments here would be a second, drifting copy of each tool's
     CLI. The acceptance test for the re-run is NOT that this exact string ran -- it is that the
     row reads CURRENT afterwards, which `reconcile()` decides independently of this string.
+
+    THAT ACCEPTANCE TEST WAS THE HOLE, and `--population` was the exact example (2026-08-11,
+    H_GAP_fabric_belief_truth_gap Expert Hour). "The row reads CURRENT afterwards" is satisfied
+    by a re-run that measures a DIFFERENT POPULATION and writes it to the same row: freshness is
+    genuinely restored and the quantity is silently replaced. Filed as a class on 2026-08-10
+    (WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION) against `W2_11`, where a live
+    in-run writer reclaimed the row within six minutes. `W1_11_fabric_physics_core` is the
+    variant that finding flagged as unprotected -- no in-run writer, so nothing reclaims it --
+    and there the base invocation measures 15 AUTHORED premises over a row measured on 200 DRAWN
+    ones, flipping `inference_improvement` from +0.0227 to -0.0440. A drain-issued refresh would
+    have inverted a published claim about whether inference beats the register.
+
+    So the row now DECLARES its own arguments (`refresh_args`, written by the tool that took the
+    measurement) and this function reads them back. That is not the drifting CLI copy the
+    paragraph above rejects -- nothing here knows what `--population` means; it concatenates
+    what the run recorded. Rows with no declaration behave exactly as before.
     """
     if not runners:
         return None
     module = runners[0][:-3].replace("/", ".") if runners[0].endswith(".py") else runners[0]
-    return f"python3 -m {module} --write-ledger"
+    extra = safe_refresh_args(recorded_args)
+    return f"python3 -m {module} --write-ledger{''.join(' ' + a for a in extra)}"
 
 
-def refresh_work(results: list, writers=None) -> list:
+def refresh_work(results: list, writers=None, ledger=None) -> list:
     """[{item, status, runners, command, detail}] for every row a re-run could clear.
 
     FAIL-CLOSED FOR A ROW: a refreshable ROW whose producers are all un-invocable stays IN this
@@ -432,6 +468,12 @@ def refresh_work(results: list, writers=None) -> list:
     behind its absence; a dead tool hides nothing.
     """
     writers = discover_writers() if writers is None else writers
+    # The COMMITTED ledger, for the same reason `reconcile` grades it: the command must
+    # reproduce the row the door renders, not an uncommitted one on this disk. A ledger that
+    # cannot be read here costs the declarations, never the work list -- every row simply
+    # falls back to its base invocation.
+    if ledger is None:
+        ledger = landed_ledger() or {}
     work = []
     for r in results:
         status = r.get("status")
@@ -451,11 +493,13 @@ def refresh_work(results: list, writers=None) -> list:
         runners = runners_for(r.get("producers") or [], writers)
         if not runners and status in _TOOL_ITEM_STATUSES:
             continue
+        row = ledger.get(r["item"]) if isinstance(ledger, dict) else None
+        declared = (row or {}).get("components", {}).get("refresh_args")
         work.append({
             "item": r["item"],
             "status": r["status"],
             "runners": runners,
-            "command": refresh_command(runners),
+            "command": refresh_command(runners, declared),
             "no_runner": not runners,
             "detail": r.get("detail", ""),
         })

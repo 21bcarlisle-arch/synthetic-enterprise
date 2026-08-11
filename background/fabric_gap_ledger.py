@@ -3465,6 +3465,8 @@ def write_fabric_gap_entries(
     run_git_commit: str | None = None,
     two_level: TwoLevelResult | None = None,
     path: Path | None = None,
+    composition: str | None = None,
+    refresh_args: Sequence[str] | None = None,
 ) -> dict[str, GapResult]:
     """Write the fabric triad's gaps into the coupled-gap ledger.
 
@@ -3475,6 +3477,20 @@ def write_fabric_gap_entries(
     measured on are read side by side rather than in two places.
 
     `measured_at` is passed IN — this module never calls a clock (C-S2).
+
+    `composition` and `refresh_args` exist because THE COMMAND THAT REFRESHES A ROW MUST
+    REPRODUCE THE ROW (2026-08-11, this atom's Expert Hour). `gap_ledger_reconciler.
+    refresh_command` deliberately emits the BASE invocation — `python3 -m tools.couple_fabric
+    --write-ledger` — because inventing arguments there would be a second, drifting copy of
+    each tool's CLI. That reasoning is right and the consequence was not: this tool's base
+    invocation measures the AUTHORED 15-premise panel, while the row it would overwrite was
+    measured on 200 premises DRAWN from published stock marginals, and the two disagree on
+    the SIGN of the headline (inference_improvement -0.0440 authored vs +0.0227 drawn). A
+    drain-issued refresh would therefore have flipped a published figure's sign and called it
+    freshness. Recording the args HERE, at the only place that knows what was measured, is
+    the single-source version of what that docstring wanted: the reconciler still invents
+    nothing, it reads back what the run declared. Absent on legacy rows, where the reconciler
+    falls back to the base invocation exactly as before.
     """
     epc = epc_vs_actual_gap(observations)
     inferred = inferred_vs_actual_gap(observations)
@@ -3491,6 +3507,13 @@ def write_fabric_gap_entries(
         "money_consequence_inferred": _money_components(money_inferred),
         "inference_improvement": epc.gap - inferred.gap,
     }
+    # The population this row describes, and how to take it again. `premises: 200` alone does
+    # NOT carry this: a reader has to already know that 200 means drawn and 15 means authored,
+    # which is the knowledge the next tick will not have.
+    if composition is not None:
+        shared["composition"] = composition
+    if refresh_args is not None:
+        shared["refresh_args"] = list(refresh_args)
     if two_level is not None:
         shared["two_level"] = {
             "generator": two_level.generator,

@@ -459,3 +459,64 @@ def test_a_git_failure_makes_the_whole_reconcile_report_drift_not_row_verdicts(m
     results = glr.reconcile()
     assert [r["status"] for r in results] == ["ledger_not_committed"]
     assert glr.drift(results)
+
+
+# --- THE REFRESH COMMAND MUST REPRODUCE THE ROW -----------------------------------------------
+# 2026-08-11, H_GAP_fabric_belief_truth_gap Expert Hour. The named defect: `refresh_command`
+# emitted the BASE invocation, so for a tool whose default population differs from the one the
+# row was measured on, the drain's own acceptance test ("the row reads CURRENT afterwards") is
+# satisfied by a re-run that REPLACES the quantity instead of re-taking it. Observed on the real
+# ledger: `W1_11_fabric_physics_core` carries 200 DRAWN premises, `python3 -m tools.couple_fabric
+# --write-ledger` measures 15 AUTHORED ones, and `inference_improvement` moves +0.0227 -> -0.0440
+# -- a SIGN flip on a published claim. The row now declares the args that reproduce it.
+
+_INVOCABLE = (f"--write-ledger\nWORLD_ATOM_ID = '{_ATOM}'\n"
+              "if __name__ == '__main__':\n    main()\n")
+
+def test_a_row_that_declares_its_arguments_is_refreshed_WITH_them():
+    """The defect, directly: a declared population must survive into the command."""
+    results = glr.reconcile(
+        ledger={_ATOM: _row(components={"refresh_args": ["--population", "200",
+                                                         "--population-seed", "17"]})},
+        writers=_writers(_INVOCABLE), declared={_ATOM: "C1_example"}, family=[_WRITER],
+        since_fn=lambda *_a, **_k: 3,
+    )
+    work = glr.refresh_work(results, writers=_writers(_INVOCABLE), ledger={
+        _ATOM: {"components": {"refresh_args": ["--population", "200",
+                                                "--population-seed", "17"]}}})
+    assert [w["command"] for w in work] == [
+        "python3 -m tools.couple_x_c1 --write-ledger --population 200 --population-seed 17"]
+
+
+def test_a_row_declaring_NOTHING_still_gets_the_base_invocation():
+    """Able to PASS, and no regression for the rows that predate the declaration: absence of
+    `refresh_args` must behave exactly as this function did before it existed."""
+    results = glr.reconcile(
+        ledger={_ATOM: _row()}, writers=_writers(_INVOCABLE), declared={_ATOM: "C1_example"},
+        family=[_WRITER], since_fn=lambda *_a, **_k: 3,
+    )
+    work = glr.refresh_work(results, writers=_writers(_INVOCABLE), ledger={_ATOM: {"components": {}}})
+    assert [w["command"] for w in work] == ["python3 -m tools.couple_x_c1 --write-ledger"]
+
+
+def test_the_ledger_may_not_inject_anything_but_a_flag_or_a_number():
+    """The ledger is DATA and this output is RUN by a tick. A row that declares a path, a shell
+    metacharacter, a `--flag=value` pair or an env assignment is refused WHOLE -- falling back to
+    the base invocation, which is the pre-existing behaviour, never a partially-trusted line."""
+    for hostile in (["; rm -rf /"], ["--population", "200; curl evil"], ["$(id)"],
+                    ["--out=/etc/passwd"], ["--population", "&& echo"], ["PATH=/tmp"],
+                    ["../../etc/passwd"], ["--population", "200", "|tee"]):
+        assert glr.safe_refresh_args(hostile) == [], hostile
+        assert glr.refresh_command([_WRITER], hostile) == (
+            "python3 -m tools.couple_x_c1 --write-ledger")
+    # ... and the benign shapes the tools actually emit are kept.
+    assert glr.safe_refresh_args(["--seed", "17", "--unit-rate", "7.4", "--premises", "-1"]) == [
+        "--seed", "17", "--unit-rate", "7.4", "--premises", "-1"]
+
+
+def test_a_non_list_declaration_is_ignored_rather_than_crashing_the_drain():
+    """FAIL-SAFE on a malformed field: the work list is how a stuck tick finds its work, so a
+    junk `refresh_args` must cost the arguments, never the list."""
+    for junk in (None, "population 200", 200, {"population": 200}):
+        assert glr.safe_refresh_args(junk) == []
+        assert glr.refresh_command([_WRITER], junk) == "python3 -m tools.couple_x_c1 --write-ledger"

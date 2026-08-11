@@ -514,6 +514,26 @@ def _money_json(m):
     }
 
 
+def _refresh_args(args) -> list[str]:
+    """The arguments that REPRODUCE this run's measurement, for the ledger row to carry.
+
+    Every argument that determines the number is emitted EXPLICITLY, including ones left at
+    their default. Recording only the non-defaults would make the row's reproducibility hostage
+    to this file's default values: change `--seed`'s default and every legacy row silently
+    starts refreshing to a different measurement, which is the class this exists to close.
+
+    `--write-ledger` is NOT included — the reconciler adds it, because whether to write is the
+    caller's business, not a property of the population.
+    """
+    argv = ["--seed", str(args.seed), "--unit-rate", str(args.unit_rate)]
+    if args.population:
+        argv += ["--population", str(args.population),
+                 "--population-seed", str(args.population_seed)]
+    elif args.premises:
+        argv += ["--premises", str(args.premises)]
+    return argv
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed", type=int, default=17)
@@ -640,6 +660,8 @@ def main() -> None:
             measured_at=measured_at,
             run_git_commit=_git_head(),
             two_level=result,
+            composition=composition,
+            refresh_args=_refresh_args(args),
         )
         print()
         print(f"  ledger written: {fgl.FABRIC_WORLD_ATOM} -> gap="
