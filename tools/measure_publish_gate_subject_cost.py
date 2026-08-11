@@ -850,6 +850,62 @@ def _hit_memory_ceiling_basis(returncode, mem_available_after_mb, hit: bool) -> 
             .format(mem_available_after_mb, MIN_MEMORY_HEADROOM_MB))
 
 
+# ── ASK THE SUBJECT WHAT IT IS, NOT THE REPO WHAT IT HAS BECOME (2026-08-11) ─────────────────
+#
+# THE DEFECT, OBSERVED IN THE LIVE RECORD RATHER THAN IMAGINED. Launch 14 banked:
+#
+#     "throwaway_checkout": {"cwd": "/var/tmp/publish-gate-head-qey8309l",
+#                            "head_sha_at_run": "a322429d1...", "seconds": 1873.7}
+#
+# and the field's own comment called that "the SHA THIS phase actually ran against". It was not.
+# The launch header says `started_at 20:29:36Z`; the next phase entered at 21:33:51Z, so this
+# suite STARTED at ~21:02:37Z -- and a322429d1 was committed at 21:26:07Z, twenty-three minutes
+# LATER, into a repo whose contents could not reach a `git archive` extraction that had already
+# happened. The stamp was `prc._head_sha()` read in the LIVE repo AFTER the suite returned, so it
+# named whichever commit some other lane happened to land during the ~31 minutes of the run.
+#
+# WHY IT IS NOT COSMETIC, AND WHY IT BITES HERE. This field is the ONLY input to the cross-commit
+# comparability guard -- the rule ticks 4 and 8 both exist to enforce, that a ratio may not span
+# two commits. End-stamping makes that guard answer a question about neither subject:
+#
+#   * FAIL-OPEN, and likeliest exactly when the harness runs. Throwaway extracted at X, runs 31
+#     minutes while commits land to Z; baseline starts at Z and the box stays quiet, so it too
+#     ends at Z. Both stamps read Z, `spanned` is a single SHA, and the ratio is COMPUTED across
+#     subjects X and Z and published as the cost of the checkout. That is precisely the defect
+#     the guard was written twice to prevent, arriving through the door it was watching -- and it
+#     needs a QUIET second phase, which is the condition this harness waits for.
+#   * FAIL-CLOSED the other way: two phases that genuinely ran the same code are refused, and the
+#     atom pays another ~40 minutes, because one unrelated commit landed during the second phase.
+#
+# THE FIX IS TO ASK THE ARTEFACT. A checkout made by `prc._head_checkout()` is a real repo whose
+# `.git/HEAD` is the extracted SHA (`_make_checkout_a_repo`), so the subject can be asked what
+# commit it is instead of the live repo being asked what commit it now has. For the in-tree phase
+# the subject IS the working tree, so the same question answers live HEAD -- but asked BEFORE the
+# suite starts, which is when that subject was fixed as far as it is ever fixed.
+#
+# AND THE MOVE IS RECORDED RATHER THAN REFUSED. Asking twice -- before and after -- makes a
+# mid-run commit VISIBLE (`subject_changed_during_run`) instead of silently relabelling the
+# phase. It is deliberately not a ratio refusal: the in-tree subject is a shared tree that other
+# lanes commit to every few minutes, so refusing on it would starve this atom's one owed number
+# forever, which is the guard-that-waits-for-a-gap shape. A checkout cannot move under itself, so
+# on that phase the flag is always False and its being True would itself be evidence of a bug.
+def _subject_sha(cwd) -> str:
+    """The commit the SUBJECT AT `cwd` is, or None if git cannot say.
+
+    Deliberately not `prc._head_sha()`, which always asks PROJECT_DIR: a throwaway checkout is a
+    different repo from the one this process lives in, and asking the wrong one is the defect
+    above. None -- never a guess -- so a phase git could not answer for is dropped by the
+    comparability rule rather than being compared on a fabricated SHA."""
+    try:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(cwd),
+                              capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if head.returncode != 0:
+        return None
+    return head.stdout.strip() or None
+
+
 def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
     with _publisher_exclusion(log, heartbeat):
         return _time_suite_under_exclusion(cwd, log, heartbeat)
@@ -872,10 +928,17 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     argv = _bounded_argv(cwd, log)
     log("  . suite starting in {} ({}MB available, capped at {}MB)"
         .format(cwd, mem_before, PHASE_MEMORY_MAX_MB))
+    # ASKED OF THE SUBJECT, AND ASKED FIRST -- see the block above `_subject_sha`. This is the
+    # commit the suite below actually starts against; reading it afterwards in the live repo
+    # named a commit that did not exist when the tree was extracted.
+    subject_before = _subject_sha(cwd)
+    started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     started = time.monotonic()
     result = subprocess.run(argv, cwd=str(cwd), env=env,
                             capture_output=True, text=True, errors="replace")
     elapsed = time.monotonic() - started
+    ended_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    subject_after = _subject_sha(cwd)
     _mark_stage(heartbeat, "suite_returned")
     tail = [ln for ln in result.stdout.strip().splitlines() if ln.strip()][-1:]
     mem_after = _mem_available_mb()
@@ -886,10 +949,23 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
             .format(PHASE_MEMORY_MAX_MB, mem_after))
     return {
         "cwd": str(cwd),
-        # The SHA THIS phase actually ran against. Stamped per phase, not once at launch: HEAD
-        # moves under a long measurement (ordinary commits land while it waits for the box), and
-        # a single launch-time stamp would make a sound result look stale to whoever reads it.
-        "head_sha_at_run": prc._head_sha(),
+        # The SHA THIS phase actually ran against -- read FROM THE SUBJECT, BEFORE the suite,
+        # never from the live repo afterwards (see the block above `_subject_sha` for the live
+        # record that carried a commit made 23 minutes after its own suite had started).
+        # Stamped per phase, not once at launch: HEAD moves under a long measurement, and a
+        # single launch-time stamp would make a sound result look stale to whoever reads it.
+        "head_sha_at_run": subject_before,
+        # The same question after the run, so a subject that moved is VISIBLE rather than
+        # silently relabelled -- and so `head_sha_at_run` can be told from a stamp that merely
+        # happens to still be current. A checkout cannot move under itself; the working tree can.
+        "head_sha_at_end": subject_after,
+        "subject_changed_during_run": bool(
+            subject_before and subject_after and subject_before != subject_after),
+        # The phase's own clock. Not decoration: it is what lets a reader (and
+        # `test_no_banked_phase_stamps_a_commit_that_postdates_its_own_start`) check the stamp
+        # against git's commit dates instead of taking the record's word for it.
+        "started_at": started_at,
+        "ended_at": ended_at,
         "seconds": round(elapsed, 1),
         "returncode": result.returncode,
         "summary": tail[0][:300] if tail else "",
@@ -1352,6 +1428,15 @@ def _run_measurement(out_path: str, log) -> int:
         else:
             results["ratio_throwaway_over_in_tree"] = round(throwaway / base, 3)
             results.pop("ratio_unavailable_because", None)
+        # REPORTED, NOT REFUSED, and the asymmetry against the SHA rule above is deliberate. A
+        # phase whose subject moved mid-run is not two subjects -- it is one subject that took a
+        # small edit part-way through -- and the in-tree phase runs in a shared tree that other
+        # lanes commit to every few minutes, so refusing on it would starve this atom's one owed
+        # number permanently: the guard-that-waits-for-a-gap shape. It is named instead, so no
+        # reader takes the ratio for a comparison of two frozen trees.
+        results["ratio_subject_moved_during"] = sorted(
+            name for name in RATIO_PHASES
+            if (results["phases"].get(name) or {}).get("subject_changed_during_run"))
         results["ratio_measures"] = (
             "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-"
             "ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.")

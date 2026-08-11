@@ -32,6 +32,7 @@ process group that started it**. The differential is the point — the same scen
 detach is run alongside, and the undetached child dies, so the survival above is produced by
 `start_new_session` and not by the kill being harmless.
 """
+import datetime
 import fcntl
 import json
 import os
@@ -1763,7 +1764,12 @@ def test_every_phase_runs_inside_a_memory_bound(monkeypatch, tmp_path):
     seen = {}
 
     def capture(argv, *_a, **_kw):
-        seen.setdefault("argv", list(argv))
+        # The SUITE's argv, not the first subprocess the phase happens to start: since
+        # `_subject_sha` the phase asks its own tree `git rev-parse HEAD` before and after the
+        # run, and a `setdefault` on call one would grade that instead -- a control graded on
+        # the wrong subject, which is how it failed when the stamping was repaired.
+        if argv and argv[0] != "git":
+            seen.setdefault("argv", list(argv))
         return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
 
     monkeypatch.setattr(measure.subprocess, "run", capture)
@@ -2325,3 +2331,270 @@ def test_a_ratio_at_one_commit_is_still_computed(out, monkeypatch, tmp_path):
     rec = _read(out)
     assert rec["ratio_throwaway_over_in_tree"] == 1.5
     assert "ratio_unavailable_because" not in rec
+
+
+# ── THE STAMP MUST COME FROM THE SUBJECT, NOT FROM THE REPO THIRTY MINUTES LATER ─────────────
+#
+# THE DEFECT, OBSERVED IN THE LIVE RECORD (launch 14, 2026-08-11), not imagined. Banked:
+#
+#     "throwaway_checkout": {"cwd": "/var/tmp/publish-gate-head-qey8309l",
+#                            "head_sha_at_run": "a322429d1...", "seconds": 1873.7}
+#
+# The launch started at 20:29:36Z and the next phase entered at 21:33:51Z, so that suite started
+# at ~21:02:37Z -- and `git show -s --format=%cI a322429d1` is 21:26:07Z, TWENTY-THREE MINUTES
+# LATER. The tree under test was a `git archive` extraction taken before that commit existed; it
+# could not contain it. `head_sha_at_run` was `prc._head_sha()` read in the LIVE repo AFTER the
+# suite returned, so it named whatever another lane landed during the run.
+#
+# WHY IT MATTERS, and why it bites THIS atom: that field is the only input to the cross-commit
+# comparability guard the two tests above enforce. End-stamping makes it FAIL-OPEN in exactly the
+# conditions this harness waits for -- a quiet second phase ends at the same SHA the first phase
+# drifted into, `spanned` sees one commit, and the ratio is computed across two different
+# codebases and published as the cost of the checkout. And FAIL-CLOSED the other way: a pair that
+# genuinely ran the same code is refused because one unrelated commit landed during phase two.
+#
+# These drive the real builder against a REAL git repo, so nothing here asserts a stub against
+# itself: the subject is asked what it is, and the live repo is given a sentinel that must not
+# appear in the record.
+
+def _a_repo(path: Path, message="first"):
+    """A real one-commit git repo at `path`, returning its SHA."""
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "PATH": os.environ.get("PATH", "")}
+    path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "init", "-q"], cwd=str(path), env=env, check=True)
+    return _a_commit(path, message)
+
+
+def _a_commit(path: Path, message):
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "PATH": os.environ.get("PATH", "")}
+    subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", message],
+                   cwd=str(path), env=env, check=True)
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(path), env=env,
+                          capture_output=True, text=True, check=True).stdout.strip()
+
+
+def _run_the_phase(monkeypatch, cwd, on_suite=None, returncode=1):
+    """Drive the REAL phase-record builder with a stubbed suite, leaving git alone.
+
+    The stub dispatches: `git` argv go to the real subprocess (so `_subject_sha` asks a real
+    repo a real question), anything else is the pytest that is not being run here. `on_suite` is
+    called at the moment the suite would be running -- which is where a mid-run commit lands."""
+    real_run = subprocess.run
+
+    def dispatch(argv, *args, **kwargs):
+        if argv and argv[0] == "git":
+            return real_run(argv, *args, **kwargs)
+        if on_suite is not None:
+            on_suite()
+        return types.SimpleNamespace(returncode=returncode, stdout="1 failed in 1.00s", stderr="")
+
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_bounded_argv", lambda cwd, log: ["pytest"])
+    monkeypatch.setattr(measure.subprocess, "run", dispatch)
+    return measure._time_suite_under_exclusion(Path(cwd), lambda _m: None, None)
+
+
+def test_the_phase_stamps_the_sha_of_the_subject_it_ran_in(monkeypatch, tmp_path):
+    """The subject is asked what commit it is; the live repo is not asked what it has become.
+
+    A throwaway checkout is a DIFFERENT repo from the one this process lives in
+    (`_make_checkout_a_repo` writes its `.git/HEAD` to the extracted SHA), so `prc._head_sha()`
+    -- which always asks PROJECT_DIR -- is the wrong repo, not merely the wrong moment.
+
+    MUTATION (RUN): put `prc._head_sha()` back as the stamp and this reds on the sentinel."""
+    subject = tmp_path / "checkout"
+    sha = _a_repo(subject)
+    monkeypatch.setattr(measure.prc, "_head_sha", lambda: "LIVE-REPO-NOT-THE-SUBJECT")
+
+    phase = _run_the_phase(monkeypatch, subject)
+
+    assert phase["head_sha_at_run"] == sha, (
+        "the phase was stamped {!r}, which is not the commit of the tree it ran in"
+        .format(phase["head_sha_at_run"])
+    )
+    assert phase["head_sha_at_run"] != "LIVE-REPO-NOT-THE-SUBJECT", (
+        "the stamp came from the live repo, so the comparability guard is comparing labels that "
+        "belong to neither subject -- the launch-14 defect"
+    )
+    assert phase["subject_changed_during_run"] is False, (
+        "a checkout cannot move under itself; True here is evidence of a bug, not of a commit"
+    )
+
+
+def test_a_commit_landing_mid_suite_does_not_relabel_the_phase(monkeypatch, tmp_path):
+    """THE OBSERVED DEFECT, REPRODUCED. A commit lands while the suite runs -- the ordinary case
+    on this tree, where other lanes commit every few minutes through a ~30-minute phase.
+
+    End-stamping renamed the phase after its own subject: launch 14's throwaway was labelled with
+    a commit made 23 minutes after its suite had started. Start-stamping keeps the label the
+    subject actually had, and the move is recorded rather than swallowed.
+
+    MUTATION (RUN): stamp `head_sha_at_run` after the suite instead of before, and this reds --
+    `head_sha_at_run` becomes the mid-run commit and the phase claims to have run code it never
+    saw."""
+    subject = tmp_path / "tree"
+    before = _a_repo(subject)
+    landed = {}
+
+    def another_lane_commits():
+        landed["sha"] = _a_commit(subject, "another lane, mid-suite")
+
+    phase = _run_the_phase(monkeypatch, subject, on_suite=another_lane_commits)
+
+    assert phase["head_sha_at_run"] == before, (
+        "the phase was relabelled to {!r}, a commit that did not exist when its suite started"
+        .format(phase["head_sha_at_run"])
+    )
+    assert phase["head_sha_at_end"] == landed["sha"], (
+        "the mid-run commit is invisible in the record, so a reader cannot tell a frozen subject "
+        "from one that took an edit while it was being timed"
+    )
+    assert phase["subject_changed_during_run"] is True
+    assert phase["started_at"] <= phase["ended_at"]
+
+
+def test_the_writer_stamps_every_phase_with_its_subject_and_its_clock(monkeypatch, tmp_path):
+    """The non-emptiable half, and it is here for a reason this module has already been taught
+    once: a population control over the banked record cannot be the guard, because the harness
+    legitimately DROPS both ratio phases whenever HEAD moves under it. What must never silently
+    stop is the WRITER emitting these fields, and that is provable whatever is banked.
+
+    MUTATION (RUN): delete any one of the four keys from `_time_suite_under_exclusion`'s returned
+    dict and this reds."""
+    subject = tmp_path / "tree"
+    sha = _a_repo(subject)
+
+    for rc in (1, -15):
+        phase = _run_the_phase(monkeypatch, subject, returncode=rc)
+        for field in ("head_sha_at_run", "head_sha_at_end", "started_at", "ended_at"):
+            assert phase.get(field), (
+                "the harness banked a phase with no {!r} -- the comparability guard and the "
+                "postdating control both read it, and both fail SILENTLY on its absence"
+                .format(field)
+            )
+        assert phase["head_sha_at_run"] == sha
+        assert "subject_changed_during_run" in phase
+
+
+def _phases_stamped_after_their_own_start(rec, repo):
+    """(graded, offenders) for a record, against git's OWN commit dates in `repo`.
+
+    A phase cannot have run code committed after that phase started: the tree was already
+    extracted (a checkout) or already collected (in-tree). Written as a helper so the criterion
+    can be put on trial with an oracle below rather than only asked where it has always answered
+    -- the live record legitimately holds phases with no `started_at` at all, so the live call
+    can grade an empty population and a criterion tried only on its own declared points is not
+    one that has been shown to fire."""
+    graded, offenders = [], []
+    for name, phase in sorted((rec.get("phases") or {}).items()):
+        if not isinstance(phase, dict):
+            continue
+        sha, started = phase.get("head_sha_at_run"), phase.get("started_at")
+        if not sha or not started:
+            continue
+        shown = subprocess.run(["git", "show", "-s", "--format=%cI", sha],
+                               cwd=str(repo), capture_output=True, text=True)
+        if shown.returncode != 0:
+            continue  # a commit this repo no longer has cannot be dated here
+        committed = datetime.datetime.fromisoformat(
+            shown.stdout.strip()).astimezone(datetime.timezone.utc)
+        began = datetime.datetime.strptime(started, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=datetime.timezone.utc)
+        graded.append(name)
+        if committed > began:
+            offenders.append("{} started {} but is stamped {} committed {}".format(
+                name, started, sha[:9], committed.strftime("%Y-%m-%dT%H:%M:%SZ")))
+    return graded, offenders
+
+
+def test_the_postdating_criterion_fires_on_the_defect_that_was_banked(tmp_path):
+    """THE ORACLE. The criterion is tried on a record built to carry the launch-14 defect and on
+    its honest twin, in a real repo, so it is shown to discriminate -- not merely to pass where
+    it has always passed. This is what makes the live-record test below evidence when its
+    population is empty.
+
+    The two records differ in ONE value, the phase's `started_at`, either side of the stamped
+    commit's own date."""
+    repo = tmp_path / "repo"
+    _a_repo(repo, "before the phase started")
+    later = _a_commit(repo, "landed while the suite was running")
+    committed = subprocess.run(["git", "show", "-s", "--format=%cI", later],
+                               cwd=str(repo), capture_output=True, text=True).stdout.strip()
+    at = datetime.datetime.fromisoformat(committed).astimezone(datetime.timezone.utc)
+    before = (at - datetime.timedelta(minutes=23)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    after = (at + datetime.timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    guilty = {"phases": {"throwaway_checkout": {"head_sha_at_run": later, "started_at": before}}}
+    innocent = {"phases": {"throwaway_checkout": {"head_sha_at_run": later, "started_at": after}}}
+
+    graded, offenders = _phases_stamped_after_their_own_start(guilty, repo)
+    assert graded == ["throwaway_checkout"] and offenders, (
+        "the criterion did not fire on a phase stamped with a commit made 23 minutes after it "
+        "started -- which is exactly what launch 14 banked, so it could never have caught it"
+    )
+    graded, offenders = _phases_stamped_after_their_own_start(innocent, repo)
+    assert graded == ["throwaway_checkout"] and not offenders, (
+        "the criterion fires on an honestly stamped phase too, so it is an always-red detector "
+        "and as ignored as a blind one"
+    )
+
+
+def test_no_banked_phase_stamps_a_commit_that_postdates_its_own_start():
+    """The same criterion asked of the artefact on disk, against an INDEPENDENT source: git's own
+    commit dates. This is what would have caught launch 14 from the repo alone, with no timeline
+    reconstructed by hand.
+
+    It grades whatever population carries both fields and PRINTS its size rather than requiring
+    one: phases banked before this fix carry no `started_at`, and a guard keyed to a population a
+    healthy mechanism legitimately empties is a second failure mode wearing a vacuity guard's
+    clothes (this module has been taught that once already). What cannot go empty is the WRITER
+    test above; what proves this criterion can fire at all is the oracle above."""
+    live = measure.prc.PROJECT_DIR / "docs" / "observability" / "publish_gate_subject_cost.json"
+    if not live.exists():
+        pytest.skip("no live measurement record yet")
+    rec = json.loads(live.read_text())
+
+    graded, offenders = _phases_stamped_after_their_own_start(rec, measure.prc.PROJECT_DIR)
+
+    print("graded {} banked phase(s) against git commit dates: {}".format(
+        len(graded), ", ".join(graded) or "none carry both fields yet"))
+    assert not offenders, (
+        "a banked phase claims to have run a commit made after it started, so its label is the "
+        "live repo's HEAD rather than its own subject -- and the comparability guard is reading "
+        "it: {}".format("; ".join(offenders))
+    )
+
+
+def test_a_subject_that_moved_mid_run_is_named_beside_the_ratio(out, monkeypatch, tmp_path):
+    """REPORTED, NOT REFUSED -- and the asymmetry against the cross-commit rule is the point.
+
+    A phase whose subject moved mid-run is one subject that took a small edit part-way through,
+    not two subjects; and the in-tree phase runs in a shared tree that other lanes commit to
+    every few minutes, so refusing on it would starve this atom's one owed number permanently --
+    the guard-that-waits-for-a-gap shape. So the ratio still computes, and the record NAMES the
+    phase, which is what stops the number being read as a comparison of two frozen trees.
+
+    MUTATION (RUN): drop `ratio_subject_moved_during` and this reds; make the flag a refusal
+    instead and the ratio assertion reds."""
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    _stub_phases(monkeypatch, [])
+    moved = dict(_completed(1200.0, "aaaaaaaaa"), subject_changed_during_run=True)
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": _completed(1800.0, "aaaaaaaaa"),
+        "in_tree_baseline": moved,
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    rec = _read(out)
+    assert rec["ratio_throwaway_over_in_tree"] == 1.5, (
+        "a mid-run commit on the shared tree refused the ratio -- that is a gap this box never "
+        "gives, so the atom's owed number becomes unreachable rather than caveated"
+    )
+    assert rec["ratio_subject_moved_during"] == ["in_tree_baseline"], (
+        "the ratio is published with nothing saying one of its two subjects changed while it was "
+        "being timed: {!r}".format(rec.get("ratio_subject_moved_during"))
+    )

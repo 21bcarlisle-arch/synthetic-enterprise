@@ -1015,3 +1015,120 @@ def test_the_supervisor_cites_the_contract_instead_of_restating_it():
         "the supervisor stopped citing the contract -- its two prose sites are back to being an "
         "independent restatement of a rule that lives in another module"
     )
+
+
+# ── THE EXIT CRITERION MUST NOT REQUIRE A MECHANISM THE CODE SHIPS DISABLED ──
+#
+# OBSERVED, and it is why this atom has been drawn nine times without its level moving. The R3
+# elimination of 2026-08-11 (444402ee0) moved everything it was asked to move EXCEPT the one
+# sentence that decides whether the atom is done. `REUSE_HEAD_CHECKOUT` went False; the
+# instrument was rewritten around it (`tools/measure_publish_gate_subject_cost.py`'s header
+# states the criterion is SUPERSEDED and it no longer emits `meets_exit_criterion`); the design
+# doc was updated; this module grew a `reuse_enabled` fixture for the dormant half. And
+# `maturity_map.yaml` -- the text the drawer reads and the level move is certified against --
+# still opened with *"EXIT: (1) a REUSED checkout so __pycache__ survives between cycles, and
+# the clean-subject gate runs within 1.3x the in-tree baseline"*.
+#
+# So every draw handed the next worker a first criterion whose mechanism ships switched off and
+# whose bound was derived under warm bytecode that no longer exists at any price. The two
+# available readings were both wrong: rebuild the eliminated thing, or hold forever. That is not
+# a bookkeeping lag -- an exit criterion is the only thing standing between an atom and a level,
+# and this one had no subject.
+#
+# THE CLASS, which this project has filed from the other side twice: an elimination must move
+# the controls that pin it, and retiring a configuration must not starve the control that reads
+# its evidence. Both of those were done here. What neither covers is the criterion that CONSUMES
+# the verdict, one level up from any instrument -- so the elimination is now pinned to the
+# criterion itself, and the pin is a biconditional rather than a one-way assertion: a map that
+# declared the criterion superseded while the code shipped the mechanism would be the same
+# disagreement in the other direction, and would let a re-enablement land unread.
+#
+# NOT KEYED TO THE SENTENCE. The predicate is two derived booleans over the live map text, and
+# the mutation below feeds it the REAL pre-elimination wording rather than a fixture invented to
+# fail -- the string is quoted from 88f851846, so the control is tried against the state it
+# exists to catch and not against a convenient stand-in.
+
+def _ops2_exit_text() -> str:
+    """This atom's exit criterion, as the drawer and the level move actually read it."""
+    import yaml
+
+    raw = yaml.safe_load((REPO / "docs" / "design" / "maturity_map.yaml").read_text())
+    found = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("id") == "OPS2_publish_gate_head_worktree":
+                found.append(node)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(raw)
+    # VACUITY, and it is answerable by something that cannot legitimately go empty: this atom is
+    # in the map for as long as it is drawable, and a rename that loses it must fail here rather
+    # than pass an empty check.
+    assert len(found) == 1, (
+        "expected exactly one OPS2_publish_gate_head_worktree in the map, found {} -- this "
+        "control cannot grade a criterion it cannot find".format(len(found))
+    )
+    text = found[0].get("name") or ""
+    assert "EXIT:" in text, "the OPS2 map entry no longer carries an exit criterion to grade"
+    return text
+
+
+def _criterion_agrees_with_configuration(exit_text: str, reuse_is_shipped: bool):
+    """(ok, why) -- does the written criterion match the checkout mechanism that ships?
+
+    Deliberately two coarse booleans over the text, not a match on the sentence: the defect is a
+    criterion REQUIRING an eliminated mechanism, and any wording that does so has to name it."""
+    import re
+
+    demands_reuse = re.search(r"\bREUSED?\b[^.]{0,120}checkout", exit_text) is not None
+    marks_superseded = ("SUPERSEDED" in exit_text
+                        and "REUSE_HEAD_CHECKOUT ships False" in exit_text)
+    if reuse_is_shipped:
+        if marks_superseded:
+            return False, ("the map declares criterion 1 SUPERSEDED by the reuse elimination "
+                           "while REUSE_HEAD_CHECKOUT ships True -- the switch went back on and "
+                           "the criterion nobody re-read now understates what the atom owes")
+        return True, "reuse ships and the criterion may name it"
+    if demands_reuse and not marks_superseded:
+        return False, ("the exit criterion requires a REUSED checkout, and REUSE_HEAD_CHECKOUT "
+                       "ships False (R3 elimination, 444402ee0) -- the criterion's mechanism "
+                       "cannot be built at any price, so the atom can only be rebuilt-in-vain "
+                       "or held forever")
+    return True, "the criterion does not require the eliminated mechanism"
+
+
+def test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships():
+    """Live record, graded against the live switch -- so it can red mid-tick with no source change.
+
+    That is wanted, and it is the same shape as this atom's basis control: the map IS the
+    evidence a level move is certified against, so a criterion drifting out from under the code
+    must surface as a red here rather than as nine quiet redraws."""
+    ok, why = _criterion_agrees_with_configuration(_ops2_exit_text(), prc.REUSE_HEAD_CHECKOUT)
+    assert ok, why
+
+
+def test_mutation_the_pre_elimination_criterion_text_reds():
+    """MUTATION (R15), fed the REAL superseded wording -- quoted from 88f851846, not invented.
+
+    Both directions, because the pin is a biconditional: the shipped-False box must refuse the
+    old text, and the shipped-True box must refuse the new one."""
+    old = ("... EXIT: (1) a REUSED checkout so __pycache__ survives between cycles, and the "
+           "clean-subject gate runs within 1.3x the in-tree baseline (measured both sides, not "
+           "asserted); (2) GATE_SUITE_TIMEOUT_SECONDS re-derived ...")
+    ok, why = _criterion_agrees_with_configuration(old, reuse_is_shipped=False)
+    assert not ok, "the pre-elimination criterion passed against a box that cannot build it"
+    assert "cannot be built at any price" in why
+
+    ok, _ = _criterion_agrees_with_configuration(old, reuse_is_shipped=True)
+    assert ok, "the old criterion was correct while the mechanism shipped, and must stay so"
+
+    live = _ops2_exit_text()
+    ok, why = _criterion_agrees_with_configuration(live, reuse_is_shipped=True)
+    assert not ok, ("a re-enabled REUSE_HEAD_CHECKOUT must red against the superseded criterion "
+                    "-- otherwise flipping the switch back is invisible to the atom's own exit")
+    assert "went back on" in why

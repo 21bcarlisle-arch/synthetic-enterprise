@@ -13,6 +13,16 @@ lifecycle and that test.
 
 ---
 
+> **WITHDRAWN — READ THIS BEFORE §1 (2026-08-11).** `444402ee0` eliminated the reused checkout
+> under R3. `REUSE_HEAD_CHECKOUT` ships `False`, every cycle takes its own throwaway checkout,
+> and §1's exit criterion (a reused checkout within 1.3× in-tree) is **SUPERSEDED, not met, and
+> cannot now be met** — warm bytecode is unavailable to this atom at any price. §§1–4 are the
+> history of a mechanism that shipped and was withdrawn. The full disposition, and what replaced
+> the criterion, is at *"Everything above §1 describes a configuration that no longer runs"*
+> below; the map's own exit text was carried to it on 2026-08-11 (ninth tick) after nine draws
+> against a criterion with no subject. This banner exists because that paragraph was at the
+> bottom and this section is where a reader starts.
+
 ## 1. The checkout is REUSED between cycles
 
 One directory, `<tmp>/publish-gate-head-reused`, refreshed in place rather than recreated:
@@ -102,6 +112,11 @@ pytest-rewritten bytecode recompiled on every publish cycle, permanently.
 > `prc._head_checkout()`, so its verdict turned on whether a publisher held the reuse lock; it now
 > defers at the guard that actually fires first. Module: **900s+ hang → 54 passed in 5.3s**. Full
 > finding: `docs/staging/done/WORKER_FINDING_THE_EXCLUSION_DEADLOCKED_AGAINST_THE_LOCK_IT_TAKES_2026-08-10.md`.
+
+**Ratio warm / in-tree: SUPERSEDED, never owed again** — the warm term requires the directory
+`444402ee0` eliminated, so this ratio has no measurable subject; see the withdrawal banner above
+§1. What is still owed is the OTHER ratio, throwaway / in-tree: the per-cycle tax the elimination
+made permanent. Recorded as written at the time:
 
 **Ratio warm / in-tree: STILL OWED** against the exit criterion of ≤ 1.3×. Cold and warm are
 both banked and load-bearing (§2's bound is derived from the worst of them), but the *exit

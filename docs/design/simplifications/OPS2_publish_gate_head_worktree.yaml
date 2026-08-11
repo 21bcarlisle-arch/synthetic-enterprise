@@ -556,3 +556,149 @@ build_note: |
   This was built rather than queued, against the QUEUE-by-default default, for one reason: the
   measurement launched at the end of this tick is the run that answers the atom's one owed item,
   and without this it could bank a wrong number that looks right.
+
+
+  2026-08-11, ninth tick. THE OWED ITEM IS STILL A COMPLETED `in_tree_baseline` and the level
+  still does not move -- the measurement for it is live and correctly detached (transient unit
+  `publish-gate-subject-cost.service`, pid 318057, stage `waiting_for_publisher_lock` behind a
+  publisher that had been mid-suite since 21:04Z). It was not polled; this tick did the work that
+  does not depend on it.
+
+  WHAT THIS TICK FOUND, and it is why this atom has been drawn nine times without moving: the R3
+  elimination moved everything it was asked to move EXCEPT the one sentence that decides whether
+  the atom is done. `REUSE_HEAD_CHECKOUT` went False (444402ee0); the instrument was rewritten
+  around it and its header now states criterion 1 is SUPERSEDED and stops emitting
+  `meets_exit_criterion`; the design doc followed; this module grew a `reuse_enabled` fixture for
+  the dormant half. And `maturity_map.yaml` -- the text the DRAWER reads and a level move is
+  certified against -- still opened with "EXIT: (1) a REUSED checkout so __pycache__ survives
+  between cycles, and the clean-subject gate runs within 1.3x the in-tree baseline".
+
+  So every draw since the elimination handed the next worker a first criterion whose mechanism
+  ships switched off and whose bound was derived under warm bytecode that is not available at any
+  price. Both readings of it are wrong -- rebuild the eliminated thing, or hold forever -- and the
+  second is what happened, quietly, for nine draws. An exit criterion is the only thing standing
+  between an atom and a level; this one had no subject.
+
+  THE CLASS, filed here from a side this project has not had it from before: an elimination must
+  move the controls that pin it, and retiring a configuration must not starve the control that
+  reads its evidence -- both were done, and neither covers the CRITERION THAT CONSUMES THE
+  VERDICT, one level above any instrument. The instrument was made honest about a question the
+  map was still asking wrongly.
+
+  CRITERION 1 RESTATED, and deliberately not weakened into something this atom can pass: it is
+  marked SUPERSEDED with its cause and commit, it says DO NOT re-enable reuse to chase the 1.3x,
+  it says the supersession is not the criterion being met, and its successor is a REPORTED number
+  rather than a bound -- the throwaway/in-tree ratio, i.e. what the cold subject costs every
+  publish cycle, which is the permanent tax the elimination made unavoidable. The owed
+  `in_tree_baseline` is carried INTO the restatement, so the atom still cannot certify on an
+  estimate.
+
+  R15 BOTH WAYS, MUTATIONS RUN, and the pin is a BICONDITIONAL because the other direction is the
+  same defect mirrored: a map declaring the criterion superseded while the code shipped reuse
+  would let a re-enablement land unread. `test_the_exit_criterion_agrees_with_the_checkout_
+  mechanism_that_ships` grades the LIVE map against the LIVE switch -- so it can red mid-tick with
+  no source change, which is wanted, the map being the evidence. MUTATION 1, on the live path:
+  `prc.REUSE_HEAD_CHECKOUT = True` against the unchanged map REDS ("the switch went back on and
+  the criterion nobody re-read now understates what the atom owes"). MUTATION 2 feeds the
+  predicate the REAL pre-elimination wording quoted from 88f851846 -- not a fixture invented to
+  fail -- and it REDS against a shipped-False box while correctly PASSING against the shipped-True
+  box it was written for. Vacuity is answerable by something that cannot legitimately go empty:
+  exactly one OPS2 entry must be found and it must carry an `EXIT:`.
+
+  THE FIVE-TICK BOOKKEEPING DEFERRAL IS DISCHARGED, and its cause was not forgetfulness.
+  `file_scope` now also names `tests/background/test_process_run_complete.py`. It could not land
+  on ticks 4-8 because a pathspec commit takes the INDEX version of a file and
+  `docs/design/maturity_map.yaml` was dirty each time with another lane's staged hunk. This tick
+  the collision was H27 Expert Hour #19's whole set, staged coherently at 21:04-21:06Z by a tick
+  that ended without committing -- so it was ADOPTED and landed under its own description first,
+  rather than being swept into this atom's commit or deferred a sixth time.
+
+
+  2026-08-11, tenth tick. THE LEVEL DOES NOT MOVE AND THE OWED ITEM IS UNCHANGED: a completed
+  `in_tree_baseline`. Launch 14 (pid 318057, transient unit, session leader) is ALIVE and inside
+  that phase's suite at the time of writing, so it was not polled, not re-launched and not killed
+  -- and this tick did the work that does not depend on it. What it found was that the number that
+  run is about to produce would have been labelled with a commit that did not exist when it was
+  measured.
+
+  OBSERVED, IN THE BANKED RECORD, WITH GIT AS THE SECOND WITNESS. Launch 14's throwaway phase is
+  banked `"head_sha_at_run": "a322429d1"` beside a field comment calling that "the SHA THIS phase
+  actually ran against". The launch started 20:29:36Z, the next phase entered 21:33:51Z and the
+  phase ran 1873.7s, so its suite STARTED at ~21:02:37Z -- and `git show -s --format=%cI
+  a322429d1` is 21:26:07Z. The label was made twenty-three minutes AFTER the suite it names had
+  started, into a repo whose contents could not reach a `git archive` extraction that had already
+  happened. `head_sha_at_run` was `prc._head_sha()`, read in the LIVE repo AFTER the suite
+  returned, so it named whichever commit another lane landed during the ~31-minute run. For a
+  checkout it is the wrong REPO as well as the wrong MOMENT: a checkout is its own repo whose
+  `.git/HEAD` is the extracted SHA (`_make_checkout_a_repo`), and nothing was asking it.
+
+  WHY IT BIT THIS ATOM AND NOT SOME OTHER. That field is the ONLY input to the cross-commit
+  comparability guard -- the rule ticks 4 and 8 exist to enforce, that the ratio may not span two
+  commits. End-stamping makes that guard grade a label belonging to neither subject, and it fails
+  BOTH ways. FAIL-OPEN, and likeliest in exactly the conditions this harness waits for: throwaway
+  extracted at X, drifting to Z over 31 minutes; baseline starts at Z and the box stays quiet, so
+  it ends at Z too; `spanned` sees ONE commit and the ratio is computed across X and Z and
+  published as the cost of the checkout. That is the defect the guard was written twice to
+  prevent, arriving through the door it was watching -- and it needs a QUIET second phase, which
+  is the state this harness blocks until it gets. FAIL-CLOSED the other way: an honest pair
+  refused because one unrelated commit landed during phase two, at ~40 minutes a time.
+
+  THE REPAIR IS TO ASK THE SUBJECT, not the repo thirty minutes later. `_subject_sha(cwd)` puts
+  the question to the tree the suite ran in, BEFORE it starts (`head_sha_at_run`) and again after
+  (`head_sha_at_end`), with `subject_changed_during_run` and the phase's own `started_at`/
+  `ended_at`. A checkout cannot move under itself, so on that phase the flag being True would
+  itself be evidence of a bug; the working tree can and does.
+
+  A MOVED SUBJECT IS REPORTED, NOT REFUSED (`ratio_subject_moved_during`), and the asymmetry
+  against the SHA rule beside it is the judgement worth recording. A phase that took a small edit
+  part-way through is ONE subject, not two; the in-tree phase runs in a shared tree other lanes
+  commit to every few minutes; so refusing on it would make this atom's owed number permanently
+  unreachable -- the guard-that-waits-for-a-gap shape, which this project has already filed from
+  the other side. It is named in the artefact instead, so no reader takes the ratio for a
+  comparison of two frozen trees.
+
+  R15 BOTH WAYS, EIGHT MUTATIONS RUN, source restored byte-identical after each (`cmp` against a
+  pre-mutation copy, not an eyeballed diff): stamp from the live repo -- the pre-repair behaviour
+  exactly -- reds 3; stamp after the suite reds the relabel test; the mid-run flag hardcoded False
+  reds it; `ratio_subject_moved_during` dropped reds 1; a moved subject made a REFUSAL reds the
+  ratio assertion (the starving direction is pinned too, or the fix would be free to become the
+  next wedge); the writer dropping `started_at` reds 2; and the postdating criterion made
+  never-firing and always-firing reds its oracle both ways. 101 passed in
+  tests/tools/test_measure_publish_gate_subject_cost.py, 245 across the publish-gate family, ruff
+  clean on both touched files.
+
+  THE NEW POPULATION CONTROL IS PUT ON TRIAL RATHER THAN ASSUMED, because it currently grades
+  ZERO. `test_no_banked_phase_stamps_a_commit_that_postdates_its_own_start` reads the live record
+  and checks each phase's stamp against GIT'S OWN commit dates -- an independent source, and the
+  thing that would have caught this from the repo alone with no timeline reconstructed by hand.
+  Nothing banked carries `started_at` yet, so its population is empty, and this module has already
+  been taught what an empty population control is worth: the vacuity half is answered by the
+  WRITER test (which cannot go empty), and the criterion's ability to FIRE is proven by an oracle
+  -- a real repo and two records differing in one value either side of the stamped commit's own
+  date, one of which it must flag and one of which it must not.
+
+  WHAT WAS DELIBERATELY NOT DONE. The mis-stamped banked phase is NOT relabelled: its true SHA is
+  bounded (between 88f851846 and 3f8ec3169) but not known, and writing a plausible one would be
+  fabricating evidence -- it must be re-timed, and no action is needed because its stamp already
+  differs from HEAD and `_drop_incomparable_ratio_phases` drops it at the next launch. The live
+  record was not edited at all: launch 14 owns that file and racing its checkpoint would cost the
+  run that answers the owed item.
+
+  QUEUED WITH A NAMED RECOMMENDATION, not left open: PIN THE PAIR. The two phases will keep
+  landing at different SHAs by luck, because ~30 minutes of quiet is a gap this tree does not
+  give. The design that removes the luck is to run `in_tree_baseline` FIRST, take its start SHA S,
+  and extract the throwaway from S rather than from live HEAD -- comparable by CONSTRUCTION rather
+  than by a quiet window. It needs an optional SHA parameter on `prc._head_checkout()`, which is
+  publish-path code whose gate scope an undersized change wedges, so it is not taken beside a live
+  measurement. Filed:
+  docs/staging/WORKER_FINDING_A_PHASE_WAS_STAMPED_WITH_A_COMMIT_MADE_AFTER_IT_STARTED_2026-08-11.md
+
+  ADOPTED, NOT REBUILT, AND IT IS THE THIRD TICK RUNNING THIS HAS BEEN NEEDED: the NINTH tick's
+  own work was still dirty in the shared tree -- its 117 new lines in
+  tests/background/test_publish_gate_subject_is_head.py
+  (`test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships` and its
+  pre-elimination-text mutation), plus the ninth-tick paragraphs in this file and in
+  docs/design/OPS2_PUBLISH_GATE_HEAD_CHECKOUT.md, with no process of that tick alive. Verified
+  BEFORE adopting rather than after: they are green inside the 245-passing family run above and
+  carry no other lane's hunks. The map restatement that tick made HAD landed, so the criterion the
+  drawer reads is correct; only the controls pinning it were invisible to anyone but this tree.
