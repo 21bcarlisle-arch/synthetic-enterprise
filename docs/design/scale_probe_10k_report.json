@@ -1,0 +1,1613 @@
+{
+  "generated_at": "2026-08-10T17:07:43+00:00",
+  "prediction_register": "docs/design/SCALE_PROBE_10K.md",
+  "prediction_register_sha256": "90012f0d2f82dc31baa5cf3518a286ca209757833d7b9df3440506916bb69104",
+  "predictions": {
+    "advisor_ordering": [
+      "  1. in-run RAM at settlement build",
+      "  2. run-output serialization",
+      "  3. per-customer site publish",
+      "  4. git transport of outputs"
+    ],
+    "worker_priors": [
+      "  P1 settlement_build is the first tear, agreeing with advisor rank 1.",
+      "  P2 marginal in-RAM cost of one customer-year of settlement records is",
+      "     15-30 MB, so under a 4096 MB cap the settlement stage dies at N between",
+      "     140 and 280.",
+      "  P3 run_output_serialization is NOT the second tear. The committed run output",
+      "     is ~200 KB per customer-decade (4.1 MB / 20 customers), i.e. a REDUCED",
+      "     summary, not the 12.8 MB/customer-year of raw settlement records. Predicted",
+      "     rank: 3rd or 4th, not 2nd.",
+      "  P4 site_publish and git_transport are both linear and cheap at 10k in BYTES",
+      "     (~140 KB/customer observed => ~1.4 GB) but the FILE COUNT (10k files in one",
+      "     directory, one git index) is the thing that bites; predicted 2nd tear by",
+      "     wall-clock, not by memory.",
+      "  P5 the shared world load (129 MB Elexon SSP cache) is N-INDEPENDENT and will",
+      "     turn out to be a large fixed floor relative to a 20-customer book -- i.e.",
+      "     at today's scale most of the RAM is NOT per-customer. This is the review's",
+      "     named unknown (\"how much state is truly per-customer versus shared per",
+      "     profile is exactly what nobody has measured\")."
+    ]
+  },
+  "config": {
+    "ladder": [
+      20,
+      100,
+      1000,
+      10000
+    ],
+    "stages": [
+      "shared_world_load",
+      "population_draw",
+      "settlement_build",
+      "run_output_serialize",
+      "site_publish",
+      "git_transport"
+    ],
+    "mem_cap_mb": 2048,
+    "cell_timeout_s": 600.0,
+    "scratch": "/home/rich/.cache/synthetic-enterprise/scale_probe_10k",
+    "python": "3.14.4"
+  },
+  "cells": [
+    {
+      "stage": "shared_world_load",
+      "n": 0,
+      "wall_s": 0.756,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 391236,
+      "checkpoints": 3,
+      "last_checkpoint": {
+        "i": 2,
+        "rss_kb": 391236,
+        "elapsed_s": 0.697,
+        "phase": "slice_written"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 21560,
+          "elapsed_s": 0.0,
+          "phase": "start"
+        },
+        {
+          "i": 1,
+          "rss_kb": 391236,
+          "elapsed_s": 0.662,
+          "phase": "cache_loaded",
+          "records": 168026
+        },
+        {
+          "i": 2,
+          "rss_kb": 391236,
+          "elapsed_s": 0.697,
+          "phase": "slice_written"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 391236,
+      "extra": {
+        "cache_present": true,
+        "n_independent": true,
+        "cache_bytes": 128929919,
+        "cache_load_wall_s": 0.658,
+        "rss_before_kb": 21560,
+        "rss_after_full_cache_kb": 391236,
+        "slice_bytes": 1464706,
+        "price_source": "slice_cache",
+        "slice_path": "/home/rich/.cache/synthetic-enterprise/scale_probe_10k/prices_2021.json"
+      }
+    },
+    {
+      "stage": "population_draw",
+      "n": 20,
+      "wall_s": 0.102,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22568,
+      "checkpoints": 4,
+      "last_checkpoint": {
+        "i": 21,
+        "rss_kb": 22576,
+        "elapsed_s": 0.015,
+        "phase": "rendered"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22500,
+          "elapsed_s": 0.003
+        },
+        {
+          "i": 20,
+          "rss_kb": 22568,
+          "elapsed_s": 0.008
+        },
+        {
+          "i": 21,
+          "rss_kb": 22568,
+          "elapsed_s": 0.011,
+          "phase": "drawn"
+        },
+        {
+          "i": 21,
+          "rss_kb": 22576,
+          "elapsed_s": 0.015,
+          "phase": "rendered"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22576,
+      "extra": {
+        "requested_n": 20,
+        "drawn": 21,
+        "lambda_per_year": 4.0,
+        "rendered_keys": [
+          "acquisition_date",
+          "acquisition_type",
+          "commodity",
+          "consumption_band",
+          "customer_id",
+          "data_regime",
+          "eac_kwh",
+          "location",
+          "payment_method",
+          "segment",
+          "tariff_type"
+        ]
+      }
+    },
+    {
+      "stage": "population_draw",
+      "n": 100,
+      "wall_s": 0.102,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22592,
+      "checkpoints": 11,
+      "last_checkpoint": {
+        "i": 96,
+        "rss_kb": 22640,
+        "elapsed_s": 0.039,
+        "phase": "rendered"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22524,
+          "elapsed_s": 0.003
+        },
+        {
+          "i": 20,
+          "rss_kb": 22592,
+          "elapsed_s": 0.007
+        },
+        {
+          "i": 30,
+          "rss_kb": 22592,
+          "elapsed_s": 0.011
+        },
+        {
+          "i": 40,
+          "rss_kb": 22592,
+          "elapsed_s": 0.015
+        },
+        {
+          "i": 50,
+          "rss_kb": 22596,
+          "elapsed_s": 0.018
+        },
+        {
+          "i": 60,
+          "rss_kb": 22596,
+          "elapsed_s": 0.022
+        },
+        {
+          "i": 70,
+          "rss_kb": 22600,
+          "elapsed_s": 0.025
+        },
+        {
+          "i": 80,
+          "rss_kb": 22600,
+          "elapsed_s": 0.03
+        },
+        {
+          "i": 90,
+          "rss_kb": 22600,
+          "elapsed_s": 0.033
+        },
+        {
+          "i": 96,
+          "rss_kb": 22604,
+          "elapsed_s": 0.037,
+          "phase": "drawn"
+        },
+        {
+          "i": 96,
+          "rss_kb": 22640,
+          "elapsed_s": 0.039,
+          "phase": "rendered"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22640,
+      "extra": {
+        "requested_n": 100,
+        "drawn": 96,
+        "lambda_per_year": 20.0,
+        "rendered_keys": [
+          "acquisition_date",
+          "acquisition_type",
+          "commodity",
+          "consumption_band",
+          "customer_id",
+          "data_regime",
+          "eac_kwh",
+          "location",
+          "payment_method",
+          "segment",
+          "tariff_type"
+        ]
+      }
+    },
+    {
+      "stage": "population_draw",
+      "n": 1000,
+      "wall_s": 0.504,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 23660,
+      "checkpoints": 102,
+      "last_checkpoint": {
+        "i": 1009,
+        "rss_kb": 23660,
+        "elapsed_s": 0.416,
+        "phase": "rendered"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22520,
+          "elapsed_s": 0.003
+        },
+        {
+          "i": 100,
+          "rss_kb": 22600,
+          "elapsed_s": 0.038
+        },
+        {
+          "i": 190,
+          "rss_kb": 22628,
+          "elapsed_s": 0.072
+        },
+        {
+          "i": 290,
+          "rss_kb": 22664,
+          "elapsed_s": 0.118
+        },
+        {
+          "i": 380,
+          "rss_kb": 22712,
+          "elapsed_s": 0.154
+        },
+        {
+          "i": 470,
+          "rss_kb": 22756,
+          "elapsed_s": 0.187
+        },
+        {
+          "i": 560,
+          "rss_kb": 22800,
+          "elapsed_s": 0.219
+        },
+        {
+          "i": 650,
+          "rss_kb": 22844,
+          "elapsed_s": 0.253
+        },
+        {
+          "i": 740,
+          "rss_kb": 22892,
+          "elapsed_s": 0.287
+        },
+        {
+          "i": 840,
+          "rss_kb": 22936,
+          "elapsed_s": 0.326
+        },
+        {
+          "i": 930,
+          "rss_kb": 22980,
+          "elapsed_s": 0.371
+        },
+        {
+          "i": 1009,
+          "rss_kb": 23660,
+          "elapsed_s": 0.416,
+          "phase": "rendered"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 23660,
+      "extra": {
+        "requested_n": 1000,
+        "drawn": 1009,
+        "lambda_per_year": 200.0,
+        "rendered_keys": [
+          "acquisition_date",
+          "acquisition_type",
+          "commodity",
+          "consumption_band",
+          "customer_id",
+          "data_regime",
+          "eac_kwh",
+          "location",
+          "payment_method",
+          "segment",
+          "tariff_type"
+        ]
+      }
+    },
+    {
+      "stage": "population_draw",
+      "n": 10000,
+      "wall_s": 1.559,
+      "returncode": 3,
+      "sampled_peak_rss_kb": 24312,
+      "checkpoints": 379,
+      "last_checkpoint": {
+        "i": 3770,
+        "rss_kb": 26784,
+        "elapsed_s": 1.501,
+        "phase": "rendered"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22476,
+          "elapsed_s": 0.004
+        },
+        {
+          "i": 350,
+          "rss_kb": 22680,
+          "elapsed_s": 0.129
+        },
+        {
+          "i": 700,
+          "rss_kb": 22844,
+          "elapsed_s": 0.27
+        },
+        {
+          "i": 1040,
+          "rss_kb": 23016,
+          "elapsed_s": 0.391
+        },
+        {
+          "i": 1380,
+          "rss_kb": 23184,
+          "elapsed_s": 0.548
+        },
+        {
+          "i": 1730,
+          "rss_kb": 23356,
+          "elapsed_s": 0.695
+        },
+        {
+          "i": 2070,
+          "rss_kb": 23516,
+          "elapsed_s": 0.836
+        },
+        {
+          "i": 2420,
+          "rss_kb": 23688,
+          "elapsed_s": 0.96
+        },
+        {
+          "i": 2760,
+          "rss_kb": 23856,
+          "elapsed_s": 1.093
+        },
+        {
+          "i": 3100,
+          "rss_kb": 24016,
+          "elapsed_s": 1.232
+        },
+        {
+          "i": 3450,
+          "rss_kb": 24192,
+          "elapsed_s": 1.373
+        },
+        {
+          "i": 3770,
+          "rss_kb": 26784,
+          "elapsed_s": 1.501,
+          "phase": "rendered"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "error",
+      "child_peak_rss_kb": 26732,
+      "extra": {},
+      "error": "RuntimeError: population draw asked for 10000 and yielded 3770 (62% short) at lambda=2000.0/yr \u2014 the generator cannot express a book this size"
+    },
+    {
+      "stage": "settlement_build",
+      "n": 20,
+      "wall_s": 1.21,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 494448,
+      "checkpoints": 4,
+      "last_checkpoint": {
+        "i": 20,
+        "rss_kb": 494628,
+        "elapsed_s": 1.055,
+        "phase": "complete"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 28908,
+          "elapsed_s": 0.013,
+          "phase": "prices_loaded",
+          "records": 17519
+        },
+        {
+          "i": 10,
+          "rss_kb": 265352,
+          "elapsed_s": 0.542,
+          "records_held": 175170
+        },
+        {
+          "i": 20,
+          "rss_kb": 494628,
+          "elapsed_s": 1.051,
+          "records_held": 350340
+        },
+        {
+          "i": 20,
+          "rss_kb": 494628,
+          "elapsed_s": 1.055,
+          "phase": "complete"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 494448,
+      "extra": {
+        "requested_n": 20,
+        "settled": 20,
+        "records_per_customer": 17517,
+        "records_held": 350340,
+        "rss_after_prices_kb": 28908,
+        "price_source": "slice_cache",
+        "slice_path": "/home/rich/.cache/synthetic-enterprise/scale_probe_10k/prices_2021.json"
+      }
+    },
+    {
+      "stage": "settlement_build",
+      "n": 100,
+      "wall_s": 5.536,
+      "returncode": 3,
+      "sampled_peak_rss_kb": 2074960,
+      "checkpoints": 9,
+      "last_checkpoint": {
+        "i": 80,
+        "rss_kb": 1870300,
+        "elapsed_s": 4.611,
+        "records_held": 1401360
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 28720,
+          "elapsed_s": 0.013,
+          "phase": "prices_loaded",
+          "records": 17519
+        },
+        {
+          "i": 10,
+          "rss_kb": 265320,
+          "elapsed_s": 0.519,
+          "records_held": 175170
+        },
+        {
+          "i": 20,
+          "rss_kb": 494596,
+          "elapsed_s": 1.069,
+          "records_held": 350340
+        },
+        {
+          "i": 30,
+          "rss_kb": 723880,
+          "elapsed_s": 1.688,
+          "records_held": 525510
+        },
+        {
+          "i": 40,
+          "rss_kb": 953156,
+          "elapsed_s": 2.232,
+          "records_held": 700680
+        },
+        {
+          "i": 50,
+          "rss_kb": 1182472,
+          "elapsed_s": 2.778,
+          "records_held": 875850
+        },
+        {
+          "i": 60,
+          "rss_kb": 1411740,
+          "elapsed_s": 3.421,
+          "records_held": 1051020
+        },
+        {
+          "i": 70,
+          "rss_kb": 1641012,
+          "elapsed_s": 4.077,
+          "records_held": 1226190
+        },
+        {
+          "i": 80,
+          "rss_kb": 1870300,
+          "elapsed_s": 4.611,
+          "records_held": 1401360
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "memory_error",
+      "child_peak_rss_kb": 2074960,
+      "extra": {}
+    },
+    {
+      "stage": "run_output_serialize",
+      "n": 20,
+      "wall_s": 0.303,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 47012,
+      "checkpoints": 3,
+      "last_checkpoint": {
+        "i": 2,
+        "rss_kb": 47012,
+        "elapsed_s": 0.204,
+        "phase": "serialized"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 32416,
+          "elapsed_s": 0.023,
+          "phase": "sample_loaded",
+          "reps": 2,
+          "customers_in_sample": 18
+        },
+        {
+          "i": 2,
+          "rss_kb": 46816,
+          "elapsed_s": 0.064,
+          "phase": "assembled"
+        },
+        {
+          "i": 2,
+          "rss_kb": 47012,
+          "elapsed_s": 0.204,
+          "phase": "serialized"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 46732,
+      "extra": {
+        "requested_n": 20,
+        "template_source": "run_output_latest_scaled",
+        "customers_in_sample": 18,
+        "reps": 2,
+        "sample_bytes": 4000624,
+        "serialize_wall_s": 0.136,
+        "output_bytes": 6045994,
+        "bytes_per_customer": 302299
+      }
+    },
+    {
+      "stage": "run_output_serialize",
+      "n": 100,
+      "wall_s": 0.655,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 75664,
+      "checkpoints": 3,
+      "last_checkpoint": {
+        "i": 6,
+        "rss_kb": 75664,
+        "elapsed_s": 0.569,
+        "phase": "serialized"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 32380,
+          "elapsed_s": 0.023,
+          "phase": "sample_loaded",
+          "reps": 6,
+          "customers_in_sample": 18
+        },
+        {
+          "i": 6,
+          "rss_kb": 75468,
+          "elapsed_s": 0.144,
+          "phase": "assembled"
+        },
+        {
+          "i": 6,
+          "rss_kb": 75664,
+          "elapsed_s": 0.569,
+          "phase": "serialized"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 75568,
+      "extra": {
+        "requested_n": 100,
+        "template_source": "run_output_latest_scaled",
+        "customers_in_sample": 18,
+        "reps": 6,
+        "sample_bytes": 4000624,
+        "serialize_wall_s": 0.421,
+        "output_bytes": 18137962,
+        "bytes_per_customer": 181379
+      }
+    },
+    {
+      "stage": "run_output_serialize",
+      "n": 1000,
+      "wall_s": 5.135,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 434420,
+      "checkpoints": 8,
+      "last_checkpoint": {
+        "i": 56,
+        "rss_kb": 434420,
+        "elapsed_s": 4.96,
+        "phase": "serialized"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 32440,
+          "elapsed_s": 0.023,
+          "phase": "sample_loaded",
+          "reps": 56,
+          "customers_in_sample": 18
+        },
+        {
+          "i": 10,
+          "rss_kb": 104228,
+          "elapsed_s": 0.204,
+          "reps": 56,
+          "customers": 180
+        },
+        {
+          "i": 20,
+          "rss_kb": 175964,
+          "elapsed_s": 0.393,
+          "reps": 56,
+          "customers": 360
+        },
+        {
+          "i": 30,
+          "rss_kb": 247704,
+          "elapsed_s": 0.574,
+          "reps": 56,
+          "customers": 540
+        },
+        {
+          "i": 40,
+          "rss_kb": 319444,
+          "elapsed_s": 0.794,
+          "reps": 56,
+          "customers": 720
+        },
+        {
+          "i": 50,
+          "rss_kb": 391180,
+          "elapsed_s": 0.968,
+          "reps": 56,
+          "customers": 900
+        },
+        {
+          "i": 56,
+          "rss_kb": 434224,
+          "elapsed_s": 1.104,
+          "phase": "assembled"
+        },
+        {
+          "i": 56,
+          "rss_kb": 434420,
+          "elapsed_s": 4.96,
+          "phase": "serialized"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 434236,
+      "extra": {
+        "requested_n": 1000,
+        "template_source": "run_output_latest_scaled",
+        "customers_in_sample": 18,
+        "reps": 56,
+        "sample_bytes": 4000624,
+        "serialize_wall_s": 3.852,
+        "output_bytes": 169287562,
+        "bytes_per_customer": 169287
+      }
+    },
+    {
+      "stage": "run_output_serialize",
+      "n": 10000,
+      "wall_s": 6.542,
+      "returncode": 3,
+      "sampled_peak_rss_kb": 2089132,
+      "checkpoints": 29,
+      "last_checkpoint": {
+        "i": 280,
+        "rss_kb": 2041132,
+        "elapsed_s": 6.02,
+        "reps": 556,
+        "customers": 5040
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 0,
+          "rss_kb": 32420,
+          "elapsed_s": 0.024,
+          "phase": "sample_loaded",
+          "reps": 556,
+          "customers_in_sample": 18
+        },
+        {
+          "i": 30,
+          "rss_kb": 247688,
+          "elapsed_s": 0.644,
+          "reps": 556,
+          "customers": 540
+        },
+        {
+          "i": 50,
+          "rss_kb": 391164,
+          "elapsed_s": 1.063,
+          "reps": 556,
+          "customers": 900
+        },
+        {
+          "i": 80,
+          "rss_kb": 606388,
+          "elapsed_s": 1.839,
+          "reps": 556,
+          "customers": 1440
+        },
+        {
+          "i": 100,
+          "rss_kb": 749852,
+          "elapsed_s": 2.21,
+          "reps": 556,
+          "customers": 1800
+        },
+        {
+          "i": 130,
+          "rss_kb": 965064,
+          "elapsed_s": 2.749,
+          "reps": 556,
+          "customers": 2340
+        },
+        {
+          "i": 150,
+          "rss_kb": 1108524,
+          "elapsed_s": 3.272,
+          "reps": 556,
+          "customers": 2700
+        },
+        {
+          "i": 180,
+          "rss_kb": 1323780,
+          "elapsed_s": 3.864,
+          "reps": 556,
+          "customers": 3240
+        },
+        {
+          "i": 200,
+          "rss_kb": 1467256,
+          "elapsed_s": 4.419,
+          "reps": 556,
+          "customers": 3600
+        },
+        {
+          "i": 230,
+          "rss_kb": 1682460,
+          "elapsed_s": 5.019,
+          "reps": 556,
+          "customers": 4140
+        },
+        {
+          "i": 250,
+          "rss_kb": 1825920,
+          "elapsed_s": 5.42,
+          "reps": 556,
+          "customers": 4500
+        },
+        {
+          "i": 280,
+          "rss_kb": 2041132,
+          "elapsed_s": 6.02,
+          "reps": 556,
+          "customers": 5040
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "memory_error",
+      "child_peak_rss_kb": 2089132,
+      "extra": {}
+    },
+    {
+      "stage": "site_publish",
+      "n": 20,
+      "wall_s": 0.102,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22196,
+      "checkpoints": 3,
+      "last_checkpoint": {
+        "i": 20,
+        "rss_kb": 22124,
+        "elapsed_s": 0.02,
+        "phase": "written"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22132,
+          "elapsed_s": 0.007
+        },
+        {
+          "i": 20,
+          "rss_kb": 22196,
+          "elapsed_s": 0.017
+        },
+        {
+          "i": 20,
+          "rss_kb": 22124,
+          "elapsed_s": 0.02,
+          "phase": "written"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22124,
+      "extra": {
+        "requested_n": 20,
+        "template_source": "site_data_customers",
+        "bodies_distinct": true,
+        "write_wall_s": 0.019,
+        "files": 20,
+        "bytes": 2159240,
+        "relist_wall_s": 0.0,
+        "relisted": 20
+      }
+    },
+    {
+      "stage": "site_publish",
+      "n": 100,
+      "wall_s": 0.152,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22136,
+      "checkpoints": 11,
+      "last_checkpoint": {
+        "i": 100,
+        "rss_kb": 22012,
+        "elapsed_s": 0.098,
+        "phase": "written"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22064,
+          "elapsed_s": 0.007
+        },
+        {
+          "i": 20,
+          "rss_kb": 22132,
+          "elapsed_s": 0.017
+        },
+        {
+          "i": 30,
+          "rss_kb": 22132,
+          "elapsed_s": 0.025
+        },
+        {
+          "i": 40,
+          "rss_kb": 22132,
+          "elapsed_s": 0.034
+        },
+        {
+          "i": 50,
+          "rss_kb": 22132,
+          "elapsed_s": 0.043
+        },
+        {
+          "i": 60,
+          "rss_kb": 22132,
+          "elapsed_s": 0.052
+        },
+        {
+          "i": 70,
+          "rss_kb": 22136,
+          "elapsed_s": 0.061
+        },
+        {
+          "i": 80,
+          "rss_kb": 22136,
+          "elapsed_s": 0.077
+        },
+        {
+          "i": 90,
+          "rss_kb": 22136,
+          "elapsed_s": 0.086
+        },
+        {
+          "i": 100,
+          "rss_kb": 22136,
+          "elapsed_s": 0.095
+        },
+        {
+          "i": 100,
+          "rss_kb": 22012,
+          "elapsed_s": 0.098,
+          "phase": "written"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22012,
+      "extra": {
+        "requested_n": 100,
+        "template_source": "site_data_customers",
+        "bodies_distinct": true,
+        "write_wall_s": 0.097,
+        "files": 100,
+        "bytes": 10796200,
+        "relist_wall_s": 0.0,
+        "relisted": 100
+      }
+    },
+    {
+      "stage": "site_publish",
+      "n": 1000,
+      "wall_s": 1.006,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22268,
+      "checkpoints": 101,
+      "last_checkpoint": {
+        "i": 1000,
+        "rss_kb": 22180,
+        "elapsed_s": 0.915,
+        "phase": "written"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22196,
+          "elapsed_s": 0.007
+        },
+        {
+          "i": 100,
+          "rss_kb": 22268,
+          "elapsed_s": 0.089
+        },
+        {
+          "i": 190,
+          "rss_kb": 22268,
+          "elapsed_s": 0.173
+        },
+        {
+          "i": 280,
+          "rss_kb": 22268,
+          "elapsed_s": 0.252
+        },
+        {
+          "i": 370,
+          "rss_kb": 22268,
+          "elapsed_s": 0.328
+        },
+        {
+          "i": 460,
+          "rss_kb": 22268,
+          "elapsed_s": 0.405
+        },
+        {
+          "i": 560,
+          "rss_kb": 22268,
+          "elapsed_s": 0.49
+        },
+        {
+          "i": 650,
+          "rss_kb": 22268,
+          "elapsed_s": 0.571
+        },
+        {
+          "i": 740,
+          "rss_kb": 22268,
+          "elapsed_s": 0.66
+        },
+        {
+          "i": 830,
+          "rss_kb": 22268,
+          "elapsed_s": 0.755
+        },
+        {
+          "i": 920,
+          "rss_kb": 22268,
+          "elapsed_s": 0.839
+        },
+        {
+          "i": 1000,
+          "rss_kb": 22180,
+          "elapsed_s": 0.915,
+          "phase": "written"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22184,
+      "extra": {
+        "requested_n": 1000,
+        "template_source": "site_data_customers",
+        "bodies_distinct": true,
+        "write_wall_s": 0.914,
+        "files": 1000,
+        "bytes": 107962000,
+        "relist_wall_s": 0.001,
+        "relisted": 1000
+      }
+    },
+    {
+      "stage": "site_publish",
+      "n": 10000,
+      "wall_s": 10.349,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 24388,
+      "checkpoints": 1001,
+      "last_checkpoint": {
+        "i": 10000,
+        "rss_kb": 22108,
+        "elapsed_s": 10.067,
+        "phase": "written"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22148,
+          "elapsed_s": 0.009
+        },
+        {
+          "i": 920,
+          "rss_kb": 22220,
+          "elapsed_s": 0.864
+        },
+        {
+          "i": 1830,
+          "rss_kb": 22220,
+          "elapsed_s": 1.74
+        },
+        {
+          "i": 2740,
+          "rss_kb": 22220,
+          "elapsed_s": 2.606
+        },
+        {
+          "i": 3650,
+          "rss_kb": 22220,
+          "elapsed_s": 3.515
+        },
+        {
+          "i": 4560,
+          "rss_kb": 22220,
+          "elapsed_s": 4.422
+        },
+        {
+          "i": 5460,
+          "rss_kb": 22220,
+          "elapsed_s": 5.363
+        },
+        {
+          "i": 6370,
+          "rss_kb": 22220,
+          "elapsed_s": 6.276
+        },
+        {
+          "i": 7280,
+          "rss_kb": 22220,
+          "elapsed_s": 7.197
+        },
+        {
+          "i": 8190,
+          "rss_kb": 22220,
+          "elapsed_s": 8.238
+        },
+        {
+          "i": 9100,
+          "rss_kb": 22220,
+          "elapsed_s": 9.153
+        },
+        {
+          "i": 10000,
+          "rss_kb": 22108,
+          "elapsed_s": 10.067,
+          "phase": "written"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 24388,
+      "extra": {
+        "requested_n": 10000,
+        "template_source": "site_data_customers",
+        "bodies_distinct": true,
+        "write_wall_s": 10.066,
+        "files": 10000,
+        "bytes": 1079620000,
+        "relist_wall_s": 0.009,
+        "relisted": 10000
+      }
+    },
+    {
+      "stage": "git_transport",
+      "n": 20,
+      "wall_s": 0.152,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22100,
+      "checkpoints": 5,
+      "last_checkpoint": {
+        "i": 20,
+        "rss_kb": 22020,
+        "elapsed_s": 0.064,
+        "phase": "committed"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22100,
+          "elapsed_s": 0.013
+        },
+        {
+          "i": 20,
+          "rss_kb": 22164,
+          "elapsed_s": 0.028
+        },
+        {
+          "i": 20,
+          "rss_kb": 22020,
+          "elapsed_s": 0.031,
+          "phase": "files_written"
+        },
+        {
+          "i": 20,
+          "rss_kb": 22020,
+          "elapsed_s": 0.055,
+          "phase": "added"
+        },
+        {
+          "i": 20,
+          "rss_kb": 22020,
+          "elapsed_s": 0.064,
+          "phase": "committed"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22020,
+      "extra": {
+        "requested_n": 20,
+        "input_bytes": 2159240,
+        "add_wall_s": 0.021,
+        "commit_wall_s": 0.004,
+        "git_dir_bytes": 264644,
+        "index_bytes": 1856
+      }
+    },
+    {
+      "stage": "git_transport",
+      "n": 100,
+      "wall_s": 0.303,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22268,
+      "checkpoints": 13,
+      "last_checkpoint": {
+        "i": 100,
+        "rss_kb": 22148,
+        "elapsed_s": 0.235,
+        "phase": "committed"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22200,
+          "elapsed_s": 0.013
+        },
+        {
+          "i": 20,
+          "rss_kb": 22264,
+          "elapsed_s": 0.024
+        },
+        {
+          "i": 30,
+          "rss_kb": 22264,
+          "elapsed_s": 0.032
+        },
+        {
+          "i": 40,
+          "rss_kb": 22268,
+          "elapsed_s": 0.044
+        },
+        {
+          "i": 50,
+          "rss_kb": 22268,
+          "elapsed_s": 0.053
+        },
+        {
+          "i": 60,
+          "rss_kb": 22268,
+          "elapsed_s": 0.062
+        },
+        {
+          "i": 80,
+          "rss_kb": 22268,
+          "elapsed_s": 0.081
+        },
+        {
+          "i": 90,
+          "rss_kb": 22268,
+          "elapsed_s": 0.09
+        },
+        {
+          "i": 100,
+          "rss_kb": 22268,
+          "elapsed_s": 0.102
+        },
+        {
+          "i": 100,
+          "rss_kb": 22148,
+          "elapsed_s": 0.106,
+          "phase": "files_written"
+        },
+        {
+          "i": 100,
+          "rss_kb": 22148,
+          "elapsed_s": 0.205,
+          "phase": "added"
+        },
+        {
+          "i": 100,
+          "rss_kb": 22148,
+          "elapsed_s": 0.235,
+          "phase": "committed"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22148,
+      "extra": {
+        "requested_n": 100,
+        "input_bytes": 10796200,
+        "add_wall_s": 0.096,
+        "commit_wall_s": 0.027,
+        "git_dir_bytes": 1215159,
+        "index_bytes": 8898
+      }
+    },
+    {
+      "stage": "git_transport",
+      "n": 1000,
+      "wall_s": 2.012,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 22244,
+      "checkpoints": 103,
+      "last_checkpoint": {
+        "i": 1000,
+        "rss_kb": 21948,
+        "elapsed_s": 1.886,
+        "phase": "committed"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22176,
+          "elapsed_s": 0.013
+        },
+        {
+          "i": 100,
+          "rss_kb": 22244,
+          "elapsed_s": 0.096
+        },
+        {
+          "i": 200,
+          "rss_kb": 22244,
+          "elapsed_s": 0.188
+        },
+        {
+          "i": 290,
+          "rss_kb": 22244,
+          "elapsed_s": 0.27
+        },
+        {
+          "i": 380,
+          "rss_kb": 22244,
+          "elapsed_s": 0.356
+        },
+        {
+          "i": 470,
+          "rss_kb": 22244,
+          "elapsed_s": 0.439
+        },
+        {
+          "i": 570,
+          "rss_kb": 22244,
+          "elapsed_s": 0.54
+        },
+        {
+          "i": 660,
+          "rss_kb": 22244,
+          "elapsed_s": 0.628
+        },
+        {
+          "i": 750,
+          "rss_kb": 22244,
+          "elapsed_s": 0.723
+        },
+        {
+          "i": 840,
+          "rss_kb": 22244,
+          "elapsed_s": 0.813
+        },
+        {
+          "i": 940,
+          "rss_kb": 22244,
+          "elapsed_s": 0.92
+        },
+        {
+          "i": 1000,
+          "rss_kb": 21948,
+          "elapsed_s": 1.886,
+          "phase": "committed"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 22036,
+      "extra": {
+        "requested_n": 1000,
+        "input_bytes": 107962000,
+        "add_wall_s": 0.872,
+        "commit_wall_s": 0.007,
+        "git_dir_bytes": 11909247,
+        "index_bytes": 88100
+      }
+    },
+    {
+      "stage": "git_transport",
+      "n": 10000,
+      "wall_s": 20.048,
+      "returncode": 0,
+      "sampled_peak_rss_kb": 23188,
+      "checkpoints": 1003,
+      "last_checkpoint": {
+        "i": 10000,
+        "rss_kb": 21908,
+        "elapsed_s": 19.573,
+        "phase": "committed"
+      },
+      "checkpoint_ramp": [
+        {
+          "i": 10,
+          "rss_kb": 22084,
+          "elapsed_s": 0.013
+        },
+        {
+          "i": 920,
+          "rss_kb": 22152,
+          "elapsed_s": 0.907
+        },
+        {
+          "i": 1830,
+          "rss_kb": 22152,
+          "elapsed_s": 1.808
+        },
+        {
+          "i": 2740,
+          "rss_kb": 22152,
+          "elapsed_s": 2.705
+        },
+        {
+          "i": 3650,
+          "rss_kb": 22152,
+          "elapsed_s": 3.608
+        },
+        {
+          "i": 4560,
+          "rss_kb": 22152,
+          "elapsed_s": 4.531
+        },
+        {
+          "i": 5480,
+          "rss_kb": 22152,
+          "elapsed_s": 5.439
+        },
+        {
+          "i": 6390,
+          "rss_kb": 22152,
+          "elapsed_s": 6.427
+        },
+        {
+          "i": 7300,
+          "rss_kb": 22152,
+          "elapsed_s": 7.3
+        },
+        {
+          "i": 8210,
+          "rss_kb": 22152,
+          "elapsed_s": 8.151
+        },
+        {
+          "i": 9120,
+          "rss_kb": 22152,
+          "elapsed_s": 9.111
+        },
+        {
+          "i": 10000,
+          "rss_kb": 21908,
+          "elapsed_s": 19.573,
+          "phase": "committed"
+        }
+      ],
+      "mem_cap_mb": 2048,
+      "outcome": "ok",
+      "child_peak_rss_kb": 23188,
+      "extra": {
+        "requested_n": 10000,
+        "input_bytes": 1079620000,
+        "add_wall_s": 9.555,
+        "commit_wall_s": 0.029,
+        "git_dir_bytes": 118854894,
+        "index_bytes": 880102
+      }
+    }
+  ],
+  "analysis": {
+    "per_stage": {
+      "shared_world_load": {
+        "survived_max_n": 0,
+        "tear_n": null,
+        "tear_outcome": null,
+        "marginal_rss_kb_per_customer": null
+      },
+      "population_draw": {
+        "survived_max_n": 1000,
+        "tear_n": 10000,
+        "tear_outcome": "error",
+        "tear_last_checkpoint": {
+          "i": 3770,
+          "rss_kb": 26784,
+          "elapsed_s": 1.501,
+          "phase": "rendered"
+        },
+        "across_cell_marginal_rss_kb_per_customer": 1.114,
+        "marginal_wall_ms_per_customer": 0.41,
+        "marginal_rss_kb_per_customer": 1.146,
+        "marginal_measured_in": "population_draw_n10000",
+        "projected_tear_n": 1810282,
+        "tear_at_customer_i": 3770
+      },
+      "settlement_build": {
+        "survived_max_n": 20,
+        "tear_n": 100,
+        "tear_outcome": "memory_error",
+        "tear_last_checkpoint": {
+          "i": 80,
+          "rss_kb": 1870300,
+          "elapsed_s": 4.611,
+          "records_held": 1401360
+        },
+        "marginal_rss_kb_per_customer": 22928.286,
+        "marginal_measured_in": "settlement_build_n100",
+        "projected_tear_n": 69,
+        "tear_at_customer_i": 80,
+        "rank_key_basis": "observed_tear"
+      },
+      "run_output_serialize": {
+        "survived_max_n": 1000,
+        "tear_n": 10000,
+        "tear_outcome": "memory_error",
+        "tear_last_checkpoint": {
+          "i": 280,
+          "rss_kb": 2041132,
+          "elapsed_s": 6.02,
+          "reps": 556,
+          "customers": 5040
+        },
+        "across_cell_marginal_rss_kb_per_customer": 395.314,
+        "marginal_wall_ms_per_customer": 4.931,
+        "marginal_rss_kb_per_customer": 398.543,
+        "marginal_measured_in": "run_output_serialize_n10000",
+        "projected_tear_n": 5144,
+        "tear_at_customer_i": 280,
+        "rank_key_basis": "observed_tear"
+      },
+      "site_publish": {
+        "survived_max_n": 10000,
+        "tear_n": null,
+        "tear_outcome": null,
+        "across_cell_marginal_rss_kb_per_customer": 0.22,
+        "marginal_wall_ms_per_customer": 1.027,
+        "marginal_rss_kb_per_customer": -0.004,
+        "marginal_measured_in": "site_publish_n10000",
+        "rank_key_basis": "none_flat_in_rss"
+      },
+      "git_transport": {
+        "survived_max_n": 10000,
+        "tear_n": null,
+        "tear_outcome": null,
+        "across_cell_marginal_rss_kb_per_customer": 0.109,
+        "marginal_wall_ms_per_customer": 1.994,
+        "marginal_rss_kb_per_customer": -0.018,
+        "marginal_measured_in": "git_transport_n10000",
+        "rank_key_basis": "none_flat_in_rss"
+      }
+    },
+    "advisor_ordering": [
+      "settlement_build",
+      "run_output_serialize",
+      "site_publish",
+      "git_transport"
+    ],
+    "observed_ordering": [
+      "settlement_build",
+      "run_output_serialize",
+      "site_publish",
+      "git_transport"
+    ],
+    "rank_keys": {
+      "settlement_build": 100.0,
+      "run_output_serialize": 10000.0,
+      "site_publish": null,
+      "git_transport": null
+    },
+    "rank_key_is_measured": {
+      "settlement_build": true,
+      "run_output_serialize": true,
+      "site_publish": false,
+      "git_transport": false
+    },
+    "stages_that_tore": [
+      "settlement_build",
+      "run_output_serialize"
+    ],
+    "ordering_matches_advisor": true,
+    "ordering_compared_over": [
+      "settlement_build",
+      "run_output_serialize"
+    ],
+    "ordering_not_compared": [
+      "site_publish",
+      "git_transport"
+    ],
+    "ordering_verdict": "determined over the 2 seams with a measured memory key (settlement_build, run_output_serialize); site_publish, git_transport excluded as flat in RSS",
+    "first_seam_to_tear": "settlement_build",
+    "first_tear_n": 100,
+    "first_tear_at_customer_i": 80,
+    "ladder": [
+      20,
+      100,
+      1000,
+      10000
+    ],
+    "all_cells_ok": false
+  }
+}
