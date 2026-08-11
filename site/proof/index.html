@@ -762,12 +762,53 @@ function fmtGap(v){ return v==null?"—":Number(v).toFixed(3); }
 // door whose whole proposition is "every figure walks to its evidence", a component
 // that renders as [object Object] is a figure that cannot be read at all.
 // Depth-limited so a self-referential payload cannot spin.
+//
+// THE DEPTH LIMIT MAY NOT SWALLOW A NUMBER (atom D35, H27 Expert Hour #18).
+// The repair above -- for "a figure that cannot be read at all" -- reintroduced
+// that same failure ONE LEVEL DOWN, and the door served it. Measured on the
+// live rendered pixel, 2026-08-11: 53 published component numbers reach this
+// panel as "…" (W1_11 22, W1_12 22, W2_11 9), and 43 of them -- every
+// `two_level.cells.*` reading on BOTH fabric rows -- are readable NOWHERE on
+// their row, because their producer nests them one level below the structural
+// limit. The payment triad's six attributed measures are elided in
+// this block too and survive ONLY because `format_remittance_attribution_
+// summary` happens to repeat them in the note prose -- a redundancy nobody
+// designed as a safety net and no control knew about, which is why the defect
+// was invisible on the one row anybody was reading.
+//
+// Raising the limit to 3 would be an instance fix (R10): a payload nested one
+// deeper comes straight back. So the limit goes on bounding STRUCTURE and
+// stops bounding NUMBERS -- past it, the numeric leaves beneath are flattened
+// path-qualified rather than dropped. The spin guard the depth limit was
+// carrying moves to an explicit NODE BUDGET, which is what actually bounds a
+// self-referential payload; depth never did (a two-deep cycle spins inside the
+// limit). Non-numeric leaves past the limit still elide: this door's
+// proposition is that every FIGURE walks to its evidence.
+var FLAT_NODE_BUDGET = 2000;
+function flattenNumbers(v, prefix, out, budget){
+  if (budget.n <= 0) return;
+  budget.n -= 1;
+  if (typeof v === "number") {
+    if (Number.isFinite(v)) out.push((prefix ? prefix+"=" : "")+Number(v).toFixed(4));
+    return;
+  }
+  if (v == null || typeof v !== "object") return;
+  var ks = Array.isArray(v) ? v.map(function(_x, i){ return String(i); }) : Object.keys(v);
+  for (var i=0; i<ks.length; i++){
+    flattenNumbers(v[ks[i]], prefix ? prefix+"."+ks[i] : ks[i], out, budget);
+    if (budget.n <= 0) return;
+  }
+}
 function fmtComponent(v, depth){
   depth = depth || 0;
   if (v == null) return "—";
   if (typeof v === "number") return Number.isFinite(v) ? Number(v).toFixed(4) : String(v);
   if (typeof v !== "object") return String(v);
-  if (depth >= 2) return "…";
+  if (depth >= 2) {
+    var flat = [], budget = { n: FLAT_NODE_BUDGET };
+    flattenNumbers(v, "", flat, budget);
+    return flat.length ? flat.join(", ") : "…";
+  }
   if (Array.isArray(v)) return v.map(function(x){ return fmtComponent(x, depth+1); }).join(", ");
   var ks = Object.keys(v);
   if (!ks.length) return "—";

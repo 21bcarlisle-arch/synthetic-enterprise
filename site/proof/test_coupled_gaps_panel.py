@@ -16,6 +16,7 @@ never a silently empty panel.
 import json
 import shutil
 import subprocess
+import tempfile
 import sys
 from pathlib import Path
 
@@ -218,3 +219,193 @@ def test_missing_coupled_gaps_key_fails_visible():
     assert proc.returncode == 0, proc.stderr
     out = json.loads(proc.stdout)
     assert "gap-fail" in out["coupled-gaps"]["innerHTML"]
+
+
+# --------------------------------------------------------------------------- #
+# atom D35 / H27 Expert Hour #18 (2026-08-11): THE DEPTH LIMIT MAY NOT SWALLOW
+# A NUMBER.
+#
+# `fmtComponent` exists because this door was serving "[object Object]" for a
+# nested component -- "a figure that cannot be read at all", found by driving
+# the LIVE page. Its repair carried a depth limit, and the limit reintroduced
+# the same failure ONE LEVEL DOWN. Measured on the rendered pixel: 53 published
+# component numbers were served as "…" from their own row's components block
+# (W1_11 22, W1_12 22, W2_11 9), and 43 of those -- every `two_level.cells.*`
+# reading on both fabric rows -- were readable NOWHERE on their row, because
+# their producer nests them one level below the limit.
+#
+# It was invisible on the row anybody was reading. The payment triad's six
+# attributed measures are elided in this block too, and survive only because
+# `format_remittance_attribution_summary` happens to repeat them in the note
+# prose -- an accidental redundancy, not a control, and it does not exist on
+# the fabric rows.
+#
+# NOTHING HERE ASSERTED IT. The R11 test above checks that each row's GAP
+# renders at 3dp; no control had ever asked whether a published COMPONENT
+# number reaches the reader at all. So the control is the population one: every
+# finite number in a row's `components` must appear in THAT ROW's rendered
+# components block. Per-row deliberately -- a panel-wide substring search
+# passes on a number that is only legible two rows away, which is exactly the
+# accident that hid this.
+# --------------------------------------------------------------------------- #
+def _leaf_numbers(obj, prefix=""):
+    """Every finite numeric leaf in a components payload, path-qualified."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from _leaf_numbers(v, f"{prefix}.{k}" if prefix else str(k))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from _leaf_numbers(v, f"{prefix}[{i}]")
+    elif isinstance(obj, bool):
+        return  # bool is a subclass of int; a flag is not a figure
+    elif isinstance(obj, (int, float)):
+        yield prefix, float(obj)
+
+
+def _components_block(row_html: str) -> str:
+    """The <details> block of ONE rendered row -- never the whole panel."""
+    i = row_html.find("Components &amp; measurement basis")
+    return row_html[i:] if i >= 0 else ""
+
+
+def _unreadable_numbers(cg: dict, body: str):
+    """(row, path, value) for every published component number NOT rendered in
+    its own row's components block."""
+    rows = body.split('<div class="gap-row">')[1:]
+    assert len(rows) == len(cg["pairs"]), "row/pair split mismatch -- sweep is unsound"
+    out = []
+    for pair, row in zip(cg["pairs"], rows):
+        block = _components_block(row)
+        for path, value in _leaf_numbers(pair.get("components") or {}):
+            if f"{value:.4f}" not in block:
+                out.append((pair["world_atom"], path, value))
+    return out
+
+
+def _nested_past_the_limit(cg: dict) -> int:
+    """How many published numbers sit BELOW `fmtComponent`'s structural limit --
+    i.e. how many the control is actually exercised by. A sweep run on a payload
+    that never reaches the limit passes without touching the defect."""
+    n = 0
+    for pair in cg["pairs"]:
+        for path, _v in _leaf_numbers(pair.get("components") or {}):
+            if path.count(".") + path.count("[") >= 3:
+                n += 1
+    return n
+
+
+def test_every_published_component_number_reaches_the_reader():
+    """R11 on the live payload: a number this door publishes must be legible on
+    the row that publishes it (atom D35)."""
+    cg = _live_coupled_gaps()
+    body = _render(cg)["coupled-gaps"]["innerHTML"]
+
+    total = sum(1 for pair in cg["pairs"] for _ in _leaf_numbers(pair.get("components") or {}))
+    # VACUITY, both halves. A payload with no numbers, or one whose numbers all
+    # sit above the structural limit, passes this control while proving nothing
+    # -- an unexercised check is a failed check (R15 fail-silent).
+    assert total > 100, f"only {total} component numbers swept -- control is vacuous"
+    deep = _nested_past_the_limit(cg)
+    assert deep > 0, (
+        "no published number sits past `fmtComponent`'s structural limit on this "
+        "payload, so this control never exercises the elision it exists to catch"
+    )
+
+    unreadable = _unreadable_numbers(cg, body)
+    assert not unreadable, (
+        f"{len(unreadable)} of {total} published component numbers are not "
+        f"rendered in their own row: {unreadable[:8]}"
+    )
+
+
+def _render_with_mutated_page(mutation: str, replacement: str, data: dict) -> str:
+    """Render `data` through a MUTATED copy of the page (R15: prove the control
+    fires on its own named defect, not merely that it passes today)."""
+    html = INDEX.read_text(encoding="utf-8")
+    assert mutation in html, f"mutation anchor gone from index.html: {mutation!r}"
+    mutated = html.replace(mutation, replacement, 1)
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "index.html"
+        path.write_text(mutated, encoding="utf-8")
+        proc = subprocess.run(
+            [NODE, str(HARNESS), str(path)],
+            input=json.dumps({"coupled_gaps": data}),
+            capture_output=True, text=True, timeout=60,
+        )
+        assert proc.returncode == 0, f"mutated harness failed: {proc.stderr}"
+        return json.loads(proc.stdout)["coupled-gaps"]["innerHTML"]
+
+
+def test_R15_the_control_fires_on_the_pre_repair_depth_limit():
+    """THE NAMED DEFECT: restore the bare `return "…"` the door shipped until
+    2026-08-11 and this control must FAIL, naming the numbers lost. A control
+    that passes both before and after its own repair is not a control."""
+    cg = _live_coupled_gaps()
+    body = _render_with_mutated_page(
+        "    var flat = [], budget = { n: FLAT_NODE_BUDGET };\n"
+        "    flattenNumbers(v, \"\", flat, budget);\n"
+        "    return flat.length ? flat.join(\", \") : \"…\";",
+        '    return "…";',
+        cg,
+    )
+    unreadable = _unreadable_numbers(cg, body)
+    assert unreadable, (
+        "the pre-repair depth limit rendered every deeply-nested number as '…' "
+        "and this control did not notice -- it cannot fail"
+    )
+    # And it fires WHERE the Hour measured it: both fabric rows, 43 numbers.
+    lost = {row for row, _p, _v in unreadable}
+    assert {"W1_11_fabric_physics_core", "W1_12_premise_trace_generator"} <= lost, lost
+    assert len(unreadable) == 53, (
+        f"the pre-repair door dropped 53 published numbers from their own row's "
+        f"components block when this Hour measured it (W1_11 22, W1_12 22, "
+        f"W2_11 9); this run says {len(unreadable)} -- the count is the finding, "
+        "so a change here is a real movement to re-read, not a number to update"
+    )
+
+
+def test_R15_a_number_nested_deeper_than_the_repair_still_reaches_the_reader():
+    """RAISING THE LIMIT WOULD HAVE BEEN AN INSTANCE FIX (R10). A figure nested
+    one level deeper than anything shipped today must still be legible."""
+    data = _one_pair(0.42)
+    data["pairs"][0]["components"] = {
+        "a": {"b": {"c": {"d": {"deep_figure": 0.123456}}}},
+    }
+    body = _render(data)["coupled-gaps"]["innerHTML"]
+    assert "0.1235" in _components_block(body), body[-600:]
+
+
+def test_R15_a_subtree_with_no_numbers_still_elides():
+    """The repair is about FIGURES. A deep subtree carrying no number keeps the
+    ellipsis rather than dumping prose into the components strip -- so this is a
+    narrowing of the elision, not its removal."""
+    data = _one_pair(0.42)
+    data["pairs"][0]["components"] = {"a": {"b": {"c": ["only", "words"]}}}
+    body = _render(data)["coupled-gaps"]["innerHTML"]
+    assert "…" in _components_block(body)
+
+
+def test_R15_the_node_budget_and_not_the_depth_bounds_a_cyclic_payload():
+    """The depth limit was carrying the spin guard, and never could: a two-deep
+    cycle spins INSIDE the limit. The budget is what bounds it -- proven by
+    building a cycle in the harness rather than asserting the comment."""
+    html = INDEX.read_text(encoding="utf-8")
+    # `n` BEFORE the cycle: the budget bounds the walk, so a figure the walk
+    # reaches is kept and everything after the cycle is dropped -- bounded, not
+    # complete. Asserting completeness after a cycle would be asserting the
+    # opposite of what a budget can promise.
+    probe = (
+        "const cyc = {}; cyc.self = cyc;\n"
+        "const out = [];\n"
+        "flattenNumbers({deep:{er:{n: 1.5, cyc: cyc}}}, '', out, {n: 2000});\n"
+        "process.stdout.write(JSON.stringify(out));\n"
+    )
+    code = html.split("<script>")[1].split("</script>")[0]
+    with tempfile.TemporaryDirectory() as td:
+        script = Path(td) / "probe.mjs"
+        # Only the pure helper is needed; the page's DOM-touching tail is not run.
+        helper = code[code.index("var FLAT_NODE_BUDGET"):code.index("function fmtComponent")]
+        script.write_text(helper + probe, encoding="utf-8")
+        proc = subprocess.run([NODE, str(script)], capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, f"the cyclic payload was not bounded: {proc.stderr[:400]}"
+    assert "1.5000" in proc.stdout, proc.stdout
