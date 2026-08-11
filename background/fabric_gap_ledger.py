@@ -3597,6 +3597,24 @@ class BeliefBias:
             return "none"
         return "over" if self.n_above > self.n_below else "under"
 
+    @property
+    def mean_agrees_with_majority(self) -> bool:
+        """Do the COUNT and the AVERAGE tell the same story?
+
+        They can disagree, and on the drawn 200-premise population they do: the
+        register is below truth on 126 of 200 premises while the mean signed error
+        is +19.6%, because a minority of large over-statements outweighs a majority
+        of small under-statements. Both numbers are correct and a sentence that put
+        them side by side without saying so would read as a contradiction — one
+        name, two numbers, which is this project's own recurring defect shape. A
+        skewed error distribution is itself the finding: a supplier reading the mean
+        would insulate the wrong houses from the ones a supplier reading the median
+        would pick.
+        """
+        if self.direction == "none":
+            return True
+        return (self.signed_mean_relative_error > 0.0) == (self.direction == "over")
+
 
 def belief_bias(
     observations: Sequence[FabricObservation], *, belief: str = "epc"
@@ -4000,6 +4018,16 @@ def _direction_caveats(observations: Sequence[FabricObservation]) -> list[str]:
                 f"the STOCK in a fixed direction, not merely imprecise about houses; "
                 f"the |gap| headline cannot see this."
             )
+            if not bias.mean_agrees_with_majority:
+                caveats.append(
+                    f"SKEWED ({arm}): that count and that average point OPPOSITE ways "
+                    f"— {bias.direction}-stated on {max(bias.n_above, bias.n_below)} "
+                    f"of {bias.n_above + bias.n_below} premises, yet a signed mean of "
+                    f"{bias.signed_mean_relative_error:+.1%}. A minority of large "
+                    f"errors outweighs the majority of small ones, so a supplier "
+                    f"reading the mean would target different houses from one reading "
+                    f"the median. Read the line above as a majority, not an average."
+                )
     return caveats
 
 
@@ -4120,6 +4148,7 @@ def belief_bias_components(b: BeliefBias) -> dict:
         "sign_test_p": b.sign_test_p,
         "is_systematic": b.is_systematic,
         "direction": b.direction,
+        "mean_agrees_with_majority": b.mean_agrees_with_majority,
     }
 
 

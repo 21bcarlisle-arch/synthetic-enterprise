@@ -671,7 +671,8 @@ def main() -> None:
                   f" {b.n_above} above / {b.n_below} below / {b.n_exact} exact,"
                   f" signed mean {b.signed_mean_relative_error:+.1%},"
                   f" sign-test p={b.sign_test_p:.4f}"
-                  f"{'  SYSTEMATIC' if b.is_systematic else ''}")
+                  f"{'  SYSTEMATIC' if b.is_systematic else ''}"
+                  f"{'  SKEWED (count and mean disagree)' if not b.mean_agrees_with_majority else ''}")
         print(f"    accuracy favours          : {verdict.accuracy_favours}"
               f"     money favours: {verdict.money_favours}"
               f"     {'AGREE' if verdict.verdicts_agree else 'DISAGREE'}")

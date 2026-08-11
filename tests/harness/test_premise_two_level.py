@@ -4471,3 +4471,48 @@ def test_the_ledger_row_CARRIES_the_caveats_rather_than_offering_them(tmp_path):
     assert any(
         c.startswith("DILUTED") for c in components["headline_caveats"]
     ), components["headline_caveats"]
+
+
+def test_a_MAJORITY_AND_AN_AVERAGE_THAT_DISAGREE_are_named_rather_than_juxtaposed():
+    """The defect this caveat was landed for, found on the drawn 200-premise
+    population the ledger actually publishes: the register sits BELOW truth on 126
+    of 200 premises while the mean signed error is +19.6%, because a minority of
+    large over-statements outweighs the majority of small under-statements.
+
+    Both numbers are right. A sentence that printed them side by side without saying
+    so reads as a contradiction — one name, two numbers. The control fires when they
+    point opposite ways and stays silent when they agree.
+    """
+    rows = _observations(n=12)
+    skewed = [
+        dataclasses.replace(
+            o,
+            # Eleven small under-statements, one large over-statement: the majority
+            # says "under", the mean says "over".
+            epc_hlc_kw_per_k=o.actual_hlc_kw_per_k * (6.0 if i == 0 else 0.95),
+        )
+        for i, o in enumerate(rows)
+    ]
+    bias = fgl.belief_bias(skewed, belief="epc")
+    assert bias.direction == "under" and bias.n_below == 11
+    assert bias.signed_mean_relative_error > 0.0
+    assert not bias.mean_agrees_with_majority
+    caveats = fgl.headline_caveats(skewed, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert any(c.startswith("SKEWED (epc)") for c in caveats), caveats
+
+    # The other way: a uniformly under-stated register has a majority and an average
+    # that agree, and must NOT be reported as skewed.
+    plain = _observations(n=12, epc_bias=0.85)
+    plain_bias = fgl.belief_bias(plain, belief="epc")
+    assert plain_bias.direction == "under" and plain_bias.mean_agrees_with_majority
+    assert not any(
+        c.startswith("SKEWED")
+        for c in fgl.headline_caveats(plain, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    )
+
+
+def test_a_belief_with_no_systematic_direction_is_not_reported_as_skewed():
+    """Vacuity again: `mean_agrees_with_majority` must be True when there is no
+    majority to agree with, or every scattered population would carry a SKEWED line."""
+    bias = fgl.belief_bias(_observations(n=8), belief="epc")
+    assert bias.direction == "none" and bias.mean_agrees_with_majority
