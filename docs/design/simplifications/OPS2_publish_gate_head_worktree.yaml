@@ -6,7 +6,8 @@ map_records:
   - background/process_run_complete.py
   - tools/measure_publish_gate_subject_cost.py
   - tests/background/test_publish_gate_subject_is_head.py
-  - docs/staging/WORKER_FINDING_THE_INSTRUMENT_STILL_REQUIRES_THE_DIRECTORY_THAT_WAS_ELIMINATED_2026-08-11.md
+  - docs/staging/done/WORKER_FINDING_THE_INSTRUMENT_STILL_REQUIRES_THE_DIRECTORY_THAT_WAS_ELIMINATED_2026-08-11.md
+  - docs/design/OPS2_PUBLISH_GATE_HEAD_CHECKOUT.md
 build_note: |
   2026-08-11. Criterion 1 is NOT met and the level does not move: `in_tree_baseline` has
   never been timed, so there is no ratio. What landed this tick is the INSTRUMENT, which was
@@ -148,3 +149,61 @@ build_note: |
   `in_tree_baseline` so the surviving ratio measures the tax the elimination made permanent --
   that measurement closes restated-criterion-1 and re-derives criterion 2 in one pass, and it is
   the last thing between this atom and level 2.
+
+  2026-08-11, fourth tick. LEVEL STILL DOES NOT MOVE, and the blocker is unchanged and singular:
+  `in_tree_baseline` has never been timed across ten launches, so there is no ratio. What landed
+  is the thing that made the ratio UNREACHABLE -- the instrument's precondition was the directory
+  the R3 elimination deleted.
+
+  OBSERVED. Both checkout phases were gated on `path.name != prc.REUSED_HEAD_CHECKOUT_NAME ->
+  abort`, and since 444402ee0 that is true on every launch. So the harness could not complete,
+  and it aborted with the pre-written cause "another publisher held the reuse lock" -- a cause
+  that is not merely wrong but points the next diagnosis at a lock with nothing left to protect.
+  The consumer is fail-CLOSED (`prc.measured_gate_timeout_floor`; a record that cannot answer
+  REDS the gate), so an instrument that can never refresh its record is a control counting down.
+
+  THE REPAIR IS A COLLAPSE, NOT A PATCH, and it follows the filed finding's own recommendation
+  rather than re-deriving one. PHASE_ORDER is now `(throwaway_checkout, in_tree_baseline)` -- the
+  two subjects that still exist -- and `ratio_throwaway_over_in_tree` measures THE TAX the
+  elimination made permanent, which is the honest successor to superseded criterion 1. It is
+  REPORTED, NOT GRADED: `meets_exit_criterion` and `exit_criterion_ratio_max` are deleted,
+  because a verdict against a criterion whose subject was deleted is a pass nobody earned, and
+  `superseded_exit_criterion` states the supersession in the ARTEFACT rather than only here. The
+  name check is INVERTED rather than removed -- a shared directory can now only appear if someone
+  re-enables reuse, and then the phase would time a warm subject and file it as a cold cost, so
+  it refuses with a reason that is true.
+
+  THE PART THAT WOULD HAVE WEDGED PUBLISHING, and it was one line from happening. `_run_measurement`
+  rewrites the record from `results["phases"]` BEFORE its first phase. `_load_banked_phases`
+  filters on `name in PHASE_ORDER`, so collapsing the phase set would have dropped the banked
+  `cold_checkout` at 1291.9s -- which is `measured_gate_timeout_floor`'s ENTIRE evidence -- at the
+  instant this harness next launched, taking the floor to None and reddening a control that was
+  working. RETIRED_PHASES are therefore carried: never in the ratio, never able to retire an owed
+  phase, always in the floor (they are real timings of this suite on this box and can only push
+  the bound UP), and named in `phases_from_a_retired_configuration` so no reader mistakes one for
+  part of the comparison. `worst_legitimate_phase` is new for the same reason -- a bound resting
+  on a dead subject should be visible, not inferred.
+
+  R15 BOTH WAYS, SEVEN MUTATIONS RUN, source restored byte-identical (`diff` clean after each):
+  the dead precondition restored (2 tests red); the refusal branch deleted (1); `keepable =
+  PHASE_ORDER` (5, incl. the floor going blind); `worst` over RATIO_PHASES only (floor 2583 -> 2);
+  ratio numerator = the worst phase (1); `meets_exit_criterion` re-added (1);
+  `phases_from_a_retired_configuration` dropped (2). 80 passed in
+  tests/tools/test_measure_publish_gate_subject_cost.py, 159 across the publish-gate family, 62
+  in tests/background/test_process_run_complete.py, ruff clean.
+
+  WHAT IS OWED IS NOW ONE THING. The measurement itself. Launch 11 went out on this tick's code.
+  Note for whoever reads its record: the shipped subject is a genuinely cold throwaway every
+  cycle, i.e. at or above the 1291.9s the 2600s bound rests on (and that phase ran in
+  /tmp/publish-gate-head-reused with bytecode from outside the run), so the re-derivation may
+  RAISE the bound past 2600 -- `test_the_timeout_clears_the_floor_the_measurement_implies` is the
+  control that will say so, and it reddening is the control working, not a regression.
+
+  BOOKKEEPING OWED, deliberately not taken this tick: the map's `file_scope` for this atom still
+  names only `background/process_run_complete.py` + `tests/background/test_publish_gate_subject_
+  is_head.py`, while the last three ticks' work has been in `tools/measure_publish_gate_subject_
+  cost.py` and its tests. The widening was written and then REVERTED because another lane held a
+  coherent staged change (the D30 mint) in `maturity_map.yaml`, and a pathspec commit would have
+  landed their half-finished work under this atom's message. Low risk while forks are serial;
+  the next tick that legitimately writes the map should carry it.
+

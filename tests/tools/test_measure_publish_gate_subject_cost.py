@@ -13,8 +13,8 @@ checkpoint has exactly one way to be worse than useless, which is to look like a
 
   1. FAIL-OPEN TO A READER KEYING ON EXISTENCE — a partial record whose `complete` flag is
      absent or true would let a reader fill in the design doc's table from phases that never
-     ran. `complete` must be false until all three phases are present, and `phases_missing`
-     must name the ones still owed.
+     ran. `complete` must be false until every phase in `PHASE_ORDER` is present, and
+     `phases_missing` must name the ones still owed.
   2. FAIL-LOUD ON ITS OWN WRITE — a checkpoint that raises would kill the live measurement it
      exists to protect. Losing the record must never cost the run.
 
@@ -94,19 +94,27 @@ def test_a_record_exists_before_the_first_phase_runs(out):
 
 
 def test_a_partial_record_is_not_complete(out):
-    """Two of three phases is not a result, and must not read as one."""
-    results = {"phases": {"cold_checkout": {"seconds": 900.0},
+    """One of two phases is not a result, and must not read as one.
+
+    The retired phase is in here on purpose: a record can hold three timings and still owe the
+    baseline, because two of them belong to a configuration that no longer runs."""
+    results = {"phases": {"throwaway_checkout": {"seconds": 900.0},
+                          "cold_checkout": {"seconds": 1291.9},
                           "warm_checkout": {"seconds": 700.0}}}
     measure._checkpoint(results, out, print)
 
     rec = _read(out)
     assert rec["complete"] is False, (
-        "a record missing the in-tree baseline cannot support the ratio criterion, so it must "
-        "not be flagged complete"
+        "a record missing the in-tree baseline cannot support the ratio, so it must not be "
+        "flagged complete"
     )
     assert rec["phases_missing"] == ["in_tree_baseline"]
+    assert rec["phases_from_a_retired_configuration"] == ["cold_checkout", "warm_checkout"], (
+        "a retired phase must be NAMED as retired -- unnamed, a reader counts three timings and "
+        "reads a two-phase measurement as done"
+    )
     # And it must not be carrying the derived figures a reader would copy into the design doc.
-    assert "ratio_warm_over_in_tree" not in rec
+    assert "ratio_throwaway_over_in_tree" not in rec
     assert "implied_timeout_floor_2x" not in rec
 
 
@@ -499,12 +507,12 @@ def test_launched_by_says_systemd_only_when_systemd_actually_started_the_process
 # descendant walk the session-detach could not hide it from, and -- the fifth, the first one
 # init owned -- by the kernel OOM killer 6m20s into phase 2, with phase 1's 1291.9s already
 # banked on disk. Until this suite existed, launch six would have deleted the reused checkout
-# and re-paid that 21 minutes, and a run that never survives three phases in a row never
+# and re-paid that 21 minutes, and a run that never survives its whole phase set in a row never
 # converges. Both directions on every property below.
 
 
 def _stub_phases(monkeypatch, timed):
-    """Make the three phases instantaneous and record which ones actually ran."""
+    """Make the phases instantaneous and record which ones actually ran."""
     def _fake_time_suite(cwd, log, heartbeat=None):
         timed.append(str(cwd))
         return {"cwd": str(cwd), "head_sha_at_run": "deadbeef", "seconds": 1.0,
@@ -515,8 +523,18 @@ def _stub_phases(monkeypatch, timed):
     monkeypatch.setattr(measure.prc, "_head_sha", lambda: "deadbeef")
 
 
+def _a_throwaway(tmp_path):
+    """A directory named the way `prc._head_checkout()` names one since the R3 elimination.
+
+    Built from `prc.HEAD_CHECKOUT_PREFIX` rather than a literal, so a rename of the real prefix
+    cannot leave these tests standing in for a shape the harness no longer produces."""
+    path = tmp_path / (measure.prc.HEAD_CHECKOUT_PREFIX + "kf3p1x")
+    path.mkdir()
+    return path
+
+
 class _FakeCheckout:
-    """Stands in for prc._head_checkout(), yielding the REUSED directory name."""
+    """Stands in for prc._head_checkout(), yielding whatever directory the caller passes."""
 
     def __init__(self, path):
         self._path = path
@@ -541,36 +559,34 @@ def test_a_banked_phase_is_resumed_rather_than_re_run(monkeypatch, out, tmp_path
     rather than restart". It told it nothing, because nothing read it.
 
     MUTATION: seed `results["phases"]` with `{}` instead of `_load_banked_phases(out_path)` and
-    the cold phase is timed again -- this reds."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    the throwaway phase is timed again -- this reds."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     timed = []
     _stub_phases(monkeypatch, timed)
-    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
+    _banked(out, throwaway_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
 
     assert measure._run_measurement(out, lambda m: None) == 0
 
     record = _read(out)
-    assert record["resumed_phases"] == ["cold_checkout"]
-    assert record["phases"]["cold_checkout"]["seconds"] == 1291.9, (
-        "the banked cold phase was overwritten -- 21 minutes of measured runtime re-paid"
+    assert record["resumed_phases"] == ["throwaway_checkout"]
+    assert record["phases"]["throwaway_checkout"]["seconds"] == 1291.9, (
+        "the banked phase was overwritten -- 21 minutes of measured runtime re-paid"
     )
-    assert len(timed) == 2, "a resumed run re-timed a phase it already had: {}".format(timed)
+    assert len(timed) == 1, "a resumed run re-timed a phase it already had: {}".format(timed)
     assert record["complete"] is True
 
 
-def test_without_a_partial_record_all_three_phases_are_timed(monkeypatch, out, tmp_path):
+def test_without_a_partial_record_both_phases_are_timed(monkeypatch, out, tmp_path):
     """The other direction. A resume that skipped phases it never had would report a ratio
     built from nothing, which is worse than re-running them."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     timed = []
     _stub_phases(monkeypatch, timed)
 
     assert measure._run_measurement(out, lambda m: None) == 0
-    assert len(timed) == 3
+    assert len(timed) == 2
     assert _read(out)["resumed_phases"] == []
 
 
@@ -578,15 +594,14 @@ def test_a_phase_with_no_duration_is_not_treated_as_banked(monkeypatch, out, tmp
     """A half-written checkpoint must not retire a phase that was never timed. The record is
     rewritten on every heartbeat, so a run killed mid-write is the expected case, not the
     exotic one."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     timed = []
     _stub_phases(monkeypatch, timed)
-    _banked(out, cold_checkout={"head_sha_at_run": "deadbeef"})  # no `seconds`
+    _banked(out, throwaway_checkout={"head_sha_at_run": "deadbeef"})  # no `seconds`
 
     measure._run_measurement(out, lambda m: None)
-    assert len(timed) == 3, "a phase with no measured duration was accepted as measured"
+    assert len(timed) == 2, "a phase with no measured duration was accepted as measured"
 
 
 def test_an_unparseable_record_starts_over_rather_than_raising(out):
@@ -596,48 +611,12 @@ def test_an_unparseable_record_starts_over_rather_than_raising(out):
     assert measure._load_banked_phases(str(Path(out).parent / "absent.json")) == {}
 
 
-def test_a_resume_does_not_delete_the_reused_checkout(monkeypatch, out, tmp_path):
-    """The rmtree is the COLD phase's SETUP. Left outside the branch it would delete exactly
-    the warmth the next phase exists to measure, and the warm number would silently be a second
-    cold number.
-
-    MUTATION: hoist the `shutil.rmtree(reused, ...)` back above the `if` and this reds."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    (reused / "__pycache__").mkdir()
-    monkeypatch.setattr(measure.prc, "HEAD_CHECKOUT_ROOT", tmp_path)
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
-    _stub_phases(monkeypatch, [])
-    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
-
-    measure._run_measurement(out, lambda m: None)
-
-    assert (reused / "__pycache__").exists(), (
-        "the resume deleted the reused checkout's bytecode -- the warm phase it went on to "
-        "time was a cold run wearing the warm phase's name"
-    )
-
-
-def test_a_resumed_warm_phase_says_who_warmed_the_cache(monkeypatch, out, tmp_path):
-    """"Warm" is a claim about the DIRECTORY, not about this process. When the cold phase came
-    from an earlier launch, the record must not imply this run established it."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
-    _stub_phases(monkeypatch, [])
-    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "deadbeef"})
-
-    measure._run_measurement(out, lambda m: None)
-    assert _read(out)["warm_cache_established_by"] == "an earlier launch or the live publisher"
-
-
 def test_the_record_names_a_phase_timed_at_a_different_commit(monkeypatch, out, tmp_path):
     """Resuming across launches is what makes this converge on a box that keeps killing it --
     and it means the record can span commits. A reader who assumed one SHA would compare
     runtimes of two different suites without knowing it."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     _stub_phases(monkeypatch, [])
     _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "3ee4541a7"})
 
@@ -645,7 +624,163 @@ def test_the_record_names_a_phase_timed_at_a_different_commit(monkeypatch, out, 
     record = _read(out)
     assert record["phases_from_an_earlier_head"] == ["cold_checkout"]
     # And the other direction: a phase timed at THIS head is not flagged as stale.
-    assert "warm_checkout" not in record["phases_from_an_earlier_head"]
+    assert "throwaway_checkout" not in record["phases_from_an_earlier_head"]
+
+
+# ── THE ELIMINATION MOVED THE SUBJECT, AND THE INSTRUMENT'S PRECONDITION WAS THE OLD ONE ─────
+#
+# 444402ee0 set `prc.REUSE_HEAD_CHECKOUT = False` under R3. Both checkout phases here were gated
+# on `path.name != prc.REUSED_HEAD_CHECKOUT_NAME` -> abort, so from that commit every launch
+# aborted before timing anything, recording the pre-written cause "another publisher held the
+# reuse lock" -- a lock with nothing left to protect, pointing the next diagnosis at a mechanism
+# that had been deleted. The consumer is fail-CLOSED (`prc.measured_gate_timeout_floor` reds the
+# gate on a record that cannot answer), so an instrument that can never refresh its record is a
+# control counting down.
+#
+# Both directions below: the throwaway IS timed, and a reused directory is refused.
+
+
+def test_a_throwaway_checkout_is_timed_rather_than_aborted(monkeypatch, out, tmp_path):
+    """THE defect this repair closes. Pre-fix this exact input aborted with `returncode 1` and
+    a false reason; the phase set could not converge because it could not start.
+
+    MUTATION: restore `if path.name != prc.REUSED_HEAD_CHECKOUT_NAME: abort` and this reds."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+
+    assert measure._run_measurement(out, lambda m: None) == 0
+    rec = _read(out)
+    assert "aborted" not in rec, "a throwaway checkout -- the shipped subject -- was refused"
+    assert str(throwaway) in timed, (
+        "the throwaway phase never reached the suite: timed {}".format(timed))
+    assert rec["phases"]["throwaway_checkout"]["cwd"] == str(throwaway)
+
+
+def test_a_reused_checkout_is_refused_rather_than_timed_as_a_throwaway(monkeypatch, out,
+                                                                       tmp_path):
+    """The inverted precondition, and it is a LIVE guard rather than the dead one it replaced:
+    a shared directory can only appear if `REUSE_HEAD_CHECKOUT` is turned back on, and then this
+    phase would be timing a WARM subject and filing it as the cost of a cold one.
+
+    MUTATION: drop the `path.name == REUSED_HEAD_CHECKOUT_NAME` branch and this reds -- the
+    record banks a warm runtime under the throwaway phase's name."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+
+    assert measure._run_measurement(out, lambda m: None) == 1
+    rec = _read(out)
+    assert rec["aborted"] == "reuse is enabled, so there is no throwaway to time"
+    assert "reuse lock" not in rec["aborted"], (
+        "the abort still names the reuse lock -- the false cause the old precondition wrote on "
+        "every launch"
+    )
+    assert timed == [], "a warm subject was timed and would have been filed as the throwaway"
+    assert "throwaway_checkout" not in rec["phases"]
+
+
+def test_no_abort_in_this_harness_blames_a_lock_that_no_longer_exists():
+    """The specific regression, pinned by an independent oracle: the harness's SOURCE, not its
+    behaviour on one input. The defect was not that a check existed but that its failure text
+    was pre-written and false, so a reader diagnosing nine dead launches was sent to the reuse
+    lock. `_run_measurement` may not carry that sentence again."""
+    import inspect
+
+    src = inspect.getsource(measure._run_measurement)
+    assert "held the reuse lock" not in src, (
+        "the false pre-written cause is back in _run_measurement -- since 444402ee0 there is no "
+        "reuse lock to hold, and this string sent the last nine diagnoses to a deleted mechanism"
+    )
+
+
+# ── A RETIRED PHASE IS STILL A MEASUREMENT, AND A FAIL-CLOSED CONTROL IS EATING IT ────────────
+
+
+def test_a_retired_phase_keeps_feeding_the_fail_closed_timeout_floor(monkeypatch, out, tmp_path):
+    """`prc.measured_gate_timeout_floor` reads THIS record, and a record that cannot answer is a
+    FAILED check that reds the gate. `_run_measurement` rewrites the file before its first phase,
+    so a resume that dropped retired phases would blank the floor's only evidence -- 1291.9s of
+    banked `cold_checkout` -- at the instant this harness next launched.
+
+    MUTATION: drop `RETIRED_PHASES` from `_load_banked_phases`'s keepable set and the floor goes
+    None here, i.e. publishing wedges on a control that was working."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    _stub_phases(monkeypatch, [])
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "3ee4541a7"})
+
+    measure._run_measurement(out, lambda m: None)
+
+    rec = _read(out)
+    assert rec["phases"]["cold_checkout"]["seconds"] == 1291.9
+    assert rec["phases_from_a_retired_configuration"] == ["cold_checkout"]
+    floor = measure.prc.measured_gate_timeout_floor(out)
+    assert floor is not None, "the retired phase was dropped and the fail-closed floor went blind"
+    assert floor >= int(1291.9 * measure.prc.GATE_TIMEOUT_SAFETY_FACTOR)
+
+
+def test_a_retired_phase_never_enters_the_ratio(monkeypatch, out, tmp_path):
+    """The other direction of the same rule. The ratio is throwaway/in-tree; a retired phase in
+    the numerator would report the cost of a directory that no longer exists.
+
+    MUTATION: compute the ratio over the worst phase instead of `throwaway_checkout` and this
+    reds -- 1291.9/1.0 rather than 1.0/1.0."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    _stub_phases(monkeypatch, [])  # both live phases time at 1.0s
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "3ee4541a7"})
+
+    measure._run_measurement(out, lambda m: None)
+
+    rec = _read(out)
+    assert rec["ratio_throwaway_over_in_tree"] == 1.0
+    assert rec["complete"] is True, "a retired phase must not be able to owe a live one"
+    assert "cold_checkout" not in measure.RATIO_PHASES
+
+
+def test_the_floor_names_the_phase_it_rests_on(monkeypatch, out, tmp_path):
+    """The bound must clear the WORST legitimate runtime, retired phases included -- they are
+    real timings of this suite on this box and can only push it up. Naming the phase is what
+    lets a reader tell a bound resting on a live subject from one resting on a dead one, which
+    is exactly the confusion that let 2600s sit on a directory that had been deleted.
+
+    MUTATION: take `worst` over `RATIO_PHASES` only and the floor drops from 2583 to 2."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    _stub_phases(monkeypatch, [])
+    _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "3ee4541a7"})
+
+    measure._run_measurement(out, lambda m: None)
+
+    rec = _read(out)
+    assert rec["worst_legitimate_phase"] == "cold_checkout"
+    assert rec["worst_legitimate_seconds"] == 1291.9
+    assert rec["implied_timeout_floor_2x"] == 2583
+
+
+def test_the_superseded_criterion_is_stated_rather_than_scored(monkeypatch, out, tmp_path):
+    """Criterion 1 asked for <= 1.3x against a REUSED checkout. Reuse is gone, so the question
+    has no measurable subject -- and a harness that kept emitting `meets_exit_criterion` would
+    let a superseded criterion read as MET on a comparison it did not make. The ratio is
+    reported as the TAX and the supersession is in the artefact, not only in a build note."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    _stub_phases(monkeypatch, [])
+
+    measure._run_measurement(out, lambda m: None)
+
+    rec = _read(out)
+    assert "meets_exit_criterion" not in rec, (
+        "a verdict against a criterion whose subject no longer exists is a pass nobody earned"
+    )
+    assert "ratio_warm_over_in_tree" not in rec
+    assert rec["ratio_throwaway_over_in_tree"] is not None
+    assert "TAX" in rec["ratio_measures"]
+    assert "444402ee0" in rec["superseded_exit_criterion"]["superseded_by"]
 
 
 # ── /tmp IS RAM: the reclaim that stopped the OOM ────────────────────────────────────────────
@@ -857,13 +992,15 @@ def test_a_deferral_banks_what_is_measured_and_times_no_suite(monkeypatch, out):
 
     MUTATION: drop the `except _Deferred` handler in `_run_measurement` and this reds with the
     exception escaping -- the unit dies and the record never names a reason."""
-    # Stamped with the launch's own HEAD so the banked pair is COMPARABLE and survives on its
-    # merits. `_drop_incomparable_ratio_phases` would otherwise re-time warm here -- correctly,
+    # Stamped with the launch's own HEAD so the banked phase is COMPARABLE and survives on its
+    # merits. `_drop_incomparable_ratio_phases` would otherwise re-time it here -- correctly,
     # but for a reason this test is not about, and the deferral contract below would then be
-    # asserted against a resume state no real record produces.
+    # asserted against a resume state no real record produces. The retired `cold_checkout` rides
+    # along because a deferral must not lose it either: it is the timeout floor's evidence.
     monkeypatch.setattr(measure.prc, "_head_sha", lambda: "headsha0")
-    banked = {"phases": {"cold_checkout": {"seconds": 1291.9, "head_sha_at_run": "headsha0"},
-                         "warm_checkout": {"seconds": 1167.5, "head_sha_at_run": "headsha0"}}}
+    banked = {"phases": {"cold_checkout": {"seconds": 1291.9, "head_sha_at_run": "old111"},
+                         "throwaway_checkout": {"seconds": 1167.5,
+                                                "head_sha_at_run": "headsha0"}}}
     Path(out).write_text(json.dumps(banked))
 
     # The guards are driven through their REAL code path -- patching `_time_suite` would bypass
@@ -894,10 +1031,12 @@ def test_a_deferral_banks_what_is_measured_and_times_no_suite(monkeypatch, out):
     )
     assert rec["complete"] is False
     assert rec["phases_missing"] == ["in_tree_baseline"]
-    assert rec["phases"]["cold_checkout"]["seconds"] == 1291.9, (
+    assert rec["phases"]["throwaway_checkout"]["seconds"] == 1167.5, (
         "a deferral threw away a banked phase -- 21 minutes of measurement lost per deferral"
     )
-    assert rec["phases"]["warm_checkout"]["seconds"] == 1167.5
+    assert rec["phases"]["cold_checkout"]["seconds"] == 1291.9, (
+        "a deferral dropped the retired phase the fail-closed timeout floor rests on"
+    )
 
 
 def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
@@ -910,9 +1049,8 @@ def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
 
     It defers at the guard that now fires FIRST -- the exclusion, held here on the redirected
     lock -- rather than at a stubbed `_wait_for_quiet`. That is not cosmetic: with the wait
-    stubbed, a run reaches the cold phase's REAL `prc._head_checkout()` first, so the test
-    extracted HEAD into /tmp and its verdict turned on whether a live publisher happened to hold
-    the reuse lock."""
+    stubbed, a run reaches the throwaway phase's REAL `prc._head_checkout()` first, so the test
+    extracted HEAD into /tmp and its verdict turned on the state of a directory outside it."""
     monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # already past the acquire deadline
     holder = open(str(measure.prc.RUN_LOCK_FILE), "w")
     fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -921,7 +1059,7 @@ def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
             assert measure._run_measurement(out, lambda _m: None) == 0
             record = _read(out)
             assert record["deferral_count"] == expected
-            assert record["deferred"]["at_phase"] == "cold_checkout", (
+            assert record["deferred"]["at_phase"] == "throwaway_checkout", (
                 "the deferral must name the phase still owed")
     finally:
         fcntl.flock(holder, fcntl.LOCK_UN)
@@ -1038,11 +1176,14 @@ def test_the_exclusion_is_released_when_the_phase_raises(monkeypatch, tmp_path):
     assert _lock_is_free() is True
 
 
-def test_the_exclusion_is_re_entrant_so_the_cold_phase_can_span_its_setup(monkeypatch, tmp_path):
-    """COLD deletes the reused checkout, rebuilds it and times it under ONE hold. A second
-    `flock` on a second fd of the same file blocks even inside one process, so nesting must be
-    counted rather than re-attempted -- without this the cold phase deadlocks itself into a
-    deferral it would report as a busy publisher."""
+def test_the_exclusion_is_re_entrant_so_a_phase_can_span_its_setup(monkeypatch, tmp_path):
+    """A second `flock` on a second fd of the same file blocks even inside one process, so a
+    nested hold must be counted rather than re-attempted -- otherwise the inner one deadlocks
+    into a deferral it would report as a busy publisher.
+
+    No phase nests today: the COLD phase did (delete the reused checkout, rebuild it, time it,
+    under one hold) and the R3 elimination removed it. The property is kept because the deadlock
+    it prevents is silent and the next phase that needs a setup step would rediscover it."""
     from background import process_run_complete as prc
     monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # a real re-acquire would defer here
 
@@ -1117,8 +1258,8 @@ def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
     """DERIVED from the tree, not from a list this file remembers to extend.
 
     The population is every test module that can reach `_publisher_exclusion` -- directly, or
-    through `_time_suite`/`_run_measurement`, which is how it was reached unnoticed here (two of
-    the three phases enter it from `_run_measurement`, which no test names). Each such module
+    through `_time_suite`/`_run_measurement`, which is how it was reached unnoticed here (the
+    checkout phase enters it from `_run_measurement`, which no test names). Each such module
     must redirect `RUN_LOCK_FILE`, or it inherits the wedge."""
     entry_points = ("_publisher_exclusion", "_time_suite", "_run_measurement")
     tests_root = Path(__file__).resolve().parent.parent
@@ -1150,8 +1291,8 @@ def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
 # HEAD and divided one by the other. The exit criterion would then have been decided by the diff
 # between two commits, reported as the cost of the checkout.
 #
-# These fire on that: the pair is dropped and re-timed together, COLD is not (it only ever
-# raises the timeout floor), and a pair already banked together is not re-paid for.
+# These fire on that: the pair is dropped and re-timed together, a RETIRED phase is not (it only
+# ever raises the timeout floor), and a pair already banked together is not re-paid for.
 
 def _banked(out, **phases):
     Path(out).write_text(json.dumps({"phases": phases}))
@@ -1159,21 +1300,22 @@ def _banked(out, **phases):
 
 
 def test_a_banked_ratio_phase_from_another_commit_is_dropped(out):
-    """THE LIVE PROPERTY. Warm at an older SHA, baseline owed -- warm must be re-timed."""
+    """THE LIVE PROPERTY. Throwaway at an older SHA, baseline owed -- it must be re-timed."""
     _banked(out, cold_checkout={"seconds": 1291.9, "head_sha_at_run": "old111"},
-            warm_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
+            throwaway_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
     phases = measure._load_banked_phases(out)
 
     dropped = measure._drop_incomparable_ratio_phases(phases, "head999", print)
 
-    assert dropped == ["warm_checkout"], (
-        "a warm phase timed at another commit cannot be the numerator of a ratio whose "
+    assert dropped == ["throwaway_checkout"], (
+        "a throwaway phase timed at another commit cannot be the numerator of a ratio whose "
         "denominator is timed at HEAD; it must be re-timed, not inherited"
     )
-    assert "warm_checkout" not in phases
+    assert "throwaway_checkout" not in phases
     assert "cold_checkout" in phases, (
-        "COLD feeds the timeout floor and never the ratio -- an older, slower cold phase can "
-        "only RAISE that bound, so re-paying 21 minutes for it buys nothing"
+        "a RETIRED phase feeds the timeout floor and never the ratio -- an older, slower one "
+        "can only RAISE that bound, so re-paying 21 minutes for it buys nothing, and it is the "
+        "floor's only evidence today"
     )
 
 
@@ -1183,38 +1325,39 @@ def test_a_ratio_phase_at_this_head_is_kept(out):
     Without this, `_drop_incomparable_ratio_phases` could return every ratio phase it is shown
     and both the assertion above and the measurement's convergence would still look correct --
     while every launch re-paid 20 minutes for a phase it already held at the right commit."""
-    _banked(out, warm_checkout={"seconds": 1167.5, "head_sha_at_run": "head999"})
+    _banked(out, throwaway_checkout={"seconds": 1167.5, "head_sha_at_run": "head999"})
     phases = measure._load_banked_phases(out)
 
     assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == []
-    assert "warm_checkout" in phases
+    assert "throwaway_checkout" in phases
 
 
 def test_a_pair_banked_together_at_an_older_commit_is_not_re_timed(out):
     """Both sides at one (earlier) SHA are comparable TO EACH OTHER, which is all the ratio
     asks. Re-timing them would cost 40 minutes to learn the same number."""
-    _banked(out, warm_checkout={"seconds": 1100.0, "head_sha_at_run": "old222"},
+    _banked(out, throwaway_checkout={"seconds": 1100.0, "head_sha_at_run": "old222"},
             in_tree_baseline={"seconds": 1000.0, "head_sha_at_run": "old222"})
     phases = measure._load_banked_phases(out)
 
     assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == []
-    assert set(phases) == {"warm_checkout", "in_tree_baseline"}
+    assert set(phases) == {"throwaway_checkout", "in_tree_baseline"}
 
 
 def test_a_banked_phase_with_no_recorded_commit_is_dropped(out):
     """FAIL-CLOSED. A phase that cannot be SHOWN to have been timed at this commit is not
     evidence for a criterion about this commit -- unprovable is not a pass."""
-    _banked(out, warm_checkout={"seconds": 1167.5})
+    _banked(out, throwaway_checkout={"seconds": 1167.5})
     phases = measure._load_banked_phases(out)
 
-    assert measure._drop_incomparable_ratio_phases(phases, "head999", print) == ["warm_checkout"]
-    assert "warm_checkout" not in phases
+    assert measure._drop_incomparable_ratio_phases(
+        phases, "head999", print) == ["throwaway_checkout"]
+    assert "throwaway_checkout" not in phases
 
 
 def test_the_drop_is_named_in_the_record_not_just_the_log(out, monkeypatch, tmp_path):
     """A drop only in the log is invisible to the next tick: it must be able to tell "this
-    launch chose to re-pay for warm" from "the record was lost"."""
-    _banked(out, warm_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
+    launch chose to re-pay for the throwaway" from "the record was lost"."""
+    _banked(out, throwaway_checkout={"seconds": 1167.5, "head_sha_at_run": "old222"})
     monkeypatch.setattr(measure.prc, "_head_sha", lambda: "head999")
     # Defer immediately -- this asserts about the record the launch WRITES, not about a suite.
     monkeypatch.setattr(measure, "_wait_for_quiet",
@@ -1225,8 +1368,8 @@ def test_the_drop_is_named_in_the_record_not_just_the_log(out, monkeypatch, tmp_
     measure._run_measurement(out, print)
 
     rec = json.loads(Path(out).read_text())
-    assert rec["dropped_for_comparability"] == ["warm_checkout"]
-    assert "warm_checkout" not in rec["phases"], (
+    assert rec["dropped_for_comparability"] == ["throwaway_checkout"]
+    assert "throwaway_checkout" not in rec["phases"], (
         "the dropped phase must be gone from the record too -- a record still carrying it "
         "would let a reader compute the very ratio this drop exists to prevent"
     )
@@ -1390,9 +1533,8 @@ def test_a_marker_is_never_left_on_an_ending_the_launch_chose(monkeypatch, out, 
     worth nothing.
 
     MUTATION: drop any one of the `heartbeat.clear()` calls and this reds."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     _stub_phases(monkeypatch, [])
 
     assert measure._run_measurement(out, lambda _m: None) == 0
@@ -1431,9 +1573,8 @@ def test_the_next_launch_republishes_the_kill_rather_than_erasing_it(monkeypatch
         "in_flight": {"phase": "in_tree_baseline", "stage": "suite_running",
                       "since": "2026-08-10T22:28:49Z", "mem_available_mb": 512},
     }))
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     _stub_phases(monkeypatch, [])
 
     assert measure._run_measurement(out, lambda _m: None) == 0
@@ -1450,9 +1591,8 @@ def test_a_record_with_no_prior_kill_says_so_explicitly(monkeypatch, out, tmp_pa
     """The quiet direction. `None` is WRITTEN, not omitted: a reader must be able to tell "the
     last launch ended on a path it chose" from "this harness predates the marker"."""
     _banked(out)
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     _stub_phases(monkeypatch, [])
 
     assert measure._run_measurement(out, lambda _m: None) == 0
@@ -1656,9 +1796,8 @@ def test_a_blocked_run_is_recorded_and_exits_non_zero_unlike_a_deferral(monkeypa
                                                                        tmp_path):
     """The differential that keeps 'the box was briefly busy' distinguishable from 'the control
     is gone'. A deferral returns 0 and is a correct outcome; this must not."""
-    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
-    reused.mkdir()
-    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
     monkeypatch.setattr(measure, "_time_suite",
                         lambda *_a, **_kw: (_ for _ in ()).throw(
                             measure._Unbounded("systemd-run unavailable")))

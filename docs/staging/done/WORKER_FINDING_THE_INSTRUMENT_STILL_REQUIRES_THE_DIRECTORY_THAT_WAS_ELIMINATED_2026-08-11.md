@@ -1,7 +1,14 @@
 # [WORKER FINDING] The cost instrument still requires the directory the R3 elimination deleted
 
-**Filed:** 2026-08-11 · **Atom:** `OPS2_publish_gate_head_worktree` · **Status:** open, queued
-(SELF_INTERRUPT_DISCIPLINE — this is a redesign decision, not a fix-on-sight)
+**Filed:** 2026-08-11 · **Atom:** `OPS2_publish_gate_head_worktree` · **Status:** CLOSED
+2026-08-11, drawn as the atom's own work. The recommendation below was taken as written: the
+phase set is collapsed to `throwaway_checkout` vs `in_tree_baseline`, the reused-name
+precondition is INVERTED rather than removed, and the ratio now measures the tax. One thing the
+finding did not foresee and the repair had to add: collapsing `PHASE_ORDER` alone would have
+dropped the banked `cold_checkout` from the record on the next launch and taken
+`measured_gate_timeout_floor` to `None` — starving the fail-closed control this finding is
+*about*. Retired phases are carried for the floor and barred from the ratio. See
+`docs/design/OPS2_PUBLISH_GATE_HEAD_CHECKOUT.md` §"STATUS 2026-08-11" and the atom record.
 
 ## Observed, with evidence
 

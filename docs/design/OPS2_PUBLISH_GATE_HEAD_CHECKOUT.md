@@ -478,3 +478,85 @@ filed rather than fixed here (SELF-INTERRUPT DISCIPLINE — queue, don't fix on 
 only job in that window was to hold a lock. See
 `docs/staging/WORKER_FINDING_THE_MEASUREMENT_IS_OOM_KILLED_INSIDE_ITS_OWN_WAIT_2026-08-11.md`.
 The deferral trade assumed the loser of the race gets to *defer*; this one gets killed.
+
+---
+
+## STATUS 2026-08-11 — the phase set is collapsed to the two subjects that still exist
+
+**Everything above §1 describes a configuration that no longer runs.** `444402ee0` eliminated the
+reused checkout under R3 after it reset a shared directory under four live suites; §1's exit
+criterion (a reused checkout within 1.3× in-tree) is **SUPERSEDED, not met, and cannot now be
+met** — warm bytecode is not available to this atom at any price it may pay. Read §1 and §4 as
+history of a mechanism that shipped and was withdrawn, not as current behaviour.
+
+### The instrument's precondition was the eliminated thing
+
+*Observed.* Both checkout phases were gated on getting the shared name back from
+`prc._head_checkout()`:
+
+```
+if path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
+    results["aborted"] = "another publisher held the reuse lock"   # returns 1
+```
+
+Since `444402ee0` that condition is true on **every** launch. The instrument could not complete,
+and it aborted with a cause that is not merely wrong but points the next diagnosis at a lock with
+nothing left to protect. Filed as
+`WORKER_FINDING_THE_INSTRUMENT_STILL_REQUIRES_THE_DIRECTORY_THAT_WAS_ELIMINATED_2026-08-11.md`;
+this is its repair.
+
+### What the harness measures now
+
+| phase | subject | why it exists |
+|---|---|---|
+| `throwaway_checkout` | a fresh `mkdtemp` extraction of HEAD, no `__pycache__` | **what the gate actually runs every cycle** |
+| `in_tree_baseline` | the live working tree | the pre-ruling subject |
+
+`ratio_throwaway_over_in_tree` is **the permanent per-cycle TAX the elimination made
+unavoidable** — the honest successor to superseded criterion 1, which asked about a saving that
+no longer exists. It is **reported, not graded**: `meets_exit_criterion` and
+`exit_criterion_ratio_max` are gone, because a verdict against a criterion whose subject was
+deleted is a pass nobody earned. `superseded_exit_criterion` in the record says so in the
+artefact rather than only in a build note.
+
+The precondition is **inverted rather than removed**. A checkout that IS the shared directory can
+only appear if someone re-enables `REUSE_HEAD_CHECKOUT`, and then the phase would be timing a
+warm subject and filing it as the cost of a cold one — so it refuses, with a reason that is true.
+
+### Retired phases are kept, and the reason is a live fail-closed control
+
+`cold_checkout` and `warm_checkout` belong to the dead configuration. They never enter the ratio
+and never retire an owed phase — but `prc.measured_gate_timeout_floor` reads **every** phase in
+this record carrying a `seconds`, and `test_the_timeout_clears_the_floor_the_measurement_implies`
+treats a record that cannot answer as a FAILED check. That control's entire evidence today is one
+banked `cold_checkout` at 1291.9s. `_run_measurement` rewrites the record from `results["phases"]`
+*before* its first phase, so a resume that dropped retired phases would have blanked the floor's
+only evidence at the instant this harness next launched — wedging publishing on a control that
+was working. They are carried, named in `phases_from_a_retired_configuration`, and the floor now
+also states `worst_legitimate_phase` so a bound resting on a dead subject is visible rather than
+inferred.
+
+### R15 both ways — seven mutations RUN, source restored byte-identical
+
+| mutation | reds |
+|---|---|
+| restore `name != REUSED → abort` (the dead precondition) | `..._throwaway_checkout_is_timed_rather_than_aborted`, `..._reused_checkout_is_refused...` |
+| delete the reuse-refusal branch | `..._a_reused_checkout_is_refused_rather_than_timed_as_a_throwaway` |
+| `keepable = PHASE_ORDER` (drop retired) | 5 tests, incl. `..._keeps_feeding_the_fail_closed_timeout_floor` |
+| `worst` over `RATIO_PHASES` only | `..._the_floor_names_the_phase_it_rests_on` (floor 2583 → 2) |
+| ratio numerator = worst phase | `..._a_retired_phase_never_enters_the_ratio` |
+| re-add `meets_exit_criterion` | `..._the_superseded_criterion_is_stated_rather_than_scored` |
+| drop `phases_from_a_retired_configuration` | `..._a_partial_record_is_not_complete` + 1 |
+
+`git diff` empty after each. 80 passed in `tests/tools/test_measure_publish_gate_subject_cost.py`;
+159 passed across the publish-gate family; 62 in `tests/background/test_process_run_complete.py`.
+
+### Still owed — and it is now one thing
+
+**The ratio itself.** `in_tree_baseline` has never once been timed across ten launches, so there
+is still no number, and §2's 2600s still rests on a 1291.9s phase measured in
+`/tmp/publish-gate-head-reused` — a directory that no longer exists, with 17s of slack over the
+floor it implies. The shipped subject is a genuinely cold throwaway every cycle, i.e. at or above
+that number, so **the re-derivation may well raise the bound**; the control reading the record is
+what will say so. That measurement closes restated-criterion-1 and re-derives criterion 2 in one
+pass, and it is the last thing between this atom and level 2.
