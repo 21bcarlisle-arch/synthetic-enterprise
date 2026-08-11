@@ -5961,6 +5961,12 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "renderer": "measure_and_write",
         "carrier": ("gap", None),
         "decimals": 4,
+        # AND IT RENDERS ITSELF INTO ITS OWN NOTE (atom D35), which is the
+        # string the ledger writer puts in front of the Proof door. Same
+        # precision, so no epsilon moves -- but an undeclared site is an
+        # undeclared site, and this one was invisible to a control anchored to
+        # a named function in a named module.
+        "component_renders": (("belief_population_mix.note", 4),),
     },
     "detection": {
         "module": "background/gap_metric.py",
@@ -5977,14 +5983,37 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "decimals": 2,
     },
     "ageing": {
-        # TEN TIMES COARSER. `format_ageing_summary` never renders `.gap` at
-        # all -- the headline reaches the reader as the component.
+        # `format_ageing_summary` never renders `.gap` at all -- the headline
+        # reaches the reader as the component, at 3dp.
+        #
+        # AND IT REACHES THE SAME READER AGAIN, AT 6dp, THROUGH A SECOND
+        # FUNCTION (atom D35, Expert Hour #17). `_ageing_direction_note` renders
+        # this very component at `.6f` into `ordinal_direction_caveat` -- a
+        # COMPONENT, which is what Hour #15 established consumers actually read
+        # ("the ledger writer, the live wiring and the dashboard read
+        # `components` and never the prose"). D34 declared 3 because its
+        # measurement is anchored to ONE named function per figure. The reader
+        # who reads the caveat can tell two companies apart at 1e-6, so the
+        # epsilon is HALF A STEP OF THE FINEST RENDER, not of the one the
+        # register happened to name: 6dp here, with 3dp declared beside it.
         "module": "background/gap_metric.py",
         "renderer": "format_ageing_summary",
         "carrier": ("component", "balanced_bucket_displacement"),
-        "decimals": 3,
+        "decimals": 6,
+        "also_rendered_at": (3,),
+        # FULLY QUALIFIED: `<owner dimension>.<component key>`, because a
+        # component key alone does not say whose components carry it, and the
+        # figure a string renders need not be the figure whose result holds it.
+        "component_renders": (("ageing.ordinal_direction_caveat", 6),),
     },
 }
+
+# THE RENDER SITES OUTSIDE THE DECLARED RENDERER (atom D35, Expert Hour #17).
+# `also_rendered_at` is every OTHER precision this figure legitimately reaches a
+# reader at; `component_renders` is where, as (component key, decimals), and
+# both are MEASURED off a real scoring rather than believed -- a declared site
+# the sweep cannot find fails exactly as loudly as an undeclared one it can.
+_RENDER_SITE_FIELDS = ("also_rendered_at", "component_renders")
 
 
 def published_reading_decimals(dimension: str,
@@ -6025,13 +6054,19 @@ def published_reading_epsilon(dimension: Optional[str] = None,
     """
     if decimals is None:
         if dimension is None:
+            # THE SPREAD IS INTERPOLATED FROM THE REGISTER, never typed into
+            # the sentence (atom D35): the pre-Hour text said "ageing 3dp" and
+            # would have gone on saying it after the declaration moved to 6.
+            spread = ", ".join(
+                f"{d} {PUBLISHED_GAP_CONSUMERS[d]['decimals']}dp"
+                for d in sorted(PUBLISHED_GAP_CONSUMERS))
             raise AssertionError(
                 "published_reading_epsilon() was called without naming a "
                 "figure. The five published dimensions do NOT share a reader "
-                "precision (detection/belief/belief_population_mix 4dp, ageing "
-                "3dp, detection_latency 2dp -- measured out of their own "
-                "renderers, atom D34), so there is no epsilon to return that "
-                "is not some other figure's."
+                f"precision ({spread} -- the FINEST render each figure reaches "
+                "a reader at, measured off every site that renders it, atoms "
+                "D34/D35), so there is no epsilon to return that is not some "
+                "other figure's."
             )
         decimals = published_reading_decimals(dimension)
     return 0.5 * (10.0 ** -int(decimals))
@@ -6205,6 +6240,14 @@ def measure_published_reading_precision(
             "decimals": tuple(sorted(found)),
             "sites": {d: tuple(v) for d, v in sorted(found.items())},
             "declared_decimals": int(entry["decimals"]),
+            # EVERY PRECISION THE READER IS DECLARED TO MEET, not just the
+            # renderer this register names (atom D35).
+            "declared_render_decimals": tuple(sorted(
+                {int(entry["decimals"])}
+                | {int(d) for d in (entry.get("also_rendered_at") or ())})),
+            "declared_component_renders": tuple(
+                (str(k), int(d))
+                for k, d in (entry.get("component_renders") or ())),
             "epsilon": published_reading_epsilon(decimals=int(entry["decimals"])),
             "carrier_is_the_gap": None,
             "carrier_gap_delta": None,
@@ -6260,21 +6303,40 @@ def check_published_reading_precision(
     for dim in sorted(measured):
         row = measured[dim]
         decimals = tuple(row["decimals"])                  # type: ignore[arg-type]
-        declared = row["declared_decimals"]
-        if len(decimals) > 1:
+        declared = int(row["declared_decimals"])           # type: ignore[arg-type]
+        declared_set = set(row["declared_render_decimals"])  # type: ignore[arg-type]
+        # EVERY PRECISION FOUND MUST BE DECLARED, AND EVERY DECLARED ONE FOUND
+        # (atom D35). D34's rule was "two precisions -> no epsilon, refuse to
+        # guess"; the reshape is that there IS no guess -- a reader given 6dp
+        # somewhere can tell two companies apart at 1e-6 whatever a second site
+        # rounds to -- so the epsilon is half a step of the FINEST, and the
+        # guard moves onto the SET rather than being dropped with the rule.
+        undeclared = sorted(set(decimals) - declared_set)
+        if undeclared:
             out.append(
-                f"{dim}: its gap is rendered at {list(decimals)} decimals in "
-                f"{row['module']}::{row['renderer']} -- one figure with two "
-                "reader precisions has no epsilon, and picking either is the "
-                "guess this control exists to refuse"
-            )
-        elif decimals[0] != declared:
-            out.append(
-                f"{dim}: declares {declared}dp and "
+                f"{dim}: declares {sorted(declared_set)}dp and "
                 f"{row['module']}::{row['renderer']} renders its gap at "
-                f"{decimals[0]}dp -- every band certified against the declared "
-                "epsilon was certified at "
-                f"{10.0 ** (decimals[0] - int(declared)):g}x the reader's step"
+                f"{list(decimals)} -- {undeclared} is a reader precision "
+                "nobody declared, and every band certified against the "
+                "declared epsilon was certified at "
+                f"{10.0 ** (max(undeclared) - declared):g}x the reader's step"
+            )
+        phantom = sorted(declared_set - set(decimals) - {
+            d for _k, d in row["declared_component_renders"]})  # type: ignore[union-attr]
+        if phantom:
+            out.append(
+                f"{dim}: declares renders at {phantom}dp that no site in "
+                f"{row['module']}::{row['renderer']} and no component render "
+                "produces -- a declared precision the sweep cannot find is a "
+                "debt entry outliving its debt"
+            )
+        finest = max(set(decimals) | declared_set)
+        if declared != finest:
+            out.append(
+                f"{dim}: sets its epsilon from {declared}dp while the finest "
+                f"render its reader is given is {finest}dp -- half a step of "
+                "the coarser number is not the smallest difference this reader "
+                f"can see, it is {10.0 ** (finest - declared):g}x it"
             )
         kind = tuple(row["carrier"])[0]                    # type: ignore[arg-type]
         if kind == "component":
@@ -6294,6 +6356,227 @@ def check_published_reading_precision(
                     f"{row['carrier_gap_delta']!r} -- more than the reader's "
                     "own step, so it is not the figure this precision is about"
                 )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# RENDER SITES ARE A SET, NOT A FUNCTION
+# (atom D35_the_reader_precision_was_read_at_one_of_two_sites, Hour #17)
+# ---------------------------------------------------------------------------
+# THE DEFECT, MEASURED. D34 reads each figure's reader precision off the format
+# spec in ONE named function per figure. The ageing headline reaches its reader
+# through two: `format_ageing_summary` at `.3f`, and `_ageing_direction_note` at
+# `.6f`, into the component `ordinal_direction_caveat` -- and a component is
+# precisely what Hour #15 established consumers read ("the ledger writer, the
+# live wiring and the dashboard read `components` and never the prose"). So the
+# register declared 3dp for a figure whose reader is handed 6, and every band,
+# floor and collapse certified "at the reader's own precision" for this
+# dimension was certified at 1000x its step. D34's own R15 list claims a
+# mutation "one gap rendered at two precisions" fires -- it fires only INSIDE
+# the anchored function, so the shipped two-precision state was invisible to
+# the control built to detect exactly it (the seventh time a control of this
+# module has been escaped by its own keying).
+#
+# THIS SWEEP IS THE INDEPENDENT HALF (R15 independence). It never reads source:
+# it scores the population and looks for the figure's OWN VALUE in every string
+# the consumer is handed. A literal only counts as a render of THIS figure if it
+# CHANGES WITH THE FIGURE -- measured on two seeds, and a precision at which the
+# two seeds' renderings coincide is rejected however often the literal appears
+# ("0.0" is in half the strings in this module and is a render of nothing).
+_RENDER_SITE_SEEDS = (7, 11)
+_RENDER_SITE_MAX_DECIMALS = 12
+# Past this a double carries no more decimals for a figure of this magnitude,
+# so "quantised at 17dp" IS "not quantised before the render".
+_FULL_PRECISION_DECIMALS = 17
+
+
+def _rendered_at(value: float, decimals: int, text: str) -> bool:
+    """Whether `text` shows `value` at exactly this many decimals.
+
+    A hit abutting another digit (or a decimal point) is a longer number's
+    middle, never this figure's rendering.
+    """
+    literal = format(value, f".{decimals}f")
+    for m in re.finditer(re.escape(literal), text):
+        before = text[m.start() - 1] if m.start() else ""
+        after = text[m.end()] if m.end() < len(text) else ""
+        if before.isdigit() or before == "." or after.isdigit():
+            continue
+        return True
+    return False
+
+
+def measure_component_render_sites(
+    *,
+    results: Optional[Sequence[Dict[str, object]]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    n_customers: int = 300,
+    seeds: Sequence[int] = _RENDER_SITE_SEEDS,
+) -> Dict[str, Dict[str, object]]:
+    """Every COMPONENT string in which each published figure is rendered, and at
+    what precision -- read off the artefact, never off the source (atom D35).
+
+    Returns {dimension: {"sites": ((component_key, decimals), ...),
+    "carrier_by_seed": {...}}}. Two scorings are required: one cannot tell a
+    render of the figure from a constant that happens to spell the same digits.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    if results is None:
+        results = []
+        for seed in seeds:
+            recs, cons, _ledger, as_of = _resolution_population(n_customers, seed)
+            results.append(score_triad(recs, cons, as_of))
+    if len(results) < 2:
+        raise AssertionError(
+            "measure_component_render_sites needs TWO scorings: with one, a "
+            "literal that never moves with the figure -- a constant, a "
+            "sibling's rate, a bare 0.0 -- is indistinguishable from a render "
+            "of it, and the sweep would report sites that are not there"
+        )
+
+    def carrier_of(res: Dict[str, object], dim: str) -> Optional[float]:
+        kind, key = tuple(register[dim]["carrier"])        # type: ignore[misc]
+        g = res[dim]                                       # type: ignore[index]
+        v = g.gap if kind == "gap" else g.components.get(str(key))
+        return None if v is None else float(v)
+
+    def strings_of(res: Dict[str, object]) -> Dict[str, str]:
+        out: Dict[str, str] = {}
+        for owner in sorted(res):
+            # THE NOTE IS A READER SURFACE TOO, and the biggest one: it is what
+            # `measure_and_write` puts in `coupled_gap_ledger.json` for the
+            # Proof door. A sweep over `components` alone would have the same
+            # shape as the defect it exists to catch -- one of the places the
+            # figure meets its reader, taken for all of them.
+            note = getattr(res[owner], "note", None)        # type: ignore[index]
+            if isinstance(note, str):
+                out[f"{owner}.note"] = note
+            comps = getattr(res[owner], "components", None)  # type: ignore[index]
+            if not isinstance(comps, dict):
+                continue
+            for key, val in comps.items():
+                # NO LENGTH FLOOR. A short published string is still a string
+                # the reader is handed, and skipping it would be a fail-open
+                # keyed to how chatty a caveat happens to be.
+                if isinstance(val, str):
+                    out[f"{owner}.{key}"] = val
+        return out
+
+    texts = [strings_of(r) for r in results]
+    shared_keys = sorted(set.intersection(*[set(t) for t in texts]))
+    out: Dict[str, Dict[str, object]] = {}
+    for dim in sorted(register):
+        values = [carrier_of(r, dim) for r in results]
+        sites: List[Tuple[str, int]] = []
+        if all(v is not None for v in values):
+            for dp in range(1, _RENDER_SITE_MAX_DECIMALS + 1):
+                literals = {format(v, f".{dp}f") for v in values}  # type: ignore[arg-type]
+                if len(literals) < len(values):
+                    # THE DISCRIMINATION RULE. At this precision the two books
+                    # print the same digits, so a hit proves nothing about
+                    # whether the string is showing THIS figure.
+                    continue
+                for key in shared_keys:
+                    if all(_rendered_at(v, dp, t[key])              # type: ignore[arg-type]
+                           for v, t in zip(values, texts)):
+                        sites.append((key, dp))
+        # THE QUANTISATION BEFORE THE RENDER (Hour #17's lead 2, answered).
+        # Two roundings sit between the scorer and the reader and D34 measured
+        # only the outer one: `balanced_bucket_displacement` is `round(x, 6)`
+        # and `mean_lag_days` is too, so a carrier whose OWN quantum were
+        # coarser than its render would make the render precision a decoration
+        # and every band certified against it a claim about digits the number
+        # does not carry. Measured, never assumed -- the smallest k at which
+        # every seed's carrier survives `round(v, k)` unchanged.
+        quantum = None
+        if all(v is not None for v in values):
+            # `_FULL_PRECISION_DECIMALS` means NO inner rounding: the carrier
+            # survives no rounding a double can express, so the render is the
+            # only quantisation between the scorer and the reader. That is a
+            # measured state, not a failure to measure -- the two must not
+            # collapse, or an unmeasurable carrier would read as an unquantised
+            # one (the fail-open this instrument keeps producing).
+            quantum = _FULL_PRECISION_DECIMALS
+            for k in range(1, _FULL_PRECISION_DECIMALS):
+                if all(v == round(v, k) for v in values):   # type: ignore[arg-type]
+                    quantum = k
+                    break
+        out[dim] = {
+            "sites": tuple(sorted(sites)),
+            "carrier_by_seed": {s: v for s, v in zip(seeds, values)},
+            "carrier_quantum_decimals": quantum,
+            "seeds": tuple(seeds),
+            "n_strings": len(shared_keys),
+        }
+    if not any(row["sites"] for row in out.values()):
+        raise AssertionError(
+            "the component render sweep found NO figure rendered in ANY "
+            "published string -- an inert sweep passes every register there "
+            "could be, which is the fail-silent shape this instrument has now "
+            "produced eight times (R15: an unavailable check is a failed one)"
+        )
+    return out
+
+
+def check_component_render_sites(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the declared render sites on trial against the artefact (atom D35).
+
+    Both directions fail: a site the sweep FINDS and the register does not
+    declare is the defect this atom is (a precision the reader is given and the
+    epsilon does not know about), and a site the register declares and the
+    sweep CANNOT find is a debt entry outliving its debt.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    out: List[str] = []
+    for dim in sorted(measured):
+        entry = register.get(dim)
+        if entry is None:
+            out.append(
+                f"{dim}: rendered in {list(measured[dim]['sites'])} with no "
+                "PUBLISHED_GAP_CONSUMERS entry at all"
+            )
+            continue
+        found = set(measured[dim]["sites"])                # type: ignore[arg-type]
+        declared = {(str(k), int(d))
+                    for k, d in (entry.get("component_renders") or ())}
+        for key, dp in sorted(found - declared):
+            out.append(
+                f"{dim}: its headline is rendered at {dp}dp into the published "
+                f"component `{key}`, which no entry declares -- this figure's "
+                "declared render set is "
+                f"{sorted({int(entry['decimals'])} | {int(x) for x in (entry.get('also_rendered_at') or ())})}"
+                "dp, so a reader given that component can separate two "
+                "companies its epsilon calls identical"
+            )
+        for key, dp in sorted(declared - found):
+            out.append(
+                f"{dim}: declares a {dp}dp render into `{key}` that this "
+                "scoring does not produce -- a render site nobody can find "
+                "cannot be what set this figure's epsilon"
+            )
+        widest = max([int(entry["decimals"])] + [d for _k, d in found])
+        if int(entry["decimals"]) != widest:
+            out.append(
+                f"{dim}: sets its epsilon from {entry['decimals']}dp while a "
+                f"published component renders it at {widest}dp"
+            )
+        quantum = measured[dim]["carrier_quantum_decimals"]
+        if quantum is None:
+            out.append(
+                f"{dim}: its carrier's own quantisation was NOT measured -- an "
+                "unmeasured inner rounding is an unmeasured reader step (R15: "
+                "an unavailable check is a failed check)"
+            )
+        elif int(entry["decimals"]) > int(quantum):
+            out.append(
+                f"{dim}: rendered at {entry['decimals']}dp but the carrier is "
+                f"already quantised at {quantum}dp before any render -- the "
+                "digits past that are a decoration, and half a step of them is "
+                "not a difference this reader can ever be shown"
+            )
     return out
 
 
@@ -8195,6 +8478,32 @@ def main() -> None:
           + ("every declaration held" if not _hdc_violations
              else f"{len(_hdc_violations)} VIOLATION(S)"))
     for v in _hdc_violations:
+        print(f"           !! {v}")
+    # WHAT PRECISION IS THE READER ACTUALLY GIVEN (atoms D34/D35). Printed for
+    # the reason every other control here is: a reader about to quote one of
+    # these figures is exactly the reader who needs to know the smallest
+    # difference it can show them -- and until Hour #17 the ageing answer was
+    # read off one of its TWO render sites.
+    _prec = measure_published_reading_precision(result=result)
+    _sites = measure_component_render_sites()
+    print("           reader precision (D34/D35), per figure:")
+    for dim in sorted(_prec):
+        extra = [f"{k}@{d}dp" for k, d in _sites[dim]["sites"]]
+        print(f"           {dim:<26} epsilon "
+              f"{published_reading_epsilon(dim):g} "
+              f"({published_reading_decimals(dim)}dp finest; renderer "
+              f"{list(_prec[dim]['decimals'])}dp"
+              + (f"; also {', '.join(extra)}" if extra else "")
+              + f"; carrier quantised at "
+              f"{_sites[dim]['carrier_quantum_decimals']}dp)")
+    _prec_violations = (
+        check_published_reading_precision(
+            _prec, published=published_dimensions(result))
+        + check_component_render_sites(_sites))
+    print("           verdict: "
+          + ("every declared reader precision held" if not _prec_violations
+             else f"{len(_prec_violations)} VIOLATION(S)"))
+    for v in _prec_violations:
         print(f"           !! {v}")
     # Ageing is NOT a g0-normalised score (D7) -- printing it in the same
     # raw_gap/g0/GAP shape as the other two is exactly how the old scalar got
