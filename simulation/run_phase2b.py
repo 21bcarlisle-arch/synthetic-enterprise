@@ -22,6 +22,7 @@ from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
+from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     CompanyTariffEngine,
@@ -2385,89 +2386,26 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "total_deals": len(_tpi_book._deals),
     }
 
-    # Phase OG: Renewable Obligation (RO) cost.
-    from company.regulatory.roc_ledger import ROCLedger, _ROC_OBLIGATION_LEVEL, _ROC_BUY_OUT_PRICE_GBP
-    _roc_ledger = ROCLedger()
-    _elec_mwh_by_year: dict = defaultdict(float)
-    for _rec in all_records:
-        if _rec.get("commodity", "elec") != "gas":
-            _yr_roc = _rec.get("settlement_date", "")[:4]
-            if _yr_roc:
-                _elec_mwh_by_year[_yr_roc] += _rec.get("consumption_kwh", 0.0) / 1000.0
-    _roc_per_year = {}
-    for _yr_roc in sorted(_all_years):
-        _mwh = _elec_mwh_by_year.get(_yr_roc, 0.0)
-        _oblig = _roc_ledger.create_obligation(int(_yr_roc), round(_mwh, 1))
-        _price = _ROC_BUY_OUT_PRICE_GBP.get(int(_yr_roc), 50.0)
-        _level = _ROC_OBLIGATION_LEVEL.get(int(_yr_roc), 0.35)
-        _roc_per_year[_yr_roc] = {
-            "elec_mwh": round(_mwh, 1),
-            "rocs_required": round(_oblig.rocs_required, 1),
-            "obligation_level": _level,
-            "buy_out_price_gbp": _price,
-            "buy_out_cost_gbp": round(_oblig.rocs_required * _price, 0),
-        }
-    roc_summary = {
-        "total_buy_out_cost_gbp": round(sum(v["buy_out_cost_gbp"] for v in _roc_per_year.values()), 0),
-        "per_year": _roc_per_year,
-    }
-
-    # Phase OH: FiT Levelisation Levy.
-    from company.regulatory.fit_book import FITBook, _FIT_LEVELISATION_RATE_PER_MWH
-    _fit_book = FITBook()
-    _fit_per_year = {}
-    for _yr_fit in sorted(_all_years):
-        _mwh_fit = _elec_mwh_by_year.get(_yr_fit, 0.0)
-        _levy_rate = _FIT_LEVELISATION_RATE_PER_MWH.get(int(_yr_fit), 0.0)
-        _levy_gbp = _fit_book.levelisation_charge_gbp(int(_yr_fit), _mwh_fit * 1000.0)
-        _fit_per_year[_yr_fit] = {
-            "elec_mwh": round(_mwh_fit, 1),
-            "levy_rate_gbp_per_mwh": _levy_rate,
-            "fit_levy_gbp": round(_levy_gbp, 2),
-        }
-    fit_summary = {
-        "total_fit_levy_gbp": round(sum(v["fit_levy_gbp"] for v in _fit_per_year.values()), 2),
-        "per_year": _fit_per_year,
-    }
-
-    # Phase OI: Climate Change Levy (CCL) -- I&C elec + gas pass-through.
-    from company.regulatory.ccl_ledger import CCLLedger, CCLFuel
-    _ccl_ledger = CCLLedger()
-    _ic_ids = {c["customer_id"] for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"}
-    _ic_gas_ids = {c["customer_id"] for c in GAS_CUSTOMERS if c.get("segment") == "I&C"}
-    _ccl_elec_by_year: dict = defaultdict(float)
-    _ccl_gas_by_year: dict = defaultdict(float)
-    for _rec in all_records:
-        _yr_ccl = _rec.get("settlement_date", "")[:4]
-        if not _yr_ccl:
-            continue
-        _cid_ccl = _rec.get("customer_id", "")
-        if _cid_ccl in _ic_ids and _rec.get("commodity", "elec") != "gas":
-            _ccl_elec_by_year[_yr_ccl] += _rec.get("consumption_kwh", 0.0)
-        elif _cid_ccl in _ic_gas_ids and _rec.get("commodity") == "gas":
-            _ccl_gas_by_year[_yr_ccl] += _rec.get("consumption_kwh", 0.0)
-    _ccl_per_year = {}
-    for _yr_ccl in sorted(_all_years):
-        _yr_int_ccl = int(_yr_ccl)
-        _elec_kwh = _ccl_elec_by_year.get(_yr_ccl, 0.0)
-        _gas_kwh = _ccl_gas_by_year.get(_yr_ccl, 0.0)
-        _elec_rate = _ccl_ledger.rate_for_year(_yr_int_ccl, CCLFuel.ELECTRICITY)
-        _gas_rate = _ccl_ledger.rate_for_year(_yr_int_ccl, CCLFuel.GAS)
-        _elec_ccl = round(_elec_kwh * _elec_rate / 100.0, 2)
-        _gas_ccl = round(_gas_kwh * _gas_rate / 100.0, 2)
-        _ccl_per_year[_yr_ccl] = {
-            "elec_kwh": round(_elec_kwh, 0),
-            "gas_kwh": round(_gas_kwh, 0),
-            "elec_rate_p_per_kwh": _elec_rate,
-            "gas_rate_p_per_kwh": _gas_rate,
-            "ccl_elec_gbp": _elec_ccl,
-            "ccl_gas_gbp": _gas_ccl,
-            "ccl_total_gbp": round(_elec_ccl + _gas_ccl, 2),
-        }
-    ccl_summary = {
-        "total_ccl_gbp": round(sum(v["ccl_total_gbp"] for v in _ccl_per_year.values()), 2),
-        "per_year": _ccl_per_year,
-    }
+    # Phases OG/OH/OI: the supplier's annual statutory return -- Renewables
+    # Obligation, FiT levelisation levy, Climate Change Levy. KNIFE pass 3 step
+    # 17 moved all three behind one door (register §3l): working out what you
+    # owe off your own supply volumes is the supplier's statutory accounting,
+    # not world physics. The world hands over the settled records and its own
+    # I&C book; the obligation levels, buy-out prices and levy rates stay
+    # company-side.
+    _statutory = build_statutory_obligations(
+        settled_records=all_records,
+        report_years=_all_years,
+        ic_elec_customer_ids={
+            c["customer_id"] for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"
+        },
+        ic_gas_customer_ids={
+            c["customer_id"] for c in GAS_CUSTOMERS if c.get("segment") == "I&C"
+        },
+    )
+    roc_summary = _statutory.roc_summary
+    fit_summary = _statutory.fit_summary
+    ccl_summary = _statutory.ccl_summary
 
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute

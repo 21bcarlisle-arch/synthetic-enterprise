@@ -218,6 +218,23 @@ that module and they are TWO GROUPS, not seven items: the customer-value builder
 Take them as groups — each is one company process the world is currently orchestrating, and cutting
 a group is what makes the seam a door rather than a re-export. `run_phase2b`'s 32 + 2 are untouched
 and remain the bulk of this design.
+
+STEPS 15 and 16, 2026-08-11 (§3j/§3k) took six of those seven as the two groups named above, leaving
+`dd_review_runner` — §3h's routing residual, and §3k records that no further composition lift removes
+it. `run_phase4c_on_phase2b` is therefore DONE as far as this design goes.
+
+STEP 17, 2026-08-11 (§3l) opened `run_phase2b` — the file every step so far deferred — with the
+supplier's annual statutory return: RO, FiT levelisation and CCL, one group behind
+`company.interfaces.statutory_obligations`, 3 of its 34. **31 direct + 2 indirect remain, and they are
+FOUR groups, not thirty-one items:** the trading desk (`forward_book`, `hedge_decision`,
+`wholesale_credit_exposure`, `hedge_policy`, `collateral_death_test`, `margin_call_book`), the CRM
+builders (`churn_model`, `complaints`, `customer_profitability`, `enriched_churn_estimate`,
+`nps_tracker`, `payment_behaviour_analytics`, `satisfaction_accumulator`, `tpi_book`,
+`churn_accuracy_report`), the pricing/regulatory group (`tariff_engine`, `margin_feedback`,
+`ofgem_price_cap`, `decision_policy`) and the `saas.*` set (`cost_to_serve`, `customer_reaction`,
+`demand_response`, `growth_mandate`, `ledger`, `property_model`, `smart_meter_rollout`,
+`tariff_pricing`), plus the two indirect edges on `account_ledger` /
+`payment_observation_consumer`. Take them as groups, one step each, per the same rule §3j set.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
@@ -989,6 +1006,79 @@ PROCESS left here to lift — only a value carried from a company organ into the
 Stated so a future pass does not draw this module again expecting a cut that its own ruling says is
 not there.
 
+## 3l. The statutory return is the supplier's own accounting — added 2026-08-11 (step 17)
+
+**3 edges cut, 39 → 36 live (37 → 34 direct; the 2 indirect untouched, and again that is the
+proof). This is the FIRST cut on `run_phase2b`, the file every previous step deferred.**
+
+`simulation/run_phase2b.py::main()` computed the supplier's whole annual statutory return itself —
+Phase OG (Renewables Obligation), Phase OH (FiT levelisation levy), Phase OI (Climate Change Levy),
+three contiguous blocks reaching `company.regulatory.roc_ledger`, `company.regulatory.fit_book` and
+`company.regulatory.ccl_ledger`. Working out what you owe under the RO, the FiT levelisation
+mechanism and the CCL off your own supply volumes is not physics: it is a licensed supplier doing
+its own statutory accounting, and getting it wrong is what Ofgem and HMRC fine suppliers for. Now
+`company/regulatory/statutory_obligations.py` does it behind
+`company.interfaces.statutory_obligations`, and the world hands over the settled records and its own
+two I&C rosters as DATA.
+
+### It reached through the wall for three PRIVATE tables, which is worse than the edge count says
+
+Worth naming because the count alone does not show it. The world was not merely calling three
+company ledgers — it imported `_ROC_OBLIGATION_LEVEL`, `_ROC_BUY_OUT_PRICE_GBP` and
+`_FIT_LEVELISATION_RATE_PER_MWH`, three underscore-prefixed rate tables, to build the per-year
+figures itself. The obligation level and the buy-out price are the two numbers that DEFINE the
+supplier's RO liability; the world reading them directly is the same shape of inversion as B2's,
+scaled down to constants. They are now read inside the layer that owns them.
+
+### Why this is a GROUP and not three items
+
+RO and FiT are computed off ONE shared accumulator — annual electricity volume supplied
+(`_elec_mwh_by_year` in the code this replaced). Cutting them separately would have left the world
+holding that intermediate and threading it into both doors: a seam that publishes a PULL is half a
+cut, which is §3j's rule and the reason the customer-value four went together. CCL joins them
+because it is the same process on the same input at the same point in the report — one annual
+statutory return — and it is the only one of the three needing the segmentation.
+
+### Behaviour is unchanged BY CONSTRUCTION, and the identity is measured anyway
+
+The three blocks are transcribed statement-for-statement in their original order, off the same
+inputs, with the rounding at the same places and the same summary keys; the three summaries flow
+into the same three slots of the output dict. `tests/company/interfaces/test_statutory_obligations_seam.py`
+control 2 does not take that on trust — it replays the PRE-CUT inlined sequence, transcribed from
+`run_phase2b.py` as it stood at `57cb9d872`, and asserts all three summaries are equal. Its mutation
+drops the RO commodity filter and proves the comparison can fail.
+
+### THE DEFECT THIS CUT INTRODUCES, stated because moving code created it
+
+Before the cut, CCL read `ELEC_CUSTOMERS` and `GAS_CUSTOMERS` at the point of use, so the elec
+roster could not arrive where the gas roster belonged. Now both are built at the call site and
+passed into one signature — and a swap, or a dropped `segment == "I&C"` filter, would change every
+CCL figure while every test exercising the impl module directly stayed green, because the impl would
+be given exactly what the caller chose to give it. Control 3 is an AST check over the real call site
+with a vacuity guard on the number of calls examined (zero calls → every finding list is empty for
+free), and two mutations that perform the swap and the dropped filter. Control 1 is the standard
+behavioural lazy-import detector, mutated on a COPY of the real source so no repo file is edited
+mid-run. **9 tests, 3 of them mutations.**
+
+### The residual this cut declines to fix, and why
+
+`FITBook.levelisation_charge_gbp(year, total_mwh_supplied)` is called with `_mwh_fit * 1000.0` and
+divides by 1000 internally, so the parameter named MWh is handed kWh and the two errors cancel: the
+arithmetic is right and the naming is wrong. Found while transcribing, NOT repaired here — B7's rule
+is that a wall pass never moves a number in the same commit as an import, and this one is one
+careless edit away from moving several. Logged as naming debt against `company/regulatory/fit_book.py`,
+not as a wall crossing, because it is not one.
+
+### What did NOT fall
+
+`run_phase2b` keeps **31 direct + 2 indirect**. The remaining groups are the trading desk
+(`forward_book`, `hedge_decision`, `wholesale_credit_exposure`, `hedge_policy`,
+`collateral_death_test`, `margin_call_book`), the CRM builders, the pricing group and the `saas.*`
+set — separate processes on separate inputs, each its own step. Stated rather than left to be
+inferred from a count that stops at 3.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1491,9 +1581,9 @@ edge: simulation.run_phase2b -> company.policy.decision_policy | disposition=owe
 edge: simulation.run_phase2b -> company.pricing.margin_feedback | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.pricing.ofgem_price_cap | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.pricing.tariff_engine | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.regulatory.ccl_ledger | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.regulatory.fit_book | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.regulatory.roc_ledger | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.regulatory.ccl_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the CCL pass-through moved to `company/regulatory/statutory_obligations.py` behind `company.interfaces.statutory_obligations`. The world hands over its settled records and its own I&C book; which customers are CCL-liable and at what rate is read company-side.
+edge: simulation.run_phase2b -> company.regulatory.fit_book | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the FiT levelisation levy moved with the RO block it shares its annual-volume accumulator with. The world no longer reads `_FIT_LEVELISATION_RATE_PER_MWH` across the wall.
+edge: simulation.run_phase2b -> company.regulatory.roc_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the Renewables Obligation moved behind the same door. The world no longer reads `_ROC_OBLIGATION_LEVEL` / `_ROC_BUY_OUT_PRICE_GBP`, two of a sibling layer's PRIVATE tables.
 edge: simulation.run_phase2b -> company.risk.collateral_death_test | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.risk.hedge_policy | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.trading.forward_book | disposition=owed | design=A_composition_lift
