@@ -146,9 +146,62 @@ def check_counts_match(atoms: list, store_map: dict[str, list]) -> list[str]:
 
 
 def check_file_sizes(store_dir: Path, ceiling: int = PER_FILE_CEILING) -> list[str]:
+    """Every file in the store is bounded -- LIVE FILES AND ARCHIVE CHUNKS ALIKE.
+
+    The archive (2026-08-11) exists because this ceiling, over a monotonic
+    append-only record, wedges the lane that keeps the record: this atom's own store
+    file reached 101,324 B of 102,400 with entries averaging 5,400 B, so its next
+    Expert Hour could not record itself. The roll answers that by bounding the LIVE
+    file and moving older entries out verbatim.
+
+    An archive EXEMPT from this ceiling would be the same defect wearing a new
+    directory name -- one uncapped file per atom, growing forever, and the first
+    reader to walk it back into memory pays for all of it. So the chunks are packed
+    against the same bound and measured by the same check. `glob("*.yaml")` alone
+    would have silently skipped them (a subdirectory does not match), which is the
+    fail-open shape: a control that stops seeing the population it was widened for."""
+    files = sorted(store_dir.glob("*.yaml")) + sorted(
+        (store_dir / store.ARCHIVE_DIRNAME).glob("*.yaml")
+    )
     return [f"{p.name}: {p.stat().st_size} bytes > {ceiling}"
-            for p in sorted(store_dir.glob("*.yaml"))
-            if p.stat().st_size > ceiling]
+            for p in files if p.stat().st_size > ceiling]
+
+
+def check_no_duplicate_entries(store_dir: Path) -> list[str]:
+    """No entry may be in BOTH an atom's archive and its live file.
+
+    This is the roll's own failure mode, and the one its write ORDER deliberately
+    chooses: chunks are written before the live file, so an interruption between the
+    two duplicates an entry rather than losing it. Duplication has to be DETECTED for
+    that trade to be honest -- an undetected duplicate is a silently double-counted
+    register, and `simplifications_count` would then disagree with the map for a
+    reason no one could see."""
+    violations = []
+    for p in sorted(store_dir.glob("*.yaml")):
+        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            continue
+        aid = str(data.get("atom_id") or p.stem)
+        archived = set(store.archived_notes_for_atom(aid, store_dir))
+        both = archived & set(store.live_notes_for_atom(aid, store_dir))
+        if both:
+            violations.append(
+                f"{aid}: {len(both)} simplifications entry/entries in BOTH the "
+                f"archive and the live file (first 60 chars: {sorted(both)[0][:60]!r})"
+            )
+        arch_recs = store.archived_records_for_atom(aid, store_dir)
+        live_recs = store.live_records_for_atom(aid, store_dir)
+        for field, entries in arch_recs.items():
+            live = live_recs.get(field)
+            if not isinstance(live, list):
+                continue
+            dupes = {str(e) for e in entries} & {str(e) for e in live}
+            if dupes:
+                violations.append(
+                    f"{aid}.{field}: {len(dupes)} entry/entries in BOTH the archive "
+                    "and the live file"
+                )
+    return violations
 
 
 # --------------------------------------------------------------------------
@@ -183,6 +236,38 @@ def test_every_file_within_size_bound():
         pytest.skip("store empty")
     violations = check_file_sizes(STORE_DIR)
     assert not violations, "oversized store files:\n  " + "\n  ".join(violations)
+
+
+def test_no_entry_is_in_both_the_archive_and_the_live_file():
+    if not _store_is_populated():
+        pytest.skip("store empty")
+    violations = check_no_duplicate_entries(STORE_DIR)
+    assert not violations, "duplicated store entries:\n  " + "\n  ".join(violations)
+
+
+def test_the_live_store_has_roll_headroom():
+    """THE WEDGE ITSELF, as a standing control rather than a thing noticed once.
+
+    The size bound above fires only once a file is ALREADY over -- by which point the
+    lane is wedged and the only moves left are to raise the number or launder the
+    record. This fires while there is still somewhere to go: a live file over the
+    watermark means the roll did not run (or did not shrink it), and that is knowable
+    a whole entry BEFORE it costs anyone a publish.
+
+    It is not a duplicate of the ceiling test in the direction that matters: the
+    ceiling passed at 101,324 B of 102,400 on the day the next Hour could not be
+    written down."""
+    if not _store_is_populated():
+        pytest.skip("store empty")
+    over = [
+        f"{p.name}: {p.stat().st_size} B over the {store.ROLL_WATERMARK} B watermark"
+        for p in sorted(STORE_DIR.glob("*.yaml"))
+        if p.stat().st_size > store.ROLL_WATERMARK
+    ]
+    assert not over, (
+        "live store files above the roll watermark -- the roll has not drained them:"
+        "\n  " + "\n  ".join(over)
+    )
 
 
 def test_loader_returns_the_old_field_structure():
@@ -348,6 +433,196 @@ def test_size_check_fires_on_oversize(tmp_path):
     small.mkdir()
     (small / "OK.yaml").write_text("atom_id: OK\nsimplifications: []\n")
     assert not check_file_sizes(small)
+
+
+# --------------------------------------------------------------------------
+# THE ROLL (2026-08-11): the archive, and the controls over it
+# --------------------------------------------------------------------------
+def _fat(marker: str, n: int = 6000) -> str:
+    return f"{marker} " + "x" * n
+
+
+def test_size_check_fires_on_an_oversized_ARCHIVE_chunk(tmp_path):
+    """R15, and the specific fail-open the archive introduces. `glob("*.yaml")` does
+    not descend into a subdirectory, so a check left unwidened would have gone silent
+    on exactly the files the roll creates -- passing loudest about a population it can
+    no longer see."""
+    sd = tmp_path / "simplifications"
+    (sd / store.ARCHIVE_DIRNAME).mkdir(parents=True)
+    (sd / "OK.yaml").write_text("atom_id: OK\nsimplifications: []\n")
+    assert not check_file_sizes(sd)
+    (sd / store.ARCHIVE_DIRNAME / "OK.001.yaml").write_text(
+        "atom_id: OK\nchunk: 1\nsimplifications:\n- " + "x" * (PER_FILE_CEILING + 10)
+    )
+    violations = check_file_sizes(sd)
+    assert violations and "OK.001.yaml" in violations[0], violations
+
+
+def test_duplicate_check_fires_on_an_entry_in_both_places(tmp_path):
+    """R15: the roll's chosen failure direction has to be detectable, or the trade
+    (duplicate rather than lose) is a claim nobody can check."""
+    sd = tmp_path / "simplifications"
+    (sd / store.ARCHIVE_DIRNAME).mkdir(parents=True)
+    (sd / "A1.yaml").write_text("atom_id: A1\nsimplifications:\n- shared\n- live-only\n")
+    (sd / store.ARCHIVE_DIRNAME / "A1.001.yaml").write_text(
+        "atom_id: A1\nchunk: 1\nsimplifications:\n- older\n"
+    )
+    assert not check_no_duplicate_entries(sd)
+    (sd / store.ARCHIVE_DIRNAME / "A1.001.yaml").write_text(
+        "atom_id: A1\nchunk: 1\nsimplifications:\n- older\n- shared\n"
+    )
+    violations = check_no_duplicate_entries(sd)
+    assert violations and "A1" in violations[0], violations
+
+
+def test_duplicate_check_fires_on_a_duplicated_RECORD_entry(tmp_path):
+    """The record tenant is rolled too, so it needs the same guard -- a check that
+    covered only `simplifications` would be blind in the half H41 proved is the
+    faster-growing flow."""
+    sd = tmp_path / "simplifications"
+    (sd / store.ARCHIVE_DIRNAME).mkdir(parents=True)
+    (sd / "A1.yaml").write_text(
+        "atom_id: A1\nmap_records:\n  evidence:\n  - shared\n"
+    )
+    (sd / store.ARCHIVE_DIRNAME / "A1.001.yaml").write_text(
+        "atom_id: A1\nchunk: 1\nmap_records:\n  evidence:\n  - shared\n"
+    )
+    violations = check_no_duplicate_entries(sd)
+    assert violations and "evidence" in violations[0], violations
+
+
+def test_orphan_check_sees_an_atom_that_exists_ONLY_in_the_archive(tmp_path):
+    """A dead atom must not be able to hide in the archive. `load_all` unions the
+    archive-bearing ids in for exactly this: the orphan check reads that population,
+    so leaving the archive out of it would have made the archive a place where a
+    store file with no atom is no longer a defect."""
+    sd = tmp_path / "simplifications"
+    (sd / store.ARCHIVE_DIRNAME).mkdir(parents=True)
+    (sd / store.ARCHIVE_DIRNAME / "GHOST.001.yaml").write_text(
+        "atom_id: GHOST\nchunk: 1\nsimplifications:\n- an entry whose atom died\n"
+    )
+    loaded = store.load_all(sd)
+    assert loaded == {"GHOST": ["an entry whose atom died"]}, loaded
+    assert check_no_orphans({"A1"}, loaded)
+    assert not check_no_orphans({"A1", "GHOST"}, loaded)
+
+
+def test_the_roll_preserves_the_register_verbatim_and_bounds_every_file(tmp_path):
+    """The property the whole mechanism rests on: appending past the watermark must
+    change WHERE entries live and nothing else. Same list, same order, same count,
+    every file bounded -- so a roll is invisible to the map's declared count and to
+    every consumer that reads through `for_atom`."""
+    sd = tmp_path / "simplifications"
+    written = [_fat(f"entry-{i}") for i in range(40)]
+    for note in written:
+        store.append_for_atom("R1", [note], sd)
+
+    live = (sd / "R1.yaml").stat().st_size
+    assert live <= store.ROLL_WATERMARK, f"live file not drained: {live} B"
+    assert store.archive_chunks("R1", sd), "nothing was archived"
+    assert store.for_atom("R1", sd) == written, "the register did not survive the roll"
+    assert store.count_for_atom("R1", sd) == 40
+    assert store.load_all(sd) == {"R1": written}
+    assert not check_file_sizes(sd)
+    assert not check_no_duplicate_entries(sd)
+
+
+def test_the_roll_drains_the_RECORD_tenant_too(tmp_path):
+    """H41's drain bounded one list and left its siblings flowing, and the wedge came
+    back a level down inside `expert_hour_findings`. The roll takes from whichever
+    unbounded list is largest, so a store file cannot be pinned at its cap by a tenant
+    the drain does not know about."""
+    sd = tmp_path / "simplifications"
+    findings = [_fat(f"hour-{i}") for i in range(30)]
+    for f in findings:
+        store.append_to_record_for_atom("R2", "expert_hour_findings", [f], sd)
+
+    assert (sd / "R2.yaml").stat().st_size <= store.ROLL_WATERMARK
+    assert store.archived_records_for_atom("R2", sd).get("expert_hour_findings")
+    assert store.records_for_atom("R2", sd)["expert_hour_findings"] == findings
+    assert not check_file_sizes(sd)
+    assert not check_no_duplicate_entries(sd)
+
+
+def test_a_roll_never_empties_a_tenant_and_prose_records_are_never_rolled(tmp_path):
+    """Two bounds on what the roll may take. It always leaves one entry live (so the
+    live file keeps declaring its own shape), and it never touches a prose record --
+    `exit_evidence` is a string on the live map, and chopping a string into archived
+    pieces is the coercion the record tenant exists to refuse."""
+    sd = tmp_path / "simplifications"
+    store.set_record_for_atom("R3", "exit_evidence", _fat("prose", 40000), sd)
+    for i in range(10):
+        store.append_for_atom("R3", [_fat(f"note-{i}")], sd)
+
+    assert store.live_notes_for_atom("R3", sd), "the roll emptied the live tenant"
+    assert store.records_for_atom("R3", sd)["exit_evidence"].startswith("prose ")
+    assert not store.archived_records_for_atom("R3", sd).get("exit_evidence")
+    assert store.for_atom("R3", sd) == [_fat(f"note-{i}") for i in range(10)]
+
+
+def test_a_second_roll_appends_a_new_chunk_rather_than_rewriting_one(tmp_path):
+    """Chunks are written ONCE. A roll that rewrote an existing chunk would be an
+    edit to honest history, and would reopen the bound the packing closes."""
+    sd = tmp_path / "simplifications"
+    for i in range(40):
+        store.append_for_atom("R4", [_fat(f"a-{i}")], sd)
+    first = {p.name: p.read_bytes() for p in store.archive_chunks("R4", sd)}
+    assert first
+    for i in range(40, 80):
+        store.append_for_atom("R4", [_fat(f"a-{i}")], sd)
+    after = {p.name: p.read_bytes() for p in store.archive_chunks("R4", sd)}
+    assert len(after) > len(first), "the second roll produced no new chunk"
+    for name, body in first.items():
+        assert after[name] == body, f"{name} was rewritten by a later roll"
+    assert store.for_atom("R4", sd) == [_fat(f"a-{i}") for i in range(80)]
+
+
+def test_an_append_does_not_re_inline_the_archive(tmp_path):
+    """The writer reads the LIVE tenant, never the concatenated view. Reading
+    `for_atom` there would pull every archived entry back into the live file on the
+    next append -- the roll would undo itself and duplicate the record into the
+    chunks, which is the failure the duplicate check exists to catch."""
+    sd = tmp_path / "simplifications"
+    for i in range(40):
+        store.append_for_atom("R5", [_fat(f"b-{i}")], sd)
+    archived = store.archived_notes_for_atom("R5", sd)
+    assert archived
+    live = store.live_notes_for_atom("R5", sd)
+    assert not (set(archived) & set(live))
+    assert store.append_for_atom("R5", ["one more"], sd) == 41
+    assert store.for_atom("R5", sd)[-1] == "one more"
+    assert not check_no_duplicate_entries(sd)
+
+
+def test_a_single_entry_larger_than_the_bound_still_raises(tmp_path):
+    """The roll must not become a way to absorb an entry that cannot be stored. One
+    note bigger than the whole per-file bound is a defect to surface; a mechanism that
+    quietly swallowed it would make the bound unfalsifiable."""
+    sd = tmp_path / "simplifications"
+    store.append_for_atom("R6", ["small"], sd)
+    with pytest.raises(ValueError):
+        store.append_for_atom("R6", ["x" * (PER_FILE_CEILING + 10)], sd)
+    assert store.for_atom("R6", sd) == ["small"], "a failed write damaged the file"
+
+
+def test_a_whole_field_record_write_over_an_archive_is_refused(tmp_path):
+    """`set_record_for_atom` is the migration's one-shot writer. Over an atom with
+    archived entries it would duplicate them silently, so it refuses."""
+    sd = tmp_path / "simplifications"
+    for i in range(30):
+        store.append_to_record_for_atom("R7", "evidence", [_fat(f"e-{i}")], sd)
+    assert store.archived_records_for_atom("R7", sd).get("evidence")
+    with pytest.raises(ValueError, match="archived entries"):
+        store.set_record_for_atom("R7", "evidence", ["replacement"], sd)
+
+
+def test_the_watermark_leaves_real_headroom_below_the_cap():
+    """The watermark is the whole point of the repair: a roll target equal to the cap
+    would leave a file rolling on every write, and one just under it would re-wedge
+    within an entry. This store's entries average ~5.4 KB, so the gap must hold
+    several of them."""
+    assert store.ROLL_WATERMARK < store.MAX_FILE_BYTES
+    assert store.MAX_FILE_BYTES - store.ROLL_WATERMARK >= 5 * 5400
 
 
 def test_writer_round_trips_and_enforces_the_bound(tmp_path):

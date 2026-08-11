@@ -139,9 +139,12 @@ non-DD-failed cases so the mechanism above has something to measure.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
+import inspect
 import random
 import subprocess
+import sys
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -2883,13 +2886,24 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "own_saturates_below": -371,
         "own_saturates_above": -308,
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
-        # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Above: the company's
-        # memory outruns the book (D27). Below: `as_of` sits AS_OF_BUFFER_DAYS
-        # past the last event, so nothing is young enough to survive a short
-        # memory (D29). A single `own_saturation_atom` could name only one, and
-        # named the one that had been looked at.
+        # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Below: `as_of` sits
+        # AS_OF_BUFFER_DAYS past the last event, so nothing is young enough to
+        # survive a short memory. A single `own_saturation_atom` could name
+        # only one, and named the one that had been looked at.
+        #
+        # THE UPPER OWNER MOVED D27 -> D30 (Expert Hour #12). D29 recorded it
+        # as "the company's memory outruns the book", which is a restatement:
+        # the book stops at 92 days because N_PERIODS is 3 and
+        # PERIOD_SPACING_DAYS is 21, and that attributes the HARNESS's own
+        # calendar to the company being graded. The arithmetic was even written
+        # out in `own_why` two lines down -- and no rule was ever built from
+        # it, which is Hour #11's "a lead is not a control" one register field
+        # over. `_check_edge_owners_are_censused` is that rule: an edge owner
+        # outside SCENARIO_CONSTANT_CENSUS now raises. D27 keeps `own_debt_atom`
+        # -- it owns where the SCORED COMPANY sits (308d of headroom), which is
+        # a different fact from where the edge is.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
-        "own_saturation_atom_above": "D27_belief_window_saturates_on_this_book",
+        "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
         "own_why": (
             "UNBOUNDED-BLIND ABOVE, and the shipped company sits 308 days "
             "inside the blind band. The book's oldest observed failure is 92d "
@@ -2979,8 +2993,14 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "own_saturates_below": -371,
         "own_saturates_above": -309,
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
+        # UPPER OWNER D27 -> D30 for the same reason as `belief` (Expert Hour
+        # #12): this edge is set by N_PERIODS/PERIOD_SPACING_DAYS/
+        # BILLING_CYCLE_SPREAD_DAYS/AS_OF_BUFFER_DAYS, four harness constants,
+        # and naming the company's memory as its owner attributes the harness's
+        # calendar to the company. The one-day difference from `belief` (-309
+        # vs -308) is this dimension's own bluntness and stays D19's.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
-        "own_saturation_atom_above": "D27_belief_window_saturates_on_this_book",
+        "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
         "own_why": (
             "SATURATED for the same reason as `belief` and one step blunter: "
             "it is the same labels under a distribution distance (atom D19), "
@@ -4073,6 +4093,474 @@ def measure_belief_window_resolution(
     }
 
 
+# ---------------------------------------------------------------------------
+# THE CENSUS OF CONFOUNDER-REMOVING CONSTANTS
+# (atom D30_the_belief_band_is_this_books_length, H27 Expert Hour #12)
+# ---------------------------------------------------------------------------
+# WHAT THIS EXISTS TO STOP, and it is the same class three Hours running, one
+# level further out. D27 found `DD_FAILURE_WINDOW_DAYS = 400` by tripping over
+# it; D29 found `AS_OF_BUFFER_DAYS = 30` by tripping over it. Both comments say
+# the constant was chosen to REMOVE A CONFOUNDER -- "generous on purpose",
+# "comfortably past" -- and both reasons are sound. Both are also silent
+# RESOLUTION decisions, and each was discovered only when an Hour happened to
+# sweep across it. There was no census: the set of harness constants that bound
+# what this instrument can resolve was being enumerated by accident, one Hour
+# at a time, and nobody could say how many were left.
+#
+# THE FINDING THIS CENSUS PUBLISHES. The two belief dimensions resolve a
+# company's failure-memory ONLY between the youngest and oldest invoice age
+# this book presents at `as_of`. That interval is not a sensitivity of the
+# instrument; it is ARITHMETIC OVER FOUR HARNESS CONSTANTS:
+#
+#     youngest = AS_OF_BUFFER_DAYS
+#     oldest   = AS_OF_BUFFER_DAYS + PERIOD_SPACING_DAYS * (N_PERIODS - 1)
+#                                  + BILLING_CYCLE_SPREAD_DAYS - 1
+#
+# = [30, 92] on the shipped scenario, a band 62 DAYS WIDE, measured identical
+# on seeds 7/11/23. D29 attributed the LOWER edge to `AS_OF_BUFFER_DAYS` and
+# left the upper one owned by "the company's memory outruns the book" -- which
+# is a restatement, not an attribution: the book stops at 92 days because
+# N_PERIODS is 3 and PERIOD_SPACING_DAYS is 21, two constants no Hour had
+# asked. The upper edge was attributed AWAY FROM THE HARNESS ENTIRELY.
+#
+# AND THE INSTRUMENT CANNOT RESOLVE THE COMPANY IT SCORES. The scored company
+# holds `DD_FAILURE_WINDOW_DAYS = 400` days of memory; the resolvable band tops
+# out at 92. So the shipped reading is taken 308 days INSIDE the saturated
+# tail: every `belief` and `belief_population_mix` figure this pair publishes
+# is read at a point where the one company parameter those dimensions depend on
+# is inert by construction. R12: this is REPORTED, never tuned -- the reshape
+# is atom D30 and no published number moves in this commit.
+#
+# CLOSED AT THE CLASS (R10), not at the two constants:
+#   * the census KEYSET is derived from `build_scenario`'s own AST -- the
+#     constants that build the book -- so a ninth constant added to the
+#     scenario and left uncensused RAISES rather than waiting for an Hour to
+#     trip over it;
+#   * `bounds_resolution` and the EDGE each constant sets are MEASURED by
+#     perturbing the predictor, never read from the declaration, so a constant
+#     that silently enters the span arithmetic cannot be declared inert (and
+#     one declared to bound resolution gets no free credit either);
+#   * the predictor is cross-checked against the BUILT book on every seed, so
+#     the arithmetic above cannot drift away from the scenario it describes.
+
+
+def predict_event_age_span_from_constants(
+    *,
+    as_of_buffer_days: Optional[int] = None,
+    n_periods: Optional[int] = None,
+    period_spacing_days: Optional[int] = None,
+    cycle_spread_days: Optional[int] = None,
+) -> Dict[str, int]:
+    """The span of invoice AGES this scenario can present at `as_of`, computed
+    from the scenario constants ALONE (atom D30).
+
+    Independent of the book by construction: it reads no `PeriodRecord`, no
+    draw and no seed, only the four constants `build_scenario` uses to place
+    due dates and to choose `as_of`. That is what makes it a second opinion
+    rather than a restatement -- `measure_belief_window_resolution` reads the
+    same span OFF the built book, and `check_scenario_constant_census` fails if
+    the two disagree.
+
+    The identities, straight off `build_scenario`: every account's newest
+    invoice is exactly `AS_OF_BUFFER_DAYS` past due (`as_of` is taken from the
+    latest due date the CYCLE can produce, not the latest this draw happened to
+    make), and the oldest is that plus the whole billing spine -- the periods
+    behind it and the account's place in the cycle.
+    """
+    buf = AS_OF_BUFFER_DAYS if as_of_buffer_days is None else as_of_buffer_days
+    n = N_PERIODS if n_periods is None else n_periods
+    spacing = (PERIOD_SPACING_DAYS if period_spacing_days is None
+               else period_spacing_days)
+    spread = (BILLING_CYCLE_SPREAD_DAYS if cycle_spread_days is None
+              else cycle_spread_days)
+    youngest = int(buf)
+    oldest = int(buf) + int(spacing) * (int(n) - 1) + int(spread) - 1
+    return {
+        "youngest_age_days": youngest,
+        "oldest_age_days": oldest,
+        "span_days": oldest - youngest,
+    }
+
+
+# WHICH KEYWORD OF THE PREDICTOR CARRIES WHICH CONSTANT. The census perturbs
+# the predictor through these, so "does this constant bound resolution" is
+# answered by MOVING IT, not by reading a declaration.
+_SPAN_PREDICTOR_KNOBS: Dict[str, str] = {
+    "AS_OF_BUFFER_DAYS": "as_of_buffer_days",
+    "N_PERIODS": "n_periods",
+    "PERIOD_SPACING_DAYS": "period_spacing_days",
+    "BILLING_CYCLE_SPREAD_DAYS": "cycle_spread_days",
+}
+
+_SPAN_EDGES = ("youngest_age_days", "oldest_age_days")
+
+
+def scenario_constants() -> Tuple[str, ...]:
+    """THE CENSUS'S SUBJECT, DERIVED FROM SOURCE (atom D30): every module-level
+    constant `build_scenario` reads to build the book.
+
+    Hand-typing this list would supply the very defect the census exists to
+    stop -- a constant nobody thought of is exactly the one that has been
+    silently setting an edge -- so it comes off `build_scenario`'s AST. A
+    constant added to the scenario and left out of `SCENARIO_CONSTANT_CENSUS`
+    makes `check_scenario_constant_census` raise, fail-closed.
+    """
+    module_src = inspect.getsource(sys.modules[__name__])
+    tree = ast.parse(module_src)
+    consts = {
+        t.id
+        for node in tree.body if isinstance(node, ast.Assign)
+        for t in node.targets
+        if isinstance(t, ast.Name) and t.id.isupper() and not t.id.startswith("_")
+    }
+    builder = next(n for n in tree.body
+                   if isinstance(n, ast.FunctionDef) and n.name == "build_scenario")
+    return tuple(sorted({n.id for n in ast.walk(builder)
+                         if isinstance(n, ast.Name) and n.id in consts}))
+
+
+SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
+    # THE FOUR THAT SET THE BAND. `sets_edges` is CHECKED against a
+    # perturbation of the predictor, never trusted.
+    "AS_OF_BUFFER_DAYS": {
+        "bounds_resolution": True,
+        "sets_edges": ("youngest_age_days", "oldest_age_days"),
+        "owning_atom": "D29_the_as_of_buffer_floors_the_memory_grid",
+        "why": (
+            "`as_of` sits this far past every account's newest invoice, so no "
+            "observed failure is younger than it and a company memory below "
+            "it counts NOTHING. Found by tripping over it in Hour #11. It "
+            "moves the upper edge too, because every age is measured from an "
+            "`as_of` it places -- which is why one owner field could never "
+            "have been right."
+        ),
+    },
+    "N_PERIODS": {
+        "bounds_resolution": True,
+        "sets_edges": ("oldest_age_days",),
+        "owning_atom": "D30_the_belief_band_is_this_books_length",
+        "why": (
+            "THE UPPER EDGE'S REAL OWNER, and the census's own finding. Three "
+            "billing periods is why the book stops at 92 days; D29 recorded "
+            "that edge as `the company's memory outruns the book`, which "
+            "names no constant and attributes the harness's own calendar to "
+            "the company being graded."
+        ),
+    },
+    "PERIOD_SPACING_DAYS": {
+        "bounds_resolution": True,
+        "sets_edges": ("oldest_age_days",),
+        "owning_atom": "D30_the_belief_band_is_this_books_length",
+        "why": (
+            "The other half of the same arithmetic: the oldest invoice is "
+            "`(N_PERIODS - 1)` spacings behind the newest. Never asked before "
+            "this census."
+        ),
+    },
+    "BILLING_CYCLE_SPREAD_DAYS": {
+        "bounds_resolution": True,
+        "sets_edges": ("oldest_age_days",),
+        "owning_atom": "D25_ageing_resolution_is_the_harness_calendar",
+        "why": (
+            "D25 introduced the spread as a RESOLUTION fix for the ageing "
+            "dimension and measured it there. It widens the BELIEF band too, "
+            "by 20 days, and that was never part of D25's claim -- a "
+            "resolution constant whose second effect went unrecorded."
+        ),
+    },
+    # THE FOUR THAT DO NOT. Declared so the census is DIFFERENTIAL: a control
+    # on which every entry answers the same way cannot discriminate, and the
+    # perturbation check fails these if they ever start setting an edge.
+    "DD_FAILURE_WINDOW_DAYS": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": "D27_belief_window_saturates_on_this_book",
+        "why": (
+            "NOT A BAND CONSTANT -- it is the ORIGIN the band is measured "
+            "from. The book's ages fix where resolution stops; this fixes "
+            "where the scored company sits relative to that, which is the "
+            "308d of saturated headroom D27 owns. Censused as inert on the "
+            "EDGES so the two roles stop being one field."
+        ),
+    },
+    "FIRST_DUE_DATE": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": None,
+        "why": (
+            "Slides the whole book and `as_of` together, so every AGE is "
+            "unchanged. The one scenario constant that is genuinely a "
+            "relabelling."
+        ),
+    },
+    "PAYMENT_TERMS_DAYS": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": "D23_the_latency_grid_resolves_to_the_day",
+        "why": (
+            "Sets ISSUE dates, not due dates, so it moves no invoice age. It "
+            "bounds the DETECTION-LATENCY dimension instead (D23/D24), which "
+            "is a resolution claim about a different reading and is registered "
+            "there."
+        ),
+    },
+    "BILL_AMOUNT_GBP": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": None,
+        "why": (
+            "A money scale on a book whose every invoice carries it, so it "
+            "cancels out of every ratio these dimensions publish and reaches "
+            "no date at all."
+        ),
+    },
+}
+
+
+def measure_scenario_constant_census(
+    records: Sequence["PeriodRecord"],
+    as_of: date,
+    census: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """MEASURE the census rather than trust it (atom D30).
+
+    Two independent legs, and the census is only worth having because they can
+    disagree:
+
+    * PERTURBATION -- move each constant by one day through the predictor and
+      record which edges of the age band actually move. This answers
+      `bounds_resolution` and `sets_edges` by measurement.
+    * CROSS-CHECK -- the predicted band against the band the BUILT book
+      presents. The predictor reads only constants; the book is drawn. A
+      disagreement means the arithmetic has drifted off the scenario.
+    """
+    census = SCENARIO_CONSTANT_CENSUS if census is None else census
+    base = predict_event_age_span_from_constants()
+    moved: Dict[str, Tuple[str, ...]] = {}
+    for name in census:
+        knob = _SPAN_PREDICTOR_KNOBS.get(name)
+        if knob is None:
+            moved[name] = ()
+            continue
+        bumped = predict_event_age_span_from_constants(**{knob: _current(name) + 1})
+        moved[name] = tuple(e for e in _SPAN_EDGES if bumped[e] != base[e])
+    ages = sorted((as_of - r.due_date).days for r in records)
+    window = DD_FAILURE_WINDOW_DAYS
+    youngest = ages[0] if ages else None
+    oldest = ages[-1] if ages else None
+    # THE SCORED COMPANY'S PLACE IN THE BAND IS READ OFF THE BOOK, NOT OFF THE
+    # CONSTANTS. `score_triad` also scores live `run_phase2b` populations, whose
+    # book these constants do not describe -- and a caveat that quoted the
+    # predicted band there would be publishing this scenario's number over
+    # somebody else's population, which is the fail-open every Hour since #4 has
+    # found in one shape or another. `describes_this_book` is the switch, and
+    # the caveat says so out loud when it is False.
+    describes = (youngest == base["youngest_age_days"]
+                 and oldest == base["oldest_age_days"])
+    return {
+        "predicted": base,
+        "measured_youngest_age_days": youngest,
+        "measured_oldest_age_days": oldest,
+        "measured_span_days": None if oldest is None else oldest - youngest,
+        "describes_this_book": describes,
+        "moved_edges": moved,
+        "subject": scenario_constants(),
+        # R12: REPORTED, not tuned. The scored company's own memory against the
+        # top of the band THIS book presents.
+        "scored_company_window_days": window,
+        "scored_company_headroom_days": None if oldest is None else window - oldest,
+        "scored_company_is_inert": None if oldest is None else window >= oldest,
+    }
+
+
+def _current(name: str) -> int:
+    """The live value of a scenario constant, by name -- read off the module so
+    a perturbation cannot quietly test a stale copy."""
+    return int(getattr(sys.modules[__name__], name))
+
+
+def check_scenario_constant_census(
+    measured: Dict[str, object],
+    census: Optional[Dict[str, Dict[str, object]]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """The census's rules, all four able to fail on their own defect (atom
+    D30, R15). Returns violations; empty means the census holds."""
+    census = SCENARIO_CONSTANT_CENSUS if census is None else census
+    register = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    out: List[str] = []
+    out += _check_census_is_complete(measured, census)
+    out += _check_census_edges_are_measured(measured, census)
+    out += _check_predictor_matches_the_book(measured)
+    out += _check_edge_owners_are_censused(census, register)
+    return out
+
+
+def _check_census_is_complete(measured: Dict[str, object],
+                              census: Dict[str, Dict[str, object]]) -> List[str]:
+    """FAIL-CLOSED ON THE KEYSET. The subject comes off `build_scenario`'s AST,
+    so a constant added to the scenario and never censused raises here instead
+    of waiting for an Hour to trip over it -- which is how the first two were
+    found."""
+    subject = set(measured.get("subject") or ())
+    out: List[str] = []
+    for name in sorted(subject - set(census)):
+        out.append(
+            f"{name}: `build_scenario` reads it and the census does not name "
+            "it -- an uncensused scenario constant is exactly the shape "
+            "D27 and D29 were each found in, one Hour at a time"
+        )
+    for name in sorted(set(census) - subject):
+        out.append(
+            f"{name}: censused but `build_scenario` no longer reads it -- a "
+            "census entry outliving its constant is a claim about a scenario "
+            "that is not there"
+        )
+    return out
+
+
+def _check_census_edges_are_measured(
+        measured: Dict[str, object],
+        census: Dict[str, Dict[str, object]]) -> List[str]:
+    """DECLARATION vs PERTURBATION, both directions. A constant that silently
+    enters the span arithmetic cannot be declared inert, and one declared to
+    bound resolution gets no free credit for saying so."""
+    moved: Dict[str, Tuple[str, ...]] = measured.get("moved_edges") or {}
+    out: List[str] = []
+    for name, entry in sorted(census.items()):
+        got = tuple(moved.get(name) or ())
+        declared = tuple(entry.get("sets_edges") or ())
+        if set(got) != set(declared):
+            out.append(
+                f"{name}: declared to set {list(declared)} and moving it one "
+                f"day moves {list(got)} -- the census is describing an "
+                "arithmetic that is not the predictor's"
+            )
+        if bool(entry.get("bounds_resolution")) != bool(got):
+            out.append(
+                f"{name}: bounds_resolution={entry.get('bounds_resolution')} "
+                f"and the perturbation moved {list(got)} -- a constant's "
+                "effect on the band is measured here, never declared"
+            )
+        if got and not entry.get("owning_atom"):
+            out.append(
+                f"{name}: it sets {list(got)} and no atom owns it -- an "
+                "unowned resolution constant is a silent one, which is the "
+                "whole class"
+            )
+    return out
+
+
+def _check_predictor_matches_the_book(measured: Dict[str, object]) -> List[str]:
+    """THE INDEPENDENCE LEG. The predictor reads constants and no draw; the
+    book is built. If the two disagree the arithmetic has drifted off the
+    scenario it claims to describe, and every ownership claim above is being
+    made about a band nobody presents."""
+    pred = measured.get("predicted") or {}
+    out: List[str] = []
+    for key, got_key, label in (
+        ("youngest_age_days", "measured_youngest_age_days", "youngest"),
+        ("oldest_age_days", "measured_oldest_age_days", "oldest"),
+    ):
+        got = measured.get(got_key)
+        if got is None:
+            out.append(
+                f"the book presents no invoice at all, so the {label} edge "
+                "cannot be cross-checked -- an unmeasured band reads exactly "
+                "like an agreeing one"
+            )
+        elif got != pred.get(key):
+            out.append(
+                f"the constants predict a {label} invoice age of "
+                f"{pred.get(key)}d and this book presents {got}d -- the span "
+                "arithmetic has drifted off `build_scenario`"
+            )
+    return out
+
+
+def _check_edge_owners_are_censused(
+        census: Dict[str, Dict[str, object]],
+        register: Dict[str, Dict[str, object]]) -> List[str]:
+    """THE DEFECT THIS HOUR FOUND, closed as a rule. Every saturation edge the
+    drift register attributes must be attributed to an atom the census puts on
+    that edge -- so an edge can no longer be owned by a sentence about the
+    company ("its memory outruns the book") while a harness constant sets it.
+    """
+    owners = {
+        edge: {str(e["owning_atom"]) for e in census.values()
+               if edge in tuple(e.get("sets_edges") or ()) and e.get("owning_atom")}
+        for edge in _SPAN_EDGES
+    }
+    pairs = (("own_saturation_atom_below", "youngest_age_days"),
+             ("own_saturation_atom_above", "oldest_age_days"))
+    out: List[str] = []
+    for dim, entry in sorted(register.items()):
+        if entry.get("own_drift") != "organ_failure_window_drift_days":
+            continue
+        for field, edge in pairs:
+            atom = entry.get(field)
+            if atom is None:
+                continue
+            if str(atom) not in owners[edge]:
+                out.append(
+                    f"{dim}.{field}={atom} names an atom the census does not "
+                    f"put on the {edge} edge (censused owners: "
+                    f"{sorted(owners[edge])}) -- that edge is set by a harness "
+                    "constant, and an owner outside the census attributes the "
+                    "harness's own calendar to the company being graded"
+                )
+    return out
+
+
+def scenario_constant_census_caveat(measured: Dict[str, object]) -> str:
+    """The band, its owning constants and the scored company's place in it --
+    re-derived from the measurement each call, never quoted (atom D30).
+
+    Attributes the band to the constants ONLY where they demonstrably describe
+    the book in hand. On a live `run_phase2b` population they do not, and
+    quoting this scenario's [30, 92] over somebody else's book would be the
+    fail-open shape, not the caveat."""
+    band_owners = sorted(
+        n for n, e in SCENARIO_CONSTANT_CENSUS.items() if e.get("bounds_resolution"))
+    head = "THE BAND IS THE BOOK'S LENGTH (atom D30, H27 Expert Hour #12). "
+    if measured.get("measured_oldest_age_days") is None:
+        return head + (
+            "This population presents no invoice at all, so it has no age band "
+            "and nothing about the belief dimensions' resolution can be read "
+            "off it."
+        )
+    body = (
+        "Both belief dimensions resolve a company memory error only between "
+        f"{measured['measured_youngest_age_days']}d and "
+        f"{measured['measured_oldest_age_days']}d -- a band "
+        f"{measured['measured_span_days']}d wide, and a band is a property of "
+        "how long the book is, never a sensitivity of the instrument. "
+    )
+    if measured.get("describes_this_book"):
+        body += (
+            f"On THIS book those edges are arithmetic over {band_owners}: "
+            "four harness constants, three of which no Expert Hour had asked "
+            "before the census. "
+        )
+    else:
+        body += (
+            "This is NOT the offline scenario's book, so the census's "
+            f"constants ({band_owners}) do not attribute these edges -- the "
+            "band above is measured here and owned by whatever placed this "
+            "population's invoices. "
+        )
+    if measured.get("scored_company_is_inert"):
+        body += (
+            "AND THE SCORED COMPANY SITS OUTSIDE IT: it holds "
+            f"{measured['scored_company_window_days']}d of memory, "
+            f"{measured['scored_company_headroom_days']}d past the top of the "
+            "band, so every belief figure here is read at a point where the "
+            "one company parameter these dimensions depend on is inert by "
+            "construction (reported, never tuned -- R12)."
+        )
+    return head + body
+
+
 def belief_resolution_caveat(
     resolution: Optional[Dict[str, object]] = None) -> str:
     """The resolution limit that travels WITH both belief numbers (atom D27).
@@ -4925,13 +5413,27 @@ def score_triad(
     # caveat travelling with the number describes the book the number came
     # from, including live populations no drift sweep has visited.
     belief_resolution = measure_belief_window_resolution(records, as_of)
+    # AND WHAT SETS THAT BAND (atom D30). D27/D29 said where the two edges are;
+    # this says WHICH HARNESS CONSTANTS PUT THEM THERE, and that the scored
+    # company's own memory sits outside the band entirely. It travels with the
+    # figure for the D22 reason -- a limit only an Expert-Hour register carries
+    # is one no reader of the number ever sees.
+    constant_census = measure_scenario_constant_census(records, as_of)
+    census_caveat = scenario_constant_census_caveat(constant_census)
     bel.note += " " + belief_resolution_caveat(belief_resolution)
+    bel.note += " " + census_caveat
     # AND AS COMPONENTS, not only in the prose: the ledger writer, the live
     # wiring and the dashboard take `components` and never read `note`, so a
     # limit only the prose carries is one the machine strips off (D22).
     bel.components["belief_resolution_caveat"] = belief_resolution_caveat(
         belief_resolution)
     bel.components["belief_window_resolution"] = dict(belief_resolution)
+    bel.components["scenario_constant_census_caveat"] = census_caveat
+    bel.components["band_owning_constants"] = tuple(
+        sorted(n for n, e in SCENARIO_CONSTANT_CENSUS.items()
+               if e.get("bounds_resolution")))
+    bel.components["scored_company_is_inert"] = constant_census[
+        "scored_company_is_inert"]
     bel.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief"]["own_invisible_drifts"])
 
@@ -4957,10 +5459,17 @@ def score_triad(
         "measures (atom D19); the per-case headline is the `belief` dimension. "
         + _belief_permutation_note(mix)
         + " " + belief_resolution_caveat(belief_resolution)
+        + " " + census_caveat
     )
     mix.components["belief_resolution_caveat"] = belief_resolution_caveat(
         belief_resolution)
     mix.components["belief_window_resolution"] = dict(belief_resolution)
+    mix.components["scenario_constant_census_caveat"] = census_caveat
+    mix.components["band_owning_constants"] = tuple(
+        sorted(n for n, e in SCENARIO_CONSTANT_CENSUS.items()
+               if e.get("bounds_resolution")))
+    mix.components["scored_company_is_inert"] = constant_census[
+        "scored_company_is_inert"]
     mix.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
             "own_invisible_drifts"])

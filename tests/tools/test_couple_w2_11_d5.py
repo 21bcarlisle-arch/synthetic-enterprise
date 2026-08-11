@@ -4674,3 +4674,233 @@ def test_the_memory_caveat_names_both_edges():
     assert str(book["amnesia_floor_window_days"]) in caveat
     assert book["amnesia_floor_window_days"] == book[
         "newest_event_age_days"] - 1
+
+
+# ---------------------------------------------------------------------------
+# THE CENSUS OF CONFOUNDER-REMOVING CONSTANTS
+# (atom D30_the_belief_band_is_this_books_length, H27 Expert Hour #12)
+# ---------------------------------------------------------------------------
+# R15 both ways. The census is only worth having if it can fail on its own
+# named defect: an uncensused scenario constant, a constant whose declared
+# effect is not the one it has, a predictor that has drifted off the book it
+# claims to describe, and a saturation edge owned by an atom outside the
+# census -- which is the defect this Hour actually found.
+
+
+@pytest.fixture(scope="module")
+def constant_census():
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    return pair.measure_scenario_constant_census(records, as_of)
+
+
+def test_the_census_holds_on_every_resolution_seed():
+    """THE SHIPPED STATE. All three seeds, because the band is an all-seed
+    claim: a book whose span depended on the draw would make every ownership
+    claim below a property of which seed came first."""
+    for seed in pair.RESOLUTION_SEEDS:
+        records, _c, _l, as_of = pair.build_scenario(300, seed=seed)
+        measured = pair.measure_scenario_constant_census(records, as_of)
+        assert pair.check_scenario_constant_census(measured) == [], seed
+        assert measured["describes_this_book"], seed
+        assert measured["predicted"] == {
+            "youngest_age_days": 30, "oldest_age_days": 92, "span_days": 62}
+
+
+def test_the_census_subject_comes_off_build_scenario_not_a_hand_typed_list():
+    """THE KEYSET IS DERIVED. Hand-typing it would supply the very defect --
+    the constant nobody thought of is the one silently setting an edge -- so
+    `scenario_constants` reads `build_scenario`'s AST and the census may never
+    name its own subject."""
+    src = inspect.getsource(pair.scenario_constants)
+    assert "build_scenario" in src and "ast.walk" in src
+    # ON THE AST, not on the text: the docstring names the census on purpose
+    # (it says what raises), and a text match would read that mention as a
+    # read. What must not happen is the CODE reaching the register.
+    derived = ast.parse(textwrap.dedent(src)).body[0]
+    assert "SCENARIO_CONSTANT_CENSUS" not in {
+        n.id for n in ast.walk(derived) if isinstance(n, ast.Name)}, (
+        "the census's subject must not be derived from the census -- that is "
+        "the register-asked-where-it-answered class (D28/D29)")
+    tree = ast.parse(inspect.getsource(pair.build_scenario))
+    read = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+    assert set(pair.scenario_constants()) <= read
+
+
+def test_an_uncensused_scenario_constant_fires(constant_census):
+    """R15 MUTATION 1, and it is the class this Hour closes: D27 and D29 were
+    each found by an Hour tripping over a constant. A ninth constant added to
+    the scenario and left uncensused must raise instead of waiting."""
+    census = copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+    del census["N_PERIODS"]
+    violations = pair.check_scenario_constant_census(constant_census, census=census)
+    assert any(v.startswith("N_PERIODS: `build_scenario` reads it")
+               for v in violations), violations
+
+
+def test_a_census_entry_outliving_its_constant_fires(constant_census):
+    """R15 MUTATION 2, the other direction. A census claim about a constant the
+    scenario no longer builds from is a debt entry outliving its debt."""
+    census = copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+    census["RETIRED_CONSTANT_DAYS"] = {
+        "bounds_resolution": False, "sets_edges": (), "owning_atom": None,
+        "why": "not read by build_scenario"}
+    violations = pair.check_scenario_constant_census(constant_census, census=census)
+    assert any("no longer reads it" in v for v in violations), violations
+
+
+@pytest.mark.parametrize("name", ["N_PERIODS", "PERIOD_SPACING_DAYS",
+                                  "BILLING_CYCLE_SPREAD_DAYS",
+                                  "AS_OF_BUFFER_DAYS"])
+def test_a_band_constant_declared_inert_fires(constant_census, name):
+    """R15 MUTATION 3, on every constant that sets an edge. The effect is
+    MEASURED by perturbing the predictor, so declaring a band constant inert
+    cannot buy it a pass -- which is exactly what the register did to the upper
+    edge for three Hours."""
+    census = copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+    census[name] = dict(census[name], bounds_resolution=False, sets_edges=())
+    violations = pair.check_scenario_constant_census(constant_census, census=census)
+    assert any(v.startswith(f"{name}: bounds_resolution=False")
+               for v in violations), violations
+
+
+def test_an_inert_constant_declared_to_bound_the_band_fires(constant_census):
+    """R15 MUTATION 4, and the differential half. A census on which every entry
+    answers the same way cannot discriminate: claiming an edge for a constant
+    that moves neither must fail too, or `bounds_resolution` is free."""
+    census = copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+    census["BILL_AMOUNT_GBP"] = dict(
+        census["BILL_AMOUNT_GBP"], bounds_resolution=True,
+        sets_edges=("oldest_age_days",), owning_atom="D30_the_belief_band_is_this_books_length")
+    violations = pair.check_scenario_constant_census(constant_census, census=census)
+    assert any(v.startswith("BILL_AMOUNT_GBP: declared to set")
+               for v in violations), violations
+
+
+def test_an_unowned_band_constant_fires(constant_census):
+    """R15 MUTATION 5. An unowned resolution constant is a silent one, which is
+    the whole class -- the census may not record an edge with nobody's name
+    against it."""
+    census = copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+    census["PERIOD_SPACING_DAYS"] = dict(
+        census["PERIOD_SPACING_DAYS"], owning_atom=None)
+    violations = pair.check_scenario_constant_census(constant_census, census=census)
+    assert any("no atom owns it" in v for v in violations), violations
+
+
+def test_an_edge_owner_outside_the_census_fires(constant_census):
+    """R15 MUTATION 6 -- THE DEFECT THIS HOUR FOUND, pinned as a rule. Before
+    this Hour both belief entries owned their upper edge with
+    `D27_belief_window_saturates_on_this_book`: "the company's memory outruns
+    the book", which names no constant and attributes the harness's own
+    calendar to the company being graded."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    for dim in ("belief", "belief_population_mix"):
+        register[dim]["own_saturation_atom_above"] = (
+            "D27_belief_window_saturates_on_this_book")
+    violations = pair.check_scenario_constant_census(
+        constant_census, register=register)
+    assert len(violations) == 2, violations
+    assert all("names an atom the census does not put on the "
+               "oldest_age_days edge" in v for v in violations)
+
+
+def test_the_shipped_register_owns_both_edges_from_the_census():
+    """THE POST-FIX STATE, asserted rather than assumed. Both belief entries'
+    edge owners must be atoms the census puts on that edge."""
+    for dim in ("belief", "belief_population_mix"):
+        entry = pair.DIMENSION_DRIFT_RESOLUTION[dim]
+        assert entry["own_saturation_atom_above"] == (
+            "D30_the_belief_band_is_this_books_length")
+        assert entry["own_saturation_atom_below"] == (
+            "D29_the_as_of_buffer_floors_the_memory_grid")
+
+
+def test_the_predictor_reads_constants_and_never_the_book():
+    """INDEPENDENCE (R15). The cross-check is only a second opinion if the two
+    sides are computed from different things: the predictor takes no records,
+    no seed and no draw -- asserted against its own AST."""
+    tree = ast.parse(textwrap.dedent(
+        inspect.getsource(pair.predict_event_age_span_from_constants))).body[0]
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+    assert not (names & {"records", "PeriodRecord", "build_scenario",
+                         "score_triad", "DIMENSION_DRIFT_RESOLUTION"})
+    assert "records" not in {a.arg for a in tree.args.kwonlyargs + tree.args.args}
+
+
+@pytest.mark.parametrize("knob,delta", (
+    ("as_of_buffer_days", 5), ("n_periods", 1),
+    ("period_spacing_days", 3), ("cycle_spread_days", 4),
+))
+def test_a_predictor_that_drifts_off_the_book_fires(constant_census, knob, delta):
+    """R15 SOURCE MUTATION. Move the arithmetic away from `build_scenario` and
+    the cross-check against the BUILT book must catch it -- otherwise every
+    ownership claim in the census is being made about a band nobody presents.
+    """
+    current = pair.predict_event_age_span_from_constants()
+    drifted = dict(constant_census)
+    drifted["predicted"] = pair.predict_event_age_span_from_constants(
+        **{knob: getattr(pair, {
+            "as_of_buffer_days": "AS_OF_BUFFER_DAYS",
+            "n_periods": "N_PERIODS",
+            "period_spacing_days": "PERIOD_SPACING_DAYS",
+            "cycle_spread_days": "BILLING_CYCLE_SPREAD_DAYS"}[knob]) + delta})
+    assert drifted["predicted"] != current
+    violations = pair.check_scenario_constant_census(drifted)
+    assert any("has drifted off `build_scenario`" in v
+               for v in violations), violations
+
+
+def test_an_empty_book_cannot_read_as_an_agreeing_one(constant_census):
+    """FAIL-CLOSED ON VACUITY. A population presenting no invoice has no band
+    to cross-check, and an unmeasured band that reads like an agreeing one is
+    the fail-open shape D29 closed on the saturation edges."""
+    empty = dict(constant_census, measured_youngest_age_days=None,
+                 measured_oldest_age_days=None)
+    violations = pair.check_scenario_constant_census(empty)
+    assert any("cannot be cross-checked" in v for v in violations), violations
+
+
+def test_the_scored_company_sits_outside_the_band_it_is_graded_on():
+    """THE HOUR'S FINDING, measured not asserted (R12: reported, never tuned).
+    The band tops out at the book's oldest invoice age; the scored company
+    holds `DD_FAILURE_WINDOW_DAYS` of memory, far above it -- so every belief
+    figure is read where that parameter is inert by construction."""
+    for seed in pair.RESOLUTION_SEEDS:
+        records, _c, _l, as_of = pair.build_scenario(300, seed=seed)
+        measured = pair.measure_scenario_constant_census(records, as_of)
+        assert measured["scored_company_is_inert"] is True, seed
+        assert measured["scored_company_headroom_days"] == 308, seed
+        assert measured["scored_company_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
+
+
+def test_the_census_caveat_travels_with_both_belief_figures():
+    """STAMPED AT SOURCE, on the NOTE and on the COMPONENTS (D22): the ledger
+    writer, the live wiring and the dashboard read `components` and never the
+    prose, so a limit only the prose carries is one the machine strips off."""
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
+    result = pair.score_triad(records, consumer, as_of)
+    for dim in ("belief", "belief_population_mix"):
+        got = result[dim]
+        assert "THE BAND IS THE BOOK'S LENGTH" in got.note
+        assert got.components["scenario_constant_census_caveat"] in got.note
+        assert got.components["scored_company_is_inert"] is True
+        assert set(got.components["band_owning_constants"]) == {
+            "AS_OF_BUFFER_DAYS", "N_PERIODS", "PERIOD_SPACING_DAYS",
+            "BILLING_CYCLE_SPREAD_DAYS"}
+        assert "308d past the top of the band" in got.note
+
+
+def test_the_caveat_refuses_to_attribute_a_book_the_constants_do_not_describe():
+    """THE LIVE-POPULATION FAIL-OPEN, closed. `score_triad` also scores
+    `run_phase2b` populations, whose book these constants do not build --
+    quoting this scenario's [30, 92] over somebody else's population would be
+    publishing one book's limit against another's figure."""
+    flat, _c, _l, flat_as_of = pair.build_scenario(300, seed=7, cycle_spread_days=1)
+    measured = pair.measure_scenario_constant_census(flat, flat_as_of)
+    assert measured["describes_this_book"] is False
+    caveat = pair.scenario_constant_census_caveat(measured)
+    assert "NOT the offline scenario's book" in caveat
+    assert "do not attribute these edges" in caveat
+    # The band it DOES report is the flat book's own, measured here.
+    assert f"between {measured['measured_youngest_age_days']}d and " \
+           f"{measured['measured_oldest_age_days']}d" in caveat

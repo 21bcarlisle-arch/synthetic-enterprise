@@ -56,9 +56,71 @@ store file with no atom is a defect that fails the suite.
    An **absent** count and `simplifications_count: 0` are the same statement
    ("nothing to declare"); neither requires a file. Declaring 0 while the store
    holds notes is still a defect.
-3. Every store file is ≤ 100 KB.
+3. Every store file is ≤ 100 KB — **live files and archive chunks alike**.
 4. Once the store is populated, the map carries **no** `simplifications` field
    and the map file is **< 400 KB** (the spine's size ratchet).
+5. No live file exceeds the **roll watermark** (64 KB) — the roll must have run.
+6. No entry appears in both an atom's archive and its live file.
+
+---
+
+## The roll and the archive (2026-08-11)
+
+**The defect.** Every drain in this store's history moved a *stock* and left the
+*flow* running, so the same wedge returned one level down: the map's
+`simplifications` field → this store; the `*_note` fields → `map_notes` (back
+over the ratchet in 24 hours); `evidence`/`expert_hour_findings` → `map_records`
+(and `H27_payment_belief_gap` wedged publishing on the per-atom cap a day
+later). Then `H_GAP_fabric_belief_truth_gap.yaml` reached **101,324 B of its own
+102,400 B cap**, against entries averaging 5,400 B — **1,076 B of headroom**.
+Its next Expert Hour could not record itself.
+
+The class is not "this file is big". It is:
+
+> **A bounded control over a monotonic append-only record wedges the lane that
+> keeps the record.**
+
+At the wedge only two moves are available — raise the number, or launder the
+history — and this project has refused both, three times each. The third move is
+a **roll**.
+
+**The mechanism.** The live file keeps the newest entries under
+`ROLL_WATERMARK` (64 KB). Older entries are moved, **verbatim and in order**,
+into numbered per-atom chunks:
+
+```
+docs/design/simplifications/archive/<atom_id>.NNN.yaml   # NNN ascending = oldest first
+```
+
+- It happens **inside the sole write path** (`_write_tenants`), so no tick has to
+  remember to drain. That is what makes it a mechanism rather than a convention.
+- It drains **every** unbounded list tenant — `simplifications` *and* the
+  `map_records` lists — taking from whichever is largest. Bounding one list and
+  not its siblings is the previous drain's defect re-run.
+- Chunks are **packed against the same 100 KB bound** and measured by the same
+  check. An archive exempt from the ceiling would be the same defect wearing a
+  new directory name.
+- Chunks are written **once** and never appended to or rewritten.
+- Prose records (`exit_evidence`) are never rolled; a list never rolls empty.
+
+**Readers are unaffected.** `for_atom` and `records_for_atom` concatenate
+archive-then-live, so an atom's register, its order, and its declared
+`simplifications_count` are identical either side of a roll. Writers use
+`live_notes_for_atom`/`live_records_for_atom` — a writer that read the
+concatenated view would re-inline the archive on its next append.
+
+**Write order is chosen, not incidental.** Chunks are written before the live
+file, so an interruption between the two can only **duplicate** an entry, never
+lose one — and invariant 6 detects duplication. A record store fails toward
+keeping the record.
+
+**Death.** An archive chunk dies with its atom, exactly as a live file does;
+`archived_atom_ids()` puts archive-bearing ids into the orphan check's
+population, so a dead atom cannot hide in the archive.
+
+**Maintenance entrypoint.** `python3 -m tools.simplifications_store --roll <atom_id>`
+forces a roll without changing content — needed only for files already over the
+watermark when the mechanism landed. Ongoing rolls need no caller.
 
 ---
 

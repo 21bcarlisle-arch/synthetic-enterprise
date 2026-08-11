@@ -62,6 +62,43 @@ STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 # The store's bound (README "bound"): one file per existing atom, each <=100KB.
 MAX_FILE_BYTES = 100 * 1024
 
+# --------------------------------------------------------------------------
+# THE ROLL: the bound that makes a monotonic record survive a bounded control
+# --------------------------------------------------------------------------
+# WHY (2026-08-11, H_GAP_fabric_belief_truth_gap's sixth Expert Hour). Every drain
+# in this store's history moved a STOCK and left the FLOW running, so the same wedge
+# came back one level down: the map's `simplifications` field -> this store (FM-1),
+# the map's `*_note` fields -> the `map_notes` tenant (H32, back over the ratchet in
+# 24h), the map's `evidence`/`expert_hour_findings` -> the `map_records` tenant (H41,
+# and H27 wedged publishing on the per-atom cap a day later). This file then reached
+# 101,324 B of its own 102,400 B cap with 1,076 B of headroom, against entries
+# averaging 5,400 B -- i.e. the atom's NEXT Expert Hour could not record itself, and
+# the record store had become the thing that stops the record being kept.
+#
+# The class is not "this file is big". It is: A BOUNDED CONTROL OVER A MONOTONIC
+# APPEND-ONLY RECORD WEDGES THE LANE THAT KEEPS THE RECORD -- and the only two moves
+# available at the wedge are to raise the number or to launder the history, both of
+# which this project has already refused. The third move is a ROLL: every file stays
+# bounded, no entry is ever deleted or reworded, and the drain is a MECHANISM (it
+# happens inside the sole write path) rather than a convention a tick must remember.
+#
+# The live file keeps the newest entries under ROLL_WATERMARK; everything older is
+# moved, verbatim and in order, into numbered per-atom chunks under `archive/`. Each
+# chunk is written ONCE and never appended to, and is packed against MAX_FILE_BYTES,
+# so EVERY file in the store is bounded -- the archive is not a cap-exempt hole (which
+# would be the same defect wearing a new directory name). Readers are unaffected:
+# `for_atom`/`records_for_atom` concatenate archive-then-live, so an atom's register
+# and its declared `simplifications_count` are identical either side of a roll.
+ARCHIVE_DIRNAME = "archive"
+
+# Live-file watermark. Below MAX_FILE_BYTES on purpose: the roll must leave headroom
+# for several more entries, or a file pinned AT its cap rolls on every single write.
+# 64 KiB against this store's 5.4 KB/entry mean leaves ~7 entries of live headroom.
+ROLL_WATERMARK = 64 * 1024
+
+# Chunks are `<atom_id>.NNN.yaml`, NNN ascending = oldest-first.
+_CHUNK_GLOB_SUFFIX = ".[0-9][0-9][0-9].yaml"
+
 
 def _store_dir(store_dir: Path | None = None) -> Path:
     return store_dir if store_dir is not None else STORE_DIR
@@ -69,6 +106,10 @@ def _store_dir(store_dir: Path | None = None) -> Path:
 
 def _path_for(atom_id: str, store_dir: Path | None = None) -> Path:
     return _store_dir(store_dir) / f"{atom_id}.yaml"
+
+
+def _archive_dir(store_dir: Path | None = None) -> Path:
+    return _store_dir(store_dir) / ARCHIVE_DIRNAME
 
 
 def _dump(
@@ -106,6 +147,187 @@ def _dump(
     )
 
 
+def _dump_chunk(atom_id: str, n: int, notes: list, map_records: dict) -> str:
+    """Serialise one ARCHIVE chunk. Same serialiser settings as `_dump` (notably
+    `width=10**9`) because a reflowed dump costs ~2 KB per file of an atom's budget
+    on nothing, and a size gate cannot tell that apart from content."""
+    doc: dict = {"atom_id": atom_id, "chunk": n}
+    if notes:
+        doc["simplifications"] = list(notes)
+    if map_records:
+        doc["map_records"] = {k: list(v) for k, v in map_records.items()}
+    return yaml.safe_dump(
+        doc,
+        sort_keys=False,
+        allow_unicode=True,
+        width=10 ** 9,
+        default_flow_style=False,
+    )
+
+
+def archive_chunks(atom_id: str, store_dir: Path | None = None) -> list:
+    """This atom's archive chunk paths, OLDEST FIRST (numeric filename order)."""
+    d = _archive_dir(store_dir)
+    if not d.is_dir():
+        return []
+    return sorted(d.glob(f"{atom_id}{_CHUNK_GLOB_SUFFIX}"))
+
+
+def _archived_docs(atom_id: str, store_dir: Path | None = None) -> list:
+    out = []
+    for p in archive_chunks(atom_id, store_dir):
+        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            out.append(data)
+    return out
+
+
+def archived_notes_for_atom(atom_id: str, store_dir: Path | None = None) -> list:
+    """The rolled-out half of this atom's simplifications register, in order."""
+    out: list = []
+    for doc in _archived_docs(atom_id, store_dir):
+        notes = doc.get("simplifications")
+        if isinstance(notes, list):
+            out.extend(notes)
+    return out
+
+
+def archived_records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:
+    """{field: [entry, ...]} rolled out of this atom's record tenant, in order."""
+    out: dict = {}
+    for doc in _archived_docs(atom_id, store_dir):
+        recs = doc.get("map_records")
+        if not isinstance(recs, dict):
+            continue
+        for field, value in recs.items():
+            if isinstance(value, list):
+                out.setdefault(field, []).extend(value)
+    return out
+
+
+def archived_atom_ids(store_dir: Path | None = None) -> set:
+    """Atom ids that have archive chunks -- INCLUDING any whose live file is gone.
+    The orphan check reads this: an archive is not a place a dead atom can hide."""
+    d = _archive_dir(store_dir)
+    if not d.is_dir():
+        return set()
+    out = set()
+    for p in sorted(d.glob("*.yaml")):
+        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        if isinstance(data, dict) and data.get("atom_id"):
+            out.add(str(data["atom_id"]))
+        else:  # fall back to the filename, so a malformed chunk is still attributable
+            out.add(p.name.rsplit(".", 2)[0])
+    return out
+
+
+def _plan_chunks(atom_id: str, first_n: int, notes: list, records: dict) -> list:
+    """Pack moved entries into [(path_name, body)] chunks, each <= MAX_FILE_BYTES.
+
+    Greedy and per-tenant, which is sufficient because a reader concatenates chunks
+    in ascending order and each tenant's own entries therefore stay in order however
+    they are distributed across chunks. Raises when a SINGLE entry cannot fit a chunk
+    -- one note larger than the whole per-file bound is a defect to surface, not to
+    absorb by silently widening the bound."""
+    planned: list = []
+    cur_notes: list = []
+    cur_records: dict = {}
+
+    def body() -> str:
+        return _dump_chunk(atom_id, first_n + len(planned), cur_notes, cur_records)
+
+    def over() -> bool:
+        return len(body().encode("utf-8")) > MAX_FILE_BYTES
+
+    def flush() -> None:
+        nonlocal cur_notes, cur_records
+        if not cur_notes and not cur_records:
+            return
+        n = first_n + len(planned)
+        planned.append((f"{atom_id}.{n:03d}.yaml", body()))
+        cur_notes, cur_records = [], {}
+
+    for entry in notes:
+        cur_notes.append(entry)
+        if over():
+            cur_notes.pop()
+            if not cur_notes and not cur_records:
+                raise ValueError(
+                    f"a single simplifications entry for {atom_id!r} exceeds the "
+                    f"{MAX_FILE_BYTES}-byte chunk bound"
+                )
+            flush()
+            cur_notes = [entry]
+    for field, entries in records.items():
+        for entry in entries:
+            cur_records.setdefault(field, []).append(entry)
+            if over():
+                cur_records[field].pop()
+                if not cur_records[field]:
+                    del cur_records[field]
+                if not cur_notes and not cur_records:
+                    raise ValueError(
+                        f"a single {field!r} entry for {atom_id!r} exceeds the "
+                        f"{MAX_FILE_BYTES}-byte chunk bound"
+                    )
+                flush()
+                cur_records = {field: [entry]}
+    flush()
+    return planned
+
+
+def _roll(atom_id: str, tenants: dict, store_dir: Path | None = None) -> list:
+    """Move oldest entries out of `tenants` (MUTATED IN PLACE) until the live body
+    is within ROLL_WATERMARK. Returns the planned chunks; writes nothing.
+
+    Drains EVERY unbounded list tenant, not just `simplifications`: `map_records`
+    holds `evidence` and `expert_hour_findings`, which are the same append-per-review
+    shape and are exactly what H41's drain left flowing one level down. A drain that
+    bounds one list and not its siblings is the previous drain's defect re-run.
+
+    Always leaves at least one entry live in each list, so the live file keeps saying
+    what shape it is and a reader never sees a tenant vanish."""
+    moved_notes: list = []
+    moved_records: dict = {}
+
+    def live_body() -> int:
+        body = _dump(
+            atom_id, tenants["notes"], tenants["map_notes"], tenants["map_records"]
+        )
+        return len(body.encode("utf-8"))
+
+    while live_body() > ROLL_WATERMARK:
+        # Take from the largest rollable list: draining the biggest contributor first
+        # is what keeps the number of rolls (and so of chunks) small.
+        candidates = []
+        if len(tenants["notes"]) > 1:
+            candidates.append((_entry_bytes(tenants["notes"]), "notes", None))
+        for field, value in tenants["map_records"].items():
+            if isinstance(value, list) and len(value) > 1:
+                candidates.append((_entry_bytes(value), "map_records", field))
+        if not candidates:
+            break  # nothing left to roll -- the cap check below is the real verdict
+        _, tenant, field = max(candidates, key=lambda c: c[0])
+        if tenant == "notes":
+            moved_notes.append(tenants["notes"].pop(0))
+        else:
+            moved_records.setdefault(field, []).append(
+                tenants["map_records"][field].pop(0)
+            )
+
+    if not moved_notes and not moved_records:
+        return []
+    existing = archive_chunks(atom_id, store_dir)
+    first_n = 1 + max(
+        (int(p.name.rsplit(".", 2)[1]) for p in existing), default=0
+    )
+    return _plan_chunks(atom_id, first_n, moved_notes, moved_records)
+
+
+def _entry_bytes(entries: list) -> int:
+    return sum(len(str(e).encode("utf-8")) for e in entries)
+
+
 def _write_tenants(atom_id: str, store_dir: Path | None = None, **changed) -> str:
     """THE SOLE WRITE PATH. Read-modify-write one atom's store file: apply only the
     tenants named in `changed` (`notes`, `map_notes`, `map_records`) and carry every
@@ -135,6 +357,18 @@ def _write_tenants(atom_id: str, store_dir: Path | None = None, **changed) -> st
         raise ValueError(f"unknown store tenant(s): {sorted(unknown)}")
     tenants.update(changed)
     body = _dump(atom_id, tenants["notes"], tenants["map_notes"], tenants["map_records"])
+
+    # THE ROLL, inside the sole write path so no tick has to remember to drain.
+    # Planned in memory first: every chunk AND the resulting live file are checked
+    # against the bound BEFORE anything touches disk, so an over-bound write still
+    # leaves the existing file intact rather than half-replacing it.
+    planned: list = []
+    if len(body.encode("utf-8")) > ROLL_WATERMARK:
+        planned = _roll(atom_id, tenants, store_dir)
+        if planned:
+            body = _dump(
+                atom_id, tenants["notes"], tenants["map_notes"], tenants["map_records"]
+            )
     if len(body.encode("utf-8")) > MAX_FILE_BYTES:
         raise ValueError(
             f"store file for {atom_id!r} would be {len(body.encode('utf-8'))} bytes, "
@@ -142,8 +376,32 @@ def _write_tenants(atom_id: str, store_dir: Path | None = None, **changed) -> st
         )
     d = _store_dir(store_dir)
     d.mkdir(parents=True, exist_ok=True)
+    if planned:
+        # CHUNKS BEFORE LIVE, deliberately. The two writes are not one transaction, so
+        # the order chooses which way a crash between them fails: chunks-first can only
+        # duplicate an entry (detectable, and `check_no_duplicate_entries` in
+        # tests/design/test_simplifications_store.py asserts it over the live store),
+        # live-first would LOSE one. A record store fails toward keeping the record.
+        ad = _archive_dir(store_dir)
+        ad.mkdir(parents=True, exist_ok=True)
+        for name, chunk_body in planned:
+            (ad / name).write_text(chunk_body, encoding="utf-8")
     _path_for(atom_id, store_dir).write_text(body, encoding="utf-8")
     return body
+
+
+def roll_for_atom(atom_id: str, store_dir: Path | None = None) -> int:
+    """Force the roll for one atom without changing its content; returns the number
+    of entries archived. The maintenance entrypoint (`--roll <atom_id>`) for an atom
+    already at its cap when the mechanism lands -- ongoing rolls need no caller."""
+    before = len(archived_notes_for_atom(atom_id, store_dir)) + sum(
+        len(v) for v in archived_records_for_atom(atom_id, store_dir).values()
+    )
+    _write_tenants(atom_id, store_dir)
+    after = len(archived_notes_for_atom(atom_id, store_dir)) + sum(
+        len(v) for v in archived_records_for_atom(atom_id, store_dir).values()
+    )
+    return after - before
 
 
 def _read_doc(atom_id: str, store_dir: Path | None = None) -> dict:
@@ -155,18 +413,26 @@ def _read_doc(atom_id: str, store_dir: Path | None = None) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def live_notes_for_atom(atom_id: str, store_dir: Path | None = None) -> list:
+    """Only the entries in the atom's LIVE file -- the writers' subject. Callers who
+    want the register want `for_atom`; this exists so an append cannot re-inline the
+    archive (which would undo the roll on the very next write)."""
+    notes = _read_doc(atom_id, store_dir).get("simplifications")
+    return list(notes) if isinstance(notes, list) else []
+
+
 def for_atom(atom_id: str, store_dir: Path | None = None) -> list:
     """The simplifications list for one atom -- exactly what `atom["simplifications"]`
     used to yield. Returns [] when the atom has no store file (the old field was
-    absent or empty for such atoms, and callers already did `... or []`)."""
-    p = _path_for(atom_id, store_dir)
-    if not p.is_file():
-        return []
-    data = yaml.safe_load(p.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        return []
-    notes = data.get("simplifications")
-    return notes if isinstance(notes, list) else []
+    absent or empty for such atoms, and callers already did `... or []`).
+
+    ARCHIVE THEN LIVE: rolled-out entries are older, so concatenating them ahead of
+    the live file reproduces the append order the register was written in. A roll is
+    therefore invisible here -- same list, same order, same count -- which is the
+    property that lets the map's `simplifications_count` stay untouched across one."""
+    return archived_notes_for_atom(atom_id, store_dir) + live_notes_for_atom(
+        atom_id, store_dir
+    )
 
 
 def load_all(store_dir: Path | None = None) -> dict[str, list]:
@@ -191,14 +457,20 @@ def load_all(store_dir: Path | None = None) -> dict[str, list]:
     d = _store_dir(store_dir)
     if not d.is_dir():
         return out
+    ids = set()
     for p in sorted(d.glob("*.yaml")):
         data = yaml.safe_load(p.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
             continue
-        atom_id = data.get("atom_id") or p.stem
-        notes = data.get("simplifications")
-        if isinstance(notes, list) and notes:
-            out[str(atom_id)] = notes
+        ids.add(str(data.get("atom_id") or p.stem))
+    # ARCHIVE-BEARING ATOMS ARE IN THE POPULATION even if their live file went away:
+    # otherwise the orphan check reading this becomes blind in exactly the direction
+    # the archive added, and a dead atom's record could sit there unreported.
+    ids |= archived_atom_ids(store_dir)
+    for atom_id in sorted(ids):
+        notes = for_atom(atom_id, store_dir)
+        if notes:
+            out[atom_id] = notes
     return out
 
 
@@ -213,13 +485,18 @@ def append_for_atom(atom_id: str, notes: list, store_dir: Path | None = None) ->
     ValueError if the resulting file would exceed the <=100KB store bound."""
     if not isinstance(notes, list):
         raise ValueError(f"notes for {atom_id!r} must be a list, got {type(notes).__name__}")
-    existing = for_atom(atom_id, store_dir)
-    combined = existing + list(notes)
+    # LIVE, not `for_atom`: appending onto the concatenated view would re-inline every
+    # archived entry, so the very next write would undo the roll and duplicate the
+    # history into the chunks. The return is still the atom's TOTAL count, because
+    # that is what the map's `simplifications_count` declares.
+    combined = live_notes_for_atom(atom_id, store_dir) + list(notes)
     # PRESERVE the other tenants: `_write_tenants` carries `map_notes`/`map_records`
     # through untouched, so an append can no longer delete this atom's rehomed
     # note or list record (the H32 hazard, now structural rather than remembered).
     _write_tenants(atom_id, store_dir, notes=combined)
-    return len(combined)
+    return len(archived_notes_for_atom(atom_id, store_dir)) + len(
+        live_notes_for_atom(atom_id, store_dir)
+    )
 
 
 # --------------------------------------------------------------------------
@@ -366,14 +643,31 @@ def is_record_field(field: str) -> bool:
     )
 
 
-def records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:
-    """{field: value} for one atom -- exactly what the map atom's record fields
-    used to yield, in their original shape. `{}` when the atom has no store file
-    or no record tenant in it."""
+def live_records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:
+    """Only the entries in the atom's LIVE file -- the writers' subject (see
+    `live_notes_for_atom` for why the writers must not see the archive)."""
     recs = _read_doc(atom_id, store_dir).get("map_records")
     if not isinstance(recs, dict):
         return {}
     return {k: (list(v) if isinstance(v, list) else v) for k, v in recs.items()}
+
+
+def records_for_atom(atom_id: str, store_dir: Path | None = None) -> dict:
+    """{field: value} for one atom -- exactly what the map atom's record fields
+    used to yield, in their original shape. `{}` when the atom has no store file
+    or no record tenant in it.
+
+    ARCHIVE THEN LIVE for the LIST-shaped fields, same as `for_atom`. Prose fields
+    (`exit_evidence`) are never rolled, so they only ever appear live."""
+    archived = archived_records_for_atom(atom_id, store_dir)
+    live = live_records_for_atom(atom_id, store_dir)
+    merged = {k: list(v) for k, v in archived.items()}
+    for field, value in live.items():
+        if isinstance(value, list) and field in merged:
+            merged[field] = merged[field] + list(value)
+        else:
+            merged[field] = list(value) if isinstance(value, list) else value
+    return merged
 
 
 def records_load_all(store_dir: Path | None = None) -> dict[str, dict]:
@@ -385,15 +679,16 @@ def records_load_all(store_dir: Path | None = None) -> dict[str, dict]:
     d = _store_dir(store_dir)
     if not d.is_dir():
         return out
+    ids = set()
     for p in sorted(d.glob("*.yaml")):
         data = yaml.safe_load(p.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            continue
-        recs = data.get("map_records")
-        if isinstance(recs, dict) and recs:
-            out[str(data.get("atom_id") or p.stem)] = {
-                k: (list(v) if isinstance(v, list) else v) for k, v in recs.items()
-            }
+        if isinstance(data, dict):
+            ids.add(str(data.get("atom_id") or p.stem))
+    ids |= archived_atom_ids(store_dir)  # see `load_all` -- the archive is in scope
+    for atom_id in sorted(ids):
+        recs = records_for_atom(atom_id, store_dir)
+        if recs:
+            out[atom_id] = recs
     return out
 
 
@@ -423,7 +718,9 @@ def append_to_record_for_atom(
         raise ValueError(
             f"entries for {atom_id}.{field} must be a list, got {type(entries).__name__}"
         )
-    merged = records_for_atom(atom_id, store_dir)
+    # LIVE, not `records_for_atom` -- see `append_for_atom` for why a writer must
+    # never read across the archive.
+    merged = live_records_for_atom(atom_id, store_dir)
     existing = merged.get(field, [])
     if not isinstance(existing, list):
         raise ValueError(
@@ -432,7 +729,7 @@ def append_to_record_for_atom(
         )
     merged[field] = existing + list(entries)
     _write_tenants(atom_id, store_dir, map_records=merged)
-    return merged[field]
+    return records_for_atom(atom_id, store_dir)[field]
 
 
 def set_record_for_atom(
@@ -451,10 +748,19 @@ def set_record_for_atom(
         raise ValueError(
             f"{atom_id}.{field} must be a list or a string, got {type(value).__name__}"
         )
-    merged = records_for_atom(atom_id, store_dir)
+    # A WHOLE-FIELD write over an atom that has ROLLED entries for that field would
+    # silently duplicate them (the archive keeps its copy, the live file gets the
+    # caller's whole list). Refuse rather than absorb: this is the one-shot migration
+    # writer, and an atom with an archive is by definition past its migration.
+    if field in archived_records_for_atom(atom_id, store_dir):
+        raise ValueError(
+            f"{atom_id}.{field} has archived entries -- a whole-field write would "
+            "duplicate them; use append_to_record_for_atom"
+        )
+    merged = live_records_for_atom(atom_id, store_dir)
     merged[field] = list(value) if isinstance(value, list) else value
     _write_tenants(atom_id, store_dir, map_records=merged)
-    return merged
+    return records_for_atom(atom_id, store_dir)
 
 
 def hydrate(atom: dict, store_dir: Path | None = None) -> dict:
@@ -475,6 +781,21 @@ def hydrate(atom: dict, store_dir: Path | None = None) -> dict:
 
 if __name__ == "__main__":
     import json
+    import sys
+
+    if len(sys.argv) == 3 and sys.argv[1] == "--roll":
+        aid = sys.argv[2]
+        before = _path_for(aid).stat().st_size if _path_for(aid).is_file() else 0
+        n = roll_for_atom(aid)
+        print(json.dumps({
+            "atom_id": aid,
+            "entries_archived": n,
+            "live_bytes_before": before,
+            "live_bytes_after": _path_for(aid).stat().st_size,
+            "chunks": [p.name for p in archive_chunks(aid)],
+            "register_count": len(for_atom(aid)),
+        }, indent=2))
+        raise SystemExit(0)
 
     alln = load_all()
     print(json.dumps(

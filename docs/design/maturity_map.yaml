@@ -2266,7 +2266,7 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 18
+  simplifications_count: 19
   notes_rehomed: [harden_note, level_hold_note]
   expert_hour: {last: '2026-08-11', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
@@ -2460,6 +2460,21 @@
   depends_on: [D27_belief_window_saturates_on_this_book]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose arrears-risk number is quoted as evidence the team's lookback is set right, when the report is run a month after the last failed collection -- so a team that drops a customer off the risk list after three weeks and a team that never puts them on it produce the same figure, and the only memory settings the pack can tell apart are ones nobody would choose"
+
+- id: D30_the_belief_band_is_this_books_length
+  name: "SPUN OUT OF H27 EXPERT HOUR #12 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). Hour #11's lead 2, taken: the census of confounder-removing harness constants. D27 found `DD_FAILURE_WINDOW_DAYS = 400` by tripping over it and D29 found `AS_OF_BUFFER_DAYS = 30` by tripping over it; both comments say the constant was chosen to REMOVE A CONFOUNDER ('generous on purpose', 'comfortably past') and both reasons are sound, but each is also a silent RESOLUTION decision and nobody could say how many were left. MEASURED 2026-08-11, n=300, seeds 7/11/23, every run identical on all three: the two BELIEF dimensions resolve a company memory error ONLY between the youngest and oldest invoice age this book presents at `as_of` -- [30d, 92d], a band 62 DAYS WIDE -- and that interval is not a sensitivity of the instrument but ARITHMETIC OVER FOUR HARNESS CONSTANTS (youngest = AS_OF_BUFFER_DAYS; oldest = AS_OF_BUFFER_DAYS + PERIOD_SPACING_DAYS x (N_PERIODS - 1) + BILLING_CYCLE_SPREAD_DAYS - 1). D29 attributed the LOWER edge to AS_OF_BUFFER_DAYS and left the UPPER one owned by 'the company's memory outruns the book' -- a restatement, not an attribution: the book stops at 92 days because N_PERIODS is 3 and PERIOD_SPACING_DAYS is 21, two constants no Hour had asked, so the harness's own calendar was attributed to the company being graded. The arithmetic was even written out in the register's own `own_why` two lines below the owner field and no rule was ever built from it -- Hour #11's 'a lead is not a control', one register field over. AND THE INSTRUMENT CANNOT RESOLVE THE COMPANY IT SCORES: the scored company holds DD_FAILURE_WINDOW_DAYS = 400 days of memory against a band topping out at 92, so every published `belief` and `belief_population_mix` figure is read 308 days INSIDE the saturated tail, at a point where the one company parameter those dimensions depend on is inert by construction. THIS ATOM IS THE RESHAPE -- giving the scored population a book whose invoice ages actually straddle a memory a real supplier might hold (more periods, a longer spine, or an `as_of` that does not start 30 days past the last event), which moves every published belief figure on this pair and is therefore a mint rather than a fix on sight. R12: no published number moved in Hour #12's commit; what moved is what the instrument admits about itself. ALREADY LANDED UNDER H27's HOUR: `SCENARIO_CONSTANT_CENSUS` with its keyset DERIVED from `build_scenario`'s own AST (`scenario_constants`, asserted never to read the census), so a ninth scenario constant left uncensused RAISES instead of waiting for an Hour to trip over it; `predict_event_age_span_from_constants`, which reads constants and no draw (asserted against its AST) and is cross-checked against the BUILT book on every seed; `bounds_resolution` and the edge each constant sets MEASURED by perturbing the predictor rather than read from the declaration, both directions; `_check_edge_owners_are_censused`, which fails a saturation edge owned by an atom the census does not put on that edge -- the defect this Hour found, now a rule; the upper-edge owner moved D27 -> D30 on both belief entries; and the band, its owning constants and the scored company's 308d of headroom stamped into both dimensions' note AND components, with a live-population guard so this scenario's [30, 92] is never quoted over a `run_phase2b` book the constants do not describe."
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
+  depends_on: [D29_the_as_of_buffer_floors_the_memory_grid]
+  file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
+  real_world_twin: "a collections MI pack that reports how well the team's arrears lookback is set, built from a book only three months long -- so the only lookbacks it can tell apart are ones between one and three months, every realistic setting sits in the flat part of the curve, and the team's actual setting is one of those: the report's own subject is off the end of the scale it is drawn on"
 
 - id: D26_detection_grace_line_has_no_book_beside_it
   name: "SPUN OUT OF D25 (2026-08-10, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). D25 spread the W2_11<->D5 book across one billing cycle and the AGEING dimension went from an 8-day blind band to resolving a one-day company dating error in both directions. The DETECTION dimension of the same instrument did not move, and it must not have: its blindness is the RECONCILIATION GRACE LINE, not the 30/60/90 bucket grid. Measured under the same declared `organ_terms_drift_days` counterfactual, seeds 7/11/23, on the RESHAPED book: a company holding payment terms one day LONGER (+1d) publishes a bit-identical detection headline, because the youngest truly-overdue invoice in the book is AS_OF_BUFFER_DAYS (30) days past due and the grace window is far shorter -- nothing sits BESIDE the line the detector reads, so no small drift can carry a case across it. Same class as the defect D25 closed, one boundary further out. THE ATOM IS THE MEASUREMENT AND THE RESHAPE, in that order: how far from the grace line the book actually sits, whether a population with cases near it changes what the detection headline can resolve, and what a reader may take a movement in that number to mean. It owes the `DIMENSION_DRIFT_RESOLUTION` register the re-derived detection entry -- that register is where its debt is recorded and where its closure has to be proven (the entry's `debt_atom` points here)."
@@ -3358,7 +3373,7 @@
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 31
+  simplifications_count: 32
   expert_hour: {last: '2026-08-11', status: attempted_finding_open}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   records_rehomed: [evidence, expert_hour_findings]
