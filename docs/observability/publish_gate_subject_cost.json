@@ -1,9 +1,9 @@
 {
-  "head_sha_at_launch": "58d40f44bebc6db2da22ad2fdda22169b6bc55fe",
-  "pid": 3108903,
+  "head_sha_at_launch": "f5f47ee6101070595e8cbbeae1091550925879db",
+  "pid": 4039678,
   "is_session_leader": true,
   "launched_by": "systemd",
-  "started_at": "2026-08-10T18:55:05Z",
+  "started_at": "2026-08-11T09:11:51Z",
   "phases": {
     "cold_checkout": {
       "cwd": "/tmp/publish-gate-head-reused",
@@ -15,37 +15,66 @@
       "loadavg_after": 2.43,
       "box_was_quiet": true
     },
-    "warm_checkout": {
-      "cwd": "/tmp/publish-gate-head-reused",
-      "head_sha_at_run": "54141b5597aa3f2ec797cbb82e08ac8f29da5adf",
-      "seconds": 1167.5,
+    "throwaway_checkout": {
+      "cwd": "/var/tmp/publish-gate-head-5jhue37c",
+      "head_sha_at_run": "d1a5875b4b687532a928be71e818d1beb924a04f",
+      "seconds": 1411.2,
       "returncode": 1,
-      "summary": "235 failed, 23069 passed, 33 skipped, 1107 deselected, 14 xfailed, 98 warnings, 14 errors, 4 subtests passed in 1158.14s (0:19:18)",
-      "loadavg_before": 1.81,
-      "loadavg_after": 8.39,
+      "summary": "2 failed, 23710 passed, 5 skipped, 1121 deselected, 14 xfailed, 132 warnings, 4 subtests passed in 1398.95s (0:23:18)",
+      "loadavg_before": 2.88,
+      "loadavg_after": 3.47,
       "box_was_quiet": true,
-      "mem_available_before_mb": 13218,
-      "mem_available_after_mb": 4384,
-      "had_memory_headroom": true
+      "mem_available_before_mb": 10783,
+      "mem_available_after_mb": 6213,
+      "had_memory_headroom": true,
+      "memory_max_mb": 8192,
+      "hit_memory_ceiling": false,
+      "hit_memory_ceiling_basis": "inferred: SIGKILL with the box still above its headroom floor implies a cgroup kill, not a global OOM",
+      "subject_larger_than_the_gates": true,
+      "subject_note": "-x stripped for comparability; the gate stops at the first failure of a red suite and this does not"
+    },
+    "in_tree_baseline": {
+      "cwd": "/home/rich/synthetic-enterprise",
+      "head_sha_at_run": "7058017205d55f7daa2728e038a2610a2205b94f",
+      "seconds": 1302.4,
+      "returncode": -15,
+      "summary": ".........",
+      "loadavg_before": 3.47,
+      "loadavg_after": 2.85,
+      "box_was_quiet": true,
+      "mem_available_before_mb": 6221,
+      "mem_available_after_mb": 7180,
+      "had_memory_headroom": true,
+      "memory_max_mb": 8192,
+      "hit_memory_ceiling": false,
+      "hit_memory_ceiling_basis": "inferred: SIGKILL with the box still above its headroom floor implies a cgroup kill, not a global OOM",
+      "subject_larger_than_the_gates": true,
+      "subject_note": "-x stripped for comparability; the gate stops at the first failure of a red suite and this does not"
     }
   },
-  "deferral_count": 1,
+  "deferral_count": 2,
   "resumed_phases": [
-    "cold_checkout",
-    "warm_checkout"
+    "cold_checkout"
   ],
+  "dropped_for_comparability": [],
   "phases_from_an_earlier_head": [
-    "cold_checkout",
-    "warm_checkout"
+    "cold_checkout"
   ],
-  "complete": false,
-  "phases_missing": [
-    "in_tree_baseline"
+  "previous_launch_died_in_flight": null,
+  "complete": true,
+  "phases_missing": [],
+  "phases_from_a_retired_configuration": [
+    "cold_checkout"
   ],
-  "last_heartbeat": "2026-08-10T19:39:35Z",
-  "deferred": {
-    "reason": "publisher still live after 2700s",
-    "at_phase": "in_tree_baseline",
-    "at": "2026-08-10T19:40:05Z"
-  }
+  "last_heartbeat": "2026-08-11T09:20:21Z",
+  "ratio_throwaway_over_in_tree": 1.084,
+  "ratio_measures": "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.",
+  "superseded_exit_criterion": {
+    "was": "a REUSED checkout within 1.3x the in-tree baseline (OPS2 criterion 1)",
+    "superseded_by": "444402ee0 -- reuse eliminated under R3 after it reset a shared checkout under four live suites",
+    "why_not_gradeable": "warm bytecode is unavailable to this atom at any price, so the 1.3x question has no measurable subject"
+  },
+  "worst_legitimate_seconds": 1411.2,
+  "worst_legitimate_phase": "throwaway_checkout",
+  "implied_timeout_floor_2x": 2822
 }

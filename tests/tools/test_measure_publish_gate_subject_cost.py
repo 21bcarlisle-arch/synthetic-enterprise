@@ -98,9 +98,9 @@ def test_a_partial_record_is_not_complete(out):
 
     The retired phase is in here on purpose: a record can hold three timings and still owe the
     baseline, because two of them belong to a configuration that no longer runs."""
-    results = {"phases": {"throwaway_checkout": {"seconds": 900.0},
-                          "cold_checkout": {"seconds": 1291.9},
-                          "warm_checkout": {"seconds": 700.0}}}
+    results = {"phases": {"throwaway_checkout": {"seconds": 900.0, "returncode": 1},
+                          "cold_checkout": {"seconds": 1291.9, "returncode": 1},
+                          "warm_checkout": {"seconds": 700.0, "returncode": 1}}}
     measure._checkpoint(results, out, print)
 
     rec = _read(out)
@@ -120,7 +120,8 @@ def test_a_partial_record_is_not_complete(out):
 
 def test_a_full_record_is_complete_and_owes_nothing(out):
     """The other direction: a control that can only say "incomplete" is not a control."""
-    results = {"phases": {p: {"seconds": 1.0} for p in measure.PHASE_ORDER}}
+    results = {"phases": {p: {"seconds": 1.0, "returncode": 1}
+                          for p in measure.PHASE_ORDER}}
     measure._checkpoint(results, out, print)
 
     rec = _read(out)
@@ -550,7 +551,16 @@ class _FakeCheckout:
 
 
 def _banked(out_path, **phases):
-    Path(out_path).write_text(json.dumps({"phases": phases}))
+    """Seed a prior launch's record. Phases get a COMPLETED returncode unless one is given.
+
+    A real banked phase always carries the returncode its suite exited with, and since
+    2026-08-11 that is what `_is_ratio_eligible` reads to decide whether the phase answered or
+    was killed mid-suite. A fixture that omitted it would be asserting the resume against a
+    record no launch produces -- so the default is stamped here, and a test that means to bank a
+    TRUNCATED phase says so explicitly (`returncode=-15`)."""
+    stamped = {name: (rec if "returncode" in rec else dict(rec, returncode=1))
+               for name, rec in phases.items()}
+    Path(out_path).write_text(json.dumps({"phases": stamped}))
 
 
 def test_a_banked_phase_is_resumed_rather_than_re_run(monkeypatch, out, tmp_path):
@@ -997,9 +1007,12 @@ def test_a_deferral_banks_what_is_measured_and_times_no_suite(monkeypatch, out):
     # but for a reason this test is not about, and the deferral contract below would then be
     # asserted against a resume state no real record produces. The retired `cold_checkout` rides
     # along because a deferral must not lose it either: it is the timeout floor's evidence.
+    # It carries its `returncode` for the same reason: since 2026-08-11 a phase that cannot prove
+    # its suite ended under its own control is re-timed rather than banked, so a returncode-less
+    # fixture would make this test assert the deferral contract against the WRONG owed phase.
     monkeypatch.setattr(measure.prc, "_head_sha", lambda: "headsha0")
     banked = {"phases": {"cold_checkout": {"seconds": 1291.9, "head_sha_at_run": "old111"},
-                         "throwaway_checkout": {"seconds": 1167.5,
+                         "throwaway_checkout": {"seconds": 1167.5, "returncode": 1,
                                                 "head_sha_at_run": "headsha0"}}}
     Path(out).write_text(json.dumps(banked))
 
@@ -1295,7 +1308,12 @@ def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
 # ever raises the timeout floor), and a pair already banked together is not re-paid for.
 
 def _banked(out, **phases):
-    Path(out).write_text(json.dumps({"phases": phases}))
+    """As the helper above: a COMPLETED returncode unless the test states otherwise, because a
+    phase that cannot prove it finished is re-timed and would confound the comparability rule
+    these tests are about."""
+    stamped = {name: (rec if "returncode" in rec else dict(rec, returncode=1))
+               for name, rec in phases.items()}
+    Path(out).write_text(json.dumps({"phases": stamped}))
     return out
 
 
@@ -1853,3 +1871,173 @@ def test_the_phase_record_states_its_ceiling_and_its_x_premium(monkeypatch, tmp_
         "from it reads as a fit to the gate's own runtime when it is an over-estimate"
     )
     assert "-x" in rec["subject_note"]
+
+
+# ── A LOWER BOUND MAY RAISE A FLOOR AND MAY NOT BE A DENOMINATOR ──
+#
+# THE DEFECT, OBSERVED IN THE LIVE RECORD (launch 11, 2026-08-11). `in_tree_baseline` was
+# SIGTERMed mid-suite: `returncode: -15`, a summary of nine progress dots, no summary line ever
+# printed. It was banked like any completed phase, `complete` was written `true` over it, and it
+# became the DENOMINATOR of `ratio_throwaway_over_in_tree: 1.084` -- the single number superseded
+# criterion 1's honest successor rests on.
+#
+# The prose was already right, which is the whole lesson. `_time_suite`'s own field comment said
+# "a phase that hit its own bound is a phase whose SECONDS mean nothing, so a reader must not
+# average it into a ratio" -- addressed to a reader, enforced nowhere, and covering only rc=-9.
+# These are the control.
+#
+# The rule is an ASYMMETRY and both halves need a test: a truncated phase still feeds the timeout
+# FLOOR (its seconds is a lower bound, and a lower bound can only push a fail-closed bound UP,
+# the safe direction) while being refused as a RATIO term (a truncated denominator does not err
+# safely, it overstates the tax).
+
+def test_a_signal_killed_phase_is_not_a_completed_one():
+    """The discriminator itself. A red suite REPORTED; a killed one did not."""
+    assert measure._ran_to_completion_from(0, False) is True
+    assert measure._ran_to_completion_from(1, False) is True, (
+        "a red suite ran every test it meant to and printed a summary -- rc=1 is a verdict, "
+        "not a death"
+    )
+    assert measure._ran_to_completion_from(-15, False) is False, (
+        "SIGTERM mid-suite is the exact shape that reached the live ratio as a measurement"
+    )
+    assert measure._ran_to_completion_from(-9, False) is False
+    assert measure._ran_to_completion_from(1, True) is False, (
+        "a phase squeezed against its own memory ceiling has a meaningless runtime even if it "
+        "exited politely"
+    )
+
+
+def test_the_ratio_refuses_a_truncated_term_and_says_why(out, monkeypatch, tmp_path):
+    """THE LIVE PROPERTY, against the real numbers. 1411.2s / 1302.4s = 1.084 was published from
+    a completed run over a killed one; the ratio must now be absent, with the cause NAMED rather
+    than left as a null for the next reader to re-diagnose.
+
+    MUTATION: delete the `ineligible` branch in `_run_measurement` so the ratio is computed
+    unconditionally, and this reds on 1.084 reappearing."""
+    # The re-timed baseline is killed AGAIN, which is how this state is reached for real: the
+    # truncated phase is never banked, so the only way both terms exist with one truncated is a
+    # fresh run that also died. `deadbeef` is `_stub_phases`'s HEAD -- the banked throwaway must
+    # be comparable to it or it is dropped for a reason this test is not about.
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    _stub_phases(monkeypatch, [])
+    monkeypatch.setattr(measure, "_time_suite", lambda cwd, log, heartbeat=None: {
+        "cwd": str(cwd), "head_sha_at_run": "deadbeef", "seconds": 1302.4,
+        "returncode": -15, "summary": ".........", "box_was_quiet": True})
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": {"seconds": 1411.2, "returncode": 1,
+                               "head_sha_at_run": "deadbeef"},
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    rec = _read(out)
+    assert rec["ratio_throwaway_over_in_tree"] != 1.084, (
+        "the published ratio divided a completed run by a SIGTERMed one -- the number this "
+        "control exists to withdraw"
+    )
+    assert "in_tree_baseline" in rec.get("ratio_unavailable_because", ""), (
+        "a null with no stated cause sends the next reader back to the journal to re-derive "
+        "what this record already knows"
+    )
+
+
+def test_a_truncated_phase_is_re_timed_rather_than_banked(out, monkeypatch, tmp_path):
+    """The never-converging shape: a killed phase banked forever means the ratio it poisons can
+    never become honest. The truncated baseline must be OWED, and the sound throwaway beside it
+    must not be re-paid for.
+
+    MUTATION: make `_load_banked_phases`/`_owed_phases` key on `seconds is not None` again and
+    the baseline is skipped as banked -- this reds."""
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": {"seconds": 1411.2, "returncode": 1,
+                               "head_sha_at_run": "deadbeef"},
+        "in_tree_baseline": {"seconds": 1302.4, "returncode": -15,
+                             "head_sha_at_run": "deadbeef"},
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    assert timed == [str(measure.prc.PROJECT_DIR)], (
+        "expected exactly the truncated baseline to be re-timed (the sound throwaway must not "
+        "be re-paid for), got {}".format(timed)
+    )
+
+
+def test_a_phase_that_cannot_prove_it_finished_is_re_timed(out, monkeypatch, tmp_path):
+    """FAIL-CLOSED, and it needs its own test because the fixture helpers now stamp a completed
+    returncode by default -- a default that would otherwise hide this branch entirely.
+
+    A record carrying `seconds` and no `returncode` cannot show its suite ended under its own
+    control. Unprovable is not a pass."""
+    throwaway = _a_throwaway(tmp_path)
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(throwaway))
+    timed = []
+    _stub_phases(monkeypatch, timed)
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": {"seconds": 1411.2, "head_sha_at_run": "deadbeef"},
+        "in_tree_baseline": {"seconds": 1302.4, "head_sha_at_run": "deadbeef"},
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    assert sorted(timed) == sorted([str(throwaway), str(measure.prc.PROJECT_DIR)]), (
+        "a phase with no returncode cannot show its suite finished, so both must be re-timed"
+    )
+
+
+def test_a_truncated_phase_still_feeds_the_timeout_floor(out):
+    """THE OTHER HALF OF THE ASYMMETRY, and the one that would wedge publishing if it were got
+    wrong. Dropping truncated phases outright would blank the fail-closed floor's evidence --
+    the same fail-open shape the retired-phase rule exists to avoid. A suite that provably ran
+    1302.4s before it was killed is a genuine LOWER BOUND, and a lower bound can only push the
+    bound UP.
+
+    MUTATION: have `_load_banked_phases` drop non-completing phases instead of marking them, and
+    the floor loses this evidence -- this reds."""
+    kept = measure._load_banked_phases(_banked(
+        out, in_tree_baseline={"seconds": 1302.4, "returncode": -15}))
+
+    assert "in_tree_baseline" in kept, (
+        "a truncated phase was discarded -- its seconds is real evidence of how long this suite "
+        "runs, and the timeout floor is fail-CLOSED on having none"
+    )
+    assert kept["in_tree_baseline"]["retimed_because_truncated"] is True
+    assert measure.prc.measured_gate_timeout_floor(out) == 2604, (
+        "the floor must still read a truncated phase's lower bound: 1302.4 * 2"
+    )
+
+
+def test_the_record_says_when_its_worst_phase_is_only_a_lower_bound(out, monkeypatch, tmp_path):
+    """A reader re-deriving the bound from `worst_legitimate_seconds` must not read a killed
+    run's partial time as a completed runtime.
+
+    MUTATION: hardcode `worst_is_a_lower_bound` to False and this reds."""
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    _stub_phases(monkeypatch, [])
+    # The re-timed baseline is killed again, and it is the SLOWEST thing in the record -- so the
+    # timeout floor now rests on a run that never finished.
+    monkeypatch.setattr(measure, "_time_suite", lambda cwd, log, heartbeat=None: {
+        "cwd": str(cwd), "head_sha_at_run": "deadbeef", "seconds": 1302.4,
+        "returncode": -15, "summary": ".........", "box_was_quiet": True})
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": {"seconds": 900.0, "returncode": 1,
+                               "head_sha_at_run": "deadbeef"},
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    rec = _read(out)
+    assert rec["worst_legitimate_phase"] == "in_tree_baseline"
+    assert rec["implied_timeout_floor_2x"] == 2604
+    assert rec["worst_is_a_lower_bound"] is True, (
+        "the bound rests on a phase that was still running when it died, and the record does "
+        "not say so"
+    )
+    assert rec["complete"] is False, (
+        "`complete` is the one field a reader is told to check, and launch 11 wrote it true "
+        "over a killed baseline"
+    )

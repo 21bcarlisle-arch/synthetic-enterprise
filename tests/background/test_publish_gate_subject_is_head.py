@@ -392,9 +392,13 @@ def _cost_record(tmp_path, **record):
 
 def test_the_timeout_clears_the_floor_the_measurement_implies():
     """THE LIVE CONTROL. The committed record is the evidence the bound was derived from; this
-    asserts the bound still clears it. Reds when a measured phase comes in slower than the one
-    2600s was derived against -- which is precisely what the in-tree baseline, still owed at the
-    time of writing, may yet do."""
+    asserts the bound still clears it.
+
+    IT HAS NOW FIRED FOR REAL (2026-08-11, launch 11). The shipped subject -- a cold throwaway
+    checkout -- measured 1411.2s against the 1291.9s the 2600s bound had been derived from, and
+    this test reddened on its own before anyone read the record. The bound moved to 2900s; that
+    is the control working, and the note it left is that the old evidence had been timed in the
+    since-deleted shared directory and was never the subject the gate ships."""
     floor = prc.measured_gate_timeout_floor()
 
     assert floor is not None, (
@@ -412,14 +416,20 @@ def test_the_floor_rises_when_a_measured_phase_gets_slower(tmp_path):
     """MUTATION (R15), on the evidence rather than on the source: one phase measured slower and
     the floor overtakes the constant, so the control above goes red. Without this the live
     assertion is unfalsifiable -- a check that has only ever been observed passing."""
-    slower = _cost_record(tmp_path, phases={"cold_checkout": {"seconds": 1500.0}})
+    # DERIVED FROM THE BOUND, not hardcoded at 1500.0. This fixture's only job is to be slower
+    # than whatever the shipped bound was derived against, and a literal made that true only for
+    # the bound of the day -- the 2600 -> 2900 move (2026-08-11) left it 100s from asserting
+    # nothing, and the next move would have reddened a test that is not about the bound at all.
+    slower_than_the_bound = prc.GATE_SUITE_TIMEOUT_SECONDS / prc.GATE_TIMEOUT_SAFETY_FACTOR + 100
+    slower = _cost_record(tmp_path, phases={"cold_checkout": {"seconds": slower_than_the_bound}})
 
     floor = prc.measured_gate_timeout_floor(slower)
 
-    assert floor == 3000
+    assert floor == int(slower_than_the_bound * prc.GATE_TIMEOUT_SAFETY_FACTOR)
     assert floor > prc.GATE_SUITE_TIMEOUT_SECONDS, (
-        "a 1500s phase must put the floor above 2600s -- if it does not, the live control cannot "
-        "red on the only thing that goes wrong with this bound")
+        "a phase measured slower than the bound's own evidence must put the floor above the "
+        "shipped bound -- if it does not, the live control cannot red on the only thing that "
+        "goes wrong with this bound")
 
 
 def test_a_partial_record_still_yields_a_floor(tmp_path):

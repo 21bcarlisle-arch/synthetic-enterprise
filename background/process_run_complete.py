@@ -1708,7 +1708,16 @@ def _gate_timed_out():
 # `test_the_timeout_clears_the_floor_the_measurement_implies` reds when the record says the floor
 # has risen past this constant. The record is the evidence; this is the claim; a control that
 # compares them can fail.
-GATE_SUITE_TIMEOUT_SECONDS = 2600
+#
+# RE-DERIVED 2600 -> 2900 (2026-08-11, OPS2 criterion 2, launch 11 of the measurement). The
+# control below did exactly what it was built to do: the shipped subject is a genuinely cold
+# throwaway checkout every cycle since the R3 elimination, it measured 1411.2s (23,710 passed,
+# rc=1 -- a red suite that ran to completion and reported), and 1411.2 * 2 = 2822 overtook the
+# 2600s bound derived against the old 1291.9s phase. That phase had run in the since-deleted
+# shared directory with bytecode from outside its own run, so it was never the shipped subject.
+# `test_the_timeout_clears_the_floor_the_measurement_implies` reddened on this before any human
+# looked, which is the control working rather than a regression.
+GATE_SUITE_TIMEOUT_SECONDS = 2900
 
 # The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
 # bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's

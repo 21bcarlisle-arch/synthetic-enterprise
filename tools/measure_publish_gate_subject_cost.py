@@ -854,7 +854,74 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         "subject_larger_than_the_gates": True,
         "subject_note": "-x stripped for comparability; the gate stops at the first failure of "
                         "a red suite and this does not",
+        # DID THE SUITE END ON ITS OWN? A red suite (rc=1) did: it ran every test it meant to and
+        # reported. A suite killed by a SIGNAL (rc<0) did not -- its `seconds` is a LOWER BOUND on
+        # the runtime it was heading for, and that distinction decides which questions the number
+        # may be used to answer. See `_ran_to_completion`.
+        "ran_to_completion": _ran_to_completion_from(result.returncode, hit_bound),
+        "ran_to_completion_basis": "observed: a negative returncode is death by signal, so the "
+                                   "suite never reported and its seconds is a lower bound",
     }
+
+
+# ── A LOWER BOUND MAY RAISE A FLOOR AND MAY NOT BE A DENOMINATOR (2026-08-11) ─────────────────
+#
+# THE DEFECT THIS CLOSES, OBSERVED IN THIS RECORD RATHER THAN IMAGINED. Launch 11 timed
+# `in_tree_baseline` at 1302.4s with `returncode: -15` and a summary of nine progress dots --
+# SIGTERM, mid-suite, no summary line ever printed. It was banked as a phase like any other and
+# became the RATIO'S DENOMINATOR: `ratio_throwaway_over_in_tree: 1.084`, the one number superseded
+# criterion 1's honest successor rests on, was a completed run divided by a truncated one.
+#
+# The prose was already right and that is the point. `_time_suite`'s own field comment says "a
+# phase that hit its own bound is a phase whose SECONDS mean nothing, so a reader must not average
+# it into a ratio" -- addressed to a READER, enforced nowhere, and `hit_memory_ceiling` only ever
+# covered rc=-9 anyway. A reported state is not a control; this is the control.
+#
+# THE RULE IS AN ASYMMETRY, NOT AN EXCLUSION, and both halves are load-bearing:
+#   * FLOOR (`implied_timeout_floor_2x`, `prc.measured_gate_timeout_floor`) -- ADMITS a truncated
+#     phase. The suite provably ran at least that long, so a lower bound can only push the bound
+#     UP, and up is the safe direction: erring high costs a longer wait on a genuinely hung gate,
+#     erring low WEDGES PUBLISHING. Dropping these would blank the floor's evidence, which is the
+#     fail-open shape the retired-phase block above exists to avoid.
+#   * RATIO -- REFUSES it. A truncated denominator does not err in a safe direction, it distorts:
+#     the true in-tree runtime is >= 1302.4s, so a truncated baseline can only OVERSTATE the tax.
+#     "At most 8.4%" is a different claim from "8.4%", and an atom does not certify on the second
+#     when it measured the first.
+# So a truncated phase stays in the record, keeps feeding the floor, and is neither a ratio term
+# nor able to retire the owed phase it failed to time.
+def _ran_to_completion_from(returncode: int, hit_memory_ceiling: bool) -> bool:
+    """Did this phase's suite end under its own control?
+
+    Any returncode >= 0 did, red included -- pytest chose it and printed a summary. A negative
+    returncode is death by signal (-15 SIGTERM, -9 SIGKILL/OOM), and `hit_memory_ceiling` is
+    carried too so the memory case cannot pass on a technicality if that inference ever widens
+    beyond rc=-9."""
+    if hit_memory_ceiling:
+        return False
+    return returncode is not None and returncode >= 0
+
+
+def _is_ratio_eligible(rec) -> bool:
+    """May this banked phase be a term in the ratio?
+
+    DERIVED FROM THE EVIDENCE, NOT FROM THE PRESENCE OF A KEY. Phases banked before
+    `ran_to_completion` existed carry no such field, but they do carry the `returncode` it is
+    computed from -- so completion stays PROVABLE for them and this control does not throw away
+    a sound 1411.2s measurement over a schema change. It is the returncode, not the schema
+    version, that says whether a suite finished.
+
+    FAIL-CLOSED where the record genuinely cannot say: no `returncode` at all is an unprovable
+    completion, and unprovable is not a pass."""
+    if not isinstance(rec, dict):
+        return False
+    if not isinstance(rec.get("seconds"), (int, float)) or isinstance(rec.get("seconds"), bool):
+        return False
+    if "ran_to_completion" in rec:
+        return rec["ran_to_completion"] is True
+    rc = rec.get("returncode")
+    if not isinstance(rc, int) or isinstance(rc, bool):
+        return False
+    return _ran_to_completion_from(rc, rec.get("hit_memory_ceiling") is True)
 
 
 # ── A KILLED MEASUREMENT MUST STILL SAY WHAT IT DID (2026-08-10) ─────────────────────────────
@@ -921,8 +988,23 @@ def _load_banked_phases(out_path: str) -> dict:
     if not isinstance(phases, dict):
         return {}
     keepable = PHASE_ORDER + RETIRED_PHASES
-    return {name: rec for name, rec in phases.items()
-            if name in keepable and isinstance(rec, dict) and rec.get("seconds") is not None}
+    banked = {name: rec for name, rec in phases.items()
+              if name in keepable and isinstance(rec, dict) and rec.get("seconds") is not None}
+    # A TRUNCATED PHASE IS KEPT AND STILL OWED. It stays in the record so the timeout floor keeps
+    # its lower-bound evidence (see `_ran_to_completion_from`), but it is stripped of the right to
+    # retire the phase it failed to time -- otherwise launch 11's SIGTERMed baseline is banked
+    # forever and the ratio it poisons can never become honest, which is the never-converging
+    # shape the resume was built to end.
+    for name in PHASE_ORDER:
+        rec = banked.get(name)
+        if rec is not None and not _is_ratio_eligible(rec):
+            banked[name] = dict(rec, retimed_because_truncated=True)
+    return banked
+
+
+def _owed_phases(banked: dict) -> list:
+    """Phases still owed a run: absent, or present but never completed under their own control."""
+    return [name for name in PHASE_ORDER if not _is_ratio_eligible(banked.get(name))]
 
 
 # ── THE RATIO'S TWO SIDES MUST SHARE A COMMIT, AND THAT WAS A COMMENT TOO ────────────────────
@@ -978,8 +1060,13 @@ def _drop_incomparable_ratio_phases(phases: dict, head_sha: str, log) -> list:
 
 def _checkpoint(results: dict, out: str, log) -> None:
     """Persist what is known so far. Never raises: a failed write must not lose a live run."""
-    results["complete"] = all(p in results["phases"] for p in PHASE_ORDER)
-    results["phases_missing"] = [p for p in PHASE_ORDER if p not in results["phases"]]
+    # COMPLETE MEANS EVERY PHASE ANSWERED, not every phase attempted. Launch 11 wrote
+    # `complete: true` over a baseline that had been SIGTERMed mid-suite, so the one field a
+    # reader is told to check ("read `complete`, not the file's existence") was the field that
+    # concealed it. A truncated phase is missing until it has been re-timed.
+    results["phases_missing"] = [p for p in PHASE_ORDER
+                                 if not _is_ratio_eligible(results["phases"].get(p))]
+    results["complete"] = not results["phases_missing"]
     # DERIVED on every write, not stamped once at launch: a reader must never have to work out
     # from the phase NAMES which of them belong to a configuration that no longer runs, and a
     # field computed in one place cannot drift from the phases actually present.
@@ -1109,7 +1196,7 @@ def _run_measurement(out_path: str, log) -> int:
         # THROWAWAY: what the gate actually runs every cycle since the R3 elimination -- a fresh
         # `mkdtemp` extraction of HEAD with no bytecode. No setup: there is nothing to delete,
         # because the directory this phase used to have to clear no longer exists.
-        if "throwaway_checkout" in results["phases"]:
+        if _is_ratio_eligible(results["phases"].get("throwaway_checkout")):
             log("phase 1/2 THROWAWAY -- banked by an earlier launch at {}s, not re-run".format(
                 results["phases"]["throwaway_checkout"]["seconds"]))
         else:
@@ -1142,7 +1229,7 @@ def _run_measurement(out_path: str, log) -> int:
             _checkpoint(results, args.out, log)
 
         # BASELINE: the pre-ruling subject, the live working tree.
-        if "in_tree_baseline" in results["phases"]:
+        if _is_ratio_eligible(results["phases"].get("in_tree_baseline")):
             log("phase 2/2 BASELINE -- banked by an earlier launch at {}s, not re-run".format(
                 results["phases"]["in_tree_baseline"]["seconds"]))
         else:
@@ -1160,7 +1247,20 @@ def _run_measurement(out_path: str, log) -> int:
         # measurable, and what the atom now owes, is how much the elimination costs every cycle
         # forever. It is reported, not graded: there is no threshold left to pass, and inventing
         # one would let a superseded criterion read as met.
-        results["ratio_throwaway_over_in_tree"] = round(throwaway / base, 3) if base else None
+        # REFUSED, NOT COMPUTED, when either term did not end under its own control. The number
+        # this replaces (1.084, launch 11) divided a completed run by a SIGTERMed one; the reason
+        # is named in the artefact so the next reader gets the cause rather than a null.
+        ineligible = sorted(name for name in RATIO_PHASES
+                            if not _is_ratio_eligible(results["phases"].get(name)))
+        if ineligible or not base:
+            results["ratio_throwaway_over_in_tree"] = None
+            results["ratio_unavailable_because"] = (
+                "these phases did not run to completion, so their seconds is a lower bound and "
+                "cannot be a ratio term: {}".format(", ".join(ineligible)) if ineligible else
+                "the baseline measured zero seconds")
+        else:
+            results["ratio_throwaway_over_in_tree"] = round(throwaway / base, 3)
+            results.pop("ratio_unavailable_because", None)
         results["ratio_measures"] = (
             "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-"
             "ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.")
@@ -1183,6 +1283,12 @@ def _run_measurement(out_path: str, log) -> int:
         # NAMED, so the floor can be checked rather than recomputed by hand -- and so a reader
         # can tell a bound resting on a live phase from one resting on a retired one.
         results["worst_legitimate_phase"] = worst_phase
+        # AND WHETHER THAT NUMBER IS THE RUNTIME OR ONLY A FLOOR UNDER IT. A truncated phase is
+        # deliberately admitted here (it can only push the bound UP, the safe direction), but a
+        # reader re-deriving the bound must know the suite was still running when it died --
+        # otherwise "the worst measured run" reads as a completed one.
+        results["worst_is_a_lower_bound"] = not _is_ratio_eligible(
+            results["phases"].get(worst_phase))
         results["implied_timeout_floor_2x"] = int(worst * 2)
 
         _checkpoint(results, args.out, log)

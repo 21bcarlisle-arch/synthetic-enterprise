@@ -1187,18 +1187,25 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
     exceeds is not a safety bound, it is a coin flip.
 
     THE CONSTANT MOVES WITH THE SUBJECT (OPS2 criterion 2). 613s was the IN-TREE suite, and
-    the gate's subject is now a clean HEAD checkout, which is a different and slower thing:
-    **1291.9s** measured on a cold checkout (23,249 passed) and recorded in
-    docs/observability/publish_gate_subject_cost.json at HEAD 3ee4541a7, 2026-08-10. Held
-    against 613 this test passed while the live bound sat at 1.39x the runtime it bounds --
-    a control calibrated to a subject the gate had stopped running.
+    the gate's subject is now a clean HEAD checkout, which is a different and slower thing.
+    It has moved TWICE for that reason and the second move is the honest one:
 
-    MUTATION: set GATE_SUITE_TIMEOUT_SECONDS back to 1800 (the pre-OPS2 bound) and this
-    fails, because 1800 < 2 * 1291.9."""
-    # Measured on the subject the gate ACTUALLY runs -- the clean HEAD checkout, cold. Cold is
-    # the right side to bound on: every fallback throwaway checkout and every rebuilt-corrupt
-    # checkout pays it, and the timeout now BLOCKS publishing rather than degrading the gate.
-    MEASURED_SUITE_SECONDS = 1291.9
+      * 1291.9s (23,249 passed, HEAD 3ee4541a7) justified 2600s -- but that phase ran with
+        `cwd: /tmp/publish-gate-head-reused`, the shared directory the R3 elimination deleted,
+        and its own record says the bytecode came from outside the run. It was never a timing
+        of the subject the gate ships.
+      * **1411.2s** (23,710 passed, rc=1, HEAD d1a5875b4, 2026-08-11) is the shipped subject:
+        a fresh throwaway extraction of HEAD with no bytecode, which is what every cycle now
+        pays. Recorded in docs/observability/publish_gate_subject_cost.json as
+        `throwaway_checkout`, and `ran_to_completion` -- a red suite that reported, not a
+        killed one.
+
+    MUTATION: set GATE_SUITE_TIMEOUT_SECONDS back to 2600 (the bound derived against the warm
+    directory) and this fails, because 2600 < 2 * 1411.2."""
+    # Measured on the subject the gate ACTUALLY runs -- a cold throwaway checkout. Cold is the
+    # only side left to bound on since reuse was eliminated: every cycle extracts HEAD fresh, and
+    # the timeout now BLOCKS publishing rather than degrading the gate.
+    MEASURED_SUITE_SECONDS = 1411.2
     assert prc.GATE_SUITE_TIMEOUT_SECONDS > MEASURED_SUITE_SECONDS * 2, (
         f"gate timeout {prc.GATE_SUITE_TIMEOUT_SECONDS}s leaves too little headroom over the "
         f"~{MEASURED_SUITE_SECONDS}s the suite actually takes on the gate's own subject; a "

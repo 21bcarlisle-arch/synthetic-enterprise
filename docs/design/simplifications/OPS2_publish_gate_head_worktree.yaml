@@ -207,3 +207,73 @@ build_note: |
   landed their half-finished work under this atom's message. Low risk while forks are serial;
   the next tick that legitimately writes the map should carry it.
 
+  2026-08-11, fifth tick. THE MEASUREMENT COMPLETED AND THE BOUND MOVED. Criterion 2 is
+  RE-DERIVED, criterion 1's successor is REFUSED rather than met, and the level still does not
+  move -- but the blocker is now one 22-minute run rather than a defect.
+
+  CRITERION 2, LANDED: GATE_SUITE_TIMEOUT_SECONDS 2600 -> 2900. Launch 11 timed the SHIPPED
+  subject -- `throwaway_checkout`, a fresh cold extraction of HEAD, which is what every cycle has
+  paid since the R3 elimination -- at 1411.2s (23,710 passed, rc=1, HEAD d1a5875b4). 1411.2 * 2 =
+  2822 overtook the 2600s bound, which had been derived against the 1291.9s phase that ran in the
+  since-deleted shared directory with bytecode from outside its own run and was therefore never a
+  timing of the shipped subject. `test_the_timeout_clears_the_floor_the_measurement_implies` went
+  red on its own, before anyone looked, exactly as the fourth tick predicted -- the control
+  working, not a regression. `test_the_gate_timeout_exceeds_the_suites_own_runtime`'s transcription
+  moved with it (1291.9 -> 1411.2) and the two now red TOGETHER on a reverted bound, which is what
+  makes the transcription a second witness rather than a copy of the claim.
+
+  CRITERION 1'S SUCCESSOR IS WITHDRAWN, NOT MET, AND THAT IS THE FINDING OF THIS TICK. The record
+  published `ratio_throwaway_over_in_tree: 1.084` with `complete: true`. Its denominator,
+  `in_tree_baseline`, carries `returncode: -15` and a summary of nine progress dots: SIGTERM,
+  mid-suite, no summary line ever printed. So the atom's certifying number divided a completed run
+  by a truncated one. The true in-tree runtime is >= 1302.4s, so 1.084 can only OVERSTATE the tax
+  -- "at most 8.4%" is a different claim from "8.4%", and this atom does not certify on the second
+  having measured the first. Full evidence, and the fact that this is a RECURRENCE of the class
+  filed one day earlier against `publish_gate_duration.jsonl` (ranked backlog because "the control
+  it degrades is a diagnostic, not a gate" -- which is what let it reach a certifying number a day
+  later), in docs/staging/WORKER_FINDING_A_TRUNCATED_RUNS_DURATION_BECAME_THE_ATOMS_CERTIFYING_
+  RATIO_2026-08-11.md.
+
+  THE PROSE WAS ALREADY RIGHT, which is the part worth keeping. `_time_suite`'s own field comment
+  said "a phase that hit its own bound is a phase whose SECONDS mean nothing, so a reader must not
+  average it into a ratio" -- addressed to a READER, enforced nowhere, and covering only rc=-9.
+  A reported state is not a control. And `complete` concealed it: the harness tells readers to
+  "read `complete`, not the file's existence", while `_checkpoint` computed it from phases
+  ATTEMPTED, so the one trusted field certified a killed phase as an answer.
+
+  THE REPAIR IS AN ASYMMETRY, because the two consumers ask different questions of the same
+  number. A truncated phase's seconds is a real LOWER BOUND, so the FLOOR admits it (a lower bound
+  can only push a fail-closed bound UP, the safe direction -- and dropping truncated phases would
+  blank the floor's evidence, the fail-open shape the retired-phase rule exists to avoid) while
+  the RATIO refuses it and names the cause in the artefact. Eligibility is derived from the
+  record's own `returncode`, not from the presence of the new `ran_to_completion` field, so a
+  schema change cannot discard a sound 1411.2s measurement; fail-closed only where the record
+  genuinely cannot say. A truncated phase also loses the right to retire the phase it failed to
+  time -- otherwise the dead baseline is banked forever and the ratio it poisons can never become
+  honest.
+
+  R15 BOTH WAYS, SEVEN MUTATIONS RUN, source restored byte-identical after each (`diff` clean):
+  unconditional ratio (1 red); banking keyed on `seconds` again (2); truncated phases dropped,
+  blanking the floor (1); rc<0 admitted as completion (5); `worst_is_a_lower_bound` hardcoded
+  False (1); `complete` counting attempted phases (1); the bound reverted to 2600 (2 -- the live
+  floor control and its transcription together). 86 passed in
+  tests/tools/test_measure_publish_gate_subject_cost.py, 274 across the publish-gate family
+  (subject_is_head, scope, disk_preflight, head_checkout_is_a_repo, alert, blocking_payload,
+  wedge_draw, process_run_complete, measure_publish_gate_subject_cost,
+  publisher_deadline_exceeds_its_gate). Ruff: unchanged against HEAD on every touched file (the
+  three remaining hits are pre-existing and in untouched regions).
+
+  WHAT IS OWED IS STILL ONE THING, and it is now a run rather than a repair: a completed
+  `in_tree_baseline`. Under the new rule it is correctly OWED (verified against the live record:
+  throwaway eligible, baseline not, floor still 2822 from the completed phase). Launch 12 went out
+  on this tick's code. Note for whoever reads its record: the throwaway is banked at d1a5875b4, so
+  a launch at a different HEAD re-times BOTH phases by the comparability rule -- that is correct
+  and costs ~45 minutes, not a defect. When the pair lands, the ratio becomes real, criterion 1's
+  successor is answered, and nothing else stands between this atom and level 2.
+
+  BOOKKEEPING STILL OWED, and still for the same reason: the map's `file_scope` names only
+  `background/process_run_complete.py` + `tests/background/test_publish_gate_subject_is_head.py`
+  while four ticks of work have been in `tools/measure_publish_gate_subject_cost.py` and its
+  tests. `maturity_map.yaml` is again dirty with another lane's staged change, so widening it here
+  would land their half-finished work under this atom's message.
+
