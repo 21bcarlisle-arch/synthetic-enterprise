@@ -487,6 +487,17 @@ def two_level(panel, weather):
     )
 
 
+def _artefact_interval(verdict) -> str:
+    """The artefact share's error bar, printed BESIDE the share and never only when
+    the share fails its band (2026-08-11, seventh Hour — the fifth Hour's rule about
+    the money verdict, applied to the instrument that certifies it). Empty where the
+    mirror moved nothing, because a corner case is not an estimate."""
+    interval = verdict.panel_mirror_weight_artefact_interval
+    if interval is None:
+        return ""
+    return f" [{interval[0]:.0%}, {interval[1]:.0%}]"
+
+
 def _git_head():
     try:
         return subprocess.check_output(
@@ -709,7 +720,9 @@ def main() -> None:
               f" no-skill baseline moved"
               f" {verdict.panel_mirror_normaliser_drift:.1%},"
               f" money re-composition {verdict.panel_mirror_weight_artefact:.0%}"
-              f" of its own movement;"
+              f"{_artefact_interval(verdict)}"
+              f" of its own movement"
+              f" (per premise, across {verdict.panel_mirror_moved_premises} moved);"
               f" truth-above-register {verdict.truth_above_epc_share:.0%})"
               f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}"
               f"{'' if verdict.panel_mirror_is_attributable else '   INCONCLUSIVE'}"

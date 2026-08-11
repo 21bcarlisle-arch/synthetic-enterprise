@@ -114,7 +114,7 @@ import statistics
 from dataclasses import dataclass, replace as _dc_replace
 from enum import Enum
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from background import lcl_household_anchors as lcl_anchors
 from background.gap_metric import GapResult, prediction_gap, write_gap_entry
@@ -3838,6 +3838,95 @@ def weight_null_panel(
     ]
 
 
+def _paired_margin_moves(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+    measures: Mapping[str, fi.RetrofitOffer] | None = None,
+) -> tuple[tuple[float, float], ...]:
+    """How far the mirror, and how far the weight-only null, moved the DECIDING
+    QUANTITY **at each premise separately** — the money channel's equivalent of
+    `_register_mad`, and for the same reason (2026-08-11, seventh Expert Hour).
+
+    The margin that decides the money verdict is `forgone_epc − forgone_inferred`,
+    and since the fifth Hour that verdict is decided PER PREMISE with a paired
+    interval — the difference of two population totals rides along only as
+    `aggregate_favours`, the rule the row no longer uses. The fidelity term guarding
+    that verdict was still built out of the totals: `(inferred_total − epc_total)`
+    before and after. Two premises moved by +£4k and −£4k by the same instrument
+    cancel inside those sums and the term reads as though neither had moved.
+
+    THEY DO CANCEL, ON BOTH PUBLISHED POPULATIONS. The mirror moves the margin in
+    BOTH directions (10 premises up, 8 down on the drawn population; 1 up, 3 down on
+    the authored one), so summing first destroys 21.4% of the authored panel's
+    per-premise movement and 39.6% of the drawn one's — and the null's own movement
+    cancels by a DIFFERENT amount (32.6% and 25.3%), so the ratio of the two sums is
+    not the attribution measured, in either direction:
+
+        authored 15   aggregate 68.9%   per premise 80.4%
+        drawn 200     aggregate 90.4%   per premise 73.1%
+
+    Neither published row changes hands — both fail the band under both shapes — but
+    on 7 of 200 real 20-home subpanels of this atom's own drawn population the
+    aggregate shape PASSES the 50% band (as low as 32.9%) while the per-premise
+    shape fails it (up to 65.1%). On those the row certifies the mirror as
+    attributable and publishes its null as a finding, over a mirror whose movement
+    is mostly re-composition premise by premise.
+
+    Returned as pairs `(mirror_move, weight_null_move)` in panel order, so the point
+    estimate and its interval are two readings of ONE measurement rather than two
+    loops that can drift apart.
+    """
+
+    def _advantages(rows: Sequence[FabricObservation]) -> list[tuple[str, float]]:
+        epc = _premise_forgone(
+            rows,
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            belief="epc",
+            fuel=fuel,
+            measures=measures,
+        )
+        inferred = _premise_forgone(
+            rows,
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            belief="inferred",
+            fuel=fuel,
+            measures=measures,
+        )
+        out = []
+        for e, i in zip(epc, inferred):
+            if e.premise_id != i.premise_id:
+                raise InsufficientEvidence(
+                    f"the two arms' premise order disagrees ({e.premise_id!r} vs "
+                    f"{i.premise_id!r}) — a per-premise margin cannot be taken across "
+                    "a reordering"
+                )
+            out.append((e.premise_id, e.forgone_gbp - i.forgone_gbp))
+        return out
+
+    base = _advantages(observations)
+    mirrored = _advantages(list(panel_mirror(observations).rows))
+    null = _advantages(weight_null_panel(observations))
+    if not (len(base) == len(mirrored) == len(null)):
+        raise InsufficientEvidence(
+            f"three panels of {len(base)}, {len(mirrored)} and {len(null)} premises "
+            "cannot be compared premise-by-premise"
+        )
+    moves: list[tuple[float, float]] = []
+    for (b_id, b), (m_id, m), (n_id, n) in zip(base, mirrored, null):
+        if not (b_id == m_id == n_id):
+            raise InsufficientEvidence(
+                f"mirrored rows are out of order ({b_id!r}, {m_id!r}, {n_id!r}) — a "
+                "per-premise attribution cannot be measured across a reordering"
+            )
+        move = (m - b, n - b)
+        if not all(math.isfinite(x) for x in move):
+            raise NonFiniteTrace(f"{b_id}: per-premise margin movement is {move!r}")
+        moves.append(move)
+    return tuple(moves)
+
+
 def _register_mae(observations: Sequence[FabricObservation]) -> float:
     """The register arm's RAW mean absolute error — the quantity a reflection built
     around that arm claims to preserve, un-normalised.
@@ -4093,6 +4182,12 @@ class CompositionVerdict:
     # taken out (2026-08-11, third Hour).
     weight_null_forgone_epc_gbp: float
     weight_null_forgone_inferred_gbp: float
+    # ...and the SAME two channels measured PER PREMISE, because the pair above are
+    # two population totals and the verdict they guard has been decided per premise
+    # since the fifth Hour (2026-08-11, seventh Hour). `(mirror_move, null_move)` for
+    # each premise, in panel order. This is the numerator AND denominator of the money
+    # half of the fidelity gate, and the sample its interval is drawn from.
+    margin_moves: tuple[tuple[float, float], ...]
     # THE REVISION MIRROR — same stock, inference stepping the other way.
     revision_mirror_money: MoneyVerdict
     revision_mirror_forgone_epc_gbp: float
@@ -4300,6 +4395,96 @@ class CompositionVerdict:
         A first cut returned infinity for BOTH, which called a perfectly-faithful
         identity mirror (a register that is exactly right has nothing to reflect)
         unattributable. Caught by the suite, and the distinction is the fix.
+
+        MEASURED PER PREMISE, NOT AS A DIFFERENCE OF TOTALS (2026-08-11, SEVENTH
+        Hour — the third Hour's own repair of `_register_mad`, one channel across).
+        This was `|Δ(inferred_total − epc_total)|` over the same for the mirror: two
+        sums, inside which premises moved the other way cancel. On the published
+        populations that destroys 21.4% (authored) and 39.6% (drawn) of the mirror's
+        movement and a DIFFERENT 32.6% / 25.3% of the null's, so the ratio moved in
+        both directions — 68.9% against a true 80.4% authored, 90.4% against a true
+        73.1% drawn — and on 7 of 200 real 20-home subpanels of the drawn population
+        the old shape PASSED this band while the per-premise shape fails it. The old
+        answer is kept as `panel_mirror_weight_artefact_aggregate` so the repair
+        deletes no disclosure, and the band is untouched: the STATISTIC was wrong.
+        """
+        if self.panel_mirror_margin_move_gbp == 0.0:
+            return 0.0 if self.weight_null_margin_move_gbp == 0.0 else math.inf
+        return self.weight_null_margin_move_gbp / self.panel_mirror_margin_move_gbp
+
+    @property
+    def panel_mirror_margin_move_gbp(self) -> float:
+        """Mean per-premise |movement| the MIRROR made in the deciding margin, GBP.
+
+        The denominator of the money fidelity term, and the quantity that says
+        whether the instrument applied any signal at all. Cannot cancel, which is
+        the whole point of it.
+        """
+        return _mean_abs([m for m, _ in self.margin_moves])
+
+    @property
+    def weight_null_margin_move_gbp(self) -> float:
+        """Mean per-premise |movement| the WEIGHT-ONLY NULL made in the same margin,
+        GBP — the part of the above that carries no sign flip in it."""
+        return _mean_abs([n for _, n in self.margin_moves])
+
+    @property
+    def panel_mirror_moved_premises(self) -> int:
+        """How many premises the mirror moved at all.
+
+        Printed beside the share because a share estimated from 18 moved homes in a
+        panel of 200 and one estimated from 180 are the same number and not the same
+        evidence — the same distinction `largest_premise_share` makes about the money
+        headline, made about its instrument.
+        """
+        return sum(1 for m, _ in self.margin_moves if m != 0.0)
+
+    @property
+    def panel_mirror_weight_artefact_interval(self) -> tuple[float, float] | None:
+        """The artefact share's own 95% interval — percentile bootstrap over the
+        premises, on its own named C-S2 substream.
+
+        WHY A FIDELITY TERM NEEDS ONE (2026-08-11, seventh Hour; the fourth and fifth
+        Hours' repair applied to the instrument rather than to the verdict). This
+        share is a ratio of two sample means over the SAME premises, and on the drawn
+        population only 18 of 200 homes move at all — so the point estimate is
+        carried by a handful of houses, exactly as `ONE_HOUSE` says the money
+        headline can be. A gate that compares a point estimate to a band, with no
+        statement of whether the panel can resolve which side of the band it is on,
+        publishes a certainty it does not have.
+
+        DISCLOSED, NEVER THE GATE. `panel_mirror_is_attributable` still reads the
+        point estimate: moving a live gate onto an interval in the same Hour that
+        repaired its statistic would change what is published for two reasons at
+        once, and neither could be attributed afterwards. The interval is printed
+        beside it — the fifth Hour's rule, that an error bar shown only when the
+        verdict fails is not an error bar.
+
+        `None` where the mirror moved nothing (the ratio is a corner case, not an
+        estimate) or where the panel is too small to resample honestly.
+        """
+        if self.panel_mirror_margin_move_gbp == 0.0:
+            return None
+        if len(self.margin_moves) < MIN_HOMES_FOR_DIVERSITY:
+            return None
+        _, lo, hi = _bootstrap_statistic_ci(
+            self.margin_moves,
+            _artefact_share,
+            seed=WEIGHT_ARTEFACT_SEED,
+            resamples=WEIGHT_ARTEFACT_RESAMPLES,
+            alpha=WEIGHT_ARTEFACT_ALPHA,
+        )
+        return lo, hi
+
+    @property
+    def panel_mirror_weight_artefact_aggregate(self) -> float:
+        """WHAT THE OLD RULE SAID — the same share taken on the difference of the two
+        population totals, kept exactly as `aggregate_favours` is kept.
+
+        A repair that makes a number move must SAY the old number existed and what it
+        was; a reader who saw 90.4% on the drawn row yesterday is owed the reason it
+        reads 73.1% today. It is also the direct evidence for the finding: the two
+        disagree only because premises moving opposite ways cancel inside the sums.
         """
         moved_by_mirror = (
             self.panel_mirror_forgone_inferred_gbp - self.panel_mirror_forgone_epc_gbp
@@ -4310,6 +4495,46 @@ class CompositionVerdict:
         if moved_by_mirror == 0.0:
             return 0.0 if moved_by_weight == 0.0 else math.inf
         return abs(moved_by_weight) / abs(moved_by_mirror)
+
+    @property
+    def panel_mirror_margin_cancellation(self) -> float:
+        """How much of the MIRROR's per-premise movement the old totals-based shape
+        lost to cancellation inside its own sum: 0.0 means every premise moved the
+        same way and that sum saw all of it, 1.0 means the total is blind to it.
+
+        Reported because it is the mechanism of the seventh Hour's finding, and a
+        finding whose mechanism is not on the row is a claim rather than a
+        measurement.
+        """
+        return _cancellation(
+            self.panel_mirror_margin_move_gbp,
+            (
+                self.panel_mirror_forgone_inferred_gbp
+                - self.panel_mirror_forgone_epc_gbp
+            )
+            - (self.forgone_inferred_gbp - self.forgone_epc_gbp),
+            len(self.margin_moves),
+        )
+
+    @property
+    def weight_null_margin_cancellation(self) -> float:
+        """The same, for the NULL channel — and it is a SEPARATE number, not a
+        symmetry note.
+
+        The old term is a ratio, so either channel cancelling on its own moves it,
+        and the two channels cancel by DIFFERENT amounts on every panel measured
+        (21.4% mirror / 32.6% null authored, 39.6% / 25.3% drawn, and on the suite's
+        own passing fixture 0.0% / 31.4% — where the mirror's moves all point one way
+        and the shapes STILL disagree, 29.9% against 43.6%). A disclosure that named
+        only the denominator would explain half of the movement and imply the other
+        half was not there.
+        """
+        return _cancellation(
+            self.weight_null_margin_move_gbp,
+            (self.weight_null_forgone_inferred_gbp - self.weight_null_forgone_epc_gbp)
+            - (self.forgone_inferred_gbp - self.forgone_epc_gbp),
+            len(self.margin_moves),
+        )
 
     @property
     def panel_mirror_normaliser_drift(self) -> float:
@@ -4815,23 +5040,88 @@ MONEY_VERDICT_SEED = 20260812
 MONEY_VERDICT_ALPHA = 0.05
 
 
-def _bootstrap_mean_ci(
-    values: Sequence[float], *, seed: int, resamples: int, alpha: float
+def _bootstrap_statistic_ci(
+    values: Sequence[Any],
+    statistic: Callable[[Sequence[Any]], float],
+    *,
+    seed: int,
+    resamples: int,
+    alpha: float,
 ) -> tuple[float, float, float]:
-    """Percentile bootstrap of the MEAN, deterministic from a named seed (C-S2).
+    """Percentile bootstrap of ANY statistic of a sample, deterministic from a named
+    seed (C-S2).
 
-    ONE implementation, used by both paired verdicts. The accuracy verdict grew this
+    ONE resampling implementation, now used by three published intervals (accuracy,
+    money, and the mirror's own artefact share). The accuracy verdict grew this
     inline; a second copy for money would have been the shape where two published
-    intervals drift apart because someone fixed an off-by-one in one of them.
+    intervals drift apart because someone fixed an off-by-one in one of them, and a
+    THIRD copy for a ratio would have been that shape again — so the resample is the
+    shared part and the statistic is the argument.
     """
     rnd = random.Random(seed)
     n = len(values)
-    means = sorted(
-        statistics.fmean(rnd.choices(values, k=n)) for _ in range(resamples)
+    drawn = sorted(statistic(rnd.choices(values, k=n)) for _ in range(resamples))
+    lo = drawn[int(alpha / 2.0 * resamples)]
+    hi = drawn[int((1.0 - alpha / 2.0) * resamples) - 1]
+    return statistic(values), lo, hi
+
+
+def _bootstrap_mean_ci(
+    values: Sequence[float], *, seed: int, resamples: int, alpha: float
+) -> tuple[float, float, float]:
+    """Percentile bootstrap of the MEAN — the shape both paired verdicts use."""
+    return _bootstrap_statistic_ci(
+        values, statistics.fmean, seed=seed, resamples=resamples, alpha=alpha
     )
-    lo = means[int(alpha / 2.0 * resamples)]
-    hi = means[int((1.0 - alpha / 2.0) * resamples) - 1]
-    return statistics.fmean(values), lo, hi
+
+
+def _mean_abs(values: Sequence[float]) -> float:
+    """Mean of the magnitudes — the shape that cannot cancel.
+
+    Raises rather than returning zero on an empty sample: a fidelity term that reads
+    "no movement" because it was handed nothing is fail-open in exactly the dimension
+    it exists to measure.
+    """
+    if not values:
+        raise InsufficientEvidence(
+            "a per-premise movement cannot be averaged over zero premises"
+        )
+    return statistics.fmean(abs(v) for v in values)
+
+
+def _cancellation(per_premise_mean: float, aggregate_total: float, n: int) -> float:
+    """The share of a channel's per-premise movement that a SUM over the panel cannot
+    see. Zero where every premise moved the same way; one where the sum is blind.
+
+    Clamped at zero rather than allowed negative: the aggregate can never exceed the
+    per-premise mean by more than float error, and a negative "cancellation" printed
+    on a row would be a rounding artefact reading as a finding.
+    """
+    if per_premise_mean == 0.0 or n == 0:
+        return 0.0
+    return max(0.0, 1.0 - abs(aggregate_total) / n / per_premise_mean)
+
+
+def _artefact_share(moves: Sequence[tuple[float, float]]) -> float:
+    """The weight-null's share of the mirror's per-premise movement, for a sample of
+    `(mirror_move, null_move)` pairs. The point estimate and every bootstrap
+    resample go through THIS, so the interval brackets the same statistic the gate
+    reads — an interval computed by a second expression is an interval for a
+    different number."""
+    denominator = _mean_abs([m for m, _ in moves])
+    numerator = _mean_abs([n for _, n in moves])
+    if denominator == 0.0:
+        return 0.0 if numerator == 0.0 else math.inf
+    return numerator / denominator
+
+
+#: THE ARTEFACT SHARE'S OWN RESAMPLE BUDGET, SEED AND LEVEL. A THIRD named substream
+#: (C-S2), not a reuse of the two verdict seeds: this interval is taken over the same
+#: premises those verdicts resample, and sharing a seed would make the instrument's
+#: error bar move in lockstep with the error bar of the verdict it is testing.
+WEIGHT_ARTEFACT_RESAMPLES = 4000
+WEIGHT_ARTEFACT_SEED = 20260813
+WEIGHT_ARTEFACT_ALPHA = 0.05
 
 
 def _paired_money_verdict(
@@ -5055,6 +5345,9 @@ def composition_verdict(
         revision_mirror_improvement=_improvement(revision),
         weight_null_forgone_epc_gbp=weight_null_epc,
         weight_null_forgone_inferred_gbp=weight_null_inferred,
+        margin_moves=_paired_margin_moves(
+            observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, fuel=fuel
+        ),
         confidence_mirror_money=_money_verdict(confidence, "confidence_mirror"),
         confidence_mirror_forgone_epc_gbp=confidence_epc,
         confidence_mirror_forgone_inferred_gbp=confidence_inferred,
@@ -5235,12 +5528,29 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
             f"{MIRROR_FIDELITY_BAND:.0%} band"
         )
     if verdict.panel_mirror_weight_artefact > MIRROR_WEIGHT_ARTEFACT_BAND:
+        # PER PREMISE, WITH ITS OWN INTERVAL, AND NEVER AGAIN AS TWO BARE TOTALS
+        # (2026-08-11, seventh Hour). This sentence used to quote the weight null's
+        # two population sums — the aggregate rule the money verdict above stopped
+        # using at the fifth Hour — with no interval on either, as the stated ground
+        # for refusing to read that verdict.
+        interval = verdict.panel_mirror_weight_artefact_interval
+        band = (
+            f", 95% interval [{interval[0]:.0%}, {interval[1]:.0%}]"
+            if interval is not None
+            else ""
+        )
         reasons.append(
             f"{verdict.panel_mirror_weight_artefact:.0%} of the mirror's movement in "
             f"the deciding margin is reproduced by a null panel carrying the same "
             f"re-weighting with NO sign flip in it (GBP "
-            f"{verdict.weight_null_forgone_epc_gbp:,.0f} epc / "
-            f"{verdict.weight_null_forgone_inferred_gbp:,.0f} inferred), above the "
+            f"{verdict.weight_null_margin_move_gbp:,.0f} of "
+            f"{verdict.panel_mirror_margin_move_gbp:,.0f} per premise{band}, across "
+            f"the {verdict.panel_mirror_moved_premises} of {verdict.premises} "
+            f"premises the mirror moved; the totals-based rule would have said "
+            f"{verdict.panel_mirror_weight_artefact_aggregate:.0%}, with "
+            f"{verdict.panel_mirror_margin_cancellation:.0%} of the mirror's and "
+            f"{verdict.weight_null_margin_cancellation:.0%} of the null's movement "
+            f"cancelling inside its two sums), above the "
             f"{MIRROR_WEIGHT_ARTEFACT_BAND:.0%} band — reflecting the truth rescales "
             f"every premise's annual heat, and the money verdict is built on that"
         )
@@ -5510,6 +5820,23 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "weight_null_forgone_epc_gbp": v.weight_null_forgone_epc_gbp,
         "weight_null_forgone_inferred_gbp": v.weight_null_forgone_inferred_gbp,
         "panel_mirror_weight_artefact": v.panel_mirror_weight_artefact,
+        # ...measured PER PREMISE, with the movement it is a share OF, the interval
+        # around it, and what the old totals-based rule said (2026-08-11, seventh
+        # Hour). All four, because the finding IS the disagreement between the last
+        # two, and a row carrying only the repaired number cannot be audited for it.
+        "panel_mirror_margin_move_gbp": v.panel_mirror_margin_move_gbp,
+        "weight_null_margin_move_gbp": v.weight_null_margin_move_gbp,
+        "panel_mirror_moved_premises": v.panel_mirror_moved_premises,
+        "panel_mirror_weight_artefact_interval": (
+            list(v.panel_mirror_weight_artefact_interval)
+            if v.panel_mirror_weight_artefact_interval is not None
+            else None
+        ),
+        "panel_mirror_weight_artefact_aggregate": (
+            v.panel_mirror_weight_artefact_aggregate
+        ),
+        "panel_mirror_margin_cancellation": v.panel_mirror_margin_cancellation,
+        "weight_null_margin_cancellation": v.weight_null_margin_cancellation,
         "panel_mirror_normaliser_drift": v.panel_mirror_normaliser_drift,
         # THE ATTRIBUTION, AND THE REAL MOVE IT LEAVES BEHIND. The drift above says
         # how far the baseline went; these say how much of the difference between the

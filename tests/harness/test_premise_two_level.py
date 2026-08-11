@@ -5357,27 +5357,199 @@ def test_the_ZERO_CORNER_of_the_weight_artefact_splits_NOTHING_HAPPENED_from_CAN
         _observations(n=10, epc_bias=0.95, inferred_bias=0.90),
         unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
     )
-    moved_by_mirror = (
-        base.panel_mirror_forgone_inferred_gbp - base.panel_mirror_forgone_epc_gbp
-    ) - (base.forgone_inferred_gbp - base.forgone_epc_gbp)
-    assert moved_by_mirror == 0.0, "this fixture exists for the 0/0 case"
+    assert base.panel_mirror_margin_move_gbp == 0.0, (
+        "this fixture exists for the 0/0 case — the mirror must move NO premise"
+    )
     # NEITHER channel moved: nothing happened, so no part of a movement that did not
     # occur can be artefact, and the mirror is believed.
     assert base.panel_mirror_weight_artefact == 0.0
     assert base.panel_mirror_is_attributable
+    # ...and a corner is not an estimate, so it carries no interval to publish.
+    assert base.panel_mirror_weight_artefact_interval is None
 
     # ...but the SAME zero reached by CANCELLATION is the least readable result the
     # instrument can produce, and must never inherit that reading. Constructed
     # directly, as the other zero-corner branches in this file are: the two channels
     # have to annihilate to the bit, which no fixture reliably reaches, and that is
     # exactly why the branch needs a test rather than an argument.
+    #
+    # PER PREMISE SINCE THE SEVENTH HOUR, which is what this corner now means: the
+    # mirror left every premise's margin exactly where it found it while the
+    # weight-only null moved them. Under the old totals-based shape this corner was
+    # also reachable by two premises cancelling inside a sum, which is a different
+    # event wearing the same number.
     cancelled = dataclasses.replace(
-        base,
-        weight_null_forgone_epc_gbp=base.forgone_epc_gbp + 5_000.0,
-        weight_null_forgone_inferred_gbp=base.forgone_inferred_gbp,
+        base, margin_moves=tuple((0.0, 5_000.0) for _ in base.margin_moves)
     )
     assert cancelled.panel_mirror_weight_artefact == math.inf
     assert not cancelled.panel_mirror_is_attributable
+
+
+def _verdict_with_moves(moves):
+    """A verdict whose per-premise margin movements are exactly `moves`, AND whose
+    stored population totals are the sums of those same movements.
+
+    Both shapes of the artefact share have to be readable off one constructed panel
+    or the test cannot compare them, so the totals are set from the moves rather than
+    inherited from the fixture — a constructed row whose aggregate belongs to a
+    different panel would compare two shapes of two panels.
+
+    The artefact share's zero corners and its disagreement with the old totals-based
+    shape are properties of the MOVEMENTS, and no drawn fixture reliably reaches a
+    chosen pair of them — so they are constructed, as the other corner branches in
+    this file are, and the real populations are measured in the atom's record.
+    """
+    base = fgl.composition_verdict(
+        _observations(n=max(len(moves), 8), epc_bias=1.10, inferred_bias=0.90),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    # The stored margin is `inferred_total - epc_total`; a per-premise advantage is
+    # `epc - inferred`, so the aggregate movement is the negated sum.
+    return dataclasses.replace(
+        base,
+        margin_moves=tuple(moves),
+        premises=len(moves),
+        forgone_epc_gbp=0.0,
+        forgone_inferred_gbp=0.0,
+        panel_mirror_forgone_epc_gbp=0.0,
+        panel_mirror_forgone_inferred_gbp=-sum(m for m, _ in moves),
+        weight_null_forgone_epc_gbp=0.0,
+        weight_null_forgone_inferred_gbp=-sum(n for _, n in moves),
+    )
+
+
+def test_the_WEIGHT_ARTEFACT_IS_PER_PREMISE_AND_THE_TOTALS_SHAPE_PASSES_WHERE_IT_FAILS():
+    """THE SEVENTH HOUR'S NAMED DEFECT: the money channel's fidelity term was a
+    DIFFERENCE OF AGGREGATES — the exact shape the THIRD Hour removed from the kW/K
+    channel (`_register_mad`), left standing in the money channel that same Hour
+    built.
+
+    The verdict this term guards has been decided PER PREMISE with a paired interval
+    since the fifth Hour; the term was still `|Δ(inferred_total − epc_total)|` over
+    the same for the mirror. Premises the instrument moved in opposite directions
+    cancel inside those two sums, so the ratio of them is not the attribution — and
+    it moves in BOTH directions: measured, 68.9% against a true 80.4% on the authored
+    panel and 90.4% against 73.1% on the drawn one.
+
+    THE FAILURE THIS FIXTURE IS: four premises the mirror moves by ±£4,000 (the sum
+    sees £0 of £16,000) against a null that moves them all the same way. The old
+    shape reads the mirror as having barely moved and the null as having moved a
+    lot — infinity, or on gentler numbers a passing share — while per premise the
+    null accounts for a quarter of the mirror's work. Constructed rather than drawn
+    because the assertion is about the ARITHMETIC of the two shapes.
+    """
+    # A mirror that moves four premises hard in opposite directions, and a null that
+    # moves each of them by a quarter of that, all one way.
+    moves = [(4_000.0, 1_000.0), (-4_000.0, 1_000.0),
+             (4_000.0, 1_000.0), (-4_000.0, 1_000.0)]
+    v = _verdict_with_moves(moves)
+    assert v.panel_mirror_margin_move_gbp == pytest.approx(4_000.0)
+    assert v.weight_null_margin_move_gbp == pytest.approx(1_000.0)
+    # PER PREMISE: the sign flip did three quarters of the work — attributable.
+    assert v.panel_mirror_weight_artefact == pytest.approx(0.25)
+    assert v.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    # ...and the OLD shape, on the same panel, calls it entirely artefact.
+    assert v.panel_mirror_weight_artefact_aggregate == math.inf
+    assert v.panel_mirror_margin_cancellation == pytest.approx(1.0)
+    assert v.weight_null_margin_cancellation == pytest.approx(0.0)
+
+    # And the other way round, which is the direction that PUBLISHES a false
+    # robustness: the totals see a small share and pass the band, while per premise
+    # the null reproduces most of the mirror's movement.
+    other = _verdict_with_moves(
+        [(4_000.0, 3_000.0), (4_000.0, -3_000.0),
+         (4_000.0, 3_000.0), (4_000.0, -3_000.0)]
+    )
+    assert other.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert other.panel_mirror_weight_artefact_aggregate <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert not other.panel_mirror_is_attributable, (
+        "the GATE must follow the per-premise statistic, not the totals"
+    )
+
+
+def test_the_ARTEFACT_SHARE_AND_ITS_INTERVAL_ARE_READINGS_OF_ONE_STATISTIC():
+    """R15 — the interval must bracket the number the gate reads, be deterministic
+    from its own named seed, and be a property of the PANEL rather than a constant.
+
+    An interval computed by a second expression is an interval for a different
+    number; an interval that does not move with the panel is decoration.
+    """
+    rows = _observations(n=10, epc_bias=1.10, inferred_bias=0.90)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    lo, hi = v.panel_mirror_weight_artefact_interval
+    assert lo <= v.panel_mirror_weight_artefact <= hi
+    # Deterministic: the same panel, twice, is the same interval (C-S2).
+    again = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert again.panel_mirror_weight_artefact_interval == (lo, hi)
+    # ...and it is NOT a constant: a panel whose null accounts for all of the
+    # movement reports a different interval.
+    saturated = _verdict_with_moves([(1_000.0, 1_000.0)] * 10)
+    assert saturated.panel_mirror_weight_artefact_interval == (1.0, 1.0)
+    assert saturated.panel_mirror_weight_artefact_interval != (lo, hi)
+    # The interval DISCLOSES; it does not gate. Here it straddles the band and the
+    # verdict still follows the point estimate, which is the whole reason the Hour
+    # repaired the statistic and left the band alone.
+    assert lo < fgl.MIRROR_WEIGHT_ARTEFACT_BAND < hi
+    assert v.panel_mirror_is_attributable is (
+        v.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+        and v.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    )
+
+
+def test_the_INCONCLUSIVE_SENTENCE_QUOTES_THE_PER_PREMISE_MOVEMENT_NOT_TWO_TOTALS():
+    """THE SEVENTH HOUR'S OTHER HALF, and it is the same defect from the other end:
+    the sentence that justifies refusing the money verdict quoted the weight null's
+    two population TOTALS — the aggregate rule the verdict itself stopped using at
+    the fifth Hour — with no interval on either.
+
+    A reader was handed 'GBP 29,722 epc / 12,835 inferred' as the ground for
+    INCONCLUSIVE, in a statistic the row no longer decides by, with no statement of
+    how well the panel resolves it. The sentence now carries the per-premise
+    movement, its interval, how many premises moved at all, and what the old rule
+    said — because a repair that quietly drops the old number leaves nobody able to
+    check the finding.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    sentence = next(c for c in caveats if c.startswith("MIRROR INCONCLUSIVE"))
+    assert "per premise" in sentence
+    assert "95% interval" in sentence
+    assert f"{v.panel_mirror_moved_premises} of {v.premises} premises" in sentence
+    assert "totals-based rule would have said" in sentence
+    assert "cancelling inside its two sums" in sentence
+    # The retired totals must not be the quoted ground any more.
+    assert f"{v.weight_null_forgone_epc_gbp:,.0f} epc" not in sentence
+
+
+def test_a_PER_PREMISE_ATTRIBUTION_CANNOT_BE_TAKEN_ACROSS_A_REORDERING(monkeypatch):
+    """R15 — the three panels are compared row by row, so a reordering must RAISE
+    rather than silently pair premise 1's mirror move with premise 2's null move.
+
+    The same guard `_register_mad` and `_paired_money_verdict` carry, for the same
+    reason: a paired statistic taken across a shuffle is a different statistic that
+    looks exactly like this one.
+    """
+    rows = _observations(n=8, epc_bias=1.10, inferred_bias=0.90)
+
+    real_mirror = fgl.panel_mirror
+
+    def _reversed_mirror(observations):
+        real = real_mirror(observations)
+        return dataclasses.replace(real, rows=tuple(reversed(real.rows)))
+
+    monkeypatch.setattr(fgl, "panel_mirror", _reversed_mirror)
+    with pytest.raises(fgl.InsufficientEvidence, match="out of order"):
+        fgl._paired_margin_moves(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+
+def test_a_MOVEMENT_AVERAGED_OVER_NO_PREMISES_RAISES_RATHER_THAN_READING_ZERO():
+    """R15, the fail-open shape: a fidelity term handed an empty panel must not
+    report 'the instrument disturbed nothing'. Zero movement and no measurement are
+    opposite readings and this term's whole job is to tell them apart."""
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._mean_abs([])
 
 
 def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED():
