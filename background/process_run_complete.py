@@ -987,6 +987,13 @@ def _free_mb(path):
 HEAD_CHECKOUT_ROOT = Path(tempfile.gettempdir())
 HEAD_CHECKOUT_PREFIX = "publish-gate-head-"
 REUSED_HEAD_CHECKOUT_NAME = HEAD_CHECKOUT_PREFIX + "reused"
+
+# THE ONE-LINE SWITCH FOR THE R3 ELIMINATION (2026-08-11). False => every cycle gets its own
+# throwaway checkout and the shared mutable directory is never created. See `_head_checkout`
+# for the full record; in short, the reused tree was reset under a live suite four separate
+# times and each time the gate reported a red that said nothing about any test. The cost of
+# False is cold bytecode per cycle; the cost of True was a 41-hour outage.
+REUSE_HEAD_CHECKOUT = False
 REUSED_HEAD_CHECKOUT_LOCK_NAME = REUSED_HEAD_CHECKOUT_NAME + ".lock"
 # (REUSED_CHECKOUT_KEEP is defined with UNTRACKED_DATA_OVERLAY below, which it extends.)
 # A throwaway checkout older than this was abandoned by a killed process. The bound is well
@@ -1330,20 +1337,47 @@ def _head_checkout():
     if head_sha is None:
         yield None
         return
-    with _reused_checkout_lock() as held:
-        if held is not None:
-            if not _reused_checkout_is_in_use(HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_NAME):
-                yield _prepare_reused_checkout(head_sha)
-                return
-            # The lock is free but the directory is NOT: an earlier publisher was killed and
-            # left its suite running in there (see `_reused_checkout_is_in_use`). Refreshing it
-            # now would corrupt that run AND produce a red here that says nothing about the
-            # code. Same fallback as lock contention, for the same reason.
-            reason = ("free of its lock but a live process is still running inside it -- an "
-                      "orphaned suite from a killed publisher")
-        else:
-            # Another publisher owns the reused checkout for the length of its suite.
-            reason = "held by another publisher"
+    if not REUSE_HEAD_CHECKOUT:
+        # R3 ELIMINATION, not a fifth patch (2026-08-11, publishing down 41h, 216 markers).
+        # The shared mutable checkout has produced a FALSE RED four times by the record kept in
+        # `_reused_checkout_is_in_use`'s own docstring -- 18:25Z, 20:18Z, 20:47Z (twice AFTER the
+        # 19:08Z fix), and 08:10Z today, every one of them the same `ModuleNotFoundError: No
+        # module named 'tools.test_execution_metric'` raised at `pytest_sessionfinish` because
+        # the tree was reset under a live suite. R3 is explicit that a second failure of one
+        # mechanism means ELIMINATE OR REDESIGN, never patch again, and the last two patches
+        # were themselves defeated by the case the guard cannot see: `flock` lives on the
+        # publisher PROCESS, the suite runs in a GRANDCHILD, so a deadline-SIGKILLed publisher
+        # releases the lock while its pytest keeps reading the directory.
+        #
+        # The optimisation being given up is warm bytecode. What it bought was speed; what it
+        # cost was a gate that could not pass at all, which is the whole of a 41-hour outage.
+        # A fast gate that never passes is worth strictly less than a slow one that does, and
+        # the throwaway path below is already the documented "correctness before speed" branch,
+        # exercised on every lock contention -- so this takes an existing, proven path always,
+        # rather than adding a new one.
+        #
+        # REVERSIBLE IN ONE LINE: set REUSE_HEAD_CHECKOUT = True. Re-enable only once the
+        # grandchild-outlives-the-lock case is closed by construction (a cgroup/process-group
+        # kill that reaps the suite with its parent, or a per-cycle directory that is never
+        # shared), not by another liveness heuristic.
+        reason = ("DISABLED -- the shared checkout produced four false reds by resetting the "
+                  "tree under a live suite (R3 elimination, 2026-08-11)")
+    else:
+        with _reused_checkout_lock() as held:
+            if held is not None:
+                if not _reused_checkout_is_in_use(
+                        HEAD_CHECKOUT_ROOT / REUSED_HEAD_CHECKOUT_NAME):
+                    yield _prepare_reused_checkout(head_sha)
+                    return
+                # The lock is free but the directory is NOT: an earlier publisher was killed and
+                # left its suite running in there (see `_reused_checkout_is_in_use`). Refreshing
+                # it now would corrupt that run AND produce a red here that says nothing about
+                # the code. Same fallback as lock contention, for the same reason.
+                reason = ("free of its lock but a live process is still running inside it -- an "
+                          "orphaned suite from a killed publisher")
+            else:
+                # Another publisher owns the reused checkout for the length of its suite.
+                reason = "held by another publisher"
     # Correctness before speed: this cycle gets its own throwaway tree, cold bytecode and all,
     # and deletes it.
     log("Publish gate: the reused HEAD checkout is {} -- using a throwaway checkout for this "
