@@ -5197,10 +5197,20 @@ def caveat_coverage():
     return pair.measure_published_figure_caveat_coverage(n_customers=_RES_N)
 
 
-def test_the_caveat_coverage_register_is_measured_not_asserted(caveat_coverage):
+@pytest.fixture(scope="module")
+def resolution_floors():
+    """The per-figure resolution floors (atom D33), measured through each
+    dimension's OWN shipped scorer on a book-derived grid -- the independent
+    side of the caveat-number check."""
+    return pair.measure_published_resolution_floor(n_customers=_RES_N)
+
+
+def test_the_caveat_coverage_register_is_measured_not_asserted(
+        caveat_coverage, resolution_floors):
     """Green means every cell's declaration is the reach the code HAS -- not
     that every dimension is covered. The keyset is derived both ways."""
-    assert pair.check_published_figure_caveat_coverage(caveat_coverage) == []
+    assert pair.check_published_figure_caveat_coverage(
+        caveat_coverage, floors=resolution_floors) == []
     assert set(caveat_coverage) == set(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
     # DERIVED from what `score_triad` publishes, not from the register -- the
     # keying that let this class escape six registers before it.
@@ -5416,3 +5426,336 @@ def test_an_inert_probe_cannot_certify_its_column(caveat_coverage):
     violations = pair.check_published_figure_caveat_coverage(measured)
     assert any("the probe moved NOTHING on any published dimension" in v
                for v in violations), violations
+
+
+# ---------------------------------------------------------------------------
+# ATOM D33 -- H27 EXPERT HOUR #15 (2026-08-11): THE CAVEAT'S NUMBER WAS THE
+# BOOK'S, ON TWO FIGURES THAT DO NOT SHARE A RESOLUTION.
+#
+# Hour #14 built the caveat contract and left LEAD 2: its step check reached
+# exactly one cell -- `detection_latency`/recon, the only day-linear one -- and
+# the other six moving cells carry caveats whose numbers are BANDS and EDGES
+# that nothing compares against the figure they ride on. Asked of the two belief
+# cells: the number is not either figure's. `belief_resolution_caveat` published
+# `measure_belief_window_resolution`'s book bound (headroom + 1) in the sentence
+# "the smallest memory error IT can resolve at all", byte-identically on both
+# belief dimensions. Measured through the organ: the bound is 310/309/309 on
+# seeds 7/11/23 while `belief` resolves 310/310/309 and `belief_population_mix`
+# resolves 310/314/312 -- so the sentence is five days out on one figure, and the
+# register's own `own_why` had already NOTICED the sibling was blunter without
+# anything turning that into the number the reader gets.
+# ---------------------------------------------------------------------------
+
+
+def test_the_two_belief_figures_do_not_share_a_resolution(resolution_floors):
+    """THE FINDING, measured not asserted. One sentence, two figures, four days
+    apart -- and the book's bound is neither."""
+    bel = resolution_floors["belief"]
+    mix = resolution_floors["belief_population_mix"]
+    assert bel["floor_days"] == 310
+    assert mix["floor_days"] == 314
+    assert bel["floor_days"] != mix["floor_days"]
+    # THE BOOK BOUND the caveat used to publish as each figure's own resolution.
+    assert bel["book_bound_days"] == mix["book_bound_days"] == {
+        7: 310, 11: 309, 23: 309}
+    # Five days out on seed 11 for the mix figure, which is the whole finding:
+    # the bound is a BOUND, and every figure here is at least as blind as it.
+    assert mix["per_seed_floor_days"][11] - mix["book_bound_days"][11] == 5
+    for row in (bel, mix):
+        for seed, bound in row["book_bound_days"].items():
+            assert row["per_seed_floor_days"][seed] >= bound, (seed, row)
+
+
+def test_each_belief_figure_publishes_its_own_floor_and_the_sentence_says_it():
+    """R11-shaped, on the artefact the consumer renders: the two caveats are no
+    longer byte-identical, each states ITS figure's floor, and the book bound is
+    labelled as a bound. Components too -- the ledger writer, the live wiring
+    and the dashboard read `components` and never the prose (D22)."""
+    records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=7)
+    result = pair.score_triad(records, consumer, as_of)
+    bel = result["belief"].components
+    mix = result["belief_population_mix"].components
+    assert bel["belief_resolution_caveat"] != mix["belief_resolution_caveat"]
+    assert bel["measured_resolution_floor_days"] == 310
+    assert mix["measured_resolution_floor_days"] == 314
+    for comps, own, other in ((bel, 310, 314), (mix, 314, 310)):
+        caveat = comps["belief_resolution_caveat"]
+        assert f"{own}d of forgetting" in caveat
+        assert f"{other}d" in caveat            # names the sibling's, as the sibling's
+        assert "do NOT share a resolution" in caveat
+        # ...and the book bound is stated as a bound on ANY figure here.
+        assert "can move ANY figure here" in caveat
+        assert comps["book_bound_floor_days"] == 310
+    # The retired sentence -- the bound presented as the figure's own -- is gone
+    # from both, and from the notes the callers may replace.
+    for dim in ("belief", "belief_population_mix"):
+        for text in (result[dim].note,
+                     result[dim].components["belief_resolution_caveat"]):
+            assert "smallest memory error it can resolve at all" not in text
+
+
+def test_the_epsilon_is_the_readers_own_precision_not_a_tolerance():
+    """INDEPENDENCE. `PUBLISHED_GAP_DECIMALS` is a claim about somebody else's
+    format string, so it is read back out of the consumers' source: a consumer
+    that starts publishing 6dp fails here instead of leaving the epsilon
+    stale."""
+    assert pair.published_reading_epsilon() == 5e-05
+    decimals = pair._consumer_render_decimals()
+    assert decimals, decimals
+    for rel, found in decimals.items():
+        assert pair.PUBLISHED_GAP_DECIMALS in found, (rel, found)
+    # And it is HALF a step of that precision -- a difference of one full step
+    # is readable, half of one is the boundary.
+    assert pair.published_reading_epsilon(2) == 0.005
+
+
+def test_bit_equality_counts_a_difference_no_consumer_can_render(
+        resolution_floors):
+    """WHY THE PREDICATE IS ATOM D33's RESHAPE. The mix figure "moves" at
+    -310..-313 on seed 11 by 1.4e-17, which is what put its declared saturation
+    edge at -309 rather than -313 -- and every collapse run and saturation edge
+    in this module is derived with the same `repr()` comparison."""
+    mix = resolution_floors["belief_population_mix"]
+    assert mix["bit_equality_floor_days"] == 312
+    assert mix["floor_days"] == 314
+    assert mix["bit_equality_per_seed_floor_days"][11] == 310
+    assert mix["per_seed_floor_days"][11] == 314
+    # The witness, taken live rather than quoted: the reading at -310 differs
+    # from the baseline by less than one part in 1e16.
+    records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=11)
+    base = pair.score_triad(records, consumer, as_of)[
+        "belief_population_mix"].gap
+    drifted_records, drifted_consumer, _bk, drifted_as_of = pair.build_scenario(
+        _RES_N, seed=11, organ_failure_window_drift_days=-310)
+    drifted = pair.score_triad(drifted_records, drifted_consumer,
+                              drifted_as_of)["belief_population_mix"].gap
+    assert drifted != base
+    assert abs(drifted - base) < pair.published_reading_epsilon()
+    # ...and the register says so, with the owning atom, on the dimension where
+    # the two predicates disagree and NOT on the one where they agree.
+    assert pair.DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
+        "own_floor_predicate_atom"] == pair.BIT_EQUALITY_FLOOR_ATOM
+    assert pair.DIMENSION_DRIFT_RESOLUTION["belief"][
+        "own_floor_predicate_atom"] is None
+
+
+def test_every_moving_cell_declares_whose_number_its_caveat_states(
+        caveat_coverage):
+    """THE CLASS (R10), and it is the coverage question one level in from D32's:
+    a moving cell must say WHERE its caveat's number comes from, and a source
+    that cannot be about this figure (a sub-reading, or the book) owes a number
+    measured on the published figure."""
+    for dim, row in pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT.items():
+        for knob, entry in row.items():
+            if not entry.get("moves"):
+                continue
+            kind, key = entry["number_source"]
+            assert kind in pair._CAVEAT_NUMBER_SOURCE_KINDS, (dim, knob)
+            if kind == "DIMENSION_DRIFT_RESOLUTION":
+                assert key == dim, (dim, knob, key)
+            elif kind == "ORGAN_QUERY_GRID":
+                assert pair.ORGAN_QUERY_GRID[key]["feeds"] == dim
+                if pair.ORGAN_QUERY_GRID[key]["headline_key"] is not None:
+                    assert entry["published_step_component"], (dim, knob)
+            else:
+                assert entry["published_floor_component"], (dim, knob)
+    # The two BOOK-sourced cells are the belief pair, and only they.
+    book_sourced = {(d, k) for d, r in pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT.items()
+                    for k, e in r.items()
+                    if e.get("moves") and e["number_source"][0] == "BOOK"}
+    assert book_sourced == {
+        ("belief", "organ_failure_window_drift_days"),
+        ("belief_population_mix", "organ_failure_window_drift_days")}
+
+
+def test_the_floor_register_is_measured_not_asserted(resolution_floors):
+    """Green means the declared floors are the ones the ORGAN publishes, and the
+    grid they were found on is the BOOK's (the D29/D31 rule), not the
+    register's own claims."""
+    assert pair.check_published_resolution_floor(resolution_floors) == []
+    for dim, row in resolution_floors.items():
+        # One day INSIDE the book's own provable bound, out by the book's own
+        # event-age span -- no drift in it was chosen by a declaration.
+        assert row["grid"][0] == -(min(row["book_bound_days"].values()) - 1)
+        assert row["readable_at_every_drift_beyond_floor"] is True
+        assert row["undefined_readings"] == ()
+        assert row["epsilon"] == pair.published_reading_epsilon()
+
+
+# --- R15: the control fires on each defect it names -------------------------
+
+
+def test_the_pre_hour_caveat_fires_the_control(caveat_coverage,
+                                               resolution_floors):
+    """THE DEFECT ITSELF, put back: the BOOK's bound republished as each
+    figure's own resolution. This is the state every ledger note and Proof-door
+    reading carried from Hour #9 to Hour #15, and it must not pass."""
+    view = {d: copy.deepcopy(caveat_coverage[d].get("_rendered", {}))
+            for d in caveat_coverage}
+    for dim in ("belief", "belief_population_mix"):
+        for seed, comps in view[dim].items():
+            comps["measured_resolution_floor_days"] = comps[
+                "book_bound_floor_days"]
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, rendered=view, floors=resolution_floors)
+    assert any("publishes a resolution floor of 310d and the sweep measures "
+               "314d" in v for v in violations), violations
+
+
+def test_stamping_the_siblings_floor_fires_the_control(caveat_coverage,
+                                                       resolution_floors):
+    """THE SHARED SENTENCE, in its exact shape: the mix figure carrying
+    `belief`'s 310d. One function rendered one sentence for both figures for six
+    Hours, and nothing could see it."""
+    view = {d: copy.deepcopy(caveat_coverage[d].get("_rendered", {}))
+            for d in caveat_coverage}
+    for seed, comps in view["belief_population_mix"].items():
+        comps["measured_resolution_floor_days"] = pair.DIMENSION_DRIFT_RESOLUTION[
+            "belief"]["own_readable_resolution_floor_days"]
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, rendered=view, floors=resolution_floors)
+    assert any("is atom D33's finding" in v for v in violations), violations
+
+
+def test_a_floor_the_sentence_never_states_fires_the_control(caveat_coverage,
+                                                            resolution_floors):
+    """A component beside a sentence that contradicts it is not a stamped
+    caveat -- Hour #11's `a lead is not a control`, in the shape this cell could
+    itself have taken."""
+    view = {d: copy.deepcopy(caveat_coverage[d].get("_rendered", {}))
+            for d in caveat_coverage}
+    for seed, comps in view["belief"].items():
+        comps["belief_resolution_caveat"] = (
+            "a caveat that states no number at all")
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, rendered=view, floors=resolution_floors)
+    assert any("never states it" in v for v in violations), violations
+
+
+def test_a_book_sourced_cell_with_no_floor_fires_the_control(caveat_coverage,
+                                                            resolution_floors):
+    """The PRE-HOUR REGISTER STATE: the belief cells named a caveat component
+    and nothing else, so a population-side bound stood where the figure's own
+    resolution goes."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["belief"]["organ_failure_window_drift_days"][
+        "published_floor_component"]
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg, floors=resolution_floors)
+    assert any("a bound on what ANY figure here could resolve stands where" in v
+               for v in violations), violations
+
+
+def test_a_caveat_number_from_another_dimensions_register_fires_the_control(
+        caveat_coverage, resolution_floors):
+    """D32's WRONG SUBJECT, generalised: a cell sourcing its number from a
+    register keyed BY dimension and pointing it at a different one."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    reg["ageing"]["organ_terms_drift_days"]["number_source"] = (
+        "DIMENSION_DRIFT_RESOLUTION", "detection")
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg, floors=resolution_floors)
+    assert any("pointed at a different one" in v for v in violations), violations
+
+
+def test_a_sub_reading_source_with_no_published_number_fires_the_control(
+        caveat_coverage, resolution_floors):
+    """The `ORGAN_QUERY_GRID` half: an entry whose `headline_key` names a
+    sub-reading owes a number measured on the PUBLISHED headline. Dropping that
+    is exactly the state D32 found."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["detection_latency"]["organ_reconciliation_drift_days"][
+        "published_step_component"]
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg, floors=resolution_floors)
+    assert any("measured on the SUB-READING" in v for v in violations), violations
+
+
+def test_a_moving_cell_with_no_number_source_raises(caveat_coverage,
+                                                    resolution_floors):
+    """THE FAIL-CLOSED. A cell that does not say whose number it publishes is
+    not a clean cell -- it is an unasked one, and it reads identically, which is
+    how this class survived fifteen Hours."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["belief"]["organ_failure_window_drift_days"]["number_source"]
+    with pytest.raises(AssertionError, match="no usable `number_source`"):
+        pair.check_published_figure_caveat_coverage(
+            caveat_coverage, register=reg, floors=resolution_floors)
+
+
+def test_an_unavailable_floor_sweep_is_a_failed_check(caveat_coverage):
+    """R15 FAIL-SILENT: the floor claim compared against nothing must not read
+    as verified. This is why the green test supplies the sweep."""
+    violations = pair.check_published_figure_caveat_coverage(caveat_coverage)
+    assert any("compared against NOTHING" in v for v in violations), violations
+
+
+def test_a_declared_floor_the_sweep_contradicts_fires_the_control(
+        resolution_floors):
+    """The register side of the same claim, EXACTLY (the D25/D30 rule): a floor
+    declared loosely is a sentence that survives any reshape."""
+    reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    reg["belief_population_mix"]["own_readable_resolution_floor_days"] = 310
+    violations = pair.check_published_resolution_floor(resolution_floors, reg)
+    assert any("the sweep measures 314d" in v for v in violations), violations
+
+
+def test_a_predicate_divergence_with_no_owner_fires_the_control(
+        resolution_floors):
+    """A measured divergence between bit-equality and the reader's own precision
+    OWES an atom -- and a named owner the sweep cannot find is a debt entry
+    outliving its debt, so both directions fire."""
+    reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    reg["belief_population_mix"]["own_floor_predicate_atom"] = None
+    violations = pair.check_published_resolution_floor(resolution_floors, reg)
+    assert any("no atom owns it" in v for v in violations), violations
+
+    reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    reg["belief"]["own_floor_predicate_atom"] = pair.BIT_EQUALITY_FLOOR_ATOM
+    violations = pair.check_published_resolution_floor(resolution_floors, reg)
+    assert any("outliving its debt" in v for v in violations), violations
+
+
+def test_an_undeclared_or_unmeasured_floor_raises(resolution_floors):
+    """Both keyset directions raise: a measured dimension the register declares
+    no floor for, and a declared floor nothing sweeps."""
+    reg = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    reg["belief"]["own_readable_resolution_floor_days"] = None
+    with pytest.raises(AssertionError, match="register declares none"):
+        pair.check_published_resolution_floor(resolution_floors, reg)
+    with pytest.raises(AssertionError, match="that nothing measured"):
+        pair.check_published_resolution_floor(
+            {d: r for d, r in resolution_floors.items() if d != "belief"})
+
+
+def test_an_unnamed_caller_gets_a_refusal_not_the_siblings_number():
+    """The caveat function's own fail-closed: a caller that will not say which
+    figure it is stamping gets an explicit refusal, never a default. A silent
+    default is the defect this atom closes."""
+    text = pair.belief_resolution_caveat(None, None)
+    assert "NO FIGURE WAS NAMED" in text
+    assert "do NOT share one" in text
+    for dim in ("belief", "belief_population_mix"):
+        assert f"`{dim}`" in text
+
+
+def test_the_floor_sweep_refuses_an_inert_probe():
+    """THE VACUITY GUARD on the measurement itself: a knob that had stopped
+    drifting the company would put every floor at None and certify nothing."""
+    records, consumer, _b, as_of = pair.build_scenario(60, seed=7)
+    frozen = (records, pair.score_triad(records, consumer, as_of), as_of)
+    with pytest.raises(AssertionError, match="inert probe cannot measure"):
+        pair.measure_published_resolution_floor(
+            n_customers=60, seeds=(7,), runner=lambda knob, seed, k: frozen)
+
+
+def test_the_floor_sweep_refuses_a_book_with_no_bound():
+    """...and a population with no observed failure event has no bound to search
+    outward from, so measuring a floor against it would be a free pass."""
+    records, consumer, _b, as_of = pair.build_scenario(60, seed=7)
+    empty = [r for r in records if r.result != "failed"]
+    scored = pair.score_triad(records, consumer, as_of)
+    with pytest.raises(AssertionError, match="no book bound"):
+        pair.measure_published_resolution_floor(
+            n_customers=60, seeds=(7,),
+            runner=lambda knob, seed, k: (empty, scored, as_of))

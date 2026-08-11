@@ -143,10 +143,12 @@ import ast
 import hashlib
 import inspect
 import random
+import re
 import subprocess
 import sys
 import textwrap
 from datetime import date, datetime, time, timedelta, timezone
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from simulation.payment_behaviour_source import (
@@ -3455,26 +3457,35 @@ PUBLISHED_FIGURE_CAVEAT_CONTRACT: Dict[str, Dict[str, object]] = {
         "organ_terms_drift_days": {
             "moves": True,
             "caveat_component": "drift_resolution_caveat",
+            "number_source": ("DIMENSION_DRIFT_RESOLUTION", "detection"),
         },
         "organ_reconciliation_drift_days": {
             "moves": True,
             "caveat_component": "recon_saturation_caveat",
+            # `headline_key: None` on that entry means "the dimension's own
+            # gap", and `feeds` names this dimension -- so the edges this
+            # sentence states were swept on the figure it rides on.
+            "number_source": ("ORGAN_QUERY_GRID", "flagged_via_reconciliation"),
         },
         "organ_failure_window_drift_days": {"moves": False},
     },
     "detection_latency": {
-        # THE TWO CELLS THIS ATOM FIXED. The recon cell carried a caveat whose
+        # THE TWO CELLS ATOM D32 FIXED. The recon cell carried a caveat whose
         # number belonged to a sub-reading; the terms cell carried nothing.
         "organ_terms_drift_days": {
             "moves": True,
             "caveat_component": "terms_resolution_caveat",
+            "number_source": ("DIMENSION_DRIFT_RESOLUTION", "detection_latency"),
         },
         "organ_reconciliation_drift_days": {
             "moves": True,
             "caveat_component": "organ_query_grid_caveat",
-            # The caveat must state the PUBLISHED figure's step, and this is
-            # where that claim is checked against a real sweep rather than
-            # against the register that supplied the sentence.
+            # THE SUB-READING, DECLARED AS ONE (atom D32): this entry's
+            # `headline_key` is `mean_lag_days_without_dd_channel`, not this
+            # dimension's published figure, so the cell owes a number measured
+            # on the PUBLISHED headline as well -- which is what
+            # `published_step_component` is.
+            "number_source": ("ORGAN_QUERY_GRID", "recon_lag_days"),
             "published_step_component": "published_headline_step_days",
         },
         "organ_failure_window_drift_days": {"moves": False},
@@ -3485,6 +3496,12 @@ PUBLISHED_FIGURE_CAVEAT_CONTRACT: Dict[str, Dict[str, object]] = {
         "organ_failure_window_drift_days": {
             "moves": True,
             "caveat_component": "belief_resolution_caveat",
+            # THE CELL EXPERT HOUR #15 FOUND (atom D33). The caveat's number was
+            # the BOOK's -- `measure_belief_window_resolution`, which is not
+            # keyed by dimension at all and cannot be, so the cell owes a
+            # per-figure floor measured through this dimension's own scorer.
+            "number_source": ("BOOK", "measure_belief_window_resolution"),
+            "published_floor_component": "measured_resolution_floor_days",
         },
     },
     "belief_population_mix": {
@@ -3493,12 +3510,18 @@ PUBLISHED_FIGURE_CAVEAT_CONTRACT: Dict[str, Dict[str, object]] = {
         "organ_failure_window_drift_days": {
             "moves": True,
             "caveat_component": "belief_resolution_caveat",
+            # THE SAME BOOK NUMBER, ON A FIGURE FOUR DAYS BLUNTER (atom D33):
+            # this is the cell where sharing one sentence cost the reader five
+            # days on seed 11.
+            "number_source": ("BOOK", "measure_belief_window_resolution"),
+            "published_floor_component": "measured_resolution_floor_days",
         },
     },
     "ageing": {
         "organ_terms_drift_days": {
             "moves": True,
             "caveat_component": "drift_resolution_caveat",
+            "number_source": ("DIMENSION_DRIFT_RESOLUTION", "ageing"),
         },
         # MEASURED INERT, not assumed. The reconciliation detector sets which
         # invoices the company CHASES; the ageing report is built from the
@@ -3507,6 +3530,27 @@ PUBLISHED_FIGURE_CAVEAT_CONTRACT: Dict[str, Dict[str, object]] = {
         "organ_failure_window_drift_days": {"moves": False},
     },
 }
+
+# WHOSE NUMBER IS IT? (atom D33, Expert Hour #15.) A moving cell's caveat puts a
+# number in the reader's hands, and D32 checked exactly one of them -- the only
+# day-linear cell -- against the published figure. The other six state BANDS and
+# EDGES, and the two belief cells turned out to be stating the BOOK's bound as
+# the figure's own resolution. So every moving cell must now declare WHERE its
+# number comes from, and the subject of that source is CHECKED:
+#
+#   * `DIMENSION_DRIFT_RESOLUTION` -- keyed BY dimension, and the key must be
+#     this dimension. A cell pointing at a sibling's entry is the D32 wrong-
+#     subject defect and now fails by name.
+#   * `ORGAN_QUERY_GRID` -- keyed by READING. The entry must `feed` this
+#     dimension, and if its `headline_key` names a sub-reading rather than the
+#     dimension's own gap, the cell owes a number measured on the PUBLISHED
+#     figure (`published_step_component`).
+#   * `BOOK` -- a population-side predictor, which by construction knows nothing
+#     about which figure is reading it. Never sufficient on its own: the cell
+#     owes a `published_floor_component`, measured per dimension through its own
+#     shipped scorer.
+_CAVEAT_NUMBER_SOURCE_KINDS = ("DIMENSION_DRIFT_RESOLUTION", "ORGAN_QUERY_GRID",
+                               "BOOK")
 
 # Both published gaps are rounded before they are compared, so a difference
 # this small is the rounding and not a reading. It is FAR below the defect this
@@ -3613,10 +3657,156 @@ def measure_published_figure_caveat_coverage(
     return out
 
 
+def _check_caveat_number_subject(dim: str, knob: str,
+                                 entry: Dict[str, object]) -> List[str]:
+    """WHOSE NUMBER THE CAVEAT STATES, checked against the source it declares
+    (atom D33).
+
+    This is D32's finding made general. D32 caught one wrong subject with one
+    step check; the rule is that a caveat number's SOURCE must be about the
+    figure it is stamped on, and where the source cannot be (a sub-reading, or
+    the book), the cell owes a number measured on the published figure itself.
+    """
+    out: List[str] = []
+    src = entry.get("number_source")
+    if not (isinstance(src, (tuple, list)) and len(src) == 2
+            and src[0] in _CAVEAT_NUMBER_SOURCE_KINDS):
+        raise AssertionError(
+            f"{dim}/{knob}: this knob MOVES the published figure and the entry "
+            f"declares no usable `number_source` (got {src!r}, want one of "
+            f"{_CAVEAT_NUMBER_SOURCE_KINDS}) -- a caveat number whose subject "
+            "nobody states is how the belief figures published the BOOK's bound "
+            "as their own resolution for six Hours (atom D33)"
+        )
+    kind, key = src[0], src[1]
+    if kind == "DIMENSION_DRIFT_RESOLUTION":
+        if key != dim:
+            out.append(
+                f"{dim}/{knob}: its caveat's number comes from "
+                f"DIMENSION_DRIFT_RESOLUTION[{key!r}] -- a register keyed BY "
+                f"dimension, pointed at a different one. A band measured on "
+                "`{key}`'s figure is not this figure's (atom D32's wrong "
+                "subject, generalised)"
+            )
+        elif key not in DIMENSION_DRIFT_RESOLUTION:
+            out.append(
+                f"{dim}/{knob}: names DIMENSION_DRIFT_RESOLUTION[{key!r}], "
+                "which does not exist -- a caveat sourced from nothing"
+            )
+    elif kind == "ORGAN_QUERY_GRID":
+        entry_src = ORGAN_QUERY_GRID.get(key)
+        if entry_src is None:
+            out.append(
+                f"{dim}/{knob}: names ORGAN_QUERY_GRID[{key!r}], which does "
+                "not exist -- a caveat sourced from nothing"
+            )
+        else:
+            if entry_src.get("feeds") != dim:
+                out.append(
+                    f"{dim}/{knob}: its caveat's number comes from "
+                    f"ORGAN_QUERY_GRID[{key!r}], which feeds "
+                    f"`{entry_src.get('feeds')}` -- another dimension's reading"
+                )
+            if (entry_src.get("headline_key") is not None
+                    and not entry.get("published_step_component")):
+                out.append(
+                    f"{dim}/{knob}: its caveat's number is measured on the "
+                    f"SUB-READING `{entry_src.get('headline_key')}` and the "
+                    "cell declares no `published_step_component` -- publishing "
+                    "a sub-reading's resolution as the headline's is atom D32's "
+                    "finding, restated"
+                )
+    elif kind == "BOOK":
+        if not entry.get("published_floor_component"):
+            out.append(
+                f"{dim}/{knob}: its caveat's number comes from the BOOK "
+                f"({key}), a population-side predictor that cannot know which "
+                "figure is reading it, and the cell declares no "
+                "`published_floor_component` -- so a bound on what ANY figure "
+                "here could resolve stands where this figure's own resolution "
+                "goes (atom D33)"
+            )
+    return out
+
+
+def _check_rendered_floor(dim: str, knob: str, floor_key: str,
+                          by_seed: Dict[int, Dict[str, object]],
+                          floors: Optional[Dict[str, Dict[str, object]]],
+                          ) -> List[str]:
+    """The per-figure floor a BOOK-sourced cell owes: RENDERED by a real
+    `score_triad`, equal to what the sweep measures for THIS dimension, and
+    actually present in the caveat sentence the reader meets (atom D33).
+
+    `floors` is the independent side -- `measure_published_resolution_floor`,
+    which re-scores the book through each dimension's own shipped scorer and
+    never reads this register. Absent, the coverage is UNVERIFIED and says so:
+    an unavailable check is a failed check (R15 fail-silent).
+    """
+    out: List[str] = []
+    for seed, comps in sorted(by_seed.items()):
+        if floor_key not in comps:
+            out.append(
+                f"{dim}/{knob}: declares a per-figure resolution floor and a "
+                f"real `score_triad` publishes no `{floor_key}` on `{dim}` "
+                f"(seed {seed}) -- the reader then has only the book's bound, "
+                "which is not this figure's resolution (atom D33)"
+            )
+            continue
+        got = comps[floor_key]
+        if got is None:
+            out.append(
+                f"{dim}/{knob}: publishes `{floor_key}`=None (seed {seed}) -- a "
+                "figure whose resolution is unmeasured must say so in the "
+                "sentence, not hand the reader a blank where a number goes"
+            )
+            continue
+        caveat = comps.get("belief_resolution_caveat")
+        # THE PHRASE THE READER CONVERTS, not merely the digits anywhere in the
+        # sentence: the caveat also names the SIBLING's floor (as the sibling's),
+        # so "the number appears somewhere" would pass on the exact confusion
+        # this atom closes.
+        claim = f"smaller than {int(got)}d of forgetting"
+        if isinstance(caveat, str) and claim not in caveat:
+            out.append(
+                f"{dim}/{knob}: publishes `{floor_key}`={got} as a component "
+                "and the caveat SENTENCE beside it never states it (seed "
+                f"{seed}) -- naming a number is not stamping one (Hour #11)"
+            )
+    if floors is None:
+        out.append(
+            f"{dim}/{knob}: its per-figure floor was compared against NOTHING "
+            "-- `measure_published_resolution_floor` was not supplied, and an "
+            "unavailable check is a failed one (R15 fail-silent)"
+        )
+        return out
+    row = floors.get(dim)
+    if row is None:
+        out.append(
+            f"{dim}/{knob}: declares a per-figure floor and the floor sweep "
+            f"never measured `{dim}` -- an unmeasured floor reads exactly like "
+            "a verified one"
+        )
+        return out
+    for seed, comps in sorted(by_seed.items()):
+        got = comps.get(floor_key)
+        if got is None:
+            continue
+        if int(got) != int(row["floor_days"]):
+            out.append(
+                f"{dim}/{knob}: publishes a resolution floor of {got}d and the "
+                f"sweep measures {row['floor_days']}d for `{dim}` (per seed "
+                f"{row['per_seed_floor_days']}) -- a number that is not this "
+                "figure's resolution is atom D33's finding"
+            )
+            break
+    return out
+
+
 def check_published_figure_caveat_coverage(
     measured: Dict[str, Dict[str, object]],
     register: Optional[Dict[str, Dict[str, object]]] = None,
     rendered: Optional[Dict[str, Dict[str, object]]] = None,
+    floors: Optional[Dict[str, Dict[str, object]]] = None,
 ) -> List[str]:
     """Put `PUBLISHED_FIGURE_CAVEAT_CONTRACT` on trial against the measurement
     and the RENDERED components, and return the violations (atom D32).
@@ -3700,6 +3890,14 @@ def check_published_figure_caveat_coverage(
                     "not stamped"
                 )
                 continue
+            # WHOSE NUMBER IS IN THE SENTENCE (atom D33), before any of the
+            # number checks below: a component that renders is not a component
+            # about this figure.
+            violations.extend(_check_caveat_number_subject(dim, knob, entry))
+            floor_key = entry.get("published_floor_component")
+            if floor_key is not None:
+                violations.extend(_check_rendered_floor(
+                    dim, knob, floor_key, by_seed, floors))
             step_key = entry.get("published_step_component")
             if step_key is None:
                 continue
@@ -3932,6 +4130,17 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # a different fact from where the edge is.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
         "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
+        # THIS FIGURE'S OWN RESOLUTION, and the number its caveat may state
+        # (atom D33). Measured through this dimension's own shipped scorer at
+        # the precision every consumer renders it -- 310d on this book against
+        # the BOOK's bound of 310/309/309 on seeds 7/11/23, so the bound is
+        # tight here and a day loose on two seeds. `own_bit_equality_...` is the
+        # witness for the predicate itself; the two agree on this dimension,
+        # which is what makes the sibling's disagreement a reading and not an
+        # artefact of the measurement.
+        "own_readable_resolution_floor_days": 310,
+        "own_bit_equality_floor_days": 310,
+        "own_floor_predicate_atom": None,
         "own_why": (
             "UNBOUNDED-BLIND ABOVE, and the shipped company sits 308 days "
             "inside the blind band. The book's oldest observed failure is 92d "
@@ -4029,6 +4238,22 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # vs -308) is this dimension's own bluntness and stays D19's.
         "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
         "own_saturation_atom_above": "D30_the_belief_band_is_this_books_length",
+        # THIS FIGURE'S OWN RESOLUTION (atom D33), and the number Expert Hour
+        # #15 found nobody had ever asked for. 314d, measured through this
+        # dimension's own scorer at the 4dp its consumers render -- FIVE days
+        # past the BOOK bound its caveat was publishing as its resolution (309d
+        # on seed 11) and FOUR days past its sibling's 310d, which it shared a
+        # byte-identical sentence with. `own_why` below already SAID this
+        # dimension was blunter; nothing turned that into the number the reader
+        # gets, which is Hour #11's "a lead is not a control" one field over.
+        "own_readable_resolution_floor_days": 314,
+        # AND THE PREDICATE (atom D33). Bit-equality reports 312d, because at
+        # seed 11 this figure "moves" at -310..-313 by 1.4e-17 -- a difference no
+        # 4dp consumer can render, counted as one company being told apart from
+        # another. That is what put `own_saturates_above` at -309 rather than
+        # -313, and every collapse run above is derived with the same predicate.
+        "own_bit_equality_floor_days": 312,
+        "own_floor_predicate_atom": "D33_the_collapse_predicate_is_bit_equality",
         "own_why": (
             "SATURATED for the same reason as `belief` and one step blunter: "
             "it is the same labels under a distribution distance (atom D19), "
@@ -5623,9 +5848,390 @@ def scenario_constant_census_caveat(measured: Dict[str, object]) -> str:
     return head + body
 
 
+# ---------------------------------------------------------------------------
+# THE READER'S OWN RESOLUTION, and each belief figure's OWN floor
+# (atom D33, H27 Expert Hour #15, 2026-08-11)
+#
+# HOUR #14 LEFT THIS AS LEAD 2. Its contract checks one cell's number against
+# the published figure -- `detection_latency`/recon, the only cell whose reading
+# is day-linear either way -- and the other six moving cells carry caveats whose
+# numbers are BANDS and EDGES that nothing compares with the figure they ride
+# on. Asked of the two belief cells, the answer is that the number is not the
+# figure's at all:
+#
+#   * `measure_belief_window_resolution` computes `smallest_visible_shortening_
+#     days` = headroom + 1, the smallest window shortening that drops any
+#     observed event out of the company's memory. Its own docstring is careful
+#     -- shortening by more "MAY be visible ... which is the organ's business
+#     and not this predictor's" -- and NOBODY EVER ASKED THE ORGAN.
+#   * `belief_resolution_caveat` published that bound as "the smallest memory
+#     error IT can resolve at all", on BOTH belief dimensions, byte-identical.
+#     Measured (n=300): the bound is 310/309/309 on seeds 7/11/23 while `belief`
+#     resolves 310/310/309 and `belief_population_mix` resolves 310/314/312. So
+#     the sentence is a day out on one figure and FIVE days out on the other,
+#     and two figures whose measured resolution differs by four days on one seed
+#     carried one number between them.
+#
+# A bound on what ANY figure here could resolve is a real and useful thing to
+# publish; what it may not do is stand in the sentence where the figure's own
+# resolution goes. That is the D32 wrong-subject class one register over, and
+# this time the subject is not an adjacent reading but the BOOK.
+#
+# WHY THE EPSILON IS NOT A MAGIC NUMBER. Both belief gaps reach their reader
+# through a `.4f` render (`background.gap_metric.format_belief_summary` and the
+# live writer's own mix line), so a difference below half a step of that is not
+# a reading at all -- and bit-equality, which every collapse measurement in
+# this module uses, counts one. Measured live: `belief_population_mix` at seed
+# 11 "moves" at drifts -310..-313 by 1.4e-17, which is what put its declared
+# saturation edge at -309 when the reader's own precision puts it at -313. That
+# predicate is D33's reshape and is deliberately NOT changed here.
+# ---------------------------------------------------------------------------
+
+# The precision every consumer renders these gaps at. NOT a tolerance chosen to
+# make a test pass: `_consumer_render_decimals` reads it back out of the two
+# consumers' source, so a consumer that starts publishing 6dp fails the control
+# instead of silently leaving this stale.
+PUBLISHED_GAP_DECIMALS = 4
+
+_GAP_CONSUMER_SOURCES = (
+    ("background/gap_metric.py", "format_belief_summary"),
+    ("background/live_payment_triad.py", "belief_population_mix"),
+)
+
+
+def published_reading_epsilon(decimals: Optional[int] = None) -> float:
+    """HALF A STEP of the precision the reader is given (atom D33).
+
+    A difference smaller than this cannot appear in any published rendering of
+    these gaps, so counting it as one company being told apart from another is
+    the D28 fail-open in another costume: an instrument that has stopped
+    reading, recorded as resolution.
+    """
+    d = PUBLISHED_GAP_DECIMALS if decimals is None else int(decimals)
+    return 0.5 * (10.0 ** -d)
+
+
+def _consumer_render_decimals(repo_root: Optional[Path] = None) -> Dict[str, Tuple[int, ...]]:
+    """The decimal places the BELIEF gaps are actually rendered at, read out of
+    the consumers' own source (atom D33).
+
+    Independence, not decoration: `PUBLISHED_GAP_DECIMALS` is a claim about
+    somebody else's format string, and a claim about another module's source
+    that nothing re-reads is exactly the sentence class this Hour is about.
+    """
+    root = Path(__file__).resolve().parents[1] if repo_root is None else repo_root
+    out: Dict[str, Tuple[int, ...]] = {}
+    for rel, anchor in _GAP_CONSUMER_SOURCES:
+        path = root / rel
+        if not path.exists():
+            out[rel] = ()
+            continue
+        text = path.read_text()
+        # The renders that carry a BELIEF gap: a format spec on the same line
+        # as the anchor, or inside the anchored function's body.
+        window = text
+        if f"def {anchor}" in text:
+            start = text.index(f"def {anchor}")
+            nxt = text.find("\ndef ", start + 1)
+            window = text[start:nxt if nxt != -1 else len(text)]
+        else:
+            lines = [ln for ln in text.splitlines() if anchor in ln]
+            window = "\n".join(lines)
+        found = re.findall(r'"\.(\d)f"|:\.(\d)f', window)
+        out[rel] = tuple(sorted({int(a or b) for a, b in found}))
+    return out
+
+
+# The knob both belief dimensions read, and the ONLY one that reaches them
+# (PUBLISHED_FIGURE_CAVEAT_CONTRACT measures the other two inert there).
+BELIEF_FLOOR_KNOB = "organ_failure_window_drift_days"
+
+# The two figures that carried ONE resolution sentence between them.
+BELIEF_FLOOR_DIMENSIONS = ("belief", "belief_population_mix")
+
+
+def measure_published_resolution_floor(
+    *,
+    dimensions: Sequence[str] = BELIEF_FLOOR_DIMENSIONS,
+    knob: str = BELIEF_FLOOR_KNOB,
+    n_customers: int = 300,
+    seeds: Sequence[int] = RESOLUTION_SEEDS,
+    epsilon: Optional[float] = None,
+    runner: Optional[Callable[[str, int, int], tuple]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """THE SMALLEST COMPANY ERROR EACH PUBLISHED FIGURE ACTUALLY RESOLVES, per
+    dimension, measured through its own shipped scorer (atom D33).
+
+    The grid is the BOOK's (the D29/D31 rule): it starts one day INSIDE the
+    book's own provable bound -- where nothing may move, and a reading there
+    would mean something other than the memory window is driving the figure --
+    and walks outward by at most the book's own event-age span, which is what
+    sets the band in the first place.
+
+    Returns, per dimension: `floor_days` (the smallest |drift| whose reading
+    differs READABLY on EVERY seed), `per_seed_floor_days`, the
+    `bit_equality_floor_days` the current collapse predicate would report, and
+    `book_bound_days` -- the number the caveat used to publish as the figure's
+    own.
+    """
+    eps = published_reading_epsilon() if epsilon is None else float(epsilon)
+
+    if runner is None:
+        def runner(knob_name: str, seed: int, k: int) -> tuple:
+            key = (n_customers, seed, knob_name, k)
+            if key not in _OWN_RESOLUTION_SCORES:
+                recs, cons, _ledger, as_of = build_scenario(
+                    n_customers, seed=seed, **{knob_name: k})
+                _OWN_RESOLUTION_SCORES[key] = (
+                    recs, score_triad(recs, cons, as_of), as_of)
+            return _OWN_RESOLUTION_SCORES[key]
+
+    base: Dict[int, tuple] = {s: runner(knob, s, 0) for s in seeds}
+    books = {s: measure_belief_window_resolution(base[s][0], base[s][2])
+             for s in seeds}
+    if any(b.get("smallest_visible_shortening_days") is None for b in books.values()):
+        raise AssertionError(
+            "no book bound to search outward from -- a population with no "
+            "observed failure event cannot bound either belief figure, and "
+            "measuring a floor against no bound would be a free pass"
+        )
+    # THE GRID, DERIVED FROM THE BOOK: one day inside the tightest bound, out to
+    # the widest bound plus the book's own event span.
+    inside = -(min(int(b["smallest_visible_shortening_days"]) for b in books.values()) - 1)
+    outer = -(max(int(b["smallest_visible_shortening_days"]) for b in books.values())
+              + max(int(b["event_age_span_days"] or 0) for b in books.values()))
+    grid = tuple(range(inside, outer - 1, -1))
+
+    readings: Dict[Tuple[str, int, int], object] = {}
+    for s in seeds:
+        for k in grid:
+            res = runner(knob, s, k)[1]
+            for dim in dimensions:
+                readings[(dim, s, k)] = res[dim].gap
+
+    out: Dict[str, Dict[str, object]] = {}
+    for dim in dimensions:
+        base_gap = {s: base[s][1][dim].gap for s in seeds}
+
+        def _readable(s: int, k: int, tol: float) -> Optional[bool]:
+            got, b = readings[(dim, s, k)], base_gap[s]
+            if got is None or b is None:
+                # An undefined reading is not a resolution (the D28 fail-open).
+                return None
+            if tol <= 0.0:
+                # BIT-EQUALITY, the predicate every collapse measurement in this
+                # module uses -- kept here as the witness, never as the reading.
+                return got != b
+            return abs(float(got) - float(b)) >= tol
+
+        def _floor(tol: float) -> Optional[int]:
+            for k in grid:
+                states = [_readable(s, k, tol) for s in seeds]
+                if all(st is True for st in states):
+                    return abs(k)
+            return None
+
+        per_seed: Dict[int, Optional[int]] = {}
+        for s in seeds:
+            per_seed[s] = next((abs(k) for k in grid
+                                if _readable(s, k, eps) is True), None)
+        floor = _floor(eps)
+        beyond = (None if floor is None else all(
+            _readable(s, k, eps) is True
+            for s in seeds for k in grid if abs(k) >= floor))
+        out[dim] = {
+            "knob": knob,
+            "seeds": tuple(seeds),
+            "grid": grid,
+            "epsilon": eps,
+            "floor_days": floor,
+            "per_seed_floor_days": per_seed,
+            # WHAT BIT-EQUALITY WOULD HAVE SAID. Where these two differ, the
+            # register's declared collapse runs and saturation edges are
+            # resting on a difference no reader can see -- atom D33's reshape.
+            "bit_equality_floor_days": _floor(0.0),
+            "bit_equality_per_seed_floor_days": {
+                s: next((abs(k) for k in grid
+                         if _readable(s, k, 0.0) is True), None)
+                for s in seeds
+            },
+            "book_bound_days": {
+                s: int(books[s]["smallest_visible_shortening_days"])
+                for s in seeds
+            },
+            "readable_at_every_drift_beyond_floor": beyond,
+            "undefined_readings": tuple(
+                k for k in grid
+                if any(_readable(s, k, eps) is None for s in seeds)),
+        }
+    # THE PROBE ITSELF. A knob that had stopped drifting the company would put
+    # every floor at None and certify nothing -- the vacuity shape this module
+    # has now produced in seven registers.
+    if all(row["floor_days"] is None for row in out.values()):
+        raise AssertionError(
+            f"`{knob}` moved NO published figure readably anywhere on a "
+            f"book-derived grid of {len(grid)} counterfactual companies -- an "
+            "inert probe cannot measure a resolution floor, and reporting one "
+            "from it would be the free pass this measurement exists to refuse"
+        )
+    return out
+
+
+def check_published_resolution_floor(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put every declared `own_readable_resolution_floor_days` on trial against
+    the measurement, EXACTLY (atom D33).
+
+    Exact, on the D25/D30 rule: a floor declared loosely ("at least 300d") is a
+    sentence that survives any reshape, and this atom exists because a loose
+    claim about a figure's resolution went unchecked for six Hours.
+    """
+    register = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    declared = {d for d, e in register.items()
+                if e.get("own_readable_resolution_floor_days") is not None}
+    missing = sorted(set(measured) - declared)
+    if missing:
+        raise AssertionError(
+            f"measured a published resolution floor for {missing} and the "
+            "register declares none -- an undeclared floor reads exactly like "
+            "an absent limit, and the caveat then has nothing to state but the "
+            "book's bound, which is atom D33's finding"
+        )
+    orphan = sorted(declared - set(measured))
+    if orphan:
+        raise AssertionError(
+            f"register declares a resolution floor for {orphan} that nothing "
+            "measured -- a declaration nobody sweeps is the fail-silent shape "
+            "this register refuses"
+        )
+    out: List[str] = []
+    for dim in sorted(measured):
+        row, entry = measured[dim], register[dim]
+        got = row["floor_days"]
+        want = entry.get("own_readable_resolution_floor_days")
+        if got is None:
+            out.append(
+                f"{dim}: declares a readable resolution floor of {want}d and "
+                "the sweep found NO readable movement anywhere on the "
+                "book-derived grid -- a figure that resolves nothing must say "
+                "so, not name a number"
+            )
+        elif int(got) != int(want):
+            out.append(
+                f"{dim}: declares its published figure resolves no memory "
+                f"error smaller than {want}d and the sweep measures {got}d "
+                f"(per seed {row['per_seed_floor_days']}, epsilon "
+                f"{row['epsilon']:g}) -- a resolution claim that is not this "
+                "figure's is atom D33's finding restated"
+            )
+        # THE BOOK BOUND IS A BOUND, and this is where that is enforced rather
+        # than asserted in prose: a figure may be BLINDER than the book proves
+        # it must be, never sharper.
+        for seed, bound in sorted(row["book_bound_days"].items()):
+            per = row["per_seed_floor_days"].get(seed)
+            if per is not None and int(per) < int(bound):
+                out.append(
+                    f"{dim}: reads a difference at {per}d of forgetting on "
+                    f"seed {seed} where the book proves no observed event can "
+                    f"change side inside {bound}d -- so something other than "
+                    "the memory window is moving this figure"
+                )
+        # THE NOISE WITNESS, kept MEASURED (atom D33). Every collapse run and
+        # saturation edge in this module is derived with bit-equality, so where
+        # the two predicates disagree the register's declared edges are resting
+        # on a difference no consumer can render. Declared exactly, and its
+        # owner is required exactly where the divergence is real -- a named
+        # owner with no divergence is a debt entry outliving its debt.
+        bit, want_bit = (row["bit_equality_floor_days"],
+                         entry.get("own_bit_equality_floor_days"))
+        if want_bit is None:
+            out.append(
+                f"{dim}: no `own_bit_equality_floor_days` declared -- the "
+                "predicate every collapse measurement here uses is unmeasured "
+                "on this dimension, and an unmeasured predicate reads exactly "
+                "like an honest one"
+            )
+        elif bit is None or int(bit) != int(want_bit):
+            out.append(
+                f"{dim}: declares bit-equality reports {want_bit}d and it "
+                f"measures {bit}d -- the witness atom "
+                f"{BIT_EQUALITY_FLOOR_ATOM} is being asked for must stay "
+                "measured or the reshape loses its evidence"
+            )
+        diverges = (bit is not None and got is not None and int(bit) != int(got))
+        owner = entry.get("own_floor_predicate_atom")
+        if diverges and owner != BIT_EQUALITY_FLOOR_ATOM:
+            out.append(
+                f"{dim}: bit-equality reports {bit}d where the reader's own "
+                f"precision reports {got}d, so this dimension's declared "
+                "collapse runs and saturation edges rest on a difference no "
+                f"consumer renders -- and no atom owns it (want "
+                f"{BIT_EQUALITY_FLOOR_ATOM}, got {owner})"
+            )
+        if not diverges and owner is not None:
+            out.append(
+                f"{dim}: names {owner} as owning a predicate divergence the "
+                f"sweep cannot find (both predicates report {got}d) -- a debt "
+                "entry outliving its debt"
+            )
+    return out
+
+
+# The atom that owns the predicate itself: every collapse run and saturation
+# edge in this module is derived with `repr()` bit-equality, so a 1.4e-17
+# difference tells two counterfactual companies apart. Measured, not asserted:
+# `belief_population_mix`'s declared ceiling of -309 is one of those readings.
+BIT_EQUALITY_FLOOR_ATOM = "D33_the_collapse_predicate_is_bit_equality"
+
+
+def _own_floor_clause(dimension: Optional[str]) -> str:
+    """WHAT THIS FIGURE ITSELF RESOLVES (atom D33) -- interpolated from the
+    register per dimension, so the two belief numbers can never again carry one
+    resolution between them.
+
+    An unnamed caller gets an explicit REFUSAL rather than a default: handing
+    the `belief` floor to a caller stamping `belief_population_mix` is the exact
+    defect this clause closes, and a silent default would reinstate it.
+    """
+    floors = {d: (DIMENSION_DRIFT_RESOLUTION.get(d) or {}).get(
+        "own_readable_resolution_floor_days") for d in BELIEF_FLOOR_DIMENSIONS}
+    seeds = "/".join(str(s) for s in RESOLUTION_SEEDS)
+    listed = ", ".join(f"`{d}` {v}d" for d, v in sorted(floors.items()))
+    if dimension is None or dimension not in floors:
+        return (
+            "NO FIGURE WAS NAMED IN THIS CALL, so no per-figure resolution is "
+            f"stated: the belief dimensions do NOT share one ({listed}; "
+            "measured atom D33) and stamping either number on an unnamed "
+            "figure is the defect this clause refuses. "
+        )
+    own = floors[dimension]
+    other = "; ".join(f"`{d}` {v}d" for d, v in sorted(floors.items())
+                      if d != dimension)
+    return (
+        f"AND WHAT THIS FIGURE ITSELF RESOLVES (atom D33): `{dimension}` "
+        f"publishes no readable difference for any memory error smaller than "
+        f"{own}d of forgetting, measured through its own shipped scorer on the "
+        f"offline scenario (n=300, seeds {seeds}, at the {PUBLISHED_GAP_DECIMALS}"
+        f"dp every consumer renders these gaps at) -- against {other}, so the "
+        "belief figures do NOT share a resolution and the number below is a "
+        "bound on the book, not this figure's sensitivity. On a live "
+        "population no sweep has visited, only that bound is measured here. "
+    )
+
+
 def belief_resolution_caveat(
-    resolution: Optional[Dict[str, object]] = None) -> str:
-    """The resolution limit that travels WITH both belief numbers (atom D27).
+    resolution: Optional[Dict[str, object]] = None,
+    dimension: Optional[str] = None) -> str:
+    """The resolution limit that travels WITH both belief numbers (atom D27),
+    now naming WHICH figure it is about (atom D33).
+
+    `dimension` is not optional in spirit: the two belief dimensions have
+    different measured floors (310d and 314d on this book) and carried one
+    byte-identical sentence between them for six Hours. A caller that will not
+    say which figure it is stamping gets the shared bound and an explicit
+    refusal to name a per-figure resolution -- never the sibling's number.
 
     Re-derived from the book each call rather than quoted from the register --
     `score_triad` also scores live `run_phase2b` populations whose event span
@@ -5639,6 +6245,7 @@ def belief_resolution_caveat(
         "lookback window `_arrears_risk_belief` counts inside -- and an event "
         "can only change side if the window falls BELOW its age. "
     )
+    head += _own_floor_clause(dimension)
     if resolution is not None and resolution.get("saturated") is not None:
         if resolution["saturated"]:
             return head + (
@@ -5650,9 +6257,12 @@ def belief_resolution_caveat(
                 "book can fall out of that window, so this figure cannot "
                 "distinguish this company from one that NEVER forgets a "
                 "failure -- the direction that keeps a recovered customer in "
-                "collections -- and the smallest memory error it can resolve "
-                f"at all is {resolution['smallest_visible_shortening_days']}d "
-                "of forgetting. A zero here is not proof the company remembers "
+                "collections -- and NO memory error smaller than "
+                f"{resolution['smallest_visible_shortening_days']}d of "
+                "forgetting can move ANY figure here, because no observed "
+                "event changes side inside it (a BOUND on this book, never a "
+                "figure's own resolution -- atom D33). A zero here is not "
+                "proof the company remembers "
                 "the right amount; it is mostly proof this book is shorter "
                 "than its memory. AND THE OTHER EDGE (atom D29): the youngest "
                 f"observed failure is {resolution['newest_event_age_days']}d "
@@ -6495,13 +7105,20 @@ def score_triad(
     # is one no reader of the number ever sees.
     constant_census = measure_scenario_constant_census(records, as_of)
     census_caveat = scenario_constant_census_caveat(constant_census)
-    bel.note += " " + belief_resolution_caveat(belief_resolution)
+    bel.note += " " + belief_resolution_caveat(belief_resolution, "belief")
     bel.note += " " + census_caveat
     # AND AS COMPONENTS, not only in the prose: the ledger writer, the live
     # wiring and the dashboard take `components` and never read `note`, so a
     # limit only the prose carries is one the machine strips off (D22).
     bel.components["belief_resolution_caveat"] = belief_resolution_caveat(
-        belief_resolution)
+        belief_resolution, "belief")
+    # THIS FIGURE'S OWN FLOOR, as structure and not only prose (atom D33): the
+    # ledger writer, the live wiring and the dashboard read `components`, so a
+    # per-figure resolution the machine strips off is one the reader never gets.
+    bel.components["measured_resolution_floor_days"] = (
+        DIMENSION_DRIFT_RESOLUTION["belief"]["own_readable_resolution_floor_days"])
+    bel.components["book_bound_floor_days"] = belief_resolution.get(
+        "smallest_visible_shortening_days")
     bel.components["belief_window_resolution"] = dict(belief_resolution)
     bel.components["scenario_constant_census_caveat"] = census_caveat
     bel.components["band_owning_constants"] = tuple(
@@ -6533,11 +7150,20 @@ def score_triad(
         "is the pre-2026-08-10 'belief gap' under a name that says what it "
         "measures (atom D19); the per-case headline is the `belief` dimension. "
         + _belief_permutation_note(mix)
-        + " " + belief_resolution_caveat(belief_resolution)
+        + " " + belief_resolution_caveat(belief_resolution,
+                                        "belief_population_mix")
         + " " + census_caveat
     )
     mix.components["belief_resolution_caveat"] = belief_resolution_caveat(
-        belief_resolution)
+        belief_resolution, "belief_population_mix")
+    # FOUR DAYS BLUNTER THAN ITS SIBLING, and the whole of atom D33: this figure
+    # published `belief`'s resolution for six Hours because one function rendered
+    # one sentence for both.
+    mix.components["measured_resolution_floor_days"] = (
+        DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
+            "own_readable_resolution_floor_days"])
+    mix.components["book_bound_floor_days"] = belief_resolution.get(
+        "smallest_visible_shortening_days")
     mix.components["belief_window_resolution"] = dict(belief_resolution)
     mix.components["scenario_constant_census_caveat"] = census_caveat
     mix.components["band_owning_constants"] = tuple(

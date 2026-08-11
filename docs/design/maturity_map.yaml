@@ -2266,7 +2266,7 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 20
+  simplifications_count: 21
   notes_rehomed: [harden_note, level_hold_note]
   expert_hour: {last: '2026-08-11', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
