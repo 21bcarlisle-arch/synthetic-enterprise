@@ -4935,8 +4935,8 @@ def test_a_FAITHFUL_MIRROR_THAT_FINDS_NOTHING_stays_SILENT():
     )
 
 
-def _flipping_population(n=26, *, base=0.18, step=0.02, register=0.79, inferred_bias=0.98,
-                         heat=8400.0, heat_step=1600.0):
+def _flipping_population(n=60, *, base=0.198, step=0.0052, register=0.694,
+                         inferred_bias=0.972, heat=6985.0, heat_step=864.0):
     """A panel where the mirror ACTUALLY FLIPS the money verdict, on BOTH sides of the
     flip and with neither side resting on one house.
 
@@ -4954,6 +4954,26 @@ def _flipping_population(n=26, *, base=0.18, step=0.02, register=0.79, inferred_
     That it took 400 draws is worth writing down rather than smoothing over: a
     composition flip that survives an error bar on both sides is RARE, and the old
     suite made it look routine.
+
+    THE SEARCH RAN AGAIN UNDER THE EIGHTH HOUR'S RULE (2026-08-11), and the previous
+    winner did not survive it. `panel_mirror_is_attributable` now needs the artefact
+    share RESOLVED below its band, not merely a point estimate below it — and the
+    26-home panel above read 0.2223 with a 95% interval of [0.089, 0.592], which
+    spans the band. So the 2x2's flipped+faithful cell — the one the whole mechanism
+    exists to protect, a composition finding stated flat with no hedge — was pinned
+    on a panel that could not resolve the fidelity it asserts. That is the sixth
+    Hour's own lesson (a control set needs the SEPARATING population, and three of
+    four cells were theatre until one was searched for) landing on the cell that
+    survived it.
+
+    Searched the same way: 700 draws, 13 of which flip a resolvable verdict into a
+    different resolvable one, 8 of those resolved-faithful. These defaults are the
+    tightest — 60 homes, artefact share 0.1690 with a 95% interval of [0.123, 0.230]
+    entirely under the 0.50 band, off the 29 of 60 premises the mirror moved, and
+    largest premise 26% of the base margin and 6% of the mirrored one. Worth
+    recording that the cell was REACHABLE: had it not been, moving the gate onto the
+    interval would have made an always-red control, which is a defect and not a
+    repair.
     """
     return [
         fgl.FabricObservation(
@@ -5329,8 +5349,19 @@ def test_the_WEIGHT_ARTEFACT_GATE_CAN_PASS_so_it_is_not_an_ALWAYS_RED_DETECTOR()
     Here the mirror moves the deciding margin substantially and the weight-only null
     accounts for less than half of that movement: the sign flip did the work, so the
     verdict is a statement about the stock and may be read as one.
+
+    THE PASSING POPULATION MOVED, 2026-08-11 (EIGHTH HOUR), AND THAT IS THE FINDING.
+    This test used to prove the gate could pass on `_observations(n=10, epc_bias=1.10,
+    inferred_bias=0.90)`, whose share is 0.4711 — inside the band by 0.029, on a 95%
+    interval of [0.414, 0.561] that spans it. So the demonstration that this control
+    is not always-red was itself a panel that could not resolve which side of the band
+    it sat on, and the gate has read the interval since. A pass had to be searched
+    for rather than assumed; see `_flipping_population`, whose share is 0.1690 on
+    [0.123, 0.230], wholly under the band. Had no such panel existed, moving the gate
+    onto the interval would have created an always-red control and the repair would
+    have been the defect.
     """
-    rows = _observations(n=10, epc_bias=1.10, inferred_bias=0.90)
+    rows = _flipping_population()
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     moved_by_mirror = (
         verdict.panel_mirror_forgone_inferred_gbp - verdict.panel_mirror_forgone_epc_gbp
@@ -5338,9 +5369,155 @@ def test_the_WEIGHT_ARTEFACT_GATE_CAN_PASS_so_it_is_not_an_ALWAYS_RED_DETECTOR()
     assert moved_by_mirror != 0.0, "a passing case must be a MEASURING case"
     assert verdict.panel_mirror_weight_artefact < fgl.MIRROR_WEIGHT_ARTEFACT_BAND
     assert verdict.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    # ...and it passes RESOLVED, which is the property the gate now reads. A point
+    # estimate under the band is no longer a pass, so a fixture that only cleared it
+    # that way would prove nothing about the live rule.
+    lo, hi = verdict.panel_mirror_weight_artefact_interval
+    assert hi <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND, (
+        f"the always-red proof must clear the band on its INTERVAL, not on its point "
+        f"estimate; [{lo:.3f}, {hi:.3f}]"
+    )
+    assert verdict.panel_mirror_attribution == "attributable"
     assert verdict.panel_mirror_is_attributable
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+
+
+def test_the_GATE_REFUSES_A_POINT_ESTIMATE_WHOSE_INTERVAL_STRADDLES_ITS_BAND():
+    """THE EIGHTH HOUR'S NAMED DEFECT, on a panel built to be exactly it.
+
+    `panel_mirror_is_attributable` compared a point estimate to the band with no
+    statement of whether the panel could resolve which side of it the share sat on.
+    Measured on real subpanels of this atom's own published 200-premise population —
+    whose own share is 0.7307, above the band, so no subpanel of it has an honest
+    `attributable` — the point rule certified 50% / 37% / 30% / 15% of panels at
+    n=20 / 30 / 50 / 100, and at n=100 fourteen of one hundred and twenty of those
+    carried a DECISIVE money verdict, which is the case where a certified mirror
+    publishes "no composition effect" as a finding.
+
+    The panel below is that shape in miniature: almost every premise carries a small
+    artefact and a few carry a large one, so the mean sits under the band while the
+    resample reaches well over it.
+    """
+    moves = [(100.0, 10.0)] * 15 + [(100.0, 220.0)] * 3
+    v = _verdict_with_moves(moves)
+    lo, hi = v.panel_mirror_weight_artefact_interval
+    assert v.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND, (
+        "the fixture must PASS the old point rule, or it is not this defect"
+    )
+    assert lo <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND < hi, (lo, hi)
+    assert v.panel_mirror_attribution == "unresolved"
+    assert not v.panel_mirror_is_attributable
+
+
+def test_UNRESOLVED_IS_NOT_THE_SAME_CLAIM_AS_MEASURED_ABOVE_THE_BAND():
+    """Three states, not two, and the sentence must say which one fired.
+
+    Collapsing `unresolved` into `unattributable` would publish "the re-weighting
+    artefact is above the band" as a MEASUREMENT on a panel that measured no such
+    thing. One is a finding about the instrument; the other is a statement about the
+    evidence, and a reader acts differently on them: the first says this mirror is
+    the wrong instrument for this panel, the second says get more homes.
+
+    THE THIRD PANEL IS THE ONE THAT MAKES THIS A CONTROL (2026-08-11, and it was
+    added because the mutation sweep said so). The first cut used only a panel whose
+    share is UNDER the band and unresolved, and one whose share is OVER it and
+    resolved — on both of which "which side is the point estimate on" and "what did
+    the panel resolve" give the SAME answer. So a mutation that keyed this sentence
+    back to the point estimate, which is the defect this Hour caught in its own
+    repair an hour after landing it, survived the whole set. A control set with no
+    population where the controlled thing varies is a control that cannot fail: the
+    sixth Hour's finding, arriving in the test written to pin the eighth's.
+
+    `straddles_from_above` is that population, and it is not exotic — it is the shape
+    of the row this atom actually publishes (share 0.7307, 95% [0.359, 0.902]).
+    """
+    unresolved = _verdict_with_moves([(100.0, 10.0)] * 15 + [(100.0, 220.0)] * 3)
+    measured = _verdict_with_moves([(100.0, 90.0)] * 18)
+    straddles_from_above = _verdict_with_moves(
+        [(100.0, 100.0)] * 12 + [(100.0, 5.0)] * 6
+    )
+    assert unresolved.panel_mirror_attribution == "unresolved"
+    assert measured.panel_mirror_attribution == "unattributable"
+    assert straddles_from_above.panel_mirror_attribution == "unresolved"
+    assert (
+        straddles_from_above.panel_mirror_weight_artefact
+        > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    ), "the separating panel must read OVER the band point-wise, or it separates nothing"
+    said_unresolved = fgl._why_unattributable(unresolved)
+    said_measured = fgl._why_unattributable(measured)
+    said_straddling = fgl._why_unattributable(straddles_from_above)
+    assert "cannot resolve which side" in said_unresolved
+    assert "above the" not in said_unresolved, (
+        "an unresolved panel may not be reported as a measured breach"
+    )
+    assert "cannot resolve which side" not in said_measured
+    assert "above the" in said_measured
+    # ...and the panel that reads over the band but resolves nothing is reported as
+    # the second, never the first, however the point estimate happens to fall.
+    assert "cannot resolve which side" in said_straddling
+    assert "above the" not in said_straddling, (
+        "a share over the band on an interval that spans it is still an unresolved "
+        "panel; reporting it as a measurement is the defect keyed one level down"
+    )
+    # Both refuse to certify — the distinction is in what the row SAYS, never in
+    # whether the mirror's null is released as a finding.
+    assert not unresolved.panel_mirror_is_attributable
+    assert not measured.panel_mirror_is_attributable
+
+
+def test_a_MISSING_INTERVAL_IS_NEVER_A_PASS_EXCEPT_AT_THE_EXACT_ZERO_CORNER():
+    """FAIL-CLOSED ON AN UNAVAILABLE CHECK (R15 FAIL-SILENT), with the one exception
+    that is exact rather than estimated.
+
+    A panel too small to resample honestly has no interval, and falling back to the
+    point estimate there would put the old rule back exactly where it is least able
+    to carry the claim — a four-home panel is where a point estimate is worth least,
+    not most. The exception is the corner where the mirror moved the deciding margin
+    on NO premise: the share is then an exact reading rather than an estimate, and an
+    interval around an exact quantity is not what decides it.
+    """
+    tiny = _verdict_with_moves([(100.0, 5.0)] * (fgl.MIN_HOMES_FOR_DIVERSITY - 1))
+    assert tiny.panel_mirror_weight_artefact_interval is None
+    assert tiny.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND, (
+        "the fixture must pass the POINT rule, or the fail-open is not on trial"
+    )
+    assert tiny.panel_mirror_attribution == "unresolved"
+    assert not tiny.panel_mirror_is_attributable
+    assert "to resample" in fgl._why_unattributable(tiny)
+    # The exact corner, both branches, and neither needs an interval.
+    still = _verdict_with_moves([(0.0, 0.0)] * 10)
+    assert still.panel_mirror_weight_artefact_interval is None
+    assert still.panel_mirror_attribution == "attributable"
+    annihilated = _verdict_with_moves([(0.0, 400.0)] * 10)
+    assert annihilated.panel_mirror_weight_artefact_interval is None
+    assert annihilated.panel_mirror_attribution == "unattributable"
+
+
+def test_ALL_THREE_ATTRIBUTION_STATES_ARE_REACHABLE_ON_REAL_FIXTURE_POPULATIONS():
+    """A three-valued gate with an unreachable value is a two-valued gate wearing a
+    third name, and this file has already caught itself pinning cells on populations
+    where the controlled thing could not vary (sixth Hour).
+
+    So all three are shown on panels this file builds from beliefs and homes, not
+    from constructed movement pairs.
+    """
+    states = {
+        fgl.composition_verdict(
+            rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+        ).panel_mirror_attribution: tag
+        for tag, rows in (
+            ("flip, faithful", _flipping_population()),
+            ("straddles", _observations(n=10, epc_bias=1.10, inferred_bias=0.90)),
+            (
+                "blunt in GBP",
+                _fixed_offset_population(
+                    n=10, offset=0.02, inferred_bias=2.0, base=0.10, step=0.02
+                ),
+            ),
+        )
+    }
+    assert set(states) == {"attributable", "unresolved", "unattributable"}, states
 
 
 def test_the_ZERO_CORNER_of_the_weight_artefact_splits_NOTHING_HAPPENED_from_CANCELLATION():
@@ -5486,13 +5663,18 @@ def test_the_ARTEFACT_SHARE_AND_ITS_INTERVAL_ARE_READINGS_OF_ONE_STATISTIC():
     saturated = _verdict_with_moves([(1_000.0, 1_000.0)] * 10)
     assert saturated.panel_mirror_weight_artefact_interval == (1.0, 1.0)
     assert saturated.panel_mirror_weight_artefact_interval != (lo, hi)
-    # The interval DISCLOSES; it does not gate. Here it straddles the band and the
-    # verdict still follows the point estimate, which is the whole reason the Hour
-    # repaired the statistic and left the band alone.
+    # THE INTERVAL NOW GATES (2026-08-11, EIGHTH HOUR). It used to only disclose, and
+    # this very panel is why that was wrong: the share reads 0.4711, inside the band
+    # by 0.029, on an interval that spans it — so the old rule certified the mirror on
+    # a panel that had not measured which side of the band it was on. The point
+    # estimate and the gate now part company here, and that parting is the repair.
     assert lo < fgl.MIRROR_WEIGHT_ARTEFACT_BAND < hi
-    assert v.panel_mirror_is_attributable is (
-        v.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
-        and v.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    assert v.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert v.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    assert v.panel_mirror_attribution == "unresolved"
+    assert not v.panel_mirror_is_attributable, (
+        "a straddling interval is not a pass — the point estimate being inside the "
+        "band is the defect this reading exists to catch, not evidence against it"
     )
 
 
@@ -5576,12 +5758,16 @@ def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED():
         "both halves fired on this panel; a sentence reporting one of two live "
         "faults leaves the reader to assume the other is clean"
     )
-    # And it may never explain an INCONCLUSIVE that the gate did not raise.
+    # And it may never explain an INCONCLUSIVE that the gate did not raise. The
+    # population here moved 2026-08-11 (eighth Hour) for the same reason the always-red
+    # proof did: `_observations(n=10, epc_bias=1.10, inferred_bias=0.90)` is no longer
+    # attributable — its share straddles the band — so it now has a reason to give and
+    # would not have raised. A test of "the sentence and the gate fail together" has to
+    # be run on a panel the gate actually passes.
     with pytest.raises(fgl.InsufficientEvidence):
         fgl._why_unattributable(
             fgl.composition_verdict(
-                _observations(n=10, epc_bias=1.10, inferred_bias=0.90),
-                unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+                _flipping_population(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
             )
         )
 

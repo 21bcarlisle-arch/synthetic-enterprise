@@ -4665,6 +4665,81 @@ class CompositionVerdict:
         return abs(yardstick) / magnitude
 
     @property
+    def panel_mirror_weight_artefact_resolution(self) -> str:
+        """THE MONEY CHANNEL'S ANSWER AS THREE STATES, DECIDED BY THE INTERVAL AND NOT
+        BY THE POINT ESTIMATE (2026-08-11, eighth Expert Hour).
+
+        `attributable` — the panel resolves the artefact share BELOW the band.
+        `unattributable` — it resolves it ABOVE.
+        `unresolved` — the interval spans the band, so this panel cannot say which.
+
+        THE NAMED DEFECT. `panel_mirror_is_attributable` compared the point estimate
+        to the band with no statement of whether the panel could resolve which side
+        of it the share sat on. Measured on real subpanels of this atom's OWN
+        published 200-premise population — whose share is 0.7307, comfortably above
+        the band, so every honest answer on a subpanel of it is `unattributable` or
+        `unresolved` — the point rule returned `attributable` on 50% / 37% / 30% /
+        15% of panels at n=20 / 30 / 50 / 100. On the worst of them the share was
+        estimated from FOUR moved homes and its 95% interval was [0.000, 1.000], the
+        whole of the range the band divides, and the gate certified the mirror
+        anyway. At n=100, 14 of 120 real subpanels certified while carrying a
+        DECISIVE money verdict — which is the case that costs a reader something,
+        because a certified mirror that does not flip publishes "no composition
+        effect" as a finding.
+
+        The failure signature is NOT the fourth Hour's "flat in N": the point rule's
+        error rate does fall with N. It is that the point rule never learns it cannot
+        resolve — at n=100 the interval reading certifies 0 of 120 panels while the
+        point rule still certifies 14.
+
+        WHY THREE STATES AND NOT TWO. Collapsing `unresolved` into `unattributable`
+        would publish "the artefact is above the band" as a measurement on panels
+        that measured no such thing, and the two are different claims: one is a
+        finding about the instrument, the other is a statement about the evidence.
+        `_why_unattributable` names which fired, so the row cannot say one and mean
+        the other.
+
+        FAIL-CLOSED ON A MISSING INTERVAL, with one exact exception. Where the panel
+        is too small to resample the answer is `unresolved`, never a fall-back to the
+        point estimate: an unavailable check is a FAILED check (R15 FAIL-SILENT), and
+        a small panel is exactly where the point estimate is least able to carry the
+        claim. The exception is the ZERO CORNER, where the mirror moved the deciding
+        margin on no premise at all — there the share is an exact reading (0.0 where
+        the null moved nothing either, infinity where it did) rather than an estimate,
+        and an interval around an exact quantity is not the thing that decides it.
+        """
+        if self.panel_mirror_margin_move_gbp == 0.0:
+            # The exact corner, split by `panel_mirror_weight_artefact` itself.
+            return (
+                "attributable"
+                if self.panel_mirror_weight_artefact <= MIRROR_WEIGHT_ARTEFACT_BAND
+                else "unattributable"
+            )
+        interval = self.panel_mirror_weight_artefact_interval
+        if interval is None:
+            return "unresolved"
+        lo, hi = interval
+        if hi <= MIRROR_WEIGHT_ARTEFACT_BAND:
+            return "attributable"
+        if lo > MIRROR_WEIGHT_ARTEFACT_BAND:
+            return "unattributable"
+        return "unresolved"
+
+    @property
+    def panel_mirror_attribution(self) -> str:
+        """The whole gate as three states — both channels combined, worst first.
+
+        A measured breach in EITHER channel is a finding and outranks an unresolved
+        one; an unresolved channel outranks a clean one. The register channel has no
+        interval because under the level-preserving reflection it is exact by algebra
+        (the third Hour), so it contributes only `unattributable` or `attributable`.
+        """
+        if self.panel_mirror_register_infidelity > MIRROR_FIDELITY_BAND:
+            return "unattributable"
+        money = self.panel_mirror_weight_artefact_resolution
+        return money
+
+    @property
     def panel_mirror_is_attributable(self) -> bool:
         """Whether this mirror's verdict — flip OR no flip — may be read as a
         statement about the panel at all.
@@ -4688,11 +4763,14 @@ class CompositionVerdict:
         verdict is built from had moved across a 62.9x spread and the weight-only
         null reproduced 98% of the mirror's movement in the deciding margin. A
         fidelity claim has to cover the channel the consumer reads.
+
+        ONLY A RESOLVED PASS CERTIFIES (2026-08-11, eighth Hour). `unresolved` is not
+        `attributable` — see `panel_mirror_weight_artefact_resolution` for the
+        measurement, and note that this is the CONSERVATIVE half of that repair: it
+        can only take certification away, never grant it, so no verdict this gate
+        released before is newly released now.
         """
-        return (
-            self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
-            and self.panel_mirror_weight_artefact <= MIRROR_WEIGHT_ARTEFACT_BAND
-        )
+        return self.panel_mirror_attribution == "attributable"
 
     @property
     def composition_decided(self) -> bool:
@@ -5550,33 +5628,63 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
             f"{verdict.panel_mirror_reflection}), above the "
             f"{MIRROR_FIDELITY_BAND:.0%} band"
         )
-    if verdict.panel_mirror_weight_artefact > MIRROR_WEIGHT_ARTEFACT_BAND:
+    money = verdict.panel_mirror_weight_artefact_resolution
+    if money != "attributable":
         # PER PREMISE, WITH ITS OWN INTERVAL, AND NEVER AGAIN AS TWO BARE TOTALS
         # (2026-08-11, seventh Hour). This sentence used to quote the weight null's
         # two population sums — the aggregate rule the money verdict above stopped
         # using at the fifth Hour — with no interval on either, as the stated ground
         # for refusing to read that verdict.
+        #
+        # KEYED TO THE RESOLUTION, NOT TO THE POINT ESTIMATE (2026-08-11, eighth Hour,
+        # and caught by this file's own control an hour after the gate moved). A first
+        # cut left this clause on `share > band` while the gate had moved onto the
+        # interval, so a panel whose share read 71% on an interval of [21%, 136%]
+        # printed BOTH "above the 50% band" and "cannot resolve which side of the 50%
+        # band" in one sentence — a measured breach and an unresolvable reading of the
+        # same term, joined by "and". That is the very class these Hours keep finding
+        # (a disclosure keyed to a statistic its gate stopped using) reappearing inside
+        # the repair for it, one level down. The two states share their EVIDENCE and
+        # differ in their CLAIM, so they are one clause with two heads.
         interval = verdict.panel_mirror_weight_artefact_interval
-        band = (
+        span = (
             f", 95% interval [{interval[0]:.0%}, {interval[1]:.0%}]"
             if interval is not None
-            else ""
+            else f", too few premises to resample (under {MIN_HOMES_FOR_DIVERSITY})"
         )
-        reasons.append(
+        evidence = (
             f"{verdict.panel_mirror_weight_artefact:.0%} of the mirror's movement in "
             f"the deciding margin is reproduced by a null panel carrying the same "
             f"re-weighting with NO sign flip in it (GBP "
             f"{verdict.weight_null_margin_move_gbp:,.0f} of "
-            f"{verdict.panel_mirror_margin_move_gbp:,.0f} per premise{band}, across "
+            f"{verdict.panel_mirror_margin_move_gbp:,.0f} per premise{span}, across "
             f"the {verdict.panel_mirror_moved_premises} of {verdict.premises} "
             f"premises the mirror moved; the totals-based rule would have said "
             f"{verdict.panel_mirror_weight_artefact_aggregate:.0%}, with "
             f"{verdict.panel_mirror_margin_cancellation:.0%} of the mirror's and "
             f"{verdict.weight_null_margin_cancellation:.0%} of the null's movement "
-            f"cancelling inside its two sums), above the "
-            f"{MIRROR_WEIGHT_ARTEFACT_BAND:.0%} band — reflecting the truth rescales "
-            f"every premise's annual heat, and the money verdict is built on that"
+            f"cancelling inside its two sums)"
         )
+        if money == "unattributable":
+            reasons.append(
+                evidence + f", above the {MIRROR_WEIGHT_ARTEFACT_BAND:.0%} band — "
+                f"reflecting the truth rescales every premise's annual heat, and the "
+                f"money verdict is built on that"
+            )
+        else:
+            # THE THIRD STATE, AND IT IS A DIFFERENT CLAIM FROM THE TWO ABOVE. Those
+            # say a term was MEASURED outside its band. This says the panel cannot say
+            # which side of the band the term is on — and before the gate read the
+            # interval, the sub-case where the point estimate sat INSIDE the band
+            # published nothing at all, because the mirror was certified. On real
+            # subpanels of this atom's own published population that happened on 14 of
+            # 120 hundred-home panels carrying a decisive money verdict, every one of
+            # them drawn from a parent whose share is 0.7307.
+            reasons.append(
+                evidence + f", and this panel cannot resolve which side of the "
+                f"{MIRROR_WEIGHT_ARTEFACT_BAND:.0%} band that share sits on, so "
+                f"'the instrument is clean' is not something it measured"
+            )
     if not reasons:
         # The gate and this sentence must fail together or the row explains an
         # INCONCLUSIVE it cannot justify.
@@ -5870,6 +5978,15 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_gap_difference_real": v.panel_mirror_gap_difference_real,
         "panel_mirror_gap_difference_relative": v.panel_mirror_gap_difference_relative,
         "panel_mirror_is_attributable": v.panel_mirror_is_attributable,
+        # ...AND WHY, IN THREE STATES (2026-08-11, eighth Hour). The boolean above
+        # cannot distinguish "measured above the band" from "this panel could not
+        # tell", and those are a finding about the instrument and a statement about
+        # the evidence. Both read False, and a reader who sees only the boolean will
+        # take the first.
+        "panel_mirror_attribution": v.panel_mirror_attribution,
+        "panel_mirror_weight_artefact_resolution": (
+            v.panel_mirror_weight_artefact_resolution
+        ),
         "panel_mirror_reflection": v.panel_mirror_reflection,
         "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,
         "direction_bought": v.direction_bought,
