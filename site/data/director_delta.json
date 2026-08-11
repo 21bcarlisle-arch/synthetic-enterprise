@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T16:56:20.044761+00:00",
+  "generated_at": "2026-08-11T18:00:16.228109+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -23,7 +23,7 @@
   "changes": [
     "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
     "1 daemon(s) went stale: discovery-daemon",
-    "total_open_atoms: 55 -> 103"
+    "total_open_atoms: 55 -> 104"
   ],
   "detail": {
     "new_decisions": [],
@@ -42,7 +42,7 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 103
+        "to": 104
       }
     ]
   },
@@ -74,11 +74,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 103
+    "open_atoms": 104
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-11T16:29:24.272276+00:00",
-    "health_last_updated": "2026-08-11T16:56:09.493280+00:00",
+    "reserved_generated_at": "2026-08-11T17:33:42.685698+00:00",
+    "health_last_updated": "2026-08-11T17:59:54.804734+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
