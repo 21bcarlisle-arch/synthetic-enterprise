@@ -39,20 +39,34 @@ file existed only to work around the import cycle that pass removed.
 
 SCOPE OF THAT CUT, stated precisely because the honest boundary matters: pass 1
 removed the ONE `saas.reporting` edge, which is the edge that closed the
-reporting import CYCLE. This module still imports 14 company-side packages
-directly (`saas.bill_generator`, `saas.customers`, `company.billing.*`, …) —
-they are class-(b) crossings in `LEGACY_SIM_READS_COMPANY` and remain the
-densest such source in the codebase. Paying those down is KNIFE passes 2 and 3,
-not this one. Do NOT read "pure library" as "wall-clean": it is cycle-free and
-composition-free, nothing more.
+reporting import CYCLE. Do NOT read "pure library" as "wall-clean": it is
+cycle-free and composition-free, nothing more.
+
+WHAT IS LEFT OF THE CROSSINGS, as of step 14 (2026-08-11). Pass 1 left 14
+company-side packages imported directly. KNIFE pass 3 has since taken bill
+assembly (step 11, §3f of the disposition register) and the month-end accounting
+close (step 14, §3i), leaving SEVEN — and they are two coherent groups plus one
+residual, not seven loose items:
+
+  * the customer-value builders — `saas.churn_model`, `saas.cost_to_serve`,
+    `saas.enterprise_value`, `saas.home_move_win_rate`;
+  * the billing-experience builders — `saas.contact_model`,
+    `saas.payment_behaviour`;
+  * `company.billing.dd_review_runner`, which §3h records as a ROUTING residual
+    (the world threads the desk's own register into the report) rather than a
+    decision the world takes.
+
+Each group is one company process this module is currently orchestrating. The
+live count is never maintained by hand here — `tools/wall_crossing_dispositions.py`
+prints it from the walker, and this docstring disagreeing with it is a defect in
+this docstring.
 """
 
-import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.billing.dd_review_runner import run_annual_reviews
-from company.billing.pre_bill_validation import validate_bills
+from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import assemble_monthly_bills
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
@@ -64,7 +78,6 @@ from company.interfaces.supply_book import (
 )
 from saas.enterprise_value import build_enterprise_value
 from saas.home_move_win_rate import build_home_move_win_rates
-from saas.ledger import build_ledger, derive_pnl, ledger_summary, make_cost_to_serve_event
 from saas.payment_behaviour import build_payment_behaviour
 from simulation.arrears_engine import (
     compute_emergent_bad_debt,
@@ -335,50 +348,29 @@ def main(report_end: str | None = None, policy=None):
     # ("Cost to Serve") stops always netting to £0 against the non-zero
     # figure `cost_to_serve` (above) already reports for pricing/CLV.
     cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(all_records, all_customers)
-    extra_events = (
-        phase2b_result.get("acquisition_spend_events", [])
-        + phase2b_result.get("fixed_cost_events", [])
-        + [make_cost_to_serve_event(e["month"], e["amount_gbp"]) for e in cost_to_serve_ledger_events]
-    )
-    # BILL_TO_LEDGER_LINKAGE.md (2026-07-12): a HELD bill (pre_bill_
-    # validation.py's Tier-1 gate) has NOT been issued to the customer --
-    # recognising its revenue in the ledger P&L before that gate clears it
-    # is a real accounting error (revenue recognition without an issued
-    # bill), confirmed live: this run's own held_bill_count means
-    # ledger_pnl.total_billed_gbp previously counted an un-issued bill's
-    # total_amount_gbp as recognised revenue. Only ISSUED (validate_bills()-
-    # passing) bills feed the ledger's revenue recognition; `bills` itself
-    # (the full, unfiltered list, held ones included) is left untouched for
-    # every other consumer (per-customer views, the exception queue tools/
-    # generate_billing_ledger.py builds separately) -- this fix is scoped
-    # to ledger revenue recognition specifically, not a wider bill-list change.
-    issued_bills, _held_bills_excluded_from_ledger = validate_bills(bills)
-    ledger_events = build_ledger(
-        all_records, issued_bills, payment_behaviour_module,
-        extra_events=extra_events or None,
-    )
-    ledger_pnl = derive_pnl(ledger_events)
-    ledger_meta = ledger_summary(ledger_events)
 
-    # BILL_TO_LEDGER_LINKAGE.md Tier-1 invariant: the ledger's recognised
-    # billed revenue must reconcile to the penny with the bills that
-    # actually fed it. A whole-run aggregate check, not a per-bill gate --
-    # logged loudly rather than raising (this pipeline run already takes
-    # ~100 minutes; a divergence here is a real defect worth a visible flag,
-    # not a reason to discard a completed run), and surfaced on the report
-    # itself so it lands on a business surface, not just a log line.
-    from company.compliance.domain_invariants import check_billed_clock_reconciles
-    billed_clock_reconciles = check_billed_clock_reconciles(
-        ledger_pnl.get("total_billed_gbp", 0.0), issued_bills
+    # KNIFE pass 3 (`A_composition_lift` step 14, 2026-08-11): the supplier's
+    # month-end close moved to `company/finance/accounting_close.py`, reached
+    # through `company/interfaces/accounting_close.py`. The Tier-1 issuance
+    # gate, the chart of accounts, the P&L derivation and the billed-clock
+    # reconciliation are the company's own routine, not world physics. What is
+    # left here is the world's half: hand over the settled records and the
+    # spend/cost-to-serve schedules, take back the closed books.
+    #
+    # The BILL_TO_LEDGER_LINKAGE.md reasoning that used to be inlined here
+    # (a HELD bill has not been issued, so its revenue must not be recognised;
+    # `bills` itself stays the full unfiltered list for every other consumer)
+    # moved WITH the gate it justifies, into that module's docstring.
+    books = close_the_books(
+        all_records,
+        bills,
+        acquisition_spend_events=phase2b_result.get("acquisition_spend_events", []),
+        fixed_cost_events=phase2b_result.get("fixed_cost_events", []),
+        cost_to_serve_ledger_events=cost_to_serve_ledger_events,
     )
-    if not billed_clock_reconciles:
-        print(
-            "WARNING: billed-clock invariant VIOLATED -- ledger_pnl.total_billed_gbp "
-            "does not reconcile with the sum of issued bills. See "
-            "BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS "
-            "(company/compliance/domain_invariants.py)."
-        )
-    ledger_meta["billed_clock_reconciles_with_issued_bills"] = billed_clock_reconciles
+    ledger_events = books.events
+    ledger_pnl = books.pnl
+    ledger_meta = books.meta
 
     return {
         "phase2b": phase2b_result,

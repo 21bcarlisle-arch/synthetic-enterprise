@@ -208,6 +208,16 @@ the separation described in this block for `run_phase4c_on_phase2b`: bill assemb
 the last paragraph above says B5's residual and B4's remainder are waiting for NOW EXISTS —
 `company/billing/monthly_bill_assembly.py`. Neither push is built; both are unblocked. What remains
 of this design is `run_phase2b` (32 direct + 2 indirect) and `run_phase4c_on_phase2b`'s remaining 10.
+
+STEP 14, 2026-08-11 (§3i) took three of those ten: the supplier's month-end CLOSE — issuance gate,
+account-6100 shaping, double-entry posting, P&L, billed-clock reconciliation — moved to
+`company/finance/accounting_close.py` behind `company.interfaces.accounting_close`. SEVEN remain on
+that module and they are TWO GROUPS, not seven items: the customer-value builders (`churn_model`,
+`cost_to_serve`, `enterprise_value`, `home_move_win_rate`) and the billing-experience builders
+(`contact_model`, `payment_behaviour`); the eighth, `dd_review_runner`, is §3h's routing residual.
+Take them as groups — each is one company process the world is currently orchestrating, and cutting
+a group is what makes the seam a door rather than a re-export. `run_phase2b`'s 32 + 2 are untouched
+and remain the bulk of this design.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
@@ -743,6 +753,98 @@ a routing residual, not a decision the world takes.
 
 ---
 
+## 3i. The month-end close is the supplier's own — added 2026-08-11 (step 14)
+
+**3 edges cut, 48 → 45 live (46 → 43 direct; the 2 indirect untouched, and again that is the
+proof). `A_composition_lift`, the company-side half of `run_phase4c_on_phase2b`, continued from
+§3f.** Ten crossings remained on that module after bill assembly; three of them were one process.
+
+`main()` ran the supplier's month-end itself: it partitioned the bill list through
+`company/billing/pre_bill_validation.py`'s Tier-1 issuance gate, shaped the customer-value layer's
+cost-to-serve schedule into account-6100 events with `saas.ledger.make_cost_to_serve_event`, merged
+those with the run's acquisition-spend and fixed-cost events, posted the double-entry ledger,
+derived the P&L, summarised it, and then checked
+`company.compliance.domain_invariants.check_billed_clock_reconciles` against the result — the last
+of those through a function-scope import buried 350 lines into the file.
+
+Not one of the five steps is world physics. A real supplier changes its issuance gate, its chart of
+accounts, its revenue-recognition policy and its month-end reconciliation without telling anyone.
+The world's contribution is the SETTLED RECORDS — what physically flowed — plus two spend schedules
+it already emitted as data. All of it now goes through `company/interfaces/accounting_close.py` into
+`company/finance/accounting_close.py`, which returns an `AccountingClose`.
+
+### The read direction, again, because it is what separates a cut from a file move
+
+`company/finance/accounting_close.py` imports nothing from `simulation/` or `sim/`. The settled
+records arrive as plain dicts through the signature. Moving the close with a world import intact
+would have traded three class-(b) crossings for class-(a) ones — the strictly forbidden direction,
+at zero and staying there. Same test §3f applied to bill assembly, and it is enforced the same way:
+`tests/company/interfaces/test_accounting_close_seam.py` runs a real close in a clean interpreter
+and asks `sys.modules` which world modules loaded, because a LAZY in-function import is invisible to
+the static ratchet by that file's own documented limit. The mutation performs exactly that import
+and the control fires.
+
+### Behaviour is unchanged BY CONSTRUCTION, and then measured anyway
+
+Nothing is reimplemented: the same five functions are called with the same arguments in the same
+order, including the `extra_events or None` collapse, which is preserved verbatim so there is not
+even an empty-list-versus-None question to argue. That is the §3f-class claim.
+
+It is nevertheless MEASURED, because "by construction" is exactly what a dropped step also looks
+like from the outside. The seam test transcribes the PRE-CUT inlined sequence from the source it
+was lifted out of — not from the module under test, which would be a mirror — and asserts the
+door's `events`, `pnl` and `meta` are identical over a fixture carrying two customers, three
+settlement records, two issuable bills, one HELD bill and both spend schedules. Two mutations prove
+it can fail: dropping the issuance gate, and reordering the merged extra events.
+
+The reorder mutation is worth recording because the OBVIOUS version of it cannot fail.
+`build_ledger` sorts by `(timestamp, settlement_period, event_type)` with a stable sort, so swapping
+the acquisition and fixed-cost schedules changes nothing — those two differ in `event_type` and the
+sort is total over them. Order is observable only where the key TIES, so the control uses two
+acquisition events in the same month. A reorder control built on the obvious swap would have been a
+control that cannot fail, which R15 rates worse than none.
+
+### THE TAUTOLOGY THIS CUT CREATES, stated because moving code created it
+
+The billed-clock invariant asks whether the ledger's recognised revenue reconciles with the bills
+that fed it. Before this step, `validate_bills(...)` and `check_billed_clock_reconciles(...)` sat in
+different paragraphs of a 419-line run module. They are now four lines apart in one function, and
+that adjacency is a live hazard: feed the UNFILTERED bill list to `build_ledger` *and* to
+`check_billed_clock_reconciles` and the invariant returns True while the held bill's revenue is
+recognised — a real accounting error, green suite. It is the R15 TAUTOLOGY pattern exactly: the
+checked value derived from the same source it checks. The invariant is a control only while its two
+sides come from different populations.
+
+This is NOT a defect introduced by the cut — the same tautology was available before, at greater
+typing distance — and it is not repaired by argument. The seam test carries an INDEPENDENT control
+that does not consult the flag at all: it asks the EVENTS whether the held bill's £9,999 was posted,
+and asserts the held half comes back so a caller cannot fail to notice a bill was withheld. Its
+mutation performs the tautology and asserts, in the test body, that the invariant stayed green —
+so if a future change makes the tautology impossible, the control announces that rather than
+quietly passing.
+
+### What did NOT move, and the count that did not fall as far as it looks like it should
+
+`saas.payment_behaviour` remains a live crossing of the run module. The close no longer receives the
+payment model from the world — it imports the supplier's own credit-risk and bad-debt model
+directly, which is the correct ownership — but `build_payment_behaviour(bills)` is still called
+world-side for the billing-experience output, so the module-level edge survives until that group is
+cut. Stated here rather than left to be discovered from a count of 3 where a reader might have
+expected 4. The model stays injectable for one measured reason, not for symmetry: `build_ledger`
+writes a real `CREDIT_COLLECTIONS_POLICY` decision-log entry per provisioned bill, and a test that
+could not substitute the model would either append to the company's audit trail or never reach the
+provisioning path at all. The seam test asserts the default IS `saas.payment_behaviour` — a `None`
+default would silently drop every payment and bad-debt event from the ledger, which is the
+fail-open shape, not a convenience.
+
+**Seven crossings remain on `run_phase4c_on_phase2b`**, and they are two coherent groups rather than
+a list: the customer-value builders (`saas.churn_model`, `saas.cost_to_serve`,
+`saas.enterprise_value`, `saas.home_move_win_rate`) and the billing-experience builders
+(`saas.contact_model`, `saas.payment_behaviour`), plus `company.billing.dd_review_runner`, whose
+residual §3h already recorded as a routing question rather than a decision.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1168,13 +1270,13 @@ itself.
 
 ---
 
-## 4. The register — all 91 examined crossings, 48 of them still live
+## 4. The register — all 91 examined crossings, 45 of them still live
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
 walker could not see (§3b), making 91 rows. FORTY-THREE have since been CUT — by B1/B3–B8 (§3a,
 including B3's second application at §3g and B4's completion at §3h), by `A_composition_lift` parts
 1 and 2 (§3c/§3e), by the bill-assembly cut (§3f), and one as a side effect of another atom
-entirely — so the tree carries 48 and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
+entirely — so the tree carries 45 and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
 becomes invisible. The live count is not maintained by
 hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
 the two numbers disagreeing is itself the failure the tool exists to raise.
@@ -1268,15 +1370,15 @@ edge: simulation.run_phase4b_on_phase2b -> saas.enterprise_value | disposition=c
 edge: simulation.run_phase4c_on_phase2b -> company.billing.account_adjustment_register | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> company.billing.back_billing | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> company.billing.dd_review_runner | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> company.billing.pre_bill_validation | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> company.compliance.domain_invariants | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> company.billing.pre_bill_validation | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — the Tier-1 issuance gate moved into `company/finance/accounting_close.py` behind `company.interfaces.accounting_close`. Deciding whether a bill is fit to issue is the supplier's own routine; the world never sees the gate, only the closed books.
+edge: simulation.run_phase4c_on_phase2b -> company.compliance.domain_invariants | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — the billed-clock reconciliation moved with the posting it checks. It was a function-scope import inside `main()`, which the walker sees but a reader easily does not; it is now adjacent to the ledger it reconciles, and §3i records the TAUTOLOGY that adjacency creates and the independent control built for it.
 edge: simulation.run_phase4c_on_phase2b -> saas.bill_generator | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> saas.churn_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.contact_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.enterprise_value | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase4c_on_phase2b -> saas.home_move_win_rate | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> saas.ledger | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — double-entry posting, the P&L derivation, the ledger summary and the account-6100 shaping of the cost-to-serve schedule all moved company-side. The world still owns the settled records and the spend schedules; it hands them over as DATA and takes back an `AccountingClose`.
 edge: simulation.run_phase4c_on_phase2b -> saas.payment_behaviour | disposition=owed | design=A_composition_lift
 edge: simulation.run_segments -> saas.growth_mandate | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: the mandate string and the £50/month overhead are the company's own constants, read back out — no sim internal crosses.
 edge: simulation.run_segments -> saas.ledger | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: `make_fixed_cost_event(month, FIXED_COST_MONTHLY)` is handed a month and the company's own constant — no sim internal crosses.

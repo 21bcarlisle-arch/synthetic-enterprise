@@ -46,6 +46,9 @@ map_records:
   - simulation/satisfaction_churn.py
   - simulation/switching_propensity.py
   - tools/pre_commit_test_gate.py
+  - company/finance/accounting_close.py
+  - company/interfaces/accounting_close.py
+  - tests/company/interfaces/test_accounting_close_seam.py
   exit_evidence: "STEP 12 (B3_world_needs_its_own_cap_physics applied a SECOND time -- register 3g), 2026-08-10\
     \ -- this atom is PARTIALLY built and must NOT be re-drawn as if from zero. 1 EDGE CUT, 50 -> 49 LIVE\
     \ (48 -> 47 direct; the 2 indirect deliberately UNMOVED again). LEVEL DELIBERATELY STILL 0: run_phase2b\
@@ -266,4 +269,49 @@ map_records:
     \ + test_knife_hotspot_measure.py + tests/controls/ = 320 passed, 1 xfailed, rc 0. python3 -m tools.epistemic_verifier\
     \ PASS over 539 company/+saas/ files. Tool output both modes: working tree AND --at-head each report\
     \ '75 live crossings (72 direct, 3 indirect via a bridge package); 91 ruled' and OK. Ruff I001 fixed\
-    \ at source, never by raising the frozen baseline."
+    \ at source, never by raising the frozen baseline. STEP 14, 2026-08-11 -- THE MONTH-END CLOSE IS THE\
+    \ SUPPLIER'S OWN (A_composition_lift, continuing step 11's company-side half of run_phase4c_on_phase2b).\
+    \ THREE EDGES CUT, 48 -> 45 live (46 -> 43 direct; the 2 indirect untouched, which is again the proof\
+    \ that a bridge route was not silently taken instead): pre_bill_validation, saas.ledger and domain_invariants\
+    \ all left the run module. main() was running the supplier's month-end itself -- partitioning bills\
+    \ through the Tier-1 issuance gate, shaping the cost-to-serve schedule into account-6100 events, posting\
+    \ the double-entry ledger, deriving the P&L, then checking the billed-clock invariant against the\
+    \ result through a function-scope import buried 350 lines in. None of it is world physics; a real\
+    \ supplier changes all five without telling anyone. Now company/finance/accounting_close.py behind\
+    \ company/interfaces/accounting_close.py, returning an AccountingClose. THE READ DIRECTION IS THE\
+    \ CUT, same test as step 11: the close imports nothing from simulation/ or sim/ -- settled records\
+    \ arrive through the signature -- so no class-(a) edge is traded for the class-(b) ones, and that\
+    \ is proven BEHAVIOURALLY (a real close in a clean interpreter, then sys.modules) because a lazy in-function\
+    \ import is invisible to the static ratchet by its own documented limit; the mutation performs exactly\
+    \ that import and the control fires. BEHAVIOUR IDENTICAL BY CONSTRUCTION AND MEASURED ANYWAY -- the\
+    \ seam test transcribes the PRE-CUT inlined sequence from the source it was lifted out of (not from\
+    \ the module under test, which would be a mirror) and asserts events/pnl/meta identical over 2 customers,\
+    \ 3 settlement records, 2 issuable bills, 1 HELD bill and both spend schedules. THE FINDING THIS BUILD\
+    \ TURNED UP, and it is an R15 TAUTOLOGY the cut itself creates: validate_bills() and check_billed_clock_reconciles()\
+    \ are now four lines apart in one function, and feeding the UNFILTERED bill list to both leaves the\
+    \ invariant GREEN while a held bill's revenue is recognised -- the checked value derived from the\
+    \ same source it checks. Not repaired by argument: the seam test carries an INDEPENDENT control that\
+    \ never consults the flag (it asks the EVENTS whether the held bill's money was posted), and its mutation\
+    \ asserts in the test body that the invariant stayed green, so if a future change makes the tautology\
+    \ impossible the control announces that rather than quietly passing. A SECOND CONTROL THAT COULD NOT\
+    \ FAIL WAS CAUGHT AND REBUILT: the obvious reorder mutation (swap the acquisition and fixed-cost schedules)\
+    \ is unobservable, because build_ledger sorts by (timestamp, settlement_period, event_type) with a\
+    \ stable sort and those two differ in event_type -- order is observable only where the key TIES, so\
+    \ the control now uses two same-month acquisition events. WHAT DID NOT FALL, stated rather than left\
+    \ to be inferred from a count of 3 where a reader might expect 4: saas.payment_behaviour survives,\
+    \ because build_payment_behaviour(bills) is still called world-side for the billing-experience output\
+    \ -- the close imports the supplier's own payment model directly now, but the module-level edge waits\
+    \ on that group. The model stays injectable for a measured reason, not symmetry: build_ledger writes\
+    \ a real CREDIT_COLLECTIONS_POLICY decision-log entry per provisioned bill, so a test that could not\
+    \ substitute it would either append to the company's audit trail or never reach the path; the seam\
+    \ test asserts the default IS saas.payment_behaviour, since a None default would silently drop every\
+    \ payment and bad-debt event (the fail-open shape). SEVEN CROSSINGS REMAIN on that module and they\
+    \ are TWO GROUPS plus one residual, not seven items -- the customer-value builders (churn_model, cost_to_serve,\
+    \ enterprise_value, home_move_win_rate), the billing-experience builders (contact_model, payment_behaviour),\
+    \ and dd_review_runner, which section 3h already ruled a ROUTING residual. EVIDENCE: 312 passed across\
+    \ tests/architecture/test_epistemic_wall_ratchet.py + test_epistemic_wall_single_source.py + tests/tools/test_wall_crossing_dispositions.py\
+    \ + test_knife_hotspot_measure.py + tests/company/interfaces/ (the new seam test's 11 included); python3\
+    \ -m tools.epistemic_verifier PASS over 545 company/+saas/ files; tools/wall_crossing_dispositions.py\
+    \ rc 0 reporting '45 live crossings (43 direct, 2 indirect via a bridge package); 91 ruled (cut 46,\
+    \ owed 45, grandfathered 0)'. level_current stays 0: 45 of 91 still live, and booking the target at\
+    \ half-paid is the false-completion class."

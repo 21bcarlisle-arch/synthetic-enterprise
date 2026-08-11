@@ -206,6 +206,23 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 # would have traded three class-(b) edges for three class-(a) ones — the
 # forbidden direction, which is at zero and stays there.
 #
+# 2026-08-11, KNIFE pass 3 step 14, same design: three more deleted —
+# `simulation.run_phase4c_on_phase2b -> {company.billing.pre_bill_validation,
+# saas.ledger, company.compliance.domain_invariants}`. The supplier's month-end
+# CLOSE moved to `company/finance/accounting_close.py` behind
+# `company.interfaces.accounting_close`: the Tier-1 issuance gate, the shaping of
+# the cost-to-serve schedule into account-6100 events, double-entry posting, the
+# P&L derivation and the billed-clock reconciliation are all the supplier's own
+# routine, changeable without telling the world anything. The world hands over
+# its settled records and the spend schedules as DATA and takes back closed books.
+#
+# Same inversion test as bill assembly: `company/finance/accounting_close.py`
+# imports nothing from `simulation/` or `sim/` — the records arrive through the
+# signature — so no class-(a) edge is created. `tests/company/interfaces/
+# test_accounting_close_seam.py` proves that BEHAVIOURALLY (a real close in a
+# clean interpreter, then which modules loaded), because a lazy in-function
+# import is invisible to this file by its own documented limit.
+#
 # 2026-08-09, KNIFE pass 2 (atom `KNIFE2_customer_straddle`): 104 -> 88. All
 # SIXTEEN `simulation.* -> saas.customers` edges deleted — the customer module
 # straddling the wall, the single most-reached company module in the codebase.
@@ -273,14 +290,22 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "saas.smart_meter_rollout"),
     ("simulation.run_phase2b", "saas.tariff_pricing"),
     ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner"),
-    ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation"),
-    ("simulation.run_phase4c_on_phase2b", "company.compliance.domain_invariants"),
+    # ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation")
+    # and ("…", "company.compliance.domain_invariants") -- 2 tuples DELETED
+    # 2026-08-11 by `A_composition_lift` step 14, with `saas.ledger` below. The
+    # supplier's month-end close moved to `company/finance/accounting_close.py`
+    # behind `company.interfaces.accounting_close`. See the block comment above.
     ("simulation.run_phase4c_on_phase2b", "saas.churn_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
     ("simulation.run_phase4c_on_phase2b", "saas.cost_to_serve"),
     ("simulation.run_phase4c_on_phase2b", "saas.enterprise_value"),
     ("simulation.run_phase4c_on_phase2b", "saas.home_move_win_rate"),
-    ("simulation.run_phase4c_on_phase2b", "saas.ledger"),
+    # ("simulation.run_phase4c_on_phase2b", "saas.ledger") -- DELETED 2026-08-11,
+    # the third of step 14's edges. `saas.payment_behaviour` below did NOT fall
+    # with it and that is stated rather than left to be inferred: the close
+    # imports the supplier's own payment model directly now, but
+    # `build_payment_behaviour(bills)` is still called world-side for the
+    # billing-experience output, so the edge survives until that group is cut.
     ("simulation.run_phase4c_on_phase2b", "saas.payment_behaviour"),
     # ("simulation.run_segments", "saas.{growth_mandate,ledger,property_model,tariff_pricing}")
     # -- 4 tuples DELETED 2026-08-10 by `A_composition_lift` PART 2. The file moved to
