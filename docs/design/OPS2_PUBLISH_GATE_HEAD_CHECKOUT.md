@@ -170,6 +170,20 @@ criterion itself* is a ratio, and its denominator has now lost the race for the 
 > warmed by an earlier launch or the live publisher rather than by this run's own cold phase.
 > The ratio the exit criterion reads is warm/in-tree and those two are re-run together whenever
 > either is owed, so a stale cold can move §2's floor but never the ratio.
+>
+> **That last sentence was a claim in three places — this doc, the tool's comment, and the
+> record's own field name — and in none of them was it code (fixed `5385688bf`, 2026-08-11).**
+> `_load_banked_phases` retired a phase on the strength of a `seconds` alone, whatever commit it
+> was timed at. The live record held warm at `54141b5` ("235 failed, 23069 passed, 14 errors")
+> beside cold at `3ee4541a` ("7 failed, 23249 passed") — not the same suite — and the next launch
+> would have timed the baseline at today's HEAD and divided one by the other. The criterion would
+> then have been settled by the diff between two commits, reported as the cost of the checkout,
+> with `phases_from_an_earlier_head` naming the problem in the artefact the whole time.
+> `_drop_incomparable_ratio_phases` is now the code: the pair is dropped and re-timed together
+> whenever either is owed, a phase carrying no `head_sha_at_run` is dropped too (unprovable is
+> not a pass), cold is exempt because it can only ever *raise* §2's floor, and the drop is named
+> in the record as `dropped_for_comparability` so the next tick can tell a deliberate re-pay from
+> a lost record. R15 both ways in `tests/tools/test_measure_publish_gate_subject_cost.py`.
 
 > **STATUS 2026-08-10 11:22Z — FOURTH launch, and the first one init owns:
 > `python3 -m tools.measure_publish_gate_subject_cost --systemd` → transient unit
@@ -409,3 +423,58 @@ paths ever diverge (read from source, because this suite's conftest monkeypatche
   gate's LIFECYCLE, not what the suite finds; the wedge-clearing work is `OPS3`.
 * **No change to what runs.** Same argv, same marker expression, same heavy ignores, same
   live-box tests observing the live box.
+
+---
+
+## STATUS 2026-08-11 00:00Z — the ratio is being timed at one commit for the first time
+
+**Launch 10, unit `publish-gate-subject-cost.service`, MainPID 3365153, HEAD `5385688bf`.** The
+comparability fix above is live and took effect on this launch's own resume, which is the first
+evidence that it works on a real record rather than a fixture:
+
+```
+[measure] . dropping banked warm_checkout -- timed at another commit than this launch's HEAD
+          (5385688bf), and the exit-criterion ratio may not span commits
+[measure] phase 1/3 COLD -- banked by an earlier launch at 1291.9s, not re-run
+[measure] phase 2/3 WARM -- same directory refreshed in place, bytecode retained
+```
+
+Record: `phases_missing: ["warm_checkout", "in_tree_baseline"]`, `dropped_for_comparability:
+["warm_checkout"]`, cold retained from `3ee4541a` for §2's floor only. **Both sides of the ratio
+will now be timed at `5385688bf`** — ~40 min of suite once the live publisher releases the run
+lock.
+
+### What is still owed on this atom
+
+1. **Criterion 1's number.** Still unmeasured. This launch is the attempt; `complete: true` plus
+   `ratio_warm_over_in_tree` in the record is the evidence, and nothing may fill this doc's table
+   in from anything else.
+2. **A consumer for the ratio.** `meets_exit_criterion` and `ratio_warm_over_in_tree` are computed
+   into the record and **nothing reads either** — the same no-caller shape §2 closed for
+   `implied_timeout_floor_2x`, one field over. Today the only thing that would ever *state*
+   whether the criterion is met is a log line in a detached unit's journal. Deliberately left
+   until the record can answer: a control written now would have only its vacuous branch
+   exercised, which is the fail-open shape this project keeps catching.
+3. **`test_the_gate_timeout_exceeds_the_suites_own_runtime`** (`tests/background/
+   test_process_run_complete.py:1182`) still hard-codes `MEASURED_SUITE_SECONDS = 1291.9` — a
+   second hand transcription of the same phase, which `test_publish_gate_subject_is_head.py`'s own
+   header calls out as a control that "could fail on a typo and on nothing else". The live
+   record-reading control exists beside it; the copy has not been retired.
+
+### The measurement is being OOM-killed in the WAIT, not in the suite
+
+`journalctl` for launch 9 (22:28:49Z → 23:11:10Z):
+
+```
+publish-gate-subject-cost.service: The kernel OOM killer killed some processes in this unit.
+Consumed 17min 4.287s CPU time over 42min 20.971s wall clock, 13.3G memory peak, 1.5G swap peak
+```
+
+It died **42 minutes into `_publisher_exclusion`'s poll**, before timing anything — inside the
+wait, not the work, and short of `QUIET_WAIT_SECONDS` (3800s) so it never reached the deferral
+that was built to make this survivable. Two things in that line are not yet explained and are
+filed rather than fixed here (SELF-INTERRUPT DISCIPLINE — queue, don't fix on sight):
+17 minutes of CPU for a 30-second poll loop, and a 13.3G peak on a 15G box for a process whose
+only job in that window was to hold a lock. See
+`docs/staging/WORKER_FINDING_THE_MEASUREMENT_IS_OOM_KILLED_INSIDE_ITS_OWN_WAIT_2026-08-11.md`.
+The deferral trade assumed the loser of the race gets to *defer*; this one gets killed.
