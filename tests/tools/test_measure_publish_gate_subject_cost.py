@@ -2270,3 +2270,58 @@ def test_the_writer_still_emits_a_basis_beside_every_verdict(out, monkeypatch, t
         assert ("lower bound" in phase["ran_to_completion_basis"]) is (rc < 0), (
             "returncode {} was written up as {!r}".format(rc, phase["ran_to_completion_basis"])
         )
+
+
+def _completed(seconds, sha):
+    return {"seconds": seconds, "returncode": 1, "head_sha_at_run": sha,
+            "ran_to_completion": True}
+
+
+def test_a_ratio_is_refused_when_head_moved_between_its_two_phases(out, monkeypatch, tmp_path):
+    """THE COMPARABILITY RULE REACHES THE WITHIN-LAUNCH PATH, not only the banked one.
+
+    `_drop_incomparable_ratio_phases` runs at LAUNCH against phases inherited from an earlier
+    run. It cannot see a pair timed inside ONE launch at two different commits -- and that is the
+    ordinary case here, not the exotic one: each phase is ~20 minutes on a shared tree where the
+    publisher and other lanes commit every few minutes. Both phases complete, both are ratio-
+    eligible, and the number silently becomes a comparison between two different codebases.
+
+    MUTATION (RUN): delete the `len(spanned) > 1` branch and this reds -- the ratio computes to
+    1.5 across two commits with nothing in the record saying so."""
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    _stub_phases(monkeypatch, [])
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": _completed(1800.0, "aaaaaaaaa"),
+        "in_tree_baseline": _completed(1200.0, "bbbbbbbbb"),
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    rec = _read(out)
+    assert rec["ratio_throwaway_over_in_tree"] is None, (
+        "1800/1200 = 1.5 was reported as the cost of the checkout, but the two runs are of "
+        "different code"
+    )
+    assert "DIFFERENT commits" in rec["ratio_unavailable_because"], (
+        "a null with no cause sends the next reader back to the journal: {!r}"
+        .format(rec.get("ratio_unavailable_because"))
+    )
+    assert "aaaaaaaaa" in rec["ratio_unavailable_because"]
+
+
+def test_a_ratio_at_one_commit_is_still_computed(out, monkeypatch, tmp_path):
+    """The other direction, so the guard above is not just "refuse more". Two completed phases at
+    the SAME commit are exactly what this measurement exists to produce, and a rule that refused
+    them would leave the atom permanently unable to answer its own criterion."""
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(_a_throwaway(tmp_path)))
+    _stub_phases(monkeypatch, [])
+    Path(out).write_text(json.dumps({"phases": {
+        "throwaway_checkout": _completed(1800.0, "aaaaaaaaa"),
+        "in_tree_baseline": _completed(1200.0, "aaaaaaaaa"),
+    }}))
+
+    measure._run_measurement(out, lambda _m: None)
+
+    rec = _read(out)
+    assert rec["ratio_throwaway_over_in_tree"] == 1.5
+    assert "ratio_unavailable_because" not in rec

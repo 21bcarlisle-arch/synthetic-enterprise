@@ -1324,9 +1324,26 @@ def _run_measurement(out_path: str, log) -> int:
         # REFUSED, NOT COMPUTED, when either term did not end under its own control. The number
         # this replaces (1.084, launch 11) divided a completed run by a SIGTERMed one; the reason
         # is named in the artefact so the next reader gets the cause rather than a null.
+        # AND THE COMPARABILITY RULE HAS TO REACH THIS PATH TOO (2026-08-11). The cross-commit
+        # guard lives in `_drop_incomparable_ratio_phases`, which runs at LAUNCH against BANKED
+        # phases -- so it covers a pair inherited from an earlier run and does not cover a pair
+        # timed inside THIS one. That is now the likelier path, not the exotic one: the two phases
+        # are ~20 minutes each on a shared tree where the publisher and other lanes commit every
+        # few minutes, so HEAD moving BETWEEN them is ordinary. Both would be complete, both
+        # eligible, and the ratio would silently span two commits -- the exact defect that
+        # function was written to prevent, arriving through the door it does not watch.
+        # Fail-CLOSED and named, like the completion rule beside it: a ratio is a comparison, and
+        # two runs of different code are not one.
+        spanned = sorted({results["phases"][name].get("head_sha_at_run") for name in RATIO_PHASES})
         ineligible = sorted(name for name in RATIO_PHASES
                             if not _is_ratio_eligible(results["phases"].get(name)))
-        if ineligible or not base:
+        if not ineligible and base and len(spanned) > 1:
+            results["ratio_throwaway_over_in_tree"] = None
+            results["ratio_unavailable_because"] = (
+                "these phases were timed at DIFFERENT commits ({}), so their difference is not "
+                "the subject's cost -- HEAD moved between the two ~20-minute phases"
+                .format(", ".join(str(sha)[:9] for sha in spanned)))
+        elif ineligible or not base:
             results["ratio_throwaway_over_in_tree"] = None
             results["ratio_unavailable_because"] = (
                 "these phases did not run to completion, so their seconds is a lower bound and "
