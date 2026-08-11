@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-10T23:11:31Z
+Last updated: 2026-08-11T07:00:02Z
 
 **THE MACHINE CAN SEE ITS OWN CONTENTION WINDOW — resource-headroom governor LANDED
 (commit `f89afcd96`, pushed), against `ADVISOR_FLAG_RESOURCE_HEADROOM_GOVERNOR_2026-08-09` and
@@ -559,6 +559,36 @@ quality ratchet 13 passed (isort floor unperturbed); `epistemic_verifier` PASS o
 ---
 
 ## PREVIOUS
+
+**H_GAP_fabric Expert Hour #6 — a size measure was answering an attribution question, and the
+caveat it released was FALSE on 101 of 300 fallback panels. Level STAYS 2** (`ccfdb74a8`).
+`MIRROR_FIDELITY_BAND` gated a FAULT (register infidelity, kW/K) *and* the yardstick disclosure on
+the mirror WORKING — two subjects opposite in polarity on one number, with the constant's own
+comment asserting the firewall it did not have. The gate read the DRIFT (a size measure) while the
+sentence it releases claims ATTRIBUTION ("the difference between them is not an accuracy change").
+Those agree under the level-preserving reflection and part in the log fallback: over 300 fallback
+panels the old gate fired on **101** whose difference was majority *genuine* accuracy change —
+worst, that sentence printed over an 18.2% difference that was **68.6% exactly that**.
+
+**The Hour's own opening hypothesis was refuted by the existing suite**, which is the part worth
+keeping: reading the drawn row's silence as a fail-open and gating on attribution alone fired on a
+fixture an earlier Hour had tuned to a 1.1% residual, because under a level-preserving reflection
+the attribution is 100% *by algebra* whenever the gaps differ at all. R10 class: **a size measure
+and an attribution measure are both real and neither answers the other** — hence two terms and two
+bands, not one. R15 **seven source mutations**, each killed by its own named test, md5 byte-clean;
+**three of the first four controls were theatre and the sweep is what said so** (a bit-identical
+vacuity panel; a silent fixture whose two contributions agreed in sign, making the shipped and
+discarded statistics numerically identical; a fires test on a panel where the old gate fires too).
+**No published figure or caveat moved.** Two openers recorded for the next Hour: the `weight_null`
+money totals still carry no interval (and that ratio is what puts *both* published populations on
+MIRROR INCONCLUSIVE today), and this atom's record store is **1,076 B from its 100 KiB cap**, so the
+next Hour cannot record itself — filed as its own finding rather than patched at the end of a tick.
+
+Also landed this tick: **Expert Hour #5, which had been built, green and recorded but never
+committed** (`958411022`) — code, tests and its own record sat uncommitted on the shared tree, which
+is local-green.
+
+---
 
 **KNIFE2_customer_straddle — L0→L2, self-certified. Sixteen simulation modules were reading the
 company's own customer roster directly. They now ask the supply book — which is what the industry
@@ -2108,9 +2138,9 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (282s / 5 min):
+**Latest simulation results (2016–2025)** — auto-processed (483s / 8 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
-- Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
+- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
@@ -2224,6 +2254,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2069.5h across 80 sized atom(s) (13 of 93 below-target atoms still unsized).
+- Remaining effort: ~2104.4h across 83 sized atom(s) (13 of 96 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
