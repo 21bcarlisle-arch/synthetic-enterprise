@@ -919,6 +919,10 @@ Promise.all([
   jget("../data/world.json").catch(function(){return null;}) // period-coverage caveat only; company.json remains the source of record
 ]).then(function(res){
   var d=res[0], w=res[1];
+  // FIRST, and that is the point: this block exists to fix ORDERING (see renderBookMix).
+  // It shipped defined-but-never-called on 2026-08-03 and served "Loading..." to every
+  // live reader for 8 days. Guarded as a CLASS by tests/site/test_door_render_functions_are_wired.py.
+  renderBookMix(d);
   renderState(d);
   renderFinance(d, w);
   renderTrading(d);

@@ -47,17 +47,44 @@ const sandbox = { document, fetch, console, Date, Number, String, Object, Math, 
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
-sandbox.renderCapabilities(caps);
-sandbox.renderCoverage(cov);
-sandbox.renderDecisions(decs);
-sandbox.renderBookMix(d);
-sandbox.renderState(d);
-sandbox.renderFinance(d, world);
-sandbox.renderTrading(d);
-sandbox.renderWholesale(d);
-sandbox.renderHousehold(d);
-sandbox.renderCompliance(d);
-sandbox.renderBuild(d);
+// THE HARNESS MAY NOT SUPPLY A CALL THE PAGE DOES NOT MAKE (R15, 2026-08-11).
+// This list was hand-typed and included `renderBookMix(d)` while the page itself never
+// called it -- so three door tests asserted rendered pixels for a panel that served
+// "Loading..." on the live site for 8 days. The control was a producer of the very
+// evidence it graded. Now the ARGUMENTS stay declared here (the harness is the only
+// thing that knows which payload each function eats) but the CALL SET is derived from
+// the page's own boot path, and a mismatch in either direction is fatal.
+const ARGS = {
+  renderCapabilities: () => [caps],
+  renderCoverage: () => [cov],
+  renderDecisions: () => [decs],
+  renderBookMix: () => [d],
+  renderState: () => [d],
+  renderFinance: () => [d, world],
+  renderTrading: () => [d],
+  renderWholesale: () => [d],
+  renderHousehold: () => [d],
+  renderCompliance: () => [d],
+  renderBuild: () => [d],
+};
+const defined = [...code.matchAll(/^\s*function\s+(render[A-Za-z0-9_]*)\s*\(/gm)].map((m) => m[1]);
+const invoked = defined.filter((fn) => {
+  const direct = [...code.matchAll(new RegExp(`\\b${fn}\\s*\\(`, "g"))]
+    .some((m) => !code.slice(0, m.index).trimEnd().endsWith("function"));
+  const byRef = new RegExp(`[=,(\\[]\\s*${fn}\\s*[,)\\]]`).test(code);
+  return direct || byRef;
+});
+const orphans = defined.filter((fn) => !invoked.includes(fn));
+if (orphans.length) {
+  console.error(`page defines but never invokes: ${orphans.join(", ")}`);
+  process.exit(3);
+}
+const unfed = invoked.filter((fn) => !(fn in ARGS));
+if (unfed.length) {
+  console.error(`page invokes render fns this harness cannot feed: ${unfed.join(", ")}`);
+  process.exit(4);
+}
+for (const fn of invoked) sandbox[fn](...ARGS[fn]());
 
 const ids = [
   "mix-intro", "mix-kpis", "mix-note",
