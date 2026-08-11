@@ -2631,6 +2631,67 @@ def dense_drift_grid(span_days: int = DRIFT_GRID_SPAN_DAYS) -> Tuple[int, ...]:
     return tuple(range(-int(span_days), int(span_days) + 1))
 
 
+# THE SAME DEFECT, ON THE HALF D28 DID NOT REACH (atom D29, Expert Hour #11).
+# D28 fixed the provenance of the TERMS grid and left its own lead standing:
+# `measure_own_drift_resolution` still built the memory sweep from
+# `own_invisible_drifts | own_visible_drifts`, so the belief saturation edge at
+# -308 was an artefact of where D27 happened to sweep rather than a measured
+# boundary. Seventh escape of a register's own keying, and this one was named
+# in the previous Hour's leads -- a lead is not a control.
+#
+# The memory knob admits a grid that is not merely dense but COMPLETE. An event
+# at age `a` is counted iff `a <= window`, so the counted set -- and therefore
+# every reading -- can only change as the window crosses an event age. Between
+# two adjacent event ages the reading is constant BY CONSTRUCTION, so scoring
+# `{a, a-1 : a in ages}` plus the two extremes measures resolution exactly over
+# the whole real line, not just over the swept points. That is strictly
+# stronger than the terms grid's density argument, and it is cheaper: 62-66
+# points per seed (measured: 65/66/62 on seeds 7/11/23, 70 once the three
+# seeds' grids and the register's declarations are unioned) instead of an
+# integer sweep from total amnesia to infinity. The count is a property of the
+# BOOK, not a constant -- a book with more distinct failure ages scores more
+# companies, which is the whole point of deriving it from the book.
+
+
+def book_memory_grid(records: Sequence["PeriodRecord"], as_of: date,
+                     window_days: Optional[int] = None) -> Tuple[int, ...]:
+    """Every company MEMORY drift at which this book's reading can change.
+
+    DERIVED FROM THE BOOK, NEVER FROM THE REGISTER (atom D29), and asserted
+    against its own AST never to reach one. The drift is
+    `organ_failure_window_drift_days`, i.e. `window - DD_FAILURE_WINDOW_DAYS`.
+
+    Three parts, each non-arbitrary:
+
+    * `a` and `a - 1` for every observed failure age `a` -- the window values
+      either side of each event's boundary. These are the ONLY places the
+      counted set changes, so the grid is complete rather than dense.
+    * TOTAL AMNESIA (`window == 0`), the extreme of the parameter: without a
+      second point below the newest event, the low tail holds one grid point
+      and a collapsed run needs two, which is exactly why D27 measured
+      `saturates_below = None` on a book that saturates below.
+    * The SHIPPED company (`drift == 0`), the reading everything is compared
+      against.
+    """
+    window = DD_FAILURE_WINDOW_DAYS if window_days is None else window_days
+    ages = sorted({(as_of - r.due_date).days
+                   for r in records if r.result == "failed"})
+    grid = {0, -int(window)}
+    for a in ages:
+        grid.add(int(a) - window)
+        grid.add(int(a) - 1 - window)
+    return tuple(sorted(grid))
+
+
+# WHICH KNOB GETS WHICH BOOK-DERIVED GRID. A knob absent from this mapping
+# RAISES rather than falling back to the register's declarations: the fallback
+# IS the defect, and a silent one would put the next off-path entry straight
+# back where D27's was (atom D29).
+OWN_DRIFT_BOOK_GRIDS: Dict[str, Callable[..., Tuple[int, ...]]] = {
+    "organ_failure_window_drift_days": book_memory_grid,
+}
+
+
 DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
     "ageing": {
         "drift": "organ_terms_drift_days",
@@ -2711,6 +2772,13 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "saturates_below": -6,
         "saturates_above": 17,
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+        # AN OWNER PER EDGE (atom D29). Both tails of THIS dimension stop for
+        # the one reason -- the book sits nowhere near the grace line -- so
+        # both name D28; the field exists because the belief dimensions' two
+        # tails stop for two DIFFERENT reasons and one field could name only
+        # one of them.
+        "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+        "saturation_atom_above": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         "why": (
             "SET membership by `as_of`, and it is now the register's ONLY "
             "on-path blindness -- D25 spread the book across the billing "
@@ -2761,6 +2829,7 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "saturates_below": -19,
         "saturates_above": None,
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+        "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         "why": (
             "The one dimension that resolves this company to the DAY in both "
             "directions, because D23 gave it a DAILY candidate grid rather "
@@ -2790,17 +2859,37 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # two of five published dimensions had no measured resolution at all.
         "own_drift": "organ_failure_window_drift_days",
         "own_invisible_drifts": (-308, -100, -1, 1, 500),
-        "own_visible_drifts": (-380, -350, -320, -310),
+        # -370 REPLACED -380 (atom D29). -380 does differ from the baseline,
+        # which is all D27's sparse grid could ask -- but it takes the memory
+        # to 20 days on a book whose youngest failure is 30 days old, so it
+        # counts nothing, exactly like total amnesia. That is PROVED by the
+        # population-side predictor rather than merely swept: no event is young
+        # enough to survive any window below 30, so every one of those
+        # companies is one company here. Differing from the scored company is
+        # not resolution; -370 is the first drift the sweep reads apart from
+        # both its neighbours.
+        "own_visible_drifts": (-370, -350, -320, -310),
         "own_debt_atom": "D27_belief_window_saturates_on_this_book",
-        # THE SAME FIELDS THE ON-PATH ENTRIES CARRY, through the same shared
-        # checker (atom D28). Worth reading as the cross-check it is: the
-        # generic rule -- which knows nothing about failure events, windows or
-        # `measure_belief_window_resolution` -- re-derives D27's finding from
-        # the readings alone and puts the saturation edge at the same -308.
-        "own_collapsed_runs": ((-308, -100, -1, 0, 1, 500),),
-        "own_saturates_below": None,
+        # RE-DERIVED ON THE BOOK-DERIVED MEMORY GRID (atom D29, Expert Hour
+        # #11, 66 book points + the declarations, n=300, seeds 7/11/23, every
+        # run identical on all three). D28 gave these fields the shared checker
+        # and D27's sparse grid supplied the readings, so the entry declared
+        # ONE collapse and a bounded band. On a grid the register did not
+        # choose there are FIVE, and the low tail saturates too.
+        "own_collapsed_runs": (
+            (-400, -371), (-358, -357, -356), (-333, -332),
+            (-331, -330), (-308, -100, -1, 0, 1, 500),
+        ),
+        "own_saturates_below": -371,
         "own_saturates_above": -308,
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
+        # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Above: the company's
+        # memory outruns the book (D27). Below: `as_of` sits AS_OF_BUFFER_DAYS
+        # past the last event, so nothing is young enough to survive a short
+        # memory (D29). A single `own_saturation_atom` could name only one, and
+        # named the one that had been looked at.
+        "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
+        "own_saturation_atom_above": "D27_belief_window_saturates_on_this_book",
         "own_why": (
             "UNBOUNDED-BLIND ABOVE, and the shipped company sits 308 days "
             "inside the blind band. The book's oldest observed failure is 92d "
@@ -2822,7 +2911,18 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
             "only company parameter it reads. A design note stood in for a "
             "measurement, which is Hour #5's lesson. Same shape as D25 and "
             "D26: the book has no event sitting BESIDE the boundary this "
-            "dimension reads."
+            "dimension reads. AND IT SATURATES BELOW TOO (atom D29): the "
+            "book's YOUNGEST observed failure is 30d old -- AS_OF_BUFFER_DAYS, "
+            "a second harness constant chosen to remove a confounder -- so "
+            "every company memory of 29 days or less counts nothing at all and "
+            "publishes ONE figure. A supplier that forgets a failed collection "
+            "after three weeks and one that never remembers it are the same "
+            "number here. D27's sparse grid could not see that: a collapsed "
+            "run needs two points and the register's own claims put exactly "
+            "one below the book. Four further interior collapses "
+            "({-358,-357,-356}, {-333,-332}, {-331,-330}) show the sighted "
+            "region is quantised rather than continuous, at exactly the window "
+            "values where this book happens to have no event."
         ),
         "why": (
             "OFF PATH FOR THE TERMS DRIFT -- which is a claim about the "
@@ -2850,30 +2950,48 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "debt_atom": None,
         "exercised_by": "HEADLINE_DIRECTION_COVERAGE",
         "own_drift": "organ_failure_window_drift_days",
-        "own_invisible_drifts": (-308, -100, -1, 1, 500),
-        # -310 is NOT declared either way on purpose: it moves this dimension
-        # on seed 7 and not on 11/23. The register's bands are all-seed claims
-        # (a band that holds on one seed is not structural), so a seed-split
-        # drift belongs in neither list -- and saying so here stops a later
-        # reader "completing" the band from the other dimension's.
-        "own_visible_drifts": (-380, -350, -320),
+        # -309 JOINED THE BAND (atom D29): the sparse grid never scored it, and
+        # it is invisible here on every seed while `belief` splits on it. -310
+        # and -311 are still declared NEITHER way on purpose: they move this
+        # dimension on seed 7 and not on 11/23. The register's bands are
+        # all-seed claims (a band that holds on one seed is not structural), so
+        # a seed-split drift belongs in neither list -- and saying so here
+        # stops a later reader "completing" the band from the other
+        # dimension's.
+        "own_invisible_drifts": (-309, -308, -100, -1, 1, 500),
+        # -370 REPLACED -380 for the same reason as `belief`: -380 sits inside
+        # the low saturated run (atom D29).
+        "own_visible_drifts": (-370, -350, -320),
         "own_debt_atom": "D27_belief_window_saturates_on_this_book",
-        # atom D28, and the -310 the band deliberately leaves undeclared is
-        # visible here for what it is: it is not in this run, because it moves
-        # the reading on seed 7 alone -- an all-seed collapse and a seed-split
-        # drift are different things and the register now says both.
-        "own_collapsed_runs": ((-308, -100, -1, 0, 1, 500),),
-        "own_saturates_below": None,
-        "own_saturates_above": -308,
+        # RE-DERIVED ON THE BOOK-DERIVED GRID (atom D29). This entry is where
+        # the grid's provenance shows most plainly: the register put this
+        # dimension's ceiling at its SIBLING's -308, because -309 was never
+        # scored. It is one day blinder than `belief` -- dropping the oldest
+        # events moves an account's tier without moving the population MIX --
+        # and that is a real difference between two published numbers that the
+        # register asserted away by never asking. The seed-split {-311,-310}
+        # collapse is declared as a collapse, which it is on every seed, while
+        # neither member is declared visible or invisible, which they are not.
+        "own_collapsed_runs": (
+            (-400, -371), (-333, -332), (-311, -310),
+            (-309, -308, -100, -1, 0, 1, 500),
+        ),
+        "own_saturates_below": -371,
+        "own_saturates_above": -309,
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
+        "own_saturation_atom_below": "D29_the_as_of_buffer_floors_the_memory_grid",
+        "own_saturation_atom_above": "D27_belief_window_saturates_on_this_book",
         "own_why": (
             "SATURATED for the same reason as `belief` and one step blunter: "
             "it is the same labels under a distribution distance (atom D19), "
             "so it needs the dropped events to move the population MIX, not "
-            "merely one account's tier. Every window from 92d up publishes a "
-            "bit-identical figure on seeds 7/11/23, and a 310d shortening "
-            "moves `belief` on all three seeds while moving this one on only "
-            "seed 7."
+            "merely one account's tier. Every window from 91d up publishes a "
+            "bit-identical figure on seeds 7/11/23 -- one day EARLIER than "
+            "`belief`, which the register could not see while its grid was its "
+            "own claims -- and a 310d shortening moves `belief` on all three "
+            "seeds while moving this one on only seed 7. It saturates BELOW at "
+            "the same -371d and for the same AS_OF_BUFFER_DAYS reason (atom "
+            "D29)."
         ),
         "why": (
             "OFF PATH FOR THE TERMS DRIFT for the same organ reason as "
@@ -3001,6 +3119,9 @@ def _resolution_population(n_customers: int, seed: int):
 
 _RESOLUTION_POPULATIONS: Dict[tuple, tuple] = {}
 _RESOLUTION_SCORES: Dict[tuple, Dict[str, object]] = {}
+# The memory sweep BUILDS a company per drift, so its cache holds the world it
+# was built over too -- the R13 fingerprint is taken off it (atom D29).
+_OWN_RESOLUTION_SCORES: Dict[tuple, tuple] = {}
 
 
 def _measure_collapse_runs(by_seed: Dict[int, Dict[str, object]],
@@ -3186,7 +3307,14 @@ def measure_own_drift_resolution(
 
     Returns {dimension: {...}} for every entry declaring an `own_drift`, plus
     the differential (`off_target`: dimensions that moved under a knob they do
-    not declare) and the world-invariance witness."""
+    not declare) and the world-invariance witness.
+
+    THE GRID IS THE BOOK'S (atom D29). D28 fixed that for the terms sweep and
+    left this half building its grid from `own_invisible_drifts |
+    own_visible_drifts` -- the register asked exactly where it had already
+    answered, so D27's saturation edge was a property of where D27 swept. The
+    declarations are still UNIONED IN so a declaration outside the grid is
+    scored rather than skipped into a free pass; they no longer DEFINE it."""
     register = DIMENSION_DRIFT_RESOLUTION if register is None else register
     knobs: Dict[str, List[int]] = {}
     for entry in register.values():
@@ -3200,15 +3328,37 @@ def measure_own_drift_resolution(
                 drifts.append(int(k))
     if runner is None:
         def runner(knob: str, seed: int, k: int) -> tuple:
-            recs, cons, _ledger, as_of = build_scenario(
-                n_customers, seed=seed, **{knob: k})
-            return recs, score_triad(recs, cons, as_of), as_of
+            # Cached per (n, seed, knob, k): the CLI and several controls sweep
+            # the same book-derived grid inside one process, and a company is
+            # BUILT per drift here (the window is a constructor argument).
+            key = (n_customers, seed, knob, k)
+            if key not in _OWN_RESOLUTION_SCORES:
+                recs, cons, _ledger, as_of = build_scenario(
+                    n_customers, seed=seed, **{knob: k})
+                _OWN_RESOLUTION_SCORES[key] = (
+                    recs, score_triad(recs, cons, as_of), as_of)
+            return _OWN_RESOLUTION_SCORES[key]
 
     out: Dict[str, Dict[str, object]] = {}
     for knob, drifts in knobs.items():
-        drifts = sorted(set(drifts))
+        if knob not in OWN_DRIFT_BOOK_GRIDS:
+            raise AssertionError(
+                f"`{knob}` has no book-derived grid in OWN_DRIFT_BOOK_GRIDS -- "
+                "falling back to the register's own declarations is the atom "
+                "D29 defect itself, so this raises rather than measuring the "
+                "band exactly where the band already answered"
+            )
+        # THE UNDRIFTED COMPANY FIRST, because the grid is a property of the
+        # book it will be swept over and nothing else knows the event ages.
         scored: Dict[tuple, tuple] = {
-            (s, k): runner(knob, s, k) for s in seeds for k in drifts}
+            (s, 0): runner(knob, s, 0) for s in seeds}
+        grid: set = set(drifts)
+        for s in seeds:
+            grid |= set(OWN_DRIFT_BOOK_GRIDS[knob](
+                scored[(s, 0)][0], scored[(s, 0)][2]))
+        drifts = sorted(grid)
+        scored.update({(s, k): runner(knob, s, k)
+                       for s in seeds for k in drifts if k != 0})
         dims = published_dimensions(scored[(seeds[0], 0)][1])
         # R13 WITNESS. A knob that moved the WORLD would make every reading
         # below a comparison between two different books, and the whole point
@@ -3251,6 +3401,11 @@ def measure_own_drift_resolution(
                 # the claim the sweep is cross-checked against.
                 "book": measure_belief_window_resolution(
                     scored[(seeds[0], 0)][0], scored[(seeds[0], 0)][2]),
+                # AND ON EVERY SEED (atom D29). Both saturation edges are
+                # all-seed claims, so predicting them from one seed's book
+                # would make the cross-check depend on which seed came first.
+                "books": {s: measure_belief_window_resolution(
+                    scored[(s, 0)][0], scored[(s, 0)][2]) for s in seeds},
                 # atom D28: the same collapse/saturation measurement the terms
                 # grid gets, so the shared checker has something to try here.
                 **_measure_collapse_runs(by_seed, drifts, seeds),
@@ -3411,6 +3566,60 @@ def _check_own_band(dim: str, row: Dict[str, object],
                         " -- no event changed side, so something other than "
                         "the window is reading this company's memory"
                     )
+    out.extend(_check_book_predicts_both_edges(dim, row))
+    return out
+
+
+def _check_book_predicts_both_edges(dim: str,
+                                    row: Dict[str, object]) -> List[str]:
+    """BOTH saturation edges, predicted from the population and measured
+    through the organ (atom D29) -- an independent pair, not a restatement.
+
+    The predictor reads the WORLD's own event dates and the declared window; it
+    never touches `_arrears_risk_belief` (asserted against its AST). The sweep
+    re-scores the same book through the dimension's own shipped scorer. So a
+    disagreement means one of the two is describing an instrument that is not
+    there -- which is exactly how D27's `saturates_below = None` survived: no
+    predictor existed for that edge to disagree with.
+
+    Both edges are ALL-SEED claims, so the provable region is bounded by the
+    tightest seed: no seed's counted set may change (`min` of the per-seed
+    floors, `max` of the per-seed ceilings).
+
+    The claim is ONE-DIRECTIONAL, like the predictor it comes from. Beyond the
+    predicted edge NO event changes side, so a sweep that still reads movement
+    there is reading something other than the window -- a violation. Inside it
+    the dimension may saturate EARLIER (the dropped events did not move that
+    particular statistic), which is a real, blinder reading and not a lie: it
+    is measured, declared, and left to the register's exactness rule.
+    """
+    books = row.get("books") or {}
+    if not books or any(b.get("saturated") is None for b in books.values()):
+        return []
+    out: List[str] = []
+    for edge, key, agg, worse, label in (
+        ("saturates_below", "predicted_saturates_below_drift", min, -1,
+         "no event in this book is young enough to count"),
+        ("saturates_above", "predicted_saturates_above_drift", max, +1,
+         "no event in this book is old enough to fall out"),
+    ):
+        predicted = agg(b[key] for b in books.values())
+        got = row.get(edge)
+        if got is None:
+            out.append(
+                f"{dim}: the book proves resolution stops at {predicted:+d}d "
+                f"({label} beyond it) and the sweep measured {edge}=None -- an "
+                "unmeasured edge reads exactly like an absent one, which is "
+                "how D27 declared a bounded band on a book that saturates"
+            )
+        elif (got - predicted) * worse > 0:
+            out.append(
+                f"{dim}: the sweep measured {edge}={got:+d}d and the book "
+                f"proves it stops by {predicted:+d}d ({label} beyond it) -- so "
+                "the reading moved where no event can change side, and "
+                "something other than the memory window is reading this "
+                "company"
+            )
     return out
 
 
@@ -3470,6 +3679,24 @@ def _check_saturation_and_collapse(dim: str, row: Dict[str, object],
                 f"{worse} than it publishes ONE number and the register must "
                 "say so"
             )
+    # A DRIFT DECLARED SIGHTED THAT SITS INSIDE A COLLAPSED RUN (atom D29).
+    # D28 saw this in prose -- "the -8 the old grid read as MOVED, as evidence
+    # of resolution, sits inside the saturated tail" -- and built no rule, so
+    # the same shape survived one register field over: `belief` declared -380d
+    # VISIBLE while a company that forgets everything and one that remembers 20
+    # days publish one number. Differing from the baseline is not resolution;
+    # resolution is being told apart from your NEIGHBOURS.
+    for k in tuple(entry.get(f"{prefix}visible_drifts") or ()):
+        for run in sorted(measured):
+            if k in run:
+                out.append(
+                    f"{dim}: drift {k:+d}d is declared VISIBLE and sits inside "
+                    f"the collapsed run {list(run)} -- it differs from the "
+                    "baseline but not from the companies beside it, so it "
+                    "evidences no resolution; declare a drift the sweep reads "
+                    "APART from its neighbours"
+                )
+                break
     saturated = (row.get("saturates_below") is not None
                  or row.get("saturates_above") is not None)
     if (measured or saturated) and not entry.get(f"{prefix}saturation_atom"):
@@ -3479,6 +3706,19 @@ def _check_saturation_and_collapse(dim: str, row: Dict[str, object],
             "will close it (and never the atom that owns a DIFFERENT residual "
             "of the same dimension)"
         )
+    # AND AN OWNER PER EDGE (atom D29). One `saturation_atom` for both tails is
+    # what made two holes with two different causes look like one: the belief
+    # dimensions saturate ABOVE because the company's memory outruns the book
+    # (D27) and BELOW because `as_of` sits a month past the last event (D29),
+    # and a single field could only ever name one of them.
+    for edge, field in (("saturates_below", f"{prefix}saturation_atom_below"),
+                        ("saturates_above", f"{prefix}saturation_atom_above")):
+        if row.get(edge) is not None and not entry.get(field):
+            out.append(
+                f"{dim}: measured {edge}={row[edge]!r} and names no `{field}` "
+                "-- two tails can stop for two different reasons, so each "
+                "names the atom that owns IT"
+            )
     return out
 
 
@@ -3801,6 +4041,9 @@ def measure_belief_window_resolution(
             "newest_event_age_days": None, "window_days": window,
             "headroom_days": None, "saturated": None,
             "smallest_visible_shortening_days": None,
+            "amnesia_floor_window_days": None,
+            "predicted_saturates_below_drift": None,
+            "predicted_saturates_above_drift": None,
         }
     oldest = ages[-1]
     saturated = window >= oldest
@@ -3818,6 +4061,15 @@ def measure_belief_window_resolution(
         "smallest_visible_shortening_days": (
             (window - oldest) + 1 if saturated else 1),
         "smallest_visible_lengthening_days": None if saturated else 1,
+        # THE OTHER EDGE, which D27 never predicted because the sparse grid
+        # held one point below the book and a collapsed run needs two (atom
+        # D29). A window BELOW the newest event counts nothing at all, so every
+        # shorter memory -- down to total amnesia -- is one company to this
+        # dimension. The floor is a property of how far `as_of` sits past the
+        # last event, i.e. of AS_OF_BUFFER_DAYS, not of the company.
+        "amnesia_floor_window_days": ages[0] - 1,
+        "predicted_saturates_below_drift": (ages[0] - 1) - window,
+        "predicted_saturates_above_drift": oldest - window,
     }
 
 
@@ -3852,7 +4104,13 @@ def belief_resolution_caveat(
                 f"at all is {resolution['smallest_visible_shortening_days']}d "
                 "of forgetting. A zero here is not proof the company remembers "
                 "the right amount; it is mostly proof this book is shorter "
-                "than its memory."
+                "than its memory. AND THE OTHER EDGE (atom D29): the youngest "
+                f"observed failure is {resolution['newest_event_age_days']}d "
+                "old, so a company whose memory runs "
+                f"{resolution['amnesia_floor_window_days']}d or less counts "
+                "NOTHING -- every such supplier, down to total amnesia, "
+                "publishes one figure as well. This number resolves a memory "
+                "error only BETWEEN those two edges."
             )
         return head + (
             f"This book: {resolution['n_events']} observed failure events, "
@@ -5450,15 +5708,25 @@ def main() -> None:
         print(f"           {dim:<22} blind to {row['unmoved']}, "
               f"sees {row['moved']} (atom {entry['own_debt_atom']})")
         # ATOM D28: the SAME shared rule the on-path lines above now print,
-        # re-deriving D27's saturation edge from the readings alone.
-        print(f"           {'':<22} saturates above "
-              f"{row['saturates_above']}d, {len(row['collapsed_runs'])} "
-              "collapsed run(s) [shared rule]")
+        # re-deriving D27's saturation edge from the readings alone. ATOM D29:
+        # on a grid derived from the BOOK rather than from this register's own
+        # claims, and BOTH edges are printed -- the low one existed all along
+        # and no sparse grid could reach it.
+        print(f"           {'':<22} saturates below "
+              f"{row['saturates_below']}d (atom "
+              f"{entry['own_saturation_atom_below']}) / above "
+              f"{row['saturates_above']}d (atom "
+              f"{entry['own_saturation_atom_above']}), "
+              f"{len(row['collapsed_runs'])} collapsed run(s) on the "
+              f"{len(row['drifts'])}-point book-derived grid [shared rule]")
         print(f"           {'':<22} book: {book['n_events']} failure events, "
-              f"oldest {book['oldest_event_age_days']}d vs a "
+              f"oldest {book['oldest_event_age_days']}d / youngest "
+              f"{book['newest_event_age_days']}d vs a "
               f"{book['window_days']}d memory -> "
               + ("SATURATED, so every longer memory -- to infinity -- "
-                 f"publishes ONE number; {book['headroom_days']}d headroom"
+                 f"publishes ONE number ({book['headroom_days']}d headroom), "
+                 f"and every memory of {book['amnesia_floor_window_days']}d or "
+                 "less counts nothing and publishes another"
                  if book["saturated"] else "not saturated"))
     _own_violations = check_own_drift_resolution(_own)
     print("           verdict: "

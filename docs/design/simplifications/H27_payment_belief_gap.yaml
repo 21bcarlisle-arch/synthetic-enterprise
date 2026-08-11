@@ -172,7 +172,25 @@ map_notes:
     now open on two dimensions of one instrument; (2) the D8 remittance counterfactual''s _ATTRIBUTED_MEASURES
     still covers ageing and detection only -- the belief dimension now HAS per-case direction rates to
     attribute and none of them is attributed, so this instrument''s own ledger note explains less of itself
-    than it appears to. NOT a wall, and NOT a reason to tune either number (R12).'
+    than it appears to. NOT a wall, and NOT a reason to tune either number (R12). == HOUR #11 RAN 2026-08-11
+    (worker tick) ON HOUR #10''S OWN TOP LEAD AND THE ANSWER IS STILL NO -- HELD AT L2. A LEAD IS NOT
+    A CONTROL: Hour #10 fixed the terms grid''s provenance, filed the memory half as lead 1, and the memory
+    sweep went on asking the register where the register had already answered. Measured on a book-derived,
+    COMPLETE memory grid (70 companies, n=300, seeds 7/11/23): both belief dimensions saturate BELOW as
+    well as above -- every company memory of 29d or less counts nothing, because `as_of` sits AS_OF_BUFFER_DAYS
+    past the last failure -- and -380d, D27''s declared evidence of resolution, sits inside that tail.
+    `belief_population_mix`''s ceiling was the register''s copy of its SIBLING''s (-308) and is really
+    -309. THE 2->3 IS DRAWABLE, UNBLOCKED, AND NOT TAKEN HERE, for the reason every previous release gave
+    and this tick has the least right to ignore: THIS is the tick that changed the instrument, which is
+    the reputation-of-the-old-instrument problem in its purest form. No depends_on is added and none is
+    needed -- there is no unbuilt blocker to aim one at, and pointing a block at a satisfied atom is the
+    dead-mechanism class this note has already fallen into twice. The next HARDEN draw IS Hour #12, on
+    the corrected instrument, and its leads are in docs/staging/WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md:
+    (1) the four interior collapses point at D27 only because the general `own_saturation_atom` field
+    does, and whether the tail reshape fills them has not been asked; (2) the census of confounder-removing
+    constants is two of an unknown number -- BILLING_CYCLE_SPREAD_DAYS, N_PERIODS and the reconciliation
+    grace window have not been put through the same question; (3) the two leads Hour #8 left and no Hour
+    has taken. NOT a wall, and NOT a reason to tune either number (R12).'
 map_records:
   evidence:
   - docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md
@@ -186,6 +204,7 @@ map_records:
   - docs/staging/WORKER_FINDING_THE_AGEING_RESOLUTION_IS_THE_HARNESS_CALENDAR_2026-08-10.md
   - docs/staging/WORKER_FINDING_THE_BELIEF_MEMORY_SATURATES_ON_THIS_BOOK_2026-08-11.md
   - docs/staging/WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md
+  - docs/staging/WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md
   expert_hour_findings:
   - 'the DETECTION headline is an as_of ARTEFACT: truth (result==''failed'') is invariant under the clock
     but flagged_set is a belief held AT as_of, so company+world fixed and as_of +60d walks the published
@@ -800,3 +819,53 @@ simplifications:
   FULL TEXT: docs/staging/WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md
   -- kept there for the per-atom-budget reason Hours #6 and #7 recorded, still ATOM H41''s class. HELD
   AT L2: ten Hours, ten defects, and this Hour changed the instrument again.'
+- 'ELEVENTH HOUR (2026-08-11, worker tick, H27 2->3 HARDEN draw), on Hour #10''s own first lead -- and
+  the lead is the point: A LEAD IS NOT A CONTROL. Hour #10 removed the register''s grip on the TERMS grid,
+  wrote the remaining half up as its top lead and shipped, so `measure_own_drift_resolution` went on building
+  the MEMORY sweep the old way (`drifts = {0} | own_invisible_drifts | own_visible_drifts`). Every claim
+  D27 made about what the belief dimensions can resolve was therefore checked at the points D27 had already
+  named -- seventh escape of a register''s own keying. THE FINDING, measured not asserted, on a grid derived
+  from the BOOK instead (`book_memory_grid`: the window values either side of every observed failure age,
+  plus total amnesia and the shipped company = 70 counterfactual companies; asserted against its own AST
+  never to reach the register), n=300, seeds 7/11/23, every run identical on all three. The grid is COMPLETE,
+  not merely dense: an event at age `a` is counted iff `a <= window`, so the reading can only change as
+  the window crosses an event age, and 70 points measure resolution over the whole real line. (1) BOTH
+  BELIEF DIMENSIONS SATURATE BELOW AS WELL AS ABOVE. The book''s YOUNGEST observed failure is 30d old,
+  so every company memory of 29d or less counts NOTHING and publishes one figure: a supplier that forgets
+  a failed collection after three weeks and one that never remembers it are the same number. D27 measured
+  `own_saturates_below = None` on this same instrument for a mechanical reason -- a collapsed run needs
+  two points and the register''s own claims put exactly ONE below the book. The 30d is AS_OF_BUFFER_DAYS,
+  which is Hour #10''s lead 3 arriving: the second harness constant chosen to REMOVE a confounder (''comfortably
+  past'', in the same voice DD_FAILURE_WINDOW_DAYS=400 says ''generous on purpose''), and a silent resolution
+  decision. THE WITNESS THAT IT WAS UNREACHABLE AND NOT MERELY UNNOTICED: -380d, which D27 declared VISIBLE
+  as its evidence of resolution, takes the memory to 20d and therefore counts nothing -- it sits inside
+  that tail, indistinguishable from total amnesia. Four interior collapses ({-358,-357,-356}, {-333,-332},
+  {-331,-330}) show the sighted region is quantised at exactly the window values where this book has no
+  event. (2) THE REGISTER PUT ONE DIMENSION''S CEILING AT ITS SIBLING''S: `belief_population_mix` was
+  declared to saturate above -308 like `belief` and in fact saturates at -309, one day blinder, because
+  dropping the oldest events moves an account''s tier without moving the population MIX -- a real difference
+  between two published numbers, asserted away by never scoring the point. CLOSED AT THE CLASS (R10):
+  the memory grid''s PROVENANCE is the book (declarations still UNIONED in, so a declaration outside the
+  grid is scored rather than skipped); `OWN_DRIFT_BOOK_GRIDS` RAISES for a knob nobody derived a grid
+  for, because the fallback IS the defect and a silent one would put the next off-path entry straight
+  back; BOTH edges are now predicted from the POPULATION (`predicted_saturates_below_drift`/`_above`)
+  and cross-checked ONE-DIRECTIONALLY against the sweep -- beyond the predicted edge no event can change
+  side so movement there is a violation, inside it a dimension may saturate EARLIER, which is a blinder
+  measurement and not a lie (D27 had this pair on the upper edge only, which is exactly how the lower
+  one read None with nothing to disagree); a drift declared VISIBLE may NOT sit inside a collapsed run
+  (D28 observed that in prose -- ''the -8 the old grid read as MOVED sits inside the saturated tail''
+  -- and built no rule, so the shape survived one register field over); and a saturation OWNER PER EDGE,
+  because these two tails stop for two different reasons (above: the company''s memory outruns the book,
+  D27; below: `as_of` outruns it, D29) and one field could only name the one that had been looked at.
+  The amnesia floor is stamped AT SOURCE on both belief dimensions'' note AND components (D22) and re-derived
+  from the book each call, and both edges print in the CLI with their owning atoms (D25''s rule). R15
+  both ways: 5 register mutations (low edge declared absent = the pre-D29 state; an owner for one tail
+  only; a dense-grid collapse undeclared; a declared collapse the sweep reads apart; a visible drift restored
+  inside the run) + 3 SOURCE mutations (a sweep outrunning the book''s proof at either edge; a knob with
+  no book-derived grid, which must raise). R12: NO PUBLISHED NUMBER MOVED -- the belief headline is unchanged;
+  what moved is what the register admits about it. The RESHAPE is atom D29_the_as_of_buffer_floors_the_memory_grid,
+  minted at L0 (giving the book events beside the short end of a plausible memory moves every published
+  belief figure on this pair). FULL TEXT: docs/staging/WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md
+  -- kept there for the per-atom-budget reason Hours #6 and #7 recorded, still ATOM H41''s class. HELD
+  AT L2: eleven Hours, eleven defects, and this Hour changed the instrument again -- the next promoter
+  runs Hour #12 on the corrected instrument, starting from the three leads in that document.'
