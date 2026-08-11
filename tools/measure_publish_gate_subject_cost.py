@@ -382,6 +382,116 @@ class _Deferred(Exception):
         self.reason = reason
 
 
+def _utc_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+# ── THE HEARTBEAT COVERED ONLY THE WAITING, SO A DEATH AT WORK LOOKED LIKE A DEATH AT REST ───
+#
+# OBSERVED (2026-08-11), from the KERNEL log for the 22:28Z launch -- `journalctl -k`, not this
+# harness's own journal:
+#
+#   Out of memory: Killed process 3272589 (python3) total-vm:12949376kB, anon-rss:12928996kB
+#   oom-kill:constraint=CONSTRAINT_NONE ... global_oom,
+#   task_memcg=/user.slice/.../publish-gate-subject-cost.service
+#
+# The unit's own python was pid **3244117** (`journalctl --user -u publish-gate-subject-cost`).
+# **3272589 is its CHILD** -- the BASELINE phase's pytest, at 12.9G anon RSS on a 15.9G box,
+# which triggered a GLOBAL oom (`CONSTRAINT_NONE`), not a cgroup-limit one. The launch had
+# already taken the lock and was IN THE SUITE.
+#
+# `WORKER_FINDING_THE_MEASUREMENT_IS_OOM_KILLED_INSIDE_ITS_OWN_WAIT_2026-08-11` concluded the
+# opposite -- *"It died in the wait, not in the suite"* -- and filed that as `observed`, because
+# every signal available to its reader agreed:
+#
+#   * the last log line was `. waiting to TAKE the publisher's run lock`. There is no line for
+#     ACQUIRING that lock, and none for starting a suite; the phase banner is printed BEFORE the
+#     wait, so it cannot separate them either.
+#   * `last_heartbeat` froze at the same moment, because `heartbeat` is called only from the
+#     three WAIT loops. The instant a wait returns, the artefact stops advancing and stays
+#     frozen for the ~20 minutes the suite runs.
+#
+# So the record could not tell "still waiting" from "working, and killed at it", and the repair
+# that finding proposed -- a memory guard inside the ACQUIRE POLL -- would not have fired on the
+# thing that actually killed it. An instrument whose blind spot misdirects the next reader is
+# worse than one with a gap they can see: R15's fail-silent pattern, one level up, on the
+# measurement this atom's exit criterion 1 is waiting for.
+#
+# `_InFlight` closes it. The record carries WHICH PHASE and WHAT STAGE continuously, so a killed
+# launch leaves a diagnosis instead of a silence, and the next launch reads it straight back as
+# `previous_launch_died_in_flight` rather than re-deriving it from a journal nobody reads.
+class _InFlight:
+    """The heartbeat, and the stage marker a KILLED launch leaves behind, in one object.
+
+    CALLABLE, so every existing `heartbeat()` call site keeps working unchanged -- the wait
+    loops go on stamping `last_heartbeat`. What is new is `stage()`, which the loops and the
+    suite call as they hand off to each other, and which CHECKPOINTS: the marker is only worth
+    anything if it is on disk when the kill arrives, and a kill gives no chance to write.
+
+    `mem_available_mb` is stamped at every stage change because the conditions at the moment of
+    death are exactly what a phase record cannot carry -- a phase that is killed never banks
+    one."""
+
+    def __init__(self, results, checkpoint):
+        self._results = results
+        self._checkpoint = checkpoint
+
+    def __call__(self):
+        self._results["last_heartbeat"] = _utc_now()
+        self._checkpoint()
+
+    def enter(self, phase):
+        """Open the marker for a phase about to be run (not one being resumed from the bank)."""
+        self._results["in_flight"] = {"phase": phase, "stage": "starting",
+                                      "since": _utc_now(), "pid": os.getpid(),
+                                      "mem_available_mb": _mem_available_mb()}
+        self._checkpoint()
+
+    def stage(self, name):
+        """Advance the marker. A no-op before `enter`, so a bare `_time_suite` call in a test
+        neither crashes nor invents a phase it cannot name."""
+        marker = self._results.get("in_flight")
+        if not isinstance(marker, dict):
+            return
+        marker["stage"] = name
+        marker["stage_since"] = _utc_now()
+        marker["mem_available_mb"] = _mem_available_mb()
+        self._checkpoint()
+
+    def clear(self):
+        """Close the marker: this phase banked, or the run ended on a path it chose.
+
+        A record that still carries `in_flight` is therefore exactly a record whose writer did
+        NOT get to choose its ending -- which is the whole signal."""
+        if self._results.pop("in_flight", None) is not None:
+            self._checkpoint()
+
+
+def _mark_stage(heartbeat, name):
+    """Advance a heartbeat's stage marker if it has one.
+
+    The wait helpers take a plain `heartbeat` callable in their own tests and a `_InFlight` in
+    the real run, so the marker is optional at every call site rather than a new required
+    argument threaded through five signatures."""
+    stage = getattr(heartbeat, "stage", None)
+    if callable(stage):
+        stage(name)
+
+
+def _prior_in_flight(out_path: str):
+    """The `in_flight` marker an earlier launch left behind, or None. Never raises.
+
+    Present == that launch was killed without reaching any of its own exits (bank, defer,
+    abort). It is read at launch and re-published as `previous_launch_died_in_flight` so the
+    diagnosis survives into the record this launch writes, instead of being overwritten by it."""
+    try:
+        prior = json.loads(Path(out_path).read_text())
+    except (OSError, ValueError):
+        return None
+    marker = prior.get("in_flight") if isinstance(prior, dict) else None
+    return marker if isinstance(marker, dict) else None
+
+
 def _wait_for_quiet(log, heartbeat=None) -> bool:
     """Wait for the publisher to finish. Returns True if the box went quiet.
 
@@ -396,6 +506,7 @@ def _wait_for_quiet(log, heartbeat=None) -> bool:
     deadline = time.time() + QUIET_WAIT_SECONDS
     waited = False
     while _publisher_is_running():
+        _mark_stage(heartbeat, "waiting_for_publisher_to_finish")
         if time.time() > deadline:
             log("  ! publisher still live after {}s -- DEFERRING; banked phases are kept and "
                 "the next launch resumes".format(QUIET_WAIT_SECONDS))
@@ -446,6 +557,7 @@ def _publisher_exclusion(log, heartbeat=None):
             fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
             break
         except BlockingIOError:
+            _mark_stage(heartbeat, "waiting_for_publisher_lock")
             if time.time() > deadline:
                 fh.close()
                 log("  ! the publisher's run lock was held for {}s -- DEFERRING; banked phases "
@@ -460,6 +572,12 @@ def _publisher_exclusion(log, heartbeat=None):
                 heartbeat()
             time.sleep(QUIET_POLL_SECONDS)
 
+    # THE LINE WHOSE ABSENCE COST A MISREAD FINDING. Without it the journal jumps straight from
+    # "waiting to TAKE the lock" to the OOM, and every reader concludes the wait was still
+    # running -- see the `_InFlight` note above.
+    if waited:
+        log("  . took the publisher's run lock -- the wait is over, the phase starts now")
+    _mark_stage(heartbeat, "holding_publisher_lock")
     _EXCLUSION["fh"] = fh
     _EXCLUSION["depth"] = 1
     try:
@@ -544,6 +662,7 @@ def _wait_for_memory_headroom(log, heartbeat=None) -> bool:
         available = _mem_available_mb()
         if available is None or available >= MIN_MEMORY_HEADROOM_MB:
             return True
+        _mark_stage(heartbeat, "waiting_for_memory_headroom")
         if time.time() > deadline:
             log("  ! only {}MB available after {}s (want {}MB) -- DEFERRING; banked phases are "
                 "kept and the next launch resumes"
@@ -584,10 +703,16 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     env["SIM_FAST_MODE"] = "1"
     load_before = os.getloadavg()[0]
     mem_before = _mem_available_mb()
+    # The suite is the ~20-minute stretch in which nothing else here writes, and it is where the
+    # 22:28Z launch was killed. Marked AND logged before the child starts, so the artefact and
+    # the journal both say so even though neither gets another word afterwards.
+    _mark_stage(heartbeat, "suite_running")
+    log("  . suite starting in {} ({}MB available)".format(cwd, mem_before))
     started = time.monotonic()
     result = subprocess.run(_argv_without_x(), cwd=str(cwd), env=env,
                             capture_output=True, text=True, errors="replace")
     elapsed = time.monotonic() - started
+    _mark_stage(heartbeat, "suite_returned")
     tail = [ln for ln in result.stdout.strip().splitlines() if ln.strip()][-1:]
     return {
         "cwd": str(cwd),
@@ -764,6 +889,9 @@ def _run_measurement(out_path: str, log) -> int:
 
     head_sha = prc._head_sha()
     banked = _load_banked_phases(out_path)
+    # Read BEFORE the first `_checkpoint` rewrites the file from `results` -- same reason
+    # `_prior_deferral_count` is read here and not at deferral time.
+    died_in_flight = _prior_in_flight(out_path)
     # BEFORE `resumed_phases` is taken, so the record names what this launch will actually
     # re-time rather than what the file happened to hold.
     dropped_for_comparability = _drop_incomparable_ratio_phases(banked, head_sha, log)
@@ -801,9 +929,18 @@ def _run_measurement(out_path: str, log) -> int:
         name for name, rec in results["phases"].items()
         if rec.get("head_sha_at_run") and rec["head_sha_at_run"] != head_sha)
 
-    def heartbeat():
-        results["last_heartbeat"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        _checkpoint(results, args.out, log)
+    # A previous launch's marker, republished under its own name so THIS launch's record still
+    # carries the diagnosis. `None` is written explicitly: a reader must be able to tell "the
+    # last launch ended on a path it chose" from "this field was never populated".
+    results["previous_launch_died_in_flight"] = died_in_flight
+    if died_in_flight:
+        log("  . the previous launch was KILLED in phase {} at stage '{}' (since {}, {}MB "
+            "available) -- it did not defer, abort or bank".format(
+                died_in_flight.get("phase"), died_in_flight.get("stage"),
+                died_in_flight.get("stage_since") or died_in_flight.get("since"),
+                died_in_flight.get("mem_available_mb")))
+
+    heartbeat = _InFlight(results, lambda: _checkpoint(results, args.out, log))
     # Before the first wait, so that a run killed IN the wait is still distinguishable from a
     # run that was never launched at all -- which is the failure this harness just suffered.
     _checkpoint(results, args.out, log)
@@ -826,6 +963,7 @@ def _run_measurement(out_path: str, log) -> int:
             # ONE exclusion spanning delete -> rebuild -> time. Not three: between them a
             # publisher would be free to start a cycle in the directory just deleted from under
             # it, and to take the reuse lock this phase is about to need.
+            heartbeat.enter("cold_checkout")
             with _publisher_exclusion(log, heartbeat):
                 reused = prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME
                 shutil.rmtree(reused, ignore_errors=True)
@@ -833,6 +971,7 @@ def _run_measurement(out_path: str, log) -> int:
                 with prc._head_checkout() as path:
                     if path is None:
                         log("! checkout unavailable -- cannot measure the clean subject")
+                        heartbeat.clear()
                         results["aborted"] = "checkout unavailable"
                         _checkpoint(results, args.out, log)
                         return 1
@@ -840,10 +979,12 @@ def _run_measurement(out_path: str, log) -> int:
                         log("! got a THROWAWAY checkout ({}) -- another publisher holds the reuse "
                             "lock, so the warm phase would not be warm. Aborting rather than "
                             "reporting a wrong ratio.".format(path.name))
+                        heartbeat.clear()
                         results["aborted"] = "another publisher held the reuse lock"
                         _checkpoint(results, args.out, log)
                         return 1
                     results["phases"]["cold_checkout"] = _time_suite(path, log, heartbeat)
+            heartbeat.clear()
             log("   cold: {}s".format(results["phases"]["cold_checkout"]["seconds"]))
             _checkpoint(results, args.out, log)
 
@@ -863,13 +1004,16 @@ def _run_measurement(out_path: str, log) -> int:
                 results["warm_cache_established_by"]))
             # Same reason as COLD: the reuse lock this phase depends on must not be winnable by
             # a publisher between the checkout and the timing.
+            heartbeat.enter("warm_checkout")
             with _publisher_exclusion(log, heartbeat), prc._head_checkout() as path:
                 if path is None or path.name != prc.REUSED_HEAD_CHECKOUT_NAME:
                     log("! lost the reused checkout between phases -- aborting")
+                    heartbeat.clear()
                     results["aborted"] = "lost the reused checkout between phases"
                     _checkpoint(results, args.out, log)
                     return 1
                 results["phases"]["warm_checkout"] = _time_suite(path, log, heartbeat)
+            heartbeat.clear()
             log("   warm: {}s".format(results["phases"]["warm_checkout"]["seconds"]))
             _checkpoint(results, args.out, log)
 
@@ -879,7 +1023,9 @@ def _run_measurement(out_path: str, log) -> int:
                 results["phases"]["in_tree_baseline"]["seconds"]))
         else:
             log("phase 3/3 BASELINE -- the live working tree, the pre-ruling subject")
+            heartbeat.enter("in_tree_baseline")
             results["phases"]["in_tree_baseline"] = _time_suite(prc.PROJECT_DIR, log, heartbeat)
+            heartbeat.clear()
             log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
             _checkpoint(results, args.out, log)
 
@@ -908,6 +1054,10 @@ def _run_measurement(out_path: str, log) -> int:
         # in, the phases already banked are kept, and the next launch resumes from here. It is
         # recorded rather than merely logged because the journal of a killed unit is not
         # something the next tick reads -- the artefact is.
+        # A deferral is an exit this launch CHOSE, so the marker comes down: `in_flight` present
+        # in a record must mean exactly one thing -- the writer never reached any of its own
+        # endings -- or it stops being evidence of a kill.
+        heartbeat.clear()
         results["deferred"] = {
             "reason": deferred.reason,
             "at_phase": results["phases_missing"][0] if results.get("phases_missing") else None,

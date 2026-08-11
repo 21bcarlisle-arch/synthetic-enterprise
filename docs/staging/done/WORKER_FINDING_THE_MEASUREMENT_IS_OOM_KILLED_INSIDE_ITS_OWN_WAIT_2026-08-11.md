@@ -1,3 +1,50 @@
+> ## ⚠ REFUTED BY THE KERNEL LOG — 2026-08-11, OPS2 tick
+>
+> **The central claim below — "It died in the wait, not in the suite" — is WRONG**, and it was
+> filed as `observed`. The more direct evidence (R9) is `journalctl -k`, which nobody had read:
+>
+> ```
+> Aug 10 23:11:10 kernel: Out of memory: Killed process 3272589 (python3)
+>                         total-vm:12949376kB, anon-rss:12928996kB
+> Aug 10 23:11:10 kernel: oom-kill:constraint=CONSTRAINT_NONE ... global_oom,
+>                         task_memcg=/user.slice/.../publish-gate-subject-cost.service
+> ```
+>
+> The unit's own python was pid **3244117** (`journalctl --user -u publish-gate-subject-cost`).
+> **3272589 is its CHILD** — the BASELINE phase's pytest, 12.9G anon RSS on a 15.9G box. The
+> launch had already taken the run lock and **was in the suite**. The kill was a GLOBAL oom
+> (`CONSTRAINT_NONE`), not a cgroup-limit one.
+>
+> **Both "unexplained numbers" below are explained by that one fact.** 17 min of CPU is a pytest,
+> not a poll loop. 13.3G is that pytest, not a process holding a lock.
+>
+> **The proposed repair would not have fired.** A memory guard inside the acquire poll guards a
+> loop the run had already left.
+>
+> **Why the misread was reasonable, and what was actually defective.** Every signal available
+> said WAITING: the phase banner prints *before* the wait, there is no log line for ACQUIRING
+> the lock or for starting a suite, and `last_heartbeat` is stamped only from the three wait
+> loops — so the artefact freezes the instant work begins and stays frozen for ~20 minutes. The
+> instrument could not distinguish "still waiting" from "working, and killed at it". That blind
+> spot, not the acquire poll, was the defect.
+>
+> **Fixed** (this tick): `_InFlight` in `tools/measure_publish_gate_subject_cost.py` carries
+> phase + stage + MemAvailable in the record continuously and checkpoints on every stage change,
+> so a killed launch leaves a diagnosis; the next launch republishes it as
+> `previous_launch_died_in_flight`. A lock-acquired line and a suite-starting line now exist in
+> the journal too. R15 both ways, mutations run not asserted:
+> `tests/tools/test_measure_publish_gate_subject_cost.py` (7 new tests) — a no-op `stage()`, one
+> literal for every stage, a dropped `clear()`, and a read moved below the first checkpoint each
+> red a named test.
+>
+> **The residual is real and is NOT this finding**: the suite genuinely reaches 12.9G. Filed
+> separately as `WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES_2026-08-11.md`.
+>
+> Everything below is left VERBATIM. It is a good record of a wrong conclusion honestly reached,
+> and the lesson is in the gap between it and the kernel log.
+
+---
+
 # [WORKER-FINDING] The OPS2 measurement is OOM-killed inside its own wait, before the deferral that was built to survive this (2026-08-11)
 
 **Rank:** backlog (P-1: this does not outrank the OPS2 exit itself, which it blocks intermittently

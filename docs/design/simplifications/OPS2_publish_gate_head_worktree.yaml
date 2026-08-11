@@ -4,3 +4,28 @@ map_records:
   - docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md
   - docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md
   - background/process_run_complete.py
+  - tools/measure_publish_gate_subject_cost.py
+build_note: |
+  2026-08-11. Criterion 1 is NOT met and the level does not move: `in_tree_baseline` has
+  never been timed, so there is no ratio. What landed this tick is the INSTRUMENT, which was
+  lying about its own deaths.
+
+  The 2026-08-10 22:28Z launch was recorded (in a filed worker finding, as `observed`) as
+  having died in the acquire poll. `journalctl -k` says otherwise: the OOM victim was pid
+  3272589, a CHILD of the unit's python 3244117 -- the BASELINE phase's pytest at 12.9G anon
+  RSS, `global_oom`. It had taken the lock and was in the suite. The finding's proposed repair
+  (a memory guard in the acquire poll) would not have fired.
+
+  Cause of the misread, and the actual defect: the phase banner prints BEFORE the wait, there
+  was no log line for taking the lock or starting a suite, and `heartbeat` is called only from
+  the three wait loops -- so the artefact froze the instant work began and stayed frozen for
+  ~20 minutes. `_InFlight` now carries phase + stage + MemAvailable continuously and
+  checkpoints on every stage change; the next launch republishes a leftover marker as
+  `previous_launch_died_in_flight`. R15 both ways, mutations RUN: no-op `stage()` reds 4
+  tests; one literal for every stage reds the differential; a dropped `clear()` reds the
+  chosen-ending test; the prior read moved below the first checkpoint reds the republish test.
+  67 passed in tests/tools/test_measure_publish_gate_subject_cost.py.
+
+  Residual, filed not fixed: the suite really does reach 12.9G, because `_argv_without_x`
+  makes the measured subject strictly larger than the gate's own `-x` run. See
+  docs/staging/WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES_2026-08-11.md.

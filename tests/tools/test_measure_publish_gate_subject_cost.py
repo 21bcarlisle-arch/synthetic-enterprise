@@ -1230,3 +1230,277 @@ def test_the_drop_is_named_in_the_record_not_just_the_log(out, monkeypatch, tmp_
         "the dropped phase must be gone from the record too -- a record still carrying it "
         "would let a reader compute the very ratio this drop exists to prevent"
     )
+
+
+# ── THE STAGE MARKER: A KILLED LAUNCH MUST SAY WHETHER IT WAS WAITING OR WORKING ─────────────
+#
+# THE DEFECT IS OBSERVED, and it is a defect of the INSTRUMENT, not of the box (R15, one level
+# up: this harness is the evidence source for OPS2's exit criterion 1).
+#
+# The 2026-08-10 22:28Z launch was OOM-killed at 23:11:10Z. Its own journal ended at
+#
+#     [measure] phase 3/3 BASELINE -- the live working tree, the pre-ruling subject
+#     [measure]   . waiting to TAKE the publisher's run lock
+#
+# and `last_heartbeat` in the record froze at the same moment. Both signals said WAITING, so
+# `WORKER_FINDING_THE_MEASUREMENT_IS_OOM_KILLED_INSIDE_ITS_OWN_WAIT_2026-08-11` recorded
+# *"It died in the wait, not in the suite"* as `observed` and proposed a memory guard inside the
+# acquire poll.
+#
+# The kernel log says otherwise, and it is the more direct evidence (R9):
+#
+#     Out of memory: Killed process 3272589 (python3) anon-rss:12928996kB
+#     oom-kill:constraint=CONSTRAINT_NONE ... global_oom,
+#     task_memcg=/.../publish-gate-subject-cost.service
+#
+# The unit's own python was pid **3244117**; **3272589 was its child** -- the BASELINE phase's
+# pytest, at 12.9G on a 15.9G box. It had taken the lock and was IN THE SUITE. The proposed
+# repair would not have fired.
+#
+# Two blind spots produced that: the phase banner is printed BEFORE the wait (so it cannot
+# separate the two), and `heartbeat` is called ONLY from the wait loops (so the artefact freezes
+# the instant work begins and stays frozen for ~20 minutes). The record therefore could not
+# distinguish "still waiting" from "working, and killed at it".
+#
+# These controls pin the differential in BOTH directions. A single test that only asserted
+# `stage == "suite_running"` would pass against a marker hardwired to that string, so the
+# waiting side is asserted against the same mechanism, and the mutation below removes the
+# distinction rather than the marker.
+
+
+def _live_marker(out_path):
+    """A real `_InFlight` over a real checkpoint file. Returns (results, heartbeat).
+
+    Deliberately NOT a stub: what is under test is that the marker reaches DISK before the kill
+    does, which a fake heartbeat could not fail on."""
+    results = {"phases": {}}
+    heartbeat = measure._InFlight(
+        results, lambda: measure._checkpoint(results, out_path, lambda _m: None))
+    return results, heartbeat
+
+
+def test_a_launch_killed_in_the_suite_leaves_a_record_that_says_so(monkeypatch, out, tmp_path):
+    """THE property the misread finding needed and did not have. The record is read from DISK
+    at the moment the suite child is running -- which is exactly what an OOM kill leaves behind,
+    because a kill gives the process no chance to write anything afterwards.
+
+    MUTATION: make `_InFlight.stage` a no-op (or drop its `self._checkpoint()`) and this reds --
+    the on-disk marker still says `waiting_for_publisher_lock`, i.e. the 2026-08-10 misread."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    results, heartbeat = _live_marker(out)
+    heartbeat.enter("in_tree_baseline")
+
+    snapshot = {}
+
+    def fake_run(*_a, **_kw):
+        # What a SIGKILL arriving right here would leave in the repo. FIRST call only:
+        # `monkeypatch.setattr(measure.subprocess, "run", ...)` patches the subprocess MODULE,
+        # so `prc._head_sha()` after the suite lands here too and would overwrite the snapshot
+        # with the record as it looks once the phase is already over.
+        snapshot.setdefault("record", json.loads(Path(out).read_text()))
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", fake_run)
+    measure._time_suite_under_exclusion(tmp_path, lambda _m: None, heartbeat)
+
+    marker = snapshot["record"].get("in_flight")
+    assert marker, "a launch killed mid-suite would leave no marker at all"
+    assert marker["stage"] == "suite_running", (
+        "the record says '{}' while the suite child is running -- a kill here would be read as "
+        "a death in the wait, which is the 2026-08-10 misdiagnosis".format(marker["stage"])
+    )
+    assert marker["phase"] == "in_tree_baseline"
+
+
+def test_a_launch_killed_waiting_for_the_lock_leaves_a_different_record(monkeypatch, out):
+    """The other direction, through the same mechanism. If both deaths wrote the same marker the
+    marker would be decoration; the finding's own question -- waiting or working? -- is only
+    answerable because these two strings differ."""
+    lock_path = measure.prc.RUN_LOCK_FILE  # the autouse fixture's, never the live publisher's
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)  # defer on the first poll
+    results, heartbeat = _live_marker(out)
+    heartbeat.enter("in_tree_baseline")
+
+    holder = open(str(lock_path), "w")
+    fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        with pytest.raises(measure._Deferred):
+            with measure._publisher_exclusion(lambda _m: None, heartbeat):
+                pytest.fail("took a lock another holder had")
+    finally:
+        fcntl.flock(holder, fcntl.LOCK_UN)
+        holder.close()
+
+    marker = json.loads(Path(out).read_text())["in_flight"]
+    assert marker["stage"] == "waiting_for_publisher_lock", (
+        "a death in the acquire poll must not be recorded the same way as a death in the suite"
+    )
+
+
+def test_the_two_deaths_are_told_apart_by_the_record_alone(monkeypatch, out, tmp_path):
+    """The pair, as one assertion, because the pair is the property.
+
+    MUTATION that reds this and not much else: give every `_mark_stage` call the same literal
+    (say `"running"`). Each test above would still find "a marker"; only the differential
+    notices that the instrument has stopped answering the question it exists for."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *a, **k: types.SimpleNamespace(
+                            returncode=0, stdout="1 passed in 0.01s", stderr=""))
+
+    _, working = _live_marker(out)
+    working.enter("in_tree_baseline")
+    seen = {}
+
+    def capture(*_a, **_kw):
+        # First call only -- see the note in the test above.
+        seen.setdefault("working", json.loads(Path(out).read_text())["in_flight"]["stage"])
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", capture)
+    measure._time_suite_under_exclusion(tmp_path, lambda _m: None, working)
+
+    monkeypatch.setattr(measure, "QUIET_WAIT_SECONDS", -1)
+    _, waiting = _live_marker(out)
+    waiting.enter("in_tree_baseline")
+    holder = open(str(measure.prc.RUN_LOCK_FILE), "w")
+    fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        with pytest.raises(measure._Deferred):
+            with measure._publisher_exclusion(lambda _m: None, waiting):
+                pass
+    finally:
+        fcntl.flock(holder, fcntl.LOCK_UN)
+        holder.close()
+    seen["waiting"] = json.loads(Path(out).read_text())["in_flight"]["stage"]
+
+    assert seen["working"] != seen["waiting"], (
+        "both deaths leave the marker '{}' -- the record cannot answer 'waiting or working?', "
+        "which is the whole reason the 2026-08-10 finding was aimed at the wrong loop"
+        .format(seen["working"])
+    )
+
+
+def test_a_marker_is_never_left_on_an_ending_the_launch_chose(monkeypatch, out, tmp_path):
+    """`in_flight` present must mean EXACTLY ONE thing: the writer never reached any of its own
+    exits. A completed run, an abort and a deferral all choose their ending, so all three must
+    clear it -- otherwise the next launch reports a kill that never happened, and the signal is
+    worth nothing.
+
+    MUTATION: drop any one of the `heartbeat.clear()` calls and this reds."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+
+    assert measure._run_measurement(out, lambda _m: None) == 0
+    complete = json.loads(Path(out).read_text())
+    assert complete["complete"] is True
+    assert "in_flight" not in complete, "a finished run is reported as having been killed"
+
+    # And the deferral path, on the same record.
+    monkeypatch.setattr(measure, "_publisher_exclusion",
+                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("test")))
+    monkeypatch.setattr(measure, "_time_suite",
+                        lambda *a, **k: (_ for _ in ()).throw(measure._Deferred("test")))
+    _banked(out)
+    assert measure._run_measurement(out, lambda _m: None) == 0
+    deferred = json.loads(Path(out).read_text())
+    assert deferred["deferred"]["reason"] == "test"
+    assert "in_flight" not in deferred, (
+        "a deferral is an ending this launch chose -- recording it as a kill would make the "
+        "marker fire on the harness's own correct behaviour"
+    )
+
+
+def test_the_next_launch_republishes_the_kill_rather_than_erasing_it(monkeypatch, out, tmp_path):
+    """The marker only helps if it survives the launch that reads it. `_run_measurement` rewrites
+    the whole file from `results`, so without an explicit read-before-write the diagnosis is
+    destroyed by the very next tick -- the same defect `_prior_deferral_count` closed for the
+    deferral tally.
+
+    MUTATION (run, not asserted): move the `_prior_in_flight` read BELOW the first
+    `_checkpoint(results, args.out, log)` and this reds with `previous_launch_died_in_flight`
+    set to None. Note the weaker mutation -- reading it at the assignment site instead of beside
+    `_load_banked_phases` -- does NOT red, because that site is still above the first
+    checkpoint. The ordering that matters is against the WRITE, not against the other reads."""
+    Path(out).write_text(json.dumps({
+        "phases": {},
+        "in_flight": {"phase": "in_tree_baseline", "stage": "suite_running",
+                      "since": "2026-08-10T22:28:49Z", "mem_available_mb": 512},
+    }))
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+
+    assert measure._run_measurement(out, lambda _m: None) == 0
+
+    rec = json.loads(Path(out).read_text())
+    assert rec["previous_launch_died_in_flight"] == {
+        "phase": "in_tree_baseline", "stage": "suite_running",
+        "since": "2026-08-10T22:28:49Z", "mem_available_mb": 512,
+    }, "the previous launch's diagnosis was overwritten by the launch that should report it"
+    assert "in_flight" not in rec, "this launch's own clean ending must not re-arm the marker"
+
+
+def test_a_record_with_no_prior_kill_says_so_explicitly(monkeypatch, out, tmp_path):
+    """The quiet direction. `None` is WRITTEN, not omitted: a reader must be able to tell "the
+    last launch ended on a path it chose" from "this harness predates the marker"."""
+    _banked(out)
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    _stub_phases(monkeypatch, [])
+
+    assert measure._run_measurement(out, lambda _m: None) == 0
+
+    rec = json.loads(Path(out).read_text())
+    assert "previous_launch_died_in_flight" in rec
+    assert rec["previous_launch_died_in_flight"] is None
+
+
+def test_the_marker_records_the_memory_a_killed_phase_never_banks(monkeypatch, out, tmp_path):
+    """A phase that is OOM-killed banks no phase record, so `mem_available_before_mb` -- the one
+    field that would explain the kill -- is never written. The marker carries it instead, and
+    re-stamps it at every stage, so the artefact holds the conditions AT the moment of death
+    rather than at the moment the phase was entered 40 minutes earlier."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    mem = iter([9000, 400])
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: next(mem, 400))
+    _, heartbeat = _live_marker(out)
+    heartbeat.enter("in_tree_baseline")
+    assert json.loads(Path(out).read_text())["in_flight"]["mem_available_mb"] == 9000
+
+    seen = {}
+
+    def capture(*_a, **_kw):
+        # First call only -- see the note two tests above.
+        seen.setdefault("at_suite",
+                        json.loads(Path(out).read_text())["in_flight"]["mem_available_mb"])
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", capture)
+    measure._time_suite_under_exclusion(tmp_path, lambda _m: None, heartbeat)
+
+    assert seen["at_suite"] == 400, (
+        "the marker froze the headroom it saw when the phase was entered -- a launch that waited "
+        "40 minutes and then died would report the box as it was before the wait"
+    )
+
+
+def test_the_stage_helper_is_harmless_without_a_marker():
+    """`_time_suite` is called with a plain callable in this module's own tests and with `None`
+    from several call sites. A stage helper that raised on either would take the measurement down
+    to improve its diagnostics -- the checkpoint's own fail-loud rule, in the new mechanism."""
+    measure._mark_stage(None, "suite_running")
+    measure._mark_stage(lambda: None, "suite_running")
+    results = {}
+    heartbeat = measure._InFlight(results, lambda: None)
+    heartbeat.stage("suite_running")   # before enter(): nothing to advance
+    assert "in_flight" not in results
+    heartbeat.clear()                   # idempotent
+    assert "in_flight" not in results
