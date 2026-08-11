@@ -4904,3 +4904,273 @@ def test_the_caveat_refuses_to_attribute_a_book_the_constants_do_not_describe():
     # The band it DOES report is the flat book's own, measured here.
     assert f"between {measured['measured_youngest_age_days']}d and " \
            f"{measured['measured_oldest_age_days']}d" in caveat
+
+
+# ---------------------------------------------------------------------------
+# atom D31_the_recon_grid_saturates_beyond_this_books_window (H27 Expert Hour
+# #13, 2026-08-11): the register that FOUND the grid class was the last one
+# still swept on its own declarations, and the shared saturation rule D29 built
+# "so it cannot exist on one side and not the other" reached two of three knobs.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def recon_saturation():
+    """Measured ONCE for the module: 110 counterfactual companies x 3 seeds on
+    a grid derived from the BOOK (-30..+88, the declared drifts unioned in),
+    against the 8 points the register's own declarations produced."""
+    return pair.measure_organ_query_grid_saturation(n_customers=_RES_N)
+
+
+def test_the_recon_grid_is_derived_from_the_book_not_the_register():
+    """THE ATOM D31 FIX at its source, and the third time this assertion has
+    had to be earned (D28 for the terms grid, D29 for the memory grid). If
+    `book_recon_drift_grid` can reach a register then the register is again
+    choosing where it gets asked.
+
+    It is COMPLETE, not merely dense: `organ_query_dates` asks the organ daily
+    from the invoice's ISSUE date to `as_of`, so below `issue - due - grace`
+    every reading is the floor and above `as_of - due - grace` there is no
+    reading at all. One integer per day between those crossings measures
+    resolution over the whole real line."""
+    names = pair._names_in(pair.book_recon_drift_grid)
+    assert "ORGAN_QUERY_GRID" not in names, (
+        "a grid derived from the register can only ask it what it already "
+        "answered -- the defect D28 and D29 each fixed one grid over")
+    assert "COUNTERFACTUAL_KNOB_ROUTE" not in names
+
+    records, _c, _l, as_of = pair.build_scenario(60, seed=7)
+    grid = pair.book_recon_drift_grid(records, as_of)
+    lo = min((r.issue_date - r.due_date).days for r in records) - \
+        pair.DEFAULT_RECONCILIATION_GRACE_DAYS - 1
+    hi = max((as_of - r.due_date).days for r in records) - \
+        pair.DEFAULT_RECONCILIATION_GRACE_DAYS + 1
+    assert grid == tuple(range(lo, hi + 1))
+    assert grid[0] == -(pair.PAYMENT_TERMS_DAYS
+                        + pair.DEFAULT_RECONCILIATION_GRACE_DAYS) - 1
+
+
+def test_every_counterfactual_knob_reaches_the_one_saturation_rule():
+    """THE CLASS FIX (atom D31). D29 put the terms and memory sweeps through
+    ONE `_check_saturation_and_collapse` so the rule could not exist on one
+    side of `in_causal_path` and not the other -- and the RECONCILIATION knob,
+    whose register started this line, was outside both. The route's keyset is
+    DERIVED from the harness's own signatures, so a fourth knob cannot arrive
+    without a book-derived grid and a checker that runs the rule."""
+    knobs = pair.counterfactual_knobs()
+    assert set(knobs) == {"organ_reconciliation_drift_days",
+                          "organ_terms_drift_days",
+                          "organ_failure_window_drift_days"}
+    assert set(knobs) == set(pair.COUNTERFACTUAL_KNOB_ROUTE)
+    assert pair.check_counterfactual_knob_route() == []
+    # DERIVED, not typed: the subject comes off the signatures themselves.
+    src = pair._names_in(pair.counterfactual_knobs)
+    assert "COUNTERFACTUAL_KNOB_ROUTE" not in src
+
+
+def test_a_knob_with_no_route_raises_rather_than_sweeping_the_declarations():
+    """THE FAIL-CLOSED, one level up from D29's. A knob left out of the route
+    would be swept on its register's own claims, which IS the defect, so the
+    absence raises instead of returning a violation somebody can triage."""
+    route = {k: v for k, v in pair.COUNTERFACTUAL_KNOB_ROUTE.items()
+             if k != "organ_terms_drift_days"}
+    with mock.patch.object(pair, "COUNTERFACTUAL_KNOB_ROUTE", route):
+        with pytest.raises(AssertionError, match="no entry in"):
+            pair.check_counterfactual_knob_route()
+
+
+def test_a_checker_that_only_names_the_shared_rule_is_a_violation():
+    """R15 on the route itself: naming a checker is not running one. This is
+    the pre-D31 state written down -- `ORGAN_QUERY_GRID` had a checker, and it
+    never reached the saturation rule, which is how sixteen collapses and two
+    saturated tails sat undeclared under a green suite."""
+    route = copy.deepcopy(pair.COUNTERFACTUAL_KNOB_ROUTE)
+    route["organ_reconciliation_drift_days"]["checker"] = "check_ageing_resolution"
+    with mock.patch.object(pair, "COUNTERFACTUAL_KNOB_ROUTE", route):
+        violations = pair.check_counterfactual_knob_route()
+    assert any("never calls `_check_saturation_and_collapse`" in v
+               for v in violations), violations
+
+
+def test_the_recon_register_is_measured_not_asserted(recon_saturation):
+    """Every collapse, edge and undefined region re-derived from a fresh sweep
+    each run. Green means the declared blindness is the blindness the code
+    has -- not that there is none."""
+    assert pair.check_organ_query_grid_saturation(recon_saturation) == []
+    assert set(recon_saturation) == set(pair.ORGAN_QUERY_GRID)
+
+
+def test_the_set_reading_saturates_in_both_tails(recon_saturation):
+    """THE FINDING (atom D31), measured not asserted. The SET reading is the
+    published `detection` gap, and on a grid it did not choose it has SIXTEEN
+    groups of companies publishing one bit-identical figure on every seed.
+
+    Below -6 every company has already flagged every invoice by `as_of` and
+    the gap is the no-skill 0.5: a supplier flagging a week early and one
+    flagging three weeks early are one number, and the register's two declared
+    PAIRS were a 2-point sample of that fifteen-company tail."""
+    row = recon_saturation["flagged_via_reconciliation"]
+    assert len(row["collapsed_runs"]) == 16
+    assert row["saturates_below"] == -6 and row["saturates_above"] == 82
+    tail = next(r for r in row["collapsed_runs"] if row["drifts"][0] in r)
+    assert len(tail) == 16 and max(tail) == -6
+    for seed in row["seeds"]:
+        assert row["by_seed"][seed]["by_drift"][-6] == 0.5, (
+            "the flag-everything gap -- the no-skill baseline, reached by a "
+            "company only six days early")
+    # THE DATE READING IS THE DIFFERENTIAL: same grid, same knob, ONE run.
+    date_row = recon_saturation["recon_lag_days"]
+    assert len(date_row["collapsed_runs"]) == 1
+    assert date_row["saturates_below"] == -19
+
+
+def test_the_declared_evidence_of_resolution_was_inside_a_collapse(
+        recon_saturation):
+    """THE PRE-HOUR STATE, and it fires. `flagged_via_reconciliation` offered
+    +7 as its evidence that the reading resolves the company; the book-derived
+    sweep reads +6 and +7 as ONE number on every seed. Differing from the
+    baseline is not resolution -- resolution is being told apart from your
+    NEIGHBOURS (D29's rule, one register over, unenforced until D31)."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    register["flagged_via_reconciliation"]["visible_drifts"] = (-1, 7)
+    violations = pair.check_organ_query_grid_saturation(
+        recon_saturation, register=register)
+    assert any("+7d is declared VISIBLE and sits inside the collapsed run"
+               in v for v in violations), violations
+    # And the replacement is read APART from both its neighbours.
+    row = recon_saturation["flagged_via_reconciliation"]
+    assert not any(8 in run for run in row["collapsed_runs"])
+
+
+@pytest.mark.parametrize("mutate,expected", (
+    (lambda r: r["flagged_via_reconciliation"].__setitem__(
+        "collapsed_runs", pair._RECON_SET_COLLAPSED_RUNS[:1]),
+     "publish ONE bit-identical reading"),
+    (lambda r: r["recon_lag_days"].__setitem__(
+        "collapsed_runs", ((-30, -20, -19), (3, 4))),
+     "reads them apart"),
+    (lambda r: r["recon_lag_days"].__setitem__("saturates_below", -18),
+     "measured saturates_below=-19"),
+    (lambda r: r["flagged_via_reconciliation"].__setitem__(
+        "saturation_atom_above", None),
+     "names no `saturation_atom_above`"),
+    (lambda r: r["recon_lag_days"].__setitem__("undefined_drifts", ()),
+     "published NO reading at drifts"),
+    (lambda r: r["recon_lag_days"].__setitem__("undefined_drifts", (87, 88, 50)),
+     "declares NO reading at drift +50d and the sweep read one"),
+    (lambda r: r["recon_lag_days"].__setitem__("edge_constants", ("N_PERIODS",)),
+     "reach no knob of"),
+    (lambda r: r["recon_lag_days"].__setitem__(
+        "edge_constants", ("PAYMENT_TERMS_DAYS",)),
+     "attributed to a SUBSET of its owners"),
+))
+def test_a_lying_recon_declaration_fires_by_name(recon_saturation, mutate,
+                                                 expected):
+    """R15 both ways on the new fields: an undeclared collapse, a collapse the
+    sweep reads apart, an understated edge, an unowned tail, a fail-open
+    undefined region, a declared blank the sweep can read, and an attribution
+    to constants that no longer reproduce the edge."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    mutate(register)
+    violations = pair.check_organ_query_grid_saturation(
+        recon_saturation, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_an_absent_reading_is_a_bound_only_with_its_witness(recon_saturation):
+    """THE FAIL-OPEN D28 CLOSED FOR THE OTHER TWO KNOBS, live on this one. At
+    +87/+88 no failure is detected before `as_of` at all, the latency
+    population empties and the mean is None -- and `None != baseline` reads as
+    MOVEMENT, so the instrument that had stopped reading was counted as
+    resolution.
+
+    Declaring the region is not enough: D24's distinction is that a bound is
+    only a bound with a witness, so the population itself must be empty exactly
+    where the reading is absent."""
+    row = recon_saturation["recon_lag_days"]
+    assert row["undefined_readings"] == (87, 88)
+    witness = row["undefined_witness"]
+    assert all(is_none == (pop == 0)
+               for k in witness for is_none, pop in witness[k])
+    # THE SEED THAT KEEPS THIS HONEST: at +87 one book still has a case, reads
+    # a number, and its witness is a NON-empty population.
+    assert (False, 1) in witness[87]
+
+    lying = copy.deepcopy(recon_saturation)
+    lying["recon_lag_days"]["undefined_witness"] = {
+        87: ((True, 4),) * 3, 88: ((True, 4),) * 3}
+    violations = pair.check_organ_query_grid_saturation(lying)
+    assert any("is a BOUND only while" in v for v in violations), violations
+
+
+def test_the_latency_floor_is_two_constants_the_census_pointed_at(
+        recon_saturation):
+    """HOUR #13's LEAD 1, ANSWERED. `SCENARIO_CONSTANT_CENSUS` censuses
+    `PAYMENT_TERMS_DAYS` as `bounds_resolution: False` -- true of the invoice
+    AGE band -- and discharges it with "it bounds the DETECTION-LATENCY
+    dimension instead ... and is registered there". It was not registered
+    there: this register named no constant at all, and the other half of the
+    edge is not even in the census's subject (that keyset comes off
+    `build_scenario`'s AST, and the grace window enters at `score_triad`).
+
+    Now the edge is arithmetic, predicted from the constants alone and
+    cross-checked against the sweep."""
+    entry = pair.ORGAN_QUERY_GRID["recon_lag_days"]
+    census = pair.SCENARIO_CONSTANT_CENSUS["PAYMENT_TERMS_DAYS"]
+    assert census["bounds_resolution"] is False
+    assert "PAYMENT_TERMS_DAYS" in entry["edge_constants"]
+    assert "DEFAULT_RECONCILIATION_GRACE_DAYS" in entry["edge_constants"]
+    assert pair.predict_recon_floor_from_constants() == \
+        recon_saturation["recon_lag_days"]["saturates_below"] == -19
+    # PREDICTED FROM CONSTANTS, NEVER FROM THE BOOK OR THE SWEEP.
+    names = pair._names_in(pair.predict_recon_floor_from_constants)
+    assert "ORGAN_QUERY_GRID" not in names and "records" not in names
+    # ... and it MOVES with each of them, in the direction the identity says.
+    assert pair.predict_recon_floor_from_constants(terms_days=20) == -25
+    assert pair.predict_recon_floor_from_constants(grace_days=0) == -14
+
+
+def test_the_registers_own_grid_could_confirm_neither_edge(monkeypatch):
+    """THE SOURCE MUTATION (R15 the other way): put the grid back the way it
+    was -- derived from the register's own declarations -- and the finding
+    disappears. This is the whole of atom D31 in one assertion, and it is the
+    third time the same assertion has had to be written."""
+    monkeypatch.setattr(pair, "book_recon_drift_grid", lambda *a, **k: (0,))
+    sparse = pair.measure_organ_query_grid_saturation(n_customers=_RES_N)
+    assert set(sparse["recon_lag_days"]["drifts"]) == {
+        -30, -20, -15, -5, -1, 0, 1, 8}, (
+        "this is the grid the register chose for itself: the four declaration "
+        "fields it had before D31, and nothing else. `collapsed_runs` and "
+        "`undefined_drifts` are deliberately NOT unioned into the sweep -- "
+        "they are what it is FOR, and adopting them would put the answer back "
+        "into the question")
+    # NEITHER EDGE IS REACHABLE THERE, and the undefined region is invisible.
+    assert sparse["flagged_via_reconciliation"]["saturates_above"] is None
+    assert sparse["recon_lag_days"]["undefined_readings"] == ()
+    assert len(sparse["flagged_via_reconciliation"]["collapsed_runs"]) < 16
+    violations = pair.check_organ_query_grid_saturation(sparse)
+    unconfirmable = [v for v in violations if "reads them apart" in v]
+    assert len(unconfirmable) >= 14, (
+        "on its own grid the register can confirm almost none of what it now "
+        "declares -- which is what makes the provenance the fix")
+    assert any("declares NO reading at drift +87d and the sweep never scored "
+               "it" in v for v in violations)
+
+
+def test_the_recon_saturation_caveat_travels_with_both_numbers():
+    """A limit only an Expert-Hour register carries is one no reader of the
+    number ever sees (the D25 rule). Stamped on the note AND the components of
+    both dimensions this knob reads, and INTERPOLATED from the register on
+    every call so a reshape that moved the edges cannot leave the sentence
+    standing."""
+    result = pair.measure(n_customers=120, seed=7)
+    det = result["detection"]
+    assert det.components["recon_saturation_caveat"] in det.note
+    assert "atom D31" in det.components["recon_saturation_caveat"]
+    assert det.components["recon_saturation_band_days"] == (-6, 82)
+    lat = result["detection_latency"]
+    assert lat.components["organ_query_floor_drift_days"] == -19
+    assert set(lat.components["organ_query_floor_constants"]) == {
+        "PAYMENT_TERMS_DAYS", "DEFAULT_RECONCILIATION_GRACE_DAYS"}
+    assert "-19d and no further" in lat.components[
+        "organ_query_saturation_caveat"]

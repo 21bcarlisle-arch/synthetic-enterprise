@@ -145,6 +145,7 @@ import inspect
 import random
 import subprocess
 import sys
+import textwrap
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -705,6 +706,16 @@ def detection_latency_gap(
         # register rather than typed, so a reshape that lost the property again
         # could not leave this claim standing.
         "organ_query_grid_caveat": organ_query_grid_caveat(),
+        # AND WHERE THAT DAY-FOR-DAY TRACKING STOPS (atom D31). The step is a
+        # property of the grid; the FLOOR is a property of two harness
+        # constants (`PAYMENT_TERMS_DAYS + DEFAULT_RECONCILIATION_GRACE_DAYS`),
+        # and a reader given the step without the floor is told the resolution
+        # and not its range.
+        "organ_query_saturation_caveat": organ_query_grid_saturation_caveat(),
+        "organ_query_floor_drift_days": (
+            ORGAN_QUERY_GRID["recon_lag_days"]["saturates_below"]),
+        "organ_query_floor_constants": tuple(
+            ORGAN_QUERY_GRID["recon_lag_days"]["edge_constants"]),
         "organ_query_grid_step_days": (
             ORGAN_QUERY_GRID["recon_lag_days"]["reported_days_for_a_one_day_drift"]),
         "organ_improvement_is_visible": (
@@ -2018,6 +2029,22 @@ _AT_ISSUE_FLOOR_WITNESS = {
     "population_key": "n_latency_population",
 }
 
+# EVERY GROUP OF COUNTERFACTUAL COMPANIES THE SET READING PUBLISHES AS ONE
+# NUMBER (atom D31), measured on the book-derived grid at n=300, seeds 7/11/23
+# and bit-identical on all three. Written out rather than summarised because
+# the rule is EXACTNESS: an undeclared collapse is the blindness a
+# register-derived grid could not reach, and a declared collapse the sweep
+# reads apart is a debt entry outliving its debt. The first run is the tail the
+# two declared pairs sampled; the rest were invisible to this register.
+_RECON_SET_COLLAPSED_RUNS = (
+    (-30, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6),
+    (-4, -3), (0, 1), (6, 7), (9, 10), (11, 12, 13),
+    (17, 18, 19, 20, 21, 22, 23, 24), (28, 29), (44, 45), (61, 62),
+    (65, 66, 67), (68, 69), (72, 73, 74), (76, 77, 78), (80, 81),
+    (82, 83, 84, 85, 86, 87, 88),
+)
+
+
 ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
     "recon_lag_days": {
         "reading": "date",
@@ -2040,6 +2067,34 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         # The measured quantisation: what a ONE-day company degradation is
         # published as.
         "reported_days_for_a_one_day_drift": 1.0,
+        # WHERE THE READING STOPS RESOLVING THE COMPANY (atom D31), measured on
+        # a grid derived from the BOOK rather than from the four lines above.
+        # One run, and it is the tail: -19 is
+        # `-(PAYMENT_TERMS_DAYS + DEFAULT_RECONCILIATION_GRACE_DAYS)`, the day
+        # the drifted detector reaches the invoice's own issue date, and every
+        # faster company reads -14.0 with the WHOLE latency population sitting
+        # on `n_recon_dated_at_issue_floor`. The register's own grid held one
+        # PAIR here (-20, -30) and could confirm neither the edge nor its cause.
+        "collapsed_runs": ((-30, -20, -19),),
+        "saturates_below": -19,
+        "saturates_above": None,
+        "saturation_atom": "BOUND:the invoice's own issue date",
+        "saturation_atom_below": "BOUND:the invoice's own issue date",
+        "saturation_atom_above": None,
+        # THE CONSTANTS THAT SET THAT EDGE, and the census answer D30 pointed
+        # at without giving: `predict_recon_floor_from_constants` reproduces
+        # -19 from these two alone, so the attribution is arithmetic rather
+        # than a restatement of the reading (the D30 rule, one band over).
+        "edge_constants": ("PAYMENT_TERMS_DAYS",
+                           "DEFAULT_RECONCILIATION_GRACE_DAYS"),
+        # WHERE THE INSTRUMENT STOPS READING AT ALL. Beyond +86 no failure is
+        # detected before `as_of` on every seed, the latency population empties
+        # and the mean is None -- and `None != baseline` read as MOVEMENT in
+        # the measurement this atom replaced, i.e. an instrument that had
+        # stopped reading counted as resolution (the D28 fail-open, live here).
+        # Declared WITH its witness: the population itself, which must be 0.
+        "undefined_drifts": (87, 88),
+        "undefined_witness_key": ("detection_latency", "n_latency_population"),
         "debt_atom": None,   # nothing left here is a debt -- see the ownership
         "residual_ownership": {
             (-20, -30): {
@@ -2078,7 +2133,13 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         # not a grid defect -- and it is why this entry keeps the register from
         # being a rule about days.
         "invisible_drifts": (1,),
-        "visible_drifts": (-1, 7),
+        # +7 WAS HERE AND WAS THIS ENTRY'S EVIDENCE OF RESOLUTION (atom D31).
+        # The book-derived sweep reads +6 and +7 as ONE number on every seed,
+        # so it differs from the baseline and not from the company beside it --
+        # D29's rule, one register over, unenforced because this register never
+        # routed through the shared saturation check. Replaced by +8, which the
+        # sweep reads APART from both its neighbours.
+        "visible_drifts": (-1, 8),
         # TWO collapses of two different kinds, which is what makes this entry
         # worth keeping: one where the READING saturates and the sibling can
         # still tell the companies apart, one where the COMPANY goes blind and
@@ -2086,6 +2147,20 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         "collapsed_pairs": ((-15, -20), (-20, -30)),
         "distinct_pairs": ((-5, -20),),
         "reported_days_for_a_one_day_drift": None,   # not a reading in days
+        # SIXTEEN GROUPS OF COMPANIES PUBLISHING ONE FIGURE (atom D31), of
+        # which the two declared pairs above were a 2-point sample of the first.
+        # BELOW -6 every company has flagged every invoice and the gap is the
+        # no-skill 0.5; ABOVE +82 nothing further is detected before `as_of`.
+        # The interior runs are the quantisation: this reading is not
+        # continuous in days anywhere.
+        "collapsed_runs": _RECON_SET_COLLAPSED_RUNS,
+        "saturates_below": -6,
+        "saturates_above": 82,
+        "saturation_atom": "BOUND:the flag-everything set",
+        "saturation_atom_below": "BOUND:the flag-everything set",
+        "saturation_atom_above": (
+            "D31_the_recon_grid_saturates_beyond_this_books_window"),
+        "undefined_drifts": (),
         "debt_atom": None,
         "residual_ownership": {
             1: {
@@ -2693,6 +2768,540 @@ def book_memory_grid(records: Sequence["PeriodRecord"], as_of: date,
 OWN_DRIFT_BOOK_GRIDS: Dict[str, Callable[..., Tuple[int, ...]]] = {
     "organ_failure_window_drift_days": book_memory_grid,
 }
+
+
+# ---------------------------------------------------------------------------
+# THE SAME DEFECT, ON THE REGISTER THAT FOUND IT
+# (atom D31_the_recon_grid_saturates_beyond_this_books_window, Expert Hour #13)
+# ---------------------------------------------------------------------------
+# D28 fixed the provenance of the TERMS grid; D29 fixed the MEMORY grid and put
+# both through ONE shared rule, `_check_saturation_and_collapse`, "so a
+# saturation rule can no longer exist on one side of `in_causal_path` and not
+# the other". There are THREE counterfactual company knobs in this harness and
+# the shared rule reached two. `ORGAN_QUERY_GRID` -- atom D23's register, the
+# one that FOUND this class -- still built its sweep the original way:
+#
+#     drifts = {0, 1} | invisible | visible | collapsed pairs | distinct pairs
+#
+# so every claim it makes about what the reconciliation readings can resolve was
+# checked at exactly the points it had already named, and it had no notion of a
+# collapsed RUN, a saturation EDGE, or an UNDEFINED reading at all. Eighth
+# escape of a register's own keying, and this time it is the origin register.
+#
+# MEASURED (Expert Hour #13, n=300, seeds 7/11/23, every seed identical) on the
+# grid below:
+#
+#   * the DATE reading (`recon_lag_days`) saturates BELOW at -19 and publishes
+#     NO READING at +87/+88, where the latency population is empty on two of
+#     three seeds. `None != baseline`, so the old measurement counted an
+#     instrument that had stopped reading as RESOLUTION -- the fail-open D28
+#     closed for the other two registers, live here;
+#   * the SET reading (`flagged_via_reconciliation`, which IS the published
+#     `detection` gap) has SIXTEEN groups of companies publishing one
+#     bit-identical figure on every seed, saturating below at -6 (fifteen
+#     companies on the flag-everything 0.5) and above at +82. The register
+#     declared TWO 2-point pairs out of that;
+#   * and +7 -- declared VISIBLE, i.e. offered as this entry's evidence of
+#     resolution -- sits inside the collapsed run (+6, +7). That is D29's own
+#     rule ("resolution is being told apart from your NEIGHBOURS"), unenforced
+#     one register over because this register never routed through it.
+#
+# THE FIX IS THE ROUTE, not another rule: the knob set is derived from source,
+# every knob must name a BOOK-DERIVED grid and a checker, and that checker is
+# AST-verified to CALL the shared rule. A fourth knob cannot arrive without one.
+RECON_DRIFT_KNOB = "organ_reconciliation_drift_days"
+
+
+def book_recon_drift_grid(records: Sequence["PeriodRecord"], as_of: date,
+                          grace_days: Optional[int] = None) -> Tuple[int, ...]:
+    """Every reconciliation-detector drift at which this book's readings can
+    change.
+
+    DERIVED FROM THE BOOK, NEVER FROM THE REGISTER (atom D31), and asserted
+    against its own AST never to reach one. The drift is
+    `organ_reconciliation_drift_days`: the company's detector fires at
+    `due + grace + k` instead of `due + grace`.
+
+    COMPLETE, not merely dense, and the argument is `organ_query_dates`'s: the
+    organ is asked on a DAILY grid from the invoice's own ISSUE date to
+    `as_of`, so a detector wanting to fire before the issue date is read AT the
+    issue date (constant below `issue - due - grace`) and one wanting to fire
+    after `as_of` is not read at all (constant above `as_of - due - grace`).
+    One integer per day between those two crossings -- plus one step outside
+    each -- therefore measures resolution over the whole real line. Both ends
+    are the BOOK's: the earliest issue relative to its due date, and the oldest
+    invoice's distance to `as_of`.
+    """
+    grace = (DEFAULT_RECONCILIATION_GRACE_DAYS if grace_days is None
+             else int(grace_days))
+    if not records:
+        return (0,)
+    lo = min((r.issue_date - r.due_date).days for r in records) - grace - 1
+    hi = max((as_of - r.due_date).days for r in records) - grace + 1
+    return tuple(range(int(lo), int(hi) + 1))
+
+
+def predict_recon_floor_from_constants(
+    *,
+    terms_days: Optional[int] = None,
+    grace_days: Optional[int] = None,
+) -> int:
+    """The drift at which the DATE reading stops resolving the company, from
+    the CONSTANTS alone (atom D31) -- reads no book, no draw and no seed.
+
+    THE CENSUS ANSWER D30 POINTED AT AND DID NOT GIVE. `SCENARIO_CONSTANT_CENSUS`
+    censuses `PAYMENT_TERMS_DAYS` as `bounds_resolution: False` -- true of the
+    invoice-AGE band it measures -- and discharges it with "it bounds the
+    DETECTION-LATENCY dimension instead (D23/D24) ... and is registered there".
+    It was not registered there: `ORGAN_QUERY_GRID` named no constant at all,
+    and the other half of this edge (`DEFAULT_RECONCILIATION_GRACE_DAYS`) is not
+    even in the census's subject, which is derived from `build_scenario`'s AST
+    while the grace window enters at `score_triad`. A constant discharged onto a
+    register that never received it is unowned twice over.
+
+    The identity, straight off `organ_query_dates` and `build_scenario`: the
+    organ can first be asked on the invoice's ISSUE date, which is
+    `PAYMENT_TERMS_DAYS` before its due date, and the shipped detector fires at
+    `due + grace`, so a detector drifted by `-(terms + grace)` days or more is
+    read at the floor and every faster company publishes one number.
+    """
+    terms = PAYMENT_TERMS_DAYS if terms_days is None else int(terms_days)
+    grace = (DEFAULT_RECONCILIATION_GRACE_DAYS if grace_days is None
+             else int(grace_days))
+    return -(terms + grace)
+
+
+# WHICH COUNTERFACTUAL KNOB IS SWEPT ON WHICH GRID, AND WHOSE CHECKER PUTS ITS
+# READINGS THROUGH THE SHARED SATURATION RULE (atom D31). The keyset is DERIVED
+# (`counterfactual_knobs`), so a knob added to the harness and left out of this
+# route RAISES; and `check_counterfactual_knob_route` reads each named
+# checker's AST, because naming a checker is not calling one -- Hour #11's "a
+# lead is not a control", in the shape this route could otherwise take.
+COUNTERFACTUAL_KNOB_ROUTE: Dict[str, Dict[str, object]] = {
+    "organ_reconciliation_drift_days": {
+        "grid": "book_recon_drift_grid",
+        "checker": "check_organ_query_grid_saturation",
+        "register": "ORGAN_QUERY_GRID",
+        "why": (
+            "The company's reconciliation detector. Swept from D23 and NEVER "
+            "on a book-derived grid until D31 -- the register that found this "
+            "class was the last to be put through it."
+        ),
+    },
+    "organ_terms_drift_days": {
+        "grid": "dense_drift_grid",
+        "checker": "check_dimension_drift_resolution",
+        "register": "DIMENSION_DRIFT_RESOLUTION",
+        "why": "The company's payment terms, on-path for ageing and detection (D28).",
+    },
+    "organ_failure_window_drift_days": {
+        "grid": "book_memory_grid",
+        "checker": "check_own_drift_resolution",
+        "register": "DIMENSION_DRIFT_RESOLUTION",
+        "why": "The company's memory of observed failures, off-path (D29).",
+    },
+}
+
+
+def counterfactual_knobs() -> Tuple[str, ...]:
+    """THE ROUTE'S SUBJECT, DERIVED FROM SOURCE (atom D31): every counterfactual
+    COMPANY knob this harness can build, off the signatures of `score_triad`
+    and `build_scenario` rather than a hand-typed list.
+
+    A hand-typed list is the defect the route exists to stop -- the knob nobody
+    thought of is exactly the one whose sweep is still the register's own
+    claims.
+    """
+    module_src = inspect.getsource(sys.modules[__name__])
+    tree = ast.parse(module_src)
+    out: set = set()
+    for fn in ("score_triad", "build_scenario"):
+        node = next(n for n in tree.body
+                    if isinstance(n, ast.FunctionDef) and n.name == fn)
+        args = node.args
+        for a in list(args.args) + list(args.kwonlyargs):
+            if a.arg.endswith("_drift_days"):
+                out.add(a.arg)
+    return tuple(sorted(out))
+
+
+def check_counterfactual_knob_route() -> List[str]:
+    """Put the ROUTE on trial (atom D31). Returns violations; empty = every
+    counterfactual knob in this harness is swept on a grid it did not choose and
+    its readings reach the ONE shared saturation rule.
+
+      * a knob with no route entry RAISES rather than returning a violation --
+        the fallback IS the defect (the D29 rule, one level up);
+      * a route naming a grid function that can reach a register is the D28/D29
+        defect arriving by declaration;
+      * a route naming a checker that does not CALL
+        `_check_saturation_and_collapse` is the pre-D31 state of this very
+        register: a rule that exists for two of three sweeps.
+    """
+    module = sys.modules[__name__]
+    violations: List[str] = []
+    knobs = counterfactual_knobs()
+    missing = [k for k in knobs if k not in COUNTERFACTUAL_KNOB_ROUTE]
+    if missing:
+        raise AssertionError(
+            f"counterfactual knob(s) {missing} have no entry in "
+            "COUNTERFACTUAL_KNOB_ROUTE -- a knob swept on the register's own "
+            "declarations is the atom D28/D29/D31 defect, so this raises "
+            "rather than measuring a band exactly where the band answered"
+        )
+    for knob, row in sorted(COUNTERFACTUAL_KNOB_ROUTE.items()):
+        if knob not in knobs:
+            violations.append(
+                f"{knob}: routed but is not a counterfactual knob of "
+                "`score_triad` or `build_scenario` -- a route entry outliving "
+                "its knob misleads worse than none"
+            )
+            continue
+        grid_fn = getattr(module, str(row["grid"]), None)
+        checker = getattr(module, str(row["checker"]), None)
+        if grid_fn is None or checker is None:
+            violations.append(
+                f"{knob}: names grid `{row['grid']}` / checker "
+                f"`{row['checker']}` and this module has no such function"
+            )
+            continue
+        reached = sorted(_names_in(grid_fn) & _register_names())
+        if reached:
+            violations.append(
+                f"{knob}: its grid `{row['grid']}` reads {reached} -- a grid "
+                "derived from the register can only ask it what it already "
+                "answered"
+            )
+        if not _reaches(checker, "_check_saturation_and_collapse"):
+            violations.append(
+                f"{knob}: its checker `{row['checker']}` never calls "
+                "`_check_saturation_and_collapse` -- naming the shared rule is "
+                "not running it, and a saturation rule that exists for two of "
+                "three sweeps is how `ORGAN_QUERY_GRID` kept sixteen collapses "
+                "(atom D31)"
+            )
+    return violations
+
+
+def _names_in(fn: Callable) -> set:
+    """Every NAME and attribute reachable in a function's own source, minus its
+    docstring -- the AST test D28 earned, factored so the route can run it on
+    functions it was handed rather than on ones a test hard-coded."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(fn)))
+    body = tree.body[0]
+    if ast.get_docstring(body):
+        body.body.pop(0)
+    return ({n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+            | {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)})
+
+
+def _reaches(fn: Callable, target: str, depth: int = 4) -> bool:
+    """Whether `fn` reaches `target` through this module's own helpers.
+
+    TRANSITIVE ON PURPOSE (atom D31). The two older checkers reach the shared
+    saturation rule through `_check_on_path_entry` / `_check_own_band`, so a
+    one-level name check would have called them defective and taught the next
+    reader to weaken the rule rather than route through it. What must not pass
+    is a checker that reaches it through NOTHING.
+    """
+    module = sys.modules[__name__]
+    seen: set = set()
+    frontier = [fn]
+    for _ in range(depth):
+        names: set = set()
+        for f in frontier:
+            names |= _names_in(f)
+        if target in names:
+            return True
+        frontier = []
+        for n in sorted(names - seen):
+            seen.add(n)
+            nxt = getattr(module, n, None)
+            if callable(nxt) and getattr(nxt, "__module__", None) == __name__:
+                frontier.append(nxt)
+        if not frontier:
+            break
+    return False
+
+
+def _register_names() -> set:
+    """The module's own resolution REGISTERS, by name, derived rather than
+    typed -- a new register must not be able to hide from the grid check by
+    being new."""
+    return {r["register"] for r in COUNTERFACTUAL_KNOB_ROUTE.values()} | {
+        "ORGAN_QUERY_GRID", "DIMENSION_DRIFT_RESOLUTION"}
+
+
+# WHICH CONSTANT REACHES THE FLOOR PREDICTOR THROUGH WHICH KEYWORD -- the
+# `_SPAN_PREDICTOR_KNOBS` shape one band over (atom D30/D31). The census
+# answers "does this constant bound the reading" by MOVING it, never by reading
+# a declaration, and a constant with no knob here cannot be declared to own the
+# edge.
+_RECON_FLOOR_KNOBS: Dict[str, str] = {
+    "PAYMENT_TERMS_DAYS": "terms_days",
+    "DEFAULT_RECONCILIATION_GRACE_DAYS": "grace_days",
+}
+
+
+def _predict_declared_edge(constants: Tuple[str, ...]) -> Dict[str, object]:
+    """The lower edge predicted from the constants THE ENTRY NAMES, plus the
+    one-day perturbation of each (atom D31).
+
+    Returns `predicted_saturates_below` (None where a named constant reaches no
+    knob of the predictor, or where a knob is unnamed -- an edge attributed to
+    a SUBSET of the constants that set it is the D30 defect), and
+    `edge_constants_move` -- which of the named constants actually move the
+    prediction. Both are measurements; neither reads the register.
+    """
+    if not constants:
+        return {"predicted_saturates_below": None, "edge_constants_move": {}}
+    unknown = [c for c in constants if c not in _RECON_FLOOR_KNOBS]
+    missing = [c for c in _RECON_FLOOR_KNOBS if c not in constants]
+    if unknown or missing:
+        return {
+            "predicted_saturates_below": None,
+            "edge_constants_move": {},
+            "edge_constants_unknown": tuple(unknown),
+            "edge_constants_missing": tuple(missing),
+        }
+    base = predict_recon_floor_from_constants()
+    moves = {
+        c: predict_recon_floor_from_constants(
+            **{_RECON_FLOOR_KNOBS[c]: _current_floor_constant(c) + 1}) != base
+        for c in constants
+    }
+    return {"predicted_saturates_below": base, "edge_constants_move": moves}
+
+
+def _current_floor_constant(name: str) -> int:
+    """The shipped value of a floor constant, read off the module rather than
+    re-typed beside the perturbation."""
+    return int(globals()[name])
+
+
+_RECON_RESOLUTION_SCORES: Dict[tuple, tuple] = {}
+
+
+def measure_organ_query_grid_saturation(
+    *,
+    n_customers: int = 300,
+    seeds: Sequence[int] = RESOLUTION_SEEDS,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    runner: Optional[Callable[[int, int], tuple]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """SWEEP THE RECONCILIATION KNOB ON THE BOOK'S GRID (atom D31) and produce
+    the same row shape `_check_saturation_and_collapse` reads for the other two
+    knobs: collapsed runs, both saturation edges, and the undefined readings.
+
+    Returns {reading: {...}} for every `ORGAN_QUERY_GRID` entry.
+
+    COST, MEASURED RATHER THAN WAVED AT (the D23 precedent). The grid is 109
+    integers on this scenario (-20..+88) against the 8 points the register's own
+    declarations produced, so this is 109 x 3 scorings of a 300-account book:
+    ~100s wall-clock, cached per (n, seed, drift) for the process. It buys the
+    only measurement that can find a collapse nobody declared, which is the
+    whole of atom D31 -- and the sixteen it found on its first run are the
+    number to weigh a shorter grid against.
+    """
+    register = ORGAN_QUERY_GRID if register is None else register
+    route = COUNTERFACTUAL_KNOB_ROUTE.get(RECON_DRIFT_KNOB)
+    if route is None:
+        raise AssertionError(
+            f"`{RECON_DRIFT_KNOB}` has no entry in COUNTERFACTUAL_KNOB_ROUTE "
+            "-- falling back to the register's own declarations is the atom "
+            "D31 defect itself, so this raises"
+        )
+    grid_fn = globals()[str(route["grid"])]
+    if runner is None:
+        def runner(seed: int, k: int) -> tuple:
+            key = (n_customers, seed, k)
+            if key not in _RECON_RESOLUTION_SCORES:
+                recs, cons, _ledger, as_of = build_scenario(
+                    n_customers, seed=seed)
+                _RECON_RESOLUTION_SCORES[key] = (
+                    recs,
+                    score_triad(recs, cons, as_of,
+                                organ_reconciliation_drift_days=k),
+                    as_of,
+                )
+            return _RECON_RESOLUTION_SCORES[key]
+
+    # THE UNDRIFTED BOOK FIRST: the grid is a property of the book it will be
+    # swept over, and nothing else knows where the issue dates are.
+    base_scored = {(s, 0): runner(s, 0) for s in seeds}
+    grid: set = set()
+    for s in seeds:
+        grid |= set(grid_fn(base_scored[(s, 0)][0], base_scored[(s, 0)][2]))
+    # The DECLARATIONS are still unioned in -- a declaration outside the grid
+    # must be scored rather than skipped into a free pass (atom D28's rule).
+    for entry in register.values():
+        for k in (tuple(entry.get("invisible_drifts") or ())
+                  + tuple(entry.get("visible_drifts") or ())):
+            grid.add(int(k))
+        for pair in (tuple(entry.get("collapsed_pairs") or ())
+                     + tuple(entry.get("distinct_pairs") or ())):
+            grid.update(int(k) for k in pair)
+    # `collapsed_runs` and `undefined_drifts` are deliberately NOT unioned in:
+    # they are what this sweep is FOR, and a grid that adopted them would put
+    # the answer back into the question -- the register choosing where it gets
+    # asked, one field later. Both siblings union only the older declarations
+    # for the same reason. A run outside the book's grid therefore fails as
+    # unconfirmable rather than passing on a point it supplied itself.
+    grid.add(0)
+    drifts = sorted(grid)
+    scored = dict(base_scored)
+    scored.update({(s, k): runner(s, k)
+                   for s in seeds for k in drifts if k != 0})
+
+    def _read(entry: Dict[str, object], result: Dict[str, object]) -> object:
+        dim = result[str(entry["feeds"])]
+        key = entry["headline_key"]
+        return dim.gap if key is None else dim.components[str(key)]
+
+    out: Dict[str, Dict[str, object]] = {}
+    for name in sorted(register):
+        entry = register[name]
+        by_seed: Dict[int, Dict[str, object]] = {}
+        for s in seeds:
+            base = _read(entry, scored[(s, 0)][1])
+            by_drift = {k: _read(entry, scored[(s, k)][1])
+                        for k in drifts if k != 0}
+            by_seed[s] = {"baseline": base, "by_drift": by_drift}
+        runs = _measure_collapse_runs(by_seed, drifts, seeds)
+        wit_key = entry.get("undefined_witness_key")
+        witness: Dict[int, tuple] = {}
+        if wit_key:
+            dim_name, comp = str(wit_key[0]), str(wit_key[1])
+            # (is_the_reading_absent, the population it was read over) per seed:
+            # the pair is the witness, because an absent reading over a
+            # NON-empty population is an instrument that stopped for some other
+            # reason -- which is the thing worth failing on.
+            witness = {
+                k: tuple(
+                    ((by_seed[s]["by_drift"][k] if k != 0
+                      else by_seed[s]["baseline"]) is None,
+                     scored[(s, k)][1][dim_name].components.get(comp))
+                    for s in seeds)
+                for k in runs["undefined_readings"]
+            }
+        out[name] = {
+            "knob": RECON_DRIFT_KNOB,
+            "seeds": tuple(seeds),
+            "drifts": tuple(drifts),
+            "by_seed": by_seed,
+            "baseline": by_seed[seeds[0]]["baseline"],
+            "undefined_witness": witness,
+            # THE CONSTANT-SIDE SECOND OPINION on the edge this book's calendar
+            # sets, built from the constants the ENTRY names -- never from a
+            # fixed call, which would make `edge_constants` a label rather than
+            # a claim (a declaration that cannot be wrong is not a control).
+            # The prediction is None where a named constant reaches no knob of
+            # the predictor, and the perturbation below answers "does this
+            # constant move the edge" by MOVING IT (the D30 census shape).
+            **_predict_declared_edge(tuple(entry.get("edge_constants") or ())),
+            **runs,
+        }
+    return out
+
+
+def check_organ_query_grid_saturation(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the reconciliation register's COLLAPSE and SATURATION declarations on
+    trial against the book-derived sweep (atom D31).
+
+    The body is the SHARED rule -- the same `_check_saturation_and_collapse`
+    both other knobs run -- plus the one thing only this edge can carry: a
+    saturation edge whose owning CONSTANTS are declared must be reproduced by
+    `predict_recon_floor_from_constants`, which reads the constants and never
+    the sweep. An edge nobody can predict from outside the measurement is a
+    debt; this one is arithmetic, and saying so is what makes it a bound.
+    """
+    register = ORGAN_QUERY_GRID if register is None else register
+    violations: List[str] = []
+    for name in sorted(measured):
+        row, entry = measured[name], register[name]
+        violations.extend(
+            _check_saturation_and_collapse(name, row, entry, ""))
+        consts = tuple(entry.get("edge_constants") or ())
+        if not consts:
+            continue
+        # PREDICTED FROM THE CHECKED ENTRY'S OWN CONSTANTS, not from the row:
+        # the measurement carries the shipped register's prediction, so reading
+        # it here would make `edge_constants` unfalsifiable -- a declaration
+        # that cannot be wrong is not a control (R15, caught on this Hour's
+        # own first draft).
+        pred = _predict_declared_edge(consts)
+        unknown = tuple(pred.get("edge_constants_unknown") or ())
+        missing = tuple(pred.get("edge_constants_missing") or ())
+        if unknown:
+            violations.append(
+                f"{name}: declares its lower edge owned by {list(unknown)}, "
+                "which reach no knob of `predict_recon_floor_from_constants` "
+                "-- an attribution nobody can perturb is a label, not a claim"
+            )
+        if missing:
+            violations.append(
+                f"{name}: names some of the constants that set its lower edge "
+                f"and not {list(missing)} -- an edge attributed to a SUBSET of "
+                "its owners reads as though the rest were inert (the D30 class)"
+            )
+        inert = sorted(c for c, moved in
+                       (pred.get("edge_constants_move") or {}).items()
+                       if not moved)
+        if inert:
+            violations.append(
+                f"{name}: declares {inert} to own its lower edge and moving "
+                "them one day moves the prediction by nothing -- a constant "
+                "that cannot move the edge does not set it"
+            )
+        predicted = pred.get("predicted_saturates_below")
+        measured_edge = row.get("saturates_below")
+        if predicted != measured_edge:
+            violations.append(
+                f"{name}: declares its lower edge owned by {list(consts)} and "
+                f"the constants predict {predicted!r} while the sweep measured "
+                f"{measured_edge!r} -- an attribution to a harness constant is "
+                "worth having only while the arithmetic reproduces the reading"
+            )
+    return violations
+
+
+def organ_query_grid_saturation_caveat(
+    measured: Optional[Dict[str, Dict[str, object]]] = None,
+) -> str:
+    """The saturation caveat that travels WITH the latency and detection
+    numbers, interpolated from the register (atom D31, the D22/D25 rule: a
+    caveat nobody re-derives decays into a claim)."""
+    src = (ORGAN_QUERY_GRID if measured is None
+           else {k: dict(ORGAN_QUERY_GRID[k], **{
+               "saturates_below": v.get("saturates_below"),
+               "saturates_above": v.get("saturates_above"),
+           }) for k, v in measured.items()})
+    def _d(v: object) -> str:
+        # A missing edge prints as UNMEASURED rather than crashing or reading
+        # like a zero: an edge nobody measured is not an edge at the origin.
+        return "UNMEASURED" if v is None else f"{int(v):+d}"
+
+    date_lo = _d(src["recon_lag_days"]["saturates_below"])
+    set_lo = _d(src["flagged_via_reconciliation"]["saturates_below"])
+    set_hi = _d(src["flagged_via_reconciliation"]["saturates_above"])
+    return (
+        "SATURATION (atom D31, measured on a grid derived from the BOOK, "
+        f"n=300, seeds {list(RESOLUTION_SEEDS)}): resolution is not the whole "
+        "real line. The first-knowledge DATE reading resolves the company day "
+        f"for day down to {date_lo}d and no further -- a detector that "
+        "would fire before the invoice was ISSUED is read at the issue date, "
+        "which is `PAYMENT_TERMS_DAYS + DEFAULT_RECONCILIATION_GRACE_DAYS` and "
+        "a bound on what any supplier can know. The SET reading behind the "
+        f"published detection gap saturates BELOW {set_lo}d, where every "
+        "company has already flagged every invoice and the gap is the no-skill "
+        f"0.5, and ABOVE {set_hi}d, where nothing further is detected "
+        "before `as_of`. Between them it is quantised, not continuous: "
+        "movement in these headlines is not readable as days of company error "
+        "outside the declared runs. R12: a diagnostic, never a target."
+    )
 
 
 DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
@@ -3666,14 +4275,48 @@ def _check_saturation_and_collapse(dim: str, row: Dict[str, object],
     collapse the sweep cannot find is a debt entry outliving its debt.
     """
     out: List[str] = []
-    if row.get("undefined_readings"):
+    # AN UNDEFINED READING IS A FAIL-OPEN UNLESS IT IS DECLARED AND WITNESSED
+    # (atom D28, extended by D31). The rule was absolute because the two knobs
+    # it ran on never emptied a population; the reconciliation knob does, at
+    # the far end where no failure is detected before `as_of` at all. That is a
+    # BOUND, and D24's distinction applies: a bound is only a bound with a
+    # witness. So a declared region must be witnessed by the population itself
+    # -- `reading is None` exactly where the population is empty -- and an
+    # UNdeclared one is the fail-open it always was.
+    undefined = tuple(row.get("undefined_readings") or ())
+    declared_undefined = tuple(entry.get(f"{prefix}undefined_drifts") or ())
+    undeclared = [k for k in undefined if k not in declared_undefined]
+    if undeclared:
         out.append(
             f"{dim}: published NO reading at drifts "
-            f"{list(row['undefined_readings'])} -- an absent reading compares "
+            f"{undeclared} -- an absent reading compares "
             "unequal to the baseline and is therefore counted as RESOLUTION by "
             "every band below; an instrument that stopped reading is not one "
             "that saw the company move"
         )
+    for k in declared_undefined:
+        if k not in tuple(row.get("drifts") or (k,)):
+            out.append(
+                f"{dim}: declares NO reading at drift {k:+d}d and the sweep "
+                "never scored it -- a declaration checked against readings "
+                "nobody took is the D23 shape, one field over"
+            )
+        elif k not in undefined:
+            out.append(
+                f"{dim}: declares NO reading at drift {k:+d}d and the sweep "
+                "read one -- a debt entry outliving its debt misleads worse "
+                "than none; RE-DERIVE it"
+            )
+            continue
+        witness = (row.get("undefined_witness") or {}).get(k)
+        if not witness or not all(is_none == (pop == 0)
+                                  for is_none, pop in witness):
+            out.append(
+                f"{dim}: declares NO reading at drift {k:+d}d and the witness "
+                f"is {witness!r} -- an absent reading is a BOUND only while "
+                "the population it was read over is empty; unwitnessed, it is "
+                "an instrument that stopped for some other reason"
+            )
     measured = {tuple(r) for r in (row.get("collapsed_runs") or ())}
     declared = {tuple(r) for r in (entry.get(f"{prefix}collapsed_runs") or ())}
     for run in sorted(measured - declared):
@@ -5359,6 +6002,19 @@ def score_triad(
     # protects the test suite rather than the figure (D25).
     det.note += " " + detection_resolution_caveat()
     det.components["drift_resolution_caveat"] = detection_resolution_caveat()
+    # AND WHERE THE RECONCILIATION KNOB'S OWN SWEEP STOPS RESOLVING IT (atom
+    # D31). The detection gap is the SET reading of `ORGAN_QUERY_GRID`, and it
+    # saturates in both tails of that knob too -- a second blindness of the
+    # same published number, found only once the register was swept on a grid
+    # it did not choose. Interpolated from the register so a reshape that moved
+    # the edges could not leave this sentence standing.
+    det.note += " " + organ_query_grid_saturation_caveat()
+    det.components["recon_saturation_caveat"] = (
+        organ_query_grid_saturation_caveat())
+    det.components["recon_saturation_band_days"] = (
+        ORGAN_QUERY_GRID["flagged_via_reconciliation"]["saturates_below"],
+        ORGAN_QUERY_GRID["flagged_via_reconciliation"]["saturates_above"],
+    )
 
     lat = detection_latency_gap(
         dd_lag_days, recon_lag_days,
@@ -6162,6 +6818,40 @@ def main() -> None:
           + ("every declaration held" if not _oqg_violations
              else f"{len(_oqg_violations)} VIOLATION(S)"))
     for v in _oqg_violations:
+        print(f"           !! {v}")
+
+    # ...AND WHERE THAT REGISTER STOPS RESOLVING THE COMPANY AT ALL (atom D31).
+    # The block above is read off the register's OWN declarations; this one is
+    # read off a grid derived from the book, which is the only place a collapse
+    # nobody declared can show up. Printed here for the D25 reason: a reader
+    # about to quote either of these two readings needs its RANGE beside its
+    # step, not just its step.
+    _route_violations = check_counterfactual_knob_route()
+    print("           knob route: "
+          f"{len(COUNTERFACTUAL_KNOB_ROUTE)} counterfactual knob(s), each on a "
+          "book-derived grid through the one saturation rule -- "
+          + ("clean" if not _route_violations
+             else f"{len(_route_violations)} VIOLATION(S)"))
+    for v in _route_violations:
+        print(f"           !! {v}")
+    _oqs = measure_organ_query_grid_saturation(n_customers=300)
+    for name, row in _oqs.items():
+        entry = ORGAN_QUERY_GRID[name]
+        print(f"           {name:<26} SATURATES below "
+              f"{row['saturates_below']}d ({entry['saturation_atom_below']}) / "
+              f"above {row['saturates_above']}d "
+              f"({entry['saturation_atom_above']}), "
+              f"{len(row['collapsed_runs'])} collapsed run(s) on the "
+              f"{len(row['drifts'])}-point book-derived grid")
+        if row["undefined_readings"]:
+            print(f"           {'':<26} NO READING at "
+                  f"{list(row['undefined_readings'])} -- population empty, "
+                  "witnessed; an absent reading is not a resolved company")
+    _oqs_violations = check_organ_query_grid_saturation(_oqs)
+    print("           verdict: "
+          + ("every declaration held" if not _oqs_violations
+             else f"{len(_oqs_violations)} VIOLATION(S)"))
+    for v in _oqs_violations:
         print(f"           !! {v}")
 
     # THE DIMENSION RESOLUTION CONTROL (atom D25). Printed for the same reason
