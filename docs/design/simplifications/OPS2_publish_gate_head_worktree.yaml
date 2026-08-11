@@ -424,3 +424,86 @@ build_note: |
   fourth tick built correctly DROPPED both ratio phases and re-timed them. That is the rule working
   and it costs ~45 minutes, exactly as that tick's note said it would. `in_tree_baseline` is
   in-flight at `suite_running` since 15:13:31Z and is still the one thing this atom owes.
+
+
+  2026-08-11, eighth tick. THE LEVEL DOES NOT MOVE AND THE OWED ITEM IS UNCHANGED: a completed
+  `in_tree_baseline`. What this tick found was not in the plan -- criterion 2's control had fired a
+  THIRD time, in the working tree, before this tick read anything, and the instrument that feeds it
+  was contradicting itself in prose.
+
+  CRITERION 2, RE-DERIVED 3600 -> 4500, AND THE PAIRING REPAIRED. `measured_gate_timeout_floor` read
+  3735 against a 3600 bound: launch 13's `in_tree_baseline` banked 1867.6s at rc=-15, which is a
+  LOWER bound (SIGTERM mid-suite, twenty-one dots, no summary), and a lower bound may raise a floor
+  even though it may never be a ratio denominator -- the asymmetry this harness already enforces.
+  But the two witnesses had silently come apart: `test_the_gate_timeout_exceeds_the_suites_own_
+  runtime` transcribed the worst COMPLETED phase (1784.6) while `test_the_timeout_clears_the_floor_
+  the_measurement_implies` reads the worst of ALL phases, so a revert to 3600 would have reddened
+  only the record-reading one while the transcription sat there agreeing. Transcribing the same
+  phase the floor is taken over restores them as each other's witness: MUTATION RUN, bound back to
+  3600, BOTH RED TOGETHER; restored, 323 passed across the twelve-module publish-gate family.
+
+  THE MARGIN WAS THE ACTUAL DEFECT, and it is why this bound has now been undersized FIVE times
+  (600, 1800, 2600, 2900, 3600). Every re-derivation chased the floor with a token headroom -- 2900
+  sat 78s over its floor, 3600 sat 31s -- and each was overtaken within hours, the last within a
+  single worker tick. The floor itself moved 2822 -> 3569 -> 3735 in ONE DAY on a suite that gained
+  121 tests between two timings of the same phase. A margin below the observed drift is a bound that
+  reds again within a day, and every one of those reds takes the write-time gate scope down mid-tick.
+  So the margin is now the observed drift rather than a round-up: 3735 + 765 = 4500.
+  `PUBLISH_PATH_TIMEOUT_SECONDS` (-> 5400), `QUIET_WAIT_SECONDS` (-> 5700) and
+  `GATE_BLOCKING_TESTS_MAX_AGE_SECONDS` (-> 9000) are all DERIVED and moved with it; no consumer
+  carries a hand-copied second number, which is the 41-hour wedge of 2026-08-10.
+
+  THE SECOND FINDING, AND IT WAS IN THE EVIDENCE THIS ATOM CERTIFIES ON. Both `_basis` fields were
+  fixed string LITERALS written beside a COMPUTED verdict, so each described one branch and
+  contradicted the other. Banked, at HEAD, for two launches:
+
+      "ran_to_completion": true,
+      "ran_to_completion_basis": "observed: a negative returncode is death by signal, so the suite
+                                  never reported and its seconds is a lower bound"
+
+  beside `returncode: 1` and "23,831 passed ... in 1771.69s". The returncode was not negative, the
+  suite DID report, and its seconds is not a lower bound. `hit_memory_ceiling_basis` had it the
+  other way: the basis for a POSITIVE cgroup-kill inference, stamped beside `false` on two phases
+  that never saw a SIGKILL.
+
+  NOT COSMETIC, and the reason it bit HERE: "its seconds is a LOWER BOUND" is the exact sentence
+  this harness's asymmetry turns on -- floors admit it, the ratio refuses it. The one number this
+  atom still owes is that ratio, and the record was telling its next reader that the only phase
+  which ran to completion was a lower bound. The boolean was right the whole time; the prose beside
+  it said the opposite, and prose is what a human reads. It is an R9 breach in miniature too:
+  `observed` and `inferred` are the claim, not decoration, and a fixed literal cannot label a
+  verdict it never looked at.
+
+  Both bases are now DERIVED from the phase's own evidence, and the three-way memory case is
+  separated: a SIGKILL with the box roomy is `inferred` (cgroup), with the box starved is `inferred`
+  (global OOM), and with MemAvailable unreadable is `unavailable` -- an unanswered question, which
+  used to render as a confident `false` with a positive sentence under it.
+
+  R15 BOTH WAYS, THREE MUTATIONS RUN, source restored between each: collapsing
+  `_ran_to_completion_basis` to the old literal reds three tests; collapsing
+  `_hit_memory_ceiling_basis` reds the differential; the bound revert above reds the pair. The
+  control that would have caught this in the field is
+  `test_the_banked_record_agrees_with_the_basis_written_beside_it` -- a POPULATION check over the
+  real record, re-deriving each stored basis from that phase's own returncode, with a vacuity guard
+  (phases predating the field carry none, so a record where the harness stopped writing it is a
+  FAILED check, not an empty pass). It reds on a live artefact and can therefore red mid-tick with
+  no source change, which is wanted: the record is the evidence. The two banked bases were
+  re-derived from the returncodes already in the record -- a re-reading of the same evidence, not a
+  new claim.
+
+  WHERE THE FIRST DRAFT OF THE CONTROL WAS WRONG, recorded because it is the same class one level
+  down: it asserted "lower bound" appears IFF the phase did not complete -- a biconditional. The
+  no-returncode case is not-completed but has no lower bound to claim; forcing that wording would
+  have been inventing evidence to satisfy a symmetry. It now asserts the two directions that are
+  actually evidenced and says why the third is neither.
+
+  BOOKKEEPING OWED, and it is the same pathspec collision as ticks 4-6 rather than a forgotten item:
+  `file_scope` should now also name `tests/background/test_process_run_complete.py` (the
+  transcription constant lives there). `maturity_map.yaml` is dirty AGAIN with another lane's STAGED
+  hunk (H27's `simplifications_count` bump on the W2_11/D5 couple atom), and a pathspec commit takes
+  the INDEX version of a file -- so committing the map would land their half-finished work under
+  this atom's message. Deferred deliberately; it discharges the next time the map is clean of other
+  lanes, as it did on tick 7.
+
+  STILL OWED, unchanged and singular: a completed `in_tree_baseline`. A detached measurement is
+  launched at the end of this tick; it waits out the live publisher rather than timing beside it.

@@ -1732,11 +1732,27 @@ def _gate_timed_out():
 # longer wait on a genuinely hung gate; erring low WEDGES PUBLISHING, and this bound has now been
 # undersized four times (600, 1800, 2600, 2900).
 #
-# 3600 rather than 3569 exactly: the floor is derived from one measurement of a suite that grows
-# every day, and a bound sitting 0s above its own floor reds on the next honest phase. The caller's
-# bound (PUBLISH_PATH_TIMEOUT_SECONDS below) is DERIVED from this constant, so it moves with it and
+# RE-DERIVED A THIRD TIME, 3600 -> 4500 (2026-08-11, launch 13's `in_tree_baseline`). The control
+# fired again in the working tree before this tick read anything: floor 3735 against a 3600 bound.
+# The new worst phase is `in_tree_baseline` at 1867.6s with rc=-15 -- SIGTERM mid-suite, so its
+# seconds is a LOWER BOUND on the runtime it was heading for. That is admissible HERE and only
+# here: a lower bound can push a floor UP, which is the safe direction, and the same harness rule
+# (`_ran_to_completion_from`) refuses it as a ratio denominator, where it would only overstate.
+#
+# THE MARGIN IS THE THING THAT WAS ACTUALLY WRONG, and it is why this bound has now been undersized
+# FIVE times (600, 1800, 2600, 2900, 3600). Every re-derivation chased the floor with a token
+# headroom -- 2900 sat 78s over its floor, 3600 sat 31s over its floor -- and each was overtaken
+# within hours; the 3600 one within a single worker tick. Meanwhile the floor itself moved
+# 2822 -> 3569 -> 3735 in ONE DAY, on a suite that gained 121 tests between two launches of the
+# same phase. A margin smaller than the observed drift is a bound that reds again within a day,
+# and each of those reds takes the write-time gate scope down mid-tick.
+#
+# So the margin is set to the observed drift rather than to a round-up: 3735 + 765 = 4500, where
+# 765s is what the floor moved across 2026-08-11's own re-timings. Erring high costs a longer wait
+# on a genuinely hung gate; erring low WEDGES PUBLISHING. The caller's bound
+# (PUBLISH_PATH_TIMEOUT_SECONDS below) is DERIVED from this constant, so it moves with it and
 # cannot drift -- that pair drifting apart is what wedged publishing for 41 hours on 2026-08-10.
-GATE_SUITE_TIMEOUT_SECONDS = 3600
+GATE_SUITE_TIMEOUT_SECONDS = 4500
 
 # The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
 # bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's

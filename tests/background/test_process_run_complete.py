@@ -1199,21 +1199,35 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
         pays. Recorded in docs/observability/publish_gate_subject_cost.json as
         `throwaway_checkout`, and `ran_to_completion` -- a red suite that reported, not a
         killed one.
-      * **1784.6s** (23,831 passed, rc=1, launch 13, 2026-08-11 same day) is the SAME phase
+      * 1784.6s (23,831 passed, rc=1, launch 13, 2026-08-11 same day) is the SAME phase
         re-timed after a HEAD change dropped it for comparability. 121 more tests, and the box
         was shared with the in-tree baseline phase; both push the same way and neither is
         separable from this record. It ran to completion, so it is a real timing, and it
-        justifies 3600.
+        justified 3600.
+      * **1867.6s** (`in_tree_baseline`, launch 13, rc=-15) is the worst phase the record now
+        carries, and it is a LOWER BOUND -- SIGTERM mid-suite, twenty-one progress dots, no
+        summary line. That is why it may appear here at all: the asymmetry this atom's harness
+        enforces (`_ran_to_completion_from`) lets a truncated duration RAISE a floor, because
+        the suite provably ran at least that long and up is the safe direction, while refusing
+        it as a ratio DENOMINATOR, where it would only overstate. This assertion is a floor.
 
-    MUTATION: set GATE_SUITE_TIMEOUT_SECONDS back to 2900 (the bound derived against the 1411.2s
-    phase) and this fails, because 2900 < 2 * 1784.6. It fails TOGETHER WITH
+    THE PAIRING IS THE POINT AND IT HAD TO BE REPAIRED HERE. This constant tracked the worst
+    COMPLETED phase while test_the_timeout_clears_the_floor_the_measurement_implies reads the
+    worst of ALL phases from the record; once the truncated baseline became the worst, the two
+    diverged and a revert to 3600 would have reddened only the record-reading one. Transcribing
+    the same phase the floor is taken over restores them as each other's witness.
+
+    MUTATION: set GATE_SUITE_TIMEOUT_SECONDS back to 3600 (the bound derived against the 1784.6s
+    phase) and this fails, because 3600 < 2 * 1867.6. It fails TOGETHER WITH
     test_the_timeout_clears_the_floor_the_measurement_implies, which reads the record itself --
     that pairing is what makes this transcription a second witness rather than a copy of the
     claim, and it is why the constant here must be moved by hand every time the bound moves."""
     # Measured on the subject the gate ACTUALLY runs -- a cold throwaway checkout. Cold is the
     # only side left to bound on since reuse was eliminated: every cycle extracts HEAD fresh, and
-    # the timeout now BLOCKS publishing rather than degrading the gate.
-    MEASURED_SUITE_SECONDS = 1784.6
+    # the timeout now BLOCKS publishing rather than degrading the gate. The worst measured phase
+    # is a LOWER bound on its own runtime (rc=-15), which is admissible for a floor and for
+    # nothing else -- see the docstring.
+    MEASURED_SUITE_SECONDS = 1867.6
     assert prc.GATE_SUITE_TIMEOUT_SECONDS > MEASURED_SUITE_SECONDS * 2, (
         f"gate timeout {prc.GATE_SUITE_TIMEOUT_SECONDS}s leaves too little headroom over the "
         f"~{MEASURED_SUITE_SECONDS}s the suite actually takes on the gate's own subject; a "

@@ -2083,3 +2083,143 @@ def test_a_genuinely_complete_pair_is_still_not_re_paid_for(out):
 
     assert dropped == []
     assert sorted(phases) == ["in_tree_baseline", "throwaway_checkout"]
+
+
+# ── THE BASIS MUST BE A CLAIM ABOUT THE PHASE IT SITS BESIDE (2026-08-11) ─────────────────────
+#
+# THE DEFECT THESE FIRE ON IS IN THE BANKED RECORD, not in a scenario. Launch 13 wrote:
+#
+#     "ran_to_completion": true,
+#     "ran_to_completion_basis": "observed: a negative returncode is death by signal, so the
+#                                 suite never reported and its seconds is a lower bound"
+#
+# beside `returncode: 1` and a summary reading "23,831 passed ... in 1771.69s". Both `_basis`
+# fields were fixed literals written next to a COMPUTED verdict, so each described one branch and
+# contradicted the other. `hit_memory_ceiling_basis` had it the other way: the basis for a
+# positive cgroup-kill inference, stamped beside `false` on two phases that never saw a SIGKILL.
+#
+# WHY IT IS LOAD-BEARING HERE OF ALL PLACES: "its seconds is a LOWER BOUND" is the exact sentence
+# this harness's asymmetry turns on -- floors admit a lower bound, the ratio refuses it. The one
+# number OPS2 still owes is that ratio, and the record was telling its next reader that the only
+# phase which ran to completion was a lower bound. The boolean was right the whole time; the
+# prose beside it said the opposite, and prose is what a human reads.
+#
+# THE CONTROL IS THE PHASE'S OWN RETURNCODE, quoted back. A single literal cannot quote a
+# per-phase number, so a revert to one reds these without any test needing to match on wording.
+def _completion_basis_cases():
+    return [(1, False), (0, False), (-15, False), (-9, True), (None, False)]
+
+
+def test_the_completion_basis_quotes_the_returncode_it_was_computed_from():
+    """MUTATION (RUN): collapse `_ran_to_completion_basis` to the old single literal and this
+    reds on every returncode but -15, because a fixed sentence cannot name the number it is
+    about. This is deliberately not a keyword match on the prose -- the property is that the
+    basis was derived from THIS phase's evidence."""
+    for rc, hit in _completion_basis_cases():
+        basis = measure._ran_to_completion_basis(rc, hit)
+        if rc is None or hit:
+            continue
+        assert str(rc) in basis, (
+            "the basis for returncode {} never mentions it, so it is a paragraph about the "
+            "field rather than a claim about this phase: {!r}".format(rc, basis)
+        )
+
+
+def test_a_completed_phase_is_never_described_as_a_lower_bound():
+    """THE OBSERVED DEFECT, made to fail. The banked `throwaway_checkout` carried `true` next to
+    the words "its seconds is a lower bound", which is the discriminator that decides whether the
+    number may be a ratio denominator.
+
+    MUTATION (RUN): restore the single literal and this reds on rc=1 and rc=0.
+
+    THE PROPERTY IS TWO DIRECTIONS, NOT A BICONDITIONAL, and the difference is real rather than a
+    convenience. A phase killed by a signal or against its ceiling HAS a lower bound -- it ran
+    that long and was heading further. A phase with no returncode at all has no such claim to
+    make: its non-completion is unprovable, which this harness treats as not-completed
+    (fail-closed) without thereby asserting anything about what its seconds means. Demanding the
+    words "lower bound" there would be inventing evidence to satisfy a symmetry."""
+    for rc, hit in _completion_basis_cases():
+        completed = measure._ran_to_completion_from(rc, hit) if isinstance(rc, int) else False
+        basis = measure._ran_to_completion_basis(rc, hit)
+        if completed:
+            assert "lower bound" not in basis, (
+                "returncode {} ran to completion but its basis calls the runtime a lower bound: "
+                "{!r} -- that sentence is what disqualifies a ratio denominator".format(rc, basis)
+            )
+        elif isinstance(rc, int) and (rc < 0 or hit):
+            assert "lower bound" in basis, (
+                "returncode {} (hit_ceiling={}) died mid-suite, so its seconds is a lower bound "
+                "and the record must say so: {!r}".format(rc, hit, basis)
+            )
+        else:
+            assert "lower bound" not in basis, (
+                "returncode {!r} yields no evidence about the runtime at all, so claiming a "
+                "lower bound would be inventing one: {!r}".format(rc, basis)
+            )
+
+
+def test_every_way_the_memory_verdict_can_be_false_states_a_different_reason():
+    """A verdict with three distinct causes and one sentence is a verdict that hides two of them.
+    The SIGKILL-but-MemAvailable-unreadable case is the one that matters: it is not a `false`, it
+    is an unanswered question, and it used to render as a confident cgroup-kill sentence.
+
+    MUTATION (RUN): return one literal from `_hit_memory_ceiling_basis` and this reds."""
+    starved = measure.MIN_MEMORY_HEADROOM_MB - 1
+    roomy = measure.MIN_MEMORY_HEADROOM_MB + 1
+    cases = {
+        "not a sigkill": (1, roomy),
+        "sigkill, box starved": (-9, starved),
+        "sigkill, memory unreadable": (-9, None),
+        "sigkill, box roomy": (-9, roomy),
+    }
+    bases = {}
+    for label, (rc, mem) in cases.items():
+        hit = measure._looks_like_the_bound(rc, mem)
+        bases[label] = measure._hit_memory_ceiling_basis(rc, mem, hit)
+
+    assert len(set(bases.values())) == len(cases), (
+        "two of these distinct causes share one sentence: {}".format(bases)
+    )
+    assert bases["sigkill, box roomy"].startswith("inferred:")
+    assert bases["not a sigkill"].startswith("observed:"), (
+        "a returncode is read, not inferred -- R9 labels are the claim, not decoration"
+    )
+    assert bases["sigkill, memory unreadable"].startswith("unavailable:"), (
+        "the discriminator had no input, so nothing may be claimed -- an unanswered question "
+        "rendered as a confident verdict is the fail-silent shape R15 names"
+    )
+
+
+def test_the_banked_record_agrees_with_the_basis_written_beside_it():
+    """THE POPULATION CHECK, over the REAL record rather than a fixture -- because a fixture is
+    where this defect was already invisible for two launches. Every banked phase's stored basis
+    is re-derived from that phase's own returncode and must match.
+
+    This reads a live artefact, so it can red mid-tick with no source change. That is the same
+    property as the timeout floor above and it is wanted: the record is the evidence.
+
+    VACUITY GUARD: a record with no basis at all would pass a for-loop over nothing. Phases
+    banked before these fields existed (`cold_checkout`) legitimately carry none, so the guard
+    is that at least one phase must."""
+    record = json.loads(Path(measure.prc.GATE_SUBJECT_COST_RECORD).read_text())
+    phases = record.get("phases") or {}
+    checked = 0
+    for name, phase in phases.items():
+        if "ran_to_completion_basis" not in phase:
+            continue
+        checked += 1
+        hit = phase.get("hit_memory_ceiling") is True
+        expected = measure._ran_to_completion_basis(phase.get("returncode"), hit)
+        assert phase["ran_to_completion_basis"] == expected, (
+            "phase {!r} states evidence that does not follow from its own returncode {!r}:\n"
+            "  stored:   {}\n  implied:  {}".format(
+                name, phase.get("returncode"), phase["ran_to_completion_basis"], expected)
+        )
+        assert ("lower bound" in phase["ran_to_completion_basis"]) is not (
+            phase.get("ran_to_completion") is True), (
+            "phase {!r} contradicts itself between its boolean and its prose".format(name)
+        )
+    assert checked, (
+        "no banked phase carries a basis, so this control graded nothing -- the harness stopped "
+        "writing the field, which is a failed check and not a pass"
+    )

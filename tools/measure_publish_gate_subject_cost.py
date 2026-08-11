@@ -788,6 +788,68 @@ def _looks_like_the_bound(result_returncode: int, mem_available_after_mb) -> boo
     return mem_available_after_mb >= MIN_MEMORY_HEADROOM_MB
 
 
+# ── A BASIS IS A CLAIM ABOUT THIS PHASE, NOT A PARAGRAPH ABOUT THE FIELD (2026-08-11) ─────────
+#
+# THE DEFECT, READ OFF THIS RECORD RATHER THAN IMAGINED. Both `_basis` fields were single string
+# LITERALS, written identically beside every verdict, so each described exactly one branch and
+# was wrong beside the other. In the banked record of launch 13:
+#
+#   "ran_to_completion": true,
+#   "ran_to_completion_basis": "observed: a negative returncode is death by signal, so the suite
+#                               never reported and its seconds is a lower bound"
+#
+# for a phase with `returncode: 1` and a printed summary of 23,831 passed in 1771.69s. The
+# returncode was not negative, the suite DID report, and its seconds is not a lower bound. The
+# same literal sat beside `false` on the truncated phase, where it happened to be true.
+# `hit_memory_ceiling_basis` had it the other way round: the basis for a POSITIVE cgroup-kill
+# inference was stamped beside `false` on two phases that never saw a SIGKILL at all.
+#
+# WHY THIS IS NOT COSMETIC, and it is the reason this atom is the one that got bitten: the
+# sentence "its seconds is a LOWER BOUND" is the exact discriminator deciding what a number may
+# be used for here -- floors admit it, the ratio refuses it (`_ran_to_completion_from` above).
+# The one number this atom still owes is a RATIO, and the record was telling its next reader that
+# the one phase which ran to completion was a lower bound. A reader who believed the basis over
+# the boolean would refuse the only sound ratio term in the file.
+#
+# It is also an R9 breach in miniature: `observed` and `inferred` are not decorations, and a fixed
+# literal cannot label a verdict it did not look at. Completion by returncode is OBSERVED; the
+# cgroup-versus-global discriminator is INFERRED; and the case where MemAvailable could not be
+# read is neither -- it is a question that went unanswered, which now says so instead of quietly
+# rendering as a confident `false`.
+def _ran_to_completion_basis(returncode, hit_memory_ceiling: bool) -> str:
+    """The evidence for THIS phase's `ran_to_completion`, in its own terms."""
+    if hit_memory_ceiling:
+        return ("inferred: this phase was killed against its own {}MB ceiling, so it never "
+                "reported and its seconds is a lower bound on the runtime it was heading for"
+                .format(PHASE_MEMORY_MAX_MB))
+    if not isinstance(returncode, int) or isinstance(returncode, bool):
+        return ("unavailable: no returncode was recorded, so completion is unprovable -- which "
+                "is treated as NOT completed rather than as a pass")
+    if returncode < 0:
+        return ("observed: returncode {} is death by signal, so the suite never reported and "
+                "its seconds is a lower bound on the runtime it was heading for"
+                .format(returncode))
+    return ("observed: pytest returned {} and printed its own summary line, so the suite ended "
+            "under its own control and its seconds is a completed runtime".format(returncode))
+
+
+def _hit_memory_ceiling_basis(returncode, mem_available_after_mb, hit: bool) -> str:
+    """The evidence for THIS phase's `hit_memory_ceiling`, in its own terms."""
+    if hit:
+        return ("inferred: SIGKILL with the box still holding {}MB, above the {}MB headroom "
+                "floor -- a cgroup kill of this phase, not a global OOM"
+                .format(mem_available_after_mb, MIN_MEMORY_HEADROOM_MB))
+    if returncode != -9:
+        return ("observed: returncode {} is not a SIGKILL, and this inference is only ever "
+                "consulted on one".format(returncode))
+    if mem_available_after_mb is None:
+        return ("unavailable: SIGKILL, but MemAvailable could not be read afterwards, so the "
+                "cgroup-versus-global discriminator has no input and nothing is claimed here")
+    return ("inferred: SIGKILL with the box itself down to {}MB, below the {}MB headroom floor "
+            "-- a global OOM the box lost, not this phase's own ceiling"
+            .format(mem_available_after_mb, MIN_MEMORY_HEADROOM_MB))
+
+
 def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
     with _publisher_exclusion(log, heartbeat):
         return _time_suite_under_exclusion(cwd, log, heartbeat)
@@ -844,8 +906,11 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         # whose SECONDS mean nothing, so a reader must not average it into a ratio.
         "memory_max_mb": PHASE_MEMORY_MAX_MB,
         "hit_memory_ceiling": hit_bound,
-        "hit_memory_ceiling_basis": "inferred: SIGKILL with the box still above its headroom "
-                                    "floor implies a cgroup kill, not a global OOM",
+        # DERIVED FROM THIS PHASE, not a literal restating the field (see the block above the two
+        # basis helpers): a fixed sentence beside a computed verdict describes one branch and
+        # misdescribes the other, and both of these did.
+        "hit_memory_ceiling_basis": _hit_memory_ceiling_basis(
+            result.returncode, mem_after, hit_bound),
         # Stated because the number carries it and a future reader re-deriving
         # GATE_SUITE_TIMEOUT_SECONDS "from the measured runtime" would not otherwise know: this
         # is a run of a STRICTLY LARGER suite than the gate performs, because `-x` is stripped
@@ -859,8 +924,7 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         # the runtime it was heading for, and that distinction decides which questions the number
         # may be used to answer. See `_ran_to_completion`.
         "ran_to_completion": _ran_to_completion_from(result.returncode, hit_bound),
-        "ran_to_completion_basis": "observed: a negative returncode is death by signal, so the "
-                                   "suite never reported and its seconds is a lower bound",
+        "ran_to_completion_basis": _ran_to_completion_basis(result.returncode, hit_bound),
     }
 
 
