@@ -574,6 +574,17 @@ def main() -> None:
         observations, unit_rate_p_per_kwh=args.unit_rate, belief="epc")
     money_inferred = fgl.money_consequence(
         observations, unit_rate_p_per_kwh=args.unit_rate, belief="inferred")
+    # THE HEADLINE'S OWN FAILURE MODES (2026-08-11 Expert Hour). Computed on every
+    # run, printed above the fold, and NOT behind a flag: the two numbers below are
+    # diluted, direction-blind and composition-dependent on the populations this
+    # tool actually measures, and a caveat a reader has to opt into is not a caveat.
+    agreement = fgl.arm_agreement(observations)
+    verdict = fgl.composition_verdict(
+        observations, unit_rate_p_per_kwh=args.unit_rate)
+    biases = {
+        arm: fgl.belief_bias(observations, belief=arm) for arm in ("epc", "inferred")
+    }
+    caveats = fgl.headline_caveats(observations, unit_rate_p_per_kwh=args.unit_rate)
 
     composition = (
         f"DRAWN from published stock marginals (n={args.population}, "
@@ -588,6 +599,12 @@ def main() -> None:
             "epc_vs_actual_gap": epc.gap,
             "inferred_vs_actual_gap": inferred.gap,
             "inference_improvement": epc.gap - inferred.gap,
+            "arm_agreement": fgl.arm_agreement_components(agreement),
+            "belief_bias": {
+                arm: fgl.belief_bias_components(b) for arm, b in biases.items()
+            },
+            "composition_verdict": fgl.composition_verdict_components(verdict),
+            "headline_caveats": caveats,
             "money_epc": _money_json(money_epc),
             "money_inferred": _money_json(money_inferred),
             "two_level_is_red": result.is_red,
@@ -635,6 +652,46 @@ def main() -> None:
                   f" (of which value-DESTROYING {m.value_destroying_recommendations})"
                   f"  declined-where-value-existed {m.declined_where_value_existed}"
                   f"  of {m.premises}")
+        print()
+        # THE HEADLINE ABOUT THE HEADLINE. Printed unconditionally and BEFORE the
+        # two-level verdict, because the two figures above are the ones a reader
+        # carries away and these are the conditions under which they mean what they
+        # appear to mean.
+        print("  HOW TO READ THE TWO FIGURES ABOVE:")
+        print(f"    inference ran on          : {agreement.informed_premises}"
+              f" of {agreement.premises} premises"
+              f"  (tie fraction {agreement.tie_fraction:.0%};"
+              f" identical arms {agreement.identical_arm_premises},"
+              f" of which inference-ran {agreement.informed_but_identical})")
+        print(f"    improvement, as published : {agreement.improvement_all:+.4f}")
+        print(f"    improvement, where it ran : {agreement.improvement_informed:+.4f}"
+              "   (own no-skill baseline, not the same denominator)")
+        for arm, b in biases.items():
+            print(f"    {arm + ' direction':<26}: {b.direction:<5}"
+                  f" {b.n_above} above / {b.n_below} below / {b.n_exact} exact,"
+                  f" signed mean {b.signed_mean_relative_error:+.1%},"
+                  f" sign-test p={b.sign_test_p:.4f}"
+                  f"{'  SYSTEMATIC' if b.is_systematic else ''}")
+        print(f"    accuracy favours          : {verdict.accuracy_favours}"
+              f"     money favours: {verdict.money_favours}"
+              f"     {'AGREE' if verdict.verdicts_agree else 'DISAGREE'}")
+        print(f"    money, mirrored PANEL     : {verdict.panel_mirror_money_favours}"
+              f"   (a stock that fails the other way; accuracy moved"
+              f" {verdict.panel_mirror_accuracy_drift:.4f};"
+              f" truth-above-register {verdict.truth_above_epc_share:.0%})"
+              f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}")
+        print(f"    money, mirrored REVISION  : {verdict.revision_mirror_money_favours}"
+              f"   (same step, other way;"
+              f" revision agreed with truth on"
+              f" {verdict.revision_agrees_with_panel_share:.0%} of moved premises)"
+              f"{'   DIRECTION-BOUGHT' if verdict.direction_bought else ''}")
+        print(f"    money, swapped ERROR BARS : {verdict.confidence_mirror_money_favours}"
+              f"   (estimates untouched, so accuracy is unchanged;"
+              f" declined-where-value-existed {verdict.declined_epc} epc /"
+              f" {verdict.declined_inferred} inferred)"
+              f"{'   CONFIDENCE-BOUGHT' if verdict.confidence_bought else ''}")
+        for caveat in caveats:
+            print(f"  !! {caveat}")
         print()
         print(f"  two-level test            : {'RED' if result.is_red else 'green'}"
               f"  failed {[c.statistic for c in result.failed]}")

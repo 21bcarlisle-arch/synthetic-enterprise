@@ -4174,3 +4174,300 @@ def test_the_MISSING_register_fact_still_fails_CLOSED_onto_the_gas_band(weather,
     assert cell.band.statistic == fgl.NO_BEHAVIOURAL_STREAM_BAND
     assert cell.homes_judged == 0 and cell.homes_unjudged == fgl.MIN_HOMES_FOR_L1_RATE
     assert cell.verdict is fgl.Verdict.INSUFFICIENT, cell.note
+
+
+# ===========================================================================
+# §8 THE HEADLINE'S OWN FAILURE MODES
+# ===========================================================================
+#
+# The controls added 2026-08-11 for this atom's three open Expert-Hour findings.
+# Everything in §5 asks whether the COMPANY is wrong. This section asks whether the
+# two numbers §5 publishes mean what a reader takes them to mean.
+#
+# Each control is landed with its NAMED DEFECT as a population it must fire on, and
+# with a clean population it must stay silent on (R15 both ways). The defect is a
+# population shape rather than a source mutation because these are statistics: the
+# thing that can break them is the data they are handed, and a control that has only
+# ever been shown its own happy case has demonstrated nothing.
+
+
+def _coverage_population(*, lodged: int, n=12):
+    """A population where the ESTIMATOR IS FIXED and only EPC LODGEMENT COVERAGE moves.
+
+    The first `lodged` premises are meter-armed and their posterior improves on the
+    register by a constant factor; the rest were never lodged, so the company holds
+    its prior and the two arms are identical. Nothing about the inference differs
+    between two populations built this way — only how many premises it reached.
+
+    THE STOCK REPEATS EVERY HALF, and that is the load-bearing detail. `prediction_gap`
+    normalises to the no-skill baseline of the population it is handed, so a covered
+    set that is a PREFIX of a rising HLC range is a different stock from the whole, and
+    the conditioned figure would move for that reason rather than for the estimator's.
+    Repeating the range means the covered halves are EXCHANGEABLE — 6-of-12 and 12-of-12
+    draw the same HLC multiset — so the conditioned figure is invariant EXACTLY and the
+    control can assert an identity instead of a tolerance.
+    """
+    rows = []
+    for i in range(n):
+        actual = 0.10 + 0.05 * (i % (n // 2))
+        epc = actual * 1.30
+        armed = i < lodged
+        rows.append(
+            fgl.FabricObservation(
+                premise_id=f"P{i}",
+                actual_hlc_kw_per_k=actual,
+                epc_hlc_kw_per_k=epc,
+                # The SAME estimator everywhere it runs: halve the register's error.
+                inferred_hlc_kw_per_k=actual * 1.15 if armed else epc,
+                floor_area_m2=60.0 + 10.0 * (i % (n // 2)),
+                annual_heat_kwh=8000.0 + 1500.0 * (i % (n // 2)),
+                annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+                epc_relative_sd=FIXTURE_RELATIVE_SD,
+                inferred_relative_sd=FIXTURE_RELATIVE_SD,
+                epc_basis=EvidenceBasis.EPC_ONLY,
+                inferred_basis=(
+                    EvidenceBasis.METER_AND_EPC if armed else EvidenceBasis.EPC_ONLY
+                ),
+            )
+        )
+    return rows
+
+
+def test_the_published_improvement_MOVES_WITH_COVERAGE_WHILE_THE_ESTIMATOR_DOES_NOT():
+    """THE NAMED DEFECT (finding 2): coverage reading as skill.
+
+    Two populations, same estimator, different EPC lodgement coverage. The headline
+    this atom publishes moves; the conditioned figure does not. If the conditioned
+    figure ever starts moving too, the conditioning has stopped working and this
+    test says so — that is the whole reason both numbers are carried.
+    """
+    sparse = fgl.arm_agreement(_coverage_population(lodged=6))
+    dense = fgl.arm_agreement(_coverage_population(lodged=12))
+
+    # The DEFECT, demonstrated rather than asserted: the published headline DOUBLES
+    # on a change that touched no estimator anywhere. The truth values are identical
+    # in both worlds, so the no-skill denominator is too, and the factor is exactly
+    # the ratio of the tie fractions.
+    assert dense.improvement_all == pytest.approx(sparse.improvement_all * 2.0)
+    # The CONTROL: the conditioned figure is a property of the estimator, so it is
+    # the SAME NUMBER in both worlds — an identity, not a tolerance.
+    assert dense.improvement_informed == pytest.approx(
+        sparse.improvement_informed, rel=1e-12
+    )
+    assert sparse.tie_fraction == pytest.approx(0.5)
+    assert dense.tie_fraction == pytest.approx(0.0)
+    # And the dilution is exactly the informed fraction, which is what makes the
+    # published figure readable once both numbers are carried: on an exchangeable
+    # covered set the two differ by coverage and by nothing else.
+    assert sparse.improvement_all == pytest.approx(
+        sparse.improvement_informed * sparse.informed_fraction
+    )
+
+
+def test_the_tie_fraction_is_read_off_the_BASIS_not_off_the_two_numbers():
+    """Independence (R15 TAUTOLOGY). A posterior that genuinely ran and landed
+    exactly on its prior must count as INFORMED — deciding by float equality would
+    put the measured quantity on both sides of its own measurement."""
+    rows = _coverage_population(lodged=12)
+    landed_on_prior = [
+        dataclasses.replace(o, inferred_hlc_kw_per_k=o.epc_hlc_kw_per_k) for o in rows
+    ]
+    agreement = fgl.arm_agreement(landed_on_prior)
+    assert agreement.informed_premises == len(rows)
+    assert agreement.tie_fraction == pytest.approx(0.0)
+    # ...and it is REPORTED, because an estimator that never moves anything is also
+    # what a broken estimator looks like.
+    assert agreement.informed_but_identical == len(rows)
+
+
+def test_a_BASIS_THAT_DOES_NOT_DESCRIBE_THE_BELIEF_is_refused():
+    """The basis predicate's own falsifier. If `epc_only` can sit on a premise whose
+    posterior differs from its prior, every conditioned figure below is meaningless
+    and the module must say so rather than compute one."""
+    rows = _coverage_population(lodged=12)
+    lying = [dataclasses.replace(rows[0], inferred_basis=EvidenceBasis.EPC_ONLY)] + rows[1:]
+    with pytest.raises(fgl.InsufficientEvidence, match="does not describe the belief"):
+        fgl.arm_agreement(lying)
+
+
+def test_an_inference_headline_over_a_population_it_barely_touched_RAISES():
+    """FAIL-LOUD, not fail-open. Returning the diluted figure here would be the
+    module's own named anti-pattern: pass on missing evidence."""
+    with pytest.raises(fgl.InsufficientEvidence, match="not a substitute"):
+        fgl.arm_agreement(_coverage_population(lodged=2))
+
+
+def test_a_ONE_SIGNED_belief_error_is_reported_as_BIAS_and_a_random_one_is_not():
+    """THE NAMED DEFECT (finding 3): the |gap| headline scores a belief that is
+    wrong the same way everywhere identically to one that is wrong at random."""
+    one_signed = _observations(n=12, epc_bias=0.85)
+    bias = fgl.belief_bias(one_signed, belief="epc")
+    assert bias.is_systematic and bias.direction == "under"
+    assert bias.n_below == 12 and bias.n_above == 0
+    assert bias.signed_mean_relative_error == pytest.approx(-0.15)
+
+    # The SAME magnitude of error, alternating sign. The gap is materially the same
+    # and the bias verdict is the opposite — which is the point of carrying it.
+    alternating = [
+        dataclasses.replace(
+            o,
+            epc_hlc_kw_per_k=o.actual_hlc_kw_per_k * (0.85 if i % 2 else 1.15),
+        )
+        for i, o in enumerate(_observations(n=12))
+    ]
+    scattered = fgl.belief_bias(alternating, belief="epc")
+    assert not scattered.is_systematic
+    assert fgl.epc_vs_actual_gap(alternating).gap == pytest.approx(
+        fgl.epc_vs_actual_gap(one_signed).gap, rel=0.05
+    ), "the fixture must hold |error| roughly fixed, else sign is not what moved"
+
+
+def test_a_belief_that_is_never_wrong_has_NO_DIRECTION_rather_than_a_default_one():
+    """Vacuity. An all-exact population has nothing to be one-signed about, and a
+    sign test over zero decided premises must not report a direction."""
+    bias = fgl.belief_bias(_observations(n=8), belief="epc")
+    assert bias.n_exact == 8 and bias.n_above == 0 and bias.n_below == 0
+    assert bias.sign_test_p == 1.0
+    assert not bias.is_systematic and bias.direction == "none"
+
+
+def test_the_sign_test_is_the_EXACT_binomial_and_not_an_approximation():
+    """Checked against hand arithmetic, not against itself: 1-of-15 two-sided is
+    2 * (C(15,0) + C(15,1)) / 2**15 = 32/32768."""
+    assert fgl._two_sided_sign_test_p(1, 14) == pytest.approx(32 / 32768)
+    assert fgl._two_sided_sign_test_p(8, 8) == pytest.approx(1.0)
+    assert fgl._two_sided_sign_test_p(0, 0) == 1.0
+
+
+def test_the_PANEL_MIRROR_reverses_the_registers_direction_and_keeps_its_magnitude():
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    assert fgl.belief_bias(rows, belief="epc").direction == "under"
+    mirrored = fgl.mirror_panel_composition(rows)
+    assert fgl.belief_bias(mirrored, belief="epc").direction == "over"
+    # The log error is preserved EXACTLY — that is what makes the mirror a change of
+    # sign rather than a change of subject.
+    for before, after in zip(rows, mirrored):
+        assert math.log(before.epc_hlc_kw_per_k / before.actual_hlc_kw_per_k) == (
+            pytest.approx(-math.log(after.epc_hlc_kw_per_k / after.actual_hlc_kw_per_k))
+        )
+    # The bill moves with the fabric. A house whose heat loss halves and whose
+    # consumption does not is not a house, and the decision reads both.
+    for before, after in zip(rows, mirrored):
+        assert after.annual_heat_kwh / before.annual_heat_kwh == pytest.approx(
+            after.actual_hlc_kw_per_k / before.actual_hlc_kw_per_k
+        )
+
+
+def test_the_REVISION_MIRROR_leaves_a_premise_the_inference_never_touched_alone():
+    """By construction, not by a special case: reflecting a posterior through a prior
+    it already equals returns the prior."""
+    rows = _coverage_population(lodged=6)
+    mirrored = fgl.mirror_revision_direction(rows)
+    for before, after in zip(rows, mirrored):
+        if not fgl.inference_ran(before):
+            assert after.inferred_hlc_kw_per_k == pytest.approx(
+                before.inferred_hlc_kw_per_k
+            )
+        else:
+            assert (after.inferred_hlc_kw_per_k > before.epc_hlc_kw_per_k) != (
+                before.inferred_hlc_kw_per_k > before.epc_hlc_kw_per_k
+            )
+
+
+def test_the_CONFIDENCE_MIRROR_cannot_move_accuracy_at_all():
+    """The instrument's own guarantee, and the reason a money flip under it is
+    attributable. If a future edit lets this mirror touch a point estimate, both
+    assertions here fail and the `confidence_bought` verdict stops meaning anything."""
+    rows = _observations(
+        n=10, epc_bias=1.3, inferred_bias=1.1,
+        epc_relative_sd=0.50, inferred_relative_sd=0.15,
+    )
+    mirrored = fgl.mirror_decision_confidence(rows)
+    assert fgl.epc_vs_actual_gap(mirrored).gap == pytest.approx(
+        fgl.epc_vs_actual_gap(rows).gap
+    )
+    assert fgl.inferred_vs_actual_gap(mirrored).gap == pytest.approx(
+        fgl.inferred_vs_actual_gap(rows).gap
+    )
+    assert mirrored[0].epc_relative_sd == pytest.approx(rows[0].inferred_relative_sd)
+    assert mirrored[0].epc_basis is rows[0].inferred_basis
+
+
+def test_a_MONEY_VERDICT_BOUGHT_BY_THE_ERROR_BAR_is_named_as_such():
+    """THE NAMED DEFECT (finding 4): the money headline can rank the two arms on how
+    confidently the company may ACT rather than on how right it is.
+
+    Both arms hold the SAME estimate here, so there is no accuracy difference to
+    find at all — only one arm is allowed to act on it. A money verdict that still
+    names a winner is measuring permission, and the caveat must say so.
+    """
+    rows = _observations(
+        n=10,
+        epc_bias=1.35,
+        inferred_bias=1.35,
+        epc_relative_sd=0.60,
+        inferred_relative_sd=0.12,
+        epc_basis=EvidenceBasis.STOCK_PRIOR,
+        inferred_basis=EvidenceBasis.METER_AND_EPC,
+    )
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.improvement == pytest.approx(0.0), (
+        "the fixture must hold accuracy exactly equal, else the flip is not "
+        "attributable to confidence"
+    )
+    assert verdict.money_favours == "inferred"
+    assert verdict.confidence_bought
+    assert verdict.confidence_mirror_money_favours == "epc"
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert any(c.startswith("CONFIDENCE-BOUGHT") for c in caveats), caveats
+
+
+def test_an_equally_confident_pair_is_NOT_reported_as_confidence_bought():
+    """The other way (R15). When both arms carry the same error bar and basis, the
+    confidence mirror is the identity and the verdict must not fire — a control that
+    fires on everything is as ignored as one that fires on nothing."""
+    rows = _observations(n=10, epc_bias=1.35, inferred_bias=1.10)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not verdict.confidence_bought
+    assert verdict.declined_epc == verdict.declined_inferred
+
+
+def test_the_caveat_list_is_EMPTY_on_a_population_with_nothing_to_caveat():
+    """The vacuity guard. `headline_caveats` is only evidence if it CAN be silent —
+    a list that is never empty carries no information about the row it annotates."""
+    rows = [
+        dataclasses.replace(
+            o,
+            # Errors of equal size and alternating sign, on both arms, with the
+            # posterior genuinely closer: nothing diluted, nothing one-signed, and
+            # both headlines naming the same arm.
+            epc_hlc_kw_per_k=o.actual_hlc_kw_per_k * (0.75 if i % 2 else 1.25),
+            inferred_hlc_kw_per_k=o.actual_hlc_kw_per_k * (0.95 if i % 2 else 1.05),
+        )
+        for i, o in enumerate(_observations(n=12))
+    ]
+    assert fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE) == []
+
+
+def test_the_ledger_row_CARRIES_the_caveats_rather_than_offering_them(tmp_path):
+    """R11, no orphan transition. The door renders what the row holds; a caveat
+    computed and not written is a caveat nobody reads."""
+    path = tmp_path / "ledger.json"
+    rows = _coverage_population(lodged=6)
+    fgl.write_fabric_gap_entries(
+        rows,
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        measured_at="2026-08-11T00:00:00+00:00",
+        path=path,
+    )
+    ledger = json.loads(path.read_text())
+    components = ledger[fgl.GENERATOR_WORLD_ATOM]["components"]
+    assert components["arm_agreement"]["tie_fraction"] == pytest.approx(0.5)
+    assert components["arm_agreement"]["improvement_informed"] != (
+        components["inference_improvement"]
+    )
+    assert components["belief_bias"]["epc"]["direction"] == "over"
+    assert "composition_verdict" in components
+    assert any(
+        c.startswith("DILUTED") for c in components["headline_caveats"]
+    ), components["headline_caveats"]

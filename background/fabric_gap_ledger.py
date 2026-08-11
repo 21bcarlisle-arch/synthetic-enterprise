@@ -3419,6 +3419,608 @@ def money_consequence(
 
 
 # ===========================================================================
+# THE HEADLINE'S OWN FAILURE MODES
+# ===========================================================================
+#
+# Added 2026-08-11 (this atom's Expert Hour, findings 2/3/4). Everything above
+# measures the COMPANY. This section measures the MEASUREMENT: three ways the two
+# numbers this atom publishes can be right about their arithmetic and wrong about
+# what a reader takes from them. Each is a standing, failable control rather than a
+# note in a design doc, because the Hour found all three by computing them and a
+# prose warning does not recompute itself next tick (MAKE IT STICK).
+#
+#  (2) DILUTION — `inference_improvement` averages over premises where the
+#      inference never ran, so the published number moves with EPC lodgement
+#      COVERAGE while the estimator is unchanged. Coverage reading as skill.
+#  (3) DIRECTION — the gap is |belief - truth|-shaped, so a belief that is wrong
+#      the SAME WAY everywhere scores identically to one that is wrong at random.
+#      The first means the company is wrong about the STOCK; the second means it
+#      is imprecise about houses. Different failures, different remedies.
+#  (4) COMPOSITION — the money verdict can be decided by the panel's own sign
+#      composition rather than by the beliefs being compared. An upward-biased
+#      belief buys more measures, and on a panel where truth mostly exceeds the
+#      register, buying more is right more often. That is not skill.
+#
+# R10, class not instance: none of the three is patched at its one observed site.
+# Each is a measure with a named defect and a mutation that fires it.
+
+
+# WHICH PREMISES THE INFERENCE ACTUALLY RAN ON, decided by the BASIS the company
+# itself stamped on the belief — never by comparing the two arms' numbers. Float
+# equality would be a tautology with the very thing being measured: an inference
+# that genuinely ran and landed on its prior would be scored as "never ran", and
+# the dilution correction would then hide inside the correction. The basis is
+# independent evidence, written by `thermal_inference` before this module sees it.
+INFERENCE_RAN_BASES = (EvidenceBasis.METER_AND_EPC, EvidenceBasis.METER_ONLY)
+
+
+def inference_ran(observation: FabricObservation) -> bool:
+    """Did meter evidence enter this premise's posterior at all?"""
+    return observation.inferred_basis in INFERENCE_RAN_BASES
+
+
+@dataclass(frozen=True)
+class ArmAgreement:
+    """How much of the published improvement is carried by rows that can carry any.
+
+    `improvement_all` is the headline as published; `improvement_informed` is the
+    same comparison restricted to premises where the inference ran. They are NOT
+    the same statistic on different row counts: `prediction_gap` normalises to the
+    no-skill baseline of the population it is handed, so the informed figure has
+    its own denominator. Both are carried, with the tie fraction between them, so a
+    reader can see the dilution instead of inferring it.
+    """
+
+    premises: int
+    informed_premises: int
+    tie_fraction: float
+    identical_arm_premises: int
+    informed_but_identical: int
+    epc_gap_all: float
+    inferred_gap_all: float
+    improvement_all: float
+    epc_gap_informed: float
+    inferred_gap_informed: float
+    improvement_informed: float
+
+    @property
+    def informed_fraction(self) -> float:
+        return self.informed_premises / self.premises
+
+
+def arm_agreement(observations: Sequence[FabricObservation]) -> ArmAgreement:
+    """Condition the improvement headline on whether the inference ran at all.
+
+    FAIL-LOUD, deliberately. When too few premises are meter-armed to measure the
+    conditioned figure, this raises rather than returning the diluted one — an
+    inference headline over a population where inference barely ran is not a weaker
+    number, it is a number about something else. Falling back would be the exact
+    fail-open shape (`pass on missing/empty`) this module exists to catch.
+    """
+    _require_homes(observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="arm_agreement")
+    informed = [o for o in observations if inference_ran(o)]
+    # The basis predicate's own FALSIFIER, and it is not decoration. If a premise
+    # whose basis says no meter evidence entered nonetheless holds two DIFFERENT
+    # arms, the basis is lying about the belief and every conditioned figure below
+    # is meaningless. That contradiction is loud, not logged.
+    for o in observations:
+        if not inference_ran(o) and o.inferred_hlc_kw_per_k != o.epc_hlc_kw_per_k:
+            raise InsufficientEvidence(
+                f"{o.premise_id}: basis {o.inferred_basis.value} says no meter evidence "
+                f"entered, but the posterior ({o.inferred_hlc_kw_per_k!r}) differs from the "
+                f"prior ({o.epc_hlc_kw_per_k!r}) — the basis does not describe the belief"
+            )
+    if len(informed) < MIN_HOMES_FOR_DIVERSITY:
+        raise InsufficientEvidence(
+            f"arm_agreement: the inference ran on {len(informed)} of {len(observations)} "
+            f"premises, below the {MIN_HOMES_FOR_DIVERSITY} needed to measure what it "
+            f"bought; the undiluted headline is not available and the diluted one is "
+            f"not a substitute"
+        )
+    epc_all = epc_vs_actual_gap(observations)
+    inferred_all = inferred_vs_actual_gap(observations)
+    epc_informed = epc_vs_actual_gap(informed)
+    inferred_informed = inferred_vs_actual_gap(informed)
+    identical = [
+        o for o in observations if o.inferred_hlc_kw_per_k == o.epc_hlc_kw_per_k
+    ]
+    return ArmAgreement(
+        premises=len(observations),
+        informed_premises=len(informed),
+        tie_fraction=1.0 - len(informed) / len(observations),
+        identical_arm_premises=len(identical),
+        # An inference that ran and moved the belief by exactly nothing. Reported
+        # rather than folded in: it is real (a posterior can land on its prior) and
+        # it is also what a broken estimator looks like.
+        informed_but_identical=sum(1 for o in identical if inference_ran(o)),
+        epc_gap_all=epc_all.gap,
+        inferred_gap_all=inferred_all.gap,
+        improvement_all=epc_all.gap - inferred_all.gap,
+        epc_gap_informed=epc_informed.gap,
+        inferred_gap_informed=inferred_informed.gap,
+        improvement_informed=epc_informed.gap - inferred_informed.gap,
+    )
+
+
+def _two_sided_sign_test_p(n_above: int, n_below: int) -> float:
+    """Exact two-sided binomial sign test at p=0.5. Ties are excluded by the caller,
+    which is the standard treatment: a belief that is exactly right took no side."""
+    n = n_above + n_below
+    if n == 0:
+        return 1.0
+    k = min(n_above, n_below)
+    tail = sum(math.comb(n, i) for i in range(0, k + 1)) / (2.0**n)
+    return min(1.0, 2.0 * tail)
+
+
+# The p below which a one-signed belief error is called SYSTEMATIC. A DIAGNOSTIC
+# band (R12): it decides what the row SAYS, never what the estimator is tuned to.
+SIGN_SYSTEMATIC_P = 0.05
+
+
+@dataclass(frozen=True)
+class BeliefBias:
+    """The DIRECTION of one arm's error, which the |gap| headline cannot see.
+
+    A population of beliefs that are each 10% wrong at random and a population that
+    are each 10% wrong UPWARD produce the same gap. Only the second means the
+    company is wrong about the stock, and only the second survives averaging into
+    every portfolio-level number built on top of it.
+    """
+
+    belief: str
+    premises: int
+    n_above: int
+    n_below: int
+    n_exact: int
+    signed_mean_error_kw_per_k: float
+    signed_mean_relative_error: float
+    sign_test_p: float
+
+    @property
+    def share_above(self) -> float:
+        decided = self.n_above + self.n_below
+        return self.n_above / decided if decided else 0.0
+
+    @property
+    def is_systematic(self) -> bool:
+        """One-signed beyond chance. `False` on an all-tie population, which is the
+        honest reading: a belief that is never wrong has no direction to be wrong in."""
+        return (
+            self.n_above + self.n_below > 0
+            and self.sign_test_p < SIGN_SYSTEMATIC_P
+        )
+
+    @property
+    def direction(self) -> str:
+        if not self.is_systematic:
+            return "none"
+        return "over" if self.n_above > self.n_below else "under"
+
+
+def belief_bias(
+    observations: Sequence[FabricObservation], *, belief: str = "epc"
+) -> BeliefBias:
+    """Is this arm wrong in a FIXED direction, or merely wrong?"""
+    _require_homes(observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="belief_bias")
+    if belief not in ("epc", "inferred"):
+        raise ValueError(f"unknown belief {belief!r}")
+    errors, relative = [], []
+    n_above = n_below = n_exact = 0
+    for o in observations:
+        held, _sd, _basis = o.belief_arm(belief)
+        error = held - o.actual_hlc_kw_per_k
+        if not math.isfinite(error):
+            raise NonFiniteTrace(f"{o.premise_id}: {belief} error is {error!r}")
+        errors.append(error)
+        relative.append(error / o.actual_hlc_kw_per_k)
+        if error > 0.0:
+            n_above += 1
+        elif error < 0.0:
+            n_below += 1
+        else:
+            n_exact += 1
+    return BeliefBias(
+        belief=belief,
+        premises=len(observations),
+        n_above=n_above,
+        n_below=n_below,
+        n_exact=n_exact,
+        signed_mean_error_kw_per_k=statistics.fmean(errors),
+        signed_mean_relative_error=statistics.fmean(relative),
+        sign_test_p=_two_sided_sign_test_p(n_above, n_below),
+    )
+
+
+def _reflect(value: float, through: float, *, premise_id: str, name: str) -> float:
+    """Multiplicative reflection: same ratio error, opposite sign.
+
+    `through**2 / value`, not `2*through - value`. The additive reflection preserves
+    the LEVEL error exactly but goes non-positive whenever the reflected quantity
+    exceeds twice its pivot, which is common in a register — a mirror that raises on
+    a third of real panels is a control nobody can run. This one preserves the LOG
+    error exactly and the level error approximately, and every caller reports how far
+    accuracy moved so the approximation is checkable rather than assumed.
+    """
+    for label, v in ((name, value), ("pivot", through)):
+        if not math.isfinite(v) or v <= 0.0:
+            raise InsufficientEvidence(
+                f"{premise_id}: a non-positive {label} ({v!r}) cannot be reflected"
+            )
+    return through * through / value
+
+
+def mirror_panel_composition(
+    observations: Sequence[FabricObservation],
+) -> list[FabricObservation]:
+    """The SIGN-MIRRORED PANEL: a world where the register OVER-states heat loss.
+
+    The truth is reflected through the register prior, so each premise keeps the
+    register's error magnitude exactly and reverses its direction. Both beliefs are
+    left untouched — this is the SAME company, holding the SAME numbers, in a stock
+    that fails the other way. Not a hypothetical stock either: new-build SAP ratings
+    that flatter as-built performance, and post-retrofit certificates never re-lodged,
+    both produce registers that over-state.
+
+    `annual_heat_kwh` moves with the truth in proportion. A house whose heat loss
+    halves and whose bill does not is not a house, and leaving the bill fixed would
+    let the mirror change the DECISION through the fabric share rather than through
+    the fabric — a confound inside the control designed to find confounds.
+    """
+    mirrored = []
+    for o in observations:
+        actual = _reflect(
+            o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k,
+            premise_id=o.premise_id, name="truth",
+        )
+        scale = actual / o.actual_hlc_kw_per_k
+        mirrored.append(
+            FabricObservation(
+                premise_id=o.premise_id,
+                actual_hlc_kw_per_k=actual,
+                epc_hlc_kw_per_k=o.epc_hlc_kw_per_k,
+                inferred_hlc_kw_per_k=o.inferred_hlc_kw_per_k,
+                floor_area_m2=o.floor_area_m2,
+                annual_heat_kwh=o.annual_heat_kwh * scale,
+                annual_degree_days_k_day=o.annual_degree_days_k_day,
+                epc_relative_sd=o.epc_relative_sd,
+                inferred_relative_sd=o.inferred_relative_sd,
+                epc_basis=o.epc_basis,
+                inferred_basis=o.inferred_basis,
+            )
+        )
+    return mirrored
+
+
+def mirror_revision_direction(
+    observations: Sequence[FabricObservation],
+) -> list[FabricObservation]:
+    """The SAME inference revising the OTHER WAY, by the same amount.
+
+    The posterior is reflected through the prior it started from, so the company
+    moves off its register by an identical step in the opposite direction. Truth and
+    register are untouched: this asks whether the inferred arm's money advantage came
+    from moving the RIGHT WAY on this panel rather than from moving well.
+
+    A premise the inference never touched stays exactly where it was — reflecting a
+    posterior that equals its prior returns the prior, so the untouched rows remain
+    untouched by construction rather than by a special case.
+    """
+    return [
+        FabricObservation(
+            premise_id=o.premise_id,
+            actual_hlc_kw_per_k=o.actual_hlc_kw_per_k,
+            epc_hlc_kw_per_k=o.epc_hlc_kw_per_k,
+            inferred_hlc_kw_per_k=_reflect(
+                o.inferred_hlc_kw_per_k, o.epc_hlc_kw_per_k,
+                premise_id=o.premise_id, name="posterior",
+            ),
+            floor_area_m2=o.floor_area_m2,
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
+            epc_relative_sd=o.epc_relative_sd,
+            inferred_relative_sd=o.inferred_relative_sd,
+            epc_basis=o.epc_basis,
+            inferred_basis=o.inferred_basis,
+        )
+        for o in observations
+    ]
+
+
+def mirror_decision_confidence(
+    observations: Sequence[FabricObservation],
+) -> list[FabricObservation]:
+    """SWAP the two arms' error bars and bases, leaving both point estimates alone.
+
+    The third thing that can decide the money verdict, and the one neither sign
+    mirror can see. `fabric_intervention.decide` refuses to spend on a belief that
+    is too wide or rests on a stock prior, so an arm can forgo less money purely by
+    being ALLOWED TO ACT more often — the C14 posterior carries a narrower interval
+    and a `meter_and_epc` basis, and declines on 3 premises where the register arm
+    declines on 6. If the verdict follows the error bar rather than the estimate,
+    the money headline is scoring the company's CONFIDENCE and being read as its
+    ACCURACY, which is a different claim about a different organ.
+
+    Every point estimate is untouched, so both accuracy gaps are IDENTICAL under
+    this mirror by construction — and that is what makes it a clean instrument: any
+    money movement here cannot be an accuracy movement.
+    """
+    return [
+        FabricObservation(
+            premise_id=o.premise_id,
+            actual_hlc_kw_per_k=o.actual_hlc_kw_per_k,
+            epc_hlc_kw_per_k=o.epc_hlc_kw_per_k,
+            inferred_hlc_kw_per_k=o.inferred_hlc_kw_per_k,
+            floor_area_m2=o.floor_area_m2,
+            annual_heat_kwh=o.annual_heat_kwh,
+            annual_degree_days_k_day=o.annual_degree_days_k_day,
+            epc_relative_sd=o.inferred_relative_sd,
+            inferred_relative_sd=o.epc_relative_sd,
+            epc_basis=o.inferred_basis,
+            inferred_basis=o.epc_basis,
+        )
+        for o in observations
+    ]
+
+
+@dataclass(frozen=True)
+class CompositionVerdict:
+    """Do the two published headlines agree, and does the money one survive a mirror?
+
+    The Hour's finding in one object: on the authored panel the inference is WORSE
+    on accuracy and BETTER on money, and the money advantage is bought by a bias
+    that happens to point the panel's way. `composition_decided` is true when the
+    money verdict names the other arm once the panel's sign composition is reversed
+    — i.e. when the ranking was decided by the population rather than by the beliefs.
+    """
+
+    premises: int
+    accuracy_favours: str
+    money_favours: str
+    forgone_epc_gbp: float
+    forgone_inferred_gbp: float
+    improvement: float
+    truth_above_epc_share: float
+    revision_agrees_with_panel_share: float
+    # THE PANEL MIRROR — same company, stock that fails the other way.
+    panel_mirror_money_favours: str
+    panel_mirror_forgone_epc_gbp: float
+    panel_mirror_forgone_inferred_gbp: float
+    panel_mirror_improvement: float
+    # THE REVISION MIRROR — same stock, inference stepping the other way.
+    revision_mirror_money_favours: str
+    revision_mirror_forgone_epc_gbp: float
+    revision_mirror_forgone_inferred_gbp: float
+    revision_mirror_improvement: float
+    # THE CONFIDENCE MIRROR — same estimates, error bars swapped. Accuracy CANNOT
+    # move here, so anything that does move is not accuracy.
+    confidence_mirror_money_favours: str
+    confidence_mirror_forgone_epc_gbp: float
+    confidence_mirror_forgone_inferred_gbp: float
+    declined_epc: int
+    declined_inferred: int
+
+    @property
+    def verdicts_agree(self) -> bool:
+        """The two headlines do not DECISIVELY name different arms. `False` is not a
+        bug — it is the thing that must be SAID, because a door that renders two
+        numbers without noting they disagree lets a reader take whichever one it read
+        first. One headline being too close to call is not a disagreement."""
+        return not _flipped(self.accuracy_favours, self.money_favours)
+
+    @property
+    def panel_mirror_accuracy_drift(self) -> float:
+        """How far ACCURACY moved under the panel mirror. Reported, never suppressed:
+        the reflection preserves the log error exactly and the level error only
+        approximately, so a large drift means a money flip is not cleanly attributable
+        to direction and the reader is entitled to know that before believing it."""
+        return abs(self.panel_mirror_improvement - self.improvement)
+
+    @property
+    def composition_decided(self) -> bool:
+        """The money ranking named a different arm in a stock that fails the other
+        way — so it was a property of THIS PANEL, not of the beliefs compared."""
+        return _flipped(self.money_favours, self.panel_mirror_money_favours)
+
+    @property
+    def direction_bought(self) -> bool:
+        """The money ranking named a different arm once the inference stepped the
+        other way by the same amount — so the advantage was bought by moving the
+        RIGHT WAY on this panel, not by moving well."""
+        return _flipped(self.money_favours, self.revision_mirror_money_favours)
+
+    @property
+    def confidence_bought(self) -> bool:
+        """The money ranking named a different arm once the two arms' ERROR BARS were
+        swapped and nothing else. Accuracy is identical under that swap, so a flip
+        here says the money headline is scoring how confidently the company may act,
+        not how right it is."""
+        return _flipped(self.money_favours, self.confidence_mirror_money_favours)
+
+
+# How far apart two lower-is-better figures must be before the comparison is called
+# a VERDICT at all, as a share of the larger. A DIAGNOSTIC band (R12) — it decides
+# what the row says, never what anything is tuned to.
+#
+# It is here because the first version of this section did without it and was a
+# control that fires on everything: `composition_decided` is a flip of a strict
+# inequality, so on any population where the two arms cost about the same, an
+# irrelevant nudge from the mirror flipped the verdict and the caveat announced a
+# composition effect that was two floats in a coin toss. A finding that a
+# 0.3%-of-the-larger difference changed sign is not a finding.
+VERDICT_MATERIALITY = 0.05
+
+
+def _favours(epc_value: float, inferred_value: float) -> str:
+    """Which arm a lower-is-better figure prefers, or 'neither' when the two are
+    too close for the difference to mean anything."""
+    larger = max(abs(epc_value), abs(inferred_value))
+    if larger == 0.0 or abs(epc_value - inferred_value) <= VERDICT_MATERIALITY * larger:
+        return "neither"
+    return "inferred" if inferred_value < epc_value else "epc"
+
+
+def _flipped(before: str, after: str) -> bool:
+    """A verdict FLIP, not a verdict change. Going decisive-to-indecisive is a loss
+    of resolution and is reported as such by the figures themselves; only two
+    decisive verdicts naming DIFFERENT arms is the thing these mirrors look for."""
+    return "neither" not in (before, after) and before != after
+
+
+def composition_verdict(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+) -> CompositionVerdict:
+    """Put the money ranking on trial against the panel's own sign composition."""
+    _require_homes(observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="composition_verdict")
+    epc_gap = epc_vs_actual_gap(observations).gap
+    inferred_gap = inferred_vs_actual_gap(observations).gap
+
+    def _outcome(rows):
+        return tuple(
+            money_consequence(
+                rows, unit_rate_p_per_kwh=unit_rate_p_per_kwh, belief=b, fuel=fuel
+            )
+            for b in ("epc", "inferred")
+        )
+
+    def _money(rows):
+        return tuple(m.forgone_lifetime_gbp for m in _outcome(rows))
+
+    def _improvement(rows):
+        return epc_vs_actual_gap(rows).gap - inferred_vs_actual_gap(rows).gap
+
+    base_epc, base_inferred = _outcome(observations)
+    forgone_epc = base_epc.forgone_lifetime_gbp
+    forgone_inferred = base_inferred.forgone_lifetime_gbp
+    panel = mirror_panel_composition(observations)
+    panel_epc, panel_inferred = _money(panel)
+    revision = mirror_revision_direction(observations)
+    revision_epc, revision_inferred = _money(revision)
+    confidence = mirror_decision_confidence(observations)
+    confidence_epc, confidence_inferred = _money(confidence)
+
+    above = sum(1 for o in observations if o.actual_hlc_kw_per_k > o.epc_hlc_kw_per_k)
+    # WHY THE MONEY VERDICT MIGHT BE BOUGHT RATHER THAN EARNED, as a number: the
+    # share of premises where the inference stepped the SAME WAY the truth lies from
+    # the register. Rows where the inference never moved take no side and are
+    # excluded, exactly as the sign test excludes exact ties.
+    agreeing = moved = 0
+    for o in observations:
+        step = o.inferred_hlc_kw_per_k - o.epc_hlc_kw_per_k
+        truth_side = o.actual_hlc_kw_per_k - o.epc_hlc_kw_per_k
+        if step == 0.0 or truth_side == 0.0:
+            continue
+        moved += 1
+        agreeing += (step > 0.0) == (truth_side > 0.0)
+
+    return CompositionVerdict(
+        premises=len(observations),
+        accuracy_favours=_favours(epc_gap, inferred_gap),
+        money_favours=_favours(forgone_epc, forgone_inferred),
+        forgone_epc_gbp=forgone_epc,
+        forgone_inferred_gbp=forgone_inferred,
+        improvement=epc_gap - inferred_gap,
+        truth_above_epc_share=above / len(observations),
+        revision_agrees_with_panel_share=(agreeing / moved if moved else 0.0),
+        panel_mirror_money_favours=_favours(panel_epc, panel_inferred),
+        panel_mirror_forgone_epc_gbp=panel_epc,
+        panel_mirror_forgone_inferred_gbp=panel_inferred,
+        panel_mirror_improvement=_improvement(panel),
+        revision_mirror_money_favours=_favours(revision_epc, revision_inferred),
+        revision_mirror_forgone_epc_gbp=revision_epc,
+        revision_mirror_forgone_inferred_gbp=revision_inferred,
+        revision_mirror_improvement=_improvement(revision),
+        confidence_mirror_money_favours=_favours(confidence_epc, confidence_inferred),
+        confidence_mirror_forgone_epc_gbp=confidence_epc,
+        confidence_mirror_forgone_inferred_gbp=confidence_inferred,
+        declined_epc=base_epc.declined_where_value_existed,
+        declined_inferred=base_inferred.declined_where_value_existed,
+    )
+
+
+def headline_caveats(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+) -> list[str]:
+    """The sentences a reader needs alongside the two numbers, or an EMPTY list.
+
+    This is the standing control's readable end. It fires on the atom's own current
+    output — that is the birth condition (R15): a caveat list that arrived empty
+    would have demonstrated nothing.
+    """
+    caveats = []
+    agreement = arm_agreement(observations)
+    if agreement.tie_fraction > 0.0:
+        caveats.append(
+            f"DILUTED: the inference ran on {agreement.informed_premises} of "
+            f"{agreement.premises} premises ({agreement.tie_fraction:.0%} carry no "
+            f"information about it). Improvement over the register is "
+            f"{agreement.improvement_all:+.4f} as published and "
+            f"{agreement.improvement_informed:+.4f} where the inference ran; the "
+            f"published figure moves with EPC lodgement coverage even when the "
+            f"estimator does not."
+        )
+    for arm in ("epc", "inferred"):
+        bias = belief_bias(observations, belief=arm)
+        if bias.is_systematic:
+            caveats.append(
+                f"ONE-SIGNED ({arm}): the belief is {bias.direction}-stated in "
+                f"{bias.n_above if bias.direction == 'over' else bias.n_below} of "
+                f"{bias.n_above + bias.n_below} decided premises "
+                f"(sign-test p={bias.sign_test_p:.4f}, signed mean "
+                f"{bias.signed_mean_relative_error:+.1%}). The company is wrong about "
+                f"the STOCK in a fixed direction, not merely imprecise about houses; "
+                f"the |gap| headline cannot see this."
+            )
+    verdict = composition_verdict(
+        observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, fuel=fuel
+    )
+    if not verdict.verdicts_agree:
+        caveats.append(
+            f"HEADLINES DISAGREE: accuracy favours {verdict.accuracy_favours}, money "
+            f"favours {verdict.money_favours}. Two published numbers naming different "
+            f"arms is a finding, not a rounding difference."
+        )
+    if verdict.composition_decided:
+        caveats.append(
+            f"COMPOSITION-DECIDED: in a stock that fails the other way — the register's "
+            f"errors reflected, same magnitudes, opposite signs — the money verdict "
+            f"moves from {verdict.money_favours} to "
+            f"{verdict.panel_mirror_money_favours} (accuracy moved "
+            f"{verdict.panel_mirror_accuracy_drift:.4f}). The ranking was decided by "
+            f"this panel's composition ({verdict.truth_above_epc_share:.0%} "
+            f"truth-above-register), not by the beliefs being compared."
+        )
+    if verdict.direction_bought:
+        caveats.append(
+            f"DIRECTION-BOUGHT: the same inference stepping the OTHER way by the same "
+            f"amount moves the money verdict from {verdict.money_favours} to "
+            f"{verdict.revision_mirror_money_favours}. The advantage came from revising "
+            f"the way the truth happened to lie "
+            f"({verdict.revision_agrees_with_panel_share:.0%} of moved premises), not "
+            f"from revising well."
+        )
+    if verdict.confidence_bought:
+        caveats.append(
+            f"CONFIDENCE-BOUGHT: swapping the two arms' ERROR BARS and bases — every "
+            f"point estimate untouched, so both accuracy gaps are unchanged by "
+            f"construction — moves the money verdict from {verdict.money_favours} to "
+            f"{verdict.confidence_mirror_money_favours}. The arm that forgoes less is "
+            f"the arm ALLOWED TO ACT more often (declined-where-value-existed "
+            f"{verdict.declined_epc} on the register vs {verdict.declined_inferred} on "
+            f"the posterior), which is a claim about the company's confidence, not "
+            f"about its accuracy. This is the sense in which the two headlines "
+            f"disagree: they are not two views of one quantity."
+        )
+    return caveats
+
+
+# ===========================================================================
 # LEDGER
 # ===========================================================================
 
@@ -3454,6 +4056,73 @@ def _money_components(m: MoneyConsequence) -> dict:
         "forgone_annual_kg_co2e": m.forgone_annual_kg_co2e,
         "gbp_per_tonne_co2e": m.gbp_per_tonne_co2e,
         "basis": m.basis,
+    }
+
+
+def arm_agreement_components(a: ArmAgreement) -> dict:
+    """Both improvement figures and the tie fraction between them. The conditioned
+    one is NOT emitted alone: a reader comparing this row to last week's needs the
+    published figure too, and a silent switch of denominator is its own defect."""
+    return {
+        "premises": a.premises,
+        "informed_premises": a.informed_premises,
+        "informed_fraction": a.informed_fraction,
+        "tie_fraction": a.tie_fraction,
+        "identical_arm_premises": a.identical_arm_premises,
+        "informed_but_identical": a.informed_but_identical,
+        "epc_gap_all": a.epc_gap_all,
+        "inferred_gap_all": a.inferred_gap_all,
+        "improvement_all": a.improvement_all,
+        "epc_gap_informed": a.epc_gap_informed,
+        "inferred_gap_informed": a.inferred_gap_informed,
+        "improvement_informed": a.improvement_informed,
+    }
+
+
+def belief_bias_components(b: BeliefBias) -> dict:
+    return {
+        "belief": b.belief,
+        "premises": b.premises,
+        "n_above": b.n_above,
+        "n_below": b.n_below,
+        "n_exact": b.n_exact,
+        "share_above": b.share_above,
+        "signed_mean_error_kw_per_k": b.signed_mean_error_kw_per_k,
+        "signed_mean_relative_error": b.signed_mean_relative_error,
+        "sign_test_p": b.sign_test_p,
+        "is_systematic": b.is_systematic,
+        "direction": b.direction,
+    }
+
+
+def composition_verdict_components(v: CompositionVerdict) -> dict:
+    return {
+        "premises": v.premises,
+        "accuracy_favours": v.accuracy_favours,
+        "money_favours": v.money_favours,
+        "verdicts_agree": v.verdicts_agree,
+        "forgone_epc_gbp": v.forgone_epc_gbp,
+        "forgone_inferred_gbp": v.forgone_inferred_gbp,
+        "improvement": v.improvement,
+        "truth_above_epc_share": v.truth_above_epc_share,
+        "revision_agrees_with_panel_share": v.revision_agrees_with_panel_share,
+        "composition_decided": v.composition_decided,
+        "panel_mirror_money_favours": v.panel_mirror_money_favours,
+        "panel_mirror_forgone_epc_gbp": v.panel_mirror_forgone_epc_gbp,
+        "panel_mirror_forgone_inferred_gbp": v.panel_mirror_forgone_inferred_gbp,
+        "panel_mirror_improvement": v.panel_mirror_improvement,
+        "panel_mirror_accuracy_drift": v.panel_mirror_accuracy_drift,
+        "direction_bought": v.direction_bought,
+        "revision_mirror_money_favours": v.revision_mirror_money_favours,
+        "revision_mirror_forgone_epc_gbp": v.revision_mirror_forgone_epc_gbp,
+        "revision_mirror_forgone_inferred_gbp": v.revision_mirror_forgone_inferred_gbp,
+        "revision_mirror_improvement": v.revision_mirror_improvement,
+        "confidence_bought": v.confidence_bought,
+        "confidence_mirror_money_favours": v.confidence_mirror_money_favours,
+        "confidence_mirror_forgone_epc_gbp": v.confidence_mirror_forgone_epc_gbp,
+        "confidence_mirror_forgone_inferred_gbp": v.confidence_mirror_forgone_inferred_gbp,
+        "declined_epc": v.declined_epc,
+        "declined_inferred": v.declined_inferred,
     }
 
 
@@ -3501,11 +4170,30 @@ def write_fabric_gap_entries(
         observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, belief="inferred"
     )
 
+    # THE THREE WAYS THIS ROW MISLEADS, carried IN the row (2026-08-11 Expert Hour).
+    # They are computed here rather than offered as an option because an optional
+    # caveat is not a control: the door renders whatever the row holds, and a reader
+    # who has to ask for the dilution will not ask. `arm_agreement` RAISES on a
+    # population the inference barely touched, so a row that cannot honestly carry
+    # an inference headline is never written at all.
+    agreement = arm_agreement(observations)
+    verdict = composition_verdict(
+        observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh
+    )
     shared = {
         "premises": len(observations),
         "money_consequence_epc": _money_components(money_epc),
         "money_consequence_inferred": _money_components(money_inferred),
         "inference_improvement": epc.gap - inferred.gap,
+        "arm_agreement": arm_agreement_components(agreement),
+        "belief_bias": {
+            arm: belief_bias_components(belief_bias(observations, belief=arm))
+            for arm in ("epc", "inferred")
+        },
+        "composition_verdict": composition_verdict_components(verdict),
+        "headline_caveats": headline_caveats(
+            observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh
+        ),
     }
     # The population this row describes, and how to take it again. `premises: 200` alone does
     # NOT carry this: a reader has to already know that 200 means drawn and 15 means authored,
