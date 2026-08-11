@@ -4482,7 +4482,11 @@ def test_an_EXACTLY_FAITHFUL_MIRROR_is_not_called_INCONCLUSIVE_by_its_own_normal
     assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
     # ...while the OLD gate term is far above the band on this very population.
     assert verdict.panel_mirror_relative_infidelity > fgl.MIRROR_FIDELITY_BAND
-    assert verdict.panel_mirror_normaliser_drift > fgl.MIRROR_FIDELITY_BAND
+    # The drift is read against ITS OWN band from the sixth Hour on. Kept as a bare
+    # magnitude here (it is 40% on this fixture) because what this test pins is the
+    # register arm's exact preservation, not which constant governs the disclosure.
+    assert verdict.panel_mirror_normaliser_drift > 0.05
+    assert verdict.panel_mirror_yardstick_share > fgl.YARDSTICK_SHARE_BAND
 
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     yardstick = [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")]
@@ -4504,6 +4508,266 @@ def test_an_EXACTLY_FAITHFUL_MIRROR_is_not_called_INCONCLUSIVE_by_its_own_normal
         "for INCONCLUSIVE is the second Hour's defect returning through the "
         "sentence instead of through the gate"
     )
+
+
+def _low_yardstick_share_population():
+    """A log-fallback panel whose register error genuinely moves a LOT while the
+    yardstick moves the OTHER WAY and by less — so the difference between the two gap
+    figures is mostly REAL and the caveat must stay silent.
+
+    The SILENT half of the sixth Hour's control. It exists because every other
+    population in this file is level-preserving or vacuous, i.e. the yardstick share
+    is 100% or undefined in all of them: a control set with no population where the
+    controlled thing varies is a control that cannot fail (the fifth Hour's own
+    class, and it applied to this term too).
+
+    THE TWO CONTRIBUTIONS OPPOSE HERE, AND THAT IS THE POINT (D_real -0.0900,
+    D_yardstick +0.0337, observed -0.0563). The first choice of fixture had them
+    agreeing in sign, which makes |yardstick| / |observed| and the bounded
+    attribution IDENTICAL — so it could not tell the shipped statistic from the
+    discarded one, and the mutation that swaps them survived. On this panel they
+    read 27.3% and 60.0%: silent under the attribution, FIRING under the ratio.
+    """
+    return _infeasible_reflection_population(
+        n=10, rogue=0.10, epc_bias=0.90, inferred_bias=0.90
+    )
+
+
+def test_the_YARDSTICK_CAVEAT_fires_when_the_whole_visible_difference_is_the_yardstick():
+    """THE NAMED DEFECT OF THE SIXTH HOUR (2026-08-11): the caveat was gated on how far
+    the BASELINE moved, when the reader's question is how much of the difference they
+    can SEE is that move — and on the drawn population those come apart completely.
+
+    The level-preserving reflection holds the register arm's error to the BIT, so
+    100% of the difference between the two published gap figures is the yardstick.
+    But the drift is only 1.87% there, comfortably inside the 5% band it was read
+    against, so the row printed 0.4269 -> 0.4351 — an apparent 3.8% worsening — in
+    silence, over a register error that had moved by exactly 0.000e+00.
+
+    This is the FIRE path on the common regime: the reflection is level-preserving,
+    so the numerator is held to the bit and the whole of a materially large
+    difference is the yardstick. The discriminating case — where the old gate and
+    this one give DIFFERENT answers — is the silent test below, in the fallback
+    regime; this one pins that the repair did not simply mute the caveat.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    assert verdict.panel_mirror_gap_difference_relative > (
+        fgl.YARDSTICK_MATERIAL_DIFFERENCE
+    ), "the difference must be big enough to be worth a caveat at all"
+    assert verdict.panel_mirror_register_mae == pytest.approx(
+        verdict.epc_register_mae, abs=1e-15
+    )
+    assert verdict.panel_mirror_gap_difference_real == pytest.approx(0.0, abs=1e-15), (
+        "the numerator is preserved by algebra, so NONE of the visible difference "
+        "is a real change in the register arm's error"
+    )
+    assert verdict.panel_mirror_yardstick_share == pytest.approx(1.0, abs=1e-12)
+
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    yardstick = [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")]
+    assert len(yardstick) == 1, caveats
+    # The sentence carries the attribution and the real remainder, not just the drift
+    # — a reader told only "the baseline moved 1.9%" cannot get from that to "all of
+    # the difference you are looking at is this".
+    assert "100% of the" in yardstick[0]
+    assert "is the yardstick moving" in yardstick[0]
+    assert "+0.0000 that is a real change" in yardstick[0]
+
+
+def test_the_YARDSTICK_CAVEAT_is_SILENT_when_the_difference_is_mostly_a_real_change():
+    """THE NAMED DEFECT OF THE SIXTH HOUR, and the control that discriminates the
+    repair from what it replaced (2026-08-11).
+
+    The old gate fired on the DRIFT — a size measure — and the sentence it released
+    asserts an ATTRIBUTION: "the two gaps are not on one scale and the difference
+    between them is not an accuracy change". Under the level-preserving reflection
+    that is safe, because the numerator is held to the bit. In the LOG FALLBACK it is
+    not, and the claim went out false: measured over 300 fallback panels, 101 of them
+    fired the old gate while the MAJORITY of the difference was a genuine change in
+    the register arm's error, worst case 68.6% of an 18.2% difference.
+
+    This panel is one of them. The old gate fires here (drift well past 5%); the
+    repaired one is silent, because 72.7% of what the reader sees is real. Rewiring
+    the caveat back to the drift fails this test.
+    """
+    rows = _low_yardstick_share_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    assert verdict.panel_mirror_reflection == "log_preserving_fallback"
+    assert verdict.panel_mirror_normaliser_drift > 0.05, (
+        "THE DISCRIMINATING PROPERTY: the OLD gate fires on this panel. Without it "
+        "this test passes under the defect and proves nothing."
+    )
+    assert verdict.panel_mirror_gap_difference_relative > (
+        fgl.YARDSTICK_MATERIAL_DIFFERENCE
+    ), "and it is silenced by the ATTRIBUTION, not by the size gate"
+    assert verdict.panel_mirror_yardstick_share < fgl.YARDSTICK_SHARE_BAND
+    assert abs(verdict.panel_mirror_gap_difference_real) > 0.0, (
+        "the silent case must be silent because the change is REAL, not because "
+        "nothing happened — that is what the vacuity guard is for, separately"
+    )
+
+    # THE DISCRIMINATING PROPERTY: the two contributions oppose, so the discarded
+    # |yardstick| / |observed| ratio would FIRE on this same panel. Asserted rather
+    # than described, or the fixture silently stops discriminating the day its
+    # parameters are tidied.
+    observed = verdict.panel_mirror_epc_gap - verdict.epc_gap
+    real = verdict.panel_mirror_gap_difference_real
+    assert (observed - real) * real < 0.0, "the contributions must oppose"
+    assert abs(observed - real) / abs(observed) > fgl.YARDSTICK_SHARE_BAND, (
+        "this panel no longer separates the attribution from the raw ratio, so the "
+        "test below cannot fail on that mutation"
+    )
+
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")], caveats
+
+
+def test_the_YARDSTICK_CAVEAT_is_SILENT_on_a_difference_too_SMALL_to_mislead():
+    """The SIZE half, and the reason this Hour has two bands instead of one.
+
+    Its first cut gated on attribution alone. Under a level-preserving reflection the
+    attribution is 100% BY ALGEBRA whenever the two gaps differ at all, so that made
+    the caveat unconditional on the common path — it fired on
+    `test_the_caveat_list_is_EMPTY_on_a_population_with_nothing_to_caveat`, whose
+    fixture an earlier Hour had already tuned to a 1.1% residual so that "nothing to
+    caveat" would mean something. A caveat attached to every row is read as
+    attentively as one attached to none.
+
+    Here: entirely yardstick (100%), and far too small to mislead (1.87% of the
+    larger figure — this is the DRAWN population's own signature, reproduced).
+    """
+    rows = _observations(n=8, epc_bias=0.98, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    assert verdict.panel_mirror_yardstick_share == pytest.approx(1.0, abs=1e-12), (
+        "silenced by SIZE, not by attribution — the attribution is total here"
+    )
+    assert 0.0 < verdict.panel_mirror_gap_difference_relative < (
+        fgl.YARDSTICK_MATERIAL_DIFFERENCE
+    )
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")], caveats
+
+
+def test_the_YARDSTICK_CAVEAT_is_VACUOUS_when_the_two_figures_RENDER_the_same():
+    """The vacuity guard, set by what the consumer RENDERS rather than by float
+    equality (R11): a difference that rounds away at the printed precision is not a
+    difference anybody can misread, and a caveat about comparing two identical
+    printed numbers is noise.
+
+    TWO CASES, AND ONLY THE SECOND ONE TESTS THE GUARD. The additive fixture is a
+    pure translation, so the two gaps are bit-identical and the `magnitude == 0`
+    check below already catches it — a first version of this test used only that
+    panel and passed happily with the rendering guard DELETED. The second panel is
+    the one that reaches it: an almost-exact register (epc_bias 0.9999) moves the
+    gap by 5.0e-08, which is nonzero to a float and rounds away in the sentence.
+    Without the guard the row raises a caveat whose own text reads "100% of the
+    +0.0000 between them is the yardstick moving".
+
+    THE GUARD IS ON THE DIFFERENCE, NOT ON THE PAIR, and this panel is why: its two
+    figures straddle a rounding boundary (0.0002499999 and 0.0002500500) so they
+    RENDER as 0.0002 and 0.0003 while differing by 5.0e-08. A guard asking whether
+    the two printed figures match would fire here and publish a caveat about a
+    difference the sentence prints as zero. The caveat is the consumer of this
+    number, so the question is what the CAVEAT would render, not what the row above
+    it does.
+    """
+    exact = _fixed_offset_population()
+    verdict = fgl.composition_verdict(exact, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_epc_gap == verdict.epc_gap
+    assert verdict.panel_mirror_yardstick_share is None
+    caveats = fgl.headline_caveats(exact, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")], caveats
+
+    invisible = _observations(n=12, epc_bias=0.9999, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(invisible, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    difference = verdict.panel_mirror_epc_gap - verdict.epc_gap
+    assert difference != 0.0, "this panel must reach the guard, not the float check"
+    assert 0.0 < abs(difference) < 0.5 * 10**-fgl.GAP_RENDER_DP
+    assert f"{difference:+.4f}" == "+0.0000", (
+        "the premise is that the SENTENCE would print the difference as zero"
+    )
+    assert f"{verdict.epc_gap:.4f}" != f"{verdict.panel_mirror_epc_gap:.4f}", (
+        "and this panel straddles a rounding boundary, so a guard written on the "
+        "PAIR rather than on the difference would fire here"
+    )
+    assert verdict.panel_mirror_yardstick_share is None
+    caveats = fgl.headline_caveats(invisible, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")], caveats
+
+
+def test_the_REAL_REMAINDER_is_measured_against_the_FIRST_figures_baseline():
+    """The attribution holds the yardstick at the baseline the reader is anchored on
+    — the one under `epc_gap`, the figure printed first — and not at the reflected
+    one, which would answer a different question with the same name.
+
+    PINNED AGAINST AN INDEPENDENT SOURCE, not against the property's own arithmetic.
+    `panel_mirror_gap_difference_real` recovers the baseline by division
+    (`mae / gap`); `GapResult.g0` carries it directly, and `gap_metric` keeps it
+    exposed for exactly this reason ("so a reviewer can see the normalisation was
+    not fudged"). Two code paths, so this is a check and not a restatement.
+
+    IT IS PINNED ON THE VALUE, DELIBERATELY, AND THE CAVEAT IS NOT. Swapping the
+    baseline never moves the caveat's verdict across its band on any reachable
+    population — searched over 2,880 log-fallback panels, zero crossings — so a test
+    written at the caveat level would have been unfailable theatre. The number is
+    published in the ledger row and printed in the sentence, so the number is the
+    subject.
+    """
+    rows = _low_yardstick_share_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    g0_before = fgl.epc_vs_actual_gap(rows).g0
+    expected = (verdict.panel_mirror_register_mae - verdict.epc_register_mae) / g0_before
+    assert verdict.panel_mirror_gap_difference_real == pytest.approx(expected, rel=1e-9)
+
+    # ...and the reflected baseline is a genuinely different number here, so the
+    # assertion above discriminates rather than holding trivially.
+    g0_after = verdict.panel_mirror_register_mae / verdict.panel_mirror_epc_gap
+    assert abs(g0_after - g0_before) / g0_before > 0.01
+
+
+def test_the_FAULT_BAND_and_the_YARDSTICK_BAND_are_INDEPENDENT_subjects(monkeypatch):
+    """THE CONTROL THAT WOULD HAVE CAUGHT THIS HOUR'S DEFECT, and the reason it is
+    written as a mutation of the constant rather than as a comment.
+
+    `MIRROR_FIDELITY_BAND` gates a FAULT in kW/K — how much the instrument disturbed
+    the arm it claims to preserve. The yardstick caveat reports the instrument
+    WORKING. They are opposite in polarity, and for eleven Hours they were one
+    number, so a change made for a fault reason silently re-graded a disclosure about
+    success. Its own comment asserted the firewall the code did not have — which is
+    exactly what the FOURTH Hour found one level up in `VERDICT_MATERIALITY`.
+
+    Moving the fault band across the drift's value must not change the yardstick
+    caveat by one character. Before the split, this test fails: at 0.05 the caveat
+    fired and at 0.50 it vanished, on an unchanged population.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    drift = fgl.composition_verdict(
+        rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    ).panel_mirror_normaliser_drift
+
+    seen = []
+    for band in (0.01, 0.05, drift * 0.999, drift * 1.001, 0.50, 0.99):
+        monkeypatch.setattr(fgl, "MIRROR_FIDELITY_BAND", band)
+        caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        seen.append([c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")])
+    assert all(len(s) == 1 for s in seen), (
+        f"the fault band still decides the yardstick disclosure: {seen}"
+    )
+    assert all(s == seen[0] for s in seen), "the sentence itself moved with the band"
+    monkeypatch.undo()
+
+    # ...and the converse, so neither constant has quietly acquired the other's job.
+    for band in (0.01, 0.99):
+        monkeypatch.setattr(fgl, "YARDSTICK_SHARE_BAND", band)
+        verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        assert verdict.panel_mirror_is_attributable is False, (
+            "the yardstick band must not reach the attributability gate"
+        )
 
 
 def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_is_not():

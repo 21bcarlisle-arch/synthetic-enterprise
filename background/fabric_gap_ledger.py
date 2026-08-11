@@ -4333,6 +4333,90 @@ class CompositionVerdict:
         return abs(g0_after - g0_before) / abs(g0_before)
 
     @property
+    def panel_mirror_gap_difference_real(self) -> float:
+        """The part of the visible move between the two gap figures that is a REAL
+        change in the register arm's error — the yardstick held fixed.
+
+        THE NUMBER THE READER ACTUALLY WANTED. `epc_gap` and `panel_mirror_epc_gap`
+        are each `mae / g0`, so their difference mixes a numerator change (the
+        register arm genuinely got better or worse under reflection) with a
+        denominator change (the no-skill baseline moved, which IS the mirror). This
+        re-measures the second figure against the FIRST one's baseline, so what is
+        left is the numerator move alone, in the same unit as the two figures it
+        sits between.
+        """
+        before = self.epc_gap
+        if before == 0.0:
+            return 0.0
+        g0_before = self.epc_register_mae / before
+        if g0_before == 0.0:
+            return 0.0
+        return (self.panel_mirror_register_mae - self.epc_register_mae) / g0_before
+
+    @property
+    def panel_mirror_gap_difference_relative(self) -> float:
+        """How big the move between the two gap figures is, as a share of the larger
+        — the SIZE question, kept apart from the attribution question below.
+
+        Both are real and they are not the same: a difference can be entirely
+        artefact and still too small to mislead anyone, and it can be large and
+        mostly genuine. The old gate asked only a size question (via the drift) and
+        answered an attribution question with it.
+        """
+        larger = max(abs(self.epc_gap), abs(self.panel_mirror_epc_gap))
+        if larger == 0.0:
+            return 0.0
+        return abs(self.panel_mirror_epc_gap - self.epc_gap) / larger
+
+    @property
+    def panel_mirror_yardstick_share(self) -> float | None:
+        """Of the difference a reader SEES between the two gap figures, how much is
+        the baseline moving rather than the register arm's error changing.
+
+        `None` when the two figures are identical at the precision the caveat prints
+        them to: there is no visible difference to misattribute, so there is nothing
+        to warn about (R11 — the vacuity guard is set by what the CONSUMER renders,
+        not by float equality, or a difference invisible on the page would still
+        raise a caveat about reading it).
+
+        WHY THIS EXISTS, AND WHY IT IS NOT `panel_mirror_normaliser_drift` (2026-08-11,
+        SIXTH Hour). The drift is a SIZE measure — how far the baseline went. The
+        sentence it gated makes an ATTRIBUTION claim: "the difference between them is
+        not an accuracy change". In the level-preserving regime those agree, because
+        the numerator is held to the bit and so the whole difference IS the yardstick
+        whenever there is one. In the LOG-FALLBACK regime — the one real path where
+        the reflection does not preserve the register arm's error — they come apart,
+        and the caveat asserted its claim on 101 of 300 fallback panels where the
+        MAJORITY of the difference was a genuine accuracy change. Worst measured: the
+        sentence printed "not an accuracy change" over a 18.2% difference that was
+        68.6% exactly that.
+
+        NOT THE DEFECT FIRST HYPOTHESISED, AND THE SUITE IS WHAT REFUTED IT. The Hour
+        opened by reading the drawn population's silence (1.87% drift, 100% of the
+        difference artefact) as a fail-open. It is not: 1.87% of the larger figure is
+        a difference too small to mislead anyone, and silence there is right for a
+        SIZE reason. Wiring the caveat to attribution alone made it fire on a fixture
+        whose own comment recorded it as having nothing to caveat — an existing test
+        caught it. Size and attribution are BOTH real questions and neither answers
+        the other, which is why there are now two terms and two bands.
+
+        AN ATTRIBUTION, NOT A RATIO OF THE OBSERVED MOVE. The first cut was
+        |yardstick| / |observed|, which exceeds 1 whenever the two contributions
+        oppose and partly cancel (283% on the log-fallback fixture) — a share that can
+        exceed its own whole is not a share. Dividing by the sum of the magnitudes
+        bounds it in [0, 1] and answers the attribution question directly.
+        """
+        real = self.panel_mirror_gap_difference_real
+        observed = self.panel_mirror_epc_gap - self.epc_gap
+        yardstick = observed - real
+        if round(observed, GAP_RENDER_DP) == 0.0:
+            return None
+        magnitude = abs(yardstick) + abs(real)
+        if magnitude == 0.0:
+            return None
+        return abs(yardstick) / magnitude
+
+    @property
     def panel_mirror_is_attributable(self) -> bool:
         """Whether this mirror's verdict — flip OR no flip — may be read as a
         statement about the panel at all.
@@ -4427,10 +4511,70 @@ VERDICT_MATERIALITY = 0.05
 # Calibrated against what the mirror is looking FOR, not against what it currently
 # scores: a composition effect worth naming reverses a verdict, and the money
 # figures it reverses differ by tens of percent, so an artefact that stays inside
-# 5% of the arm's own gap is an order of magnitude below the signal. Measured
-# against it, the two published populations sit either side (14.1% authored, 1.9%
-# drawn), which is what a band that can fail looks like.
+# 5% of the arm's own gap is an order of magnitude below the signal.
+#
+# ONE SUBJECT, AND THAT IS NOW TRUE IN THE CODE AS WELL AS IN THIS COMMENT
+# (2026-08-11, SIXTH Hour — the same repair the FOURTH Hour made to
+# `VERDICT_MATERIALITY`, one level down, and named as unrepaired by the fifth).
+# Until now this constant ALSO gated the yardstick disclosure on
+# `panel_mirror_normaliser_drift`, so a change made for a FAULT reason silently
+# re-graded a disclosure about the mirror WORKING — the two subjects are not merely
+# different, they are opposite in polarity: crossing this band means the instrument
+# is broken, crossing that one means it is doing its job. The disclosure now has its
+# own term in its own consumer's unit and its own band (`YARDSTICK_SHARE_BAND`).
+# The calibration argument above is about artefact-versus-money-signal and was never
+# an argument about when a yardstick shift is worth telling a reader about.
 MIRROR_FIDELITY_BAND = 0.05
+
+# The precision the two gap figures are RENDERED to wherever they are printed side
+# by side. The yardstick caveat's vacuity guard is set from it rather than from float
+# equality: a difference that rounds away on the page is not a difference a reader
+# can misread, and a caveat about comparing two identical printed numbers is noise
+# (R11 — grade the artefact the consumer actually renders).
+GAP_RENDER_DP = 4
+
+# How much of the VISIBLE difference between the two gap figures may be the no-skill
+# baseline moving before a reader comparing them side by side is being invited to
+# read an accuracy change that is not there. A DIAGNOSTIC band (R12): it decides what
+# the row SAYS, never what anything is tuned to — no reflection is chosen and no
+# figure is moved because of the answer it gives.
+#
+# A FOURTH CONSTANT, not a reuse of `MIRROR_FIDELITY_BAND`, which is the whole point
+# of this Hour: that one is a band on a FAULT in kW/K (how much did the instrument
+# disturb the arm it preserves), this is a band on an ATTRIBUTION (how much of what
+# the reader sees is the instrument working). They answer opposite questions and the
+# published populations prove it — the authored panel is simultaneously perfectly
+# faithful on that term (0.0000%) and entirely yardstick on this one (100%).
+#
+# Set at half on the same logic as `MIRROR_WEIGHT_ARTEFACT_BAND` and
+# `ONE_HOUSE_SHARE`: past that, the yardstick explains more of the difference than
+# the real change does. Measured, the populations sit either side — 100% on both
+# published rows and on the proportional fixture, 60.7% on one log-fallback panel,
+# 27.3% on another whose register error genuinely moves — which is what a band that
+# can fail looks like.
+YARDSTICK_SHARE_BAND = 0.50
+
+# How large the move between the two gap figures must be, as a share of the larger,
+# before it is worth cautioning a reader about at all. The SIZE half of the caveat,
+# and a FIFTH constant rather than a reuse of any band above — the sixth Hour's whole
+# subject is that a size measure and an attribution measure had been collapsed onto
+# one number, and answering that by collapsing the new pair onto one would be the
+# same defect wearing the repair's name.
+#
+# It is here because the first cut of this Hour gated on attribution ALONE and fired
+# on `test_the_caveat_list_is_EMPTY_on_a_population_with_nothing_to_caveat` — a
+# fixture a previous Hour had already tuned to a 1.1% residual precisely so that
+# "nothing to caveat" would mean something. Under a level-preserving reflection the
+# attribution is 100% BY ALGEBRA whenever the gaps differ at all, so attribution
+# alone makes this caveat unconditional on the common path, and a caveat that fires
+# on everything is read as attentively as one that never fires.
+#
+# Set at 5% of the larger figure, the same shape (never the same constant) as
+# `VERDICT_MATERIALITY` uses for two money figures: below that the two gaps round to
+# the same story. Measured, the populations sit either side — 12.4% authored and 40%
+# on the proportional fixture FIRE, 1.87% drawn and 1.1% on the nothing-to-caveat
+# fixture stay silent.
+YARDSTICK_MATERIAL_DIFFERENCE = 0.05
 # How much of the mirror's movement in the deciding margin may be pure re-composition
 # before its verdict stops being a statement about the sign flip. Set at half: past
 # that, the null explains more of the movement than the signal does, and a no-flip is
@@ -4443,10 +4587,12 @@ MIRROR_WEIGHT_ARTEFACT_BAND = 0.50
 # tuned to — no premise is dropped and no verdict is changed because of it.
 #
 # A THIRD CONSTANT, not a reuse of either band above, and the reuse is the reason
-# this one is written out longhand: `MIRROR_FIDELITY_BAND` already gates the panel
-# mirror AND triggers the yardstick disclosure on `panel_mirror_normaliser_drift`,
-# two different subjects on one number, which is exactly what that constant's own
-# comment says must never happen. Concentration is a third subject again.
+# this one is written out longhand: when this was written `MIRROR_FIDELITY_BAND`
+# gated the panel mirror AND triggered the yardstick disclosure on
+# `panel_mirror_normaliser_drift`, two different subjects on one number, which is
+# exactly what that constant's own comment says must never happen. Concentration is
+# a third subject again. (That reuse was repaired by the SIXTH Hour, which this
+# paragraph is what prompted — the split is `YARDSTICK_SHARE_BAND`.)
 #
 # Set at half on the same logic as `MIRROR_WEIGHT_ARTEFACT_BAND`: past that, one
 # premise explains more of the margin than every other premise combined. Measured,
@@ -5118,8 +5264,20 @@ def _normaliser_caveat(verdict: CompositionVerdict) -> list[str]:
     (14.1% authored, 1.9% drawn, against a register-error disturbance of exactly
     zero). It is a caution about reading those two gap figures side by side and it
     is NOT a caution about the money verdict, which never divides by the baseline.
+
+    SIZE AND ATTRIBUTION, SEPARATELY (2026-08-11, SIXTH Hour). This used to fire on
+    `panel_mirror_normaliser_drift > MIRROR_FIDELITY_BAND` — a size measure, read
+    against a constant calibrated for a FAULT of the opposite polarity, deciding a
+    sentence that makes an attribution claim. Under the level-preserving reflection
+    those agree; in the log fallback they do not, and the sentence went out asserting
+    "the difference between them is not an accuracy change" on 101 of 300 fallback
+    panels where most of it was exactly that. Both questions are now asked, each with
+    its own term and its own band, and the answer to both is carried in the text.
     """
-    if verdict.panel_mirror_normaliser_drift <= MIRROR_FIDELITY_BAND:
+    share = verdict.panel_mirror_yardstick_share
+    if share is None or share <= YARDSTICK_SHARE_BAND:
+        return []
+    if verdict.panel_mirror_gap_difference_relative <= YARDSTICK_MATERIAL_DIFFERENCE:
         return []
     return [
         f"MIRROR YARDSTICK MOVED: the two gap figures either side of the panel "
@@ -5129,7 +5287,12 @@ def _normaliser_caveat(verdict: CompositionVerdict) -> list[str]:
         f"{verdict.panel_mirror_normaliser_drift:.1%}. That is the mirror working, "
         f"not the mirror failing — the register arm's raw error is preserved to "
         f"{verdict.panel_mirror_register_infidelity:.2%} — but the two gaps are not "
-        f"on one scale and the difference between them is not an accuracy change. "
+        f"on one scale and the difference between them is not an accuracy change: "
+        f"{share:.0%} of the "
+        f"{verdict.panel_mirror_epc_gap - verdict.epc_gap:+.4f} between them is the "
+        f"yardstick moving, leaving "
+        f"{verdict.panel_mirror_gap_difference_real:+.4f} that is a real change in "
+        f"the register arm's error. "
         f"The money verdict above is unaffected: it never divides by this baseline."
     ]
 
@@ -5348,6 +5511,14 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "weight_null_forgone_inferred_gbp": v.weight_null_forgone_inferred_gbp,
         "panel_mirror_weight_artefact": v.panel_mirror_weight_artefact,
         "panel_mirror_normaliser_drift": v.panel_mirror_normaliser_drift,
+        # THE ATTRIBUTION, AND THE REAL MOVE IT LEAVES BEHIND. The drift above says
+        # how far the baseline went; these say how much of the difference between the
+        # two published gap figures that accounts for, and what is left once it is
+        # taken out. In the row rather than behind the caveat because a reader who
+        # has to ask for the artefact will not ask (2026-08-11, sixth Hour).
+        "panel_mirror_yardstick_share": v.panel_mirror_yardstick_share,
+        "panel_mirror_gap_difference_real": v.panel_mirror_gap_difference_real,
+        "panel_mirror_gap_difference_relative": v.panel_mirror_gap_difference_relative,
         "panel_mirror_is_attributable": v.panel_mirror_is_attributable,
         "panel_mirror_reflection": v.panel_mirror_reflection,
         "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,
