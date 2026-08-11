@@ -244,11 +244,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.42690864157617536,
-    "measured_at": "2026-08-11T02:53:23.513920+00:00",
+    "measured_at": "2026-08-11T03:06:24.593305+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.04477390004,
-    "run_git_commit": "dbff783fd3cd8d7be91c73a9784effac8981b3d7",
+    "run_git_commit": "696dcf06e75099809b850d82e07f3c64d502ac10",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -496,11 +496,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.4042093771722256,
-    "measured_at": "2026-08-11T02:53:23.513920+00:00",
+    "measured_at": "2026-08-11T03:06:24.593305+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
     "raw_gap": 0.042393215986260536,
-    "run_git_commit": "dbff783fd3cd8d7be91c73a9784effac8981b3d7",
+    "run_git_commit": "696dcf06e75099809b850d82e07f3c64d502ac10",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -600,11 +600,11 @@
     },
     "g0": 2189.767928,
     "gap": 1.039324585502501,
-    "measured_at": "2026-08-11T02:27:27.311263+00:00",
+    "measured_at": "2026-08-11T03:06:27.043145+00:00",
     "metric": "prediction",
     "note": "W1_5 premise-demand weather-normalisation: company temperature+wind-chill (CWV, L2) belief vs the real national demand outturn (the W1_5-consistent aggregate truth). SCORE = worst cell (summer, L2 gap 1.039 vs L1 (temperature-only) gap 1.040 -- the CWV term improved the worst cell here); population gap L2 0.661 vs L1 0.662. Honest per R12: the CWV term is measured, not tuned -- it helps the wind-relevant cells it targets and need not fix an unrelated worst cell. Regional-dispersion (2nd L1->L2 refinement) is built+tested but not yet measurable here -- see components.regional_dispersion_remainder.",
     "raw_gap": 2275.879644,
-    "run_git_commit": "8c47b5254f01b7027f9a4365fc18d8ef685a1e39",
+    "run_git_commit": "696dcf06e75099809b850d82e07f3c64d502ac10",
     "twin_atom_id": "C13_weather_normalisation"
   },
   "W1_6_physics_price_signal": {
