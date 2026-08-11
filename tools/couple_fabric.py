@@ -673,9 +673,19 @@ def main() -> None:
                   f" sign-test p={b.sign_test_p:.4f}"
                   f"{'  SYSTEMATIC' if b.is_systematic else ''}"
                   f"{'  SKEWED (count and mean disagree)' if not b.mean_agrees_with_majority else ''}")
+        # The accuracy verdict's ERROR BAR is printed BESIDE it, never only when it
+        # fails to resolve: a "neither" from an underpowered panel and a "neither"
+        # from two genuinely equal arms read identically without the interval.
         print(f"    accuracy favours          : {verdict.accuracy_favours}"
               f"     money favours: {verdict.money_favours}"
               f"     {'AGREE' if verdict.verdicts_agree else 'DISAGREE'}")
+        print(f"      per-premise advantage   :"
+              f" {verdict.accuracy_mean_advantage_kw_per_k:+.4f} kW/K"
+              f" [{verdict.accuracy_ci_lo:+.4f}, {verdict.accuracy_ci_hi:+.4f}]"
+              f"   ({verdict.accuracy_tied_premises}/{verdict.premises} exact ties;"
+              f" population-gap rule would say {verdict.accuracy_aggregate_favours}"
+              f" at {verdict.accuracy_aggregate_relative_gap:.1%})"
+              f"{'   AGGREGATE OVERSTATED' if verdict.accuracy_aggregate_overstated else ''}")
         # The mirror's own fidelity is printed BESIDE its verdict, never only when
         # it flips: a null from a blunt instrument reads exactly like a null from a
         # sharp one unless the disturbance is on the same line.

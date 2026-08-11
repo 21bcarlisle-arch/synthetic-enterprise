@@ -3965,6 +3965,18 @@ class CompositionVerdict:
 
     premises: int
     accuracy_favours: str
+    # ...AND ITS ERROR BAR, because until the fourth Hour it had none: the verdict
+    # above was a relative band on the difference of two AGGREGATES, and that band
+    # sat at the median of its own subject's distribution (see `AccuracyVerdict`).
+    # The advantage is per premise, positive where the INFERENCE sat closer.
+    accuracy_mean_advantage_kw_per_k: float
+    accuracy_ci_lo: float
+    accuracy_ci_hi: float
+    accuracy_tied_premises: int
+    # ...and what the OLD rule said, so the repair never silently deletes a sentence
+    # a reader was previously given.
+    accuracy_aggregate_favours: str
+    accuracy_aggregate_relative_gap: float
     money_favours: str
     forgone_epc_gbp: float
     forgone_inferred_gbp: float
@@ -4019,6 +4031,24 @@ class CompositionVerdict:
         numbers without noting they disagree lets a reader take whichever one it read
         first. One headline being too close to call is not a disagreement."""
         return not _flipped(self.accuracy_favours, self.money_favours)
+
+    @property
+    def accuracy_aggregate_overstated(self) -> bool:
+        """The old aggregate rule named an arm the paired per-premise evidence
+        cannot resolve on this panel.
+
+        THIS PROPERTY EXISTS TO STOP A REPAIR FROM DELETING A DISCLOSURE. On the
+        authored panel the aggregate rule said accuracy favoured the register while
+        money favoured the inference, so `verdicts_agree` was False and a HEADLINES
+        DISAGREE caveat fired. Under the repaired verdict accuracy is UNRESOLVABLE
+        there (15 premises, 7 of them exact ties), which makes `verdicts_agree` True
+        and would have silently retired that sentence. A reader must be told the
+        claim failed to resolve, not shown one fewer caveat.
+        """
+        return (
+            self.accuracy_aggregate_favours != "neither"
+            and self.accuracy_favours == "neither"
+        )
 
     @property
     def panel_mirror_accuracy_drift(self) -> float:
@@ -4247,6 +4277,16 @@ class CompositionVerdict:
 # irrelevant nudge from the mirror flipped the verdict and the caveat announced a
 # composition effect that was two floats in a coin toss. A finding that a
 # 0.3%-of-the-larger difference changed sign is not a finding.
+#
+# MONEY ONLY, AND THAT IS NOW TRUE IN THE CODE AS WELL AS IN THIS COMMENT
+# (2026-08-11, FOURTH Hour). Until then this constant ALSO decided
+# `accuracy_favours` — a normalised accuracy gap — while the comment below asserted
+# a firewall against exactly that ("one constant serving both would mean a change
+# made for a money reason silently re-graded every mirror ever run"). It did. On the
+# drawn population the published accuracy verdict cleared this band by 0.0032
+# (5.32% against 5.00%), so moving it to 0.055 for a money reason erased a published
+# accuracy verdict. `accuracy_favours` is now decided per premise with its own error
+# bar (`_paired_accuracy_verdict`) and never touches this number.
 VERDICT_MATERIALITY = 0.05
 
 # How much of the register arm's own accuracy the panel mirror is allowed to move
@@ -4275,9 +4315,22 @@ MIRROR_FIDELITY_BAND = 0.05
 MIRROR_WEIGHT_ARTEFACT_BAND = 0.50
 
 
+#: THE ACCURACY VERDICT'S OWN RESAMPLE BUDGET, SEED AND LEVEL. Named rather than
+#: literals at the call site (C-S2, RNG substream discipline): a verdict that can be
+#: moved by quietly reseeding is not a verdict. The seed is this module's own; the
+#: draw never touches the global RNG, so adding it shifted no other subsystem.
+ACCURACY_VERDICT_RESAMPLES = 4000
+ACCURACY_VERDICT_SEED = 20260811
+ACCURACY_VERDICT_ALPHA = 0.05
+
+
 def _favours(epc_value: float, inferred_value: float) -> str:
-    """Which arm a lower-is-better figure prefers, or 'neither' when the two are
-    too close for the difference to mean anything."""
+    """Which arm a lower-is-better MONEY figure prefers, or 'neither' when the two
+    are too close for the difference to mean anything.
+
+    MONEY PAIRS ONLY (2026-08-11, fourth Hour). Every remaining caller passes a pair
+    of GBP totals; `accuracy_favours` used to come through here too and now does not.
+    """
     larger = max(abs(epc_value), abs(inferred_value))
     if larger == 0.0 or abs(epc_value - inferred_value) <= VERDICT_MATERIALITY * larger:
         return "neither"
@@ -4305,6 +4358,132 @@ def _revision_agreement_share(observations: Sequence[FabricObservation]) -> floa
         moved += 1
         agreeing += (step > 0.0) == (truth_side > 0.0)
     return agreeing / moved if moved else 0.0
+
+
+@dataclass(frozen=True)
+class AccuracyVerdict:
+    """WHICH ARM IS THE BETTER BELIEF ABOUT A HOME'S FABRIC — with an error bar.
+
+    THE DEFECT THIS REPLACES (2026-08-11, fourth Hour). `accuracy_favours` was a
+    relative band on the DIFFERENCE OF TWO AGGREGATES: each arm's population-level
+    normalised gap, compared against `VERDICT_MATERIALITY`. Three things were wrong
+    with that, and only the third is about the constant.
+
+    1. IT IS A PER-PREMISE CLAIM AUDITED BY A DIFFERENCE OF AGGREGATES — the exact
+       sibling class the THIRD Hour named and then fixed in one place only (the
+       mirror's fidelity term, `_register_mad`). The headline verdict itself was left
+       on the aggregate form. "The inference is a better belief than the register" is
+       a promise made about homes; two means let the breaches cancel.
+
+    2. IT HAD NO UNCERTAINTY AT ALL. Two point estimates were compared to a fixed
+       band with nothing anywhere saying whether the difference was RESOLVABLE on the
+       panel that produced it. The fourth entry in this atom's record already showed
+       error bars decide the MONEY verdict; the accuracy verdict had none.
+
+    3. THE BAND SAT AT THE MEDIAN OF ITS OWN SUBJECT'S DISTRIBUTION, so it never
+       measured resolvability. Measured over 120 random subpanels of the drawn
+       population at each of n=25/50/100/150, the aggregate rule read "neither" on
+       54%/46%/46%/38% of them — FLAT IN N — while the median |relative difference|
+       sat at 0.047-0.053 against a band of 0.050. A verdict rule whose decisiveness
+       does not improve with evidence is not a resolution statement; it is a coin
+       toss over which homes were drawn. The direction was never wrong (0 of 249
+       decisive subpanels named the register), which is what made it survive: it
+       silenced a TRUE and unanimous direction on about half the panels, and
+       "neither" reads as caution.
+
+    THE REPLACEMENT keeps both things the two old rules each threw away. The paired
+    per-premise difference `|register - truth| - |inference - truth|` keeps the
+    pairing (a sign test alone would keep it too, but discards magnitude — and 166 of
+    200 drawn premises are exact ties, so a sign test runs on 34 rows and reads
+    p=0.12). Its percentile bootstrap keeps the magnitude AND attaches the error bar.
+    Decisiveness then behaves the way evidence should: "neither" on 55/60, 46/60,
+    35/60, 18/60 subpanels at n=25/50/100/150.
+
+    NOT A TUNED THRESHOLD (R12/R13). Nothing here was chosen because of the verdict it
+    produces. The statistic was repaired, not the band: `ACCURACY_VERDICT_ALPHA` is
+    the conventional 5% two-sided level on a CI, not a level picked to make a
+    published figure decisive — and it is a DIAGNOSTIC, never a target.
+    """
+
+    favours: str
+    mean_advantage_kw_per_k: float
+    ci_lo: float
+    ci_hi: float
+    premises: int
+    tied_premises: int
+    #: What the OLD aggregate rule said, kept beside the new verdict so the two can
+    #: be compared on any population without re-running history.
+    aggregate_favours: str
+    aggregate_relative_gap: float
+
+    @property
+    def resolved(self) -> bool:
+        return self.favours != "neither"
+
+    @property
+    def aggregate_overstated(self) -> bool:
+        """The aggregate rule named an arm the paired evidence cannot resolve.
+
+        This is the case the authored panel is in, and it is the reason the repair
+        could not simply DELETE the old verdict: a reader who was told "accuracy
+        favours the register" must be told that claim did not survive, not quietly
+        shown one fewer sentence.
+        """
+        return self.aggregate_favours != "neither" and not self.resolved
+
+
+def _paired_accuracy_verdict(
+    observations: Sequence[FabricObservation],
+    *,
+    epc_gap: float,
+    inferred_gap: float,
+) -> AccuracyVerdict:
+    """Decide the accuracy headline PER PREMISE, with a percentile bootstrap CI."""
+    _require_homes(
+        observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="_paired_accuracy_verdict"
+    )
+    advantages, tied = [], 0
+    for o in observations:
+        register_error = abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+        inference_error = abs(o.inferred_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+        advantage = register_error - inference_error
+        if not math.isfinite(advantage):
+            raise NonFiniteTrace(
+                f"{o.premise_id}: paired accuracy advantage is {advantage!r}"
+            )
+        if advantage == 0.0:
+            tied += 1
+        advantages.append(advantage)
+
+    rnd = random.Random(ACCURACY_VERDICT_SEED)
+    n = len(advantages)
+    means = sorted(
+        statistics.fmean(rnd.choices(advantages, k=n))
+        for _ in range(ACCURACY_VERDICT_RESAMPLES)
+    )
+    lo = means[int(ACCURACY_VERDICT_ALPHA / 2.0 * ACCURACY_VERDICT_RESAMPLES)]
+    hi = means[int((1.0 - ACCURACY_VERDICT_ALPHA / 2.0) * ACCURACY_VERDICT_RESAMPLES) - 1]
+    point = statistics.fmean(advantages)
+    # A CI straddling zero is the honest "cannot tell on this panel". Positive
+    # advantage means the INFERENCE sat closer to the truth, premise by premise.
+    if lo <= 0.0 <= hi:
+        favours = "neither"
+    else:
+        favours = "inferred" if point > 0.0 else "epc"
+
+    larger = max(abs(epc_gap), abs(inferred_gap))
+    return AccuracyVerdict(
+        favours=favours,
+        mean_advantage_kw_per_k=point,
+        ci_lo=lo,
+        ci_hi=hi,
+        premises=n,
+        tied_premises=tied,
+        aggregate_favours=_favours(epc_gap, inferred_gap),
+        aggregate_relative_gap=(
+            abs(epc_gap - inferred_gap) / larger if larger else 0.0
+        ),
+    )
 
 
 def composition_verdict(
@@ -4347,9 +4526,18 @@ def composition_verdict(
     weight_null_epc, weight_null_inferred = _money(weight_null_panel(observations))
 
     above = sum(1 for o in observations if o.actual_hlc_kw_per_k > o.epc_hlc_kw_per_k)
+    accuracy = _paired_accuracy_verdict(
+        observations, epc_gap=epc_gap, inferred_gap=inferred_gap
+    )
     return CompositionVerdict(
         premises=len(observations),
-        accuracy_favours=_favours(epc_gap, inferred_gap),
+        accuracy_favours=accuracy.favours,
+        accuracy_mean_advantage_kw_per_k=accuracy.mean_advantage_kw_per_k,
+        accuracy_ci_lo=accuracy.ci_lo,
+        accuracy_ci_hi=accuracy.ci_hi,
+        accuracy_tied_premises=accuracy.tied_premises,
+        accuracy_aggregate_favours=accuracy.aggregate_favours,
+        accuracy_aggregate_relative_gap=accuracy.aggregate_relative_gap,
         money_favours=_favours(forgone_epc, forgone_inferred),
         forgone_epc_gbp=forgone_epc,
         forgone_inferred_gbp=forgone_inferred,
@@ -4581,6 +4769,19 @@ def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
             f"favours {verdict.money_favours}. Two published numbers naming different "
             f"arms is a finding, not a rounding difference."
         )
+    if verdict.accuracy_aggregate_overstated:
+        caveats.append(
+            f"ACCURACY VERDICT UNRESOLVED: comparing the two arms' population gaps "
+            f"names {verdict.accuracy_aggregate_favours} "
+            f"({verdict.accuracy_aggregate_relative_gap:.1%} of the larger), but per "
+            f"premise the advantage is {verdict.accuracy_mean_advantage_kw_per_k:+.4f} "
+            f"kW/K with a 95% interval of "
+            f"[{verdict.accuracy_ci_lo:+.4f}, {verdict.accuracy_ci_hi:+.4f}] — it "
+            f"straddles zero, so this panel cannot tell the two arms apart "
+            f"({verdict.accuracy_tied_premises} of {verdict.premises} premises are "
+            f"exact ties). The difference of two population gaps is not evidence "
+            f"about homes."
+        )
     caveats += _panel_mirror_caveats(verdict)
     if verdict.direction_bought:
         caveats.append(
@@ -4686,6 +4887,13 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
     return {
         "premises": v.premises,
         "accuracy_favours": v.accuracy_favours,
+        "accuracy_mean_advantage_kw_per_k": v.accuracy_mean_advantage_kw_per_k,
+        "accuracy_ci_lo": v.accuracy_ci_lo,
+        "accuracy_ci_hi": v.accuracy_ci_hi,
+        "accuracy_tied_premises": v.accuracy_tied_premises,
+        "accuracy_aggregate_favours": v.accuracy_aggregate_favours,
+        "accuracy_aggregate_relative_gap": v.accuracy_aggregate_relative_gap,
+        "accuracy_aggregate_overstated": v.accuracy_aggregate_overstated,
         "money_favours": v.money_favours,
         "verdicts_agree": v.verdicts_agree,
         "forgone_epc_gbp": v.forgone_epc_gbp,

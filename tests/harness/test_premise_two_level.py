@@ -5113,3 +5113,204 @@ def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
     loud = fgl.headline_caveats(decisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in quiet), quiet
     assert len([c for c in loud if c.startswith("MIRROR INCONCLUSIVE")]) == 1, loud
+
+
+# ===========================================================================
+# THE ACCURACY VERDICT'S ERROR BAR (2026-08-11, FOURTH Expert Hour)
+#
+# The defect: `accuracy_favours` was a relative band on the DIFFERENCE OF TWO
+# AGGREGATES, decided by `VERDICT_MATERIALITY` — a constant whose own comment
+# asserted it was money-only and a firewall against exactly this. Measured over 120
+# random subpanels of the drawn population at each of n=25/50/100/150, that rule read
+# "neither" on 54%/46%/46%/38% — FLAT IN N, because the band sat at the median of the
+# quantity it banded. The direction was never wrong (0 of 249 decisive subpanels named
+# the register); it silenced a true, unanimous direction on half the panels, and
+# "neither" reads as caution.
+#
+# These tests pin the repaired verdict BOTH WAYS: it must name either arm, must
+# refuse when the evidence cannot resolve, and must not be reachable from the money
+# band. A control that can only say "inferred" would be as useless as the one it
+# replaced.
+# ===========================================================================
+
+
+def _paired_fixture(truth, epc, inferred):
+    """A population stated as three explicit per-premise sequences.
+
+    Deliberately NOT `_observations`, whose beliefs are the truth times a constant:
+    a multiplicative bias makes the per-premise advantage share one sign, which is
+    the one shape that cannot distinguish an aggregate rule from a paired one.
+    """
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=t,
+            epc_hlc_kw_per_k=e,
+            inferred_hlc_kw_per_k=n,
+            floor_area_m2=60.0 + 5.0 * i,
+            annual_heat_kwh=8000.0 + 900.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=0.30,
+            inferred_relative_sd=0.18,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i, (t, e, n) in enumerate(zip(truth, epc, inferred))
+    ]
+
+
+def _verdict_of(rows):
+    return fgl._paired_accuracy_verdict(
+        rows,
+        epc_gap=fgl.epc_vs_actual_gap(rows).gap,
+        inferred_gap=fgl.inferred_vs_actual_gap(rows).gap,
+    )
+
+
+def _one_outlier_carries_the_aggregate():
+    """The register is closer on 11 of 12 premises; the inference is dramatically
+    closer on ONE. The mean advantage is positive and the population gaps differ by
+    half the larger — so the aggregate rule calls it decisively for the inference
+    off a single home."""
+    truth = [0.10 + 0.05 * i for i in range(12)]
+    epc = [t + (0.60 if i == 0 else 0.010) for i, t in enumerate(truth)]
+    inferred = [t + (0.02 if i == 0 else 0.030) for i, t in enumerate(truth)]
+    return _paired_fixture(truth, epc, inferred)
+
+
+def test_the_accuracy_verdict_can_name_either_arm():
+    """BOTH DIRECTIONS REACHABLE. A verdict organ that can only ever name the arm it
+    happens to name on the published population is not measuring anything."""
+    truth = [0.10 + 0.05 * i for i in range(10)]
+    inference_closer = _paired_fixture(
+        truth, [t + 0.08 for t in truth], [t + 0.01 for t in truth]
+    )
+    register_closer = _paired_fixture(
+        truth, [t + 0.01 for t in truth], [t + 0.08 for t in truth]
+    )
+    assert _verdict_of(inference_closer).favours == "inferred"
+    assert _verdict_of(register_closer).favours == "epc"
+
+
+def test_the_accuracy_verdict_refuses_when_the_two_arms_are_the_same_belief():
+    """The vacuity corner: identical arms are an exact tie on every premise, and the
+    interval is degenerate at zero. It must read 'neither' rather than falling
+    through to a sign."""
+    truth = [0.10 + 0.05 * i for i in range(10)]
+    both = [t + 0.04 for t in truth]
+    verdict = _verdict_of(_paired_fixture(truth, both, list(both)))
+    assert verdict.favours == "neither"
+    assert verdict.tied_premises == verdict.premises == 10
+    assert verdict.mean_advantage_kw_per_k == 0.0
+
+
+def test_an_aggregate_decisive_accuracy_verdict_can_be_per_premise_unresolvable():
+    """THE DEFECT'S OWN NAMED TEST. This population is exactly what the old rule
+    could not see: one premise carries the whole aggregate difference, and the
+    aggregate rule publishes a confident verdict for the arm that is WORSE on 11 of
+    the 12 homes."""
+    rows = _one_outlier_carries_the_aggregate()
+    verdict = _verdict_of(rows)
+
+    assert verdict.aggregate_favours == "inferred"
+    assert verdict.aggregate_relative_gap > 0.40, "the old rule was decisive here"
+    register_closer = sum(
+        1
+        for o in rows
+        if abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+        < abs(o.inferred_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+    )
+    assert register_closer == 11, register_closer
+
+    assert verdict.favours == "neither"
+    assert verdict.ci_lo < 0.0 < verdict.ci_hi
+    assert verdict.aggregate_overstated is True
+
+
+def test_the_unresolved_accuracy_verdict_is_disclosed_rather_than_deleted():
+    """A repair that turns a decisive verdict into 'neither' must not silently show
+    the reader one FEWER sentence — `verdicts_agree` goes True on exactly that move.
+    """
+    rows = _one_outlier_carries_the_aggregate()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.accuracy_aggregate_overstated is True
+
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    unresolved = [c for c in caveats if c.startswith("ACCURACY VERDICT UNRESOLVED")]
+    assert len(unresolved) == 1, caveats
+    assert "straddles zero" in unresolved[0]
+    assert "11 of 12 premises are exact ties" not in unresolved[0]
+
+
+def test_a_resolved_accuracy_verdict_says_nothing_about_being_unresolved():
+    """NOT ALWAYS-RED. The caveat above must be silent where the panel does resolve,
+    or it is a banner rather than a control."""
+    truth = [0.10 + 0.05 * i for i in range(10)]
+    rows = _paired_fixture(truth, [t + 0.08 for t in truth], [t + 0.01 for t in truth])
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.accuracy_favours == "inferred"
+    assert verdict.accuracy_aggregate_overstated is False
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not any(c.startswith("ACCURACY VERDICT UNRESOLVED") for c in caveats)
+
+
+def test_the_accuracy_verdict_is_not_reachable_from_the_money_band(monkeypatch):
+    """THE FIREWALL `VERDICT_MATERIALITY`'S COMMENT ALREADY CLAIMED, now testable.
+
+    Before the repair this failed: on the drawn population the published accuracy
+    verdict cleared the band by 0.0032, so a money-motivated move to 0.055 erased it.
+    The accuracy verdict must now be INVARIANT to that constant across its whole
+    plausible range, while the money verdict — whose band it genuinely is — stays
+    free to move.
+    """
+    rows = _one_outlier_carries_the_aggregate()
+    baseline = _verdict_of(rows).favours
+    for band in (0.0, 0.01, 0.05, 0.20, 0.60):
+        monkeypatch.setattr(fgl, "VERDICT_MATERIALITY", band)
+        assert _verdict_of(rows).favours == baseline, band
+
+
+def test_the_accuracy_verdict_is_deterministic_and_seeded_from_its_own_substream():
+    """C-S2. A resampled verdict that moves between runs is not a verdict, and one
+    that draws from the global RNG shifts every other subsystem's stream.
+
+    THE FIXTURE IS CONTINUOUS ON PURPOSE, and the first version of this test was not.
+    Written against `_one_outlier_carries_the_aggregate` — 11 premises sharing one
+    advantage and a single outlier — the bootstrap percentiles land on the same two
+    discrete values whatever the seed, so unseeding the draw changed nothing and this
+    test passed a mutation that removed the very thing it names (caught by the R15
+    run, not by review). A determinism test needs a statistic that can actually move.
+    """
+    rng = random.Random(5150)
+    truth = [0.10 + 0.004 * i for i in range(60)]
+    rows = _paired_fixture(
+        truth,
+        [t + 0.02 + rng.uniform(-0.04, 0.04) for t in truth],
+        [t + 0.02 + rng.uniform(-0.04, 0.04) for t in truth],
+    )
+    first = _verdict_of(rows)
+    random.seed(1234)
+    random.random()
+    second = _verdict_of(rows)
+    assert (first.ci_lo, first.ci_hi) == (second.ci_lo, second.ci_hi)
+    assert first.mean_advantage_kw_per_k == second.mean_advantage_kw_per_k
+
+
+def test_the_paired_verdict_resolves_more_often_as_the_panel_grows():
+    """THE PROPERTY THE OLD RULE DID NOT HAVE, and the reason this is a repair rather
+    than a different arbitrary band: decisiveness must be a statement about EVIDENCE.
+    The old aggregate rule read 'neither' on ~half of all subpanels at every size;
+    a resolution test must resolve more often as homes are added."""
+    rng = random.Random(20260811)
+    truth = [0.10 + 0.004 * i for i in range(160)]
+    # A small, real, same-signed advantage to the inference, buried in per-premise
+    # noise big enough that a short panel genuinely cannot see it.
+    epc = [t + 0.030 + rng.uniform(-0.05, 0.05) for t in truth]
+    inferred = [t + 0.015 + rng.uniform(-0.05, 0.05) for t in truth]
+    rows = _paired_fixture(truth, epc, inferred)
+
+    resolved_small = sum(
+        _verdict_of(rows[i : i + 8]).favours != "neither" for i in range(0, 160, 8)
+    )
+    assert _verdict_of(rows).favours == "inferred"
+    assert resolved_small < 20, resolved_small
