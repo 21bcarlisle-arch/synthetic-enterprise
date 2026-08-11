@@ -1,0 +1,51 @@
+{
+  "purpose": "the -x premium in peak memory, per WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES_2026-08-11",
+  "started_at": "2026-08-11T07:29:08Z",
+  "updated_at": "2026-08-11T07:42:58Z",
+  "sampler_pid": 3939081,
+  "contended": true,
+  "contention_note": "both suites were already running when sampling began and shared the box; peaks are contended and are not the isolated peak of either run",
+  "mem_available_mb": 5351,
+  "complete": false,
+  "sides": {
+    "with_x": {
+      "label": "with_x",
+      "root_pid": 3756987,
+      "has_dash_x": true,
+      "argv_length": 149,
+      "peak_tree_rss_kb": 3302724,
+      "peak_tree_rss_gb": 3.15,
+      "max_single_process_hwm_kb": 3302724,
+      "max_single_process_hwm_gb": 3.15,
+      "processes_seen": 1,
+      "samples": 35,
+      "still_alive": false,
+      "first_seen": "2026-08-11T07:29:08Z",
+      "last_seen": "2026-08-11T07:34:48Z",
+      "observed_seconds": 340.0
+    },
+    "without_x": {
+      "label": "without_x",
+      "root_pid": 3768864,
+      "has_dash_x": false,
+      "argv_length": 148,
+      "peak_tree_rss_kb": 5535960,
+      "peak_tree_rss_gb": 5.28,
+      "max_single_process_hwm_kb": 5594276,
+      "max_single_process_hwm_gb": 5.34,
+      "processes_seen": 1,
+      "samples": 84,
+      "still_alive": true,
+      "first_seen": "2026-08-11T07:29:08Z",
+      "last_seen": "2026-08-11T07:42:58Z",
+      "observed_seconds": 830.1
+    }
+  },
+  "verdict": {
+    "with_x_peak_process_gb": 3.15,
+    "without_x_peak_process_gb": 5.34,
+    "without_over_with": 1.69,
+    "claim": "inconclusive",
+    "why": "still running when the sampler stopped, so its peak is a lower bound: without_x"
+  }
+}

@@ -1504,3 +1504,213 @@ def test_the_stage_helper_is_harmless_without_a_marker():
     assert "in_flight" not in results
     heartbeat.clear()                   # idempotent
     assert "in_flight" not in results
+
+
+# ── THE PHASE'S MEMORY BOUND (OPS2, 2026-08-11) ──────────────────────────────────────────────
+#
+# WHAT THESE FIRE ON, and it is OBSERVED not hypothetical (`journalctl -k`, 2026-08-10
+# 23:11:10Z): the BASELINE phase's pytest reached 12.9G anon RSS on a 15.9G box and was killed
+# by the GLOBAL OOM killer -- `constraint=CONSTRAINT_NONE ... global_oom`. A global OOM chooses
+# its victim across the whole box, so the live publisher is a candidate every time this harness
+# runs, and three launches have now died this way.
+#
+# The control is option A of WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES:
+# each phase's pytest runs inside its own `systemd-run --scope` with a MemoryMax, so an
+# over-large run is THAT PHASE's failure and nothing else on the box is at risk.
+#
+# THE TAUTOLOGY THESE AVOID. Asserting that `_scope_argv` contains the string "MemoryMax" proves
+# only that this repo can build a string; it would pass just as happily against a kernel with no
+# memory controller, which is the fail-silent shape R15 names. So the first test below spends a
+# real two seconds proving the bound KILLS -- and proves it differentially, by running the same
+# allocation unbounded and watching it succeed.
+
+
+def _systemd_run_missing():
+    import shutil as _shutil
+    return _shutil.which("systemd-run") is None
+
+
+@pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+def test_the_kernel_applied_both_limits_not_just_this_repo_writing_them_down():
+    """The scope's OWN cgroup is asked what it is limited to, from inside it.
+
+    WHY NOT JUST ASSERT THE KILL. The kill test below is the one that proves enforcement, but it
+    cannot cleanly pin `MemorySwapMax=0`: whether a throttled process dies or merely swaps
+    depends on how much swap the box happens to have free, and dropping the property was
+    MEASURED here surviving as a mutation for exactly that reason -- it stayed green on a box
+    that was already 3G into swap. Ambient state must not decide a control's verdict, so the
+    property is read back from the kernel instead of inferred from a behaviour it only usually
+    produces.
+
+    `memory.swap.max = 0` is load-bearing, not tidiness: with swap allowed, a 12.9G suite under
+    an 8G ceiling does not die, it thrashes -- a slower version of the harm the bound exists to
+    prevent."""
+    probe = ("from pathlib import Path\n"
+             "rel = Path('/proc/self/cgroup').read_text().strip().split(':')[-1]\n"
+             "base = Path('/sys/fs/cgroup') / rel.lstrip('/')\n"
+             "print((base / 'memory.max').read_text().strip())\n"
+             "print((base / 'memory.swap.max').read_text().strip())\n")
+    res = subprocess.run(measure._scope_argv("ops2-limits-selftest", memory_max_mb=128)
+                         + [sys.executable, "-c", probe],
+                         capture_output=True, text=True, timeout=120)
+    assert res.returncode == 0, "the probe never ran: {}".format(res.stderr[-300:])
+    memory_max, swap_max = res.stdout.split()
+
+    assert memory_max == str(128 * 1024 * 1024), (
+        "the kernel did not apply MemoryMax -- the argv carries it but the cgroup does not, "
+        "which is the fail-silent shape: every phase would run effectively unbounded"
+    )
+    assert swap_max == "0", (
+        "swap is not denied to the phase, so exceeding the ceiling throttles into swap instead "
+        "of killing -- a 12.9G suite would thrash this box rather than die alone"
+    )
+
+
+@pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+def test_the_bound_actually_kills_an_over_large_child_and_the_unbounded_one_survives():
+    """The control's own named defect, run for real: a child that exceeds the ceiling dies.
+
+    The DIFFERENTIAL is the whole point. A bounded run that died could be dying of anything --
+    a bad interpreter, a missing module, a systemd that refuses scopes. The same allocation run
+    WITHOUT the wrapper must succeed, so the death above is demonstrably produced by the bound.
+    Both sides allocate 300MB against a 128MB ceiling."""
+    alloc = ("b=[]\n"
+             "for _ in range(300): b.append(bytearray(1024*1024))\n"
+             "print('allocated 300MB')")
+
+    bounded = subprocess.run(measure._scope_argv("ops2-bound-selftest", memory_max_mb=128)
+                             + [sys.executable, "-c", alloc],
+                             capture_output=True, text=True, timeout=120)
+    unbounded = subprocess.run([sys.executable, "-c", alloc],
+                               capture_output=True, text=True, timeout=120)
+
+    assert unbounded.returncode == 0 and "allocated 300MB" in unbounded.stdout, (
+        "the CONTROL arm failed, so this test cannot attribute the bounded arm's death to the "
+        "bound: {}".format(unbounded.stderr[-300:])
+    )
+    assert bounded.returncode != 0, (
+        "a 300MB allocation completed inside a 128MB ceiling -- the MemoryMax property is not "
+        "being enforced, so every phase still runs effectively unbounded"
+    )
+    assert "allocated 300MB" not in bounded.stdout
+
+
+def test_every_phase_runs_inside_a_memory_bound(monkeypatch, tmp_path):
+    """The argv the phase actually executes carries the ceiling.
+
+    Mutation: return `_argv_without_x()` from `_bounded_argv` and this reds -- which is the
+    pre-repair behaviour exactly, so this test is the one that would have caught the box-killer."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    seen = {}
+
+    def capture(argv, *_a, **_kw):
+        seen.setdefault("argv", list(argv))
+        return types.SimpleNamespace(returncode=0, stdout="1 passed in 0.01s", stderr="")
+
+    monkeypatch.setattr(measure.subprocess, "run", capture)
+    measure._time_suite_under_exclusion(tmp_path, lambda _m: None, None)
+
+    argv = seen["argv"]
+    assert argv[0] == "systemd-run", "the phase's pytest was launched without its memory bound"
+    assert "--scope" in argv, (
+        "a --unit reparents the suite to the user manager, which loses the timing, the captured "
+        "summary line and the publisher exclusion this phase runs under"
+    )
+    assert "--property=MemoryMax={}M".format(measure.PHASE_MEMORY_MAX_MB) in argv
+    assert "-m" in argv and "pytest" in argv, "the bound wrapped something that is not the suite"
+
+
+def test_the_ceiling_sits_below_the_level_that_killed_the_box():
+    """A bound above the observed lethal footprint is a bound that changes nothing.
+
+    12.9G is where the global OOM killer took the phase out on 2026-08-10; 2.42G is the live
+    publish gate's own sampled peak. A ceiling outside that corridor is either useless (too
+    high) or guaranteed to fail every legitimate run (too low)."""
+    assert measure.PHASE_MEMORY_MAX_MB < 12_900, (
+        "the ceiling is at or above the footprint that global-OOM-killed this box, so it can "
+        "never fire before the kernel does"
+    )
+    assert measure.PHASE_MEMORY_MAX_MB > 2_420 * 2, (
+        "the ceiling is within 2x the publish gate's own observed peak -- a legitimate suite "
+        "would trip it and the measurement would never converge"
+    )
+
+
+def test_an_unavailable_systemd_run_blocks_the_phase_rather_than_running_it_bare(monkeypatch,
+                                                                                 tmp_path):
+    """An unavailable control is a FAILED control (R15), and here it is the only thing between a
+    12.9G suite and the live publisher.
+
+    Mutation: fall back to `_argv_without_x()` when `shutil.which` returns None and this reds."""
+    monkeypatch.setattr(measure.shutil, "which", lambda _name: None)
+    said = []
+    with pytest.raises(measure._Unbounded):
+        measure._bounded_argv(tmp_path, said.append)
+    assert any("REFUSING" in m for m in said), (
+        "the phase blocked silently -- the next reader gets a non-zero exit with no cause"
+    )
+
+
+def test_a_blocked_run_is_recorded_and_exits_non_zero_unlike_a_deferral(monkeypatch, out,
+                                                                       tmp_path):
+    """The differential that keeps 'the box was briefly busy' distinguishable from 'the control
+    is gone'. A deferral returns 0 and is a correct outcome; this must not."""
+    reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
+    reused.mkdir()
+    monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
+    monkeypatch.setattr(measure, "_time_suite",
+                        lambda *_a, **_kw: (_ for _ in ()).throw(
+                            measure._Unbounded("systemd-run unavailable")))
+
+    assert measure._run_measurement(out, lambda _m: None) == 1, (
+        "a missing memory bound exited 0, so the transient unit reads `active (exited)` and the "
+        "next tick sees one more launch that quietly banked nothing"
+    )
+    rec = json.loads(Path(out).read_text())
+    assert rec["blocked"]["reason"] == "systemd-run unavailable"
+    assert "deferred" not in rec or rec.get("deferral_count", 0) == 0, (
+        "a block was counted as a deferral, which is the reading that says 'try again later'"
+    )
+
+
+def test_a_phase_killed_by_its_own_ceiling_is_told_from_one_killed_by_the_box():
+    """`hit_memory_ceiling`'s discriminator, both directions and the vacuous one.
+
+    The exact signal lives in the scope's `memory.events`, which is torn down with the scope, so
+    this is INFERRED from what survives: a cgroup kill leaves the BOX with memory, a global OOM
+    leaves it starved. The record labels it inferred; this pins that it at least separates the
+    two cases the kernel log actually showed."""
+    floor = measure.MIN_MEMORY_HEADROOM_MB
+    assert measure._looks_like_the_bound(-9, floor + 1) is True
+    assert measure._looks_like_the_bound(-9, floor - 1) is False, (
+        "a SIGKILL on a starved box was attributed to this phase's own ceiling -- that is the "
+        "global OOM, and calling it a cgroup kill hides the failure the bound exists to prevent"
+    )
+    assert measure._looks_like_the_bound(1, 9000) is False, "an ordinary red suite is not a kill"
+    assert measure._looks_like_the_bound(0, 9000) is False
+    assert measure._looks_like_the_bound(-9, None) is False, (
+        "an unreadable /proc must not be read as a clean cgroup kill"
+    )
+
+
+def test_the_phase_record_states_its_ceiling_and_its_x_premium(monkeypatch, tmp_path):
+    """Two things a future reader re-deriving GATE_SUITE_TIMEOUT_SECONDS needs and cannot infer:
+    the ceiling the phase ran under, and that this suite is STRICTLY LARGER than the gate's own
+    (`-x` is stripped here, kept there, and the suite is red at HEAD)."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_mem_available_mb", lambda: 9000)
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *_a, **_kw: types.SimpleNamespace(
+                            returncode=0, stdout="1 passed in 0.01s", stderr=""))
+
+    rec = measure._time_suite_under_exclusion(tmp_path, lambda _m: None, None)
+
+    assert rec["memory_max_mb"] == measure.PHASE_MEMORY_MAX_MB
+    assert rec["hit_memory_ceiling"] is False
+    assert rec["subject_larger_than_the_gates"] is True, (
+        "the record does not say the timing carries an -x premium, so the timeout floor derived "
+        "from it reads as a fit to the gate's own runtime when it is an over-estimate"
+    )
+    assert "-x" in rec["subject_note"]

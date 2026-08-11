@@ -1,3 +1,28 @@
+> **IN PROGRESS (2026-08-11 OPS2 tick).** Recommendation **A is BUILT and R15-proven**; the
+> measurement this finding demanded is **IN FLIGHT and self-completing**.
+>
+> **STILL OPEN — the one sub-item:** `PHASE_MEMORY_MAX_MB = 8192` is a stated CEILING, not a
+> derived figure. `tools/sample_gate_rss_premium.py` is measuring the real peaks into
+> `docs/observability/gate_x_premium_rss.json`; when that record reaches `complete: true`,
+> re-derive the ceiling from the measured `-x`-less peak and move it. **What unblocks it:** the
+> sampler finishing — no wait, no launch, read the file.
+>
+> **What the measurement already says** (partial, `with_x` exact / `without_x` a lower bound):
+> the gate's own `-x` run peaked at **3.15G**; the `-x`-less run passed **5.34G still climbing**.
+> Directionally the finding's `inferred` claim is holding. It is NOT yet the finished number.
+>
+> **What landed:** each phase's pytest now runs inside `systemd-run --user --scope` with
+> `MemoryMax` **and `MemorySwapMax=0`**, so an over-large run dies alone instead of global-OOM
+> killing the box (three launches died that way, the publisher a candidate each time). A missing
+> `systemd-run` BLOCKS the phase and exits non-zero rather than running it bare. The `-x` premium
+> is now stated in every phase record (`subject_larger_than_the_gates`), which was consequence 2.
+>
+> **Measured while building, and worth more than the repair:** `MemoryMax` alone does NOT kill --
+> it reclaims into this box's 4G of swap. A 300MB allocation completed inside a 128MB ceiling,
+> rc=0. Dropping `MemorySwapMax=0` also survived as a mutation on a box already 3G into swap, so
+> the control is now pinned by reading `memory.max`/`memory.swap.max` back from the scope's own
+> cgroup rather than by a behaviour that ambient swap decides.
+
 # [WORKER-FINDING] The measurement's subject is a LARGER suite than the gate's, and that is what OOMs the box (2026-08-11)
 
 **Rank:** after the OPS2 exit itself (P-1) — this is the standing cause of the OPS2 criterion-1

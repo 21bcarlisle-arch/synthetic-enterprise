@@ -29,3 +29,42 @@ build_note: |
   Residual, filed not fixed: the suite really does reach 12.9G, because `_argv_without_x`
   makes the measured subject strictly larger than the gate's own `-x` run. See
   docs/staging/WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES_2026-08-11.md.
+
+  2026-08-11, second tick. Criterion 1 is STILL NOT met and the level does not move:
+  `in_tree_baseline` remains untimed, so there is still no ratio. What landed is the thing that
+  had killed three launches before they could produce one.
+
+  MEASURED FIRST, as the refuted sibling taught. The box was already running both arms of the
+  A/B the finding asked for -- the live publisher's gate (`-x`, pid 3756987) and an
+  `enumerate_publish_gate_reds` sweep (no `-x`, pid 3768864), argv identical apart from that one
+  flag, started a minute apart -- so the number cost an observer rather than a third 20-minute
+  suite. `tools/sample_gate_rss_premium.py` samples both trees' `VmHWM`. Partial at the time of
+  writing: `with_x` finished at an exact 3.15G peak; `without_x` passed 5.34G still climbing, so
+  its figure is a LOWER BOUND and the record's verdict says `inconclusive` rather than quoting
+  it. Directionally the finding's `inferred` `-x`-premium claim is holding.
+
+  BUILT (option A): each phase's pytest runs inside `systemd-run --user --scope` with `MemoryMax`
+  and `MemorySwapMax=0`, so an over-large phase dies alone instead of global-OOM killing a box on
+  which the publisher is a candidate victim every time. A missing `systemd-run` raises `_Unbounded`
+  -- BLOCKS the phase, records `blocked` in the artefact, exits non-zero -- deliberately not a
+  `_Deferred`, because waiting does not grow a systemd-run. Every phase record now carries
+  `memory_max_mb`, an `inferred`-labelled `hit_memory_ceiling`, and `subject_larger_than_the_gates`
+  (consequence 2 of the finding: a reader re-deriving the timeout "from the measured runtime"
+  would not otherwise know the number carries an `-x` premium).
+
+  THE CONTROL CAUGHT ITSELF, and this is the part worth keeping. `MemoryMax` alone does not kill
+  -- it reclaims into this box's 4G of swap: a 300MB allocation completed inside a 128MB ceiling,
+  rc=0. So the first version of the bound was throttle-not-kill, i.e. a 12.9G suite would have
+  thrashed the box rather than global-OOMed it, which is the same harm slower. Worse, dropping
+  `MemorySwapMax=0` SURVIVED as a mutation, because the box was already 3G into swap and the
+  child died anyway -- ambient state was deciding the verdict. The property is therefore pinned
+  by reading `memory.max` and `memory.swap.max` back from the scope's OWN cgroup, not by a
+  behaviour that only usually follows. R15 both ways, six mutations RUN: wrapper dropped, fail-open
+  on missing systemd-run, `MemorySwapMax=0` removed, `MemoryMax` removed, discriminator ignoring
+  the box, block exiting 0 -- all six red; source restored byte-identical after each.
+  75 passed in tests/tools/test_measure_publish_gate_subject_cost.py.
+
+  Still open: `PHASE_MEMORY_MAX_MB = 8192` is a stated ceiling (above the 2.42G-3.15G observed
+  legitimate peak, below the 12.9G lethal one), NOT derived. Re-derive it when
+  docs/observability/gate_x_premium_rss.json reaches `complete: true`. Parked in
+  docs/staging/in_progress/ with that as its named blocking sub-item.

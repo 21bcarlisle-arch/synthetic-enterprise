@@ -688,6 +688,89 @@ def _argv_without_x() -> list:
     return argv + ["--basetemp={}".format(prc.HEAD_CHECKOUT_ROOT / MEASURE_BASETEMP_NAME)]
 
 
+# ── A PHASE MAY KILL ITSELF; IT MAY NOT KILL THE BOX ─────────────────────────────────────────
+#
+# OBSERVED (`journalctl -k`, 2026-08-10 23:11:10Z): the BASELINE phase's pytest reached 12.9G
+# anon RSS on a 15.9G box and was killed by the GLOBAL OOM killer --
+# `constraint=CONSTRAINT_NONE ... global_oom`, not a cgroup limit. A global OOM is not a failure
+# of this harness alone: the kernel picks its victim by badness score across the whole box, so
+# the live publisher is a candidate every time this runs. Three launches have died this way.
+#
+# The repair is option A of
+# WORKER_FINDING_THE_MEASUREMENTS_SUBJECT_IS_LARGER_THAN_THE_GATES_2026-08-11: give each phase's
+# pytest its own memory bound, so an over-large run ends as THAT PHASE's named failure and the
+# rest of the box -- the publisher above all -- is never a candidate for it.
+#
+# `--scope` and not `--unit`: a scope stays a child of this process and inherits cwd, env and
+# stdio, so the timing, the captured summary line and `_publisher_exclusion` all keep working
+# unchanged. (`--unit` reparents to the user manager, which is right for the LAUNCH -- see
+# `_systemd_run_argv` -- and wrong for a thing we are timing.)
+#
+# THE BOUND IS A CEILING, NOT A DERIVED FIGURE, and says so: the whole point of the run is that
+# the -x-less peak has never been measured. What is known is that the publish gate -- the
+# production path this imitates -- peaked at 2.42G in a live sample, and that 12.9G is where the
+# box dies. 8G is comfortably above any legitimate peak observed and comfortably below the
+# lethal one. `tools/sample_gate_rss_premium.py` is measuring the real peaks; when it reports,
+# this ceiling should be re-derived from them rather than left at a round number.
+PHASE_MEMORY_MAX_MB = 8192
+
+
+class _Unbounded(Exception):
+    """Raised when a phase cannot be given a memory bound, so it must not run.
+
+    Fail-CLOSED and deliberately not a `_Deferred`: deferring says "try again later", and a box
+    with no `systemd-run` will not grow one. The unbounded path is the one that has killed this
+    box three times, so 'measure anyway' is the option that is not on the table."""
+
+
+def _scope_argv(unit: str, memory_max_mb: int = PHASE_MEMORY_MAX_MB) -> list:
+    """The `systemd-run` prefix that bounds one phase. Built here so a test can assert its
+    shape without spending twenty minutes proving it."""
+    # `MemorySwapMax=0` is NOT belt-and-braces, it is the half that does the killing. Measured
+    # while building this: a 300MB allocation under `MemoryMax=128M` alone COMPLETES, rc=0 --
+    # the kernel reclaims and pushes anonymous pages into this box's 4G of swap instead of
+    # killing anything. A bound that only throttles would leave a 12.9G suite thrashing the box
+    # rather than global-OOMing it, which is a slower version of the same harm. With swap denied,
+    # exceeding the ceiling is a cgroup OOM kill, and the phase dies alone.
+    return ["systemd-run", "--user", "--scope", "--quiet",
+            "--unit={}".format(unit),
+            "--property=MemoryAccounting=yes",
+            "--property=MemorySwapMax=0",
+            "--property=MemoryMax={}M".format(memory_max_mb)]
+
+
+def _phase_scope_unit(cwd: Path) -> str:
+    """A distinct scope name per phase run, so two never collide on a retry."""
+    return "publish-gate-phase-{}-{}".format(os.getpid(), abs(hash(str(cwd))) % 100000)
+
+
+def _bounded_argv(cwd: Path, log) -> list:
+    """The phase's pytest argv, wrapped in its memory bound. Raises `_Unbounded` if it cannot be.
+
+    An unreadable/absent `systemd-run` BLOCKS the phase rather than running it bare: an
+    unavailable control is a failed control (R15), and here the control is the only thing
+    standing between a 12.9G suite and the publisher."""
+    if shutil.which("systemd-run") is None:
+        log("  ! systemd-run unavailable -- REFUSING to time an unbounded suite; the "
+            "unbounded path is what global-OOM-killed this box three times")
+        raise _Unbounded("systemd-run unavailable")
+    return _scope_argv(_phase_scope_unit(cwd)) + _argv_without_x()
+
+
+def _looks_like_the_bound(result_returncode: int, mem_available_after_mb) -> bool:
+    """Did this phase die against ITS OWN ceiling rather than the box's?
+
+    `inferred`, and labelled as such in the record. The exact discriminator lives in the scope's
+    `memory.events`, which is torn down with the scope before we can read it. What survives is
+    the pair the kernel log made legible: a cgroup kill leaves the BOX with memory (only the
+    phase was squeezed), a global OOM leaves it starved. Only ever consulted on a SIGKILL."""
+    if result_returncode != -9:
+        return False
+    if mem_available_after_mb is None:
+        return False
+    return mem_available_after_mb >= MIN_MEMORY_HEADROOM_MB
+
+
 def _time_suite(cwd: Path, log, heartbeat=None) -> dict:
     with _publisher_exclusion(log, heartbeat):
         return _time_suite_under_exclusion(cwd, log, heartbeat)
@@ -707,13 +790,21 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     # 22:28Z launch was killed. Marked AND logged before the child starts, so the artefact and
     # the journal both say so even though neither gets another word afterwards.
     _mark_stage(heartbeat, "suite_running")
-    log("  . suite starting in {} ({}MB available)".format(cwd, mem_before))
+    argv = _bounded_argv(cwd, log)
+    log("  . suite starting in {} ({}MB available, capped at {}MB)"
+        .format(cwd, mem_before, PHASE_MEMORY_MAX_MB))
     started = time.monotonic()
-    result = subprocess.run(_argv_without_x(), cwd=str(cwd), env=env,
+    result = subprocess.run(argv, cwd=str(cwd), env=env,
                             capture_output=True, text=True, errors="replace")
     elapsed = time.monotonic() - started
     _mark_stage(heartbeat, "suite_returned")
     tail = [ln for ln in result.stdout.strip().splitlines() if ln.strip()][-1:]
+    mem_after = _mem_available_mb()
+    hit_bound = _looks_like_the_bound(result.returncode, mem_after)
+    if hit_bound:
+        log("  ! phase exceeded its own {}MB ceiling and was killed inside its scope -- the box "
+            "kept {}MB, so the publisher was never a candidate"
+            .format(PHASE_MEMORY_MAX_MB, mem_after))
     return {
         "cwd": str(cwd),
         # The SHA THIS phase actually ran against. Stamped per phase, not once at launch: HEAD
@@ -729,8 +820,23 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         # The conditions the OOM happened in, recorded so a short phase can be told from a
         # starved one without going back to the journal.
         "mem_available_before_mb": mem_before,
-        "mem_available_after_mb": _mem_available_mb(),
+        "mem_available_after_mb": mem_after,
         "had_memory_headroom": had_headroom,
+        # The ceiling this phase ran under, and whether it hit it. `hit_memory_ceiling` is
+        # INFERRED (see `_looks_like_the_bound`) -- a phase that hit its own bound is a phase
+        # whose SECONDS mean nothing, so a reader must not average it into a ratio.
+        "memory_max_mb": PHASE_MEMORY_MAX_MB,
+        "hit_memory_ceiling": hit_bound,
+        "hit_memory_ceiling_basis": "inferred: SIGKILL with the box still above its headroom "
+                                    "floor implies a cgroup kill, not a global OOM",
+        # Stated because the number carries it and a future reader re-deriving
+        # GATE_SUITE_TIMEOUT_SECONDS "from the measured runtime" would not otherwise know: this
+        # is a run of a STRICTLY LARGER suite than the gate performs, because `-x` is stripped
+        # here and kept there, and the suite is red at HEAD. Erring high is the safe direction
+        # for a bound whose undersizing wedges publishing -- but it is an error, not a fit.
+        "subject_larger_than_the_gates": True,
+        "subject_note": "-x stripped for comparability; the gate stops at the first failure of "
+                        "a red suite and this does not",
     }
 
 
@@ -1070,6 +1176,23 @@ def _run_measurement(out_path: str, log) -> int:
                 deferred.reason, ", ".join(results["phases_missing"]) or "nothing",
                 results["deferral_count"]))
         return 0
+    except _Unbounded as unbounded:
+        # NOT a deferral. A deferral means "the box was briefly unfit"; this means "the one
+        # control protecting the box from this harness is absent", which no amount of waiting
+        # repairs. Recorded in the artefact and exited NON-ZERO so the unit goes `failed` and
+        # says so, rather than looking like one more launch that quietly banked nothing.
+        heartbeat.clear()
+        results["blocked"] = {
+            "reason": str(unbounded),
+            "at_phase": results["phases_missing"][0] if results.get("phases_missing") else None,
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "why_not_a_deferral": "an unbounded phase is what global-OOM-killed this box three "
+                                  "times; waiting does not grow a systemd-run",
+        }
+        _checkpoint(results, args.out, log)
+        log("BLOCKED ({}) -- phases still owed: {}".format(
+            unbounded, ", ".join(results["phases_missing"]) or "nothing"))
+        return 1
 
 
 if __name__ == "__main__":
