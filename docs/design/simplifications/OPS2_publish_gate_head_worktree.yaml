@@ -277,3 +277,18 @@ build_note: |
   tests. `maturity_map.yaml` is again dirty with another lane's staged change, so widening it here
   would land their half-finished work under this atom's message.
 
+  SAME TICK, CAUGHT BY LAUNCHING RATHER THAN BY REASONING. Launch 12 went out on the commit above
+  and its first log lines exposed a gap the completion rule had left one function over:
+  `_drop_incomparable_ratio_phases` short-circuits when both ratio phases are "already banked",
+  and that test was `name in phases` -- so the TRUNCATED baseline counted as PRESENT there while
+  counting as OWED everywhere else. The unit duly skipped a throwaway banked at d1a5875b4 as "not
+  re-run" and set about re-timing the baseline at 7ef696ea8: a ratio spanning two commits,
+  reported as the cost of the checkout, which is the exact defect that function was written one
+  tick earlier to prevent. Stopped before it banked anything (`systemctl --user stop`, the unit
+  was still in the lock wait), fixed to read the same eligibility as every other consumer, and
+  R15'd both ways -- the truncated case drops BOTH phases, a genuinely complete pair at one
+  earlier commit still survives (or every launch re-pays 40 minutes), and mutation 8 (presence
+  again) reds the first of those. 88 passed. THE CLASS: a new rule must be carried to every
+  consumer of the notion it changes, or the older control keeps answering the old question --
+  and the thing that caught it was launching the job, not re-reading the diff.
+

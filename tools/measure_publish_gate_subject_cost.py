@@ -1040,8 +1040,18 @@ def _drop_incomparable_ratio_phases(phases: dict, head_sha: str, log) -> list:
 
     Only when one of the pair is still OWED: once both are banked at the same earlier commit
     they are comparable to each other, and re-timing them would cost 40 minutes to learn the
-    same number."""
-    if all(name in phases for name in RATIO_PHASES):
+    same number.
+
+    "OWED" HERE MUST MEAN WHAT IT MEANS EVERYWHERE ELSE (2026-08-11). This test was `name in
+    phases`, and the completion rule landed beside it without reaching it -- so a TRUNCATED
+    baseline counted as present here while counting as owed everywhere else, and the pair-drop
+    concluded both sides were banked together when one of them was about to be re-timed at a new
+    HEAD. Observed on launch 12, which skipped a throwaway banked at d1a5875b4 as "not re-run"
+    while re-timing the baseline at 7ef696ea8: a ratio across two commits, reported as the cost
+    of the checkout, which is the exact defect `_drop_incomparable_ratio_phases` was written one
+    tick earlier to prevent. A new rule must be carried to every consumer of the notion it
+    changes, or the older control keeps answering the old question."""
+    if all(_is_ratio_eligible(phases.get(name)) for name in RATIO_PHASES):
         return []
     dropped = []
     for name in RATIO_PHASES:

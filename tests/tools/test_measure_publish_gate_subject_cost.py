@@ -2041,3 +2041,45 @@ def test_the_record_says_when_its_worst_phase_is_only_a_lower_bound(out, monkeyp
         "`complete` is the one field a reader is told to check, and launch 11 wrote it true "
         "over a killed baseline"
     )
+
+
+def test_a_truncated_phase_does_not_count_as_half_a_comparable_pair(out, monkeypatch):
+    """THE GAP THE COMPLETION RULE LEFT, caught on launch 12 rather than reasoned about.
+
+    `_drop_incomparable_ratio_phases` short-circuits when both ratio phases are already banked --
+    a pair timed together at an earlier commit is comparable to itself, so re-timing it is 40
+    wasted minutes. That test was `name in phases` while the completion rule that landed beside it
+    made "banked" mean something stricter, so a TRUNCATED baseline counted as present here and as
+    owed everywhere else. Launch 12 duly skipped a throwaway banked at d1a5875b4 as "not re-run"
+    and set about re-timing the baseline at 7ef696ea8: a ratio spanning two commits, reported as
+    the cost of the checkout.
+
+    MUTATION: restore `all(name in phases ...)` and this reds -- the throwaway is kept and the
+    pair spans commits."""
+    phases = {"throwaway_checkout": {"seconds": 1411.2, "returncode": 1,
+                                     "head_sha_at_run": "old111"},
+              "in_tree_baseline": {"seconds": 1302.4, "returncode": -15,
+                                   "head_sha_at_run": "old111"}}
+
+    dropped = measure._drop_incomparable_ratio_phases(phases, "new222", lambda _m: None)
+
+    assert dropped == ["in_tree_baseline", "throwaway_checkout"], (
+        "a truncated baseline is OWED, so its throwaway partner is not half of a banked pair -- "
+        "keeping it pairs a phase timed at one commit with one timed at another"
+    )
+    assert "throwaway_checkout" not in phases
+
+
+def test_a_genuinely_complete_pair_is_still_not_re_paid_for(out):
+    """The other direction, so the fix above is not just "drop more". Two COMPLETED phases at one
+    earlier commit are comparable to each other and must survive -- otherwise every launch at a
+    new HEAD re-pays 40 minutes to learn the same ratio."""
+    phases = {"throwaway_checkout": {"seconds": 1411.2, "returncode": 1,
+                                     "head_sha_at_run": "old111"},
+              "in_tree_baseline": {"seconds": 1302.4, "returncode": 0,
+                                   "head_sha_at_run": "old111"}}
+
+    dropped = measure._drop_incomparable_ratio_phases(phases, "new222", lambda _m: None)
+
+    assert dropped == []
+    assert sorted(phases) == ["in_tree_baseline", "throwaway_checkout"]
