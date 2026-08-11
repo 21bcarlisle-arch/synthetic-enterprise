@@ -5887,58 +5887,413 @@ def scenario_constant_census_caveat(measured: Dict[str, object]) -> str:
 # predicate is D33's reshape and is deliberately NOT changed here.
 # ---------------------------------------------------------------------------
 
-# The precision every consumer renders these gaps at. NOT a tolerance chosen to
-# make a test pass: `_consumer_render_decimals` reads it back out of the two
-# consumers' source, so a consumer that starts publishing 6dp fails the control
-# instead of silently leaving this stale.
-PUBLISHED_GAP_DECIMALS = 4
+# ---------------------------------------------------------------------------
+# PUBLISHED_GAP_CONSUMERS -- the precision EACH figure reaches ITS OWN reader
+# at (atom D34, H27 Expert Hour #16)
+#
+# Hour #15 installed the epsilon as "the reader's own precision, not a
+# tolerance", re-read out of the consumers' source so that "a consumer that
+# starts publishing 6dp fails the control instead of leaving the epsilon
+# stale". Measured one Hour later, it failed neither way:
+#
+#   * IT COULD NOT FAIL ON THE CHANGE IT WAS BUILT FOR. The re-read collected
+#     EVERY `.Nf` in the anchored function and asked only whether 4 was among
+#     them -- and `format_belief_summary` renders three other RATES at `.4f`
+#     and the mean steps at `.2f`, so it already returned {2, 4} rather than a
+#     precision. Mutated live: move the BELIEF GAP's own render to `.6f`, the
+#     set becomes {2, 4, 6}, and the check still passes. A membership test over
+#     every number in a function is not a check on the one number the figure is.
+#   * IT WAS THE BELIEF READER'S PRECISION, DECLARED AS EVERY READER'S. The
+#     keyset was two hand-typed consumer sites, both BELIEF, while five
+#     dimensions are published. Read off the shipped renderers: `detection` and
+#     both belief figures 4dp -- and `ageing` **3dp** (`format_ageing_summary`
+#     renders `balanced_bucket_displacement`, which IS the gap, at `.3f`) and
+#     `detection_latency` **2dp** (`format_detection_latency_summary`:
+#     `f"{mean:.2f} days mean"`). One global constant, ten times too fine for
+#     one published figure and a HUNDRED times too fine for another.
+#
+# Not merely latent, either: `_own_floor_clause` publishes "at the 4dp every
+# consumer renders these gaps at" to the reader of both belief numbers, and
+# that sentence is false of two of the five figures this module publishes.
+#
+# So the precision is PER DIMENSION, the keyset is DERIVED from
+# `published_dimensions`, and each number is read off the format spec that
+# renders THAT DIMENSION'S GAP -- through the local alias where the renderer
+# uses one (`mean = c.get("mean_lag_days")`), and through the COMPONENT where
+# the gap reaches the reader as one, with that alias checked NUMERICALLY
+# against the gap rather than believed by name.
+#
+# WHAT IT DOES NOT CHANGE (R12). Measured at each dimension's OWN reader
+# precision, every declared band, edge and collapse run in
+# `DIMENSION_DRIFT_RESOLUTION` and `ORGAN_QUERY_GRID` still holds exactly --
+# under the terms knob and the recon knob, on the dense book-derived grids,
+# n=300, seeds 7/11/23. That answers Hour #15's lead 1: the bit-equality
+# divergence atom D33 owns is confined to the belief cells, and no published
+# number moves here.
+# ---------------------------------------------------------------------------
 
-_GAP_CONSUMER_SOURCES = (
-    ("background/gap_metric.py", "format_belief_summary"),
-    ("background/live_payment_triad.py", "belief_population_mix"),
-)
+# WHERE EACH PUBLISHED FIGURE MEETS ITS READER. `decimals` is the DECLARATION;
+# `measure_published_reading_precision` reads the real one out of the renderer's
+# own source and `check_published_reading_precision` fails on the difference --
+# a declared precision nobody re-reads is the claim this atom is about.
+#
+# `carrier` says HOW the gap reaches the render site, because it does not
+# always arrive as `.gap`:
+#   ("gap", None)          -- the render formats the `GapResult`'s own `.gap`
+#   ("component", "<key>") -- the render formats a COMPONENT that carries the
+#                             gap (the ageing headline is published as
+#                             `balanced_bucket_displacement`, the latency
+#                             headline as `mean_lag_days`). The claim that the
+#                             component IS the gap is checked numerically
+#                             against a real scoring, never taken on the name.
+PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
+    "belief": {
+        "module": "background/gap_metric.py",
+        "renderer": "format_belief_summary",
+        "carrier": ("gap", None),
+        "decimals": 4,
+    },
+    "belief_population_mix": {
+        # NOT a formatter of its own: the mix figure is rendered inline by the
+        # live writer, which is why the pre-Hour re-read had to match it by
+        # LINE rather than by function.
+        "module": "background/live_payment_triad.py",
+        "renderer": "measure_and_write",
+        "carrier": ("gap", None),
+        "decimals": 4,
+    },
+    "detection": {
+        "module": "background/gap_metric.py",
+        "renderer": "format_detection_summary",
+        "carrier": ("gap", None),
+        "decimals": 4,
+    },
+    "detection_latency": {
+        # A HUNDRED TIMES COARSER THAN THE GLOBAL CONSTANT CLAIMED. The reader
+        # of this figure is given two decimals of a number around 2.34 days.
+        "module": "tools/couple_w2_11_d5.py",
+        "renderer": "format_detection_latency_summary",
+        "carrier": ("component", "mean_lag_days"),
+        "decimals": 2,
+    },
+    "ageing": {
+        # TEN TIMES COARSER. `format_ageing_summary` never renders `.gap` at
+        # all -- the headline reaches the reader as the component.
+        "module": "background/gap_metric.py",
+        "renderer": "format_ageing_summary",
+        "carrier": ("component", "balanced_bucket_displacement"),
+        "decimals": 3,
+    },
+}
 
 
-def published_reading_epsilon(decimals: Optional[int] = None) -> float:
-    """HALF A STEP of the precision the reader is given (atom D33).
+def published_reading_decimals(dimension: str,
+                               register: Optional[Dict[str, Dict[str, object]]] = None) -> int:
+    """The decimal places THIS figure's own consumer renders it at (atom D34).
 
-    A difference smaller than this cannot appear in any published rendering of
-    these gaps, so counting it as one company being told apart from another is
+    A dimension nobody declared RAISES rather than falling back to a house
+    default: the fallback IS the defect this atom closes -- a global default is
+    exactly what put the belief reader's precision on the latency figure.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    entry = register.get(dimension)
+    if entry is None:
+        raise AssertionError(
+            f"`{dimension}` has no entry in PUBLISHED_GAP_CONSUMERS, so the "
+            "precision its reader is given is UNKNOWN -- and assuming the "
+            "house default is atom D34's defect (the belief reader's 4dp was "
+            "assumed for a figure published at 2dp). Declare its consumer."
+        )
+    return int(entry["decimals"])
+
+
+def published_reading_epsilon(dimension: Optional[str] = None,
+                              *,
+                              decimals: Optional[int] = None) -> float:
+    """HALF A STEP of the precision THIS figure's reader is given (atom D33,
+    made per-figure by atom D34).
+
+    A difference smaller than this cannot appear in that figure's published
+    rendering, so counting it as one company being told apart from another is
     the D28 fail-open in another costume: an instrument that has stopped
     reading, recorded as resolution.
+
+    A caller that names NEITHER a dimension nor an explicit precision gets an
+    explicit REFUSAL, on the `_own_floor_clause` precedent: the figures do not
+    share a precision (2dp to 4dp across the five), so a default would hand one
+    figure's reader-step to another -- which is how this atom was found.
     """
-    d = PUBLISHED_GAP_DECIMALS if decimals is None else int(decimals)
-    return 0.5 * (10.0 ** -d)
+    if decimals is None:
+        if dimension is None:
+            raise AssertionError(
+                "published_reading_epsilon() was called without naming a "
+                "figure. The five published dimensions do NOT share a reader "
+                "precision (detection/belief/belief_population_mix 4dp, ageing "
+                "3dp, detection_latency 2dp -- measured out of their own "
+                "renderers, atom D34), so there is no epsilon to return that "
+                "is not some other figure's."
+            )
+        decimals = published_reading_decimals(dimension)
+    return 0.5 * (10.0 ** -int(decimals))
 
 
-def _consumer_render_decimals(repo_root: Optional[Path] = None) -> Dict[str, Tuple[int, ...]]:
-    """The decimal places the BELIEF gaps are actually rendered at, read out of
-    the consumers' own source (atom D33).
+def _format_spec_decimals(node: object) -> Optional[int]:
+    """The N of a `.Nf` render, or None where the spec is not a fixed-point one.
 
-    Independence, not decoration: `PUBLISHED_GAP_DECIMALS` is a claim about
-    somebody else's format string, and a claim about another module's source
-    that nothing re-reads is exactly the sentence class this Hour is about.
+    A spec this cannot read is NOT a precision it may assume -- it returns None
+    and the caller raises, because an unreadable render is an unmeasured one.
     """
-    root = Path(__file__).resolve().parents[1] if repo_root is None else repo_root
-    out: Dict[str, Tuple[int, ...]] = {}
-    for rel, anchor in _GAP_CONSUMER_SOURCES:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        text = node.value
+    elif isinstance(node, ast.JoinedStr):
+        if any(not isinstance(p, ast.Constant) for p in node.values):
+            return None
+        text = "".join(str(p.value) for p in node.values)
+    else:
+        return None
+    m = re.fullmatch(r"[^.]*\.(\d+)f", text.strip())
+    return int(m.group(1)) if m else None
+
+
+def _is_gap_carrier(node: object, dimension: str) -> bool:
+    """Whether this expression IS the named dimension's gap.
+
+    `result.gap` inside that dimension's own renderer is it; `result[<dim>].gap`
+    is it only for THAT key, which is what lets one shared function (the live
+    writer's `measure_and_write`) render several figures without this control
+    picking up a sibling's precision -- the D32 wrong-subject rule applied to
+    the render site.
+    """
+    if not (isinstance(node, ast.Attribute) and node.attr == "gap"):
+        return False
+    base = node.value
+    if isinstance(base, ast.Subscript):
+        key = base.slice
+        if isinstance(key, ast.Index):        # pragma: no cover - py<3.9 shape
+            key = key.value                   # type: ignore[attr-defined]
+        return isinstance(key, ast.Constant) and key.value == dimension
+    return True
+
+
+def _is_component_carrier(node: object, component: str) -> bool:
+    """Whether this expression reads the named component -- `c.get("k")`,
+    `c["k"]`, or `result.components.get("k")`."""
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
+            and node.func.attr == "get" and node.args:
+        first = node.args[0]
+        return isinstance(first, ast.Constant) and first.value == component
+    if isinstance(node, ast.Subscript):
+        key = node.slice
+        if isinstance(key, ast.Index):        # pragma: no cover - py<3.9 shape
+            key = key.value                   # type: ignore[attr-defined]
+        return isinstance(key, ast.Constant) and key.value == component
+    return False
+
+
+def _find_renderer(tree: ast.AST, name: str) -> Optional[ast.AST]:
+    """The renderer by name ANYWHERE in the module -- the mix figure's is a
+    METHOD, which is why a top-level `def <name>` scan could not find it and the
+    pre-Hour control fell back to matching lines."""
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) \
+                and node.name == name:
+            return node
+    return None
+
+
+def measure_published_reading_precision(
+    *,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    repo_root: Optional[Path] = None,
+    result: Optional[Dict[str, object]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """READ EACH FIGURE'S REND PRECISION OFF ITS OWN CONSUMER'S SOURCE (D34).
+
+    Returns, per dimension: `decimals` (the render specs found for THIS gap),
+    `declared_decimals`, `epsilon`, and -- for a component carrier -- whether
+    that component really is the gap and by how much it differs.
+
+    Everything this cannot read RAISES rather than returning an empty row: an
+    absent consumer file, a renderer that is not there, or a gap with no
+    fixed-point render at all is an UNAVAILABLE check, which is a FAILED check
+    (R15). The pre-Hour version returned `()` for a missing file and its caller
+    read that as agreement.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    root = Path(__file__).resolve().parents[1] if repo_root is None else Path(repo_root)
+    out: Dict[str, Dict[str, object]] = {}
+    for dim in sorted(register):
+        entry = register[dim]
+        rel, fn_name = str(entry["module"]), str(entry["renderer"])
+        kind, component = tuple(entry["carrier"])          # type: ignore[misc]
         path = root / rel
         if not path.exists():
-            out[rel] = ()
-            continue
-        text = path.read_text()
-        # The renders that carry a BELIEF gap: a format spec on the same line
-        # as the anchor, or inside the anchored function's body.
-        window = text
-        if f"def {anchor}" in text:
-            start = text.index(f"def {anchor}")
-            nxt = text.find("\ndef ", start + 1)
-            window = text[start:nxt if nxt != -1 else len(text)]
-        else:
-            lines = [ln for ln in text.splitlines() if anchor in ln]
-            window = "\n".join(lines)
-        found = re.findall(r'"\.(\d)f"|:\.(\d)f', window)
-        out[rel] = tuple(sorted({int(a or b) for a, b in found}))
+            raise AssertionError(
+                f"`{dim}` declares its consumer at {rel} and that file is not "
+                "there -- an unreadable consumer is an UNMEASURED precision, "
+                "never an agreeing one (the pre-Hour re-read returned an empty "
+                "tuple here and passed)"
+            )
+        fn = _find_renderer(ast.parse(path.read_text()), fn_name)
+        if fn is None:
+            raise AssertionError(
+                f"`{dim}` declares its render in {rel}::{fn_name} and no such "
+                "function exists -- a renderer nobody can find cannot have "
+                "been read"
+            )
+        # ONE LEVEL OF LOCAL ALIAS. `format_detection_latency_summary` renders
+        # `mean`, assigned from the component two lines up; a walker that only
+        # matched the carrier expression itself would find no render at all and
+        # would have to guess.
+        aliases = set()
+        for node in ast.walk(fn):
+            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+                continue
+            target = node.targets[0]
+            if not isinstance(target, ast.Name):
+                continue
+            if kind == "gap" and _is_gap_carrier(node.value, dim):
+                aliases.add(target.id)
+            elif kind == "component" and _is_component_carrier(
+                    node.value, str(component)):
+                aliases.add(target.id)
+
+        def _is_carrier(node: object) -> bool:
+            if isinstance(node, ast.Name) and node.id in aliases:
+                return True
+            if kind == "gap":
+                return _is_gap_carrier(node, dim)
+            return _is_component_carrier(node, str(component))
+
+        found: Dict[int, List[str]] = {}
+        for node in ast.walk(fn):
+            # (a) f"{x:.Nf}"
+            if isinstance(node, ast.FormattedValue) and _is_carrier(node.value):
+                d = _format_spec_decimals(node.format_spec)
+                if d is not None:
+                    found.setdefault(d, []).append("f-string")
+            # (b) format(x, ".Nf")
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) \
+                    and node.func.id == "format" and len(node.args) == 2 \
+                    and _is_carrier(node.args[0]):
+                d = _format_spec_decimals(node.args[1])
+                if d is not None:
+                    found.setdefault(d, []).append("format()")
+            # (c) HELPER("<component>", ".Nf") -- the ageing headline reaches
+            #     its reader through `_num(key, fmt)`, so the carrier is a
+            #     CONSTANT argument rather than an expression.
+            elif isinstance(node, ast.Call) and kind == "component" \
+                    and len(node.args) >= 2 \
+                    and isinstance(node.args[0], ast.Constant) \
+                    and node.args[0].value == component:
+                for arg in node.args[1:]:
+                    d = _format_spec_decimals(arg)
+                    if d is not None:
+                        found.setdefault(d, []).append("helper")
+        if not found:
+            raise AssertionError(
+                f"`{dim}`: no fixed-point render of its gap found in "
+                f"{rel}::{fn_name} (carrier {kind}/{component!r}). A figure "
+                "whose render this cannot read has an UNMEASURED reader "
+                "precision, and every band certified against it would be "
+                "certified against a guess"
+            )
+        row: Dict[str, object] = {
+            "module": rel,
+            "renderer": fn_name,
+            "carrier": (kind, component),
+            "decimals": tuple(sorted(found)),
+            "sites": {d: tuple(v) for d, v in sorted(found.items())},
+            "declared_decimals": int(entry["decimals"]),
+            "epsilon": published_reading_epsilon(decimals=int(entry["decimals"])),
+            "carrier_is_the_gap": None,
+            "carrier_gap_delta": None,
+        }
+        # THE ALIAS, MEASURED. "`balanced_bucket_displacement` is the ageing
+        # gap" is a claim about arithmetic in another module; a component that
+        # has drifted from the gap would put this control's precision on a
+        # number the reader is not being given.
+        if kind == "component" and result is not None:
+            gap = result[dim].gap                          # type: ignore[index]
+            got = result[dim].components.get(str(component))   # type: ignore[index]
+            if gap is None or got is None:
+                row["carrier_is_the_gap"] = False
+                row["carrier_gap_delta"] = None
+            else:
+                delta = abs(float(got) - float(gap))
+                row["carrier_is_the_gap"] = delta <= published_reading_epsilon(
+                    decimals=int(entry["decimals"]))
+                row["carrier_gap_delta"] = delta
+        out[dim] = row
+    return out
+
+
+def check_published_reading_precision(
+    measured: Dict[str, Dict[str, object]],
+    published: Optional[Sequence[str]] = None,
+) -> List[str]:
+    """Put every declared reader precision on trial against the source (D34).
+
+    The keyset is DERIVED from `published_dimensions` when it is supplied, so
+    both ways a register stops describing the code RAISE: a figure published
+    with no consumer entry has an unknown reader precision (and would be handed
+    a default -- this atom's defect), and an entry for a figure nobody publishes
+    reads exactly like a live one.
+    """
+    if published is not None:
+        missing = sorted(set(published) - set(measured))
+        if missing:
+            raise AssertionError(
+                f"published {missing} with no PUBLISHED_GAP_CONSUMERS entry -- "
+                "the precision those readers are given is undeclared, and the "
+                "house default is what put a 4dp epsilon on a 2dp figure"
+            )
+        orphan = sorted(set(measured) - set(published))
+        if orphan:
+            raise AssertionError(
+                f"PUBLISHED_GAP_CONSUMERS declares {orphan}, which "
+                "`published_dimensions` does not publish -- an entry for a "
+                "figure nobody renders is the fail-silent shape this register "
+                "refuses"
+            )
+    out: List[str] = []
+    for dim in sorted(measured):
+        row = measured[dim]
+        decimals = tuple(row["decimals"])                  # type: ignore[arg-type]
+        declared = row["declared_decimals"]
+        if len(decimals) > 1:
+            out.append(
+                f"{dim}: its gap is rendered at {list(decimals)} decimals in "
+                f"{row['module']}::{row['renderer']} -- one figure with two "
+                "reader precisions has no epsilon, and picking either is the "
+                "guess this control exists to refuse"
+            )
+        elif decimals[0] != declared:
+            out.append(
+                f"{dim}: declares {declared}dp and "
+                f"{row['module']}::{row['renderer']} renders its gap at "
+                f"{decimals[0]}dp -- every band certified against the declared "
+                "epsilon was certified at "
+                f"{10.0 ** (decimals[0] - int(declared)):g}x the reader's step"
+            )
+        kind = tuple(row["carrier"])[0]                    # type: ignore[arg-type]
+        if kind == "component":
+            state = row["carrier_is_the_gap"]
+            if state is None:
+                out.append(
+                    f"{dim}: reaches its reader through the component "
+                    f"{tuple(row['carrier'])[1]!r} and NOTHING checked that "
+                    "component against the gap -- an unavailable check is a "
+                    "failed check (R15), because a component that has drifted "
+                    "puts this precision on a number nobody is shown"
+                )
+            elif state is not True:
+                out.append(
+                    f"{dim}: publishes {tuple(row['carrier'])[1]!r} as its "
+                    "headline and that component differs from the gap by "
+                    f"{row['carrier_gap_delta']!r} -- more than the reader's "
+                    "own step, so it is not the figure this precision is about"
+                )
     return out
 
 
@@ -5974,7 +6329,14 @@ def measure_published_resolution_floor(
     `book_bound_days` -- the number the caveat used to publish as the figure's
     own.
     """
-    eps = published_reading_epsilon() if epsilon is None else float(epsilon)
+    # PER FIGURE, NOT PER MODULE (atom D34). The epsilon was one global
+    # constant read out of the two BELIEF consumers; both belief figures are
+    # rendered at 4dp so nothing here moves, but the same call on `ageing` or
+    # `detection_latency` would have measured their floors at 10x and 100x the
+    # step their own readers are given.
+    def _eps_for(dim: str) -> float:
+        return (published_reading_epsilon(dim) if epsilon is None
+                else float(epsilon))
 
     if runner is None:
         def runner(knob_name: str, seed: int, k: int) -> tuple:
@@ -6011,6 +6373,7 @@ def measure_published_resolution_floor(
 
     out: Dict[str, Dict[str, object]] = {}
     for dim in dimensions:
+        eps = _eps_for(dim)
         base_gap = {s: base[s][1][dim].gap for s in seeds}
 
         def _readable(s: int, k: int, tol: float) -> Optional[bool]:
@@ -6213,8 +6576,10 @@ def _own_floor_clause(dimension: Optional[str]) -> str:
         f"AND WHAT THIS FIGURE ITSELF RESOLVES (atom D33): `{dimension}` "
         f"publishes no readable difference for any memory error smaller than "
         f"{own}d of forgetting, measured through its own shipped scorer on the "
-        f"offline scenario (n=300, seeds {seeds}, at the {PUBLISHED_GAP_DECIMALS}"
-        f"dp every consumer renders these gaps at) -- against {other}, so the "
+        f"offline scenario (n=300, seeds {seeds}, at the "
+        f"{published_reading_decimals(dimension)}dp THIS figure's own consumer "
+        f"renders IT at -- atom D34; the five published figures do not share "
+        f"one) -- against {other}, so the "
         "belief figures do NOT share a resolution and the number below is a "
         "bound on the book, not this figure's sensitivity. On a live "
         "population no sweep has visited, only that bound is measured here. "

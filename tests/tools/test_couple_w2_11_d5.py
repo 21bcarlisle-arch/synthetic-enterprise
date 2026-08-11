@@ -5495,18 +5495,60 @@ def test_each_belief_figure_publishes_its_own_floor_and_the_sentence_says_it():
 
 
 def test_the_epsilon_is_the_readers_own_precision_not_a_tolerance():
-    """INDEPENDENCE. `PUBLISHED_GAP_DECIMALS` is a claim about somebody else's
-    format string, so it is read back out of the consumers' source: a consumer
-    that starts publishing 6dp fails here instead of leaving the epsilon
-    stale."""
-    assert pair.published_reading_epsilon() == 5e-05
-    decimals = pair._consumer_render_decimals()
-    assert decimals, decimals
-    for rel, found in decimals.items():
-        assert pair.PUBLISHED_GAP_DECIMALS in found, (rel, found)
+    """INDEPENDENCE, and PER FIGURE (atom D34). The precision is a claim about
+    somebody else's format string, so it is read back off the spec that renders
+    THAT DIMENSION'S GAP -- and the five published figures do not share one."""
+    measured = pair.measure_published_reading_precision(
+        result=_precision_scoring())
+    assert pair.check_published_reading_precision(
+        measured, published=pair.published_dimensions(_precision_scoring())) == []
+    # THE NUMBERS, MEASURED OFF THE SHIPPED RENDERERS. A global constant was
+    # 10x too fine for the ageing figure and 100x too fine for the latency one.
+    assert {d: row["decimals"] for d, row in measured.items()} == {
+        "belief": (4,),
+        "belief_population_mix": (4,),
+        "detection": (4,),
+        "ageing": (3,),
+        "detection_latency": (2,),
+    }
+    assert pair.published_reading_epsilon("belief") == 5e-05
+    assert pair.published_reading_epsilon("ageing") == 5e-04
+    assert pair.published_reading_epsilon("detection_latency") == 5e-03
     # And it is HALF a step of that precision -- a difference of one full step
     # is readable, half of one is the boundary.
-    assert pair.published_reading_epsilon(2) == 0.005
+    assert pair.published_reading_epsilon(decimals=2) == 0.005
+
+
+def test_a_caller_that_will_not_name_a_figure_is_refused_an_epsilon():
+    """THE `_own_floor_clause` PRECEDENT (atom D34). A default epsilon is how
+    the belief reader's 4dp came to certify a figure published at 2dp, so an
+    unnamed caller gets a refusal rather than a house number."""
+    with pytest.raises(AssertionError, match="without naming a figure"):
+        pair.published_reading_epsilon()
+    with pytest.raises(AssertionError, match="no entry in PUBLISHED_GAP_CONSUMERS"):
+        pair.published_reading_decimals("no_such_dimension")
+
+
+def test_the_gap_reaches_two_readers_through_a_component_not_a_gap_attribute():
+    """WHY THE CARRIER IS DECLARED AND THEN MEASURED. Neither the ageing nor the
+    latency renderer formats `.gap` at all -- both publish a COMPONENT -- so a
+    walker looking only for `.gap` would find no render for two of the five
+    figures and have to fall back on a default. That the component IS the gap is
+    checked against a real scoring, never taken on the name."""
+    measured = pair.measure_published_reading_precision(
+        result=_precision_scoring())
+    assert measured["ageing"]["carrier"] == (
+        "component", "balanced_bucket_displacement")
+    assert measured["detection_latency"]["carrier"] == (
+        "component", "mean_lag_days")
+    for dim in ("ageing", "detection_latency"):
+        assert measured[dim]["carrier_is_the_gap"] is True
+        assert measured[dim]["carrier_gap_delta"] < pair.published_reading_epsilon(dim)
+    # The latency figure arrives at its render through a LOCAL ALIAS
+    # (`mean = c.get("mean_lag_days")`), which is the second way a render site
+    # hides from a walker that only matches the carrier expression itself.
+    assert measured["detection_latency"]["sites"] == {2: ("f-string",)}
+    assert measured["ageing"]["sites"] == {3: ("helper",)}
 
 
 def test_bit_equality_counts_a_difference_no_consumer_can_render(
@@ -5530,7 +5572,8 @@ def test_bit_equality_counts_a_difference_no_consumer_can_render(
     drifted = pair.score_triad(drifted_records, drifted_consumer,
                               drifted_as_of)["belief_population_mix"].gap
     assert drifted != base
-    assert abs(drifted - base) < pair.published_reading_epsilon()
+    assert abs(drifted - base) < pair.published_reading_epsilon(
+        "belief_population_mix")
     # ...and the register says so, with the owning atom, on the dimension where
     # the two predicates disagree and NOT on the one where they agree.
     assert pair.DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
@@ -5579,7 +5622,166 @@ def test_the_floor_register_is_measured_not_asserted(resolution_floors):
         assert row["grid"][0] == -(min(row["book_bound_days"].values()) - 1)
         assert row["readable_at_every_drift_beyond_floor"] is True
         assert row["undefined_readings"] == ()
-        assert row["epsilon"] == pair.published_reading_epsilon()
+        # PER FIGURE (atom D34): both belief figures are rendered at 4dp, so
+        # this is the same number it always was -- read off each figure's own
+        # consumer rather than off a constant that spoke for all five.
+        assert row["epsilon"] == pair.published_reading_epsilon(dim)
+
+
+# --- R15: the reader-precision control fires on each defect it names --------
+
+_PRECISION_CONSUMER_FILES = (
+    "background/gap_metric.py",
+    "background/live_payment_triad.py",
+    "tools/couple_w2_11_d5.py",
+)
+
+
+def _precision_scoring():
+    """One real scoring, cached for the module: the component carriers are
+    checked against the GAP numerically, which needs a scored population and not
+    a fixture of hand-typed numbers (D11/D16 -- a hand-typed witness is a claim
+    about a run that has already ended)."""
+    if not hasattr(_precision_scoring, "_cached"):
+        records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=7)
+        _precision_scoring._cached = pair.score_triad(records, consumer, as_of)
+    return _precision_scoring._cached
+
+
+def _consumer_tree(tmp_path, edits=()):
+    """A repo root holding ONLY the three consumer modules, so a mutation can be
+    made to a renderer's source without touching the tree the suite runs in."""
+    root = Path(__file__).resolve().parents[2]
+    for rel in _PRECISION_CONSUMER_FILES:
+        dest = tmp_path / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text((root / rel).read_text())
+    for rel, old, new in edits:
+        path = tmp_path / rel
+        text = path.read_text()
+        assert old in text, (rel, old[:60])
+        path.write_text(text.replace(old, new, 1))
+    return tmp_path
+
+
+def _precision_violations(tmp_path, edits=(), **kwargs):
+    measured = pair.measure_published_reading_precision(
+        repo_root=_consumer_tree(tmp_path, edits),
+        result=kwargs.pop("result", _precision_scoring()), **kwargs)
+    return pair.check_published_reading_precision(measured)
+
+
+_BELIEF_GAP_RENDER = 'else format(result.gap, ".4f"))'
+_AGEING_GAP_RENDER = '_num("balanced_bucket_displacement", ".3f")'
+_LATENCY_GAP_RENDER = 'f"detection latency {mean:.2f} days mean "'
+
+
+def test_a_gap_render_moving_off_its_declared_precision_fires(tmp_path):
+    """THE MUTATION THE PRE-HOUR CONTROL COULD NOT FAIL ON (atom D34). Hour #15
+    installed the re-read so that "a consumer that starts publishing 6dp fails
+    the control"; it collected every `.Nf` in the function and asked only
+    whether 4 was among them, and `format_belief_summary` renders three other
+    rates at `.4f`. Moving the GAP's own render to 6dp left the set {2, 4, 6},
+    which still contained 4."""
+    got = _precision_violations(tmp_path, [(
+        "background/gap_metric.py", _BELIEF_GAP_RENDER,
+        'else format(result.gap, ".6f"))')])
+    assert any("belief: declares 4dp" in v and "renders its gap at 6dp" in v
+               for v in got), got
+    # And on BOTH figures the global constant was wrong about, by name.
+    assert any("ageing: declares 3dp" in v for v in _precision_violations(
+        tmp_path, [("background/gap_metric.py", _AGEING_GAP_RENDER,
+                    '_num("balanced_bucket_displacement", ".4f")')]))
+    assert any("detection_latency: declares 2dp" in v
+               for v in _precision_violations(tmp_path, [(
+                   "tools/couple_w2_11_d5.py", _LATENCY_GAP_RENDER,
+                   'f"detection latency {mean:.4f} days mean "')]))
+
+
+def test_one_figure_rendered_at_two_precisions_has_no_epsilon(tmp_path):
+    """A figure its own consumer publishes twice, at two precisions, has no
+    reader step -- and picking either is the guess this control refuses (the
+    'one name, two numbers' shape)."""
+    got = _precision_violations(tmp_path, [(
+        "background/gap_metric.py",
+        '+ "; per-case disagreement " + _num("per_case_disagreement_rate", ".4f")',
+        '+ "; again " + format(result.gap, ".2f")\n'
+        '        + "; per-case disagreement " + _num("per_case_disagreement_rate", ".4f")')])
+    assert any("rendered at [2, 4] decimals" in v for v in got), got
+
+
+def test_an_unreadable_consumer_is_a_failed_check_not_an_agreeing_one(tmp_path):
+    """FAIL-SILENT, the third R15 killer. The pre-Hour re-read returned an empty
+    tuple for a missing consumer file and its caller read that as agreement."""
+    tree = _consumer_tree(tmp_path)
+    (tree / "background/gap_metric.py").unlink()
+    with pytest.raises(AssertionError, match="that file is not there"):
+        pair.measure_published_reading_precision(
+            repo_root=tree, result=_precision_scoring())
+
+
+def test_a_renderer_that_is_not_there_raises(tmp_path):
+    with pytest.raises(AssertionError, match="no such function exists"):
+        _precision_violations(tmp_path, [(
+            "background/gap_metric.py",
+            "def format_ageing_summary(result: GapResult) -> str:",
+            "def format_ageing_summary_RENAMED(result: GapResult) -> str:")])
+
+
+def test_a_gap_with_no_fixed_point_render_raises(tmp_path):
+    """An UNMEASURED precision reads exactly like a measured one -- the fail-open
+    this instrument has now produced in seven registers."""
+    with pytest.raises(AssertionError, match="no fixed-point render of its gap"):
+        _precision_violations(tmp_path, [(
+            "background/gap_metric.py", _AGEING_GAP_RENDER,
+            'str(c.get("balanced_bucket_displacement"))')])
+
+
+def test_the_keyset_is_derived_from_what_is_published_both_ways(tmp_path):
+    """DERIVED, so both ways the register stops describing the code RAISE: a
+    published figure with no entry would be handed the house default (this
+    atom's defect), and an entry for a figure nobody publishes reads exactly
+    like a live one."""
+    published = pair.published_dimensions(_precision_scoring())
+    tree = _consumer_tree(tmp_path)
+    short = {k: v for k, v in pair.PUBLISHED_GAP_CONSUMERS.items() if k != "ageing"}
+    with pytest.raises(AssertionError, match=r"published \['ageing'\]"):
+        pair.check_published_reading_precision(
+            pair.measure_published_reading_precision(
+                repo_root=tree, register=short, result=_precision_scoring()),
+            published=published)
+    ghost = dict(pair.PUBLISHED_GAP_CONSUMERS)
+    ghost["ghost"] = dict(pair.PUBLISHED_GAP_CONSUMERS["belief"])
+    with pytest.raises(AssertionError, match=r"declares \['ghost'\]"):
+        pair.check_published_reading_precision(
+            pair.measure_published_reading_precision(
+                repo_root=tree, register=ghost, result=_precision_scoring()),
+            published=published)
+
+
+def test_a_component_carrier_is_checked_against_the_gap_both_ways(tmp_path):
+    """"`balanced_bucket_displacement` IS the ageing gap" is a claim about
+    arithmetic in another module. A component that is NOT the gap puts this
+    precision on a number nobody is shown -- and nothing checking it at all is
+    an unavailable check, which is a failed one."""
+    wrong = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    wrong["ageing"]["carrier"] = ("component", "mean_bucket_displacement")
+    got = _precision_violations(tmp_path, register=wrong)
+    assert any("differs from the gap by" in v for v in got), got
+    unchecked = _precision_violations(tmp_path, result=None)
+    assert any("NOTHING checked that component against the gap" in v
+               for v in unchecked), unchecked
+
+
+def test_the_declared_precisions_are_not_a_blanket_claim(tmp_path):
+    """VACUITY. A register that gave every figure the same number would be the
+    pre-Hour constant wearing a dict, and could not fail on the finding that
+    produced it -- so the spread itself is pinned."""
+    declared = {d: pair.published_reading_decimals(d)
+                for d in pair.PUBLISHED_GAP_CONSUMERS}
+    assert len(set(declared.values())) >= 3, declared
+    assert min(declared.values()) == 2 and max(declared.values()) == 4
+    assert _precision_violations(tmp_path) == []
 
 
 # --- R15: the control fires on each defect it names -------------------------
