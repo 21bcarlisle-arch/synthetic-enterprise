@@ -16,6 +16,7 @@ import inspect
 import copy
 import dataclasses
 import json
+import textwrap
 from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -3797,6 +3798,227 @@ def test_the_terms_drift_reaches_the_company_and_not_the_world():
         pair.score_triad).parameters
 
 
+# ---------------------------------------------------------------------------
+# THE GRID THE REGISTER DID NOT CHOOSE
+# (atom D28_the_detection_gap_is_quantised_by_this_books_placement,
+#  H27 Expert Hour #10)
+# ---------------------------------------------------------------------------
+# The register above DERIVES ITS KEYSET from what `score_triad` publishes and
+# built its GRID from its own declarations, so the exactness rule was applied
+# exactly where the band had already answered. On a grid derived from the BOOK
+# the detection dimension turns out to saturate in BOTH tails.
+# ---------------------------------------------------------------------------
+
+
+def test_the_resolution_grid_is_derived_from_the_book_not_the_register():
+    """THE ATOM D28 FIX, at its source. `dense_drift_grid` must be computable
+    from the scenario calendar alone -- if its code can reach
+    `DIMENSION_DRIFT_RESOLUTION` then the register is again choosing where it
+    gets asked, which is the defect and not a style point.
+
+    The declared drifts stay UNIONED into the swept set (a declaration outside
+    the grid must still be scored, never skipped into a free pass) -- so the
+    test is about what the grid is DERIVED from, not about what is swept."""
+    src = inspect.getsource(pair.dense_drift_grid)
+    tree = ast.parse(textwrap.dedent(src))
+    ast.get_docstring(tree.body[0]) and tree.body[0].body.pop(0)
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)} | {
+        n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)}
+    assert "DIMENSION_DRIFT_RESOLUTION" not in names, (
+        "a grid derived from the register can only ask it what it already "
+        "answered")
+    assert pair.DRIFT_GRID_SPAN_DAYS == pair.PERIOD_SPACING_DAYS
+    grid = pair.dense_drift_grid()
+    assert grid == tuple(range(-21, 22)) and len(grid) == 43
+
+
+def test_the_detection_gap_saturates_in_both_tails(drift_resolution):
+    """THE ATOM D28 FINDING, measured. Seven groups of counterfactual suppliers
+    publish one bit-identical figure each, and both tails are saturated: below
+    -6d every invoice in the book is already past the company's grace line
+    however much shorter its terms get, above +17d none of them is.
+
+    The witness that this was UNREACHABLE before: -8d -- which the old
+    register-derived grid swept (it was in the *ageing* band) and read as
+    MOVED, i.e. as evidence of resolution -- sits inside the saturated tail,
+    publishing the same figure as -21d."""
+    row = drift_resolution["detection"]
+    assert row["saturates_below"] == -6 and row["saturates_above"] == 17
+    tail = next(r for r in row["collapsed_runs"] if -21 in r)
+    assert tail == tuple(range(-21, -5)) and len(tail) == 16
+    assert -8 in tail and -8 in row["moved"], (
+        "the old grid scored -8 as movement; it is indistinguishable from -21")
+    for seed in row["seeds"]:
+        by = row["by_seed"][seed]["by_drift"]
+        assert len({by[k] for k in tail}) == 1
+    assert len(row["collapsed_runs"]) == 7
+    # THE DIFFERENTIAL, and it is what makes the above a property of this
+    # dimension rather than of the grid: on the same 43 companies the ageing
+    # headline publishes 43 distinct readings and collapses nowhere.
+    age = drift_resolution["ageing"]
+    assert age["collapsed_runs"] == ()
+    assert age["saturates_below"] is None and age["saturates_above"] is None
+
+
+def test_the_saturation_rule_is_not_keyed_to_a_register_state():
+    """THE CLASS FIX (R10). D27 built the saturation rule inside
+    `_check_own_band`, reachable only for entries declaring an `own_drift` --
+    the OFF-path ones -- so the register refused an unbounded-blind band off
+    the causal path and accepted one ON it. There is now ONE function and both
+    checkers call it; a rule that exists only once cannot exist on one side of
+    `in_causal_path` and not the other."""
+    for fn in (pair._check_on_path_entry, pair._check_own_band):
+        assert "_check_saturation_and_collapse(" in inspect.getsource(fn), (
+            f"{fn.__name__} no longer goes through the shared rule -- this is "
+            "the keying that has now escaped six times")
+    # And it really runs on the off-path side: the shared rule re-derives
+    # D27's saturation edge from the readings alone, knowing nothing about
+    # failure events, windows or `measure_belief_window_resolution`.
+    for dim in ("belief", "belief_population_mix"):
+        e = pair.DIMENSION_DRIFT_RESOLUTION[dim]
+        assert e["own_saturates_above"] == -308
+        assert e["own_saturation_atom"] == e["own_debt_atom"]
+
+
+@pytest.mark.parametrize("mutate,expected", (
+    # An undeclared collapse -- the defect itself, and what the register looked
+    # like before this atom.
+    (lambda r: r["detection"].__setitem__(
+        "collapsed_runs", tuple(x for x in r["detection"]["collapsed_runs"]
+                                if -21 not in x)),
+     "publish ONE bit-identical reading"),
+    # A declared collapse the sweep reads apart: a debt entry outliving its
+    # debt, which is how a register decays after the reshape lands.
+    (lambda r: r["detection"].__setitem__(
+        "collapsed_runs", r["detection"]["collapsed_runs"] + ((2, 3),)),
+     "the sweep reads them apart"),
+    # An UNDERSTATED saturation edge -- the caveat interpolates it, so this is
+    # the shape that publishes a narrower blind spot than the instrument has.
+    (lambda r: r["detection"].__setitem__("saturates_below", -12),
+     "measured saturates_below=-6"),
+    (lambda r: r["detection"].__setitem__("saturates_above", None),
+     "measured saturates_above=17"),
+    (lambda r: r["detection"].__setitem__("saturation_atom", None),
+     "names no `saturation_atom`"),
+    # THE DIFFERENTIAL. A register in which every on-path dimension saturates
+    # somewhere is an "everything is quantised" claim that would pass whatever
+    # the instrument did.
+    (lambda r: (r["ageing"].__setitem__("collapsed_runs", ((1, 2),)),
+                r["ageing"].__setitem__("saturation_atom", "D28_x")),
+     "every on-path dimension collapses somewhere"),
+))
+def test_a_lying_saturation_declaration_fires_by_name(drift_resolution, mutate,
+                                                      expected):
+    """R15 on the new register fields, both ways: an undeclared collapse, a
+    collapse that is not there, an understated edge in each direction, an
+    unowned hole, and an all-collapsed register."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    mutate(register)
+    violations = pair.check_dimension_drift_resolution(
+        drift_resolution, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_the_off_path_saturation_declaration_is_tried_too(own_drift_resolution):
+    """The same mutations on the OTHER side of `in_causal_path`, through the
+    same shared function -- the point of the class fix is that this test and
+    the one above are testing one rule."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    register["belief"]["own_collapsed_runs"] = ()
+    register["belief"]["own_saturates_above"] = None
+    violations = pair.check_own_drift_resolution(
+        own_drift_resolution, register=register)
+    assert any("publish ONE bit-identical reading" in v for v in violations)
+    assert any("measured saturates_above=-308" in v for v in violations)
+
+
+def test_the_registers_own_grid_cannot_see_six_of_the_seven_collapses(
+        monkeypatch):
+    """THE SOURCE MUTATION (R15 the other way): put the grid back the way it
+    was -- derived from the register's own declarations -- and the finding
+    disappears. Six of `detection`'s seven collapsed runs become unreachable,
+    including the sixteen-company saturated tail, and they surface only as
+    declarations the sweep can no longer confirm.
+
+    This is the whole of atom D28 in one assertion: the register was being
+    asked exactly where it had already answered."""
+    monkeypatch.setattr(pair, "dense_drift_grid", lambda *a, **k: (0,))
+    sparse = pair.measure_dimension_drift_resolution(
+        n_customers=_RES_N, seeds=(7,))
+    assert sorted(sparse["detection"]["drifts"]) == [-8, -1, 0, 1, 12], (
+        "this is the grid the register chose for itself")
+    assert sparse["detection"]["collapsed_runs"] == ((0, 1),)
+    assert sparse["detection"]["saturates_below"] is None
+    violations = pair.check_dimension_drift_resolution(sparse)
+    unreachable = [v for v in violations if "reads them apart" in v]
+    mine = [v for v in unreachable if v.startswith("detection:")]
+    assert len(mine) == 6 and any("-21" in v for v in mine), (
+        "on its own grid the register can confirm exactly one of detection's "
+        "seven collapses -- the (0,+1) pair, because +1 is the one drift it "
+        "already declared")
+    # The sighted witness's own tail was equally unreachable there.
+    assert any(v.startswith("detection_latency:") for v in unreachable)
+
+
+def test_an_absent_reading_is_not_counted_as_resolution():
+    """THE FAIL-OPEN this measurement would otherwise have. A dimension whose
+    population empties under a drift publishes `None`, and `None != baseline`
+    reads as MOVEMENT -- an instrument that has stopped reading at all, scored
+    as though it had resolved the company. It is reachable: at large positive
+    terms drifts `detection_latency` dates nothing and its gap goes None."""
+    class _Blank:
+        gap = None
+        components: dict = {}
+        note = ""
+
+    real = pair.measure_dimension_drift_resolution(
+        n_customers=120, seeds=(7,))
+    assert not any(row["undefined_readings"] for row in real.values())
+
+    def runner(seed, k):
+        scored = dict(pair.measure(n_customers=120, seed=seed))
+        if k == 12:
+            scored["detection_latency"] = _Blank()
+        return scored
+
+    holed = pair.measure_dimension_drift_resolution(
+        n_customers=120, seeds=(7,), runner=runner)
+    assert holed["detection_latency"]["undefined_readings"] == (12,)
+    assert 12 in holed["detection_latency"]["moved"], (
+        "this is the fail-open: an absent reading compares unequal and is "
+        "counted as movement by every band")
+    violations = pair.check_dimension_drift_resolution(holed)
+    assert any("published NO reading at drifts" in v for v in violations)
+
+
+def test_the_saturation_caveat_travels_with_the_detection_number():
+    """A control the reader about to quote the detection gap never meets is one
+    that protects the test suite rather than the figure (the D25 rule). The
+    caveat is stamped on `components` as well as the prose -- the ledger
+    writer, live wiring and dashboard read components and never the note (D22)
+    -- and is INTERPOLATED from the register on every call, so a register that
+    flips flips the published claim with it."""
+    result = pair.measure(n_customers=120, seed=7)
+    caveat = result["detection"].components["drift_resolution_caveat"]
+    assert "atom D28" in caveat and caveat in result["detection"].note
+    assert "SATURATES below -6d and above +17d" in caveat
+    assert "D28_the_detection_gap_is_quantised_by_this_books_placement" in caveat
+
+    # INTERPOLATED, NEVER RETYPED: move the register and the sentence moves.
+    entry = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    saved = dict(entry)
+    try:
+        entry["saturates_below"], entry["saturates_above"] = -3, 9
+        assert "SATURATES below -3d and above +9d" in (
+            pair.detection_resolution_caveat())
+        entry["collapsed_runs"] = ()
+        entry["saturates_below"] = entry["saturates_above"] = None
+        assert "publishes a distinct figure" in pair.detection_resolution_caveat()
+    finally:
+        entry.clear()
+        entry.update(saved)
+
+
 def test_the_resolution_caveat_travels_with_the_ageing_number():
     """The limit is published WITH the figure -- in `components` as well as the
     prose, because the ledger writer and the live wiring never read `note` --
@@ -3986,3 +4208,253 @@ def test_as_of_clears_the_buffer_for_every_account_not_just_the_average():
     assert small == large, (
         "`as_of` moved with the sample size -- the ageing reading would then "
         "depend on how many customers were drawn, not on the company")
+
+
+# ---------------------------------------------------------------------------
+# THE OFF-PATH ENTRIES' OWN GRADED KNOB
+# (atom D27_belief_window_saturates_on_this_book, H27 Expert Hour #9)
+#
+# D25's register asks what the smallest company error each published dimension
+# can see. It answered that for the three dimensions its single drift reaches;
+# the other STATE -- off-path -- discharged itself with `exercised_by`, a
+# binary reading against an indiscriminate degenerate. A degenerate is the
+# LARGEST error there is: it establishes that a dimension is not inert and
+# measures no resolution whatever. Both belief dimensions sat there, so two of
+# five published dimensions had no measured resolution -- the hole in the shape
+# the register was built to close.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def own_drift_resolution():
+    """Measured ONCE for the module. Unlike the terms sweep this one BUILDS a
+    company per drift (the lookback window is a constructor argument), so the
+    world it is built over is compared record by record inside the measurement
+    itself."""
+    return pair.measure_own_drift_resolution(n_customers=_RES_N)
+
+
+def test_every_off_path_entry_now_owes_a_graded_band(own_drift_resolution):
+    """THE CLASS FIX. Off-path is no longer a state that escapes resolution
+    measurement: every entry declaring it must name a knob on its OWN organ's
+    path and have the band measured. Green means the declared memory blindness
+    is the blindness the code has -- not that there is none."""
+    assert pair.check_own_drift_resolution(own_drift_resolution) == []
+    off_path = {d for d, e in pair.DIMENSION_DRIFT_RESOLUTION.items()
+                if not e["in_causal_path"]}
+    assert off_path, "the register has no off-path entry left to protect"
+    assert off_path <= set(own_drift_resolution), (
+        f"off-path dimensions with no measured graded band: "
+        f"{sorted(off_path - set(own_drift_resolution))} -- an indiscriminate "
+        "degenerate is not a resolution measurement")
+
+
+def test_the_belief_memory_band_is_unbounded_above(own_drift_resolution):
+    """THE FINDING, kept as a live measurement rather than a note. Both belief
+    dimensions read exactly one company parameter -- how far back
+    `_arrears_risk_belief` still counts an observed failure -- and this book's
+    oldest failure event is ~91d old against a 400d memory. So no event can
+    fall out: every window from the book's span to INFINITY publishes a
+    bit-identical figure, and the dimension cannot distinguish this company
+    from one that never forgets a failure (the direction that keeps a recovered
+    customer in collections).
+
+    The drifts stay declared rather than dropped when D27's reshape lands, so a
+    book that goes back to fitting inside the company's memory fails HERE, by
+    name, instead of quietly re-widening the caveat."""
+    for dim in ("belief", "belief_population_mix"):
+        row = own_drift_resolution[dim]
+        entry = pair.DIMENSION_DRIFT_RESOLUTION[dim]
+        assert row["book"]["saturated"] is True
+        assert row["book"]["headroom_days"] > 300, row["book"]
+        # LENGTHENING the memory is invisible at every magnitude swept --
+        # including +500d, a company that has more than doubled how long it
+        # holds a failure against a customer.
+        assert [k for k in row["unmoved"] if k > 0] == \
+            sorted(k for k in entry["own_invisible_drifts"] if k > 0)
+        assert 500 in row["unmoved"] and 1 in row["unmoved"]
+        assert not [k for k in row["moved"] if k > 0], (
+            f"{dim}: a LONGER memory moved the reading -- the saturation claim "
+            "in this band and in the published caveat is wrong")
+
+
+def test_the_shipped_company_sits_inside_its_own_blind_band(own_drift_resolution):
+    """And it is not a near miss. The harness builds the company with
+    `DD_FAILURE_WINDOW_DAYS`, 4.4x the organ's OWN shipped default, which puts
+    the scored company ~300d deep inside the band this dimension cannot see --
+    while the organ's default sits just BELOW the edge, publishing a different
+    number. The 400 was deliberate (the constant's comment gives the reason);
+    what was never measured is what it costs the dimension's resolution."""
+    import inspect as _inspect
+    default = _inspect.signature(
+        pair.PaymentObservationConsumer.__init__
+    ).parameters["dd_failure_window_days"].default
+    assert pair.DD_FAILURE_WINDOW_DAYS > default, (
+        "the harness no longer widens the window past the organ's default -- "
+        "re-derive D27's band, this test and the caveat")
+    book = own_drift_resolution["belief"]["book"]
+    assert book["window_days"] - book["oldest_event_age_days"] > 250, book
+    # The organ's own default is NOT in the blind band: the difference between
+    # the shipped harness company and the shipped organ is a real published
+    # difference this dimension can see, which is why 400 is a CHOICE.
+    at_default = pair.build_scenario(
+        _RES_N, seed=7,
+        organ_failure_window_drift_days=default - pair.DD_FAILURE_WINDOW_DAYS)
+    shipped = pair.build_scenario(_RES_N, seed=7)
+    assert pair.score_triad(at_default[0], at_default[1], at_default[3])[
+        "belief"].gap != pair.score_triad(
+            shipped[0], shipped[1], shipped[3])["belief"].gap
+
+
+def test_the_book_predicts_the_band_the_sweep_measured(own_drift_resolution):
+    """INDEPENDENCE, and this is the evidence the control is not re-deriving
+    the organ. `measure_belief_window_resolution` predicts the smallest visible
+    memory error from the WORLD's event dates and the harness's declared window
+    alone -- it never touches `_arrears_risk_belief`'s severity thresholds,
+    whose hand-copy was the D20 defect. The drift sweep re-scores through the
+    dimension's own shipped scorer. They agree on the number."""
+    row = own_drift_resolution["belief"]
+    predicted = row["book"]["smallest_visible_shortening_days"]
+    measured = min(-k for k in row["moved"]) if row["moved"] else None
+    assert measured == predicted, (predicted, measured, row["book"])
+    # THE CODE, not the prose: the docstring names the organ on purpose (it is
+    # explaining what the predictor deliberately does NOT read), so a bare
+    # substring ban over the whole source would refuse the honest sentence that
+    # states the property -- the AO2 "none" shape.
+    fn = ast.parse(textwrap.dedent(
+        inspect.getsource(pair.measure_belief_window_resolution))).body[0]
+    code = "\n".join(
+        ast.unparse(node) for node in fn.body
+        if not (isinstance(node, ast.Expr)
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)))
+    assert "arrears_risk" not in code and "severity" not in code, (
+        "the population-side predictor has started reading the organ it "
+        "grades -- that is the D20/D21 tautology, in the direction nobody "
+        "checks")
+
+
+def test_the_memory_knob_reaches_this_organ_and_no_other(own_drift_resolution):
+    """THE DIFFERENTIAL, which is what makes the knob evidence about one organ
+    rather than a second global perturbation -- and the R13 witness: a
+    counterfactual COMPANY, never a counterfactual world."""
+    for dim, row in own_drift_resolution.items():
+        assert row["off_target"] == {}, (dim, row["off_target"])
+        assert row["world_identical"] is True
+        assert row["probe_bit"] is True
+
+
+def test_the_memory_resolution_caveat_travels_with_both_numbers():
+    """Stamped AT SOURCE on both belief dimensions, in the prose AND as
+    components -- the ledger writer, the live wiring and the dashboard take
+    `components` and never read `note` (the D22 stamping lesson). And it is
+    re-derived from the book each call, so a LIVE population no sweep has
+    visited carries its own resolution rather than the offline scenario's."""
+    records, consumer, _l, as_of = pair.build_scenario(_RES_N, seed=7)
+    result = pair.score_triad(records, consumer, as_of)
+    for dim in ("belief", "belief_population_mix"):
+        c = result[dim].components
+        assert c["belief_window_resolution"]["saturated"] is True
+        assert c["memory_blind_band_days"]
+        for text in (c["belief_resolution_caveat"], result[dim].note):
+            assert "SATURATED" in text
+            assert "NEVER forgets" in text
+            assert str(c["belief_window_resolution"]["window_days"]) in text
+    # A DIFFERENT BOOK, a different caveat -- the number that travels is the
+    # one this population earned, not a constant.
+    short = pair.measure_belief_window_resolution(
+        records, as_of, window_days=10)
+    assert short["saturated"] is False
+    assert "NOT saturated" in pair.belief_resolution_caveat(short)
+
+
+def test_the_memory_resolution_control_runs_in_the_cli_not_only_in_tests():
+    """A control a reader about to quote a belief gap never meets is one that
+    protects the test suite, not the figure (the D25 rule)."""
+    src = inspect.getsource(pair.main)
+    assert "measure_own_drift_resolution" in src
+    assert "check_own_drift_resolution" in src
+
+
+@pytest.mark.parametrize("mutate,expected", (
+    # THE DEFECT ITSELF, reinstated: the off-path entry going back to
+    # discharging itself with an indiscriminate degenerate.
+    (lambda r: r["belief"].pop("own_drift"),
+     "measures NO resolution"),
+    (lambda r: r["belief"].__setitem__("own_invisible_drifts", (1, 500)),
+     "understates the blindness"),
+    (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -1)),
+     "blinder than this register admits"),
+    (lambda r: r["belief"].__setitem__(
+        "own_invisible_drifts", (-320, -308, -100, -1, 1, 500)),
+     "declared INVISIBLE but moved"),
+    (lambda r: r["belief"].__setitem__("own_debt_atom", None),
+     "unowned hole"),
+    (lambda r: r["belief"].__setitem__("own_visible_drifts", (-380, -999)),
+     "never scored"),
+    (lambda r: (r["belief"].__setitem__("own_invisible_drifts", ()),
+                r["belief"].__setitem__("own_debt_atom", None)),
+     "understates the blindness"),
+))
+def test_a_lying_memory_band_fires_by_name(own_drift_resolution, mutate,
+                                           expected):
+    """R15 BOTH WAYS on the band. Each mutation is a way this declaration could
+    stop describing the code: the off-path exemption returning, an understated
+    band (which the published caveat interpolates), an overstated sight, a debt
+    entry outliving its debt, an unowned hole, and a declaration checked
+    against a reading nobody took."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    mutate(register)
+    if not register["belief"].get("own_drift"):
+        # The off-path rule lives in the sibling control -- that is where the
+        # exemption is granted, so that is where its return must fire.
+        measured = pair.measure_dimension_drift_resolution(
+            n_customers=60, seeds=(7,))
+        violations = pair.check_dimension_drift_resolution(
+            measured, register=register)
+    else:
+        violations = pair.check_own_drift_resolution(
+            own_drift_resolution, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+@pytest.mark.parametrize("bad_runner,expected", (
+    # AN INERT PROBE. The knob silently stops drifting and every invisibility
+    # declaration below it is handed a free pass -- the fail-silent shape this
+    # instrument has now produced seven times.
+    (lambda knob, seed, k: _run_window(seed, 0), "moved NOTHING"),
+    # A KNOB THAT MOVES EVERYTHING is a second global perturbation, not
+    # evidence about this organ.
+    (lambda knob, seed, k: _run_window(seed, k, terms=k), "off its own organ"),
+    # A COUNTERFACTUAL WORLD, not a counterfactual company (R13).
+    (lambda knob, seed, k: _run_window(seed, k, spread=1 if k else None),
+     "CHANGED THE WORLD"),
+))
+def test_a_broken_memory_probe_fires_by_name(bad_runner, expected):
+    """R15 ON THE SOURCE, not only on the register. A band is only as good as
+    the probe that measured it, and all three of these would leave every
+    declaration above passing."""
+    measured = pair.measure_own_drift_resolution(
+        n_customers=60, seeds=(7,), runner=bad_runner)
+    violations = pair.check_own_drift_resolution(measured)
+    assert any(expected in v for v in violations), violations
+
+
+def _run_window(seed, k, terms=0, spread=None):
+    """A deliberately-broken stand-in for the measurement's own runner."""
+    records, consumer, _l, as_of = pair.build_scenario(
+        60, seed=seed, organ_failure_window_drift_days=k,
+        cycle_spread_days=spread)
+    return records, pair.score_triad(
+        records, consumer, as_of, organ_terms_drift_days=terms), as_of
+
+
+def test_the_memory_knob_is_a_declared_company_not_a_monkeypatch():
+    """It lives on `build_scenario` for the D20 reason -- a counterfactual a
+    reader cannot find in the repo is not part of the design -- and it refuses
+    a company it cannot build rather than constructing a negative memory."""
+    src = inspect.getsource(pair.build_scenario)
+    assert "organ_failure_window_drift_days" in src
+    with pytest.raises(ValueError, match="negative memory"):
+        pair.build_scenario(10, seed=7,
+                            organ_failure_window_drift_days=-10_000)
