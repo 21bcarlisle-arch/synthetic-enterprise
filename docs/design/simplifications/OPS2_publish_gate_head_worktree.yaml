@@ -64,7 +64,28 @@ build_note: |
   the box, block exiting 0 -- all six red; source restored byte-identical after each.
   75 passed in tests/tools/test_measure_publish_gate_subject_cost.py.
 
-  Still open: `PHASE_MEMORY_MAX_MB = 8192` is a stated ceiling (above the 2.42G-3.15G observed
-  legitimate peak, below the 12.9G lethal one), NOT derived. Re-derive it when
-  docs/observability/gate_x_premium_rss.json reaches `complete: true`. Parked in
-  docs/staging/in_progress/ with that as its named blocking sub-item.
+  THE MEASUREMENT COMPLETED within the tick. gate_x_premium_rss.json reads `complete: true`,
+  verdict `supported`: `with_x` 3.15G, `without_x` 5.34G, ratio 1.69. Neither arm was OOM-killed
+  (`journalctl -k` in the window shows only CONSTRAINT_MEMCG kills, and those are this tick's own
+  R15 test scopes), so both are peaks of runs that ended on their own. Contended, and recorded as
+  such -- sharing a box biases both DOWN through reclaim, so 5.34G if anything under-states.
+
+  And the repair is confirmed BY THE KERNEL rather than by assertion. The original failure was
+  `oom-kill:constraint=CONSTRAINT_NONE ... global_oom`; the same log now shows this tick's
+  over-large child dying as `constraint=CONSTRAINT_MEMCG ... oom_memcg=.../ops2-bound-selftest
+  .scope`. That is the exact discriminator the finding quoted, flipped.
+
+  Still open, and the measurement SHARPENED it rather than closing it: 5.34G does not reconcile
+  with the 12.9G the measurement's own BASELINE phase reached before the global OOM. Same
+  `-x`-less argv, same in-tree subject, a 7.5G gap. Two candidate causes, neither measured: the
+  measurement sets SIM_FAST_MODE=1, and it redirects `--basetemp` into HEAD_CHECKOUT_ROOT on
+  /tmp, which is a TMPFS on this box. So the `-x` premium is real and measured, but it is NOT the
+  whole account of the 12.9G and must not be read as one.
+
+  `PHASE_MEMORY_MAX_MB` therefore STAYS at 8192 and is deliberately not tightened to the measured
+  peak: 8G is 1.5x the measured 5.34G and well under the 12.9G lethal point, and tightening to
+  ~6G on a number whose 12.9G sibling is unexplained would wedge the measurement the bound exists
+  to protect. What unblocks the derivation is a peak from an UNCONTENDED, completed phase;
+  `resource.getrusage(RUSAGE_CHILDREN).ru_maxrss` around the phase's `subprocess.run` is the
+  cheap exact way to get one, and it survives the scope teardown that hides `memory.peak`. Not
+  built. Parked in docs/staging/in_progress/ with that as its named blocking sub-item.

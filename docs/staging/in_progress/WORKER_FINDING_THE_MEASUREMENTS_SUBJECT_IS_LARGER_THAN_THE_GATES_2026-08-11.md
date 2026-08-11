@@ -1,27 +1,35 @@
-> **IN PROGRESS (2026-08-11 OPS2 tick).** Recommendation **A is BUILT and R15-proven**; the
-> measurement this finding demanded is **IN FLIGHT and self-completing**.
+> **IN PROGRESS (2026-08-11 OPS2 tick).** Recommendation **A is BUILT and R15-proven**, and the
+> measurement this finding demanded **COMPLETED**: `docs/observability/gate_x_premium_rss.json`
+> reads `complete: true`, verdict **`supported`**.
 >
-> **STILL OPEN — the one sub-item:** `PHASE_MEMORY_MAX_MB = 8192` is a stated CEILING, not a
-> derived figure. `tools/sample_gate_rss_premium.py` is measuring the real peaks into
-> `docs/observability/gate_x_premium_rss.json`; when that record reaches `complete: true`,
-> re-derive the ceiling from the measured `-x`-less peak and move it. **What unblocks it:** the
-> sampler finishing — no wait, no launch, read the file.
+> **The claim was right, and is now measured, not inferred.** Both arms ran to their own end on
+> the same box, argv identical apart from the flag: the gate's `-x` run peaked at **3.15G**, the
+> `-x`-less run at **5.34G** -- **1.69x**. Neither was OOM-killed (`journalctl -k` shows only
+> `CONSTRAINT_MEMCG` kills, and those are this tick's own R15 test scopes), so both peaks are
+> peaks of runs that finished. Contended, and the record says so: they shared the box, which
+> biases both DOWN via reclaim, so 5.34G is if anything an under-statement.
 >
-> **What the measurement already says** (partial, `with_x` exact / `without_x` a lower bound):
-> the gate's own `-x` run peaked at **3.15G**; the `-x`-less run passed **5.34G still climbing**.
-> Directionally the finding's `inferred` claim is holding. It is NOT yet the finished number.
+> **The repair is confirmed by the kernel, not by assertion.** The failure this finding is about
+> was `oom-kill:constraint=CONSTRAINT_NONE ... global_oom` -- a box-wide kill with the publisher
+> among the candidates. The same kernel log now shows this tick's over-large child dying as
+> `constraint=CONSTRAINT_MEMCG ... oom_memcg=.../ops2-bound-selftest.scope`. That is the exact
+> discriminator quoted in the Observed section above, and it has flipped.
 >
-> **What landed:** each phase's pytest now runs inside `systemd-run --user --scope` with
-> `MemoryMax` **and `MemorySwapMax=0`**, so an over-large run dies alone instead of global-OOM
-> killing the box (three launches died that way, the publisher a candidate each time). A missing
-> `systemd-run` BLOCKS the phase and exits non-zero rather than running it bare. The `-x` premium
-> is now stated in every phase record (`subject_larger_than_the_gates`), which was consequence 2.
+> **STILL OPEN — and the measurement sharpened it rather than closing it.** 5.34G does not
+> reconcile with the **12.9G** the measurement's own BASELINE phase reached before it was
+> global-OOM-killed. Same `-x`-less argv, same in-tree subject, a 7.5G gap. Two candidate causes,
+> neither measured: the measurement sets `SIM_FAST_MODE=1`, and it redirects `--basetemp` into
+> `HEAD_CHECKOUT_ROOT` on **/tmp, which is a tmpfs on this box** (see
+> `reference_the_box_has_15g_ram_and_tmp_is_a_tmpfs`). Until that gap is explained, the
+> `-x` premium is real but is NOT the whole account of the 12.9G, and this finding's headline
+> should not be read as if it were.
 >
-> **Measured while building, and worth more than the repair:** `MemoryMax` alone does NOT kill --
-> it reclaims into this box's 4G of swap. A 300MB allocation completed inside a 128MB ceiling,
-> rc=0. Dropping `MemorySwapMax=0` also survived as a mutation on a box already 3G into swap, so
-> the control is now pinned by reading `memory.max`/`memory.swap.max` back from the scope's own
-> cgroup rather than by a behaviour that ambient swap decides.
+> **Therefore `PHASE_MEMORY_MAX_MB` stays at 8192 and is NOT tightened to the measured peak.**
+> 8G is 1.5x the measured 5.34G and comfortably under the 12.9G lethal point; tightening it to
+> ~6G on a number whose 12.9G sibling is unexplained would wedge the very measurement it guards.
+> **What unblocks the derivation:** a peak from an UNCONTENDED, completed phase. The cheap way to
+> get one is `resource.getrusage(RUSAGE_CHILDREN).ru_maxrss` around the phase's `subprocess.run`
+> -- exact, free, and it survives the scope teardown that hides `memory.peak`. Not built.
 
 # [WORKER-FINDING] The measurement's subject is a LARGER suite than the gate's, and that is what OOMs the box (2026-08-11)
 
