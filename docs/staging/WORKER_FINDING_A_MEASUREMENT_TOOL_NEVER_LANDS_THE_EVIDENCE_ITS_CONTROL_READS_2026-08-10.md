@@ -57,3 +57,32 @@ Same family as `feedback_a_control_committed_without_its_mechanism_reds_head`,
 `feedback_named_blocking_test_passes_when_you_run_it`. The new part: the producing **tool**,
 not the builder, is the thing missing the landing step — so no amount of build-time discipline
 closes it. Only the tool committing its own output, or a census, does.
+
+---
+
+## SECOND INSTANCE, 2026-08-11 — the class is not hypothetical (`observed-with-evidence`)
+
+Drawing `G12_queryable_projections`, whose exit criterion 4 requires the AO12 probe's MEASURED
+figures be read from its report artefact:
+
+```
+$ git ls-files --error-unmatch docs/design/scale_probe_10k_report.json
+error: pathspec '...' did not match any file(s) known to git
+$ git check-ignore -v docs/design/scale_probe_10k_report.json ; echo rc=$?
+rc=1                       # untracked, NOT ignored -- exactly the first instance's shape
+```
+
+`tools/scale_probe_10k.py` writes that report and no code path lands it. Same producer-side
+gap, different tool, eight days of the artefact sitting in a working tree only. G12's scale
+envelope is fail-CLOSED on it, so the new store would have failed closed on day one in any
+clean checkout — the control would have been starved before its first run, and the natural
+diagnostic (build it locally; it works) would have exonerated the real cause a second time.
+
+**Instance fixed** (`7ca016d3c` lands the artefact) with a standing per-artefact control,
+`tests/tools/test_build_projections.py::test_the_probe_artefact_the_envelope_reads_is_tracked`.
+**Class still OPEN, and R10 says an instance fix cannot close it** — a per-artefact assertion
+written by whoever happens to notice is not a class fix; it is the third one of these waiting
+to happen. Proposed closure item 2 above (the census: enumerate every path a fail-closed
+control reads and assert each is tracked at HEAD) now has two instances of evidence behind it
+and should be minted. Note the census must read the **index/HEAD**, not the working tree —
+reading the tree is the very blindness it exists to detect.
