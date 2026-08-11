@@ -845,6 +845,69 @@ residual §3h already recorded as a routing question rather than a decision.
 
 ---
 
+## 3j. The customer-value layer is the supplier's belief, not the world's arithmetic — added 2026-08-11 (step 15)
+
+**4 edges cut, 45 → 41 live (43 → 39 direct; the 2 indirect untouched, and again that is the
+proof that a bridge route was not silently taken instead). `A_composition_lift`, continuing §3i's
+company-side paydown of `run_phase4c_on_phase2b`.** Seven crossings remained on that module after
+the month-end close; four of them were one process.
+
+`main()` composed the supplier's customer-value layer itself: it costed every customer
+(`saas.cost_to_serve`), formed a churn belief over the book (`saas.churn_model`), priced home-move
+retention off that belief (`saas.home_move_win_rate`), valued the book on both
+(`saas.enterprise_value`), and separately shaped the cost-to-serve schedule into the account-6100
+posting series the close consumes.
+
+None of it is world physics. How a supplier apportions cost to a customer, what it believes about
+who will leave, and what it thinks its book is worth are its own models — a real supplier changes
+all four without telling anyone, and gets them wrong without the world noticing. What the world owns
+is the SETTLED RECORDS and the customer book, as data. All of it now goes through
+`company/interfaces/customer_value.py` into `company/analytics/customer_value_view.py`, which
+returns a `CustomerValueView`.
+
+### Why this is a GROUP and not four items
+
+§3i's own instruction. The four builders are one process with a dependency chain inside it:
+`build_home_move_win_rates` needs `churn_risk`, and `build_enterprise_value` needs both
+`churn_risk` and `cost_to_serve`. Cutting them one at a time would have left the world holding the
+intermediate beliefs and threading them back in — a seam that publishes a PULL is half a cut, and
+the count would have fallen while the coupling stayed. Taking the group means the chain is internal
+and the door carries only what the world actually owns.
+
+### `price_differential_pct` is PASSED, not read
+
+Both the home-move and enterprise-value models need the run's market-position parameter. It is a
+signature argument rather than a module read, so no world constant crosses the wall to set it —
+the same shape §3e used for the hedge floor and §3g for the churn ceiling. A parameter threaded
+through a seam and then ignored is the donated-residual shape, so it is not left to inspection:
+`test_mutation_price_differential_is_actually_read` moves it and asserts both the win rates and the
+enterprise value move with it.
+
+### The read direction, and the one thing that genuinely moved
+
+`company/analytics/customer_value_view.py` imports nothing from `simulation/` or `sim/` — records
+and customers arrive as plain dicts — so no class-(a) edge is traded for the four class-(b) ones.
+
+Behaviour is unchanged by construction for the four builders: same functions, same arguments, same
+order. **One thing did move, and it is recorded rather than glossed:** the account-6100 schedule
+(`build_cost_to_serve_ledger_events`) used to be computed ~50 lines LATER in `main()`, just before
+the close; it is now computed inside the view, earlier. The identity claim for that move is that
+its inputs — `all_records` and `all_customers` — are the same at both points. That claim is not left
+as a reading of the file. Control 3 parses `main()`, takes the region between the view call and the
+`close_the_books` call, and asserts nothing in it mutates or rebinds `all_records`; its mutation
+injects exactly the defect the move would expose (a record appended between the two points, which
+pre-cut would have reached the 6100 schedule and post-cut would not), and no other test in the suite
+notices it. It carries a VACUITY GUARD, because a region-shaped control passes for free once the
+region empties: the guard asserts the region is still more than five statements, so a future
+refactor that empties it fails loudly and control 3 gets retired rather than left as decoration.
+
+### What did NOT fall, stated rather than left to be inferred from a count that stops at 4
+
+Three crossings remain on the module: the billing-experience builders (`saas.contact_model`,
+`saas.payment_behaviour`) — a different process on a different input (`bills`, not settled records)
+— and `company.billing.dd_review_runner`, which §3h already ruled a ROUTING residual. They are the
+next group, not this one.
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1270,7 +1333,7 @@ itself.
 
 ---
 
-## 4. The register — all 91 examined crossings, 45 of them still live
+## 4. The register — all 91 examined crossings, 41 of them still live
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
 walker could not see (§3b), making 91 rows. FORTY-THREE have since been CUT — by B1/B3–B8 (§3a,
@@ -1373,11 +1436,11 @@ edge: simulation.run_phase4c_on_phase2b -> company.billing.dd_review_runner | di
 edge: simulation.run_phase4c_on_phase2b -> company.billing.pre_bill_validation | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — the Tier-1 issuance gate moved into `company/finance/accounting_close.py` behind `company.interfaces.accounting_close`. Deciding whether a bill is fit to issue is the supplier's own routine; the world never sees the gate, only the closed books.
 edge: simulation.run_phase4c_on_phase2b -> company.compliance.domain_invariants | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — the billed-clock reconciliation moved with the posting it checks. It was a function-scope import inside `main()`, which the walker sees but a reader easily does not; it is now adjacent to the ledger it reconciles, and §3i records the TAUTOLOGY that adjacency creates and the independent control built for it.
 edge: simulation.run_phase4c_on_phase2b -> saas.bill_generator | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
-edge: simulation.run_phase4c_on_phase2b -> saas.churn_model | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.churn_model | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — the supplier's BELIEF about who will leave — a belief it is allowed to get wrong, which is the point of the wall. Moved with its group; `home_move_win_rate` and `enterprise_value` both consume it, so cutting it alone would have left the world holding the intermediate and threading it back.
 edge: simulation.run_phase4c_on_phase2b -> saas.contact_model | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> saas.enterprise_value | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase4c_on_phase2b -> saas.home_move_win_rate | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.cost_to_serve | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — the supplier's own apportionment of cost to a customer. Moved into `company/analytics/customer_value_view.py` behind `company.interfaces.customer_value` with the other three of its group; it also produces the account-6100 posting schedule the close consumes, which is why that computation moved earlier and why §3j carries a control over the region it moved across.
+edge: simulation.run_phase4c_on_phase2b -> saas.enterprise_value | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — what the supplier thinks its book is worth, off its own churn and cost-to-serve beliefs. Moved with its group; it is the end of the dependency chain that makes these four one process rather than four items.
+edge: simulation.run_phase4c_on_phase2b -> saas.home_move_win_rate | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — what this supplier will pay to keep a moving customer, priced off its own churn belief and its own market position. Moved with its group.
 edge: simulation.run_phase4c_on_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — double-entry posting, the P&L derivation, the ledger summary and the account-6100 shaping of the cost-to-serve schedule all moved company-side. The world still owns the settled records and the spend schedules; it hands them over as DATA and takes back an `AccountingClose`.
 edge: simulation.run_phase4c_on_phase2b -> saas.payment_behaviour | disposition=owed | design=A_composition_lift
 edge: simulation.run_segments -> saas.growth_mandate | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: the mandate string and the £50/month overhead are the company's own constants, read back out — no sim internal crosses.

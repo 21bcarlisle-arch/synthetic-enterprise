@@ -42,16 +42,16 @@ removed the ONE `saas.reporting` edge, which is the edge that closed the
 reporting import CYCLE. Do NOT read "pure library" as "wall-clean": it is
 cycle-free and composition-free, nothing more.
 
-WHAT IS LEFT OF THE CROSSINGS, as of step 14 (2026-08-11). Pass 1 left 14
+WHAT IS LEFT OF THE CROSSINGS, as of step 15 (2026-08-11). Pass 1 left 14
 company-side packages imported directly. KNIFE pass 3 has since taken bill
-assembly (step 11, §3f of the disposition register) and the month-end accounting
-close (step 14, §3i), leaving SEVEN — and they are two coherent groups plus one
-residual, not seven loose items:
+assembly (step 11, §3f of the disposition register), the month-end accounting
+close (step 14, §3i) and the customer-value layer (step 15, §3j), leaving
+THREE — one coherent group plus one residual, not three loose items:
 
-  * the customer-value builders — `saas.churn_model`, `saas.cost_to_serve`,
-    `saas.enterprise_value`, `saas.home_move_win_rate`;
   * the billing-experience builders — `saas.contact_model`,
-    `saas.payment_behaviour`;
+    `saas.payment_behaviour`. A different process on a different input
+    (`bills`, not the settled records), which is why they did not travel with
+    the customer-value group;
   * `company.billing.dd_review_runner`, which §3h records as a ROUTING residual
     (the world threads the desk's own register into the report) rather than a
     decision the world takes.
@@ -68,16 +68,13 @@ from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.billing.dd_review_runner import run_annual_reviews
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import assemble_monthly_bills
-from saas.churn_model import build_churn_risk
+from company.interfaces.customer_value import build_customer_value_view
 from saas.contact_model import build_contact_model
-from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
 from company.interfaces.supply_book import (
     acquired_supply_points,
     registered_supply_points,
     successor_supply_points,
 )
-from saas.enterprise_value import build_enterprise_value
-from saas.home_move_win_rate import build_home_move_win_rates
 from saas.payment_behaviour import build_payment_behaviour
 from simulation.arrears_engine import (
     compute_emergent_bad_debt,
@@ -297,12 +294,31 @@ def main(report_end: str | None = None, policy=None):
     contact_centre_log = [message.to_log_entry() for message in contact_centre_messages]
 
     all_customers = _get_all_customers()
-    cost_to_serve = build_cost_to_serve(all_records, all_customers)
-    churn_risk = build_churn_risk(all_records, all_customers)
-    home_move_win_rates = build_home_move_win_rates(churn_risk, all_customers, PRICE_DIFFERENTIAL_PCT)
-    enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, all_customers, PRICE_DIFFERENTIAL_PCT
+
+    # KNIFE pass 3 (`A_composition_lift` step 15, 2026-08-11, register §3j): the
+    # supplier's customer-value layer moved to
+    # `company/analytics/customer_value_view.py`, reached through
+    # `company/interfaces/customer_value.py`. How this supplier apportions cost
+    # to a customer, what it believes about who will leave, what it will pay to
+    # keep a mover, and what it thinks its book is worth are its OWN models --
+    # it changes all four without telling anyone, and gets them wrong without
+    # the world noticing. The world's half is what it owns: the settled records
+    # and the customer book, handed over as data.
+    #
+    # Taken as a GROUP because the four are one process with a dependency chain
+    # inside it (home-move needs churn; enterprise value needs churn AND cost to
+    # serve). Cutting them singly would leave the world holding the intermediate
+    # beliefs and threading them back in -- a seam that publishes a PULL.
+    #
+    # `PRICE_DIFFERENTIAL_PCT` is PASSED, never read across the wall, so no world
+    # constant sets the supplier's market position.
+    customer_value = build_customer_value_view(
+        all_records, all_customers, PRICE_DIFFERENTIAL_PCT
     )
+    cost_to_serve = customer_value.cost_to_serve
+    churn_risk = customer_value.churn_risk
+    home_move_win_rates = customer_value.home_move_win_rates
+    enterprise_value = customer_value.enterprise_value
 
     avg_clarity = sum(b["clarity_score"] for b in bills) / len(bills)
     shocked = [b for b in bills if b["bill_shock_pct"] is not None]
@@ -347,7 +363,14 @@ def main(report_end: str | None = None, policy=None):
     # also emit monthly cost_to_serve_event totals so ledger account 6100
     # ("Cost to Serve") stops always netting to £0 against the non-zero
     # figure `cost_to_serve` (above) already reports for pricing/CLV.
-    cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(all_records, all_customers)
+    #
+    # Step 15 moved the COMPUTATION of this schedule earlier, inside the
+    # customer-value view, because it is the same supplier model that produces
+    # the cost-to-serve figure itself. The identity claim for moving it is that
+    # its inputs (`all_records`, `all_customers`) are the same at both points --
+    # checked, not asserted, by `test_nothing_between_the_view_and_the_close_
+    # touches_the_record_list` in the seam test, which parses this function.
+    cost_to_serve_ledger_events = customer_value.cost_to_serve_ledger_events
 
     # KNIFE pass 3 (`A_composition_lift` step 14, 2026-08-11): the supplier's
     # month-end close moved to `company/finance/accounting_close.py`, reached

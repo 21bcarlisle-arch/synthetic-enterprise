@@ -223,6 +223,28 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 # clean interpreter, then which modules loaded), because a lazy in-function
 # import is invisible to this file by its own documented limit.
 #
+# 2026-08-11, KNIFE pass 3 step 15, same design: four more deleted —
+# `simulation.run_phase4c_on_phase2b -> saas.{cost_to_serve, churn_model,
+# home_move_win_rate, enterprise_value}`. The supplier's CUSTOMER-VALUE layer
+# moved to `company/analytics/customer_value_view.py` behind
+# `company.interfaces.customer_value`: how it apportions cost to a customer,
+# what it believes about who will leave, what it pays to keep a mover and what
+# it thinks its book is worth are its own models, wrong or right, and the world
+# never sees them. It hands over the settled records and the customer book as
+# DATA and takes back a `CustomerValueView`.
+#
+# Taken as a GROUP, not four items, because the four have a dependency chain
+# inside them (home-move needs churn; enterprise value needs churn AND cost to
+# serve). Cutting singly would have left the world holding the intermediates and
+# threading them back — the count would fall while the coupling stayed.
+#
+# Same inversion test as the close: `company/analytics/customer_value_view.py`
+# imports nothing from `simulation/` or `sim/` — records and customers arrive
+# through the signature — so no class-(a) edge is created. The run's market
+# position (`PRICE_DIFFERENTIAL_PCT`) is PASSED, so no world constant crosses to
+# set it, and `tests/company/interfaces/test_customer_value_seam.py` moves it and
+# asserts the view moves rather than trusting that it is read.
+#
 # 2026-08-09, KNIFE pass 2 (atom `KNIFE2_customer_straddle`): 104 -> 88. All
 # SIXTEEN `simulation.* -> saas.customers` edges deleted — the customer module
 # straddling the wall, the single most-reached company module in the codebase.
@@ -295,11 +317,10 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # 2026-08-11 by `A_composition_lift` step 14, with `saas.ledger` below. The
     # supplier's month-end close moved to `company/finance/accounting_close.py`
     # behind `company.interfaces.accounting_close`. See the block comment above.
-    ("simulation.run_phase4c_on_phase2b", "saas.churn_model"),
+    # ("simulation.run_phase4c_on_phase2b", "saas.{churn_model,cost_to_serve,
+    # enterprise_value,home_move_win_rate}") -- 4 tuples DELETED 2026-08-11 by
+    # `A_composition_lift` step 15. See the block comment above.
     ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
-    ("simulation.run_phase4c_on_phase2b", "saas.cost_to_serve"),
-    ("simulation.run_phase4c_on_phase2b", "saas.enterprise_value"),
-    ("simulation.run_phase4c_on_phase2b", "saas.home_move_win_rate"),
     # ("simulation.run_phase4c_on_phase2b", "saas.ledger") -- DELETED 2026-08-11,
     # the third of step 14's edges. `saas.payment_behaviour` below did NOT fall
     # with it and that is stated rather than left to be inferred: the close
