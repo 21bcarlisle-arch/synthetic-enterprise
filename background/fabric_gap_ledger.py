@@ -3838,6 +3838,47 @@ def weight_null_panel(
     ]
 
 
+def _premise_margins(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+    measures: Mapping[str, fi.RetrofitOffer] | None = None,
+) -> list[tuple[str, float]]:
+    """ONE panel's deciding margin, premise by premise: `(premise_id, epc − inferred)`
+    in GBP, in panel order.
+
+    Split out of `_paired_margin_moves` because it is the thing that gets done to
+    THREE different panels there, and a per-panel measurement folded inside the
+    three-panel comparison reads as if the comparison owns it. The order guard lives
+    here, with the pairing it protects.
+    """
+    epc = _premise_forgone(
+        observations,
+        unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+        belief="epc",
+        fuel=fuel,
+        measures=measures,
+    )
+    inferred = _premise_forgone(
+        observations,
+        unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+        belief="inferred",
+        fuel=fuel,
+        measures=measures,
+    )
+    margins = []
+    for e, i in zip(epc, inferred):
+        if e.premise_id != i.premise_id:
+            raise InsufficientEvidence(
+                f"the two arms' premise order disagrees ({e.premise_id!r} vs "
+                f"{i.premise_id!r}) — a per-premise margin cannot be taken across "
+                "a reordering"
+            )
+        margins.append((e.premise_id, e.forgone_gbp - i.forgone_gbp))
+    return margins
+
+
 def _paired_margin_moves(
     observations: Sequence[FabricObservation],
     *,
@@ -3880,30 +3921,12 @@ def _paired_margin_moves(
     """
 
     def _advantages(rows: Sequence[FabricObservation]) -> list[tuple[str, float]]:
-        epc = _premise_forgone(
+        return _premise_margins(
             rows,
             unit_rate_p_per_kwh=unit_rate_p_per_kwh,
-            belief="epc",
             fuel=fuel,
             measures=measures,
         )
-        inferred = _premise_forgone(
-            rows,
-            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
-            belief="inferred",
-            fuel=fuel,
-            measures=measures,
-        )
-        out = []
-        for e, i in zip(epc, inferred):
-            if e.premise_id != i.premise_id:
-                raise InsufficientEvidence(
-                    f"the two arms' premise order disagrees ({e.premise_id!r} vs "
-                    f"{i.premise_id!r}) — a per-premise margin cannot be taken across "
-                    "a reordering"
-                )
-            out.append((e.premise_id, e.forgone_gbp - i.forgone_gbp))
-        return out
 
     base = _advantages(observations)
     mirrored = _advantages(list(panel_mirror(observations).rows))
