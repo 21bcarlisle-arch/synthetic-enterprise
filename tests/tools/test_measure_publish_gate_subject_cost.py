@@ -1857,6 +1857,118 @@ def test_a_phase_killed_by_its_own_ceiling_is_told_from_one_killed_by_the_box():
     )
 
 
+def test_the_returncode_fallback_alone_misses_the_shape_that_actually_happened():
+    """THE REGRESSION, in the exact shape the live record carried.
+
+    Launch 14's `in_tree_baseline` died at 2026-08-11T22:57:36Z with `returncode: -15` while the
+    kernel logged, that same second, a CONSTRAINT_MEMCG kill whose `oom_memcg` was that phase's own
+    scope. The record banked `hit_memory_ceiling: false`. Under `systemd-run --scope` the cgroup
+    OOM killer takes the fattest task in the cgroup -- a child at 6.1G here, not the pytest this
+    harness waits on -- and systemd then SIGTERMs the rest, so -15 is the ORDINARY shape and -9
+    is the special case where the kernel happened to pick the process being timed.
+
+    MUTATION (RUN): delete the `kernel_oom is True` branch of `_looks_like_the_bound` and the
+    first assertion reds -- which is precisely the state that banked three truncated baselines."""
+    roomy = measure.MIN_MEMORY_HEADROOM_MB + 1
+    assert measure._looks_like_the_bound(-15, roomy, True) is True, (
+        "the kernel named this phase's own cgroup as the OOM's memcg and the verdict still said "
+        "the ceiling was not hit -- three relaunches were bought by exactly this answer"
+    )
+    assert measure._looks_like_the_bound(-15, roomy) is False, (
+        "the returncode-only fallback is blind here BY CONSTRUCTION; if this ever starts passing "
+        "on its own the kernel oracle has stopped being the thing doing the work"
+    )
+    assert measure._looks_like_the_bound(-15, roomy, False) is False, (
+        "the kernel positively reported no cgroup OOM for this scope; that is an answer, not a "
+        "reason to fall back to guessing"
+    )
+    # The oracle OVERRIDES the fallback in both directions -- a control that can only ever add
+    # `True` would turn every unrelated journal line into a ceiling kill.
+    assert measure._looks_like_the_bound(-9, roomy, False) is False
+    assert measure._looks_like_the_bound(1, roomy, True) is True
+
+
+def test_the_kernel_oracle_names_this_scope_rather_than_any_oom(monkeypatch):
+    """`_scope_oom_killed` must answer about THIS cgroup, and must fail CLOSED to None.
+
+    The distinction it exists to draw is cgroup-kill versus global-OOM, and a global OOM prints
+    the whole process table -- so a scope's name appearing SOMEWHERE in the log is not evidence
+    about that scope. Only `oom_memcg=` is.
+
+    MUTATION (RUN): match on `unit in line` instead of the `oom_memcg=` field and the
+    global-OOM case below reds."""
+    scope = "publish-gate-phase-1234-5678"
+    memcg = ("oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),"
+             "oom_memcg=/user.slice/user-1000.slice/app.slice/{}.scope,"
+             "task_memcg=/user.slice/user-1000.slice/app.slice/{}.scope,task=python3".format(
+                 scope, scope))
+    # A GLOBAL OOM that merely lists this scope's task in its victim table: not this scope's own
+    # ceiling, and the whole point of the field.
+    globl = ("oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),global_oom,"
+             "task_memcg=/user.slice/user-1000.slice/app.slice/{}.scope,task=python3".format(scope))
+
+    def _journal(stdout, returncode=0):
+        return lambda *_a, **_kw: types.SimpleNamespace(
+            returncode=returncode, stdout=stdout, stderr="")
+
+    monkeypatch.setattr(measure.shutil, "which", lambda _n: "/usr/bin/journalctl")
+
+    monkeypatch.setattr(measure.subprocess, "run", _journal(memcg))
+    assert measure._scope_oom_killed(scope) is True
+
+    monkeypatch.setattr(measure.subprocess, "run", _journal(globl))
+    assert measure._scope_oom_killed(scope) is False, (
+        "a GLOBAL OOM that happened to list this scope's task was read as this scope's own "
+        "ceiling -- that collapses the two outcomes the verdict exists to separate"
+    )
+
+    monkeypatch.setattr(measure.subprocess, "run", _journal(memcg.replace(scope, "some-other")))
+    assert measure._scope_oom_killed(scope) is False, "another scope's cgroup kill is not ours"
+
+    # FAIL-CLOSED: every way the question cannot be put returns None, never False. None falls back
+    # to the labelled inference; False would assert the kernel had answered when it had not.
+    monkeypatch.setattr(measure.subprocess, "run", _journal("", returncode=1))
+    assert measure._scope_oom_killed(scope) is None, "a failed journalctl is not a clean 'no'"
+
+    def _raise(*_a, **_kw):
+        raise OSError("no journal")
+    monkeypatch.setattr(measure.subprocess, "run", _raise)
+    assert measure._scope_oom_killed(scope) is None
+
+    monkeypatch.setattr(measure.shutil, "which", lambda _n: None)
+    assert measure._scope_oom_killed(scope) is None, (
+        "an unavailable journalctl is an unavailable CHECK, which R15 says is a failed check -- "
+        "it may not render as 'no OOM happened'"
+    )
+    assert measure._scope_oom_killed("") is None
+
+
+def test_the_phase_the_kernel_answered_says_observed_not_inferred():
+    """R9 labels are the claim. A kernel-answered verdict is `observed`; the returncode guess is
+    `inferred`; and the two must not share a sentence, or the record cannot tell a reader whether
+    anything actually looked.
+
+    MUTATION (RUN): drop the `kernel_oom` argument at the `_hit_memory_ceiling_basis` call site in
+    `_time_suite_under_exclusion` and `test_the_writer_still_emits_a_basis_beside_every_verdict`
+    reds on the mismatch."""
+    roomy = measure.MIN_MEMORY_HEADROOM_MB + 1
+    observed = measure._hit_memory_ceiling_basis(-15, roomy, True, True)
+    assert observed.startswith("observed:"), observed
+    assert "oom_memcg" in observed, (
+        "the basis must name the evidence it rests on, not merely assert a verdict"
+    )
+    denied = measure._hit_memory_ceiling_basis(-15, roomy, False, False)
+    assert denied.startswith("observed:"), denied
+
+    inferred = measure._hit_memory_ceiling_basis(-9, roomy, True, None)
+    assert inferred.startswith("inferred:"), (
+        "with no kernel answer the verdict is a guess from the returncode and must say so"
+    )
+    assert len({observed, denied, inferred}) == 3, (
+        "a kernel-observed kill, a kernel-denied one and a returncode guess share a sentence"
+    )
+
+
 def test_the_phase_record_states_its_ceiling_and_its_x_premium(monkeypatch, tmp_path):
     """Two things a future reader re-deriving GATE_SUITE_TIMEOUT_SECONDS needs and cannot infer:
     the ceiling the phase ran under, and that this suite is STRICTLY LARGER than the gate's own
@@ -2271,8 +2383,16 @@ def test_the_writer_still_emits_a_basis_beside_every_verdict(out, monkeypatch, t
             rc, phase["hit_memory_ceiling"]), (
             "the basis written for returncode {} is not the one its own evidence implies".format(rc)
         )
+        # Re-derived from the phase's OWN banked oracle answer (`scope_oom_killed`), not from the
+        # returncode alone: the verdict now has two inputs, and a consistency check that knows
+        # about one of them grades a question the writer stopped asking.
         assert phase["hit_memory_ceiling_basis"] == measure._hit_memory_ceiling_basis(
-            rc, phase.get("mem_available_after_mb"), phase["hit_memory_ceiling"])
+            rc, phase.get("mem_available_after_mb"), phase["hit_memory_ceiling"],
+            phase.get("scope_oom_killed"))
+        assert "scope_oom_killed" in phase and "scope_unit" in phase, (
+            "the verdict was written without the evidence it was derived from, so nothing "
+            "downstream can re-derive it -- which is how the last false verdict survived"
+        )
         assert ("lower bound" in phase["ran_to_completion_basis"]) is (rc < 0), (
             "returncode {} was written up as {!r}".format(rc, phase["ran_to_completion_basis"])
         )
@@ -2392,7 +2512,7 @@ def _run_the_phase(monkeypatch, cwd, on_suite=None, returncode=1):
 
     monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
     monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
-    monkeypatch.setattr(measure, "_bounded_argv", lambda cwd, log: ["pytest"])
+    monkeypatch.setattr(measure, "_bounded_argv", lambda cwd, log, unit=None: ["pytest"])
     monkeypatch.setattr(measure.subprocess, "run", dispatch)
     return measure._time_suite_under_exclusion(Path(cwd), lambda _m: None, None)
 

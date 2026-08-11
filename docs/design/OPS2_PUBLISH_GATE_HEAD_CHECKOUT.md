@@ -294,6 +294,19 @@ criterion itself* is a ratio, and its denominator has now lost the race for the 
 > A live `aborted` field means the run ended for a *named* reason (usually another publisher
 > holding the reuse lock, which makes the warm phase not warm) — that one is worth re-launching
 > promptly, because it costs minutes rather than the full 50 and only needs a quieter window.
+>
+> **DO NOT RE-LAUNCH A PHASE THAT DIED AGAINST ITS OWN CEILING (2026-08-11).** Read the owed
+> phase's `hit_memory_ceiling` before spending 40 minutes on it. `complete: false` says a phase is
+> owed; it does not say the phase is *runnable*, and those came apart here. `in_tree_baseline` has
+> now been truncated three launches running (1302.4s, 1867.6s, 1425.1s), every one of them
+> relaunched on a record that said `hit_memory_ceiling: false` — a verdict keyed to `returncode
+> == -9` while the actual cgroup OOM under `systemd-run --scope` kills the fattest *child* and
+> leaves the parent on **-15**. The kernel had logged `constraint=CONSTRAINT_MEMCG,
+> oom_memcg=<that phase's own scope>` at the exact second of each death. The verdict is now taken
+> from the kernel journal (`_scope_oom_killed`), the phase banks the `scope_unit` and
+> `scope_oom_killed` it was derived from, and a `true` there means **re-launching changes
+> nothing** — the ceiling has to move, or the suite's peak has to, first. See
+> `docs/staging/WORKER_FINDING_THE_CEILING_KILL_WAS_BANKED_AS_A_SIGTERM_2026-08-11.md`.
 
 Both sides ran on the live box while the publisher's own cycles were running, so the absolute
 numbers carry that load; the ratio is what the criterion is about and both sides carry it alike.

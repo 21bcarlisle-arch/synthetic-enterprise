@@ -761,26 +761,115 @@ def _phase_scope_unit(cwd: Path) -> str:
     return "publish-gate-phase-{}-{}".format(os.getpid(), abs(hash(str(cwd))) % 100000)
 
 
-def _bounded_argv(cwd: Path, log) -> list:
+def _bounded_argv(cwd: Path, log, unit: str = None) -> list:
     """The phase's pytest argv, wrapped in its memory bound. Raises `_Unbounded` if it cannot be.
 
     An unreadable/absent `systemd-run` BLOCKS the phase rather than running it bare: an
     unavailable control is a failed control (R15), and here the control is the only thing
-    standing between a 12.9G suite and the publisher."""
+    standing between a 12.9G suite and the publisher.
+
+    `unit` is passed IN rather than minted here so the caller keeps the name it ran under and can
+    ask the kernel about that exact scope afterwards -- see `_scope_oom_killed`. Minting it
+    internally and discarding it is what left the verdict with nothing but a returncode to guess
+    from."""
     if shutil.which("systemd-run") is None:
         log("  ! systemd-run unavailable -- REFUSING to time an unbounded suite; the "
             "unbounded path is what global-OOM-killed this box three times")
         raise _Unbounded("systemd-run unavailable")
-    return _scope_argv(_phase_scope_unit(cwd)) + _argv_without_x()
+    return _scope_argv(unit or _phase_scope_unit(cwd)) + _argv_without_x()
 
 
-def _looks_like_the_bound(result_returncode: int, mem_available_after_mb) -> bool:
+# ── ASK THE KERNEL WHICH DEATH THIS WAS, RATHER THAN GUESSING FROM THE RETURNCODE (2026-08-11) ─
+#
+# THE DEFECT, READ OFF THE LIVE RECORD AND THE KERNEL LOG SIDE BY SIDE. `_looks_like_the_bound`
+# recognised a phase dying against its own ceiling by ONE syntactic form: `returncode == -9`. The
+# in-tree baseline of launch 14 died like this instead --
+#
+#   journalctl -k, 2026-08-11 22:57:36Z:
+#     oom-kill:constraint=CONSTRAINT_MEMCG ...
+#       oom_memcg=/user.slice/.../publish-gate-phase-318057-56440.scope,
+#       task_memcg=<the same scope>, task=python3, pid=412539
+#     Memory cgroup out of memory: Killed process 412539 (python3) anon-rss:6134368kB
+#
+# -- and banked `"returncode": -15, "hit_memory_ceiling": false`, with the basis sentence
+# *"observed: returncode -15 is not a SIGKILL, and this inference is only ever consulted on one"*.
+# The record denied, at the exact second the kernel logged it, the one event it exists to detect.
+#
+# WHY -15 AND NOT -9: under `systemd-run --scope` the cgroup OOM killer picks the FATTEST TASK IN
+# THE CGROUP, which here was a child (pid 412539 at 6.1G), not the top-level pytest this harness
+# waits on. systemd then tears the scope down, and the parent goes out on SIGTERM. So the shape
+# the discriminator was keyed to is the shape that only occurs when the kernel happens to choose
+# the process we happen to be timing -- and the shape it missed is the ordinary one.
+#
+# WHY IT IS NOT COSMETIC. This is the field that says WHY the phase is still owed, and three
+# launches read it. Labelled "not a memory kill, just a SIGTERM", the honest next move is to
+# relaunch -- so the baseline was relaunched, and truncated, three times running (1302.4s,
+# 1867.6s, 1425.1s), because the record kept reporting the one cause that would have stopped it
+# as absent. A verdict that cannot name its own failure mode buys an unbounded retry loop.
+#
+# THE ORACLE IS THE KERNEL AND IT IS INDEPENDENT (R15). `_looks_like_the_bound`'s own docstring
+# conceded the point -- *"the exact discriminator lives in the scope's `memory.events`, which is
+# torn down with the scope before we can read it"* -- and then inferred anyway from a returncode
+# this harness also produces. The kernel's log outlives the scope, names the cgroup exactly, and
+# is written by neither this tool nor the suite it times. So the phase's scope name is kept and
+# the kernel is asked about that name.
+#
+# FAIL-CLOSED WHERE IT CANNOT ANSWER: an unreadable journal returns None, not False, and None
+# falls back to the old inference while SAYING it is an inference. An unavailable check is a
+# failed check; it must not read as "no OOM happened".
+def _scope_oom_killed(unit: str, since: str = None):
+    """Did the kernel log a cgroup OOM kill inside THIS phase's scope? True/False, or None.
+
+    None means the question could not be put -- no unit name, no `journalctl`, or a journal that
+    would not be read. None is NOT "no": callers fall back to the returncode inference and label
+    the verdict `inferred` rather than `observed`.
+
+    Matched on `oom_memcg=` and not merely on the unit appearing somewhere in the line, so a
+    global OOM that happened to list this scope's tasks in its process table cannot be read as
+    this scope's own ceiling -- those are the two outcomes the whole field exists to tell apart."""
+    if not unit:
+        return None
+    if shutil.which("journalctl") is None:
+        return None
+    argv = ["journalctl", "-k", "--no-pager", "-o", "cat"]
+    if since:
+        argv += ["--since", since.replace("T", " ").rstrip("Z"), "--utc"]
+    try:
+        result = subprocess.run(argv, capture_output=True, text=True,
+                                errors="replace", timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    needle = "oom_memcg="
+    scope = "{}.scope".format(unit)
+    for line in result.stdout.splitlines():
+        if needle not in line:
+            continue
+        field = line.split(needle, 1)[1].split(",", 1)[0]
+        if field.endswith(scope):
+            return True
+    return False
+
+
+def _looks_like_the_bound(result_returncode: int, mem_available_after_mb,
+                          kernel_oom=None) -> bool:
     """Did this phase die against ITS OWN ceiling rather than the box's?
 
-    `inferred`, and labelled as such in the record. The exact discriminator lives in the scope's
-    `memory.events`, which is torn down with the scope before we can read it. What survives is
-    the pair the kernel log made legible: a cgroup kill leaves the BOX with memory (only the
-    phase was squeezed), a global OOM leaves it starved. Only ever consulted on a SIGKILL."""
+    `kernel_oom` is the INDEPENDENT oracle (`_scope_oom_killed`) and it decides outright when it
+    can answer: the kernel names the cgroup, it outlives the scope, and it is written by neither
+    this tool nor the suite. See the block above for the live record where the fallback below
+    denied a cgroup kill the kernel had logged the same second.
+
+    `kernel_oom is None` means the question could not be put, and only then does the old inference
+    run: a cgroup kill leaves the BOX with memory (only the phase was squeezed), a global OOM
+    leaves it starved. That fallback is `inferred`, is keyed to SIGKILL alone, and is therefore
+    BLIND to the ordinary shape where the kernel kills a fat child and systemd SIGTERMs the
+    parent -- which is why it is a fallback and no longer the rule."""
+    if kernel_oom is True:
+        return True
+    if kernel_oom is False:
+        return False
     if result_returncode != -9:
         return False
     if mem_available_after_mb is None:
@@ -833,8 +922,21 @@ def _ran_to_completion_basis(returncode, hit_memory_ceiling: bool) -> str:
             "under its own control and its seconds is a completed runtime".format(returncode))
 
 
-def _hit_memory_ceiling_basis(returncode, mem_available_after_mb, hit: bool) -> str:
-    """The evidence for THIS phase's `hit_memory_ceiling`, in its own terms."""
+def _hit_memory_ceiling_basis(returncode, mem_available_after_mb, hit: bool,
+                              kernel_oom=None) -> str:
+    """The evidence for THIS phase's `hit_memory_ceiling`, in its own terms.
+
+    The KERNEL-ANSWERED cases come first and are labelled `observed`, because they are: the log
+    line names this phase's own cgroup. Everything below them is the returncode fallback and stays
+    labelled `inferred`/`unavailable` as before."""
+    if kernel_oom is True:
+        return ("observed: the kernel logged a cgroup OOM kill whose oom_memcg is this phase's "
+                "own scope, so it died against its own {}MB ceiling -- returncode {} is what the "
+                "scope teardown left, not the discriminator".format(PHASE_MEMORY_MAX_MB,
+                                                                    returncode))
+    if kernel_oom is False:
+        return ("observed: the kernel logged no cgroup OOM against this phase's own scope, so "
+                "whatever returncode {} means, it is not this phase's ceiling".format(returncode))
     if hit:
         return ("inferred: SIGKILL with the box still holding {}MB, above the {}MB headroom "
                 "floor -- a cgroup kill of this phase, not a global OOM"
@@ -925,7 +1027,10 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     # 22:28Z launch was killed. Marked AND logged before the child starts, so the artefact and
     # the journal both say so even though neither gets another word afterwards.
     _mark_stage(heartbeat, "suite_running")
-    argv = _bounded_argv(cwd, log)
+    # Minted HERE and kept, not minted inside `_bounded_argv` and thrown away: it is the only
+    # handle on the cgroup the kernel will name if this phase dies against its ceiling.
+    scope_unit = _phase_scope_unit(cwd)
+    argv = _bounded_argv(cwd, log, scope_unit)
     log("  . suite starting in {} ({}MB available, capped at {}MB)"
         .format(cwd, mem_before, PHASE_MEMORY_MAX_MB))
     # ASKED OF THE SUBJECT, AND ASKED FIRST -- see the block above `_subject_sha`. This is the
@@ -942,7 +1047,12 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     _mark_stage(heartbeat, "suite_returned")
     tail = [ln for ln in result.stdout.strip().splitlines() if ln.strip()][-1:]
     mem_after = _mem_available_mb()
-    hit_bound = _looks_like_the_bound(result.returncode, mem_after)
+    # THE INDEPENDENT ORACLE, asked of this phase's own scope and bounded to this phase's own
+    # window. Only consulted on a signal death: a suite that returned and printed its summary was
+    # not killed by anything, and asking the journal about it would be inviting a false positive
+    # from some unrelated scope's OOM.
+    kernel_oom = _scope_oom_killed(scope_unit, started_at) if result.returncode < 0 else None
+    hit_bound = _looks_like_the_bound(result.returncode, mem_after, kernel_oom)
     if hit_bound:
         log("  ! phase exceeded its own {}MB ceiling and was killed inside its scope -- the box "
             "kept {}MB, so the publisher was never a candidate"
@@ -981,12 +1091,18 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         # INFERRED (see `_looks_like_the_bound`) -- a phase that hit its own bound is a phase
         # whose SECONDS mean nothing, so a reader must not average it into a ratio.
         "memory_max_mb": PHASE_MEMORY_MAX_MB,
+        # THE ORACLE'S OWN EVIDENCE, banked so the verdict beside it can be RE-DERIVED by a reader
+        # (and by the population control) instead of taken on trust. `scope_oom_killed` is
+        # tri-state: true/false are the kernel's answer, null is "the question could not be put",
+        # and null is what makes the `inferred` fallback legible rather than silent.
+        "scope_unit": scope_unit,
+        "scope_oom_killed": kernel_oom,
         "hit_memory_ceiling": hit_bound,
         # DERIVED FROM THIS PHASE, not a literal restating the field (see the block above the two
         # basis helpers): a fixed sentence beside a computed verdict describes one branch and
         # misdescribes the other, and both of these did.
         "hit_memory_ceiling_basis": _hit_memory_ceiling_basis(
-            result.returncode, mem_after, hit_bound),
+            result.returncode, mem_after, hit_bound, kernel_oom),
         # Stated because the number carries it and a future reader re-deriving
         # GATE_SUITE_TIMEOUT_SECONDS "from the measured runtime" would not otherwise know: this
         # is a run of a STRICTLY LARGER suite than the gate performs, because `-x` is stripped

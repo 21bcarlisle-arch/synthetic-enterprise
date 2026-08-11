@@ -1,9 +1,9 @@
 {
-  "head_sha_at_launch": "a6f4a5bb1715b42a01a3f927189b0557f383ae14",
-  "pid": 43239,
+  "head_sha_at_launch": "88f85184693ee55a58a4d82654ec253d0d3c8ab7",
+  "pid": 318057,
   "is_session_leader": true,
   "launched_by": "systemd",
-  "started_at": "2026-08-11T14:29:46Z",
+  "started_at": "2026-08-11T20:29:36Z",
   "phases": {
     "cold_checkout": {
       "cwd": "/tmp/publish-gate-head-reused",
@@ -16,16 +16,16 @@
       "box_was_quiet": true
     },
     "throwaway_checkout": {
-      "cwd": "/var/tmp/publish-gate-head-s9eknacc",
-      "head_sha_at_run": "fa03a823f3fb70759b2b736eade4f5376d38cbad",
-      "seconds": 1784.6,
+      "cwd": "/var/tmp/publish-gate-head-qey8309l",
+      "head_sha_at_run": "a322429d15f703e6d230379c360e3204981e7f05",
+      "seconds": 1873.7,
       "returncode": 1,
-      "summary": "4 failed, 23831 passed, 5 skipped, 1121 deselected, 14 xfailed, 132 warnings, 4 subtests passed in 1771.69s (0:29:31)",
+      "summary": "5 failed, 23927 passed, 5 skipped, 1121 deselected, 14 xfailed, 132 warnings, 4 subtests passed in 1861.88s (0:31:01)",
       "loadavg_before": 1.04,
-      "loadavg_after": 2.78,
+      "loadavg_after": 3.22,
       "box_was_quiet": true,
-      "mem_available_before_mb": 13557,
-      "mem_available_after_mb": 10191,
+      "mem_available_before_mb": 12934,
+      "mem_available_after_mb": 8907,
       "had_memory_headroom": true,
       "memory_max_mb": 8192,
       "hit_memory_ceiling": false,
@@ -37,43 +37,43 @@
     },
     "in_tree_baseline": {
       "cwd": "/home/rich/synthetic-enterprise",
-      "head_sha_at_run": "42bd81c9890cbcb4bfbf6a77792ea18a82aaefde",
-      "seconds": 1867.6,
+      "head_sha_at_run": "0bf88bf8685f4c8465ba884a9f7766dfd4b30a07",
+      "seconds": 1425.1,
       "returncode": -15,
-      "summary": ".....................",
-      "loadavg_before": 2.78,
-      "loadavg_after": 1.72,
+      "summary": "............................................................",
+      "loadavg_before": 3.22,
+      "loadavg_after": 2.77,
       "box_was_quiet": true,
-      "mem_available_before_mb": 10204,
-      "mem_available_after_mb": 10403,
+      "mem_available_before_mb": 8922,
+      "mem_available_after_mb": 11604,
       "had_memory_headroom": true,
       "memory_max_mb": 8192,
-      "hit_memory_ceiling": false,
-      "hit_memory_ceiling_basis": "observed: returncode -15 is not a SIGKILL, and this inference is only ever consulted on one",
+      "hit_memory_ceiling": true,
+      "hit_memory_ceiling_basis": "observed: the kernel logged a cgroup OOM kill whose oom_memcg is this phase's own scope, so it died against its own 8192MB ceiling -- returncode -15 is what the scope teardown left, not the discriminator",
       "subject_larger_than_the_gates": true,
       "subject_note": "-x stripped for comparability; the gate stops at the first failure of a red suite and this does not",
       "ran_to_completion": false,
-      "ran_to_completion_basis": "observed: returncode -15 is death by signal, so the suite never reported and its seconds is a lower bound on the runtime it was heading for"
+      "ran_to_completion_basis": "inferred: this phase was killed against its own 8192MB ceiling, so it never reported and its seconds is a lower bound on the runtime it was heading for",
+      "scope_unit": "publish-gate-phase-318057-56440",
+      "scope_oom_killed": true,
+      "verdict_corrected": "2026-08-11: hit_memory_ceiling was banked FALSE by a discriminator keyed to returncode -9. Re-derived here from the kernel journal, which logged CONSTRAINT_MEMCG oom_memcg=<this phase's own scope> at 22:57:36Z, the second this phase ended. Re-derived, NOT re-measured: seconds and returncode are the original run's."
     }
   },
   "deferral_count": 2,
   "resumed_phases": [
     "cold_checkout"
   ],
-  "dropped_for_comparability": [
-    "in_tree_baseline",
-    "throwaway_checkout"
-  ],
+  "dropped_for_comparability": [],
   "phases_from_an_earlier_head": [
     "cold_checkout"
   ],
   "previous_launch_died_in_flight": {
-    "phase": "in_tree_baseline",
+    "phase": "throwaway_checkout",
     "stage": "waiting_for_publisher_lock",
-    "since": "2026-08-11T14:27:32Z",
-    "pid": 42319,
-    "mem_available_mb": 11071,
-    "stage_since": "2026-08-11T14:27:32Z"
+    "since": "2026-08-11T20:23:04Z",
+    "pid": 315436,
+    "mem_available_mb": 9400,
+    "stage_since": "2026-08-11T20:29:34Z"
   },
   "phases_missing": [
     "in_tree_baseline"
@@ -82,7 +82,7 @@
   "phases_from_a_retired_configuration": [
     "cold_checkout"
   ],
-  "last_heartbeat": "2026-08-11T14:43:16Z",
+  "last_heartbeat": "2026-08-11T21:02:06Z",
   "ratio_throwaway_over_in_tree": null,
   "ratio_unavailable_because": "these phases did not run to completion, so their seconds is a lower bound and cannot be a ratio term: in_tree_baseline",
   "ratio_measures": "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.",
@@ -91,8 +91,8 @@
     "superseded_by": "444402ee0 -- reuse eliminated under R3 after it reset a shared checkout under four live suites",
     "why_not_gradeable": "warm bytecode is unavailable to this atom at any price, so the 1.3x question has no measurable subject"
   },
-  "worst_legitimate_seconds": 1867.6,
-  "worst_legitimate_phase": "in_tree_baseline",
-  "worst_is_a_lower_bound": true,
-  "implied_timeout_floor_2x": 3735
+  "worst_legitimate_seconds": 1873.7,
+  "worst_legitimate_phase": "throwaway_checkout",
+  "worst_is_a_lower_bound": false,
+  "implied_timeout_floor_2x": 3747
 }
