@@ -5,6 +5,8 @@ map_records:
   - docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md
   - background/process_run_complete.py
   - tools/measure_publish_gate_subject_cost.py
+  - tests/background/test_publish_gate_subject_is_head.py
+  - docs/staging/WORKER_FINDING_THE_INSTRUMENT_STILL_REQUIRES_THE_DIRECTORY_THAT_WAS_ELIMINATED_2026-08-11.md
 build_note: |
   2026-08-11. Criterion 1 is NOT met and the level does not move: `in_tree_baseline` has
   never been timed, so there is no ratio. What landed this tick is the INSTRUMENT, which was
@@ -89,3 +91,60 @@ build_note: |
   `resource.getrusage(RUSAGE_CHILDREN).ru_maxrss` around the phase's `subprocess.run` is the
   cheap exact way to get one, and it survives the scope teardown that hides `memory.peak`. Not
   built. Parked in docs/staging/in_progress/ with that as its named blocking sub-item.
+
+  2026-08-11, third tick. EXIT CRITERION 1 IS SUPERSEDED, NOT MET, AND IT CANNOT NOW BE MET.
+  The criterion asked for "a REUSED checkout so __pycache__ survives between cycles, within 1.3x
+  the in-tree baseline". Reuse was ELIMINATED this morning under R3 (444402ee0): the shared
+  directory was reset under a live suite four separate times -- 18:25Z, 20:18Z, 20:47Z (twice
+  AFTER the 19:08Z fix) and 08:10Z -- each producing a red that said nothing about any test, and
+  the last left publishing down 41 hours and 216 markers. `REUSE_HEAD_CHECKOUT` ships False.
+  Warm bytecode is not available to this atom at any price it may pay, so the criterion is
+  recorded as superseded rather than carried as a permanent debt. Its honest successor is the
+  RATIO IN THE OTHER DIRECTION -- what the cold subject costs per cycle -- which is still owed.
+
+  WHAT THIS TICK FOUND AND FIXED, and it was live: the elimination flipped the mechanism and left
+  this atom's OWN R15 module pinning the mechanism it removed. Five tests red at HEAD inside the
+  gate's `-x` scope -- `test_the_gate_runs_with_its_cwd_inside_the_checkout`,
+  `..._is_reused_and_keeps_its_bytecode`, `..._second_publisher_never_shares...`,
+  `..._corrupt_reused_checkout_is_rebuilt...`, `..._occupied_reused_checkout_is_not_refreshed...`
+  -- so the commit that unwedged publishing re-wedged it one file over, on the first failure `-x`
+  reached. That is the class worth keeping: AN ELIMINATION MUST MOVE THE CONTROLS THAT PIN THE
+  ELIMINATED MECHANISM, in the same commit; a switch flipped alone reds the gate at the one place
+  that was watching hardest.
+
+  THE REPAIR IS A SPLIT, NOT A DELETION. The reuse code survives behind a documented one-line
+  switch, so deleting its tests would make re-enabling a rediscovery of four incidents. The module
+  is now two halves: the SHIPPED lifecycle (`test_the_shipped_default_gives_every_cycle_its_own_
+  checkout` -- own directory per cycle, gone at cycle end, next cycle differs, and the log names
+  R3 as the reason it is cold) and the DORMANT one, reached through a `reuse_enabled` fixture.
+  The two halves' first tests are EACH OTHER'S MUTATION on the single line that decides it.
+  `test_the_gate_runs_with_its_cwd_inside_the_checkout` now asserts the checkout ROOT and PREFIX
+  rather than one directory name -- it red on a lifecycle change while the property it exists for
+  (the gate does not run in the shared tree) still held, which is a control graded on the wrong
+  subject.
+
+  R15 BOTH WAYS, MUTATIONS RUN, source restored byte-identical (`git diff` empty after each):
+  (a) `REUSE_HEAD_CHECKOUT = True` -> the shipped-default test reds, 34 others pass, i.e. the
+  dormant tests really do exercise the reuse path; (b) the same mutation with the test's
+  `assert prc.REUSE_HEAD_CHECKOUT is False` guard DELETED -> it still reds, on the behavioural
+  assertion (`'publish-gate-head-reused' != 'publish-gate-head-reused'`). (b) is the one that
+  matters: without it the control would be a constant echoing itself.
+  35 passed in tests/background/test_publish_gate_subject_is_head.py; 158 passed across the whole
+  publish-gate family (subject_is_head, scope, disk_preflight, publish_scope, head_checkout_is_a
+  _repo, measure_publish_gate_subject_cost).
+
+  LEVEL DOES NOT MOVE, and the blocker is now named rather than open-ended. Criteria 2-5 are
+  landed (2600s clears the measured floor of 2583s; the stale-checkout sweep and its both-ways
+  test; this module; LAST_TESTED_HASH_CONTRACT stated once and asserted). Criterion 2's EVIDENCE,
+  however, can no longer be refreshed: `tools/measure_publish_gate_subject_cost.py` aborts both
+  checkout phases unless `_head_checkout()` returns the reused NAME, which it never will again --
+  and it aborts with the pre-written cause "another publisher held the reuse lock", which is
+  false. Worse, the 1291.9s the 2600s bound rests on was measured with `cwd:
+  /tmp/publish-gate-head-reused` and the record's own `warm_cache_established_by` says the
+  bytecode came from outside that run: the shipped subject is colder than the number, and 2600s
+  has 17s of slack over the floor it implies. Filed, not fixed:
+  docs/staging/WORKER_FINDING_THE_INSTRUMENT_STILL_REQUIRES_THE_DIRECTORY_THAT_WAS_ELIMINATED
+  _2026-08-11.md. Recommendation stated there: collapse the phase set to `throwaway_checkout` vs
+  `in_tree_baseline` so the surviving ratio measures the tax the elimination made permanent --
+  that measurement closes restated-criterion-1 and re-derives criterion 2 in one pass, and it is
+  the last thing between this atom and level 2.

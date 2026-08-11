@@ -1,4 +1,4 @@
-"""The publish gate's SUBJECT is committed truth, and its checkout is reused safely.
+"""The publish gate's SUBJECT is committed truth, in a checkout no other cycle can touch.
 
 WHY THIS MODULE EXISTS. `DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09` moved the gate's
 subject from the shared working tree to a clean checkout of HEAD: *"publishing tests committed
@@ -11,6 +11,15 @@ pointed back at the tree (red), so the green is demonstrably produced by the che
 `OPS2_publish_gate_head_worktree` then made the checkout REUSED between cycles (bytecode is the
 whole cost of a clean subject) and that introduced three lifecycle hazards -- two publishers,
 test debris, and crash leakage -- each of which is a control here rather than a comment.
+
+REUSE WAS THEN ELIMINATED (2026-08-11, R3, 444402ee0): the shared directory was reset under a
+live suite four separate times, each time producing a red that said nothing about any test, and
+the last of them left publishing down 41 hours. `REUSE_HEAD_CHECKOUT` ships `False`; every cycle
+gets its own throwaway checkout and deletes it. The reuse code was kept behind that one-line
+switch, so this module is in two halves: the SHIPPED lifecycle, asserted as it runs, and the
+DORMANT one, exercised through the `reuse_enabled` fixture so that flipping the switch back
+cannot quietly reintroduce hazards nobody is watching for. The two halves' first tests are each
+other's mutation on that one line.
 
 HOW IT AVOIDS TESTING ITSELF INTO A CORNER. Every behavioural test runs against a REAL git repo
 built in `tmp_path` with `prc.PROJECT_DIR` pointed at it, never against this repository: writing
@@ -45,6 +54,25 @@ def logged(monkeypatch):
     lines = []
     monkeypatch.setattr(prc, "log", lines.append)
     return lines
+
+
+@pytest.fixture
+def reuse_enabled(monkeypatch):
+    """Turn the DORMANT reused-checkout path back on for one test.
+
+    `REUSE_HEAD_CHECKOUT` shipped `False` on 2026-08-11 (R3 elimination, 444402ee0): the shared
+    directory was reset under a live suite four times and produced four reds that said nothing
+    about any test. The path behind the switch was NOT deleted -- the commit's own record says it
+    is reversible in one line, once the grandchild-outlives-the-lock case is closed by
+    construction -- so its hazards (two publishers, an orphaned suite, a corrupt directory, test
+    debris across cycles) stay pinned here rather than becoming rediscoveries on the day someone
+    flips it back.
+
+    What this fixture must never do is stand in for the shipped behaviour. The switch being OFF
+    is asserted by `test_the_shipped_default_gives_every_cycle_its_own_checkout`, which is the
+    same scenario as `test_the_checkout_is_reused_and_keeps_its_bytecode` with the flag the other
+    way round -- so the two tests are each other's mutation, on the one line that decides it."""
+    monkeypatch.setattr(prc, "REUSE_HEAD_CHECKOUT", True)
 
 
 def _project_dir_paths_this_module_writes(module=None):
@@ -193,7 +221,12 @@ def test_the_gate_runs_with_its_cwd_inside_the_checkout(sandbox, monkeypatch):
     """Directly: the process the gate spawns has the CHECKOUT as its cwd, not PROJECT_DIR.
 
     Asserted on the child's own `os.getcwd()` rather than on the argv we passed, so a future
-    refactor that quietly loses the `cwd=` keyword cannot pass this."""
+    refactor that quietly loses the `cwd=` keyword cannot pass this.
+
+    Asserted on the checkout ROOT and PREFIX rather than on one directory name: which checkout
+    the cycle gets is a lifecycle choice that has already changed once (the reused directory was
+    eliminated on 2026-08-11), and pinning the name here made this test red on that change while
+    the property it exists for -- the gate does not run in the shared tree -- still held."""
     where = sandbox.parent / "where.txt"
     monkeypatch.setattr(
         prc, "publish_gate_pytest_argv",
@@ -205,7 +238,10 @@ def test_the_gate_runs_with_its_cwd_inside_the_checkout(sandbox, monkeypatch):
 
     ran_in = Path(where.read_text())
     assert ran_in != sandbox, "the gate ran in the shared tree"
-    assert ran_in.resolve() == (prc.HEAD_CHECKOUT_ROOT / prc.REUSED_HEAD_CHECKOUT_NAME).resolve()
+    assert ran_in.resolve().parent == prc.HEAD_CHECKOUT_ROOT.resolve(), (
+        "the gate's cwd is not a checkout this module's own root owns"
+    )
+    assert ran_in.name.startswith(prc.HEAD_CHECKOUT_PREFIX)
 
 
 # ── UNAVAILABLE MEANS BLOCKED ────────────────────────────────────────────────
@@ -427,13 +463,65 @@ def test_a_record_that_cannot_answer_yields_no_floor(tmp_path, record):
     assert prc.measured_gate_timeout_floor(path) is None
 
 
-# ── THE REUSED CHECKOUT'S LIFECYCLE ──────────────────────────────────────────
+# ── THE SHIPPED LIFECYCLE: ONE THROWAWAY CHECKOUT PER CYCLE ──────────────────
+#
+# The atom minted exit criterion 1 as "a REUSED checkout so __pycache__ survives between
+# cycles". That criterion is SUPERSEDED, not met: reuse was eliminated on 2026-08-11 under R3
+# after the shared directory produced a fourth false red and left publishing down 41 hours. The
+# cost of the elimination is cold bytecode every cycle; what it bought is a gate that can pass
+# at all. The atom record carries the supersession and the residual (the per-cycle tax is still
+# real and still unmeasured against an in-tree baseline).
 
-def test_the_checkout_is_reused_and_keeps_its_bytecode(sandbox):
-    """Exit criterion 1's MECHANISM. The runtime it buys is measured in the atom record, not
-    asserted here -- a wall-clock assertion on a shared box is a flake, and R12 says a measured
-    number is a diagnostic, not a target. What must hold every cycle is this: the same directory
-    comes back, and `__pycache__` survives into it."""
+def test_the_shipped_default_gives_every_cycle_its_own_checkout(sandbox, logged):
+    """THE R3 ELIMINATION, as a property of the shipped default rather than as a comment.
+
+    Every cycle gets a directory nothing else has touched, and it does not outlive the cycle. No
+    lock, no liveness heuristic, no occupancy guard stands between two publishers -- they cannot
+    reach the same directory, which is the only form of that guarantee that survived four
+    attempts to make sharing safe.
+
+    MUTATION (R15), and it is one line: `test_the_checkout_is_reused_and_keeps_its_bytecode`
+    below is this exact scenario with `REUSE_HEAD_CHECKOUT = True`, and there the directory both
+    persists and comes back. Each test reds if the switch is flipped under it."""
+    assert prc.REUSE_HEAD_CHECKOUT is False, (
+        "the reused checkout is live again -- re-read the R3 record in `_head_checkout` first: "
+        "re-enabling is only legitimate once a killed publisher's suite dies with it"
+    )
+
+    with prc._head_checkout() as first:
+        assert first is not None
+        assert first.name != prc.REUSED_HEAD_CHECKOUT_NAME, (
+            "the cycle took the shared directory -- the four false reds are reachable again"
+        )
+        (first / "debris.txt").write_text("written by this cycle's suite")
+
+    assert not first.exists(), (
+        "a throwaway checkout outlived its cycle -- 130MB per publish, and the sweep is the "
+        "only thing left holding the tmpfs open"
+    )
+
+    with prc._head_checkout() as second:
+        assert second is not None
+        assert second != first, "the next cycle was handed the previous cycle's directory"
+        assert not (second / "debris.txt").exists()
+        assert _git(["rev-parse", "HEAD"], second).stdout.strip() == _sha(sandbox)
+
+    assert any("R3 elimination" in line for line in logged), (
+        "R5 -- the log must name WHY the gate is paying for a cold checkout, or the next reader "
+        "diagnoses the cost as a regression and re-enables the thing that caused the outage"
+    )
+
+
+# ── THE DORMANT REUSE PATH (behind the one-line switch) ──────────────────────
+
+def test_the_checkout_is_reused_and_keeps_its_bytecode(sandbox, reuse_enabled):
+    """The reuse MECHANISM, exercised behind `reuse_enabled` because it no longer ships on.
+
+    Doubles as the mutation partner of the test above: same scenario, switch the other way. The
+    runtime reuse buys is measured in the atom record, not asserted here -- a wall-clock
+    assertion on a shared box is a flake, and R12 says a measured number is a diagnostic, not a
+    target. What holds while the switch is on is this: the same directory comes back, and
+    `__pycache__` survives into it."""
     with prc._head_checkout() as first:
         assert first is not None
         pyc = first / "pkg" / "__pycache__" / "thing.cpython-x.pyc"
@@ -451,7 +539,7 @@ def test_the_checkout_is_reused_and_keeps_its_bytecode(sandbox):
             "hermetic and cycle N can judge cycle N+1")
 
 
-def test_the_refresh_follows_head_when_it_moves(sandbox):
+def test_the_refresh_follows_head_when_it_moves(sandbox, reuse_enabled):
     """A reused directory that kept judging yesterday's commit would be worse than a fresh one:
     it would pass a SHA nobody asked about while reporting the new one."""
     with prc._head_checkout() as first:
@@ -468,7 +556,7 @@ def test_the_refresh_follows_head_when_it_moves(sandbox):
         assert _git(["rev-parse", "HEAD"], second).stdout.strip() == _sha(sandbox)
 
 
-def test_a_second_publisher_never_shares_the_reused_checkout(sandbox, logged):
+def test_a_second_publisher_never_shares_the_reused_checkout(sandbox, logged, reuse_enabled):
     """Two publishers refreshing one directory would corrupt each other's run: `read-tree
     --reset` under a live suite deletes and rewrites the files it is executing. The lock is
     non-blocking, so the second publisher gets a correct (cold) throwaway rather than a wait."""
@@ -630,7 +718,7 @@ def test_the_checkout_sweep_alone_could_not_reclaim_what_wedged_it(sandbox):
         "process deleting directories it does not own")
 
 
-def test_a_corrupt_reused_checkout_is_rebuilt_rather_than_trusted(sandbox):
+def test_a_corrupt_reused_checkout_is_rebuilt_rather_than_trusted(sandbox, reuse_enabled):
     """The directory is state that outlives the process, so it can be found in any condition --
     truncated by a full disk, left by an older layout, borrowing an object store that has since
     moved. Unusable must mean REBUILD, never 'run the gate in it and see'."""
@@ -721,7 +809,7 @@ def test_the_caller_standing_in_the_checkout_is_itself_an_occupant(tmp_path, mon
 
 
 def test_an_occupied_reused_checkout_is_not_refreshed_under_its_orphan(
-        sandbox, logged, monkeypatch):
+        sandbox, logged, monkeypatch, reuse_enabled):
     """The wiring, not just the predicate. With the lock genuinely FREE but the directory
     occupied, the cycle must take the throwaway branch and leave the occupant's tree alone.
 
