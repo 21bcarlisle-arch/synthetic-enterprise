@@ -5174,3 +5174,245 @@ def test_the_recon_saturation_caveat_travels_with_both_numbers():
         "PAYMENT_TERMS_DAYS", "DEFAULT_RECONCILIATION_GRACE_DAYS"}
     assert "-19d and no further" in lat.components[
         "organ_query_saturation_caveat"]
+
+
+# ---------------------------------------------------------------------------
+# PUBLISHED_FIGURE_CAVEAT_CONTRACT -- atom D32, H27 Expert Hour #14.
+#
+# D31's route proved every counterfactual knob is SWEPT on a book-derived grid
+# and reaches the one saturation rule. Nobody had asked whether the resolution
+# those sweeps measure ever reaches the READER of the number. It did not, twice
+# over, in the same dimension: the recon caveat stamped on `detection_latency`
+# reported the step of `mean_lag_days_without_dd_channel` (the DD-deleted
+# SUB-READING the register names in `headline_key`, 1.0/day) as what "is
+# published", while the published `mean_lag_days` moves about a third of that;
+# and the TERMS knob, declared on-path since D28, was stamped on nothing.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def caveat_coverage():
+    """One sweep of all three knobs across all five published dimensions, on
+    the seeds every other resolution control in this module uses."""
+    return pair.measure_published_figure_caveat_coverage(n_customers=_RES_N)
+
+
+def test_the_caveat_coverage_register_is_measured_not_asserted(caveat_coverage):
+    """Green means every cell's declaration is the reach the code HAS -- not
+    that every dimension is covered. The keyset is derived both ways."""
+    assert pair.check_published_figure_caveat_coverage(caveat_coverage) == []
+    assert set(caveat_coverage) == set(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    # DERIVED from what `score_triad` publishes, not from the register -- the
+    # keying that let this class escape six registers before it.
+    records, consumer, _b, as_of = pair.build_scenario(60, seed=7)
+    assert set(caveat_coverage) == set(
+        pair.published_dimensions(pair.score_triad(records, consumer, as_of)))
+    for dim, row in pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT.items():
+        assert set(row) == set(pair.counterfactual_knobs()), dim
+
+
+def test_seven_of_fifteen_cells_move_and_each_carries_a_caveat(caveat_coverage):
+    """THE MEASUREMENT (atom D32). Three knobs x five published dimensions;
+    seven cells move. The nine inert ones are MEASURED inert -- an unmeasured
+    cell reads exactly like an inert one, which is the whole finding."""
+    moving = {(d, k) for d in caveat_coverage
+              for k in pair.counterfactual_knobs()
+              if caveat_coverage[d][k]["moves"]}
+    assert moving == {
+        ("detection", "organ_terms_drift_days"),
+        ("detection", "organ_reconciliation_drift_days"),
+        ("detection_latency", "organ_terms_drift_days"),
+        ("detection_latency", "organ_reconciliation_drift_days"),
+        ("ageing", "organ_terms_drift_days"),
+        ("belief", "organ_failure_window_drift_days"),
+        ("belief_population_mix", "organ_failure_window_drift_days"),
+    }
+    for dim, knob in moving:
+        assert pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT[dim][knob][
+            "caveat_component"]
+
+
+def test_the_published_headline_moves_a_third_of_the_sub_readings_step(
+        caveat_coverage):
+    """THE FINDING, measured not asserted. `ORGAN_QUERY_GRID` declares the
+    recon reading resolves the company day for day, and that is TRUE of
+    `mean_lag_days_without_dd_channel`, the reading it names. It is not true of
+    the published figure, and the caveat said it was."""
+    row = caveat_coverage["detection_latency"]["organ_reconciliation_drift_days"]
+    declared = pair.ORGAN_QUERY_GRID["recon_lag_days"][
+        "reported_days_for_a_one_day_drift"]
+    assert declared == 1.0
+    assert pair.ORGAN_QUERY_GRID["recon_lag_days"]["headline_key"] == \
+        "mean_lag_days_without_dd_channel"
+    # The published headline is a DIFFERENT number, on every seed, and always
+    # far below the sub-reading's step.
+    for seed, step in row["step_days"].items():
+        assert 0.2 < step < 0.4, (seed, step)
+        assert declared - step > 0.5
+
+    # ...and the SUB-READING really does move 1.0/day, which is what makes the
+    # register honest about itself and the caveat wrong about the headline.
+    records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=7)
+    base = pair.score_triad(records, consumer, as_of)["detection_latency"]
+    up = pair.score_triad(records, consumer, as_of,
+                          organ_reconciliation_drift_days=1)["detection_latency"]
+    assert (up.components["mean_lag_days_without_dd_channel"]
+            - base.components["mean_lag_days_without_dd_channel"]) == 1.0
+
+
+def test_the_published_step_is_predicted_from_the_book_not_the_sweep(
+        caveat_coverage):
+    """The number stamped beside the sentence reads no sweep, no seed and no
+    re-scoring -- it is this book's own coverage witnesses (the D25/D30
+    population-side-predictor pattern) -- and it AGREES with the sweep."""
+    names = pair._names_in(pair.predict_published_latency_step_days)
+    for forbidden in ("score_triad", "build_scenario", "ORGAN_QUERY_GRID",
+                      "PUBLISHED_FIGURE_CAVEAT_CONTRACT"):
+        assert forbidden not in names, forbidden
+    row = caveat_coverage["detection_latency"]["organ_reconciliation_drift_days"]
+    for seed, step in row["step_days"].items():
+        records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=seed)
+        c = pair.score_triad(records, consumer, as_of)[
+            "detection_latency"].components
+        assert abs(c["published_headline_step_days"] - step) < pair._ROUNDING_SLACK
+    # An empty latency population has NO step -- a 0.0 there would read as
+    # "the headline is inert", the strongest claim handed out for free.
+    assert pair.predict_published_latency_step_days(0, 0) is None
+
+
+def test_the_caveat_states_the_published_figures_own_step(caveat_coverage):
+    """R11-shaped: the sentence a consumer RENDERS must carry this figure's
+    number, not the sub-reading's. Both are present and each says which it
+    is."""
+    records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=7)
+    c = pair.score_triad(records, consumer, as_of)[
+        "detection_latency"].components
+    caveat = c["organ_query_grid_caveat"]
+    assert "mean_lag_days_without_dd_channel" in caveat
+    assert "NOT OF THE FIGURE THIS CAVEAT IS STAMPED ON" in caveat
+    assert f"{c['published_headline_step_days']:.6f}" in caveat
+    # ...and the TERMS knob, which moves this figure identically and reached
+    # the reader nowhere before this atom.
+    terms = c["terms_resolution_caveat"]
+    assert "organ_terms_drift_days" in terms
+    assert "does not attribute" in terms
+
+
+def test_the_two_knobs_are_indistinguishable_in_the_latency_headline():
+    """WHY THE MISSING TERMS CAVEAT MATTERS. A supplier holding terms k days
+    long and one whose detector fires k days late publish a BIT-IDENTICAL
+    latency figure, so a reader given only the recon caveat attributes the
+    whole reading to a detector fault it may have no part in."""
+    records, consumer, _b, as_of = pair.build_scenario(_RES_N, seed=7)
+    for k in (-3, -1, 1, 3, 5):
+        recon = pair.score_triad(records, consumer, as_of,
+                                 organ_reconciliation_drift_days=k)
+        terms = pair.score_triad(records, consumer, as_of,
+                                 organ_terms_drift_days=k)
+        assert recon["detection_latency"].gap == terms["detection_latency"].gap, k
+
+
+# --- R15: the control fires on each defect it names ------------------------
+
+
+def test_the_pre_hour_step_fires_the_control(caveat_coverage):
+    """THE DEFECT ITSELF, put back: publish the SUB-READING's 1.0 as this
+    figure's step. This is the state every ledger note and Proof-door reading
+    carried until 2026-08-11, and it must not pass."""
+    rendered = copy.deepcopy(caveat_coverage["detection_latency"]["_rendered"])
+    for seed in rendered:
+        rendered[seed]["published_headline_step_days"] = 1.0
+    view = {d: dict(caveat_coverage[d].get("_rendered", {}))
+            for d in caveat_coverage}
+    view["detection_latency"] = rendered
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, rendered=view)
+    assert any("publishes step 1.0 while the PUBLISHED headline" in v
+               for v in violations), violations
+
+
+def test_a_moving_cell_with_no_caveat_fires_the_control(caveat_coverage):
+    """THE OTHER PRE-HOUR STATE: `detection_latency` moved under the terms
+    knob, was declared on-path in `DIMENSION_DRIFT_RESOLUTION`, and carried no
+    terms caveat at all."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["detection_latency"]["organ_terms_drift_days"]["caveat_component"]
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg)
+    assert any("names no caveat component" in v for v in violations), violations
+
+
+def test_a_caveat_the_consumer_never_renders_fires_the_control(caveat_coverage):
+    """Naming a component is not stamping one -- Hour #11's `a lead is not a
+    control`, in the shape this register could itself have taken. The subject
+    is what `score_triad` publishes, never the register's own word."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    reg["detection_latency"]["organ_terms_drift_days"]["caveat_component"] = \
+        "a_caveat_nobody_publishes"
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg)
+    assert any("publishes no such key" in v for v in violations), violations
+
+
+def test_declaring_a_moving_cell_inert_fires_the_control(caveat_coverage):
+    """A cell declared inert is a CLAIM, measured every run. This is the
+    fail-open the nine inert cells would otherwise be."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    reg["ageing"]["organ_terms_drift_days"] = {"moves": False}
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg)
+    assert any("declared moves=False but MEASURED moves=True" in v
+               for v in violations), violations
+
+
+def test_declaring_an_inert_cell_moving_fires_the_control(caveat_coverage):
+    """...and the other direction, or the register could buy coverage by
+    declaring everything moves."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    reg["ageing"]["organ_reconciliation_drift_days"] = {
+        "moves": True, "caveat_component": "drift_resolution_caveat"}
+    violations = pair.check_published_figure_caveat_coverage(
+        caveat_coverage, register=reg)
+    assert any("declared moves=True but MEASURED moves=False" in v
+               for v in violations), violations
+
+
+def test_an_undeclared_cell_raises_rather_than_passing(caveat_coverage):
+    """THE FAIL-CLOSED (the D29/D31 rule, one layer up). A cell nobody declared
+    is not an inert one -- it is an unasked one, and it reads identically to a
+    clean cell, which is exactly how this class survived thirteen Hours."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["detection_latency"]["organ_terms_drift_days"]
+    with pytest.raises(AssertionError, match="no caveat-coverage declaration"):
+        pair.check_published_figure_caveat_coverage(caveat_coverage, register=reg)
+
+
+def test_a_dimension_with_no_entry_raises(caveat_coverage):
+    """Both keyset directions raise: a published dimension nothing asks about,
+    and an entry for a dimension nobody publishes."""
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    del reg["ageing"]
+    with pytest.raises(AssertionError, match="no PUBLISHED_FIGURE_CAVEAT"):
+        pair.check_published_figure_caveat_coverage(caveat_coverage, register=reg)
+    reg = copy.deepcopy(pair.PUBLISHED_FIGURE_CAVEAT_CONTRACT)
+    reg["a_dimension_nobody_publishes"] = {
+        k: {"moves": False} for k in pair.counterfactual_knobs()}
+    with pytest.raises(AssertionError, match="nobody\\s+publishes"):
+        pair.check_published_figure_caveat_coverage(caveat_coverage, register=reg)
+
+
+def test_an_inert_probe_cannot_certify_its_column(caveat_coverage):
+    """THE VACUITY GUARD on the probe itself. A knob that had silently stopped
+    drifting the company would certify every `moves: False` cell in its column
+    for free -- the fail-silent shape this instrument has now produced six
+    times, most recently inside a control written to close the previous one."""
+    probes = dict(pair.CAVEAT_COVERAGE_PROBES)
+    # A memory drift of +1 is inside the saturated band D29/D30 measured, so
+    # the knob is real and the PROBE is inert -- which is the situation the
+    # guard exists for, not a broken parameter.
+    probes["organ_failure_window_drift_days"] = (1,)
+    measured = pair.measure_published_figure_caveat_coverage(
+        n_customers=60, seeds=(7,), probes=probes)
+    violations = pair.check_published_figure_caveat_coverage(measured)
+    assert any("the probe moved NOTHING on any published dimension" in v
+               for v in violations), violations

@@ -705,13 +705,35 @@ def detection_latency_gap(
         # every run, and `organ_improvement_is_visible` is READ FROM the
         # register rather than typed, so a reshape that lost the property again
         # could not leave this claim standing.
-        "organ_query_grid_caveat": organ_query_grid_caveat(),
+        # ...AND IN THIS FIGURE'S OWN UNITS, NOT THE SUB-READING'S (atom D32,
+        # Expert Hour #14). The register measures
+        # `mean_lag_days_without_dd_channel` and resolves it day for day; this
+        # headline is `mean_lag_days` and moves about a THIRD of that, because
+        # a case the DD channel saw first does not move when the reconciliation
+        # detector does. The caveat used to report the 1.0 as what "is
+        # published", so a reader converting a movement into days of company
+        # error understated it threefold.
+        "organ_query_grid_caveat": organ_query_grid_caveat(
+            published_step=predict_published_latency_step_days(
+                n_pop, len(earlier_via_dd))),
+        # The step BESIDE the sentence, so the number a reader converts with is
+        # falsifiable rather than buried in prose (the D22 stamping rule) --
+        # and so `check_published_figure_caveat_coverage` has something to hold
+        # against a real sweep. Predicted from this book's own coverage
+        # witnesses: no seed, no re-scoring, no sweep.
+        "published_headline_step_days": predict_published_latency_step_days(
+            n_pop, len(earlier_via_dd)),
         # AND WHERE THAT DAY-FOR-DAY TRACKING STOPS (atom D31). The step is a
         # property of the grid; the FLOOR is a property of two harness
         # constants (`PAYMENT_TERMS_DAYS + DEFAULT_RECONCILIATION_GRACE_DAYS`),
         # and a reader given the step without the floor is told the resolution
         # and not its range.
         "organ_query_saturation_caveat": organ_query_grid_saturation_caveat(),
+        # THE SECOND KNOB THAT MOVES THIS FIGURE (atom D32). Declared on-path
+        # in `DIMENSION_DRIFT_RESOLUTION` since D28, measured, and stamped on
+        # nothing until Expert Hour #14 asked whether every knob that moves a
+        # published figure reaches its reader.
+        "terms_resolution_caveat": latency_terms_resolution_caveat(),
         "organ_query_floor_drift_days": (
             ORGAN_QUERY_GRID["recon_lag_days"]["saturates_below"]),
         "organ_query_floor_constants": tuple(
@@ -2591,20 +2613,81 @@ def check_organ_query_grid_resolution(
     return violations
 
 
-def organ_query_grid_caveat(one_day_report: Optional[float] = None) -> str:
+def predict_published_latency_step_days(
+    n_latency_population: Optional[int],
+    n_earliest_via_dd_channel: Optional[int],
+) -> Optional[float]:
+    """How far the PUBLISHED `detection_latency` headline moves for one day of
+    reconciliation-detector drift, predicted from THIS BOOK's own coverage
+    witnesses (atom D32, Expert Hour #14). Reads no sweep, no seed and no
+    re-scoring -- the D25/D30 population-side-predictor pattern.
+
+    WHY IT IS NOT 1.0. `ORGAN_QUERY_GRID["recon_lag_days"]` measures
+    `mean_lag_days_without_dd_channel` -- the DD-channel-DELETED counterfactual
+    -- and resolves it day for day, which is true OF THAT READING. The
+    published headline is `mean_lag_days`, a mean over the WHOLE latency
+    population, and a case whose earliest knowledge came from the DD channel
+    does not move when the reconciliation detector does. So the headline moves
+    by the recon arm's SHARE of that population, which is a property of the
+    book's payment-method mix and not a constant: 0.32/0.36/0.27 on seeds
+    7/11/23 of the offline scenario.
+
+    Returns None when the population is empty -- a book nothing was detected in
+    has no step, and a 0.0 there would read as "the headline is inert", which
+    is the strongest possible claim handed out for free.
+    """
+    if not n_latency_population:
+        return None
+    n_recon_earliest = int(n_latency_population) - int(n_earliest_via_dd_channel or 0)
+    return n_recon_earliest / float(n_latency_population)
+
+
+def organ_query_grid_caveat(one_day_report: Optional[float] = None,
+                            published_step: Optional[float] = None) -> str:
     """The resolution caveat that travels WITH the latency number, interpolated
     from the measurement rather than written as prose (the D19/D20/D22 pattern:
     a caveat nobody re-derives decays into a claim).
+
+    `published_step` is atom D32's correction, and it is the whole reason this
+    signature grew. Until Expert Hour #14 this sentence reported the register's
+    `reported_days_for_a_one_day_drift` -- 1.0 -- as what "is published", while
+    the register's own `headline_key` names a SUB-READING and the figure the
+    reader is looking at moves about a third of that. A caveat stamped on a
+    number must state that NUMBER's resolution; stating an adjacent reading's
+    is how a reader converts a movement into three times too few days of
+    company error.
     """
     step = (ORGAN_QUERY_GRID["recon_lag_days"]["reported_days_for_a_one_day_drift"]
             if one_day_report is None else one_day_report)
+    subject = ORGAN_QUERY_GRID["recon_lag_days"]["headline_key"]
+    if published_step is None:
+        headline = (
+            "THE PUBLISHED HEADLINE'S OWN STEP IS NOT MEASURED ON THIS CALL "
+            "-- read it as the sub-reading's, never as this figure's. "
+        )
+    else:
+        headline = (
+            f"THAT IS THE STEP OF `{subject}`, THE DD-CHANNEL-DELETED "
+            "SUB-READING THE REGISTER MEASURES -- NOT OF THE FIGURE THIS "
+            "CAVEAT IS STAMPED ON (atom D32). The published headline is "
+            f"`mean_lag_days`, and it moves {published_step:.6f} days per day "
+            "of detector drift on THIS book, because a case whose earliest "
+            "knowledge came from the DD channel does not move when the "
+            "reconciliation detector does. The ratio is the recon arm's share "
+            "of the latency population -- a property of this book's "
+            "payment-method mix, not a constant (0.32/0.36/0.27 on seeds "
+            "7/11/23). A reader converting a movement in this headline into "
+            "days of company error with the 1.0 above understates it by about "
+            "three times. "
+        )
     return (
         "GRID RESOLUTION (atom D23, reshaped and re-measured 2026-08-10): the "
         "reconciliation first-knowledge date behind this number is read by "
         "asking the company's organ on a DAILY grid of candidate dates, from "
         "the invoice's own ISSUE date to `as_of`. So it tracks the company "
-        f"day for day: a one-day-slower detector is published as {step} days "
-        "later, and a one-day-faster one a day earlier. It replaced a grid of "
+        f"day for day: a one-day-slower detector is read as {step} days "
+        "later, and a one-day-faster one a day earlier. " + headline
+        + "It replaced a grid of "
         "ONE candidate per period at the harness's own `due + grace`, which "
         "published that PARAMETER back for every faster company and reported a "
         "one-day degradation as 21 days. THE REMAINING FLOOR IS THE COMPANY'S, "
@@ -3302,6 +3385,342 @@ def organ_query_grid_saturation_caveat(
         "movement in these headlines is not readable as days of company error "
         "outside the declared runs. R12: a diagnostic, never a target."
     )
+
+
+def latency_terms_resolution_caveat() -> str:
+    """The TERMS-knob limit that travels with the latency number (atom D32).
+
+    THE COVERAGE HOLE Expert Hour #14 found. `DIMENSION_DRIFT_RESOLUTION`
+    declares `detection_latency` `in_causal_path: True` for
+    `organ_terms_drift_days` and measures its band -- and not one word of that
+    reached the published figure, whose two stamped caveats are both about the
+    RECONCILIATION detector. Measured on this book the two knobs are
+    indistinguishable in this dimension (a supplier holding terms k days long
+    and one whose detector fires k days late publish a bit-identical latency
+    figure on every seed), so a reader given only the recon caveat attributes
+    the whole reading to a detector fault it may have no part in.
+
+    Interpolated from the register on every call, never typed once -- the
+    D19/D20/D22/D23/D25 rule.
+    """
+    e = DIMENSION_DRIFT_RESOLUTION["detection_latency"]
+    lo = e.get("saturates_below")
+    return (
+        "AND THE SAME READING MOVES UNDER A SECOND COMPANY ERROR (atom D32). "
+        f"`{e['drift']}` -- the supplier holding the wrong payment terms -- is "
+        "ON this dimension's causal path, and on the offline scenario it moves "
+        "this headline BIT-IDENTICALLY to the reconciliation drift above "
+        "(seeds " + "/".join(str(s) for s in RESOLUTION_SEEDS) + "). This "
+        "number therefore does not attribute: a movement in it is days of "
+        "detector error OR days of terms error and the figure cannot say "
+        f"which. It saturates below {lo:+d}d, where every debt is dated before "
+        "the earliest candidate the detector has. Residual owned by "
+        f"{e.get('saturation_atom')}. R12: a diagnostic, never a target."
+    )
+
+
+# ---------------------------------------------------------------------------
+# PUBLISHED_FIGURE_CAVEAT_CONTRACT -- does the caveat a published figure
+# carries describe THAT figure, under every knob that moves it?
+# (atom D32, H27 Expert Hour #14, 2026-08-11)
+#
+# THE CLASS, ONE LAYER ABOVE `COUNTERFACTUAL_KNOB_ROUTE`. D31's route proved
+# every counterfactual knob is SWEPT on a book-derived grid and reaches the one
+# saturation rule. What no control asked is whether the resolution those sweeps
+# measure ever reaches the READER of the number -- and asking it found two
+# failures at once, in the same dimension:
+#
+#   * WRONG SUBJECT. `ORGAN_QUERY_GRID["recon_lag_days"]` names
+#     `mean_lag_days_without_dd_channel` in `headline_key` and resolves it day
+#     for day. `organ_query_grid_caveat` reported that 1.0 as what "is
+#     published" -- onto `detection_latency`, whose published figure is
+#     `mean_lag_days` and moves 0.32/0.36/0.27 per drift day on seeds 7/11/23.
+#     A register may absolutely measure a cleaner sub-reading; what it may not
+#     do is let that reading's number be stamped on a different one.
+#   * MISSING KNOB. `detection_latency` moves under the TERMS knob too --
+#     declared in `DIMENSION_DRIFT_RESOLUTION`, measured, and bit-identical to
+#     the recon knob -- and carried no terms caveat at all.
+#
+# So the keyset is DERIVED both ways: `published_dimensions` x
+# `counterfactual_knobs`, and which cells MOVE is MEASURED, never declared. A
+# cell that moves and carries no caveat is a violation; a cell whose caveat
+# states a step is checked against the PUBLISHED figure's own measured step.
+# Nine of the fifteen cells are inert and must be measured inert -- an
+# unmeasured cell reads exactly like an inert one, which is the fail-open this
+# instrument has now produced in six registers.
+# ---------------------------------------------------------------------------
+
+PUBLISHED_FIGURE_CAVEAT_CONTRACT: Dict[str, Dict[str, object]] = {
+    "detection": {
+        "organ_terms_drift_days": {
+            "moves": True,
+            "caveat_component": "drift_resolution_caveat",
+        },
+        "organ_reconciliation_drift_days": {
+            "moves": True,
+            "caveat_component": "recon_saturation_caveat",
+        },
+        "organ_failure_window_drift_days": {"moves": False},
+    },
+    "detection_latency": {
+        # THE TWO CELLS THIS ATOM FIXED. The recon cell carried a caveat whose
+        # number belonged to a sub-reading; the terms cell carried nothing.
+        "organ_terms_drift_days": {
+            "moves": True,
+            "caveat_component": "terms_resolution_caveat",
+        },
+        "organ_reconciliation_drift_days": {
+            "moves": True,
+            "caveat_component": "organ_query_grid_caveat",
+            # The caveat must state the PUBLISHED figure's step, and this is
+            # where that claim is checked against a real sweep rather than
+            # against the register that supplied the sentence.
+            "published_step_component": "published_headline_step_days",
+        },
+        "organ_failure_window_drift_days": {"moves": False},
+    },
+    "belief": {
+        "organ_terms_drift_days": {"moves": False},
+        "organ_reconciliation_drift_days": {"moves": False},
+        "organ_failure_window_drift_days": {
+            "moves": True,
+            "caveat_component": "belief_resolution_caveat",
+        },
+    },
+    "belief_population_mix": {
+        "organ_terms_drift_days": {"moves": False},
+        "organ_reconciliation_drift_days": {"moves": False},
+        "organ_failure_window_drift_days": {
+            "moves": True,
+            "caveat_component": "belief_resolution_caveat",
+        },
+    },
+    "ageing": {
+        "organ_terms_drift_days": {
+            "moves": True,
+            "caveat_component": "drift_resolution_caveat",
+        },
+        # MEASURED INERT, not assumed. The reconciliation detector sets which
+        # invoices the company CHASES; the ageing report is built from the
+        # ledger's own dating, so no detector drift reaches it.
+        "organ_reconciliation_drift_days": {"moves": False},
+        "organ_failure_window_drift_days": {"moves": False},
+    },
+}
+
+# Both published gaps are rounded before they are compared, so a difference
+# this small is the rounding and not a reading. It is FAR below the defect this
+# control exists to catch -- atom D32's mis-stamped step was 1.0 against a
+# measured 0.32, a gap of 0.68 -- so the slack cannot swallow the class.
+_ROUNDING_SLACK = 1e-5
+
+# The drifts each knob is probed at. Small and either side of zero: this
+# register asks REACH ("does the reader owe a caveat here at all"), not band --
+# the bands are `DIMENSION_DRIFT_RESOLUTION`'s and `ORGAN_QUERY_GRID`'s, swept
+# on book-derived grids. A cell declared inert must be inert at EVERY probe.
+CAVEAT_COVERAGE_PROBES: Dict[str, Tuple[int, ...]] = {
+    "organ_terms_drift_days": (-1, 1, 5),
+    "organ_reconciliation_drift_days": (-1, 1, 5),
+    # The memory knob's readable band is far from zero on this book (atom
+    # D29/D30: everything from -308 up is one number), so +-1 would probe an
+    # inert region and hand every cell a free pass.
+    "organ_failure_window_drift_days": (-370, -350, -310),
+}
+
+
+def measure_published_figure_caveat_coverage(
+    *,
+    n_customers: int = 300,
+    seeds: Tuple[int, ...] = RESOLUTION_SEEDS,
+    probes: Optional[Dict[str, Tuple[int, ...]]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """MEASURE which knobs move which PUBLISHED figures, and how far (atom
+    D32). Returns {dimension: {knob: {"moves", "moved_at", "step_days",
+    "probe_bit"}}}.
+
+    `step_days` is the published headline's OWN movement per day of drift,
+    taken at +-1 and only where the two agree to a day-linear reading -- it is
+    what the caveat's number is checked against. `probe_bit` is the vacuity
+    guard on the knob itself: a knob that has silently stopped drifting the
+    company would otherwise certify every `moves: False` cell in its column.
+    """
+    probes = CAVEAT_COVERAGE_PROBES if probes is None else probes
+    dims: Optional[List[str]] = None
+    base: Dict[int, Dict[str, object]] = {}
+    out: Dict[str, Dict[str, object]] = {}
+
+    def _score(seed: int, knob: str, k: int) -> Dict[str, object]:
+        memory = k if knob == "organ_failure_window_drift_days" else 0
+        records, consumer, _book, as_of = build_scenario(
+            n_customers, seed=seed, organ_failure_window_drift_days=memory)
+        kwargs = {n: (k if n == knob else 0)
+                  for n in ("organ_reconciliation_drift_days",
+                            "organ_terms_drift_days")}
+        return score_triad(records, consumer, as_of, **kwargs)
+
+    for seed in seeds:
+        records, consumer, _book, as_of = build_scenario(n_customers, seed=seed)
+        base[seed] = score_triad(records, consumer, as_of)
+        if dims is None:
+            dims = published_dimensions(base[seed])
+    assert dims is not None
+    # WHAT A CONSUMER ACTUALLY RENDERS, per seed -- the subject of the caveat
+    # half of this control. It is kept per seed because the published step is a
+    # property of the BOOK (0.32/0.36/0.27 across these three), so a single
+    # rendering checked against every seed's measurement would fail on two of
+    # them for the right reason and the wrong one.
+    for dim in dims:
+        out.setdefault(dim, {})["_rendered"] = {
+            seed: dict(base[seed][dim].components) for seed in seeds
+        }
+
+    for knob in sorted(probes):
+        readings = {(seed, k): _score(seed, knob, k)
+                    for seed in seeds for k in probes[knob]}
+        for dim in dims:
+            row = out.setdefault(dim, {})
+            moved_at = sorted({
+                k for (seed, k), res in readings.items()
+                if res[dim].gap != base[seed][dim].gap
+            })
+            step = None
+            if -1 in probes[knob] and 1 in probes[knob]:
+                ups = [readings[(s, 1)][dim].gap - base[s][dim].gap
+                       for s in seeds]
+                downs = [base[s][dim].gap - readings[(s, -1)][dim].gap
+                         for s in seeds]
+                # DAY-LINEAR ONLY. A step is meaningful only where the reading
+                # moves the same amount either way; where it does not (the
+                # ageing headline), None is the honest answer and the caveat
+                # owes no step. The tolerance is `_ROUNDING_SLACK` because
+                # both gaps are published rounded, not because the reading is
+                # approximate.
+                if all(isinstance(u, float) for u in ups) and \
+                        all(abs(u - d) < _ROUNDING_SLACK
+                            for u, d in zip(ups, downs)):
+                    step = {s: u for s, u in zip(seeds, ups)}
+            row[knob] = {
+                "moves": bool(moved_at),
+                "moved_at": tuple(moved_at),
+                "step_days": step,
+                "probes": tuple(probes[knob]),
+            }
+        # The knob moved SOMETHING somewhere, or every inert cell below it is
+        # certified by a probe that does nothing.
+        probe_bit = any(out[d][knob]["moves"] for d in dims)
+        for dim in dims:
+            out[dim][knob]["probe_bit"] = probe_bit
+    return out
+
+
+def check_published_figure_caveat_coverage(
+    measured: Dict[str, Dict[str, object]],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    rendered: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put `PUBLISHED_FIGURE_CAVEAT_CONTRACT` on trial against the measurement
+    and the RENDERED components, and return the violations (atom D32).
+
+    `rendered` is {dimension: {seed: components}} from a real `score_triad` --
+    the artefact the ledger writer, the live wiring and the dashboard actually
+    read. It defaults to the one the MEASUREMENT rendered, so the subject is a
+    real consumer's view by construction; checking the register against itself
+    would be the tautology this instrument has produced five times. The
+    parameter exists so a mutation can hand it a rendering with the caveat
+    stripped.
+
+    Both keysets RAISE rather than returning a violation, because a cell that
+    was never asked reads exactly like a clean one -- which is the whole
+    finding.
+    """
+    register = PUBLISHED_FIGURE_CAVEAT_CONTRACT if register is None else register
+    if rendered is None:
+        rendered = {d: row.get("_rendered", {}) for d, row in measured.items()}
+    knobs = set(counterfactual_knobs())
+    missing = sorted(set(measured) - set(register))
+    if missing:
+        raise AssertionError(
+            f"published dimensions with no PUBLISHED_FIGURE_CAVEAT_CONTRACT "
+            f"entry: {missing} -- a dimension whose caveat coverage nobody "
+            "asks about is exactly how `detection_latency` carried a "
+            "sub-reading's resolution for two Hours"
+        )
+    orphan = sorted(set(register) - set(measured))
+    if orphan:
+        raise AssertionError(
+            f"PUBLISHED_FIGURE_CAVEAT_CONTRACT entries for dimensions nobody "
+            f"publishes: {orphan} -- an unreachable entry reads like a clean one"
+        )
+    for dim in sorted(register):
+        unrouted = sorted(knobs - set(register[dim]))
+        if unrouted:
+            raise AssertionError(
+                f"{dim}: no caveat-coverage declaration for knob(s) "
+                f"{unrouted} -- an undeclared cell is not an inert one, and "
+                "the fallback IS the defect (the D29/D31 rule, one layer up)"
+            )
+
+    violations: List[str] = []
+    for dim in sorted(measured):
+        for knob in sorted(knobs):
+            row, entry = measured[dim][knob], register[dim][knob]
+            if not row["probe_bit"]:
+                violations.append(
+                    f"{dim}/{knob}: the probe moved NOTHING on any published "
+                    "dimension -- an inert counterfactual company certifies "
+                    "every `moves: False` in its column for free"
+                )
+            if bool(row["moves"]) != bool(entry.get("moves")):
+                violations.append(
+                    f"{dim}/{knob}: declared moves={entry.get('moves')} but "
+                    f"MEASURED moves={row['moves']} at {row['moved_at']} "
+                    f"(probes {row['probes']})"
+                )
+                continue
+            if not row["moves"]:
+                continue
+            key = entry.get("caveat_component")
+            if not key:
+                violations.append(
+                    f"{dim}/{knob}: this knob MOVES the published figure at "
+                    f"{row['moved_at']} and the entry names no caveat "
+                    "component -- a resolution measured by a sweep and never "
+                    "stamped on the number is one no reader of the number "
+                    "ever meets (atom D32)"
+                )
+                continue
+            by_seed = rendered.get(dim, {})
+            unstamped = sorted(s for s, comps in by_seed.items()
+                               if str(key) not in comps)
+            if unstamped:
+                violations.append(
+                    f"{dim}/{knob}: names caveat component `{key}` and a real "
+                    f"`score_triad` publishes no such key on `{dim}` (seeds "
+                    f"{unstamped}) -- a caveat the consumer does not render is "
+                    "not stamped"
+                )
+                continue
+            step_key = entry.get("published_step_component")
+            if step_key is None:
+                continue
+            for seed, step in sorted((row["step_days"] or {}).items()):
+                published = by_seed.get(seed, {}).get(str(step_key))
+                if published is None:
+                    violations.append(
+                        f"{dim}/{knob}: declares its caveat states a step and "
+                        f"publishes no `{step_key}` beside it (seed {seed}) -- "
+                        "the number a reader converts a movement with is then "
+                        "unfalsifiable"
+                    )
+                    continue
+                if abs(float(published) - float(step)) > _ROUNDING_SLACK:
+                    violations.append(
+                        f"{dim}/{knob}: publishes step {published} while the "
+                        f"PUBLISHED headline measurably moves {step} per drift "
+                        f"day (seed {seed}) -- a caveat stating an adjacent "
+                        "reading's resolution is atom D32's finding, restated"
+                    )
+    return violations
 
 
 DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
