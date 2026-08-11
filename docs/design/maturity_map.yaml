@@ -4951,3 +4951,39 @@
   notes_rehomed: [origin_note]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a departure board that says 'last updated 14:02' instead of going blank"
+
+- id: G12_queryable_projections
+  title: "A query store derived from committed truth, rebuilt every publish"
+  gain: "Hand-refreshed derived files go stale silently; a store rebuilt from its sources cannot disagree with them for longer than one publish."
+  name: "MINTED FROM deliverables 1-2 of the WORK THIS CREATES block in DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10. INTERNAL queryability only -- the external-dataset anchor philosophy (EPC/census cited, never ingested) is explicitly untouched by this atom. A query store derived from committed truth (run outputs, the event spine, observability ledgers), REBUILT-not-mutated each publish so it can never be a second source of truth. v1 scope is the worker's judgement; a single-file query database is fine. EXIT: (1) projections derived from committed sources and queryable from the repo; (2) rebuild-not-mutate PROVEN -- an R15 mutation shows a hand-edit to the store is destroyed by the next publish rather than surviving as divergent truth; (3) fail-CLOSED on a source it could not read -- an unreadable ledger is an UNKNOWN, never an empty table silently published as zero rows (the fail-open shape R15 names); (4) the AO12 10k probe's MEASURED figures set the scale ceiling and the graduation trigger, read from its report artefact, never re-derived (Postgres at product-time stays ruled). ANCHOR DISCREPANCY, carried deliberately: the instruction cites docs DATA_LAKE_OBSERVABILITY.md as the July design anchor and that file has never existed in this repo's history (git log --all, only the instruction commit itself mentions it), so the INSTRUCTION TEXT is the anchor of record; further, docs/architecture/SAAS_COVERAGE_MAP.md classes BI/data-warehouse as bucket A eliminated-by-architecture on the grounds that generate_dashboard_data.py computes analytics directly off the operational model. DISCOVER/FRAME must reconcile that row with this atom before v1 lands -- either the row is restated or this atom's scope is narrowed to internal queryability that does not contradict it."
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [G13_projection_consumers]
+  file_scope: ['tools/build_projections.py', 'tests/tools/test_build_projections.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier's internal reporting database rebuilt nightly from the operational systems -- queryable, never the book of record"
+
+- id: G13_projection_consumers
+  title: "The proof-of-caller: a site page and a lab query that read the projections"
+  gain: "A store with no reader is the same design-with-no-caller this instruction was written to end; the caller IS the deliverable."
+  name: "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10 -- 'at least one site page and one lab query consuming it, as the proof-of-caller'. Split from G12 because the file_scope is disjoint (site/** and the lab, not the builder) and the SITE lane runs parallel to BUILD. EXIT: (1) at least one site page reads the projection store INSTEAD OF a hand-refreshed file, and the file it replaces is named; (2) at least one advisor-lab query answers a real question off the store; (3) R11 -- the LIVE page is fetched and the rendered value asserted, never the code or the deploy log; (4) the staleness subclass the instruction claims this deletes is MEASURED, not asserted: name the derived-artefact-staleness entries that this consumer removes from the register, and show the register short by exactly those."
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_ruling
+  depends_on: [G12_queryable_projections]
+  couples_with: [G12_queryable_projections]
+  file_scope: ['site/data/', 'tools/lab_query.py', 'tests/tools/test_lab_query.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"

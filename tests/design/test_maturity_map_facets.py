@@ -61,6 +61,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     # whether the machine can say why it is stuck, the same close_to_learn class as H30 (sim_runner
     # discarding child stderr) and its other H_harness siblings.
     "H42_wedge_suspect_list_rederived_from_the_red",
+    # 2026-08-11 reviewed (worker tick, mint per DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS).
+    # G12/G13 make the company's ALREADY-COMMITTED truth queryable -- they derive nothing new, move
+    # no money and touch no revenue flow; a projection that changed a figure would be the second
+    # source of truth the atom forbids itself. What they produce is the ability to ASK, which is the
+    # same close_to_learn class as their G-lane siblings G1/G2/G3 (score, ledger, inspection chain).
+    # Classified on that merit: the alternative streams were each considered and each fails --
+    # meter_to_cash/price_to_bill/wholesale_to_price all name a flow these atoms deliberately do not
+    # touch. Not placed here to clear the gate; if v1 ever WRITES a figure, this entry is wrong.
+    "G12_queryable_projections", "G13_projection_consumers",
     "G1_fidelity_grid_scorer", "G2_fidelity_evidence_ledger", "G3_fidelity_inspection_chain",
     # 2026-07-19 reviewed: Epoch-2 campaign fidelity/measurement atoms authored from their DISCOVER
     # docs (A scoring frame, D cascade estimation) per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF
