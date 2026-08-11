@@ -3867,6 +3867,22 @@ def _flipped(before: str, after: str) -> bool:
     return "neither" not in (before, after) and before != after
 
 
+def _revision_agreement_share(observations: Sequence[FabricObservation]) -> float:
+    """WHY THE MONEY VERDICT MIGHT BE BOUGHT RATHER THAN EARNED, as a number: the
+    share of premises where the inference stepped the SAME WAY the truth lies from
+    the register. Rows where the inference never moved take no side and are excluded,
+    exactly as the sign test excludes exact ties."""
+    agreeing = moved = 0
+    for o in observations:
+        step = o.inferred_hlc_kw_per_k - o.epc_hlc_kw_per_k
+        truth_side = o.actual_hlc_kw_per_k - o.epc_hlc_kw_per_k
+        if step == 0.0 or truth_side == 0.0:
+            continue
+        moved += 1
+        agreeing += (step > 0.0) == (truth_side > 0.0)
+    return agreeing / moved if moved else 0.0
+
+
 def composition_verdict(
     observations: Sequence[FabricObservation],
     *,
@@ -3903,19 +3919,6 @@ def composition_verdict(
     confidence_epc, confidence_inferred = _money(confidence)
 
     above = sum(1 for o in observations if o.actual_hlc_kw_per_k > o.epc_hlc_kw_per_k)
-    # WHY THE MONEY VERDICT MIGHT BE BOUGHT RATHER THAN EARNED, as a number: the
-    # share of premises where the inference stepped the SAME WAY the truth lies from
-    # the register. Rows where the inference never moved take no side and are
-    # excluded, exactly as the sign test excludes exact ties.
-    agreeing = moved = 0
-    for o in observations:
-        step = o.inferred_hlc_kw_per_k - o.epc_hlc_kw_per_k
-        truth_side = o.actual_hlc_kw_per_k - o.epc_hlc_kw_per_k
-        if step == 0.0 or truth_side == 0.0:
-            continue
-        moved += 1
-        agreeing += (step > 0.0) == (truth_side > 0.0)
-
     return CompositionVerdict(
         premises=len(observations),
         accuracy_favours=_favours(epc_gap, inferred_gap),
@@ -3924,7 +3927,7 @@ def composition_verdict(
         forgone_inferred_gbp=forgone_inferred,
         improvement=epc_gap - inferred_gap,
         truth_above_epc_share=above / len(observations),
-        revision_agrees_with_panel_share=(agreeing / moved if moved else 0.0),
+        revision_agrees_with_panel_share=_revision_agreement_share(observations),
         panel_mirror_money_favours=_favours(panel_epc, panel_inferred),
         panel_mirror_forgone_epc_gbp=panel_epc,
         panel_mirror_forgone_inferred_gbp=panel_inferred,
@@ -3953,8 +3956,21 @@ def headline_caveats(
     output — that is the birth condition (R15): a caveat list that arrived empty
     would have demonstrated nothing.
     """
+    return (
+        _dilution_caveats(arm_agreement(observations))
+        + _direction_caveats(observations)
+        + _verdict_caveats(
+            composition_verdict(
+                observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, fuel=fuel
+            )
+        )
+    )
+
+
+def _dilution_caveats(agreement: ArmAgreement) -> list[str]:
+    """Finding 2's sentence. One function per finding, so a control that stops
+    firing is traceable to the finding it was landed for."""
     caveats = []
-    agreement = arm_agreement(observations)
     if agreement.tie_fraction > 0.0:
         caveats.append(
             f"DILUTED: the inference ran on {agreement.informed_premises} of "
@@ -3965,6 +3981,13 @@ def headline_caveats(
             f"published figure moves with EPC lodgement coverage even when the "
             f"estimator does not."
         )
+    return caveats
+
+
+def _direction_caveats(observations: Sequence[FabricObservation]) -> list[str]:
+    """Finding 3's sentences, one per arm — the register and the posterior can be
+    one-signed independently, and on the authored panel only the register is."""
+    caveats = []
     for arm in ("epc", "inferred"):
         bias = belief_bias(observations, belief=arm)
         if bias.is_systematic:
@@ -3977,9 +4000,14 @@ def headline_caveats(
                 f"the STOCK in a fixed direction, not merely imprecise about houses; "
                 f"the |gap| headline cannot see this."
             )
-    verdict = composition_verdict(
-        observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, fuel=fuel
-    )
+    return caveats
+
+
+def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
+    """Finding 4's sentences. Four of them, because the money ranking can be decided
+    by the panel, by the direction of the step, or by which arm is allowed to act —
+    and which of the three it is, is the whole answer."""
+    caveats = []
     if not verdict.verdicts_agree:
         caveats.append(
             f"HEADLINES DISAGREE: accuracy favours {verdict.accuracy_favours}, money "
