@@ -1,3 +1,13 @@
+> **ACTIONED 2026-08-10 10:42Z, OPS2 tick.** The recommendation was taken verbatim: `--detach`
+> now lives in `tools/measure_publish_gate_subject_cost.py` (`_detached_popen`,
+> `start_new_session=True`), R15 both ways in `tests/tools/test_measure_publish_gate_subject_cost.py`
+> (undetached arm dies under the group kill, detached arm survives; production mutation
+> `start_new_session=False` reds it), and the third measurement was launched THROUGH that path:
+> pid 2640105, `is_session_leader: true` in `docs/observability/publish_gate_subject_cost.json`.
+> The record now heartbeats inside the wait, so a fourth death of this shape is distinguishable
+> from a live wait. OPS2 exit criteria 1 and 2 remain open pending that run; the atom stays at
+> level 0. See `docs/design/OPS2_PUBLISH_GATE_HEAD_CHECKOUT.md` STATUS 10:42Z.
+
 # WORKER FINDING — OPS2's measurement died a second time, and its `setsid` fix exists nowhere in the repo
 
 **Found:** 2026-08-10 08:43-08:47Z, during the `H_GAP_fabric_belief_truth_gap` tick (incidental — not that atom's scope).

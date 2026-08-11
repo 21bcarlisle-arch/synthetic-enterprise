@@ -201,7 +201,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 33,
       "forward_attachments": []
     },
     {
@@ -225,7 +225,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 28,
       "forward_attachments": []
     },
     {
@@ -825,7 +825,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 30,
       "forward_attachments": []
     },
     {
@@ -909,7 +909,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 28,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1056,7 +1056,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 38,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -1079,7 +1079,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -1102,7 +1102,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 33,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -1167,7 +1167,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 51,
+      "stall_consecutive_unchanged": 11,
       "forward_attachments": []
     },
     {
@@ -1187,7 +1187,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 41,
+      "stall_consecutive_unchanged": 11,
       "forward_attachments": []
     },
     {
@@ -1252,7 +1252,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 69,
+      "stall_consecutive_unchanged": 87,
       "forward_attachments": []
     },
     {
@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 517,
+      "stall_consecutive_unchanged": 1146,
       "forward_attachments": []
     },
     {
@@ -1432,7 +1432,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 72,
+      "stall_consecutive_unchanged": 24,
       "forward_attachments": []
     },
     {
@@ -1880,7 +1880,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 17,
+      "stall_consecutive_unchanged": 39,
       "forward_attachments": []
     },
     {
@@ -1974,7 +1974,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 31,
+      "stall_consecutive_unchanged": 30,
       "forward_attachments": []
     },
     {
@@ -2080,7 +2080,27 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 37,
+      "forward_attachments": []
+    },
+    {
+      "id": "A9_market_at_the_seams_design_law",
+      "name": "Minted 2026-08-10 under the backlog-triage Group A instruction (verify the market-at-the-seams design law has its atom; mint if not -- it did not). From docs/design/refs/ADVISOR_ANALYSIS_MARKET_PORTABILITY_2026-08-07.md: the analysis decomposes Poesys into INVARIANT (harness/method, the epistemic wall as law, the bitemporal spine, population + affordability machinery), PARAMETERISE (cost-stack line items, tariff structures, cap-analogues, calendars, loss factors, weather anchors -- tables not code), ADAPTER-SWAP (settlement body, metering/data infrastructure, switching registry, payment rails, market comms -- the SAME operation go-live already defines, with a different endpoint set), and REBUILD (compliance organs, consumer-protection surfaces, language layers, local credit/debt law). The DESIGN LAW this atom owns is the middle two: no counterparty identity hardcoded across a seam, and every market-varying quantity reachable as a table rather than a literal. Standing constraint, mechanised -- the existing PORTABILITY_DEBT.md register records breaches in shipped code (remediation-on-touch, never speculative retrofit) and this atom is what makes a NEW breach fail rather than get logged. NOT in scope: building a second market or segment; GB SME/I&C is the analysis's recommended first extension and is a separate future draw.",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -2103,7 +2123,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 52,
       "forward_attachments": []
     },
     {
@@ -2123,7 +2143,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7,
+      "stall_consecutive_unchanged": 39,
       "forward_attachments": []
     },
     {
@@ -2143,7 +2163,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 31,
       "forward_attachments": []
     },
     {
@@ -2322,8 +2342,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 39,
       "forward_attachments": []
     },
     {
@@ -2366,7 +2386,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 33,
       "forward_attachments": []
     },
     {
@@ -2388,7 +2408,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 20,
       "forward_attachments": []
     },
     {
@@ -2428,7 +2448,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 132,
+      "stall_consecutive_unchanged": 260,
       "forward_attachments": []
     },
     {
@@ -2492,7 +2512,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 95,
       "forward_attachments": []
     },
     {
@@ -2800,7 +2820,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 288,
+      "stall_consecutive_unchanged": 40,
       "forward_attachments": []
     },
     {
@@ -2876,12 +2896,6 @@
       "stall_consecutive_unchanged": 174,
       "forward_attachments": [
         {
-          "source": "docs/staging/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md",
-          "date": "2026-08-09",
-          "kind": "finding",
-          "note": ""
-        },
-        {
           "source": "docs/staging/done/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md",
           "date": "2026-08-09",
           "kind": "finding",
@@ -2912,12 +2926,6 @@
       "stalled": true,
       "stall_consecutive_unchanged": 110,
       "forward_attachments": [
-        {
-          "source": "docs/staging/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md",
-          "date": "2026-08-09",
-          "kind": "finding",
-          "note": ""
-        },
         {
           "source": "docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md",
           "date": "2026-08-09",
@@ -3055,15 +3063,171 @@
       "forward_attachments": []
     },
     {
-      "id": "D19_belief_gap_is_distribution_only",
-      "name": "The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severity DISTRIBUTIONS, so it is blind to which account holds which belief: permuting the company's per-case arrears-severity labels among cases takes per-case agreement 0.9287 -> 0.6432 and moves the published gap 0.0713 -> 0.0713, identical to machine precision (4000 customers, seed 7; seeds 11/23 agree at n=600). The degenerate strategy that scores what the real company scores is 'get the population MIX right and every INDIVIDUAL wrong' -- the same dual-degenerate class D11/D12/D14/D15 closed across the four DETECTION dimensions, which their register could not sweep because it is keyed to detection scorers. It hid because on a book whose belief errors run ONE WAY (this company under-calls severity: normal 443->485, watch 114->87, high 36->25) TV is ARITHMETICALLY EQUAL to the per-case disagreement rate -- 0.0700/0.0700, 0.1033/0.1033, 0.0733/0.0733 at seeds 7/11/23 -- so the number reads as a per-case error rate and numerically is one, while being a quantity a permutation leaves untouched. Give the dimension a per-case shape, or declare in the published note that the aggregate is all a reader may take from it. NOT fixed on sight: it moves a published number on all three pairs that call belief_gap (W2_11<->D5, W2_4<->C6, couple_cohort). Acceptance is already measurable: the AGGREGATE_SCORING_CONTRACT permutation sweep must come out MOVED for this dimension, and the shape is known twice over (copy the detection dimension's set-membership scoring, or D7's per-case denominators).",
+      "id": "D27_belief_window_saturates_on_this_book",
+      "name": "The W2_11<->D5 triad's two BELIEF dimensions read exactly ONE company parameter -- `PaymentObservationConsumer._dd_failure_window_days`, how far back `_arrears_risk_belief` still counts an observed failed collection -- and the harness builds the company with DD_FAILURE_WINDOW_DAYS=400 against a book whose oldest observed failure is 91 days old at `as_of`. So no event can EVER fall out of that memory: MEASURED 2026-08-10 (H27 Expert Hour #9), n=300, seeds 7/11/23 and bit-identical at all three, every window from the book''s span to INFINITY publishes the same figure (+1d, +500d and -308d all read the baseline exactly), while a 310-day shortening -- precisely the headroom the population-side predictor names in advance -- is the smallest memory error the dimension can resolve at all. The published number therefore cannot distinguish the scored company from one that NEVER forgets a failure, which is the direction that keeps a recovered customer in collections; and the organ''s OWN shipped default (90d) sits just below the band edge, publishing a different number (0.1519 -> 0.1709 at seed 7). The 400 was deliberate and its reason is still in the constant''s comment -- generous on purpose, so the recency window would not confound the CHANNEL blind spot this scenario measures -- but what was never measured or declared is that the same choice costs the dimension all resolution on the only company parameter it reads: a design note stood in for a measurement. Same class as D25 and D26, one boundary further out again: the book has no event sitting BESIDE the line this dimension reads. THIS ATOM IS THE RESHAPE -- a scored population whose event span and company memory can actually resolve a memory error (a longer book, several `as_of` readings, and/or the harness building the company at the organ''s own default) -- which moves every published belief figure on this pair and is therefore a mint rather than a fix on sight. ALREADY LANDED UNDER H27''s HOUR: the declared counterfactual company `organ_failure_window_drift_days` (the third in this harness, and the first that reaches this organ at all), the class control that makes every OFF-PATH register entry owe a graded band on its own organ''s knob rather than discharging itself with an indiscriminate degenerate, the population-side predictor `measure_belief_window_resolution` (derived from the world''s event dates and the declared window, never from the organ''s severity thresholds -- the D20/D21 tautology in the direction nobody checks), and `belief_resolution_caveat` stamped into BOTH belief dimensions'' note and components.",
       "lane": "D_billing_metering",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
       "level_current": 0,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D25_ageing_resolution_is_the_harness_calendar"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 24,
+      "forward_attachments": []
+    },
+    {
+      "id": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+      "name": "SPUN OUT OF H27 EXPERT HOUR #10 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). `DIMENSION_DRIFT_RESOLUTION` derived its KEYSET from what `score_triad` publishes but built its GRID from its own declarations (drifts = {0} | declared invisible | declared visible), so the exactness rule was only ever applied at the points the band had already named -- the register was asked exactly where it had already answered, which is D23's ORGAN_QUERY_GRID class escaped into the register built to close a resolution hole. MEASURED 2026-08-11 on a grid derived from the BOOK instead (every integer terms drift across one billing cycle either way, 43 counterfactual companies, n=300, seeds 7/11/23, every run identical on all three): the DETECTION dimension -- declared blind to {+1}, sighted at {-1}, collapsing nowhere -- has SEVEN groups of companies publishing one bit-identical figure and BOTH TAILS SATURATED. Every supplier holding terms 6 to 21 days SHORTER than the world publishes ONE number (sixteen companies, one figure, every seed) and every supplier 17 to 21 days LONGER publishes another; five further interior collapses ({-4,-3}, {0,+1}, {+6,+7}, {+9,+10}, {+11,+12,+13}) show the reading is quantised throughout rather than continuous. The -8d the old grid swept (it was in the AGEING band) and read as MOVED -- as evidence of resolution -- sits inside the saturated tail, indistinguishable from -21d. So a movement in the detection headline is not readable as days of company error, and a supplier flagging paying customers as in arrears cannot be told from one three weeks out. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit BESIDE the company's grace line at a contiguous span of distances (a book spread over more than one cycle, several `as_of` readings, and/or a grace line the book straddles), which moves every published detection figure on this pair and is therefore a mint rather than a fix on sight. It also owes the population-side PREDICTOR of these edges that D25 has for ageing and D27 has for the belief window -- the detection caveat says in as many words that no such predictor exists yet, and until it does the edges are a sweep reading rather than a claim about an unswept live book. ALREADY LANDED UNDER H27's HOUR: the book-derived grid (`dense_drift_grid`, asserted against its own AST never to reach the register), the collapse/saturation measurement derived from the readings, the shared `_check_saturation_and_collapse` that BOTH checkers call -- so the saturation rule D27 built can no longer exist on one side of `in_causal_path` and not the other -- the undefined-reading fail-open (an absent reading compares unequal to the baseline and was counted as resolution), the differential (ageing publishes 43 distinct readings and collapses nowhere), and `detection_resolution_caveat` stamped into the detection result's note AND components with its edges interpolated from the register.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D26_detection_grace_line_has_no_book_beside_it"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 20,
+      "forward_attachments": []
+    },
+    {
+      "id": "D29_the_as_of_buffer_floors_the_memory_grid",
+      "name": "SPUN OUT OF H27 EXPERT HOUR #11 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). D28 gave the TERMS sweep a book-derived grid and left its own lead standing: `measure_own_drift_resolution` still built the MEMORY sweep from `own_invisible_drifts | own_visible_drifts`, so D27's belief saturation edge was a property of where D27 happened to sweep rather than a measured boundary -- the seventh escape of a register's own keying, this time named in the previous Hour's leads (a lead is not a control). MEASURED 2026-08-11 on a grid derived from the BOOK instead -- the window values either side of every observed failure age plus total amnesia, 70 counterfactual companies, n=300, seeds 7/11/23, every run identical on all three, and COMPLETE rather than merely dense (an event at age `a` is counted iff `a <= window`, so the reading can only change as the window crosses an event age): the two BELIEF dimensions saturate BELOW as well as above. The book's youngest observed failure is 30 days old -- AS_OF_BUFFER_DAYS, the second harness constant chosen to REMOVE a confounder, whose comment says 'comfortably past' in the same voice DD_FAILURE_WINDOW_DAYS=400 says 'generous on purpose' -- so every company memory of 29 days or less counts NOTHING and publishes one figure. A supplier that forgets a failed collection after three weeks and one that never remembers it are the same number here, and -380d, which D27 declared VISIBLE evidence of resolution, sits inside that tail. Four further interior collapses show the sighted region is quantised at exactly the window values where this book has no event, and the register had put `belief_population_mix`'s ceiling at its SIBLING's -308d because -309d was never scored (it is one day blinder: dropping the oldest events moves an account's tier without moving the population MIX). THIS ATOM IS THE RESHAPE -- a scored population with observed failures sitting BESIDE the short end of the memory the company plausibly holds (an `as_of` closer to the last event, several `as_of` readings, and/or a book whose events run right up to it), which moves every published belief figure on this pair and is therefore a mint rather than a fix on sight. It also owes the census Hour #10 asked for and this Hour has now found the second member of: the harness constants chosen to remove a confounder are each a silent resolution decision, and AS_OF_BUFFER_DAYS is the one that floors this grid. ALREADY LANDED UNDER H27's HOUR: `book_memory_grid` (asserted against its own AST never to reach the register) and `OWN_DRIFT_BOOK_GRIDS`, which RAISES for a knob nobody derived a grid for rather than falling back to the declarations; both saturation edges predicted from the population (`predicted_saturates_below_drift` / `_above`) and cross-checked one-directionally against the sweep, so an unmeasured edge can no longer read like an absent one; the rule that a drift declared VISIBLE may not sit inside a collapsed run (D28 observed that in prose and built no rule); a saturation OWNER PER EDGE, because these two tails stop for two different reasons and one field named the one that had been looked at; and the amnesia floor stamped into both belief dimensions' caveat, note and components.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D27_belief_window_saturates_on_this_book"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 31,
+      "forward_attachments": []
+    },
+    {
+      "id": "D30_the_belief_band_is_this_books_length",
+      "name": "SPUN OUT OF H27 EXPERT HOUR #12 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). Hour #11's lead 2, taken: the census of confounder-removing harness constants. D27 found `DD_FAILURE_WINDOW_DAYS = 400` by tripping over it and D29 found `AS_OF_BUFFER_DAYS = 30` by tripping over it; both comments say the constant was chosen to REMOVE A CONFOUNDER ('generous on purpose', 'comfortably past') and both reasons are sound, but each is also a silent RESOLUTION decision and nobody could say how many were left. MEASURED 2026-08-11, n=300, seeds 7/11/23, every run identical on all three: the two BELIEF dimensions resolve a company memory error ONLY between the youngest and oldest invoice age this book presents at `as_of` -- [30d, 92d], a band 62 DAYS WIDE -- and that interval is not a sensitivity of the instrument but ARITHMETIC OVER FOUR HARNESS CONSTANTS (youngest = AS_OF_BUFFER_DAYS; oldest = AS_OF_BUFFER_DAYS + PERIOD_SPACING_DAYS x (N_PERIODS - 1) + BILLING_CYCLE_SPREAD_DAYS - 1). D29 attributed the LOWER edge to AS_OF_BUFFER_DAYS and left the UPPER one owned by 'the company's memory outruns the book' -- a restatement, not an attribution: the book stops at 92 days because N_PERIODS is 3 and PERIOD_SPACING_DAYS is 21, two constants no Hour had asked, so the harness's own calendar was attributed to the company being graded. The arithmetic was even written out in the register's own `own_why` two lines below the owner field and no rule was ever built from it -- Hour #11's 'a lead is not a control', one register field over. AND THE INSTRUMENT CANNOT RESOLVE THE COMPANY IT SCORES: the scored company holds DD_FAILURE_WINDOW_DAYS = 400 days of memory against a band topping out at 92, so every published `belief` and `belief_population_mix` figure is read 308 days INSIDE the saturated tail, at a point where the one company parameter those dimensions depend on is inert by construction. THIS ATOM IS THE RESHAPE -- giving the scored population a book whose invoice ages actually straddle a memory a real supplier might hold (more periods, a longer spine, or an `as_of` that does not start 30 days past the last event), which moves every published belief figure on this pair and is therefore a mint rather than a fix on sight. R12: no published number moved in Hour #12's commit; what moved is what the instrument admits about itself. ALREADY LANDED UNDER H27's HOUR: `SCENARIO_CONSTANT_CENSUS` with its keyset DERIVED from `build_scenario`'s own AST (`scenario_constants`, asserted never to read the census), so a ninth scenario constant left uncensused RAISES instead of waiting for an Hour to trip over it; `predict_event_age_span_from_constants`, which reads constants and no draw (asserted against its AST) and is cross-checked against the BUILT book on every seed; `bounds_resolution` and the edge each constant sets MEASURED by perturbing the predictor rather than read from the declaration, both directions; `_check_edge_owners_are_censused`, which fails a saturation edge owned by an atom the census does not put on that edge -- the defect this Hour found, now a rule; the upper-edge owner moved D27 -> D30 on both belief entries; and the band, its owning constants and the scored company's 308d of headroom stamped into both dimensions' note AND components, with a live-population guard so this scenario's [30, 92] is never quoted over a `run_phase2b` book the constants do not describe.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D29_the_as_of_buffer_floors_the_memory_grid"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16,
+      "forward_attachments": []
+    },
+    {
+      "id": "D31_the_recon_grid_saturates_beyond_this_books_window",
+      "name": "SPUN OUT OF H27 EXPERT HOUR #13 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). Hour #12's lead 1, taken, and it found something larger than the missing field it went looking for. D29 built ONE saturation rule for two sweeps and said so in as many words -- `_check_saturation_and_collapse` exists 'so a saturation rule can no longer exist on one side of `in_causal_path` and not the other ... because there is only one of it'. There are THREE counterfactual-company knobs in this harness and the rule reached two: `organ_reconciliation_drift_days`, whose register is ORGAN_QUERY_GRID -- atom D23's, the register that FOUND this class -- still built its sweep from its own declarations ({0,1} | invisible | visible | pairs) and had no notion of a collapsed RUN, a saturation EDGE or an UNDEFINED reading at all. Eighth escape of a register's own keying, on the origin register. MEASURED 2026-08-11 on a book-derived grid (110 counterfactual companies, one integer per day from below the earliest issue-date crossing to above the last `as_of` crossing), n=300, seeds 7/11/23, every run identical on all three: the SET reading -- which IS the published `detection` gap -- has SIXTEEN groups of companies publishing one bit-identical figure, saturating BELOW -6d (sixteen companies, all on the no-skill 0.5, because every one of them has flagged every invoice by `as_of`) and ABOVE +82d, against TWO declared pairs; +7d, declared VISIBLE as this entry's evidence of resolution, sits inside the collapsed run {+6,+7}; and the DATE reading publishes NO reading at +87/+88, where the latency population empties -- counted as MOVEMENT, i.e. an instrument that had stopped reading scored as resolution, the fail-open D28 closed for the other two knobs. THIS ATOM IS THE RESHAPE -- a scored book whose invoices do not all fall inside one `as_of` window, so the detection SET can still change beyond +82 and a supplier reconciling three months late is distinguishable from one reconciling four; it moves a published number and is therefore a mint rather than a fix on sight. R12: no published figure moved in Hour #13's commit; what moved is what the instrument admits about itself. ALREADY LANDED UNDER H27's HOUR: COUNTERFACTUAL_KNOB_ROUTE, whose keyset is DERIVED from `score_triad`/`build_scenario`'s own signatures so a knob with no book-derived grid and no checker RAISES, with each named checker AST-verified to REACH the shared rule transitively (naming it is not running it); `book_recon_drift_grid`, complete rather than dense and asserted against its own AST never to read a register, with `collapsed_runs`/`undefined_drifts` deliberately NOT unioned into the sweep; an undefined region admitted only as a WITNESSED bound (`reading is None` exactly where the population is empty -- D24's bound-vs-debt distinction, generalised into the shared rule); the floor at -19d attributed to `PAYMENT_TERMS_DAYS + DEFAULT_RECONCILIATION_GRACE_DAYS` and PREDICTED from those constants alone, which is the census answer D30 pointed at without giving (its `why` discharged PAYMENT_TERMS_DAYS to 'registered there' and this register named no constant at all; the grace window is not even in the census's subject); and both edges stamped at source on the detection and latency dimensions' note AND components.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D30_the_belief_band_is_this_books_length"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 10,
+      "forward_attachments": []
+    },
+    {
+      "id": "D26_detection_grace_line_has_no_book_beside_it",
+      "name": "SPUN OUT OF D25 (2026-08-10, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). D25 spread the W2_11<->D5 book across one billing cycle and the AGEING dimension went from an 8-day blind band to resolving a one-day company dating error in both directions. The DETECTION dimension of the same instrument did not move, and it must not have: its blindness is the RECONCILIATION GRACE LINE, not the 30/60/90 bucket grid. Measured under the same declared `organ_terms_drift_days` counterfactual, seeds 7/11/23, on the RESHAPED book: a company holding payment terms one day LONGER (+1d) publishes a bit-identical detection headline, because the youngest truly-overdue invoice in the book is AS_OF_BUFFER_DAYS (30) days past due and the grace window is far shorter -- nothing sits BESIDE the line the detector reads, so no small drift can carry a case across it. Same class as the defect D25 closed, one boundary further out. THE ATOM IS THE MEASUREMENT AND THE RESHAPE, in that order: how far from the grace line the book actually sits, whether a population with cases near it changes what the detection headline can resolve, and what a reader may take a movement in that number to mean. It owes the `DIMENSION_DRIFT_RESOLUTION` register the re-derived detection entry -- that register is where its debt is recorded and where its closure has to be proven (the entry's `debt_atom` points here).",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D25_ageing_resolution_is_the_harness_calendar"
+      ],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 25,
+      "forward_attachments": []
+    },
+    {
+      "id": "D25_ageing_resolution_is_the_harness_calendar",
+      "name": "The W2_11<->D5 triad's AGEING dimension publishes BUCKETS of ordinal displacement, which reads as dating accuracy -- but a 30/60/90 bucket can only see a dating error that carries an invoice ACROSS a boundary, and every truly-overdue invoice in the scenario is 30, 51 or 72 days overdue at `as_of`. Those three distances are arithmetic over FIRST_DUE_DATE + PERIOD_SPACING_DAYS x N_PERIODS and AS_OF_BUFFER_DAYS -- all HARNESS constants -- so the measurable step is a property of the harness's calendar rather than of the company being graded. MEASURED 2026-08-10 (H27 Expert Hour #8) against the declared `organ_terms_drift_days` counterfactual company (the supplier holds the wrong payment terms, so it dates every debt k days out; world and truth-side rule untouched), n=300, seeds 7/11/23 and bit-identical at all three: a company dating every debt ONE TO EIGHT DAYS OLDER than truth -- OVER-ageing, the direction that posts an early dunning letter -- publishes the same headline as the shipped company (0.078649 / 0.146341 / 0.078706, unchanged to machine precision), while the DETECTION dimension of the same instrument moves on every one of those drifts, which is what makes it a blindness rather than an inert probe. In the other direction the reading COLLAPSES (+1d and +12d are one number), so a movement cannot be read as days either. The asymmetry -- 1 day visible one way, 9 the other -- is an accident of where three due dates fell. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit at distances that can actually resolve a dating error (spread due dates and/or several `as_of` readings), which moves every published ageing figure on this pair and is therefore a mint rather than a fix on sight. ALREADY LANDED UNDER H27's HOUR: the class control DIMENSION_DRIFT_RESOLUTION (keyset DERIVED from the dimensions score_triad publishes, so the reconciliation-grid keying that let this class escape D23's register is gone; three declared states, the OFF-path one required to name a probe that is MEASURED to move the dimension), the declared counterfactual itself, and `ageing_resolution_caveat` stamped into the ageing result's note AND components with its band interpolated from the register.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -3073,9 +3237,181 @@
         "D5_account_hierarchy_payments"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 28,
+      "forward_attachments": []
+    },
+    {
+      "id": "D24_the_latency_floor_is_the_organs_clamped_overdue",
+      "name": "AFTER D23's reshape gave the W2_11<->D5 triad's DETECTION_LATENCY dimension a daily candidate grid, the residual it cannot resolve is no longer the harness's and is no longer an invisibility -- it is a COLLAPSE, and it belongs to the COMPANY organ. `company/billing/arrears_engine.age_open_items` clamps `days_overdue=max(0, days)`, so `expected_collection_misses` fires from the moment an invoice is ISSUED for any grace <= 0: measured 2026-08-10 (n=300, seeds 7/11/23, via the declared organ_reconciliation_drift_days counterfactual), a -5d company (flags the day the invoice falls due) and a -20d company (would flag a fortnight before it is due) both publish `mean_lag_days_without_dd_channel` = -14.0 and both publish detection gap 0.500000 -- one reading for two companies fifteen days apart, in BOTH a date reading and a set-membership reading, which is the evidence the floor is the organ's and not the grid's (a candidate grid cannot bind a reading with no days in it). No candidate grid can answer this: the question is whether the company's own overdue clock should run negative before the due date, which is a fidelity question about the ORGAN and reaches every consumer of `age_open_items` (ageing buckets, dunning triggers, the arrears RAG), not just this harness. DECLARED, MEASURED AND OWNED TODAY, not fixed on sight: ORGAN_QUERY_GRID carries `collapsed_pairs: ((-5, -20),)` on both readings and `check_organ_query_grid_resolution` fails in both directions on it -- if the clamp is lifted the pair stops collapsing and the entry fails BY NAME as a stale debt, and a pair that merely sits on the baseline is refused as an invisibility wearing a collapse's clothes.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 18,
+      "forward_attachments": []
+    },
+    {
+      "id": "D23_organ_query_grid_cannot_resolve_latency",
+      "name": "The W2_11<->D5 triad's DETECTION_LATENCY dimension -- the one whose whole subject is HOW LATE the company learns a payment failed -- read its reconciliation first-knowledge date by asking the company's organ on a grid of candidate dates the HARNESS built from the organ's own rule (`candidates = {due_date + reconciliation_grace_days}`, one per period), while its docstring claimed the opposite in as many words ('asked of the organ itself, never re-derived here (R15 independence)'). The organ WAS asked; it was asked at exactly one date per period, and that date was the harness's re-derivation. Independent in FORM, tautologous in VALUE: improvement was invisible WITHOUT BOUND (`recon_lag_days` the CONSTANT 5 for all 204 dated cases -- `reconciliation_grace_days`, a harness input parameter, echoed back, so an instant reconciler and one flagging a fortnight early both published 5.0) and degradation was QUANTISED TO 21 DAYS (`PERIOD_SPACING_DAYS`; +1/+7/+21 bit-identical, and the last period's cases left the population entirely, undated 0 -> 59). RESHAPED 2026-08-10: the grid is DAILY from the invoice's ISSUE date to `as_of` (`organ_query_dates`), so the reading tracks the company day for day in BOTH directions -- measured at seeds 7/11/23, baseline 5.0, -1d -> 4.0, +1d -> 6.0, +7d -> 12.0, and `n_recon_detected_undated` 0 everywhere (no case leaves the population for want of a candidate). The lower bound is now the COMPANY's rather than the harness's: a supplier cannot know an unissued bill went unpaid, and `n_recon_dated_at_issue_floor` counts the readings that are 'at or before' rather than exact. The register that measured the defect SURVIVED its own repair by changing shape -- with no invisibility left on the date reading it would have been all-visible and unfailable, so it now declares COLLAPSED PAIRS (two companies that must read alike), and the two entries part company where the reshape put them: a +1d company moves the DATE reading by a day and leaves the SET reading untouched (a set is not a clock), while both collapse together at the organ's zero-floor, which is what localises the residual to the organ and mints D24. COST, measured not waved at: 1.6s -> 40.6s on a live 24-account x 114-month run (~27x, ~40s on a 5-9 min sim run), written into `organ_query_dates` so the next person weighing a shorter grid weighs it against a number. R12: the published detection and latency figures moved because the measure was wrong, never fitted to a value.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 26,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_INSTRUMENT_CANNOT_RESOLVE_ITS_OWN_LATENCY_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": "minted here, **not** built here)"
+        }
+      ]
+    },
+    {
+      "id": "D22_ageing_ordinal_is_one_directional",
+      "name": "The W2_11<->D5 triad's AGEING dimension publishes an ORDINAL headline -- `mean_bucket_displacement`, the term that exists so the dimension can ''distinguish off-by-one from stone-blind, which an error rate cannot'' -- taken over the TRULY-OVERDUE population alone, so no amount of OVER-ageing can move it. Measured 2026-08-10 (H27 Expert Hour #6, n=4000, seeds 7/11/23): a company that dates every truly-overdue invoice perfectly and dumps its ENTIRE truly-current book into `90+` scores 0.000000 -- bit-identical to a company that dates every invoice right, with 10,758 cases changed -- and so does one that over-ages every current invoice by exactly ONE bucket. The over-ageing direction is not invisible to the DIMENSION (`overstated_arrears_rate` counts it) but it is invisible to the ORDINAL term, which is the whole of what this dimension adds over a rate; in that direction the measure degrades to the error rate it was built to replace, and the distinction between a 30-60 and a 90+ wrongful ageing -- different collections paths in a real supplier -- is unavailable. NOT COVERED BY A SIBLING: D16 measured that detection's false_flag_rate is a different quantity over a different population, so nothing in this instrument sees over-ageing SEVERITY. THIS ATOM IS THE RESHAPE (a headline covering both directions), which moves a published number on every pair calling `ageing_gap` and is therefore a mint rather than a fix on sight. Already landed under H27's Hour: the class control HEADLINE_DIRECTION_COVERAGE (every published dimension's own indiscriminate degenerate, scored through its own shipped scorer, keyset DERIVED from what is published so the detection-keying that let this class escape twice is gone), and the mirrored term `mean_overstatement_displacement` + `ordinal_direction_caveat` stamped AT SOURCE in gap_metric so every caller gets the severity the headline cannot express.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 14,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/done/WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": "minted here, **not** built here) \u00b7 `H41_the_map_ratchet_has_no_ongoing_drain` (recurrence measured)"
+        }
+      ]
+    },
+    {
+      "id": "D21_ageing_truth_side_is_the_organs_own_rule",
+      "name": "The W2_11<->D5 triad's AGEING dimension -- the one whose whole subject is debt DATING -- computed its TRUTH side with the company organ's own function: `from company.billing.arrears_engine import age_bucket as company_age_bucket`, applied to a days-overdue the scenario constructs to be the organ's own integer (world `issue = due - 14`; organ `due = issue_date + 14`). Same rule, same input, so the two sides could not disagree about the bucket of an invoice they both held open: `wrong_bucket` measured 0 at every seed and under every drift tried, by CONSTRUCTION rather than by luck, and an edit to `age_bucket` moved the harness's ground truth with it -- R15's TAUTOLOGY pattern in the direction nobody checks (harness -> company, not company -> sim). Worse than D20's hand-copy, which could at least drift apart and be caught. It hid under a COVERAGE_ONLY_CLAIM_CONTRACT exemption reading ''two different rules, not one rule over two coverages'' while the module's own docstring said ''Both sides use the IDENTICAL bucket function'' -- the control believed the exemption, so the one mechanism able to catch the D20 class was switched off for the dimension with the strongest mirror of the three. CLOSED IN THE SAME TICK: the rule is harness-owned (`_ageing_bucket`), resolved through a TRUTH_SIDE_RULE_OWNERSHIP register that is the CALL PATH rather than a declaration, with a class control refusing any truth-side labelling rule owned by `company.*`; ageing enrolled in the coverage-only control (residual 0.000000 at HEAD on seeds 7/11/23, non-vacuous; an organ-only 60->75 dating drift takes it to 0.3627/0.3194/0.3333). R12: no published number moved, and the mutation that reinstates the defect moves none either -- which is exactly why ownership, not a value, is what the control checks.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": "minted here, built here)"
+        }
+      ]
+    },
+    {
+      "id": "D20_belief_truth_rule_is_an_unmeasured_mirror",
+      "name": "The W2_11<->D5 triad's BELIEF dimension publishes its two sides as 'same threshold shape, different-coverage inputs' -- the clause that makes the number a measure of the WALL rather than of two different rules -- and until 2026-08-10 nothing measured it: the truth-side rule (couple_w2_11_d5::_severity_label) is a HAND-COPY of the company organ's own thresholds (_arrears_risk_belief) and no test mentioned it. Three organ-only drifts moved the published headline by up to 2.9x with the world and the truth-side rule untouched; exactly one test fired each time and none named the divergence (two blamed a weak permutation probe or an epistemic-wall leak). CLOSED IN THE SAME TICK by equalising the coverage instead of comparing the rules: on an all-DD counterfactual the company observes every failure, so the surviving residual IS the rule divergence and needs no copy of either rule. Residual 0.000000 at HEAD on seeds 7/11/23, four vacuity witnesses asserted (the healthy reading is a zero), class control sweeping the published text, R15-proven both ways.",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": "minted here, built here)"
+        }
+      ]
+    },
+    {
+      "id": "D19_belief_gap_is_distribution_only",
+      "name": "The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severity DISTRIBUTIONS, so it is blind to which account holds which belief: permuting the company's per-case arrears-severity labels among cases takes per-case agreement 0.9287 -> 0.6432 and moves the published gap 0.0713 -> 0.0713, identical to machine precision (4000 customers, seed 7; seeds 11/23 agree at n=600). The degenerate strategy that scores what the real company scores is 'get the population MIX right and every INDIVIDUAL wrong' -- the same dual-degenerate class D11/D12/D14/D15 closed across the four DETECTION dimensions, which their register could not sweep because it is keyed to detection scorers. It hid because on a book whose belief errors run ONE WAY (this company under-calls severity: normal 443->485, watch 114->87, high 36->25) TV is ARITHMETICALLY EQUAL to the per-case disagreement rate -- 0.0700/0.0700, 0.1033/0.1033, 0.0733/0.0733 at seeds 7/11/23 -- so the number reads as a per-case error rate and numerically is one, while being a quantity a permutation leaves untouched. Give the dimension a per-case shape, or declare in the published note that the aggregate is all a reader may take from it. NOT fixed on sight: it moves a published number on all three pairs that call belief_gap (W2_11<->D5, W2_4<->C6, couple_cohort). Acceptance is already measurable: the AGGREGATE_SCORING_CONTRACT permutation sweep must come out MOVED for this dimension, and the shape is known twice over (copy the detection dimension's set-membership scoring, or D7's per-case denominators).",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap",
+        "W2_11_payment_behaviour_source",
+        "D5_account_hierarchy_payments"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 42,
       "forward_attachments": [
         {
           "source": "docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md",
@@ -3198,7 +3534,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1374,
+      "stall_consecutive_unchanged": 2031,
       "forward_attachments": []
     },
     {
@@ -3300,7 +3636,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10,
+      "stall_consecutive_unchanged": 23,
       "forward_attachments": []
     },
     {
@@ -3667,7 +4003,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 38,
       "forward_attachments": []
     },
     {
@@ -3709,7 +4045,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 45,
+      "stall_consecutive_unchanged": 33,
       "forward_attachments": []
     },
     {
@@ -3791,7 +4127,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 96,
+      "stall_consecutive_unchanged": 20,
       "forward_attachments": []
     },
     {
@@ -3811,7 +4147,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 92,
+      "stall_consecutive_unchanged": 29,
       "forward_attachments": []
     },
     {
@@ -3833,7 +4169,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 89,
+      "stall_consecutive_unchanged": 24,
       "forward_attachments": []
     },
     {
@@ -3853,7 +4189,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37,
+      "stall_consecutive_unchanged": 33,
       "forward_attachments": []
     },
     {
@@ -3873,7 +4209,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15,
+      "stall_consecutive_unchanged": 40,
       "forward_attachments": []
     },
     {
@@ -3893,7 +4229,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 137,
+      "stall_consecutive_unchanged": 23,
       "forward_attachments": []
     },
     {
@@ -3937,7 +4273,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 49,
+      "stall_consecutive_unchanged": 52,
       "forward_attachments": []
     },
     {
@@ -4051,7 +4387,7 @@
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [
         "W1_12_premise_trace_generator",
         "C14_thermal_parameter_inference"
@@ -4063,7 +4399,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 56,
+      "stall_consecutive_unchanged": 90,
       "forward_attachments": []
     },
     {
@@ -4309,7 +4645,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 521,
+      "stall_consecutive_unchanged": 1144,
       "forward_attachments": []
     },
     {
@@ -4625,7 +4961,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 262,
+      "stall_consecutive_unchanged": 735,
       "forward_attachments": []
     },
     {
@@ -4778,6 +5114,26 @@
       "forward_attachments": []
     },
     {
+      "id": "AO12_scale_probe_10k",
+      "name": "The 10k probe defined by docs/design/refs/ADVISOR_REVIEW_DATA_ARCHITECTURE_AND_SCALE_PROBE_2026-08-05.md, minted 2026-08-10 under the backlog-triage Group A instruction (verify the probe atom exists; mint if not -- it did not). Synthetic 10k-customer book from the existing per-run population draw, instrumented for peak RSS, per-stage wall time and per-artefact output size. Bounded: 1 year x 10k before any decade attempt, hard wall-time cap, scratch outputs only (canonical files untouched). A PREDICTION REGISTER is written BEFORE the run (advisor ranking: in-run RAM at settlement build > run-output serialization > per-customer site publish > git transport) and the probe confirms or refutes the ordering -- a surprise ordering is the most valuable outcome. KNOWLEDGE is the success criterion: the probe succeeds even if the run dies, provided it dies measurably. EXPLICITLY NOT IN SCOPE: any fix, any database or substrate adoption, any schema work -- measure first (R4); a storage swap is an architecture door, not a build, and findings return to the director before any substrate decision.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 307,
+      "forward_attachments": []
+    },
+    {
       "id": "EP1_clv_three_horizon",
       "name": "Three-horizon customer lifetime value: contract-term, tenure-expected, and portfolio-cohort. The company's OWN estimate assembled from observables (onboarding, flow events, payment behaviour, cost-to-serve) -- never a read of SIM truth -- so it is allowed to be wrong and the gap is the score. Named in DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 \u00a71 as an Epoch-2 floor item; no atom on the map touches CLV today.",
       "lane": "B_commercial",
@@ -4794,7 +5150,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 204,
+      "stall_consecutive_unchanged": 267,
       "forward_attachments": []
     },
     {
@@ -4816,7 +5172,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 235,
+      "stall_consecutive_unchanged": 299,
       "forward_attachments": []
     },
     {
@@ -4836,7 +5192,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 170,
+      "stall_consecutive_unchanged": 247,
       "forward_attachments": []
     },
     {
@@ -4856,7 +5212,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 193,
+      "stall_consecutive_unchanged": 250,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -4885,7 +5241,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 229,
+      "stall_consecutive_unchanged": 281,
       "forward_attachments": []
     },
     {
@@ -4905,7 +5261,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 199,
+      "stall_consecutive_unchanged": 255,
       "forward_attachments": []
     },
     {
@@ -4927,7 +5283,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 216,
+      "stall_consecutive_unchanged": 270,
       "forward_attachments": []
     },
     {
@@ -4949,7 +5305,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 190,
+      "stall_consecutive_unchanged": 254,
       "forward_attachments": []
     },
     {
@@ -4971,7 +5327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 208,
+      "stall_consecutive_unchanged": 274,
       "forward_attachments": []
     },
     {
@@ -4993,7 +5349,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 206,
+      "stall_consecutive_unchanged": 278,
       "forward_attachments": []
     },
     {
@@ -5017,7 +5373,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 212,
+      "stall_consecutive_unchanged": 278,
       "forward_attachments": []
     },
     {
@@ -5039,7 +5395,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 210,
+      "stall_consecutive_unchanged": 281,
       "forward_attachments": []
     },
     {
@@ -5061,7 +5417,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 191,
+      "stall_consecutive_unchanged": 252,
       "forward_attachments": []
     },
     {
@@ -5083,7 +5439,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 187,
+      "stall_consecutive_unchanged": 248,
       "forward_attachments": []
     },
     {
@@ -5104,8 +5460,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 35,
       "forward_attachments": []
     },
     {
@@ -5125,7 +5481,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 205,
+      "stall_consecutive_unchanged": 267,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5160,7 +5516,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 201,
+      "stall_consecutive_unchanged": 263,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5189,8 +5545,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 17,
       "forward_attachments": []
     },
     {
@@ -5210,7 +5566,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 65,
+      "stall_consecutive_unchanged": 83,
       "forward_attachments": []
     },
     {
@@ -5232,7 +5588,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 61,
+      "stall_consecutive_unchanged": 78,
       "forward_attachments": []
     },
     {
@@ -5380,6 +5736,26 @@
       "forward_attachments": []
     },
     {
+      "id": "H42_wedge_suspect_list_rederived_from_the_red",
+      "name": "RATIFIED AS A MINT by DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10 (the 12:32 report's recommendation). The publish-gate alarm's 'Also filed and unactioned in staging' block is built by background/process_run_complete.py::filed_findings() -- a RECENCY ranking over staged findings, structurally unrelated to the failure it is printed beside. Its own text already confesses the measurement: 0/8 named the cause in each of the FIVE preceding episodes, and the director's note prices it at twenty minutes of every responder's time per episode. THE FIX: re-derive the suspect set from the gate's ACTUAL red -- the named blocking test in .last_gate_blocking_tests.json and its blame trail (the commits touching that test's file and the modules it imports) -- never from a frozen recency set. EXIT: (1) suspects are derived from the blocking node id, so an alarm with no recorded blocking test yields NO suspect list rather than a recency fallback -- _blocking_clause's existing 'never degrades to a guess' discipline extends to the suspect block; (2) R15 both ways -- a mutation that reinstates the recency ranking, and one that emits suspects when the blocking test is unrecorded, each kill a NAMED test; (3) the 0/N hit-rate is MEASURED and carried in the payload, so a re-derivation that is also useless is visible rather than assumed better (R12: the hit rate is a diagnostic, never a target, and no finding may be archived to improve it); (4) fail-open check -- an unreadable or stale gate-state file must read as 'unrecorded', not as 'no suspects', per the FAIL-SILENT killer pattern. DRAW ORDER: the director's note sequences this AFTER the folded-site verification the same report proposes.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 7,
+      "forward_attachments": []
+    },
+    {
       "id": "PW3_suite_duration_watch",
       "name": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 OBSERVATIONS, carried as a named class: 'The suite grew past a fixed wall. The new ceiling is sound and growth now fails loudly rather than silently -- but nothing watches suite duration, so the same shape recurs, just noisily.' The timeout fail-open is closed (1fd85cb27); the growth that reached it is unmeasured. EXIT: A duration series that already exists is preferred to a new collector -- check test_execution_log.jsonl before writing one (AO1/AO2 write-time discipline). EXIT: (1) wall-clock duration of the publish gate's suite run is recorded per run with its commit SHA; (2) a headroom figure -- duration against the current ceiling -- is reported on a surface that is read (the daily self-note or the digest), as a RATIO not a raw second count, so the number is comparable across a changed ceiling; (3) the alarm is a TREND transition (R5): crossing a headroom threshold fires once, and recovery fires once; it must not repeat an unchanged status. R12: duration is a DIAGNOSTIC -- no test may be deselected, marked slow, or moved to a tier to make this number smaller, and the atom states that in its own build note. R15: a mutation that reports headroom from the ceiling alone (ignoring the measured duration) must kill a named test.",
       "lane": "H_harness",
@@ -5416,8 +5792,15 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 77,
-      "forward_attachments": []
+      "stall_consecutive_unchanged": 358,
+      "forward_attachments": [
+        {
+          "source": "docs/staging/WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md",
+          "date": "2026-08-10",
+          "kind": "finding",
+          "note": "the gate's subject is now HEAD, so the only"
+        }
+      ]
     },
     {
       "id": "OPS3_first_post_ruling_publish",
@@ -5566,9 +5949,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5578,9 +5961,9 @@
         "H_GAP_fabric_belief_truth_gap"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 22,
+      "stall_consecutive_unchanged": 55,
       "forward_attachments": []
     },
     {
@@ -5629,14 +6012,14 @@
     },
     {
       "id": "OPS5_retire_the_interim_bypass_shape",
-      "name": "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09.",
+      "name": "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09. EXECUTED 2026-08-10: the four-condition exception is RETIRED, the wall + the legal move are in CLAUDE.md, and the retirement is held by tests/tools/test_interim_bypass_retirement.py (7 mutations killed) wired to the pre-commit gate's new CANON_SURFACE so editing the rulebook re-runs its own guard.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5644,9 +6027,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 44,
+      "stall_consecutive_unchanged": 53,
       "forward_attachments": []
     },
     {
@@ -5667,6 +6050,78 @@
       "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS6_scoped_publish_path_suite",
+      "name": "MINTED FROM deliverable 1 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 ('THE SITE BREATHES'). NOT the same scope as H23_publish_gate_scope_marker: H23 deselects @pytest.mark.operational, which still leaves EVERY non-operational red (allowlist rows, map ratchets, lint ratchets) able to wedge the live site. This atom narrows the BLOCKING set to the publish path proper -- the code that produces and renders the published numbers -- and makes reds outside it ANNOTATE the page rather than block it. EXIT: (1) the publish-path suite is a single inspectable surface (an argv/marker factory beside publish_gate_pytest_argv, per R15 'a control's scope must be inspectable'); (2) an R15 mutation test proves a publish-path defect BLOCKS and a non-publish-path red DOES NOT; (3) the annotate path carries the open-findings count onto the page (couples to OPS7); (4) the scoping is measured against the wedge episodes on record -- state, per episode, whether this scope would have blocked or annotated.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS2_publish_gate_head_worktree"
+      ],
+      "couples_with": [
+        "H23_publish_gate_scope_marker"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS7_provenance_stamps_on_live_pages",
+      "name": "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 1: 'the site serves the most recent snapshot that passed its scoped verification, stamped with run id, verifying commit, and verification time -- visible on the page, not in a log.' EXIT: (1) the three fields render on the live public pages; (2) R11-verified by FETCHING the live surface and quoting the rendered values, never the file on origin or the deploy log; (3) R14 -- any financial figure beside the stamp still carries its own clock basis, which the stamp does not replace; (4) the stamp is DERIVED from the verifying run, never hand-set: an R15 mutation proves a re-stamped stale run fails ('fake-fresh remains the cardinal sin', the weekend's four-times-republished figure is the named counterexample).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS6_scoped_publish_path_suite"
+      ],
+      "couples_with": [
+        "OPS8_last_known_good_staleness_banner"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 158,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS8_last_known_good_staleness_banner",
+      "name": "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 3: if even the scoped gate is red the site keeps serving the last verified snapshot under a dated banner ('verification paused since T; showing run R'). EXIT: (1) a red scoped gate leaves the last verified snapshot SERVED, not blanked; (2) the banner renders T and R on the live page, R11-verified by fetch; (3) R11 'no orphan transitions' -- the banner's RELEASE is tested too: a subsequent green must actually clear it, a banner that never clears is the same defect inverted; (4) an R15 mutation proves the banner CANNOT be shown while the snapshot is in fact current, and cannot be hidden while it is stale (both directions, per the fail-open doctrine).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS6_scoped_publish_path_suite"
+      ],
+      "couples_with": [
+        "OPS7_provenance_stamps_on_live_pages"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 177,
       "forward_attachments": []
     }
   ],
@@ -5750,7 +6205,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 260,
+  "total_atoms": 278,
   "epoch2_movements": [
     {
       "id": "M1",
