@@ -4522,8 +4522,16 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     # `inferred_bias` chosen to leave a DECISIVE money verdict: the INCONCLUSIVE
     # sentence protects a published money headline, and on an already-'neither'
     # verdict there is no over-reading on offer for it to prevent.
+    #
+    # 0.60 -> 0.50 (2026-08-11, FIFTH Hour). At 0.60 this panel's money margin was
+    # TWO premises of ten, and the only reason it read decisive was that the old
+    # rule was a band on two sums: the paired verdict is [-1,517, +0] there, i.e.
+    # nothing. An R15 fixture whose "decisive headline" is one or two houses is the
+    # very defect this atom's fifth Hour found in the published row, sitting inside
+    # the control's own evidence. At 0.50 eight of ten premises differ and the
+    # verdict is [-2,222, -882] — decisive because the panel says so.
     rows = _infeasible_reflection_population(
-        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.60
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.50
     )
     assert fgl.panel_mirror(rows).reflection == fgl.LOG_PRESERVING_FALLBACK
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
@@ -4548,7 +4556,7 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     assert f"{verdict.panel_mirror_register_mad:.6f}" in inconclusive[0]
 
 
-def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0):
+def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0, base=0.10, step=0.05):
     """A register wrong by a FIXED AMOUNT rather than a fixed share.
 
     The level reflection then TRANSLATES the truth population instead of rescaling
@@ -4557,13 +4565,21 @@ def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0):
     control pass: it is the analytic statement of what the residual IS — the whole
     of it is the denominator moving, and a population whose spread the reflection
     preserves has none.
+
+    `base`/`step` set the truth SPREAD, and they are parameters because of the fifth
+    Hour (2026-08-11). A fixed offset over 0.10-0.55 kW/K is 30% of the tightest home
+    and 5% of the loosest, so exactly ONE premise ever decided differently between
+    the arms — every cell of the mirror's 2x2 was pinned on a money verdict that was
+    100% one house, and only a rule with no error bar could call that decisive. A
+    narrower spread keeps the translation property (the whole point of this fixture)
+    while letting the offset matter on more than one home.
     """
     return [
         fgl.FabricObservation(
             premise_id=f"P{i}",
-            actual_hlc_kw_per_k=0.10 + 0.05 * i,
-            epc_hlc_kw_per_k=0.10 + 0.05 * i + offset,
-            inferred_hlc_kw_per_k=(0.10 + 0.05 * i) * inferred_bias,
+            actual_hlc_kw_per_k=base + step * i,
+            epc_hlc_kw_per_k=base + step * i + offset,
+            inferred_hlc_kw_per_k=(base + step * i) * inferred_bias,
             floor_area_m2=60.0 + 10.0 * i,
             annual_heat_kwh=8000.0 + 1500.0 * i,
             annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
@@ -4611,8 +4627,22 @@ def test_a_FAITHFUL_MIRROR_THAT_FINDS_NOTHING_stays_SILENT():
     # home's heat loss: the register arm is the better decision in BOTH worlds by a
     # margin no reflection of the truth can close, so the mirror finds nothing and
     # has earned the right to be believed about it.
-    rows = _fixed_offset_population(inferred_bias=3.0)
+    # SPREAD NARROWED AND `inferred_bias` DROPPED TO 2.0 (2026-08-11, fifth Hour).
+    # At 0.10-0.55 kW/K this panel's money verdict was one premise of ten and the
+    # paired rule reads 'neither' on it, which silences the very sentence this test
+    # exists to prove fires. Same translation, same faithful mirror, five premises
+    # now decide differently: money verdict [-5,676, -3,058] GBP per premise.
+    rows = _fixed_offset_population(
+        n=10, offset=0.02, inferred_bias=2.0, base=0.10, step=0.02
+    )
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.money_favours != "neither", (
+        "this fixture must carry a money headline for INCONCLUSIVE to protect"
+    )
+    assert verdict.money.largest_premise_share < fgl.ONE_HOUSE_SHARE, (
+        "...and it must not be one house, or the caveat under test is being proven "
+        "on the defect the fifth Hour found"
+    )
     assert verdict.panel_mirror_epc_gap_drift == pytest.approx(0.0, abs=1e-12)
     assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
     assert not verdict.composition_decided
@@ -4641,14 +4671,58 @@ def test_a_FAITHFUL_MIRROR_THAT_FINDS_NOTHING_stays_SILENT():
     )
 
 
+def _flipping_population(n=26, *, base=0.18, step=0.02, register=0.79, inferred_bias=0.98,
+                         heat=8400.0, heat_step=1600.0):
+    """A panel where the mirror ACTUALLY FLIPS the money verdict, on BOTH sides of the
+    flip and with neither side resting on one house.
+
+    BUILT BY SEARCH, 2026-08-11 (fifth Hour), and the search is the finding. The
+    fourth cell of the mirror's 2x2 used to be pinned by `_fixed_offset_population`,
+    where the money verdict was 100% ONE PREMISE on every parameterisation tried —
+    the flip was two floats crossing, and only a verdict rule with no error bar could
+    call either side of it decisive. Under the paired rule that cell was unreachable
+    from any fixture in this file: 400 randomised panels produced exactly one that
+    flips a resolvable verdict into a different resolvable verdict with an
+    attributable mirror, and this is it (26 homes on a narrow 0.18-0.68 kW/K spread,
+    a register understating by a fixed 21%, largest premise 39% of the base margin
+    and 29% of the mirrored one).
+
+    That it took 400 draws is worth writing down rather than smoothing over: a
+    composition flip that survives an error bar on both sides is RARE, and the old
+    suite made it look routine.
+    """
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=base + step * i,
+            epc_hlc_kw_per_k=(base + step * i) * register,
+            inferred_hlc_kw_per_k=(base + step * i) * inferred_bias,
+            floor_area_m2=60.0 + 10.0 * i,
+            annual_heat_kwh=heat + heat_step * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(n)
+    ]
+
+
 def test_a_FAITHFUL_MIRROR_THAT_DOES_FLIP_is_reported_WITHOUT_the_directional_rider():
     """The fourth cell of the 2x2, and the one the whole mechanism exists to protect:
     a composition finding from an instrument that disturbed nothing is stated flat,
     with no hedge attached. If the rider were unconditional it would devalue exactly
     the case it was built to distinguish."""
-    rows = _fixed_offset_population(inferred_bias=1.0)
+    rows = _flipping_population()
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert verdict.panel_mirror_is_attributable and verdict.composition_decided
+    # ...and BOTH sides of the flip are verdicts this panel can actually support.
+    # Without these two, the cell is reachable again by the defect: two one-house
+    # margins crossing reads as a composition finding (2026-08-11, fifth Hour).
+    assert verdict.money.resolved and verdict.panel_mirror_money.resolved
+    assert verdict.money.largest_premise_share < fgl.ONE_HOUSE_SHARE
+    assert verdict.panel_mirror_money.largest_premise_share < fgl.ONE_HOUSE_SHARE
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     decided = [c for c in caveats if c.startswith("COMPOSITION-DECIDED")]
     assert len(decided) == 1, caveats
@@ -5091,8 +5165,11 @@ def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
     indecisive = _infeasible_reflection_population(
         n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.90
     )
+    # 0.60 -> 0.50 for the same reason as the fixture above (2026-08-11, fifth
+    # Hour): at 0.60 the "decisive" half was decisive only to a rule with no error
+    # bar, so this test was contrasting two indecisive panels and calling one loud.
     decisive = _infeasible_reflection_population(
-        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.60
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.50
     )
     for rows in (indecisive, decisive):
         verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
@@ -5314,3 +5391,400 @@ def test_the_paired_verdict_resolves_more_often_as_the_panel_grows():
     )
     assert _verdict_of(rows).favours == "inferred"
     assert resolved_small < 20, resolved_small
+
+
+# ===========================================================================
+# THE MONEY VERDICT'S ERROR BAR  (2026-08-11, FIFTH Expert Hour on this atom)
+# ===========================================================================
+#
+# The defect: `money_favours` was a 5%-of-the-larger band on the difference of two
+# GBP SUMS. The fourth Hour repaired the ACCURACY half of exactly that shape and
+# recorded the money half as probably-not-the-same-defect because "its decisiveness
+# DOES improve with N". Measured over 120 random subpanels of this atom's own drawn
+# population at each of n=25/50/100/150, the aggregate rule named an arm on
+# 75%/87%/98%/100% of them while the paired per-premise evidence could resolve
+# 13%/59%/100%/100% — so on 62% of 25-home panels the row published a verdict the
+# homes could not support. Improving with N is not the absence of the failure; it is
+# the failure read from the wrong end, because the missing interval was only ever
+# going to bite while the panel was small.
+#
+# AND THE AUTHORED PANEL IS SMALL. n=15, aggregate margin 57.7% of the larger — the
+# most decisive-looking number in the row — of which 80.6% is a SINGLE house, and
+# dropping any one of the four premises that differ makes it unresolvable while the
+# aggregate rule survives every single-premise deletion in the panel.
+
+
+def _one_house_carries_the_money(n=12, *, rogue_index=0):
+    """Every premise decides the same way under both arms except ONE, where the
+    register declines a measure worth thousands. The totals then differ by far more
+    than any band, and the panel contains one home's worth of evidence for it."""
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            # A small truth spread, because a panel of identical homes has a no-skill
+            # baseline of zero and no gap at all — the fixture must be a stock, not a
+            # clone. Small enough that it changes no decision: the ONE premise below
+            # is still the only one where the arms differ.
+            actual_hlc_kw_per_k=0.30 + 0.002 * i,
+            epc_hlc_kw_per_k=(0.30 + 0.002 * i) * (0.30 if i == rogue_index else 1.0),
+            inferred_hlc_kw_per_k=0.30 + 0.002 * i,
+            floor_area_m2=90.0,
+            annual_heat_kwh=14000.0,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(n)
+    ]
+
+
+def _one_house_dominates_a_resolved_verdict():
+    """THE AUTHORED PANEL'S OWN SHAPE, reproduced small: several premises differ, and
+    ONE of them carries three quarters of the margin.
+
+    This is the case an interval alone does not cover, and the reason the fifth
+    Hour's repair is two disclosures rather than one. The verdict RESOLVES — the
+    direction really does survive its own error bar — and it is still a claim about
+    one house. On the real authored panel that share is 80.6%; here it is 75%.
+
+    Every amount is what `fabric_intervention` actually charges for the decision it
+    actually makes: one home missing a GBP 2,760 measure, six missing a GBP 151 one.
+    Nothing is pinned to a generated value — the shape is what is chosen, and the
+    assertions read the shape.
+    """
+    def _home(pid, hlc, heat, register):
+        return fgl.FabricObservation(
+            premise_id=pid,
+            actual_hlc_kw_per_k=hlc,
+            epc_hlc_kw_per_k=hlc * register,
+            inferred_hlc_kw_per_k=hlc,
+            floor_area_m2=90.0,
+            annual_heat_kwh=heat,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+
+    return (
+        [_home("P0", 0.30, 13000.0, 0.30)]
+        + [_home(f"S{i}", 0.40, 20000.0, 0.20) for i in range(6)]
+        + [_home(f"Q{i}", 0.30 + 0.002 * i, 13000.0, 1.0) for i in range(5)]
+    )
+
+
+def _many_houses_carry_the_money(n=24):
+    """The same advantage to the inference, spread across most of the panel. The
+    totals differ by a similar share — and here the panel really does say so."""
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.30 + 0.01 * i,
+            epc_hlc_kw_per_k=(0.30 + 0.01 * i) * 0.30,
+            inferred_hlc_kw_per_k=0.30 + 0.01 * i,
+            floor_area_m2=90.0 + 5.0 * i,
+            annual_heat_kwh=12000.0 + 400.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(n)
+    ]
+
+
+def _a_mirror_whose_two_rules_disagree():
+    """A panel where the PANEL MIRROR's own money verdict is decisive under the old
+    aggregate band and unresolvable under the paired rule.
+
+    IT EXISTS BECAUSE THE FIRST R15 RUN FOUND THE CLASS TEST BLIND. The mutation
+    "leave the panel mirror wired to `_favours`" survived: on every fixture in this
+    file the two rules happened to agree on the mirrored panel, so an arm reading the
+    old band was indistinguishable from a repaired one, and the structural test —
+    isinstance, interval-contains-point, premise count — could not see the
+    difference. A control set with no population where the thing being controlled
+    varies is a control that cannot fail.
+
+    Found by search over random 14-home panels, kept verbatim rather than tidied
+    into a formula: the property is a coincidence of decision boundaries, and
+    rounding the numbers to look designed would break it.
+    """
+    truth = [0.285, 0.274, 0.156, 0.314, 0.519, 0.204, 0.433,
+             0.154, 0.336, 0.345, 0.423, 0.225, 0.354, 0.544]
+    epc = [0.1425, 0.274, 0.156, 0.1099, 0.519, 0.204, 0.3031,
+           0.0385, 0.3024, 0.3105, 0.1057, 0.1575, 0.177, 0.544]
+    inferred = [0.3135, 0.3014, 0.1248, 0.2512, 0.4671, 0.1836, 0.433,
+                0.154, 0.2688, 0.3795, 0.423, 0.225, 0.354, 0.4352]
+    heat = [6500.0, 9200.0, 17700.0, 5300.0, 12400.0, 17400.0, 7500.0,
+            16700.0, 21600.0, 7700.0, 12700.0, 17500.0, 11200.0, 9600.0]
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=t,
+            epc_hlc_kw_per_k=e,
+            inferred_hlc_kw_per_k=n,
+            floor_area_m2=90.0,
+            annual_heat_kwh=h,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i, (t, e, n, h) in enumerate(zip(truth, epc, inferred, heat))
+    ]
+
+
+def _money_verdict_of(rows):
+    return fgl._paired_money_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+
+def test_an_aggregate_decisive_money_verdict_can_be_per_premise_unresolvable():
+    """THE NAMED DEFECT. One house out of twelve moves both totals past any band on
+    their difference; the panel cannot tell the two arms apart."""
+    verdict = _money_verdict_of(_one_house_carries_the_money())
+    assert verdict.aggregate_favours != "neither", (
+        "the old rule must be decisive here or this fixture proves nothing"
+    )
+    assert verdict.favours == "neither", (
+        f"one premise of twelve cannot resolve a population claim; got "
+        f"{verdict.favours} on [{verdict.ci_lo:+.1f}, {verdict.ci_hi:+.1f}]"
+    )
+    assert verdict.ci_lo <= 0.0 <= verdict.ci_hi
+    assert verdict.aggregate_overstated
+
+
+def test_the_unresolved_money_verdict_is_disclosed_rather_than_deleted():
+    """A REPAIR MAY NOT SILENTLY REMOVE A SENTENCE A READER WAS GIVEN. The old rule's
+    answer, its margin and the interval that refuses it all appear."""
+    rows = _one_house_carries_the_money()
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    unresolved = [c for c in caveats if c.startswith("MONEY VERDICT UNRESOLVED")]
+    assert len(unresolved) == 1, caveats
+    assert "straddles zero" in unresolved[0]
+    assert "not evidence about homes" in unresolved[0]
+
+
+def test_a_resolved_money_verdict_carried_by_ONE_HOUSE_is_still_disclosed():
+    """THE AUTHORED PANEL'S CASE, and the one an interval alone does not cover. The
+    direction survives its own error bar AND four fifths of the margin is one home;
+    both are true and the row must say both."""
+    rows = _one_house_dominates_a_resolved_verdict()
+    verdict = _money_verdict_of(rows)
+    assert verdict.resolved, (
+        f"this panel's direction does survive its error bar: "
+        f"[{verdict.ci_lo:+.1f}, {verdict.ci_hi:+.1f}]"
+    )
+    assert verdict.largest_premise_share >= fgl.ONE_HOUSE_SHARE
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    one_house = [c for c in caveats if c.startswith("MONEY VERDICT CARRIED BY ONE HOME")]
+    assert len(one_house) == 1, caveats
+    assert "SINGLE premise" in one_house[0]
+
+
+def test_the_money_verdict_resolves_where_the_PANEL_carries_it():
+    """R15, THE OTHER WAY. A rule that can only say 'neither' is as useless as one
+    that can only say 'inferred', and the repair must not have bought its honesty by
+    refusing everything."""
+    verdict = _money_verdict_of(_many_houses_carry_the_money())
+    assert verdict.favours == "inferred", (
+        f"[{verdict.ci_lo:+.1f}, {verdict.ci_hi:+.1f}]"
+    )
+    assert not verdict.aggregate_overstated
+    assert verdict.largest_premise_share < fgl.ONE_HOUSE_SHARE
+    caveats = fgl.headline_caveats(
+        _many_houses_carry_the_money(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    )
+    assert not any(c.startswith("MONEY VERDICT UNRESOLVED") for c in caveats), caveats
+    assert not any(
+        c.startswith("MONEY VERDICT CARRIED BY ONE HOME") for c in caveats
+    ), caveats
+
+
+def test_the_money_verdict_can_name_EITHER_arm():
+    """BOTH DIRECTIONS REACHABLE — not a detector wired to one answer."""
+    favouring_inference = _money_verdict_of(_many_houses_carry_the_money())
+    swapped = [
+        fgl.FabricObservation(
+            **{
+                **o.__dict__,
+                "epc_hlc_kw_per_k": o.inferred_hlc_kw_per_k,
+                "inferred_hlc_kw_per_k": o.epc_hlc_kw_per_k,
+            }
+        )
+        for o in _many_houses_carry_the_money()
+    ]
+    assert favouring_inference.favours == "inferred"
+    assert _money_verdict_of(swapped).favours == "epc"
+
+
+def test_ALL_FOUR_MONEY_VERDICTS_ARE_DECIDED_THE_SAME_WAY():
+    """R10, CLASS NOT INSTANCE. The row holds four money verdicts — the headline and
+    three mirrors — and `composition_decided`, `direction_bought` and
+    `confidence_bought` are all COMPARISONS between them. Repairing one and leaving
+    three on the aggregate rule would make every one of those comparisons a
+    paired verdict measured against an unpaired one: one name, two numbers, which is
+    the defect family this atom keeps finding.
+
+    Pinned structurally rather than by value, so a future mirror added on the old
+    rule fails here rather than in six months.
+    """
+    arms = ("money", "panel_mirror_money", "revision_mirror_money",
+            "confidence_mirror_money")
+    # BOTH panels, and the second one is the one that can fail. On a panel where the
+    # two rules AGREE, a mirror still wired to the aggregate band is indistinguishable
+    # from a repaired one — the first R15 run proved exactly that by leaving this
+    # mutation alive. `_one_house_dominates_a_resolved_verdict` is a panel where the
+    # mirror's two rules disagree, so an arm reading the old band shows up.
+    for rows in (_many_houses_carry_the_money(),
+                 _one_house_dominates_a_resolved_verdict(),
+                 _a_mirror_whose_two_rules_disagree()):
+        verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        for name in arms:
+            arm = getattr(verdict, name)
+            assert isinstance(arm, fgl.MoneyVerdict), f"{name} is not a paired verdict"
+            assert arm.ci_lo <= arm.mean_advantage_gbp <= arm.ci_hi, (
+                f"{name} carries an interval that does not contain its own point "
+                "estimate"
+            )
+            assert arm.premises == len(rows)
+            # THE PROPERTY THAT CATCHES AN ARM STILL ON THE OLD RULE: a verdict must
+            # say 'neither' exactly when its OWN interval straddles zero. An arm
+            # decided by a band on two sums will disagree with its own error bar the
+            # moment the two rules do.
+            assert (arm.favours == "neither") == (arm.ci_lo <= 0.0 <= arm.ci_hi), (
+                f"{name} says {arm.favours!r} over an interval of "
+                f"[{arm.ci_lo:+.1f}, {arm.ci_hi:+.1f}] — that verdict was not decided "
+                "by that interval"
+            )
+
+    # ...and the third panel must actually EXERCISE that property, or the assertion
+    # above is a tautology satisfied by agreement rather than by wiring.
+    mirror = fgl.composition_verdict(
+        _a_mirror_whose_two_rules_disagree(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    ).panel_mirror_money
+    assert mirror.favours == "neither" and mirror.aggregate_favours != "neither", (
+        "the fixture that makes this test able to fail has stopped disagreeing"
+    )
+
+
+def test_the_TOTAL_AND_THE_VERDICT_READ_THE_SAME_NUMBERS():
+    """INDEPENDENCE'S OPPOSITE, and it is the right property here: the published
+    total and the verdict's resample must come from ONE definition of what a premise
+    forgoes. Two loops would drift, and the row would publish a verdict about a
+    quantity its own headline does not report."""
+    rows = _many_houses_carry_the_money()
+    for belief in ("epc", "inferred"):
+        per_premise = fgl._premise_forgone(
+            rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief=belief
+        )
+        total = fgl.money_consequence(
+            rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief=belief
+        )
+        assert len(per_premise) == len(rows), "every premise appears, zeros included"
+        assert sum(r.forgone_gbp for r in per_premise) == total.forgone_lifetime_gbp
+        assert sum(r.misranked for r in per_premise) == total.misranked_premises
+        assert (
+            sum(r.declined_with_value for r in per_premise)
+            == total.declined_where_value_existed
+        )
+
+
+def test_the_MIRRORS_OWN_UNRESOLVED_VERDICT_IS_SAID_not_left_to_silence():
+    """A mirror that reaches no verdict has not agreed with the headline — it has
+    said nothing, and the row rendered those two identically."""
+    rows = _one_house_dominates_a_resolved_verdict()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.money.resolved and verdict.panel_mirror_money_unresolved
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    unresolved = [c for c in caveats if c.startswith("MIRROR VERDICT UNRESOLVED")]
+    assert len(unresolved) == 1, caveats
+    assert "NO EVIDENCE" in unresolved[0]
+    # ...and it stays quiet where the mirror DID reach one.
+    quiet = fgl.headline_caveats(
+        _flipping_population(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    )
+    assert not any(c.startswith("MIRROR VERDICT UNRESOLVED") for c in quiet), quiet
+
+
+def test_the_money_verdict_is_deterministic_and_seeded_from_its_OWN_substream():
+    """C-S2, and on a CONTINUOUS fixture because that is the lesson the fourth Hour
+    paid for: a determinism test written on a panel with two distinct advantage
+    values passes an unseeding mutation, since the bootstrap percentiles land on the
+    same discrete points whatever the seed.
+
+    Also pins that the four panels draw from DIFFERENT substreams. One seed shared
+    across a verdict and the mirror testing it correlates their intervals, and a
+    mirror whose noise moves with its subject is not an independent instrument.
+    """
+    rng = random.Random(90210)
+    rows = [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.30 + 0.004 * i,
+            epc_hlc_kw_per_k=(0.30 + 0.004 * i) * rng.uniform(0.25, 1.15),
+            inferred_hlc_kw_per_k=(0.30 + 0.004 * i) * rng.uniform(0.55, 1.10),
+            floor_area_m2=80.0 + 3.0 * i,
+            annual_heat_kwh=9000.0 + rng.uniform(0.0, 6000.0),
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(40)
+    ]
+    first = _money_verdict_of(rows)
+    random.seed(4321)
+    random.random()
+    second = _money_verdict_of(rows)
+    assert (first.ci_lo, first.ci_hi) == (second.ci_lo, second.ci_hi)
+
+    named = fgl._paired_money_verdict(
+        rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, substream="panel_mirror"
+    )
+    assert named.mean_advantage_gbp == first.mean_advantage_gbp, (
+        "the point estimate is not a resample and must not move with the substream"
+    )
+    assert (named.ci_lo, named.ci_hi) != (first.ci_lo, first.ci_hi), (
+        "two panels sharing one resampling stream is not four independent readings"
+    )
+
+
+def test_the_money_verdict_resolves_more_often_as_the_panel_grows():
+    """THE PROPERTY THE OLD RULE DID NOT HAVE. The aggregate band is decisive on a
+    handful of homes because two sums are rarely equal; a resolution statement must
+    get MORE decisive as homes are added, not merely stay decisive."""
+    rng = random.Random(20260812)
+    rows = [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.30 + 0.002 * i,
+            epc_hlc_kw_per_k=(0.30 + 0.002 * i) * rng.uniform(0.30, 1.30),
+            inferred_hlc_kw_per_k=(0.30 + 0.002 * i) * rng.uniform(0.75, 1.25),
+            floor_area_m2=80.0 + 2.0 * i,
+            annual_heat_kwh=9000.0 + rng.uniform(0.0, 8000.0),
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(120)
+    ]
+    small = sum(
+        _money_verdict_of(rows[i : i + 6]).favours != "neither" for i in range(0, 120, 6)
+    )
+    aggregate_small = sum(
+        _money_verdict_of(rows[i : i + 6]).aggregate_favours != "neither"
+        for i in range(0, 120, 6)
+    )
+    assert _money_verdict_of(rows).favours != "neither", "the whole panel resolves"
+    assert small < aggregate_small, (
+        f"the old rule was decisive on {aggregate_small}/20 six-home panels and the "
+        f"repaired one on {small}/20 — a band with no error bar is not more informed"
+    )

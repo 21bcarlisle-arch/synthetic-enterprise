@@ -107,6 +107,7 @@ passed IN by the caller. Any sampling draws from this module's OWN named substre
 
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 import statistics
@@ -3335,17 +3336,80 @@ def money_consequence(
     the honest reading, and why this is a decision metric rather than an error one.
     """
     _require_homes(observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="money_consequence")
+    rows = _premise_forgone(
+        observations,
+        unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+        belief=belief,
+        fuel=fuel,
+        measures=measures,
+    )
+    misranked = sum(1 for r in rows if r.misranked)
+    declined_with_value = sum(1 for r in rows if r.declined_with_value)
+    value_destroying = sum(1 for r in rows if r.value_destroying)
+    forgone_gbp = sum(r.forgone_gbp for r in rows)
+    forgone_kwh = sum(r.forgone_kwh for r in rows)
+    return MoneyConsequence(
+        premises=len(observations),
+        misranked_premises=misranked,
+        declined_where_value_existed=declined_with_value,
+        value_destroying_recommendations=value_destroying,
+        forgone_lifetime_gbp=forgone_gbp,
+        forgone_annual_kwh=forgone_kwh,
+        forgone_annual_kg_co2e=max(0.0, forgone_kwh) * CARBON_KG_PER_KWH[fuel],
+        basis=(
+            f"PROVISIONAL — lifetime net value at {unit_rate_p_per_kwh:g} p/kWh on "
+            f"domain-knowledge retrofit capex; savings from reduced or time-shifted "
+            f"kWh only, never from discounting. Belief = {belief}. Decided by "
+            f"company.pricing.fabric_intervention.decide in BOTH arms."
+        ),
+    )
+
+
+@dataclass(frozen=True)
+class PremiseForgone:
+    """ONE premise's contribution to the money consequence.
+
+    THE POINT OF SPLITTING IT OUT (2026-08-11, fifth Expert Hour on this machinery).
+    `forgone_lifetime_gbp` is a SUM, and a sum carries no error bar: the money
+    headline was a 5%-of-the-larger band on the difference of two such sums, which
+    on the authored panel published a 57.7% margin that was 80.6% ONE HOUSE. Deciding
+    that headline per premise needs the per-premise amounts, and a second loop that
+    recomputed them would be two numbers under one name — so `money_consequence`
+    aggregates THIS, and the verdict resamples THIS, and there is exactly one
+    definition of what a premise forgoes.
+    """
+
+    premise_id: str
+    forgone_gbp: float
+    forgone_kwh: float
+    misranked: bool
+    declined_with_value: bool
+    value_destroying: bool
+
+
+def _premise_forgone(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    belief: str = "epc",
+    fuel: str = "gas",
+    measures: Mapping[str, fi.RetrofitOffer] | None = None,
+) -> list[PremiseForgone]:
+    """The money consequence PER PREMISE, in panel order — the body of
+    `money_consequence`, lifted so the verdict and the total read the same numbers.
+
+    Every premise appears, including the ones that cost nothing: a premise where the
+    belief is wrong but the DECISION survives is a real zero, not an absence, and a
+    paired resample that dropped those rows would be resampling a different panel
+    from the one the totals are quoted over.
+    """
     if belief not in ("epc", "inferred"):
         raise ValueError(f"unknown belief {belief!r}")
     if fuel not in CARBON_KG_PER_KWH:
         raise ValueError(f"unknown fuel {fuel!r} — no published carbon factor")
 
     catalogue = dict(measures if measures is not None else fi.OFFER_BOOK)
-    misranked = 0
-    declined_with_value = 0
-    value_destroying = 0
-    forgone_gbp = 0.0
-    forgone_kwh = 0.0
+    rows: list[PremiseForgone] = []
     for o in observations:
         held, relative_sd, held_basis = o.belief_arm(belief)
         if not math.isfinite(held) or held <= 0.0:
@@ -3379,6 +3443,16 @@ def money_consequence(
         )
         chosen, best = company.measure, truth.measure
         if chosen == best:
+            rows.append(
+                PremiseForgone(
+                    premise_id=o.premise_id,
+                    forgone_gbp=0.0,
+                    forgone_kwh=0.0,
+                    misranked=False,
+                    declined_with_value=False,
+                    value_destroying=False,
+                )
+            )
             continue
         true_values = dict(
             fi.rank_offers(
@@ -3389,33 +3463,33 @@ def money_consequence(
                 offers=catalogue,
             )
         )
-        if chosen == fi.DO_NOTHING:
-            declined_with_value += 1
-        else:
-            misranked += 1
-            if true_values[chosen] < 0.0:
-                value_destroying += 1
-        forgone_gbp += true_values[best] - true_values[chosen]
-        forgone_kwh += _saving_of(
-            best, o.actual_hlc_kw_per_k, o.annual_heat_kwh, o.annual_degree_days_k_day, catalogue
-        ) - _saving_of(
-            chosen, o.actual_hlc_kw_per_k, o.annual_heat_kwh, o.annual_degree_days_k_day, catalogue
+        declined = chosen == fi.DO_NOTHING
+        rows.append(
+            PremiseForgone(
+                premise_id=o.premise_id,
+                forgone_gbp=true_values[best] - true_values[chosen],
+                forgone_kwh=(
+                    _saving_of(
+                        best,
+                        o.actual_hlc_kw_per_k,
+                        o.annual_heat_kwh,
+                        o.annual_degree_days_k_day,
+                        catalogue,
+                    )
+                    - _saving_of(
+                        chosen,
+                        o.actual_hlc_kw_per_k,
+                        o.annual_heat_kwh,
+                        o.annual_degree_days_k_day,
+                        catalogue,
+                    )
+                ),
+                misranked=not declined,
+                declined_with_value=declined,
+                value_destroying=not declined and true_values[chosen] < 0.0,
+            )
         )
-    return MoneyConsequence(
-        premises=len(observations),
-        misranked_premises=misranked,
-        declined_where_value_existed=declined_with_value,
-        value_destroying_recommendations=value_destroying,
-        forgone_lifetime_gbp=forgone_gbp,
-        forgone_annual_kwh=forgone_kwh,
-        forgone_annual_kg_co2e=max(0.0, forgone_kwh) * CARBON_KG_PER_KWH[fuel],
-        basis=(
-            f"PROVISIONAL — lifetime net value at {unit_rate_p_per_kwh:g} p/kWh on "
-            f"domain-knowledge retrofit capex; savings from reduced or time-shifted "
-            f"kWh only, never from discounting. Belief = {belief}. Decided by "
-            f"company.pricing.fabric_intervention.decide in BOTH arms."
-        ),
-    )
+    return rows
 
 
 # ===========================================================================
@@ -3977,14 +4051,22 @@ class CompositionVerdict:
     # a reader was previously given.
     accuracy_aggregate_favours: str
     accuracy_aggregate_relative_gap: float
-    money_favours: str
+    # THE MONEY HEADLINE, AND ITS ERROR BAR — carried as the verdict OBJECT rather
+    # than as another eight flat floats (2026-08-11, fifth Hour). Each of the four
+    # money verdicts in this row now has a point estimate, an interval, a tie count,
+    # a one-house concentration share and the old aggregate rule's answer; flattening
+    # four of those into the constructor would have been thirty-two fields and an
+    # invitation to wire one of them to the wrong panel. `money_favours` and the
+    # three `*_mirror_money_favours` remain as PROPERTIES, so every existing reader
+    # keeps its attribute and gets the repaired verdict.
+    money: MoneyVerdict
     forgone_epc_gbp: float
     forgone_inferred_gbp: float
     improvement: float
     truth_above_epc_share: float
     revision_agrees_with_panel_share: float
     # THE PANEL MIRROR — same company, stock that fails the other way.
-    panel_mirror_money_favours: str
+    panel_mirror_money: MoneyVerdict
     panel_mirror_forgone_epc_gbp: float
     panel_mirror_forgone_inferred_gbp: float
     panel_mirror_improvement: float
@@ -4012,17 +4094,58 @@ class CompositionVerdict:
     weight_null_forgone_epc_gbp: float
     weight_null_forgone_inferred_gbp: float
     # THE REVISION MIRROR — same stock, inference stepping the other way.
-    revision_mirror_money_favours: str
+    revision_mirror_money: MoneyVerdict
     revision_mirror_forgone_epc_gbp: float
     revision_mirror_forgone_inferred_gbp: float
     revision_mirror_improvement: float
     # THE CONFIDENCE MIRROR — same estimates, error bars swapped. Accuracy CANNOT
     # move here, so anything that does move is not accuracy.
-    confidence_mirror_money_favours: str
+    confidence_mirror_money: MoneyVerdict
     confidence_mirror_forgone_epc_gbp: float
     confidence_mirror_forgone_inferred_gbp: float
     declined_epc: int
     declined_inferred: int
+
+    @property
+    def money_favours(self) -> str:
+        return self.money.favours
+
+    @property
+    def panel_mirror_money_favours(self) -> str:
+        return self.panel_mirror_money.favours
+
+    @property
+    def revision_mirror_money_favours(self) -> str:
+        return self.revision_mirror_money.favours
+
+    @property
+    def confidence_mirror_money_favours(self) -> str:
+        return self.confidence_mirror_money.favours
+
+    @property
+    def money_aggregate_overstated(self) -> bool:
+        """The old aggregate money rule named an arm the paired per-premise evidence
+        cannot resolve.
+
+        THE SAME DISCLOSURE-PROTECTING PROPERTY `accuracy_aggregate_overstated` IS,
+        and for the same reason: a repair that makes a published verdict quieter must
+        SAY it went quiet. On this atom's own drawn population that is 62% of
+        25-home subpanels.
+        """
+        return self.money.aggregate_overstated
+
+    @property
+    def panel_mirror_money_unresolved(self) -> bool:
+        """The panel mirror's OWN money verdict cannot be resolved on its own panel.
+
+        A mirror is an instrument, and an instrument whose reading has an interval
+        straddling zero has not measured anything. `composition_decided` is already
+        safe here — `_flipped` refuses to call a decisive-vs-indecisive pair a flip —
+        but SAFE IS NOT DISCLOSED: without this, the authored panel prints a mirror
+        that "did not move the verdict" when what the mirror actually did was fail to
+        produce a verdict. The two readings are opposite and the row said neither.
+        """
+        return not self.panel_mirror_money.resolved
 
     @property
     def verdicts_agree(self) -> bool:
@@ -4314,6 +4437,23 @@ MIRROR_FIDELITY_BAND = 0.05
 # a statement about the weights rather than about the stock (2026-08-11, third Hour).
 MIRROR_WEIGHT_ARTEFACT_BAND = 0.50
 
+# How much of the money margin may come from a SINGLE premise before a resolved
+# verdict is also reported as a statement about one house (2026-08-11, fifth Hour).
+# A DIAGNOSTIC band (R12): it decides what the row SAYS, never what anything is
+# tuned to — no premise is dropped and no verdict is changed because of it.
+#
+# A THIRD CONSTANT, not a reuse of either band above, and the reuse is the reason
+# this one is written out longhand: `MIRROR_FIDELITY_BAND` already gates the panel
+# mirror AND triggers the yardstick disclosure on `panel_mirror_normaliser_drift`,
+# two different subjects on one number, which is exactly what that constant's own
+# comment says must never happen. Concentration is a third subject again.
+#
+# Set at half on the same logic as `MIRROR_WEIGHT_ARTEFACT_BAND`: past that, one
+# premise explains more of the margin than every other premise combined. Measured,
+# the two published populations sit either side (80.6% authored, 22.5% drawn), which
+# is what a band that can fail looks like.
+ONE_HOUSE_SHARE = 0.50
+
 
 #: THE ACCURACY VERDICT'S OWN RESAMPLE BUDGET, SEED AND LEVEL. Named rather than
 #: literals at the call site (C-S2, RNG substream discipline): a verdict that can be
@@ -4432,6 +4572,208 @@ class AccuracyVerdict:
         return self.aggregate_favours != "neither" and not self.resolved
 
 
+@dataclass(frozen=True)
+class MoneyVerdict:
+    """WHICH ARM COSTS THE COMPANY LESS — with an error bar.
+
+    THE DEFECT THIS REPLACES (2026-08-11, FIFTH Hour, and it is the fourth Hour's
+    own unfinished half). That Hour repaired `accuracy_favours` to a paired
+    per-premise bootstrap and wrote down what it had NOT done: "the MONEY half of
+    `_favours` is still a band on two aggregate GBP sums with no error bar (its
+    decisiveness DOES improve with N, so it is not obviously the same defect)". It
+    is the same defect. Improving with N is not the absence of the failure — it is
+    the failure read from the wrong end.
+
+    MEASURED, on this atom's own drawn population, 120 random subpanels at each n:
+
+        n     aggregate rule decisive    paired evidence decisive    over-claim
+        25            75%                        13%                    62%
+        50            87%                        59%                    28%
+        100           98%                       100%                     0%
+        150          100%                       100%                     0%
+
+    The over-claim column is the count of subpanels where a 5%-of-the-larger band on
+    two GBP sums NAMED AN ARM and the panel's own homes could not. It does not fall
+    with N because the rule learns; it falls because the missing error bar was only
+    ever going to matter while the panel was small, and the rule is MOST confident
+    exactly where it is least entitled to be. The accuracy verdict's signature was
+    decisiveness FLAT IN N; this one's is decisiveness DECOUPLED FROM N — a rule
+    that is 75% decisive on 25 homes and 100% decisive on 150 is not reporting
+    evidence, it is reporting that a sum of 25 numbers is rarely exactly equal to
+    another sum of 25 numbers.
+
+    AND THE AUTHORED PANEL — one of the two PUBLISHED populations — is in that
+    regime. n=15. The aggregate rule reads 57.7% of the larger, eleven times the
+    materiality band, the single most decisive-looking number in the row. Four of
+    the fifteen premises differ at all, and ONE of them carries 80.6% of the margin
+    (GBP 20,466 of 25,379). The paired interval is [+GBP 3, +GBP 4,736] per premise
+    against a point of +1,692 — and dropping ANY ONE of those four premises makes it
+    unresolvable, while the aggregate rule survives every single-premise deletion in
+    the panel (0 of 15). A headline that cannot notice it is one house is not a
+    headline about a stock.
+
+    DIRECTION WAS NEVER WRONG, exactly as with accuracy: over 249 decisive subpanels
+    the aggregate and paired rules never named different arms (0%), and every
+    premise that differs at all favours the inference (+4/-0 authored, +16/-0 drawn).
+    That is what let it survive five Hours. An over-confident verdict that happens to
+    point the right way reads as a strong result, and nothing in the row said how
+    much of it was one home.
+
+    THE REPLACEMENT is the fourth Hour's, applied to the class rather than to the
+    instance (R10): the paired per-premise advantage `forgone_epc - forgone_inferred`
+    with a percentile bootstrap CI on a named C-S2 substream, "neither" where the
+    interval straddles zero — and applied to ALL FOUR money verdicts in this row
+    (base, panel mirror, revision mirror, confidence mirror), because a paired
+    verdict compared against three aggregate ones would be one name carrying two
+    different numbers, which is the defect this atom keeps finding.
+
+    NOT A TUNED THRESHOLD (R12/R13). The STATISTIC was repaired, not the band. The
+    old rule's answer rides in `aggregate_favours` so no reader loses a sentence.
+    """
+
+    favours: str
+    #: Per premise, in GBP. Positive means the INFERENCE forgoes less.
+    mean_advantage_gbp: float
+    ci_lo: float
+    ci_hi: float
+    premises: int
+    #: Premises where BOTH arms forgo the same amount — usually because both made the
+    #: same decision. They are resampled, not dropped: they are the panel.
+    tied_premises: int
+    #: The largest single premise's share of the panel's total margin. Reported
+    #: because a decisive verdict resting on one house is a different claim from a
+    #: decisive verdict resting on a hundred, and the totals cannot tell them apart.
+    largest_premise_share: float
+    #: What the OLD aggregate rule said, kept so the repair deletes no disclosure.
+    aggregate_favours: str
+    aggregate_relative_gap: float
+
+    @property
+    def resolved(self) -> bool:
+        return self.favours != "neither"
+
+    @property
+    def aggregate_overstated(self) -> bool:
+        """The aggregate rule named an arm the paired evidence cannot resolve."""
+        return self.aggregate_favours != "neither" and not self.resolved
+
+
+#: THE MONEY VERDICT'S OWN RESAMPLE BUDGET, SEED AND LEVEL. A SEPARATE SEED from
+#: `ACCURACY_VERDICT_SEED` and deliberately so (C-S2, named substreams): the two
+#: verdicts resample different quantities on the same panel, and sharing a seed
+#: would correlate their intervals for no reason other than that nobody thought
+#: about it. Named rather than inlined — a verdict that can be moved by quietly
+#: reseeding is not a verdict.
+MONEY_VERDICT_RESAMPLES = 4000
+MONEY_VERDICT_SEED = 20260812
+MONEY_VERDICT_ALPHA = 0.05
+
+
+def _bootstrap_mean_ci(
+    values: Sequence[float], *, seed: int, resamples: int, alpha: float
+) -> tuple[float, float, float]:
+    """Percentile bootstrap of the MEAN, deterministic from a named seed (C-S2).
+
+    ONE implementation, used by both paired verdicts. The accuracy verdict grew this
+    inline; a second copy for money would have been the shape where two published
+    intervals drift apart because someone fixed an off-by-one in one of them.
+    """
+    rnd = random.Random(seed)
+    n = len(values)
+    means = sorted(
+        statistics.fmean(rnd.choices(values, k=n)) for _ in range(resamples)
+    )
+    lo = means[int(alpha / 2.0 * resamples)]
+    hi = means[int((1.0 - alpha / 2.0) * resamples) - 1]
+    return statistics.fmean(values), lo, hi
+
+
+def _paired_money_verdict(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+    measures: Mapping[str, fi.RetrofitOffer] | None = None,
+    substream: str = "base",
+) -> MoneyVerdict:
+    """Decide the money headline PER PREMISE, with a percentile bootstrap CI.
+
+    `substream` names WHICH panel is being resampled (C-S2). The four money verdicts
+    in a row are four different populations; giving them one seed would make their
+    intervals share their resampling noise, and a mirror whose interval moves in
+    lockstep with the verdict it is testing is not an independent instrument.
+    """
+    _require_homes(
+        observations, minimum=MIN_HOMES_FOR_DIVERSITY, name="_paired_money_verdict"
+    )
+    epc_rows = _premise_forgone(
+        observations,
+        unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+        belief="epc",
+        fuel=fuel,
+        measures=measures,
+    )
+    inferred_rows = _premise_forgone(
+        observations,
+        unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+        belief="inferred",
+        fuel=fuel,
+        measures=measures,
+    )
+    advantages, tied = [], 0
+    for e, i in zip(epc_rows, inferred_rows):
+        if e.premise_id != i.premise_id:
+            raise InsufficientEvidence(
+                f"the two arms' premise order disagrees ({e.premise_id!r} vs "
+                f"{i.premise_id!r}) — a paired money advantage cannot be taken "
+                "across a reordering"
+            )
+        advantage = e.forgone_gbp - i.forgone_gbp
+        if not math.isfinite(advantage):
+            raise NonFiniteTrace(
+                f"{e.premise_id}: paired money advantage is {advantage!r}"
+            )
+        if advantage == 0.0:
+            tied += 1
+        advantages.append(advantage)
+
+    point, lo, hi = _bootstrap_mean_ci(
+        advantages,
+        seed=MONEY_VERDICT_SEED ^ _stable_hash(substream),
+        resamples=MONEY_VERDICT_RESAMPLES,
+        alpha=MONEY_VERDICT_ALPHA,
+    )
+    if lo <= 0.0 <= hi:
+        favours = "neither"
+    else:
+        favours = "inferred" if point > 0.0 else "epc"
+
+    total_epc = sum(r.forgone_gbp for r in epc_rows)
+    total_inferred = sum(r.forgone_gbp for r in inferred_rows)
+    larger = max(abs(total_epc), abs(total_inferred))
+    margin = abs(total_epc - total_inferred)
+    return MoneyVerdict(
+        favours=favours,
+        mean_advantage_gbp=point,
+        ci_lo=lo,
+        ci_hi=hi,
+        premises=len(advantages),
+        tied_premises=tied,
+        largest_premise_share=(
+            max(abs(a) for a in advantages) / margin if margin > 0.0 else 0.0
+        ),
+        aggregate_favours=_favours(total_epc, total_inferred),
+        aggregate_relative_gap=margin / larger if larger else 0.0,
+    )
+
+
+def _stable_hash(name: str) -> int:
+    """A stable 32-bit key from a substream NAME (C-S2). `hash()` is salted per
+    process, so a seed derived from it would give a different interval on every run
+    — the exact fail-shape a named substream exists to prevent."""
+    return int.from_bytes(hashlib.sha256(name.encode("utf-8")).digest()[:4], "big")
+
+
 def _paired_accuracy_verdict(
     observations: Sequence[FabricObservation],
     *,
@@ -4455,15 +4797,12 @@ def _paired_accuracy_verdict(
             tied += 1
         advantages.append(advantage)
 
-    rnd = random.Random(ACCURACY_VERDICT_SEED)
-    n = len(advantages)
-    means = sorted(
-        statistics.fmean(rnd.choices(advantages, k=n))
-        for _ in range(ACCURACY_VERDICT_RESAMPLES)
+    point, lo, hi = _bootstrap_mean_ci(
+        advantages,
+        seed=ACCURACY_VERDICT_SEED,
+        resamples=ACCURACY_VERDICT_RESAMPLES,
+        alpha=ACCURACY_VERDICT_ALPHA,
     )
-    lo = means[int(ACCURACY_VERDICT_ALPHA / 2.0 * ACCURACY_VERDICT_RESAMPLES)]
-    hi = means[int((1.0 - ACCURACY_VERDICT_ALPHA / 2.0) * ACCURACY_VERDICT_RESAMPLES) - 1]
-    point = statistics.fmean(advantages)
     # A CI straddling zero is the honest "cannot tell on this panel". Positive
     # advantage means the INFERENCE sat closer to the truth, premise by premise.
     if lo <= 0.0 <= hi:
@@ -4477,7 +4816,7 @@ def _paired_accuracy_verdict(
         mean_advantage_kw_per_k=point,
         ci_lo=lo,
         ci_hi=hi,
-        premises=n,
+        premises=len(advantages),
         tied_premises=tied,
         aggregate_favours=_favours(epc_gap, inferred_gap),
         aggregate_relative_gap=(
@@ -4529,6 +4868,15 @@ def composition_verdict(
     accuracy = _paired_accuracy_verdict(
         observations, epc_gap=epc_gap, inferred_gap=inferred_gap
     )
+
+    def _money_verdict(rows, substream):
+        return _paired_money_verdict(
+            rows,
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            fuel=fuel,
+            substream=substream,
+        )
+
     return CompositionVerdict(
         premises=len(observations),
         accuracy_favours=accuracy.favours,
@@ -4538,13 +4886,13 @@ def composition_verdict(
         accuracy_tied_premises=accuracy.tied_premises,
         accuracy_aggregate_favours=accuracy.aggregate_favours,
         accuracy_aggregate_relative_gap=accuracy.aggregate_relative_gap,
-        money_favours=_favours(forgone_epc, forgone_inferred),
+        money=_money_verdict(observations, "base"),
         forgone_epc_gbp=forgone_epc,
         forgone_inferred_gbp=forgone_inferred,
         improvement=epc_gap - inferred_gap,
         truth_above_epc_share=above / len(observations),
         revision_agrees_with_panel_share=_revision_agreement_share(observations),
-        panel_mirror_money_favours=_favours(panel_epc, panel_inferred),
+        panel_mirror_money=_money_verdict(panel, "panel_mirror"),
         panel_mirror_forgone_epc_gbp=panel_epc,
         panel_mirror_forgone_inferred_gbp=panel_inferred,
         panel_mirror_improvement=_improvement(panel),
@@ -4555,13 +4903,13 @@ def composition_verdict(
         panel_mirror_register_mad=_register_mad(observations, panel),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
-        revision_mirror_money_favours=_favours(revision_epc, revision_inferred),
+        revision_mirror_money=_money_verdict(revision, "revision_mirror"),
         revision_mirror_forgone_epc_gbp=revision_epc,
         revision_mirror_forgone_inferred_gbp=revision_inferred,
         revision_mirror_improvement=_improvement(revision),
         weight_null_forgone_epc_gbp=weight_null_epc,
         weight_null_forgone_inferred_gbp=weight_null_inferred,
-        confidence_mirror_money_favours=_favours(confidence_epc, confidence_inferred),
+        confidence_mirror_money=_money_verdict(confidence, "confidence_mirror"),
         confidence_mirror_forgone_epc_gbp=confidence_epc,
         confidence_mirror_forgone_inferred_gbp=confidence_inferred,
         declined_epc=base_epc.declined_where_value_existed,
@@ -4685,8 +5033,36 @@ def _panel_mirror_caveats(verdict: CompositionVerdict) -> list[str]:
             f"off {verdict.money_favours}, and that null carries no weight here — "
             + _why_unattributable(verdict)
             + ", so 'no composition effect' is not a finding on this population."
-        ] + _normaliser_caveat(verdict)
-    return _normaliser_caveat(verdict)
+        ] + _mirror_unresolved_caveat(verdict) + _normaliser_caveat(verdict)
+    return _mirror_unresolved_caveat(verdict) + _normaliser_caveat(verdict)
+
+
+def _mirror_unresolved_caveat(verdict: CompositionVerdict) -> list[str]:
+    """The panel mirror produced no verdict of its own — said, not left to silence.
+
+    "The mirror did not move the verdict" and "the mirror could not reach a verdict"
+    read the same in a row that prints only which arm each side names, and they are
+    opposite readings: the first is evidence the ranking is robust, the second is no
+    evidence at all. On the authored panel the mirror's own money interval is
+    [-70, +2,529] GBP per premise — it names nothing — and before this the row said
+    'inferred' on both sides and invited the robust reading.
+
+    Only where the BASE verdict resolved, for the same reason MIRROR INCONCLUSIVE is:
+    where the headline itself is too close to call there is no robustness reading on
+    offer to correct, and a caveat that prints on populations with nothing to caveat
+    is one nobody reads.
+    """
+    if not verdict.panel_mirror_money_unresolved or not verdict.money.resolved:
+        return []
+    return [
+        f"MIRROR VERDICT UNRESOLVED: the panel mirror does not name an arm at all "
+        f"(GBP {verdict.panel_mirror_money.mean_advantage_gbp:+,.0f} per premise, "
+        f"95% interval [{verdict.panel_mirror_money.ci_lo:+,.0f}, "
+        f"{verdict.panel_mirror_money.ci_hi:+,.0f}]; the aggregate rule would have "
+        f"said {verdict.panel_mirror_money.aggregate_favours}). Read the absence of "
+        f"a flip as NO EVIDENCE, not as evidence of no composition effect — a mirror "
+        f"that reaches no verdict cannot disagree with one."
+    ]
 
 
 def _why_unattributable(verdict: CompositionVerdict) -> str:
@@ -4781,6 +5157,32 @@ def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
             f"({verdict.accuracy_tied_premises} of {verdict.premises} premises are "
             f"exact ties). The difference of two population gaps is not evidence "
             f"about homes."
+        )
+    if verdict.money_aggregate_overstated:
+        caveats.append(
+            f"MONEY VERDICT UNRESOLVED: comparing the two arms' total forgone value "
+            f"names {verdict.money.aggregate_favours} "
+            f"({verdict.money.aggregate_relative_gap:.1%} of the larger), but per "
+            f"premise the advantage is GBP "
+            f"{verdict.money.mean_advantage_gbp:+,.0f} with a 95% interval of "
+            f"[{verdict.money.ci_lo:+,.0f}, {verdict.money.ci_hi:+,.0f}] — it "
+            f"straddles zero, so these homes cannot tell the two arms apart "
+            f"({verdict.money.tied_premises} of {verdict.money.premises} premises "
+            f"forgo the same amount under both). A difference of two sums is not "
+            f"evidence about homes."
+        )
+    elif verdict.money.resolved and verdict.money.largest_premise_share >= ONE_HOUSE_SHARE:
+        caveats.append(
+            f"MONEY VERDICT CARRIED BY ONE HOME: the verdict favours "
+            f"{verdict.money.favours} and survives its own error bar (GBP "
+            f"{verdict.money.mean_advantage_gbp:+,.0f} per premise, 95% interval "
+            f"[{verdict.money.ci_lo:+,.0f}, {verdict.money.ci_hi:+,.0f}]), but "
+            f"{verdict.money.largest_premise_share:.0%} of the GBP "
+            f"{abs(verdict.forgone_epc_gbp - verdict.forgone_inferred_gbp):,.0f} "
+            f"margin comes from a SINGLE premise "
+            f"({verdict.money.tied_premises} of {verdict.money.premises} forgo the "
+            f"same under both arms). The interval says the direction holds; this "
+            f"says how little of the stock it is a statement about."
         )
     caveats += _panel_mirror_caveats(verdict)
     if verdict.direction_bought:
@@ -4898,11 +5300,28 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "verdicts_agree": v.verdicts_agree,
         "forgone_epc_gbp": v.forgone_epc_gbp,
         "forgone_inferred_gbp": v.forgone_inferred_gbp,
+        # THE MONEY VERDICT'S ERROR BAR, in the row rather than inferred from the two
+        # totals: the totals cannot say whether their difference is resolvable on the
+        # homes that produced it, and until the fifth Hour nothing in this row could
+        # (2026-08-11). `largest_premise_share` is here for the same reason — a
+        # decisive verdict that is 81% one house is a different claim.
+        "money_mean_advantage_gbp": v.money.mean_advantage_gbp,
+        "money_ci_lo": v.money.ci_lo,
+        "money_ci_hi": v.money.ci_hi,
+        "money_tied_premises": v.money.tied_premises,
+        "money_largest_premise_share": v.money.largest_premise_share,
+        "money_aggregate_favours": v.money.aggregate_favours,
+        "money_aggregate_relative_gap": v.money.aggregate_relative_gap,
+        "money_aggregate_overstated": v.money_aggregate_overstated,
         "improvement": v.improvement,
         "truth_above_epc_share": v.truth_above_epc_share,
         "revision_agrees_with_panel_share": v.revision_agrees_with_panel_share,
         "composition_decided": v.composition_decided,
         "panel_mirror_money_favours": v.panel_mirror_money_favours,
+        "panel_mirror_money_ci_lo": v.panel_mirror_money.ci_lo,
+        "panel_mirror_money_ci_hi": v.panel_mirror_money.ci_hi,
+        "panel_mirror_money_aggregate_favours": v.panel_mirror_money.aggregate_favours,
+        "panel_mirror_money_unresolved": v.panel_mirror_money_unresolved,
         "panel_mirror_forgone_epc_gbp": v.panel_mirror_forgone_epc_gbp,
         "panel_mirror_forgone_inferred_gbp": v.panel_mirror_forgone_inferred_gbp,
         "panel_mirror_improvement": v.panel_mirror_improvement,
@@ -4934,11 +5353,17 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,
         "direction_bought": v.direction_bought,
         "revision_mirror_money_favours": v.revision_mirror_money_favours,
+        "revision_mirror_money_ci_lo": v.revision_mirror_money.ci_lo,
+        "revision_mirror_money_ci_hi": v.revision_mirror_money.ci_hi,
+        "revision_mirror_money_aggregate_favours": v.revision_mirror_money.aggregate_favours,
         "revision_mirror_forgone_epc_gbp": v.revision_mirror_forgone_epc_gbp,
         "revision_mirror_forgone_inferred_gbp": v.revision_mirror_forgone_inferred_gbp,
         "revision_mirror_improvement": v.revision_mirror_improvement,
         "confidence_bought": v.confidence_bought,
         "confidence_mirror_money_favours": v.confidence_mirror_money_favours,
+        "confidence_mirror_money_ci_lo": v.confidence_mirror_money.ci_lo,
+        "confidence_mirror_money_ci_hi": v.confidence_mirror_money.ci_hi,
+        "confidence_mirror_money_aggregate_favours": v.confidence_mirror_money.aggregate_favours,
         "confidence_mirror_forgone_epc_gbp": v.confidence_mirror_forgone_epc_gbp,
         "confidence_mirror_forgone_inferred_gbp": v.confidence_mirror_forgone_inferred_gbp,
         "declined_epc": v.declined_epc,

@@ -37,7 +37,16 @@ def test_findings_are_read_from_the_store_when_the_map_holds_none():
         {"id": "H27_payment_belief_gap"}, {"status": "passed", "last": "2026-08-10"}
     )
     assert findings, "a rehomed atom's findings vanished from THE PROOF's reader"
-    assert len(findings) == 11
+    # THE READER RETURNS THE STORE, WHOLE — asserted against the store rather than
+    # against a literal (2026-08-11). This was `len(findings) == 11` and went RED the
+    # moment H27 took its twelfth Hour, in a lane that had not touched this file: a
+    # count of an append-only register is a GENERATED VALUE, and pinning one makes
+    # every future entry a test failure while proving nothing the property below does
+    # not. The non-vacuity this literal was carrying now lives in the two assertions
+    # under it: the store is non-empty and the reader returns exactly it.
+    stored = store.records_for_atom("H27_payment_belief_gap", STORE_DIR)
+    assert len(findings) == len(stored["expert_hour_findings"]) >= 11
+    assert list(findings) == list(stored["expert_hour_findings"])
     assert any("DETECTION headline is an as_of ARTEFACT" in str(f) for f in findings)
 
 
@@ -50,7 +59,29 @@ def test_the_live_atom_really_is_rehomed_not_still_inline():
     assert set(eh) == {"last", "status"}, f"expert_hour still carries {sorted(eh)}"
     assert "expert_hour_findings" in atoms["H27_payment_belief_gap"]["records_rehomed"]
     stored = store.records_for_atom("H27_payment_belief_gap", STORE_DIR)
-    assert len(stored["expert_hour_findings"]) == 11
+    # A LOWER BOUND, not a pin, for the reason given in the test above: the premise
+    # this asserts is "the list is in the store and it is the real one", which a
+    # growing register satisfies and an exact count turns into a maintenance tax.
+    assert len(stored["expert_hour_findings"]) >= 11
+
+
+def test_the_fabric_atom_is_rehomed_too():
+    """THE SECOND ATOM THROUGH THIS DRAIN (2026-08-11, fifth fabric Hour). Its
+    per-atom map budget was RED at 15,735 B against a 12,288 B cap BEFORE this Hour
+    added anything — eleven Expert-Hour narratives accreted into the spine, which is
+    the exact flow `records_rehomed: [expert_hour_findings]` exists to drain. Moving
+    them took the atom to 1,349 B. Pinned here because a drain nobody asserts is a
+    one-time cleanup, and this atom takes another Hour most weeks."""
+    atoms = {a["id"]: a for a in gp._load_atoms() if isinstance(a, dict) and a.get("id")}
+    atom = atoms["H_GAP_fabric_belief_truth_gap"]
+    assert set(atom["expert_hour"]) == {"last", "status"}, (
+        f"expert_hour still carries {sorted(atom['expert_hour'])}"
+    )
+    assert "expert_hour_findings" in atom["records_rehomed"]
+    findings = gp._expert_hour_findings({"id": "H_GAP_fabric_belief_truth_gap"},
+                                        atom["expert_hour"])
+    assert len(findings) >= 12
+    assert any("DECISIVENESS DECOUPLED FROM N" in str(f) for f in findings)
 
 
 def test_inline_findings_win_over_the_store():

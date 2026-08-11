@@ -686,6 +686,19 @@ def main() -> None:
               f" population-gap rule would say {verdict.accuracy_aggregate_favours}"
               f" at {verdict.accuracy_aggregate_relative_gap:.1%})"
               f"{'   AGGREGATE OVERSTATED' if verdict.accuracy_aggregate_overstated else ''}")
+        # ...and the MONEY verdict's error bar on the same footing (2026-08-11, fifth
+        # Hour). It had none: the headline was a band on two GBP sums, which on the
+        # authored panel published a 58%-of-the-larger margin that was 81% one house.
+        print(f"      per-premise advantage   :"
+              f" GBP {verdict.money.mean_advantage_gbp:+,.0f}"
+              f" [{verdict.money.ci_lo:+,.0f}, {verdict.money.ci_hi:+,.0f}]"
+              f"   ({verdict.money.tied_premises}/{verdict.money.premises} forgo the"
+              f" same under both; largest premise"
+              f" {verdict.money.largest_premise_share:.0%} of the margin;"
+              f" total-forgone rule would say {verdict.money.aggregate_favours}"
+              f" at {verdict.money.aggregate_relative_gap:.1%})"
+              f"{'   AGGREGATE OVERSTATED' if verdict.money_aggregate_overstated else ''}"
+              f"{'   ONE HOUSE' if verdict.money.resolved and verdict.money.largest_premise_share >= fgl.ONE_HOUSE_SHARE else ''}")
         # The mirror's own fidelity is printed BESIDE its verdict, never only when
         # it flips: a null from a blunt instrument reads exactly like a null from a
         # sharp one unless the disturbance is on the same line.
@@ -699,7 +712,8 @@ def main() -> None:
               f" of its own movement;"
               f" truth-above-register {verdict.truth_above_epc_share:.0%})"
               f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}"
-              f"{'' if verdict.panel_mirror_is_attributable else '   INCONCLUSIVE'}")
+              f"{'' if verdict.panel_mirror_is_attributable else '   INCONCLUSIVE'}"
+              f"{'   NO VERDICT' if verdict.panel_mirror_money_unresolved else ''}")
         print(f"    money, mirrored REVISION  : {verdict.revision_mirror_money_favours}"
               f"   (same step, other way;"
               f" revision agreed with truth on"
