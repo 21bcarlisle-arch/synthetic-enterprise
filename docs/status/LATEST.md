@@ -1,5 +1,34 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T07:00:02Z
+Last updated: 2026-08-11T12:25:46Z
+
+**THE FABRIC MIRROR'S MONEY GATE WAS A DIFFERENCE OF TWO TOTALS — H_GAP_fabric Expert Hour #7
+landed with its mechanism (commits `319434395`, `5ae6395d2`, `884275dd6`, all pushed).**
+
+`panel_mirror_weight_artefact` decides whether the fabric panel mirror's verdict may be read at
+all. It was `|Δ(inferred_total − epc_total)|` for the weight-only null over the same for the
+mirror — two population sums — while the verdict it certifies has been decided **per premise**
+with a paired bootstrap since Hour #5. This is Hour #3's own repair (`_register_mad`: *an
+aggregate of differences, never a difference of aggregates*) left undone in the money channel that
+Hour created.
+
+**Measured by running it.** The mirror moves the deciding margin in both directions (1 up / 3 down
+of 4 moved premises authored; 10 up / 8 down of 18 drawn), so the sums cancel — 21.4% and 39.6% of
+the mirror's per-premise movement, and a *different* 32.6% / 25.3% of the null's. The published
+share therefore errs both ways: **68.9% against a true 80.4%** (authored), **90.4% against 73.1%**
+(drawn). On **7 of 200 real 20-home subpanels** of this atom's own drawn population the old shape
+**passes** the 50% band — as low as 32.9% — where the per-premise shape fails it at up to 65.1%; a
+pass there certifies the mirror and publishes its null as a finding.
+
+Repaired statistic, **band untouched at 0.50** (R12). The old answer survives as
+`panel_mirror_weight_artefact_aggregate` beside two cancellation terms; the share now carries a 95%
+bootstrap interval on its own named C-S2 substream, through the same function the gate reads. **R15
+— five source mutations, each firing its own named test.** 234 tests green in the atom's file, 79
+across its three siblings. **No published figure moved:** gaps 0.4269 / 0.4042, unchanged.
+
+Ledger re-measured **after** landing the code, so the row comes out `current`:
+`gap_ledger_reconciler` drift **4 of 14 → 1 of 14**. Level stays 2 — the Hour found something.
+Opener for #8, this Hour's deliberate non-move: the gate compares a point estimate to the band
+while its interval straddles it on the suite's own passing fixture (0.4364, 95% [0.219, 0.792]).
 
 **THE MACHINE CAN SEE ITS OWN CONTENTION WINDOW — resource-headroom governor LANDED
 (commit `f89afcd96`, pushed), against `ADVISOR_FLAG_RESOURCE_HEADROOM_GOVERNOR_2026-08-09` and
@@ -2138,9 +2167,9 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (483s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (291s / 5 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
-- Treasury: £2,466,636 → £3,901,941 | 38 committee interventions | 1557 bills issued
+- Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
 - Retention: 13 offers, 13/13 retained | 5 no-offer churns | 5 total churned accounts
 
@@ -2249,11 +2278,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] Who signed off on "by design," and what specifically happens to the never-enter-administration constraint the first time one of those unguarded call sites receives the input it isn't guarding against — is the failure contained and visible, or does it silently produce a number the business acts on?
 - (T3_inherence) [unanswered >24h] What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
 - (T3_inherence) [unanswered >24h] Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
-- (T3_inherence) What concrete, testable difference does re-filing "simulated world" items as "entry points" make to the supplier's modelled cash, margin, or insolvency risk — or is this purely a renaming of documentation, and if so, what independent evidence shows B1's "three behavioural-physics" are actual mechanisms in the simulation rather than labels asserted to mirror each other?
+- (T3_inherence) [unanswered >24h] What concrete, testable difference does re-filing "simulated world" items as "entry points" make to the supplier's modelled cash, margin, or insolvency risk — or is this purely a renaming of documentation, and if so, what independent evidence shows B1's "three behavioural-physics" are actual mechanisms in the simulation rather than labels asserted to mirror each other?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2104.4h across 83 sized atom(s) (13 of 96 below-target atoms still unsized).
+- Remaining effort: ~2127.6h across 85 sized atom(s) (13 of 98 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
