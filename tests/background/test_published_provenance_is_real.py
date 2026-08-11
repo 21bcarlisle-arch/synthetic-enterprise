@@ -1,13 +1,24 @@
 """R15 on the provenance-integrity guard, both ways, driven rather than asserted.
 
-THE DEFECT (2026-08-11, observed on the LIVE surface, not hypothesised):
+THE DEFECT, stated at the accuracy the evidence supports (R9), because the first telling of it
+was wider than the facts:
 
-    [08:58Z] Provenance banner: Verification paused since 2026-08-11T08:58:57Z
-             . showing run run_verified.json (last verified 2026-08-11T08:58:57Z)
-    [08:58Z] Provenance banner published to origin.
+  * ESTABLISHED -- commit `d4d1a04e6` (2026-08-10 17:15) published, and pushed to origin,
+    `showing_run.run_id = "run_output_abc1234_20260621T104002Z.json"`. `abc1234` is the standard
+    fixture sha in this repo's publisher tests, and `git cat-file` confirms it names no commit.
+    A fabricated run id WAS, for a period, the public claim about how current poesys.net was.
+    Mechanism: `tests/conftest.py` already records it -- the decoupling made `_process()` stamp
+    this file, so ordinary publisher tests driving `_process()` wrote the REAL surface.
 
-`run_verified.json` is a test fixture literal. A fabricated run id was, for a period, the public
-claim about how current poesys.net was. Nothing flagged it.
+  * NOT ESTABLISHED -- the 08:58Z log line `showing run run_verified.json`. Every commit that
+    ever touched the provenance was searched; NONE carries that value. It reached the LOG (the
+    banner line is rendered from in-memory state before the commit, and the file was rewritten
+    in between) and there is no evidence it reached origin. Reporting it as published was an
+    overstatement, corrected here rather than left standing.
+
+Note which of the two the shape check alone would have missed: `run_output_abc1234_...json` is
+REAL-SHAPED and matches the run-id regex. Only the commit-EXISTENCE check refuses it. That is the
+whole argument for asking git rather than only asking a regex.
 
 The guard asserts on the VALUE, not on the writer, because the writer is NOT ESTABLISHED. So the
 question this file must answer is not "did we stop the known caller" but "can a value that could
@@ -178,3 +189,43 @@ def test_mutation_without_the_shape_check_the_fixture_publishes(monkeypatch):
     assert prov.publishable_violations(_state("run_verified.json", "v" * 40),
                                        repo_root=prc.PROJECT_DIR) == [], \
         "the mutation did not reach the checked value -- this test is not proving what it claims"
+
+
+# ------------------------------------------------- THE GENERALISATION: the figures' own stamp
+
+def test_the_live_dashboard_meta_is_publishable():
+    """Anti-false-positive on the real thing: the shipped dashboard must pass."""
+    import json
+    meta = json.loads((prc.PROJECT_DIR / "site" / "data" / "dashboard.json").read_text())["meta"]
+    assert prov.dashboard_meta_violations(meta, repo_root=prc.PROJECT_DIR) == []
+
+
+@pytest.mark.parametrize("meta,why", [
+    ({"source_file": "run_verified.json"}, "fixture run id"),
+    ({"source_file": "run_output_abc1234_20260621T104002Z.json",
+      "git_commit": "abc1234"}, "the value that actually reached origin in d4d1a04e6"),
+    ({"git_commit": "deadbeef1"}, "real-shaped sha naming no commit"),
+    ({"git_commit": 12345}, "not even a string"),
+])
+def test_it_fires_on_a_dashboard_stamped_with_a_run_that_does_not_exist(meta, why):
+    """A dashboard stamped with a run that does not exist is a page of numbers attributed to
+    nothing. The second case is not hypothetical -- it is the blob committed in d4d1a04e6."""
+    assert prov.dashboard_meta_violations(meta, repo_root=prc.PROJECT_DIR), why
+
+
+def test_the_chokepoint_guards_the_dashboard_too(tmp_path, monkeypatch):
+    """The generalisation reaches the commit path, not just the validator."""
+    import json as _json
+    root = tmp_path / "repo"
+    dash = root / "site" / "data" / "dashboard.json"
+    dash.parent.mkdir(parents=True, exist_ok=True)
+    dash.write_text(_json.dumps({"meta": {"source_file": "run_verified.json",
+                                          "git_commit": "abc1234"}}))
+    monkeypatch.setattr(prc, "PROJECT_DIR", root)
+    monkeypatch.setattr(prc.subprocess, "run",
+                        lambda *a, **k: (_ for _ in ()).throw(
+                            AssertionError("git reached despite a false dashboard stamp")))
+    said = []
+    monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
+    assert prc._commit_and_push_paths([str(dash)], "msg", label="Content") is False
+    assert any("source_file" in s for s in said), said

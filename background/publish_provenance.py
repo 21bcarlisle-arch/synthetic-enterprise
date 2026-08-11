@@ -176,6 +176,46 @@ def publishable_violations(state, *, repo_root: Path = None, check_commit_exists
     return out
 
 
+def dashboard_meta_violations(meta, *, repo_root: Path = None, check_commit_exists=True) -> list:
+    """Every reason a `dashboard.json` `meta` block must not be published. Empty == publishable.
+
+    THE GENERALISATION (2026-08-11, director: "generalise to anywhere else a test fixture could
+    reach a published surface"). Measured: `tests/conftest.py::_PROTECTED_WRITE_PATHS` guards 9
+    paths, of which exactly ONE is a published surface -- while the publisher commits fourteen.
+    The guard was extended one file at a time, to whichever file happened to get caught.
+
+    A blanket directory guard is NOT the answer and that is not a guess: the earlier author
+    measured that protecting `site/data/` reds the generator tests that legitimately rewrite
+    those files, which is why the list is scoped to one path. So the general control cannot live
+    at the write.
+
+    It lives here instead, on the VALUE, where a legitimate generator write and a fixture write
+    are finally distinguishable: `meta.source_file` and `meta.git_commit` are the same identity
+    claim the provenance makes, in the file that carries every published FIGURE. A dashboard
+    stamped with a run that does not exist is a page of numbers attributed to nothing.
+    """
+    out = []
+    if not isinstance(meta, dict):
+        return ["dashboard meta is not an object: {!r}".format(type(meta).__name__)]
+
+    src = meta.get("source_file")
+    if src is not None:
+        if not isinstance(src, str) or not RUN_ID_RE.match(src):
+            out.append("meta.source_file is not a real run id: {!r}".format(src))
+        elif src in FIXTURE_VOCABULARY:
+            out.append("meta.source_file is fixture vocabulary: {!r}".format(src))
+
+    sha = meta.get("git_commit")
+    if sha is not None:
+        if not isinstance(sha, str) or not COMMIT_RE.match(sha):
+            out.append("meta.git_commit is not a sha: {!r}".format(sha))
+        elif sha in FIXTURE_VOCABULARY:
+            out.append("meta.git_commit is fixture vocabulary: {!r}".format(sha))
+        elif check_commit_exists and not _commit_exists(sha, repo_root):
+            out.append("meta.git_commit names no commit in this repo: {!r}".format(sha))
+    return out
+
+
 def assert_publishable(state, *, repo_root: Path = None, check_commit_exists=True) -> None:
     """Raise `ProvenanceRefused` if `state` must not be published. Loud, never a bare bool."""
     violations = publishable_violations(

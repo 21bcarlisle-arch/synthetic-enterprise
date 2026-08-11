@@ -2916,15 +2916,26 @@ def _provenance_is_publishable(paths, *, label="publish") -> bool:
     defect it closes published in silence and a quiet refusal would only move the silence.
     """
     prov_path = PROJECT_DIR / "site" / "data" / "publish_provenance.json"
+    dash_path = PROJECT_DIR / "site" / "data" / "dashboard.json"
     try:
-        if not any(Path(p).resolve() == prov_path.resolve() for p in paths):
+        resolved = {Path(p).resolve() for p in paths}
+        in_commit = {prov_path.resolve(), dash_path.resolve()} & resolved
+        if not in_commit:
             return True
     except OSError:
         return True
     try:
         from background import publish_provenance as _prov
-        state = _prov.read(prov_path)
-        violations = _prov.publishable_violations(state, repo_root=PROJECT_DIR)
+        violations = []
+        if prov_path.resolve() in in_commit:
+            violations += _prov.publishable_violations(
+                _prov.read(prov_path), repo_root=PROJECT_DIR)
+        # The same identity claim, in the file that carries every published FIGURE. A dashboard
+        # stamped with a run that does not exist is a page of numbers attributed to nothing.
+        if dash_path.resolve() in in_commit and dash_path.exists():
+            meta = json.loads(dash_path.read_text()).get("meta")
+            if meta is not None:
+                violations += _prov.dashboard_meta_violations(meta, repo_root=PROJECT_DIR)
     except Exception as exc:  # noqa: BLE001 -- an unavailable checker is a FAILED check
         log("{} REFUSED: the provenance check could not run ({}: {}) -- an unavailable check "
             "is a failed check, so nothing is published this cycle.".format(
