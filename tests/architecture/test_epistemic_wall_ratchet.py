@@ -320,14 +320,18 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # ("simulation.run_phase4c_on_phase2b", "saas.{churn_model,cost_to_serve,
     # enterprise_value,home_move_win_rate}") -- 4 tuples DELETED 2026-08-11 by
     # `A_composition_lift` step 15. See the block comment above.
-    ("simulation.run_phase4c_on_phase2b", "saas.contact_model"),
     # ("simulation.run_phase4c_on_phase2b", "saas.ledger") -- DELETED 2026-08-11,
-    # the third of step 14's edges. `saas.payment_behaviour` below did NOT fall
-    # with it and that is stated rather than left to be inferred: the close
-    # imports the supplier's own payment model directly now, but
-    # `build_payment_behaviour(bills)` is still called world-side for the
-    # billing-experience output, so the edge survives until that group is cut.
-    ("simulation.run_phase4c_on_phase2b", "saas.payment_behaviour"),
+    # the third of step 14's edges.
+    # ("simulation.run_phase4c_on_phase2b", "saas.{contact_model,payment_behaviour}")
+    # -- 2 tuples DELETED 2026-08-11 by `A_composition_lift` step 16 (register §3k).
+    # The supplier's billing-experience layer moved to
+    # `company/analytics/billing_experience_view.py` behind
+    # `company.interfaces.billing_experience`. `saas.payment_behaviour` is the edge
+    # step 14 explicitly recorded as NOT falling with `saas.ledger`, because
+    # `build_payment_behaviour(bills)` was still called world-side for this output;
+    # step 16 is the group that was named there, so the debt is now paid rather than
+    # restated. `company.billing.dd_review_runner` above is the module's last, and
+    # §3h rules it a ROUTING residual rather than a cut still owed.
     # ("simulation.run_segments", "saas.{growth_mandate,ledger,property_model,tariff_pricing}")
     # -- 4 tuples DELETED 2026-08-10 by `A_composition_lift` PART 2. The file moved to
     # `tools/run_segments.py`, where entry points live, having passed the four conditions §3c of

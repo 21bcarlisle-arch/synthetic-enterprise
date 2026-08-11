@@ -42,24 +42,22 @@ removed the ONE `saas.reporting` edge, which is the edge that closed the
 reporting import CYCLE. Do NOT read "pure library" as "wall-clean": it is
 cycle-free and composition-free, nothing more.
 
-WHAT IS LEFT OF THE CROSSINGS, as of step 15 (2026-08-11). Pass 1 left 14
+WHAT IS LEFT OF THE CROSSINGS, as of step 16 (2026-08-11). Pass 1 left 14
 company-side packages imported directly. KNIFE pass 3 has since taken bill
 assembly (step 11, §3f of the disposition register), the month-end accounting
-close (step 14, §3i) and the customer-value layer (step 15, §3j), leaving
-THREE — one coherent group plus one residual, not three loose items:
+close (step 14, §3i), the customer-value layer (step 15, §3j) and the
+billing-experience layer (step 16, §3k), leaving ONE:
 
-  * the billing-experience builders — `saas.contact_model`,
-    `saas.payment_behaviour`. A different process on a different input
-    (`bills`, not the settled records), which is why they did not travel with
-    the customer-value group;
   * `company.billing.dd_review_runner`, which §3h records as a ROUTING residual
     (the world threads the desk's own register into the report) rather than a
     decision the world takes.
 
-Each group is one company process this module is currently orchestrating. The
-live count is never maintained by hand here — `tools/wall_crossing_dispositions.py`
-prints it from the walker, and this docstring disagreeing with it is a defect in
-this docstring.
+That last one is a residual by RULING, not a cut still owed on this module, and
+the difference matters: no further composition lift removes it, because there is
+no company process here left to lift — only a value being carried from a company
+organ into the run's output dict. The live count is never maintained by hand
+here — `tools/wall_crossing_dispositions.py` prints it from the walker, and this
+docstring disagreeing with it is a defect in this docstring.
 """
 
 from simulation.dd_collection_book import build_dd_collection_book
@@ -68,14 +66,13 @@ from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.billing.dd_review_runner import run_annual_reviews
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import assemble_monthly_bills
+from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import build_customer_value_view
-from saas.contact_model import build_contact_model
 from company.interfaces.supply_book import (
     acquired_supply_points,
     registered_supply_points,
     successor_supply_points,
 )
-from saas.payment_behaviour import build_payment_behaviour
 from simulation.arrears_engine import (
     compute_emergent_bad_debt,
     apply_emergent_bad_debt,
@@ -271,8 +268,28 @@ def main(report_end: str | None = None, policy=None):
     )
     apply_debt_recovery(all_records, debt_recovery)
 
-    payment_behaviour = build_payment_behaviour(bills)
-    contact_model = build_contact_model(bills)
+    # KNIFE pass 3 (`A_composition_lift` step 16, 2026-08-11, register §3k): the
+    # supplier's billing-experience layer moved to
+    # `company/analytics/billing_experience_view.py`, reached through
+    # `company/interfaces/billing_experience.py`. Which of its customers this
+    # supplier calls a credit risk, what it provisions against them, when it
+    # expects to be paid, and how it models a confusing bill becoming a
+    # complaint are its OWN beliefs -- it changes all four without telling
+    # anyone, and is wrong about them routinely.
+    #
+    # Taken as a group for a WEAKER reason than the customer-value four, and the
+    # weaker reason is stated rather than borrowed: these two are independent of
+    # each other, so no intermediate would have been stranded by cutting them
+    # singly. They share one input (`bills`) and one question, and two doors
+    # onto the same argument list would be two doors for no gain.
+    #
+    # `bills` crosses UNFILTERED, deliberately -- the close's Tier-1 issuance
+    # gate ~120 lines below partitions the same list, and applying that filter
+    # here for symmetry would silently move the bad-debt provision. Pinned by a
+    # mutation in the seam test, not by this comment.
+    billing_experience = build_billing_experience_view(bills)
+    payment_behaviour = billing_experience.payment_behaviour
+    contact_model = billing_experience.contact_model
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 4): contact-centre first-response
     # time, distinct from feedback_survey's complaint *resolution* timer --

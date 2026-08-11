@@ -908,6 +908,87 @@ Three crossings remain on the module: the billing-experience builders (`saas.con
 — and `company.billing.dd_review_runner`, which §3h already ruled a ROUTING residual. They are the
 next group, not this one.
 
+## 3k. The billing-experience layer is the supplier's belief about its own book — added 2026-08-11 (step 16)
+
+**2 edges cut, 41 → 39 live (39 → 37 direct; the 2 indirect untouched, and again that is the proof
+that a bridge route was not silently taken instead). `A_composition_lift`, finishing §3j's paydown
+of `run_phase4c_on_phase2b`.** Three crossings remained on that module after the customer-value
+layer; two of them were the group §3j named as next.
+
+`main()` composed the supplier's billing-experience layer itself: it segmented every customer by
+credit risk, booked a bad-debt provision at that segment's rate, derived the payment date it expects
+from each (`saas.payment_behaviour`), and estimated how likely each bill was to generate a contact,
+how many of those escalate, and the service-quality score that falls out (`saas.contact_model`).
+
+None of it is world physics. Which of its own customers a supplier calls a credit risk, what it
+provisions against them, when it expects to be paid, and how it models a confusing bill becoming a
+complaint are its own beliefs — a real supplier changes all of them without telling anyone and is
+wrong about them routinely. What the world owns is the BILLS, as data. Both now go through
+`company/interfaces/billing_experience.py` into `company/analytics/billing_experience_view.py`,
+which returns a `BillingExperienceView`.
+
+### The group argument here is WEAKER than §3j's, and that is stated rather than borrowed
+
+§3j's four were a group because of a dependency CHAIN: cutting one at a time would have stranded an
+intermediate belief world-side, so the group was forced. These two are INDEPENDENT of each other —
+neither reads what the other writes, and either could have been cut alone with no PULL created.
+They travel together for a weaker and more ordinary reason: one input (`bills`, and nothing else)
+and one question. Two doors onto the same argument list, differing only in which belief comes back,
+would be two doors for no gain. Recorded this way because copying §3j's chain argument onto a pair
+that has no chain would make the register say something false about its own reasoning.
+
+### The bill list crosses UNFILTERED, and that is a decision with a control on it
+
+~120 lines below the moved call, `close_the_books` partitions these same bills through the Tier-1
+issuance gate and recognises revenue only against the ISSUED half (§3i, `BILL_TO_LEDGER_LINKAGE.md`).
+The obvious tidy-up when recomposing is to apply the same filter here for consistency. It would be
+wrong in both directions: a HELD bill has not been sent, so it can generate no contact — but the
+provision a supplier books against a customer's credit risk does not vanish because a bill sat in
+the exception queue, and the pre-cut code provisioned against every bill. The filter would move the
+bad-debt figure silently: no exception, no static signal, just a smaller number in the run output.
+So it is not left to a paragraph — `test_mutation_filtering_to_the_issued_half_moves_the_view` runs
+the real `validate_bills` over the fixture book and asserts the provision moves, and its VACUITY
+GUARD (`test_the_fixture_actually_contains_a_held_bill`) fails loudly if the gate ever stops holding
+the bill built for it, rather than letting the control compare a book against itself.
+
+### The read direction, and behaviour unchanged by construction
+
+`company/analytics/billing_experience_view.py` imports nothing from `simulation/` or `sim/` — the
+bills arrive as plain dicts — so no class-(a) edge is traded for the two class-(b) ones. Same two
+functions, same argument, same relative order, same point in `main()`; nothing is reimplemented and
+neither builder reads what the other writes, so the order is not load-bearing and nothing here
+claims it is. The lazy-import escape the static ratchet cannot see is covered behaviourally: the
+seam test builds a real view in a clean interpreter, asks `sys.modules` which world modules loaded,
+and its mutation performs exactly that import.
+
+### THE LEAK THIS CUT DOES NOT REPAIR, named because the new door would otherwise imply it was clean
+
+`simulation/contact_centre.py::generate_contact_centre_log(bills, contact_model)` draws the world's
+ACTUAL contact events off `contact_probability` — the number this view computes as the supplier's
+ESTIMATE. The company's belief about how often it will be contacted therefore CONSTITUTES how often
+it is contacted. That is the B2/B3 inversion, the same shape as `simulation/satisfaction_churn.py`
+clamping the world's churn at the company's `MAX_CHURN_PROBABILITY` before §3g cut it, and the same
+shape as §3e's `naked_fraction`.
+
+It pre-dates this cut and is untouched by it: the crossing paid down here is the run module's
+IMPORT, not the world's use of the returned dict. It is FILED rather than fixed on sight
+(`SELF_INTERRUPT_DISCIPLINE` — the repair is a world-side contact-physics module with its own
+independence proof, a B3-shaped atom, not a line in this one):
+`docs/staging/WORKER_FINDING_THE_WORLDS_CONTACT_RATE_IS_THE_COMPANYS_ESTIMATE_2026-08-11.md`.
+Recorded here because after the cut the flow reads as a sanctioned seam hand-back, and a reader
+could take the door as evidence the direction was examined and found clean. It was examined and
+found DIRTY, in a dimension this pass does not own. The seam test deliberately carries no control
+for it: a control here would either pin the leak in place or fail on day one.
+
+### What is left on this module — ONE, and it is a residual by ruling
+
+`company.billing.dd_review_runner` is the last crossing of `run_phase4c_on_phase2b`, and §3h already
+ruled it a ROUTING residual (the world threads the desk's own register into the report) rather than
+a decision the world takes. No further composition lift removes it, because there is no company
+PROCESS left here to lift — only a value carried from a company organ into the run's output dict.
+Stated so a future pass does not draw this module again expecting a cut that its own ruling says is
+not there.
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1437,12 +1518,12 @@ edge: simulation.run_phase4c_on_phase2b -> company.billing.pre_bill_validation |
 edge: simulation.run_phase4c_on_phase2b -> company.compliance.domain_invariants | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — the billed-clock reconciliation moved with the posting it checks. It was a function-scope import inside `main()`, which the walker sees but a reader easily does not; it is now adjacent to the ledger it reconciles, and §3i records the TAUTOLOGY that adjacency creates and the independent control built for it.
 edge: simulation.run_phase4c_on_phase2b -> saas.bill_generator | disposition=cut | reason=B_bill_assembly_is_the_suppliers_own (A_composition_lift step 11) EXECUTED 2026-08-10 — monthly bill assembly moved to `company/billing/monthly_bill_assembly.py` behind `company/interfaces/bill_assembly.py`. The world hands over settled records and a `ReadArrivalFeed` and takes back bills; the back-billing cap, the write-off register and the bill generator are unreachable from the SIM. The read direction is INVERTED rather than carried across — see §3f.
 edge: simulation.run_phase4c_on_phase2b -> saas.churn_model | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — the supplier's BELIEF about who will leave — a belief it is allowed to get wrong, which is the point of the wall. Moved with its group; `home_move_win_rate` and `enterprise_value` both consume it, so cutting it alone would have left the world holding the intermediate and threading it back.
-edge: simulation.run_phase4c_on_phase2b -> saas.contact_model | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.contact_model | disposition=cut | reason=`A_composition_lift` step 16, 2026-08-11 (§3k) — the supplier's estimate of how likely its own bill is to generate a contact, how many escalate to a complaint, and the service-quality score off them. Moved into `company/analytics/billing_experience_view.py` behind `company.interfaces.billing_experience` with `saas.payment_behaviour`; the world hands over the bills as DATA and takes back a `BillingExperienceView`. §3k NAMES the leak this does NOT repair: `simulation/contact_centre.py` still draws the world's actual contact events off this estimate, the B2/B3 inversion, filed as a finding rather than fixed on sight.
 edge: simulation.run_phase4c_on_phase2b -> saas.cost_to_serve | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — the supplier's own apportionment of cost to a customer. Moved into `company/analytics/customer_value_view.py` behind `company.interfaces.customer_value` with the other three of its group; it also produces the account-6100 posting schedule the close consumes, which is why that computation moved earlier and why §3j carries a control over the region it moved across.
 edge: simulation.run_phase4c_on_phase2b -> saas.enterprise_value | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — what the supplier thinks its book is worth, off its own churn and cost-to-serve beliefs. Moved with its group; it is the end of the dependency chain that makes these four one process rather than four items.
 edge: simulation.run_phase4c_on_phase2b -> saas.home_move_win_rate | disposition=cut | reason=`A_composition_lift` step 15, 2026-08-11 (§3j) — what this supplier will pay to keep a moving customer, priced off its own churn belief and its own market position. Moved with its group.
 edge: simulation.run_phase4c_on_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 14, 2026-08-11 (§3i) — double-entry posting, the P&L derivation, the ledger summary and the account-6100 shaping of the cost-to-serve schedule all moved company-side. The world still owns the settled records and the spend schedules; it hands them over as DATA and takes back an `AccountingClose`.
-edge: simulation.run_phase4c_on_phase2b -> saas.payment_behaviour | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase4c_on_phase2b -> saas.payment_behaviour | disposition=cut | reason=`A_composition_lift` step 16, 2026-08-11 (§3k) — the supplier's credit-risk segmentation of its own customers, the bad-debt provision rate it books against each, and the payment date it expects. This is the edge §3i explicitly recorded as NOT falling with `saas.ledger`, because `build_payment_behaviour(bills)` was still called world-side for the billing-experience output; step 16 is the group named there, so the debt is paid rather than restated. The bills cross UNFILTERED — §3k records why the close's issuance filter must not be applied here and the mutation that pins it.
 edge: simulation.run_segments -> saas.growth_mandate | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: the mandate string and the £50/month overhead are the company's own constants, read back out — no sim internal crosses.
 edge: simulation.run_segments -> saas.ledger | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: `make_fixed_cost_event(month, FIXED_COST_MONTHLY)` is handed a month and the company's own constant — no sim internal crosses.
 edge: simulation.run_segments -> saas.property_model | disposition=cut | reason=A executed 2026-08-10, PART 2 of the lift — `run_segments` was the ONE of the three standing shape-A files that passes conditions 1, 2 and 3 by measurement (zero walled importers by AST census; `main` is the only symbol anything imports, and only from `tools/`; `main()` + `__main__` + a docstring calling itself a run). Its population physics is delegated to `simulation/segments.py`, so the file is composition with no residue to strand. Moved to `tools/run_segments.py`. See §3d/§3e. Condition 4: nothing is handed to the company here at all — the dwelling defaults flow the other way, INTO `simulation.demand_model`. Whether those dwelling facts are world physics filed company-side (the B1 shape) is a real open question, and lifting this file does NOT bury it: `simulation.run_phase2b -> saas.property_model` is still live and still ruled.
