@@ -1,5 +1,29 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T22:35:33Z
+Last updated: 2026-08-11T22:47:01Z
+
+**OPS2 — THE CEILING IS DERIVED FROM MEASURED DEMAND, NOT CHOSEN (`dfd74dff7`, pushed).** Owed
+item 1 of `OPS2_publish_gate_head_worktree`. The prior finding's own recommendation was to re-derive
+`PHASE_MEMORY_MAX_MB` from `sample_gate_rss_premium.py`'s reported **5.34G** — and obeying it
+literally would have set the bound **below a demand already observed**: 5.34G is a **per-PROCESS**
+high-water mark, `MemoryMax` bounds the **CGROUP**, and the kernel killed this phase's scope at its
+8192MiB limit with one child at 6.13G inside it. A fourth truncation was one obedient re-derivation
+away. Now: measured demand (a sampled scope peak, or the `memory_max_mb` of any phase the cgroup
+killer took, because that proves demand reached it) **× 1.25 headroom, capped by what the box can
+spare with the start reserve intact** — 8192 → **10240MB**, cap 11816 on a 15912MB box; not chosen,
+computed. `_ScopePeakSampler` measures the subject the ceiling bounds (`memory.peak` on the phase's
+own scope, read from the parent while it runs) and banks **whether each peak is exact or a lower
+bound** — a killed phase never used more than its limit however much it wanted. When the derivation
+outgrows the box the phase is **REFUSED**, never clamped to the cap and re-run: clamp-and-rerun is
+what funded launches 12, 13 and 14. **R15 both ways: 8 mutations, all red** — and two SURVIVED the
+first pass, recorded because the surviving shape is the lesson (a zero-peak mutation unreachable
+past the `cgdir is None` guard; a loose match only reachable when the glob is built on the unit
+stem). **115 passed, ruff clean.** Caught on the way: both basis helpers quoted the module constant,
+so the first ratchet re-described a phase banked at 8192 as *"killed against its own 10240MB
+ceiling"* and would have **wedged publishing on every ceiling move** — they now quote the ceiling
+that phase actually ran under. The in-tree baseline is **relaunched under the derived ceiling**: it
+either completes (banking a true peak, from which the ceiling can come back DOWN) or dies alone and
+the next derivation exceeds the box and is refused. Both are terminal; no blind fourth relaunch
+remains possible.
 
 **G12 v1 LANDED — the query store is built, and the artefact its control reads was untracked
 (`400414f02`, level 0→2, pushed).** Step 2 of `DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10`.
