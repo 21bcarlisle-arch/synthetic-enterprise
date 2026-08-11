@@ -1,5 +1,22 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T14:42:37Z
+Last updated: 2026-08-11T15:43:37Z
+
+**PUBLISH-GATE TIMEOUT RE-DERIVED 2900s → 3600s, second time today (`60dd656cd`, pushed).** The
+gate's suite bound fail-CLOSES, so an undersized bound wedges publishing rather than degrading the
+gate. `test_the_timeout_clears_the_floor_the_measurement_implies` reads the measurement record
+directly and fired MID-COMMIT: the same 18-module gate scope ran 557-green at 15:20Z and 1-red at
+15:35Z with no source change, because the cost harness banked a re-timed `throwaway_checkout` at
+1784.6s (23,831 passed, ran to completion) and 1784.6 × 2 = 3569 overtook 2900. The suite grew 121
+tests and the box was contended; both push the same way. `PUBLISH_PATH_TIMEOUT_SECONDS` is derived
+from the constant, so the caller moved with it — that pair drifting apart is the 41-hour wedge of
+2026-08-10. R15 both ways; the bound has now been undersized four times (600, 1800, 2600, 2900).
+
+**The 2026-08-11 population/book ruling is minted (`fa03a823f`, pushed).** Three atoms on the
+Epoch-2 shelf — `PB1_population_target_and_its_price` (L0→2, depends on the AO12 10k probe),
+`PB2_opening_book_won_not_assigned` (L0→3), `PB3_book_growth_as_earned_outcome` (L0→3). The
+ruling's fourth deliverable was NOT re-minted: `FUT1_attach_forward_hook` already is that
+mechanism. Idle on the shelf as the ruling asked, so DISCOVER/FRAME is open now and BUILD is not
+jumping the queue. The population was not raised — R13 keeps that the director's curriculum.
 
 **THE FABRIC MIRROR'S MONEY GATE WAS A DIFFERENCE OF TWO TOTALS — H_GAP_fabric Expert Hour #7
 landed with its mechanism (commits `319434395`, `5ae6395d2`, `884275dd6`, all pushed).**
