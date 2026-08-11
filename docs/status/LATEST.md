@@ -1,5 +1,26 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T18:28:32Z
+Last updated: 2026-08-11T18:34:40Z
+
+**G12/G13 QUERYABLE PROJECTIONS MINTED — the July design finally has its caller, and its anchor
+does not exist (`79c3ecd2e`/`c2ca2abc8`, pushed).** Step 1 of
+`DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10`, drawn now that BUILD_THE_BREATHING has
+landed. Two atoms on disjoint `file_scope` so SITE can run parallel: `G12_queryable_projections`
+(the store — derived from committed truth, rebuilt-not-mutated each publish, never a second source
+of truth; `build`/L0→2, **drawable now**, no `blocked_on`) and `G13_projection_consumers` (one site
+page + one lab query, `depends_on` G12). The mint tripped three of the map's own controls and all
+three were real: `records_rehomed`/`notes_rehomed` declared store fields neither atom writes —
+the exact class `WORKER_FINDING_A_MINT_DECLARES_STORE_FIELDS_IT_NEVER_WRITES` filed 2026-08-10,
+reproduced at mint rate, and fixed by **dropping the declarations rather than inventing store
+content** to green the suite; plus the C3 default-dumping-ground check on `close_to_learn`, answered
+with merit reasoning and its own falsifier (if v1 ever WRITES a figure, the entry is wrong).
+**The finding worth the Hour:** the instruction's cited anchor `DATA_LAKE_OBSERVABILITY.md` has
+**never existed** in this repo — `git log --all` finds the string only in the instruction's own
+commit subject — and `SAAS_COVERAGE_MAP.md:71` classes BI/data-warehouse as bucket A *"eliminated by
+architecture"*, a row `generate_saas_coverage_data.py` computes a **published 22.7% figure** from.
+Both cannot be right. The mint proceeded regardless (no reserved class touched; the instruction
+states its design self-sufficiently) with the instruction text as anchor of record and the
+discrepancy written into G12's own `name`, where DISCOVER/FRAME cannot miss it. Gates: tests/design
+101 passed, level-promotion + moap-coherence + the 16-file test gate (332 passed) each green.
 
 **H27 EXPERT HOUR #16 — THE READER'S PRECISION WAS ONE FIGURE'S, DECLARED AS EVERY FIGURE'S
 (`7e8985c4c`, pushed). Held at L2; sixteen Hours, sixteen defects.** Hour #15's two leads needed
