@@ -984,7 +984,29 @@ def _free_mb(path):
 #     construction (there is one, and the next cycle reuses it), but throwaway dirs from the old
 #     form and from fallback cycles do leak, so every cycle sweeps stale ones BEFORE the disk
 #     pre-flight -- which makes the third wedge's exhausted-tmpfs failure self-healing.
-HEAD_CHECKOUT_ROOT = Path(tempfile.gettempdir())
+# THE GATE'S CHECKOUTS LIVE ON DISK, NOT IN RAM (2026-08-11).
+#
+# `tempfile.gettempdir()` is `/tmp`, and on this box `/tmp` is **tmpfs** -- 7.8G, backed by the
+# same 15.9G of RAM the suites need. A HEAD checkout is 8,662 files, and with the reuse
+# elimination every concurrent publisher materialises its own. Three at 08:22Z exhausted it:
+#
+#     Publish gate: could not make the HEAD checkout a git repo: git is not installed
+#     Publish gate: `git init` in the HEAD checkout failed rc=128 -- fatal: cannot mkdir
+#
+# "cannot mkdir" is ENOSPC wearing a misleading message, and "git is not installed" is the
+# diagnosis the code then printed -- git is installed; the filesystem was full. Same class as
+# the tmpfs preflight finding in MEMORY_CLEANSE step 3: measure RAM, not the filesystem.
+#
+# Worse, the existing `_free_mb` pre-flight was measuring tmpfs, so it read "free" while the
+# free bytes it was counting WERE the contended RAM -- a pre-flight that cannot see the
+# resource it exists to protect. Pointing the root at ext4 makes that check mean what it says
+# and takes the checkouts out of the OOM budget entirely: 894G free on /dev/sdd against 7.8G
+# of RAM-backed /tmp.
+#
+# `/var/tmp` is the correct choice by convention too: it is for data that should survive across
+# a run and is not expected to be RAM-backed. Overridable for tests and for a box where
+# /var/tmp is itself tmpfs.
+HEAD_CHECKOUT_ROOT = Path(os.environ.get("SE_GATE_CHECKOUT_ROOT", "/var/tmp"))
 HEAD_CHECKOUT_PREFIX = "publish-gate-head-"
 REUSED_HEAD_CHECKOUT_NAME = HEAD_CHECKOUT_PREFIX + "reused"
 
