@@ -97,3 +97,31 @@ finding already had to write ("why a ten-hour outage alarmed as a fresh hour").
   HEAD in this same unwedge.
 
 — Worker finding, 2026-08-10, during the fifth publish-wedge episode.
+
+
+---
+
+## CLOSED 2026-08-11 — `a2d7510e2`
+
+Built as specified, at the choke point rather than per-exit-path (the finding's own R10 argument:
+"the population is every path that exits `_process()` without publishing, and it is open-ended").
+
+* **Item 1, the "or better" option.** Success is now an ASSERTION BY THE GATE, not a deduction from
+  rc: `record_publish_gate_outcome` clears the streak only when `_green_is_on_record_for(git_hash)`
+  — `.last_tested_hash` equal to the marker's commit, and that file's sole writer is `_run_gate_in`
+  on rc=0 from the suite. Because the evidence is positive, it does not matter WHICH rc=0 path
+  fired; a future non-publishing exit joins the closed class automatically.
+* **Item 2, the R15 mutation.** `test_router_rc0_without_a_recorded_pass_clears_nothing` — an rc=0
+  with no pass on record (what the change-detection SKIP produces) must leave the state unchanged.
+  Stubbing the guard to `return True` (the pre-fix behaviour) reds it and reproduces the defect line
+  verbatim in captured stdout. A third test pins that the pass must be for THIS commit, not merely
+  some earlier green.
+* **Item 3, the census.** `background/self_clearing_alarm_census.py` names the pair in prose only;
+  its 16 tests pass unchanged. Nothing to update.
+
+The fourth outcome is `"unproven"`, alongside `"skipped"` — both mean "evidence of nothing", which
+is the distinction the whole finding is about.
+
+Observed recurrence that prompted the build (2026-08-11 07:50Z), the same shape one day on:
+"Publish gate recovered" logged in the same second as "Starting run", `.last_tested_hash` still at
+`dfefd0a14` from 2026-08-09 — 41 hours with no pass while the state file read "not wedged".
