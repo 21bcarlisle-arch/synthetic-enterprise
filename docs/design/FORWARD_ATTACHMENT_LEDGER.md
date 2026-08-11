@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**16 attachment(s)** from 14 source doc(s), across 15 atom(s).
+**19 attachment(s)** from 15 source doc(s), across 16 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -89,12 +89,20 @@ _epoch 4 · lane W1_market_weather · L0→L3 · idle_
 
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` (finding) — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
 - `2026-08-09` · `docs/staging/WORKER_FINDING_MUTATION_VALID_ON_ONE_SUBPOPULATION_ONLY_2026-08-09.md` (finding) — an anchored generator is only as good as the mutation
+- `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` (other) — a
 
 ## EP17_varied_population_draw
 **A different cast every run**  
 _epoch 4 · lane W2_customer_generator · L0→L3 · idle_
 
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` (finding) — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
+- `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` (other) — a
+
+## EP1_clv_three_horizon
+**What a customer is worth, on three horizons**  
+_epoch 2 · lane B_commercial · L0→L3 · idle_
+
+- `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` (other) — a
 
 ## EP4_collections_journey
 **The whole road from missed payment to resolution**  

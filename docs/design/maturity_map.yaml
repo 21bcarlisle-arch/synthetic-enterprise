@@ -4110,6 +4110,66 @@
   file_scope: []
   notes_rehomed: [origin_note]
 
+# --- EPOCH 2 (cont.): grow the world, then WIN a book out of it
+# Minted 2026-08-11 (worker tick) from DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_
+# 2026-08-11's WORK THIS CREATES block -- one atom per named deliverable, per the
+# §2+§4 mint-source mechanism. Deliverable 4 ("attachment to the existing futures/
+# commitment-set shelf so this accretes rather than scatters") is NOT minted as a
+# fourth atom and this is deliberate: FUT1_attach_forward_hook is the LANDED
+# mechanism for exactly that property (level 2, `**Advances:**` declarations derived
+# from primary state), so a new atom would be a second way to do one thing. It is
+# DISCHARGED instead -- these three atoms are filed ON the shelf, inside the Epoch-2
+# commitment set, and the mint receipt carries the declaration.
+# Filed `loop_stage: idle` on the shelf's own convention, per the ruling's "attach to
+# the futures shelf rather than jump the queue ... draws as capacity allows": parked
+# for BUILD ONLY and DISCOVER/FRAME-open NOW -- which is precisely what deliverable 1
+# (a proposal) is, so nothing here is waiting on anything to be opened.
+- id: PB1_population_target_and_its_price
+  title: "How big the world should be, with what it costs beside it"
+  gain: "Population scale stops being an inherited default and becomes a proposed number that was PRICED before it was bought."
+  name: "Deliverable 1 of DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11: a proposed SIM premise-population target with the AO12 probe's MEASURED cost beside it. The number and its reasoning are the worker's; the ordering and the wall are the director's. EXIT: (a) a proposed target N with the reasoning that produced it; (b) beside it, per-stage cost READ FROM AO12's own report artefact -- peak RSS, wall time, output size -- never re-derived and never asserted; (c) an affordability verdict COMPUTED from that record rather than judged, honouring the ruling's own governor: if the probe says the scale is unaffordable on current storage THAT IS THE ANSWER, and the queryable-projections/storage work is named as its prerequisite rather than worked around (that instruction is itself still an unminted mint-source, DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10, so it cannot be a depends_on edge yet); (d) fail-CLOSED on an unmeasured stage -- a stage the probe never reached is an UNKNOWN cost, not a zero, and a proposal that prices it at zero is the fail-open shape R15 names."
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['AO12_scale_probe_10k']
+  couples_with: []
+  file_scope: []
+- id: PB2_opening_book_won_not_assigned
+  title: "The company starts with a real book, and it had to win it"
+  gain: "A 13-account book stops being a stress test of the money machinery and starts being a small supplier."
+  name: "Deliverable 2: a proposed opening book size and the ACQUISITION PATH that produces it. The book is a subset of the larger population from PB1, sized so the company reads as a small real supplier rather than a fixture; the director's only requirement is that it be materially larger than today's ~13 and defensible as a plausible small supplier. EXIT: (a) a proposed opening size with its plausibility case anchored to something external, not a round number; (b) the book ARRIVES BY ACQUISITION over the wall -- won, never assigned, never seeded as a second cast built alongside the population; (c) the wall holds and is PROVEN to hold, R15 both ways: the company learns its book through onboarding and interface events only, so a company-side read of SIM population state must RED (the ruling's non-negotiable, and the one thing here that is a wall rather than a dial); (d) the opening book is measured to be a genuine subset of the drawn population."
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['PB1_population_target_and_its_price']
+  couples_with: []
+  file_scope: []
+- id: PB3_book_growth_as_earned_outcome
+  title: "A growth curve that can be lost"
+  gain: "Book size becomes an outcome the company can fail at, instead of a number that goes up."
+  name: "Deliverable 3: growth from the opening book is GRADUAL AND EARNED -- won and lost against the market through the acquisition physics already built, never incremented. EXIT: (a) the mechanisms named and wired, not gestured at: churn, acquisition cost, and the competitor field (W2_3_competitor_field and B4_competitor_field are the existing world/company organs; B10_competitor_switching_response is the switching response) -- this atom is the loop that makes book size THEIR outcome; (b) the falsifier IS the exit test, because the ruling states the property directly -- a growth curve that cannot be lost is not a growth curve, so a world configuration in which the book SHRINKS must be demonstrated, not argued; (c) no step change in book size that is not a modelled acquisition or loss event; (d) the company's own belief about its book and the world's truth are measured against each other and the gap reported, per the coupled-triad rule that the gap is the score."
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: ['PB2_opening_book_won_not_assigned']
+  couples_with: ['W2_3_competitor_field']
+  file_scope: []
+
 # --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
 - id: EP6_wall_protocol_typing
   title: "The wall stops being calls and becomes messages"
