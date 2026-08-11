@@ -3651,14 +3651,13 @@ def belief_bias(
 
 
 def _reflect(value: float, through: float, *, premise_id: str, name: str) -> float:
-    """Multiplicative reflection: same ratio error, opposite sign.
+    """LOG-preserving reflection: same RATIO error, opposite sign. `through**2/value`.
 
-    `through**2 / value`, not `2*through - value`. The additive reflection preserves
-    the LEVEL error exactly but goes non-positive whenever the reflected quantity
-    exceeds twice its pivot, which is common in a register — a mirror that raises on
-    a third of real panels is a control nobody can run. This one preserves the LOG
-    error exactly and the level error approximately, and every caller reports how far
-    accuracy moved so the approximation is checkable rather than assumed.
+    Kept as the panel mirror's FALLBACK and as the revision mirror's only rule (a
+    posterior reflected through its prior is a ratio statement about a step, and it
+    is always positive). It preserves the log error exactly and the LEVEL error only
+    approximately — see `_reflect_level` for why that distinction decides whether the
+    panel mirror is an instrument or an anecdote.
     """
     for label, v in ((name, value), ("pivot", through)):
         if not math.isfinite(v) or v <= 0.0:
@@ -3668,26 +3667,94 @@ def _reflect(value: float, through: float, *, premise_id: str, name: str) -> flo
     return through * through / value
 
 
-def mirror_panel_composition(
-    observations: Sequence[FabricObservation],
-) -> list[FabricObservation]:
+def _reflect_level(value: float, through: float, *, premise_id: str, name: str) -> float:
+    """LEVEL-preserving reflection: `2*through - value`. Same ABSOLUTE error,
+    opposite sign — and the absolute error is the quantity `prediction_gap` is built
+    from, so this is the reflection that leaves the mirrored arm's own numerator
+    untouched to the bit.
+
+    NOT DEFINED EVERYWHERE, which is the whole reason the log form was reached for
+    first: it goes non-positive wherever the truth exceeds TWICE the register. The
+    caller therefore tests the WHOLE panel before using it and falls back whole —
+    a panel reflected two different ways on two subsets is two instruments, which is
+    the confound this mirror exists to detect.
+    """
+    for label, v in ((name, value), ("pivot", through)):
+        if not math.isfinite(v) or v <= 0.0:
+            raise InsufficientEvidence(
+                f"{premise_id}: a non-positive {label} ({v!r}) cannot be reflected"
+            )
+    reflected = 2.0 * through - value
+    if reflected <= 0.0:
+        raise InsufficientEvidence(
+            f"{premise_id}: reflecting {name} ({value!r}) through {through!r} gives "
+            f"{reflected!r} — a house cannot lose heat at a negative rate"
+        )
+    return reflected
+
+
+LEVEL_PRESERVING = "level_preserving"
+LOG_PRESERVING_FALLBACK = "log_preserving_fallback"
+
+
+@dataclass(frozen=True)
+class PanelMirror:
+    """The mirrored panel AND the statement of how it was made.
+
+    The reflection used is part of the measurement, not an implementation detail:
+    the two reflections preserve different errors, and `prediction_gap` consumes one
+    of them. A row that reported a mirror verdict without saying which reflection
+    produced it would be reporting two different instruments under one name.
+    """
+
+    rows: tuple[FabricObservation, ...]
+    reflection: str
+    infeasible_premises: int
+
+
+def panel_mirror(observations: Sequence[FabricObservation]) -> PanelMirror:
     """The SIGN-MIRRORED PANEL: a world where the register OVER-states heat loss.
 
     The truth is reflected through the register prior, so each premise keeps the
-    register's error magnitude exactly and reverses its direction. Both beliefs are
-    left untouched — this is the SAME company, holding the SAME numbers, in a stock
-    that fails the other way. Not a hypothetical stock either: new-build SAP ratings
-    that flatter as-built performance, and post-retrofit certificates never re-lodged,
+    register's error magnitude and reverses its direction. Both beliefs are left
+    untouched — this is the SAME company, holding the SAME numbers, in a stock that
+    fails the other way. Not a hypothetical stock either: new-build SAP ratings that
+    flatter as-built performance, and post-retrofit certificates never re-lodged,
     both produce registers that over-state.
 
-    `annual_heat_kwh` moves with the truth in proportion. A house whose heat loss
-    halves and whose bill does not is not a house, and leaving the bill fixed would
-    let the mirror change the DECISION through the fabric share rather than through
-    the fabric — a confound inside the control designed to find confounds.
+    WHICH REFLECTION, AND WHY IT CHANGED (2026-08-11, Expert Hour on this atom's own
+    caveat machinery). This used to be the LOG-preserving reflection unconditionally,
+    justified in its own docstring by an assertion that the level-preserving one
+    "goes non-positive on a third of real panels". That claim was never measured. It
+    is now, on both populations this atom publishes: **0 of 15 authored and 0 of 200
+    drawn premises** are infeasible, because a register that under-states by 13-20%
+    does not under-state by more than half. The stated reason for the weaker
+    instrument did not hold on either population it was applied to — and the weaker
+    instrument is what made the mirror's own accuracy artefact big enough to swamp
+    the effect it perturbs.
+
+    So: level-preserving by DEFAULT, because `prediction_gap`'s numerator is a mean
+    ABSOLUTE error and this reflection leaves the register arm's numerator identical
+    to the bit. Whole-panel fallback to the log form where any premise cannot be
+    reflected that way, with the count carried, because a mirror nobody can run on a
+    real panel is not the improvement it looks like — and because falling back per
+    premise would silently make the panel two instruments.
+
+    `annual_heat_kwh` moves with the truth in proportion under either reflection. A
+    house whose heat loss halves and whose bill does not is not a house, and leaving
+    the bill fixed would let the mirror change the DECISION through the fabric share
+    rather than through the fabric — a confound inside the control designed to find
+    confounds.
     """
+    infeasible = sum(
+        1
+        for o in observations
+        if not _level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
+    )
+    reflect = _reflect if infeasible else _reflect_level
     mirrored = []
     for o in observations:
-        actual = _reflect(
+        actual = reflect(
             o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k,
             premise_id=o.premise_id, name="truth",
         )
@@ -3707,7 +3774,29 @@ def mirror_panel_composition(
                 inferred_basis=o.inferred_basis,
             )
         )
-    return mirrored
+    return PanelMirror(
+        rows=tuple(mirrored),
+        reflection=LOG_PRESERVING_FALLBACK if infeasible else LEVEL_PRESERVING,
+        infeasible_premises=infeasible,
+    )
+
+
+def _level_reflection_is_feasible(value: float, through: float) -> bool:
+    """Whether `2*through - value` is a heat loss coefficient a house could have."""
+    return (
+        math.isfinite(value)
+        and math.isfinite(through)
+        and value > 0.0
+        and through > 0.0
+        and 2.0 * through - value > 0.0
+    )
+
+
+def mirror_panel_composition(
+    observations: Sequence[FabricObservation],
+) -> list[FabricObservation]:
+    """The mirrored rows alone, for callers that do not need the declaration."""
+    return list(panel_mirror(observations).rows)
 
 
 def mirror_revision_direction(
@@ -3805,6 +3894,14 @@ class CompositionVerdict:
     panel_mirror_forgone_epc_gbp: float
     panel_mirror_forgone_inferred_gbp: float
     panel_mirror_improvement: float
+    # ITS OWN FIDELITY, so the reader is not asked to take the instrument on trust.
+    # `epc_gap` and `panel_mirror_epc_gap` are the REGISTER arm's accuracy before and
+    # after — the arm the reflection is built around, and therefore the only arm
+    # whose movement is pure artefact.
+    epc_gap: float
+    panel_mirror_epc_gap: float
+    panel_mirror_reflection: str
+    panel_mirror_infeasible_premises: int
     # THE REVISION MIRROR — same stock, inference stepping the other way.
     revision_mirror_money_favours: str
     revision_mirror_forgone_epc_gbp: float
@@ -3828,16 +3925,72 @@ class CompositionVerdict:
 
     @property
     def panel_mirror_accuracy_drift(self) -> float:
-        """How far ACCURACY moved under the panel mirror. Reported, never suppressed:
-        the reflection preserves the log error exactly and the level error only
-        approximately, so a large drift means a money flip is not cleanly attributable
-        to direction and the reader is entitled to know that before believing it."""
+        """How far the IMPROVEMENT moved under the panel mirror.
+
+        REPORTED, AND EXPLICITLY NOT THE FIDELITY INSTRUMENT (2026-08-11 Expert Hour
+        — it was being read as one, and it cannot be). This is a COMPOUND: it
+        contains the artefact below AND the movement the mirror is FOR. Reflecting
+        the truth is meant to wreck the posterior arm's accuracy — an inference that
+        stepped the right way on this panel steps the wrong way in a stock that fails
+        the other way, and that is the finding, not the noise. So this number is
+        large whenever the mirror WORKS (0.1579 authored, 0.0717 drawn), and reading
+        it as "how much the instrument disturbed the measurement" makes a working
+        mirror look broken and can never come out small. Use
+        `panel_mirror_relative_infidelity`.
+        """
         return abs(self.panel_mirror_improvement - self.improvement)
+
+    @property
+    def panel_mirror_epc_gap_drift(self) -> float:
+        """THE ARTEFACT TERM: how far the REGISTER arm's own accuracy moved.
+
+        The reflection is built around this arm — every premise keeps |register −
+        truth| exactly under the level-preserving form — so a faithful mirror leaves
+        this at zero and anything left over is the instrument, not the panel. It is
+        not identically zero even then, and the residual has one named cause rather
+        than a shrug: `prediction_gap` divides by the NO-SKILL baseline, which is a
+        property of the truth population, and reflecting the truth moves its spread.
+        Measured on the two published populations: numerator identical to 6 decimals
+        (0.020202 authored, 0.044774 drawn, before and after), whole-gap drift 0.0308
+        and 0.0081 — i.e. the entire residual is the denominator, which is a
+        statement about the metric and not about this mirror.
+        """
+        return abs(self.panel_mirror_epc_gap - self.epc_gap)
+
+    @property
+    def panel_mirror_relative_infidelity(self) -> float:
+        """The artefact as a share of the accuracy it perturbs. NaN-safe and
+        zero-safe: a register that is exactly right has no gap to move, so an
+        unmoved zero is faithful and a moved one is infinitely unfaithful — never a
+        silent 0/0."""
+        if self.epc_gap == 0.0:
+            return 0.0 if self.panel_mirror_epc_gap_drift == 0.0 else math.inf
+        return self.panel_mirror_epc_gap_drift / abs(self.epc_gap)
+
+    @property
+    def panel_mirror_is_attributable(self) -> bool:
+        """Whether this mirror's verdict — flip OR no flip — may be read as a
+        statement about the panel at all.
+
+        A null result from an uncalibrated instrument is not evidence of no effect,
+        and before this existed the mirror's only disclosure rode inside the
+        COMPOSITION-DECIDED caveat, which fires exactly when the mirror DID flip. On
+        both published populations it does not flip, so the instrument's own
+        weakness was unrenderable precisely in the case where the reader was being
+        invited to conclude something from silence.
+        """
+        return self.panel_mirror_relative_infidelity <= MIRROR_FIDELITY_BAND
 
     @property
     def composition_decided(self) -> bool:
         """The money ranking named a different arm in a stock that fails the other
-        way — so it was a property of THIS PANEL, not of the beliefs compared."""
+        way — so it was a property of THIS PANEL, not of the beliefs compared.
+
+        Deliberately still the raw flip, with `panel_mirror_is_attributable` carried
+        beside it rather than folded in: a verdict that quietly became False because
+        its instrument was blunt would report "the panel did not decide it", which is
+        a different claim from "we could not tell", and it is the wrong one.
+        """
         return _flipped(self.money_favours, self.panel_mirror_money_favours)
 
     @property
@@ -3867,6 +4020,26 @@ class CompositionVerdict:
 # composition effect that was two floats in a coin toss. A finding that a
 # 0.3%-of-the-larger difference changed sign is not a finding.
 VERDICT_MATERIALITY = 0.05
+
+# How much of the register arm's own accuracy the panel mirror is allowed to move
+# before its verdict is DIRECTIONAL EVIDENCE ONLY. A DIAGNOSTIC band (R12): it
+# decides what the row SAYS about its own instrument, never what anything is tuned
+# to — no reflection is chosen, and no threshold moved, because of the answer it
+# gives.
+#
+# A SEPARATE CONSTANT FROM `VERDICT_MATERIALITY` ON PURPOSE, though it carries the
+# same number today. That one is a band on MONEY (when are two costs the same cost);
+# this one is a band on a NORMALISED ACCURACY GAP (when is an instrument's own
+# disturbance small enough to read past). One constant serving both would mean a
+# change made for a money reason silently re-graded every mirror ever run.
+#
+# Calibrated against what the mirror is looking FOR, not against what it currently
+# scores: a composition effect worth naming reverses a verdict, and the money
+# figures it reverses differ by tens of percent, so an artefact that stays inside
+# 5% of the arm's own gap is an order of magnitude below the signal. Measured
+# against it, the two published populations sit either side (14.1% authored, 1.9%
+# drawn), which is what a band that can fail looks like.
+MIRROR_FIDELITY_BAND = 0.05
 
 
 def _favours(epc_value: float, inferred_value: float) -> str:
@@ -3929,7 +4102,8 @@ def composition_verdict(
     base_epc, base_inferred = _outcome(observations)
     forgone_epc = base_epc.forgone_lifetime_gbp
     forgone_inferred = base_inferred.forgone_lifetime_gbp
-    panel = mirror_panel_composition(observations)
+    mirror = panel_mirror(observations)
+    panel = list(mirror.rows)
     panel_epc, panel_inferred = _money(panel)
     revision = mirror_revision_direction(observations)
     revision_epc, revision_inferred = _money(revision)
@@ -3950,6 +4124,10 @@ def composition_verdict(
         panel_mirror_forgone_epc_gbp=panel_epc,
         panel_mirror_forgone_inferred_gbp=panel_inferred,
         panel_mirror_improvement=_improvement(panel),
+        epc_gap=epc_gap,
+        panel_mirror_epc_gap=epc_vs_actual_gap(panel).gap,
+        panel_mirror_reflection=mirror.reflection,
+        panel_mirror_infeasible_premises=mirror.infeasible_premises,
         revision_mirror_money_favours=_favours(revision_epc, revision_inferred),
         revision_mirror_forgone_epc_gbp=revision_epc,
         revision_mirror_forgone_inferred_gbp=revision_inferred,
@@ -4031,6 +4209,57 @@ def _direction_caveats(observations: Sequence[FabricObservation]) -> list[str]:
     return caveats
 
 
+def _panel_mirror_caveats(verdict: CompositionVerdict) -> list[str]:
+    """The panel mirror's sentence — INCLUDING WHEN IT FOUND NOTHING.
+
+    Three of the four cases speak, and the fourth is the only one that may be
+    silent:
+
+    * flipped, faithful      -> COMPOSITION-DECIDED. The finding.
+    * flipped, unfaithful    -> the flip may be the instrument; say both.
+    * no flip, unfaithful    -> MIRROR INCONCLUSIVE. This is the case the caveat
+      list could not previously express at all, and it is the case BOTH published
+      populations were in: the disclosure of the mirror's own weakness lived inside
+      the COMPOSITION-DECIDED sentence, which by definition never printed when the
+      mirror failed to flip. A reader saw two headline numbers, no composition
+      caveat, and drew the conclusion the silence invited.
+    * no flip, faithful      -> silent. A calibrated instrument that found nothing
+      is the clean state, and a caveat list that always prints is one nobody reads.
+    """
+    if verdict.composition_decided:
+        line = (
+            f"COMPOSITION-DECIDED: in a stock that fails the other way — the register's "
+            f"errors reflected, same magnitudes, opposite signs — the money verdict "
+            f"moves from {verdict.money_favours} to "
+            f"{verdict.panel_mirror_money_favours}. The ranking was decided by "
+            f"this panel's composition ({verdict.truth_above_epc_share:.0%} "
+            f"truth-above-register), not by the beliefs being compared."
+        )
+        if verdict.panel_mirror_is_attributable:
+            return [line]
+        return [
+            line
+            + f" READ THIS AS DIRECTIONAL ONLY: the mirror moved the register arm's "
+            f"OWN accuracy by {verdict.panel_mirror_relative_infidelity:.1%} of its "
+            f"gap ({verdict.panel_mirror_reflection}), above the "
+            f"{MIRROR_FIDELITY_BAND:.0%} band, so part of this flip may be the "
+            f"instrument rather than the composition."
+        ]
+    if not verdict.panel_mirror_is_attributable:
+        return [
+            f"MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict "
+            f"off {verdict.money_favours}, and that null carries no weight here — "
+            f"reflecting the truth moved the register arm's own accuracy by "
+            f"{verdict.panel_mirror_relative_infidelity:.1%} of its gap "
+            f"({verdict.epc_gap:.4f} -> {verdict.panel_mirror_epc_gap:.4f}, "
+            f"{verdict.panel_mirror_reflection}), above the "
+            f"{MIRROR_FIDELITY_BAND:.0%} band. The instrument disturbed the arm it "
+            f"was built around by more than the band that decides verdicts, so "
+            f"'no composition effect' is not a finding on this population."
+        ]
+    return []
+
+
 def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
     """Finding 4's sentences. Four of them, because the money ranking can be decided
     by the panel, by the direction of the step, or by which arm is allowed to act —
@@ -4042,16 +4271,7 @@ def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
             f"favours {verdict.money_favours}. Two published numbers naming different "
             f"arms is a finding, not a rounding difference."
         )
-    if verdict.composition_decided:
-        caveats.append(
-            f"COMPOSITION-DECIDED: in a stock that fails the other way — the register's "
-            f"errors reflected, same magnitudes, opposite signs — the money verdict "
-            f"moves from {verdict.money_favours} to "
-            f"{verdict.panel_mirror_money_favours} (accuracy moved "
-            f"{verdict.panel_mirror_accuracy_drift:.4f}). The ranking was decided by "
-            f"this panel's composition ({verdict.truth_above_epc_share:.0%} "
-            f"truth-above-register), not by the beliefs being compared."
-        )
+    caveats += _panel_mirror_caveats(verdict)
     if verdict.direction_bought:
         caveats.append(
             f"DIRECTION-BOUGHT: the same inference stepping the OTHER way by the same "
@@ -4169,6 +4389,16 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_forgone_inferred_gbp": v.panel_mirror_forgone_inferred_gbp,
         "panel_mirror_improvement": v.panel_mirror_improvement,
         "panel_mirror_accuracy_drift": v.panel_mirror_accuracy_drift,
+        # THE MIRROR'S OWN FIDELITY, in the row rather than behind a flag: the
+        # verdict above is unreadable without it, and a reader who has to ask
+        # whether the instrument worked will not ask.
+        "epc_gap": v.epc_gap,
+        "panel_mirror_epc_gap": v.panel_mirror_epc_gap,
+        "panel_mirror_epc_gap_drift": v.panel_mirror_epc_gap_drift,
+        "panel_mirror_relative_infidelity": v.panel_mirror_relative_infidelity,
+        "panel_mirror_is_attributable": v.panel_mirror_is_attributable,
+        "panel_mirror_reflection": v.panel_mirror_reflection,
+        "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,
         "direction_bought": v.direction_bought,
         "revision_mirror_money_favours": v.revision_mirror_money_favours,
         "revision_mirror_forgone_epc_gbp": v.revision_mirror_forgone_epc_gbp,

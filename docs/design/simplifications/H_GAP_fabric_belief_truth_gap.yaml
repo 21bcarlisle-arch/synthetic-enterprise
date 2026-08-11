@@ -1,694 +1,90 @@
 atom_id: H_GAP_fabric_belief_truth_gap
 simplifications:
-- '2026-08-03 MINTED (worker tick) from docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md
-  deliverable 3. FULL SPEC: docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md. loop_stage: idle because
-  that doc authorises DISCOVER+FRAME only. WHY IT IS NEEDED -- the control SET had a hole exactly the
-  shape of the defect: the existing premise-demand controls (simulation/premise_demand.py reconciliation_residual,
-  aggregate_reconciles, noise_is_unbiased) are genuine and R15-failable and are ALL level-and-sum controls,
-  blind to texture, timing, trough behaviour and diversity. W1_5_premise_demand_shape therefore sits at
-  L3 while failing BOTH levels of a test the director applied by eye in an afternoon (2026-08-03 house-usage
-  review). Recorded plainly rather than softened: a level was earned against the controls that existed,
-  and the world could still be defeated -- which is the coupled triad''s own definition of the gap. W1_5
-  is NOT demoted; its aggregation work is correct and stays (and is retained as regression guard L2.5,
-  so added realism may not cost aggregation consistency).'
-- '2026-08-03 FRAME -- THE BIRTH CONDITION IS THE WHOLE POINT: this suite MUST be landed RED against the
-  current generator. A control introduced already-passing has demonstrated nothing (R15). Every threshold
-  in the spec is stated alongside the currently-observed value so the first run''s failure is predicted,
-  specific and checkable: expected to FAIL L1.1 texture (median period-to-period change 1.5pct of mean),
-  L1.2 day-to-day shape correlation (0.97), L1.3 troughs (no half-hour below 0.05 kWh in ten years, zero
-  away-days -- an empty house is not representable), L1.5 repeating rescaled fractions, L2.1 smoothing
-  curve (aggregate peak/mean 5.9 at N=3 vs 5.7 at N=1 -- aggregation smooths NOTHING), L2.2 between-home
-  correlation (C8-C9 = 0.95, near-clones), L2.3 timing diversity, L2.4 scale spread (annual totals within
-  8pct of each other); and to PASS L2.5 reconciliation and G.2 seasonal ratio. IF ANY STATISTIC UNEXPECTEDLY
-  PASSES ON THE CURRENT GENERATOR, THE STATISTIC IS MIS-SPECIFIED -- fix the statistic, do not celebrate
-  the pass.'
-- '2026-08-03 FRAME -- R15 MUTATION SET (each control''s named defect, in the spec section 4): smooth
-  the trace with its own 7-day rolling mean (L1.1); replay one day''s shape all year rescaled (L1.2);
-  floor every period at a small positive value, removing the empty house (L1.3); shuffle day-types (L1.4);
-  clone one home N times (L2.1, L2.2); collapse all heating-start times to one value i.e. reinstate HEATING_PERIOD_WEIGHTS
-  (L2.3); set every annual total to the population mean (L2.4). L1.5 IS ITS OWN MUTATION TEST -- the current
-  shipped generator IS the defect it detects. THREE FAIL-OPEN PATTERNS DEFENDED EXPLICITLY because a statistical
-  suite is unusually exposed to all three: (1) FAIL-OPEN on empty input -- a statistic over zero homes,
-  zero days or a short/missing trace must FAIL, never pass vacuously, so every statistic asserts its own
-  input sufficiency first; (2) NaN-BLINDNESS -- reject non-finite values BEFORE any threshold comparison
-  (a known class in this codebase); (3) TAUTOLOGY -- this is why PC1 moves from generator INPUT to validation
-  TARGET: as an input it made the large-N check tautological (it would pass even if every home were physically
-  absurd), as an output-only anchor it is independent, and any future change reintroducing PC1 as a per-home
-  input silently re-tautologises L2.1.'
-- '2026-08-03 FRAME -- ANTI-GOAL-SEEK (R12), and this suite is unusually EASY to goal-seek because injecting
-  noise moves L1.1 without making anything more real. Every threshold is a DIAGNOSTIC BAND, never a target;
-  drift toward a band edge triggers R4 (diagnose the mechanism), never a tuning pass. L1.5 is the structural
-  guard against exactly that: it fails a noise-injected fake even when L1.1 passes, so L1.1-pass-with-L1.5-fail
-  reads as "someone tuned the number" and the suite should say so in those words. Report WORST-CELL, never
-  average -- an average across homes would hide the exact clone-cluster the test exists to find. Bands
-  calibrated blind to company P&L (R13). Output lands in the coupled-gap ledger beside the other coupled-triad
-  gap metrics. THE MONEY CONSEQUENCE is the metric that matters commercially and is the mission link:
-  how much worse is a fabric-targeted intervention decision (insulate / heat-pump / PV / time-shift) made
-  on EPC beliefs than the same decision made on ground truth -- which homes gain from which measure is
-  HLC x weather x occupant arithmetic, and cost per tonne CO2e falls out of it. Savings count only from
-  reduced or time-shifted usage, never from discounting.'
-- '2026-08-03 BUILT L0->L2 (worker tick). LANDED: background/fabric_gap_ledger.py + tests/harness/test_premise_two_level.py
-  (77 pass + 2 STRICT xfail) and -- the part that was missing -- tools/couple_fabric.py + tests/tools/test_couple_fabric.py
-  (14 pass), the CALLER without which none of it was a number anyone could read. 2347 green across tests/tools
-  + tests/company/pricing; epistemic_verifier PASS (530 files). THE BIRTH CONDITION HELD: the suite is
-  RED against the generator actually in the demand path, cell by cell, with each measured value pinned
-  in the assertion (L1.1 texture 0.048, L1.2 day-to-day shape correlation 1.000 EXACTLY, L1.3 away-days
-  0.0, L1.5 multiplicity 2.0, L2.1 smoothing ratio 0.959, L2.2 between-home correlation 0.999, L2.3 timing
-  diversity 0.0 -- an exact point mass). Both generators are RED and that is reported as a MEASUREMENT,
-  not a win: W1_12 fails 2 of the 7 anchored cells (texture 0.1498 against a 0.15 band -- a knife-edge
-  NOT moved to make it pass, R12; timing diversity 0.211 against 0.5), and its failures are a strict SUBSET
-  of the shipped path''s, which is the value of wiring W1_12 in expressed in the units of the defect.
-  THREE ORPHAN/FAIL-OPEN DEFECTS FOUND, each by RUNNING the thing rather than reading it: (1) THE ORPHAN
-  TRANSITION -- write_fabric_gap_entries had NO production caller (grep-verified: its own definition and
-  its unit test), so the fabric gap existed as a function and never as a ledger row; this is the SECOND
-  instance of that exact shape (generate_evidence_data.generate() before it), i.e. a class -- a measurement
-  function reads as done to a reviewer the moment its test is green, and nothing about a green test says
-  anyone runs it. (2) A WRONG ATOM ID -- FABRIC_WORLD_ATOM was "W1_11_premise_fabric_physics", which has
-  never been an atom (the real id is W1_11_fabric_physics_core); write_gap_entry writes any key it is
-  given and the Proof door derives its ROWS from the map, so the write would have "succeeded" every run
-  and rendered NOWHERE, forever. Now pinned by test_the_ledger_atom_ids_are_REAL_map_atoms. (3) A FAIL-OPEN
-  IN THE COUPLED-TRIAD GATE ITSELF -- build_coupling() DERIVES W1_12->C14 from C14''s depends_on but assembles
-  the final coupling from _AUTHORITATIVE_COUPLING ALONE, so a derived-but-unregistered pair is silently
-  DROPPED: W1_12 sat at L2 as a coupled world atom with no measured gap while the panel''s own D1 "depth
-  nobody copes with" detector stayed blind to it and world_l3_blocked never fired. The table reads like
-  a cross-check and behaves like a whitelist. W1_11->C14 and W1_12->C14 are now registered; Proof-door
-  pair_count 10 -> 12, measured 12, unmeasured 0, both rows rendering real values.'
-- '2026-08-03 THE MEASURED RESULT, RECORDED AND DELIBERATELY NOT TUNED (R12/R13). On the 10-premise panel
-  (real Open-Meteo archive, 2022-01-01..04-30, mixed meter cadence 1/7/30d, one premise with NO certificate):
-  EPC-vs-actual gap 0.2049, inferred-vs-actual gap 0.2397 -- i.e. C14''s posterior is a WORSE POINT ESTIMATE
-  than the register prior it started from (improvement -0.0349). On the SAME panel the money consequence
-  runs the OTHER WAY: deciding a fabric measure on the EPC belief misranks 10pct of premises (GBP 162
-  forgone, 2,314 kg CO2e/yr), on the inferred belief it misranks NONE. THE TWO DISAGREE BECAUSE THEY ASK
-  DIFFERENT QUESTIONS: prediction_gap is a LEVEL statistic (normalised squared error), the decision is
-  an ORDERING one; the EPC register UNDERSTATES heat loss on every premise in the panel (asserted, not
-  observed in passing), C14 corrects every premise upward toward truth and overshoots on some, which costs
-  level accuracy and buys rank accuracy. THIS IS THE ATOM''S OWN FOUNDING LESSON ONE LEVEL UP -- the control
-  SET had a hole shaped like the defect: a level-and-sum gap metric read ALONE would have reported the
-  company''s inference as a REGRESSION while hiding that it strictly improved every decision anyone would
-  take on it. Neither number is wrong; reporting only one of them would be. Both are now written to the
-  ledger and both are pinned by test_INFERENCE_CAN_MAKE_THE_POINT_ESTIMATE_WORSE_WHILE_MAKING_THE_DECISION_BETTER,
-  which re-derives rather than re-states if the sign flips.'
-- '2026-08-03 R15 BOTH WAYS -- FIVE REAL SOURCE MUTATIONS, each firing its own named test with the others
-  staying green (independence), baseline restored byte-clean (md5 78cbc4a4 verified after every run):
-  drop the NaN rejection in _finite_series => the 3 non-finite tests fire and NOTHING else (74 green);
-  drop the input-sufficiency raise in _require_homes => the 3 fail-open-1 cases + the too-few-premises
-  gap test fire (73 green); blind pc1_is_an_input_to to return False => the 2 tautology tests fire (75
-  green); silence the goal-seek warning => test_the_goal_seek_warning_says_someone_tuned_the_number fires.
-  AND THE ONE THAT MATTERED: replacing the WORST-CELL selection in evaluate_two_level with an average
-  left the suite GREEN -- because test_the_verdict_is_WORST_CELL_not_an_average was ITSELF A TAUTOLOGY,
-  ending "assert generated_worst(textures) == approx(min(textures))" with generated_worst = min defined
-  three lines below, i.e. min(x) == min(x), which cannot fail, and which never called evaluate_two_level
-  at all. That is the R15 TAUTOLOGY pattern (checked value derived from the same source it checks) sitting
-  INSIDE the test named for the rule, in a suite whose own docstring defends against tautology -- and
-  only mutating the SOURCE found it; reading the file did not, twice. Rewritten to poison a population
-  with one smoothed home and assert the reported L1.1 cell is that home''s value (with a fixture guard
-  that the worst is materially below the mean, so the test proves something) and that the cell NAMES it;
-  the mutation now fires it. WORTH CARRYING: a test that asserts a helper against the same helper passes
-  forever, and the suite''s green count never blinks.'
-- '2026-08-03 DELIBERATELY L2, NOT THE L3 TARGET, and the residual is named. (a) POPULATION SCALE: the
-  two-level test and the gap are measured on a 10-premise PANEL, not the population -- L2.1''s smoothing
-  curve wants N up to 1000 and the spec says so; a panel cannot show the large-N limit approaching the
-  published PC1 GAD. (b) TWO CELLS ARE UNANCHORED AND HONESTLY REPORTED AS SUCH (L1.4 weekday/weekend
-  separation, L2.4 scale spread): they are MEASURED and EXCLUDED from the verdict rather than given an
-  invented threshold, since a fabricated band would make the suite look rigorous while being unfalsifiable
-  -- the shipped path''s 8pct-apart annual totals are visibly wrong against any plausible band, but "visibly
-  wrong" is not a threshold. Closing them needs the NEED anchors (SERL diversity statistics; EPC-linked
-  actual metered annual consumption). (c) THE RUNNER IS MANUAL, exactly like its ten couple_*.py siblings:
-  nothing re-runs it, so the ledger rows go stale unless a tick re-runs it. That is the SAME orphan-transition
-  class this atom just closed one level up, and it is registered as such rather than declared solved --
-  wiring it into the publish path is a deliberate decision about run cost (~7 s), not a nicety. (d) Expert
-  Hour not_attempted. R11 HONEST BOUND: the Proof-door rows were verified in the GENERATED panel data
-  (pair_count 12, measured 12, both fabric rows carrying real values), NOT yet on the live poesys.net
-  pixel -- that lands with the next publish and is not claimed here.'
-- '2026-08-09 BUILT, LEVEL NOT MOVED (worker tick, L2->L3 draw). ONE of the atom''s two unanchored cells
-  is now ANCHORED AND RED, the other one is STILL unanchored and the reason has changed from "no source
-  exists" to a MEASUREMENT. WHAT LANDED: background/lcl_household_anchors.py (+ tests/harness/test_lcl_household_anchors.py,
-  12 tests) derives both bands from a real panel that was already in the repo and unused for this purpose
-  -- Low Carbon London (UK Power Networks, London Datastore, CC-BY), 304 households with >=85% half-hourly
-  coverage of calendar 2013, carrying each household''s mean_daily_kwh and its normalised weekday and
-  weekend 48-vectors (docs/market_research/hh_load_shape_clustering_2026.md is the fetch record). THE
-  RULE WAS FIXED BEFORE THE NUMBERS (R12): a population-level statistic gets the 5th percentile of a seeded
-  bootstrap over the panel (the model must be at least as dispersed as the low end of what the panel''s
-  own sampling error admits); a per-home floor is the panel''s own low tail with the population violation
-  rate set to double the rate the anchor itself implies. L2.4 SCALE SPREAD IS NOW JUDGED AND IS RED: the
-  panel''s P90/P10 of household consumption is 5.3769 (IQR ratio 2.4566), the bootstrap floor is 4.8807,
-  and the drawn n=200 population reads 1.7981 -- the model''s homes are between two and three times too
-  ALIKE in scale. Not knife-edge and stated as such: every tolerance the rule admits lands on the same
-  verdict, so R4 (diagnose the mechanism) applies and not a threshold move. The shipped demand path reads
-  1.578 on the same statistic, so W1_12''s failure set stays a strict subset of the shipped path''s and
-  the "measurably better" guard still holds.'
-- '2026-08-09 THE ANCHOR THAT WAS TAKEN BACK OUT, and it is the finding worth carrying. L1.4 (weekday/weekend
-  separation) was anchored from the SAME panel by the SAME rule on the SAME day -- per-home total-variation
-  distance, panel median 0.0724, bootstrap floor 0.0262 -- and was REMOVED within the hour because its
-  own named R15 mutation could not make it fire. THE MEASUREMENT: relabelling the day-type calendar at
-  random while keeping the same 85/35 counts destroys every trace of real weekday/weekend structure, and
-  over 600 home-permutation samples on the drawn population NOT ONE value fell below the floor -- null
-  median 0.0715, null MINIMUM 0.0378, against a floor of 0.0262. The statistic is strongly biased upward
-  at the coupled run''s 120-day window: with 35 weekend days against 85 weekday days, two arbitrary subsets
-  of the SAME home differ by about as much as a real household''s weekday differs from its weekend over
-  a full year. A band that a day-type-randomised population clears with a 1.4x margin is fail-open, and
-  a fail-open band is worse than an honest blank. THE CLASS, which is why this is pinned as a test and
-  not written in a comment: AN ANCHOR IS A NUMBER AND A WINDOW. Both bands came off one panel by one rule
-  on one day; L2.4''s statistic is a ratio BETWEEN homes and does not care how long each was watched,
-  L1.4''s is a distance between two subsets of ONE home''s days and cares enormously. Nothing in an anchor''s
-  provenance says which kind you have -- only the mutation does. The derivation is KEPT, un-wired, because
-  the fix is to null-correct the STATISTIC (separation minus the median of k randomised relabellings)
-  and this number is half of what that build needs. Pinned by test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window,
-  which also asserts the band is still blank, so a later tick that re-wires the anchor without null-correcting
-  fails there.'
-- '2026-08-09 R15 BOTH WAYS, by SOURCE mutation with byte-clean restore (md5 verified after each). (1)
-  Drop the non-finite/non-positive guard in panel_daily_kwh => the two fail-closed anchor tests fire and
-  nothing else (10 green). (2) Move the frozen L2.4 constant from 4.8807 to 2.0000 -- the goal-seek move
-  itself -- => the re-derivation test fires AND five two-level tests fire, including the strict xfail
-  XPASSing, i.e. the threshold is provably load-bearing on the VERDICT and not just on a test. (3) Re-wire
-  the L1.4 anchor without null-correcting the statistic => the non-transfer test and the unanchored-cells
-  test fire. AND THE OTHER DIRECTION, which a red-on-arrival band needs most: test_the_L2_4_BAND_CAN_PASS_and_is_not_a_control_that_can_only_fail
-  stretches the model''s OWN homes about their median until they span what real households span and asserts
-  the band PASSES -- a band nobody has ever seen pass is indistinguishable from one that cannot, and a
-  control that can only fail wedges whatever it gates. The panel-clears-its-own-floor check is labelled
-  a SANITY check and not evidence, because the floor is that panel''s own bootstrap quantile and the comparison
-  is true by construction. Independence: tests/harness/test_lcl_household_anchors.py re-derives every
-  exported constant from the raw CSV with its own inline quantile and its own resampling loop rather than
-  calling the module''s helpers -- a re-derivation sharing the code it checks asserts nothing.'
-- 2026-08-09 A LATENT DEFECT IN THIS SUITE'S OWN LEDGER TEST, found by the first L2 failure it ever produced.
-  test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result looped over every FAILED cell asserting
-  each named a worst_home. An L2 cell is one number over the whole population and has no worst home to
-  name; the loop never noticed because until L2.4 was anchored every failure this suite had ever produced
-  was an L1 rate cell. A loop that has only ever seen one shape of input is not evidence about the others.
-  Fixed to branch on the presence of the rate-cell fields and to assert the L2 shape positively rather
-  than skip it.
-- '2026-08-09 STILL L2 AND THE RESIDUAL IS NARROWER, NOT GONE. (a) POPULATION SCALE is CLOSED -- the gap
-  and the two-level verdict are both measured on 200 premises drawn from published stock marginals (coupled_gap_ledger.json
-  rows re-measured at 39142e005, EPC-vs-actual 0.4269 / inferred-vs-actual 0.4044 / improvement +0.0225,
-  money consequence forgone GBP 548,919 on the EPC belief against 451,832 on the inferred one). (b) ANCHORS
-  are HALF closed: L2.4 anchored, L1.4 blocked on the null-correction build above, L1.2h_heating_shape_repeatability
-  still has no published statistic for how repeatable a thermostat is AND is vacuous at population scale
-  (10 homes carry heat on the judged meter, 0 judged). (c) THE RUNNER IS STILL MANUAL, exactly as registered
-  on 2026-08-03: nothing re-runs tools/couple_fabric.py, so these rows go stale unless a tick re-runs
-  them, and the durable fix remains a single reconciliation for the whole couple_*/gap-tool family (eleven
-  tools, none with a production caller) rather than a patch to this one. (d) Expert Hour not_attempted.
-  The level does not move on (a) and half of (b); an exit test is not renegotiated to fit what got done.'
-- '2026-08-09 L1.4 REBUILT AS L1.4n AND THE HALF THAT CLOSED IS THE STATISTIC, NOT THE THRESHOLD (worker
-  tick, L2->L3 draw; ADOPTED not rebuilt -- the mechanism was already complete and green in the working
-  tree from the immediately preceding tick, which ended before committing it, so it was audited and taken
-  across per "adopt, don''t rebuild" rather than re-implemented). THE DEFECT BEING REPAIRED IS THIS ATOM''S
-  OWN, recorded here that morning: the raw L1.4 distance is between two SUBSETS of one home''s days, so
-  at the coupled run''s 120-day window (85 weekday / 35 weekend) it is bounded away from zero by sampling
-  noise alone, and the LCL floor under it was cleared by a day-type-RANDOMISED population with a 1.4x
-  margin. L1.4n compares each home with ITSELF under 99 random relabellings of its own day-type calendar,
-  counts held fixed, and judges the ratio of the real separation to the 95th percentile of that null --
-  a one-sided permutation test at alpha = 0.05, so the decision point 1.0 is a property of the CONSTRUCTION
-  and there is nothing to tune (AnchorStatus.STRUCTURAL, not a borrowed anchor). IT FIRES ON THE MUTATION
-  THE RAW CELL COULD NOT SEE: on the randomised calendar the same population reads a median ratio 0.75
-  and violates on 58 homes of 60, against 1.45 with 1 of 60 on the real labelling. R15 BOTH WAYS, six
-  tests: fires on the randomised calendar; CAN pass (a control nobody has seen pass is indistinguishable
-  from one that cannot); the null is window-stable where the RAW null is not; fails CLOSED on too few
-  days / non-finite / a degenerate null rather than returning an infinite ratio that would read as a spectacular
-  pass; a degenerate home scores as a VIOLATION, not a pass; deterministic, so the threshold cannot be
-  moved by quietly reseeding. THE POPULATION TOLERANCE (0.50) IS NOT THE IMPOSSIBILITY BOUND THE OTHER
-  STRUCTURAL RATES USE and the reason is stated where it lives: a significance test at alpha = 0.05 does
-  not give a perfect generator a clean sheet -- a home with genuine but weak structure lands under its
-  own null by chance, at a rate that is a POWER question shrinking with the window -- so a zero tolerance
-  would fail a correct generator for being watched 60 days instead of 120. Both ends measured on both
-  populations at 60/90/120 days (twelve readings), tightest pair (0.295, 0.860), band set at its geometric
-  midpoint.'
-- '2026-08-09 RE-MEASURED, NOT RE-STAMPED, and the previous tick''s numbers REPRODUCED EXACTLY on a fresh
-  run at n=200 (tools/couple_fabric.py --population 200 --write-ledger at 94933cfff; ledger rows measured_at
-  2026-08-09T12:58:59Z). L1.4n reads violation rate 0.120 with 24 of 200 homes below their own null and
-  worst home P0051 at ratio 0.826 -- the same 0.120 the band note records for this population and window,
-  derived on a different run, which is the reproducibility a seeded permutation null is supposed to have
-  (C-S2) and is worth checking rather than assuming. THE VERDICT IS UNCHANGED AND THE LEVEL DOES NOT MOVE:
-  two-level test RED, failed_levels [''L2.4_scale_spread_p90_p10''] and nothing else; EPC-vs-actual gap
-  0.4269, inferred-vs-actual 0.4044, improvement +0.0225; money consequence forgone GBP 548,919 (135,396
-  kg CO2e/yr) on the EPC belief against GBP 451,832 (113,050) on the inferred one. L1.4n PASSING ON ITS
-  FIRST REAL RUN IS REPORTED AS A MEASUREMENT, NOT A WIN -- and the honest reading of the 12% is that
-  one home in eight in this population has no detectable weekday/weekend structure at this window, which
-  the band deliberately tolerates because it cannot separate "no structure" from "too few days to see
-  it". The magnitude question is untouched.'
-- '2026-08-09 WHAT IS STILL OPEN AT L2, narrowed by exactly one cell. (a) L1.4 (magnitude -- is the structure
-  as LARGE as a real household''s) STAYS AnchorStatus.NEED, and the reason is now a property of the repo''s
-  data rather than of the world: the LCL extract carries each household''s ANNUAL MEAN weekday and weekend
-  shape, so the panel''s OWN null is not computable from it, and null-correcting the model''s side alone
-  would be the same window-mismatch error in new coordinates. Closing it needs per-day half-hourly readings
-  -- SERL, or the LCL trial''s raw partitioned archive. (b) L1.2h_heating_shape_repeatability still has
-  no published statistic AND is vacuous at population scale (10 homes carry heat on the judged meter,
-  0 judged). (c) L2.4 scale spread is RED and is a GENERATOR question (W1_12), not a harness one -- widening
-  a draw''s variance without a mechanism is the goal-seek move R12 forbids. (d) THE RUNNER IS STILL MANUAL,
-  as registered on 2026-08-03 and again above: this tick re-ran tools/couple_fabric.py by hand, which
-  is the third consecutive tick to do so, and the durable fix remains ONE reconciliation for the whole
-  couple_*/gap-tool family (eleven tools, none with a production caller) rather than a patch to this one.
-  (e) Expert Hour not_attempted. The level does not move on (a)-(c); an exit test is not renegotiated
-  to fit what got done.'
-- '2026-08-09 THE MANUAL RUNNER, REGISTERED THREE CONSECUTIVE TICKS, IS NOW OBSERVABLE -- and the fix
-  is the FAMILY reconciliation this atom kept naming, not a patch to its own tool (worker tick, L2->L3
-  draw; LEVEL NOT MOVED). LANDED: background/gap_ledger_reconciler.py + tests/background/test_gap_ledger_reconciler.py
-  (15 tests), folded into background/reconcile_watch.py -- the reconcile-watch.timer, committed IaC --
-  as a THIRD drift source beside process_manifest and schedule_manifest (+5 wiring tests, 27 green). WHAT
-  MADE ONE RECONCILIATION POSSIBLE WHERE ELEVEN PATCHES WERE NOT: a gap row is a number on a public door
-  that records the commit it was measured at, so there is one mechanical question with a yes/no answer
-  for all thirteen rows -- HAS THE CODE THAT PRODUCED THIS NUMBER CHANGED SINCE? That is a fact about
-  git, not a threshold, not a score (R12), and it is the same fact for every member of the family. It
-  is deliberately NOT a runner: WHICH surface should re-run a gap tool (publish path vs archive path)
-  is the design pass WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS explicitly refuses to
-  guess, and guessing it here would be the accretion OPERATIONAL_COHERENCE_DESIGN_PASS forbids. Producers
-  are DISCOVERED by reading source (a file that both performs a ledger WRITE and names the atom), never
-  hand-listed -- an index that must be edited to stay complete is fail-open, and a twelfth couple tool
-  inherits this for free. The declared pair set is borrowed from background.coupled_triad.build_coupling;
-  there is no second list.'
-- '2026-08-09 WHAT THE FIRST LIVE RUN SAID, reported as a MEASUREMENT: 12 of 14 entries in DRIFT. Eleven
-  rows STALE -- W1_5 by 13 commits since e1ab2fe79, W1_6 by 3, W2_8 by 2, seven more by 1 -- and one entry
-  NEVER_LANDED: tools/couple_cohort.py carries --write-ledger for W2_2_population_draw -> C_cohort_discovery
-  and there is no such row in the ledger, i.e. a couple tool with a green test that has never put a number
-  anywhere. That is the orphan-transition class in its family form and it is the third instance this atom
-  has surfaced by RUNNING a thing rather than reading it. THE TWO FABRIC ROWS WERE STALE FOR THIS ATOM
-  S OWN REASON: they recorded run_git_commit 94933cfff, taken while the L1.4n rebuild was still only in
-  the working tree, so cff5cf698 landed the measuring code AFTER the measurement -- the published fabric
-  numbers were produced by a program HEAD did not contain. Re-ran tools/couple_fabric.py --population
-  200 --write-ledger; the numbers REPRODUCED EXACTLY for the third consecutive tick (EPC-vs-actual 0.4269,
-  inferred-vs-actual 0.4044, improvement +0.0225, two-level RED on [L2.4_scale_spread_p90_p10] alone,
-  money consequence forgone GBP 548,919 / 135,396 kg CO2e on the EPC belief against GBP 451,832 / 113,050
-  on the inferred one) and the drift set went 12 -> 10. THAT IS THE PART WORTH KEEPING: the control is
-  not always-red -- two rows read current before the re-run and the re-run cleared two more by the intended
-  response, so the drift set is a live count that moves, not a permanent alarm anyone learns to ignore
-  (feedback_always_red_detector_is_as_ignored_as_a_blind_one).'
-- '2026-08-09 R15 BOTH WAYS, six SOURCE mutations with byte-clean restore (md5 verified after each, 0c13f105
-  / 478000af), each firing its own named test with the rest staying green. FAIL-CLOSED, the three ways
-  a freshness check can not-know: (1) make an ungradeable sha read as zero commits => test_a_sha_GIT_CANNOT_GRADE_is_DRIFT
-  fires -- an unavailable check is a FAILED check, and without it every row measured on a branch that
-  never landed would read current; (2) default a missing run_git_commit to HEAD => the no-run_git_commit
-  test fires; (3) drop the never_landed sweep => the family test fires. THE TAUTOLOGY MUTATION IS THE
-  ONE THAT MATTERED: broadening the write marker to any mention of the ledger => the READER test fires,
-  because background/coupled_triad.py names half these atoms in its coupling table and tools/generate_premise_demand_data.py
-  reads the ledger for the site -- attributing a row to its READER would make freshness true by construction,
-  since readers change on a different clock from the code that took the measurement. AND THE WIRING, which
-  is where this class of build usually dies: (4) drop the G: term from the drift signature => three watch
-  tests fire; (5) stop run() falling through to the live reconcile => test_run_falls_through fires, i.e.
-  the wiring is proven non-inert rather than asserted. The reconcile CAN read clean (test_a_row_whose_producers_have_not_moved_is_CURRENT)
-  -- a control nobody has seen pass is indistinguishable from one that cannot. Fixture isolation added
-  to tests/background/test_reconcile_watch.py: a third source that reads real git and the real ledger
-  would otherwise flip every clean/drift assertion in that file the moment the live ledger went stale
-  (feedback_new_draw_rung_needs_fixture_isolation).'
-- '2026-08-09 STILL L2. Residual (a) L1.4 MAGNITUDE and (b) L1.2h heating-shape repeatability are unchanged
-  and unchanged in reason -- (a) needs per-day half-hourly readings the LCL extract does not carry (SERL,
-  or the trial raw archive), (b) has no published statistic and is vacuous at population scale. (c) L2.4
-  scale spread is still RED and is still a GENERATOR question owned by W1_12, not a harness one. (d) IS
-  THE ONE THAT CHANGED and it changed HALF: the family staleness is now OBSERVED and paged on a transition,
-  so a stale gap row can no longer sit on a public door unremarked -- but nothing re-runs the tools, and
-  it is honest to say the reconcile makes the residual VISIBLE rather than closing it. The remaining half
-  is the design pass on which surface owns re-running a gap tool. (e) Expert Hour not_attempted. The level
-  does not move on (a)-(c) and half of (d); an exit test is not renegotiated to fit what got done.'
-- '2026-08-10 THE RE-RUN THIS ATOM OWED ITS OWN CONTROL, and the level still does not move (worker tick,
-  L2->L3 draw). H39 landed in this atom''s file_scope this tick (see that atom''s record) and CHANGED
-  background/fabric_gap_ledger.py, which is the code that produces the two published fabric gap rows --
-  so the reconciler built here on 2026-08-09 immediately read both rows STALE, 6 commits since e0bc73f46.
-  THE CONTROL CAUGHT ITS OWN AUTHOR''S COMMIT, which is the case it was written for and the fourth time
-  this atom has surfaced something by RUNNING a thing rather than reading it. Re-ran tools/couple_fabric.py
-  --population 200 --write-ledger; drift set 13 -> 11 and the two fabric rows read CURRENT. It is worth
-  saying plainly that the control is not always-red: it moved by the intended response, twice now (feedback_always_red_detector_is_as_ignored_as_a_blind_one).
+- '2026-08-03 MINTED (worker tick) from docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md deliverable 3. FULL SPEC: docs/design/PREMISE_TWO_LEVEL_TEST_HARNESS_SPEC.md. loop_stage: idle because that doc authorises DISCOVER+FRAME only. WHY IT IS NEEDED -- the control SET had a hole exactly the shape of the defect: the existing premise-demand controls (simulation/premise_demand.py reconciliation_residual, aggregate_reconciles, noise_is_unbiased) are genuine and R15-failable and are ALL level-and-sum controls, blind to texture, timing, trough behaviour and diversity. W1_5_premise_demand_shape therefore sits at L3 while failing BOTH levels of a test the director applied by eye in an afternoon (2026-08-03 house-usage review). Recorded plainly rather than softened: a level was earned against the controls that existed, and the world could still be defeated -- which is the coupled triad''s own definition of the gap. W1_5 is NOT demoted; its aggregation work is correct and stays (and is retained as regression guard L2.5, so added realism may not cost aggregation consistency).'
+- '2026-08-03 FRAME -- THE BIRTH CONDITION IS THE WHOLE POINT: this suite MUST be landed RED against the current generator. A control introduced already-passing has demonstrated nothing (R15). Every threshold in the spec is stated alongside the currently-observed value so the first run''s failure is predicted, specific and checkable: expected to FAIL L1.1 texture (median period-to-period change 1.5pct of mean), L1.2 day-to-day shape correlation (0.97), L1.3 troughs (no half-hour below 0.05 kWh in ten years, zero away-days -- an empty house is not representable), L1.5 repeating rescaled fractions, L2.1 smoothing curve (aggregate peak/mean 5.9 at N=3 vs 5.7 at N=1 -- aggregation smooths NOTHING), L2.2 between-home correlation (C8-C9 = 0.95, near-clones), L2.3 timing diversity, L2.4 scale spread (annual totals within 8pct of each other); and to PASS L2.5 reconciliation and G.2 seasonal ratio. IF ANY STATISTIC UNEXPECTEDLY PASSES ON THE CURRENT GENERATOR, THE STATISTIC IS MIS-SPECIFIED -- fix the statistic, do not celebrate the pass.'
+- '2026-08-03 FRAME -- R15 MUTATION SET (each control''s named defect, in the spec section 4): smooth the trace with its own 7-day rolling mean (L1.1); replay one day''s shape all year rescaled (L1.2); floor every period at a small positive value, removing the empty house (L1.3); shuffle day-types (L1.4); clone one home N times (L2.1, L2.2); collapse all heating-start times to one value i.e. reinstate HEATING_PERIOD_WEIGHTS (L2.3); set every annual total to the population mean (L2.4). L1.5 IS ITS OWN MUTATION TEST -- the current shipped generator IS the defect it detects. THREE FAIL-OPEN PATTERNS DEFENDED EXPLICITLY because a statistical suite is unusually exposed to all three: (1) FAIL-OPEN on empty input -- a statistic over zero homes, zero days or a short/missing trace must FAIL, never pass vacuously, so every statistic asserts its own input sufficiency first; (2) NaN-BLINDNESS -- reject non-finite values BEFORE any threshold comparison (a known class in this codebase); (3) TAUTOLOGY -- this is why PC1 moves from generator INPUT to validation TARGET: as an input it made the large-N check tautological (it would pass even if every home were physically absurd), as an output-only anchor it is independent, and any future change reintroducing PC1 as a per-home input silently re-tautologises L2.1.'
+- '2026-08-03 FRAME -- ANTI-GOAL-SEEK (R12), and this suite is unusually EASY to goal-seek because injecting noise moves L1.1 without making anything more real. Every threshold is a DIAGNOSTIC BAND, never a target; drift toward a band edge triggers R4 (diagnose the mechanism), never a tuning pass. L1.5 is the structural guard against exactly that: it fails a noise-injected fake even when L1.1 passes, so L1.1-pass-with-L1.5-fail reads as "someone tuned the number" and the suite should say so in those words. Report WORST-CELL, never average -- an average across homes would hide the exact clone-cluster the test exists to find. Bands calibrated blind to company P&L (R13). Output lands in the coupled-gap ledger beside the other coupled-triad gap metrics. THE MONEY CONSEQUENCE is the metric that matters commercially and is the mission link: how much worse is a fabric-targeted intervention decision (insulate / heat-pump / PV / time-shift) made on EPC beliefs than the same decision made on ground truth -- which homes gain from which measure is HLC x weather x occupant arithmetic, and cost per tonne CO2e falls out of it. Savings count only from reduced or time-shifted usage, never from discounting.'
+- '2026-08-03 BUILT L0->L2 (worker tick). LANDED: background/fabric_gap_ledger.py + tests/harness/test_premise_two_level.py (77 pass + 2 STRICT xfail) and -- the part that was missing -- tools/couple_fabric.py + tests/tools/test_couple_fabric.py (14 pass), the CALLER without which none of it was a number anyone could read. 2347 green across tests/tools + tests/company/pricing; epistemic_verifier PASS (530 files). THE BIRTH CONDITION HELD: the suite is RED against the generator actually in the demand path, cell by cell, with each measured value pinned in the assertion (L1.1 texture 0.048, L1.2 day-to-day shape correlation 1.000 EXACTLY, L1.3 away-days 0.0, L1.5 multiplicity 2.0, L2.1 smoothing ratio 0.959, L2.2 between-home correlation 0.999, L2.3 timing diversity 0.0 -- an exact point mass). Both generators are RED and that is reported as a MEASUREMENT, not a win: W1_12 fails 2 of the 7 anchored cells (texture 0.1498 against a 0.15 band -- a knife-edge NOT moved to make it pass, R12; timing diversity 0.211 against 0.5), and its failures are a strict SUBSET of the shipped path''s, which is the value of wiring W1_12 in expressed in the units of the defect. THREE ORPHAN/FAIL-OPEN DEFECTS FOUND, each by RUNNING the thing rather than reading it: (1) THE ORPHAN TRANSITION -- write_fabric_gap_entries had NO production caller (grep-verified: its own definition and its unit test), so the fabric gap existed as a function and never as a ledger row; this is the SECOND instance of that exact shape (generate_evidence_data.generate() before it), i.e. a class -- a measurement function reads as done to a reviewer the moment its test is green, and nothing about a green test says anyone runs it. (2) A WRONG ATOM ID -- FABRIC_WORLD_ATOM was "W1_11_premise_fabric_physics", which has never been an atom (the real id is W1_11_fabric_physics_core); write_gap_entry writes any key it is given and the Proof door derives its ROWS from the map, so the write would have "succeeded" every run and rendered NOWHERE, forever. Now pinned by test_the_ledger_atom_ids_are_REAL_map_atoms. (3) A FAIL-OPEN IN THE COUPLED-TRIAD GATE ITSELF -- build_coupling() DERIVES W1_12->C14 from C14''s depends_on but assembles the final coupling from _AUTHORITATIVE_COUPLING ALONE, so a derived-but-unregistered pair is silently DROPPED: W1_12 sat at L2 as a coupled world atom with no measured gap while the panel''s own D1 "depth nobody copes with" detector stayed blind to it and world_l3_blocked never fired. The table reads like a cross-check and behaves like a whitelist. W1_11->C14 and W1_12->C14 are now registered; Proof-door pair_count 10 -> 12, measured 12, unmeasured 0, both rows rendering real values.'
+- '2026-08-03 THE MEASURED RESULT, RECORDED AND DELIBERATELY NOT TUNED (R12/R13). On the 10-premise panel (real Open-Meteo archive, 2022-01-01..04-30, mixed meter cadence 1/7/30d, one premise with NO certificate): EPC-vs-actual gap 0.2049, inferred-vs-actual gap 0.2397 -- i.e. C14''s posterior is a WORSE POINT ESTIMATE than the register prior it started from (improvement -0.0349). On the SAME panel the money consequence runs the OTHER WAY: deciding a fabric measure on the EPC belief misranks 10pct of premises (GBP 162 forgone, 2,314 kg CO2e/yr), on the inferred belief it misranks NONE. THE TWO DISAGREE BECAUSE THEY ASK DIFFERENT QUESTIONS: prediction_gap is a LEVEL statistic (normalised squared error), the decision is an ORDERING one; the EPC register UNDERSTATES heat loss on every premise in the panel (asserted, not observed in passing), C14 corrects every premise upward toward truth and overshoots on some, which costs level accuracy and buys rank accuracy. THIS IS THE ATOM''S OWN FOUNDING LESSON ONE LEVEL UP -- the control SET had a hole shaped like the defect: a level-and-sum gap metric read ALONE would have reported the company''s inference as a REGRESSION while hiding that it strictly improved every decision anyone would take on it. Neither number is wrong; reporting only one of them would be. Both are now written to the ledger and both are pinned by test_INFERENCE_CAN_MAKE_THE_POINT_ESTIMATE_WORSE_WHILE_MAKING_THE_DECISION_BETTER, which re-derives rather than re-states if the sign flips.'
+- '2026-08-03 R15 BOTH WAYS -- FIVE REAL SOURCE MUTATIONS, each firing its own named test with the others staying green (independence), baseline restored byte-clean (md5 78cbc4a4 verified after every run): drop the NaN rejection in _finite_series => the 3 non-finite tests fire and NOTHING else (74 green); drop the input-sufficiency raise in _require_homes => the 3 fail-open-1 cases + the too-few-premises gap test fire (73 green); blind pc1_is_an_input_to to return False => the 2 tautology tests fire (75 green); silence the goal-seek warning => test_the_goal_seek_warning_says_someone_tuned_the_number fires. AND THE ONE THAT MATTERED: replacing the WORST-CELL selection in evaluate_two_level with an average left the suite GREEN -- because test_the_verdict_is_WORST_CELL_not_an_average was ITSELF A TAUTOLOGY, ending "assert generated_worst(textures) == approx(min(textures))" with generated_worst = min defined three lines below, i.e. min(x) == min(x), which cannot fail, and which never called evaluate_two_level at all. That is the R15 TAUTOLOGY pattern (checked value derived from the same source it checks) sitting INSIDE the test named for the rule, in a suite whose own docstring defends against tautology -- and only mutating the SOURCE found it; reading the file did not, twice. Rewritten to poison a population with one smoothed home and assert the reported L1.1 cell is that home''s value (with a fixture guard that the worst is materially below the mean, so the test proves something) and that the cell NAMES it; the mutation now fires it. WORTH CARRYING: a test that asserts a helper against the same helper passes forever, and the suite''s green count never blinks.'
+- '2026-08-03 DELIBERATELY L2, NOT THE L3 TARGET, and the residual is named. (a) POPULATION SCALE: the two-level test and the gap are measured on a 10-premise PANEL, not the population -- L2.1''s smoothing curve wants N up to 1000 and the spec says so; a panel cannot show the large-N limit approaching the published PC1 GAD. (b) TWO CELLS ARE UNANCHORED AND HONESTLY REPORTED AS SUCH (L1.4 weekday/weekend separation, L2.4 scale spread): they are MEASURED and EXCLUDED from the verdict rather than given an invented threshold, since a fabricated band would make the suite look rigorous while being unfalsifiable -- the shipped path''s 8pct-apart annual totals are visibly wrong against any plausible band, but "visibly wrong" is not a threshold. Closing them needs the NEED anchors (SERL diversity statistics; EPC-linked actual metered annual consumption). (c) THE RUNNER IS MANUAL, exactly like its ten couple_*.py siblings: nothing re-runs it, so the ledger rows go stale unless a tick re-runs it. That is the SAME orphan-transition class this atom just closed one level up, and it is registered as such rather than declared solved -- wiring it into the publish path is a deliberate decision about run cost (~7 s), not a nicety. (d) Expert Hour not_attempted. R11 HONEST BOUND: the Proof-door rows were verified in the GENERATED panel data (pair_count 12, measured 12, both fabric rows carrying real values), NOT yet on the live poesys.net pixel -- that lands with the next publish and is not claimed here.'
+- '2026-08-09 BUILT, LEVEL NOT MOVED (worker tick, L2->L3 draw). ONE of the atom''s two unanchored cells is now ANCHORED AND RED, the other one is STILL unanchored and the reason has changed from "no source exists" to a MEASUREMENT. WHAT LANDED: background/lcl_household_anchors.py (+ tests/harness/test_lcl_household_anchors.py, 12 tests) derives both bands from a real panel that was already in the repo and unused for this purpose -- Low Carbon London (UK Power Networks, London Datastore, CC-BY), 304 households with >=85% half-hourly coverage of calendar 2013, carrying each household''s mean_daily_kwh and its normalised weekday and weekend 48-vectors (docs/market_research/hh_load_shape_clustering_2026.md is the fetch record). THE RULE WAS FIXED BEFORE THE NUMBERS (R12): a population-level statistic gets the 5th percentile of a seeded bootstrap over the panel (the model must be at least as dispersed as the low end of what the panel''s own sampling error admits); a per-home floor is the panel''s own low tail with the population violation rate set to double the rate the anchor itself implies. L2.4 SCALE SPREAD IS NOW JUDGED AND IS RED: the panel''s P90/P10 of household consumption is 5.3769 (IQR ratio 2.4566), the bootstrap floor is 4.8807, and the drawn n=200 population reads 1.7981 -- the model''s homes are between two and three times too ALIKE in scale. Not knife-edge and stated as such: every tolerance the rule admits lands on the same verdict, so R4 (diagnose the mechanism) applies and not a threshold move. The shipped demand path reads 1.578 on the same statistic, so W1_12''s failure set stays a strict subset of the shipped path''s and the "measurably better" guard still holds.'
+- '2026-08-09 THE ANCHOR THAT WAS TAKEN BACK OUT, and it is the finding worth carrying. L1.4 (weekday/weekend separation) was anchored from the SAME panel by the SAME rule on the SAME day -- per-home total-variation distance, panel median 0.0724, bootstrap floor 0.0262 -- and was REMOVED within the hour because its own named R15 mutation could not make it fire. THE MEASUREMENT: relabelling the day-type calendar at random while keeping the same 85/35 counts destroys every trace of real weekday/weekend structure, and over 600 home-permutation samples on the drawn population NOT ONE value fell below the floor -- null median 0.0715, null MINIMUM 0.0378, against a floor of 0.0262. The statistic is strongly biased upward at the coupled run''s 120-day window: with 35 weekend days against 85 weekday days, two arbitrary subsets of the SAME home differ by about as much as a real household''s weekday differs from its weekend over a full year. A band that a day-type-randomised population clears with a 1.4x margin is fail-open, and a fail-open band is worse than an honest blank. THE CLASS, which is why this is pinned as a test and not written in a comment: AN ANCHOR IS A NUMBER AND A WINDOW. Both bands came off one panel by one rule on one day; L2.4''s statistic is a ratio BETWEEN homes and does not care how long each was watched, L1.4''s is a distance between two subsets of ONE home''s days and cares enormously. Nothing in an anchor''s provenance says which kind you have -- only the mutation does. The derivation is KEPT, un-wired, because the fix is to null-correct the STATISTIC (separation minus the median of k randomised relabellings) and this number is half of what that build needs. Pinned by test_the_L1_4_ANCHOR_DOES_NOT_TRANSFER_to_a_120_day_window, which also asserts the band is still blank, so a later tick that re-wires the anchor without null-correcting fails there.'
+- '2026-08-09 R15 BOTH WAYS, by SOURCE mutation with byte-clean restore (md5 verified after each). (1) Drop the non-finite/non-positive guard in panel_daily_kwh => the two fail-closed anchor tests fire and nothing else (10 green). (2) Move the frozen L2.4 constant from 4.8807 to 2.0000 -- the goal-seek move itself -- => the re-derivation test fires AND five two-level tests fire, including the strict xfail XPASSing, i.e. the threshold is provably load-bearing on the VERDICT and not just on a test. (3) Re-wire the L1.4 anchor without null-correcting the statistic => the non-transfer test and the unanchored-cells test fire. AND THE OTHER DIRECTION, which a red-on-arrival band needs most: test_the_L2_4_BAND_CAN_PASS_and_is_not_a_control_that_can_only_fail stretches the model''s OWN homes about their median until they span what real households span and asserts the band PASSES -- a band nobody has ever seen pass is indistinguishable from one that cannot, and a control that can only fail wedges whatever it gates. The panel-clears-its-own-floor check is labelled a SANITY check and not evidence, because the floor is that panel''s own bootstrap quantile and the comparison is true by construction. Independence: tests/harness/test_lcl_household_anchors.py re-derives every exported constant from the raw CSV with its own inline quantile and its own resampling loop rather than calling the module''s helpers -- a re-derivation sharing the code it checks asserts nothing.'
+- 2026-08-09 A LATENT DEFECT IN THIS SUITE'S OWN LEDGER TEST, found by the first L2 failure it ever produced. test_the_ledger_entry_carries_both_beliefs_and_the_two_level_result looped over every FAILED cell asserting each named a worst_home. An L2 cell is one number over the whole population and has no worst home to name; the loop never noticed because until L2.4 was anchored every failure this suite had ever produced was an L1 rate cell. A loop that has only ever seen one shape of input is not evidence about the others. Fixed to branch on the presence of the rate-cell fields and to assert the L2 shape positively rather than skip it.
+- '2026-08-09 STILL L2 AND THE RESIDUAL IS NARROWER, NOT GONE. (a) POPULATION SCALE is CLOSED -- the gap and the two-level verdict are both measured on 200 premises drawn from published stock marginals (coupled_gap_ledger.json rows re-measured at 39142e005, EPC-vs-actual 0.4269 / inferred-vs-actual 0.4044 / improvement +0.0225, money consequence forgone GBP 548,919 on the EPC belief against 451,832 on the inferred one). (b) ANCHORS are HALF closed: L2.4 anchored, L1.4 blocked on the null-correction build above, L1.2h_heating_shape_repeatability still has no published statistic for how repeatable a thermostat is AND is vacuous at population scale (10 homes carry heat on the judged meter, 0 judged). (c) THE RUNNER IS STILL MANUAL, exactly as registered on 2026-08-03: nothing re-runs tools/couple_fabric.py, so these rows go stale unless a tick re-runs them, and the durable fix remains a single reconciliation for the whole couple_*/gap-tool family (eleven tools, none with a production caller) rather than a patch to this one. (d) Expert Hour not_attempted. The level does not move on (a) and half of (b); an exit test is not renegotiated to fit what got done.'
+- '2026-08-09 L1.4 REBUILT AS L1.4n AND THE HALF THAT CLOSED IS THE STATISTIC, NOT THE THRESHOLD (worker tick, L2->L3 draw; ADOPTED not rebuilt -- the mechanism was already complete and green in the working tree from the immediately preceding tick, which ended before committing it, so it was audited and taken across per "adopt, don''t rebuild" rather than re-implemented). THE DEFECT BEING REPAIRED IS THIS ATOM''S OWN, recorded here that morning: the raw L1.4 distance is between two SUBSETS of one home''s days, so at the coupled run''s 120-day window (85 weekday / 35 weekend) it is bounded away from zero by sampling noise alone, and the LCL floor under it was cleared by a day-type-RANDOMISED population with a 1.4x margin. L1.4n compares each home with ITSELF under 99 random relabellings of its own day-type calendar, counts held fixed, and judges the ratio of the real separation to the 95th percentile of that null -- a one-sided permutation test at alpha = 0.05, so the decision point 1.0 is a property of the CONSTRUCTION and there is nothing to tune (AnchorStatus.STRUCTURAL, not a borrowed anchor). IT FIRES ON THE MUTATION THE RAW CELL COULD NOT SEE: on the randomised calendar the same population reads a median ratio 0.75 and violates on 58 homes of 60, against 1.45 with 1 of 60 on the real labelling. R15 BOTH WAYS, six tests: fires on the randomised calendar; CAN pass (a control nobody has seen pass is indistinguishable from one that cannot); the null is window-stable where the RAW null is not; fails CLOSED on too few days / non-finite / a degenerate null rather than returning an infinite ratio that would read as a spectacular pass; a degenerate home scores as a VIOLATION, not a pass; deterministic, so the threshold cannot be moved by quietly reseeding. THE POPULATION TOLERANCE (0.50) IS NOT THE IMPOSSIBILITY BOUND THE OTHER STRUCTURAL RATES USE and the reason is stated where it lives: a significance test at alpha = 0.05 does not give a perfect generator a clean sheet -- a home with genuine but weak structure lands under its own null by chance, at a rate that is a POWER question shrinking with the window -- so a zero tolerance would fail a correct generator for being watched 60 days instead of 120. Both ends measured on both populations at 60/90/120 days (twelve readings), tightest pair (0.295, 0.860), band set at its geometric midpoint.'
+- '2026-08-09 RE-MEASURED, NOT RE-STAMPED, and the previous tick''s numbers REPRODUCED EXACTLY on a fresh run at n=200 (tools/couple_fabric.py --population 200 --write-ledger at 94933cfff; ledger rows measured_at 2026-08-09T12:58:59Z). L1.4n reads violation rate 0.120 with 24 of 200 homes below their own null and worst home P0051 at ratio 0.826 -- the same 0.120 the band note records for this population and window, derived on a different run, which is the reproducibility a seeded permutation null is supposed to have (C-S2) and is worth checking rather than assuming. THE VERDICT IS UNCHANGED AND THE LEVEL DOES NOT MOVE: two-level test RED, failed_levels [''L2.4_scale_spread_p90_p10''] and nothing else; EPC-vs-actual gap 0.4269, inferred-vs-actual 0.4044, improvement +0.0225; money consequence forgone GBP 548,919 (135,396 kg CO2e/yr) on the EPC belief against GBP 451,832 (113,050) on the inferred one. L1.4n PASSING ON ITS FIRST REAL RUN IS REPORTED AS A MEASUREMENT, NOT A WIN -- and the honest reading of the 12% is that one home in eight in this population has no detectable weekday/weekend structure at this window, which the band deliberately tolerates because it cannot separate "no structure" from "too few days to see it". The magnitude question is untouched.'
+- '2026-08-09 WHAT IS STILL OPEN AT L2, narrowed by exactly one cell. (a) L1.4 (magnitude -- is the structure as LARGE as a real household''s) STAYS AnchorStatus.NEED, and the reason is now a property of the repo''s data rather than of the world: the LCL extract carries each household''s ANNUAL MEAN weekday and weekend shape, so the panel''s OWN null is not computable from it, and null-correcting the model''s side alone would be the same window-mismatch error in new coordinates. Closing it needs per-day half-hourly readings -- SERL, or the LCL trial''s raw partitioned archive. (b) L1.2h_heating_shape_repeatability still has no published statistic AND is vacuous at population scale (10 homes carry heat on the judged meter, 0 judged). (c) L2.4 scale spread is RED and is a GENERATOR question (W1_12), not a harness one -- widening a draw''s variance without a mechanism is the goal-seek move R12 forbids. (d) THE RUNNER IS STILL MANUAL, as registered on 2026-08-03 and again above: this tick re-ran tools/couple_fabric.py by hand, which is the third consecutive tick to do so, and the durable fix remains ONE reconciliation for the whole couple_*/gap-tool family (eleven tools, none with a production caller) rather than a patch to this one. (e) Expert Hour not_attempted. The level does not move on (a)-(c); an exit test is not renegotiated to fit what got done.'
+- '2026-08-09 THE MANUAL RUNNER, REGISTERED THREE CONSECUTIVE TICKS, IS NOW OBSERVABLE -- and the fix is the FAMILY reconciliation this atom kept naming, not a patch to its own tool (worker tick, L2->L3 draw; LEVEL NOT MOVED). LANDED: background/gap_ledger_reconciler.py + tests/background/test_gap_ledger_reconciler.py (15 tests), folded into background/reconcile_watch.py -- the reconcile-watch.timer, committed IaC -- as a THIRD drift source beside process_manifest and schedule_manifest (+5 wiring tests, 27 green). WHAT MADE ONE RECONCILIATION POSSIBLE WHERE ELEVEN PATCHES WERE NOT: a gap row is a number on a public door that records the commit it was measured at, so there is one mechanical question with a yes/no answer for all thirteen rows -- HAS THE CODE THAT PRODUCED THIS NUMBER CHANGED SINCE? That is a fact about git, not a threshold, not a score (R12), and it is the same fact for every member of the family. It is deliberately NOT a runner: WHICH surface should re-run a gap tool (publish path vs archive path) is the design pass WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS explicitly refuses to guess, and guessing it here would be the accretion OPERATIONAL_COHERENCE_DESIGN_PASS forbids. Producers are DISCOVERED by reading source (a file that both performs a ledger WRITE and names the atom), never hand-listed -- an index that must be edited to stay complete is fail-open, and a twelfth couple tool inherits this for free. The declared pair set is borrowed from background.coupled_triad.build_coupling; there is no second list.'
+- '2026-08-09 WHAT THE FIRST LIVE RUN SAID, reported as a MEASUREMENT: 12 of 14 entries in DRIFT. Eleven rows STALE -- W1_5 by 13 commits since e1ab2fe79, W1_6 by 3, W2_8 by 2, seven more by 1 -- and one entry NEVER_LANDED: tools/couple_cohort.py carries --write-ledger for W2_2_population_draw -> C_cohort_discovery and there is no such row in the ledger, i.e. a couple tool with a green test that has never put a number anywhere. That is the orphan-transition class in its family form and it is the third instance this atom has surfaced by RUNNING a thing rather than reading it. THE TWO FABRIC ROWS WERE STALE FOR THIS ATOM S OWN REASON: they recorded run_git_commit 94933cfff, taken while the L1.4n rebuild was still only in the working tree, so cff5cf698 landed the measuring code AFTER the measurement -- the published fabric numbers were produced by a program HEAD did not contain. Re-ran tools/couple_fabric.py --population 200 --write-ledger; the numbers REPRODUCED EXACTLY for the third consecutive tick (EPC-vs-actual 0.4269, inferred-vs-actual 0.4044, improvement +0.0225, two-level RED on [L2.4_scale_spread_p90_p10] alone, money consequence forgone GBP 548,919 / 135,396 kg CO2e on the EPC belief against GBP 451,832 / 113,050 on the inferred one) and the drift set went 12 -> 10. THAT IS THE PART WORTH KEEPING: the control is not always-red -- two rows read current before the re-run and the re-run cleared two more by the intended response, so the drift set is a live count that moves, not a permanent alarm anyone learns to ignore (feedback_always_red_detector_is_as_ignored_as_a_blind_one).'
+- '2026-08-09 R15 BOTH WAYS, six SOURCE mutations with byte-clean restore (md5 verified after each, 0c13f105 / 478000af), each firing its own named test with the rest staying green. FAIL-CLOSED, the three ways a freshness check can not-know: (1) make an ungradeable sha read as zero commits => test_a_sha_GIT_CANNOT_GRADE_is_DRIFT fires -- an unavailable check is a FAILED check, and without it every row measured on a branch that never landed would read current; (2) default a missing run_git_commit to HEAD => the no-run_git_commit test fires; (3) drop the never_landed sweep => the family test fires. THE TAUTOLOGY MUTATION IS THE ONE THAT MATTERED: broadening the write marker to any mention of the ledger => the READER test fires, because background/coupled_triad.py names half these atoms in its coupling table and tools/generate_premise_demand_data.py reads the ledger for the site -- attributing a row to its READER would make freshness true by construction, since readers change on a different clock from the code that took the measurement. AND THE WIRING, which is where this class of build usually dies: (4) drop the G: term from the drift signature => three watch tests fire; (5) stop run() falling through to the live reconcile => test_run_falls_through fires, i.e. the wiring is proven non-inert rather than asserted. The reconcile CAN read clean (test_a_row_whose_producers_have_not_moved_is_CURRENT) -- a control nobody has seen pass is indistinguishable from one that cannot. Fixture isolation added to tests/background/test_reconcile_watch.py: a third source that reads real git and the real ledger would otherwise flip every clean/drift assertion in that file the moment the live ledger went stale (feedback_new_draw_rung_needs_fixture_isolation).'
+- '2026-08-09 STILL L2. Residual (a) L1.4 MAGNITUDE and (b) L1.2h heating-shape repeatability are unchanged and unchanged in reason -- (a) needs per-day half-hourly readings the LCL extract does not carry (SERL, or the trial raw archive), (b) has no published statistic and is vacuous at population scale. (c) L2.4 scale spread is still RED and is still a GENERATOR question owned by W1_12, not a harness one. (d) IS THE ONE THAT CHANGED and it changed HALF: the family staleness is now OBSERVED and paged on a transition, so a stale gap row can no longer sit on a public door unremarked -- but nothing re-runs the tools, and it is honest to say the reconcile makes the residual VISIBLE rather than closing it. The remaining half is the design pass on which surface owns re-running a gap tool. (e) Expert Hour not_attempted. The level does not move on (a)-(c) and half of (d); an exit test is not renegotiated to fit what got done.'
+- '2026-08-10 THE RE-RUN THIS ATOM OWED ITS OWN CONTROL, and the level still does not move (worker tick, L2->L3 draw). H39 landed in this atom''s file_scope this tick (see that atom''s record) and CHANGED background/fabric_gap_ledger.py, which is the code that produces the two published fabric gap rows -- so the reconciler built here on 2026-08-09 immediately read both rows STALE, 6 commits since e0bc73f46. THE CONTROL CAUGHT ITS OWN AUTHOR''S COMMIT, which is the case it was written for and the fourth time this atom has surfaced something by RUNNING a thing rather than reading it. Re-ran tools/couple_fabric.py --population 200 --write-ledger; drift set 13 -> 11 and the two fabric rows read CURRENT. It is worth saying plainly that the control is not always-red: it moved by the intended response, twice now (feedback_always_red_detector_is_as_ignored_as_a_blind_one).
 
-  THE NUMBERS, and the fourth consecutive reproduction: EPC-vs-actual gap 0.4269 unchanged to four decimals;
-  inferred-vs-actual 0.4042 against 0.4044 last measured, improvement +0.0227 against +0.0225; money consequence
-  IDENTICAL to the pound -- forgone GBP 548,919 (135,396 kg CO2e/yr) on the EPC belief against GBP 451,832
-  (113,050) on the inferred one. The 4th-decimal move in the inferred gap is NOT attributed to H39, which
-  adds a cell and touches no inference and draws no RNG (C-S2 substream discipline is not at issue): six
-  commits touched this file since the last measurement and the move is inside that. Stated as unattributed
-  rather than pinned on the nearest change.
+  THE NUMBERS, and the fourth consecutive reproduction: EPC-vs-actual gap 0.4269 unchanged to four decimals; inferred-vs-actual 0.4042 against 0.4044 last measured, improvement +0.0227 against +0.0225; money consequence IDENTICAL to the pound -- forgone GBP 548,919 (135,396 kg CO2e/yr) on the EPC belief against GBP 451,832 (113,050) on the inferred one. The 4th-decimal move in the inferred gap is NOT attributed to H39, which adds a cell and touches no inference and draws no RNG (C-S2 substream discipline is not at issue): six commits touched this file since the last measurement and the move is inside that. Stated as unattributed rather than pinned on the nearest change.
 
-  WHAT THE NEW CELL SAID, reported as a MEASUREMENT and not as a win: the two-level test is still RED
-  on failed_levels [''L2.4_scale_spread_p90_p10''] ALONE -- H39''s L1.1n cell PASSES on the drawn 200.
-  A new band that goes green on its first real population is exactly the reading a control nobody has
-  seen pass cannot give, and it is consistent with H39''s own can-pass test; it is NOT evidence that the
-  generator is textured, because L1.1n asks only whether ANY of the texture is behaviour rather than the
-  home''s own diurnal shape. The MAGNITUDE question stays with the 0.15 floor and stays open.
+  WHAT THE NEW CELL SAID, reported as a MEASUREMENT and not as a win: the two-level test is still RED on failed_levels [''L2.4_scale_spread_p90_p10''] ALONE -- H39''s L1.1n cell PASSES on the drawn 200. A new band that goes green on its first real population is exactly the reading a control nobody has seen pass cannot give, and it is consistent with H39''s own can-pass test; it is NOT evidence that the generator is textured, because L1.1n asks only whether ANY of the texture is behaviour rather than the home''s own diurnal shape. The MAGNITUDE question stays with the 0.15 floor and stays open.
 
-  RESIDUAL AT L2, unchanged and unchanged in reason: (a) L1.4 MAGNITUDE needs per-day half-hourly readings
-  the LCL extract does not carry (SERL, or the trial raw archive) -- no network in autonomous runs, so
-  this is not a this-tick item; (b) L1.2h heating-shape repeatability has no published statistic and is
-  vacuous at population scale; (c) L2.4 scale spread is RED and is a GENERATOR question owned by W1_12
-  -- widening a draw''s variance with no mechanism is the goal-seek move R12 forbids; (d) the family staleness
-  is OBSERVED and now demonstrably ACTED ON, but nothing still re-runs the tools by itself -- this tick
-  re-ran by hand, the fourth consecutive tick to do so, and the remaining half is the design pass on which
-  surface owns re-running a gap tool, which WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS
-  explicitly refuses to guess; (e) Expert Hour not_attempted. An exit test is not renegotiated to fit
-  what got done.'
-- '2026-08-10 RESIDUAL (d) IS CLOSED, and the level still does not move (worker tick, L2->L3 draw). The
-  half left open on four consecutive ticks was the design pass on WHICH SURFACE OWNS RE-RUNNING A GAP
-  TOOL -- deferred, not guessed, by WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS. It is
-  decided and mechanised: docs/design/GAP_TOOL_RERUN_OWNERSHIP.md, and RUNG 4b of the draw ladder (background/supervisor.py::_stale_gap_row_draw,
-  mirrored in _is_drained_and_gated so rest cannot be declared over a stale published number). WHY NOT
-  THE PUBLISH PATH, which is where the derived-artefact class went the same week: a projection is a RENDERING
-  of committed sources -- milliseconds, deterministic, and its staleness REDS A BLOCKING TEST; a gap row
-  is a MEASUREMENT over a drawn population -- seconds to minutes each, eleven tools, blocking nothing,
-  and its output CAN MOVE. The last property decides it: re-rendering a projection has no reading, re-taking
-  a measurement does (this atom spent a paragraph last tick on a 4th-decimal move it declined to attribute).
-  Automating it into a silent surface would republish a changed public figure with nobody in the loop,
-  which is the only part of the act worth anything. The reconcile-watch timer was rejected too: its G-R3
-  guarantee is REPORT-ONLY, and a watcher with hands to fix what it watches loses the independence that
-  makes its verdict worth reading. So the answer is the one this codebase already gave twice for a report-only
-  drift control that needed hands (RUNG 1 publish-gate wedge, RUNG 1b persistent operational red): a stale
-  published measurement is DRAWN WORK. THE COMMAND FORM WAS FOUND BY RUNNING ONE, NOT READING IT -- the
-  fifth time this atom has surfaced something that way: `python3 tools/couple_w2_4_c6.py --write-ledger`
-  dies in 0.2s on ModuleNotFoundError (every tool imports simulation.*), `python3 -m tools.couple_w2_4_c6
-  --write-ledger` wrote the row in 0.5s. refresh_command() emits the module form and a test pins it; a
-  work list whose command cannot execute is a work list nobody can act on. THE DRAIN IS MEASURED, NOT
-  ASSERTED: the rung drew 8 refreshable rows, all 8 commands ran rc=0 (including the two inferred background/weather_*_triad.py
-  ones), and the live drift set went 9 -> 1. The remaining 1 is the never_landed tools/couple_cohort.py
-  orphan, which the rung EXCLUDES BY DESIGN -- no re-run clears a row that does not exist, and a rung
-  that can never drain is one everyone learns to ignore (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control).
-  ONE NUMBER MOVED AND IS REPORTED RATHER THAN REPUBLISHED: W2_8_self_rationing detection gap 0.1787 ->
-  0.1993 (+0.0206), now rendered at site/data/proof.json pairs[W2_8].value = 0.19931470722586064 after
-  tools.generate_proof_data. Two commits touched tools/couple_w2_8_c10.py since 83c2bce93 -- 7f6b7f3ba
-  (D14: the world could not produce an innocent drop, so the false-alarm rate was 0.0000 by construction)
-  and 03ebccc1c (D18) -- and D14 is the plausible mover since the metric is balanced-error over both directions.
-  Stated as BOUNDED BY those two commits and UNATTRIBUTED between them: nothing here measured which. The
-  other seven reproduced to the digit. R15 BOTH WAYS, eight source mutations, byte-clean restore md5-verified
-  after each (fa16fe3d / 8d6268d5), each firing its OWN named test with the rest green: (1) treat never_landed/never_measured
-  as refreshable => the wedge test fires; (2) drop a no-runner row instead of listing it => the fail-closed
-  test fires (a published number nobody can re-take is a WORSE defect than a stale one, and an exclusion-shaped
-  filter is exactly where it would have vanished); (3) emit the path form => the module-form test fires;
-  (4) drop the invocable half of the runner test => a library that only MENTIONS --write-ledger is offered
-  as a command => that test fires; (5) drop the write half => a READER is offered => the tautology test
-  fires; (6) remove the rung from _self_refill_draw and (7) from _is_drained_and_gated => the two wiring
-  tests fire, so the rung is proven IN THE LADDER rather than merely written; (8) make the error path
-  invent a hold => the fail-open test fires. The rung can also read EMPTY -- it does now, live -- which
-  is what separates it from a control nobody has seen return None. STILL L2. (a) L1.4 MAGNITUDE needs
-  per-day half-hourly readings the LCL extract does not carry (SERL or the trial raw archive; no network
-  in autonomous runs). (b) L1.2h heating-shape repeatability has no published statistic and is vacuous
-  at population scale. (c) L2.4 scale spread is RED and is a GENERATOR question owned by W1_12 -- widening
-  a draw''s variance with no mechanism is the goal-seek move R12 forbids. (e) Expert Hour not_attempted.
-  (d) is now the only one that closed. An exit test is not renegotiated to fit what got done.'
-- '2026-08-10 THE DRAIN THIS ATOM BUILT WAS EXCLUDING THE ONE ITEM A SINGLE COMMAND WOULD CLOSE, and the
-  level still does not move (worker tick, L2->L3 draw). RUNG 4b''s work list rested on REFRESHABLE_STATUSES,
-  whose comment swept never_measured and never_landed into one sentence -- ''no re-run clears a row that
-  does not exist''. That is TRUE of never_measured (a pair the map declares with no row and no producer
-  to point at) and FALSE of never_landed (a tool that exists on disk, in the discovered family, and if
-  invocable is one command away from landing its row). tools/couple_cohort.py sat in the drift set as
-  a permanent member for two days -- surfaced by this atom''s own reconcile on 2026-08-09, reported as
-  the orphan-transition class, and then structurally unactionable -- while `python3 -m tools.couple_cohort`
-  ran clean in seconds. The exclusion was not protecting the ladder from a wedge; it was hiding the only
-  entry that could never drain, which is the ratchet-with-no-drain shape this atom has cited twice (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control).
-  SIXTH TIME THIS ATOM FOUND SOMETHING BY RUNNING A THING RATHER THAN READING IT. THE WEDGE GUARD SURVIVES
-  AS A NARROWER RULE, not as a status ban: a never_landed tool with NO invocable runner stays off the
-  work list, because there the ITEM IS THE TOOL and no command could ever land its row. That deliberately
-  REVERSES the fail-closed listing used for ROWS, and the asymmetry has a stated reason -- a stale ROW
-  hides a live public figure behind its absence, a dead TOOL hides nothing; either way it stays reported
-  in the DRIFT set, only the WORK list differs. THE FIX BROKE A FIXTURE AND THE FIXTURE WAS RIGHT: tests/background/test_rest_ladder_isolation.py
-  pins the reconciler''s LEDGER_PATH at an absent file, and RUNG 4b immediately produced ELEVEN work items.
-  Root cause is one rung deeper and is a FAIL-OPEN of the pre-existing kind -- load_ledger() returns {}
-  for a file that is absent or malformed, and every verdict downstream was then graded as though the ledger
-  legitimately held no rows: every declared pair never_measured, every couple_* tool never_landed. Those
-  were not eleven orphaned tools, they were ONE unread file, and the blanket never_landed exclusion had
-  been the only thing masking it. Added ledger_is_readable() and a single `ledger_unreadable` verdict
-  that short-circuits the reconcile: an unavailable check is a FAILED check (R15), and it is not refreshable,
-  because no gap-tool re-run repairs a file that cannot be read. The distinction is file EXISTENCE, never
-  row count -- an empty-but-present ledger is a real state and reads clean (test_a_READABLE_ledger_never_reports_unreadable_so_the_branch_can_pass).
-  AND ONE TEST WAS VACUOUS, found the same way: test_every_live_ledger_row_gets_a_verdict_from_the_known_set
-  called reconcile() under that same conftest pin, so it graded an empty dict and had asserted nothing
-  about any real row since the pin landed. It now reads the real ledger path explicitly and carries a
-  vacuity guard that fails if there are no live rows (feedback_population_control_needs_a_vacuity_guard).
-  R15 BOTH WAYS, four SOURCE mutations with byte-clean restore (md5 verified after each, adfe1497), each
-  firing its OWN named test with the rest green: (1) re-exclude never_landed => the CAN_BE_RUN test fires;
-  (2) drop the _TOOL_ITEM_STATUSES guard => the CANNOT_BE_RUN test fires; (3) ledger_is_readable always
-  True => the unreadable test AND three rest-ladder isolation tests fire; (4) always False => the readable-direction
-  test fires, so the branch is not a control that can only fail. 28 reconciler tests green, 97 green across
-  the five affected files. THE DRAIN WAS THEN RUN AND THE DRIFT SET REACHED ZERO FOR THE FIRST TIME: 14
-  of 14 rows CURRENT, ''no refreshable rows''. tools/couple_cohort.py landed W2_2_population_draw -> C_cohort_discovery
-  at gap 1.0344827586206897 (worst cell price_sensitivity::tenure=social_rent, n=434), closing the orphan-transition
-  instance this atom reported on 2026-08-09. ONE NUMBER MOVED AND IS REPORTED RATHER THAN REPUBLISHED:
-  W2_11_payment_behaviour_source 0.0859375 -> 0.0130940, and the move is NOT attributed to the code change
-  -- the POPULATION moved with it, universe_size 1557 -> 12000, truth_size 31 -> 1215. That row was written
-  in-run by run_phase2b and the refresh command is the tool''s BASE invocation, so the re-run did not
-  re-take the measurement, it took a different one. AND IT SELF-HEALED IN SIX MINUTES, which is the part
-  worth keeping: a live run_phase2b re-wrote the row at 13:28:30 (the tool wrote 13:22:40) back to 0.0859375
-  over its own 1557-case population, stamped at HEAD, and the committed ledger carries the IN-RUN figure,
-  not the tool''s -- the in-run writer owns that row and simply reclaimed it. The exposure is therefore
-  NOT uniform across the family: for a row with a live in-run writer the wrong-population window is minutes
-  and nobody was going to see it; for a row produced only by an on-demand couple_* tool there is no reclaim
-  at all, and whatever the drain wrote is what the public door carries. The reconcile grades WHO measured,
-  is blind to WHAT IT WAS MEASURED OVER, and treats both cases with identical confidence. Filed as its
-  own finding rather than absorbed here: docs/staging/WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION_2026-08-10.md.
-  Second finding queued, not fixed on sight (SELF_INTERRUPT_DISCIPLINE): the cohort headline is worst-of-20
-  over a cell set in which 12 cells are pinned at exactly 1.0 by construction (three axes have no discovery
-  mechanism, so the honest belief IS g0), so the published gap can never read below the no-skill baseline
-  and is blind to every improvement on the two axes the company can actually learn -- docs/staging/WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md.
-  STILL L2, and the residual is unchanged in reason. (a) L1.4 MAGNITUDE needs per-day half-hourly readings
-  the LCL extract does not carry (SERL or the trial raw archive; no network in autonomous runs). (b) L1.2h
-  heating-shape repeatability has no published statistic and is vacuous at population scale. (c) L2.4
-  scale spread is RED and is a GENERATOR question owned by W1_12 -- and RED is this control working, not
-  this atom failing. (e) Expert Hour not_attempted, and it is now the ONLY residual in this atom''s own
-  hands: (a) is blocked on data, (b) on a published statistic, (c) on another atom. Five consecutive ticks
-  have written ''(e) not_attempted'' and moved on, which is the consumed-not-absorbed pattern R17 names
-  -- it is the next draw for this atom and should not be a sixth. An exit test is not renegotiated to
-  fit what got done. PUBLISHING CONSEQUENCE, caught by the pre-commit gate and not by me: landing the
-  W2_2 row added a PAIR to the public Proof door, and tests/tools/test_generate_proof_coupled_gaps.py
-  pins the count. That pin is a control working exactly as intended -- a new row on a public surface should
-  not be able to land silently -- so the counts were updated with the reason, never the assertion weakened.
-  site/data/proof.json now renders pair_count 14, worse_than_blind 2, with W2_2_population_draw at 1.0344827586206897
-  chip=worse_than_blind severity=RED. That red is the metric reading its own worst cell correctly and
-  it is PUBLISHED rather than hidden, with the shape objection filed beside it.'
-- '2026-08-11 THE CONTROL THIS ATOM BUILT WAS GRADING THE WRONG LEDGER, and the level still does not move
-  (worker tick, L2->L3 draw). background/gap_ledger_reconciler.py read LEDGER_PATH -- the WORKING TREE
-  file -- while the number it exists to protect is published from the COMMITTED one (site/data/proof.json
-  is built from the ledger; both are committed and pushed). So a gap tool re-run that updates the file
-  on disk and is never committed MOVES THE CHECKED VALUE AND LEAVES THE PUBLISHED ONE STALE, and this
-  control then reports clean over it. OBSERVED, WITH EVIDENCE, by running the same module against both
-  subjects: working tree ''[GAP-LEDGER] clean -- all 14 gap rows measured by current code''; HEAD ''[GAP-LEDGER]
-  DRIFT -- 1 of 14: W2_11_payment_behaviour_source, 6 commit(s) touched tools/couple_w2_11_d5.py since
-  e6402d536''. site/data/proof.json carries a W2_11_payment_behaviour_source entry, so the stale reading
-  was ON THE DOOR while the control read clean. SEVENTH TIME THIS ATOM HAS SURFACED SOMETHING BY RUNNING
-  A THING RATHER THAN READING IT. This is the working-tree-subject class the repo already has memory of
-  (feedback_capability_index_reads_the_working_tree, feedback_gate_lints_working_tree_so_uncommitted_wedges_everyone)
-  landing on a gap control, and it is fail-open in the ONE dimension the control was built for. IT ALSO
-  SILENTLY VOIDED RUNG 4b''s GUARANTEE: supervisor::_is_drained_and_gated mirrors this module so rest
-  cannot be declared over a stale published number -- an uncommitted re-run made the work list empty while
-  the door stayed stale, i.e. the rung could not have drawn the one row it was built to draw.
+  RESIDUAL AT L2, unchanged and unchanged in reason: (a) L1.4 MAGNITUDE needs per-day half-hourly readings the LCL extract does not carry (SERL, or the trial raw archive) -- no network in autonomous runs, so this is not a this-tick item; (b) L1.2h heating-shape repeatability has no published statistic and is vacuous at population scale; (c) L2.4 scale spread is RED and is a GENERATOR question owned by W1_12 -- widening a draw''s variance with no mechanism is the goal-seek move R12 forbids; (d) the family staleness is OBSERVED and now demonstrably ACTED ON, but nothing still re-runs the tools by itself -- this tick re-ran by hand, the fourth consecutive tick to do so, and the remaining half is the design pass on which surface owns re-running a gap tool, which WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS explicitly refuses to guess; (e) Expert Hour not_attempted. An exit test is not renegotiated to fit what got done.'
+- '2026-08-10 RESIDUAL (d) IS CLOSED, and the level still does not move (worker tick, L2->L3 draw). The half left open on four consecutive ticks was the design pass on WHICH SURFACE OWNS RE-RUNNING A GAP TOOL -- deferred, not guessed, by WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS. It is decided and mechanised: docs/design/GAP_TOOL_RERUN_OWNERSHIP.md, and RUNG 4b of the draw ladder (background/supervisor.py::_stale_gap_row_draw, mirrored in _is_drained_and_gated so rest cannot be declared over a stale published number). WHY NOT THE PUBLISH PATH, which is where the derived-artefact class went the same week: a projection is a RENDERING of committed sources -- milliseconds, deterministic, and its staleness REDS A BLOCKING TEST; a gap row is a MEASUREMENT over a drawn population -- seconds to minutes each, eleven tools, blocking nothing, and its output CAN MOVE. The last property decides it: re-rendering a projection has no reading, re-taking a measurement does (this atom spent a paragraph last tick on a 4th-decimal move it declined to attribute). Automating it into a silent surface would republish a changed public figure with nobody in the loop, which is the only part of the act worth anything. The reconcile-watch timer was rejected too: its G-R3 guarantee is REPORT-ONLY, and a watcher with hands to fix what it watches loses the independence that makes its verdict worth reading. So the answer is the one this codebase already gave twice for a report-only drift control that needed hands (RUNG 1 publish-gate wedge, RUNG 1b persistent operational red): a stale published measurement is DRAWN WORK. THE COMMAND FORM WAS FOUND BY RUNNING ONE, NOT READING IT -- the fifth time this atom has surfaced something that way: `python3 tools/couple_w2_4_c6.py --write-ledger` dies in 0.2s on ModuleNotFoundError (every tool imports simulation.*), `python3 -m tools.couple_w2_4_c6 --write-ledger` wrote the row in 0.5s. refresh_command() emits the module form and a test pins it; a work list whose command cannot execute is a work list nobody can act on. THE DRAIN IS MEASURED, NOT ASSERTED: the rung drew 8 refreshable rows, all 8 commands ran rc=0 (including the two inferred background/weather_*_triad.py ones), and the live drift set went 9 -> 1. The remaining 1 is the never_landed tools/couple_cohort.py orphan, which the rung EXCLUDES BY DESIGN -- no re-run clears a row that does not exist, and a rung that can never drain is one everyone learns to ignore (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control). ONE NUMBER MOVED AND IS REPORTED RATHER THAN REPUBLISHED: W2_8_self_rationing detection gap 0.1787 -> 0.1993 (+0.0206), now rendered at site/data/proof.json pairs[W2_8].value = 0.19931470722586064 after tools.generate_proof_data. Two commits touched tools/couple_w2_8_c10.py since 83c2bce93 -- 7f6b7f3ba (D14: the world could not produce an innocent drop, so the false-alarm rate was 0.0000 by construction) and 03ebccc1c (D18) -- and D14 is the plausible mover since the metric is balanced-error over both directions. Stated as BOUNDED BY those two commits and UNATTRIBUTED between them: nothing here measured which. The other seven reproduced to the digit. R15 BOTH WAYS, eight source mutations, byte-clean restore md5-verified after each (fa16fe3d / 8d6268d5), each firing its OWN named test with the rest green: (1) treat never_landed/never_measured as refreshable => the wedge test fires; (2) drop a no-runner row instead of listing it => the fail-closed test fires (a published number nobody can re-take is a WORSE defect than a stale one, and an exclusion-shaped filter is exactly where it would have vanished); (3) emit the path form => the module-form test fires; (4) drop the invocable half of the runner test => a library that only MENTIONS --write-ledger is offered as a command => that test fires; (5) drop the write half => a READER is offered => the tautology test fires; (6) remove the rung from _self_refill_draw and (7) from _is_drained_and_gated => the two wiring tests fire, so the rung is proven IN THE LADDER rather than merely written; (8) make the error path invent a hold => the fail-open test fires. The rung can also read EMPTY -- it does now, live -- which is what separates it from a control nobody has seen return None. STILL L2. (a) L1.4 MAGNITUDE needs per-day half-hourly readings the LCL extract does not carry (SERL or the trial raw archive; no network in autonomous runs). (b) L1.2h heating-shape repeatability has no published statistic and is vacuous at population scale. (c) L2.4 scale spread is RED and is a GENERATOR question owned by W1_12 -- widening a draw''s variance with no mechanism is the goal-seek move R12 forbids. (e) Expert Hour not_attempted. (d) is now the only one that closed. An exit test is not renegotiated to fit what got done.'
+- '2026-08-10 THE DRAIN THIS ATOM BUILT WAS EXCLUDING THE ONE ITEM A SINGLE COMMAND WOULD CLOSE, and the level still does not move (worker tick, L2->L3 draw). RUNG 4b''s work list rested on REFRESHABLE_STATUSES, whose comment swept never_measured and never_landed into one sentence -- ''no re-run clears a row that does not exist''. That is TRUE of never_measured (a pair the map declares with no row and no producer to point at) and FALSE of never_landed (a tool that exists on disk, in the discovered family, and if invocable is one command away from landing its row). tools/couple_cohort.py sat in the drift set as a permanent member for two days -- surfaced by this atom''s own reconcile on 2026-08-09, reported as the orphan-transition class, and then structurally unactionable -- while `python3 -m tools.couple_cohort` ran clean in seconds. The exclusion was not protecting the ladder from a wedge; it was hiding the only entry that could never drain, which is the ratchet-with-no-drain shape this atom has cited twice (feedback_a_ratchet_with_no_drain_is_a_cleanup_not_a_control). SIXTH TIME THIS ATOM FOUND SOMETHING BY RUNNING A THING RATHER THAN READING IT. THE WEDGE GUARD SURVIVES AS A NARROWER RULE, not as a status ban: a never_landed tool with NO invocable runner stays off the work list, because there the ITEM IS THE TOOL and no command could ever land its row. That deliberately REVERSES the fail-closed listing used for ROWS, and the asymmetry has a stated reason -- a stale ROW hides a live public figure behind its absence, a dead TOOL hides nothing; either way it stays reported in the DRIFT set, only the WORK list differs. THE FIX BROKE A FIXTURE AND THE FIXTURE WAS RIGHT: tests/background/test_rest_ladder_isolation.py pins the reconciler''s LEDGER_PATH at an absent file, and RUNG 4b immediately produced ELEVEN work items. Root cause is one rung deeper and is a FAIL-OPEN of the pre-existing kind -- load_ledger() returns {} for a file that is absent or malformed, and every verdict downstream was then graded as though the ledger legitimately held no rows: every declared pair never_measured, every couple_* tool never_landed. Those were not eleven orphaned tools, they were ONE unread file, and the blanket never_landed exclusion had been the only thing masking it. Added ledger_is_readable() and a single `ledger_unreadable` verdict that short-circuits the reconcile: an unavailable check is a FAILED check (R15), and it is not refreshable, because no gap-tool re-run repairs a file that cannot be read. The distinction is file EXISTENCE, never row count -- an empty-but-present ledger is a real state and reads clean (test_a_READABLE_ledger_never_reports_unreadable_so_the_branch_can_pass). AND ONE TEST WAS VACUOUS, found the same way: test_every_live_ledger_row_gets_a_verdict_from_the_known_set called reconcile() under that same conftest pin, so it graded an empty dict and had asserted nothing about any real row since the pin landed. It now reads the real ledger path explicitly and carries a vacuity guard that fails if there are no live rows (feedback_population_control_needs_a_vacuity_guard). R15 BOTH WAYS, four SOURCE mutations with byte-clean restore (md5 verified after each, adfe1497), each firing its OWN named test with the rest green: (1) re-exclude never_landed => the CAN_BE_RUN test fires; (2) drop the _TOOL_ITEM_STATUSES guard => the CANNOT_BE_RUN test fires; (3) ledger_is_readable always True => the unreadable test AND three rest-ladder isolation tests fire; (4) always False => the readable-direction test fires, so the branch is not a control that can only fail. 28 reconciler tests green, 97 green across the five affected files. THE DRAIN WAS THEN RUN AND THE DRIFT SET REACHED ZERO FOR THE FIRST TIME: 14 of 14 rows CURRENT, ''no refreshable rows''. tools/couple_cohort.py landed W2_2_population_draw -> C_cohort_discovery at gap 1.0344827586206897 (worst cell price_sensitivity::tenure=social_rent, n=434), closing the orphan-transition instance this atom reported on 2026-08-09. ONE NUMBER MOVED AND IS REPORTED RATHER THAN REPUBLISHED: W2_11_payment_behaviour_source 0.0859375 -> 0.0130940, and the move is NOT attributed to the code change -- the POPULATION moved with it, universe_size 1557 -> 12000, truth_size 31 -> 1215. That row was written in-run by run_phase2b and the refresh command is the tool''s BASE invocation, so the re-run did not re-take the measurement, it took a different one. AND IT SELF-HEALED IN SIX MINUTES, which is the part worth keeping: a live run_phase2b re-wrote the row at 13:28:30 (the tool wrote 13:22:40) back to 0.0859375 over its own 1557-case population, stamped at HEAD, and the committed ledger carries the IN-RUN figure, not the tool''s -- the in-run writer owns that row and simply reclaimed it. The exposure is therefore NOT uniform across the family: for a row with a live in-run writer the wrong-population window is minutes and nobody was going to see it; for a row produced only by an on-demand couple_* tool there is no reclaim at all, and whatever the drain wrote is what the public door carries. The reconcile grades WHO measured, is blind to WHAT IT WAS MEASURED OVER, and treats both cases with identical confidence. Filed as its own finding rather than absorbed here: docs/staging/WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION_2026-08-10.md. Second finding queued, not fixed on sight (SELF_INTERRUPT_DISCIPLINE): the cohort headline is worst-of-20 over a cell set in which 12 cells are pinned at exactly 1.0 by construction (three axes have no discovery mechanism, so the honest belief IS g0), so the published gap can never read below the no-skill baseline and is blind to every improvement on the two axes the company can actually learn -- docs/staging/WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md. STILL L2, and the residual is unchanged in reason. (a) L1.4 MAGNITUDE needs per-day half-hourly readings the LCL extract does not carry (SERL or the trial raw archive; no network in autonomous runs). (b) L1.2h heating-shape repeatability has no published statistic and is vacuous at population scale. (c) L2.4 scale spread is RED and is a GENERATOR question owned by W1_12 -- and RED is this control working, not this atom failing. (e) Expert Hour not_attempted, and it is now the ONLY residual in this atom''s own hands: (a) is blocked on data, (b) on a published statistic, (c) on another atom. Five consecutive ticks have written ''(e) not_attempted'' and moved on, which is the consumed-not-absorbed pattern R17 names -- it is the next draw for this atom and should not be a sixth. An exit test is not renegotiated to fit what got done. PUBLISHING CONSEQUENCE, caught by the pre-commit gate and not by me: landing the W2_2 row added a PAIR to the public Proof door, and tests/tools/test_generate_proof_coupled_gaps.py pins the count. That pin is a control working exactly as intended -- a new row on a public surface should not be able to land silently -- so the counts were updated with the reason, never the assertion weakened. site/data/proof.json now renders pair_count 14, worse_than_blind 2, with W2_2_population_draw at 1.0344827586206897 chip=worse_than_blind severity=RED. That red is the metric reading its own worst cell correctly and it is PUBLISHED rather than hidden, with the shape objection filed beside it.'
+- '2026-08-11 THE CONTROL THIS ATOM BUILT WAS GRADING THE WRONG LEDGER, and the level still does not move (worker tick, L2->L3 draw). background/gap_ledger_reconciler.py read LEDGER_PATH -- the WORKING TREE file -- while the number it exists to protect is published from the COMMITTED one (site/data/proof.json is built from the ledger; both are committed and pushed). So a gap tool re-run that updates the file on disk and is never committed MOVES THE CHECKED VALUE AND LEAVES THE PUBLISHED ONE STALE, and this control then reports clean over it. OBSERVED, WITH EVIDENCE, by running the same module against both subjects: working tree ''[GAP-LEDGER] clean -- all 14 gap rows measured by current code''; HEAD ''[GAP-LEDGER] DRIFT -- 1 of 14: W2_11_payment_behaviour_source, 6 commit(s) touched tools/couple_w2_11_d5.py since e6402d536''. site/data/proof.json carries a W2_11_payment_behaviour_source entry, so the stale reading was ON THE DOOR while the control read clean. SEVENTH TIME THIS ATOM HAS SURFACED SOMETHING BY RUNNING A THING RATHER THAN READING IT. This is the working-tree-subject class the repo already has memory of (feedback_capability_index_reads_the_working_tree, feedback_gate_lints_working_tree_so_uncommitted_wedges_everyone) landing on a gap control, and it is fail-open in the ONE dimension the control was built for. IT ALSO SILENTLY VOIDED RUNG 4b''s GUARANTEE: supervisor::_is_drained_and_gated mirrors this module so rest cannot be declared over a stale published number -- an uncommitted re-run made the work list empty while the door stayed stale, i.e. the rung could not have drawn the one row it was built to draw.
 
-  THE FIX IS TWO STATUSES, NOT ONE, and the second is the part with a reason. Grading HEAD alone would
-  send a tick to RE-RUN a tool whose measurement already exists, and re-taking is not free -- this atom
-  spent a paragraph on 2026-08-10 on a 4th-decimal move it declined to attribute, and a re-run republishes
-  a public figure. So: `stale` (nothing was re-taken; the repair is the tool) vs `measured_not_landed`
-  (HEAD''s row is not current but the working-tree row grades CURRENT; the measurement exists and the
-  repair is to LAND it, drawn as tools.surgical_land, never --write-ledger). Both are DRIFT; neither can
-  read clean. A whole ledger that reads on disk but not at HEAD is `ledger_not_committed` -- distinct
-  from unreadable, and fail-closed: no row verdict is emitted, because none of them would describe the
-  door.
+  THE FIX IS TWO STATUSES, NOT ONE, and the second is the part with a reason. Grading HEAD alone would send a tick to RE-RUN a tool whose measurement already exists, and re-taking is not free -- this atom spent a paragraph on 2026-08-10 on a 4th-decimal move it declined to attribute, and a re-run republishes a public figure. So: `stale` (nothing was re-taken; the repair is the tool) vs `measured_not_landed` (HEAD''s row is not current but the working-tree row grades CURRENT; the measurement exists and the repair is to LAND it, drawn as tools.surgical_land, never --write-ledger). Both are DRIFT; neither can read clean. A whole ledger that reads on disk but not at HEAD is `ledger_not_committed` -- distinct from unreadable, and fail-closed: no row verdict is emitted, because none of them would describe the door.
 
-  AND THE TAUTOLOGY THE FIX ARMED, caught the same tick by reading the producer list in the module''s
-  own output. This module quotes `--write-ledger` (in _RUNNER_MARKER and in the commands it prints), so
-  it has ALWAYS matched _WRITE_MARKER and has ALWAYS been discovered as a ledger WRITER. That was latent
-  only because its text named no atom id: producers_for attributes a row to any writer whose SOURCE CONTAINS
-  THE ATOM ID, so the first comment here that names one makes the GRADER a producer of the row it grades,
-  and every commit to the grader then marks that row stale. My own evidence comment naming W2_11_payment_behaviour_source
-  armed it -- the first run after the fix reported ''background/gap_ledger_reconciler.py, tools/couple_w2_11_d5.py''
-  as the producers. That is this module''s own stated tautology (''attributing a row to its READER would
-  make freshness true by construction'') pointing at ITSELF, and it fails in the direction that MANUFACTURES
-  work rather than hiding it. Fixed at the cause (_SELF excluded from discover_writers), not by rewording
-  the comment, with a population test over every live ledger row plus an assertion that the write marker
-  really does match this file, so the exclusion cannot decay into decoration.
+  AND THE TAUTOLOGY THE FIX ARMED, caught the same tick by reading the producer list in the module''s own output. This module quotes `--write-ledger` (in _RUNNER_MARKER and in the commands it prints), so it has ALWAYS matched _WRITE_MARKER and has ALWAYS been discovered as a ledger WRITER. That was latent only because its text named no atom id: producers_for attributes a row to any writer whose SOURCE CONTAINS THE ATOM ID, so the first comment here that names one makes the GRADER a producer of the row it grades, and every commit to the grader then marks that row stale. My own evidence comment naming W2_11_payment_behaviour_source armed it -- the first run after the fix reported ''background/gap_ledger_reconciler.py, tools/couple_w2_11_d5.py'' as the producers. That is this module''s own stated tautology (''attributing a row to its READER would make freshness true by construction'') pointing at ITSELF, and it fails in the direction that MANUFACTURES work rather than hiding it. Fixed at the cause (_SELF excluded from discover_writers), not by rewording the comment, with a population test over every live ledger row plus an assertion that the write marker really does match this file, so the exclusion cannot decay into decoration.
 
-  R15 BOTH WAYS, six SOURCE mutations with byte-clean restore (md5 aa05ededc5f07c2233331794d88f3630 before
-  and after): grade the working tree again / drop the unlanded overlay / fold measured_not_landed into
-  the re-run drain / remove the grader self-exclusion -- each fired its own named test with the rest green.
-  ONE MUTATION SURVIVED THE FIRST PASS AND THAT IS THE PART WORTH KEEPING: landed_ledger falling back
-  to load_ledger on a git failure was caught by NO test. The reason is a lesson about how a fail-closed
-  test can prove nothing -- the test I had written pins a path OUTSIDE the repo, which returns before
-  git is ever called, so it exercised the cheap branch and never the checker-unavailable one (feedback_a_test_isolates_the_paths_it_thought_of).
-  Closed with three tests that patch subprocess.run to a non-zero return and to OSError and assert None-never-disk,
-  plus the population form asserting the whole reconcile reports ledger_not_committed rather than row
-  verdicts it cannot ground; the mutation now fires two of them. A seventh mutation was mis-anchored (the
-  pattern matched commits_since first, not landed_ledger) and fired a DIFFERENT test -- recorded because
-  a mutation that fires the wrong test is not evidence for the branch you meant to kill, and re-anchoring
-  it was what exposed the surviving one.
+  R15 BOTH WAYS, six SOURCE mutations with byte-clean restore (md5 aa05ededc5f07c2233331794d88f3630 before and after): grade the working tree again / drop the unlanded overlay / fold measured_not_landed into the re-run drain / remove the grader self-exclusion -- each fired its own named test with the rest green. ONE MUTATION SURVIVED THE FIRST PASS AND THAT IS THE PART WORTH KEEPING: landed_ledger falling back to load_ledger on a git failure was caught by NO test. The reason is a lesson about how a fail-closed test can prove nothing -- the test I had written pins a path OUTSIDE the repo, which returns before git is ever called, so it exercised the cheap branch and never the checker-unavailable one (feedback_a_test_isolates_the_paths_it_thought_of). Closed with three tests that patch subprocess.run to a non-zero return and to OSError and assert None-never-disk, plus the population form asserting the whole reconcile reports ledger_not_committed rather than row verdicts it cannot ground; the mutation now fires two of them. A seventh mutation was mis-anchored (the pattern matched commits_since first, not landed_ledger) and fired a DIFFERENT test -- recorded because a mutation that fires the wrong test is not evidence for the branch you meant to kill, and re-anchoring it was what exposed the surviving one.
 
-  THE ROW ITSELF REPRODUCED EXACTLY, which is why landing it is safe to do in the same tick: the W2_11
-  detection gap is 0.0859375 at HEAD and 0.0859375 on disk, and the ONLY fields that moved are measured_at
-  and run_git_commit. Landing it republishes no changed figure -- it is a pure freshness stamp, and it
-  is reported as such rather than as a result.
+  THE ROW ITSELF REPRODUCED EXACTLY, which is why landing it is safe to do in the same tick: the W2_11 detection gap is 0.0859375 at HEAD and 0.0859375 on disk, and the ONLY fields that moved are measured_at and run_git_commit. Landing it republishes no changed figure -- it is a pure freshness stamp, and it is reported as such rather than as a result.
 
-  THE LEVEL DOES NOT MOVE. Residuals unchanged and unchanged in reason: (a) L1.4 MAGNITUDE still needs
-  per-day half-hourly readings the LCL extract does not carry; (b) L1.2h heating-shape repeatability still
-  has no published statistic and is vacuous at population scale; (c) L2.4 scale spread is still RED and
-  is still a GENERATOR question owned by W1_12; (e) Expert Hour still not_attempted. An exit test is not
-  renegotiated to fit what got done, and a tick that repaired the atom''s own control has not thereby
-  measured the fabric gap any better.'
-- '2026-08-11 THE EXPERT HOUR WAS DRAWN AND WAS NOT DELIVERED FOR THIS ATOM, recorded so the next tick
-  is not misled by a sixth bare ''(e) not_attempted''. Residual (e) is correctly still not_attempted.
-  What happened: the tick drew this atom at L2->L3, read the record, and correctly identified (e) as the
-  ONLY residual in this atom''s own hands -- (a) blocked on data, (b) on a published statistic, (c) owned
-  by W1_12. It then invoked the cold-eyes-walk skill, which forked into a SITE-WIDE walk of the live public
-  doors rather than an Hour on THIS atom''s subject (the two-level test: spiky homes, smooth crowds; the
-  EPC-vs-actual and inferred-vs-actual fabric gap metrics). A site cold-eyes pass is NOT this atom''s
-  Expert Hour and was not recorded as one -- marking expert_hour passed on it would be exactly the false-evidence
-  move R15/R16 exist to stop, and the level does not move. EIGHTH TIME THIS ATOM HAS SURFACED SOMETHING
-  BY RUNNING A THING RATHER THAN READING IT, and this time the thing was the site: the walk found a public
-  panel (site/company renderBookMix) defined and never called, serving ''Loading...'' on the live door
-  for 8 days, with THREE controls passing over it -- the door harness hand-typed the missing call itself
-  (R15 tautology: the control was a producer of the evidence it graded), live_pixel_verify grades only
-  elements the script WROTE so a shipped placeholder is outside its population, and the in-repo precedent
-  (test_the_generator_actually_calls_the_resolver, mutation M8) landed the SAME DAY this shipped dead
-  and was never generalised. Fixed as a CLASS (R10) not an instance: site/test_door_render_functions_are_wired.py
-  grades all 12 doors, blast radius measured BEFORE the predicate was chosen (110 render fns, exactly
-  1 orphan, so it is a standing guard and not a ratchet over known dirt), R15 both ways with byte-clean
-  restore on every mutant. Filed: docs/staging/WORKER_FINDING_A_PUBLIC_PANEL_SERVED_LOADING_FOR_EIGHT_DAYS_2026-08-11.md.
-  THE ONE FINDING THAT IS THIS ATOM''S OWN BUSINESS, queued not absorbed: the world door''s demand panel
-  shows the CWV wind-chill term making error WORSE in the cold-and-windy cell (2,420 -> 2,456 MW) under
-  a caption asserting it earns its keep there, and an account-level 2.4% MAX annual volume forecast error
-  graded GREEN -- by this atom''s own doctrine the TIGHTEST gap deserves the most suspicion, not a green
-  badge. That is a belief-vs-truth gap reading in the coupled fabric triad''s own subject area and it
-  belongs to the next draw alongside (e).'
-- '2026-08-11 THE EXPERT HOUR WAS DELIVERED ON THIS ATOM''S OWN SUBJECT, residual (e) closes as attempted_finding_open,
-  and the level still does not move (worker tick, L2->L3 draw). The 2026-08-10 tick drew (e), forked the
-  cold-eyes skill, and got a site-wide walk instead of an Hour on the two-level test and the fabric gap
-  metrics; this one ran the Hour on the subject. Full text docs/staging/WORKER_FINDING_THE_ATOMS_OWN_HEADLINE_CHANGES_SIGN_WITH_THE_POPULATION_2026-08-11.md.
-  NINTH TIME THIS ATOM SURFACED SOMETHING BY RUNNING A THING RATHER THAN READING IT -- every figure below
-  came out of the tool, not the source.
+  THE LEVEL DOES NOT MOVE. Residuals unchanged and unchanged in reason: (a) L1.4 MAGNITUDE still needs per-day half-hourly readings the LCL extract does not carry; (b) L1.2h heating-shape repeatability still has no published statistic and is vacuous at population scale; (c) L2.4 scale spread is still RED and is still a GENERATOR question owned by W1_12; (e) Expert Hour still not_attempted. An exit test is not renegotiated to fit what got done, and a tick that repaired the atom''s own control has not thereby measured the fabric gap any better.'
+- '2026-08-11 THE EXPERT HOUR WAS DRAWN AND WAS NOT DELIVERED FOR THIS ATOM, recorded so the next tick is not misled by a sixth bare ''(e) not_attempted''. Residual (e) is correctly still not_attempted. What happened: the tick drew this atom at L2->L3, read the record, and correctly identified (e) as the ONLY residual in this atom''s own hands -- (a) blocked on data, (b) on a published statistic, (c) owned by W1_12. It then invoked the cold-eyes-walk skill, which forked into a SITE-WIDE walk of the live public doors rather than an Hour on THIS atom''s subject (the two-level test: spiky homes, smooth crowds; the EPC-vs-actual and inferred-vs-actual fabric gap metrics). A site cold-eyes pass is NOT this atom''s Expert Hour and was not recorded as one -- marking expert_hour passed on it would be exactly the false-evidence move R15/R16 exist to stop, and the level does not move. EIGHTH TIME THIS ATOM HAS SURFACED SOMETHING BY RUNNING A THING RATHER THAN READING IT, and this time the thing was the site: the walk found a public panel (site/company renderBookMix) defined and never called, serving ''Loading...'' on the live door for 8 days, with THREE controls passing over it -- the door harness hand-typed the missing call itself (R15 tautology: the control was a producer of the evidence it graded), live_pixel_verify grades only elements the script WROTE so a shipped placeholder is outside its population, and the in-repo precedent (test_the_generator_actually_calls_the_resolver, mutation M8) landed the SAME DAY this shipped dead and was never generalised. Fixed as a CLASS (R10) not an instance: site/test_door_render_functions_are_wired.py grades all 12 doors, blast radius measured BEFORE the predicate was chosen (110 render fns, exactly 1 orphan, so it is a standing guard and not a ratchet over known dirt), R15 both ways with byte-clean restore on every mutant. Filed: docs/staging/WORKER_FINDING_A_PUBLIC_PANEL_SERVED_LOADING_FOR_EIGHT_DAYS_2026-08-11.md. THE ONE FINDING THAT IS THIS ATOM''S OWN BUSINESS, queued not absorbed: the world door''s demand panel shows the CWV wind-chill term making error WORSE in the cold-and-windy cell (2,420 -> 2,456 MW) under a caption asserting it earns its keep there, and an account-level 2.4% MAX annual volume forecast error graded GREEN -- by this atom''s own doctrine the TIGHTEST gap deserves the most suspicion, not a green badge. That is a belief-vs-truth gap reading in the coupled fabric triad''s own subject area and it belongs to the next draw alongside (e).'
+- '2026-08-11 THE EXPERT HOUR WAS DELIVERED ON THIS ATOM''S OWN SUBJECT, residual (e) closes as attempted_finding_open, and the level still does not move (worker tick, L2->L3 draw). The 2026-08-10 tick drew (e), forked the cold-eyes skill, and got a site-wide walk instead of an Hour on the two-level test and the fabric gap metrics; this one ran the Hour on the subject. Full text docs/staging/WORKER_FINDING_THE_ATOMS_OWN_HEADLINE_CHANGES_SIGN_WITH_THE_POPULATION_2026-08-11.md. NINTH TIME THIS ATOM SURFACED SOMETHING BY RUNNING A THING RATHER THAN READING IT -- every figure below came out of the tool, not the source.
 
-  FINDING 1, FIXED CLASS-WIDE AND LANDED: THIS ATOM''S HEADLINE CHANGES SIGN WITH THE POPULATION AND THE
-  DEFAULT COMMAND REPORTS THE CHOSEN ONE. tools/couple_fabric defaults to the AUTHORED 15-premise panel;
-  the row it writes was measured on 200 DRAWN from published stock marginals. inference_improvement =
-  -0.0440 authored (inference LOSES) vs +0.0227 drawn seed 17 and +0.0426 drawn seed 23 (inference WINS).
-  gap_ledger_reconciler.refresh_command emitted the BASE invocation, so RUNG 4b''s acceptance test --
-  ''the row reads CURRENT afterwards'' -- was satisfied by a re-run that INVERTS a published claim and
-  calls it freshness. This is precisely the class filed 2026-08-10 against W2_11 (WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION),
-  landing on the variant that finding flagged as UNPROTECTED: W2_11 has a live in-run writer that reclaimed
-  its row in six minutes, the fabric row is produced only by an on-demand standalone tool, so nothing
-  reclaims it and the exposure runs until someone runs something. FIXED WHERE THE KNOWLEDGE IS: the tool
-  records the args that reproduce its measurement (refresh_args + a human-readable composition) and the
-  reconciler reads them back. That is NOT the drifting CLI copy refresh_command''s docstring rejects --
-  nothing there knows what --population means, it concatenates what the run declared -- and rows with
-  no declaration keep the base invocation exactly as before, so no other tool in the family regresses.
-  safe_refresh_args whitelists flags and bare numbers ONLY: the ledger is DATA and this output is RUN
-  by a tick, so a row may not inject a path, a --flag=value pair, an env assignment or a metacharacter;
-  anything else is refused WHOLE and falls back to base, fail-safe rather than partially-trusted. R15
-  BOTH WAYS, four SOURCE mutations each firing its OWN named test with md5 byte-clean restore (5b584b68)
-  and 42 green baseline: ignore the declaration / drop the whitelist / stop the lookup / remove the non-list
-  guard (that last one fires three neighbours too). LANDED IN THE SAME TICK AS THE FIX, DELIBERATELY:
-  editing background/fabric_gap_ledger.py makes it a changed producer of both fabric rows, so the fix''s
-  own commit stales them and the very next drain would have offered the wrong-population command -- the
-  defect triggered by its own repair. The re-take on the row''s own population reproduced EVERY figure
-  exactly (gap 0.4269/0.4042, forgone GBP 548,919/451,832, misranked 10/11, declined 89/73); the whole
-  diff is measured_at, run_git_commit and the new fields. W1_5 went stale by the same producer edit, was
-  re-taken (2 fields changed, zero measured figures), and landed via tools.surgical_land per the reconciler''s
-  own measured_not_landed route. Ledger reconciles CLEAN at 14 of 14, drain empty.
+  FINDING 1, FIXED CLASS-WIDE AND LANDED: THIS ATOM''S HEADLINE CHANGES SIGN WITH THE POPULATION AND THE DEFAULT COMMAND REPORTS THE CHOSEN ONE. tools/couple_fabric defaults to the AUTHORED 15-premise panel; the row it writes was measured on 200 DRAWN from published stock marginals. inference_improvement = -0.0440 authored (inference LOSES) vs +0.0227 drawn seed 17 and +0.0426 drawn seed 23 (inference WINS). gap_ledger_reconciler.refresh_command emitted the BASE invocation, so RUNG 4b''s acceptance test -- ''the row reads CURRENT afterwards'' -- was satisfied by a re-run that INVERTS a published claim and calls it freshness. This is precisely the class filed 2026-08-10 against W2_11 (WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION), landing on the variant that finding flagged as UNPROTECTED: W2_11 has a live in-run writer that reclaimed its row in six minutes, the fabric row is produced only by an on-demand standalone tool, so nothing reclaims it and the exposure runs until someone runs something. FIXED WHERE THE KNOWLEDGE IS: the tool records the args that reproduce its measurement (refresh_args + a human-readable composition) and the reconciler reads them back. That is NOT the drifting CLI copy refresh_command''s docstring rejects -- nothing there knows what --population means, it concatenates what the run declared -- and rows with no declaration keep the base invocation exactly as before, so no other tool in the family regresses. safe_refresh_args whitelists flags and bare numbers ONLY: the ledger is DATA and this output is RUN by a tick, so a row may not inject a path, a --flag=value pair, an env assignment or a metacharacter; anything else is refused WHOLE and falls back to base, fail-safe rather than partially-trusted. R15 BOTH WAYS, four SOURCE mutations each firing its OWN named test with md5 byte-clean restore (5b584b68) and 42 green baseline: ignore the declaration / drop the whitelist / stop the lookup / remove the non-list guard (that last one fires three neighbours too). LANDED IN THE SAME TICK AS THE FIX, DELIBERATELY: editing background/fabric_gap_ledger.py makes it a changed producer of both fabric rows, so the fix''s own commit stales them and the very next drain would have offered the wrong-population command -- the defect triggered by its own repair. The re-take on the row''s own population reproduced EVERY figure exactly (gap 0.4269/0.4042, forgone GBP 548,919/451,832, misranked 10/11, declined 89/73); the whole diff is measured_at, run_git_commit and the new fields. W1_5 went stale by the same producer edit, was re-taken (2 fields changed, zero measured figures), and landed via tools.surgical_land per the reconciler''s own measured_not_landed route. Ledger reconciles CLEAN at 14 of 14, drain empty.
 
-  THREE FINDINGS ARE OPEN AND QUEUED, NOT FIXED ON SIGHT (SELF_INTERRUPT_DISCIPLINE), and all three are
-  about the headline this atom exists to publish. (2) BOTH GAP HEADLINES ARE DILUTED BY ROWS WHERE THE
-  TWO ARMS ARE IDENTICAL: inferred==epc to the bit wherever the inference never ran (epc_only / stock_prior),
-  which is 7 of 15 (47%) on the panel and 164-166 of 200 (82-83%) on the population the ledger PUBLISHES.
-  So ~83% of the published average carries zero information about the thing the metric is named after;
-  +0.0227 is roughly a sixth of the effect where inference actually operated, and it MOVES WITH EPC LODGEMENT
-  COVERAGE while the estimator is unchanged -- coverage reading as skill, the dominant-subpopulation shape,
-  inside this atom''s own headline. (3) THE GAP IS A MAGNITUDE AND IS BLIND TO A SYSTEMATIC SIGN: EPC
-  under-states heat loss in 14 of 15 (signed mean -0.0171) and the inference revises UPWARD in 8 of 8
-  meter-armed premises (+0.0228). That is bias, not noise, and it means the company is wrong about the
-  STOCK in a fixed direction rather than merely imprecise about houses; bias_model is in the row but the
-  headline the door renders is |belief-actual|-shaped. (4) THE MONEY VERDICT IS FLATTERED BY THAT AGREEMENT
-  OF SIGNS, AND THE TWO HEADLINES DISAGREE WITHOUT SAYING SO: on the authored panel inference is WORSE
-  on accuracy (0.2624 vs 0.2184) and BETTER on money (forgone GBP 18,603 vs 43,983, declined-where-value-existed
-  6->3), because an upward-biased belief buys more measures and on a panel where truth exceeds EPC in
-  93% of cases buying more is right more often. The money advantage is bought by a BIAS THAT POINTS THE
-  PANEL''S WAY, not by accuracy. The drawn population does not rescue it -- 63% actual-above-EPC is less
-  one-sided, not two-sided. Testable and untested: a sign-MIRRORED panel (new-build over-rating, post-retrofit
-  certificates never re-lodged, both real) should push the verdict the other way. The shape is a standing
-  control that FAILS when the ranking is composition-decided (R10 class, not an instance fix); it is a
-  HARNESS construction so R13 is not engaged, and nothing is tuned toward a band so R12 holds.
+  THREE FINDINGS ARE OPEN AND QUEUED, NOT FIXED ON SIGHT (SELF_INTERRUPT_DISCIPLINE), and all three are about the headline this atom exists to publish. (2) BOTH GAP HEADLINES ARE DILUTED BY ROWS WHERE THE TWO ARMS ARE IDENTICAL: inferred==epc to the bit wherever the inference never ran (epc_only / stock_prior), which is 7 of 15 (47%) on the panel and 164-166 of 200 (82-83%) on the population the ledger PUBLISHES. So ~83% of the published average carries zero information about the thing the metric is named after; +0.0227 is roughly a sixth of the effect where inference actually operated, and it MOVES WITH EPC LODGEMENT COVERAGE while the estimator is unchanged -- coverage reading as skill, the dominant-subpopulation shape, inside this atom''s own headline. (3) THE GAP IS A MAGNITUDE AND IS BLIND TO A SYSTEMATIC SIGN: EPC under-states heat loss in 14 of 15 (signed mean -0.0171) and the inference revises UPWARD in 8 of 8 meter-armed premises (+0.0228). That is bias, not noise, and it means the company is wrong about the STOCK in a fixed direction rather than merely imprecise about houses; bias_model is in the row but the headline the door renders is |belief-actual|-shaped. (4) THE MONEY VERDICT IS FLATTERED BY THAT AGREEMENT OF SIGNS, AND THE TWO HEADLINES DISAGREE WITHOUT SAYING SO: on the authored panel inference is WORSE on accuracy (0.2624 vs 0.2184) and BETTER on money (forgone GBP 18,603 vs 43,983, declined-where-value-existed 6->3), because an upward-biased belief buys more measures and on a panel where truth exceeds EPC in 93% of cases buying more is right more often. The money advantage is bought by a BIAS THAT POINTS THE PANEL''S WAY, not by accuracy. The drawn population does not rescue it -- 63% actual-above-EPC is less one-sided, not two-sided. Testable and untested: a sign-MIRRORED panel (new-build over-rating, post-retrofit certificates never re-lodged, both real) should push the verdict the other way. The shape is a standing control that FAILS when the ranking is composition-decided (R10 class, not an instance fix); it is a HARNESS construction so R13 is not engaged, and nothing is tuned toward a band so R12 holds.
 
-  LEVEL STAYS 2 AND THE REASON IS THE HOUR''S OWN OUTPUT. (e) is delivered rather than deferred, but an
-  atom whose headline is composition-dependent, direction-blind, and whose two published numbers disagree
-  without noting it does not have an L3 story -- recording that is cheaper than a level that has to come
-  back down. (a) L1.4 magnitude and (b) L1.2h heating-shape repeatability unchanged and unchanged in reason
-  (both blocked on data this repo does not hold); (c) remains W1_12''s. Two-level test still RED on L2.4_scale_spread_p90_p10,
-  which is the birth condition holding, not a regression. Suites: 42 reconciler, 87 across reconciler+stale-row-draw+couple_fabric+rest-ladder,
-  240 passed 2 xfailed across the fabric harness (test_premise_two_level + test_fabric_demand_path); epistemic_verifier
-  PASS 543 files.'
-- '2026-08-11 THE THREE OPEN EXPERT-HOUR FINDINGS ARE CLOSED AS MECHANISMS, AND ONE OF THEM IS REFUTED
-  BY ITS OWN TEST. All three were about the two numbers this atom exists to publish, so all three are
-  now standing failable controls in `background/fabric_gap_ledger.py`, computed on every run, written
-  INTO the ledger row rather than offered behind a flag (R11: the door renders what the row holds, and
-  a reader who has to ask for the dilution will not ask). 16 new controls; each landed with its NAMED
-  DEFECT as a population it must fire on AND a clean population it must stay silent on.
+  LEVEL STAYS 2 AND THE REASON IS THE HOUR''S OWN OUTPUT. (e) is delivered rather than deferred, but an atom whose headline is composition-dependent, direction-blind, and whose two published numbers disagree without noting it does not have an L3 story -- recording that is cheaper than a level that has to come back down. (a) L1.4 magnitude and (b) L1.2h heating-shape repeatability unchanged and unchanged in reason (both blocked on data this repo does not hold); (c) remains W1_12''s. Two-level test still RED on L2.4_scale_spread_p90_p10, which is the birth condition holding, not a regression. Suites: 42 reconciler, 87 across reconciler+stale-row-draw+couple_fabric+rest-ladder, 240 passed 2 xfailed across the fabric harness (test_premise_two_level + test_fabric_demand_path); epistemic_verifier PASS 543 files.'
+- '2026-08-11 THE THREE OPEN EXPERT-HOUR FINDINGS ARE CLOSED AS MECHANISMS, AND ONE OF THEM IS REFUTED BY ITS OWN TEST. All three were about the two numbers this atom exists to publish, so all three are now standing failable controls in `background/fabric_gap_ledger.py`, computed on every run, written INTO the ledger row rather than offered behind a flag (R11: the door renders what the row holds, and a reader who has to ask for the dilution will not ask). 16 new controls; each landed with its NAMED DEFECT as a population it must fire on AND a clean population it must stay silent on.
 
 
-  (2) DILUTION, CLOSED. `arm_agreement` conditions the improvement headline on whether the inference ran
-  at all, read off the company''s own BASIS and never off float equality of the two arms -- equality would
-  put the measured quantity on both sides of its own measurement (R15 TAUTOLOGY), and a posterior that
-  genuinely ran and landed on its prior would have been scored as never having run. The basis predicate
-  carries its own FALSIFIER: an `epc_only` row whose posterior differs from its prior RAISES, because
-  a basis that does not describe the belief makes every conditioned figure below it meaningless. THE CONTROL:
-  two populations, same estimator, different EPC lodgement coverage, EXCHANGEABLE covered sets (the fixture
-  stock repeats every half, so 6-of-12 and 12-of-12 draw the same HLC multiset -- without that, `prediction_gap`''s
-  own no-skill denominator moves with the covered subset and the conditioned figure would drift for a
-  reason that has nothing to do with the estimator). The published figure DOUBLES and the conditioned
-  one is invariant to 1e-12, and the dilution is exactly the informed fraction. FAIL-LOUD, not fail-open:
-  a population the inference barely touched RAISES rather than returning the diluted number.
+  (2) DILUTION, CLOSED. `arm_agreement` conditions the improvement headline on whether the inference ran at all, read off the company''s own BASIS and never off float equality of the two arms -- equality would put the measured quantity on both sides of its own measurement (R15 TAUTOLOGY), and a posterior that genuinely ran and landed on its prior would have been scored as never having run. The basis predicate carries its own FALSIFIER: an `epc_only` row whose posterior differs from its prior RAISES, because a basis that does not describe the belief makes every conditioned figure below it meaningless. THE CONTROL: two populations, same estimator, different EPC lodgement coverage, EXCHANGEABLE covered sets (the fixture stock repeats every half, so 6-of-12 and 12-of-12 draw the same HLC multiset -- without that, `prediction_gap`''s own no-skill denominator moves with the covered subset and the conditioned figure would drift for a reason that has nothing to do with the estimator). The published figure DOUBLES and the conditioned one is invariant to 1e-12, and the dilution is exactly the informed fraction. FAIL-LOUD, not fail-open: a population the inference barely touched RAISES rather than returning the diluted number.
 
 
-  (3) DIRECTION, CLOSED. `belief_bias` reports the SIGN the |belief-actual| headline cannot see, with
-  an EXACT two-sided binomial sign test checked against hand arithmetic (2*(C(15,0)+C(15,1))/2**15) rather
-  than against itself. Vacuity guarded: a belief that is never wrong has no direction to be wrong in and
-  reports `none`, not a default.
+  (3) DIRECTION, CLOSED. `belief_bias` reports the SIGN the |belief-actual| headline cannot see, with an EXACT two-sided binomial sign test checked against hand arithmetic (2*(C(15,0)+C(15,1))/2**15) rather than against itself. Vacuity guarded: a belief that is never wrong has no direction to be wrong in and reports `none`, not a default.
 
 
-  (4) THE HYPOTHESIS IS REFUTED AND THE REAL CAUSE IS FOUND -- the value of building the test instead
-  of asserting the claim. The Hour predicted a sign-mirrored panel would push the money verdict the other
-  way. Built as TWO mirrors, because the original phrasing conflates two things: `mirror_panel_composition`
-  (truth reflected through the register: a stock that fails the other way -- new-build over-rating, post-retrofit
-  certificates never re-lodged, both real, with `annual_heat_kwh` moved in proportion because a house
-  whose heat loss halves and whose bill does not is not a house) and `mirror_revision_direction` (the
-  same inference stepping the other way by the same amount). NEITHER moves the verdict off `inferred`,
-  on either population. The revision mirror is decisive: reversing the step collapses accuracy (improvement
-  -0.0440 -> -0.1406 on the authored panel) and moves the money by GBP 308 of 18,603. The money advantage
-  was never bought by direction.
+  (4) THE HYPOTHESIS IS REFUTED AND THE REAL CAUSE IS FOUND -- the value of building the test instead of asserting the claim. The Hour predicted a sign-mirrored panel would push the money verdict the other way. Built as TWO mirrors, because the original phrasing conflates two things: `mirror_panel_composition` (truth reflected through the register: a stock that fails the other way -- new-build over-rating, post-retrofit certificates never re-lodged, both real, with `annual_heat_kwh` moved in proportion because a house whose heat loss halves and whose bill does not is not a house) and `mirror_revision_direction` (the same inference stepping the other way by the same amount). NEITHER moves the verdict off `inferred`, on either population. The revision mirror is decisive: reversing the step collapses accuracy (improvement -0.0440 -> -0.1406 on the authored panel) and moves the money by GBP 308 of 18,603. The money advantage was never bought by direction.
 
 
-  A THIRD MIRROR FINDS IT. `mirror_decision_confidence` swaps the two arms'' ERROR BARS and bases and
-  leaves every point estimate untouched, so both accuracy gaps are identical BY CONSTRUCTION and any money
-  movement cannot be an accuracy movement -- and the verdict flips to `epc` on BOTH populations. The arm
-  that forgoes less is the arm ALLOWED TO ACT more often (declined-where-value-existed 6 vs 3 authored,
-  89 vs 73 drawn). THE TWO PUBLISHED HEADLINES ARE NOT TWO VIEWS OF ONE QUANTITY: one scores accuracy,
-  the other scores permission. That is a better answer than the one the Hour proposed, and it is a CLASS
-  answer (R10) -- any money-consequence metric built on a decision rule with an actionability test will
-  rank arms by confidence unless something holds confidence fixed.
+  A THIRD MIRROR FINDS IT. `mirror_decision_confidence` swaps the two arms'' ERROR BARS and bases and leaves every point estimate untouched, so both accuracy gaps are identical BY CONSTRUCTION and any money movement cannot be an accuracy movement -- and the verdict flips to `epc` on BOTH populations. The arm that forgoes less is the arm ALLOWED TO ACT more often (declined-where-value-existed 6 vs 3 authored, 89 vs 73 drawn). THE TWO PUBLISHED HEADLINES ARE NOT TWO VIEWS OF ONE QUANTITY: one scores accuracy, the other scores permission. That is a better answer than the one the Hour proposed, and it is a CLASS answer (R10) -- any money-consequence metric built on a decision rule with an actionability test will rank arms by confidence unless something holds confidence fixed.
 
 
-  TWO DEFECTS IN THIS WORK, BOTH CAUGHT BY ITS OWN CONTROLS WITHIN THE HOUR OF LANDING. (i) The first
-  cut made every mirror verdict a flip of a STRICT INEQUALITY, so on a population where the arms cost
-  about the same an irrelevant nudge announced a composition effect that was two floats in a coin toss
-  -- the control that fires on everything is as ignored as the one that fires on nothing. Caught by the
-  empty-caveat vacuity test, which is the only reason that test exists. `VERDICT_MATERIALITY` (5% of the
-  larger, a DIAGNOSTIC band, R12) plus `_flipped` mean only two DECISIVE verdicts naming different arms
-  count. (ii) The ONE-SIGNED caveat put a majority and an average side by side without saying they disagree:
-  on the DRAWN 200-premise population the register is below truth on 126 of 200 while the mean signed
-  error is +19.6%, because a minority of large over-statements outweighs a majority of small under-statements.
-  Both numbers are right and the sentence read as a contradiction -- one name, two numbers, this project''s
-  own recurring shape, inside a control landed an hour earlier. `mean_agrees_with_majority` now emits
-  its own SKEWED caveat: a supplier reading the mean would target different houses from one reading the
-  median, which is the finding rather than the tidy-up.
+  TWO DEFECTS IN THIS WORK, BOTH CAUGHT BY ITS OWN CONTROLS WITHIN THE HOUR OF LANDING. (i) The first cut made every mirror verdict a flip of a STRICT INEQUALITY, so on a population where the arms cost about the same an irrelevant nudge announced a composition effect that was two floats in a coin toss -- the control that fires on everything is as ignored as the one that fires on nothing. Caught by the empty-caveat vacuity test, which is the only reason that test exists. `VERDICT_MATERIALITY` (5% of the larger, a DIAGNOSTIC band, R12) plus `_flipped` mean only two DECISIVE verdicts naming different arms count. (ii) The ONE-SIGNED caveat put a majority and an average side by side without saying they disagree: on the DRAWN 200-premise population the register is below truth on 126 of 200 while the mean signed error is +19.6%, because a minority of large over-statements outweighs a majority of small under-statements. Both numbers are right and the sentence read as a contradiction -- one name, two numbers, this project''s own recurring shape, inside a control landed an hour earlier. `mean_agrees_with_majority` now emits its own SKEWED caveat: a supplier reading the mean would target different houses from one reading the median, which is the finding rather than the tidy-up.
 
 
-  THE MEASURED RESULT ON THE POPULATION THE LEDGER PUBLISHES (200 drawn, seed 17), NOT TUNED (R12/R13):
-  inference ran on 34 of 200 (tie fraction 83%); improvement +0.0227 as published vs +0.1233 where it
-  ran -- the published figure is about a FIFTH of the effect where the estimator operated, and it moves
-  with EPC lodgement coverage while the estimator is unchanged; register one-signed and SKEWED; accuracy
-  and money AGREE on `inferred` here (they disagree on the authored panel); composition-decided FALSE,
-  direction-bought FALSE, CONFIDENCE-BOUGHT TRUE. Panel-mirror accuracy drift is large (0.0717 drawn,
-  0.1579 authored), which is REPORTED rather than suppressed and is the honest limit of that instrument:
-  the reflection preserves the log error exactly and the level error only approximately, so its verdict
-  is weakly attributable and the confidence mirror -- which cannot move accuracy at all -- is the one
-  to read.
+  THE MEASURED RESULT ON THE POPULATION THE LEDGER PUBLISHES (200 drawn, seed 17), NOT TUNED (R12/R13): inference ran on 34 of 200 (tie fraction 83%); improvement +0.0227 as published vs +0.1233 where it ran -- the published figure is about a FIFTH of the effect where the estimator operated, and it moves with EPC lodgement coverage while the estimator is unchanged; register one-signed and SKEWED; accuracy and money AGREE on `inferred` here (they disagree on the authored panel); composition-decided FALSE, direction-bought FALSE, CONFIDENCE-BOUGHT TRUE. Panel-mirror accuracy drift is large (0.0717 drawn, 0.1579 authored), which is REPORTED rather than suppressed and is the honest limit of that instrument: the reflection preserves the log error exactly and the level error only approximately, so its verdict is weakly attributable and the confidence mirror -- which cannot move accuracy at all -- is the one to read.
 
 
-  LEVEL STAYS 2, AND THE REASON IS THIS ENTRY''S OWN CONTENT. The three findings are closed as live mechanisms
-  and the atom''s headline now declares how it misleads. But an Expert Hour has not been run ON THIS WORK,
-  and the hour that built it found two defects in its own controls -- that rate is the argument for a
-  fresh pass, not against it. Promotion is cheap next tick and a level that has to come back down is not.
-  Both fabric rows re-taken on their OWN declared population (`--population 200 --population-seed 17`,
-  per the refresh_args the last hour landed): EVERY measured figure reproduced to the bit (gap 0.4269/0.4042,
-  forgone GBP 548,919/451,832, misranked 10/11, declined 89/73) -- the whole diff is measured_at, run_git_commit
-  and the four new component blocks. W1_5 went stale by the same producer edit and was re-stamped (2 fields,
-  zero measured figures). Ledger reconciles CLEAN at 14 of 14. Two-level test still RED on L2.4_scale_spread_p90_p10,
-  which is the birth condition holding, not a regression. Suites: 328 passed 2 xfailed across tests/harness
-  + couple_fabric + reconciler; ruff clean; epistemic_verifier PASS 543 files.'
+  LEVEL STAYS 2, AND THE REASON IS THIS ENTRY''S OWN CONTENT. The three findings are closed as live mechanisms and the atom''s headline now declares how it misleads. But an Expert Hour has not been run ON THIS WORK, and the hour that built it found two defects in its own controls -- that rate is the argument for a fresh pass, not against it. Promotion is cheap next tick and a level that has to come back down is not. Both fabric rows re-taken on their OWN declared population (`--population 200 --population-seed 17`, per the refresh_args the last hour landed): EVERY measured figure reproduced to the bit (gap 0.4269/0.4042, forgone GBP 548,919/451,832, misranked 10/11, declined 89/73) -- the whole diff is measured_at, run_git_commit and the four new component blocks. W1_5 went stale by the same producer edit and was re-stamped (2 fields, zero measured figures). Ledger reconciles CLEAN at 14 of 14. Two-level test still RED on L2.4_scale_spread_p90_p10, which is the birth condition holding, not a regression. Suites: 328 passed 2 xfailed across tests/harness + couple_fabric + reconciler; ruff clean; epistemic_verifier PASS 543 files.'
+- '2026-08-11 THE EXPERT HOUR ON THE HEADLINE-CAVEAT WORK RAN, and it found the instrument reporting its own fidelity in a quantity that can never come out small (worker tick, L2->L3 draw). Both open in-hand residuals are closed as one mechanism, because they were the same defect seen from two ends. TENTH TIME THIS ATOM SURFACED SOMETHING BY RUNNING A THING RATHER THAN READING IT: every figure below came out of tools/couple_fabric on the two REAL populations, not out of the source.
+
+  FINDING 1 -- THE DISCLOSED ''ACCURACY DRIFT'' WAS A COMPOUND, AND IT MEASURED THE MIRROR WORKING. The panel mirror reflects TRUTH through the register, so it is MEANT to wreck the posterior arm''s accuracy -- an inference that stepped the right way on this panel steps the wrong way in a stock that fails the other way, and that is the finding. `panel_mirror_accuracy_drift` is the drift of the IMPROVEMENT, i.e. both arms at once, so it is large exactly when the mirror is doing its job (0.1579 authored, 0.0717 drawn) and the previous tick read those numbers as the instrument''s disturbance and filed the mirror as a weak instrument. The artefact is the REGISTER arm alone -- the arm the reflection is built around, whose error the mirror claims to preserve. Separated as `panel_mirror_epc_gap_drift`, pinned by a test that moves ONLY the posterior and asserts the artefact term does not move while the compound one moves by >0.1.
+
+  FINDING 2 -- THE REFLECTION''S OWN JUSTIFICATION WAS NEVER MEASURED, AND IS FALSE ON BOTH PUBLISHED POPULATIONS. `_reflect` used `pivot**2/value`, defended in its own docstring as necessary because the level-preserving `2*pivot - value` ''goes non-positive whenever the reflected quantity exceeds twice its pivot, which is common in a register -- a mirror that raises on a third of real panels is a control nobody can run''. Measured: 0 of 15 authored and 0 of 200 drawn premises are infeasible, because a register that under-states by 13-20% does not under-state by more than half. That is the blast-radius-before-the-predicate rule applied to a design justification rather than to a lint. It matters because `prediction_gap`''s numerator is a mean ABSOLUTE error and the log form leaves it moving: switching to the level-preserving reflection makes the register arm''s numerator identical to 6 decimals (0.020202 authored, 0.044774 drawn, before and after) and cuts the drawn population''s artefact from 25.9% of its gap to 1.9%. The whole residual that remains is `prediction_gap`''s NO-SKILL DENOMINATOR, which is a property of the truth population the reflection moves -- a statement about the metric, not about this mirror, and now a named one rather than the word ''approximately''. Feasibility is tested on the WHOLE panel and falls back WHOLE (with the count carried), because a panel reflected two ways on two subsets is two instruments -- the exact confound the mirror exists to detect. The reflection was NOT chosen per population by which answer it gave; that was available (multiplicative is the better instrument on the authored panel, 3.0% vs 14.1%) and rejected as instrument-shopping.
+
+  FINDING 3, THE ONE THAT WAS COSTING A READER SOMETHING -- THE MIRROR''S WEAKNESS WAS UNRENDERABLE IN THE ONLY CASE THAT OCCURS. The fidelity figure existed solely inside the COMPOSITION-DECIDED caveat, which by construction prints only when the mirror DID flip the money verdict. It does not flip on either published population. So the reader of both real rows saw two headline numbers, no composition caveat, and was invited to conclude that composition had been ruled out -- when on the authored panel the mirror had disturbed the register arm''s own gap by 14.1% and its null meant nothing. A null result from an uncalibrated instrument is not evidence of no effect. `MIRROR INCONCLUSIVE` now says so in those words, and the fidelity figure rides on the tool''s mirror line unconditionally.
+
+  THE 2x2 IS COMPLETE AND EACH CELL IS PINNED: flipped+faithful states the finding flat; flipped+unfaithful attaches a DIRECTIONAL ONLY rider; no-flip+unfaithful is MIRROR INCONCLUSIVE; no-flip+faithful is SILENT, and the silence is the control''s vacuity guard. R15 BOTH WAYS ON THE REAL POPULATIONS, not only on fixtures: the caveat FIRES on the authored 15 (14.1%, above the 5% band) and stays SILENT on the drawn 200 (1.9%) -- one mechanism, two real populations, opposite verdicts.
+
+  R15 BOTH WAYS, SIX SOURCE MUTATIONS, byte-clean restore verified by md5 (18f8c533f57e4234cfb0b822949a536d before and after every run), each firing its own named test on a 197-test baseline: log-preserving reflection always => the level-error test fires; per-premise instead of whole-panel fallback => the falls-back-WHOLE test fires alone; the attributability gate re-pointed at the COMPOUND drift => the two faithful-mirror tests fire (this is the mutation that reinstates the defect); the gate hardwired True => the INCONCLUSIVE test and the ledger-row test fire; the INCONCLUSIVE caveat made unconditional => the silence test and the caveat-list vacuity guard fire; the zero-gap guard dropped => a perfect register CRASHES the ledger write with ZeroDivisionError (it also took out test_the_ledger_write_PRESERVES_other_pairs, which is the blast radius of a 0/0 in a published row).
+
+  THE PUBLISHED FIGURES DID NOT MOVE AND THAT IS CHECKED, NOT ASSERTED. Re-taken on the row''s own declared population (--population 200 --population-seed 17, read back off the row per the 2026-08-11 refresh_args mechanism): gap 0.4269/0.4042, forgone GBP 548,919/451,832, misranked 10/11, declined 89/73, every caveat sentence unchanged. The only ledger fields that moved are the mirror''s own, because the mirror is what changed. Landed in the SAME commit as the fix, since editing background/fabric_gap_ledger.py makes it a changed producer of both fabric rows.
+
+  ONE HONEST RESIDUAL FROM THIS WORK, recorded rather than closed: the fix does not make the panel mirror STRONG, it makes its weakness visible per population. The artefact scales with the register''s error relative to the truth''s spread, so on any high-error population the mirror will report itself inconclusive (the caveat suite''s own +-25% fixture measures 28.0%). That is a true limit of reflecting a truth population through a belief, not a threshold to widen -- and it is why the vacuity fixture moved to absolute rather than proportional register errors instead of the caveat being softened.'
 map_records:
   evidence:
   - docs/staging/ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md

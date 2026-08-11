@@ -4342,13 +4342,21 @@ def test_the_sign_test_is_the_EXACT_binomial_and_not_an_approximation():
 def test_the_PANEL_MIRROR_reverses_the_registers_direction_and_keeps_its_magnitude():
     rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
     assert fgl.belief_bias(rows, belief="epc").direction == "under"
-    mirrored = fgl.mirror_panel_composition(rows)
+    mirror = fgl.panel_mirror(rows)
+    mirrored = list(mirror.rows)
     assert fgl.belief_bias(mirrored, belief="epc").direction == "over"
-    # The log error is preserved EXACTLY — that is what makes the mirror a change of
-    # sign rather than a change of subject.
+    # THE LEVEL ERROR IS PRESERVED EXACTLY (2026-08-11). This assertion used to name
+    # the LOG error, because the reflection used to be `pivot**2/value`. The metric
+    # this mirror is read through — `prediction_gap` — is built on a mean ABSOLUTE
+    # error, so the log form left the register arm's own numerator moving under a
+    # mirror whose entire claim is "same magnitudes, opposite signs". Preserving the
+    # quantity the metric consumes is what makes the mirror's residual small enough
+    # to read past; see `panel_mirror_relative_infidelity`.
+    assert mirror.reflection == fgl.LEVEL_PRESERVING
+    assert mirror.infeasible_premises == 0
     for before, after in zip(rows, mirrored):
-        assert math.log(before.epc_hlc_kw_per_k / before.actual_hlc_kw_per_k) == (
-            pytest.approx(-math.log(after.epc_hlc_kw_per_k / after.actual_hlc_kw_per_k))
+        assert (before.epc_hlc_kw_per_k - before.actual_hlc_kw_per_k) == pytest.approx(
+            -(after.epc_hlc_kw_per_k - after.actual_hlc_kw_per_k)
         )
     # The bill moves with the fabric. A house whose heat loss halves and whose
     # consumption does not is not a house, and the decision reads both.
@@ -4356,6 +4364,186 @@ def test_the_PANEL_MIRROR_reverses_the_registers_direction_and_keeps_its_magnitu
         assert after.annual_heat_kwh / before.annual_heat_kwh == pytest.approx(
             after.actual_hlc_kw_per_k / before.actual_hlc_kw_per_k
         )
+
+
+def test_a_panel_the_LEVEL_REFLECTION_CANNOT_REACH_falls_back_WHOLE_not_per_premise():
+    """The feasibility case, and the reason the fallback is all-or-nothing.
+
+    A premise whose truth exceeds TWICE its register cannot be reflected level-wise
+    into a house that loses heat at a positive rate. Reflecting that one row the
+    other way and leaving the rest would make the panel TWO instruments — a mirror
+    that preserves absolute error on some homes and relative error on others — and
+    any verdict off it would be a mixture nobody could attribute. So one infeasible
+    row moves the WHOLE panel to the log form, and the row says which form it used
+    and how many premises forced it.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    # Truth 2.5x its register on ONE premise: an unimproved solid-wall home holding
+    # a certificate lodged for a different, far better dwelling.
+    rows[3] = dataclasses.replace(
+        rows[3], epc_hlc_kw_per_k=rows[3].actual_hlc_kw_per_k * 0.40
+    )
+    mirror = fgl.panel_mirror(rows)
+    assert mirror.reflection == fgl.LOG_PRESERVING_FALLBACK
+    assert mirror.infeasible_premises == 1
+    # EVERY premise moved to the log rule, including the nine that did not need to.
+    for before, after in zip(rows, mirror.rows):
+        assert after.actual_hlc_kw_per_k == pytest.approx(
+            before.epc_hlc_kw_per_k ** 2 / before.actual_hlc_kw_per_k
+        )
+        assert after.actual_hlc_kw_per_k > 0.0
+
+
+def test_the_MIRRORS_OWN_ARTEFACT_is_measured_on_the_arm_it_is_BUILT_AROUND():
+    """THE NAMED DEFECT (2026-08-11 Expert Hour): the disclosed 'accuracy drift' was
+    the IMPROVEMENT drift, which is a compound — it contains the posterior arm's
+    movement, and moving the posterior arm is what the mirror is FOR. A fidelity
+    instrument that grows when the instrument WORKS cannot be read as fidelity.
+
+    The two are separated here by moving ONLY the posterior. The compound term moves
+    with it; the artefact term does not move at all, because the reflection is built
+    around the REGISTER arm and that arm is untouched. Any future edit re-pointing
+    the attributability gate at the compound quantity fails this.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    moved_posterior = [
+        dataclasses.replace(o, inferred_hlc_kw_per_k=o.actual_hlc_kw_per_k * 1.60)
+        for o in rows
+    ]
+    base = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    other = fgl.composition_verdict(moved_posterior, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert other.panel_mirror_epc_gap_drift == pytest.approx(
+        base.panel_mirror_epc_gap_drift
+    )
+    assert other.panel_mirror_relative_infidelity == pytest.approx(
+        base.panel_mirror_relative_infidelity
+    )
+    # ...and the quantity that WAS being disclosed is not blind to it, which is
+    # exactly why it could never come out small.
+    assert abs(other.panel_mirror_accuracy_drift - base.panel_mirror_accuracy_drift) > 0.1
+
+
+def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0):
+    """A register wrong by a FIXED AMOUNT rather than a fixed share.
+
+    The level reflection then TRANSLATES the truth population instead of rescaling
+    it, so the no-skill baseline `prediction_gap` divides by is identical before and
+    after and the mirror's artefact is exactly zero. That is not a trick to make the
+    control pass: it is the analytic statement of what the residual IS — the whole
+    of it is the denominator moving, and a population whose spread the reflection
+    preserves has none.
+    """
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.10 + 0.05 * i,
+            epc_hlc_kw_per_k=0.10 + 0.05 * i + offset,
+            inferred_hlc_kw_per_k=(0.10 + 0.05 * i) * inferred_bias,
+            floor_area_m2=60.0 + 10.0 * i,
+            annual_heat_kwh=8000.0 + 1500.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(n)
+    ]
+
+
+def test_a_BLUNT_MIRRORS_NULL_RESULT_is_reported_as_INCONCLUSIVE_not_as_no_effect():
+    """THE NAMED DEFECT: silence from an uncalibrated instrument read as evidence.
+
+    Before this, the mirror's only disclosure lived inside the COMPOSITION-DECIDED
+    sentence — which prints exactly when the mirror DID flip the verdict. On both
+    populations this atom publishes it does not flip, so the reader saw two headline
+    numbers, no composition caveat, and was invited to conclude that composition had
+    been ruled out. Here the mirror disturbs the register arm's own gap by more than
+    the band that decides verdicts, finds no flip, and must say the null is its own.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not verdict.composition_decided, "the fixture must NOT flip, else this is a different case"
+    assert verdict.panel_mirror_relative_infidelity > fgl.MIRROR_FIDELITY_BAND
+    assert not verdict.panel_mirror_is_attributable
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+
+
+def test_a_FAITHFUL_MIRROR_THAT_FINDS_NOTHING_stays_SILENT():
+    """The other way (R15), and the reason the caveat is not simply always printed.
+
+    A mirror that leaves the arm it is built around exactly where it was, and finds
+    no flip, has told the reader something real. A control that announced its own
+    inconclusiveness on every population would be as ignored as one that never fired.
+    """
+    # A register wrong by a fixed amount, against a posterior that doubles every
+    # home's heat loss: the register arm is the better decision in BOTH worlds by a
+    # margin no reflection of the truth can close, so the mirror finds nothing and
+    # has earned the right to be believed about it.
+    rows = _fixed_offset_population(inferred_bias=3.0)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_epc_gap_drift == pytest.approx(0.0, abs=1e-12)
+    assert verdict.panel_mirror_is_attributable
+    assert not verdict.composition_decided
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+    assert not any(c.startswith("COMPOSITION-DECIDED") for c in caveats), caveats
+
+
+def test_a_FAITHFUL_MIRROR_THAT_DOES_FLIP_is_reported_WITHOUT_the_directional_rider():
+    """The fourth cell of the 2x2, and the one the whole mechanism exists to protect:
+    a composition finding from an instrument that disturbed nothing is stated flat,
+    with no hedge attached. If the rider were unconditional it would devalue exactly
+    the case it was built to distinguish."""
+    rows = _fixed_offset_population(inferred_bias=1.0)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_is_attributable and verdict.composition_decided
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    decided = [c for c in caveats if c.startswith("COMPOSITION-DECIDED")]
+    assert len(decided) == 1, caveats
+    assert "DIRECTIONAL ONLY" not in decided[0]
+
+
+def test_a_REGISTER_WITH_NO_GAP_TO_MOVE_does_not_divide_by_its_own_zero():
+    """The vacuity/NaN corner, both directions. A register that is exactly right has
+    no gap for the mirror to disturb, and the reflection returns the truth unchanged,
+    so the honest reading is 'faithful' — not a crash, and not a silent 0/0 that
+    would come out NaN and compare False against every band."""
+    exact = _observations(n=10)  # epc == actual on every premise
+    verdict = fgl.composition_verdict(exact, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.epc_gap == pytest.approx(0.0)
+    assert verdict.panel_mirror_relative_infidelity == 0.0
+    assert verdict.panel_mirror_is_attributable
+    # ...and a zero gap that DID move is infinitely unfaithful, never faithful by
+    # default. Constructed directly: no real panel can reach this, which is exactly
+    # why the branch needs a test rather than an argument.
+    moved = dataclasses.replace(verdict, panel_mirror_epc_gap=0.05)
+    assert moved.panel_mirror_relative_infidelity == math.inf
+    assert not moved.panel_mirror_is_attributable
+
+
+def test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict(tmp_path):
+    """R11, no orphan transition, and the specific orphan this Hour found: the
+    fidelity figure existed only inside a sentence that could not print in the case
+    it was needed. The door renders the row, so the row holds it unconditionally."""
+    path = tmp_path / "ledger.json"
+    fgl.write_fabric_gap_entries(
+        _observations(n=10, epc_bias=0.80, inferred_bias=0.90),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        measured_at="2026-08-11T00:00:00+00:00",
+        path=path,
+    )
+    verdict = json.loads(path.read_text())[fgl.GENERATOR_WORLD_ATOM]["components"][
+        "composition_verdict"
+    ]
+    assert verdict["panel_mirror_reflection"] == fgl.LEVEL_PRESERVING
+    assert verdict["panel_mirror_infeasible_premises"] == 0
+    assert verdict["panel_mirror_is_attributable"] is False
+    assert verdict["panel_mirror_relative_infidelity"] > fgl.MIRROR_FIDELITY_BAND
+    assert verdict["panel_mirror_epc_gap_drift"] == pytest.approx(
+        abs(verdict["panel_mirror_epc_gap"] - verdict["epc_gap"])
+    )
 
 
 def test_the_REVISION_MIRROR_leaves_a_premise_the_inference_never_touched_alone():
@@ -4440,9 +4628,21 @@ def test_the_caveat_list_is_EMPTY_on_a_population_with_nothing_to_caveat():
             o,
             # Errors of equal size and alternating sign, on both arms, with the
             # posterior genuinely closer: nothing diluted, nothing one-signed, and
-            # both headlines naming the same arm.
-            epc_hlc_kw_per_k=o.actual_hlc_kw_per_k * (0.75 if i % 2 else 1.25),
-            inferred_hlc_kw_per_k=o.actual_hlc_kw_per_k * (0.95 if i % 2 else 1.05),
+            # neither headline decisive enough to disagree with the other.
+            #
+            # THE ERRORS ARE ABSOLUTE, NOT PROPORTIONAL (2026-08-11), and the size is
+            # load-bearing rather than arbitrary. This fixture used to be +-25% of
+            # each home's own HLC, which reflects into a truth population with a
+            # materially different spread — and `prediction_gap` divides by that
+            # spread, so the panel mirror disturbs the register arm's own gap by 28%
+            # there and its null result is not readable. That is a true statement
+            # about the mirror on a high-error population, not an over-firing
+            # control, so the fixture moved rather than the caveat: a fixed +-0.015
+            # kW/K reflects into a population the metric normalises the same way
+            # (residual 1.1%), which is what "nothing to caveat" has to mean now
+            # that the row also reports whether its own instrument worked.
+            epc_hlc_kw_per_k=o.actual_hlc_kw_per_k + (0.015 if i % 2 else -0.015),
+            inferred_hlc_kw_per_k=o.actual_hlc_kw_per_k + (0.006 if i % 2 else -0.006),
         )
         for i, o in enumerate(_observations(n=12))
     ]

@@ -3358,7 +3358,7 @@
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 27
+  simplifications_count: 28
   expert_hour:
     status: attempted_finding_open
     last: '2026-08-11'
@@ -3390,18 +3390,35 @@
       of one quantity: one scores accuracy, the other scores permission. R10 CLASS: any money
       metric built on a decision rule with an actionability test ranks arms by confidence unless
       something holds confidence fixed.'
-    - 'OPEN, queued: the PANEL mirror is a weak instrument and says so. Its accuracy drift is
-      0.0717 (drawn) and 0.1579 (authored), larger than the improvement it perturbs, because the
-      multiplicative reflection preserves the LOG error exactly and the LEVEL error only
-      approximately while prediction_gap is a level MAE. Its composition_decided verdict is
-      therefore weakly attributable, and only the confidence mirror (which cannot move accuracy
-      at all) is cleanly readable. Needs a level-preserving reflection, or an explicit statement
-      that the panel mirror is directional evidence only.'
-    - 'OPEN, queued: an Expert Hour has not been run ON the 2026-08-11 headline-caveat work. The
-      hour that built it found TWO defects in its own controls within the hour (a hair-trigger
-      strict-inequality verdict, caught by its own vacuity guard; a majority and an average
-      juxtaposed as if they agreed, caught by reading the caveat it emitted on the published
-      population). That rate is the argument for a fresh pass. Level stays 2 until it runs.'
+    - 'CLOSED 2026-08-11 as a MECHANISM, and the finding itself was half wrong. The quantity
+      called accuracy drift (0.0717 drawn, 0.1579 authored) is the drift of the IMPROVEMENT,
+      i.e. BOTH arms: reflecting the truth is MEANT to wreck the posterior arm, so that number
+      is large exactly when the mirror works and can never read as fidelity. The artefact is the
+      REGISTER arm alone (panel_mirror_epc_gap_drift), pinned by a test that moves only the
+      posterior and asserts the artefact term does not move. The level-preserving reflection did
+      land: the docstring claim that 2*pivot-value "goes non-positive on a third of real panels"
+      was never measured and is false on both published populations (0 of 15, 0 of 200), and
+      switching cuts the drawn artefact from 25.9% of its gap to 1.9% with the register arm''s
+      MAE numerator identical to 6 decimals. Whole-panel fallback, never per premise.'
+    - 'CLOSED 2026-08-11: the Hour ran on the caveat machinery and found the disclosure orphaned
+      in the case that actually occurs -- the fidelity figure lived only inside the
+      COMPOSITION-DECIDED sentence, which prints only when the mirror FLIPS, and it flips on
+      neither published population. So a reader saw two headlines, no composition caveat, and an
+      invitation to conclude composition was ruled out while the authored panel''s mirror had
+      disturbed the register arm by 14.1%. MIRROR INCONCLUSIVE now says so; the 2x2 of
+      flip x fidelity is complete and each cell is pinned; R15 both ways on the two REAL
+      populations (fires on authored, silent on drawn) plus 6 source mutations.'
+    - 'OPEN, queued, and the criterion is now falsifiable rather than perpetual: no Expert Hour
+      has run on the 2026-08-11 MIRROR-FIDELITY work. Each Hour on this atom has found defects
+      in the previous Hour''s own controls (2 last time, 3 this time), so "level stays 2 until a
+      clean Hour" as written cannot terminate. TERMINATION CONDITION, stated so the next tick can
+      settle it either way: an Hour on the caveat machinery that finds nothing NEW moves the
+      level; one that finds something lands the finding and the level stays.'
+    - 'OPEN, inherent, recorded not queued: the panel mirror is only readable on populations
+      whose register error is small against the truth''s spread -- the artefact scales with that
+      ratio, so a high-error population self-reports inconclusive (the suite''s own +-25%
+      fixture measures 28.0%). That is a true limit of reflecting a truth population through a
+      belief, not a band to widen.'
     - 'OPEN, blocked on data this repo does not hold: (a) L1.4 day-type magnitude and (b) L1.2h
       heating-shape repeatability, both unchanged and unchanged in reason; (c) remains W1_12''s.'
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"

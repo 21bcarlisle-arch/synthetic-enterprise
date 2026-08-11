@@ -676,11 +676,16 @@ def main() -> None:
         print(f"    accuracy favours          : {verdict.accuracy_favours}"
               f"     money favours: {verdict.money_favours}"
               f"     {'AGREE' if verdict.verdicts_agree else 'DISAGREE'}")
+        # The mirror's own fidelity is printed BESIDE its verdict, never only when
+        # it flips: a null from a blunt instrument reads exactly like a null from a
+        # sharp one unless the disturbance is on the same line.
         print(f"    money, mirrored PANEL     : {verdict.panel_mirror_money_favours}"
-              f"   (a stock that fails the other way; accuracy moved"
-              f" {verdict.panel_mirror_accuracy_drift:.4f};"
+              f"   (a stock that fails the other way, {verdict.panel_mirror_reflection};"
+              f" register-arm accuracy disturbed"
+              f" {verdict.panel_mirror_relative_infidelity:.1%} of its gap;"
               f" truth-above-register {verdict.truth_above_epc_share:.0%})"
-              f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}")
+              f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}"
+              f"{'' if verdict.panel_mirror_is_attributable else '   INCONCLUSIVE'}")
         print(f"    money, mirrored REVISION  : {verdict.revision_mirror_money_favours}"
               f"   (same step, other way;"
               f" revision agreed with truth on"
