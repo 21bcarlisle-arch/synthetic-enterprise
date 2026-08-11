@@ -2198,9 +2198,20 @@ def test_the_banked_record_agrees_with_the_basis_written_beside_it():
     This reads a live artefact, so it can red mid-tick with no source change. That is the same
     property as the timeout floor above and it is wanted: the record is the evidence.
 
-    VACUITY GUARD: a record with no basis at all would pass a for-loop over nothing. Phases
-    banked before these fields existed (`cold_checkout`) legitimately carry none, so the guard
-    is that at least one phase must."""
+    THE ANTI-VACUITY PROPERTY IS NOT HERE, AND PUTTING IT HERE WAS A FALSE POSITIVE THAT WOULD
+    HAVE WEDGED PUBLISHING -- caught within minutes of committing it, by the very measurement this
+    tick launched. The first draft required at least one banked phase to carry a basis. But the
+    harness legitimately DROPS both ratio phases whenever HEAD moves under it (the comparability
+    rule), and this tick's own commit did exactly that: the record fell back to `cold_checkout`
+    alone, which predates these fields, so the guard fired on a healthy transient state. This test
+    is in the publish gate's scope, and a control that reds for the ~40 minutes of every re-timing
+    is the 41-hour wedge shape this atom exists to close.
+
+    An empty population here is a REAL empty population, so this test grades pairing and says so.
+    The question the vacuity guard was reaching for -- "does the harness still WRITE a basis?" --
+    is a property of the writer, not of whatever happens to be banked, and it is graded against
+    the writer in `test_the_writer_still_emits_a_basis_beside_every_verdict` below, where no
+    re-timing can starve it."""
     record = json.loads(Path(measure.prc.GATE_SUBJECT_COST_RECORD).read_text())
     phases = record.get("phases") or {}
     checked = 0
@@ -2219,7 +2230,43 @@ def test_the_banked_record_agrees_with_the_basis_written_beside_it():
             phase.get("ran_to_completion") is True), (
             "phase {!r} contradicts itself between its boolean and its prose".format(name)
         )
-    assert checked, (
-        "no banked phase carries a basis, so this control graded nothing -- the harness stopped "
-        "writing the field, which is a failed check and not a pass"
-    )
+    # NO COUNT ASSERTION -- see the docstring. `checked` is reported so a reader can see what the
+    # population actually was rather than inferring coverage from a green tick.
+    print("[basis-consistency] graded {} banked phase(s) of {}".format(checked, len(phases)))
+
+
+def test_the_writer_still_emits_a_basis_beside_every_verdict(out, monkeypatch, tmp_path):
+    """THE ANTI-VACUITY CONTROL, moved off the banked population and onto the WRITER.
+
+    The record can legitimately hold no basis at all (a re-timing drops the ratio phases), so
+    "some phase carries one" cannot be the guard -- it fires on a healthy state. What must never
+    silently stop is the harness EMITTING the field, and that is provable here whatever is banked:
+    drive the real phase-record builder with a stubbed suite and assert every verdict it writes
+    arrives with the basis that follows from that phase's own returncode.
+
+    MUTATION (RUN): delete either `_basis` key from `_time_suite_under_exclusion`'s returned dict
+    and this reds; pin either to a literal and it reds on one of the two returncodes below."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+
+    for rc, summary in ((1, "4 failed, 23831 passed in 1771.69s"), (-15, ".........")):
+        monkeypatch.setattr(measure.subprocess, "run",
+                            lambda *_a, **_kw: types.SimpleNamespace(
+                                returncode=rc, stdout=summary, stderr=""))
+        phase = measure._time_suite_under_exclusion(tmp_path, lambda _m: None)
+
+        for field in ("ran_to_completion", "hit_memory_ceiling"):
+            assert field in phase and field + "_basis" in phase, (
+                "the harness wrote {!r} without its basis -- a verdict with no stated evidence "
+                "is the thing R9 forbids, and the consistency control above cannot see it "
+                "because it only grades what is written".format(field)
+            )
+        assert phase["ran_to_completion_basis"] == measure._ran_to_completion_basis(
+            rc, phase["hit_memory_ceiling"]), (
+            "the basis written for returncode {} is not the one its own evidence implies".format(rc)
+        )
+        assert phase["hit_memory_ceiling_basis"] == measure._hit_memory_ceiling_basis(
+            rc, phase.get("mem_available_after_mb"), phase["hit_memory_ceiling"])
+        assert ("lower bound" in phase["ran_to_completion_basis"]) is (rc < 0), (
+            "returncode {} was written up as {!r}".format(rc, phase["ran_to_completion_basis"])
+        )
