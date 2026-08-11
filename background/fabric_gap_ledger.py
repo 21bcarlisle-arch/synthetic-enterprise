@@ -3813,6 +3813,69 @@ def _register_mad(
     return total / len(before)
 
 
+def _register_breaches(
+    before: Sequence[FabricObservation], after: Sequence[FabricObservation]
+) -> tuple[float, ...]:
+    """The reflection's promise, PREMISE BY PREMISE and never averaged: how far each
+    home's own register error moved, as a share of that home's own error.
+
+    WHY A MEAN COULD NOT AUDIT THIS (2026-08-11, ninth Expert Hour on this atom).
+    `_register_mad` fixed the third Hour's CANCELLATION — a breach up and a breach
+    down no longer annihilate — and left the DILUTION untouched. It is still a mean,
+    and the promise it audits is universal: `_reflect_level` says "same ABSOLUTE
+    error, opposite sign" about EVERY premise, so on that branch the honest value is
+    exactly zero and a breach anywhere is a breach. Divide a breach by the panel and
+    it disappears into it.
+
+    MEASURED ON THIS ATOM'S OWN PUBLISHED POPULATIONS, not argued from the algebra.
+    Reflecting premises by the WRONG RULE (the log form on a level-branch panel — the
+    partial fallback the whole-panel test exists to forbid) and asking how many the
+    5%-of-the-mean gate lets through: **9 of the drawn 200 and 4 of the authored 15**,
+    in a random order, with the gate still reading under its band and certifying the
+    mirror. Reflecting them through the WRONG PIVOT — the inferred prior instead of
+    the register prior, a one-identifier bug — **65 of 200 (32.5%)**, the worst of
+    them moving its own home's error by 1,825%, gate reading 4.50% and certifying.
+
+    AND THE SIGNATURE, which is the part worth keeping: hold the defect FIXED at one
+    wrongly-reflected home and grow the panel — 0.0022 at n=15, 0.0013 at 30, 0.0008
+    at 50, 0.0003 at 100, 0.0002 at 200. **SENSITIVITY FALLS WITH N.** The fourth
+    Hour found a verdict rule that was FLAT in N and the fifth one DECOUPLED from it;
+    this is the third sibling and the worst-behaved of them, because it is monotone
+    in the wrong direction: the better the evidence base gets, the blinder the control
+    that guards it. The worst per-premise breach is 15.4% at every one of those panel
+    sizes, which is what a statistic that actually audits the promise looks like.
+
+    THE ZERO CORNER, split rather than lumped, on the same rule as everywhere else in
+    this file: a home whose register is exactly right has no error for the reflection
+    to preserve. Moving it by nothing is faithful (0.0); moving it at all is an
+    infinite relative breach (inf), because the denominator is not small — it is
+    absent, and reporting a share there would be inventing one.
+    """
+    if len(before) != len(after):
+        raise InsufficientEvidence(
+            f"a mirrored panel of {len(after)} cannot be compared premise-by-premise "
+            f"with an original of {len(before)}"
+        )
+    if not before:
+        raise InsufficientEvidence(
+            "a per-premise preservation promise cannot be audited over zero premises"
+        )
+    breaches = []
+    for o, m in zip(before, after):
+        if o.premise_id != m.premise_id:
+            raise InsufficientEvidence(
+                f"mirrored rows are out of order ({o.premise_id!r} vs {m.premise_id!r})"
+                " — a per-premise disturbance cannot be measured across a reordering"
+            )
+        e_before = abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+        moved = abs(abs(m.epc_hlc_kw_per_k - m.actual_hlc_kw_per_k) - e_before)
+        if e_before == 0.0:
+            breaches.append(0.0 if moved == 0.0 else math.inf)
+        else:
+            breaches.append(moved / e_before)
+    return tuple(breaches)
+
+
 def weight_null_panel(
     observations: Sequence[FabricObservation],
 ) -> list[FabricObservation]:
@@ -4197,6 +4260,12 @@ class CompositionVerdict:
     # promise made per premise cannot be audited by the difference of two means
     # (2026-08-11, third Hour). This is the numerator of the fidelity gate.
     panel_mirror_register_mad: float
+    # ...and the SAME disturbance NEVER AVERAGED, because the mean above is still a
+    # mean and the promise is universal (2026-08-11, ninth Hour). `_register_mad`
+    # closed the cancellation and left the dilution: 9 of the drawn 200 premises can
+    # be reflected by the wrong rule, or 65 of 200 through the wrong pivot, with the
+    # mean under its band. One entry per premise, in panel order.
+    panel_mirror_register_breaches: tuple[float, ...]
     panel_mirror_reflection: str
     panel_mirror_infeasible_premises: int
     # THE WEIGHT-ONLY NULL — the mirror's re-composition channel with the mirror's
@@ -4374,6 +4443,87 @@ class CompositionVerdict:
         if self.epc_register_mae == 0.0:
             return 0.0 if self.panel_mirror_register_mad == 0.0 else math.inf
         return self.panel_mirror_register_mad / abs(self.epc_register_mae)
+
+    @property
+    def panel_mirror_register_worst_breach(self) -> float:
+        """THE PROMISE AUDITED AT ITS WORST VIOLATION — the largest share by which
+        the reflection moved any single home's own register error.
+
+        THE STATISTIC THE LEVEL BRANCH NEEDS, and the ninth Hour's whole finding
+        (2026-08-11). `panel_mirror_register_infidelity` is a MEAN, and a mean
+        cannot audit a universal claim: the level reflection promises preservation
+        at every premise, so one breached home is a breached promise, and dividing
+        that home by the panel is exactly how it disappears. Measured on this atom's
+        own published population, the mean-against-5% rule certified a panel with 9
+        of 200 homes reflected by the wrong rule, and 65 of 200 reflected through the
+        wrong prior — the worst of those moving its own error by 1,825%.
+
+        Its response to a fixed defect does not fall with N: the same single wrongly
+        reflected home reads 15.4% here at n = 15, 30, 50, 100 and 200, where the mean
+        reads 0.0022 down to 0.0002 and crosses under its band on the way.
+        """
+        return max(self.panel_mirror_register_breaches)
+
+    @property
+    def panel_mirror_register_breaching_premises(self) -> int:
+        """HOW MANY HOMES the reflection did not give back — a COUNT, published beside
+        the worst one.
+
+        A count and a worst case answer different questions and the row carries both:
+        one wildly-moved home is a bug in one premise's reflection, forty mildly-moved
+        ones is the wrong reflection applied to a subset, and a share would render
+        both as the same small percentage — which is the shape this Hour is here
+        about. Counted against the SAME tolerance the branch's gate reads, so the
+        number in the sentence is the number that decided it.
+        """
+        tolerance = (
+            REGISTER_PRESERVATION_TOLERANCE
+            if self.panel_mirror_reflection == LEVEL_PRESERVING
+            else MIRROR_FIDELITY_BAND
+        )
+        return sum(1 for b in self.panel_mirror_register_breaches if b > tolerance)
+
+    @property
+    def panel_mirror_register_channel(self) -> str:
+        """THE REGISTER HALF OF THE GATE, ASKED THE QUESTION ITS BRANCH ACTUALLY POSES.
+
+        The two branches make different promises, so they are audited by different
+        statistics against different constants:
+
+        * `level_preserving` — the promise is EXACT and PER PREMISE, so the worst
+          breach decides it against `REGISTER_PRESERVATION_TOLERANCE`, which is the
+          float-noise floor rather than a tolerance for real disturbance.
+        * `log_preserving_fallback` — no such promise is made; every premise's
+          absolute error moves by construction. The question there is how blunt the
+          instrument is, which is a mean, and it keeps `MIRROR_FIDELITY_BAND`
+          unchanged. Putting the worst-case shape on this branch would make an
+          always-red control out of the instrument behaving exactly as designed.
+
+        NO INTERVAL, AND THIS TIME THE REASON IS NOT AN ALGEBRAIC IDENTITY. The
+        eighth Hour left this channel on a bare point comparison because "under the
+        level-preserving reflection it is exact by algebra" — true on one branch, and
+        the justification for the exemption was written on the branch where the term
+        was not a control. This Hour measured the other branch and the exemption
+        holds for a different reason: the fallback-branch statistic is a weighted mean
+        of per-premise relative errors to which EVERY premise contributes, so it
+        concentrates fast — over 150 random subpanels of a fallback population it was
+        unresolved on 3 of 22 at n=20 and 0 of 46 by n=50, where the money channel's
+        share (carried by the 18 of 200 homes that move at all) was unresolved
+        routinely at n=100. Same repair, different diagnosis, and the diagnosis is
+        why this channel does not get the eighth Hour's mechanism copied onto it.
+        """
+        if self.panel_mirror_reflection == LEVEL_PRESERVING:
+            return (
+                "attributable"
+                if self.panel_mirror_register_worst_breach
+                <= REGISTER_PRESERVATION_TOLERANCE
+                else "unattributable"
+            )
+        return (
+            "attributable"
+            if self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
+            else "unattributable"
+        )
 
     @property
     def panel_mirror_weight_artefact(self) -> float:
@@ -4730,11 +4880,13 @@ class CompositionVerdict:
         """The whole gate as three states — both channels combined, worst first.
 
         A measured breach in EITHER channel is a finding and outranks an unresolved
-        one; an unresolved channel outranks a clean one. The register channel has no
-        interval because under the level-preserving reflection it is exact by algebra
-        (the third Hour), so it contributes only `unattributable` or `attributable`.
+        one; an unresolved channel outranks a clean one. The register channel
+        contributes only `unattributable` or `attributable` — see
+        `panel_mirror_register_channel` for which statistic and which constant decide
+        it, which depends on the branch and stopped being the panel mean at the ninth
+        Hour.
         """
-        if self.panel_mirror_register_infidelity > MIRROR_FIDELITY_BAND:
+        if self.panel_mirror_register_channel != "attributable":
             return "unattributable"
         money = self.panel_mirror_weight_artefact_resolution
         return money
@@ -4851,6 +5003,34 @@ VERDICT_MATERIALITY = 0.05
 # The calibration argument above is about artefact-versus-money-signal and was never
 # an argument about when a yardstick shift is worth telling a reader about.
 MIRROR_FIDELITY_BAND = 0.05
+
+# A SIXTH CONSTANT, and the reason it is not `MIRROR_FIDELITY_BAND` is the whole of
+# the ninth Hour (2026-08-11): the two bands are applied on DIFFERENT BRANCHES to
+# claims of different kinds, and one of them is not a tolerance at all.
+#
+# On the LEVEL-preserving branch — the branch BOTH published populations take —
+# `_reflect_level` promises every premise's absolute register error back unchanged,
+# and that promise is EXACT. There is no quantity of breach that is acceptable, so
+# 5% is not a loose band, it is the wrong shape of thing entirely: it converts "no
+# premise may move" into "the average premise may move 5%", which on 200 homes is
+# "nine homes may move completely". This is the float-noise floor and nothing more.
+#
+# CALIBRATED BY MEASUREMENT, WITH SIX ORDERS OF HEADROOM EITHER SIDE. The largest
+# per-premise relative disturbance the clean reflection produces on this atom's own
+# published rows is 1.788e-15 (drawn 200; exactly 0.0 on the authored 15, 13 of 200
+# premises nonzero at all) — the arithmetic of `2*p - v` re-differenced. The smallest
+# disturbance any real defect produced in the Hour's own sweep was 15.4%. Anything
+# between 1e-15 and 1e-1 is a number nobody has produced; 1e-9 sits in the middle of
+# that gap, so this tolerance can neither be tripped by float noise nor duck a defect.
+#
+# On the LOG-preserving FALLBACK branch the reflection makes no such promise — it
+# preserves the RATIO error, so every premise's absolute error moves by design. There
+# the mean-against-`MIRROR_FIDELITY_BAND` question ("how blunt is this instrument")
+# is the right one and is kept unchanged; the worst-case shape would be an always-red
+# control on a branch where universal disturbance is the instrument's known character
+# rather than a fault. A promise is audited at its worst violation; a characteristic
+# is summarised at its mean. Which branch produced the verdict rides on the row.
+REGISTER_PRESERVATION_TOLERANCE = 1e-9
 
 # The precision the two gap figures are RENDERED to wherever they are printed side
 # by side. The yardstick caveat's vacuity guard is set from it rather than from float
@@ -5438,6 +5618,7 @@ def composition_verdict(
         epc_register_mae=_register_mae(observations),
         panel_mirror_register_mae=_register_mae(panel),
         panel_mirror_register_mad=_register_mad(observations, panel),
+        panel_mirror_register_breaches=_register_breaches(observations, panel),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
         revision_mirror_money=_money_verdict(revision, "revision_mirror"),
@@ -5616,18 +5797,38 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
     the reader to assume the other is clean.
     """
     reasons = []
-    if verdict.panel_mirror_register_infidelity > MIRROR_FIDELITY_BAND:
-        reasons.append(
-            f"reflecting the truth moved the register arm's OWN error, the one "
-            f"quantity this reflection claims to preserve, by "
-            f"{verdict.panel_mirror_register_infidelity:.1%} per premise "
-            f"({verdict.epc_register_mae:.6f} -> "
-            f"{verdict.panel_mirror_register_mae:.6f} kW/K mean error, which "
-            f"understates it — mean per-premise disturbance "
-            f"{verdict.panel_mirror_register_mad:.6f}, "
-            f"{verdict.panel_mirror_reflection}), above the "
-            f"{MIRROR_FIDELITY_BAND:.0%} band"
-        )
+    if verdict.panel_mirror_register_channel != "attributable":
+        # KEYED TO THE CHANNEL, AND SAYING WHICH PROMISE WAS BROKEN (2026-08-11,
+        # ninth Hour). The two branches are refused for different reasons and a
+        # single sentence quoting the panel mean would have named a dilution as
+        # the ground for a per-premise breach — the eighth Hour's own class (a
+        # disclosure inheriting the statistic its gate stopped using) applied
+        # before it could happen rather than after.
+        if verdict.panel_mirror_reflection == LEVEL_PRESERVING:
+            reasons.append(
+                f"this reflection gives every home its own register error back "
+                f"unchanged, and it did not: "
+                f"{verdict.panel_mirror_register_breaching_premises} of "
+                f"{verdict.premises} premises moved, the worst by "
+                f"{verdict.panel_mirror_register_worst_breach:.1%} of that home's "
+                f"own error (the panel MEAN reads "
+                f"{verdict.panel_mirror_register_infidelity:.2%}, which is the "
+                f"breach divided by the panel and is why it is not the gate)"
+            )
+        else:
+            reasons.append(
+                f"reflecting the truth moved the register arm's OWN error by "
+                f"{verdict.panel_mirror_register_infidelity:.1%} per premise "
+                f"({verdict.epc_register_mae:.6f} -> "
+                f"{verdict.panel_mirror_register_mae:.6f} kW/K mean error, which "
+                f"understates it — mean per-premise disturbance "
+                f"{verdict.panel_mirror_register_mad:.6f}, worst home "
+                f"{verdict.panel_mirror_register_worst_breach:.1%}, "
+                f"{verdict.panel_mirror_reflection}), above the "
+                f"{MIRROR_FIDELITY_BAND:.0%} band — this reflection preserves the "
+                f"RATIO error, so the mean is the instrument's bluntness rather "
+                f"than a broken promise"
+            )
     money = verdict.panel_mirror_weight_artefact_resolution
     if money != "attributable":
         # PER PREMISE, WITH ITS OWN INTERVAL, AND NEVER AGAIN AS TWO BARE TOTALS
@@ -5945,6 +6146,15 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_register_mae": v.panel_mirror_register_mae,
         "panel_mirror_register_mad": v.panel_mirror_register_mad,
         "panel_mirror_register_infidelity": v.panel_mirror_register_infidelity,
+        # ...and the promise audited WITHOUT the panel mean, because the mean is the
+        # breach divided by the panel (2026-08-11, ninth Hour). The worst home, the
+        # count of homes, and which of the two the branch's gate actually read — a
+        # reader who sees only a percentage cannot tell nine broken homes from none.
+        "panel_mirror_register_worst_breach": v.panel_mirror_register_worst_breach,
+        "panel_mirror_register_breaching_premises": (
+            v.panel_mirror_register_breaching_premises
+        ),
+        "panel_mirror_register_channel": v.panel_mirror_register_channel,
         # The MONEY channel's artefact and the null it is measured against. In the
         # row beside the kW/K terms because the verdict is denominated in GBP and a
         # fidelity claim that covers only the other channel is not one.

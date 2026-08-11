@@ -4820,6 +4820,238 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     assert f"{verdict.panel_mirror_register_mad:.6f}" in inconclusive[0]
 
 
+def _wrongly_reflected(monkeypatch, wrong_ids):
+    """Inject a PARTIAL FALLBACK at the exact site it would occur — the reflection
+    call inside `panel_mirror` — so the named premises get the log form on a panel
+    the level form is feasible for.
+
+    This is the defect the whole-panel rule exists to forbid ("a panel reflected two
+    different ways on two subsets is two instruments"), and until the ninth Hour the
+    control that guards the reflection could not see it: the disturbance landed on a
+    handful of homes and the gate read the panel MEAN.
+
+    Patched rather than hand-built because a hand-built mirrored panel would let the
+    test supply its own defect and never run the code that produces one — this
+    project's own recurring shape (a render harness that hand-types its call list
+    supplies the defect it then detects).
+    """
+    real = fgl._reflect_level
+
+    def partial(value, through, *, premise_id, name):
+        reflect = fgl._reflect if premise_id in wrong_ids else real
+        return reflect(value, through, premise_id=premise_id, name=name)
+
+    monkeypatch.setattr(fgl, "_reflect_level", partial)
+
+
+def test_a_PER_PREMISE_PROMISE_IS_NOT_AUDITED_BY_THE_PANEL_MEAN(monkeypatch):
+    """THE NINTH HOUR'S NAMED DEFECT (2026-08-11). `_reflect_level` promises every
+    home its own absolute register error back unchanged. The gate audited that
+    universal promise with `panel_mirror_register_infidelity`, a MEAN, against a 5%
+    band — which reads "the average home may move 5%", and on 200 homes that is
+    "nine homes may move completely".
+
+    The third Hour closed the CANCELLATION in this term (a difference of aggregates
+    became an aggregate of differences) and left the DILUTION, which is the same
+    class one step further on: an aggregate of differences is still an aggregate.
+
+    Measured on this atom's OWN published populations, not only here: 9 of the drawn
+    200 premises can be reflected by the wrong rule, and 65 of 200 through the wrong
+    prior (worst home moving its own error by 1,825%), with the mean under its band
+    and the mirror certified.
+    """
+    rows = _observations(n=200, epc_bias=0.85, inferred_bias=0.95)
+    wrong = {f"P{i}" for i in range(9)}
+    _wrongly_reflected(monkeypatch, wrong)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_reflection == fgl.LEVEL_PRESERVING
+    # THE OLD GATE CERTIFIES IT. This assertion is the finding: if the mean ever
+    # stops passing here, the fixture stopped reproducing the defect.
+    assert verdict.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    # ...over nine homes the reflection did not give back, each moved by 15% of its
+    # own error — a number the mean divides by two hundred.
+    assert verdict.panel_mirror_register_breaching_premises == len(wrong)
+    assert verdict.panel_mirror_register_worst_breach == pytest.approx(0.15, abs=1e-9)
+    assert verdict.panel_mirror_register_channel == "unattributable"
+    assert not verdict.panel_mirror_is_attributable
+
+
+def test_the_MEANS_SENSITIVITY_FALLS_WITH_N_AND_THE_WORST_BREACH_DOES_NOT(monkeypatch):
+    """THE FAILURE SIGNATURE, and the reason this is a class rather than a tuning
+    question. Hold the defect FIXED at one wrongly-reflected home and grow the panel:
+    the mean's reading falls away as 1/n while the defect is unchanged.
+
+    The fourth Hour found a verdict rule whose decisiveness was FLAT in N and the
+    fifth one whose decisiveness was DECOUPLED from it. This is the third sibling and
+    the worst-behaved: it is monotone in the WRONG direction, so the control guarding
+    this instrument gets blinder exactly as the population it guards gets better.
+    """
+    readings = {}
+    for n in (15, 200):
+        _wrongly_reflected(monkeypatch, {"P3"})
+        verdict = fgl.composition_verdict(
+            _observations(n=n, epc_bias=0.85, inferred_bias=0.95),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        )
+        readings[n] = verdict
+    small, large = readings[15], readings[200]
+    # The MEAN collapses — same single defective home, two orders of magnitude apart.
+    assert small.panel_mirror_register_infidelity > (
+        50 * large.panel_mirror_register_infidelity
+    )
+    # ...while the statistic that audits the promise does not move at all.
+    assert small.panel_mirror_register_worst_breach == pytest.approx(
+        large.panel_mirror_register_worst_breach, abs=1e-9
+    )
+    assert small.panel_mirror_register_breaching_premises == 1
+    assert large.panel_mirror_register_breaching_premises == 1
+    assert small.panel_mirror_register_channel == "unattributable"
+    assert large.panel_mirror_register_channel == "unattributable"
+
+
+def test_the_LEVEL_BRANCHS_TOLERANCE_IS_A_NOISE_FLOOR_AND_NOT_A_FIDELITY_BAND():
+    """One constant per subject, again (the sixth Hour's class, on a new axis).
+
+    `MIRROR_FIDELITY_BAND` is a tolerance for an instrument's BLUNTNESS. The level
+    branch makes an EXACT promise, so it has no tolerance for real disturbance at
+    all, and reusing the 5% band there would accept a breach of a claim that admits
+    none. Six orders of headroom either side, measured: the clean reflection's worst
+    per-premise disturbance on the atom's own published rows is 1.788e-15, and the
+    smallest disturbance any injected defect produced was 15.4%.
+    """
+    assert fgl.REGISTER_PRESERVATION_TOLERANCE < fgl.MIRROR_FIDELITY_BAND / 1e6
+    clean = _observations(n=20, epc_bias=0.85, inferred_bias=0.95)
+    verdict = fgl.composition_verdict(clean, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_reflection == fgl.LEVEL_PRESERVING
+    # VACUITY, and the proof this is not an always-red control: the real reflection
+    # on a real-shaped panel is silent, at float noise.
+    assert verdict.panel_mirror_register_worst_breach < fgl.REGISTER_PRESERVATION_TOLERANCE
+    assert verdict.panel_mirror_register_breaching_premises == 0
+    assert verdict.panel_mirror_register_channel == "attributable"
+    # ...and a breach far UNDER the old 5% band, which the mean-and-band rule would
+    # have waved through on any panel size, is refused.
+    breached = dataclasses.replace(
+        verdict, panel_mirror_register_breaches=(0.0,) * 19 + (0.01,)
+    )
+    assert breached.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    assert breached.panel_mirror_register_channel == "unattributable"
+
+
+def test_the_FALLBACK_BRANCH_KEEPS_THE_MEAN_because_the_WORST_would_be_ALWAYS_RED():
+    """The other half of the branch split, and the half that stops this repair being
+    a new defect.
+
+    The log-preserving fallback does NOT promise the register arm's absolute error
+    back — it preserves the RATIO error, so every premise moves by construction.
+    There the question is how blunt the instrument is, which is a mean; auditing that
+    branch at its worst violation would refuse the instrument for behaving exactly as
+    designed, which is an always-red control and this project has found three of them
+    in these controls already.
+    """
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+    # Every premise is disturbed on this branch — the worst-case shape would refuse
+    # every fallback panel ever produced.
+    assert verdict.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
+    assert verdict.panel_mirror_register_breaching_premises >= 1
+    # ...and the branch is judged by the MEAN, which is what it was before.
+    assert verdict.panel_mirror_register_channel == "unattributable"
+    assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+    # PROVEN BOTH WAYS ON THIS BRANCH: a fallback panel whose register error the log
+    # form barely moves is still certified, so the fallback branch is not always-red
+    # either. A register accurate to ~1% with one rogue certificate forcing the
+    # fallback — real (a well-surveyed stock with one certificate lodged for another
+    # dwelling), and the case where the worst-case shape would have been fatal.
+    gentle = _infeasible_reflection_population(
+        n=80, epc_bias=0.99, rogue=0.40, spread=0.05
+    )
+    gentle_verdict = fgl.composition_verdict(
+        gentle, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    )
+    assert gentle_verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+    assert gentle_verdict.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
+    assert gentle_verdict.panel_mirror_register_channel == "attributable"
+
+
+def test_the_REFUSAL_SENTENCE_NAMES_THE_PROMISE_THE_BRANCH_ACTUALLY_MAKES(monkeypatch):
+    """The eighth Hour's own class, applied before it could happen rather than after:
+    when a gate moves onto a new statistic its DISCLOSURE inherits the retired one
+    unless someone re-asks what the sentence is keyed to.
+
+    A level-branch refusal must say a per-premise promise was broken and how many
+    homes broke it, and must print the panel mean only as the thing that hid it —
+    never as the ground for the refusal.
+    """
+    # A DECISIVE money headline is required for INCONCLUSIVE to fire at all — the
+    # sentence protects a published verdict, and on an already-'neither' panel there
+    # is no over-reading on offer for it to prevent (the third Hour's own rule).
+    rows = _infeasible_reflection_population(
+        n=20, epc_bias=0.90, rogue=0.90, spread=0.08, inferred_bias=0.50
+    )
+    assert fgl.panel_mirror(rows).reflection == fgl.LEVEL_PRESERVING
+    _wrongly_reflected(monkeypatch, {"P0"})
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    inconclusive = [c for c in caveats if c.startswith("MIRROR INCONCLUSIVE")]
+    assert len(inconclusive) == 1, caveats
+    sentence = inconclusive[0]
+    assert "1 of 20 premises moved" in sentence
+    assert "10.0% of that home's own error" in sentence
+    # The mean is present and labelled as the dilution, not as the reason.
+    assert "which is the breach divided by the panel" in sentence
+
+
+def test_a_ZERO_ERROR_PREMISE_THAT_MOVES_IS_AN_INFINITE_BREACH_NOT_A_FAITHFUL_ONE():
+    """The per-premise zero corner, split on the same rule as every other zero corner
+    in this file. A home whose register is exactly right has no error to preserve:
+    moving it by nothing is faithful, moving it at all is not a small share of a
+    small number, it is a share of nothing."""
+    exact = _observations(n=4)
+    mirror = fgl.panel_mirror(exact).rows
+    assert fgl._register_breaches(exact, mirror) == (0.0, 0.0, 0.0, 0.0)
+    nudged = list(mirror)
+    nudged[2] = dataclasses.replace(
+        nudged[2], actual_hlc_kw_per_k=nudged[2].actual_hlc_kw_per_k + 0.01
+    )
+    assert fgl._register_breaches(exact, nudged)[2] == math.inf
+
+
+def test_register_breaches_RAISES_rather_than_reporting_a_clean_panel():
+    """FAIL-LOUD, in both directions an absent measurement can arrive. "The
+    reflection disturbed nothing" and "nothing was measured" are opposite readings
+    of a fidelity term, and a control that returns the first when it means the
+    second is fail-open in exactly the dimension it exists to measure."""
+    rows = _observations(n=4)
+    mirror = list(fgl.panel_mirror(rows).rows)
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_breaches([], [])
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_breaches(rows, mirror[:3])
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_breaches(rows, list(reversed(mirror)))
+
+
+def test_the_ROW_CARRIES_THE_WORST_BREACH_AND_THE_COUNT_not_only_the_mean(tmp_path):
+    """R11 — the door renders the row, and a reader who sees only a percentage cannot
+    tell nine broken homes from none. The count, the worst home and which channel
+    verdict the branch produced all ride unconditionally."""
+    path = tmp_path / "ledger.json"
+    fgl.write_fabric_gap_entries(
+        _observations(n=20, epc_bias=0.85, inferred_bias=0.95),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        measured_at="2026-08-11T00:00:00+00:00",
+        path=path,
+    )
+    verdict = json.loads(path.read_text())[fgl.GENERATOR_WORLD_ATOM]["components"][
+        "composition_verdict"
+    ]
+    assert verdict["panel_mirror_register_breaching_premises"] == 0
+    assert verdict["panel_mirror_register_worst_breach"] < (
+        fgl.REGISTER_PRESERVATION_TOLERANCE
+    )
+    assert verdict["panel_mirror_register_channel"] == "attributable"
+
+
 def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0, base=0.10, step=0.05):
     """A register wrong by a FIXED AMOUNT rather than a fixed share.
 
@@ -5036,7 +5268,22 @@ def test_a_REGISTER_WITH_NO_GAP_TO_MOVE_does_not_divide_by_its_own_zero():
     # third Hour found could not carry this gate (2026-08-11).
     moved_arm = dataclasses.replace(verdict, panel_mirror_register_mad=0.01)
     assert moved_arm.panel_mirror_register_infidelity == math.inf
-    assert not moved_arm.panel_mirror_is_attributable
+    # THE GATE MOVED AGAIN AT THE NINTH HOUR and this line moved with it, which is
+    # the point of writing it as a construction rather than as a mean: on the level
+    # branch the gate reads the PER-PREMISE breaches, so the mean going infinite is
+    # no longer what refuses the mirror. A test left on `panel_mirror_register_mad`
+    # here would have gone on passing while asserting nothing about the live gate —
+    # the eighth Hour's own class (a check inheriting the statistic its subject
+    # stopped using) landing in the suite instead of in a sentence.
+    assert moved_arm.panel_mirror_is_attributable, (
+        "the mean has no gate to fail on the level branch any more"
+    )
+    breached = dataclasses.replace(
+        verdict, panel_mirror_register_breaches=(0.0,) * 9 + (math.inf,)
+    )
+    assert breached.panel_mirror_register_worst_breach == math.inf
+    assert breached.panel_mirror_register_channel == "unattributable"
+    assert not breached.panel_mirror_is_attributable
 
 
 def test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict(tmp_path):

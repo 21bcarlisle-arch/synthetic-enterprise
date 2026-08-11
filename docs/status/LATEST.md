@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T22:47:01Z
+Last updated: 2026-08-11T23:11:22Z
 
 **OPS2 — THE CEILING IS DERIVED FROM MEASURED DEMAND, NOT CHOSEN (`dfd74dff7`, pushed).** Owed
 item 1 of `OPS2_publish_gate_head_worktree`. The prior finding's own recommendation was to re-derive
