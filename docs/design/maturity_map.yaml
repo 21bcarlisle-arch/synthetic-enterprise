@@ -4641,7 +4641,7 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: ['background/process_run_complete.py', 'tests/background/test_publish_gate_subject_is_head.py']
+  file_scope: ['background/process_run_complete.py', 'tests/background/test_publish_gate_subject_is_head.py', 'tools/measure_publish_gate_subject_cost.py', 'tests/tools/test_measure_publish_gate_subject_cost.py', 'background/supervisor.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a CI runner switched from the dev box to a clean container overnight, correct on day one and 2.5x slower until someone caches the layer"
 

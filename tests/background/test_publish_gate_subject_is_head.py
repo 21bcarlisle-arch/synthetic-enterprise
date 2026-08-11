@@ -394,11 +394,17 @@ def test_the_timeout_clears_the_floor_the_measurement_implies():
     """THE LIVE CONTROL. The committed record is the evidence the bound was derived from; this
     asserts the bound still clears it.
 
-    IT HAS NOW FIRED FOR REAL (2026-08-11, launch 11). The shipped subject -- a cold throwaway
-    checkout -- measured 1411.2s against the 1291.9s the 2600s bound had been derived from, and
-    this test reddened on its own before anyone read the record. The bound moved to 2900s; that
-    is the control working, and the note it left is that the old evidence had been timed in the
-    since-deleted shared directory and was never the subject the gate ships."""
+    IT HAS NOW FIRED FOR REAL TWICE, ON THE SAME DAY (2026-08-11).
+      * Launch 11: the shipped subject -- a cold throwaway checkout -- measured 1411.2s against
+        the 1291.9s the 2600s bound had been derived from, and this test reddened on its own
+        before anyone read the record. The bound moved to 2900s. The note it left is that the old
+        evidence had been timed in the since-deleted shared directory and was never the subject
+        the gate ships.
+      * Launch 13: the same phase re-timed at 1784.6s (floor 3569) and the bound moved to 3600s.
+        This firing is the sharper evidence, because it happened WITHIN one worker tick: the
+        write-time gate's scope ran 557-green at 15:20Z and 1-red at 15:35Z with no source change
+        between them. The record moved underneath the claim, unprompted, which is precisely the
+        failure mode a hand-copied transcription of the same number cannot detect."""
     floor = prc.measured_gate_timeout_floor()
 
     assert floor is not None, (
@@ -846,4 +852,166 @@ def test_an_occupied_reused_checkout_is_not_refreshed_under_its_orphan(
     assert any("orphaned suite" in line for line in logged), (
         "R5 -- the fallback must say WHICH condition caused it; 'held by another publisher' "
         "would send the next diagnosis to the wrong mechanism"
+    )
+
+
+# ── THE CONTRACT'S ONE CONSEQUENCE, COMPOSED ACROSS BOTH CONSUMERS ───────────
+#
+# Criterion 5 of this atom asked for the `.last_tested_hash` semantics to be stated in ONE
+# place rather than inferred from two call sites. `LAST_TESTED_HASH_CONTRACT` states them, and
+# `test_the_hash_contract_is_stated_in_one_place` above guards it -- but what that test compares
+# is the two modules' PATH expressions, plus a grep of the contract text for the names of its
+# writer and its readers. Neither is the property the contract exists to protect.
+#
+# The contract's own last paragraph warns that "anything that stamps this file without a green
+# suite collapses [the independence cross-check] into a tautology and blinds the wedge draw".
+# Until these tests that warning was REPORTED STATE, NOT A CONTROL: no test had ever run the
+# WRITER (`prc._run_gate_in`, via `run_fast_tests`) and the READER
+# (`supervisor._publish_gate_wedge_active`, the RUNG-1 priority-zero draw) against one file, so
+# the collapse it describes could have happened with nothing going red. A stated contract with
+# no falsifier is the same shape as the prose rules CLAUDE.md says evaporate.
+#
+# The first two below are each other's mutation on ONE variable -- the suite's return code --
+# with BOTH sides driven by the real writer, so the difference in the draw is produced by the
+# gate's actual verdict and not by anything the test arranged. The third breaks the writer's
+# rule and shows the tautology arriving.
+
+def _wedged_state(now):
+    """The state file of a gate that is genuinely wedged: sustained failures, comfortably past
+    the rung-1 age bound.
+
+    Derived from the detector's OWN constants rather than hardcoded, so a retuned threshold
+    cannot leave this fixture describing a wedge the detector no longer recognises -- the
+    fixture would then agree with the code by construction and these tests would pass on a
+    detector that had stopped firing."""
+    from background import supervisor
+
+    oldest = now - (supervisor.PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS + 600)
+    return {
+        "failures": [{"ts": oldest + i, "reason": "a red test"}
+                     for i in range(supervisor.PUBLISH_GATE_WEDGE_MIN_FAILURES)],
+        "wedge_since": oldest,
+    }
+
+
+@pytest.fixture
+def wedge(tmp_path):
+    """The RUNG-1 wedge draw, pointed at prc's OWN `.last_tested_hash` -- the file the writer
+    under test has just written, not a copy of it.
+
+    That single-file wiring IS the subject. The supervisor's cross-check is independent only
+    while the file it reads is the file the gate writes; a fixture that gave the reader its own
+    copy would pass on exactly the divergence criterion 5 was raised to prevent."""
+    from background import supervisor
+
+    now = 1_760_000_000.0
+    state_path = tmp_path / ".publish_gate_state.json"
+    state_path.write_text(json.dumps(_wedged_state(now)))
+
+    def draw(head):
+        return supervisor._publish_gate_wedge_active(
+            now=now, head=head, state_path=state_path,
+            last_tested_path=prc.LAST_TESTED_HASH_FILE)
+
+    return draw
+
+
+def test_a_red_gate_leaves_the_rung_one_wedge_draw_armed(sandbox, monkeypatch, wedge):
+    """The composition, in the direction that matters: the gate really fails, the writer really
+    declines to stamp, and the wedge really draws.
+
+    This is the path that was silent for 2h17m on both 2026-07-23 and 2026-07-24 -- the episode
+    that made this rung priority zero. What keeps it armed is a NEGATIVE: the absence of a stamp
+    at HEAD. Absences are the easiest thing to break by accident and the hardest to notice, which
+    is why the arming is asserted here rather than assumed from the detector's own unit tests."""
+    monkeypatch.setattr(prc, "publish_gate_pytest_argv",
+                        lambda test_root="tests/": [sys.executable, "-c", "raise SystemExit(1)"])
+    head = _sha(sandbox)
+
+    passed, _ = prc.run_fast_tests(head)
+
+    assert passed is False
+    assert not prc.LAST_TESTED_HASH_FILE.exists(), (
+        "the writer stamped a hash for a suite that failed -- the cross-check is now a tautology"
+    )
+    message = wedge(head)
+    assert message is not None, (
+        "the gate is failing and unpassed at HEAD, and the priority-zero draw stayed silent"
+    )
+    assert "PUBLISH-GATE WEDGE" in message
+
+
+def test_a_green_gate_at_head_makes_the_same_wedge_state_stale(sandbox, monkeypatch, wedge):
+    """The other direction, and the mutation of the test above on ONE variable.
+
+    Identical wedged state file; the only difference is that the suite returns 0. The real
+    writer stamps HEAD, the reader sees a pass at HEAD, and the in-window failures are correctly
+    read as STALE -- no draw. Together these two show the draw tracks the gate's actual verdict
+    and not merely the presence of failures in a file, which is what makes it a cross-check
+    rather than a second reading of the same source."""
+    monkeypatch.setattr(prc, "publish_gate_pytest_argv", _argv_that_parses("pkg/thing.py"))
+    head = _sha(sandbox)
+
+    passed, _ = prc.run_fast_tests(head)
+
+    assert passed is True
+    assert prc.LAST_TESTED_HASH_FILE.read_text().strip() == head
+    assert wedge(head) is None, (
+        "a gate that passed at HEAD still drew unwedge work -- the rung would draw forever on "
+        "failures a later cycle already cleared"
+    )
+
+
+def test_mutation_a_writer_that_stamps_without_a_green_blinds_the_wedge_draw(
+        sandbox, monkeypatch, wedge):
+    """MUTATION (R15) -- the collapse the contract names, made to actually happen.
+
+    The stamp is written after a run that genuinely FAILED: exactly the file state a
+    `_run_gate_in` with its `rc == 0` guard loosened would leave behind. The wedge is unchanged
+    and real, and the draw goes silent. So the arming asserted two tests up is produced by the
+    writer's rule and by nothing else -- and a future edit that stamps on a timeout, on a
+    partial run, or "so the skip works" is not a tidy-up, it is this silence.
+
+    Scope, stated rather than implied: this reproduces the loosened writer's OUTPUT, it does not
+    re-run a patched `_run_gate_in`. The guard itself is pinned one test file section up, by
+    `test_a_red_suite_does_not_stamp_the_tested_hash`; this test supplies the CONSEQUENCE that
+    test cannot see, because the consequence lives in another module."""
+    monkeypatch.setattr(prc, "publish_gate_pytest_argv",
+                        lambda test_root="tests/": [sys.executable, "-c", "raise SystemExit(1)"])
+    head = _sha(sandbox)
+    passed, _ = prc.run_fast_tests(head)
+    assert passed is False
+
+    prc.LAST_TESTED_HASH_FILE.write_text(head)
+
+    assert wedge(head) is None, (
+        "this assertion FAILING is the good news: it would mean the draw survives a stamped "
+        "hash, i.e. the cross-check reads something other than this file and the contract's "
+        "warning no longer describes the code"
+    )
+
+
+def test_the_supervisor_cites_the_contract_instead_of_restating_it():
+    """Criterion 5's other half: the READER must point at the one place, not keep its own copy.
+
+    The supervisor had the write rule paraphrased in two of its own prose sites ("rewritten only
+    on a PASS"). Nothing bound those paraphrases to `LAST_TESTED_HASH_CONTRACT`, so the rule
+    could change in prc and leave two confident, stale restatements next to the code that depends
+    on it -- "stated in one place" plus two copies is not one place.
+
+    WHAT THIS DOES AND DOES NOT CATCH, stated so nobody reads more into a green than is there:
+    it catches the citation being deleted, and the contract being renamed or removed out from
+    under it (the name is resolved on the real module, not grepped as a string). It does NOT
+    detect a paraphrase drifting from the contract's meaning -- prose cannot be diffed against
+    prose. The semantic collapse is caught behaviourally instead, by the three composition tests
+    above; this test only guarantees there is one findable place to change."""
+    from background import supervisor
+
+    assert hasattr(prc, "LAST_TESTED_HASH_CONTRACT"), (
+        "the contract this citation points at no longer exists under that name"
+    )
+    source = Path(supervisor.__file__).read_text()
+    assert "LAST_TESTED_HASH_CONTRACT" in source, (
+        "the supervisor stopped citing the contract -- its two prose sites are back to being an "
+        "independent restatement of a rule that lives in another module"
     )

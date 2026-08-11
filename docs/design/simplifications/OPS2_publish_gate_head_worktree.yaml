@@ -292,3 +292,135 @@ build_note: |
   consumer of the notion it changes, or the older control keeps answering the old question --
   and the thing that caught it was launching the job, not re-reading the diff.
 
+  2026-08-11, sixth tick. CRITERION 5 WAS NOT MET AND NOW IS. The level still does not move;
+  the measurement launch 13 (pid 43239, HEAD a6f4a5bb1, both ratio phases correctly dropped for
+  comparability) is alive and heartbeating in the publisher-lock wait, so criterion 1's
+  successor is still the one thing owed and this tick did not touch it.
+
+  WHAT WAS WRONG. Criterion 5 asked for the `.last_tested_hash` semantics to be stated in ONE
+  place "rather than inferred from two call sites". `LAST_TESTED_HASH_CONTRACT` was written and
+  the box was ticked -- but the supervisor went on paraphrasing the write rule in two of its own
+  prose sites ("rewritten only on a PASS"), so the count went from two statements to three. And
+  the guarding test compared the two modules' PATH expressions and grepped the contract text for
+  the names of its writer and readers. Neither touches the property the contract exists for. Its
+  own last paragraph warns that "anything that stamps this file without a green suite collapses
+  [the cross-check] into a tautology and blinds the wedge draw" -- and nothing anywhere ran the
+  WRITER (`_run_gate_in`) and the READER (`supervisor._publish_gate_wedge_active`, the RUNG-1
+  priority-zero draw) against one file. A REPORTED STATE IS NOT A CONTROL: the collapse the
+  contract describes could have happened in full with the suite staying green.
+
+  THE REPAIR IS A COMPOSITION, not another assertion about the prose. Three tests drive both
+  consumers through one `.last_tested_hash`: a RED gate leaves the wedge draw ARMED (the
+  negative -- the ABSENCE of a stamp at HEAD -- which is the path that was silent for 2h17m on
+  both 2026-07-23 and 2026-07-24); a GREEN gate at the same HEAD makes the identical wedged state
+  read as STALE. Those two are each other's mutation on ONE variable, the suite's return code,
+  with both sides driven by the real writer -- so the draw demonstrably tracks the gate's actual
+  verdict rather than the presence of failures in a file, which is what makes it a cross-check
+  and not a second reading of one source. The third stamps the hash after a genuinely failed run
+  and the draw goes silent: the tautology, made to actually happen.
+
+  THE DIVISION OF LABOUR IS PROVEN, not assumed, and that was worth the fourth mutation. R15
+  BOTH WAYS, FOUR MUTATIONS RUN, source restored byte-identical after each (`git diff --stat`
+  clean): the writer's `rc == 0` guard loosened reds the ARMED test (and two pre-existing writer
+  tests with it); the reader's independence branch deleted reds the stale test and the tautology
+  test; the supervisor's `LAST_TESTED_HASH_FILE` declaration pointed at a different filename reds
+  only the OLD path-expression test. So the old control covers DIVERGENCE and the new ones cover
+  SEMANTIC COLLAPSE, and neither was standing in for the other.
+
+  The supervisor's two paraphrases are now citations of the contract, and a fourth mutation
+  (renaming the contract out from under them) reds `test_the_supervisor_cites_the_contract_
+  instead_of_restating_it`. That test states its own limits in its docstring rather than
+  implying more: it catches the citation being deleted and the contract being renamed or removed
+  (the name is resolved on the real module, not grepped), and it CANNOT detect a paraphrase
+  drifting in meaning -- prose cannot be diffed against prose. Semantic drift is caught
+  behaviourally by the three composition tests or not at all; the citation only guarantees one
+  findable place to change.
+
+  39 passed in tests/background/test_publish_gate_subject_is_head.py, 184 across the publish-gate
+  family (subject_is_head, wedge_draw, scope, alert, blocking_payload, disk_preflight,
+  head_checkout_is_a_repo, process_run_complete, sim_runner_publish_gate_outcome). The supervisor
+  change is comment-only.
+
+  THE CLASS, and it is the one this atom keeps re-teaching in new clothes: WRITING THE CONTRACT
+  DOWN IS NOT THE SAME AS BINDING ANYONE TO IT. Criterion 5 was satisfiable by prose, so prose
+  is what it got, and the guard that was supposed to hold it graded the easy half -- the path --
+  while the hard half, the meaning, had no falsifier at all. The tell was available the whole
+  time: the contract contained a sentence beginning "anything that ... collapses", i.e. it named
+  its own failure mode, and no test named it back.
+
+  BOOKKEEPING STILL OWED, third tick running, same reason: `maturity_map.yaml` is dirty with
+  another lane's D32 mint (H27 Expert Hour #14, a complete atom block in the same file), so
+  widening this atom's `file_scope` -- which still names only process_run_complete.py + this test
+  module while five ticks of work have been in tools/measure_publish_gate_subject_cost.py, and
+  now also background/supervisor.py -- would land their work under this atom's message. Deferred
+  again, deliberately; it is a pathspec collision, not a forgotten item.
+
+
+  2026-08-11, seventh tick. NOTHING WAS BUILT AND THAT IS THE RIGHT ANSWER. The level does not
+  move and the one thing owed is unchanged: a completed `in_tree_baseline`. Launch 13 (pid 43239,
+  the measurement's own pytest at /var/tmp/publish-gate-head-s9eknacc) is ALIVE and inside the
+  suite at the time of writing, so re-launching it would have killed the run that answers the
+  criterion in order to look busy.
+
+  WHAT THIS TICK ACTUALLY FOUND, and it was not in the code: THE SIXTH TICK'S WORK WAS STILL
+  DIRTY. `background/supervisor.py` (the two paraphrases turned into citations), the 162 new lines
+  in `tests/background/test_publish_gate_subject_is_head.py` (the three composition tests that
+  make criterion 5 a control rather than prose), and the sixth tick's own paragraph in THIS file
+  were all sitting uncommitted in the shared tree, mtime 14:58Z, with no process of that tick left
+  alive. The record above says "criterion 5 was not met and now is" -- and at HEAD it was not,
+  because none of it had landed. That is the inverse of the class this atom has filed twice (a
+  control landing without its mechanism): here the mechanism, its control and its record were all
+  written, all green, and none of them existed to anyone but this working tree.
+
+  ADOPTED, NOT REBUILT, and verified before adopting rather than after: 54 passed across
+  tests/background/test_publish_gate_subject_is_head.py (39) and test_publish_gate_wedge_draw.py
+  (15) -- the writer/reader composition drives both consumers through one `.last_tested_hash`, as
+  the sixth tick's note claims. The supervisor diff is comment-only and carries no other lane's
+  hunks; the two other dirty test modules in the tree (derived_artefact_register,
+  episode_monotonic_guard) are NOT this atom's and were deliberately left where they lie.
+
+  THE BOOKKEEPING OWED FOR THREE TICKS IS DISCHARGED. `file_scope` named only
+  process_run_complete.py + this test module while five ticks of work had been in
+  tools/measure_publish_gate_subject_cost.py, its tests, and background/supervisor.py. It is now
+  all five. The reason it kept deferring was real and is now gone: `maturity_map.yaml` was dirty
+  with another lane's mint on each of those ticks and a pathspec commit would have carried their
+  half-finished work; this tick the map is clean of other lanes (the population/book mint landed
+  in its own commit first, fa03a823f). Declaring supervisor.py is the honest call even though it
+  widens this atom's collision surface for the concurrent draw -- an under-declared file_scope is
+  the defect the disjointness gate exists to prevent, and hiding a file to keep the scope narrow
+  would make the gate answer a question about a subject that is not this atom.
+
+  STILL OWED, unchanged and singular: a completed `in_tree_baseline`, from launch 13 or its
+  successor. Nothing else stands between this atom and level 2.
+
+  SAME TICK, AND CRITERION 2 FIRED A SECOND TIME BEFORE THE COMMIT COULD LAND. The write-time
+  gate's 18-module scope ran 557-GREEN at 15:20Z and 1-RED at 15:35Z with no source change between
+  them. The red was `test_the_timeout_clears_the_floor_the_measurement_implies`: launch 13 banked a
+  re-timed `throwaway_checkout` at 1784.6s mid-commit, and 1784.6 * 2 = 3569 overtook the 2900s
+  bound the fifth tick had just derived. GATE_SUITE_TIMEOUT_SECONDS 2900 -> 3600, transcription
+  moved with it (1411.2 -> 1784.6), R15 both ways: the pair reds TOGETHER on a revert to 2900 and
+  the source restores byte-identical. 134 passed across subject_is_head, process_run_complete,
+  publisher_deadline_exceeds_its_gate and wedge_draw. `PUBLISH_PATH_TIMEOUT_SECONDS` is derived
+  from the constant, so the caller moved with it and could not drift -- that pair drifting apart is
+  the 41-hour wedge of 2026-08-10.
+
+  WHY THIS FIRING IS THE SHARPER EVIDENCE, and it is worth more than the number: the fifth tick
+  predicted the control would red "on its own, before anyone looked", and it has now done so
+  WITHIN A SINGLE TICK, between one run of the same test scope and the next. A hand-copied
+  transcription of the measured seconds cannot detect that; only a control that re-reads the
+  RECORD can. This is the second consecutive re-derivation, so the bound has now been undersized
+  four times (600, 1800, 2600, 2900) and every one of them was the subject or the suite moving
+  under a number nobody re-read.
+
+  READ THE TWO SUMMARIES BEFORE CALLING IT SLOWDOWN: 23,710 tests at 1411.2s, then 23,831 at
+  1784.6s. The suite GREW by 121 tests, and launch 13 was sharing this box with its own
+  `in_tree_baseline` phase and with a worker's test runs. Both effects push the same way and
+  neither is separable from this record, so 1784.6 is recorded as what it is -- a completed timing
+  under realistic contention -- and 3600 rather than 3569 exactly, because a bound sitting 0s above
+  its own floor reds on the next honest phase of a suite that grows daily.
+
+  ALSO OBSERVED, and it explains the re-timing rather than being a defect: this tick's own mint
+  commit (fa03a823f) moved HEAD after launch 13 started at a6f4a5bb1, so the comparability rule the
+  fourth tick built correctly DROPPED both ratio phases and re-timed them. That is the rule working
+  and it costs ~45 minutes, exactly as that tick's note said it would. `in_tree_baseline` is
+  in-flight at `suite_running` since 15:13:31Z and is still the one thing this atom owes.

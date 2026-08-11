@@ -1717,7 +1717,26 @@ def _gate_timed_out():
 # shared directory with bytecode from outside its own run, so it was never the shipped subject.
 # `test_the_timeout_clears_the_floor_the_measurement_implies` reddened on this before any human
 # looked, which is the control working rather than a regression.
-GATE_SUITE_TIMEOUT_SECONDS = 2900
+#
+# RE-DERIVED AGAIN, 2900 -> 3600 (2026-08-11, same day, launch 13). The control fired a SECOND
+# time, mid-tick, on a phase the measurement banked while a worker was mid-commit: the gate scope
+# ran green at 15:20Z and red at 15:35Z with no source change between them, because
+# `throwaway_checkout` was re-timed at 1784.6s (23,831 passed, rc=1, `ran_to_completion: true`,
+# cwd /var/tmp/publish-gate-head-s9eknacc) and 1784.6 * 2 = 3569 overtook 2900.
+#
+# THE SUBJECT DID NOT GET SLOWER BY 373s BECAUSE OF DRIFT -- read the summaries side by side:
+# 23,710 tests at 1411.2s, then 23,831 at 1784.6s. The suite GREW by 121 tests, and it was also
+# sharing this box with the in-tree baseline phase and a worker's own test runs. Both effects push
+# the same way and neither is separable from this record, so the number is treated as what it is:
+# a real, completed timing of the shipped subject under realistic contention. Erring high costs a
+# longer wait on a genuinely hung gate; erring low WEDGES PUBLISHING, and this bound has now been
+# undersized four times (600, 1800, 2600, 2900).
+#
+# 3600 rather than 3569 exactly: the floor is derived from one measurement of a suite that grows
+# every day, and a bound sitting 0s above its own floor reds on the next honest phase. The caller's
+# bound (PUBLISH_PATH_TIMEOUT_SECONDS below) is DERIVED from this constant, so it moves with it and
+# cannot drift -- that pair drifting apart is what wedged publishing for 41 hours on 2026-08-10.
+GATE_SUITE_TIMEOUT_SECONDS = 3600
 
 # The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
 # bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's

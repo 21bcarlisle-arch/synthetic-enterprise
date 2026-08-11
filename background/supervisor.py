@@ -253,9 +253,11 @@ BUILD_IN_PROGRESS_TTL_SECONDS = 3600
 # gate that has been failing for >60 min while alerts fire and the tick idles is PRIORITY-ZERO
 # drawable work -- it blocks ALL publishing, so it outranks every product/HARDEN lane. These two
 # files are WRITTEN by background/process_run_complete.py (record_publish_gate_failure/_success --
-# failures trimmed to a 1h window, cleared on the next clean publish; .last_tested_hash rewritten
-# only on a PASS). The supervisor only READS them (never blocks: local disk reads only, per the
-# module doctrine above). Detector: _publish_gate_wedge_active(); wired as the TOP rung of
+# failures trimmed to a 1h window, cleared on the next clean publish). For .last_tested_hash the
+# semantics are NOT restated here: process_run_complete.LAST_TESTED_HASH_CONTRACT is the one place
+# they are stated (OPS2 criterion 5), because this file is the second of the two call sites that
+# used to infer them from each other. The supervisor only READS them (never blocks: local disk
+# reads only, per the module doctrine above). Detector: _publish_gate_wedge_active(); wired as TOP rung of
 # _self_refill_draw and mirrored in _is_drained_and_gated. R15-proven both ways in
 # test_publish_gate_wedge_draw.py.
 PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
@@ -2940,7 +2942,10 @@ def _publish_gate_wedge_active(
 
     Signal source: process_run_complete.py's .publish_gate_state.json (`failures` list trimmed to a
     1h window and CLEARED on the next clean publish; `alerted_at`/`wedge_since` timestamps) plus
-    .last_tested_hash (rewritten ONLY on a gate PASS).
+    .last_tested_hash, whose write rule is stated in exactly one place --
+    `process_run_complete.LAST_TESTED_HASH_CONTRACT`. Read it before changing what this branch
+    treats as "a pass at HEAD": the cross-check below is only independent while that rule holds,
+    and the composition is pinned in tests/background/test_publish_gate_subject_is_head.py.
 
     Two-part predicate:
       * WEDGED (precise, so no phantom draw): `failures` has >= PUBLISH_GATE_WEDGE_MIN_FAILURES
