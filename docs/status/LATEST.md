@@ -1,5 +1,32 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T19:40:29Z
+Last updated: 2026-08-11T22:05:00Z
+
+**G12 v1 LANDED — the query store is built, and the artefact its control reads was untracked
+(`400414f02`, level 0→2, pushed).** Step 2 of `DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10`.
+`tools/build_projections.py` rebuilds `docs/observability/projections.sqlite` (gitignored) from four
+COMMITTED artefacts — read with `git cat-file blob HEAD:<path>`, never off disk. MEASURED, not
+asserted: **403 rows from 4 sources in 0.32s, 380,928 bytes**; cross-source joins verified by query
+(coupled gaps joined to atoms; build-lane shortfall by lane — questions the repo could not answer in
+one command before). 26 passed, ruff clean. Three properties, each **R15 both ways with the mutations
+RUN**: COMMITTED-not-working-tree (an uncommitted edit does not reach the store); REBUILT-not-mutated
+(mutated into the in-place builder in two variants, incl. the *idempotent* one that reports `ok`
+while a row nobody sourced sits beside the real ones); FAIL-CLOSED-not-empty (a missing/malformed/
+empty source is an UNKNOWN, the live store is left byte-identical, no table published as zero rows;
+there is deliberately no `--allow-unknown` — that door is the defect wearing a flag). The AO12
+envelope is **READ** from the probe's own report (`run_output_serialize`: ceiling 1000 customers,
+graduation trigger 5144), proven by a **perturbation oracle** rather than an equality check — a test
+pinning 5144 would pass just as happily against a hardcoded constant.
+**The anchor discrepancy is resolved, narrow branch:** scope stays internal queryability, so
+`SAAS_COVERAGE_MAP.md:71` is left true as written and its published **22.7% figure does not move**.
+Restating the row would have moved a live percentage to accommodate a convenience tool.
+**The finding worth the Hour:** `docs/design/scale_probe_10k_report.json` was **untracked and not
+ignored** — `tools/scale_probe_10k.py` writes it, nothing lands it — so G12's fail-closed envelope
+would have been starved on day one in any clean checkout. That is the **second instance in two days**
+of a measurement tool that never lands the evidence its own control reads (the first wedged the
+publish gate ~1760 min). Instance fixed (`7ca016d3c`) with a standing control; **class stays OPEN** —
+per R10 a per-artefact assertion written by whoever notices is not a class fix. Residuals filed not
+implied away: not wired into the publish path, no caller until G13, event spine not yet a source,
+and the envelope governs nothing yet (recorded state is not a control). **G13 is now drawable.**
 
 **G12/G13 QUERYABLE PROJECTIONS MINTED — the July design finally has its caller, and its anchor
 does not exist (`79c3ecd2e`/`c2ca2abc8`, pushed).** Step 1 of
@@ -2263,7 +2290,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (249s / 4 min):
+**Latest simulation results (2016–2025)** — auto-processed (261s / 4 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2379,6 +2406,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2170.3h across 91 sized atom(s) (15 of 106 below-target atoms still unsized).
+- Remaining effort: ~2181.9h across 92 sized atom(s) (15 of 107 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
