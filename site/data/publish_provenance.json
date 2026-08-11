@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-11T13:59:20Z",
+    "checked_at": "2026-08-11T14:43:30Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_effort_digest.py::test_effort_digest_step_never_raises_on_failure"
     ],
     "nonblocking_reds_total": 2584,
-    "open_findings": 77
+    "open_findings": 78
   },
   "last_verified": {
-    "generated_at": "2026-08-11T14:42:37Z",
-    "git_commit": "cb555c775",
-    "run_id": "run_output_cb555c775_20260811T140647Z.json",
-    "verified_at": "2026-08-11T14:42:37Z"
+    "generated_at": "2026-08-11T16:20:27Z",
+    "git_commit": "42bd81c98",
+    "run_id": "run_output_42bd81c98_20260811T154408Z.json",
+    "verified_at": "2026-08-11T16:20:27Z"
   },
   "paused_reason": "scoped publish-path suite red at git=c49fec2e6; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-11T14:42:37Z",
-    "git_commit": "cb555c775",
-    "run_id": "run_output_cb555c775_20260811T140647Z.json",
-    "verified_at": "2026-08-11T14:42:37Z"
+    "generated_at": "2026-08-11T16:20:27Z",
+    "git_commit": "42bd81c98",
+    "run_id": "run_output_42bd81c98_20260811T154408Z.json",
+    "verified_at": "2026-08-11T16:20:27Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-11T14:42:37Z"
+  "written_at": "2026-08-11T16:20:27Z"
 }
