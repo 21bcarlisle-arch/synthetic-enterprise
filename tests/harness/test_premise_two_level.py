@@ -4480,16 +4480,30 @@ def test_an_EXACTLY_FAITHFUL_MIRROR_is_not_called_INCONCLUSIVE_by_its_own_normal
         verdict.epc_register_mae, abs=1e-15
     ), "the level reflection preserves |register - truth| per premise, by algebra"
     assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
-    assert verdict.panel_mirror_is_attributable
     # ...while the OLD gate term is far above the band on this very population.
     assert verdict.panel_mirror_relative_infidelity > fgl.MIRROR_FIDELITY_BAND
     assert verdict.panel_mirror_normaliser_drift > fgl.MIRROR_FIDELITY_BAND
 
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
-    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
     yardstick = [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")]
     assert len(yardstick) == 1, caveats
     assert "not the mirror failing" in yardstick[0]
+    # THE THIRD HOUR, ON THIS SAME FIXTURE (2026-08-11). The register dimension is
+    # still exactly faithful and must never be the stated reason again — but this
+    # panel is NOT attributable, because the money channel the verdict is
+    # denominated in is 100% re-composition. The two claims live in different
+    # dimensions and this test now pins both: the kW/K term does not misfire, AND
+    # the sentence does not blame it.
+    assert not verdict.panel_mirror_is_attributable
+    assert verdict.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    inconclusive = [c for c in caveats if c.startswith("MIRROR INCONCLUSIVE")]
+    assert len(inconclusive) == 1, caveats
+    assert "deciding margin" in inconclusive[0]
+    assert "register arm's OWN error" not in inconclusive[0], (
+        "the register dimension is exactly faithful here; naming it as the ground "
+        "for INCONCLUSIVE is the second Hour's defect returning through the "
+        "sentence instead of through the gate"
+    )
 
 
 def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_is_not():
@@ -4505,8 +4519,11 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     Pinned here on a fixture reaching the same state through the real code path — one
     premise the level reflection cannot be run on, so the whole panel falls back.
     """
+    # `inferred_bias` chosen to leave a DECISIVE money verdict: the INCONCLUSIVE
+    # sentence protects a published money headline, and on an already-'neither'
+    # verdict there is no over-reading on offer for it to prevent.
     rows = _infeasible_reflection_population(
-        n=10, epc_bias=0.90, rogue=0.40, spread=0.08
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.60
     )
     assert fgl.panel_mirror(rows).reflection == fgl.LOG_PRESERVING_FALLBACK
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
@@ -4526,6 +4543,9 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     # not printed is not auditable by the reader it is addressed to.
     assert f"{verdict.epc_register_mae:.6f}" in inconclusive[0]
     assert f"{verdict.panel_mirror_register_mae:.6f}" in inconclusive[0]
+    # ...and the per-premise disturbance, which is the number the gate actually
+    # reads. The mean PAIR above is the thing that understated it.
+    assert f"{verdict.panel_mirror_register_mad:.6f}" in inconclusive[0]
 
 
 def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0):
@@ -4594,11 +4614,31 @@ def test_a_FAITHFUL_MIRROR_THAT_FINDS_NOTHING_stays_SILENT():
     rows = _fixed_offset_population(inferred_bias=3.0)
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert verdict.panel_mirror_epc_gap_drift == pytest.approx(0.0, abs=1e-12)
-    assert verdict.panel_mirror_is_attributable
+    assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
     assert not verdict.composition_decided
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
-    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
     assert not any(c.startswith("COMPOSITION-DECIDED") for c in caveats), caveats
+    # THE THIRD HOUR CHANGED WHAT THIS FIXTURE PROVES (2026-08-11), and the honest
+    # record is to say so rather than to keep the old assertion by weakening the
+    # gate. A fixed OFFSET rescales each premise's heat by `(truth + 2*offset)/truth`,
+    # which on a panel spanning 0.10-0.55 kW/K is a far bigger move at the tight end
+    # than the loose one — so the weight-only null moves the deciding margin 5.8x as
+    # far as the mirror does, and in the opposite direction. This mirror is faithful
+    # in kW/K and re-composes the panel in GBP; silence would be the old defect.
+    assert verdict.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert not verdict.panel_mirror_is_attributable
+    inconclusive = [c for c in caveats if c.startswith("MIRROR INCONCLUSIVE")]
+    assert len(inconclusive) == 1, caveats
+    assert "register arm's OWN error" not in inconclusive[0]
+    # Silence is still REACHABLE, which is the property this test was guarding —
+    # proven on a panel that earns it in both dimensions.
+    assert not any(
+        c.startswith("MIRROR INCONCLUSIVE")
+        for c in fgl.headline_caveats(
+            _observations(n=10, epc_bias=1.10, inferred_bias=0.90),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        )
+    )
 
 
 def test_a_FAITHFUL_MIRROR_THAT_DOES_FLIP_is_reported_WITHOUT_the_directional_rider():
@@ -4633,8 +4673,10 @@ def test_a_REGISTER_WITH_NO_GAP_TO_MOVE_does_not_divide_by_its_own_zero():
     moved = dataclasses.replace(verdict, panel_mirror_epc_gap=0.05)
     assert moved.panel_mirror_relative_infidelity == math.inf
     # ...and the GATE's own zero-corner, which is a different field and therefore
-    # needs its own construction rather than inheriting the one above.
-    moved_arm = dataclasses.replace(verdict, panel_mirror_register_mae=0.01)
+    # needs its own construction rather than inheriting the one above. The field is
+    # the PER-PREMISE disturbance, not the mean pair: the mean pair is what the
+    # third Hour found could not carry this gate (2026-08-11).
+    moved_arm = dataclasses.replace(verdict, panel_mirror_register_mad=0.01)
     assert moved_arm.panel_mirror_register_infidelity == math.inf
     assert not moved_arm.panel_mirror_is_attributable
 
@@ -4841,3 +4883,233 @@ def test_a_belief_with_no_systematic_direction_is_not_reported_as_skewed():
     majority to agree with, or every scattered population would carry a SKEWED line."""
     bias = fgl.belief_bias(_observations(n=8), belief="epc")
     assert bias.direction == "none" and bias.mean_agrees_with_majority
+
+
+def _cancelling_disturbance_population(n=10, *, rogue=0.40):
+    """A panel whose per-premise breaches CANCEL IN THE MEAN under the log fallback.
+
+    Mixed-direction by construction — the register over-states on some premises and
+    under-states on others — because the log reflection scales each premise's error
+    by `register/truth`, which is below one where the register under-states and above
+    one where it over-states. Both published populations of this atom are
+    mixed-direction (the register over-states on 1 of 15 authored and 74 of 200
+    drawn), so this is the shape of the real thing, not a contrivance.
+    """
+    biases = [rogue, 1.30, 0.82, 1.30, 1.30, 0.82, 0.82, 0.82, 0.82, 1.30][:n]
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.10 + 0.05 * i,
+            epc_hlc_kw_per_k=(0.10 + 0.05 * i) * b,
+            inferred_hlc_kw_per_k=(0.10 + 0.05 * i) * 0.90,
+            floor_area_m2=60.0 + 10.0 * i,
+            annual_heat_kwh=8000.0 + 1500.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i, b in enumerate(biases)
+    ]
+
+
+def test_a_MIRROR_WHOSE_BREACHES_CANCEL_IN_THE_MEAN_is_still_caught():
+    """THE NAMED DEFECT #1 of the third Hour (2026-08-11): the fidelity numerator was
+    a DIFFERENCE OF AGGREGATES standing in for a promise made PER PREMISE.
+
+    `_reflect_level` promises "same ABSOLUTE error, opposite sign" premise by premise.
+    The gate compared `mean(e')` with `mean(e)`, and `|mean(e') - mean(e)|` is bounded
+    above by `mean|e' - e|`, with equality only when every breach shares a sign. On a
+    mixed-direction panel under the log fallback they never do.
+
+    Found on real data first: on a 20-premise subpanel of this atom's own drawn
+    population the old shape read 4.36% — inside the band, "faithful" — over a mirror
+    that had moved the register arm's error by 44.51% per premise. Pinned here on a
+    fixture reaching the same state through the real code path.
+    """
+    rows = _cancelling_disturbance_population()
+    assert fgl.panel_mirror(rows).reflection == fgl.LOG_PRESERVING_FALLBACK
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    # THE OLD SHAPE, computed here from the row's own published pair so this test
+    # cannot drift away from the thing it claims to have replaced.
+    difference_of_means = (
+        abs(verdict.panel_mirror_register_mae - verdict.epc_register_mae)
+        / verdict.epc_register_mae
+    )
+    assert difference_of_means <= fgl.MIRROR_FIDELITY_BAND, (
+        "this fixture exists because the old shape PASSES on it"
+    )
+    # ...and the promise, measured as it was made, is breached by an order of
+    # magnitude more.
+    assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+    assert verdict.panel_mirror_register_infidelity > 10 * difference_of_means
+    assert not verdict.panel_mirror_is_attributable
+
+
+def test_the_MONEY_CHANNEL_is_gated_though_the_kW_per_K_TERM_IS_EXACTLY_ZERO():
+    """THE NAMED DEFECT #2 of the third Hour, and the reason the gate has two halves.
+
+    `panel_mirror_is_attributable` guards a verdict denominated in GBP and read only
+    a term denominated in kW/K — one the level-preserving reflection zeroes BY
+    ALGEBRA. So on both published populations it certified the mirror at 0.0000%
+    disturbance while the money weights the verdict is built from had moved across a
+    62.9x spread (`annual_heat_kwh` 0.151x to 9.518x on the drawn panel), and a
+    weight-only null carrying no sign flip at all reproduced 98% of the mirror's
+    movement in the deciding margin.
+
+    The two dimensions must be independently failable, so this fixture holds the kW/K
+    term at EXACTLY zero and fails on money alone.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
+    assert verdict.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert not verdict.panel_mirror_is_attributable
+
+    # The null must be a DIFFERENT panel from the mirror, or the term is a tautology
+    # comparing a thing with itself.
+    null = fgl.weight_null_panel(rows)
+    mirrored = fgl.panel_mirror(rows).rows
+    assert [o.actual_hlc_kw_per_k for o in null] == [
+        o.actual_hlc_kw_per_k for o in rows
+    ], "the null must carry the ORIGINAL truth — that is what removes the signal"
+    assert [o.annual_heat_kwh for o in null] == [
+        o.annual_heat_kwh for o in mirrored
+    ], "...and the MIRROR's weights — that is what isolates the channel"
+    assert [o.actual_hlc_kw_per_k for o in null] != [
+        o.actual_hlc_kw_per_k for o in mirrored
+    ]
+
+
+def test_the_WEIGHT_ARTEFACT_GATE_CAN_PASS_so_it_is_not_an_ALWAYS_RED_DETECTOR():
+    """R15 THE OTHER WAY. A gate that can only fail is as ignored as a blind one, and
+    this one fails on both published populations — so it owes a demonstration that
+    some panel passes it for a REAL reason, not a vacuous one.
+
+    Here the mirror moves the deciding margin substantially and the weight-only null
+    accounts for less than half of that movement: the sign flip did the work, so the
+    verdict is a statement about the stock and may be read as one.
+    """
+    rows = _observations(n=10, epc_bias=1.10, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    moved_by_mirror = (
+        verdict.panel_mirror_forgone_inferred_gbp - verdict.panel_mirror_forgone_epc_gbp
+    ) - (verdict.forgone_inferred_gbp - verdict.forgone_epc_gbp)
+    assert moved_by_mirror != 0.0, "a passing case must be a MEASURING case"
+    assert verdict.panel_mirror_weight_artefact < fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert verdict.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    assert verdict.panel_mirror_is_attributable
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+
+
+def test_the_ZERO_CORNER_of_the_weight_artefact_splits_NOTHING_HAPPENED_from_CANCELLATION():
+    """THE NEW TERM'S OWN ZERO CORNER, both branches.
+
+    The artefact share is a ratio and 0/0 is reachable two ways that mean opposite
+    things: nothing moved in either channel (robust, believe it), or a large
+    re-composition and a large sign flip annihilated (the least readable result this
+    instrument can produce). A first cut returned infinity for both and called a
+    perfectly faithful identity mirror unattributable; lumping them the other way
+    would certify a cancellation as robustness.
+    """
+    base = fgl.composition_verdict(
+        _observations(n=10, epc_bias=0.95, inferred_bias=0.90),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    moved_by_mirror = (
+        base.panel_mirror_forgone_inferred_gbp - base.panel_mirror_forgone_epc_gbp
+    ) - (base.forgone_inferred_gbp - base.forgone_epc_gbp)
+    assert moved_by_mirror == 0.0, "this fixture exists for the 0/0 case"
+    # NEITHER channel moved: nothing happened, so no part of a movement that did not
+    # occur can be artefact, and the mirror is believed.
+    assert base.panel_mirror_weight_artefact == 0.0
+    assert base.panel_mirror_is_attributable
+
+    # ...but the SAME zero reached by CANCELLATION is the least readable result the
+    # instrument can produce, and must never inherit that reading. Constructed
+    # directly, as the other zero-corner branches in this file are: the two channels
+    # have to annihilate to the bit, which no fixture reliably reaches, and that is
+    # exactly why the branch needs a test rather than an argument.
+    cancelled = dataclasses.replace(
+        base,
+        weight_null_forgone_epc_gbp=base.forgone_epc_gbp + 5_000.0,
+        weight_null_forgone_inferred_gbp=base.forgone_inferred_gbp,
+    )
+    assert cancelled.panel_mirror_weight_artefact == math.inf
+    assert not cancelled.panel_mirror_is_attributable
+
+
+def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED():
+    """The gate and its disclosure must fail TOGETHER and for the SAME reason.
+
+    A fixed sentence over a two-dimensional gate would have printed "the mirror moved
+    the register arm's own error by 0.0%" as the stated ground for INCONCLUSIVE on
+    both published populations — a disclosed number that is not the reason, which is
+    the exact family of defect the three Hours on this machinery have each found.
+    """
+    money_only = fgl.composition_verdict(
+        _observations(n=10, epc_bias=0.80, inferred_bias=0.90),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    register_too = fgl.composition_verdict(
+        _cancelling_disturbance_population(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    )
+    money_sentence = fgl._why_unattributable(money_only)
+    both_sentence = fgl._why_unattributable(register_too)
+    assert "register arm's OWN error" not in money_sentence
+    assert "deciding margin" in money_sentence
+    assert "register arm's OWN error" in both_sentence
+    assert "deciding margin" in both_sentence, (
+        "both halves fired on this panel; a sentence reporting one of two live "
+        "faults leaves the reader to assume the other is clean"
+    )
+    # And it may never explain an INCONCLUSIVE that the gate did not raise.
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._why_unattributable(
+            fgl.composition_verdict(
+                _observations(n=10, epc_bias=1.10, inferred_bias=0.90),
+                unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+            )
+        )
+
+
+def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
+    """The caveat protects a published money verdict from being over-read. Where the
+    verdict is already 'neither', the headline itself says too-close-to-call and
+    there is no "so composition does not matter" reading on offer to prevent — the
+    sentence would have read "did NOT move the money verdict off neither", which is
+    not a statement about anything.
+
+    Both halves are pinned on the SAME unfaithful mirror, so the only difference
+    between them is whether there was a headline to protect. A caveat list that
+    prints on populations with nothing to caveat is one nobody reads, and that is
+    how a real disclosure gets skipped.
+    """
+    indecisive = _infeasible_reflection_population(
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.90
+    )
+    decisive = _infeasible_reflection_population(
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.60
+    )
+    for rows in (indecisive, decisive):
+        verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        assert not verdict.panel_mirror_is_attributable, (
+            "both panels must carry the SAME unfaithful mirror, or this test is "
+            "comparing two things at once"
+        )
+        assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+
+    assert fgl.composition_verdict(
+        indecisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    ).money_favours == "neither"
+    assert fgl.composition_verdict(
+        decisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    ).money_favours != "neither"
+
+    quiet = fgl.headline_caveats(indecisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    loud = fgl.headline_caveats(decisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in quiet), quiet
+    assert len([c for c in loud if c.startswith("MIRROR INCONCLUSIVE")]) == 1, loud

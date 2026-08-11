@@ -110,7 +110,7 @@ from __future__ import annotations
 import math
 import random
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, replace as _dc_replace
 from enum import Enum
 from pathlib import Path
 from typing import Mapping, Sequence
@@ -3697,6 +3697,73 @@ LEVEL_PRESERVING = "level_preserving"
 LOG_PRESERVING_FALLBACK = "log_preserving_fallback"
 
 
+def _register_mad(
+    before: Sequence[FabricObservation], after: Sequence[FabricObservation]
+) -> float:
+    """How far the reflection moved the register arm's error PER PREMISE, averaged —
+    an aggregate of differences, never a difference of aggregates.
+
+    THE DISTINCTION IS THE WHOLE POINT (2026-08-11, third Expert Hour on this
+    machinery). `_register_mae` before and after gives `|mean(e') - mean(e)|`, which
+    is bounded ABOVE by this number and equals it only when every premise's
+    disturbance shares a sign. The reflection promises preservation PER PREMISE
+    ("same ABSOLUTE error, opposite sign"), so a term built on the difference of the
+    two means is not the promise measured — it is the promise measured after the
+    breaches have been allowed to cancel.
+
+    They do cancel here. The log-preserving fallback scales each premise's error by
+    `register/truth`, which is BELOW one where the register under-states and ABOVE
+    one where it over-states, and both published populations are mixed-direction
+    (register over-states on 1 of 15 authored and 74 of 200 drawn). Measured on a
+    real 20-premise subpanel of this atom's own drawn population, the difference-of-
+    means read 4.36% — inside the 5% band, "faithful" — over a mirror that had moved
+    the register arm's error by 44.51% per premise. A factor of 10.2, in the
+    passing direction.
+    """
+    if len(before) != len(after):
+        raise InsufficientEvidence(
+            f"a mirrored panel of {len(after)} cannot be compared premise-by-premise "
+            f"with an original of {len(before)}"
+        )
+    total = 0.0
+    for o, m in zip(before, after):
+        if o.premise_id != m.premise_id:
+            raise InsufficientEvidence(
+                f"mirrored rows are out of order ({o.premise_id!r} vs {m.premise_id!r})"
+                " — a per-premise disturbance cannot be measured across a reordering"
+            )
+        total += abs(
+            abs(m.epc_hlc_kw_per_k - m.actual_hlc_kw_per_k)
+            - abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k)
+        )
+    return total / len(before)
+
+
+def weight_null_panel(
+    observations: Sequence[FabricObservation],
+) -> list[FabricObservation]:
+    """THE MIRROR'S OWN NULL: the panel re-weighted exactly as the mirror re-weights
+    it, with NO mirror signal in it at all.
+
+    Each premise takes the mirrored row's `annual_heat_kwh` and keeps its own truth
+    and both its beliefs. So every premise's `register - truth` error is identical to
+    the unmirrored panel, bit for bit — the sign composition the panel mirror exists
+    to reverse is NOT reversed here — and anything that moves in the money verdict
+    moved because the mirror re-composed the panel's money weights, not because the
+    stock failed the other way.
+
+    NOT A WORLD, AND NEVER PUBLISHED AS ONE. A house whose bill moves while its heat
+    loss does not is not a house; that incoherence is deliberate and is what isolates
+    the channel. This is the same kind of instrument as `mirror_decision_confidence`
+    (estimates held, error bars swapped) — a panel built to hold one thing fixed so
+    the other can be attributed, not a claim about any stock.
+    """
+    return [
+        _dc_replace(o, annual_heat_kwh=m.annual_heat_kwh)
+        for o, m in zip(observations, panel_mirror(observations).rows)
+    ]
+
+
 def _register_mae(observations: Sequence[FabricObservation]) -> float:
     """The register arm's RAW mean absolute error — the quantity a reflection built
     around that arm claims to preserve, un-normalised.
@@ -3920,8 +3987,18 @@ class CompositionVerdict:
     # Hour). These two are the quantity the reflection actually claims to preserve.
     epc_register_mae: float
     panel_mirror_register_mae: float
+    # ...and the PER-PREMISE disturbance, because the pair above are two means and a
+    # promise made per premise cannot be audited by the difference of two means
+    # (2026-08-11, third Hour). This is the numerator of the fidelity gate.
+    panel_mirror_register_mad: float
     panel_mirror_reflection: str
     panel_mirror_infeasible_premises: int
+    # THE WEIGHT-ONLY NULL — the mirror's re-composition channel with the mirror's
+    # signal removed. The gate above is denominated in kW/K; the verdict it guards is
+    # denominated in GBP, and these are the same money figures with the sign flip
+    # taken out (2026-08-11, third Hour).
+    weight_null_forgone_epc_gbp: float
+    weight_null_forgone_inferred_gbp: float
     # THE REVISION MIRROR — same stock, inference stepping the other way.
     revision_mirror_money_favours: str
     revision_mirror_forgone_epc_gbp: float
@@ -4006,21 +4083,80 @@ class CompositionVerdict:
         """THE ARTEFACT, AND THE GATE: how far the reflection moved the register
         arm's own RAW error — the one quantity it claims to preserve.
 
-        MEASURED off the mirrored rows, never assumed from the algebra. Under the
-        level-preserving form this is zero by construction, and a control whose
-        subject is zero by construction is a control that cannot fail — so it is
-        computed from the panel that was actually built, and it fires the moment any
-        reflection stops preserving what it promises (the log-preserving fallback
-        does not preserve it: measured at 20–125% of the register's own error on 13
-        of 400 real subpanels, while the ratio above read UNDER the 5% band on every
-        one of them and called the mirror faithful).
+        MEASURED off the mirrored rows, never assumed from the algebra — and measured
+        PER PREMISE (2026-08-11, third Hour). This used to be
+        `|mean(e') - mean(e)| / mean(e)`, a difference of two aggregates standing in
+        for a promise the reflection makes about every premise separately. The two
+        differ whenever the breaches point different ways, which on a mixed-direction
+        panel under the log fallback is always: on a real 20-premise subpanel of this
+        atom's own drawn population the old shape read 4.36% and passed the band over
+        a mirror that had moved the register arm's error by 44.51% per premise.
+
+        The numerator is now `_register_mad`, which cannot cancel. Under the
+        level-preserving form it is still zero — that reflection genuinely does
+        preserve every premise's absolute error — and that is a true reading, not a
+        control that cannot fail: it fires on the log-preserving fallback, and the
+        MONEY channel this term is blind to now has its own gate in
+        `panel_mirror_weight_artefact`, because a term denominated in kW/K was never
+        going to certify a verdict denominated in GBP.
         """
         if self.epc_register_mae == 0.0:
-            return 0.0 if self.panel_mirror_register_mae == 0.0 else math.inf
-        return (
-            abs(self.panel_mirror_register_mae - self.epc_register_mae)
-            / abs(self.epc_register_mae)
-        )
+            return 0.0 if self.panel_mirror_register_mad == 0.0 else math.inf
+        return self.panel_mirror_register_mad / abs(self.epc_register_mae)
+
+    @property
+    def panel_mirror_weight_artefact(self) -> float:
+        """THE SECOND ARTEFACT, AND THE SECOND HALF OF THE GATE: how much of the
+        mirror's movement in the DECIDING MARGIN is reproduced with no mirror signal
+        in the panel at all (2026-08-11, third Expert Hour on this machinery).
+
+        The money verdict is a comparison, so the quantity that decides it is the
+        margin `forgone_inferred - forgone_epc`. The mirror moves that margin. So
+        does the plain fact that reflecting the truth rescales every premise's
+        `annual_heat_kwh` — by 0.151x to 9.518x on the drawn population, a 62.9x
+        spread — and `money_consequence` is built on `annual_heat_kwh` through both
+        arms and through the actionability test. This term is the null's share of the
+        mirror's own movement: 0.0 means the verdict moved because the stock failed
+        the other way, 1.0 means it moved because the panel was re-weighted and the
+        sign flip contributed nothing.
+
+        It is large on both published populations — 98% on the drawn panel — which is
+        why the previous gate certifying this mirror at 0.0000% disturbance was
+        certifying the one dimension the reflection preserves by algebra while the
+        dimension the verdict is actually denominated in had done all the moving.
+
+        NOT the same claim as "the verdict is wrong". Neither the mirror nor the null
+        flips the ranking on either published population. What it says is that a
+        NO-FLIP from this instrument is weak evidence, because the instrument applied
+        almost no signal — and a null result from an instrument that barely moved is
+        exactly the reading `panel_mirror_is_attributable` exists to prevent.
+
+        THE ZERO CORNER, split rather than lumped. Where the mirror does not move the
+        deciding margin the term is 0/0, and the two ways of arriving there are not
+        the same event:
+
+        * the weight null did not move it either — nothing happened in either
+          channel, so no part of a movement that did not occur can be artefact. 0.0,
+          and the verdict is as robust as it looks.
+        * the weight null DID move it — then the mirror's net zero is two large
+          opposing channels cancelling, not an instrument finding nothing. Infinity:
+          a null assembled out of a re-composition and a sign flip that happened to
+          annihilate is the least readable result this instrument can produce, and
+          reading it as robustness is the exact error the gate exists to prevent.
+
+        A first cut returned infinity for BOTH, which called a perfectly-faithful
+        identity mirror (a register that is exactly right has nothing to reflect)
+        unattributable. Caught by the suite, and the distinction is the fix.
+        """
+        moved_by_mirror = (
+            self.panel_mirror_forgone_inferred_gbp - self.panel_mirror_forgone_epc_gbp
+        ) - (self.forgone_inferred_gbp - self.forgone_epc_gbp)
+        moved_by_weight = (
+            self.weight_null_forgone_inferred_gbp - self.weight_null_forgone_epc_gbp
+        ) - (self.forgone_inferred_gbp - self.forgone_epc_gbp)
+        if moved_by_mirror == 0.0:
+            return 0.0 if moved_by_weight == 0.0 else math.inf
+        return abs(moved_by_weight) / abs(moved_by_mirror)
 
     @property
     def panel_mirror_normaliser_drift(self) -> float:
@@ -4059,8 +4195,19 @@ class CompositionVerdict:
         ratio moved the gate in both wrong directions — it refused an exactly
         faithful mirror on the authored panel, and it passed mirrors that had moved
         the register's own error by up to 125% on real subpanels of the drawn one.
+
+        BOTH DIMENSIONS, NOT ONE (2026-08-11, third Hour). The gate guards a verdict
+        denominated in GBP and was reading a term denominated in kW/K — a term the
+        level-preserving reflection zeroes by algebra, so on both published
+        populations it certified the mirror at 0.0000% while the money weights the
+        verdict is built from had moved across a 62.9x spread and the weight-only
+        null reproduced 98% of the mirror's movement in the deciding margin. A
+        fidelity claim has to cover the channel the consumer reads.
         """
-        return self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
+        return (
+            self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
+            and self.panel_mirror_weight_artefact <= MIRROR_WEIGHT_ARTEFACT_BAND
+        )
 
     @property
     def composition_decided(self) -> bool:
@@ -4121,6 +4268,11 @@ VERDICT_MATERIALITY = 0.05
 # against it, the two published populations sit either side (14.1% authored, 1.9%
 # drawn), which is what a band that can fail looks like.
 MIRROR_FIDELITY_BAND = 0.05
+# How much of the mirror's movement in the deciding margin may be pure re-composition
+# before its verdict stops being a statement about the sign flip. Set at half: past
+# that, the null explains more of the movement than the signal does, and a no-flip is
+# a statement about the weights rather than about the stock (2026-08-11, third Hour).
+MIRROR_WEIGHT_ARTEFACT_BAND = 0.50
 
 
 def _favours(epc_value: float, inferred_value: float) -> str:
@@ -4190,6 +4342,9 @@ def composition_verdict(
     revision_epc, revision_inferred = _money(revision)
     confidence = mirror_decision_confidence(observations)
     confidence_epc, confidence_inferred = _money(confidence)
+    # The mirror's own null: the same re-weighting with the sign flip taken out, so
+    # the money movement can be split into signal and re-composition.
+    weight_null_epc, weight_null_inferred = _money(weight_null_panel(observations))
 
     above = sum(1 for o in observations if o.actual_hlc_kw_per_k > o.epc_hlc_kw_per_k)
     return CompositionVerdict(
@@ -4209,12 +4364,15 @@ def composition_verdict(
         panel_mirror_epc_gap=epc_vs_actual_gap(panel).gap,
         epc_register_mae=_register_mae(observations),
         panel_mirror_register_mae=_register_mae(panel),
+        panel_mirror_register_mad=_register_mad(observations, panel),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
         revision_mirror_money_favours=_favours(revision_epc, revision_inferred),
         revision_mirror_forgone_epc_gbp=revision_epc,
         revision_mirror_forgone_inferred_gbp=revision_inferred,
         revision_mirror_improvement=_improvement(revision),
+        weight_null_forgone_epc_gbp=weight_null_epc,
+        weight_null_forgone_inferred_gbp=weight_null_inferred,
         confidence_mirror_money_favours=_favours(confidence_epc, confidence_inferred),
         confidence_mirror_forgone_epc_gbp=confidence_epc,
         confidence_mirror_forgone_inferred_gbp=confidence_inferred,
@@ -4322,29 +4480,68 @@ def _panel_mirror_caveats(verdict: CompositionVerdict) -> list[str]:
             return [line] + _normaliser_caveat(verdict)
         return [
             line
-            + f" READ THIS AS DIRECTIONAL ONLY: the mirror moved the register arm's "
-            f"OWN error by {verdict.panel_mirror_register_infidelity:.1%} "
-            f"({verdict.epc_register_mae:.6f} -> "
-            f"{verdict.panel_mirror_register_mae:.6f} kW/K, "
-            f"{verdict.panel_mirror_reflection}), above the "
-            f"{MIRROR_FIDELITY_BAND:.0%} band, so part of this flip may be the "
-            f"instrument rather than the composition."
+            + " READ THIS AS DIRECTIONAL ONLY: "
+            + _why_unattributable(verdict)
+            + ", so part of this flip may be the instrument rather than the "
+            "composition."
         ] + _normaliser_caveat(verdict)
-    if not verdict.panel_mirror_is_attributable:
+    # ...and only where there IS a decisive money headline to protect. This caveat
+    # exists to stop a reader concluding "no composition effect" from the mirror's
+    # silence; where the money verdict is already 'neither', the headline itself says
+    # too-close-to-call and there is no such reading on offer. Raising
+    # inconclusiveness about an indecisive verdict is noise, and a caveat list that
+    # prints on populations with nothing to caveat is one nobody reads.
+    if not verdict.panel_mirror_is_attributable and verdict.money_favours != "neither":
         return [
             f"MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict "
             f"off {verdict.money_favours}, and that null carries no weight here — "
-            f"reflecting the truth moved the register arm's OWN error, the one "
-            f"quantity this reflection claims to preserve, by "
-            f"{verdict.panel_mirror_register_infidelity:.1%} "
-            f"({verdict.epc_register_mae:.6f} -> "
-            f"{verdict.panel_mirror_register_mae:.6f} kW/K, "
-            f"{verdict.panel_mirror_reflection}), above the "
-            f"{MIRROR_FIDELITY_BAND:.0%} band. The instrument disturbed the arm it "
-            f"was built around by more than the band that decides verdicts, so "
-            f"'no composition effect' is not a finding on this population."
+            + _why_unattributable(verdict)
+            + ", so 'no composition effect' is not a finding on this population."
         ] + _normaliser_caveat(verdict)
     return _normaliser_caveat(verdict)
+
+
+def _why_unattributable(verdict: CompositionVerdict) -> str:
+    """WHICH dimension failed, in that dimension's own units.
+
+    The gate has two halves and they fail for unrelated reasons, so a single
+    fixed sentence would have named the register arm while the money channel was
+    the thing that fired — printing "the mirror moved the register arm's own error
+    by 0.0%" as the stated ground for INCONCLUSIVE (2026-08-11, third Hour). Every
+    reason that fired is named; a caveat that reports one of two live faults leaves
+    the reader to assume the other is clean.
+    """
+    reasons = []
+    if verdict.panel_mirror_register_infidelity > MIRROR_FIDELITY_BAND:
+        reasons.append(
+            f"reflecting the truth moved the register arm's OWN error, the one "
+            f"quantity this reflection claims to preserve, by "
+            f"{verdict.panel_mirror_register_infidelity:.1%} per premise "
+            f"({verdict.epc_register_mae:.6f} -> "
+            f"{verdict.panel_mirror_register_mae:.6f} kW/K mean error, which "
+            f"understates it — mean per-premise disturbance "
+            f"{verdict.panel_mirror_register_mad:.6f}, "
+            f"{verdict.panel_mirror_reflection}), above the "
+            f"{MIRROR_FIDELITY_BAND:.0%} band"
+        )
+    if verdict.panel_mirror_weight_artefact > MIRROR_WEIGHT_ARTEFACT_BAND:
+        reasons.append(
+            f"{verdict.panel_mirror_weight_artefact:.0%} of the mirror's movement in "
+            f"the deciding margin is reproduced by a null panel carrying the same "
+            f"re-weighting with NO sign flip in it (GBP "
+            f"{verdict.weight_null_forgone_epc_gbp:,.0f} epc / "
+            f"{verdict.weight_null_forgone_inferred_gbp:,.0f} inferred), above the "
+            f"{MIRROR_WEIGHT_ARTEFACT_BAND:.0%} band — reflecting the truth rescales "
+            f"every premise's annual heat, and the money verdict is built on that"
+        )
+    if not reasons:
+        # The gate and this sentence must fail together or the row explains an
+        # INCONCLUSIVE it cannot justify.
+        raise InsufficientEvidence(
+            "the mirror is unattributable but neither fidelity term is outside its "
+            "band — the gate and its disclosure have come apart"
+        )
+    return "; and ".join(reasons)
 
 
 def _normaliser_caveat(verdict: CompositionVerdict) -> list[str]:
@@ -4515,7 +4712,14 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         # of, and this pair is what makes the artefact term independently checkable.
         "epc_register_mae": v.epc_register_mae,
         "panel_mirror_register_mae": v.panel_mirror_register_mae,
+        "panel_mirror_register_mad": v.panel_mirror_register_mad,
         "panel_mirror_register_infidelity": v.panel_mirror_register_infidelity,
+        # The MONEY channel's artefact and the null it is measured against. In the
+        # row beside the kW/K terms because the verdict is denominated in GBP and a
+        # fidelity claim that covers only the other channel is not one.
+        "weight_null_forgone_epc_gbp": v.weight_null_forgone_epc_gbp,
+        "weight_null_forgone_inferred_gbp": v.weight_null_forgone_inferred_gbp,
+        "panel_mirror_weight_artefact": v.panel_mirror_weight_artefact,
         "panel_mirror_normaliser_drift": v.panel_mirror_normaliser_drift,
         "panel_mirror_is_attributable": v.panel_mirror_is_attributable,
         "panel_mirror_reflection": v.panel_mirror_reflection,
