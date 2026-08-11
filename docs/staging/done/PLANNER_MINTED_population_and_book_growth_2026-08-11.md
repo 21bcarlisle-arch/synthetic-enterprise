@@ -5,9 +5,13 @@
 (`DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27`): *"mint one atom per named
 deliverable from its WORK THIS CREATES block; state which are already covered."*
 
-**Advances:** EP16_anchored_generators, EP17_varied_population_draw, EP1_clv_three_horizon — a
-materially larger population must stay externally anchored (EP16) and is the Epoch-4 varied-draw
-atom's own subject (EP17); an opening book won by acquisition is what a CLV number is for (EP1).
+**Advances:** EP16_anchored_generators, EP17_varied_population_draw, EP1_clv_three_horizon — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
+
+<!-- The declaration above is deliberately ONE LINE. The register reads the payload and its note TO
+END OF LINE ONLY (an unterminated field parser that swallows the rest of a document is a known
+defect class here), so a wrapped declaration keeps its atom ids and silently truncates its note --
+this one first rendered into PULL_FORWARD_PROPOSALS.md as the single word "a". -->
+
 
 **Filed in `done/` deliberately.** The mint obligation is DISCHARGED by this document; the work
 itself now lives in the map, which is the queue. A `PLANNER_MINTED_*` doc left in the staging root
