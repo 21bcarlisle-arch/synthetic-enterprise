@@ -3358,8 +3358,52 @@
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 26
-  expert_hour: {status: attempted_finding_open, last: "2026-08-11", findings: ["the atom's own headline changes SIGN with the population and the tool's DEFAULT reports the chosen one: inference_improvement -0.0440 on the AUTHORED 15-premise panel vs +0.0227/+0.0426 on 200 DRAWN from published stock marginals (seeds 17/23) -- and refresh_command emitted the base invocation, so a drain-issued refresh would have overwritten the drawn row with the authored one and called it freshness (FIXED class-wide: the row now declares the args that reproduce it, safe_refresh_args whitelists flags/numbers because the ledger is data and the command is RUN, R15 both ways on 4 source mutations, md5-clean restore; landed same tick because the fix's own commit stales the rows it protects)", "both gap headlines are diluted by rows where the two arms are IDENTICAL -- inferred==epc to the bit on epc_only/stock_prior premises: 7/15 (47%) authored, 164-166/200 (82-83%) drawn. The published figure is ~1/6 of the effect size where inference actually ran, and it MOVES with EPC lodgement coverage while the estimator is unchanged (OPEN, queued: condition the metric on basis and carry the tie fraction)", "the gap is |belief-actual|-shaped and therefore blind to a SYSTEMATIC sign: EPC under-estimates heat loss in 14 of 15 (signed mean -0.0171) and the inference revises upward in 8 of 8 meter-armed premises (+0.0228). A one-signed belief error means the company is wrong about the STOCK in a fixed direction, not merely imprecise about houses (OPEN, queued)", "the money verdict is FLATTERED by that agreement of signs and the two headlines disagree without saying so: on the authored panel inference is WORSE on accuracy (0.2624 vs 0.2184) yet BETTER on money (forgone GBP 18,603 vs 43,983, declined-where-value-existed 6->3), because an upward-biased belief recommends more measures on a panel where truth exceeds EPC in 93% of cases. Untested and testable: a sign-mirrored panel should push the verdict the other way (OPEN, queued -- a standing control that fails when the ranking is composition-decided, R10 class not instance)"]}
+  simplifications_count: 27
+  expert_hour:
+    status: attempted_finding_open
+    last: '2026-08-11'
+    findings:
+    - 'CLOSED 2026-08-11: the refresh command could not reproduce the row it refreshed. The row
+      now declares the args that reproduce it (safe_refresh_args whitelist, R15 both ways on 4
+      source mutations).'
+    - 'CLOSED 2026-08-11 as a MECHANISM: both gap headlines were diluted by rows where the two
+      arms are identical (7/15 authored, 166/200 drawn). arm_agreement conditions the headline
+      on the company''s own BASIS, never on float equality of the arms (that would be a
+      tautology), carries the tie fraction and BOTH figures into the ledger row, RAISES rather
+      than publishing a diluted inference headline, and is proven by two populations differing
+      only in EPC lodgement coverage over EXCHANGEABLE covered sets: published figure doubles,
+      conditioned figure invariant to 1e-12.'
+    - 'CLOSED 2026-08-11 as a MECHANISM: the gap was magnitude-shaped and blind to a SYSTEMATIC
+      sign. belief_bias carries the signed error and an EXACT two-sided binomial sign test
+      (checked against hand arithmetic, not against itself) for both arms into the row. The
+      register is one-signed on both populations (p=0.0010 authored, p=0.0003 drawn), and where
+      the majority and the mean point opposite ways a SKEWED caveat says so rather than printing
+      both as if they agreed.'
+    - 'REFUTED 2026-08-11 BY ITS OWN TEST, and the real cause found. The Hour predicted a
+      sign-mirrored panel would flip the money verdict. Built as TWO mirrors (a stock that fails
+      the other way; the same inference stepping the other way) and NEITHER moves it, on either
+      population: reversing the revision collapses accuracy and moves the money by GBP 308 of
+      18,603. A THIRD mirror finds it. Swap the two arms'' ERROR BARS and bases with every point
+      estimate untouched, so both accuracy gaps are identical BY CONSTRUCTION, and the verdict
+      flips to epc on BOTH populations. The arm that forgoes less is the arm ALLOWED TO ACT more
+      often (declines 6v3 authored, 89v73 drawn). The two published headlines are not two views
+      of one quantity: one scores accuracy, the other scores permission. R10 CLASS: any money
+      metric built on a decision rule with an actionability test ranks arms by confidence unless
+      something holds confidence fixed.'
+    - 'OPEN, queued: the PANEL mirror is a weak instrument and says so. Its accuracy drift is
+      0.0717 (drawn) and 0.1579 (authored), larger than the improvement it perturbs, because the
+      multiplicative reflection preserves the LOG error exactly and the LEVEL error only
+      approximately while prediction_gap is a level MAE. Its composition_decided verdict is
+      therefore weakly attributable, and only the confidence mirror (which cannot move accuracy
+      at all) is cleanly readable. Needs a level-preserving reflection, or an explicit statement
+      that the panel mirror is directional evidence only.'
+    - 'OPEN, queued: an Expert Hour has not been run ON the 2026-08-11 headline-caveat work. The
+      hour that built it found TWO defects in its own controls within the hour (a hair-trigger
+      strict-inequality verdict, caught by its own vacuity guard; a majority and an average
+      juxtaposed as if they agreed, caught by reading the caveat it emitted on the published
+      population). That rate is the argument for a fresh pass. Level stays 2 until it runs.'
+    - 'OPEN, blocked on data this repo does not hold: (a) L1.4 day-type magnitude and (b) L1.2h
+      heating-shape repeatability, both unchanged and unchanged in reason; (c) remains W1_12''s.'
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   records_rehomed: [evidence]
 - id: SP2_1_working_day_calculator
