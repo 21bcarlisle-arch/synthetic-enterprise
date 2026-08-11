@@ -230,33 +230,115 @@ def test_full_gate_fires_on_an_injected_bad_anchor():
 # --- Network resolution probe (optional; SKIPS visibly when offline) ---------
 
 _PROBE_TIMEOUT = 6
+#: The second, longer budget a timing-out host is retried on before this probe is
+#: willing to say anything about it. 3x, because the observed case (elexon.co.uk)
+#: sits just the wrong side of 6s and answers at 8s.
+_PROBE_RETRY_TIMEOUT = 18
 _CONTROL_HOST = "https://github.com"  # egress-allowlisted, reliably live
 
 
-def _probe(url: str) -> tuple[str, int | None]:
-    """Return (outcome, status). outcome in {'ok','rotted','unreachable'}.
+def _probe(url: str, *, timeout: int = _PROBE_TIMEOUT) -> tuple[str, int | None]:
+    """Return (outcome, status). outcome in {'ok','rotted','unreachable','slow'}.
 
     'ok'          -> host answered with any HTTP status < 400 OR a method/rate
                      block (403/405/429): the anchor RESOLVES to a live host.
     'rotted'      -> host answered 404/410: the specific anchor target is gone.
     'unreachable' -> DNS / TCP / TLS failure: cannot reach the host at all.
+    'slow'        -> no answer inside the budget, twice, the second time at
+                     `_PROBE_RETRY_TIMEOUT`. INCONCLUSIVE, not dead.
+
+    WHY 'slow' IS ITS OWN OUTCOME (2026-08-11). This probe used to fold a read
+    TIMEOUT into 'unreachable' alongside DNS and TLS failures, and then read
+    'unreachable while the control host answered' as proof of a DEAD ANCHOR. Those
+    are not the same event: a timeout says nothing came back inside MY budget, which
+    is a fact about the budget as much as about the host. Observed here —
+    `https://www.elexon.co.uk/data/` timed out on every attempt at 6s and answered
+    403 (a WAF method-block, i.e. ALIVE, and already classified 'ok' below) at 8s. So
+    a live anchor was published as dead, and because this suite gates the site lane's
+    commits it refused an unrelated lane's landing until someone looked.
+
+    That is this project's own named class — a wrapper timeout below the work it
+    wraps decides the verdict — and the repair is the one the fabric mirror's gate
+    got the same day: an inconclusive reading may not be published as a measurement.
+    NOT fail-open: the retry is 3x longer before anything is called slow, every slow
+    anchor is NAMED in the failure/skip text rather than silently dropped, and the
+    caller refuses to pass when the probe learned nothing about ANY anchor.
     """
     req = urllib.request.Request(url, method="HEAD",
                                  headers={"User-Agent": "synthetic-enterprise-anchor-check"})
     try:
-        with urllib.request.urlopen(req, timeout=_PROBE_TIMEOUT) as r:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             return ("ok", r.status)
     except urllib.error.HTTPError as e:
         if e.code in (404, 410):
             return ("rotted", e.code)
         return ("ok", e.code)  # 403/405/429/... -> host is alive, method blocked
-    except (urllib.error.URLError, socket.timeout, ssl.SSLError, OSError):
+    except (socket.timeout, TimeoutError):
+        if timeout >= _PROBE_RETRY_TIMEOUT:
+            return ("slow", None)
+        return _probe(url, timeout=_PROBE_RETRY_TIMEOUT)
+    except (urllib.error.URLError, ssl.SSLError, OSError) as e:
+        # A URLError WRAPPING a timeout is the same event as the branch above, and
+        # urllib raises it either way depending on where the clock ran out.
+        if isinstance(getattr(e, "reason", None), (socket.timeout, TimeoutError)):
+            if timeout >= _PROBE_RETRY_TIMEOUT:
+                return ("slow", None)
+            return _probe(url, timeout=_PROBE_RETRY_TIMEOUT)
         return ("unreachable", None)
 
 
 def _network_is_up() -> bool:
     outcome, _ = _probe(_CONTROL_HOST)
     return outcome != "unreachable"
+
+
+def test_a_TIMEOUT_IS_NOT_A_DEAD_HOST_and_is_retried_before_it_is_called_anything(
+    monkeypatch,
+):
+    """R15 ON THE CLASSIFIER ITSELF, offline, on the defect that was observed live.
+
+    `https://www.elexon.co.uk/data/` answers 403 — a WAF method-block, which this
+    probe has always read as ALIVE — but does not answer inside 6s. The old code
+    folded that timeout in with DNS and TLS failures and the caller then published it
+    as a DEAD believability anchor, which refused an unrelated lane's commit.
+
+    Three properties, each of which the old code failed: a timeout is RETRIED at the
+    longer budget before anything is concluded; a host that answers on the retry is
+    `ok`, not dead; and a host that never answers is `slow`, which is a different
+    outcome from `unreachable` because "nothing came back inside my budget" and
+    "there is no host there" are different claims.
+    """
+    calls: list[int] = []
+
+    def _fake(req, timeout=None):
+        calls.append(timeout)
+        if timeout < _PROBE_RETRY_TIMEOUT:
+            raise TimeoutError("the read operation timed out")
+        raise urllib.error.HTTPError(req.full_url, 403, "Forbidden", {}, None)
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake)
+    assert _probe("https://www.elexon.co.uk/data/") == ("ok", 403)
+    assert calls == [_PROBE_TIMEOUT, _PROBE_RETRY_TIMEOUT], (
+        f"a timeout must be retried once at the longer budget before it decides "
+        f"anything; got {calls}"
+    )
+
+    def _always_slow(req, timeout=None):
+        raise urllib.error.URLError(TimeoutError("timed out"))
+
+    monkeypatch.setattr(urllib.request, "urlopen", _always_slow)
+    assert _probe("https://www.elexon.co.uk/data/") == ("slow", None), (
+        "a host that never answers is INCONCLUSIVE, not proven absent"
+    )
+
+    def _refused(req, timeout=None):
+        raise urllib.error.URLError(ConnectionRefusedError(111, "refused"))
+
+    monkeypatch.setattr(urllib.request, "urlopen", _refused)
+    assert _probe("https://gone.example/x") == ("unreachable", None), (
+        "a real transport failure must still be unreachable, or the repair is a "
+        "fail-open"
+    )
 
 
 def test_external_anchors_resolve_live_or_skip_visibly():
@@ -267,11 +349,29 @@ def test_external_anchors_resolve_live_or_skip_visibly():
             "+ canonical-domain gates above still ran and passed."
         )
     dead: list[str] = []
-    for a in _external_anchors():
+    slow: list[str] = []
+    anchors = _external_anchors()
+    for a in anchors:
         outcome, status = _probe(a["url"])
         if outcome == "rotted":
             dead.append(f"{a['node_name']}: {a['url']} -> HTTP {status} (rotted)")
         elif outcome == "unreachable":
             # Network is up (control passed) yet THIS host failed -> real dead anchor.
             dead.append(f"{a['node_name']}: {a['url']} -> host unreachable")
+        elif outcome == "slow":
+            # INCONCLUSIVE, and named rather than dropped: no answer inside
+            # _PROBE_RETRY_TIMEOUT is a fact about the budget as much as the host.
+            slow.append(
+                f"{a['node_name']}: {a['url']} -> no answer in "
+                f"{_PROBE_RETRY_TIMEOUT}s (INCONCLUSIVE, not counted as dead)"
+            )
     assert not dead, "dead / rotted external believability anchors:\n" + "\n".join(dead)
+    # THE VACUITY GUARD, so 'slow' cannot become a way to pass by learning nothing:
+    # if the probe resolved NO anchor at all it has told us nothing about any of
+    # them, and a green here would be a fail-open dressed as tolerance.
+    if anchors and len(slow) == len(anchors):
+        pytest.skip(
+            "ANCHOR PROBE INCONCLUSIVE -- every anchor timed out at "
+            f"{_PROBE_RETRY_TIMEOUT}s while the control host answered:\n"
+            + "\n".join(slow)
+        )
