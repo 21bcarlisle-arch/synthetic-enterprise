@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-11T19:32:25Z
+Last updated: 2026-08-11T19:40:29Z
 
 **G12/G13 QUERYABLE PROJECTIONS MINTED — the July design finally has its caller, and its anchor
 does not exist (`79c3ecd2e`/`c2ca2abc8`, pushed).** Step 1 of
@@ -21,6 +21,39 @@ Both cannot be right. The mint proceeded regardless (no reserved class touched; 
 states its design self-sufficiently) with the instruction text as anchor of record and the
 discrepancy written into G12's own `name`, where DISCOVER/FRAME cannot miss it. Gates: tests/design
 101 passed, level-promotion + moap-coherence + the 16-file test gate (332 passed) each green.
+
+**H27 EXPERT HOUR #18 — THE DOOR'S DEPTH LIMIT SWALLOWED 53 PUBLISHED FIGURES (`6b6be6401`,
+pushed).** Hour #17's lead 1 (atom D35, the render-site sweep stops at this process's edge) pulled.
+**Its precision question is ANSWERED AND NEGATIVE** — driving the live payload through the Proof
+door's own JavaScript, the detection figure appears in its row at 3dp (`fmtGap`, the door's
+headline, *undeclared*) and 4dp (`format_detection_summary` in the note, *declared*) and nowhere
+finer, so the one undeclared downstream render is COARSER than declared and no epsilon, band, floor
+or collapse moves. First lead this instrument has answered without the answer changing a number.
+**The walk found a defect on the surface those numbers reach instead.** `fmtComponent` exists
+because this door was serving `[object Object]` for a nested component — *"a figure that cannot be
+read at all"*, its own comment, found by driving the LIVE page — and **the depth limit its repair
+carried reintroduced that failure one level down**: of 618 numbers published in `components` across
+14 rows, **53 were served as an ellipsis** (W1_11 22, W1_12 22, W2_11 9) and **43 — every
+`two_level.cells.*` reading on both fabric rows — were readable NOWHERE on their row**. It stayed
+invisible because H27's own six attributed measures are elided too and survive *only* on an accident
+nobody designed (the note prose happens to repeat them), which is not a control and does not exist
+on the rows where it mattered — so the whole D8 attribution reached the public door as hundreds of
+words of caveat with every number it caveats replaced by a dot. Nothing asserted otherwise: the
+panel's R11 test checks each row's GAP renders; no control had ever asked whether a published
+COMPONENT number reaches the reader at all. **Closed at the class (R10):** the depth limit goes on
+bounding STRUCTURE and stops bounding NUMBERS (raising it to 3 is the instance fix that comes
+straight back); the spin guard moves to an explicit node budget, which is what actually bounds a
+cycle (depth never did); non-numeric leaves still elide, so the elision is narrowed not removed;
+and a per-row population control now requires every finite component number to render on ITS OWN
+row — panel-wide would pass on a number legible two rows away, the accident that hid this.
+**R15** four mutations by name, incl. the pre-repair page restored and asserted to lose 53 numbers
+on both named rows. **R11** 618/618 now render, verified before and after on the live payload.
+**R12** no computed number moved. `site/proof` 15 passed; +`test_generate_proof_coupled_gaps` 123;
+`live_pixel_verify` 16. **Still L2** — eighteen Hours, eighteen defects; Hour #4's
+two-consecutive-clean criterion is at one, not two. D35 stays open at L0 with a sharper brief (its
+register and its sweep must move together, and the render/carrier boundary — `to_ledger_entry`
+carries the figure *unrounded*, collapsing "half a step of the finest render" to 1e-17 — has to be
+defined first).
 
 **H27 EXPERT HOUR #16 — THE READER'S PRECISION WAS ONE FIGURE'S, DECLARED AS EVERY FIGURE'S
 (`7e8985c4c`, pushed). Held at L2; sixteen Hours, sixteen defects.** Hour #15's two leads needed
