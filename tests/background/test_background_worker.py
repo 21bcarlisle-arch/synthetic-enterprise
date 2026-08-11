@@ -36,6 +36,11 @@ def _isolate(tmp_path, monkeypatch):
     import background.process_run_complete as prc
     monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
+    # Same class again (2026-08-11): the outcome router now reads `.last_tested_hash` to tell a
+    # real gate pass from a publisher that merely exited 0, so that file is a surface this sweep
+    # touches and must be per-test. Left on the real path it would decide these tests off
+    # whatever the live pipeline last stamped.
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
     # OPS_run_marker_sweep_livelock: the sweep's stall counter is real on-disk
     # state. An unpinned flag leaks into every other test's loader and starts
     # alarming off their fixtures -- pin it per-test.
@@ -132,7 +137,11 @@ def test_failing_marker_records_publish_gate_failure(monkeypatch):
 
 
 def test_successful_marker_records_publish_gate_success(monkeypatch):
-    """H15 wiring: an rc==0 outcome CLEARS the wedge state (re-arm)."""
+    """H15 wiring: an rc==0 outcome CLEARS the wedge state (re-arm).
+
+    The gate PASS for this marker's commit is recorded explicitly: since 2026-08-11 rc=0 alone
+    is not evidence of a healthy gate (a publisher that publishes nothing also exits 0), so the
+    healthy path this test names has to state both halves."""
     marker = background_worker.STAGING_DIR / "run_complete_20260714T010000Z.md"
     marker.write_text("# Simulation Run Complete\nGit: cafef00\n")
     monkeypatch.setattr(background_worker.subprocess, "run",
@@ -140,6 +149,7 @@ def test_successful_marker_records_publish_gate_success(monkeypatch):
 
     cleared = []
     import background.process_run_complete as prc
+    prc.LAST_TESTED_HASH_FILE.write_text("cafef00")
     monkeypatch.setattr(prc, "record_publish_gate_success",
                         lambda *a, **k: cleared.append(True))
     monkeypatch.setattr(prc, "record_publish_gate_failure",
@@ -252,7 +262,8 @@ def test_a_real_success_still_clears_the_streak(monkeypatch):
         "wedge_since": 1_000_000.0,
     })
     marker = background_worker.STAGING_DIR / "run_complete_20260729T164000Z.md"
-    marker.write_text("# Simulation Run Complete\n")
+    marker.write_text("# Simulation Run Complete\nGit: beefbee\n")
+    prc.LAST_TESTED_HASH_FILE.write_text("beefbee")  # the suite passed for this commit
     monkeypatch.setattr(background_worker.subprocess, "run", _fake_success)
 
     background_worker.process_leftover_run_markers()
@@ -553,7 +564,12 @@ def test_a_failed_cycle_is_followed_by_another_attempt_without_human_touch(monke
     attempts = []
 
     def _always_red(*a, **k):
-        attempts.append(a[0])
+        # `background_worker.subprocess` IS the stdlib module object, so this patch is global:
+        # it also catches read-only git calls the publish-gate recorder makes downstream (the
+        # H42 suspect blame trail). Only PUBLISHER invocations are attempts at this marker.
+        argv = a[0]
+        if any("process_run_complete" in str(x) for x in argv):
+            attempts.append(argv)
         return MagicMock(returncode=1, stderr="")
 
     monkeypatch.setattr(background_worker.subprocess, "run", _always_red)

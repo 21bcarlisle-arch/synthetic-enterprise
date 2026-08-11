@@ -3483,6 +3483,26 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         return {"count": 0, "kind": "error", "threshold_met": False, "fired": False}
 
 
+def _green_is_on_record_for(git_hash, last_tested_path=None):
+    """Did the SUITE record a pass for exactly this commit? The one question rc=0 cannot answer.
+
+    Reads `.last_tested_hash`, whose contract is stated once at the top of this module: written
+    by `_run_gate_in` and ONLY on rc=0 from the suite. That makes it the single piece of state
+    in the pipeline that a run publishing nothing cannot manufacture -- which is exactly what
+    `record_publish_gate_outcome` needs before it is allowed to call a wedge recovered.
+
+    FAIL-SAFE IS FALSE IN EVERY UNCERTAIN DIRECTION -- missing file, unreadable file, absent or
+    "unknown" hash. An unavailable check is a FAILED check (R15), and here the harmless error is
+    leaving an alarm armed one cycle too long; the harmful one is disarming the RUNG-1 draw
+    while publishing is frozen, which is the defect actually observed on 2026-08-11."""
+    if not git_hash or git_hash == "unknown":
+        return False
+    try:
+        return (last_tested_path or LAST_TESTED_HASH_FILE).read_text().strip() == git_hash
+    except OSError:
+        return False
+
+
 def record_publish_gate_success(*, now=None, markers_pending=None):
     """A clean publish CLEARS the wedge state: resets the consecutive-failure streak, re-arms the
     alarm, and resolves the durable action_needed item if one was open. Idempotent; never raises.
@@ -3561,22 +3581,52 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     success NOR a failure and leaves the streak exactly as it found it.
     Recording it as a success actively DISARMED the detector.
 
+    FOUR OUTCOMES NOW: rc=0 MEANS THE PUBLISHER EXITED CLEANLY, NOT THAT THE GATE PASSED
+    (2026-08-11, the same fail-open one rung further out). The publisher returns 0 from every
+    path that legitimately publishes NOTHING -- a fingerprint/duplicate-marker skip being the
+    common one -- and each of those was routed straight into `record_publish_gate_success`,
+    which cleared `failures`/`alerted_at` and logged "Publish gate recovered". So a run that
+    never opened the gate DISARMED the wedge alarm, which is precisely the defect the lock-skip
+    branch above was written to close, arriving through the neighbouring door.
+
+    OBSERVED, not inferred (docs/observability/sim-runner-log.md, 2026-08-11 07:50Z): "Publish
+    gate recovered -- cleared wedge state, re-armed alarm." logged in the same second as
+    "Starting run" -- no gate ran between them -- against a `.last_tested_hash` still pinned at
+    `dfefd0a14` from 2026-08-09. That file is written ONLY on rc=0 from the suite, so the gate
+    had not passed for 41 hours while the state file read "not wedged". 197 such lines are in
+    the log; the alarm they disarmed is the RUNG-1 priority-zero draw.
+
+    THE EVIDENCE IS INDEPENDENT AND EXACT (R15 anti-tautology). Not "did the publisher exit 0"
+    -- that is the claim under test -- but "did the suite record a PASS for THE COMMIT THIS
+    MARKER WAS PUBLISHED AT", read off `.last_tested_hash`, whose sole writer is the gate's own
+    return code (see LAST_TESTED_HASH_CONTRACT). Keyed on the MARKER's hash rather than current
+    HEAD deliberately: HEAD moves under a long publish cycle as other lanes land, so a
+    HEAD-keyed check would refuse to clear after a genuinely green gate and leave the alarm
+    armed on a healthy pipeline -- the 5960-min false-armed defect this router exists to
+    prevent. Absent/unreadable/unparseable => no green is claimed => "unproven", never a clear.
+
     Defensive by construction: a monitoring failure must never break the
-    pipeline it monitors. Returns "success" / "failure" / "skipped" / None
+    pipeline it monitors. Returns "success" / "failure" / "skipped" / "unproven" / None
     (None == the router itself errored) so callers and tests can assert which
     branch ran.
     """
     try:
         if rc == EXIT_LOCK_SKIPPED:
             return "skipped"
-        if rc == 0:
-            record_publish_gate_success()
-            return "success"
         git_hash = "unknown"
         try:
             git_hash = parse_marker(Path(marker)).get("git_hash", "unknown")
         except Exception:
             pass
+        if rc == 0:
+            if not _green_is_on_record_for(git_hash):
+                log("Publish gate: {} exited 0 but no suite PASS is recorded for git={} "
+                    "-- publishing nothing is not evidence the gate is healthy, so the wedge "
+                    "streak is left exactly as it was found.".format(
+                        Path(marker).name, git_hash))
+                return "unproven"
+            record_publish_gate_success()
+            return "success"
         record_publish_gate_failure(
             "process_run_complete {} on {}".format(
                 "killed by the caller's deadline" if kind == "deadline_kill"

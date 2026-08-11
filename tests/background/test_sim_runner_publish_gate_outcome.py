@@ -41,16 +41,29 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
     monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "sim_log.md", raising=False)
+    # The router now reads `.last_tested_hash` for its independence check, so it joins the list
+    # above for the same reason every other surface is here: a test must never key a verdict on
+    # the LIVE observability file (which on a wedged morning holds a 41-hour-old hash and would
+    # decide these assertions for reasons that have nothing to do with the code under test).
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
     yield
+
+
+MARKER_GIT_HASH = "abc1234"
 
 
 def _marker(tmp_path, name="run_complete_20260803T040000Z.md"):
     m = tmp_path / name
     m.write_text(
-        "# Simulation Run Complete\n\nGit: abc1234\n"
-        "JSON: /nonexistent/run_output_abc1234.json\n"
+        "# Simulation Run Complete\n\nGit: {h}\n"
+        "JSON: /nonexistent/run_output_{h}.json\n".format(h=MARKER_GIT_HASH)
     )
     return m
+
+
+def _record_a_green(hash_=MARKER_GIT_HASH):
+    """What `_run_gate_in` does, and ONLY on rc=0 from the suite: stamp the passed commit."""
+    prc.LAST_TESTED_HASH_FILE.write_text(hash_)
 
 
 # ── the shared router itself ────────────────────────────────────────────────
@@ -59,11 +72,49 @@ def test_router_rc0_records_success(tmp_path):
     """MUTATION: make the rc==0 branch a no-op -> this goes red."""
     prc.record_publish_gate_failure("seed a wedge", rc=1, git_hash="dead")
     assert prc._read_publish_gate_state().get("failures"), "precondition: streak seeded"
+    _record_a_green()  # the suite passed for this marker's commit
 
     assert prc.record_publish_gate_outcome(_marker(tmp_path), 0) == "success"
 
     assert not prc._read_publish_gate_state().get("failures"), \
         "a clean publish must CLEAR the wedge streak"
+
+
+def test_router_rc0_without_a_recorded_pass_clears_nothing(tmp_path):
+    """rc=0 IS NOT A GATE PASS (2026-08-11, the eleventh wedge's disarming half).
+
+    The publisher exits 0 from every path that publishes NOTHING -- the fingerprint/duplicate
+    skip most often -- and that 0 used to be routed straight to `record_publish_gate_success`.
+    Observed at 07:50Z: "Publish gate recovered -- cleared wedge state, re-armed alarm." in the
+    same second as "Starting run", against a `.last_tested_hash` 41 hours stale. The RUNG-1
+    priority-zero draw reads the state file that line cleared.
+
+    MUTATION: drop the `_green_is_on_record_for` guard from the rc==0 branch -> this goes red."""
+    prc.record_publish_gate_failure("seed a wedge", rc=1, git_hash="dead")
+    before = prc._read_publish_gate_state().get("failures")
+    assert before, "precondition: streak seeded"
+    assert not prc.LAST_TESTED_HASH_FILE.exists(), "precondition: no pass on record"
+
+    assert prc.record_publish_gate_outcome(_marker(tmp_path), 0) == "unproven"
+
+    assert prc._read_publish_gate_state().get("failures") == before, \
+        "a run that published nothing must leave the streak exactly as it found it"
+
+
+def test_router_rc0_at_a_different_commit_clears_nothing(tmp_path):
+    """The pass on record must be for THIS marker's commit, not merely SOME earlier green.
+
+    A stale stamp is how the check would fail open in the field: `.last_tested_hash` is almost
+    always populated with something. MUTATION: compare truthiness instead of equality (`return
+    bool(read_text())`) -> this goes red while the test above still passes."""
+    prc.record_publish_gate_failure("seed a wedge", rc=1, git_hash="dead")
+    before = prc._read_publish_gate_state().get("failures")
+    _record_a_green("dfefd0a14")  # a real green, but two days and many commits ago
+
+    assert prc.record_publish_gate_outcome(_marker(tmp_path), 0) == "unproven"
+
+    assert prc._read_publish_gate_state().get("failures") == before, \
+        "a pass recorded at another commit says nothing about this one"
 
 
 def test_router_nonzero_records_failure(tmp_path):
@@ -115,9 +166,17 @@ def test_sim_runner_clean_publish_clears_the_wedge(monkeypatch, tmp_path):
 
     MUTATION (verified 2026-08-03): delete the `_record_publish_gate_outcome(
     marker, rc)` call from `auto_process_marker` -> this goes red.
+
+    "CLEANLY" IS NOW STATED, NOT ASSUMED (2026-08-11). This drives the seam with the publisher
+    SUBPROCESS STUBBED, so nothing here runs a suite -- pre-fix the bare `returncode=0` was
+    doing double duty as both "the publisher exited" and "the gate passed", which is precisely
+    the conflation that let 197 runs publishing nothing log "gate recovered". The green is
+    recorded explicitly so this test asserts the healthy path and the new guard's
+    fail-safe direction cannot silently swallow it.
     """
     prc.record_publish_gate_failure("stale backlog marker", rc=1, git_hash="dead")
     assert prc._read_publish_gate_state().get("failures"), "precondition: wedge armed"
+    _record_a_green()
 
     _marker_path, rc = _drive_auto_process(monkeypatch, tmp_path, returncode=0)
 
