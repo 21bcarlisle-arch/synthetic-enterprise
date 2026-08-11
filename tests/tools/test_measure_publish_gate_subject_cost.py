@@ -2338,7 +2338,11 @@ def test_the_banked_record_agrees_with_the_basis_written_beside_it():
             continue
         checked += 1
         hit = phase.get("hit_memory_ceiling") is True
-        expected = measure._ran_to_completion_basis(phase.get("returncode"), hit)
+        # ASKED IN THE PHASE'S OWN TERMS: `memory_max_mb` is what THAT phase ran under, and the
+        # module constant now ratchets away from it. Re-deriving with today's constant would make
+        # this control red on every ceiling move -- a healthy mechanism wedging publishing.
+        expected = measure._ran_to_completion_basis(phase.get("returncode"), hit,
+                                                    phase.get("memory_max_mb"))
         assert phase["ran_to_completion_basis"] == expected, (
             "phase {!r} states evidence that does not follow from its own returncode {!r}:\n"
             "  stored:   {}\n  implied:  {}".format(
@@ -2718,3 +2722,272 @@ def test_a_subject_that_moved_mid_run_is_named_beside_the_ratio(out, monkeypatch
         "the ratio is published with nothing saying one of its two subjects changed while it was "
         "being timed: {!r}".format(rec.get("ratio_subject_moved_during"))
     )
+
+
+# ── THE CEILING IS DERIVED FROM MEASURED DEMAND, AND THE SUBJECT IS THE CGROUP (2026-08-11) ───
+#
+# WHAT THESE PIN, and why it needed a mechanism rather than a better number. `PHASE_MEMORY_MAX_MB`
+# was 8192 because 8192 was "comfortably above any legitimate peak observed", with a comment
+# saying to re-derive it from `sample_gate_rss_premium.py`'s peaks when they arrived. They
+# arrived -- 5.34G, a PER-PROCESS high-water mark -- and the kernel had already killed this
+# phase's CGROUP at its 8192MiB limit with a child at 6.13G inside it. Re-deriving 8192 from
+# 5.34G would have set the bound below a demand already observed, and bought a fourth truncation.
+#
+# So the tests below grade three separate claims, none of which the old constant could make:
+#   * the ceiling MOVES WITH ITS EVIDENCE (a pinned constant reds);
+#   * the evidence is THIS SCOPE's demand, measured from the kernel's own `memory.peak`, and a
+#     peak that cannot be exact SAYS SO;
+#   * when the derived ceiling outgrows the box, the phase is REFUSED rather than clamped and
+#     re-run -- the clamp is the shape that funded launches 12, 13 and 14.
+
+
+def test_the_ceiling_moves_with_the_demand_the_record_measured():
+    """The derivation reads its evidence. MUTATION: return a constant from
+    `_derive_phase_ceiling_mb` -- i.e. the pre-repair 8192 -- and this reds.
+
+    Both floors below sit under this box's cap, so the cap cannot be what separates them."""
+    small = measure._derive_phase_ceiling_mb(4096, box_total_mb=64_000)
+    large = measure._derive_phase_ceiling_mb(8192, box_total_mb=64_000)
+
+    assert small == int(4096 * measure.CEILING_HEADROOM)
+    assert large == int(8192 * measure.CEILING_HEADROOM)
+    assert large > small, (
+        "the ceiling did not move when the measured demand doubled, so it is a chosen number "
+        "wearing a derivation's clothes -- which is exactly the state three launches died in"
+    )
+
+
+def test_a_phase_killed_against_its_ceiling_banks_that_ceiling_as_measured_demand():
+    """A cgroup kill is proof that demand REACHED the limit, so the limit is a floor under the
+    next one. This is the ratchet: 8192 was measured insufficient, so the next launch is not
+    permitted to run at 8192 again.
+
+    MUTATION: read only `scope_peak_mb` and ignore `hit_memory_ceiling` and this reds on the
+    live record, whose one killed phase predates the sampler and has no peak field at all."""
+    floor = measure._measured_demand_floor_mb({
+        "in_tree_baseline": {"hit_memory_ceiling": True, "memory_max_mb": 8192},
+    })
+    assert floor == 8192, (
+        "a phase the kernel killed at 8192MB contributed no floor, so the next ceiling can be "
+        "derived at or below a demand already observed to be insufficient: {}".format(floor)
+    )
+
+
+def test_a_phase_that_never_reported_a_peak_does_not_lower_the_floor():
+    """Not knowing a phase's peak is not evidence that the phase was small.
+
+    MUTATION: treat a missing/zero `scope_peak_mb` as 0 and include it -- the max is unchanged
+    here, but the `None` case below becomes 0 and `_derive_phase_ceiling_mb` then derives a
+    ceiling of 0 from a broken instrument. Fail-CLOSED: no evidence falls back to the cited
+    kernel figure, never to a small number."""
+    assert measure._measured_demand_floor_mb({
+        "cold_checkout": {"seconds": 1873.7, "returncode": 0},
+        "throwaway_checkout": {"scope_peak_mb": None},
+    }) is None
+    assert measure._measured_demand_floor_mb({}) is None
+    assert measure._derive_phase_ceiling_mb(None, box_total_mb=64_000) == int(
+        measure.FALLBACK_DEMAND_FLOOR_MB * measure.CEILING_HEADROOM)
+
+
+def test_a_demand_this_box_cannot_bound_refuses_the_phase_rather_than_clamping_it(monkeypatch,
+                                                                                  tmp_path):
+    """THE TERMINUS OF THE RATCHET. A phase whose measured demand needs more than this box can
+    spare is UNRUNNABLE here -- running it at the cap reproduces the kill that produced the
+    floor, which is what each of launches 12, 13 and 14 did in turn.
+
+    MUTATION: drop the `PHASE_CEILING_IS_SUFFICIENT` check from `_bounded_argv` (the ceiling is
+    already clamped to the cap, so the phase would simply run) and this reds."""
+    # 12000MB of measured demand on a 16000MB box: 15000 wanted, ~11900 available.
+    assert measure._ceiling_is_sufficient(12_000, box_total_mb=16_000) is False
+    assert measure._ceiling_is_sufficient(4_000, box_total_mb=16_000) is True
+    # ... and the clamp is still visible, which is why sufficiency is asked SEPARATELY.
+    assert measure._derive_phase_ceiling_mb(12_000, box_total_mb=16_000) == (
+        16_000 - measure.MIN_MEMORY_HEADROOM_MB)
+
+    monkeypatch.setattr(measure, "PHASE_CEILING_IS_SUFFICIENT", False)
+    with pytest.raises(measure._Unbounded):
+        measure._bounded_argv(tmp_path, lambda _m: None, "ops2-refusal-selftest")
+
+
+def test_a_box_that_will_not_report_its_size_refuses_rather_than_assuming_a_large_one():
+    """An unreadable /proc/meminfo is an unavailable check, and an unavailable check is a FAILED
+    check (R15). MUTATION: return True when the cap is unknown and this reds -- and the phase
+    that state permits is a 12.9G suite launched at whatever ceiling happened to be derived."""
+    assert measure._box_safe_cap_mb(box_total_mb=None, reserve_mb=4096) is None, (
+        "an unknown box size produced a cap, so the sentinel for 'the kernel would not say' is "
+        "being read as 'ask the box' -- the fail-open branch"
+    )
+    assert measure._ceiling_is_sufficient(8192, box_total_mb=None) is False
+
+
+def test_the_shipped_ceiling_clears_every_demand_the_live_record_has_evidence_for():
+    """The criterion asked of the artefact on disk rather than of a fixture -- this is the state
+    that funded three relaunches: a ceiling of 8192 shipped while the record held a kill AT 8192.
+
+    Stated as a DISJUNCTION so a healthy mechanism cannot wedge the suite: either the ceiling
+    clears the measured demand, or the phase is refused outright (`PHASE_CEILING_IS_SUFFICIENT`
+    False). Both are correct end states; shipping a ceiling at or below a demand already observed
+    while still claiming the phase is runnable is not."""
+    live = measure.prc.PROJECT_DIR / "docs" / "observability" / "publish_gate_subject_cost.json"
+    if not live.exists():
+        pytest.skip("no live measurement record yet")
+    floor = measure._measured_demand_floor_mb(json.loads(live.read_text()).get("phases"))
+    print("live record's measured demand floor: {}MB; shipped ceiling {}MB; sufficient={}".format(
+        floor, measure.PHASE_MEMORY_MAX_MB, measure.PHASE_CEILING_IS_SUFFICIENT))
+    if floor is None:
+        pytest.skip("no banked phase carries demand evidence yet")
+
+    assert (measure.PHASE_MEMORY_MAX_MB > floor) or not measure.PHASE_CEILING_IS_SUFFICIENT, (
+        "the shipped ceiling is at or below a demand the record has already measured, and the "
+        "phase is still marked runnable -- so the next launch dies exactly where the last three "
+        "did: floor {}MB, ceiling {}MB".format(floor, measure.PHASE_MEMORY_MAX_MB)
+    )
+
+
+@pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+def test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel():
+    """Spends real seconds proving the instrument measures a real cgroup, for the same reason the
+    MemoryMax self-tests above do: asserting that a sampler builds a path proves only that this
+    repo can build a path, and would pass on a kernel with no `memory.peak` at all.
+
+    A 400MB allocation inside a 1024MB scope must read back as ~400MB -- not as the ceiling, not
+    as zero, and labelled `observed` rather than a lower bound because the run ended on its own
+    and a read landed after the child exited."""
+    unit = "ops2-peak-selftest-{}".format(os.getpid())
+    alloc = ("import time\n"
+             "b = bytearray(400*1024*1024)\n"
+             "b[::4096] = b'x' * (len(b)//4096)\n"
+             "time.sleep(3)\n")
+    sampler = measure._ScopePeakSampler(unit, poll_seconds=0.5).start()
+    res = subprocess.run(measure._scope_argv(unit, memory_max_mb=1024)
+                         + [sys.executable, "-c", alloc],
+                         capture_output=True, text=True, timeout=180)
+    sampler.stop()
+
+    assert res.returncode == 0, "the allocation never ran: {}".format(res.stderr[-300:])
+    assert sampler.peak_mb is not None, (
+        "the sampler read nothing from a scope that demonstrably ran, so the ceiling has no "
+        "measured subject and falls back to a chosen number for ever"
+    )
+    assert 350 < sampler.peak_mb < 700, (
+        "the sampler did not measure this scope's own demand: {}MB for a 400MB allocation "
+        "under a 1024MB ceiling".format(sampler.peak_mb)
+    )
+    assert sampler.source == "memory.peak"
+    assert sampler.is_lower_bound_on_demand(False) is False
+    assert "observed:" in sampler.basis(False)
+
+
+@pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+def test_a_killed_phases_peak_is_its_ceiling_and_is_labelled_a_lower_bound():
+    """The branch that matters to the ratchet, run for real. A phase killed against its bound
+    never used more than the bound, so its peak IS the ceiling -- and a reader (or
+    `_measured_demand_floor_mb`) taking that for the phase's peak would derive every future
+    ceiling from the previous ceiling.
+
+    MUTATION: return False from `is_lower_bound_on_demand` on a killed phase and this reds."""
+    unit = "ops2-peak-kill-selftest-{}".format(os.getpid())
+    # PACED, not one big bytearray: a scope that dies inside a single allocation can be torn
+    # down before any read lands, and this test would then be graded on the sampler's
+    # unavailable branch instead of its killed-phase branch. 32MB at a time against a 512MB
+    # ceiling takes ~16 steps, an order of magnitude more than the poll interval below.
+    alloc = ("import time\n"
+             "b = []\n"
+             "for _ in range(40):\n"
+             "    c = bytearray(32*1024*1024); c[::4096] = b'x' * (len(c)//4096)\n"
+             "    b.append(c); time.sleep(0.05)\n")
+    sampler = measure._ScopePeakSampler(unit, poll_seconds=0.02).start()
+    res = subprocess.run(measure._scope_argv(unit, memory_max_mb=512)
+                         + [sys.executable, "-c", alloc],
+                         capture_output=True, text=True, timeout=180)
+    sampler.stop()
+
+    assert res.returncode != 0, "the 900MB allocation survived a 512MB ceiling"
+    assert sampler.peak_mb is not None and sampler.peak_mb <= 512
+    assert sampler.is_lower_bound_on_demand(True) is True
+    assert "lower bound:" in sampler.basis(True) and "not what the phase wanted" in sampler.basis(
+        True)
+
+
+@pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
+def test_another_scopes_memory_is_not_this_scopes_peak():
+    """The same distinction `_scope_oom_killed` had to draw on `oom_memcg=`: a scope whose name
+    merely SHARES A PREFIX with a live one is a different cgroup, and reading its memory as this
+    one's is how a phase inherits a neighbour's number.
+
+    MUTATION: match on a prefix or a substring in `_scope_cgroup_dir` and this reds -- the
+    sampler below would find the sibling scope that is running while it looks."""
+    live_unit = "ops2-sibling-selftest-{}-running".format(os.getpid())
+    asked_for = "ops2-sibling-selftest-{}".format(os.getpid())
+    sampler = measure._ScopePeakSampler(asked_for, poll_seconds=0.25).start()
+    subprocess.run(measure._scope_argv(live_unit, memory_max_mb=1024)
+                   + [sys.executable, "-c", "import time; b=bytearray(200*1024*1024); "
+                                            "b[::4096]=b'x'*(len(b)//4096); time.sleep(2)"],
+                   capture_output=True, text=True, timeout=180)
+    sampler.stop()
+
+    assert sampler.peak_mb is None, (
+        "a scope that does not exist reported {}MB -- borrowed from the sibling scope that was "
+        "running throughout".format(sampler.peak_mb)
+    )
+
+
+def test_an_unreadable_cgroup_reads_as_unknown_rather_than_as_zero(tmp_path):
+    """FAIL-CLOSED. A zero peak is indistinguishable from 'this phase used no memory', and it is
+    fed straight to the ceiling derivation -- so a broken instrument would silently produce a
+    tighter ceiling and a fresh round of kills.
+
+    MUTATION: return 0 instead of None from `_read_scope_memory_kb` and this reds."""
+    sampler = measure._ScopePeakSampler("ops2-no-such-scope", root=tmp_path, poll_seconds=0.01)
+    sampler.stop()
+
+    assert sampler.peak_mb is None and sampler.samples == 0
+    assert sampler.is_lower_bound_on_demand(False) is None, (
+        "a phase with no peak at all was given a lower-bound VERDICT, so a reader cannot tell "
+        "an unmeasured phase from a measured one"
+    )
+    assert "unavailable:" in sampler.basis(False) and "not zero" in sampler.basis(False)
+    assert measure._scope_cgroup_dir("", root=tmp_path) is None
+    assert measure._read_scope_memory_kb(None) == (None, None)
+
+    # AND THE OTHER UNREADABLE SHAPE, which the missing-directory case above does NOT reach: the
+    # scope directory EXISTS but its memory files do not (a kernel with no memory controller in
+    # that cgroup, a scope caught mid-teardown). Measured as a surviving mutation before this
+    # was added -- returning 0 from the bottom of `_read_scope_memory_kb` stayed green, because
+    # every assertion above exits at the `cgdir is None` guard at the top.
+    hollow = tmp_path / "user.slice" / "ops2-hollow-scope.scope"
+    hollow.mkdir(parents=True)
+    assert measure._scope_cgroup_dir("ops2-hollow-scope", root=tmp_path) == hollow
+    assert measure._read_scope_memory_kb(hollow) == (None, None), (
+        "a scope whose memory files could not be read reported a NUMBER -- and a zero peak is "
+        "fed to the ceiling derivation as measured demand"
+    )
+    hollow_sampler = measure._ScopePeakSampler("ops2-hollow-scope", root=tmp_path,
+                                               poll_seconds=0.01)
+    hollow_sampler.stop()
+    assert hollow_sampler.peak_mb is None and hollow_sampler.samples == 0
+
+
+def test_the_banked_phase_carries_its_peak_and_the_provenance_of_its_ceiling(monkeypatch,
+                                                                            tmp_path):
+    """The record is where the next reader meets these numbers, and a bound whose provenance is
+    absent from the record is a round number to them -- which is what 8192 became.
+
+    MUTATION: drop `memory_max_basis`/`scope_peak_basis` from the banked phase and this reds."""
+    monkeypatch.setattr(measure, "_wait_for_quiet", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure, "_wait_for_memory_headroom", lambda log, heartbeat=None: True)
+    monkeypatch.setattr(measure.subprocess, "run",
+                        lambda *_a, **_kw: types.SimpleNamespace(
+                            returncode=0, stdout="1 passed in 0.01s", stderr=""))
+
+    rec = measure._time_suite_under_exclusion(tmp_path, lambda _m: None, None)
+
+    assert rec["memory_max_mb"] == measure.PHASE_MEMORY_MAX_MB
+    assert rec["memory_max_demand_floor_mb"] == measure.PHASE_MEMORY_DEMAND_FLOOR_MB
+    assert "derived:" in rec["memory_max_basis"] and "headroom" in rec["memory_max_basis"]
+    assert "scope_peak_mb" in rec and "scope_peak_source" in rec
+    assert rec["scope_peak_is_lower_bound_on_demand"] is None, (
+        "no scope existed in this test, so the record must say the peak is UNKNOWN rather than "
+        "qualify a number it never took"
+    )
+    assert "unavailable:" in rec["scope_peak_basis"]

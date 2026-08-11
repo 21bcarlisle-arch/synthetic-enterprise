@@ -60,6 +60,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -723,13 +724,142 @@ def _argv_without_x() -> list:
 # unchanged. (`--unit` reparents to the user manager, which is right for the LAUNCH -- see
 # `_systemd_run_argv` -- and wrong for a thing we are timing.)
 #
-# THE BOUND IS A CEILING, NOT A DERIVED FIGURE, and says so: the whole point of the run is that
-# the -x-less peak has never been measured. What is known is that the publish gate -- the
-# production path this imitates -- peaked at 2.42G in a live sample, and that 12.9G is where the
-# box dies. 8G is comfortably above any legitimate peak observed and comfortably below the
-# lethal one. `tools/sample_gate_rss_premium.py` is measuring the real peaks; when it reports,
-# this ceiling should be re-derived from them rather than left at a round number.
-PHASE_MEMORY_MAX_MB = 8192
+# THE BOUND WAS A CEILING AND NOT A DERIVED FIGURE, AND THAT IS WHAT THREE LAUNCHES DIED AGAINST
+# (2026-08-11). The 8192 below was chosen, not measured -- "comfortably above any legitimate peak
+# observed and comfortably below the lethal one" -- with a comment saying it should be re-derived
+# from real peaks when `tools/sample_gate_rss_premium.py` reported. It reported (5.34G peak
+# process, `docs/observability/gate_x_premium_rss.json`), and the phase still died: the kernel
+# logged a CONSTRAINT_MEMCG kill in this scope with one child at 6.13G while the CGROUP had
+# reached its 8192MiB limit. THE SAMPLER'S NUMBER WAS NOT THE SUBJECT THE CEILING BOUNDS -- a
+# per-PROCESS high-water mark is not a cgroup's demand, and the whole tree is what the limit
+# applies to. Deriving 8192 -> some new round number from 5.34G would have set the ceiling BELOW
+# a demand already observed, and bought a fourth truncation.
+#
+# So the ceiling is now DERIVED, from the only measured quantity that is in the ceiling's own
+# unit: this scope's own cgroup demand.
+#   * The EVIDENCE is `scope_peak_mb`, sampled from the kernel's own `memory.peak` for this
+#     scope while the phase runs (`_ScopePeakSampler`) -- and, for a phase that died against its
+#     bound, that phase's `memory_max_mb`, because demand provably reached it.
+#   * The RULE is `_derive_phase_ceiling_mb`: the largest measured demand, times a stated
+#     headroom, capped by what this box can give a single phase while the publisher still fits.
+#   * The RATCHET is the point. A phase killed at 8192 banks a demand floor of 8192, so the next
+#     launch runs at 10240 -- not because 10240 is a nice number, but because 8192 was measured
+#     to be insufficient. A completed phase banks its true peak and the ceiling can come DOWN.
+#   * The TERMINUS is the point too: when the derived ceiling no longer clears the box-safe cap,
+#     `_bounded_argv` REFUSES the phase (see `_ceiling_is_sufficient`). The alternative -- clamp
+#     to the cap and run anyway -- is the shape that funded launches 12, 13 and 14, each of which
+#     re-read the one cause that would have stopped it as absent.
+CEILING_HEADROOM = 1.25
+# The demand floor to use when NOTHING is banked -- the kernel's cgroup kill of 2026-08-11, which
+# is a measurement and not a choice: usage in that scope reached this figure. Only ever a
+# fallback; a banked phase supersedes it.
+FALLBACK_DEMAND_FLOOR_MB = 8192
+
+
+def _box_total_mb():
+    """MemTotal in MB, or None if the kernel will not say (never raises)."""
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            if line.startswith("MemTotal:"):
+                return int(line.split()[1]) // 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
+# `_ASK_THE_BOX` and not `None` as the default: `None` HAS A MEANING here -- "the kernel would
+# not say how big this box is" -- and a default that spells itself the same way as that answer
+# would turn an unreadable /proc/meminfo into a silent re-read of the real box, which is the
+# fail-open branch these functions exist to close.
+_ASK_THE_BOX = object()
+
+
+def _box_safe_cap_mb(box_total_mb=_ASK_THE_BOX, reserve_mb: int = None):
+    """The most this box may hand ONE phase while the rest of it still works, or None.
+
+    The reserve is `MIN_MEMORY_HEADROOM_MB` -- the same figure the phase already refuses to
+    START without -- rather than a second number meaning the same thing: a ceiling that could
+    consume the headroom its own precondition demands is not a bound, it is a countdown."""
+    total = _box_total_mb() if box_total_mb is _ASK_THE_BOX else box_total_mb
+    if total is None:
+        return None
+    reserve = MIN_MEMORY_HEADROOM_MB if reserve_mb is None else reserve_mb
+    return total - reserve
+
+
+def _measured_demand_floor_mb(banked_phases) -> int:
+    """The largest demand this measurement has EVIDENCE for, in MB, or None.
+
+    Two admissible kinds of evidence, both the kernel's rather than this harness's:
+      * `scope_peak_mb` -- `memory.peak` for that phase's own scope;
+      * `memory_max_mb` on a phase whose `hit_memory_ceiling` is true -- demand reached the
+        limit, or the cgroup killer would not have fired.
+    A completed phase with no peak sample contributes NOTHING: not knowing a phase's peak is not
+    evidence that it was small, and treating a silent phase as a low floor is how a ceiling
+    derived from evidence would drift back down below a demand already seen."""
+    floors = []
+    for rec in (banked_phases or {}).values():
+        if not isinstance(rec, dict):
+            continue
+        peak = rec.get("scope_peak_mb")
+        if isinstance(peak, (int, float)) and peak > 0:
+            floors.append(int(peak))
+        if rec.get("hit_memory_ceiling") is True:
+            bound = rec.get("memory_max_mb")
+            if isinstance(bound, (int, float)) and bound > 0:
+                floors.append(int(bound))
+    return max(floors) if floors else None
+
+
+def _derive_phase_ceiling_mb(demand_floor_mb=None, box_total_mb=_ASK_THE_BOX,
+                             headroom: float = CEILING_HEADROOM) -> int:
+    """The ceiling one phase runs under: measured demand times headroom, capped by the box.
+
+    Returns an int always, so every caller has a number to log and to bank. Whether that number
+    is ENOUGH is a separate question with a separate answer -- `_ceiling_is_sufficient` -- kept
+    separate on purpose: silently clamping an insufficient ceiling to the cap and running is
+    exactly the "relaunch and hope" the ratchet exists to end."""
+    floor = FALLBACK_DEMAND_FLOOR_MB if demand_floor_mb is None else int(demand_floor_mb)
+    want = int(floor * headroom)
+    cap = _box_safe_cap_mb(box_total_mb)
+    return want if cap is None else min(want, cap)
+
+
+def _ceiling_is_sufficient(demand_floor_mb=None, box_total_mb=_ASK_THE_BOX,
+                           headroom: float = CEILING_HEADROOM) -> bool:
+    """Can this box give a phase the ceiling its measured demand implies?
+
+    False means the phase is UNRUNNABLE here as measured -- not that it should be tried at the
+    cap. A box that cannot hold the subject is a finding, not a retry."""
+    floor = FALLBACK_DEMAND_FLOOR_MB if demand_floor_mb is None else int(demand_floor_mb)
+    cap = _box_safe_cap_mb(box_total_mb)
+    if cap is None:
+        # An unreadable /proc/meminfo cannot be read as "the box is huge". Fail-CLOSED here,
+        # unlike the headroom WAIT (which measures anyway rather than hang), because this
+        # decides whether a 12.9G-capable suite runs at all.
+        return False
+    return int(floor * headroom) <= cap
+
+
+# Derived at import from what is banked, so the running phase, its log line, its record and the
+# argv all quote ONE number. Never a literal.
+def _ceiling_from_the_record(out_path: str = None):
+    """(ceiling_mb, demand_floor_mb, sufficient) read off the live record, defaults on any
+    failure -- an unreadable record must not silently produce a DIFFERENT bound than the one the
+    evidence implies, so it falls back to the cited kernel figure rather than to nothing."""
+    path = out_path or str(prc.PROJECT_DIR / "docs" / "observability"
+                           / "publish_gate_subject_cost.json")
+    floor = None
+    try:
+        floor = _measured_demand_floor_mb(json.loads(Path(path).read_text()).get("phases"))
+    except (OSError, ValueError, AttributeError, TypeError):
+        floor = None
+    return (_derive_phase_ceiling_mb(floor), floor if floor is not None
+            else FALLBACK_DEMAND_FLOOR_MB, _ceiling_is_sufficient(floor))
+
+
+PHASE_MEMORY_MAX_MB, PHASE_MEMORY_DEMAND_FLOOR_MB, PHASE_CEILING_IS_SUFFICIENT = (
+    _ceiling_from_the_record())
 
 
 class _Unbounded(Exception):
@@ -776,7 +906,195 @@ def _bounded_argv(cwd: Path, log, unit: str = None) -> list:
         log("  ! systemd-run unavailable -- REFUSING to time an unbounded suite; the "
             "unbounded path is what global-OOM-killed this box three times")
         raise _Unbounded("systemd-run unavailable")
+    # THE TERMINUS OF THE RATCHET, and the reason it is not a clamp. Measured demand of
+    # `PHASE_MEMORY_DEMAND_FLOOR_MB` needs a ceiling this box cannot spare, so this phase is
+    # unrunnable HERE -- running it at the cap would reproduce the kill that produced the floor,
+    # which is what launches 12-14 each did in turn.
+    if not PHASE_CEILING_IS_SUFFICIENT:
+        log("  ! measured demand of {}MB needs a {}MB ceiling; this box can spare at most {}MB "
+            "with the publisher's {}MB reserve intact -- REFUSING; the phase is unrunnable here "
+            "as measured, and running it at the cap is the fourth truncation"
+            .format(PHASE_MEMORY_DEMAND_FLOOR_MB,
+                    int(PHASE_MEMORY_DEMAND_FLOOR_MB * CEILING_HEADROOM),
+                    _box_safe_cap_mb(), MIN_MEMORY_HEADROOM_MB))
+        raise _Unbounded("measured demand {}MB exceeds this box's safe cap {}MB".format(
+            PHASE_MEMORY_DEMAND_FLOOR_MB, _box_safe_cap_mb()))
     return _scope_argv(unit or _phase_scope_unit(cwd)) + _argv_without_x()
+
+
+# ── MEASURE THE SUBJECT THE CEILING BOUNDS, WHICH IS THE CGROUP AND NOT A PROCESS (2026-08-11) ─
+#
+# THE DEFECT THIS CLOSES, READ OFF TWO ARTEFACTS SIDE BY SIDE. The ceiling above was to be
+# "re-derived from real peaks" once `tools/sample_gate_rss_premium.py` reported. It reported:
+# `docs/observability/gate_x_premium_rss.json`, `without_x.max_single_process_hwm_gb: 5.34`. But
+# the kernel killed this phase's scope with a child at 6.13G, having reached the 8192MiB CGROUP
+# limit. A per-PROCESS high-water mark and a CGROUP's demand are different quantities, and only
+# the second is in the ceiling's unit -- so re-deriving 8192 from 5.34G would have set the bound
+# BELOW a demand already observed. The sampler was measuring a real thing; it was not measuring
+# the subject.
+#
+# WHAT THIS SAMPLES INSTEAD: `memory.peak` on the phase's OWN scope -- the kernel's high-water
+# mark for the whole process tree the limit applies to, maintained by the same accounting that
+# fires the kill. Read from the parent WHILE the phase runs, because the scope (and with it
+# `memory.peak` and `memory.events`) is torn down the moment the phase ends -- the exact reason
+# `_scope_oom_killed` had to go to the journal instead.
+#
+# AND IT SAYS WHICH KIND OF NUMBER IT IS. A peak is EXACT for demand only when the run ended on
+# its own AND a read landed after the child exited. Otherwise it is a LOWER BOUND: a killed phase
+# never used more than its limit no matter how much it wanted, and a sampler stopped early saw
+# only what had happened so far. `_derive_phase_ceiling_mb` can take a lower bound (headroom over
+# it, and it ratchets); what it must never take is a lower bound labelled as a peak.
+SCOPE_PEAK_POLL_SECONDS = 5
+CGROUP_ROOT = Path("/sys/fs/cgroup")
+
+
+def _scope_cgroup_dir(unit: str, root: Path = None):
+    """The cgroup directory systemd made for `unit`, or None. Never raises.
+
+    Tries the path systemd actually uses for a `--user --scope` first, then searches the user
+    slice for that exact directory NAME -- never a prefix or a substring match, for the same
+    reason `_scope_oom_killed` matches on `oom_memcg=`: another scope's memory is not this
+    scope's memory, and a loose match makes them the same number."""
+    if not unit:
+        return None
+    root = CGROUP_ROOT if root is None else Path(root)
+    name = unit if unit.endswith(".scope") else unit + ".scope"
+    try:
+        uid = os.getuid()
+        likely = (root / "user.slice" / "user-{}.slice".format(uid)
+                  / "user@{}.service".format(uid) / "app.slice" / name)
+        if likely.is_dir():
+            return likely
+        base = root / "user.slice"
+        if base.is_dir():
+            for cand in base.rglob(name):
+                if cand.is_dir():
+                    return cand
+    except OSError:
+        return None
+    return None
+
+
+def _read_scope_memory_kb(cgdir):
+    """(kb, source) for a scope's memory, or (None, None). Never raises.
+
+    `memory.peak` is the kernel's HIGH-WATER MARK and is what this wants. `memory.current` is
+    the fallback for a kernel without it (added 6.5) and is only ever an INSTANT -- so it is
+    returned with its own name, and the caller labels a peak built from it a lower bound rather
+    than quietly presenting a sample as a maximum."""
+    if cgdir is None:
+        return (None, None)
+    for fname in ("memory.peak", "memory.current"):
+        try:
+            raw = (Path(cgdir) / fname).read_text().strip()
+        except (OSError, ValueError):
+            continue
+        try:
+            return (int(raw) // 1024, fname)
+        except ValueError:
+            continue
+    return (None, None)
+
+
+class _ScopePeakSampler:
+    """Samples one phase's cgroup high-water mark for the life of that phase.
+
+    Fail-CLOSED in the R15 sense: everything it cannot observe is None, never 0. A zero peak
+    would be indistinguishable from "this phase used no memory", and would then be fed to
+    `_derive_phase_ceiling_mb` as a demand floor -- the shape that turns a broken instrument into
+    a tighter ceiling and a fresh round of kills."""
+
+    def __init__(self, unit: str, root: Path = None,
+                 poll_seconds: float = SCOPE_PEAK_POLL_SECONDS):
+        self.unit = unit
+        self.root = root
+        self.poll_seconds = poll_seconds
+        self.peak_kb = None
+        self.source = None
+        self.samples = 0
+        self.read_after_exit = False
+        self._stop = threading.Event()
+        self._thread = None
+
+    def _sample(self) -> bool:
+        """Take one reading. True if it LANDED -- the caller of `stop` needs to know whether the
+        final read got in before teardown, and a sample counter shared with a live thread cannot
+        answer that about one specific read."""
+        kb, source = _read_scope_memory_kb(_scope_cgroup_dir(self.unit, self.root))
+        if kb is None:
+            return False
+        self.samples += 1
+        self.source = source if self.source is None else self.source
+        # max, not last: `memory.current` can fall, and a sampler that reports the last read
+        # would report a suite's teardown rather than its peak.
+        if self.peak_kb is None or kb > self.peak_kb:
+            self.peak_kb = kb
+        return True
+
+    def _loop(self) -> None:
+        while not self._stop.wait(self.poll_seconds):
+            self._sample()
+
+    def start(self) -> "_ScopePeakSampler":
+        self._thread = threading.Thread(target=self._loop, daemon=True,
+                                        name="scope-peak-{}".format(self.unit))
+        self._thread.start()
+        return self
+
+    def stop(self) -> "_ScopePeakSampler":
+        """Stop sampling, then take ONE more read.
+
+        That last read is what makes an exact answer possible at all: the child has exited but
+        systemd tears the scope down asynchronously, so `memory.peak` is often still there for a
+        moment and then covers the WHOLE run. If it is gone, the peak stands as a lower bound and
+        `read_after_exit` stays False so the record says which it got."""
+        # THE FINAL READ COMES FIRST, BEFORE THE JOIN. Joining first spends up to a whole poll
+        # interval while systemd tears the scope down, so the read that decides whether this
+        # number is exact was guaranteed to arrive too late -- measured: `read_after_exit` was
+        # False on every run until this order was swapped.
+        self._stop.set()
+        landed = self._sample()
+        if self._thread is not None:
+            self._thread.join(timeout=self.poll_seconds * 2)
+        self.read_after_exit = landed
+        return self
+
+    @property
+    def peak_mb(self):
+        return None if self.peak_kb is None else self.peak_kb // 1024
+
+    def is_lower_bound_on_demand(self, hit_memory_ceiling: bool):
+        """True/False, or None when there is no peak to qualify."""
+        if self.peak_kb is None:
+            return None
+        if hit_memory_ceiling:
+            return True
+        if not self.read_after_exit:
+            return True
+        return self.source != "memory.peak"
+
+    def basis(self, hit_memory_ceiling: bool) -> str:
+        """Why this peak is the kind of number it is -- DERIVED per branch, because a fixed
+        sentence beside a computed verdict describes one branch and misdescribes the others."""
+        if self.peak_kb is None:
+            return ("unavailable: this phase's cgroup could not be read ({} samples), so its "
+                    "peak is UNKNOWN -- not zero, and not evidence that the phase was small"
+                    .format(self.samples))
+        if hit_memory_ceiling:
+            return ("lower bound: this phase was killed against its own ceiling, so {}MB is what "
+                    "the cgroup was ALLOWED, not what the phase wanted -- true demand is higher "
+                    "by an unmeasured amount".format(self.peak_mb))
+        if not self.read_after_exit:
+            return ("lower bound: the scope was gone before a read could land after the child "
+                    "exited, so {}MB covers the run only up to the last sample of {}"
+                    .format(self.peak_mb, self.samples))
+        if self.source != "memory.peak":
+            return ("lower bound: this kernel has no memory.peak, so {}MB is the largest of {} "
+                    "INSTANTANEOUS reads of {} and the true maximum sits between samples"
+                    .format(self.peak_mb, self.samples, self.source))
+        return ("observed: {}MB is the kernel's own high-water mark (memory.peak) for this "
+                "phase's scope, read after the child exited, so it covers the whole run"
+                .format(self.peak_mb))
 
 
 # ── ASK THE KERNEL WHICH DEATH THIS WAS, RATHER THAN GUESSING FROM THE RETURNCODE (2026-08-11) ─
@@ -905,12 +1223,21 @@ def _looks_like_the_bound(result_returncode: int, mem_available_after_mb,
 # cgroup-versus-global discriminator is INFERRED; and the case where MemAvailable could not be
 # read is neither -- it is a question that went unanswered, which now says so instead of quietly
 # rendering as a confident `false`.
-def _ran_to_completion_basis(returncode, hit_memory_ceiling: bool) -> str:
+# `memory_max_mb` IS A PARAMETER AND NOT THE MODULE CONSTANT, and that is not tidiness (2026-08-11).
+# The constant now MOVES -- it is derived from measured demand and ratchets -- so a basis sentence
+# about a PAST phase that quotes today's constant re-describes that phase with a ceiling it never
+# ran under. Caught by `test_the_banked_record_agrees_with_the_basis_written_beside_it` the moment
+# the derivation landed: a phase banked at 8192 re-derived as "killed against its own 10240MB
+# ceiling", so the population control -- which is in the publish gate's scope -- would have gone
+# red on every ratchet and wedged publishing. Each phase banks its own `memory_max_mb`; a basis
+# for that phase is asked in ITS terms.
+def _ran_to_completion_basis(returncode, hit_memory_ceiling: bool, memory_max_mb=None) -> str:
     """The evidence for THIS phase's `ran_to_completion`, in its own terms."""
+    ceiling = PHASE_MEMORY_MAX_MB if memory_max_mb is None else memory_max_mb
     if hit_memory_ceiling:
         return ("inferred: this phase was killed against its own {}MB ceiling, so it never "
                 "reported and its seconds is a lower bound on the runtime it was heading for"
-                .format(PHASE_MEMORY_MAX_MB))
+                .format(ceiling))
     if not isinstance(returncode, int) or isinstance(returncode, bool):
         return ("unavailable: no returncode was recorded, so completion is unprovable -- which "
                 "is treated as NOT completed rather than as a pass")
@@ -923,17 +1250,17 @@ def _ran_to_completion_basis(returncode, hit_memory_ceiling: bool) -> str:
 
 
 def _hit_memory_ceiling_basis(returncode, mem_available_after_mb, hit: bool,
-                              kernel_oom=None) -> str:
+                              kernel_oom=None, memory_max_mb=None) -> str:
     """The evidence for THIS phase's `hit_memory_ceiling`, in its own terms.
 
     The KERNEL-ANSWERED cases come first and are labelled `observed`, because they are: the log
     line names this phase's own cgroup. Everything below them is the returncode fallback and stays
     labelled `inferred`/`unavailable` as before."""
+    ceiling = PHASE_MEMORY_MAX_MB if memory_max_mb is None else memory_max_mb
     if kernel_oom is True:
         return ("observed: the kernel logged a cgroup OOM kill whose oom_memcg is this phase's "
                 "own scope, so it died against its own {}MB ceiling -- returncode {} is what the "
-                "scope teardown left, not the discriminator".format(PHASE_MEMORY_MAX_MB,
-                                                                    returncode))
+                "scope teardown left, not the discriminator".format(ceiling, returncode))
     if kernel_oom is False:
         return ("observed: the kernel logged no cgroup OOM against this phase's own scope, so "
                 "whatever returncode {} means, it is not this phase's ceiling".format(returncode))
@@ -1039,8 +1366,14 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
     subject_before = _subject_sha(cwd)
     started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     started = time.monotonic()
-    result = subprocess.run(argv, cwd=str(cwd), env=env,
-                            capture_output=True, text=True, errors="replace")
+    # Started BEFORE the child and stopped AFTER it, because the scope exists only between those
+    # two moments -- this is the measurement the ceiling above is derived from.
+    peak = _ScopePeakSampler(scope_unit).start()
+    try:
+        result = subprocess.run(argv, cwd=str(cwd), env=env,
+                                capture_output=True, text=True, errors="replace")
+    finally:
+        peak.stop()
     elapsed = time.monotonic() - started
     ended_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     subject_after = _subject_sha(cwd)
@@ -1091,12 +1424,30 @@ def _time_suite_under_exclusion(cwd: Path, log, heartbeat=None) -> dict:
         # INFERRED (see `_looks_like_the_bound`) -- a phase that hit its own bound is a phase
         # whose SECONDS mean nothing, so a reader must not average it into a ratio.
         "memory_max_mb": PHASE_MEMORY_MAX_MB,
+        # WHERE THAT CEILING CAME FROM, banked so it can be re-derived rather than trusted: the
+        # measured demand it was computed from, and the rule. A bound whose provenance is not in
+        # the record is a round number to the next reader, which is what 8192 became.
+        "memory_max_demand_floor_mb": PHASE_MEMORY_DEMAND_FLOOR_MB,
+        "memory_max_basis": ("derived: {}MB of measured demand x {} headroom, capped at the {}MB "
+                             "this box can spare with the {}MB start-headroom reserve intact"
+                             .format(PHASE_MEMORY_DEMAND_FLOOR_MB, CEILING_HEADROOM,
+                                     _box_safe_cap_mb(), MIN_MEMORY_HEADROOM_MB)),
         # THE ORACLE'S OWN EVIDENCE, banked so the verdict beside it can be RE-DERIVED by a reader
         # (and by the population control) instead of taken on trust. `scope_oom_killed` is
         # tri-state: true/false are the kernel's answer, null is "the question could not be put",
         # and null is what makes the `inferred` fallback legible rather than silent.
         "scope_unit": scope_unit,
         "scope_oom_killed": kernel_oom,
+        # THE MEASUREMENT THE CEILING IS DERIVED FROM -- this scope's own demand, in the unit the
+        # ceiling is stated in. `scope_peak_is_lower_bound_on_demand` is not decoration: a killed
+        # phase's peak IS its ceiling, and a reader (or `_measured_demand_floor_mb`) taking that
+        # for the peak would derive the next ceiling from the previous ceiling for ever.
+        "scope_peak_mb": peak.peak_mb,
+        "scope_peak_source": peak.source,
+        "scope_peak_samples": peak.samples,
+        "scope_peak_read_after_exit": peak.read_after_exit,
+        "scope_peak_is_lower_bound_on_demand": peak.is_lower_bound_on_demand(hit_bound),
+        "scope_peak_basis": peak.basis(hit_bound),
         "hit_memory_ceiling": hit_bound,
         # DERIVED FROM THIS PHASE, not a literal restating the field (see the block above the two
         # basis helpers): a fixed sentence beside a computed verdict describes one branch and
