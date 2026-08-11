@@ -2266,7 +2266,7 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 24
+  simplifications_count: 25
   notes_rehomed: [harden_note, level_hold_note]
   expert_hour: {last: '2026-08-11', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
@@ -4671,7 +4671,7 @@
 - id: OPS2_publish_gate_head_worktree
   title: "The HEAD-checkout publish gate gets a real lifecycle"
   gain: "Gate-on-HEAD stops costing 2.5x per cycle and stops leaking a 130MB tmpdir when the publisher is killed."
-  name: "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 2 ('the polished atom'); full scope in docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md, which is this atom's spec and must not be re-derived. The minimal version is LANDED and deployed (git archive HEAD -> mkdtemp + untracked-DATA symlink overlay) -- do NOT redo it. EXIT: (1) a REUSED checkout so __pycache__ survives between cycles, and the clean-subject gate runs within 1.3x the in-tree baseline (measured both sides, not asserted); (2) GATE_SUITE_TIMEOUT_SECONDS re-derived from the NEW measured runtime at >=2x, with test_the_gate_timeout_exceeds_the_suites_own_runtime's constant moved with it -- the gate now fail-CLOSES on timeout, so an undersized bound wedges publishing; (3) crash-safe lifecycle (startup sweep of stale publish-gate-head-* dirs, or git worktree + prune) since rc=-9 is a known outcome and finally: does not run; (4) R15 both ways in its own module tests/background/test_publish_gate_subject_is_head.py -- cwd is the checkout not PROJECT_DIR (mutation: point it back, reds), a DIRTY working tree does not change the verdict (write a syntax error into a tracked source file, gate still passes -- this is THE property the ruling bought and nothing asserts it yet), an unavailable checkout BLOCKS (mutation: return True, reds), the dir is removed including on a raising run; (5) the LAST_TESTED_HASH_FILE contract stated in ONE place -- the supervisor's RUNG-1 wedge draw uses it as its independence cross-check and infers the semantics from two call sites."
+  name: "MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 2 ('the polished atom'); full scope in docs/staging/done/PLANNER_MINTED_publish_gate_head_checkout_polish_2026-08-09.md, which is this atom's spec and must not be re-derived. The minimal version is LANDED and deployed (git archive HEAD -> mkdtemp + untracked-DATA symlink overlay) -- do NOT redo it. EXIT: (1) SUPERSEDED 2026-08-11 by the R3 ELIMINATION of the reused checkout (444402ee0, after it reset a shared tree under four live suites and left publishing down 41h): prc.REUSE_HEAD_CHECKOUT ships False, so warm bytecode is unavailable to this atom at any price and the 1.3x bound -- derived under warm bytecode -- has no subject left to bound. Do NOT re-enable reuse to chase it, and do NOT read this supersession as the criterion being met. Its honest successor is a REPORTED number, not a bound: the throwaway/in-tree ratio, i.e. what the cold subject costs EVERY publish cycle, the permanent tax the elimination made unavoidable -- measured both sides at one commit by tools/measure_publish_gate_subject_cost.py, which no longer emits meets_exit_criterion. STILL OWED: a completed in_tree_baseline phase, so that tax is reported rather than estimated; (2) GATE_SUITE_TIMEOUT_SECONDS re-derived from the NEW measured runtime at >=2x, with test_the_gate_timeout_exceeds_the_suites_own_runtime's constant moved with it -- the gate now fail-CLOSES on timeout, so an undersized bound wedges publishing; (3) crash-safe lifecycle (startup sweep of stale publish-gate-head-* dirs, or git worktree + prune) since rc=-9 is a known outcome and finally: does not run; (4) R15 both ways in its own module tests/background/test_publish_gate_subject_is_head.py -- cwd is the checkout not PROJECT_DIR (mutation: point it back, reds), a DIRTY working tree does not change the verdict (write a syntax error into a tracked source file, gate still passes -- this is THE property the ruling bought and nothing asserts it yet), an unavailable checkout BLOCKS (mutation: return True, reds), the dir is removed including on a raising run; (5) the LAST_TESTED_HASH_FILE contract stated in ONE place -- the supervisor's RUNG-1 wedge draw uses it as its independence cross-check and infers the semantics from two call sites."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -4683,7 +4683,7 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: ['background/process_run_complete.py', 'tests/background/test_publish_gate_subject_is_head.py', 'tools/measure_publish_gate_subject_cost.py', 'tests/tools/test_measure_publish_gate_subject_cost.py', 'background/supervisor.py']
+  file_scope: ['background/process_run_complete.py', 'tests/background/test_publish_gate_subject_is_head.py', 'tools/measure_publish_gate_subject_cost.py', 'tests/tools/test_measure_publish_gate_subject_cost.py', 'tests/background/test_process_run_complete.py', 'background/supervisor.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a CI runner switched from the dev box to a clean container overnight, correct on day one and 2.5x slower until someone caches the layer"
 
@@ -4973,14 +4973,15 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 2
   provenance: director_ruling
   depends_on: []
   couples_with: [G13_projection_consumers]
   file_scope: ['tools/build_projections.py', 'tests/tools/test_build_projections.py']
+  records_rehomed: [evidence]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier's internal reporting database rebuilt nightly from the operational systems -- queryable, never the book of record"
 

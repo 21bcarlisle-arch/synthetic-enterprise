@@ -51,3 +51,9 @@ node_modules/
 # record -- neither is behaviour-determining declaration, so neither belongs in the repo.
 background/.ntfy_responder.lock
 background/.ntfy_claimed_ids/
+
+# The internal query store (atom G12_queryable_projections). Derived from committed truth and
+# REBUILT by tools/build_projections.py on every run, so committing it would create exactly the
+# second source of truth the atom exists to prevent -- a divergent copy that outlives its sources.
+docs/observability/projections.sqlite
+docs/observability/projections.sqlite.rebuilding

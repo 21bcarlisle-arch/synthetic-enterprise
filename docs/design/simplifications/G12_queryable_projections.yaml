@@ -1,0 +1,95 @@
+atom_id: G12_queryable_projections
+map_records:
+  evidence:
+  - docs/staging/in_progress/DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10.md
+  - tools/build_projections.py
+  - tests/tools/test_build_projections.py
+  - docs/design/scale_probe_10k_report.json
+  - docs/staging/WORKER_FINDING_A_MINT_SOURCES_CITED_DESIGN_ANCHOR_HAS_NEVER_EXISTED_2026-08-11.md
+build_note: |
+  2026-08-11. v1 LANDS, level 0 -> 2. `tools/build_projections.py` rebuilds a single SQLite
+  file (`docs/observability/projections.sqlite`, gitignored) from four committed artefacts:
+  the maturity map, the run history, the coupled-gap ledger, and the AO12 probe report.
+  MEASURED on the live repo, not asserted: 403 rows from 4 sources at 7ca016d3c in 0.32s,
+  380,928 bytes. 26 passed in tests/tools/test_build_projections.py, ruff clean.
+
+  THE ANCHOR DISCREPANCY, RESOLVED THE NARROW WAY. The mint carried a deliberate fork: the
+  instruction cites `DATA_LAKE_OBSERVABILITY.md`, which has never existed in this repo, while
+  `docs/architecture/SAAS_COVERAGE_MAP.md:71` classes BI/data-warehouse as bucket A
+  "eliminated by architecture" -- a row `tools/generate_saas_coverage_data.py` computes a
+  PUBLISHED 22.7% figure from. Of the two branches the mint named, this atom takes the second:
+  **scope narrowed to internal queryability, the row left true as written, the published
+  figure not moved.** The row's claim is that board-grade analytics need no separate
+  warehouse/ETL, and that stays exactly true -- `generate_dashboard_data.py` still computes
+  every published figure directly off the operational model, and nothing in this store feeds a
+  published figure or a site surface. Restating the row would have moved a live percentage to
+  accommodate a convenience tool, which is the tail wagging the dog. The instruction's own text
+  is the anchor of record, as the mint decided.
+
+  THREE PROPERTIES, EACH R15 BOTH WAYS, MUTATIONS RUN:
+
+  (a) COMMITTED, not working-tree. Sources are read with `git cat-file blob HEAD:<path>`, never
+  off disk. `test_the_working_tree_does_not_reach_the_store` writes an uncommitted atom, builds,
+  finds it absent, commits it, rebuilds, finds it present. This is the class the capability
+  index already fell into (an index that reads the working tree grades what nobody else sees).
+
+  (b) REBUILT, not mutated. `_open_new_store()` opens a new database beside the store; the
+  finished file is swapped in with `os.replace`. The live store is never opened for writing.
+  MUTATION RUN, two variants of the one named defect: the naive in-place builder (reds with
+  `table already exists`, hand-edit survives) and the dangerous one -- in-place made idempotent
+  with `IF NOT EXISTS` + `INSERT OR REPLACE`, which reports `status: ok` while a row nobody
+  sourced sits beside the real ones. Under both, `test_a_hand_edit_to_the_store_is_destroyed_by
+  _the_next_build` is FALSE. The control discriminates.
+
+  (c) FAIL-CLOSED, never zero rows. A source that is missing, malformed, or parses to nothing is
+  an UNKNOWN: the build refuses to promote, the live store is byte-identical afterwards, and no
+  table for that source is published. There is deliberately no `--allow-unknown` -- that door is
+  the defect wearing a flag. MUTATION RUN: `read_committed` defaulting to `b"{}"` plus the
+  extractor's empty-guard removed makes the build report `ok` and publish `coupled_gaps` with 0
+  rows, indistinguishable downstream from "we looked, there is nothing".
+
+  (d) THE ENVELOPE IS READ, NOT RE-DERIVED. `scale_envelope` is copied verbatim from AO12's own
+  report: the store's seam (`run_output_serialize`, ceiling 1000 customers, graduation trigger
+  5144, tear at 10000 memory_error under a 2048 MB cap) and, beside it, the probe's own
+  `first_seam_to_tear` (`settlement_build`, 20/69). Tested with a PERTURBATION ORACLE, not an
+  equality check: the fixture's figures are changed to 31337/424242 and the store must move with
+  them. A test that pinned 5144 would pass just as happily against a hardcoded constant, which
+  is the re-derivation the exit forbids. A missing field fails the build closed and is
+  parametrised over three fields -- a stage the probe never reached is an UNKNOWN, not a zero.
+
+  THE CLASS THIS NEARLY REPEATED, FIXED IN PASSING. `docs/design/scale_probe_10k_report.json`
+  was UNTRACKED -- not gitignored, simply never committed by anything; `tools/scale_probe_10k.py`
+  writes it and no code path lands it. G12's envelope is fail-closed on that artefact, so the
+  store would have failed closed on day one in any clean checkout. This is the SECOND instance
+  in two days of a measurement tool that never lands the evidence its own control reads (the
+  first wedged the publish gate ~1760 min: WORKER_FINDING_A_MEASUREMENT_TOOL_NEVER_LANDS_THE_
+  EVIDENCE_ITS_CONTROL_READS_2026-08-10, class OPEN). Landed as 7ca016d3c, with
+  `test_the_probe_artefact_the_envelope_reads_is_tracked` as the standing control. R10 says an
+  instance fix does not close an absurdity class -- the class stays open and is now two
+  instances strong, which is the evidence a class-level scanner needs.
+
+  WHY THE STORE IS NOT COMMITTED. A projection in git history is precisely the second source of
+  truth this atom exists to prevent -- a copy that outlives its sources and can disagree with
+  them forever. It is gitignored, rebuilt in 0.32s, and `test_the_store_is_never_committed`
+  asserts both halves (ignored AND untracked).
+
+  RESIDUALS, filed not fixed:
+
+  - NOT WIRED INTO THE PUBLISH PATH. The builder is a tool anyone can run; nothing calls it on
+    every publish yet. L2 is "mechanically real, happy path", which this is, and a new write in
+    the publish path enlists every publisher test -- a cost that belongs to its own draw, not
+    smuggled into this one. Until then the store's freshness is whatever `build_meta.head_sha`
+    says, which is why that key exists.
+  - NO CALLER. The store has no consumer, which is the design-with-no-caller shape the
+    instruction was written to end. That is not an oversight: it is G13_projection_consumers,
+    split at mint because its file_scope is disjoint. G12 is not complete as a capability until
+    G13 lands; it is complete as an atom.
+  - FOUR SOURCES, NOT THE EVENT SPINE. The instruction names "run outputs, the event spine,
+    observability ledgers". v1 covers run outputs and two ledgers. The event spine is a larger
+    read and v1 scope was explicitly delegated to the worker; adding a source is one `Source`
+    tuple, which is the point of the registry shape.
+  - THE ENVELOPE GOVERNS NOTHING YET. `ceiling_customers` is recorded and unit-labelled
+    (customers), but no build compares it to a book size, because no committed artefact carries
+    a measured book size in that unit -- and comparing a customer ceiling to a row count would
+    be the unit error this repo has already been bitten by. Recorded state is not a control;
+    naming that here rather than letting the row imply otherwise.
