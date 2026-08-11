@@ -1,24 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-10T16:22:58Z",
-    "nonblocking_reds": [],
-    "open_findings": 51
+    "checked_at": "2026-08-11T13:59:20Z",
+    "nonblocking_reds": [
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_blocked_atom_visibility.py::test_the_committed_document_agrees_with_the_live_derivation",
+      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
+      "FAILED tests/background/test_effort_digest.py::test_render_digest_section_no_below_target_atoms",
+      "FAILED tests/background/test_effort_digest.py::test_render_digest_section_surfaces_malformed_level_not_crash",
+      "FAILED tests/background/test_effort_digest.py::test_effort_digest_block_appended_and_replaced",
+      "FAILED tests/background/test_effort_digest.py::test_effort_digest_step_never_raises_on_failure"
+    ],
+    "nonblocking_reds_total": 2584,
+    "open_findings": 77
   },
   "last_verified": {
-    "generated_at": "2026-08-11T12:38:54Z",
-    "git_commit": "bf646cbb2",
-    "run_id": "run_output_bf646cbb2_20260811T120135Z.json",
-    "verified_at": "2026-08-11T12:38:54Z"
+    "generated_at": "2026-08-11T14:42:37Z",
+    "git_commit": "cb555c775",
+    "run_id": "run_output_cb555c775_20260811T140647Z.json",
+    "verified_at": "2026-08-11T14:42:37Z"
   },
   "paused_reason": "scoped publish-path suite red at git=c49fec2e6; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-11T12:38:54Z",
-    "git_commit": "bf646cbb2",
-    "run_id": "run_output_bf646cbb2_20260811T120135Z.json",
-    "verified_at": "2026-08-11T12:38:54Z"
+    "generated_at": "2026-08-11T14:42:37Z",
+    "git_commit": "cb555c775",
+    "run_id": "run_output_cb555c775_20260811T140647Z.json",
+    "verified_at": "2026-08-11T14:42:37Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-11T12:38:54Z"
+  "written_at": "2026-08-11T14:42:37Z"
 }
