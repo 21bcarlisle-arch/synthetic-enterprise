@@ -681,8 +681,10 @@ def main() -> None:
         # sharp one unless the disturbance is on the same line.
         print(f"    money, mirrored PANEL     : {verdict.panel_mirror_money_favours}"
               f"   (a stock that fails the other way, {verdict.panel_mirror_reflection};"
-              f" register-arm accuracy disturbed"
-              f" {verdict.panel_mirror_relative_infidelity:.1%} of its gap;"
+              f" register-arm error disturbed"
+              f" {verdict.panel_mirror_register_infidelity:.1%},"
+              f" no-skill baseline moved"
+              f" {verdict.panel_mirror_normaliser_drift:.1%};"
               f" truth-above-register {verdict.truth_above_epc_share:.0%})"
               f"{'   COMPOSITION-DECIDED' if verdict.composition_decided else ''}"
               f"{'' if verdict.panel_mirror_is_attributable else '   INCONCLUSIVE'}")

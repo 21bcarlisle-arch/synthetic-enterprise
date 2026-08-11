@@ -4418,9 +4418,114 @@ def test_the_MIRRORS_OWN_ARTEFACT_is_measured_on_the_arm_it_is_BUILT_AROUND():
     assert other.panel_mirror_relative_infidelity == pytest.approx(
         base.panel_mirror_relative_infidelity
     )
+    # ...and the GATE's own term is likewise untouched by the posterior (2026-08-11,
+    # second Hour: the gate moved off the ratio and onto the raw register error, and
+    # that move must not have re-imported the posterior it was separated from).
+    assert other.panel_mirror_register_infidelity == pytest.approx(
+        base.panel_mirror_register_infidelity
+    )
     # ...and the quantity that WAS being disclosed is not blind to it, which is
     # exactly why it could never come out small.
     assert abs(other.panel_mirror_accuracy_drift - base.panel_mirror_accuracy_drift) > 0.1
+
+
+def _infeasible_reflection_population(n=10, *, epc_bias=0.80, inferred_bias=0.90,
+                                      rogue=0.40, rogue_index=0, spread=0.05):
+    """A panel the LEVEL reflection cannot be run on, so the whole panel falls back
+    to the log form — the one real code path in which the mirror stops preserving
+    the register arm's own error.
+
+    One premise whose truth is 2.5x its register: an unimproved solid-wall home
+    holding a certificate lodged for a different, far better dwelling. Real, and the
+    reason the fallback exists at all.
+    """
+    return [
+        fgl.FabricObservation(
+            premise_id=f"P{i}",
+            actual_hlc_kw_per_k=0.10 + spread * i,
+            epc_hlc_kw_per_k=(0.10 + spread * i)
+            * (rogue if i == rogue_index else epc_bias),
+            inferred_hlc_kw_per_k=(0.10 + spread * i) * inferred_bias,
+            floor_area_m2=60.0 + 10.0 * i,
+            annual_heat_kwh=8000.0 + 1500.0 * i,
+            annual_degree_days_k_day=FIXTURE_DEGREE_DAYS,
+            epc_relative_sd=FIXTURE_RELATIVE_SD,
+            inferred_relative_sd=FIXTURE_RELATIVE_SD,
+            epc_basis=EvidenceBasis.EPC_ONLY,
+            inferred_basis=EvidenceBasis.METER_AND_EPC,
+        )
+        for i in range(n)
+    ]
+
+
+def test_an_EXACTLY_FAITHFUL_MIRROR_is_not_called_INCONCLUSIVE_by_its_own_normaliser():
+    """THE NAMED DEFECT of the second Hour on this machinery (2026-08-11): the gate
+    read a ratio whose numerator the reflection preserves TO THE BIT, so 100% of what
+    it called 'infidelity' was the no-skill baseline — a property of the truth
+    population, and moving the truth population is what the mirror IS.
+
+    Measured on all four populations this atom runs on (authored 15, drawn 200, and
+    both suite fixtures), the register arm's raw error moved by exactly 0.000e+00
+    while the ratio read 14.1% / 1.9% / 66.7% / 0.0%. On the authored panel that
+    published MIRROR INCONCLUSIVE — "the instrument disturbed the arm it was built
+    around" — over an instrument that had disturbed it not at all.
+
+    Here: a proportional register, so the baseline moves a lot and the preservation
+    is exact. The mirror must be believed, and the baseline move must be stated
+    under its own name instead.
+    """
+    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_register_mae == pytest.approx(
+        verdict.epc_register_mae, abs=1e-15
+    ), "the level reflection preserves |register - truth| per premise, by algebra"
+    assert verdict.panel_mirror_register_infidelity == pytest.approx(0.0, abs=1e-12)
+    assert verdict.panel_mirror_is_attributable
+    # ...while the OLD gate term is far above the band on this very population.
+    assert verdict.panel_mirror_relative_infidelity > fgl.MIRROR_FIDELITY_BAND
+    assert verdict.panel_mirror_normaliser_drift > fgl.MIRROR_FIDELITY_BAND
+
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+    yardstick = [c for c in caveats if c.startswith("MIRROR YARDSTICK MOVED")]
+    assert len(yardstick) == 1, caveats
+    assert "not the mirror failing" in yardstick[0]
+
+
+def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_is_not():
+    """THE FAIL-OPEN, closed — the other direction, and the one that matters more.
+
+    The ratio is numerator over denominator and the reflection moves BOTH, so a real
+    disturbance to the register arm's error can be cancelled by the baseline moving
+    with it. Found on real data first: over 400 subpanels drawn from this atom's own
+    published 200-premise population, the log reflection moved the register arm's own
+    error by 20-125% on 13 of them while the ratio read UNDER the 5% band and called
+    the mirror faithful.
+
+    Pinned here on a fixture reaching the same state through the real code path — one
+    premise the level reflection cannot be run on, so the whole panel falls back.
+    """
+    rows = _infeasible_reflection_population(
+        n=10, epc_bias=0.90, rogue=0.40, spread=0.08
+    )
+    assert fgl.panel_mirror(rows).reflection == fgl.LOG_PRESERVING_FALLBACK
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    # The instrument really did disturb the arm it is built around...
+    assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+    # ...and the quantity the gate used to read says it did not.
+    assert verdict.panel_mirror_relative_infidelity <= fgl.MIRROR_FIDELITY_BAND
+    assert not verdict.panel_mirror_is_attributable, (
+        "a mirror that moved the register arm's own error by "
+        f"{verdict.panel_mirror_register_infidelity:.1%} is not attributable, "
+        "whatever the ratio happens to read"
+    )
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    inconclusive = [c for c in caveats if c.startswith("MIRROR INCONCLUSIVE")]
+    assert len(inconclusive) == 1, caveats
+    # The sentence must quote the raw pair, not the ratio: a share whose numbers are
+    # not printed is not auditable by the reader it is addressed to.
+    assert f"{verdict.epc_register_mae:.6f}" in inconclusive[0]
+    assert f"{verdict.panel_mirror_register_mae:.6f}" in inconclusive[0]
 
 
 def _fixed_offset_population(n=10, *, offset=0.03, inferred_bias=1.0):
@@ -4458,13 +4563,18 @@ def test_a_BLUNT_MIRRORS_NULL_RESULT_is_reported_as_INCONCLUSIVE_not_as_no_effec
     sentence — which prints exactly when the mirror DID flip the verdict. On both
     populations this atom publishes it does not flip, so the reader saw two headline
     numbers, no composition caveat, and was invited to conclude that composition had
-    been ruled out. Here the mirror disturbs the register arm's own gap by more than
+    been ruled out. Here the mirror disturbs the register arm's own error by more than
     the band that decides verdicts, finds no flip, and must say the null is its own.
+
+    The fixture moved 2026-08-11 (second Hour). It used to be a proportional register,
+    on which this mirror is EXACTLY faithful — the test was passing on the no-skill
+    baseline moving, not on any disturbance. A genuinely blunt mirror needs the log
+    fallback, so the panel now contains a premise the level reflection cannot run on.
     """
-    rows = _observations(n=10, epc_bias=0.80, inferred_bias=0.90)
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert not verdict.composition_decided, "the fixture must NOT flip, else this is a different case"
-    assert verdict.panel_mirror_relative_infidelity > fgl.MIRROR_FIDELITY_BAND
+    assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
     assert not verdict.panel_mirror_is_attributable
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
@@ -4518,9 +4628,15 @@ def test_a_REGISTER_WITH_NO_GAP_TO_MOVE_does_not_divide_by_its_own_zero():
     # ...and a zero gap that DID move is infinitely unfaithful, never faithful by
     # default. Constructed directly: no real panel can reach this, which is exactly
     # why the branch needs a test rather than an argument.
+    assert verdict.epc_register_mae == pytest.approx(0.0)
+    assert verdict.panel_mirror_register_infidelity == 0.0
     moved = dataclasses.replace(verdict, panel_mirror_epc_gap=0.05)
     assert moved.panel_mirror_relative_infidelity == math.inf
-    assert not moved.panel_mirror_is_attributable
+    # ...and the GATE's own zero-corner, which is a different field and therefore
+    # needs its own construction rather than inheriting the one above.
+    moved_arm = dataclasses.replace(verdict, panel_mirror_register_mae=0.01)
+    assert moved_arm.panel_mirror_register_infidelity == math.inf
+    assert not moved_arm.panel_mirror_is_attributable
 
 
 def test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict(tmp_path):
@@ -4529,7 +4645,7 @@ def test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict(tm
     it was needed. The door renders the row, so the row holds it unconditionally."""
     path = tmp_path / "ledger.json"
     fgl.write_fabric_gap_entries(
-        _observations(n=10, epc_bias=0.80, inferred_bias=0.90),
+        _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40),
         unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
         measured_at="2026-08-11T00:00:00+00:00",
         path=path,
@@ -4537,13 +4653,22 @@ def test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict(tm
     verdict = json.loads(path.read_text())[fgl.GENERATOR_WORLD_ATOM]["components"][
         "composition_verdict"
     ]
-    assert verdict["panel_mirror_reflection"] == fgl.LEVEL_PRESERVING
-    assert verdict["panel_mirror_infeasible_premises"] == 0
+    assert verdict["panel_mirror_reflection"] == fgl.LOG_PRESERVING_FALLBACK
+    assert verdict["panel_mirror_infeasible_premises"] == 1
     assert verdict["panel_mirror_is_attributable"] is False
-    assert verdict["panel_mirror_relative_infidelity"] > fgl.MIRROR_FIDELITY_BAND
+    assert verdict["panel_mirror_register_infidelity"] > fgl.MIRROR_FIDELITY_BAND
     assert verdict["panel_mirror_epc_gap_drift"] == pytest.approx(
         abs(verdict["panel_mirror_epc_gap"] - verdict["epc_gap"])
     )
+    # The gate's term must be independently recomputable FROM THE ROW — a share
+    # published without the pair it is a share of is a figure the reader must take on
+    # trust, which is the thing this whole mirror exists not to ask for.
+    assert verdict["panel_mirror_register_infidelity"] == pytest.approx(
+        abs(verdict["panel_mirror_register_mae"] - verdict["epc_register_mae"])
+        / verdict["epc_register_mae"]
+    )
+    # ...and the intended move rides beside the artefact, never folded into it.
+    assert "panel_mirror_normaliser_drift" in verdict
 
 
 def test_the_REVISION_MIRROR_leaves_a_premise_the_inference_never_touched_alone():

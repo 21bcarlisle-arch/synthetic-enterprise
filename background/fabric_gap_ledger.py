@@ -3697,6 +3697,21 @@ LEVEL_PRESERVING = "level_preserving"
 LOG_PRESERVING_FALLBACK = "log_preserving_fallback"
 
 
+def _register_mae(observations: Sequence[FabricObservation]) -> float:
+    """The register arm's RAW mean absolute error — the quantity a reflection built
+    around that arm claims to preserve, un-normalised.
+
+    Deliberately NOT read off `epc_vs_actual_gap().components["mae_model"]`: that
+    value is rounded to 6 decimals for display, and a fidelity term whose subject is
+    quantised at 1e-6 would report a real disturbance below that as exactly zero —
+    the DIFFERENCE-shaped control that fires (or here, fails to fire) on the
+    quantisation rather than on the effect.
+    """
+    return sum(
+        abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k) for o in observations
+    ) / len(observations)
+
+
 @dataclass(frozen=True)
 class PanelMirror:
     """The mirrored panel AND the statement of how it was made.
@@ -3900,6 +3915,11 @@ class CompositionVerdict:
     # whose movement is pure artefact.
     epc_gap: float
     panel_mirror_epc_gap: float
+    # ...and the register arm's RAW error, before and after, because the gap above is
+    # a RATIO and the reflection moves its denominator ON PURPOSE (2026-08-11 second
+    # Hour). These two are the quantity the reflection actually claims to preserve.
+    epc_register_mae: float
+    panel_mirror_register_mae: float
     panel_mirror_reflection: str
     panel_mirror_infeasible_premises: int
     # THE REVISION MIRROR — same stock, inference stepping the other way.
@@ -3959,13 +3979,69 @@ class CompositionVerdict:
 
     @property
     def panel_mirror_relative_infidelity(self) -> float:
-        """The artefact as a share of the accuracy it perturbs. NaN-safe and
-        zero-safe: a register that is exactly right has no gap to move, so an
-        unmoved zero is faithful and a moved one is infinitely unfaithful — never a
-        silent 0/0."""
+        """REPORTED, AND EXPLICITLY NOT THE FIDELITY GATE — the same compound shape,
+        one level down (2026-08-11, second Expert Hour on this machinery).
+
+        The gap is a RATIO: mean|register − truth| over the no-skill baseline. Under
+        the level-preserving reflection the NUMERATOR is preserved to the bit — the
+        reflection is `2*prior − value`, so every premise's |register − truth| is
+        algebraically identical — and it was measured at exactly 0.000e+00 on all
+        four populations this atom runs on (authored 15, drawn 200, and both suite
+        fixtures). So 100% of this number is the DENOMINATOR: the no-skill baseline
+        is a property of the truth population, and reflecting the truth population
+        is what the mirror IS. Reading it as "how much the instrument disturbed the
+        arm it was built around" restated a figure of 0 as 14.1% on the authored
+        panel and published MIRROR INCONCLUSIVE over a mirror that had disturbed
+        nothing. Split, exactly as the previous Hour split `accuracy_drift`:
+        `panel_mirror_register_infidelity` is the artefact,
+        `panel_mirror_normaliser_drift` is the intended move, and the gate is the
+        former. NaN-safe and zero-safe as before.
+        """
         if self.epc_gap == 0.0:
             return 0.0 if self.panel_mirror_epc_gap_drift == 0.0 else math.inf
         return self.panel_mirror_epc_gap_drift / abs(self.epc_gap)
+
+    @property
+    def panel_mirror_register_infidelity(self) -> float:
+        """THE ARTEFACT, AND THE GATE: how far the reflection moved the register
+        arm's own RAW error — the one quantity it claims to preserve.
+
+        MEASURED off the mirrored rows, never assumed from the algebra. Under the
+        level-preserving form this is zero by construction, and a control whose
+        subject is zero by construction is a control that cannot fail — so it is
+        computed from the panel that was actually built, and it fires the moment any
+        reflection stops preserving what it promises (the log-preserving fallback
+        does not preserve it: measured at 20–125% of the register's own error on 13
+        of 400 real subpanels, while the ratio above read UNDER the 5% band on every
+        one of them and called the mirror faithful).
+        """
+        if self.epc_register_mae == 0.0:
+            return 0.0 if self.panel_mirror_register_mae == 0.0 else math.inf
+        return (
+            abs(self.panel_mirror_register_mae - self.epc_register_mae)
+            / abs(self.epc_register_mae)
+        )
+
+    @property
+    def panel_mirror_normaliser_drift(self) -> float:
+        """THE INTENDED MOVE: how far the no-skill baseline shifted, relatively.
+
+        Not a defect and not infidelity — the mirror reflects the truth population,
+        so the spread of that population moves unless the register's error is a pure
+        translation. It is disclosed because a reader comparing `epc_gap` against
+        `panel_mirror_epc_gap` is comparing two numbers measured against DIFFERENT
+        yardsticks, which is a real caution about those two figures and says nothing
+        about the money verdict (money never divides by this).
+        """
+        before = self.epc_gap
+        after = self.panel_mirror_epc_gap
+        if before == 0.0 or after == 0.0:
+            return 0.0 if before == after else math.inf
+        g0_before = self.epc_register_mae / before
+        g0_after = self.panel_mirror_register_mae / after
+        if g0_before == 0.0:
+            return 0.0 if g0_after == 0.0 else math.inf
+        return abs(g0_after - g0_before) / abs(g0_before)
 
     @property
     def panel_mirror_is_attributable(self) -> bool:
@@ -3978,8 +4054,13 @@ class CompositionVerdict:
         both published populations it does not flip, so the instrument's own
         weakness was unrenderable precisely in the case where the reader was being
         invited to conclude something from silence.
+
+        Gated on the ARTEFACT and not on the ratio (2026-08-11, second Hour): the
+        ratio moved the gate in both wrong directions — it refused an exactly
+        faithful mirror on the authored panel, and it passed mirrors that had moved
+        the register's own error by up to 125% on real subpanels of the drawn one.
         """
-        return self.panel_mirror_relative_infidelity <= MIRROR_FIDELITY_BAND
+        return self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
 
     @property
     def composition_decided(self) -> bool:
@@ -4126,6 +4207,8 @@ def composition_verdict(
         panel_mirror_improvement=_improvement(panel),
         epc_gap=epc_gap,
         panel_mirror_epc_gap=epc_vs_actual_gap(panel).gap,
+        epc_register_mae=_register_mae(observations),
+        panel_mirror_register_mae=_register_mae(panel),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
         revision_mirror_money_favours=_favours(revision_epc, revision_inferred),
@@ -4236,28 +4319,58 @@ def _panel_mirror_caveats(verdict: CompositionVerdict) -> list[str]:
             f"truth-above-register), not by the beliefs being compared."
         )
         if verdict.panel_mirror_is_attributable:
-            return [line]
+            return [line] + _normaliser_caveat(verdict)
         return [
             line
             + f" READ THIS AS DIRECTIONAL ONLY: the mirror moved the register arm's "
-            f"OWN accuracy by {verdict.panel_mirror_relative_infidelity:.1%} of its "
-            f"gap ({verdict.panel_mirror_reflection}), above the "
+            f"OWN error by {verdict.panel_mirror_register_infidelity:.1%} "
+            f"({verdict.epc_register_mae:.6f} -> "
+            f"{verdict.panel_mirror_register_mae:.6f} kW/K, "
+            f"{verdict.panel_mirror_reflection}), above the "
             f"{MIRROR_FIDELITY_BAND:.0%} band, so part of this flip may be the "
             f"instrument rather than the composition."
-        ]
+        ] + _normaliser_caveat(verdict)
     if not verdict.panel_mirror_is_attributable:
         return [
             f"MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict "
             f"off {verdict.money_favours}, and that null carries no weight here — "
-            f"reflecting the truth moved the register arm's own accuracy by "
-            f"{verdict.panel_mirror_relative_infidelity:.1%} of its gap "
-            f"({verdict.epc_gap:.4f} -> {verdict.panel_mirror_epc_gap:.4f}, "
+            f"reflecting the truth moved the register arm's OWN error, the one "
+            f"quantity this reflection claims to preserve, by "
+            f"{verdict.panel_mirror_register_infidelity:.1%} "
+            f"({verdict.epc_register_mae:.6f} -> "
+            f"{verdict.panel_mirror_register_mae:.6f} kW/K, "
             f"{verdict.panel_mirror_reflection}), above the "
             f"{MIRROR_FIDELITY_BAND:.0%} band. The instrument disturbed the arm it "
             f"was built around by more than the band that decides verdicts, so "
             f"'no composition effect' is not a finding on this population."
-        ]
-    return []
+        ] + _normaliser_caveat(verdict)
+    return _normaliser_caveat(verdict)
+
+
+def _normaliser_caveat(verdict: CompositionVerdict) -> list[str]:
+    """The mirror's INTENDED move, stated as one — never as infidelity.
+
+    Reflecting the truth population moves its spread, and the two gap figures are
+    normalised to that spread, so `epc_gap` and `panel_mirror_epc_gap` are measured
+    against different yardsticks whenever the register's error is not a pure
+    translation. This was the whole of the number the old gate called infidelity
+    (14.1% authored, 1.9% drawn, against a register-error disturbance of exactly
+    zero). It is a caution about reading those two gap figures side by side and it
+    is NOT a caution about the money verdict, which never divides by the baseline.
+    """
+    if verdict.panel_mirror_normaliser_drift <= MIRROR_FIDELITY_BAND:
+        return []
+    return [
+        f"MIRROR YARDSTICK MOVED: the two gap figures either side of the panel "
+        f"mirror ({verdict.epc_gap:.4f} -> {verdict.panel_mirror_epc_gap:.4f}) are "
+        f"normalised to the truth population's own spread, and reflecting the truth "
+        f"moved that no-skill baseline by "
+        f"{verdict.panel_mirror_normaliser_drift:.1%}. That is the mirror working, "
+        f"not the mirror failing — the register arm's raw error is preserved to "
+        f"{verdict.panel_mirror_register_infidelity:.2%} — but the two gaps are not "
+        f"on one scale and the difference between them is not an accuracy change. "
+        f"The money verdict above is unaffected: it never divides by this baseline."
+    ]
 
 
 def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
@@ -4396,6 +4509,14 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_epc_gap": v.panel_mirror_epc_gap,
         "panel_mirror_epc_gap_drift": v.panel_mirror_epc_gap_drift,
         "panel_mirror_relative_infidelity": v.panel_mirror_relative_infidelity,
+        # ...and the SPLIT of that ratio, because it is a compound of an artefact and
+        # an intended move and the gate below reads only the artefact. The raw MAE
+        # pair rides too: a share is not auditable without the numbers it is a share
+        # of, and this pair is what makes the artefact term independently checkable.
+        "epc_register_mae": v.epc_register_mae,
+        "panel_mirror_register_mae": v.panel_mirror_register_mae,
+        "panel_mirror_register_infidelity": v.panel_mirror_register_infidelity,
+        "panel_mirror_normaliser_drift": v.panel_mirror_normaliser_drift,
         "panel_mirror_is_attributable": v.panel_mirror_is_attributable,
         "panel_mirror_reflection": v.panel_mirror_reflection,
         "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,
