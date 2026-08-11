@@ -118,8 +118,7 @@ from company.crm.nps_tracker import NPSTracker
 from company.crm.complaints import ComplaintBook, ComplaintCategory
 from simulation.reputation_index import ReputationEventType
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
-from company.market.flexibility_revenue_book import FlexibilityRevenueBook
-from company.market.ic_flexibility_revenue import ICFlexibilityRevenueBook
+from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.crm.tpi_book import TPIBook, TPITier, TPICommissionBasis
 from company.analytics.churn_accuracy_report import compute_churn_model_performance as _compute_churn_model_performance
 from simulation.policy_costs import (
@@ -808,6 +807,48 @@ def _company_eac_estimate(
     )
     base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
     return estimated if estimated > 0 else base
+
+
+def _domestic_flex_assets_by_date(
+    household_register,
+    report_years: list[str],
+    customer_ids: list[str],
+) -> dict[str, dict[str, dict]]:
+    """Resolve the world's asset register into the snapshot the flex door takes.
+
+    KNIFE pass 3 step 18 (register §3m). The company's flexibility book used to
+    be handed this register and pull `dynamic_assets` out of it; now the pull
+    happens here, on the world's side, and only the answers cross.
+
+    `year_end` serves as BOTH the query date and the snapshot key, deliberately:
+    that is what makes it impossible to file one year's assets under another
+    year's date, which would silently reprice the whole portfolio. Customer
+    order is preserved because the book prices in the order it is given.
+    """
+    snapshot: dict[str, dict[str, dict]] = {}
+    for year_str in report_years:
+        year_end = f"{int(year_str)}-12-31"
+        snapshot[year_end] = {
+            cid: household_register.dynamic_assets(cid, year_end)
+            for cid in customer_ids
+        }
+    return snapshot
+
+
+def _ic_flex_roster(elec_customers: list[dict], eac_by_cid: dict) -> list[tuple]:
+    """The I&C electricity book, as the flex door takes it.
+
+    KNIFE pass 3 step 18 (register §3m). The `segment == "I&C"` filter is the
+    one thing this cut genuinely put at risk: drop it and every domestic
+    customer is offered to an I&C aggregator, which changes the flexibility
+    total while every test exercising the book directly stays green, because the
+    book would be given exactly what this function chose to give it.
+    """
+    return [
+        (c["customer_id"], eac_by_cid.get(c["customer_id"], 0.0))
+        for c in elec_customers
+        if c.get("segment") == "I&C"
+    ]
 
 
 def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None):
@@ -2318,32 +2359,31 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     total_net = sum(r["net_margin_gbp"] for r in all_records)
     final_treasury = all_records[-1]["treasury_cash_balance_gbp"] if all_records else STARTING_TREASURY_GBP
 
-    # Phase AF: DSR/Capacity Market flexibility revenue.
-    # Company earns CM revenue for all flexible assets (2016+).
-    # DFS revenue from 2022 onwards (NESO DFS launch).
-    _flex_book = FlexibilityRevenueBook()
-    _elec_cids = [c["customer_id"] for c in ELEC_CUSTOMERS]
+    # Phase AF (domestic DSR/Capacity Market) + Phase NX (I&C demand response).
+    # KNIFE pass 3 step 18 moved both behind one door (register §3m): enrolling
+    # your own book in the CM and DFS, and booking what the aggregator leaves
+    # you, is the supplier commercialising its own portfolio, not world physics.
+    # They are one door and not two because they feed ONE total. The world hands
+    # over the asset snapshot it resolved and its own I&C roster; the clearing
+    # prices, DFS rates, eligibility floor and flex-kW estimates stay
+    # company-side.
     _all_years = sorted({r["settlement_date"][:4] for r in all_records})
-    _flex_by_year: dict[str, dict[str, float]] = {}
-    if household_demand_register is not None:
-        for _yr_str in _all_years:
-            _yr_int = int(_yr_str)
-            _by_cid = _flex_book.compute_year(_yr_int, household_demand_register, _elec_cids)
-            _flex_by_year[_yr_str] = _by_cid
-    flexibility_revenue_summary = _flex_book.flexibility_summary()
-    total_flexibility_revenue = _flex_book.total_revenue_all_years()
-
-    # Phase NX: I&C Demand Response Enrollment (CM/DFS for process flexibility).
-    _ic_flex_book = ICFlexibilityRevenueBook()
-    _ic_elec_customers = [c for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"]
-    _ic_flex_input = [
-        (c["customer_id"], EFFECTIVE_EAC_KWH.get(c["customer_id"], 0.0))
-        for c in _ic_elec_customers
-    ]
-    for _yr_str in _all_years:
-        _ic_flex_book.compute_year(int(_yr_str), _ic_flex_input)
-    ic_flexibility_summary = _ic_flex_book.flexibility_summary()
-    total_flexibility_revenue += _ic_flex_book.total_revenue_all_years()
+    _elec_cids = [c["customer_id"] for c in ELEC_CUSTOMERS]
+    _flex = build_flexibility_revenue(
+        report_years=_all_years,
+        domestic_assets_by_date=(
+            _domestic_flex_assets_by_date(
+                household_demand_register, _all_years, _elec_cids
+            )
+            if household_demand_register is not None
+            else None
+        ),
+        ic_elec_roster=_ic_flex_roster(ELEC_CUSTOMERS, EFFECTIVE_EAC_KWH),
+    )
+    flexibility_revenue_summary = _flex.domestic_summary
+    ic_flexibility_summary = _flex.ic_summary
+    _flex_by_year = _flex.domestic_revenue_by_year
+    total_flexibility_revenue = _flex.total_revenue_gbp
 
     # Phase OA: I&C Broker/TPI Commission Model.
     # I&C customers procure electricity via brokers. Industry commission: 0.15 p/kWh (£1.5/MWh).

@@ -289,8 +289,6 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.run_phase2b", "company.crm.satisfaction_accumulator"),
     ("simulation.run_phase2b", "company.crm.tpi_book"),
     ("simulation.run_phase2b", "company.finance.margin_call_book"),
-    ("simulation.run_phase2b", "company.market.flexibility_revenue_book"),
-    ("simulation.run_phase2b", "company.market.ic_flexibility_revenue"),
     ("simulation.run_phase2b", "company.policy.decision_policy"),
     ("simulation.run_phase2b", "company.pricing.margin_feedback"),
     ("simulation.run_phase2b", "company.pricing.ofgem_price_cap"),

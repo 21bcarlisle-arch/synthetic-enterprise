@@ -1077,6 +1077,108 @@ not as a wall crossing, because it is not one.
 set — separate processes on separate inputs, each its own step. Stated rather than left to be
 inferred from a count that stops at 3.
 
+> **CORRECTION, entered by step 18 rather than left standing.** Both numbers in the paragraph above
+> are wrong, and in the same direction. `run_phase2b` kept **29** direct, not 31 — the 34 direct
+> live at that moment were 29 on `run_phase2b`, 4 on `simulation.customer_events` and 1 on
+> `run_phase4c_on_phase2b`, and step 17 folded the other two modules' five into its own module's
+> tally. The four groups it then named account for 27 of those 29: the **flexibility revenue books**
+> (`company.market.flexibility_revenue_book`, `company.market.ic_flexibility_revenue`) appear in no
+> group, so a reader working the remainder off this paragraph would have found two edges nobody had
+> planned for. They are §3m below. This is the same class as the self-contradiction step 17 itself
+> filed against step 16's record — one name, two numbers — and the same answer applies: the count
+> that governs is `tools/wall_crossing_dispositions.py`'s, printed from the walker on every run,
+> never a figure maintained by hand in prose.
+
+---
+
+## 3m. The flexibility book is the supplier commercialising its own portfolio — added 2026-08-11 (step 18)
+
+**2 edges cut, 36 → 34 live (34 → 32 direct; the 2 indirect untouched for the FIFTH consecutive
+step, which is again the proof that a bridge route was not silently taken instead).**
+
+`simulation/run_phase2b.py::main()` opened a `FlexibilityRevenueBook` and an
+`ICFlexibilityRevenueBook` itself, drove both year by year, and summed their two totals into the one
+`total_flexibility_revenue` the report carries — `company.market.flexibility_revenue_book` and
+`company.market.ic_flexibility_revenue`. Enrolling a portfolio in the Capacity Market and NESO's
+Demand Flexibility Service, deciding which customers are eligible, and booking what the aggregator
+leaves you is a supplier commercialising its own book. The world's job is that the assets exist and
+the meters turn; deciding that a 200 MWh/yr site is worth enrolling, that 10% of its peak is
+genuinely interruptible, and that an EV plus a battery is worth so many kW of flex is the supplier's
+own commercial reading — and it is allowed to be wrong about all three.
+
+Now `company/market/flexibility_revenue.py` composes both behind
+`company.interfaces.flexibility_revenue`, returning a `FlexibilityRevenue`.
+
+### The import count understates what moved
+
+`FlexibilityRevenueBook.compute_year` took the world's `HouseholdDemandRegister` and called
+`.dynamic_assets(cid, date)` on it. A company module held a live SIM object and PULLED from it
+whenever it liked — deleting the import while still passing the object would have moved the edge,
+not cut it, which is §3f's "a seam that publishes a pull is half a cut" in its most literal form.
+What crosses now is a mapping the world resolved on its own side, at dates the world chose, before
+the door opened.
+
+### Why it is a group and not two items
+
+The two books feed ONE accumulator: `total_flexibility_revenue` in the replaced code is the domestic
+total plus the I&C total, and it is that single figure the report carries. Cutting them separately
+would have left the world holding the running sum and threading it through two doors. They are also
+the same process — enrol flexible capacity, book CM and DFS revenue against it — at the same point
+in the report, differing only in how flex capacity is estimated for a house versus a factory. The
+group argument is genuine here, as it was in §3l and was not in §3k.
+
+### The defect this cut could have introduced — closed by construction, not by a control
+
+`FlexibilityRevenueBook` derives its own `YYYY-12-31` query date from the year it is pricing. A
+snapshot keyed by anything else — a year int, a position in a list — would let 2021's assets be
+served while the book believed it was pricing 2023, silently, with every test on the book still
+green. So the snapshot is keyed by the SAME date string the book asks for, and the private adapter
+LOOKS IT UP rather than ignoring the argument: a misaligned snapshot raises at the first customer.
+On the world's side, `_domestic_flex_assets_by_date` uses one variable as both key and query, so the
+two cannot drift. Control 5 proves the construction rather than asserting it.
+
+### The defect that remains, and the two controls on it
+
+The `segment == "I&C"` filter used to sit at the point of use, three lines from the book that
+consumed it; it now lives in a named helper handed through one signature. Drop it and every non-I&C
+customer above the 200 MWh eligibility floor is offered to a DSR aggregator — the flexibility total
+moves while every test exercising `ICFlexibilityRevenueBook` directly stays green, because the book
+is given exactly what the caller chose to give it. Control 3 is an AST check over the REAL call site
+in `run_phase2b.py` with a vacuity guard on the number of calls examined, and three mutations (swap
+the two arguments, bypass the helper, drop the filter from its body). Control 4 is its behavioural
+half: it performs the drop and asserts the money actually moves, so control 3 is guarding a number
+rather than a spelling.
+
+Control 1 is the behavioural lazy-import detector, mutated on a COPY of the real source so no repo
+file is edited mid-pytest-run. Control 2 is identity against the PRE-CUT inlined sequence
+transcribed from `run_phase2b.py` as it stood at `8dd04db1d` — not from the module under test, which
+would be a mirror — over both the register-present and register-absent branches, with a mutation
+that ungates DFS revenue. **14 tests, 5 of them mutations.**
+
+### Vacuity, and why the fixture years are 2021 and 2023
+
+DFS revenue is zero in 2021 and non-zero in 2023 (NESO launched it in October 2022), and the I&C
+Capacity Market clearing price differs between them (£8.40 vs £15.97/kW/yr). A fixture wholly before
+2022 would pass control 2 with the DFS block deleted; one wholly after would pass with the launch
+gate deleted. The fixture also carries a non-I&C customer ABOVE the eligibility floor — without one,
+dropping the segment filter adds nothing and control 4's mutation cannot fail. All three properties
+are asserted by the fixture's own guard test rather than left to the reader.
+
+### What did NOT fall
+
+`run_phase2b` keeps **27 direct + 2 indirect** — this time measured, not carried forward. The
+remaining groups are the trading desk (`forward_book`, `hedge_decision`,
+`wholesale_credit_exposure`, `hedge_policy`, `collateral_death_test`, `margin_call_book`), the CRM
+builders (`churn_model`, `complaints`, `customer_profitability`, `enriched_churn_estimate`,
+`nps_tracker`, `payment_behaviour_analytics`, `satisfaction_accumulator`, `tpi_book`,
+`churn_accuracy_report`), the pricing/regulatory group (`tariff_engine`, `margin_feedback`,
+`ofgem_price_cap`, `decision_policy`) and the `saas.*` set (`cost_to_serve`, `customer_reaction`,
+`demand_response`, `growth_mandate`, `ledger`, `property_model`, `smart_meter_rollout`,
+`tariff_pricing`) — 6 + 9 + 4 + 8 = 27, and the arithmetic is written out because step 17's was not
+and did not close. Beyond this module: `simulation.customer_events`' four edges (a coupled-triad
+build, which that design block explicitly forbids attempting as a mechanical move) and
+`run_phase4c_on_phase2b`'s `dd_review_runner` routing residual, §3h.
+
 ---
 
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
@@ -1504,16 +1606,27 @@ itself.
 
 ---
 
-## 4. The register — all 91 examined crossings, 41 of them still live
+## 4. The register — all 91 examined crossings; for how many are still live, RUN THE TOOL
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the
-walker could not see (§3b), making 91 rows. FORTY-THREE have since been CUT — by B1/B3–B8 (§3a,
-including B3's second application at §3g and B4's completion at §3h), by `A_composition_lift` parts
-1 and 2 (§3c/§3e), by the bill-assembly cut (§3f), and one as a side effect of another atom
-entirely — so the tree carries 45 and this section carries 91 rows: a cut row is not deleted, because a deleted row is how a re-entry
-becomes invisible. The live count is not maintained by
-hand here — `tools/wall_crossing_dispositions.py` prints it from the walker on every run, and
-the two numbers disagreeing is itself the failure the tool exists to raise.
+walker could not see (§3b), making 91 rows — and 91 is a fact about THIS SECTION, not about the
+tree, so it is the one number safe to write down here. A cut row is never deleted, because a
+deleted row is how a re-entry becomes invisible.
+
+**No standing count of live-or-cut edges is written in this section, and that is deliberate — it
+was, and it had rotted.** Until step 18 this heading read "41 of them still live", the paragraph
+read "FORTY-THREE have since been CUT" and "the tree carries 45", while the walker measured 34 live
+and 57 cut. Three hand-typed numbers, disagreeing with the measurement AND with each other, sitting
+directly above a sentence claiming the live count "is not maintained by hand here". Nothing could
+fail: the tool gates ruling-vs-walker, never prose-vs-walker, so the summary a reader actually takes
+away from this document was the one quantity in it with no falsifier at all.
+
+The distinction now held: a **dated step record** (§3m's "36 → 34 live", stamped with the step that
+measured it) is a legitimate historical claim and stays. A **standing summary** of the present tree
+is not writable here at all — `python3 tools/wall_crossing_dispositions.py` prints live, cut, owed
+and grandfathered from the walker on every run, and that is the only place those numbers exist.
+Registered as a finding in its own right: the class is prose-with-no-falsifier, and this document is
+unlikely to be its only instance.
 
 Read by `tools/wall_crossing_dispositions.py`. Rows state the RULING; the walker states what
 EXISTS; a mismatch can only be closed by making the ruling true. There is deliberately **no
@@ -1575,8 +1688,8 @@ edge: simulation.run_phase2b -> company.crm.payment_behaviour_analytics | dispos
 edge: simulation.run_phase2b -> company.crm.satisfaction_accumulator | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.tpi_book | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.finance.margin_call_book | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.market.flexibility_revenue_book | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.market.ic_flexibility_revenue | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.market.flexibility_revenue_book | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the domestic DSR/Capacity Market book moved to `company/market/flexibility_revenue.py` behind `company.interfaces.flexibility_revenue`. The world no longer hands its `HouseholdDemandRegister` across for the book to pull asset flags out of; it resolves a per-year-end snapshot on its own side and only the answers cross.
+edge: simulation.run_phase2b -> company.market.ic_flexibility_revenue | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the I&C demand-response book moved with the domestic one it shares its `total_flexibility_revenue` accumulator with. The CM clearing prices, DFS rates, aggregator fee and 200 MWh eligibility floor are read company-side; the world hands over its own I&C electricity roster as (customer_id, eac_kwh) pairs.
 edge: simulation.run_phase2b -> company.policy.decision_policy | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.pricing.margin_feedback | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.pricing.ofgem_price_cap | disposition=owed | design=A_composition_lift
