@@ -1,5 +1,7 @@
 # WORKER FINDING — a worst-cell headline floored at 1.0 by axes the company cannot learn
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-10 (worker tick) · **Atom:** `W2_2_population_draw` ↔ `C_cohort_discovery`
 (surfaced while landing that pair's never-landed ledger row — `H_GAP_fabric_belief_truth_gap`)
 **Class:** a WORST-OF-N headline computed over a cell set containing cells that are pinned at the

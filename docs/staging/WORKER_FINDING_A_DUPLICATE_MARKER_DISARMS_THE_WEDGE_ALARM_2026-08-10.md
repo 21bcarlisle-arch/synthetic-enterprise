@@ -1,9 +1,11 @@
 # [WORKER-FINDING] A duplicate marker reports gate SUCCESS — the wedge alarm was disarmed 188 times today while publishing stayed wedged for 31 hours (2026-08-10)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found:** testing the one suspicion left open by the breathing watch — whether "Publish gate
 recovered" keeps firing without the content ever advancing. It does, and this is why.
 
-**Severity:** this is the mechanism that kept the 25-hour staleness *invisible*. The directive
+**Impact:** this is the mechanism that kept the 25-hour staleness *invisible*. The directive
 BUILD_THE_BREATHING was written about a site that was frozen and silent; the freezing had a cause
 per cycle, but the **silence** had this one cause, and it survived every one of the ~18 fixes because
 nothing was looking at it.

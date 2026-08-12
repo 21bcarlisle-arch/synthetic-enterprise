@@ -1,5 +1,7 @@
 # WORKER REPORT — the gate's own control was untracked, so the gate kept falling back to the full suite
 
+**Severity:** RECORDED · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Lane:** RUNG 1 / PRIORITY ZERO (publish-gate wedge) · **Commit:** `ebfcc5eca`
 
 ## What was red (R9: observed-with-evidence)

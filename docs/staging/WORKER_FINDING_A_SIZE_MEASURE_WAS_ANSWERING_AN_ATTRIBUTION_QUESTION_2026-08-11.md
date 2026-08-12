@@ -1,5 +1,7 @@
 # WORKER FINDING — a size measure was answering an attribution question
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` · **Sixth Expert Hour** (worker tick, L2→L3 draw)
 **Date:** 2026-08-11 · **Outcome:** IT FOUND SOMETHING, SO THE LEVEL STAYS 2
 **Subject:** `background/fabric_gap_ledger.py::_normaliser_caveat` and `MIRROR_FIDELITY_BAND`

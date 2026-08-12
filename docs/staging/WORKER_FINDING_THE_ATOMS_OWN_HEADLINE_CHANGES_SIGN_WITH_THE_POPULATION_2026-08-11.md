@@ -1,5 +1,7 @@
 # WORKER FINDING — the atom's own headline changes SIGN with the population, and the default command reports the chosen one
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-11 (worker tick) · **Atom:** `H_GAP_fabric_belief_truth_gap` (residual (e), Expert Hour)
 **Class:** a measurement whose headline is decided by a population choice the artefact does not record.
 **Status:** finding 1 FIXED (class-level, R15 both ways, landed). Findings 2–4 OPEN, queued

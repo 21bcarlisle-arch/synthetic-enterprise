@@ -1,5 +1,7 @@
 # WORKER FINDING — the wedge alarm named five tests the gate never ran
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Filed:** 2026-08-12 · **Lane:** H_harness · **Class:** R15 fail-silent / R5 payload
 **Status:** FIXED — parser scoped to the last short-summary section; R15-proven both ways
 (3 new tests fail on the pre-fix parser in a clean HEAD checkout, pass after; the 11

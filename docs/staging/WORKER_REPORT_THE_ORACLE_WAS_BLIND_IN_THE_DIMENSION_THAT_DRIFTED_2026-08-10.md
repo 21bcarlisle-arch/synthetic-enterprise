@@ -1,5 +1,7 @@
 # WORKER REPORT — the staleness oracle was blind in the one dimension that drifted
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** scheduled worker tick, rung-1 publish-gate wedge
 **Closed at:** `b2f0fc8f8` (pushed; `origin/main` verified equal)
 **Class:** derived-artefact staleness — **third** occurrence. R3 two-strike already spent on the

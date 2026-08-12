@@ -1,5 +1,7 @@
 # KNIFE3 step 8 — the wall had a bridge under it (72 → 75 crossings, and that is the result)
 
+**Severity:** RECORDED · **Lane:** W4_the_wall
+
 **Lane:** `KNIFE3_wall_crossing_paydown` (AO5 pass 3 of 4), level deliberately still 0 of 2.
 **Register:** `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` §3b
 **Plan:** `docs/design/KNIFE_HOTSPOT_PASSES.md` § Pass 3, step 7

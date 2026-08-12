@@ -1,5 +1,7 @@
 # WORKER FINDING — a per-premise promise was audited by the panel mean, so a breach on nine of two hundred homes read as faithful
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick)
 **Date:** 2026-08-11 · **NINTH EXPERT HOUR** · disposition **QUEUE** (recorded, mechanised, no interrupt)
 **Verdict: IT FOUND SOMETHING, SO THE LEVEL STAYS 2.**

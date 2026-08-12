@@ -1,5 +1,7 @@
 # [WORKER-FINDING] An R15 mutation can be valid on one subpopulation and INVERTED on another (2026-08-09)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found during:** `W1_12_premise_trace_generator` L2 -> L3, building the R15 proof for the new
 heating-conditioned L1.1 band.
 **Status:** the instance is fixed and pinned in this tick. Filed because the CLASS is not.

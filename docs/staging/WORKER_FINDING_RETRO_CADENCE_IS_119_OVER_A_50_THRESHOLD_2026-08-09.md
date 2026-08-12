@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The retro cadence is 2.4x past its own threshold, and every phase-close has been stepping over the check that says so
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-09, at the `KNIFE2_customer_straddle` phase-close (checklist item 6 fired).
 **Disposition:** QUEUED. Not absorbed into KNIFE2 — a 119-promotion backlog is not one atom's to pay.
 **Rank:** propose top-of-backlog. It is cheap to close and it gates a checklist step every other close runs.

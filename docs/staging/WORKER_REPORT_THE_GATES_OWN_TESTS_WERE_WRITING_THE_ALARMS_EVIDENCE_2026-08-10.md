@@ -1,5 +1,7 @@
 # [WORKER-REPORT] The wedge alarm's evidence file was written by the gate's own test suite, every cycle
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Drawn:** 2026-08-10 19:55–20:10Z as PUBLISH-GATE WEDGE RUNG 1 (priority zero).
 **Wedge age at draw:** ~1765 min, 150 consecutive gate failures, no pass at HEAD `22b097a1b`.
 **Disposition:** two defects FIXED with R15 mutation evidence; one filed, NOT fixed (blast radius).

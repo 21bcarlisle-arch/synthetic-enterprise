@@ -1,5 +1,7 @@
 # [ADVISOR-RETRO] — Failure modes of the last few days, and one law that prevents the class (2026-08-05)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Type:** [RETRO — findings, patterns, candidate laws]. Director-commissioned: "these all feel like quite basic errors — prevent the same failure modes and think laterally." Evidence base: the structural audit, missing-test-tier review, credit-balance research, data-architecture review, taxonomy audit, and the harness's own July record. Candidate laws are for CC to **adopt / adapt / reject with evidence**, the established pattern. Nothing here duplicates fixes already in flight — those are credited and pointed at.
 
 ## What was found, clustered by failure mode

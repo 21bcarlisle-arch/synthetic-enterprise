@@ -1,5 +1,7 @@
 # WORKER FINDING — an EVER-FLAGGED population is structurally blind to the company UN-knowing something
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-09 (worker tick, during the D8 build)
 **Class:** R15 — a control whose population choice removes the very failure a sibling atom exists to report
 **Status:** measured, closed at the measure inside D8; filed here as the CLASS

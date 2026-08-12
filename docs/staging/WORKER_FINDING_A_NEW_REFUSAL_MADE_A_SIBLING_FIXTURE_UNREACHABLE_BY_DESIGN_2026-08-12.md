@@ -1,5 +1,7 @@
 # WORKER FINDING — a new refusal made a sibling's fixture unreachable-by-design, and that fixture wedged publishing for ~60h
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-12
 **Status:** FIXED — `2b8a7f0c5`, pushed
 **Class:** R15 / control-interaction. Sibling of `feedback_a_control_committed_without_its_mechanism_reds_head`,

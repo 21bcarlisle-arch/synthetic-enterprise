@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A public panel served "Loading..." for 8 days, and three controls all passed over it
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, cold-eyes Expert Hour on the live site (`cold-eyes-walk`, two blind
 persona forks + a sighted mechanical pass).
 **Disposition:** the BLOCKER was FIXED THIS TICK (it is a live user-visible defect with a

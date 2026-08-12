@@ -1,5 +1,7 @@
 # H27 EXPERT HOUR #10 — the resolution register's grid was its own claims
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H27_payment_belief_gap` (2→3 HARDEN draw, worker tick, 2026-08-11)
 **Verdict:** HELD AT L2. Tenth Hour, tenth defect, and this Hour changed the instrument again.
 **Lead taken:** Hour #9's lead 2 — *"the on-path entries have never been checked for saturation the

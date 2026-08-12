@@ -1,5 +1,7 @@
 # WORKER FINDING — the atom-id grammar is checked only where the commit gate cannot see it
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, during the H34 build (incidental — not that atom's scope).
 **Disposition:** fixed the INSTANCE in passing because it was about to be committed red;
 QUEUED the CLASS as an atom. Not blocking.

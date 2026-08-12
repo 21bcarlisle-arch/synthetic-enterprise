@@ -1,5 +1,7 @@
 # [DIRECTOR-PRIORITY] — Memory cleanse: reclaim the 6GB tonight, govern the rest (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Type:** [PRIORITY — executes the already-ruled Qwen retirement's first physical step and sequences the two queued guards]. Evidence: 15.9GB real (the 32GB constant was fiction, finding filed), llama-server ~6GB resident, sim spikes 5.4GB, /tmp is tmpfs, repeated oom-kills all weekend disguised as test regressions.
 
 **1. Tonight, first opportunity:** stop and disable llama-server per DIRECTOR_RULING_INFRASTRUCTURE_POSTURE (Qwen retired as a dependency). Any organ still pointing at it: route to the Haiku-class API where the re-pointing is trivial, else PAUSE the organ and file it — a paused advisory organ costs less than nightly kernel roulette. Record freed memory before/after (R2-style receipt).

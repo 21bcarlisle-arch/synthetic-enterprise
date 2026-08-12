@@ -1,5 +1,7 @@
 # WORKER FINDING — a determinism artefact hides in the generator's OFF STATE
 
+**Severity:** LATENT · **Lane:** W2_customer_generator
+
 **Date:** 2026-08-09
 **Found by:** W1_12 L2->L3, diagnosing the population-scale L1.5 breach
 **Class:** R15 / control-and-generator design. Queued per SELF_INTERRUPT_DISCIPLINE

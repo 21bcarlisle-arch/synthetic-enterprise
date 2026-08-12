@@ -1,5 +1,7 @@
 # ADVISOR FINDINGS — the instruction file is over its own hard limit, and the decay audit has never run
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Staged 2026-08-07. Proportionality: the size breach is narrow and reversible — just do it. The gate blind spot is contract-touching — implement with the mitigations named below. The audit itself is a judgement pass, not a build.**
 
 ---

@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The pre-commit test gate maps ZERO tests to a non-`.py` file, so behaviour-determining IaC commits untested (2026-08-09)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found during:** the second publish-wedge unwedge — *by causing it*. My own manifest change passed
 the pre-commit gate and wedged the publish gate on the very next cycle.
 **Disposition:** QUEUED. Small, precise, and it has a working implementation to borrow from.

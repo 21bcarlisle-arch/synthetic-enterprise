@@ -1,9 +1,11 @@
 # [WORKER-FINDING] The only escalation channel fails SILENTLY — a rate-limited NTFY returns None and nothing anywhere says the director was not told (2026-08-10)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found:** sending a watch update at 22:13Z. `send_ntfy` returned `None` where earlier sends that
 evening returned real ids (`TFc8F7njXCgA`, `4YyNCElIn9WN`). I checked instead of assuming.
 
-**Severity:** ESCALATION_IS_NTFY_NEVER_WINDOW is a **P0 wall** — the executor may never ask in the
+**Impact:** ESCALATION_IS_NTFY_NEVER_WINDOW is a **P0 wall** — the executor may never ask in the
 pane, so NTFY is the *only* path from this machine to the director. That path can be down while
 every caller believes it is up.
 

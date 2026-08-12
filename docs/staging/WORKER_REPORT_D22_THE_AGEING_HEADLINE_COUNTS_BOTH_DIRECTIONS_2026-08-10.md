@@ -1,5 +1,7 @@
 # D22 built — the ageing headline counts both error directions
 
+**Severity:** RECORDED · **Lane:** D_billing_metering
+
 **Atom:** `D22_ageing_ordinal_is_one_directional` (D_billing_metering, epoch 3, L0 → L2)
 **Date:** 2026-08-10 (worker tick)
 **Origin:** `WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md`

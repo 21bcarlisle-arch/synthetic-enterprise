@@ -1,8 +1,10 @@
 # [WORKER FINDING] The wedge had a SECOND cause, landed 5 min after the last alarm (2026-08-09)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found during:** `DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH` draw 1 (unwedge).
 **Status:** both causes FIXED in this tick. Filed because the *shape* is the finding.
-**Severity:** would have re-wedged the gate immediately after a correct fix — i.e. it would
+**Impact:** would have re-wedged the gate immediately after a correct fix — i.e. it would
 have presented as "the unwedge didn't work".
 
 ## Observed, with evidence

@@ -1,5 +1,7 @@
 # WORKER FINDING — the model's `electric_storage` home has no storage heater in it
 
+**Severity:** LATENT · **Lane:** W2_customer_generator
+
 **Found:** 2026-08-09, while decomposing the L1.2 day-to-day shape correlation for W1_12.
 **Class:** fidelity gap in the world layer (an appliance the register names and the physics does not model).
 **Disposition:** QUEUED as a simplification and a finding. NOT fixed on sight — it is not blocking,

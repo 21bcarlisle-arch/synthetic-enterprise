@@ -1,5 +1,7 @@
 # [WORKER-FINDING] Test fixture values reached the live publish state and were published to origin (2026-08-11)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found:** reading the publisher log while unwedging the 41-hour publish outage. The outage is
 fixed and this is not what caused it — but it is the more dangerous defect, because it puts
 fabricated values on a public surface.

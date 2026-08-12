@@ -1,5 +1,7 @@
 # FINDING — the size ratchet's rule 3 has the same rename blindness rule 2b just lost
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Class:** fail-open (R15 killer pattern 2 — passes on missing state)
 **Found:** 2026-08-10, KNIFE3 step 10, while fixing the *rule 2b* half of the same defect
 **Disposition:** QUEUED (SELF_INTERRUPT_DISCIPLINE — the machine is not blocked)

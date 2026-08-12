@@ -1,5 +1,7 @@
 # WORKER FINDING — a phase was stamped with a commit made 23 minutes after its own suite started
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Filed** 2026-08-11 (OPS2 tenth tick) · **Atom** `OPS2_publish_gate_head_worktree` ·
 **Status** FIXED this tick, mechanism + controls landed · **Class** a control graded on a label
 that belongs to neither subject

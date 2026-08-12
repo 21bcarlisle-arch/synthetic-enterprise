@@ -1,5 +1,7 @@
 # WORKER FINDING — a register whose gate checks every row still published three wrong numbers in its own heading
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-12, worker tick, `KNIFE3_wall_crossing_paydown` (L0→2, `loop_stage: build`) draw
 **Class:** prose-with-no-falsifier sitting on a gated artefact · **Disposition:** instance fixed at
 `9ef7d5d6e`; the CLASS is unaudited and is what this finding registers

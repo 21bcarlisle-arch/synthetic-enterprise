@@ -1,5 +1,7 @@
 # KNIFE3 step 6 — B7 cut (79 → 75 crossings), and one record write DEFERRED
 
+**Severity:** RECORDED · **Lane:** W4_the_wall
+
 **Lane:** `KNIFE3_wall_crossing_paydown` (AO5 pass 3 of 4), level deliberately still 0 of 2.
 **Status:** the cut is LANDED and committed — **but not by the tick that wrote this line.** See §0.
 **One follow-up is owed and is the reason this file exists** — see §2. Do not archive until §2 is done.

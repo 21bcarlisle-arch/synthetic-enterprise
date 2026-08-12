@@ -1,5 +1,7 @@
 # WORKER FINDING — a perturbation control's fidelity cannot be its compound effect, and its disclosure cannot live in the branch that never fires
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 Filed 2026-08-11 by the worker tick that drew `H_GAP_fabric_belief_truth_gap` (L2->L3).
 Landed: `696dcf06e` (mechanism + 6 R15 mutations), `bc0d65735` (ledger re-stamp).
 Rank: backlog. Nothing here blocks; it is a CLASS worth applying at the next touch of any

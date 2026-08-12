@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A timeout censors the very measurement that would size it — 28 kills in 3 days read as a tidy distribution (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** fixing today's tick decapitation (director-flagged: "three ticks were killed by
 TimeoutStartSec mid-work"). The instance is fixed. The **class** is that the number you would
 naturally reach for is manufactured by the defect.

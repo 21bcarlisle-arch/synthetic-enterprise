@@ -1,5 +1,7 @@
 # [WORKER-REPORT] — The census ran; the stack was ONE deep, not three (2026-08-10)
 
+**Severity:** RECORDED · **Lane:** H_harness
+
 Against `DIRECTOR_PRIORITY_ENUMERATE_THE_STACK_2026-08-10`: *"run the scoped publish-path suite
 ONCE at a clean HEAD checkout WITHOUT `-x` … Capture EVERY red in one pass. Then fix the complete
 list as one batch."*

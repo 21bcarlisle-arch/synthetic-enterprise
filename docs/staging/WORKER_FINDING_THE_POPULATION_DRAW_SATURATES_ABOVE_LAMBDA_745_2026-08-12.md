@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The population draw saturates above λ≈745 and says nothing
 
+**Severity:** LATENT · **Lane:** W2_customer_generator
+
 **Found:** 2026-08-12, by `AO12_scale_probe_10k` while building a 10k-customer book.
 **Owner:** the lane that owns `simulation/population_draw.py` (W2_2_population_draw).
 **Disposition:** QUEUE (SELF-INTERRUPT DISCIPLINE) — the probe worked around it and did not fix

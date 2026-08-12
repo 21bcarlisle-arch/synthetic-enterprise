@@ -1,5 +1,7 @@
 # H27 EXPERT HOUR #11 — the other half of the keying, and the floor nobody could see
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H27_payment_belief_gap` (2→3 HARDEN draw, worker tick, 2026-08-11)
 **Verdict:** HELD AT L2. Eleventh Hour, eleventh defect, and this Hour changed the instrument again.
 **Lead taken:** Hour #10's lead 1 — *"the own-drift grid is still the register's own claims … the

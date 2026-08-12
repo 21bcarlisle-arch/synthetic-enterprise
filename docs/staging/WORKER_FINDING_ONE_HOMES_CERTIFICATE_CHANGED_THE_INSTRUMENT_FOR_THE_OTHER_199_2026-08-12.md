@@ -1,5 +1,7 @@
 # FINDING — the whole-panel fallback is a STEP FUNCTION of one home's certificate, and what it cost the other 199 had never been measured
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (lane H_harness, level 2 → 3, loop_stage build)
 **Date:** 2026-08-12 · **The THIRTEENTH Expert Hour on this atom** · worker tick, L2→L3 draw
 **Module:** `background/fabric_gap_ledger.py` · **Suite:** `tests/harness/test_premise_two_level.py`

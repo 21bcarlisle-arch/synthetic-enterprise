@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The wedge alarm names a blocking test that PASSES when you run it
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Status:** wedge closed (`6156b8b97`, pushed). The finding is the class, not the instance.
 **Class:** fail-silent responder trap / uncommitted-repair. Sibling of "untracked build = local-green".
 

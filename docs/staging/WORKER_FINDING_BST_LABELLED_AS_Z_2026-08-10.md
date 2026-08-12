@@ -1,5 +1,7 @@
 # [WORKER-FINDING] An agent's hand-written timestamp read the LOCAL clock and labelled it `Z` — and the inflated elapsed became an escalation rationale (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** reading a recurrence section appended to
 `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` by another lane's tick.
 Corrected in place there; filed here as its own class.

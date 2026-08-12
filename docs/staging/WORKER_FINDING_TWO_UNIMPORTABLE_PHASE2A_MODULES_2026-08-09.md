@@ -1,5 +1,7 @@
 # [WORKER-FINDING] Two `simulation/run_phase2a*` modules cannot be imported at all — and nothing noticed because nothing imports them
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-09, during the `KNIFE2_customer_straddle` draw (incidental — not this atom's scope).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. Not fixed on sight; the machine is not blocked.
 **Rank:** backlog — but see "why this one is worth more than its blast radius" below.

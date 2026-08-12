@@ -1,5 +1,7 @@
 # WORKER FINDING — the drain's refresh command re-takes the measurement on a *different population*
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 (worker tick) · **Atom:** `H_GAP_fabric_belief_truth_gap` (RUNG 4b, its own drain)
 **Class:** a freshness control whose repair action satisfies the control while silently replacing
 the quantity it was protecting.

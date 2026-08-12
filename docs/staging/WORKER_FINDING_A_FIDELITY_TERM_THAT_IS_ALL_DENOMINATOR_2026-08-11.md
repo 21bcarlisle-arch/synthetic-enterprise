@@ -1,5 +1,7 @@
 # WORKER FINDING — a control's fidelity term was 100% its own normaliser, so it refused a perfect instrument and passed a broken one
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 Filed 2026-08-11 by the worker tick that drew `H_GAP_fabric_belief_truth_gap` (L2->L3).
 This is the **second** Expert Hour on this atom's caveat machinery, run under the
 termination condition the previous Hour wrote for itself: *an Hour that finds nothing NEW

@@ -1,9 +1,11 @@
 # [WORKER-FINDING] A derived artefact can be committed ahead of the input it was derived from, and the whole site lane goes red for everyone (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** landing `DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10` items 1+3. Four separate
 attempts were refused by `surgical_land` before the cause resolved. Every refusal was correct.
 
-**Severity:** this is the class that kept `site/proof` red **at HEAD** for every lane, indefinitely,
+**Impact:** this is the class that kept `site/proof` red **at HEAD** for every lane, indefinitely,
 while every working tree that touched it was green — so it reads as "someone else's flaky test"
 from inside any single lane and never gets owned.
 

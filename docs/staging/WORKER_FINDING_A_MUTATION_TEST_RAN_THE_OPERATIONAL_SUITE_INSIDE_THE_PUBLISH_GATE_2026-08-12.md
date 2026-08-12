@@ -1,5 +1,7 @@
 # WORKER FINDING — a mutation test ran the whole operational suite *inside* the publish gate
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-12 · **Lane:** RUNG-1 publish-gate unwedge (priority zero)
 **Status:** FIXED + class guard landed. Wedge alarm was FALSE-ARMED; publishing was never frozen.
 

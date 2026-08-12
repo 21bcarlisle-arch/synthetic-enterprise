@@ -1,5 +1,7 @@
 # WORKER FINDING — three of the five published figures had never met an artefact
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, H27 Expert Hour #19 (worker tick, `H27_payment_belief_gap` 2→3 HARDEN draw)
 **Class:** a population control with no per-member vacuity guard · **Disposition:** mechanism landed
 **Answer to the draw:** still **L2**. Nineteen Hours, nineteen defects.

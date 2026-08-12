@@ -1,5 +1,7 @@
 # WORKER FINDING — aligning the denominators did not make them one number, and that is the answer
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-09 (worker tick) · **Atom:** `D16_ageing_negative_population_is_unexcluded`, L0→L2
 **Class:** a real-world quantity published by two dimensions of one instrument under one name.
 **Status:** the alignment landed; the name now has exactly one owner; the register that was

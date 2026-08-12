@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The gate's scratch space is RAM, nothing drains it, and exhaustion is reported as "git is not installed"
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-12, unwedging the 18th publish wedge (the lint cause is separate and landed
 as `4bee2bd47`). This is the SECOND, independent contributor found in the same episode.
 **Disposition:** the instance is relieved (space reclaimed, measured below); the CLASS is

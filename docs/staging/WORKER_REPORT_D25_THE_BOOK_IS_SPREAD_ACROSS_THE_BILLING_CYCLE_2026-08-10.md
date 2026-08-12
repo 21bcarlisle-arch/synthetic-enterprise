@@ -1,5 +1,7 @@
 # WORKER REPORT — D25: the book is spread across the billing cycle
 
+**Severity:** RECORDED · **Lane:** D_billing_metering
+
 **Date:** 2026-08-10 · **Atom:** `D25_ageing_resolution_is_the_harness_calendar` **L0 → L2**
 **Closes:** the reshape `WORKER_FINDING_THE_AGEING_RESOLUTION_IS_THE_HARNESS_CALENDAR_2026-08-10.md` minted
 **Mints:** `D26_detection_grace_line_has_no_book_beside_it` (L0, idle) — the residual, spun out not fixed on sight

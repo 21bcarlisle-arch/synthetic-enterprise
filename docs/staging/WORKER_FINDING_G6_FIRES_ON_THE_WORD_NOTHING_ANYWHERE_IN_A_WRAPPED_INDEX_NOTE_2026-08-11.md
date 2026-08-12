@@ -1,5 +1,7 @@
 # [WORKER-FINDING] AO2's G6 fires on the word "nothing" anywhere in a wrapped INDEX note (2026-08-11)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Rank:** backlog. It costs a commit round-trip, not a wedge — but it is the shape that teaches
 people to write shorter, worse notes, which is the exact outcome `parse_records`' own docstring
 says it was designed to avoid.

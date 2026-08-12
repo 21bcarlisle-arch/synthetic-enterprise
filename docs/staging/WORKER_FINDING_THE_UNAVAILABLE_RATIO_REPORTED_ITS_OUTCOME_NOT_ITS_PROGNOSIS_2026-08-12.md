@@ -1,5 +1,7 @@
 # FINDING — the unavailable ratio reported its outcome, not its prognosis
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Atom:** OPS2_publish_gate_head_worktree (lane H_harness, level 0→2)
 **Date:** 2026-08-12
 **Class:** a record that describes what happened but not whether it can be fixed

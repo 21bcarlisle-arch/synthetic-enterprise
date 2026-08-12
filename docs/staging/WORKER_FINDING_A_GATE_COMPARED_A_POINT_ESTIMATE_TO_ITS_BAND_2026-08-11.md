@@ -1,5 +1,7 @@
 # A gate compared a point estimate to its band, and certified 14 of 120 real subpanels it could not resolve
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick, 2026-08-11)
 **Eighth Expert Hour.** Directed question set verbatim by the seventh.
 **Outcome: it found something, so the level stays 2.**

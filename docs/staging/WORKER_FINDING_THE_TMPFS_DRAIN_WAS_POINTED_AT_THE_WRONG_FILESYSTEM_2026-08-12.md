@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The tmpfs drain was pointed at the wrong filesystem — and a right-for-its-own-subject move is what pointed it there
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-12 04:0xZ, working the RUNG-1 publish wedge (19th).
 **Disposition:** defect 1 **FIXED**, R15-proven both ways. Defect 2 **QUEUED** (see below) —
 it cannot be closed by the same edit and one half of it collides with a safety invariant.

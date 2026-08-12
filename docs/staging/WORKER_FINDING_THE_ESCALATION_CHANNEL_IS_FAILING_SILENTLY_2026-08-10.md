@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The P0 escalation channel is over quota and drops silently — `send_ntfy` returns None and every caller ignores it
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found:** 2026-08-10 ~20:10Z, while sending the RUNG-1 unwedge NTFY for this tick.
 **Disposition:** FILED, NOT FIXED — the only real remedy is in the reserved classes.
 **Rank:** proposed P1. This is the channel every other escalation rides on.

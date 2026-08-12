@@ -1,5 +1,7 @@
 # [WORKER-FINDING] Archived staging paths get resurrected on the shared tree, so a drain reads as undone
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, during the backlog-triage drain (Groups A/B of
 `DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10`).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. Not fixed on sight — **the mechanism is not

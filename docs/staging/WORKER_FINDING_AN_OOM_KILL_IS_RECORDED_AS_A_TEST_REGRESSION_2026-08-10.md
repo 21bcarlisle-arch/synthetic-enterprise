@@ -1,5 +1,7 @@
 # [WORKER-FINDING] An OOM-killed gate is recorded as a `test_regression` — the wedge detector names the wrong cause
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, during the episode-4 publish-gate wedge draw (RUNG 1, PRIORITY ZERO).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. The wedge itself had a *different*, real
 cause and is closed at `70d23b088`; this is about how the machine *describes* a wedge, and the

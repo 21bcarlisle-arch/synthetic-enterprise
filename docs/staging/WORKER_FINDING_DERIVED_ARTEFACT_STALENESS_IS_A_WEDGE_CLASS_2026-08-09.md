@@ -1,5 +1,7 @@
 # [WORKER FINDING] A derived artefact nothing regenerates is a standing wedge generator (2026-08-09)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found during:** `DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH` draw 1 (unwedge), causes 3–5.
 **Disposition:** instances FIXED and committed (`96bdad98a`); the CLASS is QUEUED, not fixed on
 sight (SELF_INTERRUPT_DISCIPLINE). Per R10 an absurdity-class defect cannot close on an

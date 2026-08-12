@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The GHOST PUSHER guard cannot tell a test's commit from a concurrent writer's, so the publish gate wedges itself whenever a worker commits mid-run (2026-08-09)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`.
 **Disposition:** QUEUED, not fixed on sight. The fixture's own message says *"Isolate it; do not
 silence this fixture"* — and it is right, which is exactly why the fix is not mine to improvise

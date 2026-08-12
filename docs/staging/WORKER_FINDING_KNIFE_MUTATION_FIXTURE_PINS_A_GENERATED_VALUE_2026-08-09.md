@@ -1,5 +1,7 @@
 # WORKER FINDING — a mutation fixture is pinned to a GENERATED value, so regenerating its own artefact turns the control red
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-09, during the H32 note-rehome build (incidental — outside that atom's file_scope).
 **Disposition:** QUEUED, not fixed on sight (SELF-INTERRUPT DISCIPLINE). Not fixed here because the
 repair is a judgement about what the fixture should anchor to, not a one-line edit.

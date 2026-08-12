@@ -1,5 +1,7 @@
 # WORKER FINDING — the mirror's fidelity gate was denominated in kW/K; the verdict it guards is denominated in GBP
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (lane H_harness, level 2, loop_stage build)
 **Date:** 2026-08-11 · **Expert Hour #3 on this atom's caveat machinery**
 **Status:** CLOSED as a MECHANISM. Level stays 2 per the atom's own termination condition.

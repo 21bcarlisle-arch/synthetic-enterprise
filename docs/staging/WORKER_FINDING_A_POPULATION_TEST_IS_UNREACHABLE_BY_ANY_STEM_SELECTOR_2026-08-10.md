@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A POPULATION test can never be selected by a per-file stem glob — the third half of the impact-selector class (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, unwedging the SIXTH publish-gate wedge (76 consecutive failures, ~751 min red).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. The instance is closed (`de59adffa`); this is
 the CLASS and it is deliberately not fixed here.

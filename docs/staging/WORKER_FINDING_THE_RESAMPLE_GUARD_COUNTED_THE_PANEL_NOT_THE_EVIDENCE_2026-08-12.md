@@ -1,5 +1,7 @@
 # WORKER FINDING — the resample guard counted the panel, not the evidence
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (H_harness, L2→L3 draw, worker tick)
 **Date:** 2026-08-12 · **TENTH EXPERT HOUR** on this machinery
 **Outcome:** IT FOUND SOMETHING, SO THE LEVEL STAYS 2.

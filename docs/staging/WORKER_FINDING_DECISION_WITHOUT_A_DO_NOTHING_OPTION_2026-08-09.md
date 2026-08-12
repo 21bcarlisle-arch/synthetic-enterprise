@@ -1,5 +1,7 @@
 # WORKER FINDING — a decision metric whose choice set has no "do nothing" in it cannot report a loss
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-09 (worker tick)
 **Class:** R15 fail-open — an outcome the control is structurally incapable of expressing
 **Advances:** C14_thermal_parameter_inference

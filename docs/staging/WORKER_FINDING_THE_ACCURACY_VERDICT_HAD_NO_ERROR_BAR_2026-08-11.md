@@ -1,5 +1,7 @@
 # The accuracy verdict had no error bar, and its band sat at the median of its own subject
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` · **Expert Hour #4** · 2026-08-11
 **Outcome: the Hour found something NEW, so the level stays 2.**
 

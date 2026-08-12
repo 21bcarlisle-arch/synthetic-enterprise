@@ -1,5 +1,7 @@
 # WORKER FINDING (QUEUED) — a roll inside the sole write path did not fire
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found by:** the H_GAP tenth Expert Hour tick, 2026-08-12, as a blocker rather than as
 its subject. Queued per SELF-INTERRUPT DISCIPLINE — the instance is cleared, the class
 is not, and this is an atom for `tools/simplifications_store.py`, not for H_GAP.

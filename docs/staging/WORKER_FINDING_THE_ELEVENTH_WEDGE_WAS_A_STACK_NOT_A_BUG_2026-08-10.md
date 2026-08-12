@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The eleventh publish wedge was a STACK of three reds, and `-x` showed only the top one at a time
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10 04:00–05:00Z, drawn as PUBLISH-GATE WEDGE RUNG 1 (priority zero).
 **Wedge age at draw:** ~809 min, 81 consecutive gate failures, no pass at HEAD `d3bf9b739`.
 **Disposition:** instances FIXED (this tick). The CLASS — a stacked red set behind `-x` — is QUEUED.

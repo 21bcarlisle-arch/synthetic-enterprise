@@ -1,5 +1,7 @@
 # WORKER FINDING — `tools/capability_index.py` is 923 lines against a 600 cap, and KNIFE4 grew it
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-09, during `KNIFE4_orphan_disposition` (commits a019ad96d, ae3aebec2)
 **Class:** size-ratchet debt, pre-existing and worsened
 **Disposition:** QUEUE (SELF_INTERRUPT_DISCIPLINE — the machine is not blocked; the ratchet is at

@@ -1,5 +1,7 @@
 # The Hour's record landed without its mechanism — and it is at least the third instance
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-11 · **Found by:** worker tick (H27_payment_belief_gap 2→3 HARDEN draw)
 **Class:** a record can be committed ahead of the code it describes
 **Status:** instance FIXED (commit `1e01735dc`, pushed in `2a0466aa0`); **class OPEN** — queued, not

@@ -1,5 +1,7 @@
 # WORKER FINDING — a measurement tool never lands the evidence its own control reads
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Filed:** 2026-08-10 · **Class:** R15 fail-closed control starved of its input · **Status:** instance FIXED (`c228b48f5`), class OPEN
 
 ## The instance (observed-with-evidence)

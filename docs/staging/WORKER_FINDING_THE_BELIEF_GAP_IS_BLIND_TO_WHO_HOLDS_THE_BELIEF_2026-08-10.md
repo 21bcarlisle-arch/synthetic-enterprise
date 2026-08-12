@@ -1,5 +1,7 @@
 # WORKER FINDING — the belief gap is blind to WHO holds the belief
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** worker tick running Expert Hour #3 on `H27_payment_belief_gap` (2→3)
 **Advances:** `D19_belief_gap_is_distribution_only`
 **Verdict:** **HELD AT L2.** L3 means "no major flaws". A third was measured, in a third published headline.

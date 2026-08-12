@@ -1,5 +1,7 @@
 # WORKER FINDING — the map size ratchet is red again 24h after H32 drained it, and this time it wedges publishing
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, during the PW3 build (incidental — not that atom's scope).
 **Disposition:** QUEUED as `H41_the_map_ratchet_has_no_ongoing_drain`. NOT fixed on sight.
 **Rank:** top of the harness queue while publishing is wedged on it.

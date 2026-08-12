@@ -1,5 +1,7 @@
 # WORKER FINDING — the ageing dimension graded the company's dating against the company's own dating function
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** worker tick running Expert Hour #5 on `H27_payment_belief_gap` (2→3)
 **Advances:** `D21_ageing_truth_side_is_the_organs_own_rule` (minted here, built here)
 **Verdict:** **HELD AT L2.** Fifth Hour, fifth defect, and the third of the five sitting in a claim the

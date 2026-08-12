@@ -1,5 +1,7 @@
 # WORKER FINDING — the latency dimension reads its own grace parameter back, and calls it the company's latency
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** worker tick running Expert Hour #7 on `H27_payment_belief_gap` (2→3)
 **Advances:** `D23_organ_query_grid_cannot_resolve_latency` (minted here, **not** built here)
 **Verdict:** **HELD AT L2.** L3 means "this harness measures what it says it measures". A seventh

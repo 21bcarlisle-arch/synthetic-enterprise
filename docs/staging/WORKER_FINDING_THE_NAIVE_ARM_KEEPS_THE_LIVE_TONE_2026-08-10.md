@@ -1,9 +1,11 @@
 # WORKER FINDING — the frozen-baseline NAIVE arm keeps the LIVE policy's letter tone
 
+**Severity:** BLOCKING · **Lane:** C_customer_ops
+
 **Found:** 2026-08-10, during KNIFE3 design B5 (the collections-tone wall cut).
 **Status:** QUEUED, not fixed (SELF_INTERRUPT_DISCIPLINE — one hotspot per pass).
 **Class:** counterfactual contamination / `one name, two numbers`.
-**Severity:** the A/B it corrupts is a published diagnostic, not a control.
+**Impact:** the A/B it corrupts is a published diagnostic, not a control.
 
 ## The claim, and how it is evidenced
 

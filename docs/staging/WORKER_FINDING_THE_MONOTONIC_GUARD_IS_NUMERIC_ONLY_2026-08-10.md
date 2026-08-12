@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The episode-monotonic guard is numeric-only and fails SILENTLY on an ISO timestamp — wiring it on one would look like protection and be none (2026-08-10)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found:** dispositioning `site/data/publish_provenance.json` into the self-clearing-alarm census
 after the publish decoupling landed. Not a defect in what shipped — a trap laid for whoever wires
 this guard next, which on current evidence is the natural thing to do.

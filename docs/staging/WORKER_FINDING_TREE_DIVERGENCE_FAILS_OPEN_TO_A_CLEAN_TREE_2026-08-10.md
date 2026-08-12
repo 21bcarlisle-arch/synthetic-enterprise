@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The tree-divergence measure fails OPEN to "clean", and the artefact at HEAD proves it fired that way (2026-08-10)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Class:** R15 FAIL-OPEN. **Subject:** `background/tree_divergence.py::changed_paths`.
 **Why it matters:** this module is the *entire* accountability half of
 `DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09`. The ruling removed the punishment (the gate

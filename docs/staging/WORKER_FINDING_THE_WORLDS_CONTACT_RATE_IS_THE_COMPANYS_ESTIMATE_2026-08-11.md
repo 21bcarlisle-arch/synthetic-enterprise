@@ -1,5 +1,7 @@
 # WORKER FINDING — the world's contact rate IS the company's estimate
 
+**Severity:** BLOCKING · **Lane:** W4_the_wall
+
 **Found:** 2026-08-11, during KNIFE pass 3 step 16 (`KNIFE3_wall_crossing_paydown`, register §3k)
 **Class:** B2/B3 inversion — a company BELIEF constituting a world OUTCOME
 **Disposition:** QUEUED, not fixed on sight (`SELF_INTERRUPT_DISCIPLINE`)

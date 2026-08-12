@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The gate-duration series records ABORTED runs as if they were durations — so a wedge silences the tightness alarm (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, dispositioning `publish_gate_duration.jsonl` during the eighth/ninth publish-wedge unwedge.
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. The census row it was found under is dispositioned
 `benign` and correctly so — this is a *different class* and is deliberately not folded into that row.

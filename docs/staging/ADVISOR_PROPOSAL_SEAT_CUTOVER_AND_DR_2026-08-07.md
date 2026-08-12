@@ -1,5 +1,7 @@
 # [ADVISOR-PROPOSAL] — Seat cut-over: the option this week proved we need (2026-08-07)
 
+**Severity:** LATENT · **Lane:** A_strategy_governance
+
 **Type:** [PROPOSAL — requirements, not mechanisms]. Director-prompted after a five-day seat outage. Lands in the OPS lane ("Running the Machine"), where the posture shelf already holds the never-built DR atom — this is its flesh. Evidence: 2026-08-03→08 the resident seat was dark and unreachable; work continued only by improvised cloud sessions; no sanctioned path existed to stand a replacement seat. Problem and requirements below; every mechanism is the worker's.
 
 ## What already exists (built this week, accidentally as DR)

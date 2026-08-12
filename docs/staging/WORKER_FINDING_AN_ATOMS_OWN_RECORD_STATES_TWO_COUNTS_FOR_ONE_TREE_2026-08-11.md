@@ -1,5 +1,7 @@
 # [WORKER-FINDING] An atom's own record states two different counts for one tree
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, during KNIFE3 step 17, while reading step 16's `exit_evidence` to establish
 where the pass had actually got to before writing step 17's.
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. Not fixed on sight, and the reason matters:

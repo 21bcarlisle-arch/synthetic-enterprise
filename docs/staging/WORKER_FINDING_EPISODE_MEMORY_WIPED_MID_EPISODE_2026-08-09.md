@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The wedge episode memory was WIPED mid-episode, and the next alarm narrated a fresh hour (2026-08-09)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found during:** Draw 1 of `DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH_2026-08-08` (unwedge publish).
 **Disposition:** QUEUED as a finding, not fixed on sight (SELF_INTERRUPT_DISCIPLINE — publishing is
 unwedged, the machine is not blocked, and the supply of harness findings is infinite).

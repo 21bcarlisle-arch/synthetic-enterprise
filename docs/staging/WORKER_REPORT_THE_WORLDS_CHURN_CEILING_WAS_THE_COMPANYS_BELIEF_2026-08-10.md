@@ -1,5 +1,7 @@
 # [WORKER-REPORT] KNIFE3 step 12 — the world's churn ceiling was the company's belief about it (2026-08-10)
 
+**Severity:** RECORDED · **Lane:** W4_the_wall
+
 Commit `d6ee063ea`, pushed to `origin/main`. Atom `KNIFE3_wall_crossing_paydown`, **level
 deliberately still 0** — run_phase2b, run_phase4c_on_phase2b's remaining 10, B2's four
 `customer_events` edges and B4's `dd_collection_book` residual all stand.

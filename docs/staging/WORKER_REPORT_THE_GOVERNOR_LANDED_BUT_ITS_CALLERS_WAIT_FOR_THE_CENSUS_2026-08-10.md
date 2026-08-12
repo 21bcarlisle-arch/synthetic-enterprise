@@ -1,5 +1,7 @@
 # [WORKER-REPORT] — The headroom governor is built and mutation-proven; its callers wait for the census (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 Against `ADVISOR_FLAG_RESOURCE_HEADROOM_GOVERNOR_2026-08-09`, sequenced by
 `DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10` step 2 ("next draw after BUILD_THE_BREATHING").
 BUILD_THE_BREATHING is in `docs/staging/done/`, so the sequence was satisfied before drawing.

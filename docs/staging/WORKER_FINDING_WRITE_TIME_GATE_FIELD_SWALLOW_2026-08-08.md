@@ -1,5 +1,7 @@
 # [WORKER FINDING] AO2's INDEX field has no terminator, so G6 reads the whole commit message
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-08, worker tick, while landing AO9 (`c9ec19dcd`). Found by USING the gate, not by
 auditing it — AO2 refused a real commit three times and the third refusal was wrong.
 

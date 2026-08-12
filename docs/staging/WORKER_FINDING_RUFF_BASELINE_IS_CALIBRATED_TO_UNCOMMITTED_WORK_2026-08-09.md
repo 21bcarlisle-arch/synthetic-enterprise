@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The ruff baseline has an entry that is green only because of uncommitted work
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-09, while unwedging publish episode 3 (commit `8a8ee4d40`).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. Not fixed on sight — the machine is
 **not** blocked (the gate lints the working tree, which is green).

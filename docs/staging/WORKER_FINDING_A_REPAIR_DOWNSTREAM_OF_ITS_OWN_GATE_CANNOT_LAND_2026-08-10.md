@@ -1,5 +1,7 @@
 # WORKER FINDING — a repair that only commits on green cannot fix what is reddening the gate
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** worker tick, rung-1 publish-gate wedge #10 (~802 min red, 81 failures)
 **Closed at:** `818b3212a` (pushed; `origin/main` verified equal)
 **Class:** derived-artefact staleness — the class `WORKER_REPORT_FOURTH_WEDGE_CLOSED_THE_DERIVED_ARTEFACT_CLASS_2026-08-10` claimed closed. **It recurred.** R3 two-strike applies to the repair mechanism.

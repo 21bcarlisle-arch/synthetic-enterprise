@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The publish-wedge alarm is disarmed by rc=0 from paths that never ran the gate (2026-08-10)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found during:** the fifth publish-wedge unwedge (the H36/H38/H39 note-store mismatch).
 **Disposition:** QUEUED. Not fixed on sight — the wedge itself was the P0 and is closed; this is the
 *measurement* of wedges, and it is the third time the same class has been closed at one instance.

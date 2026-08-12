@@ -1,5 +1,7 @@
 # WORKER REPORT — D24: the organ's overdue clock is signed (L0 → L2)
 
+**Severity:** RECORDED · **Lane:** D_billing_metering
+
 **2026-08-10, worker tick.** Atom `D24_the_latency_floor_is_the_organs_clamped_overdue`,
 lane `D_billing_metering`, drawn at `loop_stage: build`, closed at L2.
 

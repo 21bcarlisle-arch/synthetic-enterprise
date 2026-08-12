@@ -1,5 +1,7 @@
 # WORKER FINDING — the belief dimension's TRUTH side is a hand-copy of the company's own rule, and nothing measured it
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-10 · **Found by:** worker tick running Expert Hour #4 on `H27_payment_belief_gap` (2→3)
 **Advances:** `D20_belief_truth_rule_is_an_unmeasured_mirror` (minted here, built here)
 **Verdict:** **HELD AT L2.** L3 means "no major flaws". A fourth was measured, in the claim that makes the

@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A truncated run's duration became the atom's certifying ratio — the same class as the duration-series finding, one organ over (2026-08-11)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, OPS2 tick 5, reading launch 11's completed measurement before moving the level.
 **Disposition:** FIXED IN PLACE, not queued — unlike its sibling this one decided an atom's
 certifying number, so it was blocking. The CLASS half is queued below.

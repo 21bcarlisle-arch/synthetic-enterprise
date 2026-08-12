@@ -1,5 +1,7 @@
 # H27 Expert Hour #13 — the shared saturation rule reached two of three sweeps, and the third is the register that started the line
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Date:** 2026-08-11 · **Atom:** `H27_payment_belief_gap` (HARDEN, self-refill draw 2→3)
 **Subject:** `tools/couple_w2_11_d5.py` · **Reshape minted as:** `D31_the_recon_grid_saturates_beyond_this_books_window` (L0)
 **Held at L2.** Thirteen Hours, thirteen defects, and this Hour changed the instrument again.

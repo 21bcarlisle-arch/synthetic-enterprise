@@ -1,5 +1,7 @@
 # FINDING — a finished cut sat uncommitted on the shared tree, and every control was green
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-12 · **Atom:** `KNIFE3_wall_crossing_paydown` · **Class:** record/code divergence
 **Status:** instance repaired and landed (`f3de95f94`, `55a841d12`); the CLASS is filed here, not fixed on sight.
 

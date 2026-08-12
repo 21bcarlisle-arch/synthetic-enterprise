@@ -1,5 +1,7 @@
 # WORKER FINDING — the wedge episode closes only on an empty queue, and the queue cannot empty
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Filed:** 2026-08-12 · **Lane:** H_harness · **Class:** R15 — a control that cannot fire (R10:
 the CLASS of an already-"closed" finding) · **Status:** DIAGNOSED, mechanism QUEUED not built
 (SELF_INTERRUPT_DISCIPLINE) · **Rank proposal:** RUNG-1 successor — it is what keeps the

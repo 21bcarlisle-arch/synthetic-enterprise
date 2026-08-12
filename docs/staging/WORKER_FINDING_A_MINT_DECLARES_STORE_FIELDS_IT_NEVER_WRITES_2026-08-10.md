@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A mint declares record/note store fields it never writes (2026-08-10)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Class:** declaration-without-referent, at MINT rate. **Status:** two atoms live-red at HEAD, third
 (A9) fixed in passing because it was the drawn atom. **Not fixed on sight** per SELF-INTERRUPT
 DISCIPLINE — the instance is trivial, the CLASS is a mint-path defect and needs an atom.

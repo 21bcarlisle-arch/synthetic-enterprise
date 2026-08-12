@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The mint-source's cited design anchor has never existed, and the standing architecture doc says the opposite (2026-08-11)
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, while executing step 1 (the mint) of
 `DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10`.
 **Disposition:** QUEUED as a finding; the mint PROCEEDED (see "Why this did not block"). Not fixed on

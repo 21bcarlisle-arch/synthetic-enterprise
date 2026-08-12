@@ -1,5 +1,7 @@
 # ADVISOR FINDINGS — the EPC register in this simulation is never wrong, only absent or vague, and the absence carries no information
 
+**Severity:** BLOCKING · **Lane:** W2_customer_generator
+
 **Staged 2026-08-09 at the Director's instruction, from a lab session that ran the committed premise generator directly (repo cloned to the advisor seat; `simulation/premise_population.draw_premise_population`, n=2,000 and n=2,000 x 5 seeds, `as_of=2022-06-30`). Nothing was written to the tree by that session.**
 
 **Proportionality, per item.** §2a (certificate wrongness) is contract-touching — implement with the mitigations named in §5. §2b (absence correlation) is narrow and reversible — just do it. §2c (the property-type side door) is a **wall** item and takes `[ACT]` first: it is truth crossing to the company side without an interface.

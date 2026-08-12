@@ -1,5 +1,7 @@
 # WORKER FINDING — the ceiling was to be sized from a PROCESS peak and applied to a CGROUP
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-11 · **Atom:** `OPS2_publish_gate_head_worktree` (owed item 1, the re-derivation)
 **Lane:** H_harness
 **Class:** R15 — a measurement in a different unit from the thing it is used to bound.

@@ -1,5 +1,7 @@
 # WORKER FINDING — the gate was the branch's own admission ticket, read back to it
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick)
 **Date:** 2026-08-12 — the TWELFTH Expert Hour on this atom
 **Outcome:** IT FOUND SOMETHING, SO THE LEVEL STAYS 2.

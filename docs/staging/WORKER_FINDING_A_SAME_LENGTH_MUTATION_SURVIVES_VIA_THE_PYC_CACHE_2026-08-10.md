@@ -1,5 +1,7 @@
 # WORKER FINDING — a same-length source mutation survives its own restoration, via the `.pyc` cache
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-10, KNIFE pass 3 step 7 (design B4), by the control catching its own harness
 **Class:** R15 — a mutation harness that damages the suite it protects
 **Status:** fixed in the three harnesses this tick shipped; **the class is open** in the older copies

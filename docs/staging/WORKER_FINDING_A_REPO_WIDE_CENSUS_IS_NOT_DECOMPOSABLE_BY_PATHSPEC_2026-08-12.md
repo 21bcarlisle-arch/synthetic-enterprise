@@ -1,5 +1,7 @@
 # [WORKER-FINDING] A repo-wide census cannot be satisfied by a pathspec commit, and the file it needs may be in another lane
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-12, unwedging the 18th publish wedge (landed `4bee2bd47`).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. The instance is fixed and pushed; the
 CLASS is filed here, not fixed on sight — the machine is not blocked by it.

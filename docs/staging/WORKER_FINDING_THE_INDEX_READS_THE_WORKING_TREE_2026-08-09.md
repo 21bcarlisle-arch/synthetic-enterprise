@@ -1,5 +1,7 @@
 # [WORKER-FINDING] The capability index reads the WORKING TREE, so a module that exists on one machine reads as `wired` — and G6 refused an honest record for a second time (2026-08-09)
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Found during:** DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09 DO-NEXT #2 — getting
 `tools/run_annual_report.py` into version control (landed `83a55b750`).
 

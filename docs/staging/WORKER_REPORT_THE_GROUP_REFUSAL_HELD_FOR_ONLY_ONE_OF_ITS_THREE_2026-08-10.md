@@ -1,5 +1,7 @@
 # REPORT — a group ruling whose stated evidence held for only one of its three members
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **KNIFE3 step 10, 2026-08-10.** Commits `fc450fde3`, `d7ca5a13d`, `bb5e4e002`. Pushed.
 
 ## What happened

@@ -1,5 +1,7 @@
 # WORKER FINDING — the printed-footing control runs on a smaller population than the page
 
+**Severity:** BLOCKING · **Lane:** D_billing_metering
+
 **Found:** 2026-08-12, worker tick, while building D36_bill_render_footing_and_pence.
 **Class:** R15 WRONG POPULATION (the control is real, fires correctly, and never meets the defect).
 **Rank requested:** backlog — a penny per bill on 30 of 1682 bills, no publish-path wedge, no

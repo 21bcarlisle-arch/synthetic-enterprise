@@ -1,5 +1,7 @@
 # [WORKER-RECEIPT] MEMORY_CLEANSE step 1 — 5.1GB reclaimed; the disable itself needs the operator (2026-08-10)
 
+**Severity:** RECORDED · **Lane:** H_harness
+
 Against `DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10` step 1, granted by pane 2026-08-10 evening.
 Checked the delivery record first per "ticks: verify, don't redo" — llama-server was **live**
 (`ollama.service` active + enabled, `llama-server` resident 5,529 MB), so step 1 was NOT already done.

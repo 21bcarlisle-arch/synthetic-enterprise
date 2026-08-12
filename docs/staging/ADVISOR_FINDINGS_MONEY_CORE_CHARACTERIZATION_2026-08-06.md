@@ -1,5 +1,7 @@
 # [ADVISOR-FINDINGS] — Money-core characterization: verified defects and signals (2026-08-06)
 
+**Severity:** BLOCKING · **Lane:** E_finance_treasury
+
 **Type:** [FINDINGS]. Companion to merged PR #9 ([CCM], 304 characterization tests over 8 money-core modules, tests-only). The PR body holds 30 findings rows; the tests carry inline surprise-comments on main. This note registers what the advisor INDEPENDENTLY VERIFIED by reading source, plus signals for the wake. Characterized, not endorsed — fixes are the worker's to sequence.
 
 ## Two control defects, verified in source

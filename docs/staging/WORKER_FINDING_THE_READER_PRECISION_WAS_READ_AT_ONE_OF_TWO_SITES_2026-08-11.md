@@ -1,5 +1,7 @@
 # WORKER FINDING — the reader's precision was read at one of this figure's two render sites
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, H27 Expert Hour #17 (worker tick, `H27_payment_belief_gap` 2→3 HARDEN draw)
 **Class:** a control escaped by its own keying · **Disposition:** mechanism landed, reshape MINTED (D35)
 **Answer to the draw:** still **L2**. Seventeen Hours, seventeen defects.

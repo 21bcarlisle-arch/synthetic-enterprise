@@ -1,5 +1,7 @@
 # WORKER FINDING — the belief dimensions cannot see a company that never forgets
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Atom:** `H27_payment_belief_gap` — Expert Hour **#9**, on the corrected instrument
 **Date:** 2026-08-11 (worker tick) · **Reshape minted as:** `D27_belief_window_saturates_on_this_book`
 **Class:** `DIMENSION_DRIFT_RESOLUTION`'s **OFF-PATH state** — fifth escape of a register's own keying

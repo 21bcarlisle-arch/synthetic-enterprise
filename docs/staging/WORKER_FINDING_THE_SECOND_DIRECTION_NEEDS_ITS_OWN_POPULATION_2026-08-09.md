@@ -1,5 +1,7 @@
 # WORKER FINDING — adding the second error direction is the easy half; its DENOMINATOR is the measure
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Date:** 2026-08-09 · **Found by:** worker tick building `D11_detection_gap_is_recall_only`
 **Advances:** D12_detection_cell_grid_is_recall_only
 **Class:** R15 denominator defect · **Status:** caught in-build, before it published

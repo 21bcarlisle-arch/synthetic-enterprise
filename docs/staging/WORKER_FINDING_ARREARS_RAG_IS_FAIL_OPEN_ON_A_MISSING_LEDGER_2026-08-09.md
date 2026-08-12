@@ -1,5 +1,7 @@
 # WORKER FINDING — the arrears RAG column reads GREEN when its data source is absent
 
+**Severity:** BLOCKING · **Lane:** C_customer_ops
+
 **Date:** 2026-08-09
 **Found by:** worker, during KNIFE pass 1 (`KNIFE1_reporting_cycle`) byte-identity verification
 **Class:** R15 FAIL-OPEN (passes on missing/unreadable input)

@@ -1,5 +1,7 @@
 # WORKER REPORT — B4 is DONE; the world stopped operating the supplier's collection register
 
+**Severity:** RECORDED · **Lane:** W4_the_wall
+
 **Filed:** 2026-08-10, worker seat (scheduled tick).
 **Atom:** `KNIFE3_wall_crossing_paydown` (KNIFE pass 3 of 4, lane `H_harness`), **step 13**.
 **Level:** UNCHANGED at 0. This is one step of a pass that is visibly still cutting — 48 crossings

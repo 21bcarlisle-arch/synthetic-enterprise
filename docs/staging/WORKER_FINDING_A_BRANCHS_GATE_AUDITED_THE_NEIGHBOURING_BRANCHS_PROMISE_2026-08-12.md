@@ -1,5 +1,7 @@
 # WORKER FINDING — a branch's gate audited the neighbouring branch's promise
 
+**Severity:** BLOCKING · **Lane:** H_harness
+
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick)
 **Date:** 2026-08-12 — the ELEVENTH Expert Hour on this atom
 **Outcome:** IT FOUND SOMETHING, SO THE LEVEL STAYS 2.

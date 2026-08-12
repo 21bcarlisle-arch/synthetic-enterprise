@@ -1,5 +1,8 @@
 # WORKER REPORT — the belief headline now knows which account it is talking about
 
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Status:** repaired — this report IS
+the repair (D19 L0 → L2); the wrong measure it describes no longer runs.
+
 **Date:** 2026-08-10 · **Atom:** `D19_belief_gap_is_distribution_only` **L0 → L2**
 **Drawn as:** `H27_payment_belief_gap` 2→3 (HARDEN). **H27 stays at L2** — see the last section.
 **R12:** the reshape was designed from the defect, never fitted to a value. Every number below moved
