@@ -1087,15 +1087,35 @@ def _sweep_stale_head_checkouts(now=None):
 PYTEST_TEMP_ROOT_GLOB = "pytest-of-*"
 PYTEST_TEMP_KEEP_NEWEST = 3
 
+# THIS SWEEP'S SUBJECT IS PYTEST'S FILESYSTEM, NOT THE CHECKOUTS' (2026-08-12, the nineteenth
+# wedge). It was rooted at HEAD_CHECKOUT_ROOT and was CORRECT on arrival (21467f98d, 2026-08-10)
+# because that constant was then "/tmp". The next day, 53e82b105 moved the CHECKOUTS off tmpfs
+# onto disk -- right for checkouts, and it silently carried this sweep to /var/tmp with them,
+# because one constant was serving two subjects that live on two different filesystems. From
+# that commit until this one the drain globbed `/var/tmp/pytest-of-*`, which cannot exist:
+# pytest builds its numbered roots under `tempfile.gettempdir()`, and nothing sets TMPDIR here.
+#
+# MEASURED at the moment of this finding: `/var/tmp/pytest-of-*` -> no match, while
+# `/tmp/pytest-of-rich` held 3.3G across nine roots and /tmp was at 69% of a 7.8G tmpfs. The
+# sweep had reclaimed nothing for 19 hours and said nothing, because its log line only fires
+# when it removes something -- a silent zero reads exactly like a clean filesystem.
+#
+# So it is DERIVED FROM PYTEST'S OWN RULE rather than borrowed from a neighbour: whatever
+# directory pytest would put a basetemp in is the directory this drains. Overridable for tests
+# and for a box that sets TMPDIR. Its sibling `_sweep_stale_head_checkouts` keeps
+# HEAD_CHECKOUT_ROOT -- the two subjects are now independently movable, which is the property
+# whose absence caused this.
+PYTEST_TEMP_ROOT_PARENT = Path(os.environ.get("SE_GATE_PYTEST_TEMP_ROOT", tempfile.gettempdir()))
+
 
 def _sweep_stale_pytest_temp_roots(now=None):
-    """Delete abandoned pytest temp roots on the gate's filesystem. Returns the number removed.
+    """Delete abandoned pytest temp roots on PYTEST'S filesystem. Returns the number removed.
 
     Never raises: like the checkout sweep, a sweep that fails must cost space, never a publish."""
     now = time.time() if now is None else now
     removed = 0
     try:
-        parents = sorted(HEAD_CHECKOUT_ROOT.glob(PYTEST_TEMP_ROOT_GLOB))
+        parents = sorted(PYTEST_TEMP_ROOT_PARENT.glob(PYTEST_TEMP_ROOT_GLOB))
     except OSError:
         return 0
     for parent in parents:
@@ -1119,7 +1139,14 @@ def _sweep_stale_pytest_temp_roots(now=None):
                 continue
     if removed:
         log("Publish gate: swept {} abandoned pytest temp root(s) from {} -- suites killed "
-            "mid-run never prune their own.".format(removed, HEAD_CHECKOUT_ROOT))
+            "mid-run never prune their own.".format(removed, PYTEST_TEMP_ROOT_PARENT))
+    elif not parents:
+        # A SILENT ZERO WAS THE NINETEENTH WEDGE. "Removed nothing" and "there is nothing here
+        # to remove, and there never could be" are the same silence, and the second one is a
+        # misrouted drain. Say which, once, at the cost of one line per cycle.
+        log("Publish gate: no pytest temp roots under {} -- nothing to sweep (if the tmpfs is "
+            "filling, this drain is pointed at the wrong filesystem).".format(
+                PYTEST_TEMP_ROOT_PARENT))
     return removed
 
 

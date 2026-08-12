@@ -154,6 +154,15 @@ def sandbox(tmp_path, monkeypatch, logged):
     checkout_root.mkdir()
     monkeypatch.setattr(prc, "PROJECT_DIR", repo)
     monkeypatch.setattr(prc, "HEAD_CHECKOUT_ROOT", checkout_root)
+    # ISOLATE THE PYTEST-TEMP SWEEP'S OWN ROOT (2026-08-12, the nineteenth wedge). It used to
+    # borrow HEAD_CHECKOUT_ROOT, so redirecting that one constant isolated both sweeps at once
+    # -- and that shared constant was the defect. Now they are separate subjects, this one has
+    # to be redirected explicitly, and it MUST be: its production default is the real
+    # `tempfile.gettempdir()`, so a test that planted roots and swept without this would delete
+    # the temp directories of every other suite running on this box, including its own.
+    pytest_temp_root = tmp_path / "pytest-temps"
+    pytest_temp_root.mkdir()
+    monkeypatch.setattr(prc, "PYTEST_TEMP_ROOT_PARENT", pytest_temp_root)
     monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ())
     monkeypatch.setattr(prc, "REUSED_CHECKOUT_KEEP", ("__pycache__",))
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
@@ -673,12 +682,12 @@ def test_stale_pytest_temp_roots_are_swept_and_the_newest_are_kept(sandbox):
 
     Both directions in one test: a sweep that took the newest roots could delete a RUNNING
     suite's tmp_path out from under it, which is worse than the leak it fixes."""
-    parent = prc.HEAD_CHECKOUT_ROOT / "pytest-of-someone"
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
     ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
     # Six roots, ALL old enough to be swept on age alone; mtimes ascend with the number.
     old = [_pytest_root(parent, n, ancient + n) for n in range(6)]
     fresh = _pytest_root(parent, 99)
-    unrelated = prc.HEAD_CHECKOUT_ROOT / "someone-elses-tmpdir"
+    unrelated = prc.PYTEST_TEMP_ROOT_PARENT / "someone-elses-tmpdir"
     unrelated.mkdir()
     os.utime(unrelated, (ancient, ancient))
 
@@ -691,10 +700,73 @@ def test_stale_pytest_temp_roots_are_swept_and_the_newest_are_kept(sandbox):
     assert unrelated.exists(), "this sweep owns pytest roots and nothing else"
 
 
+def test_the_pytest_sweep_is_rooted_where_pytest_actually_builds_its_roots(tmp_path):
+    """R15, against the nineteenth wedge's own defect, with an INDEPENDENT oracle.
+
+    Every other test of this sweep PLANTS its population under whatever root the sweep is
+    reading, so all of them stay green for any value of that constant -- including a value on a
+    filesystem where a pytest temp root can never appear. That is what happened: 53e82b105 moved
+    HEAD_CHECKOUT_ROOT from /tmp to /var/tmp for the CHECKOUTS' sake, this sweep was rooted on
+    the same constant, and for 19 hours it globbed `/var/tmp/pytest-of-*` while `/tmp` filled to
+    69% with 3.3G of the roots it exists to drain. Its own tests could not see it and its log
+    line never fired, because it only speaks when it removes something.
+
+    So the oracle here is not a directory this test created and not a string this test typed.
+    It is `tmp_path` -- pytest telling us where it really puts a basetemp, in this very run.
+    NOTE: deliberately no `sandbox`, which redirects the constant under test.
+    """
+    # `tmp_path` is <parent>/pytest-of-<user>/pytest-<N>/<test-name><i>. Find the `pytest-of-*`
+    # link in its real chain rather than counting parents, which would pin pytest's layout.
+    of_user = next((p for p in tmp_path.parents if p.name.startswith("pytest-of-")), None)
+    assert of_user is not None, (
+        "oracle unavailable: pytest's basetemp is not under a `pytest-of-*` root, so this test "
+        "cannot say where the sweep should point -- an unavailable check is a FAILED check "
+        "(R15), not a pass. Re-derive from the basetemp layout before deleting this.")
+
+    assert of_user.parent == prc.PYTEST_TEMP_ROOT_PARENT, (
+        "the sweep globs {}/{} but pytest is building its roots in {} -- the drain is pointed at "
+        "a filesystem where its subject cannot exist, and will silently reclaim nothing while "
+        "the tmpfs fills".format(prc.PYTEST_TEMP_ROOT_PARENT, prc.PYTEST_TEMP_ROOT_GLOB,
+                                 of_user.parent))
+
+    # And the glob really does select it, not merely sit in the right directory.
+    assert of_user in set(prc.PYTEST_TEMP_ROOT_PARENT.glob(prc.PYTEST_TEMP_ROOT_GLOB))
+
+
+def test_the_two_sweeps_do_not_share_one_root_constant(tmp_path, monkeypatch):
+    """The CLASS, not the instance. Moving either subject must never move the other.
+
+    The instance fix is one path; the defect was that one constant answered two questions. This
+    fails if someone later re-points the pytest sweep at HEAD_CHECKOUT_ROOT for tidiness, which
+    is precisely the shape that shipped.
+
+    Asserted on BEHAVIOUR, not on the two constants being unequal: the pre-fix code had no
+    second constant to compare, it simply read the checkout root, and that shape must fail here.
+    """
+    moved = tmp_path / "checkouts-moved-somewhere-else"
+    own = tmp_path / "pytest-temps"
+    moved.mkdir(), own.mkdir()
+    monkeypatch.setattr(prc, "HEAD_CHECKOUT_ROOT", moved)
+    monkeypatch.setattr(prc, "PYTEST_TEMP_ROOT_PARENT", own)
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+
+    # Four ancient roots in each place. Only the ones on PYTEST'S root are this sweep's business.
+    at_checkouts = [_pytest_root(moved / "pytest-of-someone", n, ancient + n) for n in range(4)]
+    at_own = [_pytest_root(own / "pytest-of-someone", n, ancient + n) for n in range(4)]
+
+    removed = prc._sweep_stale_pytest_temp_roots()
+
+    assert all(p.exists() for p in at_checkouts), (
+        "the sweep followed HEAD_CHECKOUT_ROOT -- that coupling is the nineteenth wedge, where "
+        "moving the checkouts off tmpfs carried the tmpfs drain away with them")
+    assert removed == len(at_own) - prc.PYTEST_TEMP_KEEP_NEWEST
+    assert not at_own[0].exists(), "and it must still drain its own root"
+
+
 def test_a_pytest_current_symlink_is_never_the_thing_deleted(sandbox):
     """`pytest-current` points INTO a numbered root. Deleting the link would leave the bytes on
     the tmpfs and lose the only handle to them -- a sweep that makes the leak unreachable."""
-    parent = prc.HEAD_CHECKOUT_ROOT / "pytest-of-someone"
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
     ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
     targets = [_pytest_root(parent, n, ancient + n) for n in range(5)]
     link = parent / "pytest-current"
@@ -716,7 +788,10 @@ def test_the_checkout_sweep_alone_could_not_reclaim_what_wedged_it(sandbox):
     later deletes the pytest sweep, this fails rather than quietly restoring the 22h wedge."""
     root = prc.HEAD_CHECKOUT_ROOT
     ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
-    parent = root / "pytest-of-rich"
+    # The two halves of that measured population now sit on two filesystems (2026-08-12): the
+    # checkouts moved to disk, pytest's roots stayed on the tmpfs. Reconstructing them under one
+    # root would restore exactly the conflation that misrouted the drain for 19 hours.
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-rich"
     # The offset only ORDERS the mtimes; it must stay far inside `ancient` or a root drifts back
     # within the age bound and is spared on age rather than by the keep-window.
     pytest_roots = [_pytest_root(parent, n, ancient + n * 0.01)
