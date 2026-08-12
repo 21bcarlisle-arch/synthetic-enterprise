@@ -4,6 +4,16 @@
 **Date:** 2026-08-12 · **The THIRTEENTH Expert Hour on this atom** · worker tick, L2→L3 draw
 **Module:** `background/fabric_gap_ledger.py` · **Suite:** `tests/harness/test_premise_two_level.py`
 
+**SEVERITY: BLOCKING, DISCHARGED ON LANDING** (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`
+clause 2). It says an instrument is wrong, so it is BLOCKING by construction and is not
+argued down: the panel mirror's fallback branch carried an unpriced instrument effect and no
+row could size it. It is discharged by the repair in this same commit — priced, gated,
+disclosed, R15 both ways — and no published figure was ever affected, which is MEASURED and
+not asserted: both published populations take the level branch, where the quantity does not
+exist (`panel_mirror_switch is None`), and the gaps are unchanged at 0.4269 / 0.4042. No
+level-raise rests on it: this atom's level has stayed 2 for thirteen consecutive Hours.
+The residue in the opener below is **LATENT**.
+
 ## The directed question, and it was the right one
 
 The twelfth Hour left this: *both branches now gate on a worst-breach test, and nothing has
