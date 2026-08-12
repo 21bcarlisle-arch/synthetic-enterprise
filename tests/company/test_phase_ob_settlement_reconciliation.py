@@ -54,8 +54,23 @@ class TestRAGThresholds:
         max_adverse = monthly_rev * _AMBER_THRESHOLD / 100 * 2.0
         assert _rag(max_adverse, monthly_rev) == "RED"
 
-    def test_zero_monthly_revenue_is_green(self):
-        assert _rag(999999.0, 0.0) == "GREEN"
+    def test_zero_monthly_revenue_with_open_exposure_is_red(self):
+        # F61: the zero-revenue guard used to return GREEN unconditionally, so the
+        # SoLR shape -- open settlement exposure with no revenue behind it -- was
+        # rated safest. Fixed at 2abb973c2; this test pinned the fail-open until
+        # 0bfb796d2 and is the assertion that must fire if it is reintroduced.
+        assert _rag(999999.0, 0.0) == "RED"
+
+    def test_zero_monthly_revenue_with_no_exposure_is_green(self):
+        # Nothing at risk is genuinely green -- the guard still has to distinguish
+        # "no exposure" from "exposure nobody can absorb", not collapse both.
+        assert _rag(0.0, 0.0) == "GREEN"
+
+    def test_negative_max_adverse_is_red(self):
+        # A negative max-adverse is corrupt input, not a gain, and is not evidence
+        # of safety at any revenue level.
+        assert _rag(-1.0, 0.0) == "RED"
+        assert _rag(-1.0, 100_000.0) == "RED"
 
 
 # ── build series ──────────────────────────────────────────────────────────────

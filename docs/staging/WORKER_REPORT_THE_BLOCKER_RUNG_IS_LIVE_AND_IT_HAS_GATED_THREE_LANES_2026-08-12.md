@@ -1,5 +1,7 @@
 # WORKER REPORT — the blocker rung is live, and its first act was to gate three lanes
 
+**Severity:** RECORDED · **Lane:** H_harness
+
 **Date:** 2026-08-12
 **Atom:** `OPS12_blockers_ahead_of_disposition` — level 0 → 2, `loop_stage` build → harden
 **Commits:** `0a392bc28` (mechanism + tests), `e5290ac4c` (map cell + ledger row). Pushed; `origin/main` at `e5290ac4c`.

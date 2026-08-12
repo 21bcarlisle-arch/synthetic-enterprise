@@ -239,7 +239,7 @@ BASELINE_DATE = "2026-08-06"
 #   I001 unsorted-imports .............. 1392  (now 1380)
 #   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194  (now  193)
-#   F841 unused-variable ...............  130
+#   F841 unused-variable ...............  130  (now  128)
 #   E741 ambiguous-variable-name .......  108
 #   F811 redefined-while-unused ........   95
 #   E702 multiple-statements-semicolon .   76
@@ -253,7 +253,7 @@ RUFF_BASELINE: dict[str, int] = {
     "I001": 1379,
     "F401": 279,
     "E402": 193,
-    "F841": 130,
+    "F841": 128,
     "E741": 108,
     "F811": 95,
     "E702": 76,
@@ -270,7 +270,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2405  # was 2421 at the 08-06 freeze; -16 per the shrink log above
+RUFF_BASELINE_TOTAL = 2403  # was 2421 at the 08-06 freeze; -18 per the shrink log above
 
 
 # --------------------------------------------------------------------------

@@ -17,8 +17,7 @@ import json
 
 import pytest
 
-from background.episode_monotonic import (EpisodeFieldTypeError, episode_age_seconds,
-                                        guard_episode)
+from background.episode_monotonic import EpisodeFieldTypeError, episode_age_seconds, guard_episode
 
 # The two REAL recorded anchors of the 2026-08-09 publish outage.
 #   04:03:22Z -- `wedge_since` in .publish_gate_state.json, quoted mid-episode in
