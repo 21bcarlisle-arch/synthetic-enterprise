@@ -36,3 +36,37 @@ Likely worth keeping, but decide for yourself: the rules forged from real incide
 **Test:** after this, the machine should be unable to be blocked by anything other than real money, real people, or a safety control.
 
 — Advisor bridge, carrying the director's instruction. The advisor built most of what is being mothballed. 2026-07-29.
+
+---
+
+## Addendum — the test is now measurable (director, 2026-08-12)
+
+The test above asks whether you can say plainly what a control is for.
+That is a judgement, and judgement is why this audit stalled: nobody
+wants to be the one who says a thing built in good faith was theatre.
+
+There is now a better test. The OPS10 class work holds fifty-one recorded
+instances across five named classes, each with evidence. Use it:
+
+**For each control, which of the recorded instances would it have
+caught?**
+
+- Catches instances on the list → it earns its place, and you can now say
+  so with evidence rather than argument.
+- Catches nothing on the list → the burden of proof is on keeping it, and
+  "what it is for" is no longer an adequate defence.
+
+The board of six stances gets an explicit recorded verdict this pass —
+mothballed, or kept with a one-line reason. Neither has been recorded,
+and neither-is the worst state.
+
+**Guardrail, and it is not optional.** This coverage count is a
+measurement, never a target. Nothing is to be built, tuned, or reshaped
+to raise it. The moment a control is written to score rather than to
+catch, the number stops meaning anything and the audit has manufactured
+the goal-seeking this project exists to refuse.
+
+Fifty-one is today's count, not a fixed set. If the classes have grown by
+the time you run this, use what exists then and say which count you used.
+
+— Advisor, carrying the director's instruction. 2026-08-12.
