@@ -83,3 +83,15 @@ the control's subject is the whole tree. A filtered status is the wrong instrume
   containing class; this is its partial-landing corollary.
 - `feedback_sitelane_precommit_scope_gap` — the SITE lane going unseen by a code-lane instrument,
   previously at the pre-commit gate, here at the status query.
+
+## Re-frozen 2026-08-12, checked against the 19th wedge and NOT its cause
+
+The wedge doorbell cited this finding as holding the suspects. It does not. The recorded
+blocking test was `tests/background/test_staging_archive_policy.py`'s duplicate-after-sweep
+case, whose red was a stale exit-code pin (0, before the duplicate path was given 76 that
+same morning) — a sibling assertion, not a ruff census refusal. No census refusal occurred
+in this episode.
+
+**Disposition unchanged: QUEUED, LATENT, rank backlog.** The promote condition in the header
+still stands and this episode did not meet it. Recorded here so the next reader does not
+re-draw it as a suspect on the strength of the citation alone.
