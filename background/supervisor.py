@@ -3459,6 +3459,65 @@ def _planner_rung_draw(
 # history. The agent records its own level move and moves the map cell in the same act -- there is
 # no second party's act left to consume, and therefore no latency to prioritise away.
 
+
+def _blocking_lane_draw(staging_dir: Path | None = None) -> tuple[str | None, frozenset[str]]:
+    """RUNG 1c REVIVED, 2026-08-12 -- BLOCKING FINDING LANE PRECEDENCE, atom
+    `OPS12_blockers_ahead_of_disposition` (DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE
+    2026-08-12, clause 3): "a BLOCKING finding draws ahead of the general disposition queue,
+    ahead of latent findings, and ahead of new feature work in its own lane; the drain
+    proceeds around it."
+
+    Reads OPS9's severity parse (`background.finding_severity.scan_staging_root` +
+    `blocking_by_lane`) over the REAL staging root -- deliberately never a second hand-kept
+    list, per this atom's own exit criterion 1 ("the ordering is read from the OPS9 severity
+    parse, never from a second hand-kept list that could disagree with it").
+
+    Returns `(reason, blocked_lanes)`:
+      * `reason` is a human-readable string NAMING the blocking finding(s) by filename
+        (exit criterion 3: "the draw REASON names the blocker, so a tick that jumped the
+        queue can be audited afterwards from the log alone"), or `None` when there is
+        nothing to report (no blocker, and the index read cleanly).
+      * `blocked_lanes` is the set of lanes carrying a live BLOCKING finding. The caller
+        (`_self_refill_draw`) uses this to exclude SAME-LANE new-feature-work candidates
+        from this cycle's BUILD/SITE/DISCOVERY draw -- and ONLY same-lane candidates,
+        never any other lane's (exit criterion 2, "NON-BLOCKING ELSEWHERE": "a draw in
+        another lane is unaffected... the half a naive global priority would break").
+
+    FAIL-OPEN CHECK (exit criterion 5): if the severity index itself cannot be read (the
+    module is missing, the staging root is unreadable), this returns a `reason` that SAYS
+    SO explicitly and an EMPTY `blocked_lanes` -- the caller therefore falls back to the
+    ordinary draw order, but VISIBLY (the message is logged), never by silently resuming
+    recency order the way a re-ranking control quietly stops re-ranking. Distinguishing
+    "index unreadable" from "index read clean, zero blockers" is why this can't just
+    return `None` on both -- a `None` reason on the unreadable path would be exactly the
+    silent fallback this criterion forbids.
+    """
+    root = staging_dir if staging_dir is not None else STAGING_DIR
+    try:
+        from background.finding_severity import blocking_by_lane, scan_staging_root
+        by_lane = blocking_by_lane(scan_staging_root(root))
+    except Exception as exc:  # module missing, root unreadable, or any parse-path failure
+        return (
+            "BLOCKING-FINDING INDEX UNREADABLE (RUNG 1c fail-open check, OPS12 exit "
+            f"criterion 5): could not read the OPS9 severity parse over {root} "
+            f"({exc.__class__.__name__}) -- blocker precedence cannot be computed this "
+            "cycle; falling back to the ordinary draw order VISIBLY, not by silently "
+            "resuming recency order."
+        ), frozenset()
+    if not by_lane:
+        return None, frozenset()
+    # Deterministic tie-break across lanes (alphabetical) -- the draw itself is a SET
+    # (blocked_lanes filters every candidate in every affected lane this cycle; nothing
+    # is left to choose between), so this only orders which lane's names lead the message.
+    lane, findings = sorted(by_lane.items())[0]
+    names = ", ".join(f.path.name for f in findings)
+    return (
+        f"BLOCKING FINDING (RUNG 1c, OPS12 clause 3): lane {lane} carries a live BLOCKING "
+        f"finding -- {names} -- drawing ahead of the general disposition queue, latent "
+        f"findings, and new feature work in lane {lane}; the drain proceeds around it "
+        "(other lanes unaffected)."
+    ), frozenset(by_lane.keys())
+
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
@@ -3536,13 +3595,27 @@ def _self_refill_draw() -> str | None:
             "paging threshold -> drawing the daemon-lifecycle fix above every product/HARDEN lane "
             "(director console 2026-07-25)")
         return op_red
+
+    # RUNG 1c -- BLOCKING FINDING LANE PRECEDENCE (OPS12, clause 3). Computed BEFORE the
+    # three-lane draw so a live BLOCKING finding can exclude same-lane "new feature work"
+    # candidates from THIS cycle -- never other lanes' (_blocking_lane_draw's own docstring,
+    # exit criterion 2). The message (if any) is prepended to whatever this cycle draws,
+    # so a blocker with no other-lane work still returns alone, and a blocker alongside
+    # other-lane work names both.
+    blocker_reason, blocked_lanes = _blocking_lane_draw()
+    if blocker_reason:
+        log(blocker_reason)
+
     build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
+    build_atoms = [a for a in build_atoms if a.get("lane") not in blocked_lanes]
     drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
 
     site_atoms = _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
+    site_atoms = [a for a in site_atoms if a.get("lane") not in blocked_lanes]
     drawn_ids |= {a["id"] for a in site_atoms if "id" in a}
 
     discovery_atoms = _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
+    discovery_atoms = [a for a in discovery_atoms if a.get("lane") not in blocked_lanes]
 
     # BOUNDED FAN-OUT (director P0, 2026-07-17): cap the COMBINED fork count at MAX_CONCURRENT_FORKS
     # BEFORE assembly -- no 12-fork blooms. Priority BUILD > SITE > DISCOVERY (matches the cross-lane
@@ -3578,8 +3651,11 @@ def _self_refill_draw() -> str | None:
 
     # Preserve the exact pre-existing single-atom BUILD message byte-for-byte
     # -- but ONLY when a lone BUILD atom is genuinely all there is this cycle
-    # (existing callers/NTFY parsing depend on this exact string).
-    if len(build_atoms) == 1 and not site_atoms and not discovery_atoms:
+    # (existing callers/NTFY parsing depend on this exact string), and ONLY when no
+    # RUNG 1c blocker fired (OPS12 exit criterion 3: a blocker's draw must always name
+    # itself in the returned reason, so it can never be silently dropped from this
+    # byte-preserved short path).
+    if blocker_reason is None and len(build_atoms) == 1 and not site_atoms and not discovery_atoms:
         return f"self-refill from maturity map (dial-weighted): {_format_atom_draw(build_atoms[0])}"
 
     sections: list[str] = []
@@ -3611,13 +3687,27 @@ def _self_refill_draw() -> str | None:
         )
 
     if sections:
-        return (
+        combined = (
             "self-refill from maturity map -- THREE-LANE draw "
             f"(BOUNDED PARALLEL: <={MAX_CONCURRENT_FORKS} concurrent Agent forks, disjoint scopes; "
             "FORK LIFECYCLE -- each fork MUST come home: on success merge its branch to main via "
             "tree_lock, on failure reap it; NO orphaned branches): "
             + " || ".join(sections)
         )
+        # OPS12 exit criterion 3: a blocker (real or fail-open) that fired this cycle is named
+        # IN the returned reason, never only in the log -- so a tick that jumped the queue, or
+        # fell back because the index was unreadable, is auditable from the reason string alone.
+        return f"{blocker_reason}; {combined}" if blocker_reason else combined
+
+    # RUNG 1c CONTINUED (OPS12 exit criterion 1): a real blocker excluded every same-lane
+    # candidate and left nothing else to draw this cycle -- return it ALONE, ahead of the
+    # general disposition queue (campaign/backlog/propose-half/forward-discovery/HARDEN
+    # rungs below), rather than falling through to them. The fail-open message (blocked_lanes
+    # empty) never takes this path: nothing was excluded, so the ordinary rungs below still
+    # get a fair chance to draw, which is the "fall back to the ordinary draw order" half of
+    # exit criterion 5.
+    if blocker_reason and blocked_lanes:
+        return blocker_reason
 
     # OPEN-CAMPAIGN LANE (SEVENTH CLASS, director ruling 2026-07-23): the three below-target lanes
     # are empty here -> before ANY lower rung or rest, draw the next unfinished item of an OPEN
@@ -3771,6 +3861,15 @@ def _is_drained_and_gated() -> bool:
         # rung added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the
         # exact overnight rest the draw now refuses (13 consecutive reds, tick resting beside them).
         if _operational_red_persistent_draw():
+            return False
+        # RUNG 1c -- BLOCKING FINDING LANE PRECEDENCE (OPS12, clause 3): rest is never
+        # legitimate while a BLOCKING finding sits live in any lane -- it is real, ahead-
+        # of-everything-else work by the ruling's own words. Mirror of the rung added to
+        # `_self_refill_draw`; without it, a lane-scoped proof (every OTHER lane genuinely
+        # empty) could ground rest while a known-untrustworthy instrument sits unrepaired,
+        # exactly the state clause 3 exists to make undrawable-as-rest.
+        _blocker_reason, _blocked = _blocking_lane_draw()
+        if _blocker_reason and _blocked:
             return False
         if _maturity_map_draw_concurrent(exclude_stalled=True):
             return False
