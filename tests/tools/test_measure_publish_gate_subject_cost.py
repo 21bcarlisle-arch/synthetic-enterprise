@@ -322,6 +322,18 @@ def test_the_liveness_guard_ignores_its_own_ancestors(monkeypatch):
     shell, and in the `bash -c` wrapper above it — would refuse every launch: a control that can
     only say no. The pytest and grep lines are here for the same reason; this module's own path
     on a test runner's argv is not a running measurement."""
+    # THE SCENARIO IS NOT CONSTRUCTIBLE FOR AN ORPHAN, so say so rather than fail.
+    # This test fabricates a pgrep line attributed to getppid() and asserts the guard treats it
+    # as its OWN. `_ancestor_pids` walks up while `pid != 1` and never adds init -- correctly,
+    # since init's command line is not a competing measurement. So when this runner has been
+    # reparented (parent exited), getppid() is 1, the fabricated line is genuinely foreign by
+    # the guard's own definition, and the test would be asserting the guard is wrong.
+    # Observed 2026-08-12: a full suite launched with `nohup ... &` outlived its shell, was
+    # reparented, and reported this as a red among 24,256 passes. The guard was fine; the
+    # fixture was environment-bound.
+    if os.getppid() == 1:
+        pytest.skip("runner is orphaned (ppid=1); it has no ancestor chain to be ignored")
+
     lines = "\n".join([
         "{} /usr/bin/python3 -m tools.measure_publish_gate_subject_cost --detach".format(
             os.getpid()),

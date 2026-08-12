@@ -228,8 +228,8 @@ def test_boot_announce_reports_each_verdict_distinguishably():
 def test_a_broken_verdict_degrades_to_UNPROVEN_and_never_breaks_the_announce():
     """MUTATION: let the diagnostic raise. The boot announce must still be produced --
     losing the whole boot report to a diagnostic extra is strictly worse than losing the extra."""
-    from background import boot_announce as ba
     import tools.verify_host_autostart as vha
+    from background import boot_announce as ba
 
     original = vha.evaluate
     try:
