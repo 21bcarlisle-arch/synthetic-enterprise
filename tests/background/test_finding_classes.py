@@ -399,3 +399,109 @@ def test_the_live_staging_root_consolidation_holds():
     every printed count equal to its list, and no live finding left unconsolidated."""
     result = fc.check()
     assert result.ok, "\n".join(result.failures)
+
+
+# --- rule 5: room exclusivity. Population is the ROOMS, not a class document's list ---
+#
+# The defect this rule was built for: `ADVISOR_FINDINGS_MONEY_CORE_CHARACTERIZATION_
+# 2026-08-06.md` was dispositioned into `in_progress/` with its severity downgraded
+# BLOCKING -> OPEN, and a stale root copy still reading `**Severity:** BLOCKING` was
+# committed back by an auto-process sweep. The doorbell read the root copy and drew it at
+# RUNG 1c -- the highest-priority draw in the machine -- ahead of every other lane, while
+# `--check` printed PASS. It printed PASS because rule 3 only ever asks about names a
+# class document already lists, and no class document has ever named an advisor findings
+# note. WRONG POPULATION, not a missing rule.
+
+
+def _rooms(tmp_path: Path) -> Path:
+    root = _root(tmp_path)
+    (root / fc.PARKED_DIRNAME).mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def test_room_collisions_is_empty_on_documents_that_each_occupy_one_room(tmp_path):
+    """The negative half. Three documents, three rooms, one each -- no collision. Without
+    this the rule could be a constant `fail` and every positive test below would pass."""
+    root = _rooms(tmp_path)
+    _doc(root, "WORKER_FINDING_LIVE_2026-08-12.md", "live")
+    _doc(root / fc.ARCHIVE_DIRNAME, "WORKER_FINDING_CONSUMED_2026-08-12.md", "done")
+    _doc(root / fc.PARKED_DIRNAME, "WORKER_FINDING_PARKED_2026-08-12.md", "parked")
+    assert fc.room_collisions(root) == []
+
+
+def test_a_document_in_the_root_and_in_progress_is_named(tmp_path):
+    """The shipped 2026-08-12 state, reproduced: the disposition parked it and a stale
+    root copy came back. NOTE the name -- an ADVISOR document, which belongs to no class,
+    so rule 3's listed-instance walk cannot reach it however carefully it is run."""
+    root = _rooms(tmp_path)
+    name = "ADVISOR_FINDINGS_MONEY_CORE_CHARACTERIZATION_2026-08-06.md"
+    _doc(root, name, "the stale copy", severity="BLOCKING")
+    _doc(root / fc.PARKED_DIRNAME, name, "the dispositioned copy", severity="OPEN")
+
+    assert fc.room_collisions(root) == [(name, "in_progress", "root")]
+    failures = fc.check(root).failures
+    assert any(f.startswith(f"TWO ROOMS {name}") for f in failures), failures
+
+
+def test_a_document_in_done_and_in_progress_is_named(tmp_path):
+    """The pairing the 2026-08-12 hand census never looked at. That census ran root-vs-
+    `done/` only, found zero, and reported the both-rooms class closed -- while three
+    documents sat simultaneously archived as consumed and parked as open."""
+    root = _rooms(tmp_path)
+    name = "DIRECTOR_RULING_NIGHT_ENFORCEMENT_2026-07-23.md"
+    _doc(root / fc.ARCHIVE_DIRNAME, name, "the archived text")
+    _doc(root / fc.PARKED_DIRNAME, name, "the parked text with an open sub-item")
+
+    assert fc.room_collisions(root) == [(name, "done", "in_progress")]
+    assert any(f.startswith(f"TWO ROOMS {name}") for f in fc.check(root).failures)
+
+
+def test_a_document_in_the_root_and_done_is_named(tmp_path):
+    """The third pairing -- the only one anything checked before, and only for names a
+    class document lists. Here the document is unlisted and it still fires."""
+    root = _rooms(tmp_path)
+    name = "WORKER_FINDING_AN_UNLISTED_ONE_2026-08-12.md"
+    _doc(root, name, "root copy")
+    _doc(root / fc.ARCHIVE_DIRNAME, name, "archived copy")
+
+    assert fc.room_collisions(root) == [(name, "done", "root")]
+    assert any(f.startswith(f"TWO ROOMS {name}") for f in fc.check(root).failures)
+
+
+def test_the_rule_covers_every_pairing_of_the_three_rooms(tmp_path):
+    """VACUITY GUARD on the pairing set. A rule that walks two of three rooms reads
+    exactly like a clean sweep -- that is the defect, so the count of pairings the rule
+    can produce is pinned rather than trusted. Three rooms, three pairs, one name in all
+    three must produce all three."""
+    root = _rooms(tmp_path)
+    name = "WORKER_FINDING_IN_ALL_THREE_2026-08-12.md"
+    for where in (root, root / fc.ARCHIVE_DIRNAME, root / fc.PARKED_DIRNAME):
+        _doc(where, name, "a copy")
+
+    assert fc.room_collisions(root) == [
+        (name, "done", "in_progress"),
+        (name, "done", "root"),
+        (name, "in_progress", "root"),
+    ]
+    assert fc.PARKED_DIRNAME in fc.ROOM_DIRNAMES
+
+
+def test_mutation_e_narrowing_the_population_to_listed_instances_kills_those_tests(tmp_path):
+    """MUTATION E — the population defect itself, reintroduced. Restrict the rooms walked
+    to `done/` (i.e. drop `in_progress/`, which is what rule 3 knew about) and the two
+    collisions involving a parked copy vanish while the checker still reports PASS. This
+    is the state that shipped and drew at rung 1c."""
+    mutant = _load_mutant(
+        tmp_path,
+        'ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME)',
+        'ROOM_DIRNAMES = (ARCHIVE_DIRNAME,)',
+        "fc_mutant_e",
+    )
+    root = _rooms(tmp_path)
+    name = "ADVISOR_FINDINGS_MONEY_CORE_CHARACTERIZATION_2026-08-06.md"
+    _doc(root, name, "the stale copy", severity="BLOCKING")
+    _doc(root / fc.PARKED_DIRNAME, name, "the dispositioned copy", severity="OPEN")
+
+    assert fc.room_collisions(root), "the real module must see this collision"
+    assert mutant.room_collisions(root) == [], "mutant should be blind to the parked room"
+    assert not any(f.startswith("TWO ROOMS") for f in mutant.check(root).failures)

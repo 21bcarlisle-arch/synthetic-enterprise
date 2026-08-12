@@ -1,3 +1,21 @@
+> **PARKED IN `in_progress/` 2026-08-09 by the unwedge tick — one sub-item genuinely open.**
+>
+> **DONE:** item 1. KNIFE1's cut landed at `7cef2c1d4`; KNIFE2's — the sixteen
+> `simulation.* -> saas.customers` edges plus `company/interfaces/supply_book.py` — landed in the
+> commit that carries this note. The wall is intact at HEAD, measured on a clean checkout:
+> `tests/architecture` 40 passed, `test_no_new_sim_reads_company` green.
+>
+> **STILL OPEN — the blocking sub-item:** items 2 and 3. The level-promotion gate still accepts
+> evidence gathered against the WORKING TREE (`record_level_up_self_certified`), and the atoms
+> certified on 2026-08-09 (KNIFE1, KNIFE2, and anything else promoted while its code was
+> uncommitted) have not been re-audited against HEAD. **What unblocks it:** re-running each atom's
+> own exit measurement inside a `git archive HEAD` checkout and refusing the record if it
+> disagrees — the finding's own item 2, which is now cheap because
+> `background/process_run_complete.py::_head_checkout` already materialises exactly that checkout
+> and makes it a real repo.
+>
+> Item 4 (do not re-freeze the E402 baseline) was honoured: the baseline was never touched.
+
 # [WORKER-FINDING] The epistemic wall is BREACHED at HEAD, and every measurement that said otherwise was taken against the working tree (2026-08-09)
 
 **Found:** immediately after `DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09` moved the publish

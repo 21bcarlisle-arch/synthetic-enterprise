@@ -73,6 +73,14 @@ from background.finding_severity import (
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STAGING_ROOT = REPO_ROOT / "docs" / "staging"
 ARCHIVE_DIRNAME = "done"
+PARKED_DIRNAME = "in_progress"
+
+#: The three rooms a staged document can occupy, and the ONE claim each makes about it:
+#: the root says LIVE (it rings the doorbell and wins draws), `done/` says CONSUMED,
+#: `in_progress/` says PARKED-WITH-AN-OPEN-SUB-ITEM. The claims are mutually exclusive,
+#: so one name in two rooms is a contradiction whichever pair it is — and the doorbell
+#: reads the loudest copy, which is always the root's.
+ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME)
 
 #: Class documents live in the staging root beside the findings they supersede — they are
 #: the artefact that wins a draw, so parking them in an archive would defeat the ruling.
@@ -628,6 +636,42 @@ class CheckResult:
         return not self.failures
 
 
+def _room_names(room: Path) -> set[str]:
+    if not room.is_dir():
+        return set()
+    return {p.name for p in room.glob("*.md") if p.is_file()}
+
+
+def room_collisions(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[str, str, str]]:
+    """Every document name occupying more than one staging room, as (name, roomA, roomB).
+
+    POPULATION IS THE ROOMS, NOT A LIST. Rule 3 above only ever asks about names a class
+    document already carries, so it can only see a resurrection of a consolidated WORKER
+    finding. The state that cost a rung-1c draw on 2026-08-12 was an ADVISOR findings note
+    — dispositioned into `in_progress/` with its severity downgraded BLOCKING -> OPEN, and
+    a stale root copy still reading `**Severity:** BLOCKING` — which no class document has
+    ever named, so no listed-instance walk could reach it. It is checked here by being a
+    file in a room, which is the one property every staged document has.
+
+    ALL THREE PAIRINGS, not one. The 2026-08-12 both-rooms census was run root-vs-`done/`
+    by hand and declared zero; it was zero, and root-vs-`in_progress/` held one while
+    `done/`-vs-`in_progress/` held three — a document simultaneously archived as consumed
+    and parked as open. A census over one of three pairs reads exactly like a clean sweep.
+    """
+    root = Path(root)
+    rooms = {"root": _room_names(root)}
+    for dirname in ROOM_DIRNAMES:
+        rooms[dirname] = _room_names(root / dirname)
+
+    collisions: list[tuple[str, str, str]] = []
+    labels = sorted(rooms)
+    for i, left in enumerate(labels):
+        for right in labels[i + 1 :]:
+            for name in sorted(rooms[left] & rooms[right]):
+                collisions.append((name, left, right))
+    return sorted(collisions)
+
+
 def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
     """Re-derive membership and verify the four things that can silently rot.
 
@@ -640,10 +684,21 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
        THE_SHARED_TREE_2026-08-10`, is this exact move's known failure mode here).
     4. The count printed in each class document equals its instance list's length
        (exit criterion 5, the one-name-one-number class).
+    5. No document name occupies two staging rooms (`room_collisions`) — rule 3's
+       subject widened from "names a class document lists" to "files in the rooms",
+       because the resurrection that cost a rung-1c draw was of a document no class
+       document has ever named.
     """
     root = Path(root)
     archive = root / ARCHIVE_DIRNAME
     result = CheckResult()
+
+    for name, left, right in room_collisions(root):
+        result.failures.append(
+            f"TWO ROOMS {name}: present in {left} AND {right} — the rooms make "
+            "mutually exclusive claims (live / consumed / parked), and the doorbell "
+            "reads the root copy"
+        )
 
     for path in classifiable_documents(root):
         classification = classify_file(path)
