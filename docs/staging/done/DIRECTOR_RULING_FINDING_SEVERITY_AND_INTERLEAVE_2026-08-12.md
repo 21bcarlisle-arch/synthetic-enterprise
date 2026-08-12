@@ -36,3 +36,12 @@ Measured this morning: four advisor documents had sat in the staging root **unto
 **Exit test:** a document staged and then deliberately ignored appears in the digest on day three with its correct age, and keeps appearing. A digest that can go quiet while old documents remain is the failure this clause exists to forbid.
 
 — Appended 2026-08-12 by the advisor, who authored three of the four aged documents and is therefore the party this clause most inconveniences.
+
+---
+
+**[PROCESSED 2026-08-12, worker tick]** All five `WORK THIS CREATES` deliverables plus clause 5 minted
+as atoms `OPS9`–`OPS14` in `docs/design/maturity_map.yaml`; none was previously covered. Record and
+coverage table: `docs/staging/done/PLANNER_MINTED_finding_severity_and_interleave_2026-08-12.md`.
+The ruling's standing properties (severity values, lane-scoped refusal, blocker precedence, the
+unconditional interleave, 72h ageing named daily) are carried in those atoms' exit criteria; they are
+prose until `OPS11`/`OPS12`/`OPS13`/`OPS14` land, which is why they were minted rather than absorbed.

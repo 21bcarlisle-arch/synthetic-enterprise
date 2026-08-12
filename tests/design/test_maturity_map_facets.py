@@ -464,6 +464,26 @@ REVIEWED_CLOSE_TO_LEARN = {
     "OPS6_scoped_publish_path_suite",
     "OPS7_provenance_stamps_on_live_pages",
     "OPS8_last_known_good_staleness_banner",
+    # 2026-08-12 reviewed (worker tick, minting the WORK THIS CREATES block plus clause 5 of
+    # DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE). Classified on their merits, not to clear
+    # the gate -- and the gate refusing all six at once is it working as designed, since a ruling
+    # absorbed in one pass is precisely when the dumping-ground default slips in. Every one acts
+    # on HOW THE MACHINE READS ITS OWN FINDINGS and what it may build on top of them: OPS9 gives
+    # a finding a machine-readable severity; OPS10 collapses five families of siblings into class
+    # documents with instance lists; OPS11 refuses a level-raise in a lane whose instrument is
+    # known untrustworthy; OPS12 orders blockers ahead of housekeeping in the draw; OPS13 arms the
+    # product interleave and makes its draws visible; OPS14 names staging documents that have aged
+    # 72h unopened. Not one prices, bills, meters or settles anything -- OPS13 SCHEDULES product
+    # work but builds none of it, so filing it under meter_to_cash or price_to_bill would claim a
+    # revenue flow the atom itself does not touch. What all six measure is whether this repo's own
+    # verdicts can be trusted and acted on in the right order, the same close_to_learn class as
+    # their OPS/H_harness siblings above.
+    "OPS9_finding_severity_field",
+    "OPS10_finding_class_consolidation",
+    "OPS11_blocking_lane_refusal",
+    "OPS12_blockers_ahead_of_disposition",
+    "OPS13_product_interleave_armed",
+    "OPS14_aged_staging_named_daily",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

@@ -5002,3 +5002,111 @@
   file_scope: ['site/data/', 'tools/lab_query.py', 'tests/tools/test_lab_query.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"
+
+- id: OPS9_finding_severity_field
+  title: "Every finding carries a severity, and the severity is machine-readable"
+  gain: "A pile of 103 undifferentiated findings cannot be drawn against; a severity that a machine can read is what turns the pile into a queue with a front."
+  name: "MINTED FROM deliverable 1 of the WORK THIS CREATES block in DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 -- 'the severity field, applied across the existing staging root, one pass, every finding classified'. Clause 2 defines three values: BLOCKING (a control or instrument in this area is untrustworthy, or a published figure may be wrong), LATENT (real defect, invalidates nothing published), RECORDED (known limitation, accepted, no work owed). EXIT: (1) a parser reads a severity header off a finding doc and returns the value PLUS the affected lane, since clause 2's refusal is lane-scoped and a severity without a lane cannot be acted on; (2) the pass is complete when the parser reports ZERO unclassified docs in the staging root, counted from the filesystem, never from a hand-kept list; (3) FAIL-CLOSED on the missing case -- an absent or unparseable header reads as UNCLASSIFIED and is surfaced, never silently defaulted to LATENT, which is exactly the fail-open shape R15 names and exactly the anti-pattern clause 2 forbids (deciding one's own finding is not BLOCKING to keep a lane open); (4) the by-construction rule is checkable, not merely written: a finding whose own text says an instrument, a control or a published figure is wrong, classified anything but BLOCKING, is named by a check; (5) R15 both ways -- a mutation making UNCLASSIFIED read as LATENT, and one dropping the lane from the parse, each kill a NAMED test, and the clean input passes."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [OPS11_blocking_lane_refusal]
+  file_scope: ['background/finding_severity.py', 'tests/background/test_finding_severity.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an incident register where every entry carries a P-level, because an unprioritised register is a diary"
+
+- id: OPS10_finding_class_consolidation
+  title: "Five families, five documents: the class with an instance list is what can win a draw"
+  gain: "Twenty siblings filed separately cannot win a draw against anything; one class document carrying twenty instances and their cumulative cost can."
+  name: "MINTED FROM deliverable 2 of the WORK THIS CREATES block in DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 -- 'class consolidation for the five named families, with instance lists and cumulative cost'. The five are named in the ruling as measured, not to be re-derived: publish-gate/wedge (~18), controls that cannot fail -- vacuous, fail-open, blind (~9), measurements that mirror the thing they measure (~7), uncommitted/orphaned work (~7), no-caller/never-runs (~5). EXIT: (1) five class documents, each naming EVERY instance it supersedes by filename; (2) superseded individuals ARCHIVED, never deleted (the ruling's own word), and the archive is verified to HOLD -- the resurrection class in WORKER_FINDING_ARCHIVED_STAGING_PATHS_ARE_RESURRECTED_ON_THE_SHARED_TREE_2026-08-10 is this exact move's known failure mode on this shared tree; (3) membership is DERIVED and re-checkable, so a family that grows a sixteenth instance next week does not silently stop being consolidated -- a check maps every staging finding to at most one class or to unclassed; (4) the cumulative cost line is MEASURED from artefacts (wedge episodes, hours, published figures affected), never estimated prose, since a cost that cannot be traced is the mirror class this very consolidation lists; (5) the count printed in each class doc equals its instance-list length -- the one-name-one-number class, which has already been filed once against this project's own registers."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS9_finding_severity_field]
+  couples_with: [OPS9_finding_severity_field]
+  file_scope: ['docs/staging/', 'docs/staging/done/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a problem-management record that groups incidents into a known-error, so the fix is argued once against the total cost"
+
+- id: OPS11_blocking_lane_refusal
+  title: "A live BLOCKING finding refuses new level-raises in its own lane, and nowhere else"
+  gain: "Building on an instrument already known to be lying means the new work is certified by the lie; the refusal is what makes that structurally impossible rather than merely discouraged."
+  name: "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 -- 'the lane-level refusal mechanism for BLOCKING findings, provably failable'. Clause 2: new level-raises in the affected lane are refused until the finding is repaired OR the limitation is explicitly recorded and accepted; progress in every other lane continues untouched. EXIT: (1) the refusal fires where levels are actually recorded (record_level_up_self_certified and the tools/level_promotion_gate.py commit-time check), naming the finding and its path in the refusal message -- a refusal that does not say which finding blocks it cannot be discharged; (2) LANE SCOPE PROVEN IN BOTH DIRECTIONS: a blocker in lane L refuses L and demonstrably does not refuse any other lane; (3) R11 no orphan transitions -- the RELEASE is tested, not just the hold: repairing the finding, and separately recording+accepting the limitation, must each actually let the next raise through; a hold whose release does nothing is the defect R11 names; (4) FAIL-CLOSED but never wedging -- an unreadable or absent severity index reads as UNKNOWN and refuses in the affected lane (an unavailable check is a FAILED check), which is safe here only because the recorded-and-accepted path always exists as the human-legible discharge; state that reasoning in the code, since a fail-closed control with no discharge is how this project has wedged publishing before; (5) R15 both ways -- a mutation letting a raise through with a live in-lane blocker, and a mutation refusing an unaffected lane, each kill a NAMED test."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS9_finding_severity_field]
+  couples_with: [OPS12_blockers_ahead_of_disposition]
+  file_scope: ['background/gate_authorization.py', 'tools/level_promotion_gate.py', 'tests/background/test_gate_authorization.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a calibration hold: the instrument is out of certification, so this bench stops issuing certificates while the rest of the lab works on"
+
+- id: OPS12_blockers_ahead_of_disposition
+  title: "Blockers draw first; the drain proceeds around them"
+  gain: "A queue that serves the oldest item first will serve a housekeeping doc ahead of a known-broken instrument, which is the ordering the ruling exists to invert."
+  name: "MINTED FROM deliverable 4 of the WORK THIS CREATES block in DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 -- 'blockers wired ahead of the disposition queue'. Clause 3: a BLOCKING finding draws ahead of the general disposition queue, ahead of latent findings, and ahead of new feature work in its own lane; the drain proceeds around it. EXIT: (1) the supervisor draw orders in-lane BLOCKING findings ahead of all three of those categories, and the ordering is read from the OPS9 severity parse, never from a second hand-kept list that could disagree with it; (2) NON-BLOCKING ELSEWHERE proven -- with a blocker live in lane L, a draw in another lane is unaffected, which is the 'drain proceeds around it' half and the half a naive global priority would break; (3) the draw REASON names the blocker, so a tick that jumped the queue can be audited afterwards from the log alone; (4) R15 both ways -- a mutation restoring arrival/recency order, and one that lets a blocker starve every other lane, each kill a NAMED test; (5) fail-open check -- if the severity index cannot be read, the draw must say so and fall back visibly, never silently resume recency order, which is how a re-ranking control quietly stops re-ranking."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS9_finding_severity_field]
+  couples_with: [OPS11_blocking_lane_refusal]
+  file_scope: ['background/supervisor.py', 'tests/background/test_supervisor_blocker_precedence.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a maintenance backlog where a safety defect is worked before the repaint, and the repaint crew is not stood down"
+
+- id: OPS13_product_interleave_armed
+  title: "One product atom per harness atom, every session, and the pair is named in the digest"
+  gain: "An interleave nobody can see in the digest is indistinguishable from one that never fired; the visible draw is the only evidence the arm is real."
+  name: "MINTED FROM deliverable 5 of the WORK THIS CREATES block in DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 -- 'the interleave armed and its draws visible in the tick digest'. Clause 4 arms it NOW, UNCONDITIONALLY: one world/customer/product atom per harness atom every session, no longer coupled to any document count (the count-based trigger from DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10 is withdrawn by the same ruling). It remains subject to clause 2: a lane carrying a live BLOCKING finding takes the repair as its product-side draw until cleared. EXIT: (1) the arm is unconditional -- no staging-depth term survives anywhere in the trigger, proven by a test that varies staging depth and asserts the arm does not move; (2) the pairing is enforced per session, not per day, and a session drawing two harness atoms and no product atom is NAMED as a violation rather than passing quietly; (3) the digest carries the pair actually drawn -- harness atom, product atom, and the clause-2 substitution when a blocker took the product-side slot; (4) SILENCE IS THE FAILURE -- when no product atom was drawn the digest must SAY SO; an interleave line that is simply absent on the bad day is the fail-silent shape, and this project's daily digest already has a branch that can skip itself entirely (see OPS14); (5) R15 both ways -- a mutation re-coupling the arm to a document count, and one suppressing the digest line, each kill a NAMED test."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [OPS11_blocking_lane_refusal]
+  file_scope: ['background/supervisor.py', 'tests/background/test_product_interleave.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a sprint rule that every hardening ticket is paired with a customer-facing one, reported in the same stand-up"
+
+- id: OPS14_aged_staging_named_daily
+  title: "Nothing ages silently: 72 hours untouched and the digest names it, every day"
+  gain: "Four director and advisor documents sat unopened for up to a week -- not deprioritised, never surfaced; the draw is fed by dials, alarms and the machine's own findings, and a quiet document generates none of the three."
+  name: "MINTED FROM clause 5 (appended 2026-08-12 on the director's word) of DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12. Any staging-root document untouched for 72 hours is named in the daily digest -- filename, age in days, and one line of what it asks for -- every day until dispositioned. VISIBILITY ONLY: it stops nothing, refuses nothing, grants no priority; the 48-hour auto-archive backstop is complementary and stays as-is (that one moves COMPLETED records out, this one names UNOPENED ones). EXIT, the ruling's own test first: (1) a document staged and then deliberately ignored appears in the digest on day three with its CORRECT age and keeps appearing; (2) THE KNOWN FAIL-SILENT PATH IS CLOSED -- background/sanity_daemon.py::_maybe_send_daily_digest today fires at most once per UTC date AND skips the digest entirely when any new finding fired that cycle, so under the current code an aged-doc line can be dropped for the day; the ageing block must not be suppressible by that branch, and the ruling names a digest that can go quiet while old documents remain as the failure this clause exists to forbid; (3) the CLOCK IS DEFINED AND DEFENSIBLE -- filesystem mtime on this shared working tree is perturbed by concurrent daemon writers, so 'touched' means a real disposition event (the last commit touching that path, or an explicit disposition record), and the choice is tested against a file a daemon rewrote without anyone opening it; (4) R15 both ways -- a mutation letting the digest go quiet with an aged document present, and one skewing the age computation, each kill a NAMED test; (5) the four documents that motivated the clause (the money-core characterisation, the CLAUDE.md decay audit, the seat cutover/DR proposal, and the fourth named in the ruling) appear in the first digest this produces, or the mechanism is looking at the wrong population."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [OPS10_finding_class_consolidation]
+  file_scope: ['background/sanity_daemon.py', 'tests/background/test_aged_staging_digest.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a ticket queue that reports its oldest untouched item every morning, so age is never invisible"
