@@ -1,5 +1,26 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T07:38:58Z
+Last updated: 2026-08-12T09:13:29Z
+
+**OPS9 — EVERY FINDING IN THE STAGING ROOT NOW CARRIES A MACHINE-READABLE SEVERITY (this commit).**
+Deliverable 1 of `DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`. `background/
+finding_severity.py` reads one header line — `**Severity:** X · **Lane:** Y` — and returns the value
+**with its lane**, because clause 2's refusal is lane-scoped and a lane-less severity cannot be acted
+on. The pass is done and counted **from the filesystem**, never a hand-kept list: **122 documents,
+0 UNCLASSIFIED — 35 BLOCKING / 73 LATENT / 14 RECORDED**. Blockers by lane: `H_harness` **29**,
+`C_customer_ops` 2, `D_billing_metering` 1, `E_finance_treasury` 1, `W2_customer_generator` 1,
+`W4_the_wall` 1 — the ruling's own family count (controls that cannot fail; measurements that mirror
+their subject) showing up as a lane concentration. **FAIL-CLOSED everywhere**: absent, prose,
+lane-less, unknown-lane and unreadable all read `UNCLASSIFIED` and are surfaced, never defaulted to
+`LATENT` — the fail-open shape R15 names and the anti-pattern clause 2 forbids. The by-construction
+rule is **checkable, not merely written**: `--by-construction` names any non-BLOCKING doc whose own
+text says an instrument, a control or a published figure is wrong; **0** after this pass, and it
+stands down only on clause 2's own discharges appearing in the header block a reader actually meets.
+**R15 both ways**, each mutation loaded from a *copy* of the module: missing-header→`LATENT` kills
+`test_a_missing_header_reads_unclassified_never_latent`; lane-dropped kills
+`test_the_parse_returns_the_lane_beside_the_severity`; clean input passes under both. 19 named tests.
+**Level 0→2 = target**, self-certified in `gate_authorizations.jsonl`. **Nothing refuses anything
+yet** — `OPS11` (lane-scoped level refusal) and `OPS12` (blocker-first draw) are the consumers, both
+minted, both `depends_on` this atom; the orphan ratchet is frozen on one line saying exactly that.
 
 **D36 — THE PRINTED BILL FOOTS ON ITS FACE, IN PENCE, WITH ITS CATCH-UP LINE SHOWN (this commit).**
 Part 1 of `DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12`, render-layer only. Bill
@@ -2361,7 +2382,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (255s / 4 min):
+**Latest simulation results (2016–2025)** — auto-processed (272s / 5 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
