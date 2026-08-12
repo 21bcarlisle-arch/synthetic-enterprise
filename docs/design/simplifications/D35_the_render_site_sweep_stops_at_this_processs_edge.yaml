@@ -1,0 +1,120 @@
+atom_id: D35_the_render_site_sweep_stops_at_this_processs_edge
+simplifications:
+- |-
+  2026-08-12 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD
+  code written and nothing in `file_scope` touched: this atom is `loop_stage: idle`, and
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom
+  while BUILD is not. Output is this record.
+
+  FIRST, AND IT REFRAMES THE REST: MOST OF THIS ATOM'S STATED SCOPE IS ALREADY SHIPPED, UNDER
+  IDS THAT DO NOT EXIST. The atom's own text (written at H27 Expert Hour #17) says the
+  downstream renders "have NOT been measured". Measured on HEAD today, they largely have:
+  `tools/couple_w2_11_d5.py` carries `reader_renders`, `_READER_WALK_FIELDS`,
+  `measure_reader_render_sites`, `check_reader_render_sites`, `_DOOR_SITE_KEY`,
+  `_DOOR_REGIONS` and `_door_row_regions`, and the working tree carries a further
+  `renderer_provenance` stage. In-source those are attributed to "atom D35, Expert Hour #19",
+  "atom D36, Hour #20", "atom D37, Hour #21" and "atom D38, Hour #22".
+
+    $ grep -c "D37\|D38" docs/design/maturity_map.yaml
+    0
+
+  Neither D37 nor D38 exists anywhere in the map. And the map's D36 is
+  `D36_bill_render_footing_and_pence` -- epoch 1, value_stream price_to_bill,
+  provenance director_ruling, file_scope `site/customers/index.html` -- a bill-render atom
+  with no relation to the render-site sweep. So four Hours of landed work cite two ids that
+  have never existed and one that names a different atom, and a reader following those
+  citations lands on the wrong record or on none. Meanwhile THIS atom, whose file_scope the
+  work is in, still reads `level_current: 0, loop_stage: idle, provenance: proposal`. This is
+  the "record can outrun the code" class inverted -- here the code outran the record -- and it
+  is staged separately as
+  `WORKER_FINDING_A_MODULES_HOURS_CITE_ATOM_IDS_THE_MAP_HAS_NEVER_CARRIED_2026-08-12.md`,
+  because it is a map-integrity defect and not this atom's own subject.
+
+  WHAT THE SWEEP NOW COVERS (read off HEAD, not off the Hours' prose). Three surfaces past
+  the component strings: the register's declared renderer's own output; the COMPOSED note
+  `measure_and_write` writes into the ledger entry (not the scorer's note -- Hour #20's
+  correction); and the Proof door, split into four regions by the door's own class
+  attributes, with a fail-closed census that reds on a fifth region -- `gap-val` (the ledger
+  carrier re-rendered at 3dp by `fmtGap`), `note` (printed verbatim), `components` (every
+  finite numeric leaf at 4dp via `fmtComponent`), `basis` (`baseline_g0`/`raw_gap` at 3dp).
+  The door is reached by driving the REAL row builder (`tools.generate_proof_data._coupled_gaps`)
+  and the page's own inline script, not a hand-built row.
+
+  WHERE IT STILL STOPS, AND BOTH SITES ARE MEASURED HERE.
+
+  (1) THE PUBLISHED BYTES ARE NEVER OPENED. `_walk_to_the_door` writes its OWN freshly-scored
+  entry into a temp ledger, points `coupled_triad.GAP_LEDGER_PATH` at it, and renders the door
+  from that. The file the deployed door actually fetches -- `site/data/proof.json` -- is not
+  read by any stage of the walk. Measured, `observed-with-evidence`, 2026-08-12:
+
+    docs/observability/coupled_gap_ledger.json  W2_11: gap 0.0311284046692607
+                                                measured_at 2026-08-12T15:52:25.762332+00:00
+                                                run_git_commit 2abb973c2
+    site/data/proof.json  /coupled_gaps/pairs[5]: value 0.0859375
+                                                measured_at 2026-08-12T15:14:13.485525+00:00
+                                                run_git_commit 5053c2a4b
+
+  A different run and a different figure, on the surface the reader stands in front of. The
+  PRECISION hop is transparent and that is worth stating positively: `_coupled_gaps` passes
+  `entry.get("gap")` through unrounded, the published 0.0859375 is an exact binary float, and
+  nothing between ledger and published JSON rounds -- so this is NOT a fourth precision. What
+  is unmeasured is not the precision but the POPULATION: every band, floor, collapse and
+  epsilon this module certifies is certified against a book the published artefact does not
+  contain. R11's own words are "verify to the RENDERED value"; this walk verifies to a
+  rendered value it manufactured, which is the same shape as a harness choosing its own
+  subject. `background/gap_ledger_reconciler.py` does not close this -- it grades
+  ledger-vs-HEAD CODE drift (has the tool moved since the reading), never whether the two
+  published files agree on the number.
+
+  (2) A PUBLISHED RENDER AT 7dp, BY A WRITER NO SWEEP RUNS. `site/data/simplified.json`
+  (1.9MB, consumed by `site/simplified/index.html` and referenced from `site/proof/index.html`)
+  contains, sourced from `docs/design/simplifications/archive/H_GAP_fabric_belief_truth_gap.002.yaml`:
+
+    "W2_11_payment_behaviour_source 0.0859375 -> 0.0130940"
+
+  The detection headline at SEVEN decimals, on a published page, when the finest declared
+  reader site for that figure is 4dp. Under D34's reshaped rule -- "the epsilon is half a step
+  of the FINEST site" -- a literal reading moves detection's epsilon 5e-5 -> 5e-8, a
+  thousandfold, on the same shape of move Hour #17 made for ageing and Hour #20 had to undo.
+
+  FRAME -- THE RECOMMENDATION, AND WHY IT IS NOT "DECLARE A 7dp SITE". The 7dp string is a
+  HISTORICAL QUOTATION, not a render: it was written once into a record, it does not move when
+  the figure moves, and the two-book discrimination rule this module's own sweep is built on
+  would REJECT it (a literal that does not change with the figure across two books is a render
+  of nothing). So it must NOT set the live instrument's epsilon. What it does falsify is the
+  sweep's standing claim to know every site at which its figures meet a reader. The design:
+
+    * A THIRD DECLARED CLASS, `historical_quotations` -- (artefact, decimals, measured_at,
+      run_git_commit) -- EXCLUDED from the epsilon by rule, with the exclusion reason
+      interpolated into the refusal message rather than left to a comment, and REQUIRED to
+      carry its clock: a quoted financial-class figure with no basis and no date is R14's
+      defect one hop outside the ledger, and the 7dp string above carries neither. An
+      undeclared quotation still fires, exactly as an undeclared render does today.
+    * A PUBLISHED-BYTES STAGE that opens `site/data/proof.json`, finds this pair's row, and
+      answers TWO questions separately: does the row carry the ledger's own value (a
+      POPULATION check -- today it does not), and does the door render THOSE bytes at the
+      declared precisions (a PRECISION check -- today it passes). Two statuses, not one, for
+      the same reason `gap_ledger_reconciler` needed two: a stale published copy is a
+      publish-cycle fact whose repair is a republish, and collapsing it into the precision
+      verdict sends the next tick to re-run a tool that has already measured.
+
+  BLAST RADIUS -- WHY THIS IS A MINT AND NOT A FIX ON SIGHT. Reading published artefacts and
+  asserting on them enlists the publish path, and a control that reds on ordinary publish lag
+  wedges the gate for everyone (the class this repo has repeated memory of). The population
+  check must therefore land as a REPORTED status first, hard only once the publish cycle's own
+  ordering guarantee is written down. That is real design work with a real gate cost, which is
+  precisely why Hour #17 declined to do it on the promoter's behalf and why this tick does not
+  either.
+
+  R12: no published number moved. Nothing was tuned; nothing in `file_scope` was edited.
+
+  WHY THE LEVEL DOES NOT MOVE. Level 2 for this atom means the two stages above BUILT and
+  mutation-proven both ways. A DISCOVER/FRAME tick on a parked atom may not write them, and an
+  exit criterion is not renegotiated to fit what a tick was allowed to do. `level_current`
+  stays 0.
+
+  LEADS FOR THE NEXT HOUR. (a) The id collision is the map's to fix, not the source's -- the
+  source is the wrong place to guess which atom four Hours belonged to. (b) The 7dp quotation
+  is one instance of a repo-wide class: `simplified.json` publishes every atom's prose,
+  and how many OTHER atoms' figures are quoted there, at what precision, with what clock, has
+  not been counted. This atom found one; the census is not this atom's.
