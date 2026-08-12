@@ -1,17 +1,15 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T12:15:15Z",
+    "checked_at": "2026-08-12T13:10:43Z",
     "nonblocking_reds": [
-      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
-      "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations",
-      "FAILED tests/background/test_forward_attachment_register.py::test_live_rendering_is_current",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_headline_direction_control_runs_in_the_cli_not_only_in_tests",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_grid_resolution_control_runs_in_the_cli_not_only_in_tests",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_drift_resolution_control_runs_in_the_cli_not_only_in_tests",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_memory_resolution_control_runs_in_the_cli_not_only_in_tests",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_render_site_sweep_runs_in_the_cli_not_only_in_tests"
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
+      "FAILED tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded",
+      "FAILED tests/design/test_simplifications_store.py::test_counts_match_file_contents",
+      "FAILED tests/tools/test_website_integrity_fix.py::test_derive_build_from_claude_md_parses_current_state"
     ],
-    "nonblocking_reds_total": 11,
+    "nonblocking_reds_total": 6,
     "open_findings": 57
   },
   "last_verified": {
@@ -20,8 +18,8 @@
     "run_id": "run_output_633b4a8bc_20260812T121616Z.json",
     "verified_at": "2026-08-12T12:45:14Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=6e57127aa; blocking tests: FAILED tests/tools/test_website_integrity_fix.py::test_derive_build_from_claude_md_parses_current_state",
+  "paused_since": "2026-08-12T13:42:30Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-12T12:45:14Z",
@@ -29,6 +27,6 @@
     "run_id": "run_output_633b4a8bc_20260812T121616Z.json",
     "verified_at": "2026-08-12T12:45:14Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-12T12:45:14Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-12T13:42:30Z"
 }
