@@ -30,6 +30,12 @@ TASKS_FILE = Path("docs/instructions/background-tasks.md")
 # tests/background/test_background_worker.py pins the two values equal so the
 # mirror can never silently drift back into "a skip looks like a success".
 EXIT_LOCK_SKIPPED = 75
+# Same mirror, same pin, same reason (2026-08-12): a marker another publisher archived between
+# this sweep's glob and the subprocess opening it was published by NOBODY here, so it must not
+# reach the rc==0 branch below -- that branch logs "Processed" and calls
+# _record_marker_published(), PW4's one evidenced close of the zero-progress episode.
+EXIT_NOTHING_PUBLISHED = 76
+NOT_PUBLISHED_BY_THIS_SWEEP = (EXIT_LOCK_SKIPPED, EXIT_NOTHING_PUBLISHED)
 LOG_FILE = Path("docs/observability/background-worker-log.md")
 OLLAMA_MODEL = "qwen3:14b"
 
@@ -177,9 +183,14 @@ def _remember_oldest_outcome(name: str, rc: int) -> None:
 
     Kept deliberately small and defensive: this only feeds an alarm's wording, so a failure to
     record it must never disturb the sweep it is observing."""
-    label = {0: "rc=0 (published)", EXIT_LOCK_SKIPPED: f"rc={EXIT_LOCK_SKIPPED} (lock-skipped, "
-             "not attempted)"}.get(rc, f"rc={rc} (publisher ran and FAILED — a red publish gate "
-                                       "looks exactly like this)")
+    label = {0: "rc=0 (published)",
+             EXIT_LOCK_SKIPPED: f"rc={EXIT_LOCK_SKIPPED} (lock-skipped, not attempted)",
+             # Without its own entry a duplicate fell into the default below and was reported to
+             # the alarm as "publisher ran and FAILED", which is the opposite of what happened.
+             EXIT_NOTHING_PUBLISHED: f"rc={EXIT_NOTHING_PUBLISHED} (duplicate — already "
+                                     "published by another process, nothing done here)",
+             }.get(rc, f"rc={rc} (publisher ran and FAILED — a red publish gate "
+                       "looks exactly like this)")
     try:
         state = _load_sweep_state()
         state["last_outcome"] = f"{label} at {datetime.now(timezone.utc):%H:%M}Z"
@@ -425,6 +436,13 @@ def process_leftover_run_markers():
             # backlog) as well as a false success to the wedge detector.
             log(f"Lock-skipped {marker.name} (another instance holds the run "
                 f"lock) — still pending, will retry next cycle")
+        elif result.returncode == EXIT_NOTHING_PUBLISHED:
+            # NOT published by this sweep -- a concurrent publisher had already archived it.
+            # Visible in the log (a silent outcome would be its own defect) but NOT progress:
+            # the marker leaving the backlog is somebody else's act, not evidence that this
+            # sweep is moving, so it must not close the zero-progress episode.
+            log(f"Duplicate {marker.name} (already archived by another publisher) — nothing "
+                f"published by this sweep")
         elif result.returncode == 0:
             log(f"Processed {marker.name}")
             # PW4: the ONE evidenced close of the zero-progress episode (see

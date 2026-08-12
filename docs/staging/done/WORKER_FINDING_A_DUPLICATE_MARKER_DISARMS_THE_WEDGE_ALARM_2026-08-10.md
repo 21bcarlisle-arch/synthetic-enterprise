@@ -2,6 +2,8 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/background/test_a_duplicate_marker_is_not_a_publish.py::test_the_publishers_verdict_reaches_the_sweep_end_to_end`, `tests/background/test_a_duplicate_marker_is_not_a_publish.py::test_no_new_no_publish_path_may_quietly_return_zero`, `background/process_run_complete.py`, `background/background_worker.py`, `background/sim_runner.py` — 2026-08-12: the already-archived path returns its own exit code (76, EXIT_NOTHING_PUBLISHED) alongside the lock-skip's 75, the shared outcome router records neither success nor failure for either, and the sweep no longer logs a duplicate as processed nor lets it close the zero-progress episode. The R10 half is the second test: it AST-enumerates every zero-returning exit from the publisher's processing function against a declared register, so a new no-publish path fails by name instead of quietly joining the class.
+
 **Found:** testing the one suspicion left open by the breathing watch — whether "Publish gate
 recovered" keeps firing without the content ever advancing. It does, and this is why.
 

@@ -222,6 +222,13 @@ def auto_process_marker(marker):
         if rc == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
             log('Auto-process lock-skipped the marker (another instance holds '
                 'the run lock) -- marker untouched, left for background_worker')
+        elif rc == 76:  # process_run_complete.EXIT_NOTHING_PUBLISHED
+            # Not a failure and not a publish. Before this code existed it fell into the else
+            # branch below and this path logged "Auto-process failed (rc=76)" for a marker that
+            # was already safely published by somebody else -- a false red in the first log a
+            # reader opens when diagnosing a wedge.
+            log('Auto-process found the marker already archived (duplicate) -- '
+                'nothing published by this cycle')
         elif rc == 0:
             log('Auto-processed run complete marker')
         else:

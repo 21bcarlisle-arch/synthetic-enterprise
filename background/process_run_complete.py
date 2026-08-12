@@ -57,6 +57,22 @@ RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.
 # 2026-07-29 16:53Z: two markers logged "Processed", both untouched, one minute
 # before the lock holder itself failed the gate). See _record_publish_gate_outcome.
 EXIT_LOCK_SKIPPED = 75
+# THE SIBLING HALF OF THAT SAME FAIL-OPEN, closed 2026-08-12
+# (WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10, BLOCKING). A marker
+# another publisher archived between this caller's glob and this process opening it is a
+# DUPLICATE: nothing was published, nothing was touched, and it is evidence of exactly as little
+# about the gate's health as a lock-skip. It returned 0 for two weeks, so the worker's sweep
+# logged "Processed" for it and called `_record_marker_published()` -- PW4's one evidenced close
+# of the zero-progress episode -- for a marker this sweep never published. Observed 2026-08-10:
+# 43 duplicate lines and 188 "Publish gate recovered" lines while the live site had not advanced
+# for 31 hours. The 2026-07-29 fix gave the lock-skip its own code and left this door returning 0
+# (cf. feedback_audit_sibling_half_for_hardened_class).
+EXIT_NOTHING_PUBLISHED = 76
+# The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
+# the published surfaces are current. Anything that publishes nothing states so with its own
+# code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
+# `return 0` in `_process` so a later no-op path cannot quietly rejoin the class (R10).
+NO_PUBLISH_EXIT_CODES = (EXIT_LOCK_SKIPPED, EXIT_NOTHING_PUBLISHED)
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # H11_naive_organ (L2): the deliberately-amnesiac question organ's log + the
@@ -4008,7 +4024,10 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     lock-skip (EXIT_LOCK_SKIPPED) means the caller did NOT publish the marker
     -- evidence of NOTHING about the gate's health -- so it records NEITHER a
     success NOR a failure and leaves the streak exactly as it found it.
-    Recording it as a success actively DISARMED the detector.
+    Recording it as a success actively DISARMED the detector. Since 2026-08-12
+    the same is true of EXIT_NOTHING_PUBLISHED (a duplicate marker another
+    publisher already archived) -- both live in NO_PUBLISH_EXIT_CODES and both
+    record neither, because "I published nothing" is one fact, not two.
 
     FOUR OUTCOMES NOW: rc=0 MEANS THE PUBLISHER EXITED CLEANLY, NOT THAT THE GATE PASSED
     (2026-08-11, the same fail-open one rung further out). The publisher returns 0 from every
@@ -4040,7 +4059,7 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     branch ran.
     """
     try:
-        if rc == EXIT_LOCK_SKIPPED:
+        if rc in NO_PUBLISH_EXIT_CODES:
             return "skipped"
         git_hash = "unknown"
         try:
@@ -4142,9 +4161,11 @@ def _process(marker_path_str):
         from background import staging_archive_policy
         archived = staging_archive_policy.locate(Path(marker_path_str).name, done_dir=DONE_DIR)
         if archived is not None:
-            log("Already archived at {} (duplicate run): {}".format(
-                archived.parent.name, Path(marker_path_str).name))
-            return 0
+            log("Already archived at {} (duplicate run): {} -- NOTHING was published by this "
+                "process, so this is evidence of nothing about the gate's health "
+                "(rc={})".format(
+                    archived.parent.name, Path(marker_path_str).name, EXIT_NOTHING_PUBLISHED))
+            return EXIT_NOTHING_PUBLISHED
         log("Marker not found: {}".format(marker))
         return 1
 

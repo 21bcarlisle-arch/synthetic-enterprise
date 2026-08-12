@@ -10,7 +10,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_BRANCHS_GATE_AUDITED_THE_NEIGHBOURING_BRANCHS_PROMISE_2026-08-12.md` — BLOCKING
-- `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md` — BLOCKING
+- `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10.md` — BLOCKING
@@ -40,7 +40,7 @@ This document supersedes the individual findings listed below, which are **archi
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **60 hours** — `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md`: …ixture unreachable-by-design, and that fixture wedged publishing for ~60h **Severity:** LATENT · **Lane:** H_harness **Date:** 2026-08-12 **S…
-- **31 hours** — `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`: …alarm was disarmed 188 times today while publishing stayed wedged for 31 hours (2026-08-10) **Severity:** BLOCKING · **Lane:** H_harness **Found:*…
+- **31 hours** — `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`: …alarm was disarmed 188 times today while publishing stayed wedged for 31 hours (2026-08-10) **Severity:** BLOCKING · **Lane:** H_harness **Dischar…
 - **23 hours** — `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md`: …What happened `.publish_gate_state.json` had wedged publishing for ~23h with one entry: The obvious first move — run the named test — repo…
 - **13 hours** — `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md`: …data.py` carried uncommitted hydration. So the gate had been red for 13h on work that was **finished and sitting on the disk it was failing ag…
 - **10 hours** — `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md`: …) **Severity:** LATENT · **Lane:** H_harness **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`…
@@ -51,10 +51,9 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+3 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_BRANCHS_GATE_AUDITED_THE_NEIGHBOURING_BRANCHS_PROMISE_2026-08-12.md`
-- `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`
 - `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10.md`
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md`
 
