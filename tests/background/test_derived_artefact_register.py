@@ -138,7 +138,84 @@ class TestCompleteness:
         assert dar.unregistered() == before
 
 
+@pytest.fixture
+def head_checkout_running_tree_code(head_checkout):
+    """A HEAD checkout whose registered-artefact MODULES are the working tree's.
+
+    TWO REASONS, and the second is the one that was learned the hard way.
+
+    1. The subject of a control test is the code under review, not the last commit's. `stale_in`
+       drives `python -m <module> --check` with `cwd=root`, so a plain HEAD checkout tests the
+       COMMITTED oracle -- which means a repair to an oracle could never be proven by its own
+       test until after it had landed.
+    2. That is not merely awkward, it is the wedge shape this whole register exists to close:
+       a repair that sits downstream of its own gate cannot land (filed as
+       `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10`). Fixing a
+       blind `--check` would have required committing past a gate that the blindness itself
+       reds.
+
+    The SOURCES stay HEAD's, which is what `repair_from` is specified against. Only the code
+    moves.
+    """
+    for art in dar.REGISTER:
+        src = REPO_ROOT / art.source_file
+        if src.is_file():
+            shutil.copyfile(src, head_checkout / art.source_file)
+    return head_checkout
+
+
 class TestStaleness:
+    def test_staleness_fires_for_EVERY_registered_artefact(
+            self, head_checkout_running_tree_code):
+        """R15 MUTATION over the POPULATION, not over one member.
+
+        THE DEFECT THIS EXISTS FOR (2026-08-10, eighth publish wedge). The mutation below was
+        previously run against `REGISTER[0]` alone. `REGISTER[1]`
+        (`background.forward_attachment_register`) had a `--check` that compared only the
+        (atom_id, source) PAIRS parsed back out of its rendering -- a strict SUBSET of the
+        whole-text equality its own blocking test asserts. So drift in any other dimension
+        (there: an atom's `L0→L2 · build_` annotation becoming `L2→L2 · harden_`) was invisible
+        to `stale_in`, the publish path's self-healing repair reported "nothing stale", and the
+        gate red-ed for ~15h across 91 failures on an artefact the register was supposed to
+        cover. One member of a population passing is not the population passing.
+
+        The injected drift is deliberately OUTSIDE any structured field: a trailing comment
+        changes no entry, no atom, no count. An oracle that only re-parses its own rows cannot
+        see it, and an oracle that compares against a fresh rendering must.
+
+        ONE CHECKOUT, NOT ONE PER ARTEFACT, and the loop reports EVERY blind oracle rather than
+        stopping at the first. Parametrising this would read better in a test id, but each
+        instance costs a ~130MB `git archive` extraction into a 7.8G tmpfs that this very tick
+        found at 100% full -- a suite that exhausts /tmp reds 96 unrelated tests and wedges
+        publishing, which is wedge cause #3 all over again. Collecting the failures also means
+        a second blind artefact is not hidden behind the first.
+        """
+        checkout = head_checkout_running_tree_code
+        dar.repair_from(checkout, checkout)
+        blind, always_red = [], []
+        for art in dar.REGISTER:
+            doc = checkout / art.rendered
+            fresh = doc.read_text(encoding="utf-8")
+            assert art not in dar.stale_in(checkout), (
+                "{} is not fresh after a repair -- cannot mutation-test from here".format(
+                    art.module))
+
+            doc.write_text(fresh + "\n<!-- injected drift -->\n", encoding="utf-8")
+            if art not in dar.stale_in(checkout):
+                blind.append(art.module)
+
+            doc.write_text(fresh, encoding="utf-8")
+            if art in dar.stale_in(checkout):
+                always_red.append(art.module)
+
+        assert not blind, (
+            "these --check oracles did NOT fire on a drifted rendering: {}. Each covers less "
+            "than its own blocking test asserts, so the publish path's self-healing repair is "
+            "blind to real staleness in it -- this is the eighth-wedge defect, not a test "
+            "artefact.".format(", ".join(blind)))
+        assert not always_red, (
+            "these --check oracles are always-red, not controls: {}".format(", ".join(always_red)))
+
     def test_every_registered_artefact_is_currently_fresh(self):
         stale = dar.stale_in(REPO_ROOT)
         assert stale == [], "stale derived artefact(s): {}".format(

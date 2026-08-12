@@ -33,6 +33,25 @@ SINCE = ("wedge_since",)
 STREAK = ("episode_failures",)
 
 
+@pytest.fixture(autouse=True)
+def _isolate_publish_gate_state_files(tmp_path, monkeypatch):
+    """Every state path the publish-gate recorder touches goes to tmp_path.
+
+    CAUGHT IN THE ACT (2026-08-10, H42): the three "wired, not just built" tests below drive the
+    REAL `record_publish_gate_failure`/`_success` and had isolated only `PUBLISH_GATE_STATE_FILE`
+    and `STAGING_DIR`. The moment the recorder gained a second state path, running this suite
+    wrote `docs/observability/.wedge_suspect_hit_rate.json` into the live tree -- a test
+    manufacturing the very evidence a control reports on. Isolating the paths the recorder is
+    KNOWN to use, rather than the ones a test happened to need, is what stops the next one."""
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp_path / ".blocking.json")
+    monkeypatch.setattr(prc, "WEDGE_SUSPECT_HIT_RATE_FILE", tmp_path / ".hit_rate.json")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    import background.action_needed as an
+    monkeypatch.setattr(an, "REGISTER_PATH", tmp_path / "action_needed_register.json")
+    yield
+
+
 def _failure_write(prev, now, n):
     """One failure round, exactly as record_publish_gate_failure composes it."""
     return guard_episode(prev, {"wedge_since": now, "episode_failures": n},
