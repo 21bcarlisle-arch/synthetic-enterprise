@@ -7357,3 +7357,295 @@ def test_the_money_verdict_resolves_more_often_as_the_panel_grows():
         f"the old rule was decisive on {aggregate_small}/20 six-home panels and the "
         f"repaired one on {small}/20 — a band with no error bar is not more informed"
     )
+
+
+# ---------------------------------------------------------------------------
+# THE THIRTEENTH EXPERT HOUR (2026-08-12): the whole-panel fallback is a STEP
+# FUNCTION of one home's certificate, and what it costs the rest was never
+# measured. `background.fabric_gap_ledger.instrument_switch`.
+# ---------------------------------------------------------------------------
+
+
+def _forced_population(rows, index=0, factor=0.40):
+    """The same panel with ONE home's register pushed past the feasibility cliff.
+
+    `_level_reflection_is_feasible` fails exactly at `2*epc <= actual`, so a register
+    reading 40% of the truth on a single home makes the LEVEL reflection impossible
+    there — and `panel_mirror` then falls back to the log form for the WHOLE panel,
+    including every home that did not force it. Nothing else about the panel moves,
+    which is what makes the comparison a measurement of the instrument.
+    """
+    forced = list(rows)
+    home = forced[index]
+    forced[index] = dataclasses.replace(
+        home, epc_hlc_kw_per_k=home.actual_hlc_kw_per_k * factor
+    )
+    return forced
+
+
+def _certifying_forced_population():
+    """A fallback-branch panel the instrument channel PASSES, and it was SEARCHED for.
+
+    NOT-ALWAYS-RED, and on this atom the search is part of the finding (fifth Hour's
+    `_flipping_population` established the practice). 600 randomised draws from the
+    flipping family with one forcing home added: 97 certify with both readings
+    resolved, non-degenerate and non-zero. These parameters are one of them — cost
+    GBP 215 per premise against the reading's own 95% error bar of GBP 640, a ratio
+    of 0.337, comfortably inside on a panel where the gate has room to fire either
+    way. The atom's own drawn population certifies too (4,600 real subpanels, ratio
+    never above 0.332), so the control is not always-red on synthetic OR real data.
+    """
+    return _forced_population(
+        _flipping_population(
+            n=60, base=0.2832, step=0.0061, register=0.7831,
+            inferred_bias=0.9338, heat=7723.5952, heat_step=697.8617,
+        )
+    )
+
+
+def _disagreeing_forced_population():
+    """A fallback-branch panel where the two instruments name DIFFERENT ARMS.
+
+    Searched the same way. Of 1,500 draws from this family carrying one forcing home,
+    130 disagree — every one of them a RESOLUTION crossing (`epc` under one
+    reflection, `neither` under the other, in both directions), and NOT ONCE two
+    different resolved arms. That is worth pinning as the shape the disagreement
+    actually takes: the switch moves how decisive the mirror is, and on no panel
+    measured — 1,500 synthetic, 4,600 real subpanels — did it reverse which arm the
+    mirror names.
+    """
+    return _forced_population(
+        _flipping_population(
+            n=80, base=0.2932, step=0.0052, register=0.8975,
+            inferred_bias=0.9711, heat=5207.4501, heat_step=560.5152,
+        ),
+        index=41,
+    )
+
+
+def test_the_INSTRUMENT_IS_A_STEP_FUNCTION_of_one_homes_certificate():
+    """THE DEFECT, REPRODUCED. One home crossing `2*epc == actual` changes the
+    instrument every OTHER home is judged by, and none of them moved.
+
+    This is the whole-panel rule working exactly as its docstring says it should. The
+    docstring defends it against a per-premise mix — two instruments under one name,
+    genuinely worse — and never states this cost, which is that the homes that could
+    have been measured exactly are measured by the fallback because of a home that is
+    not them."""
+    clean = _flipping_population()
+    forced = _forced_population(clean)
+    # Only one home differs, and only in its register.
+    assert sum(
+        1 for a, b in zip(clean, forced) if a != b
+    ) == 1, "the comparison is one home's certificate and nothing else"
+
+    before = fgl.composition_verdict(clean, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    after = fgl.composition_verdict(forced, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert before.panel_mirror_reflection == fgl.LEVEL_PRESERVING
+    assert after.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+
+    # THE 59 THAT DID NOT MOVE: exact before, disturbed by design after.
+    assert before.panel_mirror_register_breaching_premises == 0
+    assert before.panel_mirror_register_worst_breach < 1e-12
+    assert after.panel_mirror_register_breaching_premises >= len(clean) - 1, (
+        f"the fallback moves every home's absolute error by design, and "
+        f"{after.panel_mirror_register_breaching_premises} of {len(forced)} moved"
+    )
+    # ...and the mirror's own money reading moved with it.
+    assert after.panel_mirror_money.mean_advantage_gbp != pytest.approx(
+        before.panel_mirror_money.mean_advantage_gbp, rel=1e-3
+    )
+
+
+def test_the_SWITCH_COST_is_measured_on_the_homes_that_DID_NOT_force_it():
+    """LIKE WITH LIKE, WHICH IS THE ONLY WAY THE NUMBER MEANS ANYTHING.
+
+    Both readings are taken on the SAME rows — the premises the level reflection
+    could have run on — so the difference is the instrument and nothing else.
+    Comparing the published fallback reading on all M premises against a level
+    reading on M-N of them would confound the instrument with the POPULATION, and on
+    this atom's own drawn 200 the population difference is the larger of the two
+    (GBP 138 per premise against the instrument's GBP 45)."""
+    rows = _certifying_forced_population()
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch is not None
+    assert switch.forced_by == 1
+    assert switch.borne_by == len(rows) - 1, (
+        "the cost is borne by the premises that did not force the switch"
+    )
+    # The two readings are the two instruments on those same rows, and nothing else:
+    # rebuild both by hand and the shipped numbers must reproduce exactly.
+    feasible = [
+        o for o in rows
+        if fgl._level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
+    ]
+    published = fgl._paired_money_verdict(
+        fgl._mirrored_rows(feasible, fgl._reflect),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        substream="instrument_switch_published",
+    )
+    counterfactual = fgl._paired_money_verdict(
+        fgl._mirrored_rows(feasible, fgl._reflect_level),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        substream="instrument_switch_counterfactual",
+    )
+    assert switch.published_reading_gbp == pytest.approx(
+        published.mean_advantage_gbp, rel=1e-12
+    )
+    assert switch.counterfactual_reading_gbp == pytest.approx(
+        counterfactual.mean_advantage_gbp, rel=1e-12
+    )
+    assert switch.cost_gbp == pytest.approx(
+        abs(published.mean_advantage_gbp - counterfactual.mean_advantage_gbp),
+        rel=1e-12,
+    )
+
+
+def test_the_two_readings_are_resampled_on_SEPARATE_substreams():
+    """C-S2, AND THE FIRST CUT OF THIS TEST COULD NOT SEE ITS OWN MUTATION.
+
+    It asserted a property of `_paired_money_verdict` (two substream names give two
+    intervals) without reading anything the switch publishes, so putting BOTH
+    readings on one stream left it green. The reason is worth keeping rather than
+    quietly fixing: a bootstrap POINT estimate is the sample mean and does not move
+    with the seed, so the cost — a difference of two points — is identical either
+    way. The discipline is observable only through the two ERROR BARS, which is why
+    both are carried and why the second one is published as an INTERVAL — its width
+    is an order-statistic gap and coincides across these two streams to the bit.
+    """
+    rows = _certifying_forced_population()
+    feasible = [
+        o for o in rows
+        if fgl._level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
+    ]
+
+    def reading(reflect, substream):
+        return fgl._paired_money_verdict(
+            fgl._mirrored_rows(feasible, reflect),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+            substream=substream,
+        )
+
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    published = reading(fgl._reflect, "instrument_switch_published")
+    named = reading(fgl._reflect_level, "instrument_switch_counterfactual")
+    shared = reading(fgl._reflect_level, "instrument_switch_published")
+    assert switch.own_error_bar_gbp == pytest.approx(
+        (published.ci_hi - published.ci_lo) / 2.0, rel=1e-12
+    ), "the published reading is the one this row actually used"
+    assert switch.counterfactual_interval_gbp == pytest.approx(
+        (named.ci_lo, named.ci_hi), rel=1e-12
+    ), "and the counterfactual is drawn on its OWN stream"
+    assert (named.ci_lo, named.ci_hi) != (shared.ci_lo, shared.ci_hi), (
+        "two readings sharing one resampling stream is not two independent readings "
+        "— without this the assertion above would hold under either wiring"
+    )
+    # ...and the WIDTH alone would not have caught it: these two streams give the
+    # same half-width on this panel to the bit, which is how the first version of
+    # this test stayed green under exactly that mutation.
+    assert (named.ci_hi - named.ci_lo) == pytest.approx(
+        shared.ci_hi - shared.ci_lo, rel=1e-12
+    )
+
+
+def test_the_instrument_channel_FIRES_when_the_switch_outruns_the_error_bar():
+    """THE MAGNITUDE HALF OF THE GATE, on the suite's own flipping population with
+    one forcing home. That stock's register understates UNIFORMLY, so the log
+    reflection's distortion is systematic and does not cancel across homes."""
+    rows = _forced_population(_flipping_population())
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    switch = verdict.panel_mirror_switch
+    assert switch.published_favours == switch.counterfactual_favours, (
+        "this panel fires on the SIZE of the move, not on the arm — the two halves "
+        "of the gate are tested apart"
+    )
+    assert switch.cost_gbp > switch.own_error_bar_gbp
+    assert verdict.panel_mirror_instrument_channel == "unattributable"
+    assert verdict.panel_mirror_attribution == "unattributable"
+    assert not verdict.panel_mirror_is_attributable
+    assert (
+        "the whole-panel fallback moved this mirror's own money reading"
+        in fgl._why_unattributable(verdict)
+    ), "the row says which channel refused, in that channel's own units"
+
+
+def test_the_instrument_channel_FIRES_when_the_two_instruments_name_different_arms():
+    """THE DIRECTION HALF OF THE GATE, which needs no threshold to read."""
+    rows = _disagreeing_forced_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    switch = verdict.panel_mirror_switch
+    assert switch.published_favours != switch.counterfactual_favours
+    assert switch.cost_gbp < switch.own_error_bar_gbp, (
+        "and it fires WITHOUT the magnitude half, which is why there are two"
+    )
+    assert verdict.panel_mirror_instrument_channel == "unattributable"
+    assert "the INSTRUMENT decided this mirror's answer" in fgl._why_unattributable(
+        verdict
+    )
+
+
+def test_the_instrument_channel_is_NOT_ALWAYS_RED():
+    """A control that fires on everything is not a control (R15). Searched — see
+    `_certifying_forced_population`."""
+    rows = _certifying_forced_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    switch = verdict.panel_mirror_switch
+    assert verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+    assert verdict.panel_mirror_instrument_channel == "attributable"
+    # ...and it is a real reading, not a degenerate corner passing by having nothing
+    # in it: both instruments resolve, both name an arm, and both move real money.
+    assert switch.published_favours == switch.counterfactual_favours != "neither"
+    assert switch.cost_gbp > 1.0 and switch.own_error_bar_gbp > 1.0
+
+
+def test_a_panel_too_small_to_price_the_switch_is_UNRESOLVED_never_clean():
+    """FAIL-CLOSED. An unavailable check is a FAILED check (R15 FAIL-SILENT), and a
+    subpanel under `MIN_HOMES_FOR_DIVERSITY` cannot carry a money verdict at all."""
+    rows = _forced_population(_flipping_population(n=5))
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch.borne_by == 4 < fgl.MIN_HOMES_FOR_DIVERSITY
+    assert switch.cost_gbp is None
+    assert switch.resolution == "unresolved"
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_instrument_channel == "unresolved"
+    assert not verdict.panel_mirror_is_attributable
+    assert "cannot be measured at all on this panel" in fgl._why_unattributable(verdict)
+
+
+def test_the_switch_cost_is_DISCLOSED_on_a_row_the_mirror_CERTIFIED():
+    """THE TWELFTH HOUR'S RULE, APPLIED ON THE WAY IN. A disclosure that rides on a
+    refusal can only be read by someone already being told the mirror failed — which
+    is exactly the reader who does not need it."""
+    rows = _certifying_forced_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_instrument_channel == "attributable"
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    switched = [c for c in caveats if c.startswith("INSTRUMENT SWITCHED BY")]
+    assert len(switched) == 1, "the disclosure prints on a certified row"
+    sentence = switched[0]
+    assert "disclosure, not a refusal" in sentence
+    assert "STEP FUNCTION" in sentence
+    assert f"{verdict.panel_mirror_switch.borne_by} premises it could have measured" in (
+        sentence
+    )
+
+
+def test_no_switch_no_statistic_and_no_sentence_on_the_LEVEL_branch():
+    """ONE-DIRECTIONAL BY CONSTRUCTION. Both published populations take the level
+    branch, so this channel can only ever take certification away from a
+    fallback-branch row — it can never grant one, and never moves a published
+    verdict."""
+    rows = _flipping_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_reflection == fgl.LEVEL_PRESERVING
+    assert verdict.panel_mirror_switch is None
+    assert verdict.panel_mirror_switch_cost_gbp is None
+    assert verdict.panel_mirror_switch_borne_by is None
+    assert verdict.panel_mirror_instrument_channel == "attributable"
+    assert not any(
+        c.startswith("INSTRUMENT SWITCHED")
+        for c in fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    )
+    assert fgl.composition_verdict_components(verdict)[
+        "panel_mirror_instrument_channel"
+    ] == "attributable"

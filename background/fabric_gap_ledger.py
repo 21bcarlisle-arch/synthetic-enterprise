@@ -4139,12 +4139,25 @@ def panel_mirror(observations: Sequence[FabricObservation]) -> PanelMirror:
     rather than through the fabric — a confound inside the control designed to find
     confounds.
     """
-    infeasible = sum(
-        1
-        for o in observations
-        if not _level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
-    )
+    infeasible = _infeasible_premises(observations)
     reflect = _reflect if infeasible else _reflect_level
+    return PanelMirror(
+        rows=tuple(_mirrored_rows(observations, reflect)),
+        reflection=LOG_PRESERVING_FALLBACK if infeasible else LEVEL_PRESERVING,
+        infeasible_premises=infeasible,
+    )
+
+
+def _mirrored_rows(
+    observations: Sequence[FabricObservation], reflect
+) -> list[FabricObservation]:
+    """Build the mirrored panel with a NAMED reflection, and nothing else.
+
+    Factored out of `panel_mirror` (2026-08-12, thirteenth Hour) so the same rows can
+    be mirrored BOTH ways and the two readings compared like with like — see
+    `instrument_switch`. `panel_mirror` remains the only caller that also DECIDES
+    which reflection to use; this one is told.
+    """
     mirrored = []
     for o in observations:
         actual = reflect(
@@ -4167,10 +4180,14 @@ def panel_mirror(observations: Sequence[FabricObservation]) -> PanelMirror:
                 inferred_basis=o.inferred_basis,
             )
         )
-    return PanelMirror(
-        rows=tuple(mirrored),
-        reflection=LOG_PRESERVING_FALLBACK if infeasible else LEVEL_PRESERVING,
-        infeasible_premises=infeasible,
+    return mirrored
+
+
+def _infeasible_premises(observations: Sequence[FabricObservation]) -> int:
+    return sum(
+        1
+        for o in observations
+        if not _level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
     )
 
 
@@ -4182,6 +4199,187 @@ def _level_reflection_is_feasible(value: float, through: float) -> bool:
         and value > 0.0
         and through > 0.0
         and 2.0 * through - value > 0.0
+    )
+
+
+@dataclass(frozen=True)
+class InstrumentSwitch:
+    """WHAT THE WHOLE-PANEL FALLBACK COST THE HOMES THAT DID NOT FORCE IT.
+
+    Only ever built on the fallback branch — see `instrument_switch` for why the
+    quantity does not exist on the other one.
+    """
+
+    forced_by: int
+    borne_by: int
+    #: `None` where the subpanel is too small to carry a money verdict at all.
+    cost_gbp: float | None
+    published_reading_gbp: float | None
+    counterfactual_reading_gbp: float | None
+    own_error_bar_gbp: float | None
+    #: The COUNTERFACTUAL reading's own 95% INTERVAL, both ends. Carried because
+    #: every disagreement measured between the two instruments is a RESOLUTION
+    #: crossing — one names an arm and the other says "neither" — and a reader told
+    #: the other instrument could not name an arm needs to see how far it was from
+    #: doing so. Both ends and not the half-width: the width is an order-statistic
+    #: gap and can coincide across two resampling streams (it does on this atom's
+    #: own certifying fixture, which is how a substream mutation survived its first
+    #: test), while the interval's POSITION cannot. The two POINTS are sample means
+    #: and do not move with the seed at all, so this is the only place the C-S2
+    #: discipline here is observable — and a discipline nothing can observe is not
+    #: one.
+    counterfactual_interval_gbp: tuple[float, float] | None
+    published_favours: str | None
+    counterfactual_favours: str | None
+
+    @property
+    def resolution(self) -> str:
+        """`attributable` / `unattributable` / `unresolved` — the instrument channel.
+
+        TWO WAYS TO FAIL, BOTH IN GBP AND NEITHER AGAINST A NEW CONSTANT:
+
+        * the two instruments name DIFFERENT ARMS on the same homes — the instrument
+          decided what this mirror says, which needs no threshold to read;
+        * the cost runs past the published reading's OWN 95% error bar — the
+          instrument choice moved the answer further than which homes are in the
+          panel does.
+
+        The second comparison gets STRICTER with N (the cost is a bias, roughly flat
+        in panel size; the error bar is sampling noise falling as 1/sqrt(N)), which
+        is the ninth Hour's SENSITIVITY-FALLS-WITH-N signature running the right way
+        round for once — more evidence makes the test harder to pass, not easier.
+
+        WHERE IT FIRES AND WHERE IT DOES NOT, MEASURED, AND THE FIRST ANSWER WAS
+        WRONG (2026-08-12, thirteenth Hour). On 4,600 real subpanels of the drawn
+        population, each carrying one forcing home, the cost never reached a third of
+        the error bar (max 0.332) and the arms never differed — on that evidence
+        alone this was written off as a control that cannot fire and demoted to a
+        disclosure. It fires at 2.46x on the suite's OWN searched flipping population
+        with one forcing home added, because that stock's register understates
+        UNIFORMLY, so the log reflection's distortion is systematic and does not
+        cancel across homes, while the drawn population's register errors are mixed
+        in direction (74 of 200 over-state) and largely do. A not-always-red search
+        run on subpanels of ONE population answers a question about that population.
+
+        `unresolved` where the cost could not be measured at all: an unavailable
+        check is a FAILED check (R15 FAIL-SILENT), and it may never read as clean.
+        """
+        if self.cost_gbp is None:
+            return "unresolved"
+        if self.published_favours != self.counterfactual_favours:
+            return "unattributable"
+        return (
+            "unattributable" if self.cost_gbp > self.own_error_bar_gbp
+            else "attributable"
+        )
+
+
+def instrument_switch(
+    observations: Sequence[FabricObservation],
+    *,
+    unit_rate_p_per_kwh: float,
+    fuel: str = "gas",
+) -> InstrumentSwitch | None:
+    """THE PRICE OF THE WHOLE-PANEL RULE, PAID BY THE HOMES THAT DID NOT TRIGGER IT
+    (2026-08-12, THIRTEENTH Expert Hour on this atom).
+
+    `panel_mirror` falls back to the log-preserving reflection for the WHOLE panel
+    the moment ONE premise cannot be reflected the other way, and its docstring
+    defends that against the only alternative it names — a per-premise mix, which
+    would genuinely be two instruments under one name. The alternative it never
+    named is the one that actually happens: the other premises, every one of which
+    could have been measured exactly, are measured by an instrument they did not
+    need, and nothing says what that changed.
+
+    IT IS A STEP FUNCTION OF ONE HOME'S CERTIFICATE, MEASURED. On this atom's own
+    drawn 200 with its worst home walked across the feasibility boundary
+    (`2*epc == actual`), a TWO-PARTS-PER-MILLION change in that one home moves the
+    panel from 0 premises breaching the level promise (worst 1.79e-15) to 175 of 200
+    breaching it (worst 4.26 — 426% of a home's own error), the register arm's mean
+    error from 0.0448 to 0.0741 kW/K, and the mirror's own money reading from GBP
+    +296 to +341 per premise. Not one of those 199 homes changed.
+
+    AND IT IS ONE HOME AWAY ON A REAL DRAW. The published drawn population's worst
+    register ratio is 1.7371 against a cliff at 2.0; three independent population
+    seeds read 1.7371 / 1.7371 / 1.8585. The branch is not hypothetical, and a stock
+    that acquires one badly-lodged certificate changes the instrument for everyone
+    else in it.
+
+    WHAT THIS MEASURES, AND WHY IT IS THE HONEST CONTROLLED COMPARISON. Both
+    readings are taken on the SAME rows — the premises the level reflection could
+    have run on — so the difference is the instrument and nothing else. Comparing
+    the published fallback reading on all M premises against a level reading on M-N
+    of them would confound the instrument with the population, and the population
+    difference is the larger of the two: excluding the forcing home changed the base
+    money reading by GBP 138 per premise on the measured panel against the
+    instrument's GBP 45, which is why EXCLUDE-AND-DECLARE is not offered here as a
+    repair. Both roads cost; only one of them was ever measured.
+
+    WHY IT MAY GATE A GBP VERDICT when `panel_mirror_register_bluntness` may not
+    (twelfth Hour): this is denominated in the unit the verdict is published in, and
+    it is that verdict's own sensitivity to a choice made by a premise OUTSIDE the
+    comparison. It is judged against the published reading's OWN 95% error bar and
+    against the arm it names — no new constant either way. Where it fires, where it
+    does not, and why the first search said "never": `InstrumentSwitch.resolution`.
+
+    `None` on the level branch, where no switch happened and the quantity does not
+    exist.
+    """
+    forced_by = _infeasible_premises(observations)
+    if not forced_by:
+        return None
+    feasible = [
+        o
+        for o in observations
+        if _level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
+    ]
+    blank = InstrumentSwitch(
+        forced_by=forced_by,
+        borne_by=len(feasible),
+        cost_gbp=None,
+        published_reading_gbp=None,
+        counterfactual_reading_gbp=None,
+        own_error_bar_gbp=None,
+        counterfactual_interval_gbp=None,
+        published_favours=None,
+        counterfactual_favours=None,
+    )
+    if len(feasible) < MIN_HOMES_FOR_DIVERSITY:
+        return blank
+
+    def _reading(rows, reflect, substream):
+        return _paired_money_verdict(
+            _mirrored_rows(rows, reflect),
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            fuel=fuel,
+            substream=substream,
+        )
+
+    # BOTH READINGS ON `feasible`, WHICH IS THE WHOLE COMPARISON. Taking the
+    # published one on the full panel would price the instrument AND the forcing
+    # home's own money in one number, and the second is the larger.
+    #
+    # SEPARATE C-S2 SUBSTREAMS, and the reason is the INTERVALS, not the points: a
+    # bootstrap point estimate is the sample mean and does not move with the seed, so
+    # the cost below would be identical on one stream. Both readings' error bars are
+    # published, and two panels sharing a resampling stream do not carry two
+    # independent error bars.
+    published = _reading(feasible, _reflect, "instrument_switch_published")
+    counterfactual = _reading(
+        feasible, _reflect_level, "instrument_switch_counterfactual"
+    )
+    return InstrumentSwitch(
+        forced_by=forced_by,
+        borne_by=len(feasible),
+        cost_gbp=abs(
+            published.mean_advantage_gbp - counterfactual.mean_advantage_gbp
+        ),
+        published_reading_gbp=published.mean_advantage_gbp,
+        counterfactual_reading_gbp=counterfactual.mean_advantage_gbp,
+        own_error_bar_gbp=(published.ci_hi - published.ci_lo) / 2.0,
+        counterfactual_interval_gbp=(counterfactual.ci_lo, counterfactual.ci_hi),
+        published_favours=published.favours,
+        counterfactual_favours=counterfactual.favours,
     )
 
 
@@ -4340,6 +4538,11 @@ class CompositionVerdict:
     panel_mirror_register_ratio_breaches: tuple[float, ...]
     panel_mirror_reflection: str
     panel_mirror_infeasible_premises: int
+    # ...and what the whole-panel fallback COST the premises that did not force it
+    # (2026-08-12, thirteenth Hour). `None` on the level branch, where no switch
+    # happened. The declaration above names WHICH instrument produced the row; this
+    # is the only thing that says how much the naming is worth.
+    panel_mirror_switch: InstrumentSwitch | None
     # THE WEIGHT-ONLY NULL — the mirror's re-composition channel with the mirror's
     # signal removed. The gate above is denominated in kW/K; the verdict it guards is
     # denominated in GBP, and these are the same money figures with the sign flip
@@ -4777,6 +4980,38 @@ class CompositionVerdict:
         )
 
     @property
+    def panel_mirror_instrument_channel(self) -> str:
+        """THE THIRD CHANNEL: did the INSTRUMENT decide what this mirror says?
+
+        `attributable` on the level branch always — nothing switched, so there is no
+        switch to price, and every level-branch verdict this gate released before is
+        released unchanged. On the fallback branch it is `InstrumentSwitch`'s own
+        resolution.
+
+        The register channel asks whether the instrument kept its promise and the
+        money channel asks whether the mirror's movement was signal or re-weighting.
+        Neither can see this one: both are computed on the branch the panel took, and
+        the question here is what the OTHER branch would have said about the same
+        homes — a quantity no reading already in this row can be derived from.
+        """
+        return (
+            "attributable" if self.panel_mirror_switch is None
+            else self.panel_mirror_switch.resolution
+        )
+
+    @property
+    def panel_mirror_switch_cost_gbp(self) -> float | None:
+        """GBP per premise the whole-panel fallback moved the mirror's own money
+        reading, measured on the premises that did not force it. `None` off that
+        branch, or where the subpanel cannot carry a money verdict."""
+        return None if self.panel_mirror_switch is None else self.panel_mirror_switch.cost_gbp
+
+    @property
+    def panel_mirror_switch_borne_by(self) -> int | None:
+        """HOW MANY premises were measured by an instrument they did not need."""
+        return None if self.panel_mirror_switch is None else self.panel_mirror_switch.borne_by
+
+    @property
     def panel_mirror_weight_artefact(self) -> float:
         """THE SECOND ARTEFACT, AND THE SECOND HALF OF THE GATE: how much of the
         mirror's movement in the DECIDING MARGIN is reproduced with no mirror signal
@@ -5177,17 +5412,29 @@ class CompositionVerdict:
     def panel_mirror_attribution(self) -> str:
         """The whole gate as three states — both channels combined, worst first.
 
-        A measured breach in EITHER channel is a finding and outranks an unresolved
+        A measured breach in ANY channel is a finding and outranks an unresolved
         one; an unresolved channel outranks a clean one. The register channel
         contributes only `unattributable` or `attributable` — see
         `panel_mirror_register_channel` for which statistic and which constant decide
         it, which depends on the branch and stopped being the panel mean at the ninth
         Hour.
+
+        THREE CHANNELS, NOT TWO (2026-08-12, thirteenth Hour). The two above are both
+        computed on the branch the panel took; `panel_mirror_instrument_channel` asks
+        what the branch NOT taken would have said about the same homes, which neither
+        of them can see. It is `attributable` by construction wherever no switch
+        happened — which is both published populations — so it can only ever take
+        certification away from a fallback-branch row, never grant one.
         """
-        if self.panel_mirror_register_channel != "attributable":
-            return "unattributable"
-        money = self.panel_mirror_weight_artefact_resolution
-        return money
+        states = (
+            self.panel_mirror_register_channel,
+            self.panel_mirror_instrument_channel,
+            self.panel_mirror_weight_artefact_resolution,
+        )
+        for worst in ("unattributable", "unresolved"):
+            if worst in states:
+                return worst
+        return "attributable"
 
     @property
     def panel_mirror_is_attributable(self) -> bool:
@@ -5922,6 +6169,9 @@ def composition_verdict(
         ),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
+        panel_mirror_switch=instrument_switch(
+            observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh, fuel=fuel
+        ),
         revision_mirror_money=_money_verdict(revision, "revision_mirror"),
         revision_mirror_forgone_epc_gbp=revision_epc,
         revision_mirror_forgone_inferred_gbp=revision_inferred,
@@ -6099,6 +6349,45 @@ def _bluntness_caveat(verdict: CompositionVerdict) -> list[str]:
     ]
 
 
+def _switch_cost_caveat(verdict: CompositionVerdict) -> list[str]:
+    """WHAT THE INSTRUMENT SWITCH COST, PRINTED WHENEVER ONE HAPPENED (2026-08-12,
+    thirteenth Hour) — refused or certified, exactly like `_bluntness_caveat` and for
+    the twelfth Hour's reason: a disclosure that rides on a refusal can only be read
+    by someone already being told the mirror failed.
+
+    `panel_mirror_reflection` has always named WHICH instrument produced the row.
+    This is the only thing that says what the naming is worth, and a reader cannot
+    derive it — the counterfactual is a second pass over the same homes.
+    """
+    switch = verdict.panel_mirror_switch
+    if switch is None:
+        return []
+    if switch.cost_gbp is None:
+        return [
+            f"INSTRUMENT SWITCHED, COST UNMEASURABLE: {switch.forced_by} of "
+            f"{verdict.premises} premises forced the whole panel onto the log "
+            f"reflection, leaving {switch.borne_by} that could have been measured "
+            f"the other way — too few to carry a money verdict, so what the switch "
+            f"did to them is not known and is not being reported as small."
+        ]
+    return [
+        f"INSTRUMENT SWITCHED BY {switch.forced_by} OF {verdict.premises} PREMISES "
+        f"(disclosure, not a refusal): the level reflection could not run on those, "
+        f"so the WHOLE panel fell back to the log form — including the "
+        f"{switch.borne_by} premises it could have measured exactly. Measured on "
+        f"those {switch.borne_by} alone, same homes, both instruments: this row's "
+        f"reflection reads GBP {switch.published_reading_gbp:+,.0f} per premise "
+        f"({switch.published_favours}) and the one they could have had reads GBP "
+        f"{switch.counterfactual_reading_gbp:+,.0f} "
+        f"({switch.counterfactual_favours}) — a difference of GBP "
+        f"{switch.cost_gbp:,.0f}, against this reading's own 95% error bar of GBP "
+        f"{switch.own_error_bar_gbp:,.0f}. The instrument is a STEP FUNCTION of the "
+        f"forcing home's certificate — it changes at 2*epc == actual and the homes "
+        f"either side did not move — so read the reflection label above as a "
+        f"statement about this panel's worst certificate, not about these homes."
+    ]
+
+
 def _mirror_unresolved_caveat(verdict: CompositionVerdict) -> list[str]:
     """The panel mirror produced no verdict of its own — said, not left to silence.
 
@@ -6180,6 +6469,45 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
         # that did not happen — the disclosure is `_bluntness_caveat`, which prints
         # whether or not this channel refused, and is the only place that reading
         # appears.
+    switch = verdict.panel_mirror_switch
+    if switch is not None and switch.resolution != "attributable":
+        # THE THIRD CHANNEL, IN GBP (2026-08-12, thirteenth Hour). Neither clause
+        # above can reach this: both are computed on the branch the panel took, and
+        # this one is the difference between the branches on the same homes. The
+        # DISCLOSURE of the same measurement is `_switch_cost_caveat`, which prints
+        # whether or not this channel refused — the twelfth Hour's rule, applied
+        # here on the way in rather than two Hours later.
+        if switch.cost_gbp is None:
+            reasons.append(
+                f"the whole panel fell back to the log reflection on the strength of "
+                f"{switch.forced_by} of {verdict.premises} premises, and only "
+                f"{switch.borne_by} remain that could have been measured the other "
+                f"way — under {MIN_HOMES_FOR_DIVERSITY}, so what the switch cost "
+                f"them cannot be measured at all on this panel (an unavailable "
+                f"check is a failed one, not a clean one)"
+            )
+        elif switch.published_favours != switch.counterfactual_favours:
+            reasons.append(
+                f"the INSTRUMENT decided this mirror's answer: the "
+                f"{switch.borne_by} premises that did not force the fallback name "
+                f"{switch.published_favours} under the reflection this row used and "
+                f"{switch.counterfactual_favours} under the one they could have had "
+                f"(GBP {switch.published_reading_gbp:+,.0f} against "
+                f"GBP {switch.counterfactual_reading_gbp:+,.0f} per premise), so the "
+                f"verdict is a statement about a rule triggered by "
+                f"{switch.forced_by} other home(s)"
+            )
+        else:
+            reasons.append(
+                f"the whole-panel fallback moved this mirror's own money reading by "
+                f"GBP {switch.cost_gbp:,.0f} per premise on the {switch.borne_by} "
+                f"premises that did not force it (GBP "
+                f"{switch.published_reading_gbp:+,.0f} against GBP "
+                f"{switch.counterfactual_reading_gbp:+,.0f}), further than the "
+                f"reading's own 95% error bar of GBP "
+                f"{switch.own_error_bar_gbp:,.0f} — the instrument choice moved the "
+                f"answer more than which homes are in the panel does"
+            )
     money = verdict.panel_mirror_weight_artefact_resolution
     if money != "attributable":
         # PER PREMISE, WITH ITS OWN INTERVAL, AND NEVER AGAIN AS TWO BARE TOTALS
@@ -6372,6 +6700,10 @@ def _verdict_caveats(verdict: CompositionVerdict) -> list[str]:
     # every branch of them, because it must print on a row the mirror CERTIFIED —
     # which is the state it could never previously reach.
     caveats += _bluntness_caveat(verdict)
+    # ...AND THE PRICE OF THE SWITCH THAT PUT THE ROW ON THAT BRANCH (2026-08-12,
+    # thirteenth Hour). Outside every branch of the mirror's own caveats, for the
+    # same reason the line above is: it must print on a row the mirror CERTIFIED.
+    caveats += _switch_cost_caveat(verdict)
     if verdict.direction_bought:
         caveats.append(
             f"DIRECTION-BOUGHT: the same inference stepping the OTHER way by the same "
@@ -6537,6 +6869,38 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
             v.panel_mirror_register_breaching_premises
         ),
         "panel_mirror_register_channel": v.panel_mirror_register_channel,
+        # THE INSTRUMENT CHANNEL (2026-08-12, thirteenth Hour). `..._reflection` above
+        # has always named which instrument produced this row; these say what the
+        # naming is worth, and they are not derivable from anything else here — the
+        # counterfactual is a second pass over the same homes. `None` on the level
+        # branch, where no switch happened and the quantity does not exist.
+        "panel_mirror_instrument_channel": v.panel_mirror_instrument_channel,
+        "panel_mirror_switch_borne_by": v.panel_mirror_switch_borne_by,
+        "panel_mirror_switch_cost_gbp": v.panel_mirror_switch_cost_gbp,
+        "panel_mirror_switch_published_gbp": (
+            None if v.panel_mirror_switch is None
+            else v.panel_mirror_switch.published_reading_gbp
+        ),
+        "panel_mirror_switch_counterfactual_gbp": (
+            None if v.panel_mirror_switch is None
+            else v.panel_mirror_switch.counterfactual_reading_gbp
+        ),
+        "panel_mirror_switch_error_bar_gbp": (
+            None if v.panel_mirror_switch is None
+            else v.panel_mirror_switch.own_error_bar_gbp
+        ),
+        "panel_mirror_switch_counterfactual_interval_gbp": (
+            None if v.panel_mirror_switch is None
+            or v.panel_mirror_switch.counterfactual_interval_gbp is None
+            else list(v.panel_mirror_switch.counterfactual_interval_gbp)
+        ),
+        "panel_mirror_switch_favours": (
+            None if v.panel_mirror_switch is None
+            else [
+                v.panel_mirror_switch.published_favours,
+                v.panel_mirror_switch.counterfactual_favours,
+            ]
+        ),
         # The MONEY channel's artefact and the null it is measured against. In the
         # row beside the kW/K terms because the verdict is denominated in GBP and a
         # fidelity claim that covers only the other channel is not one.
