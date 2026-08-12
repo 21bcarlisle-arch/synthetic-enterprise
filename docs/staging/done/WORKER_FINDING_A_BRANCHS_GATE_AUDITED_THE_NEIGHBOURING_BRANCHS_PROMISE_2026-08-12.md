@@ -13,6 +13,8 @@ than reading it.
 
 ---
 
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_FALLBACK_MEAN_IS_A_READING_OF_THE_STOCK_not_of_the_MIRROR`, `tests/harness/test_premise_two_level.py::test_the_FALLBACK_FAULT_TEST_IS_NOT_ALWAYS_RED_on_a_BADLY_OUT_register` — the per-premise ratio replaced the panel mean as the fallback branch's gate, and the fault test is proven not-always-red on a badly out register. Mutation-proven eight ways inside the same Hour. 8 green, 2026-08-12.
+
 ## 1. The directed question, and its refutation
 
 The tenth Hour left this: *the register channel's own evidence count has never been

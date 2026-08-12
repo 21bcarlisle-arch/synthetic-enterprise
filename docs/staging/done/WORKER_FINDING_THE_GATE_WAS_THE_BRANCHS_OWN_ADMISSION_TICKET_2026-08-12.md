@@ -13,6 +13,8 @@ something by running a thing rather than reading it.
 
 ---
 
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_FALLBACK_BRANCHS_ABSOLUTE_SHAPE_IS_ALWAYS_RED_and_the_MEAN_NO_LONGER_GATES`, `tests/harness/test_premise_two_level.py::test_the_STOCK_COARSENESS_DISCLOSURE_PRINTS_ON_A_ROW_THE_MIRROR_CERTIFIED`, `tests/harness/test_premise_two_level.py::test_BLUNTNESS_IS_PUBLISHED_ONLY_ON_THE_BRANCH_THAT_PRODUCES_IT` — the entry condition no longer doubles as the gate, the disclosure prints on rows the mirror certified, and it is published only on the branch that produces it. 8 green, 2026-08-12.
+
 ## 1. The directed question
 
 The eleventh Hour left this: *`panel_mirror_register_infidelity` is now known to be a

@@ -199,6 +199,37 @@ def test_written_rendering_round_trips(tree):
     assert problems == []
 
 
+def test_an_annotation_only_drift_is_stale_though_every_PAIR_is_intact(tree):
+    """THE ORACLE'S OWN DEFECT, pinned (2026-08-10, eighth publish wedge, `b2f0fc8f8`).
+
+    The repair landed in `check()` with no test of its own, so the one thing standing between
+    that class and its fourth recurrence was the blocking test it exists to agree with. The
+    real drift was an atom's level/stage annotation moving after an ordinary map edit, every
+    `(atom_id, source)` pair unchanged — invisible to `verify_rendering`, which is the
+    staleness oracle `background/derived_artefact_register.py` drives, and red for 98 gate
+    cycles at `test_live_rendering_is_current`.
+
+    BOTH halves are asserted, because the pair-level silence is what made the oracle blind:
+    the pair check must stay quiet (this drift is not its subject) and `check()` must refuse
+    anyway. Revert `check()` to pairs-only and this test fails.
+    """
+    d = _derive(tree)
+    md = tree / "docs/design/FORWARD_ATTACHMENT_LEDGER.md"
+    honest = far.render_markdown(d)
+    drifted = honest.replace("L0→L3 · idle_", "L2→L3 · harden_")
+    assert drifted != honest, "vacuity guard: the fixture must carry the annotation being drifted"
+    md.write_text(drifted)
+
+    assert far.verify_rendering(drifted, d) == [], (
+        "vacuity guard: the drift must be INVISIBLE to the pair-level check, or this test is "
+        "not standing where the oracle was blind")
+
+    problems, derived = far.check(root=tree, map_path=tree / "docs/design/maturity_map.yaml",
+                                  ledger_md=md)
+    assert derived["entries"], "vacuity guard"
+    assert [p for p in problems if p["kind"] == "stale_rendering"], problems
+
+
 # ------------------------------------------------------------------ the live tree (WTC #5)
 
 def test_live_tree_has_no_violations():

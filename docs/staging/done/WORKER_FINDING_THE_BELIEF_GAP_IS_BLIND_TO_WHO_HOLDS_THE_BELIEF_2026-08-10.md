@@ -7,6 +7,8 @@
 **Verdict:** **HELD AT L2.** L3 means "no major flaws". A third was measured, in a third published headline.
 **R12:** nothing was tuned. The belief gap is unchanged — `0.07125` before and after this tick.
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_aggregate_scoring_contract_is_differential_not_a_blanket_ban`, `tests/tools/test_couple_w2_11_d5.py::test_a_lying_aggregate_declaration_fails_the_control`, `tests/tools/test_couple_w2_11_d5.py::test_a_declared_dimension_with_no_labels_raises_rather_than_skipping`, `tests/tools/test_couple_w2_11_d5.py::test_the_belief_headline_moves_under_a_permutation_since_d19` — each dimension declares what it cannot see and the declaration is measured against the shipped scorer, a lying declaration fires the control, and D19's reshape has since landed so the belief headline itself now moves under the permutation. 4 green, 2026-08-12.
+
 ## Why the Hour ran now
 
 Hour #1 (2026-08-08/09) found the detection headline was an `as_of` artefact and counted one error

@@ -11,6 +11,8 @@ convenience, and the docstring says so out loud*)
 **Found:** 2026-08-12, HARDEN-stage Expert Hour (cold-eyes walk) on `SITE2_two_sided_wall_exhibit`
 **Status:** instance fixed; the class is what this document is for
 
+**Discharged:** `site/customers/test_wall_exhibit.py::test_the_customer_view_of_the_whole_page_contains_no_company_or_sim_panel`, `site/customers/test_wall_exhibit.py::test_mutation_a_view_switch_that_skips_the_op_state_region_kills_a_named_test`, `site/customers/test_wall_exhibit.py::test_the_named_figures_are_visible_to_the_checker_in_the_op_state_exhibit` — the union of op-state and tabs is now the leak checks' subject, the view switch is mutation-proven over the region the old fixtures fell between, and the checker's own sight is pinned. 5 green, 2026-08-12.
+
 ## What happened
 
 `site/customers/index.html` renders a three-way wall-view selector. `site/customers/test_wall_exhibit.py`

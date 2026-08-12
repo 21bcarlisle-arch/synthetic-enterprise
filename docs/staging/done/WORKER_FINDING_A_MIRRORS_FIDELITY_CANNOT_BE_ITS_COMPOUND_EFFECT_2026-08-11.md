@@ -7,6 +7,8 @@ Landed: `696dcf06e` (mechanism + 6 R15 mutations), `bc0d65735` (ledger re-stamp)
 Rank: backlog. Nothing here blocks; it is a CLASS worth applying at the next touch of any
 control shaped like a mirror.
 
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_MIRRORS_OWN_ARTEFACT_is_measured_on_the_arm_it_is_BUILT_AROUND`, `tests/harness/test_premise_two_level.py::test_the_ledger_row_CARRIES_the_mirrors_fidelity_and_not_only_its_verdict`, `tests/harness/test_premise_two_level.py::test_a_BLUNT_MIRRORS_NULL_RESULT_is_reported_as_INCONCLUSIVE_not_as_no_effect` — artefact split from intended effect, fidelity rides the ledger row unconditionally, and the null branch carries its own disclosure. 8 green, 2026-08-12.
+
 ## The shape, in one line
 
 A control that perturbs a world and reads what moves must state how much of the movement

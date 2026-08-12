@@ -1,6 +1,6 @@
 # [CLASS] Controls that cannot fail: vacuous, fail-open, or blind to their own subject
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 19 · **Class:** `controls_that_cannot_fail` · **Ruling's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
@@ -9,8 +9,8 @@ This document supersedes the individual findings listed below, which are **archi
 ## The 19 instances
 
 - `WORKER_FINDING_A_BULK_PASS_BLINDS_THE_AGED_STAGING_DIGEST_2026-08-12.md` — RECORDED
-- `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — BLOCKING
-- `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md` — BLOCKING
+- `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — RECORDED
+- `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md` — RECORDED
 - `WORKER_FINDING_A_MUTATION_THAT_PATCHES_BOTH_SIDES_OF_ITS_SEAM_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_REGISTERS_STANDING_COUNT_HAS_NO_FALSIFIER_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_SAME_LENGTH_MUTATION_SURVIVES_VIA_THE_PYC_CACHE_2026-08-10.md` — LATENT
@@ -18,7 +18,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_EVER_FLAGGED_IS_BLIND_TO_UN_KNOWING_2026-08-09.md` — LATENT
 - `WORKER_FINDING_G6_FIRES_ON_THE_WORD_NOTHING_ANYWHERE_IN_A_WRAPPED_INDEX_NOTE_2026-08-11.md` — LATENT
 - `WORKER_FINDING_RULE_3_HAS_THE_SAME_RENAME_BLINDNESS_2026-08-10.md` — RECORDED
-- `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` — BLOCKING
+- `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_DOORS_DEPTH_LIMIT_SWALLOWED_FIFTY_THREE_FIGURES_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — RECORDED
@@ -26,7 +26,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_RESURRECTION_GUARD_IS_BLIND_TO_A_RESURRECTION_THAT_ONLY_EXISTS_IN_HEAD_2026-08-12.md` — LATENT
 - `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_WRITE_TIME_GATE_FIELD_SWALLOW_2026-08-08.md` — LATENT
-- `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md` — BLOCKING
+- `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md` — RECORDED
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
@@ -35,15 +35,6 @@ This document supersedes the individual findings listed below, which are **archi
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **25 hours** — `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md`: …start — a reset would publish "paused since 30 seconds ago" through a 25-hour outage, the ruling's own cardinal sin wearing the opposite coat. So…
-
-## What is owed
-
-4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md`
-- `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md`
-- `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md`
-- `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md`
 
 ---
 

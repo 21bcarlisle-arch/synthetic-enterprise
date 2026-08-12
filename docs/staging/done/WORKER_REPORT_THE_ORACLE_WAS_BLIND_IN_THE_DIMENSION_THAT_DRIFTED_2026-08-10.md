@@ -7,6 +7,8 @@
 **Class:** derived-artefact staleness — **third** occurrence. R3 two-strike already spent on the
 repair mechanism (`WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10`).
 
+**Discharged:** `tests/background/test_forward_attachment_register.py::test_an_annotation_only_drift_is_stale_though_every_PAIR_is_intact`, `tests/background/test_forward_attachment_register.py::test_live_rendering_is_current` — the oracle repair had landed in August with no falsifier of its own; this tick pinned it, and reverting the oracle to pairs-only makes the new test the only one of the file's 20 that fails. The residue this report names — a repair that cannot land while the gate it repairs is red — is NOT discharged here and stays open under its own finding. 20 green, 2026-08-12.
+
 ## The wedge, in one line
 
 `tests/background/test_forward_attachment_register.py::test_live_rendering_is_current` red at HEAD
