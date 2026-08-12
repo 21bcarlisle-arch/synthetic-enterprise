@@ -1,11 +1,16 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T19:58:35Z",
+    "checked_at": "2026-08-12T20:54:28Z",
     "nonblocking_reds": [
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/tools/test_generate_shadow_html.py::test_every_static_site_page_has_the_copyright_footer",
       "FAILED tests/tools/test_map_assertion_provenance.py::test_the_population_is_derived_from_the_store_not_hand_typed",
-      "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record"
+      "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record",
+      "FAILED tests/tools/test_website_integrity_fix.py::test_process_run_complete_generates_insights_before_dashboard",
+      "FAILED tests/tools/test_website_integrity_fix.py::test_main_ntfys_immediately_on_consistency_gate_failure"
     ],
-    "nonblocking_reds_total": 2,
+    "nonblocking_reds_total": 7,
     "open_findings": 55
   },
   "last_verified": {
@@ -14,8 +19,8 @@
     "run_id": "run_output_7a9bf56be_20260812T195935Z.json",
     "verified_at": "2026-08-12T20:28:57Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=3e80712ef; blocking tests: FAILED tests/company/test_phase_ob_settlement_reconciliation.py::TestRAGThresholds::test_zero_monthly_revenue_is_green",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=ad9d44186; blocking tests: FAILED tests/background/test_staging_archive_policy.py::test_process_run_complete_still_sees_a_duplicate_after_the_sweep",
+  "paused_since": "2026-08-12T21:08:37Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-12T20:28:57Z",
@@ -23,6 +28,6 @@
     "run_id": "run_output_7a9bf56be_20260812T195935Z.json",
     "verified_at": "2026-08-12T20:28:57Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-12T20:28:57Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-12T21:08:37Z"
 }
