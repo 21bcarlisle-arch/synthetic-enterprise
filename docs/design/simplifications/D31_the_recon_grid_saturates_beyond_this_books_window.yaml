@@ -1,0 +1,127 @@
+atom_id: D31_the_recon_grid_saturates_beyond_this_books_window
+simplifications:
+- |-
+  2026-08-12 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD
+  code written and nothing in `file_scope` touched: this atom is `loop_stage: idle`, and
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom
+  while BUILD is not. Output is this record.
+
+  WHAT IS ALREADY SHIPPED, READ OFF HEAD RATHER THAN OFF THE ATOM'S PROSE. The atom's `name`
+  ends with a list headed "ALREADY LANDED UNDER H27's HOUR". Checked against
+  `git show HEAD:tools/couple_w2_11_d5.py`, that list is accurate -- `COUNTERFACTUAL_KNOB_ROUTE`,
+  `book_recon_drift_grid`, `predict_recon_floor_from_constants`, `counterfactual_knobs` and
+  `edge_constants` are all present at HEAD, and `_check_saturation_and_collapse` is now reached
+  by all three knobs' checkers. So the INSTRUMENT half of Hour #13 is landed and this atom's
+  own residue is the RESHAPE only: a scored book whose invoices do not all fall inside one
+  `as_of` window.
+
+  THE BOOK'S WINDOW IS TWO ARITHMETIC IDENTITIES, AND ONLY ONE OF THEM IS OWNED.
+  `book_recon_drift_grid` returns `range(lo, hi + 1)` with
+
+      lo = min(issue - due) - grace - 1
+      hi = max(as_of - due) - grace + 1
+
+  Both ends are constants of the harness, not properties of the world:
+
+    * `issue = due - PAYMENT_TERMS_DAYS` for EVERY invoice (`build_scenario`, one expression,
+      no per-customer term), so `min(issue - due)` is exactly `-14` and `lo` is exactly `-20`,
+      on every seed and every n. The floor edge `-(PAYMENT_TERMS_DAYS +
+      DEFAULT_RECONCILIATION_GRACE_DAYS) = -(14 + 5) = -19` sits one step inside it. This is
+      what `predict_recon_floor_from_constants` predicts, and it agrees.
+    * `as_of = FIRST_DUE_DATE + PERIOD_SPACING_DAYS x (N_PERIODS - 1) + BILLING_CYCLE_SPREAD_DAYS
+      - 1 + AS_OF_BUFFER_DAYS` = `21 x 2 + 21 - 1 + 30` = **+92** past `FIRST_DUE_DATE`, so where
+      the oldest invoice drawn sits ON `FIRST_DUE_DATE` the grid runs to `92 - 5 + 1 = +88` and
+      the last drift at which any invoice is still detected before `as_of` is **+87**. That is
+      the "publishes NO reading at +87/+88" the Hour measured, recovered from constants alone.
+
+  **There is no ceiling predictor.** `grep -c "predict_recon_ceiling\|recon_ceiling_from_constants"
+  tools/couple_w2_11_d5.py` returns `0`. The census-class rule this module has applied five times
+  -- a constant that bounds a resolution claim must be OWNED by the register whose claim it bounds
+  -- was applied to the floor and not to the ceiling, and the ceiling is the edge this atom is about.
+
+  AND THE CEILING IS THE EDGE THAT MOVES. Measured this tick, `observed-with-evidence`, by
+  evaluating `_billing_cycle_offset`'s own hash (`sha256("h27_billing_cycle:" + cid)[:8] % 21`)
+  directly -- no scenario built, no sweep run, no seed drawn:
+
+      n     seed 7      seed 11     seed 23      <- grid hi (the +edge)
+      1       +74         +74         +76
+      2       +74         +84         +80
+      5       +83         +84         +84
+      10      +88         +84         +86
+      25      +88         +88         +88
+      300     +88         +88         +88
+
+  `hi` is `max(as_of - r.due_date)` over the records ACTUALLY DRAWN, and the oldest invoice
+  drawn is `min(cycle_offset)` over the customers actually drawn. At small n no customer draws
+  offset 0, the oldest invoice is younger, and the top of the grid walks in by up to fourteen
+  days. The floor cannot do this: `issue - due` is the same constant for every record, so `lo`
+  is `-20` at n=1.
+
+  **This is the population-dependence `as_of` was deliberately built to refuse, one function
+  away.** `build_scenario`'s own comment on the line above says `as_of` is taken from the latest
+  due date the CYCLE can produce, "not from the latest one this draw happened to produce",
+  because "a population-dependent `as_of` would quietly shorten that for a small n and make the
+  reading depend on how many customers were drawn". `book_recon_drift_grid` then reintroduces
+  exactly that dependence on the other end of the same interval.
+
+  WHY NOTHING CAUGHT IT, WHICH IS THE R15 POINT. Every certification of this grid is at
+  **n=300**, where all three seeds sit at `+88` and the dependence is bit-invisible. The Hour's
+  own evidence -- "n=300, seeds 7/11/23, every run identical on all three" -- is true, and is
+  true precisely because the sweep was never asked at an n where the answer changes. Seeds were
+  varied; the population size was not. A control certified only at the n at which its subject is
+  stable has the same shape as a control certified only where it had already answered
+  (`WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11`), with n in
+  place of the key.
+
+  R12: no published number moved. Nothing was tuned; nothing in `file_scope` was edited. The
+  detection gap and the latency mean are whatever HEAD already published.
+
+  FRAME -- THE RECOMMENDATION. Two pieces, and the ORDER matters because only the second is the
+  reshape this atom was minted for.
+
+    1. **FIRST, AND IT IS NOT THIS ATOM'S RESHAPE: own the ceiling the way the floor is owned.**
+       A `predict_recon_ceiling_from_constants` (PERIOD_SPACING_DAYS, N_PERIODS,
+       BILLING_CYCLE_SPREAD_DAYS, AS_OF_BUFFER_DAYS, DEFAULT_RECONCILIATION_GRACE_DAYS), declared
+       in `edge_constants` and cross-checked against the sweep exactly as the floor is, plus a
+       VACUITY-style guard that the grid's measured `hi` equals the predicted ceiling -- which is
+       the assertion that FAILS at small n and is therefore the one worth having. This is cheap,
+       moves no published figure, and is a candidate fix-on-sight for the next BUILD tick on this
+       module rather than a mint. It is recorded here and NOT done now because this atom is
+       parked and `file_scope` is closed to a DISCOVER draw.
+    2. **THEN the reshape, which is what D31 actually owes.** A book whose invoices do not all
+       fall inside one `as_of` window -- so that beyond `+87` the detection SET can still change
+       and a supplier reconciling three months late is distinguishable from one reconciling four.
+       Note what piece 1 establishes about it: the ceiling is `AS_OF_BUFFER_DAYS` plus the cycle's
+       own span, so the reshape is NOT "raise N_PERIODS until the window is wide enough" -- that
+       moves the published figure by changing the book every dimension reads, which is why this is
+       a mint. The design worth framing is a book with a STAGGERED `as_of` per cohort (or
+       equivalently a tail cohort whose invoices are old relative to a single `as_of`), so the
+       detection set keeps resolving past the current ceiling WITHOUT lengthening the book the
+       other four dimensions are certified against.
+
+  BLAST RADIUS -- WHY PIECE 2 IS A MINT AND NOT A FIX ON SIGHT. The detection SET reading IS the
+  published `detection` gap. Any change to the book's shape moves it, and four other dimensions
+  (ageing, both belief figures, detection_latency) are certified against that same book -- their
+  declared bands, floors and collapse runs are all keyed to its span. Changing the window is
+  therefore a re-certification of five dimensions, not one. That is exactly the "real blast
+  radius" the atom's own text names, and it is why this tick frames it rather than doing it.
+
+  ONE THING THIS TICK DID NOT MEASURE, SAID PLAINLY. The SET reading's upper saturation was
+  measured by the Hour at **+82**, five days inside the `+87` the constants predict for the DATE
+  reading. That five-day gap is NOT explained by the identity above, and this tick did not
+  determine what sets it (the plausible reading -- that it is where the last invoice that can
+  still be flagged stops being flagged, which depends on the payment-method mix rather than on
+  the calendar -- is `inferred`, not observed, and is not asserted here). Piece 1's ceiling
+  predictor as scoped above predicts the GRID edge and the DATE reading's edge; whether the SET's
+  own ceiling is predictable from constants at all is open, and a predictor that quietly claimed
+  both would be a wrong-subject control of the kind this module has now filed nine times.
+
+  WHY THE LEVEL DOES NOT MOVE. Level 2 for this atom means the reshaped book BUILT and
+  mutation-proven both ways. A DISCOVER/FRAME tick on a parked atom may not write it, and an exit
+  criterion is not renegotiated to fit what a tick was allowed to do. `level_current` stays 0.
+
+  LEADS FOR THE NEXT HOUR. (a) Piece 1 above -- the unowned ceiling -- is the cheapest real
+  control this module is currently missing. (b) The n-dependence found here is a question about
+  every book-derived grid in this module, not just this one: `book_memory_grid` and
+  `dense_drift_grid` were certified at the same single n=300, and whether either of their edges
+  moves with the draw has not been asked. That census is not this atom's.

@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T18:00:21Z",
+    "checked_at": "2026-08-12T18:31:41Z",
     "nonblocking_reds": [
       "FAILED tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds",
       "FAILED tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned",
@@ -8,23 +8,23 @@
       "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record"
     ],
     "nonblocking_reds_total": 4,
-    "open_findings": 54
+    "open_findings": 55
   },
   "last_verified": {
-    "generated_at": "2026-08-12T18:31:03Z",
-    "git_commit": "bfd97592c",
-    "run_id": "run_output_bfd97592c_20260812T180121Z.json",
-    "verified_at": "2026-08-12T18:31:03Z"
+    "generated_at": "2026-08-12T19:01:46Z",
+    "git_commit": "14d84b3b8",
+    "run_id": "run_output_14d84b3b8_20260812T183242Z.json",
+    "verified_at": "2026-08-12T19:01:46Z"
   },
   "paused_reason": "scoped publish-path suite red at git=3e80712ef; blocking tests: FAILED tests/company/test_phase_ob_settlement_reconciliation.py::TestRAGThresholds::test_zero_monthly_revenue_is_green",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-12T18:31:03Z",
-    "git_commit": "bfd97592c",
-    "run_id": "run_output_bfd97592c_20260812T180121Z.json",
-    "verified_at": "2026-08-12T18:31:03Z"
+    "generated_at": "2026-08-12T19:01:46Z",
+    "git_commit": "14d84b3b8",
+    "run_id": "run_output_14d84b3b8_20260812T183242Z.json",
+    "verified_at": "2026-08-12T19:01:46Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-12T18:31:03Z"
+  "written_at": "2026-08-12T19:01:46Z"
 }

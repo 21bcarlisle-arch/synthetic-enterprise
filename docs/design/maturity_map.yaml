@@ -2489,6 +2489,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D30_the_belief_band_is_this_books_length]
+  simplifications_count: 1
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose 'how late do we spot a failed collection' number is drawn from a book only three months long: every supplier reconciling more than about twelve weeks late scores the same figure, one reconciling a week early and one three weeks early score the same figure, and the pack reports the mean over an empty set as though it were a fast month"
 - id: D35_the_render_site_sweep_stops_at_this_processs_edge
