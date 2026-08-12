@@ -246,6 +246,16 @@ def _arrears_check_by_year(billing_ledger, years_data: dict) -> list:
             "ic_active_customers": row["ic_active_customers"],
             "ic_arrears_rate_pct": row["ic_arrears_rate_pct"],
             "ic_aggregate_rate_pct": round(agg_ic_rate, 1),
+            # The rate the RAG above was actually computed from, stated by the producer
+            # rather than re-derived by each consumer (WORKER_FINDING_A_PUBLISHED_
+            # ARREARS_ROW_READS_A_KEY_THAT_IS_NOT_EMITTED 2026-08-12): with I&C
+            # customers present the verdict comes from the 10-year aggregate I&C rate,
+            # so a renderer pairing the chip with this row's per-year overall rate shows
+            # a value that cannot justify the chip beside it.
+            "rag_basis_label": (
+                "10yr aggregate I&C rate" if use_ic else "per-year overall rate"
+            ),
+            "rag_basis_pct": round(rate_for_rag, 1),
             "benchmark_green_hi": green_hi,
             "is_crisis_year": is_crisis,
             "rag": rag,

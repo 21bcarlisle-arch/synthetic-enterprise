@@ -1575,6 +1575,85 @@ def build_sim(sim_data, ts, git_commit="?", phase="?", sample=None, billing_ledg
     return _page("Simulation Data", "Sim", body, ts, git_commit, phase)
 
 
+# WORKER_FINDING_A_PUBLISHED_ARREARS_ROW_READS_A_KEY_THAT_IS_NOT_EMITTED (2026-08-12):
+# the arrears rows read `arrears_pct`, a key `tools/population_anchor.py` has never
+# emitted, so `.get(key, 0)` printed 0.00% for every year beside a genuine AMBER/RED
+# chip. The class -- not the instance -- is `dict.get(numeric_key, 0)` across the
+# producer/renderer seam: it cannot distinguish "the producer renamed this field"
+# from "the value is genuinely zero", which is the same indistinguishability that
+# made the sibling arrears fail-open invisible.
+#
+# The fix is a helper that NEVER substitutes a number it did not read. A missing or
+# non-numeric key renders an explicit em dash, and `POPULATION_ANCHORING_NUMERICS`
+# below names every key this page reads from that payload so a control can assert,
+# against the LIVE artefact, that each one is actually emitted -- loud at test time
+# rather than mid-publish, so a renamed producer field reds the suite instead of
+# wedging a run's publish step.
+_MISSING = "&#8212;"
+
+
+def _payload_num(payload, key):
+    """Numeric read across a producer/renderer seam. Returns None -- never 0 -- when
+    the key is absent, null, or not a number, so the caller must render the absence
+    rather than print a default dressed as a reading. `bool` is rejected explicitly
+    (`True` is an `int` in Python, and a flag formatted as a percentage is a defect
+    of exactly this family)."""
+    if not isinstance(payload, dict) or key not in payload:
+        return None
+    v = payload[key]
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return None
+    return v
+
+
+def _pc(payload, key, suffix="%", d=2):
+    n = _payload_num(payload, key)
+    return _MISSING if n is None else format(n, "." + str(d) + "f") + suffix
+
+
+# Every numeric key `_population_anchoring_rag` reads out of population_anchoring.json,
+# as (block, key). The block is the payload list/dict it is read from; a key named here
+# that the producer stops emitting is a rendered em dash on the live page AND a red
+# control (tests/tools/test_shadow_arrears_row_reads_an_emitted_key.py).
+POPULATION_ANCHORING_NUMERICS = (
+    ("long_run_comparison", "ratio"),
+    # `bad_debt_rate`, not `bad_debt_pct`: the SECOND live instance of this finding's
+    # class, caught by this very census (2026-08-12). The producer emits the rate
+    # already multiplied out (`round(rate * 100, 2)`), so it is percentage POINTS
+    # despite the name, and the page printed 0.00% for every year against it.
+    ("bad_debt_vs_benchmark", "bad_debt_rate"),
+    ("complaints_vs_benchmark", "complaint_rate_pct"),
+    ("arrears_vs_benchmark", "new_arrears_rate_pct"),
+    ("arrears_vs_benchmark", "rag_basis_pct"),
+)
+
+
+def _arrears_value(check):
+    """The Value cell of an "Arrears <year>" row.
+
+    Three things this cell has to get right, all named in the finding:
+    1. It reads the key the producer emits (`new_arrears_rate_pct`), not `arrears_pct`.
+    2. When the arrears ledger did not load, the rate's numerator has no source, so the
+       cell shows nothing rather than the 0.0 the division guard produces -- the row's
+       chip already says UNAVAILABLE and the two halves must not contradict.
+    3. The chip beside it is computed from the 10-year aggregate I&C rate whenever I&C
+       customers are present, NOT from this row's per-year overall rate. Printing a
+       per-year value next to an aggregate verdict is a third mismatch; the producer now
+       states its own RAG basis and the cell prints it whenever the two differ, so the
+       row is reconcilable without reading the JSON."""
+    if check.get("ledger_available") is False:
+        return _MISSING
+    rate = _payload_num(check, "new_arrears_rate_pct")
+    if rate is None:
+        return _MISSING
+    cell = format(rate, ".2f") + "%"
+    basis = _payload_num(check, "rag_basis_pct")
+    label = check.get("rag_basis_label")
+    if basis is not None and label and abs(basis - rate) >= 0.05:
+        cell += ' <span class="meta">(RAG basis: ' + str(label) + " " + format(basis, ".2f") + "%)</span>"
+    return cell
+
+
 def _population_anchoring_rag(pa):
     """RAG chip rendering of population_anchoring.json (Phase PQ/PR/PS) -- real
     already-computed switching/bad-debt/complaints/arrears benchmark checks that
@@ -1591,13 +1670,13 @@ def _population_anchoring_rag(pa):
     rows = ""
     long_run = pa.get("long_run_comparison", {})
     if long_run:
-        rows += _row("Long-run churn vs Ofgem", format(long_run.get("ratio", 0), ".2f") + "x", _chip(long_run.get("rag", "")))
+        rows += _row("Long-run churn vs Ofgem", _pc(long_run, "ratio", suffix="x"), _chip(long_run.get("rag", "")))
     for check in pa.get("bad_debt_vs_benchmark", [])[-3:]:
-        rows += _row("Bad debt " + str(check.get("year", "")), format(check.get("bad_debt_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+        rows += _row("Bad debt " + str(check.get("year", "")), _pc(check, "bad_debt_rate"), _chip(check.get("rag", "")))
     for check in pa.get("complaints_vs_benchmark", [])[-3:]:
-        rows += _row("Complaints " + str(check.get("year", "")), format(check.get("complaint_rate_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+        rows += _row("Complaints " + str(check.get("year", "")), _pc(check, "complaint_rate_pct"), _chip(check.get("rag", "")))
     for check in pa.get("arrears_vs_benchmark", [])[-3:]:
-        rows += _row("Arrears " + str(check.get("year", "")), format(check.get("arrears_pct", 0), ".2f") + "%", _chip(check.get("rag", "")))
+        rows += _row("Arrears " + str(check.get("year", "")), _arrears_value(check), _chip(check.get("rag", "")))
     if not rows:
         return ""
     return (
