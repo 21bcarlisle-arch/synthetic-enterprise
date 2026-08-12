@@ -13,6 +13,27 @@
     "finding_key": "audit:high-consumption",
     "state": "adjudicated-false-positive"
   },
+  "audit:other:internal audit checker (qwen/ollama) una": {
+    "adjudicated_at": "2026-08-10T06:25:52.970268+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "None (None): Internal audit checker (Qwen/Ollama) unavailable for 1/2 sampled bills -- the audit did NOT run; treat as a FAILED check, not clean; C4g (2023-06-30): Gas consumption is reported in kWh, which is typically used for electricity, not gas, suggesting a possible unit error.",
+    "finding_key": "audit:other:internal audit checker (qwen/ollama) una",
+    "state": "open"
+  },
+  "audit:other:the total bill (gbp 121.99) does not mat": {
+    "adjudicated_at": "2026-08-09T13:17:18.985543+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C9 (2016-07-31): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation.; C5 (2019-04-30): The total bill (GBP 121.99) does not match the sum of the individual charges (GBP 245.50 + GBP 67.46 + GBP 12.15 + GBP 65.02 = GBP 390.13).",
+    "finding_key": "audit:other:the total bill (gbp 121.99) does not mat",
+    "state": "open"
+  },
+  "audit:other:the total bill (gbp 243.86) is inconsist": {
+    "adjudicated_at": "2026-08-03T13:20:00.829797+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C4g (2018-12-31): Gas consumption is stated in kWh, which is typically used for electricity, not gas, suggesting a possible unit error.; C3 (2020-06-29): The total bill (GBP 243.86) is inconsistent with the sum of the individual charges (GBP 55.73 + GBP 26.32 + GBP 7.83 + GBP 4.49 = GBP 94.37).",
+    "finding_key": "audit:other:the total bill (gbp 243.86) is inconsist",
+    "state": "open"
+  },
   "audit:other:the total bill (gbp 58.66) is less than ": {
     "adjudicated_at": "2026-07-12T02:42:38.172489+00:00",
     "adjudicated_by": "sanity-daemon (auto-registered)",
@@ -25,6 +46,13 @@
     "adjudicated_by": "sanity-daemon (auto-registered)",
     "evidence": "C4 (2019-02-28): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation or application.; C7 (2017-05-31): The total bill (GBP 72.07) is less than the sum of the commodity charge (GBP 97.71), non-commodity charge (GBP 41.66), and standing charge (GBP 7.75), which is implausible.",
     "finding_key": "audit:other:the total bill (gbp 72.07) is less than ",
+    "state": "open"
+  },
+  "audit:other:the total bill does not align with the s": {
+    "adjudicated_at": "2026-08-02T18:43:33.217722+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C3 (2020-06-29): The total bill does not align with the sum of the individual charges, suggesting a possible arithmetic error.; C7 (2025-06-07): The total bill is negative, which is implausible for a UK residential electricity customer.",
+    "finding_key": "audit:other:the total bill does not align with the s",
     "state": "open"
   },
   "audit:other:the total bill is negative, which is imp": {
@@ -280,6 +308,97 @@
     "finding_key": "coldwalk:payment_channel_dd_fail_contradiction",
     "state": "adjudicated-real"
   },
+  "coldwalk:site2_arrears_history_visible_only_behind_the_wall": {
+    "adjudicated_at": "2026-08-12T12:03:02.029003+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR and it cuts the wrong way for the exhibit's thesis. The customer-observable money panel asserts 'No arrears cases on record -- clean payment history.' and 'FAILED PAYMENTS 0' (01_landing.txt), while the behind-the-wall Timeline carries two full arrears cascades for the same account: '2016-11-15 arrears_payment_missed - Standard credit payment not received GBP44', '2016-11-22 First overdue notice -- GBP43.66 outstanding', '2016-12-06 Second notice -- payment plan offered', '2016-12-30 Arrears cleared via payment plan', and an identical sequence from 2018-09-15. Overdue notices and payment plans are emphatically CUSTOMER-OBSERVABLE -- they were sent to this customer -- so the page has mis-sided them, and the customer panel tells the account holder something the same page refutes. An exhibit whose subject is the wall must not itself put customer-observable events behind it. Related known entry: coldwalk:payment_channel_dd_fail_contradiction (adjudicated-real) covers the 'Standard credit payment' vs 'PAYS BY direct debit' half.",
+    "finding_key": "coldwalk:site2_arrears_history_visible_only_behind_the_wall",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs": {
+    "adjudicated_at": "2026-08-12T12:03:02.028474+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR for the page's own thesis. Selecting 'Behind the wall' on the Consumption and Billing & Payments tabs renders nothing but nav chrome and the standing note (behind__Consumption.txt and behind__BillingPayments.txt end at the fuel toggle; behind__Consumption.png is half a screen of white space). In 'Both sides' the same two tabs print 'Nothing on this side of the wall for this view.' (both__Consumption.txt:140, both__BillingPayments.txt:358). These are the two tabs where the wall is most load-bearing -- settled-vs-billed on one bill, the cost stack under an invoice -- so a third of the exhibit surface is blank on the exact claim the exhibit exists to make. Not a correctness defect; a completeness one against exit criterion (2)'s 'coherent subset' standard applied to the other side.",
+    "finding_key": "coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_churn_probability_carries_a_settlement_clock": {
+    "adjudicated_at": "2026-08-12T12:03:02.029525+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MINOR / R14 misapplication. 01_landing.txt renders 'CHURN RISK 23% - settled clock - company estimate, not a fact'. A probability has no settled/billed/banked basis; R14's clock discipline applies to financial figures. Applying the basis-label template to a non-monetary figure reads as slot-filling and weakens the credibility of the labelling discipline the page is advertising. Companion doubt: 'EXPECTED LIFETIME 13.8 yrs' and 'CHURN PROBABILITY 23%' do not tie (1/0.23 = 4.3 yrs; 13.8 yrs implies ~7.2%/yr), and neither ties to the per-year 'company believed 11%/9%/14%/9%/8%/5%' series in the Timeline.",
+    "finding_key": "coldwalk:site2_churn_probability_carries_a_settlement_clock",
+    "state": "open"
+  },
+  "coldwalk:site2_churned_account_presented_in_the_present_tense": {
+    "adjudicated_at": "2026-08-12T12:03:02.027372+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR. C1 churned: closedAccountNotice() fires off a real `churned` timeline event and renders 'Account closed 2021-12-30 -- final bill C1-INV72. Account settled to zero.' (both__BillingPayments.txt:137); customer__Timeline.txt shows '2021-12-30 - Churned (electricity)'. The same page simultaneously presents the household as live under a 'data 2026-08-12' stamp: 'PAYS BY direct debit', 'Your account is currently square -- paid up to date', 'CHURN RISK 23%', 'EXPECTED LIFETIME 13.8 yrs', 'PRICING ACTION (ELECTRICITY) OK', 'Customer Lifetime Value GBP2,741', 'Forecast Annual Profit GBP374'. A forward churn probability and a lifetime-value forecast for an account that left 4.6 years before the stamp is a coherence defect independent of whether each figure is individually correct. Note also GBP374 forecast annual profit exceeds the electricity account's own average annual revenue (1883.17/6 = GBP313.83).",
+    "finding_key": "coldwalk:site2_churned_account_presented_in_the_present_tense",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel": {
+    "adjudicated_at": "2026-08-12T12:03:02.030048+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR, INDEPENDENTLY COMPUTED. C1 electricity consumption over all 72 invoices, mean kWh by month-of-year: Jan 140.4, Feb 144.3, Mar 151.0, Apr 137.1, May 158.3, Jun 148.3, Jul 162.0, Aug 163.4, Sep 150.9, Oct 145.0, Nov 134.6, Dec 143.7. Winter (Dec/Jan/Feb) mean 142.8 kWh vs summer (Jun/Jul/Aug) mean 157.9 kWh -- a winter:summer ratio of 0.90, i.e. summer is 10.6% HIGHER. GB domestic electricity is ~1.3-1.6:1 the other way. The page renders 'DEC 2021 - 141 kWh - VS NOV 2021 -4.9% - VS DEC 2020 (YOY) -0.3%' while devoting a whole customer-observable panel to explaining that 'energy use ... is heavily seasonal. Through summer you use little ... through winter you use far more than you pay'. The exhibit's narrative and its own data contradict each other on the surface, and the data is the side that is wrong. Total ~1,779 kWh/yr also sits below Ofgem's LOW TDCV (1,800). NOTE: this is a WORLD/SIM fidelity finding surfaced by the exhibit, not a SITE2 render defect -- it needs its own atom in the sim lane, and R12 applies (diagnose the mechanism, never tune the output).",
+    "finding_key": "coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_coo_2841_percent_error_arithmetic_doubt": {
+    "adjudicated_at": "2026-08-12T12:03:02.031528+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "COO persona flagged '2841% error at the 2018 renewal (sim 3% vs company 95%)' as not tying, computing (95-3)/3 = 3067%. It ties on the UNROUNDED values: (95.0-3.23)/3.23 = 2841% exactly, and the parenthetical rounds 3.23% to 3%. Arithmetic is correct; the display rounds its own inputs. The persona's SECOND point stands and is kept as a minor: expressing a gap between two probabilities as a 2,841% relative error is innumerate framing on a public surface -- the honest statement is '92 percentage points'.",
+    "finding_key": "coldwalk:site2_coo_2841_percent_error_arithmetic_doubt",
+    "state": "adjudicated-false-positive"
+  },
+  "coldwalk:site2_coo_cost_to_serve_double_count_doubt": {
+    "adjudicated_at": "2026-08-12T12:03:02.031009+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "COO persona raised the identical GBP330 cost-to-serve on BOTH the electricity and gas legs as a suspected double-count or double-report. NOT a defect: it is the FIXED state of the previously-adjudicated bug coldwalk:cost_to_serve_cross_fuel_mismatch_same_household (adjudicated-real), where gas recovered only 1/48th of its intended overhead because a daily-settled commodity was divided by the half-hourly SETTLEMENT_PERIODS_PER_YEAR. A dual-fuel household holds two accounts and each correctly carries ~GBP55/yr of overhead, so GBP110/yr household -- inside the persona's own GBP60-110 prior. The presentational half of the doubt is real and is already captured by coldwalk:site2_dual_fuel_household_shows_electricity_only_money: the page shows one leg's GBP329.93 under a heading that says 'this household'.",
+    "finding_key": "coldwalk:site2_coo_cost_to_serve_double_count_doubt",
+    "state": "adjudicated-false-positive"
+  },
+  "coldwalk:site2_customer_view_does_not_filter_the_op_state_exhibit": {
+    "adjudicated_at": "2026-08-12T12:03:02.024330+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR, R11-CONFIRMED LIVE. https://poesys.net/customers/?acc=C1 with 'The customer's side' selected still renders, ON SCREEN and above the fold, COMPANY-ONLY 'Lifetime net GBP492.96 / Cost to serve GBP329.93 / Churn risk 23%' and SIM-ONLY 'Satisfaction 65%'. Verified three ways: (a) document.body.innerText (which EXCLUDES hidden nodes) contains them in customer__Overview.txt lines 36-54; (b) getComputedStyle display:'block' and non-zero bounding rects on #op-state .wall-panel[data-wall-side=company|sim] while .wall-view-btn.vactive == \"The customer's side\"; (c) screenshot /tmp/ce_wall/PROOF_customer_view_leak.png. ROOT CAUSE: WALL_VIEW filtering lives only in layoutPanels() (site/customers/index.html:472-499) and setWallView() calls renderHousehold() only -- the static #op-state region (index.html:192-260) is never filtered. The page falsifies its OWN rendered claim: the customer-view note reads 'No company estimate and no simulation ground truth is in this view; if one appears, the page is broken.' THIS BLOCKS exit criterion (2) of the atom ('the customer-eye view renders as its own coherent subset ... not assembled by a visitor reading labels across the whole page').",
+    "finding_key": "coldwalk:site2_customer_view_does_not_filter_the_op_state_exhibit",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_dual_fuel_household_shows_electricity_only_money": {
+    "adjudicated_at": "2026-08-12T12:03:02.026794+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR. The top exhibit block is headed 'ONE HOUSEHOLD -- END TO END' and its first panel declares 'PRODUCTS dual fuel / electricity + gas (dual fuel)', but every money figure under it comes from site/data/company.json's `household` block, which is commodity='electricity' only: billed_gbp 2596.93, invoice_count 72, lifetime_net_gbp 492.96, cost_to_serve_gbp 329.93, clv_gbp 2741.22. The gas leg C1g is the LARGER half (lifetime_revenue_gbp 2932.81 vs elec 1883.17) and is absent without qualification. Household lifetime net is 1241.48, so the headline understates its own declared subject by ~60%, and the customer-observable 'BILLED (LIFETIME) GBP2,596.93' omits every gas invoice the account holder actually received. Cross-tab consequence: the top block shows 'BALANCE GBP0.00' while the Risk tab shows 'OUTSTANDING BALANCE -GBP24 -- household combined (both fuels) live ledger position' (both__Risk.txt:125-127) -- two balances, no stated sign convention, on one page.",
+    "finding_key": "coldwalk:site2_dual_fuel_household_shows_electricity_only_money",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page": {
+    "adjudicated_at": "2026-08-12T12:03:02.030522+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MINOR. The page header states 'Choosing \"The customer's side\" below renders that view on its own.' On the bare door https://poesys.net/customers/ (no ?acc=) there is NO wall-view control anywhere on the page -- the .wall-view-btn row only exists once a household drill-down is opened (01_landing.txt contains the sentence at line 16 and no matching control). A reader arriving at the canonical door is told to use a control that is not there.",
+    "finding_key": "coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it": {
+    "adjudicated_at": "2026-08-12T12:03:02.026297+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR, arithmetic-provable, ROOT CAUSE OF THE PAGE'S IMPLAUSIBLE MARGIN. site/customers/index.html:306 renders tile('Lifetime net', gbp(h.lifetime_net_gbp), 'settled clock - after cost-to-serve'). The record's OWN after-cost-to-serve field is a different number: site/data/customer_sample.json C1 has lifetime_net_gbp=492.96 AND lifetime_net_after_cts_gbp=163.03, with cost_to_serve_gbp=329.93; 492.96-329.93=163.03 exactly. The page therefore prints the BEFORE-CTS figure under an AFTER-CTS caption, immediately beside a 'Cost to serve GBP329.93' tile that a reader can subtract. Consequence on the public surface: apparent net margin 492.96/1883.17 = 26.2% instead of the record's 163.03/1883.17 = 8.7%. Household (elec+gas): shown 1241.48/4815.98 = 25.8%, actual after-CTS 581.55/4815.98 = 12.1% = GBP97/household/yr -- which sits INSIDE a veteran COO persona's independently-stated GBP40-120/yr prior. A single wrong caption is what makes the exhibit read as 4-13x more profitable than UK domestic supply can be. Not an R12 tuning question: the underlying figures are fine, the label is wrong.",
+    "finding_key": "coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh": {
+    "adjudicated_at": "2026-08-12T12:03:02.027916+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR but narrow, CONFIRMED AT SOURCE. site/customers/index.html:752 builds the TARIFF RANGE column as r.tariff_min.toFixed(0)+'-'+r.tariff_max.toFixed(0)+' p/MWh', but the underlying fields are tariff_min_gbp_per_mwh / tariff_max_gbp_per_mwh. Rendered live as gas '24-26 p/MWh' and electricity '103-197 p/MWh' (behind__Accounts.txt:155-161) -- a 100x unit mislabel on a public surface. The correct values (GBP24-26/MWh gas = 2.4-2.6p/kWh, GBP103-197/MWh elec = 10.3-19.7p/kWh) are plausible RETAIL tariffs, and the SAME quantity is rendered correctly elsewhere on the page ('Tariff renewed at 128.0 GBP/MWh'). Second, lesser defect in the same table: a retail 'TARIFF RANGE' column sits inside a table headed 'WHOLESALE TRADING MARGIN, YEAR BY YEAR' whose own footnote says the figures are 'the SIM's internal commodity trading margin ... (wholesale-cost accounting)'.",
+    "finding_key": "coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_wall_control_subject_excludes_the_union_of_the_page": {
+    "adjudicated_at": "2026-08-12T12:03:02.025710+00:00",
+    "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
+    "evidence": "MAJOR, R15 WRONG-SUBJECT/WRONG-POPULATION. site/customers/test_wall_exhibit.py is 24/24 GREEN while the live page leaks (finding above). The suite has TWO disjoint subjects and neither is the whole page: fixture `rendered` drives layoutPanels() via _wall_harness.mjs (drill-down only -- the harness docstring states it deliberately avoids renderHousehold and 'keeps the harness out of the login/nav chrome'), and fixture `op_state_html` is a static regex slice of the file's top region. The VIEW-FILTERING assertions (test_the_customer_view_renders_only_customer_panels, test_no_company_only_figure_renders_in_the_customer_eye_view, test_no_sim_only_figure_renders_in_the_customer_eye_view) all take `rendered`; the op-state fixture carries side-DECLARATION assertions only (test_the_op_state_region_declares_a_side_for_every_block, test_the_op_state_money_panels_split_on_the_wall) and never a view assertion. So 'customer view selected => the WHOLE PAGE shows only customer panels' is untested and, live, false. The three mutation tests are real but mutate within these same two subjects, so they cannot catch it either. This is the catalogued failure class 'a new layer above a control must inherit its subject'. THIS BLOCKS exit criteria (1), (3) and (8).",
+    "finding_key": "coldwalk:site2_wall_control_subject_excludes_the_union_of_the_page",
+    "state": "adjudicated-real"
+  },
   "coldwalk:supplier_failure_count_inconsistent_2021_22": {
     "adjudicated_at": "2026-07-12T08:20:42.316913+00:00",
     "adjudicated_by": "claude (second SUNDAY_WIDE cold-walk, CRO persona, 2026-07-12)",
@@ -315,6 +434,76 @@
     "finding_key": "expert_hour:E1_ledger_double_entry",
     "state": "adjudicated-real"
   },
+  "expert_hour:SITE2_two_sided_wall_exhibit:customer_side_claims_a_clean_payment_history_the_page_refutes": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING. The customer-observable money panel renders 'No arrears cases on record -- clean payment history' and FAILED PAYMENTS 0 (both from the electricity ledger). The SIM-ONLY 'REACTION CHAIN -- BILL SHOCK TO OUTCOME' panel on the same page renders, for the same household, 2016-11-15 arrears_payment_missed GBP44, 2016-11-22 'First overdue notice -- GBP43.66 outstanding', 2016-12-06 'Second notice -- payment plan offered', 2016-12-30 arrears_resolved, and a second cascade from 2018-09-15 (/tmp/ce_wall/behind__Timeline.txt:140-160). Two defects at once: (a) the customer-facing claim of a clean record is false against the page's own content; (b) regulated arrears notices that were SENT TO THE CUSTOMER are classified SIM-ONLY -- they are the most customer-observable events on the page. Fails SITE2 exit criterion (3) in the direction the atom did not test for: the named instance list covers company-only and SIM-only figures leaking INTO the customer view, not customer-observable events misfiled as SIM ground truth.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:customer_side_claims_a_clean_payment_history_the_page_refutes",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:displayed_figures_outside_independent_plausibility_anchors": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "MAJOR, plausibility-anchor class (correct-but-implausible-looking is its own finding class). Implied lifetime gross margin per fuel: elec (492.96+329.93)/1883.17 = 43.7%, gas (748.52+330.00)/2932.81 = 36.8%, against a real GB domestic gross margin of roughly 15-20% and an Ofgem cap EBIT allowance near 2%. Forecast Annual Profit GBP374/household/yr against a realised GBP82/yr for this same account. CLV GBP2,741 for electricity beside CLV GBP0 for the same household's gas, unexplained. Separately, the rendered bill series has INVERTED seasonality -- mean monthly electricity consumption peaks in Jul/Aug (162.0 / 163.4 kWh) and troughs in Nov (134.6 kWh) across all six years -- while the page's own Direct Debit explainer three panels above states 'Through summer you use little... through winter you use far more than you pay'. Per R12 these are diagnostics, not targets: the finding is that the surface has no independently-sourced sane-range anchor for margin-per-household, CLV or seasonality, so nothing fires.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:displayed_figures_outside_independent_plausibility_anchors",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:forward_estimates_render_for_an_account_that_churned_in_2021": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING, coherence. The account churned: C1.json timeline carries a 'churned' event and the Billing & Payments tab renders 'Account closed 2021-12-30 -- final bill C1-INV72. Account settled to zero.' The page nonetheless renders, under a header stamp 'data 2026-08-12', CHURN RISK 23% captioned 'Low risk' with a green bar, Expected Lifetime 13.8 yrs, Customer Lifetime Value GBP2,741, Forecast Annual Profit GBP374, PRICING ACTION OK, and 'Customer since 2016-01-01' with no closure date. The closure is disclosed on one tab only, behind a year filter. Compounding: behind__Timeline.txt records the company's actual churn estimate at each of the five renewals as 11%, 9%, 14%, 9%, 5% -- it never approached the headline 23%, which carries no as-at date, and was 5% at the renewal where the customer left.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:forward_estimates_render_for_an_account_that_churned_in_2021",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:household_labelled_money_is_electricity_only": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING. The exhibit is headed 'ONE HOUSEHOLD -- END TO END', declares PRODUCTS 'dual fuel / electricity + gas (dual fuel)', and then sources every money tile from site/data/company.json's household block, which is commodity='electricity' only (billed_gbp 2596.93, invoice_count 72, lifetime_net_gbp 492.96, cost_to_serve_gbp 329.93). The gas half is larger and is silently omitted: C1g lifetime_revenue_gbp 2932.81 vs C1 1883.17, C1g lifetime_net_gbp 748.52 vs C1 492.96. The household is worth GBP1,241.48, the page says GBP492.96 -- a 60% understatement under a 'WHAT THIS HOUSEHOLD IS WORTH TO THE COMPANY' heading, with no fuel qualifier anywhere in the panel. Same root cause produces two contradictory customer-side balances on one page: Overview BALANCE GBP0.00 'square, paid up to date' (C1 elec ledger) vs Risk tab OUTSTANDING BALANCE -GBP24 described as 'the household combined (both fuels) live ledger position' (C1g ledger current_balance_gbp = -24.37).",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:household_labelled_money_is_electricity_only",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:lifetime_net_is_labelled_after_cost_to_serve_and_is_not": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING, same-page reconciliation. site/customers/index.html:306 renders tile('Lifetime net', gbp(h.lifetime_net_gbp), 'settled clock . after cost-to-serve'). The record carries BOTH lifetime_net_gbp=492.96 AND lifetime_net_after_cts_gbp=163.03 (site/data/customer_sample.json C1, site/data/company.json household). The page displays the BEFORE-cost-to-serve figure under an 'after cost-to-serve' caption, immediately beside a COST TO SERVE GBP329.93 tile. 492.96 - 329.93 = 163.03 exactly: the two adjacent tiles visibly fail to reconcile, and the correct value is in the same record under the name the caption uses. Rendered live at /tmp/ce_wall/customer__Overview.txt:66-70.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:lifetime_net_is_labelled_after_cost_to_serve_and_is_not",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:malformed_mpan_on_a_public_surface": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "MINOR but instantly visible to any energy-industry reader. site/data/customers/C1.json renders MPAN top_line '0100201' (7 digits; a real top line is 8 -- profile class 1 + MTC 3 + LLF 3) and bottom_line '14600573552' (11 digits; a real MPAN core is 13). Rendered under a CUSTOMER-OBSERVABLE panel where its whole purpose is verisimilitude.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:malformed_mpan_on_a_public_surface",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:sim_only_trading_margin_is_the_company_only_figure_decomposed": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "MAJOR, attribution. The 'WHOLESALE TRADING MARGIN, YEAR BY YEAR' table is labelled SIM-ONLY. Its Net column for C1 is 104.27+94.68+58.87+89.10+83.34+62.69 = 492.95, which is the COMPANY-ONLY 'Lifetime Net Margin' GBP492.96 to the penny; for C1g it is 109.88+115.22+142.44+156.34+140.85+83.80 = 748.53 vs GBP748.52 (source: site/data/customer_sample.json annual_pnl). The same quantity is attributed to two different sides of the wall on the same page. Independently, a per-household allocation of hedge cost is something a real supplier routinely computes -- labelling it SIM-only OVER-claims the wall, which the atom's exit criteria never test for (they test leakage in one direction only).",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:sim_only_trading_margin_is_the_company_only_figure_decomposed",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:the_control_is_green_because_its_subject_excludes_the_failure": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING, R15 wrong-subject. site/customers/test_wall_exhibit.py is 24/24 green while the live page contradicts its own rendered claim, because the control is split across two disjoint subjects and neither is the whole page. The `rendered` fixture drives _wall_harness.mjs, which by its own docstring 'deliberately calls layoutPanels(tabPanels()) rather than renderHousehold()' -- so every view-filtering assertion (test_the_customer_view_renders_only_customer_panels, test_no_company_only_figure_renders_in_the_customer_eye_view, test_the_behind_the_wall_view_excludes_the_customer_side) can only ever see drill-down panels. The `op_state_html` fixture extracts the static top region from the file and asserts side-DECLARATION only (test_the_op_state_region_declares_a_side_for_every_block, test_the_op_state_money_panels_split_on_the_wall) -- it never asserts view FILTERING, because static HTML has no view. The union assertion 'with view=customer, the WHOLE PAGE contains only customer panels' is unwritten and unwritable against either fixture. The three mutation tests inherit the same blind spot: all three mutate declaration, none mutates filtering scope. Fails SITE2 exit criterion (8) in substance -- the mutations prove the control fires on the defect it was written for, not on the one the page actually has.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:the_control_is_green_because_its_subject_excludes_the_failure",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:unit_errors_and_units_on_the_wrong_side_of_the_wall": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "MAJOR. (a) 100x unit error, published: site/customers/index.html:752 renders tariff_min.toFixed(0)+'-'+tariff_max.toFixed(0)+' p/MWh' from tariff_min_gbp_per_mwh / tariff_max_gbp_per_mwh -- so GBP92.16-175.95/MWh renders as '92-176 p/MWh'. The same page renders the same quantity correctly as 'GBP/MWh' in the timeline. (b) index.html:937 renders expected_lifetime_periods.toFixed(1)+' yrs' -- a field named 'periods' asserted as years, and 13.8 years is arithmetically incompatible with the 23% annual churn hazard shown beside it (23% implies ~4.3 years; 13.8 years implies ~7%). (c) 'Tariff renewed at 128.0 GBP/MWh (electricity)' renders inside the CUSTOMER'S SIDE view (/tmp/ce_wall/customer__Timeline.txt:125) -- a wholesale trading unit no GB domestic account holder is ever shown, in the view that claims to be 'the same set of figures Poesys's actual portal renders'.",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:unit_errors_and_units_on_the_wrong_side_of_the_wall",
+    "state": "open-confirmed-defect"
+  },
+  "expert_hour:SITE2_two_sided_wall_exhibit:view_switch_does_not_govern_the_op_state_block": {
+    "adjudicated_at": "2026-08-12T12:03:23.931150+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk skill, SITE2 HARDEN-stage Expert Hour, 2026-08-12; three blindfolded persona forks + orchestrator live-render pass. independence: false -- same model family as the builder, blindness only)",
+    "evidence": "BLOCKING. The wall-view switch is scoped to the drill-down only. site/customers/index.html:457 `setWallView(v){WALL_VIEW=v;renderHousehold();}` and the wallSideVisible() filter at :472-473 live inside layoutPanels(); the static #op-state region (:192-) is never re-rendered or filtered. LIVE EVIDENCE (R11, https://poesys.net/customers/?acc=C1, 2026-08-12): with 'The customer's side' active, getBoundingClientRect + getComputedStyle report data-wall-side=company and data-wall-side=sim panels display:block, visible:true -- LIFETIME NET GBP492.96, COST TO SERVE GBP329.93, CHURN RISK 23%, SATISFACTION 65% all on screen (screenshot /tmp/ce_wall/PROOF_customer_view_leak.png; innerText capture /tmp/ce_wall/customer__Overview.txt lines 65-83, and innerText excludes hidden nodes). The same view prints its own pass/fail criterion: 'No company estimate and no simulation ground truth is in this view; if one appears, the page is broken.' The inverse holds in 'Behind the wall' (customer-observable panels persist, /tmp/ce_wall/behind__Overview.txt:19,48,85). The page header also promises \"Choosing 'The customer's side' below renders that view on its own\" while the switch does not exist at all until a household is opened (/tmp/ce_wall/01_landing.txt has no wall-view buttons). Fails SITE2 exit criterion (2) and (3).",
+    "finding_key": "expert_hour:SITE2_two_sided_wall_exhibit:view_switch_does_not_govern_the_op_state_block",
+    "state": "open-confirmed-defect"
+  },
   "expert_hour:W3_1_price_cap_binding": {
     "adjudicated_at": "2026-07-11T11:05:19.655523+00:00",
     "adjudicated_by": "claude-harden-sweep-2026-07-11",
@@ -349,6 +538,13 @@
     "evidence": "C1g (gas, resi) average unit rate 42.6 GBP/MWh in 2019 vs plausible band [10.4, 39.0] (~9% over). Investigated further (2026-07-11, spike item 2): the raw commodity_amount_gbp/consumption ratio shows a smooth, genuinely seasonal-looking pattern -- 39.5 GBP/MWh in Jan, rising steadily to a 56.3 GBP/MWh peak in Jul/Aug (low-consumption summer months), falling back to 39.9 by Dec. basis_risk_terms shows this customer term-started 2018-12-31 with a sim_fwd (hedge) price of only ~22.6 GBP/MWh -- well below the billed rate range throughout, consistent with margin/markup, but does not explain WHY the per-kWh commodity rate itself drifts ~43% across the year on what basis-risk data suggests is a fixed-term contract (a genuinely fixed rate should not drift monthly). Could not conclusively separate two real possibilities without deeper investigation: (a) a real UK gas billing quirk (AQ-based estimated billing with periodic wholesale-passthrough reconciliation genuinely can produce monthly rate drift even under a nominally fixed tariff), or (b) a genuine defect in how the gas commodity charge is computed. Left open rather than force a verdict -- registered as a concrete follow-up: trace saas/bill_generator.py / simulation gas billing path for this specific customer-term to determine which. RESOLVED (2026-07-11, standing-charge double-count fix): traced to a real defect, not a billing quirk -- possibility (b) from this finding's own open text. simulation/hedged_settlement.py / gas_settlement.py fold a real, year-calibrated, Ofgem-sourced standing charge into revenue_gbp (deliberate, tested); saas/bill_generator.py independently re-added a second, flat, non-year-varying standing charge on top -- so commodity_amount_gbp/consumption (this finding's own diagnostic ratio) included a per-day-fixed component, which inflates the apparent rate in low-consumption months exactly as this finding's own evidence described (the fixed \u00a3/day component matters more per kWh when kWh is low) -- confirming the 'shared root mechanism across both commodities' suspicion this finding and the C4:2024 finding both independently raised. Fixed: bill_generator.py now sources the standing charge from the settlement records' own field and subtracts it out of commodity_amount_gbp, so the ratio is genuinely pure commodity rate. Verified via 3 new real-settlement integration tests (not synthetic fixtures -- that gap was why this shipped uncaught), 1571+37 regression tests pass, epistemic PASS. Same fix also closed a related I&C fallback bug (I&C silently charged a resi-rate standing charge it should never have had). Quantified impact on the current run: ~\u00a314,105.77 ex-VAT over-billed across 1,588 bills (resi \u00a38,126, SME \u00a32,610, I&C \u00a33,370 -- the entire I&C figure should have been zero); ledger net_margin_gbp ~-0.22%. Board headline figures (settlement-derived, SC folded in correctly once) were NOT affected -- only the bill-driven ledger P&L and customer-facing invoice totals. sim_runner is running continuously; the next natural cycle regenerates corrected figures, no manual re-run forced.",
     "finding_key": "population:unit_rate_vs_cap_band:C1g:2019",
     "state": "adjudicated-real"
+  },
+  "population:unit_rate_vs_cap_band:C2g:2022": {
+    "adjudicated_at": "2026-08-03T13:19:47.410150+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C2g (gas, resi) average unit rate 36.5 GBP/MWh in 2022 is implausible against the Ofgem-cap-derived band for that year",
+    "finding_key": "population:unit_rate_vs_cap_band:C2g:2022",
+    "state": "open"
   },
   "population:unit_rate_vs_cap_band:C4:2024": {
     "adjudicated_at": "2026-07-11T17:45:23.214393+00:00",

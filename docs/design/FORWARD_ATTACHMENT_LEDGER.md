@@ -112,6 +112,6 @@ _epoch 2 · lane C_customer_ops · L0→L3 · idle_
 
 ## OPS2_publish_gate_head_worktree
 **The HEAD-checkout publish gate gets a real lifecycle**  
-_epoch 3 · lane H_harness · L0→L2 · build_
+_epoch 3 · lane H_harness · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` (finding) — the gate's subject is now HEAD, so the only

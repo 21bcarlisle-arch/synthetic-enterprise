@@ -1,34 +1,34 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow"><title>Project Status - Synthetic Enterprise</title><style>:root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;--blue:#2a78d6;--teal:#1baf7a}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;background:var(--bg);color:var(--text);margin:0;padding:0;font-size:14px;line-height:1.5}.site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border)}.nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px}.nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px}.nav-link:hover{color:var(--text)}.nav-link.active{color:var(--blue);font-weight:600}.container{max-width:1100px;margin:0 auto;padding:32px 24px}h1,h2{color:var(--text)}h1{font-size:1.5rem;font-weight:700;margin-bottom:4px}h2{font-size:1rem;font-weight:600;margin:32px 0 14px}table{border-collapse:collapse;width:100%;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}th{background:var(--surface2);color:var(--muted);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:none}tr:hover td{background:var(--surface2)}.pos{color:var(--green)}.neg{color:var(--red)}.meta{color:var(--muted);font-size:0.85em;margin-bottom:16px}pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;color:var(--text);white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:var(--muted)}dd{margin:0}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}.kpi-card .kpi-value{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;color:var(--text)}.kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:6px}.rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;border:1px solid currentColor}.rag-green{background:rgba(12,163,12,0.12);color:var(--green)}.rag-amber{background:rgba(250,178,25,0.18);color:#95720f}.rag-red{background:rgba(208,59,59,0.12);color:var(--red)}.btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--text)}.btn:hover{background:var(--surface2)}</style></head><body><nav class="site-nav"><a href="/shadow/" class="nav-logo">&#9889; Poesys</a><a href="/shadow/" class="nav-link">Overview</a><a href="/shadow/customers/" class="nav-link">Customers</a><a href="/shadow/supplier/" class="nav-link">Supplier</a><a href="/shadow/sim/" class="nav-link">Sim</a><a href="/shadow/project/" class="nav-link active">Project</a><a href="/" class="nav-link" style="margin-left:auto">Live site</a></nav><div class="container"><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>RX</dd><dt>Test Count</dt><dd>24845</dd><dt>Company Modules</dt><dd>487</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre>## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T09:29:35Z
+Last updated: 2026-08-12T10:55:25Z
 
-**OPS9 — EVERY FINDING IN THE STAGING ROOT NOW CARRIES A MACHINE-READABLE SEVERITY (this commit).**
-Deliverable 1 of `DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`. `background/
-finding_severity.py` reads one header line — `**Severity:** X · **Lane:** Y` — and returns the value
-**with its lane**, because clause 2's refusal is lane-scoped and a lane-less severity cannot be acted
-on. The pass is done and counted **from the filesystem**, never a hand-kept list: **122 documents,
-0 UNCLASSIFIED — 35 BLOCKING / 73 LATENT / 14 RECORDED**. Blockers by lane: `H_harness` **29**,
-`C_customer_ops` 2, `D_billing_metering` 1, `E_finance_treasury` 1, `W2_customer_generator` 1,
-`W4_the_wall` 1 — the ruling's own family count (controls that cannot fail; measurements that mirror
-their subject) showing up as a lane concentration. **FAIL-CLOSED everywhere**: absent, prose,
-lane-less, unknown-lane and unreadable all read `UNCLASSIFIED` and are surfaced, never defaulted to
-`LATENT` — the fail-open shape R15 names and the anti-pattern clause 2 forbids. The by-construction
-rule is **checkable, not merely written**: `--by-construction` names any non-BLOCKING doc whose own
-text says an instrument, a control or a published figure is wrong; **0** after this pass, and it
-stands down only on clause 2's own discharges appearing in the header block a reader actually meets.
-**R15 both ways**, each mutation loaded from a *copy* of the module: missing-header→`LATENT` kills
-`test_a_missing_header_reads_unclassified_never_latent`; lane-dropped kills
-`test_the_parse_returns_the_lane_beside_the_severity`; clean input passes under both. 19 named tests.
-**Level 0→2 = target**, self-certified in `gate_authorizations.jsonl`. **Nothing refuses anything
-yet** — `OPS11` (lane-scoped level refusal) and `OPS12` (blocker-first draw) are the consumers, both
-minted, both `depends_on` this atom; the orphan ratchet is frozen on one line saying exactly that.
-
-**D36 — THE PRINTED BILL FOOTS ON ITS FACE, IN PENCE, WITH ITS CATCH-UP LINE SHOWN (this commit).**
-Part 1 of `DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12`, render-layer only. Bill
-**C1g-INV141** printed four charge lines totalling ~£26 above a total of **-£2**, with nothing on
-the page explaining the sign — and **every control was right to pass it**: the record carries a
-fifth component (`catchup_adjustment_gbp = -28.40`), `BILL_FOOTS` sums it, `PRINTED_BILL_FOOTS_
-EXACTLY` checks the ledger. The **renderer** kept its own line-up — usage, standing, network, VAT —
-which was the invariant's footing set **minus the component that decides the sign**, and printed
-every figure through `gbp()`, the **portfolio** formatter that rounds to whole pounds. So the class
-is not "the bill does not foot" but *"the bill does not foot AS PRINTED, and every check reads the
-record"*. Now `billEquationHtml()` **and** `downloadB</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-12T09:37:25Z | Run 5428e3b79956de4ff311491621e7ad06b89e310a | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
+**H27 — A VALUE TEST DECIDED WHOSE RENDER THE DOOR WAS (this commit).** The TWENTY-FIRST Expert
+Hour on `H27_payment_belief_gap`; the level stays 2 for the twenty-first consecutive Hour.
+`has_door_carrier` admitted a dimension to the Proof door's surface only where its carrier
+**EQUALLED the panel row's value** — a VALUE test doing PROVENANCE work, the exact shape Hour #19
+named for `cross_attributed` and then left standing in the gate one level up. **The two
+consequences point opposite ways**, which is why neither read as a wrong number: it EXCLUDED the
+four companion figures from a surface that demonstrably renders them (the panel prints the composed
+note verbatim, and every companion's own renderer's digits are in it), and it would have handed the
+**whole panel** — `fmtGap`'s 3dp and every 4dp numeric component — to any companion that happened to
+equal the headline. Measured: the headline passes the restored value gate and `belief_population_mix`
+does not, while **the row's own value passes it**, so a companion made equal on both books is
+admitted to `gap-val` and `components` outright — clean today on a coincidence. **The door is not
+one surface**: its row is now four regions with four provenances (`gap-val` = the ledger CARRIER at
+3dp, owned by the dimension the composer handed the ledger writer; `note` = the verbatim composed
+note, owned by each figure in turn; `components` = `fmtComponent`/`flattenNumbers` at 4dp;
+`basis`), split off the html the page produced and keyed by the door's OWN class attributes — a
+door that grows a fifth region **fails the walk** rather than rendering a figure into a surface
+nobody searches. **The headline is now answered by IDENTITY at the composer's seam** (the
+`GapResult` object matched with `is`), never by comparing floats; an unresolved provenance owns
+nothing and cross-attributes everywhere. All five figures now declared where they are in fact
+rendered (ageing `note`@3, belief @4, mix @4, detection `gap-val`@3 **and** `note`@4, latency @2),
+and the renderer→note→door verbatim seam is asserted at **every precision**, not just the note's
+first 60 characters. `components` is now a searched surface that renders none of the five today —
+a measurement rather than an absence of one. **R12: no published figure moved** —
+`published_reading_decimals` unchanged, no epsilon touched, `check_reader_render_sites` empty on the
+shipped walk. **R15: five source mutations, each firing its own named test.** 440 passed on the atom
+(was 433); 332 passed across the 16 other gate-selected suites; ruff 5→4 pre-existing findings on
+these two files, none added. **Two findings filed, not fixed on sight** (SELF_INTERRUPT_DISCIPLINE):
+this Hour's own seam mutation was patching the module attribute its spy also wraps, so it proved
+nothing and died on an absent ledger file — repaired to mutate the call site, and the sibling
+c</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-12T10:58:51Z | Run c0b91f88edbdb80a2f5c7d83444a0891705483e7 | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
