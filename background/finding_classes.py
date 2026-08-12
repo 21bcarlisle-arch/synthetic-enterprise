@@ -673,7 +673,7 @@ def room_collisions(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[str, 
 
 
 def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
-    """Re-derive membership and verify the four things that can silently rot.
+    """Re-derive membership and verify the six things that can silently rot.
 
     1. Every live finding maps to AT MOST ONE class or to unclassed (exit criterion 3).
     2. Every live finding that belongs to a class is listed in that class's document —
@@ -688,6 +688,21 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
        subject widened from "names a class document lists" to "files in the rooms",
        because the resurrection that cost a rung-1c draw was of a document no class
        document has ever named.
+    6. The severity PRINTED in each class document still equals `class_severity` over
+       its instances — the release valve, and the one rule here that can lower a
+       severity rather than raise one.
+
+    WHY 6 EXISTS. `render_class_document` derives severity correctly, so the printed
+    header is right the moment it is written and never again. OPS9's discharge (a
+    `**Discharged:**` header, filesystem-checked) reads a member down to RECORDED, which
+    is how a blocker is meant to be released; but a consolidated member lives in the
+    ARCHIVE, and nothing re-reads the class document after it changes. Discharge every
+    blocking member of a class and the class document goes on printing BLOCKING, `check()`
+    goes on passing, and `_blocking_lane_draw` goes on freezing the lane off a header no
+    control any longer stands behind. Rules 1-5 could each only ever ADD an obligation, so
+    a lane's blocker set could only grow — the same shape as the defect the discharge
+    header was built to fix, one layer up, which is where a new layer above a control
+    inherits the control's subject and not its release.
     """
     root = Path(root)
     archive = root / ARCHIVE_DIRNAME
@@ -714,6 +729,24 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
             result.failures.append(f"MISSING CLASS DOC {finding_class.document_name}")
             continue
         text = doc.read_text(encoding="utf-8", errors="replace")
+
+        instances = derive_memberships(root)[finding_class.id].instance_paths(root)
+        if instances:
+            # An EMPTY class is a stub, not a defect: `_write_class_documents` renders a
+            # document for every declared class, and one nobody has filed against has no
+            # severity to derive. The vanished-archive case is not silently agreed with
+            # either — `instance_paths` still yields the missing paths, which read as
+            # unreadable, which `class_severity` ranks BLOCKING, and rule 3 names the
+            # files. Only a class with something to derive from is compared.
+            printed_severity = parse_severity_file(doc).severity
+            derived, _parsed = class_severity(instances)
+            if printed_severity != derived:
+                result.failures.append(
+                    f"STALE SEVERITY {finding_class.document_name}: prints "
+                    f"{printed_severity}, instances derive {derived} — re-render "
+                    "(`--render`); a discharged member does not release the class "
+                    "document until the header is rewritten"
+                )
 
         listed = _INSTANCE_LINE_RE.findall(text)
         printed = _PRINTED_COUNT_RE.search(text)

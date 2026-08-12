@@ -505,3 +505,178 @@ def test_mutation_e_narrowing_the_population_to_listed_instances_kills_those_tes
     assert fc.room_collisions(root), "the real module must see this collision"
     assert mutant.room_collisions(root) == [], "mutant should be blind to the parked room"
     assert not any(f.startswith("TWO ROOMS") for f in mutant.check(root).failures)
+
+
+# --- rule 6: the printed severity is re-derived, so a discharge can RELEASE a class ---
+#
+# The release valve. Rules 1-5 can each only ADD an obligation; without this one a class
+# document's severity is written once at render and never re-read, so discharging every
+# blocking member leaves the header printing BLOCKING, `check()` passing, and
+# `_blocking_lane_draw` freezing the lane off a claim no control still stands behind.
+
+#: A real, stable test node used as discharge evidence. OPS9's discharge is checked
+#: against the filesystem relative to the REPO root (not tmp_path), so a fixture cannot
+#: invent one. Asserted below rather than assumed: a discharge naming a node that stopped
+#: existing would be REFUSED, the member would stay BLOCKING, and these tests would fail
+#: for a reason that has nothing to do with what they are about.
+_REAL_NODE = "tests/background/test_finding_classes.py::test_check_passes_on_a_completed_consolidation"
+
+
+def _discharge(path: Path) -> None:
+    """Write a VALID `**Discharged:**` header onto an already-archived member."""
+    text = path.read_text(encoding="utf-8")
+    assert "## Observed" in text
+    path.write_text(
+        text.replace(
+            "## Observed",
+            f"**Discharged:** `{_REAL_NODE}` — repaired, falsifier named.\n\n## Observed",
+        ),
+        encoding="utf-8",
+    )
+
+
+def _consolidated_wedge_class(tmp_path: Path) -> tuple[Path, Path]:
+    """A completed consolidation of one BLOCKING and one LATENT wedge finding.
+
+    Returns (root, archived path of the BLOCKING member).
+    """
+    root = _root(tmp_path)
+    _doc(root, "WORKER_FINDING_THE_WEDGE_GATE_IS_RED_2026-08-12.md",
+         "the publish gate wedge", severity="BLOCKING")
+    _doc(root, "WORKER_FINDING_ANOTHER_WEDGE_PUBLISH_GATE_2026-08-12.md",
+         "another publish gate wedge", severity="LATENT")
+    _consolidate(root)
+    blocker = (root / fc.ARCHIVE_DIRNAME
+               / "WORKER_FINDING_THE_WEDGE_GATE_IS_RED_2026-08-12.md")
+    assert blocker.exists(), "fixture did not archive the blocking member"
+    return root, blocker
+
+
+def test_the_discharge_evidence_this_fixture_relies_on_actually_exists():
+    """Guards the fixture, not the module: an unchecked discharge is refused, which would
+    make the tests below fail for an unrelated reason."""
+    rel, _, node = _REAL_NODE.partition("::")
+    source = (REPO / rel)
+    assert source.exists(), f"{rel} no longer exists"
+    assert f"def {node}(" in source.read_text(encoding="utf-8"), f"{node} no longer defined"
+
+
+def test_a_consolidated_class_starts_green_and_prints_its_members_severity(tmp_path):
+    """NOT-ALWAYS-RED. A completed consolidation passes rule 6, and the header it prints
+    is the maximum over its members — so the red cases below mean something."""
+    root, _blocker = _consolidated_wedge_class(tmp_path)
+    doc = root / "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+
+    assert fc.parse_severity_file(doc).severity == fc.BLOCKING
+    result = fc.check(root)
+    assert result.ok, result.failures
+
+
+def test_an_empty_class_document_is_a_stub_not_a_stale_severity(tmp_path):
+    """A class nobody has filed against has no severity to derive. Rendering writes a
+    document for every declared class, so treating an empty one as unbacked would fail
+    the live tree on four stubs."""
+    root, _blocker = _consolidated_wedge_class(tmp_path)
+    empty = [c for c in fc.CLASSES if c.id != "publish_gate_and_wedge"]
+    assert empty, "fixture assumes more than one declared class"
+    for finding_class in empty:
+        doc = root / finding_class.document_name
+        assert doc.exists(), f"{finding_class.document_name} was not rendered"
+        assert fc._INSTANCE_LINE_RE.findall(doc.read_text(encoding="utf-8")) == []
+
+    assert fc.check(root).ok
+
+
+def test_discharging_the_last_blocking_member_makes_the_printed_severity_stale(tmp_path):
+    """THE FALSIFIER. Discharge the only BLOCKING member of a consolidated class and the
+    class document goes on printing BLOCKING while its instances now derive LATENT. Before
+    rule 6 this state passed `check()` with zero failures, and the lane stayed frozen."""
+    root, blocker = _consolidated_wedge_class(tmp_path)
+    doc = root / "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    _discharge(blocker)
+
+    assert fc.parse_severity_file(blocker).severity == fc.RECORDED, (
+        "the discharge was refused — the fixture's evidence is not valid"
+    )
+    instances = fc.derive_memberships(root)["publish_gate_and_wedge"].instance_paths(root)
+    assert fc.class_severity(instances)[0] == fc.LATENT
+    assert fc.parse_severity_file(doc).severity == fc.BLOCKING, "header should still be stale"
+
+    failures = fc.check(root).failures
+    assert any(f.startswith("STALE SEVERITY") for f in failures), failures
+    assert any("prints BLOCKING" in f and "derive LATENT" in f for f in failures), failures
+
+
+def test_re_rendering_releases_the_class_document_and_the_lane(tmp_path):
+    """R11, no orphan transitions: the release must have a tested EFFECT. After the
+    discharge and a re-render the class document prints LATENT, `check()` is green, and
+    `blocking_by_lane` no longer holds the class document against H_harness."""
+    from background.finding_severity import blocking_by_lane, scan_staging_root
+
+    root, blocker = _consolidated_wedge_class(tmp_path)
+    doc = root / "CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    assert doc.name in {
+        p.path.name for p in blocking_by_lane(scan_staging_root(root)).get("H_harness", [])
+    }, "the class document should start out blocking its lane"
+
+    _discharge(blocker)
+    fc._write_class_documents(root)
+
+    assert fc.parse_severity_file(doc).severity == fc.LATENT
+    assert fc.check(root).ok, fc.check(root).failures
+    assert doc.name not in {
+        p.path.name for p in blocking_by_lane(scan_staging_root(root)).get("H_harness", [])
+    }, "a released class document must stop blocking its lane"
+
+
+def test_mutation_f_dropping_the_severity_comparison_kills_that_test(tmp_path):
+    """MUTATION F — SILENT REMOVAL. The shipped state: nothing re-derives the header."""
+    mutant = _load_mutant(
+        tmp_path,
+        "if printed_severity != derived:",
+        "if False:",
+        "fc_mutant_f",
+    )
+    root, blocker = _consolidated_wedge_class(tmp_path)
+    _discharge(blocker)
+
+    assert any(f.startswith("STALE SEVERITY") for f in fc.check(root).failures)
+    assert not any(f.startswith("STALE SEVERITY") for f in mutant.check(root).failures)
+    assert mutant.check(root).ok, "the mutant reproduces the defect: stale header, PASS"
+
+
+def test_mutation_g_comparing_only_upward_kills_that_test(tmp_path):
+    """MUTATION G — FAIL-OPEN, and the subtle one. Fire only when the instances derive a
+    HIGHER severity than the header prints. Escalation still works, so the rule looks
+    alive and its other tests stay green; but a RELEASE is silently dropped, which is the
+    exact 'a lane's blocker set can only grow' defect one layer up."""
+    mutant = _load_mutant(
+        tmp_path,
+        "if printed_severity != derived:",
+        "if _SEVERITY_RANK.get(derived, 2) > _SEVERITY_RANK.get(printed_severity, 2):",
+        "fc_mutant_g",
+    )
+    root, blocker = _consolidated_wedge_class(tmp_path)
+    _discharge(blocker)
+
+    assert any(f.startswith("STALE SEVERITY") for f in fc.check(root).failures)
+    assert not any(f.startswith("STALE SEVERITY") for f in mutant.check(root).failures)
+    assert mutant.check(root).ok, "the mutant lets a release rot while escalation works"
+
+
+def test_mutation_h_deriving_the_printed_severity_kills_that_test(tmp_path):
+    """MUTATION H — TAUTOLOGY. Read the 'printed' severity from the instances instead of
+    from the rendered document. The comparison then holds both sides from one source and
+    can never fail, which is R15's first killer pattern."""
+    mutant = _load_mutant(
+        tmp_path,
+        "printed_severity = parse_severity_file(doc).severity",
+        "printed_severity = class_severity(instances)[0]",
+        "fc_mutant_h",
+    )
+    root, blocker = _consolidated_wedge_class(tmp_path)
+    _discharge(blocker)
+
+    assert any(f.startswith("STALE SEVERITY") for f in fc.check(root).failures)
+    assert not any(f.startswith("STALE SEVERITY") for f in mutant.check(root).failures)
+    assert mutant.check(root).ok, "a tautological comparison cannot fail"
