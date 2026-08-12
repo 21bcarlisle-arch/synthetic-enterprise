@@ -1,32 +1,30 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T16:05:15Z",
+    "checked_at": "2026-08-12T18:00:21Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
-      "FAILED tests/company/test_phase_ob_settlement_reconciliation.py::TestRAGThresholds::test_zero_monthly_revenue_is_green",
+      "FAILED tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds",
+      "FAILED tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned",
       "FAILED tests/tools/test_map_assertion_provenance.py::test_the_population_is_derived_from_the_store_not_hand_typed",
       "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record"
     ],
-    "nonblocking_reds_total": 6,
-    "open_findings": 57
+    "nonblocking_reds_total": 4,
+    "open_findings": 54
   },
   "last_verified": {
-    "generated_at": "2026-08-12T17:34:52Z",
-    "git_commit": "62818325d",
-    "run_id": "run_output_62818325d_20260812T170601Z.json",
-    "verified_at": "2026-08-12T17:34:52Z"
+    "generated_at": "2026-08-12T18:31:03Z",
+    "git_commit": "bfd97592c",
+    "run_id": "run_output_bfd97592c_20260812T180121Z.json",
+    "verified_at": "2026-08-12T18:31:03Z"
   },
   "paused_reason": "scoped publish-path suite red at git=3e80712ef; blocking tests: FAILED tests/company/test_phase_ob_settlement_reconciliation.py::TestRAGThresholds::test_zero_monthly_revenue_is_green",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-12T17:34:52Z",
-    "git_commit": "62818325d",
-    "run_id": "run_output_62818325d_20260812T170601Z.json",
-    "verified_at": "2026-08-12T17:34:52Z"
+    "generated_at": "2026-08-12T18:31:03Z",
+    "git_commit": "bfd97592c",
+    "run_id": "run_output_bfd97592c_20260812T180121Z.json",
+    "verified_at": "2026-08-12T18:31:03Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-12T17:34:52Z"
+  "written_at": "2026-08-12T18:31:03Z"
 }
