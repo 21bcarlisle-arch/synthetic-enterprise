@@ -136,9 +136,32 @@ def test_run_fast_tests_emits_the_marker_deselection(tmp_path, monkeypatch):
 
     # The gate's subject is a clean HEAD checkout now (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT):
     # stub the checkout so this test keeps its own subject -- the marker deselection in argv.
+    #
+    # THE STUB ROOT MUST BE REPO-SHAPED (2026-08-12, the seventeenth wedge -- and this test IS
+    # the wedge). An empty directory was enough when an unresolvable scope merely widened to
+    # the full suite. It stopped being enough at 9fbb4dd33, which taught the resolver to tell
+    # a root that is not this repo from a declaration that has rotted, and made the first of
+    # those a REFUSAL: `_run_gate_in` returns `_checkout_unavailable_verdict()` before argv is
+    # ever built. So this fixture began supplying the exact condition the new control names,
+    # the gate correctly declined to run, and the assertion below could no longer be reached
+    # by any behaviour of the code it is about -- a green control landed, and its sibling's
+    # fixture reddened HEAD for ~60h of publishing.
+    #
+    # Materialised FROM the declaration rather than hand-typed, so a source added to or moved
+    # within PUBLISH_PATH_SOURCES cannot silently return this test to the absent-root branch.
+    # The marker directory (`tests/`) is created too, and deliberately named from the module's
+    # own constant for the same reason.
     import contextlib as _ctx
+
+    from background.publish_scope import PUBLISH_PATH_SOURCES, ROOT_REPO_MARKER
+
     head = tmp_path / "head"
     head.mkdir(exist_ok=True)
+    (head / ROOT_REPO_MARKER).mkdir(exist_ok=True)
+    for source in PUBLISH_PATH_SOURCES:
+        target = head / source
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("# stub of a declared publish-path source\n")
 
     @_ctx.contextmanager
     def _fake_checkout():
