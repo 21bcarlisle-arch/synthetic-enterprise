@@ -4812,13 +4812,25 @@ def test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     inconclusive = [c for c in caveats if c.startswith("MIRROR INCONCLUSIVE")]
     assert len(inconclusive) == 1, caveats
-    # The sentence must quote the raw pair, not the ratio: a share whose numbers are
-    # not printed is not auditable by the reader it is addressed to.
-    assert f"{verdict.epc_register_mae:.6f}" in inconclusive[0]
-    assert f"{verdict.panel_mirror_register_mae:.6f}" in inconclusive[0]
-    # ...and the per-premise disturbance, which is the number the gate actually
-    # reads. The mean PAIR above is the thing that understated it.
-    assert f"{verdict.panel_mirror_register_mad:.6f}" in inconclusive[0]
+    # WHICH SENTENCE CARRIES THE RAW PAIR, AND WHY IT MOVED (2026-08-12, TWELFTH
+    # Hour). This reading no longer refuses anything — see
+    # `panel_mirror_register_bluntness` — so it is no longer a ground quoted inside
+    # MIRROR INCONCLUSIVE. The row here is STILL not attributable, by the money
+    # channel, in GBP; the disturbance is disclosed in its own sentence. What has not
+    # changed, and is what this assertion was always for, is that the share is quoted
+    # with the numbers it is a share OF: a figure whose raw pair is not printed is not
+    # auditable by the reader it is addressed to.
+    disclosure = [c for c in caveats if c.startswith("STOCK COARSE FOR THIS MIRROR")]
+    assert len(disclosure) == 1, caveats
+    assert f"{verdict.epc_register_mae:.6f}" in disclosure[0]
+    assert f"{verdict.panel_mirror_register_mae:.6f}" in disclosure[0]
+    # ...and the per-premise disturbance, which is the number the reading actually
+    # is. The mean PAIR above is the thing that understated it.
+    assert f"{verdict.panel_mirror_register_mad:.6f}" in disclosure[0]
+    # ...and the ground for the refusal that DID happen is the money channel, named
+    # in its own unit rather than in kW/K.
+    assert verdict.panel_mirror_register_channel == "attributable"
+    assert verdict.panel_mirror_weight_artefact_resolution != "attributable"
 
 
 def _wrongly_reflected(monkeypatch, wrong_ids):
@@ -4938,32 +4950,44 @@ def test_the_LEVEL_BRANCHS_TOLERANCE_IS_A_NOISE_FLOOR_AND_NOT_A_FIDELITY_BAND():
     assert breached.panel_mirror_register_channel == "unattributable"
 
 
-def test_the_FALLBACK_BRANCH_KEEPS_THE_MEAN_because_the_WORST_would_be_ALWAYS_RED():
-    """The other half of the branch split, and the half that stops this repair being
-    a new defect.
+def test_the_FALLBACK_BRANCHS_ABSOLUTE_SHAPE_IS_ALWAYS_RED_and_the_MEAN_NO_LONGER_GATES():
+    """The other half of the branch split — the ninth Hour's reading, PRESERVED, and
+    the conclusion it was used for, WITHDRAWN (2026-08-12, twelfth Hour).
 
     The log-preserving fallback does NOT promise the register arm's absolute error
-    back — it preserves the RATIO error, so every premise moves by construction.
-    There the question is how blunt the instrument is, which is a mean; auditing that
-    branch at its worst violation would refuse the instrument for behaving exactly as
-    designed, which is an always-red control and this project has found three of them
-    in these controls already.
+    back — it preserves the RATIO error, so every premise moves by construction, and
+    auditing THAT at its worst violation would refuse the instrument for behaving
+    exactly as designed. Still true, still asserted below.
+
+    What the ninth Hour concluded from it — therefore the branch keeps the MEAN —
+    does not follow, and two Hours have now measured why. The eleventh: the branch's
+    own promise HAS a worst-case shape and it is not always-red, so the dilemma was
+    an artefact of the unit. The twelfth: the mean is not a reading of the mirror at
+    all, so it cannot be what a fidelity gate falls back to. It is DISCLOSED here,
+    and the channel is decided by the promise.
     """
     rows = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
-    # Every premise is disturbed on this branch — the worst-case shape would refuse
-    # every fallback panel ever produced.
+    # Every premise is disturbed on this branch — the worst-case shape ON THE
+    # ABSOLUTE ERROR would refuse every fallback panel ever produced.
     assert verdict.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
     assert verdict.panel_mirror_register_breaching_premises >= 1
-    # ...and the branch is judged by the MEAN, which is what it was before.
-    assert verdict.panel_mirror_register_channel == "unattributable"
+    # ...and so, on this branch, would the mean: it reads above the band here.
     assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+    # ...but the promise this branch MAKES is kept, so the channel certifies and the
+    # mean is published as a statement about the stock instead of a refusal.
+    assert (
+        verdict.panel_mirror_register_ratio_worst_breach
+        <= fgl.REGISTER_PRESERVATION_TOLERANCE
+    )
+    assert verdict.panel_mirror_register_refusal == ""
+    assert verdict.panel_mirror_register_channel == "attributable"
+    assert verdict.panel_mirror_register_bluntness == "blunt"
     # PROVEN BOTH WAYS ON THIS BRANCH: a fallback panel whose register error the log
-    # form barely moves is still certified, so the fallback branch is not always-red
-    # either. A register accurate to ~1% with one rogue certificate forcing the
-    # fallback — real (a well-surveyed stock with one certificate lodged for another
-    # dwelling), and the case where the worst-case shape would have been fatal.
+    # form barely moves discloses nothing, so the disclosure is not always-on either.
+    # A register accurate to ~1% with one rogue certificate forcing the fallback —
+    # real (a well-surveyed stock with one certificate lodged for another dwelling).
     gentle = _infeasible_reflection_population(
         n=80, epc_bias=0.99, rogue=0.40, spread=0.05
     )
@@ -4973,6 +4997,7 @@ def test_the_FALLBACK_BRANCH_KEEPS_THE_MEAN_because_the_WORST_would_be_ALWAYS_RE
     assert gentle_verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
     assert gentle_verdict.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
     assert gentle_verdict.panel_mirror_register_channel == "attributable"
+    assert gentle_verdict.panel_mirror_register_bluntness == ""
 
 
 def _partial_fallback(monkeypatch, *, every=4):
@@ -5066,10 +5091,14 @@ def test_the_FALLBACK_FAULT_TEST_IS_NOT_ALWAYS_RED_on_a_BADLY_OUT_register():
     )
     assert v.panel_mirror_register_ratio_breaching_premises == 0
 
-    # So the refusal is BLUNTNESS, which is a statement about this stock, and the
-    # instrument is not accused of anything.
-    assert v.panel_mirror_register_refusal == "blunt"
-    assert v.panel_mirror_register_channel == "unattributable"
+    # So what fires is BLUNTNESS, which is a statement about this stock, and the
+    # instrument is not accused of anything. It is a DISCLOSURE and not a refusal
+    # (2026-08-12, twelfth Hour): a kW/K reading of how far out this stock's register
+    # already is may not refuse a verdict denominated in GBP, which is the third
+    # Hour's law read in the other direction.
+    assert v.panel_mirror_register_bluntness == "blunt"
+    assert v.panel_mirror_register_refusal == ""
+    assert v.panel_mirror_register_channel == "attributable"
 
 
 def test_the_FALLBACK_MEAN_IS_A_READING_OF_THE_STOCK_not_of_the_MIRROR():
@@ -5110,12 +5139,273 @@ def test_the_BLUNT_SENTENCE_SAYS_THE_PROMISE_WAS_KEPT_and_names_the_STOCK():
     """
     rows = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
     v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
-    assert v.panel_mirror_register_refusal == "blunt"
-    text = " ".join(fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE))
+    assert v.panel_mirror_register_bluntness == "blunt"
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    disclosure = [c for c in caveats if c.startswith("STOCK COARSE FOR THIS MIRROR")]
+    assert len(disclosure) == 1, caveats
+    text = disclosure[0]
     assert "KEPT its promise" in text, text
-    assert "BLUNTNESS" in text, text
+    # IT SAYS IT IS NOT A REFUSAL, IN ITS OWN FIRST CLAUSE (2026-08-12, twelfth
+    # Hour). The sentence outlived the gate it used to justify, and a design-limit
+    # reading printed with no such marker beside a certified verdict reads as an
+    # unexplained contradiction.
+    assert "disclosure, not a refusal" in text, text
     # ...and it does NOT accuse the reflection of breaking anything.
-    assert "did not" not in text.split("BLUNTNESS")[0].split("KEPT its promise")[-1]
+    assert "did not" not in text
+
+
+# ===========================================================================
+# THE TWELFTH EXPERT HOUR (2026-08-12) — the bluntness mean was the fallback
+# branch's own admission ticket read back to it, and it was gating.
+#
+# The eleventh Hour proved by identity that `panel_mirror_register_infidelity` on
+# this branch is a size-biased mean of each home's OWN relative register error,
+# reproducible from the unmirrored panel to 1.3e-16 — a reading of the stock — and
+# then left it deciding the channel. It cannot decide anything, and the reason is in
+# the branch's entry condition rather than in any panel it happens to be run on.
+# ===========================================================================
+
+
+def _register_relative_errors(rows):
+    """Each home's own relative register error — the quantity the retired gate's
+    mean is a weighted mean OF, computed here from the unmirrored rows so this test
+    cannot inherit the code's own answer."""
+    return [
+        abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k) / o.actual_hlc_kw_per_k
+        for o in rows
+    ]
+
+
+def test_the_FALLBACK_BRANCHS_ENTRY_CONDITION_SEATS_A_HOME_TEN_TIMES_THE_BAND():
+    """THE TWELFTH HOUR'S FINDING, AS A PROPERTY OF THE BRANCH RATHER THAN OF A PANEL.
+
+    `_level_reflection_is_feasible` fails exactly when `2*epc <= actual`, i.e. when
+    that home's relative register error is at least 0.5. So the fallback branch ONLY
+    EVER RUNS on a panel containing a home TEN TIMES the band the retired gate
+    compared its mean to, and no panel on this branch can be free of one.
+
+    And the weight that home carries in the mean is its ABSOLUTE error, not its
+    wrongness — so the SAME home, 60% out in every stock below, enters the same gate
+    at 95.0% of the weight beside near-perfect neighbours and 8.7% beside neighbours
+    20% out, where a larger house that is LESS wrong outweighs it. The reading is
+    therefore neither the worst home nor the typical one: it is how wrong the home
+    you would land on is, if you sampled homes in proportion to their error.
+
+    A gate whose reading is fixed by its own branch's admission ticket and then
+    re-scaled by who happens to be standing next to it is not measuring the
+    instrument, and is not measuring the stock either.
+    """
+    weights = {}
+    for epc_bias in (0.999, 0.99, 0.90, 0.80):
+        rows = _infeasible_reflection_population(n=10, epc_bias=epc_bias, rogue=0.40)
+        v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        assert v.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+        assert v.panel_mirror_infeasible_premises >= 1
+
+        relative = _register_relative_errors(rows)
+        absolute = [abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k) for o in rows]
+        rogue = relative.index(max(relative))
+        # The home that opened the branch is at least ten times the band, on every
+        # stock, and it is the same home each time.
+        assert rogue == 0
+        assert max(relative) == pytest.approx(0.60, abs=1e-9)
+        assert max(relative) >= 10 * fgl.MIRROR_FIDELITY_BAND
+        # ...and it is inside the mean, never excluded from it.
+        assert v.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+        assert v.panel_mirror_register_bluntness == "blunt"
+        weights[epc_bias] = absolute[rogue] / sum(absolute)
+
+    # THE SAME HOME, THE SAME WRONGNESS, AN ORDER OF MAGNITUDE OF WEIGHT.
+    assert weights[0.999] == pytest.approx(0.950, abs=5e-3)
+    assert weights[0.80] == pytest.approx(0.087, abs=5e-3)
+    assert weights[0.999] > 10 * weights[0.80]
+    # ...and at the coarsest stock it is not even the heaviest home: a bigger house
+    # that is LESS wrong carries more of the reading than the one that is 60% out.
+    coarse = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
+    absolute = [abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k) for o in coarse]
+    heaviest = absolute.index(max(absolute))
+    assert heaviest != 0
+    assert _register_relative_errors(coarse)[heaviest] < 0.5
+
+
+def test_the_BLUNTNESS_READING_MOVES_WITH_THE_PANEL_AROUND_THAT_HOME():
+    """...and the reading is therefore a statement about how many homes stand next to
+    the rogue certificate, not about how coarse the stock is.
+
+    The composition rule is IDENTICAL at every n here — one home lodged for another
+    dwelling, every other home certified to 0.1% — and the median home's register
+    error is 0.0010 at every n, measured. The retired gate reads 0.5701 at n=10 and
+    0.0344 at n=200, crossing its band on the way, purely on how many well-surveyed
+    neighbours the rogue happens to have.
+
+    Not a defect in the arithmetic: as an absolute-error-weighted mean it is doing
+    exactly what it says. It is a defect in what the number was being asked to
+    decide.
+    """
+    readings = {}
+    for n in (10, 40, 100, 200):
+        rows = _infeasible_reflection_population(n=n, epc_bias=0.999, rogue=0.40)
+        v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        assert v.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+        relative = sorted(_register_relative_errors(rows))
+        readings[n] = (
+            v.panel_mirror_register_infidelity,
+            relative[len(relative) // 2],
+            v.panel_mirror_register_bluntness,
+        )
+
+    # THE STOCK DOES NOT MOVE: the median home is 0.1% out at every panel size.
+    for n, (_, median, _) in readings.items():
+        assert median == pytest.approx(0.0010, abs=1e-9), (n, median)
+
+    # THE READING DOES, MONOTONICALLY, AND CROSSES ITS BAND.
+    means = [readings[n][0] for n in (10, 40, 100, 200)]
+    assert means == sorted(means, reverse=True), means
+    assert means[0] == pytest.approx(0.5701, abs=5e-4)
+    assert means[-1] == pytest.approx(0.0344, abs=5e-4)
+    assert readings[10][2] == "blunt"
+    assert readings[200][2] == ""
+
+
+def test_a_MONEY_VERDICT_IS_NO_LONGER_REFUSED_BY_A_kW_PER_K_READING_OF_THE_STOCK():
+    """WHAT THE REMOVAL RELEASES, NAMED AND COUNTED — because every Hour before this
+    one could only take certification away and this one grants it.
+
+    Twelve stocks on the fallback branch, a register 30% under to 30% over, each with
+    one rogue certificate. On every one the branch's own promise is kept to float
+    noise, and on every one the retired rule refused. FIVE are now certified, and
+    they are exactly the five whose MONEY channel — the one denominated in the unit
+    the verdict is published in — resolved on its own evidence with an artefact share
+    of 0.0000. The other SEVEN are still refused, in GBP, four `unresolved` and three
+    `unattributable`: this removal takes one refusal away, not the gate.
+
+    The third Hour established that a term denominated in kW/K cannot CERTIFY a
+    verdict denominated in GBP. It cannot REFUSE one either.
+    """
+    biases = (0.99, 0.97, 0.95, 0.93, 0.90, 0.85, 0.80, 0.70, 1.05, 1.10, 1.20, 1.30)
+    certified = []
+    for eb in biases:
+        rows = _infeasible_reflection_population(n=10, epc_bias=eb, rogue=0.40)
+        v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        assert v.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+        # The instrument kept its promise on every one of them...
+        assert (
+            v.panel_mirror_register_ratio_worst_breach
+            <= fgl.REGISTER_PRESERVATION_TOLERANCE
+        ), eb
+        # ...and the retired rule refused every one of them anyway.
+        assert v.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND, eb
+        assert v.panel_mirror_register_bluntness == "blunt", eb
+        # The register channel now certifies all twelve; what decides them is money.
+        assert v.panel_mirror_register_channel == "attributable", eb
+        if v.panel_mirror_is_attributable:
+            certified.append(eb)
+            assert v.panel_mirror_weight_artefact_resolution == "attributable", eb
+            assert v.panel_mirror_weight_artefact == pytest.approx(0.0, abs=1e-9), eb
+        else:
+            assert v.panel_mirror_weight_artefact_resolution != "attributable", eb
+
+    assert len(certified) == 5, certified
+    assert len(biases) - len(certified) == 7
+    # ...and the seven that are still refused are refused in GBP, by both money
+    # states, so what is left is a channel that can still say either word.
+    still = [
+        fgl.composition_verdict(
+            _infeasible_reflection_population(n=10, epc_bias=eb, rogue=0.40),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        ).panel_mirror_weight_artefact_resolution
+        for eb in biases
+        if eb not in certified
+    ]
+    assert still.count("unresolved") == 4, still
+    assert still.count("unattributable") == 3, still
+
+
+def test_the_STOCK_COARSENESS_DISCLOSURE_PRINTS_ON_A_ROW_THE_MIRROR_CERTIFIED():
+    """The state the sentence could never previously reach, and the reason it had to
+    move out of `_why_unattributable`.
+
+    A disclosure that lives inside a refusal is readable only by someone already
+    being told the instrument failed — the second Hour's own finding about the
+    COMPOSITION-DECIDED caveat, one level down and in this atom's own machinery. This
+    row is CERTIFIED and still contains a home the register is more than half wrong
+    about, and the reader is told so.
+    """
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.90, rogue=0.40)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_is_attributable, "this test needs a CERTIFIED row"
+    caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    disclosure = [c for c in caveats if c.startswith("STOCK COARSE FOR THIS MIRROR")]
+    assert len(disclosure) == 1, caveats
+    assert not any(c.startswith("MIRROR INCONCLUSIVE") for c in caveats), caveats
+    # It names the home count, the reading, and the promise that was kept.
+    assert f"{v.panel_mirror_infeasible_premises} of {v.premises} premises" in (
+        disclosure[0]
+    )
+    assert f"{v.panel_mirror_register_infidelity:.1%}" in disclosure[0]
+    assert "KEPT its promise" in disclosure[0]
+
+
+def test_BLUNTNESS_IS_PUBLISHED_ONLY_ON_THE_BRANCH_THAT_PRODUCES_IT():
+    """The eleventh Hour's own discipline applied to this Hour's output: a field that
+    decides nothing on a branch is not published on it.
+
+    The level reflection promises no disturbance at all, so there is no design limit
+    to disclose there and a `""` in that column would read as "measured, and clean"
+    for a measurement that was never taken.
+    """
+    level = fgl.composition_verdict_components(
+        fgl.composition_verdict(
+            _observations(n=10, epc_bias=0.80, inferred_bias=0.90),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        )
+    )
+    assert level["panel_mirror_reflection"] == fgl.LEVEL_PRESERVING
+    assert level["panel_mirror_register_bluntness"] is None
+
+    fallback = fgl.composition_verdict_components(
+        fgl.composition_verdict(
+            _infeasible_reflection_population(n=10, epc_bias=0.90, rogue=0.40),
+            unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+        )
+    )
+    assert fallback["panel_mirror_reflection"] == fgl.LOG_PRESERVING_FALLBACK
+    assert fallback["panel_mirror_register_bluntness"] == "blunt"
+    # ...and the refusal column carries the REFUSAL, which is now one thing.
+    assert fallback["panel_mirror_register_refusal"] == ""
+
+
+def test_a_BROKEN_FALLBACK_MIRROR_IS_STILL_REFUSED_though_ITS_BLUNTNESS_FALLS(
+    monkeypatch,
+):
+    """THE ELEVENTH HOUR'S FAIL-OPEN, RE-PINNED UNDER THE SPLIT — and the reason the
+    removal is safe rather than merely conservative-sounding.
+
+    Breaking the reflection LOWERS the retired reading: a partial fallback leaves
+    some homes level-reflected, whose absolute error does not move, so the mean it
+    was gated on falls. A gate that reads lower the more broken its instrument gets
+    is a gate that can be passed by breaking it, and the eleventh Hour caught it
+    doing exactly that. What stops it now is the promise test, which moves the other
+    way.
+    """
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.90, rogue=0.40)
+    faithful = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    _partial_fallback(monkeypatch)
+    broken = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    # The retired reading gets BETTER as the instrument breaks...
+    assert (
+        broken.panel_mirror_register_infidelity
+        < faithful.panel_mirror_register_infidelity
+    )
+    # ...and the promise test gets worse, which is what a fidelity gate must do.
+    assert (
+        broken.panel_mirror_register_ratio_worst_breach
+        > faithful.panel_mirror_register_ratio_worst_breach
+    )
+    assert broken.panel_mirror_register_refusal == "fault"
+    assert broken.panel_mirror_register_channel == "unattributable"
+    assert faithful.panel_mirror_register_channel == "attributable"
 
 
 def test_an_UNREADABLE_RATIO_PROMISE_IS_A_FAILED_READ_not_a_faithful_one():
@@ -6373,26 +6663,37 @@ def test_a_MOVEMENT_AVERAGED_OVER_NO_PREMISES_RAISES_RATHER_THAN_READING_ZERO():
         fgl._mean_abs([])
 
 
-def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED():
+def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED(monkeypatch):
     """The gate and its disclosure must fail TOGETHER and for the SAME reason.
 
     A fixed sentence over a two-dimensional gate would have printed "the mirror moved
     the register arm's own error by 0.0%" as the stated ground for INCONCLUSIVE on
     both published populations — a disclosed number that is not the reason, which is
     the exact family of defect the three Hours on this machinery have each found.
+
+    WHICH REGISTER-CHANNEL FAILURE THE `both` HALF USES, AND WHY IT MOVED (2026-08-12,
+    twelfth Hour). It used to be a BLUNT panel — a stock reading, which no longer
+    refuses anything, so a two-reasons sentence resting on it was testing a sentence
+    the gate would never produce. The register channel's only refusal now is a broken
+    promise, so the panel here carries a genuinely broken one, injected at the
+    reflection call rather than hand-built.
     """
     money_only = fgl.composition_verdict(
         _observations(n=10, epc_bias=0.80, inferred_bias=0.90),
         unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
     )
+    money_sentence = fgl._why_unattributable(money_only)
+    assert "register arm's OWN error" not in money_sentence
+    assert "RATIO error" not in money_sentence
+    assert "deciding margin" in money_sentence
+
+    _partial_fallback(monkeypatch)
     register_too = fgl.composition_verdict(
         _cancelling_disturbance_population(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
     )
-    money_sentence = fgl._why_unattributable(money_only)
+    assert register_too.panel_mirror_register_refusal == "fault"
     both_sentence = fgl._why_unattributable(register_too)
-    assert "register arm's OWN error" not in money_sentence
-    assert "deciding margin" in money_sentence
-    assert "register arm's OWN error" in both_sentence
+    assert "RATIO error" in both_sentence
     assert "deciding margin" in both_sentence, (
         "both halves fired on this panel; a sentence reporting one of two live "
         "faults leaves the reader to assume the other is clean"
@@ -6411,7 +6712,7 @@ def test_the_INCONCLUSIVE_SENTENCE_NAMES_THE_DIMENSION_THAT_ACTUALLY_FIRED():
         )
 
 
-def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
+def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER(monkeypatch):
     """The caveat protects a published money verdict from being over-read. Where the
     verdict is already 'neither', the headline itself says too-close-to-call and
     there is no "so composition does not matter" reading on offer to prevent — the
@@ -6422,6 +6723,12 @@ def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
     between them is whether there was a headline to protect. A caveat list that
     prints on populations with nothing to caveat is one nobody reads, and that is
     how a real disclosure gets skipped.
+
+    WHAT "UNFAITHFUL" MEANS HERE, AND WHY IT MOVED (2026-08-12, twelfth Hour). It
+    used to mean BLUNT — the panel mean above its band — which is a reading of how
+    far out this stock's register already is and refuses nothing. Holding the two
+    halves on a mirror that is genuinely BROKEN pins the same variable it always
+    meant to, and pins it on something that can still refuse.
     """
     indecisive = _infeasible_reflection_population(
         n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.90
@@ -6432,13 +6739,14 @@ def test_INCONCLUSIVE_is_raised_about_a_HEADLINE_and_not_about_NEITHER():
     decisive = _infeasible_reflection_population(
         n=10, epc_bias=0.90, rogue=0.40, spread=0.08, inferred_bias=0.50
     )
+    _partial_fallback(monkeypatch)
     for rows in (indecisive, decisive):
         verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
         assert not verdict.panel_mirror_is_attributable, (
             "both panels must carry the SAME unfaithful mirror, or this test is "
             "comparing two things at once"
         )
-        assert verdict.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+        assert verdict.panel_mirror_register_refusal == "fault"
 
     assert fgl.composition_verdict(
         indecisive, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
