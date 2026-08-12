@@ -98,9 +98,12 @@ def test_the_recorder_refuses_at_the_write(tmp_path):
 
 
 def test_the_commit_chokepoint_refuses_and_says_why(tmp_path, monkeypatch):
-    """Every provenance commit -- red-cycle banner and green-cycle content alike -- passes
-    through `_commit_and_push_paths`, so the refusal is proven at that chokepoint, and proven
-    to be LOUD: the defect published in silence, and a silent refusal only moves the silence.
+    """The RED-cycle chokepoint: `_commit_and_push_paths`, which serves the banner and the
+    liveness heartbeat. The refusal is proven here, and proven to be LOUD: the defect published
+    in silence, and a silent refusal only moves the silence.
+
+    This docstring used to claim the green cycle passed through here too. It did not -- see the
+    green-cycle section at the end of this file, which is the wiring that makes the claim true.
 
     The log assertion is on `prc.log` itself rather than on captured stdout. Capturing stdout
     here would pass whether or not anything was written (an empty string satisfies a truthy
@@ -229,3 +232,113 @@ def test_the_chokepoint_guards_the_dashboard_too(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
     assert prc._commit_and_push_paths([str(dash)], "msg", label="Content") is False
     assert any("source_file" in s for s in said), said
+
+
+# ------------------------------------- THE GREEN CYCLE, which did not pass through the choke
+#
+# `test_the_commit_chokepoint_refuses_and_says_why` says, in its own docstring, "every
+# provenance commit -- red-cycle banner and green-cycle content alike -- passes through
+# `_commit_and_push_paths`". That was WRONG, and the tests below are what makes it true.
+#
+# `_commit_and_push_paths` serves two callers: the liveness heartbeat and the RED-cycle banner.
+# The GREEN cycle -- `git_commit_push`, the function that commits site/data/dashboard.json and
+# site/data/publish_provenance.json in one commit on every healthy run -- never called the
+# checker at all. It is also the path the ESTABLISHED incident took: `d4d1a04e6` published
+# `run_output_abc1234_20260621T104002Z.json` to origin from a content publish, not from a
+# banner. So the guard was mounted on the cycle that did not do it.
+#
+# The class, stated for the next reader: a control's subject is the call sites it is wired
+# into, never the sentence in its docstring. "Impossible from here" was true of the function
+# it sat in and false of the publisher.
+
+
+def _fake_git(calls):
+    """Records every git argv and never touches a repo."""
+    class _R:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def _run(cmd, **kwargs):
+        calls.append(list(cmd))
+        return _R()
+    return _run
+
+
+def _green_cycle_tree(tmp_path, run_id, sha):
+    """A tree shaped like the real one at the moment of a green publish: both published files
+    present, so `git_commit_push` puts both in its commit list."""
+    import json as _json
+    root = tmp_path / "repo"
+    (root / "site" / "data").mkdir(parents=True, exist_ok=True)
+    stamp = {"run_id": run_id, "git_commit": sha,
+             "generated_at": "2026-08-12T09:00:00Z", "verified_at": "2026-08-12T09:00:00Z"}
+    (root / "site" / "data" / "publish_provenance.json").write_text(_json.dumps(
+        {"verification_state": "verified", "showing_run": stamp, "last_verified": stamp}))
+    (root / "site" / "data" / "dashboard.json").write_text(_json.dumps(
+        {"meta": {"source_file": run_id, "git_commit": sha}}))
+    (root / "site" / "index.html").write_text("<html></html>")
+    return root
+
+
+def test_the_green_cycle_publish_refuses_a_false_provenance(tmp_path, monkeypatch):
+    """FIRES on the path the fixture actually took. Nothing is committed and nothing is pushed:
+    the report, LATEST.md and every site file stay unpublished this cycle, which is the
+    fail-closed direction this whole surface is built on."""
+    root = _green_cycle_tree(tmp_path, "run_verified.json", "v" * 40)
+    monkeypatch.setattr(prc, "PROJECT_DIR", root)
+    monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    calls = []
+    monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+    said = []
+    monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
+
+    assert prc.git_commit_push("3abd6e1df", 1000.0) is False
+    assert not calls, "git was reached despite a false provenance: {}".format(calls)
+    assert any("REFUS" in s.upper() for s in said), said
+    assert any("run_verified.json" in s for s in said), \
+        "the refusal does not name the offending value, so it cannot name the cycle"
+
+
+def test_the_green_cycle_publish_commits_a_genuine_stamp(tmp_path, monkeypatch):
+    """SILENT on the real thing, driven end to end: a real run id and a sha that names a real
+    commit in a real repo must publish exactly as before. Without this, the test above is
+    satisfied by a guard that refuses everything -- an outage wearing a control's hat."""
+    root = tmp_path / "repo"
+    root.mkdir(parents=True, exist_ok=True)
+    for cmd in (["git", "init", "-q"],
+                ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q",
+                 "--allow-empty", "-m", "seed"]):
+        subprocess.run(cmd, cwd=str(root), capture_output=True, timeout=60)
+    sha = subprocess.run(["git", "rev-parse", "--short=9", "HEAD"], cwd=str(root),
+                         capture_output=True, text=True, timeout=60).stdout.strip()
+    assert len(sha) == 9, "the fixture repo was not created; this test would prove nothing"
+
+    _green_cycle_tree(tmp_path, "run_output_{}_20260812T090000Z.json".format(sha), sha)
+    monkeypatch.setattr(prc, "PROJECT_DIR", root)
+    monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    calls = []
+    monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+
+    prc.git_commit_push(sha, 1000.0)
+    assert any(c[:2] == ["git", "commit"] for c in calls), \
+        "a genuine stamp did not publish -- the guard is refusing the healthy cycle"
+
+
+def test_the_green_cycle_refusal_is_the_guards_doing(tmp_path, monkeypatch):
+    """MUTATION. Neutralise the checker and the same false provenance publishes -- which is what
+    makes the refusal above evidence about THIS call rather than about some other early return
+    in a 300-line function."""
+    root = _green_cycle_tree(tmp_path, "run_verified.json", "v" * 40)
+    monkeypatch.setattr(prc, "PROJECT_DIR", root)
+    monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+    calls = []
+    monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+
+    prc.git_commit_push("3abd6e1df", 1000.0)
+    assert any(c[:2] == ["git", "commit"] for c in calls), \
+        "the mutation did not reach the publish -- this pair is not proving what it claims"

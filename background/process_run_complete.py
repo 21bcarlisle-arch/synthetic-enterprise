@@ -2834,6 +2834,20 @@ def git_commit_push(git_hash, net_margin):
                 files.append(str(_rendered))
     except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
         log("Derived-artefact paths not added to the commit (non-fatal): {}".format(_exc))
+    # THE FIXTURE TOOK THE GREEN CYCLE, AND THE GUARD WAS ONLY ON THE RED ONE (2026-08-12).
+    # `_provenance_is_publishable` was wired into `_commit_and_push_paths` alone -- the liveness
+    # heartbeat and the red-cycle banner. But this function is the path that commits
+    # site/data/dashboard.json AND site/data/publish_provenance.json together on every GREEN
+    # cycle, and it is the path the ESTABLISHED incident actually took (`d4d1a04e6` published
+    # `run_output_abc1234_...json` to origin). So the checker's own docstring -- "publishing a
+    # false provenance is impossible from here" -- was true of the function it sat in and false
+    # of the publisher: a control whose subject is narrower than the class it names.
+    #
+    # Same fail-closed direction as everywhere else on this surface: nothing publishes this
+    # cycle, loudly, and the site keeps serving its last honest state. An unverified page is an
+    # availability cost; a page stamped with a run that never happened is a public lie.
+    if not _provenance_is_publishable(files, label="Auto-process publish"):
+        return False
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
