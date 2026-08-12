@@ -1,0 +1,23 @@
+# GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
+# Edit the manifest and regenerate. state=enabled owner=systemd
+[Unit]
+Description=Synthetic Enterprise: Independent outside-view skeptic on its own timer (was MISSING from the old EXPECTED_PANES)
+After=network.target
+# G-L3: a crash-loop enters `failed` instead of restarting silently forever.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# G-D3 (OPS1 sub-step 5): stamp the HEAD this daemon boots from so the reconciler can
+# flag it as stale when HEAD advances (catches imported-module drift, not just own-script
+# mtime). Leading `-`: a stamp failure must never block the daemon starting.
+ExecStartPre=-/usr/bin/python3 -m background.boot_sha naive-organ
+ExecStart=/usr/bin/python3 -m background.naive_organ daemon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

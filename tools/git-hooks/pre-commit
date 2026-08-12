@@ -92,3 +92,20 @@ python3 tools/consolidation_rhythm.py --gate || exit 1
 # logs a named decision scoped to one file at one line count. R15-proven both ways in
 # tests/tools/test_size_ratchet_gate.py (13 source mutations, each firing its own named test).
 python3 tools/size_ratchet_gate.py || exit 1
+
+# THE ORPHAN RATCHET (2026-08-12, director instruction; brief =
+# docs/staging/done/WORKER_REPORT_NO_CALLER_CLASS_CENSUS_2026-08-09.md -- 13 instances of the
+# no-caller class in 13 days, EIGHT of them found by accident weeks later).
+#
+# A commit may not ADD a module that nothing runs. The standing ~400 are frozen in
+# docs/design/orphan_baseline.json and nobody has to fix them to commit; what fails is GROWTH,
+# which is the difference between a report everyone ignores and a control. Entrypoints come from
+# the COMMITTED SCHEDULE (systemd units, timers, hooks), never from `if __name__ == "__main__"` --
+# a CLI nothing schedules is an orphan, and that blind spot is census instance #10 exactly.
+#
+# Fail-closed both ways: a broken schedule parser (vacuity) and a truncated index walk (coverage,
+# oracled against git rather than the same filesystem walk) both REFUSE rather than certify, since
+# an under-reporting orphan check AUTHORISES the thing it exists to prevent. To record a
+# deliberately dormant module, run `python3 tools/orphan_ratchet.py --freeze` in the SAME commit
+# so the decision is on the record. R15-proven both ways in tests/tools/test_orphan_ratchet.py.
+python3 tools/orphan_ratchet.py || exit 1
