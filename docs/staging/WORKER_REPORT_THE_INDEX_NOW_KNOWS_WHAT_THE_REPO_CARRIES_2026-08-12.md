@@ -1,6 +1,8 @@
 # [WORKER-REPORT] The index now knows what the REPO carries, and G6 asks for disclosure instead of a phrasing (2026-08-12)
 
-**Severity:** INFO · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
+<!-- Severity normalised 2026-08-12 by a worker tick: `INFO` is not one of OPS9's three
+     tokens. RECORDED -- this is the report that CLOSES two findings; no work is owed by it. -->
 **Closes:** `WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (both findings)
 **Advances:** AO1_capability_index, AO2_write_time_reuse_gate
 **Drawn by:** RUNG 1c blocking-finding lane precedence (OPS12 clause 3) — the oldest live BLOCKING

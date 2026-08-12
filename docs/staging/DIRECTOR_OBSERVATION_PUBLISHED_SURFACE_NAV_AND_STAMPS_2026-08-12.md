@@ -1,5 +1,16 @@
 # DIRECTOR OBSERVATION — PUBLISHED SURFACE, THREE ITEMS
 
+**Severity:** BLOCKING · **Lane:** H_harness
+<!-- Header added 2026-08-12 by a worker tick, NOT by this document's author -- the director
+     and advisor do not write OPS9 headers, and without one this document was UNCLASSIFIED
+     and reddened the staging-root control at HEAD. Classified from the document's own words,
+     fail-closed per OPS9 (never defaulted to the milder value): item 2 reports a live page
+     whose header claims verified 2026-07-25 over chart footers reading 2025-06-07, i.e. a
+     published figure MAY be wrong, which is the BLOCKING definition verbatim -- and the
+     document asks for exactly that to be confirmed. Lane is the published surface's own
+     (SITE2 sits in H_harness). If the director meant a milder reading, overwrite this line;
+     it is a worker's classification of his text, not his. -->
+
 Staged by the advisor on the director's behalf, 2026-08-12.
 Report-and-fix at your ranking. No priority attached — rank this against
 the drain and the OPS10 class work.

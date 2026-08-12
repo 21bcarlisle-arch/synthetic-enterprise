@@ -17,7 +17,8 @@ import json
 
 import pytest
 
-from background.episode_monotonic import episode_age_seconds, guard_episode
+from background.episode_monotonic import (EpisodeFieldTypeError, episode_age_seconds,
+                                        guard_episode)
 
 # The two REAL recorded anchors of the 2026-08-09 publish outage.
 #   04:03:22Z -- `wedge_since` in .publish_gate_state.json, quoted mid-episode in
@@ -219,3 +220,139 @@ def test_a_drained_queue_does_close_the_episode(tmp_path, monkeypatch):
 
     state = json.loads(state_file.read_text())
     assert state["wedge_since"] is None and state["episode_failures"] == 0
+
+
+# --------------------------------------------------------------- TYPED FIELDS (2026-08-12)
+# Closing WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10 (BLOCKING, H_harness).
+# The named defect: the field test was `_is_num`, so an episode start stored as ISO-8601 fell
+# through -- `since_fields=("paused_since",)` READ as protection and was a no-op.
+#
+# THE MUTATIONS, both RUN 2026-08-12, not asserted:
+#   1. In `_episode_key`, delete the `isinstance(v, str)` branch -- i.e. revert the field test to
+#      `_is_num`. RED (4): `..._cannot_be_moved_later`, `..._cannot_be_cleared_without_evidence`,
+#      `test_episode_age_reads_an_iso_start`, `..._cannot_order_is_refused_loudly`. Every test
+#      ABOVE this section stays green, which is the point -- the numeric contract is untouched.
+#      The other ISO tests here stay green under this mutation and that is stated rather than
+#      claimed away: numeric-only makes an ISO prior UNORDERABLE, so it skips, and skipping
+#      happens to produce the same answer whenever the proposal is the one that should win. They
+#      pin the winner's REPRESENTATION and the ordering RULE, which mutation 2 and the offset case
+#      are what actually holds; a test that reds under every mutation is usually pinning less than
+#      it looks.
+#   2. Replace each `_refuse(...)` with `continue` -- the silent skip this finding is about.
+#      RED (5): every test in THE REFUSAL below. Nothing else moves.
+
+ISO_SINCE = ("paused_since",)
+
+# The finding's own driven evidence, quoted from the document verbatim.
+ISO_EPISODE_START = "2026-08-09T14:30:09Z"
+ISO_LATER_START = "2026-08-10T17:40:00Z"    # a failure moving the episode start 27h LATER
+
+
+def test_an_iso_start_cannot_be_moved_later():
+    """THE FINDING'S CASE. Pre-fix this returned the later start unchanged -- a silent no-op on a
+    field the public banner renders as 'Verification paused since ...'."""
+    out = guard_episode({"paused_since": ISO_EPISODE_START},
+                        {"paused_since": ISO_LATER_START}, since_fields=ISO_SINCE)
+    assert out["paused_since"] == ISO_EPISODE_START, \
+        "an ISO episode start was restarted 27h late -- the guard is numeric-only again"
+
+
+def test_the_iso_winner_keeps_its_own_representation():
+    """A low-water mark returned as an epoch float into a banner that prints the field verbatim
+    would be this finding's defect wearing the other coat."""
+    out = guard_episode({"paused_since": ISO_EPISODE_START},
+                        {"paused_since": ISO_LATER_START}, since_fields=ISO_SINCE)
+    assert isinstance(out["paused_since"], str)
+
+
+def test_an_iso_start_may_still_move_earlier():
+    """Low-water, not frozen -- the one direction that is never under-reporting."""
+    out = guard_episode({"paused_since": ISO_LATER_START},
+                        {"paused_since": ISO_EPISODE_START}, since_fields=ISO_SINCE)
+    assert out["paused_since"] == ISO_EPISODE_START
+
+
+def test_an_iso_episode_cannot_be_cleared_without_evidence():
+    out = guard_episode({"paused_since": ISO_EPISODE_START},
+                        {"paused_since": None}, since_fields=ISO_SINCE)
+    assert out["paused_since"] == ISO_EPISODE_START
+
+
+def test_an_evidenced_close_still_clears_an_iso_episode():
+    out = guard_episode({"paused_since": ISO_EPISODE_START}, {"paused_since": None},
+                        since_fields=ISO_SINCE, episode_closed=True)
+    assert out["paused_since"] is None
+
+
+def test_naive_iso_is_ordered_as_utc_and_not_by_string_compare():
+    """String ordering would agree on these by luck; offsets are where it stops being luck.
+    14:30+01:00 is 13:30Z, EARLIER than 14:00Z, and sorts LATER as text."""
+    out = guard_episode({"paused_since": "2026-08-09T14:00:00Z"},
+                        {"paused_since": "2026-08-09T14:30:00+01:00"}, since_fields=ISO_SINCE)
+    assert out["paused_since"] == "2026-08-09T14:30:00+01:00", \
+        "ordered by text, not by instant"
+
+
+def test_episode_age_reads_an_iso_start():
+    """A read side blind to ISO would report the guarded episode as no episode at all."""
+    age = episode_age_seconds({"paused_since": ISO_EPISODE_START}, "paused_since",
+                              LAST_FRESH_START + 3600)
+    assert age == pytest.approx(3600.0, abs=1.0)
+
+
+# --------------------------------------------------------------- THE REFUSAL (misdeclared field)
+
+def test_a_proposed_value_the_guard_cannot_order_is_refused_loudly():
+    """An unavailable check is a FAILED check. Silently skipping is what made the ISO case a
+    no-op that reviewed as protection."""
+    with pytest.raises(EpisodeFieldTypeError, match="paused_since"):
+        guard_episode({"paused_since": ISO_EPISODE_START},
+                      {"paused_since": "unknown"}, since_fields=ISO_SINCE)
+
+
+def test_an_epoch_spelled_as_a_string_is_refused_not_reinterpreted():
+    with pytest.raises(EpisodeFieldTypeError):
+        guard_episode({"wedge_since": 1000.0}, {"wedge_since": "2000.0"}, since_fields=SINCE)
+
+
+def test_a_field_that_changes_representation_mid_episode_is_refused():
+    """Ordering epoch against ISO is well defined; WRITING BACK the winner is not, because one of
+    the two representations reaches a reader that cannot read it."""
+    with pytest.raises(EpisodeFieldTypeError, match="epoch"):
+        guard_episode({"wedge_since": 1000.0},
+                      {"wedge_since": ISO_EPISODE_START}, since_fields=SINCE)
+
+
+def test_a_non_numeric_counter_is_refused():
+    with pytest.raises(EpisodeFieldTypeError, match="episode_failures"):
+        guard_episode({"episode_failures": 3}, {"episode_failures": "many"},
+                      streak_fields=STREAK)
+
+
+def test_a_non_finite_start_is_not_an_episode():
+    with pytest.raises(EpisodeFieldTypeError):
+        guard_episode({"wedge_since": 1000.0}, {"wedge_since": float("nan")}, since_fields=SINCE)
+
+
+# --------------------------------------------------------------- SILENT (the refusal's other way)
+
+def test_a_corrupt_prior_still_degrades_silently_and_never_raises():
+    """The refusal is scoped to the CALL SITE's own value on purpose. A corrupt PERSISTED prior
+    must not crash the pipeline this monitors -- and it provably cannot under-report, because with
+    no readable earlier value there is nothing to remember: keeping the proposal IS the unguarded
+    behaviour."""
+    for bad in ("nope", {}, [], object()):
+        out = guard_episode({"wedge_since": bad}, {"wedge_since": 77.0}, since_fields=SINCE)
+        assert out["wedge_since"] == 77.0
+    out = guard_episode({"episode_failures": "nine"}, {"episode_failures": 2},
+                        streak_fields=STREAK)
+    assert out["episode_failures"] == 2
+
+
+def test_the_numeric_contract_is_bit_identical_after_the_reshape():
+    """VACUITY GUARD. Every live caller today is numeric; if the ISO branch had been added by
+    loosening the ordering rather than widening the type, this is where it would show."""
+    assert guard_episode({"wedge_since": 1000, "episode_failures": 3},
+                         {"wedge_since": 9999.0, "episode_failures": 1},
+                         since_fields=SINCE, streak_fields=STREAK) == {
+        "wedge_since": 1000, "episode_failures": 3}

@@ -1,6 +1,10 @@
 # FINDING — a leave-one-out judged by the gate's own verdict measures the guard, not the reading
 
-**Severity:** MEDIUM · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness
+<!-- Severity normalised 2026-08-12 by a worker tick: `MEDIUM` is not one of the three tokens
+     OPS9 defines, so this was UNCLASSIFIED. BLOCKING on the document's own evidence -- the
+     carriage guard measures the guard rather than the reading, and 'the number the reader
+     sees is not the number the gate reads' (GBP 292 -> GBP 66 per premise). -->
 
 **Atom:** `H_GAP_fabric_belief_truth_gap` (level 2, L2→L3 draw) — FIFTEENTH Expert Hour
 **Date:** 2026-08-12

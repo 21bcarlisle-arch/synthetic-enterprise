@@ -1,6 +1,28 @@
 # [WORKER-FINDING] The episode-monotonic guard is numeric-only and fails SILENTLY on an ISO timestamp — wiring it on one would look like protection and be none (2026-08-10)
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
+
+> **CLOSED 2026-08-12** (worker tick, RUNG 1c blocking-finding draw). Severity moved BLOCKING ->
+> RECORDED because the guard was REPAIRED, not because the limitation was accepted: this line is
+> what the class document's "what is owed" list is derived from, so leaving it BLOCKING would
+> keep an owed item that is discharged, and changing it without the repair would be the
+> laundering OPS9 fails closed against. The proposed atom below (`OPS_episode_guard_typed_fields`)
+> is BUILT: `_episode_key` orders epoch AND ISO-8601 (naive read as UTC) and
+> `EpisodeFieldTypeError` refuses a field it cannot order, scoped to the CALLER's own proposed
+> value and to a representation mismatch so a corrupt persisted prior still degrades silently
+> (it provably cannot under-report -- with no readable earlier value there is nothing to
+> remember). The winner is returned in its own representation. `episode_age_seconds` reads both.
+>
+> R15 BOTH WAYS, mutations RUN and their red sets recorded in
+> `tests/background/test_episode_monotonic_guard.py`: (1) drop the ISO branch from `_episode_key`
+> -- 4 red, including this document's own driven case; (2) turn each `_refuse` into a silent
+> `continue` -- 5 red. Every pre-existing numeric test stays green under both, and a vacuity
+> guard pins the numeric contract bit-identical. 27 pass.
+> **Not** wired onto `publish_provenance.paused_since`: that path's real guard is transition-only
+> stamping and remains so; what changed is that wiring it is now possible and would no longer be
+> the no-op this document warned about. The stale workaround comment in `background/ntfy_utils.py`
+> -- which carried a duplicate numeric `since_epoch` *because* of this defect -- is corrected, and
+> `since` is now DERIVED from the guarded epoch so one episode cannot have two starts.
 
 **Found:** dispositioning `site/data/publish_provenance.json` into the self-clearing-alarm census
 after the publish decoupling landed. Not a defect in what shipped — a trap laid for whoever wires

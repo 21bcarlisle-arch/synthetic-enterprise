@@ -1,6 +1,11 @@
 # WORKER FINDING — the shadow page's arrears rows read a key nobody emits, and print 0.00% for every year
 
-**Severity:** HIGH · **Lane:** D_reporting
+**Severity:** BLOCKING · **Lane:** D_billing_metering
+<!-- Severity and lane normalised 2026-08-12 by a worker tick: `HIGH` is not one of OPS9's
+     three tokens and `D_reporting` is not a lane in the map, so this was UNCLASSIFIED twice
+     over. BLOCKING: a published page prints 0.00% arrears for every year off a key nobody
+     emits -- a published figure IS wrong, not may be. Lane is the arrears/collections value
+     stream, meter_to_cash = D_billing_metering. -->
 
 **Date:** 2026-08-12
 **Found by:** worker, while closing

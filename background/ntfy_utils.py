@@ -212,10 +212,14 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # episode's start and length are exactly the fields an alarm would read for
     # SEVERITY, so a write that has not DEMONSTRATED the episode ended must not be able
     # to shorten them -- that is the 25-hour outage that paged as "paused 30 seconds ago".
-    # `since_epoch` is NUMERIC deliberately: guard_episode's low/high-water comparisons
-    # are numeric-only and skip a string field silently (an open BLOCKING member of this
-    # very class, WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY), so a human-readable
-    # ISO `since` alone would be a guard that cannot fire. `since` is kept for readers.
+    # `since_epoch` is the GUARDED CARRIER and `since` is DERIVED from it below, so the two
+    # cannot disagree. Until 2026-08-12 that split existed for a different reason -- the guard
+    # was numeric-only and skipped a string field silently, so an ISO `since` could not be
+    # wired at all (WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY, now closed: the guard
+    # orders ISO and REFUSES a field it cannot order). The split survives that fix on its own
+    # merits, and declaring BOTH would not: `since`'s proposed value is echoed out of the
+    # persisted file, so a corrupt string on disk would become a raise inside `send_ntfy` --
+    # a data-dependent refusal on the director's only channel. One carrier, one rendering.
     # CLOSE CONDITION: `delivered`, i.e. ntfy returned a server-assigned message id for
     # this POST. It is the strongest evidence this channel can produce and it comes from
     # the SERVER's response body, never from this state file (R15 anti-tautology).
@@ -237,6 +241,13 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
         streak_fields=("consecutive_failures",),
         episode_closed=delivered,
     )
+    # ONE NAME, ONE NUMBER. The guard repairs `since_epoch`; if `since` were written
+    # independently a flap could low-water the epoch back while the string restamped to now,
+    # and the two surfaces would describe one episode with two starts -- the defect
+    # `episode_age_seconds` exists to prevent, one field over.
+    _guarded_epoch = state.get("since_epoch")
+    if isinstance(_guarded_epoch, (int, float)) and not isinstance(_guarded_epoch, bool):
+        state["since"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_guarded_epoch))
     try:
         DELIVERY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         DELIVERY_STATE_FILE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
