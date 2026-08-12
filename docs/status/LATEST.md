@@ -1,5 +1,28 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T06:35:31Z
+Last updated: 2026-08-12T08:20:00Z
+
+**SITE2 — THE HOUSEHOLD PAGE IS THE WALL'S OWN EXHIBIT (`09f65f694`, pushed).** Part 2 of
+`DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12`. `site/customers/index.html` stopped
+calling itself a Customer Portal and became a side-by-side comparison of the two sides of the
+epistemic wall for one household. The ruling's non-negotiable was that the side-declaration be
+**structural, not prose** — "if a new panel can be added without declaring which side it sits on,
+nothing has been built, only written down" — so no tab renderer emits panel markup any more: each
+returns a list of `panel(side, title, body)` and `layoutPanels()` is the **sole writer**, throwing
+on a missing or unknown side. That alone is walk-past-able by hand-building a card around the
+helper, so the second half is a **scanner over the rendered markup** that fails on any content
+block inheriting no declared side, plus a check that every post-layout injection point sits inside
+a panel. **Figures moved, not relabelled:** the money grid split three ways (customer / company /
+SIM), the per-year commodity trading margin lifted into its own SIM panel, timeline events kept
+customer-side while their **causal effects** moved to SIM beside the reaction chain, risk split
+into the customer's balance and the supplier's estimates. The customer-eye view **omits** the other
+sides from the DOM rather than hiding them with CSS. **R15 both ways, six mutations, clean case
+proven clean**; all ten pre-existing honesty notes **diffed** against the pre-change page and
+present; the bill render path pinned by signature so Part 1 (D36) lands intact through it.
+**Level 0→2, not 3** — exit (4)'s URL half is split out as `SITE3_wall_exhibit_url_rename` (moving
+a canonical door also moves the sitemap, five navs, three daemon-regenerated feeds and ~10
+hard-coded paths, and those feeds were concurrently dirty), R11 live-pixel needs the deployed
+surface, and `expert_hour` is `not_attempted`. **24 new tests + 11 door tests green, coupled set
+141, wider sweep 457; `verify_printed_bill_render.mjs` 1557/1557 lines, 0 arithmetic failures.**
 
 **OPS2 — THE CEILING IS DERIVED FROM MEASURED DEMAND, NOT CHOSEN (`dfd74dff7`, pushed).** Owed
 item 1 of `OPS2_publish_gate_head_worktree`. The prior finding's own recommendation was to re-derive
@@ -2314,7 +2337,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (263s / 4 min):
+**Latest simulation results (2016–2025)** — auto-processed (292s / 5 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2430,6 +2453,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2136.2h across 91 sized atom(s) (14 of 105 below-target atoms still unsized).
+- Remaining effort: ~2422.1h across 98 sized atom(s) (14 of 112 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
