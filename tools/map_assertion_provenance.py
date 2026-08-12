@@ -306,6 +306,13 @@ def _classify(*, level, scope: list[str], dir_claims: list[str], claims_the_map:
     return STALE if moved_since else CURRENT
 
 
+def _map_atoms(repo: Path | None = None) -> list[dict]:
+    """The map's cells. One reader, so a second caller cannot drift from build_rows."""
+    import yaml  # local: the tool is importable for tests without a yaml at import time
+
+    return yaml.safe_load(((repo or REPO) / MAP_PATH).read_text(encoding="utf-8"))
+
+
 def build_rows(repo: Path | None = None, atoms: list[dict] | None = None) -> list[dict]:
     """One row per map cell, carrying its three clocks and a status."""
     import yaml  # local: the tool is importable for tests without a yaml at import time
@@ -404,6 +411,211 @@ def by_status(rows: list[dict], status: str) -> list[dict]:
     return [r for r in rows if r["status"] == status]
 
 
+# ---------------------------------------------------------------------------
+# THE HOLD RECORD'S OWN VALIDITY WINDOW  (H27 Expert Hour #22, atom D41)
+# ---------------------------------------------------------------------------
+# The three clocks above date an atom's LEVEL CLAIM against its artefacts. They
+# say nothing about the record that answers the opposite question -- the one a
+# self-refill draw actually asks: this atom is HELD below its target, why?
+#
+# That answer is written by hand, and this repo has now watched it go stale
+# twice on the same atom. H27's own `level_hold_note` recorded the first
+# instance as a finding ("the record that answers the only question a 2->3 draw
+# asks was pointing at work already done") and closed it BY EDITING THE NOTE --
+# a prose fix for a prose defect. Three Hours later it was three Hours behind
+# again, and the promoter this tick read leads for Hours #19-#21 that had all
+# already run. R3: a second false record on the same component means redesign
+# the mechanism, not patch it again.
+#
+# THE NEAREST WORKING ANALOGUE (R4) is the other atom running Hours in this
+# repo. H_GAP_fabric_belief_truth_gap has no separate hold note at all: each
+# Hour's register entry carries its own verdict ("...SO THE LEVEL STAYS 2"), so
+# the answer to the draw is written by the one act an Hour cannot skip -- if the
+# Hour is recorded, its verdict is recorded. The diff is WHERE THE VERDICT
+# LIVES, and a second copy kept by hand is the only shape that can fall behind.
+#
+# So the invariant is not "keep the note fresh" (an exhortation) but: THE LATEST
+# RECORDED HOUR MUST ANSWER THE DRAW SOMEWHERE THE DRAW READS. Either shape
+# satisfies it; neither is mandated.
+#
+# WHY A "LATEST HOUR MENTIONED" CHECK WOULD BE FAIL-OPEN, and is not what this
+# does: every one of these hold records ends by naming the NEXT Hour ("the next
+# promoter runs Hour #19"), so the highest number in the note is current by
+# construction, one step ahead of the truth. At the first instance -- one Hour
+# behind -- a mention check would have passed on the forward pointer alone,
+# reading exactly green on the defect it was built for. Only ordinals in a
+# sentence that also carries a HOLD VERDICT count; a forward pointer carries
+# none. That mutation is pinned by name.
+
+HOLD_STALE = "HOLD_STALE"            # a later Hour is recorded than any Hour answered
+HOLD_UNANSWERED = "HOLD_UNANSWERED"  # Hours recorded, no verdict anywhere the draw reads
+
+_ORDINAL_WORDS = {
+    "FIRST": 1, "SECOND": 2, "THIRD": 3, "FOURTH": 4, "FIFTH": 5, "SIXTH": 6,
+    "SEVENTH": 7, "EIGHTH": 8, "NINTH": 9, "TENTH": 10, "ELEVENTH": 11,
+    "TWELFTH": 12, "THIRTEENTH": 13, "FOURTEENTH": 14, "FIFTEENTH": 15,
+    "SIXTEENTH": 16, "SEVENTEENTH": 17, "EIGHTEENTH": 18, "NINETEENTH": 19,
+    "TWENTIETH": 20, "THIRTIETH": 30, "FORTIETH": 40,
+}
+for _tens, _base in (("TWENTY", 20), ("THIRTY", 30)):
+    for _unit, _n in list(_ORDINAL_WORDS.items())[:9]:
+        _ORDINAL_WORDS["%s-%s" % (_tens, _unit)] = _base + _n
+
+# The register writes "TWENTY-FIRST HOUR" / "THE FIFTEENTH EXPERT HOUR"; the
+# notes write "EXPERT HOUR #16". Both forms, one population.
+_ORDINAL_BEFORE_HOUR = re.compile(r"\b([A-Z]+(?:-[A-Z]+)?)\s+(?:EXPERT\s+)?HOUR\b")
+_HOUR_HASH = re.compile(r"\bHOUR\s*#\s*(\d+)", re.IGNORECASE)
+
+# A HOLD VERDICT is a sentence saying the level did not move. Deliberately
+# narrow: it must state the outcome, never merely mention an Hour.
+_HOLD_VERDICT = re.compile(
+    r"HELD\s+AT\s+L\d|LEVEL\s+STAYS|STAYS\s+AT\s+\d|LEVEL\s+STAY\b|"
+    r"NOT\s+PROMOTED|NOT\s+TAKEN|STILL\s+L\d|REMAINS\s+AT\s+L\d",
+    re.IGNORECASE,
+)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.;])\s+")
+
+# Vacuity floor: below this many Hours parsed across the whole store, the parse
+# has stopped matching the convention the register is written in, and an empty
+# population is a BROKEN CHECK, not a clean repo.
+HOUR_PARSE_FLOOR = 1
+
+# How far into an entry its own Hour may be named. Past this the entry is not
+# self-identifying and `entry_hour` refuses rather than guessing.
+ENTRY_SELF_ID_WINDOW = 120
+
+
+def _hour_mentions(text: str) -> list[tuple[int, int]]:
+    """[(position, ordinal)] for every Hour named in `text`, in either form."""
+    out = []
+    for match in _ORDINAL_BEFORE_HOUR.finditer(text or ""):
+        word = match.group(1)
+        if word in _ORDINAL_WORDS:
+            out.append((match.start(), _ORDINAL_WORDS[word]))
+    for match in _HOUR_HASH.finditer(text or ""):
+        out.append((match.start(), int(match.group(1))))
+    return sorted(out)
+
+
+def hour_ordinals(text: str) -> set[int]:
+    """Every Expert-Hour ordinal named in `text`, in either written form."""
+    return {n for _, n in _hour_mentions(text)}
+
+
+def entry_hour(text: str) -> int | None:
+    """The Hour a register entry IS -- the first ordinal it names, never one it
+    merely refers to.
+
+    Both registers open by naming themselves ("TWENTY-FIRST HOUR (2026-08-12...",
+    "2026-08-12 THE FIFTEENTH EXPERT HOUR RAN..."), and both then talk about
+    OTHER Hours: the leads they took, and the Hour they hand on to. H_GAP's
+    fifteenth entry ends "OPENER FOR THE SIXTEENTH HOUR", so a check that counted
+    mentions would read a sixteenth Hour that has not run and report an atom
+    whose record is perfectly current as one Hour behind -- the forward-pointer
+    defect this check exists to catch, committed by the check itself. It cost a
+    false finding on the first real run.
+    """
+    mentions = _hour_mentions(text)
+    if not mentions:
+        return None
+    position, ordinal = mentions[0]
+    if position > ENTRY_SELF_ID_WINDOW:
+        raise ValueError(
+            "an entry names its first Hour at character %d, past the %d-character window "
+            "register entries self-identify in -- the convention has moved and 'the first "
+            "ordinal is this entry's own' no longer holds: %r"
+            % (position, ENTRY_SELF_ID_WINDOW, (text or "")[:160]))
+    return ordinal
+
+
+def answered_hours(text: str) -> set[int]:
+    """Ordinals that appear in a sentence which also states a hold verdict.
+
+    A forward pointer ("the next promoter runs Hour #19") states no verdict, so
+    it answers nothing -- which is the whole point of reading verdicts rather
+    than mentions.
+    """
+    answered: set[int] = set()
+    for sentence in _SENTENCE_SPLIT.split(text or ""):
+        if _HOLD_VERDICT.search(sentence):
+            answered |= hour_ordinals(sentence)
+    return answered
+
+
+def hold_record_findings(atoms: list[dict]) -> list[str]:
+    """Findings for every atom whose hold record is behind its own register.
+
+    Each atom is a dict: `atom` (id), `level_current`, `level_target`,
+    `register` (the Hour entries, newest last) and `hold_surfaces` (any further
+    text the draw reads -- the hold note, where one is kept).
+
+    RAISES rather than returning clean when no Hour is parsed anywhere: an
+    unparseable register is an unavailable check, and an unavailable check is a
+    FAILED check (R15).
+    """
+    parsed_any = 0
+    findings: list[str] = []
+    for atom in atoms:
+        register = list(atom.get("register") or [])
+        recorded = {h for h in (entry_hour(str(e)) for e in register) if h is not None}
+        parsed_any += len(recorded)
+        if not recorded:
+            continue
+        latest = max(recorded)
+        surfaces = [str(e) for e in register] + [str(s) for s in atom.get("hold_surfaces") or []]
+        answered = set()
+        for surface in surfaces:
+            answered |= answered_hours(surface)
+        held = (atom.get("level_current") is not None
+                and atom.get("level_target") is not None
+                and atom["level_current"] < atom["level_target"])
+        if not held:
+            continue
+        if not answered:
+            findings.append(
+                "%s: %s -- %d Hour(s) recorded, latest #%d, and no record the draw reads "
+                "states what the level did. The draw asks why this is still L%s and nothing "
+                "answers." % (HOLD_UNANSWERED, atom.get("atom"), len(recorded), latest,
+                              atom.get("level_current")))
+        elif max(answered) < latest:
+            findings.append(
+                "%s: %s -- register records Hour #%d, the latest Hour ANSWERED is #%d, so the "
+                "record that answers a %s->%s draw is %d Hour(s) behind and hands the next "
+                "promoter leads already taken."
+                % (HOLD_STALE, atom.get("atom"), latest, max(answered),
+                   atom.get("level_current"), atom.get("level_target"), latest - max(answered)))
+    if parsed_any < HOUR_PARSE_FLOOR:
+        raise ValueError(
+            "VACUITY: not one Expert-Hour ordinal parsed across %d atom(s) -- the register's "
+            "convention has moved and this check is unavailable, which is a FAILED check, not "
+            "a clean one" % len(atoms))
+    return findings
+
+
+def hold_record_atoms(atoms: list[dict], store=None) -> list[dict]:
+    """Build `hold_record_findings` input from the map cells and the record store.
+
+    The population is DERIVED -- every atom the store holds Hour entries for --
+    never a hand-typed list of the two atoms that run Hours today.
+    """
+    if store is None:
+        from tools import simplifications_store as store  # local: CLI-only dependency
+    rows = []
+    for atom in atoms:
+        aid = atom.get("id")
+        if not aid:
+            continue
+        register = [str(e) for e in store.for_atom(aid)]
+        records = store.records_for_atom(aid) or {}
+        register += [str(e) for e in (records.get("expert_hour_findings") or [])]
+        notes = store.notes_for_atom(aid) or {}
+        surfaces = [str(v) for k, v in notes.items() if "hold" in k or "level" in k]
+        rows.append({"atom": aid, "level_current": atom.get("level_current"),
+                     "level_target": atom.get("level_target"),
+                     "register": register, "hold_surfaces": surfaces})
+    return rows
+
+
 def record_verification(atom_id: str, note: str, repo: Path | None = None,
                         now: float | None = None) -> dict:
     """Append one verification to the ledger. Append-only, never rewritten."""
@@ -471,6 +683,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         rows = build_rows()
         findings = integrity_findings(rows)
+        # The hold record is a fourth clock, and it runs HERE rather than only in
+        # the suite: D34's control was never wired into its CLI and nobody noticed
+        # for two Hours. A stale hold record is an integrity finding about these
+        # same cells, so it joins the list the caller already refuses to stand
+        # behind. It raises rather than returning clean when unavailable, which
+        # the same except below turns into COULD NOT RUN.
+        findings = findings + hold_record_findings(hold_record_atoms(_map_atoms()))
     except Exception as exc:  # could not run is never a pass
         print("MAP ASSERTION PROVENANCE: COULD NOT RUN -- %s" % exc, file=sys.stderr)
         return 2

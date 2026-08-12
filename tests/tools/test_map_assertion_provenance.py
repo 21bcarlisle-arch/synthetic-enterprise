@@ -413,3 +413,135 @@ def test_the_live_map_has_cells_on_both_sides_of_every_clock():
     rows = mp.build_rows()
     assert mp.by_status(rows, mp.CURRENT), "no cell is current -- the clock is stuck"
     assert mp.by_status(rows, mp.STALE), "no cell is stale -- the comparison is inert"
+
+
+# ---------------------------------------------------------------------------
+# THE HOLD RECORD'S OWN VALIDITY WINDOW (H27 Expert Hour #22, atom D41)
+#
+# Every fixture below is written in the two conventions the two real registers
+# actually use, because the defect being guarded is a PROSE record falling
+# behind a DATA one, and a fixture in a convention nobody writes would prove
+# only that the regex matches itself.
+# ---------------------------------------------------------------------------
+
+_H27_SHAPE = [
+    "NINETEENTH HOUR (2026-08-11), on Hour #18's leads 1 AND 2. Level stays 2.",
+    "TWENTIETH HOUR (2026-08-12), on the instrument Hour #19 built. Level stays 2.",
+    "TWENTY-FIRST HOUR (2026-08-12), on Hour #20's leads. Level stays 2.",
+]
+_HGAP_SHAPE = [
+    "2026-08-12 THE FOURTEENTH EXPERT HOUR RAN ON THE QUESTION THE THIRTEENTH LEFT, "
+    "AND IT FOUND SOMETHING, SO THE LEVEL STAYS 2. OPENER FOR THE FIFTEENTH HOUR: more.",
+    "2026-08-12 THE FIFTEENTH EXPERT HOUR RAN ON THE QUESTION THE FOURTEENTH LEFT, "
+    "AND IT FOUND SOMETHING, SO THE LEVEL STAYS 2. OPENER FOR THE SIXTEENTH HOUR: more.",
+]
+
+
+def _held_atom(register, hold_surfaces=(), current=2, target=3, atom="A1"):
+    return {"atom": atom, "level_current": current, "level_target": target,
+            "register": list(register), "hold_surfaces": list(hold_surfaces)}
+
+
+def test_the_verdict_carried_in_the_register_entry_is_current_by_construction():
+    """The working analogue (R4): H_GAP keeps no hold note and needs none, because
+    the one act an Hour cannot skip -- recording itself -- carries the verdict."""
+    assert mp.hold_record_findings([_held_atom(_HGAP_SHAPE)]) == []
+
+
+def test_a_hold_note_behind_its_register_FIRES():
+    findings = mp.hold_record_findings(
+        [_held_atom(_H27_SHAPE, ["HELD AT L2 AFTER EXPERT HOUR #18 (2026-08-11)."])])
+    assert len(findings) == 1
+    assert mp.HOLD_STALE in findings[0]
+    assert "Hour #21" in findings[0] and "#18" in findings[0] and "3 Hour(s) behind" in findings[0]
+
+
+def test_MUTATION_a_forward_pointer_does_not_count_as_an_answer():
+    """THE NAMED FAIL-OPEN. Every hold record ends by naming the NEXT Hour, so the
+    highest number mentioned is current by construction, one ahead of the truth.
+    At the first real instance -- one Hour behind -- a mention check reads green on
+    the defect it was built for."""
+    one_behind = _H27_SHAPE[:2]
+    stale_note = ("HELD AT L2 AFTER EXPERT HOUR #19 (2026-08-11). "
+                  "The next promoter runs Hour #20 on the corrected instrument.")
+    # A mention check would see #20 in the note, equal to the register, and pass.
+    assert 20 in mp.hour_ordinals(stale_note)
+    findings = mp.hold_record_findings([_held_atom(one_behind, [stale_note])])
+    assert len(findings) == 1 and mp.HOLD_STALE in findings[0]
+    assert "1 Hour(s) behind" in findings[0]
+
+
+def test_MUTATION_a_register_forward_pointer_does_not_invent_an_hour():
+    """The same defect on the other side, and it is not hypothetical: H_GAP's
+    fifteenth entry ends 'OPENER FOR THE SIXTEENTH HOUR'. Counting mentions
+    reports a perfectly current atom as one Hour behind -- it did, on the first
+    real run of this check."""
+    assert 16 in mp.hour_ordinals(_HGAP_SHAPE[-1])
+    assert mp.entry_hour(_HGAP_SHAPE[-1]) == 15
+    assert mp.hold_record_findings([_held_atom(_HGAP_SHAPE)]) == []
+
+
+def test_MUTATION_hours_recorded_with_no_verdict_anywhere_FIRES():
+    silent = [e.replace("Level stays 2.", "Nothing said about the level.")
+              for e in _H27_SHAPE]
+    findings = mp.hold_record_findings([_held_atom(silent, ["A note that answers nothing."])])
+    assert len(findings) == 1 and mp.HOLD_UNANSWERED in findings[0]
+
+
+def test_MUTATION_an_entry_that_stops_self_identifying_RAISES():
+    """A convention change must refuse, not guess. An unavailable check is a
+    failed check (R15)."""
+    drifted = ["This entry buries its ordinal a very long way in, well past any "
+               "reasonable prefix, so that nothing at the front says which one it is, "
+               "and only here does it admit to being the TWENTY-SECOND HOUR."]
+    with pytest.raises(ValueError, match="self-identif"):
+        mp.hold_record_findings([_held_atom(drifted)])
+
+
+def test_MUTATION_a_register_that_parses_to_nothing_RAISES_rather_than_passing():
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.hold_record_findings([_held_atom(["a register entry naming no session at all"])])
+
+
+def test_an_atom_at_its_target_is_not_asked_why_it_is_held():
+    """No draw asks the question, so a stale answer misleads no one -- and a
+    finding here would be noise that trains the reader to ignore the check."""
+    assert mp.hold_record_findings(
+        [_held_atom(_H27_SHAPE, ["HELD AT L2 AFTER EXPERT HOUR #18."], current=3, target=3)]) == []
+
+
+def test_the_population_is_derived_from_the_store_not_hand_typed():
+    """The construct this repo records having been escaped by nine times."""
+    atoms = mp._map_atoms()
+    rows = mp.hold_record_atoms(atoms)
+    assert len(rows) == len(atoms), "every map cell is offered to the check"
+    with_hours = [r for r in rows
+                  if any(mp.entry_hour(e) for e in r["register"])]
+    assert with_hours, "no atom in the live store parses an Expert Hour -- check is inert"
+
+
+def test_the_live_store_carries_no_stale_hold_record():
+    """R11 for a governance record: the real answer to the real draw, not a fixture."""
+    atoms = mp._map_atoms()
+    assert mp.hold_record_findings(mp.hold_record_atoms(atoms)) == []
+
+
+def test_a_stale_hold_record_reaches_the_CLI_and_not_only_the_suite(monkeypatch, capsys):
+    """D34's control was never wired into its own CLI and nobody noticed for two
+    Hours. This proves the finding reaches the caller's refusal, not just pytest."""
+    monkeypatch.setattr(mp, "hold_record_atoms", lambda atoms, store=None: [
+        _held_atom(_H27_SHAPE, ["HELD AT L2 AFTER EXPERT HOUR #18."])])
+    rc = mp.main(["--check"])
+    err = capsys.readouterr().err
+    assert rc != 0
+    assert mp.HOLD_STALE in err
+
+
+def test_the_CLI_refuses_rather_than_passing_when_the_hold_check_is_unavailable(
+        monkeypatch, capsys):
+    def _boom(atoms, store=None):
+        raise ValueError("VACUITY: the register's convention has moved")
+
+    monkeypatch.setattr(mp, "hold_record_atoms", _boom)
+    assert mp.main(["--check"]) == 2
+    assert "COULD NOT RUN" in capsys.readouterr().err
