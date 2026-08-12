@@ -33,9 +33,15 @@ function lift(name) {
 }
 
 // The page's own helpers these two depend on.
+// D36 (2026-08-12) moved the bill path onto its own pence-precision formatter,
+// billGbp(). This harness plays the external auditor, so it keeps its OWN
+// 2dp implementation rather than lifting the page's -- an auditor that borrows
+// the printer's arithmetic cannot fail (R15 TAUTOLOGY). Both names are bound
+// because the lifted functions call billGbp and the page's other code calls gbp.
 const PRELUDE = `
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function gbp(v){return "£"+Number(v).toFixed(2);}
+  function billGbp(v){return (Number(v)<0?"-":"")+"£"+Math.abs(Number(v)).toFixed(2);}
 `;
 
 const src = PRELUDE + lift("rateStr") + "\n" + lift("billUsageLinesHtml") + "\n" +

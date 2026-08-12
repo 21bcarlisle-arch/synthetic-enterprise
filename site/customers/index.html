@@ -1135,6 +1135,75 @@ function rateStr(v){
   var dp=i>=0?(s.length-i-1):0;
   return v.toFixed(Math.max(2,Math.min(6,dp)));
 }
+/* D36 (2026-08-12, ruling THE PORTAL IS A WALL EXHIBIT Part 1): money on the
+   BILL path prints in pounds AND PENCE. The page-wide gbp() above is a
+   PORTFOLIO formatter -- zero decimals is right for a lifetime-revenue tile and
+   wrong on a bill, where the customer re-adds the column with a pen. It printed
+   C1g-INV141's four charge lines as "£12 + £8 + £5 + £1" against a total of
+   "-£2": not one of those figures is the figure on the record, and the pennies
+   that decide whether the column adds up were thrown away before the reader saw
+   them. Non-finite and unreadable values print "-" rather than "£NaN". */
+function billGbp(n){
+  if(n==null||n==="")return "-";
+  var v=Number(n);
+  if(!isFinite(v))return "-";
+  return (v<0?"-":"")+"£"+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function standingChargeLabel(i){
+  return (i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
+    ?("Standing charge ("+i.days_in_period+" days &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
+    :"Standing charge";
+}
+function standingChargeLabelPlain(i){
+  return (i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
+    ?("Standing charge ("+i.days_in_period+" days x £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
+    :"Standing charge";
+}
+/* The catch-up line names the period it corrects and which way it corrects it.
+   The FIGURE is carried straight through from the ledger's
+   catchup_adjustment_gbp -- never re-derived here from the raw delta, the
+   written-off part, or "total minus the other four", which is exactly the
+   re-derivation defect that put a multiplication that does not hold on 86.1% of
+   usage lines (D_printed_figure_rederivation). */
+function catchupLabel(i){
+  var dir=i.catchup_direction==="overcharge"?"overcharge correction"
+    :i.catchup_direction==="undercharge"?"undercharge correction":"correction";
+  var per=(i.catchup_period_start&&i.catchup_period_end)
+    ?(" for "+esc(i.catchup_period_start)+" to "+esc(i.catchup_period_end)):"";
+  return "Catch-up adjustment ("+dir+per+")";
+}
+/* THE BILL'S COMPONENT SET (D36). This is BILL_FOOTS's own footing set --
+   _FOOTING_COMPONENT_KEYS in company/compliance/domain_invariants.py -- in
+   printing order, and tests/company/compliance/test_printed_bill_foots_render.py
+   pins the two against each other in BOTH directions so a component added to
+   the invariant can never quietly go unprinted here.
+
+   Why it is a list and not four hand-written pushes: the renderer previously
+   kept its own line-up (usage, standing, network, VAT) which happened to be the
+   footing set MINUS the catch-up adjustment -- the same omission that sank the
+   first F6 build of BILL_FOOTS. On bill C1g-INV141 that printed four lines
+   totalling £25.97 above a total of -£2.43, with nothing on the page saying
+   where the sign came from. Driving the column off the invariant's own set
+   means a fifth (or sixth) component cannot be silently dropped again. */
+var BILL_COMPONENTS=[
+  {key:"commodity_amount_gbp",always:true,label:function(){return "Usage";},plain:function(){return "Usage";}},
+  {key:"standing_charge_gbp",always:true,label:standingChargeLabel,plain:standingChargeLabelPlain},
+  {key:"non_commodity_amount_gbp",label:function(){return "Network &amp; environmental";},plain:function(){return "Network & environmental";}},
+  {key:"vat_gbp",label:function(){return "VAT";},plain:function(){return "VAT";}},
+  {key:"catchup_adjustment_gbp",label:catchupLabel,plain:catchupLabel}
+];
+/* A component prints when it is non-zero (or is always-printed). Zero is the
+   only value that may be omitted, because omitting it cannot change the sum --
+   any other omission would break the footing this set exists to protect. */
+function billComponentPrints(c,i){
+  if(c.always)return true;
+  var v=Number(i[c.key]);
+  return i[c.key]!=null&&isFinite(v)&&v!==0;
+}
+function billComponentRowHtml(c,i){
+  if(!billComponentPrints(c,i))return "";
+  return "<div class=\"row\"><span class=\"rl\">+ "+c.label(i)+"</span><span>"+billGbp(i[c.key])+"</span></div>";
+}
 function billUsageLinesHtml(i){
   var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
   if(i.registers&&i.registers.length){
@@ -1145,28 +1214,34 @@ function billUsageLinesHtml(i){
         :(r.consumption_kwh?(r.amount_gbp/r.consumption_kwh*100):null);
       var label=i.registers.length>1?("Usage ("+esc(r.label)+")"):"Usage";
       return rate!=null
-        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(rate)+unitTag+" = "+gbp(r.amount_gbp)+"</span></div>"
-        :"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+gbp(r.amount_gbp)+"</span></div>";
+        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(rate)+unitTag+" = "+billGbp(r.amount_gbp)+"</span></div>"
+        :"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+billGbp(r.amount_gbp)+"</span></div>";
     }).join("");
   }
   if(i.unit_rate_p_per_kwh!=null){
-    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(i.unit_rate_p_per_kwh)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>";
+    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(i.unit_rate_p_per_kwh)+unitTag+" = "+billGbp(i.commodity_amount_gbp)+"</span></div>";
   }
-  return "<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+gbp(i.commodity_amount_gbp)+"</span></div>";
+  return "<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+billGbp(i.commodity_amount_gbp)+"</span></div>";
 }
 function billEquationHtml(i){
-  var parts=[billUsageLinesHtml(i)];
   // Calculation-transparency breakdown (2026-07-10, director page comment:
   // "Days x standing charges... explain the maths properly") -- both fields
   // were already computed internally to derive standing_charge_gbp, just
   // never exposed until now (saas/bill_generator.py).
-  var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
-    ?("+ Standing charge ("+i.days_in_period+" days &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
-    :"+ Standing charge";
-  parts.push("<div class=\"row\"><span class=\"rl\">"+scLabel+"</span><span>"+gbp(i.standing_charge_gbp)+"</span></div>");
-  if(i.non_commodity_amount_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ Network &amp; environmental</span><span>"+gbp(i.non_commodity_amount_gbp)+"</span></div>");
-  if(i.vat_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ VAT</span><span>"+gbp(i.vat_gbp)+"</span></div>");
-  parts.push("<div class=\"row\" style=\"font-weight:700\"><span class=\"rl\">= Total</span><span>"+gbp(i.amount_gbp)+"</span></div>");
+  // D36 (2026-08-12): the column is now driven off BILL_COMPONENTS -- the
+  // invariant's own footing set -- so every component of the declared total
+  // gets a line, in pence, and the printed lines add up to the printed total.
+  var parts=BILL_COMPONENTS.map(function(c){
+    /* The commodity component is the usage BREAKDOWN (one row per register,
+       each with its own quantity x rate), so it is rendered by its own
+       function rather than as a single amount row. */
+    return c.key==="commodity_amount_gbp"?billUsageLinesHtml(i):billComponentRowHtml(c,i);
+  });
+  parts.push("<div class=\"row\" style=\"font-weight:700\"><span class=\"rl\">= Total</span><span>"+billGbp(i.amount_gbp)+"</span></div>");
+  if(Number(i.amount_gbp)<0){
+    parts.push("<div class=\"muted\" style=\"font-size:11px;margin-top:4px\">This bill is a CREDIT &mdash; the balance is owed to you, not by you"+
+      (Number(i.catchup_adjustment_gbp)<0?": the catch-up adjustment above is larger than this period's charges":"")+".</div>");
+  }
   return parts.join("");
 }
 /* BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): every bill must show
@@ -1207,22 +1282,27 @@ function downloadBillPdf(i){
   doc.setFontSize(10);
   function line(label,amount){
     doc.text(label,20,y);
-    doc.text(gbp(amount),190,y,{align:"right"});
+    doc.text(billGbp(amount),190,y,{align:"right"});
     y+=7;
   }
-  if(i.consumption_kwh!=null&&i.commodity_amount_gbp!=null){
-    var rateNote=i.unit_rate_p_per_kwh!=null?(" @ "+rateStr(i.unit_rate_p_per_kwh)+"p/kWh"):"";
-    line("Usage: "+i.consumption_kwh.toFixed(1)+" kWh"+rateNote,i.commodity_amount_gbp);
-  }
-  var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
-    ?("Standing charge ("+i.days_in_period+" days x £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
-    :"Standing charge";
-  line(scLabel,i.standing_charge_gbp);
-  if(i.non_commodity_amount_gbp)line("Network & environmental",i.non_commodity_amount_gbp);
-  if(i.vat_gbp)line("VAT",i.vat_gbp);
+  // D36: the PDF prints the SAME component set as the screen (BILL_COMPONENTS =
+  // the invariant's own footing set) in pounds and pence, so the downloaded
+  // statement and the page can never disagree about which lines make the total.
+  BILL_COMPONENTS.forEach(function(c){
+    if(!billComponentPrints(c,i))return;
+    if(c.key==="commodity_amount_gbp"){
+      if(i.commodity_amount_gbp==null)return;
+      var rateNote=(i.consumption_kwh!=null&&i.unit_rate_p_per_kwh!=null)?(" @ "+rateStr(i.unit_rate_p_per_kwh)+"p/kWh"):"";
+      var qty=i.consumption_kwh!=null?(": "+i.consumption_kwh.toFixed(1)+" kWh"):" charge";
+      line("Usage"+qty+rateNote,i.commodity_amount_gbp);
+      return;
+    }
+    line(c.plain(i),i[c.key]);
+  });
   doc.setDrawColor(200);doc.line(20,y,190,y);y+=8;
   doc.setFontSize(12);doc.setFont(undefined,"bold");
-  doc.text("Total due",20,y);doc.text(gbp(i.amount_gbp),190,y,{align:"right"});
+  doc.text(Number(i.amount_gbp)<0?"Total (credit)":"Total due",20,y);
+  doc.text(billGbp(i.amount_gbp),190,y,{align:"right"});
   doc.setFont(undefined,"normal");y+=12;
   doc.setFontSize(9);doc.setTextColor(120);
   if(i.meter_serial)doc.text("Meter serial: "+i.meter_serial,20,y),y+=5;
@@ -1288,14 +1368,14 @@ function renderBills(d){
   filtered.forEach(function(i){total+=i.amount_gbp;if(i.status!=="PAID"&&i.status!=="WRITTEN_OFF")unpaid+=i.amount_gbp;});
   var summary="<div class=\"bill-sum\">"+
     "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Total ("+filtered.length+" bills)</div>"+
-    "<div class=\"bill-kv\">"+gbp(total)+"</div></div>"+
-    (unpaid>0?"<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Outstanding</div><div class=\"bill-kv red\">"+gbp(unpaid)+"</div></div>":"")+
+    "<div class=\"bill-kv\">"+billGbp(total)+"</div></div>"+
+    (unpaid>0?"<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Outstanding</div><div class=\"bill-kv red\">"+billGbp(unpaid)+"</div></div>":"")+
     "</div>";
   var list=filtered.length
     ?filtered.slice().reverse().map(function(i){
         var c=i.status==="PAID"?"muted":i.status==="DISPUTED"?"red":i.status==="WRITTEN_OFF"?"muted":"amber";
         var statusLabel=i.status==="WRITTEN_OFF"?"WRITTEN OFF":i.status;
-        var row="<div class=\"row\" style=\"cursor:pointer\" onclick=\"toggleBillExpand('"+i.id+"')\"><span class=\"rl\">"+i.date+"</span><span>"+gbp(i.amount_gbp)+"</span><span class=\""+c+"\">"+statusLabel+"</span></div>";
+        var row="<div class=\"row\" style=\"cursor:pointer\" onclick=\"toggleBillExpand('"+i.id+"')\"><span class=\"rl\">"+i.date+"</span><span>"+billGbp(i.amount_gbp)+"</span><span class=\""+c+"\">"+statusLabel+"</span></div>";
         if(EXPANDED_BILL_ID===i.id)row+=billExpandHtml(i,invoices);
         return row;
       }).join("")

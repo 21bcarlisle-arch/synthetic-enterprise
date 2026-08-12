@@ -5118,15 +5118,16 @@
   lane: D_billing_metering
   value_stream: price_to_bill
   epoch: 1
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 1
   provenance: director_ruling
   depends_on: []
   couples_with: [D_printed_figure_rederivation, D_money_boundary_reconciliation]
-  file_scope: ['site/customers/index.html', 'tests/company/compliance/test_printed_bill_foots_render.py']
+  file_scope: ['site/customers/index.html', 'site/customers/_bill_render_harness.mjs', 'tests/company/compliance/test_printed_bill_foots_render.py', 'tools/verify_printed_bill_render.mjs']
   expert_hour: {status: not_attempted, last: null, findings: []}
+  records_rehomed: [evidence]
   real_world_twin: "a bank statement that shows a chargeback reversal as its own line rather than folding it silently into a total the customer cannot reconstruct"
 
 - id: SITE2_two_sided_wall_exhibit
