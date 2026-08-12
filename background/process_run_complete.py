@@ -1808,10 +1808,16 @@ def _publish_tree_divergence():
             # generated-file churn that moves the total every cycle does not re-page; a lane
             # appearing, growing or leaving does. Without re_escalate_after a standing squat
             # would page once and then be silent forever, which is the opposite of daily.
+            from background import notification_digest
             from background.notify import notify
             notify("[TREE DIVERGENCE] " + "; ".join(found) + ". By lane: " + _td.top_squatters(m)
                    + ". Report only — the publish gate's subject is HEAD, so this blocks nothing.",
                    kind="real_alarm",
+                   # G-N3 (director 2026-08-12): "divergence" is one of the four categories he
+                   # named for batching, and this message already says it blocks nothing. It
+                   # goes in the digest; the transition/re-escalate contract above still
+                   # decides WHETHER there is anything to say.
+                   topic_class=notification_digest.DIVERGENCE,
                    transition_key="tree_divergence",
                    state=_td.top_squatters(m),
                    re_escalate_after=24 * 3600)

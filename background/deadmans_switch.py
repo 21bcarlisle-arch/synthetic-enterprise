@@ -626,6 +626,24 @@ def _rest_is_proven_legitimate() -> bool:
         return False
 
 
+def _flush_notification_digest() -> None:
+    """Send the batched-notification digest when it is due (G-N4, director 2026-08-12).
+
+    It RIDES this timer rather than owning a daemon: the digest is throttled, not scheduled,
+    so a stopped deadman DELAYS a digest and can never lose one (the queue is append-only and
+    the high-water mark only moves on a confirmed delivery). Swallows its own exceptions for
+    the same reason every other check here does -- a digest must never take the deadman down,
+    and an unflushed queue is self-healing on the next cycle.
+    """
+    try:
+        from background import notification_digest
+        result = notification_digest.maybe_flush()
+        if result is not None:
+            log(f"Notification digest flushed: {result}")
+    except Exception as exc:                                   # pragma: no cover - defensive
+        log(f"Notification digest flush failed (queue intact): {type(exc).__name__}: {exc}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
@@ -634,6 +652,7 @@ def run_cycle() -> None:
     _check_status_honesty()
     _check_repo_not_bare()
     _check_operational_layer_signal()
+    _flush_notification_digest()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

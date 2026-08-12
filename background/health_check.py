@@ -561,7 +561,11 @@ def main() -> int:
             headers={"X-Priority": "4", "X-Tags": "warning"},
         )
     elif always_ntfy:
-        notify(f"[HEALTH CHECK] Stack OK — {len(ok_lines)} processes healthy.", kind="director_echo")
+        # G-N3: "everything is fine" is the definition of a message he does not need to act
+        # on, so it batches. The DEGRADED branch above stays instant and unclassified.
+        from background import notification_digest
+        notify(f"[HEALTH CHECK] Stack OK — {len(ok_lines)} processes healthy.",
+               kind="director_echo", topic_class=notification_digest.ROUTINE_LANDING)
 
     return 0 if all_ok else 1
 

@@ -58,10 +58,17 @@ def _write_transitions(d: dict) -> None:
 
 def notify(message: str, *, kind: str, transition_key: str | None = None,
            state: object | None = None, re_escalate_after: float | None = None,
-           headers: dict[str, str] | None = None, _allow_real_send: bool = False) -> str | None:
+           headers: dict[str, str] | None = None, topic_class: str | None = None,
+           _allow_real_send: bool = False) -> str | None:
     """Send a notification through the one contract.
 
     kind: one of KINDS (G-N2, required — an untyped page is forbidden).
+    topic_class: G-N3 (director, 2026-08-12) — WHY he is being told, from the closed instant
+      set (action_needed | blocked_work | decision_waiting | publishing_down) or a deferrable
+      category (divergence | drift | routine_landing | finding_announcement). A deferrable
+      class is BATCHED into the periodic digest instead of sent, and returns a
+      "deferred:<seq>" sentinel — never an id, because it has not been sent (G-N5).
+      Omitted/unrecognised = INSTANT: the classifier fails toward paging him.
     transition_key + state: if given, transition-only (G-N1/R5) — SUPPRESS unless `state` changed
       since the last send for this key. Returns a "suppressed:unchanged:<key>" sentinel then.
     re_escalate_after: with a transition_key, RE-SEND an unchanged state once this many seconds have
@@ -81,6 +88,16 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
                 return f"suppressed:unchanged:{transition_key}"   # R5: unchanged (and not yet due)
         trans[transition_key] = {"state": cur, "ts": time.time()}
         _write_transitions(trans)
+
+    # G-N3 ROUTING (director, 2026-08-12: "cut the volume to fit it"). Placed AFTER the
+    # transition check so a batched item obeys R5 exactly as a paged one does — a deferred
+    # duplicate would fill the digest with the noise transition-only exists to remove — and
+    # BEFORE the send so a deferred item never reaches the wire. kind="digest" is instant by
+    # construction: it IS the batch, so routing it back into the queue would never terminate.
+    if kind != "digest":
+        from background import notification_digest
+        if not notification_digest.is_instant(topic_class):
+            return notification_digest.defer(message, kind=kind, topic_class=topic_class)
 
     h = dict(headers or {})
     h.setdefault("Tags", _KIND_TAG.get(kind, ""))
