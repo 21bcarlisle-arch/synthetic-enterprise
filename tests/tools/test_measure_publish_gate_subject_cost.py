@@ -2884,6 +2884,89 @@ def test_the_shipped_ceiling_clears_every_demand_the_live_record_has_evidence_fo
     )
 
 
+# ── THE UNAVAILABLE RATIO MUST GIVE ITS PROGNOSIS, NOT JUST ITS OUTCOME (2026-08-12) ─────────
+#
+# `ratio_unavailable_because` said "these phases did not run to completion, so their seconds is a
+# lower bound" -- accurate about what HAPPENED and silent about whether it can be fixed. Every
+# consumer reads that as transient, including this atom's own EXIT text, which still says the
+# ceiling must be "re-derived from a measured peak before any relaunch can complete". The
+# re-derivation happened; its verdict is that the phase is UNRUNNABLE on this box (10240MB of
+# banked demand needs 12800MB, the box spares 11816MB), so `_bounded_argv` refuses before the
+# phase starts. Without the clause below, launch 15 gets funded to re-learn that.
+
+# 12000MB of banked demand needs 15000MB at 1.25x; a 16000MB box spares 11904MB. Terminus.
+_TOO_BIG = {"in_tree_baseline": {"hit_memory_ceiling": True, "memory_max_mb": 12_000}}
+# 4000MB needs 5000MB, which the same box spares comfortably. A relaunch is still worth funding.
+_FITS = {"in_tree_baseline": {"scope_peak_mb": 4_000}}
+
+
+def test_an_unrunnable_phase_says_a_relaunch_cannot_fix_it():
+    """THE CONTROL. The clause has to name the three figures a reader needs to act: what demand
+    was measured, what ceiling it implies, and what this box can actually spare."""
+    clause = measure._terminus_clause(_TOO_BIG, box_total_mb=16_000)
+
+    assert clause, "a phase whose demand this box cannot bound produced no prognosis at all"
+    assert "12000MB" in clause and "15000MB" in clause, (
+        "the clause must quote the measured demand and the ceiling it implies, or the reader "
+        "cannot check the arithmetic that condemns the phase: {}".format(clause))
+    assert str(16_000 - measure.MIN_MEMORY_HEADROOM_MB) + "MB" in clause, (
+        "the clause must quote what the box can spare: {}".format(clause))
+    assert "bigger box, not another launch" in clause
+
+
+def test_mutation_a_phase_that_still_fits_gets_no_terminus_clause():
+    """MUTATION (R15), the other way. If the clause fired regardless of whether the box can hold
+    the phase, it would be a fixed string appended to every incomplete run -- and a prognosis
+    that is always "give up" is not a measurement, it is a mood. A phase that was merely killed
+    or deferred while its demand still fits MUST stay silently retryable."""
+    assert measure._terminus_clause(_FITS, box_total_mb=16_000) == ""
+    # ... and the same demand on a box that genuinely cannot hold it DOES speak, so the
+    # difference is the box and not the phase's presence in the record.
+    assert measure._terminus_clause(_FITS, box_total_mb=6_000) != ""
+
+
+def test_a_record_with_no_demand_evidence_makes_no_prognosis():
+    """FAIL-QUIET on absent evidence, deliberately unlike the fail-CLOSED sufficiency check it
+    calls. Not knowing a phase's demand is not evidence that the box is too small, and a clause
+    that condemned the phase on silence would retire this atom's owed number on no measurement
+    at all -- the mirror of the fail-open branch `_measured_demand_floor_mb` exists to close."""
+    assert measure._terminus_clause({}, box_total_mb=16_000) == ""
+    assert measure._terminus_clause({"in_tree_baseline": {"seconds": 900.0}},
+                                    box_total_mb=16_000) == ""
+
+
+def test_a_box_that_will_not_say_its_size_is_told_apart_from_a_box_that_is_too_small():
+    """Two states that both refuse the phase and call for different next moves: buy a bigger box,
+    versus find out why the kernel will not report MemTotal. One string for both would send the
+    reader shopping for RAM over an unreadable /proc/meminfo."""
+    unknown = measure._terminus_clause(_TOO_BIG, box_total_mb=None)
+    too_small = measure._terminus_clause(_TOO_BIG, box_total_mb=16_000)
+
+    assert unknown and too_small and unknown != too_small
+    assert "MemTotal" in unknown and "bigger box" not in unknown
+
+
+def test_the_prognosis_reaches_the_artefact_a_reader_actually_opens():
+    """WIRED, not merely defined. The clause is only worth anything if it lands in
+    `ratio_unavailable_because` -- the field the next reader greps -- alongside the phase name.
+
+    MUTATION: drop the `_terminus_clause(...)` argument from that format call and this reds while
+    every unit test above still passes, which is the gap a helper-only test would leave."""
+    results = {"phases": dict(_TOO_BIG, throwaway_checkout={
+        "seconds": 1876.4, "returncode": 0, "head_sha_at_run": "abc123def"})}
+    results["phases"]["in_tree_baseline"].update(
+        {"seconds": 1425.1, "returncode": -15, "head_sha_at_run": "abc123def"})
+
+    measure._record_ratio(results, box_total_mb=16_000)
+
+    because = results["ratio_unavailable_because"]
+    assert results["ratio_throwaway_over_in_tree"] is None
+    assert "in_tree_baseline" in because, "the reason must still name which phase is missing"
+    assert "cannot fix it" in because, (
+        "the terminus never reached the artefact, so the record still reads as retryable: {}"
+        .format(because))
+
+
 @pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
 def test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel():
     """Spends real seconds proving the instrument measures a real cgroup, for the same reason the

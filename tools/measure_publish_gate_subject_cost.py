@@ -862,6 +862,48 @@ PHASE_MEMORY_MAX_MB, PHASE_MEMORY_DEMAND_FLOOR_MB, PHASE_CEILING_IS_SUFFICIENT =
     _ceiling_from_the_record())
 
 
+def _terminus_clause(phases, box_total_mb=_ASK_THE_BOX) -> str:
+    """Why a relaunch cannot deliver this phase, or "" if one still could.
+
+    `box_total_mb` is a parameter for the same reason it is one on the three helpers below:
+    a test whose verdict is decided by how much RAM the machine happens to have is not a test of
+    this clause. Production passes nothing and asks the box.
+
+    THE PROGNOSIS, NOT THE OUTCOME (2026-08-12). `ratio_unavailable_because` said only that a
+    phase "did not run to completion, so their seconds is a lower bound" -- true, and read by
+    every consumer as TRANSIENT: run it again. On this box it is not. The ratchet reached its
+    terminus -- a phase killed against its 10240MB ceiling banks a 10240MB demand floor, which
+    needs 12800MB at the stated headroom, and the box can spare 11816MB with the publisher's
+    reserve intact -- so `_bounded_argv` now REFUSES the phase before it starts. A reader
+    following the old string (and the atom's own EXIT text, which says the ceiling must be
+    "re-derived from a measured peak before any relaunch can complete") would fund launch 15 and
+    learn nothing: the re-derivation is DONE, and its verdict is that the phase is unrunnable
+    here. That verdict is the finding. Saying it is the difference between a number this box
+    still owes and a number this box cannot pay.
+
+    DERIVED FROM THE RECORD'S OWN PHASES, never from `PHASE_CEILING_IS_SUFFICIENT`. That constant
+    is bound at IMPORT from whatever was banked then; this runs at write time against the phases
+    THIS launch measured, so a run that banks a new floor describes the floor it just banked
+    rather than the one it started under."""
+    floor = _measured_demand_floor_mb(phases)
+    if floor is None or _ceiling_is_sufficient(floor, box_total_mb=box_total_mb):
+        return ""
+    cap = _box_safe_cap_mb(box_total_mb)
+    if cap is None:
+        # `_ceiling_is_sufficient` fail-CLOSES on an unreadable /proc/meminfo, so it lands here
+        # with no cap to quote. Say which of the two it is: "the box is too small" and "the box
+        # would not say how big it is" call for different next moves.
+        return (" -- and a relaunch cannot be sized: this kernel would not report MemTotal, so "
+                "the ceiling this phase needs cannot be shown to fit, and an unprovable bound "
+                "is refused rather than guessed")
+    return (" -- and a relaunch cannot fix it: measured demand of {}MB needs a {}MB ceiling at "
+            "{}x headroom, more than the {}MB this box can spare with the publisher's {}MB "
+            "reserve intact, so the phase is REFUSED before it starts. Unrunnable HERE as "
+            "measured; this number needs a bigger box, not another launch."
+            .format(floor, int(floor * CEILING_HEADROOM), CEILING_HEADROOM, cap,
+                    MIN_MEMORY_HEADROOM_MB))
+
+
 class _Unbounded(Exception):
     """Raised when a phase cannot be given a memory bound, so it must not run.
 
@@ -1741,6 +1783,74 @@ def _prior_deferral_count(out_path: str) -> int:
     return count if isinstance(count, int) and count >= 0 else 0
 
 
+def _record_ratio(results, box_total_mb=_ASK_THE_BOX):
+    """Write the ratio and its verdict fields onto `results`, in place."""
+    # EXTRACTED FROM `_run_measurement` (2026-08-12) so the wiring is reachable by a test.
+    # It was thirty lines in the middle of a function that first spends forty minutes timing
+    # two suites, so nothing could assert which reason it writes without paying for a
+    # measurement -- and the one property that matters here is which of these branches a
+    # given record lands in.
+    throwaway = results["phases"]["throwaway_checkout"]["seconds"]
+    base = results["phases"]["in_tree_baseline"]["seconds"]
+    # THE TAX, NOT THE SAVING. Superseded criterion 1 asked "is the clean subject within 1.3x
+    # of in-tree?" -- a question about a reused checkout that can no longer be built. What is
+    # measurable, and what the atom now owes, is how much the elimination costs every cycle
+    # forever. It is reported, not graded: there is no threshold left to pass, and inventing
+    # one would let a superseded criterion read as met.
+    # REFUSED, NOT COMPUTED, when either term did not end under its own control. The number
+    # this replaces (1.084, launch 11) divided a completed run by a SIGTERMed one; the reason
+    # is named in the artefact so the next reader gets the cause rather than a null.
+    # AND THE COMPARABILITY RULE HAS TO REACH THIS PATH TOO (2026-08-11). The cross-commit
+    # guard lives in `_drop_incomparable_ratio_phases`, which runs at LAUNCH against BANKED
+    # phases -- so it covers a pair inherited from an earlier run and does not cover a pair
+    # timed inside THIS one. That is now the likelier path, not the exotic one: the two phases
+    # are ~20 minutes each on a shared tree where the publisher and other lanes commit every
+    # few minutes, so HEAD moving BETWEEN them is ordinary. Both would be complete, both
+    # eligible, and the ratio would silently span two commits -- the exact defect that
+    # function was written to prevent, arriving through the door it does not watch.
+    # Fail-CLOSED and named, like the completion rule beside it: a ratio is a comparison, and
+    # two runs of different code are not one.
+    spanned = sorted({results["phases"][name].get("head_sha_at_run") for name in RATIO_PHASES})
+    ineligible = sorted(name for name in RATIO_PHASES
+                        if not _is_ratio_eligible(results["phases"].get(name)))
+    if not ineligible and base and len(spanned) > 1:
+        results["ratio_throwaway_over_in_tree"] = None
+        results["ratio_unavailable_because"] = (
+            "these phases were timed at DIFFERENT commits ({}), so their difference is not "
+            "the subject's cost -- HEAD moved between the two ~20-minute phases"
+            .format(", ".join(str(sha)[:9] for sha in spanned)))
+    elif ineligible or not base:
+        results["ratio_throwaway_over_in_tree"] = None
+        results["ratio_unavailable_because"] = (
+            "these phases did not run to completion, so their seconds is a lower bound and "
+            "cannot be a ratio term: {}{}".format(
+                ", ".join(ineligible),
+                _terminus_clause(results["phases"], box_total_mb=box_total_mb))
+            if ineligible else "the baseline measured zero seconds")
+    else:
+        results["ratio_throwaway_over_in_tree"] = round(throwaway / base, 3)
+        results.pop("ratio_unavailable_because", None)
+    # REPORTED, NOT REFUSED, and the asymmetry against the SHA rule above is deliberate. A
+    # phase whose subject moved mid-run is not two subjects -- it is one subject that took a
+    # small edit part-way through -- and the in-tree phase runs in a shared tree that other
+    # lanes commit to every few minutes, so refusing on it would starve this atom's one owed
+    # number permanently: the guard-that-waits-for-a-gap shape. It is named instead, so no
+    # reader takes the ratio for a comparison of two frozen trees.
+    results["ratio_subject_moved_during"] = sorted(
+        name for name in RATIO_PHASES
+        if (results["phases"].get(name) or {}).get("subject_changed_during_run"))
+    results["ratio_measures"] = (
+        "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-"
+        "ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.")
+    results["superseded_exit_criterion"] = {
+        "was": "a REUSED checkout within 1.3x the in-tree baseline (OPS2 criterion 1)",
+        "superseded_by": "444402ee0 -- reuse eliminated under R3 after it reset a shared "
+                         "checkout under four live suites",
+        "why_not_gradeable": "warm bytecode is unavailable to this atom at any price, so "
+                             "the 1.3x question has no measurable subject",
+    }
+
+
 def _run_measurement(out_path: str, log) -> int:
     """The measurement itself, in THIS process. Blocks ~50 minutes.
 
@@ -1857,63 +1967,7 @@ def _run_measurement(out_path: str, log) -> int:
             log("   baseline: {}s".format(results["phases"]["in_tree_baseline"]["seconds"]))
             _checkpoint(results, args.out, log)
 
-        throwaway = results["phases"]["throwaway_checkout"]["seconds"]
-        base = results["phases"]["in_tree_baseline"]["seconds"]
-        # THE TAX, NOT THE SAVING. Superseded criterion 1 asked "is the clean subject within 1.3x
-        # of in-tree?" -- a question about a reused checkout that can no longer be built. What is
-        # measurable, and what the atom now owes, is how much the elimination costs every cycle
-        # forever. It is reported, not graded: there is no threshold left to pass, and inventing
-        # one would let a superseded criterion read as met.
-        # REFUSED, NOT COMPUTED, when either term did not end under its own control. The number
-        # this replaces (1.084, launch 11) divided a completed run by a SIGTERMed one; the reason
-        # is named in the artefact so the next reader gets the cause rather than a null.
-        # AND THE COMPARABILITY RULE HAS TO REACH THIS PATH TOO (2026-08-11). The cross-commit
-        # guard lives in `_drop_incomparable_ratio_phases`, which runs at LAUNCH against BANKED
-        # phases -- so it covers a pair inherited from an earlier run and does not cover a pair
-        # timed inside THIS one. That is now the likelier path, not the exotic one: the two phases
-        # are ~20 minutes each on a shared tree where the publisher and other lanes commit every
-        # few minutes, so HEAD moving BETWEEN them is ordinary. Both would be complete, both
-        # eligible, and the ratio would silently span two commits -- the exact defect that
-        # function was written to prevent, arriving through the door it does not watch.
-        # Fail-CLOSED and named, like the completion rule beside it: a ratio is a comparison, and
-        # two runs of different code are not one.
-        spanned = sorted({results["phases"][name].get("head_sha_at_run") for name in RATIO_PHASES})
-        ineligible = sorted(name for name in RATIO_PHASES
-                            if not _is_ratio_eligible(results["phases"].get(name)))
-        if not ineligible and base and len(spanned) > 1:
-            results["ratio_throwaway_over_in_tree"] = None
-            results["ratio_unavailable_because"] = (
-                "these phases were timed at DIFFERENT commits ({}), so their difference is not "
-                "the subject's cost -- HEAD moved between the two ~20-minute phases"
-                .format(", ".join(str(sha)[:9] for sha in spanned)))
-        elif ineligible or not base:
-            results["ratio_throwaway_over_in_tree"] = None
-            results["ratio_unavailable_because"] = (
-                "these phases did not run to completion, so their seconds is a lower bound and "
-                "cannot be a ratio term: {}".format(", ".join(ineligible)) if ineligible else
-                "the baseline measured zero seconds")
-        else:
-            results["ratio_throwaway_over_in_tree"] = round(throwaway / base, 3)
-            results.pop("ratio_unavailable_because", None)
-        # REPORTED, NOT REFUSED, and the asymmetry against the SHA rule above is deliberate. A
-        # phase whose subject moved mid-run is not two subjects -- it is one subject that took a
-        # small edit part-way through -- and the in-tree phase runs in a shared tree that other
-        # lanes commit to every few minutes, so refusing on it would starve this atom's one owed
-        # number permanently: the guard-that-waits-for-a-gap shape. It is named instead, so no
-        # reader takes the ratio for a comparison of two frozen trees.
-        results["ratio_subject_moved_during"] = sorted(
-            name for name in RATIO_PHASES
-            if (results["phases"].get(name) or {}).get("subject_changed_during_run"))
-        results["ratio_measures"] = (
-            "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-"
-            "ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.")
-        results["superseded_exit_criterion"] = {
-            "was": "a REUSED checkout within 1.3x the in-tree baseline (OPS2 criterion 1)",
-            "superseded_by": "444402ee0 -- reuse eliminated under R3 after it reset a shared "
-                             "checkout under four live suites",
-            "why_not_gradeable": "warm bytecode is unavailable to this atom at any price, so "
-                                 "the 1.3x question has no measurable subject",
-        }
+        _record_ratio(results)
         # Criterion 2: the bound must clear the worst LEGITIMATE runtime, so it is taken over
         # every phase this record holds -- including retired ones, which are real timings of this
         # suite on this box and can only push the bound up. Same rule as
@@ -1937,7 +1991,9 @@ def _run_measurement(out_path: str, log) -> int:
         _checkpoint(results, args.out, log)
         log("ratio throwaway/in-tree = {} -- the per-cycle TAX of gating on a cold checkout "
             "({}s vs {}s). Reported, not graded: criterion 1 is superseded.".format(
-                results["ratio_throwaway_over_in_tree"], throwaway, base))
+                results["ratio_throwaway_over_in_tree"],
+                results["phases"]["throwaway_checkout"]["seconds"],
+                results["phases"]["in_tree_baseline"]["seconds"]))
         log("worst legitimate run {}s ({}) -> timeout floor at 2x = {}s".format(
             worst, worst_phase, results["implied_timeout_floor_2x"]))
         log("written to {}".format(args.out))

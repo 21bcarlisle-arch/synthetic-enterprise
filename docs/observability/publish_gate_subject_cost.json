@@ -1,9 +1,9 @@
 {
-  "head_sha_at_launch": "88f85184693ee55a58a4d82654ec253d0d3c8ab7",
-  "pid": 318057,
+  "head_sha_at_launch": "dfd74dff72a6c952d59fccf9a274d9d03166ff53",
+  "pid": 438131,
   "is_session_leader": true,
   "launched_by": "systemd",
-  "started_at": "2026-08-11T20:29:36Z",
+  "started_at": "2026-08-11T22:45:43Z",
   "phases": {
     "cold_checkout": {
       "cwd": "/tmp/publish-gate-head-reused",
@@ -16,18 +16,32 @@
       "box_was_quiet": true
     },
     "throwaway_checkout": {
-      "cwd": "/var/tmp/publish-gate-head-qey8309l",
-      "head_sha_at_run": "a322429d15f703e6d230379c360e3204981e7f05",
-      "seconds": 1873.7,
+      "cwd": "/var/tmp/publish-gate-head-axppuv01",
+      "head_sha_at_run": "7d4d7fcad85f55a75effc99cf03886bdabacf851",
+      "head_sha_at_end": "7d4d7fcad85f55a75effc99cf03886bdabacf851",
+      "subject_changed_during_run": false,
+      "started_at": "2026-08-11T22:59:14Z",
+      "ended_at": "2026-08-11T23:30:30Z",
+      "seconds": 1876.4,
       "returncode": 1,
-      "summary": "5 failed, 23927 passed, 5 skipped, 1121 deselected, 14 xfailed, 132 warnings, 4 subtests passed in 1861.88s (0:31:01)",
-      "loadavg_before": 1.04,
-      "loadavg_after": 3.22,
+      "summary": "2 failed, 23968 passed, 5 skipped, 1121 deselected, 14 xfailed, 132 warnings, 4 subtests passed in 1864.83s (0:31:04)",
+      "loadavg_before": 2.49,
+      "loadavg_after": 3.13,
       "box_was_quiet": true,
-      "mem_available_before_mb": 12934,
-      "mem_available_after_mb": 8907,
+      "mem_available_before_mb": 11972,
+      "mem_available_after_mb": 8117,
       "had_memory_headroom": true,
-      "memory_max_mb": 8192,
+      "memory_max_mb": 10240,
+      "memory_max_demand_floor_mb": 8192,
+      "memory_max_basis": "derived: 8192MB of measured demand x 1.25 headroom, capped at the 11816MB this box can spare with the 4096MB start-headroom reserve intact",
+      "scope_unit": "publish-gate-phase-438131-14326",
+      "scope_oom_killed": null,
+      "scope_peak_mb": 4455,
+      "scope_peak_source": "memory.peak",
+      "scope_peak_samples": 376,
+      "scope_peak_read_after_exit": true,
+      "scope_peak_is_lower_bound_on_demand": false,
+      "scope_peak_basis": "observed: 4455MB is the kernel's own high-water mark (memory.peak) for this phase's scope, read after the child exited, so it covers the whole run",
       "hit_memory_ceiling": false,
       "hit_memory_ceiling_basis": "observed: returncode 1 is not a SIGKILL, and this inference is only ever consulted on one",
       "subject_larger_than_the_gates": true,
@@ -37,44 +51,51 @@
     },
     "in_tree_baseline": {
       "cwd": "/home/rich/synthetic-enterprise",
-      "head_sha_at_run": "0bf88bf8685f4c8465ba884a9f7766dfd4b30a07",
-      "seconds": 1425.1,
+      "head_sha_at_run": "7237c67a95c9c8850fe1d5cf0ff1205e12716ffe",
+      "head_sha_at_end": "7237c67a95c9c8850fe1d5cf0ff1205e12716ffe",
+      "subject_changed_during_run": false,
+      "started_at": "2026-08-11T23:30:31Z",
+      "ended_at": "2026-08-11T23:54:19Z",
+      "seconds": 1428.3,
       "returncode": -15,
-      "summary": "............................................................",
-      "loadavg_before": 3.22,
-      "loadavg_after": 2.77,
+      "summary": "...............................",
+      "loadavg_before": 3.13,
+      "loadavg_after": 1.35,
       "box_was_quiet": true,
-      "mem_available_before_mb": 8922,
-      "mem_available_after_mb": 11604,
+      "mem_available_before_mb": 8121,
+      "mem_available_after_mb": 8749,
       "had_memory_headroom": true,
-      "memory_max_mb": 8192,
+      "memory_max_mb": 10240,
+      "memory_max_demand_floor_mb": 8192,
+      "memory_max_basis": "derived: 8192MB of measured demand x 1.25 headroom, capped at the 11816MB this box can spare with the 4096MB start-headroom reserve intact",
+      "scope_unit": "publish-gate-phase-438131-18424",
+      "scope_oom_killed": true,
+      "scope_peak_mb": 10240,
+      "scope_peak_source": "memory.peak",
+      "scope_peak_samples": 286,
+      "scope_peak_read_after_exit": true,
+      "scope_peak_is_lower_bound_on_demand": true,
+      "scope_peak_basis": "lower bound: this phase was killed against its own ceiling, so 10240MB is what the cgroup was ALLOWED, not what the phase wanted -- true demand is higher by an unmeasured amount",
       "hit_memory_ceiling": true,
-      "hit_memory_ceiling_basis": "observed: the kernel logged a cgroup OOM kill whose oom_memcg is this phase's own scope, so it died against its own 8192MB ceiling -- returncode -15 is what the scope teardown left, not the discriminator",
+      "hit_memory_ceiling_basis": "observed: the kernel logged a cgroup OOM kill whose oom_memcg is this phase's own scope, so it died against its own 10240MB ceiling -- returncode -15 is what the scope teardown left, not the discriminator",
       "subject_larger_than_the_gates": true,
       "subject_note": "-x stripped for comparability; the gate stops at the first failure of a red suite and this does not",
       "ran_to_completion": false,
-      "ran_to_completion_basis": "inferred: this phase was killed against its own 8192MB ceiling, so it never reported and its seconds is a lower bound on the runtime it was heading for",
-      "scope_unit": "publish-gate-phase-318057-56440",
-      "scope_oom_killed": true,
-      "verdict_corrected": "2026-08-11: hit_memory_ceiling was banked FALSE by a discriminator keyed to returncode -9. Re-derived here from the kernel journal, which logged CONSTRAINT_MEMCG oom_memcg=<this phase's own scope> at 22:57:36Z, the second this phase ended. Re-derived, NOT re-measured: seconds and returncode are the original run's."
+      "ran_to_completion_basis": "inferred: this phase was killed against its own 10240MB ceiling, so it never reported and its seconds is a lower bound on the runtime it was heading for"
     }
   },
   "deferral_count": 2,
   "resumed_phases": [
     "cold_checkout"
   ],
-  "dropped_for_comparability": [],
+  "dropped_for_comparability": [
+    "in_tree_baseline",
+    "throwaway_checkout"
+  ],
   "phases_from_an_earlier_head": [
     "cold_checkout"
   ],
-  "previous_launch_died_in_flight": {
-    "phase": "throwaway_checkout",
-    "stage": "waiting_for_publisher_lock",
-    "since": "2026-08-11T20:23:04Z",
-    "pid": 315436,
-    "mem_available_mb": 9400,
-    "stage_since": "2026-08-11T20:29:34Z"
-  },
+  "previous_launch_died_in_flight": null,
   "phases_missing": [
     "in_tree_baseline"
   ],
@@ -82,17 +103,18 @@
   "phases_from_a_retired_configuration": [
     "cold_checkout"
   ],
-  "last_heartbeat": "2026-08-11T21:02:06Z",
+  "last_heartbeat": "2026-08-11T22:58:43Z",
   "ratio_throwaway_over_in_tree": null,
-  "ratio_unavailable_because": "these phases did not run to completion, so their seconds is a lower bound and cannot be a ratio term: in_tree_baseline",
+  "ratio_unavailable_because": "these phases did not run to completion, so their seconds is a lower bound and cannot be a ratio term: in_tree_baseline -- and a relaunch cannot fix it: measured demand of 10240MB needs a 12800MB ceiling at 1.25x headroom, more than the 11816MB this box can spare with the publisher's 4096MB reserve intact, so the phase is REFUSED before it starts. Unrunnable HERE as measured; this number needs a bigger box, not another launch.",
+  "ratio_subject_moved_during": [],
   "ratio_measures": "the permanent per-cycle TAX of gating on a cold HEAD checkout, against the pre-ruling in-tree subject. >1 is the cost of the R3 elimination, not a failure.",
   "superseded_exit_criterion": {
     "was": "a REUSED checkout within 1.3x the in-tree baseline (OPS2 criterion 1)",
     "superseded_by": "444402ee0 -- reuse eliminated under R3 after it reset a shared checkout under four live suites",
     "why_not_gradeable": "warm bytecode is unavailable to this atom at any price, so the 1.3x question has no measurable subject"
   },
-  "worst_legitimate_seconds": 1873.7,
+  "worst_legitimate_seconds": 1876.4,
   "worst_legitimate_phase": "throwaway_checkout",
   "worst_is_a_lower_bound": false,
-  "implied_timeout_floor_2x": 3747
+  "implied_timeout_floor_2x": 3752
 }
