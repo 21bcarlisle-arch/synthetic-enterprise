@@ -69,6 +69,55 @@ CURRENT = "current"
 # NOT `stale`: the repair is to land the measurement, not to take it again. See `landed_ledger`.
 MEASURED_NOT_LANDED = "measured_not_landed"
 
+# ── SUPPORT: WHAT THE NUMBER WAS MEASURED OVER ─────────────────────────────────────────────────
+# WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION_2026-08-10 (BLOCKING, H_harness).
+#
+# Everything above this line grades WHO measured -- which commit produced the number. Nothing
+# graded WHAT IT WAS MEASURED OVER. RUNG 4b drew `W2_11_payment_behaviour_source` as stale and
+# offered its base invocation; the tool ran rc=0 against its OWN CLI defaults, the gap moved
+# 0.0859 -> 0.0131 and `universe_size` moved 1557 -> 12000. The row did not get re-taken. A
+# DIFFERENT measurement got written to the same name, and every existing status called it a
+# refresh: freshness was genuinely satisfied (the code at HEAD produced it) while the quantity
+# underneath had been replaced. "A control that verifies provenance and ignores support will
+# call a replaced quantity a refreshed one every time."
+#
+# `SUPPORT_CHANGED` is that fact given its own status, per the finding's own close design --
+# "not `stale`, not `current`, but *this row's population moved between measurements*, which is
+# a fact about the row and wants a human reading rather than a silent republish". It is
+# therefore NOT in `REFRESHABLE_STATUSES` and NOT given the `surgical_land` command that
+# `MEASURED_NOT_LANDED` gets: the drain's job here is to STOP, not to publish faster. That
+# refusal is the release this status exists for, and it is asserted at `refresh_work`, not in
+# the parser.
+SUPPORT_CHANGED = "support_changed"
+
+# The same question asked of a row that cannot answer it. An unavailable check is a FAILED check
+# (R15 fail-silent), so a second measurement of a row carrying NO support descriptor may not read
+# `measured_not_landed` and be landed on the strength of it -- the population may have moved and
+# nothing here could see. It names the row and the keys it would have needed, which is what makes
+# the missing-descriptor list real rather than a silent pass.
+SUPPORT_UNGRADEABLE = "support_ungradeable"
+
+# WHICH component keys ARE the support, declared per metric family and never inferred from the
+# name. The rule-based version of this was tried on paper first and is wrong: `n_false_flags`,
+# `n_excluded`, `n_wrong` and `caught` all match any `n_*`/count-shaped rule and are OUTCOMES,
+# so a naming rule would cry "the population moved" on every honest re-measurement of the same
+# population. Support vs outcome is a fact about each metric, so each metric declares it.
+#
+# CANDIDATES, not requirements: the support is whichever declared keys the row actually carries
+# (`WORLD_recontracting_relationship_start` records `n` and not `premises`; `W1_11` records
+# both). A row carrying NONE of its family's candidates is `SUPPORT_UNGRADEABLE` -- as, today,
+# are `W1_5`, `W1_6`, `W2_4` and `W2_6`, whose components record no population size at all. That
+# is not a defect this register invents; it is the blindness the finding names, made loud at the
+# only moment it can cause harm (a second measurement about to be published).
+SUPPORT_DECLARATIONS = {
+    "detection": ("universe_size", "truth_size"),
+    "prediction": ("premises", "n", "n_accounts"),
+    "attribution": ("n_dd", "n_non_dd"),
+    "belief": ("n_customers", "n_cells_total"),
+    "classification": ("n_arrears",),
+    "misapplication": ("n",),
+}
+
 
 # THE GRADER IS NOT A PRODUCER, and excluding it is not cosmetic (2026-08-11).
 # This module quotes `--write-ledger` (in `_RUNNER_MARKER` and in the commands it prints), so it
@@ -219,6 +268,67 @@ def landed_ledger(path=None, project_dir: Path | None = None):
     return data if isinstance(data, dict) else None
 
 
+def row_support(row) -> tuple:
+    """`({key: size}, None)` for a gradeable row, `(None, why)` for one that cannot answer.
+
+    The support descriptor is read from a first-class `support` field when a writer sets one,
+    and otherwise from the declared candidates in `components` -- in that order, so promoting
+    the descriptor to a written field (the finding's close item 1) is a strict upgrade that
+    needs no change here and no re-grading of the rows already carrying it inside `components`.
+
+    Non-integer and boolean values are NOT support. A population size that arrived as a float
+    or a flag is a descriptor this cannot compare, and reading it anyway would be the fail-open.
+    """
+    if not isinstance(row, dict):
+        return None, "row is not an object"
+    metric = row.get("metric")
+    declared = SUPPORT_DECLARATIONS.get(metric)
+    if declared is None:
+        return None, (f"metric {metric!r} declares no support keys in SUPPORT_DECLARATIONS -- "
+                      "what this row was measured over is not a question this can ask")
+    written = row.get("support")
+    source = written if isinstance(written, dict) else row.get("components")
+    if not isinstance(source, dict):
+        return None, "row carries neither a `support` field nor a components object"
+    found = {k: source[k] for k in declared
+             if isinstance(source.get(k), int) and not isinstance(source.get(k), bool)}
+    if not found:
+        return None, (f"row records none of its family's support keys ({', '.join(declared)}) -- "
+                      "the size of the population behind this number is not recorded anywhere "
+                      "in it")
+    return found, None
+
+
+def support_change(head_row, disk_row) -> tuple:
+    """Compare the support of TWO measurements of one row. `(None, None)` when they agree.
+
+    The comparison is across TIME (the committed measurement vs the one on disk), never across
+    two readings of the same object -- so it is not the tautology shape: nothing here re-derives
+    a support from the same source it checks it against.
+    """
+    head, head_why = row_support(head_row)
+    disk, disk_why = row_support(disk_row)
+    if head is None or disk is None:
+        which = "the committed row" if head is None else "the re-measured row"
+        return SUPPORT_UNGRADEABLE, (
+            f"this row was measured a second time and the two measurements cannot be compared: "
+            f"{which} {head_why or disk_why}. Whether the population moved is unknown, and an "
+            "unavailable check is a failed check -- record a support descriptor before landing")
+    if head == disk:
+        return None, None
+    moved = []
+    for key in sorted(set(head) | set(disk)):
+        before = head.get(key, "absent")
+        after = disk.get(key, "absent")
+        if before != after:
+            moved.append(f"{key} {before} -> {after}")
+    return SUPPORT_CHANGED, (
+        "this row's population moved between measurements (" + "; ".join(moved) + ") -- the "
+        "re-measurement is NOT a refresh of the published number, it is a different measurement "
+        "written to the same name, and the two are not comparable. Not landed automatically: "
+        "decide whether the new population IS this row's population")
+
+
 def _row_status(atom_id: str, row, writers: dict, since_fn) -> dict:
     """Reconcile ONE ledger row. Every non-`current` branch is a fact about the row or about
     git, never an inference about intent (R9)."""
@@ -305,6 +415,32 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
                     f"HEAD's row is not current ({r['detail']}), but the working-tree ledger "
                     "holds a measurement taken by current code -- the number was re-taken and "
                     "never committed, so the door still shows the old one")
+    # SUPPORT, and it deliberately runs over rows the pass above SKIPPED (2026-08-12).
+    # That pass ignores `current` rows, which is exactly where this defect hides: a re-run on
+    # unchanged code makes the disk row current, so a population swap on an already-current row
+    # was graded `current` by every branch here and read as "nothing to see". Freshness and
+    # support are independent questions and the answer to one may not stand in for the other.
+    #
+    # It runs ONLY where a SECOND measurement exists (the committed row and the disk row differ).
+    # Identical rows are one measurement, so there is no comparison to make and no verdict to
+    # give -- without that condition the four rows carrying no support descriptor would report
+    # SUPPORT_UNGRADEABLE on every clean reconcile forever, which is an alarm no act can clear
+    # and this project has a standing census of those.
+    #
+    # It OVERRIDES whatever the row read before, `current` and `measured_not_landed` alike,
+    # because the repair differs at the root: those say "land it", this says do not land it yet.
+    if unlanded:
+        for r in results:
+            if r.get("kind") != "row":
+                continue
+            head_row = ledger.get(r["item"])
+            disk_row = unlanded.get(r["item"])
+            if disk_row is None or head_row is None or disk_row == head_row:
+                continue
+            status, detail = support_change(head_row, disk_row)
+            if status is not None:
+                r["status"] = status
+                r["detail"] = detail
     for world_id in sorted(declared):
         if world_id not in ledger:
             results.append({"item": world_id, "kind": "pair", "producers": [],
@@ -373,6 +509,11 @@ def summary_lines(results: list) -> list:
 # ban: a never_landed tool with no invocable runner is still excluded from the work list, because
 # there the ITEM IS THE TOOL and no command exists that could ever land its row.
 REFRESHABLE_STATUSES = ("stale", "unattributable", "never_landed")
+
+# The two support verdicts, which are the opposite of refreshable: a re-run does not clear them,
+# it is what CAUSED them. Named as a set so the refusal in `refresh_work` cannot be regressed by
+# adding a status to `REFRESHABLE_STATUSES` and not noticing this one.
+_SUPPORT_STATUSES = (SUPPORT_CHANGED, SUPPORT_UNGRADEABLE)
 
 # Statuses whose item is a TOOL (the thing to run) rather than a ROW (a number on a public door).
 # The distinction decides what happens when nothing is invocable -- see `refresh_work`.
@@ -477,6 +618,14 @@ def refresh_work(results: list, writers=None, ledger=None) -> list:
     work = []
     for r in results:
         status = r.get("status")
+        if status in _SUPPORT_STATUSES:
+            # THE REFUSAL, stated where it acts rather than left to fall through the bottom of
+            # this loop. A support-changed row would otherwise have read `measured_not_landed`
+            # and been handed the `surgical_land` command directly below -- the drain would
+            # publish a replaced quantity as a refresh, automatically, which is the finding.
+            # There is no command for this: re-running reproduces the replacement, and landing
+            # it is the act that needs deciding. It stays in `drift()`, reported and visible.
+            continue
         if status == MEASURED_NOT_LANDED:
             # The measurement exists; the command is to LAND it, not to re-take it. Re-running
             # here would be the worst of both: it republishes a figure that can move, to fix a

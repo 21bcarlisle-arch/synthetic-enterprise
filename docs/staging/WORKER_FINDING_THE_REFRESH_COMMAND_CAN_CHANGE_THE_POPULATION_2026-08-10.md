@@ -1,6 +1,14 @@
 # WORKER FINDING — the drain's refresh command re-takes the measurement on a *different population*
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/background/test_gap_ledger_reconciler.py::test_SUPPORT_CHANGED_IS_NOT_OFFERED_A_COMMAND_so_the_drain_cannot_publish_it`, `background/gap_ledger_reconciler.py` — the reconcile now grades what a row was measured OVER, not only which commit measured it, and a row whose population moved is refused a refresh command instead of being handed one
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. Unlike the six discharged earlier
+     the same day, this document was genuinely OPEN — it says so in its own Status line
+     ("registered, not fixed on sight") and left its close design unbuilt. It is released
+     because that design is now BUILT, not because it was already repaired when it was filed.
+     Close items 1 and 2 landed; item 3 is a design question this deliberately still does not
+     guess, and is restated below as what was NOT closed. The falsifier named above was run
+     green, and its seven mutations run, before this line was written. -->
 
 **Date:** 2026-08-10 (worker tick) · **Atom:** `H_GAP_fabric_belief_truth_gap` (RUNG 4b, its own drain)
 **Class:** a freshness control whose repair action satisfies the control while silently replacing
@@ -97,3 +105,77 @@ in a second place, which is the defect that function's docstring already refuses
   values above, taken this tick.
 - `background/gap_ledger_reconciler.py::refresh_command` — the base-invocation rule and its reason.
 - `background/supervisor.py::_stale_gap_row_draw` — the acceptance test the re-run satisfied.
+
+---
+
+## CLOSED 2026-08-12 — what was built, and what was deliberately not
+
+**Close item 1 (record the support) — landed, on the READ side.** `row_support()` resolves a
+row's population from a first-class `support` field when a writer sets one and otherwise from
+declared candidates in `components`, **in that order**. That ordering is the point: promoting
+the descriptor to a written field later is a strict upgrade needing no change here and no
+re-grading of the rows already carrying it. Nothing was made mandatory of every writer, because
+a new required field would grade every historical row ungradeable forever.
+
+**Close item 2 (a status of its own) — landed.** `support_changed`: *"this row's population
+moved between measurements"*, distinct from `stale` and from `current`, carrying the moved keys
+with before → after. Its sibling `support_ungradeable` is the same question asked of a row that
+cannot answer — an unavailable check is a failed check (R15), so a second measurement of a
+descriptor-less row may not be landed on the strength of a check that could not run.
+
+**Close item 3 (whose population is the row's?) — NOT closed, and not guessed.** It is a design
+question per the finding, and the corollary it raises — whether RUNG 4b should skip rows with a
+live in-run writer — is still unanswered. Neither is needed for the above to hold.
+
+**`refresh_command()` was not touched.** No arguments were pinned into it; the defect that
+function's docstring refuses was not rebuilt.
+
+## The release has an effect, and it fired on the live tree
+
+Not a label. `SUPPORT_CHANGED`/`SUPPORT_UNGRADEABLE` are refused a command in `refresh_work`,
+where `MEASURED_NOT_LANDED` is handed `surgical_land`. Measured at HEAD on the real working
+tree, on the very row this finding was found on:
+
+```
+HEAD's code:  x [measured_not_landed] W2_11_payment_behaviour_source ...
+              -> W2_11_payment_behaviour_source [measured_not_landed]:
+                 python3 -m tools.surgical_land -m 'chore(gap-ledger): land the ... measurement'
+
+this change:  x [support_changed] W2_11_payment_behaviour_source: this row's population moved
+                 between measurements (truth_size 31 -> 4; universe_size 1557 -> 276) ...
+              (no command; 3 rows a re-run would clear, was 4)
+```
+
+The finding was **live, not historical**: the working-tree ledger holds a W2_11 re-measurement
+on a population 5.6x smaller than the committed one, and the drain was about to publish it as a
+refresh. That is the defect reproducing itself, caught by the control built for it.
+
+## What this does NOT catch — stated, not implied
+
+The comparison needs **two measurements**: the committed row and the working-tree row. Once a
+support change is committed, HEAD and disk agree and the move is invisible to this — catching it
+afterwards needs the row to carry its own previous support, which is a bigger design and is not
+here. The window this DOES cover is the one that matters for publication: the drain writes to
+disk and a later tick lands it, so the refusal happens before the number reaches the door.
+
+Four live rows — `W1_5`, `W1_6`, `W2_4`, `W2_6` — record no population size at all and therefore
+report `support_ungradeable` **if and only if** they are re-measured. A row with one measurement
+gets no support verdict, deliberately: without that condition those four would report ungradeable
+on every clean reconcile forever, which is an alarm no act can clear.
+
+**R15, seven source mutations, each firing its own named test**, `md5sum -c` byte-clean restore
+(`eb0657fd7059fa9d8fd1411d95f87953`): silent removal of the pass (reproduces the shipped state,
+6 fire) / the pass skipping `current` rows (the fail-open it exists for) / a missing descriptor
+read as an empty support that compares equal / the refusal dropped from `refresh_work` (the
+release) / a name-shaped rule instead of the declared register (`caught`, `n_false_flags` read as
+population) / the one-measurement guard dropped (always-red) / a vanished key read as agreement.
+Not always-red: an honest re-measurement on the same population still reads
+`measured_not_landed` and stays drainable.
+
+**Suites:** 53 passed `test_gap_ledger_reconciler` (was 40), 65 with `test_reconcile_watch`,
+21 across the consuming draw rungs (`test_stale_gap_row_draw`, `test_rest_ladder_isolation`).
+
+**Note on landing this document:** the first write of this header was reverted to HEAD by a
+concurrent writer on the shared tree within minutes, code changes untouched — the
+`docs/staging/`-edit sweep this project already has memory of. Re-applied and committed
+immediately rather than left on disk.

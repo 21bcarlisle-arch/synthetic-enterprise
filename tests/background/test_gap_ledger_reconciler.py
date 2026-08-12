@@ -25,7 +25,14 @@ def _writers(text=None):
 
 
 def _row(**over):
-    row = {"twin_atom_id": "C1_example", "gap": 0.4,
+    # `metric` and a support key are part of the DEFAULT because every live ledger row carries
+    # both, and because the support pass added 2026-08-12 refuses a second measurement it cannot
+    # grade. Without them here that refusal would sit in front of the freshness tests below and
+    # quietly re-point them at itself -- the relocation shape this project has already been bitten
+    # by (feedback_a_new_refusal_relocates_a_sibling_assertion_behind_it). The descriptor-less and
+    # undeclared-family shapes are exercised on purpose, by the tests that name them.
+    row = {"twin_atom_id": "C1_example", "gap": 0.4, "metric": "detection",
+           "components": {"universe_size": 1557, "truth_size": 31},
            "run_git_commit": "a" * 40, "measured_at": "2026-08-09T00:00:00+00:00"}
     row.update(over)
     return row
@@ -163,7 +170,7 @@ def test_every_live_ledger_row_gets_a_verdict_from_the_known_set():
     """The reconcile must be total over the ledger it actually has: a row it cannot classify is a
     row it would silently drop."""
     known = {glr.CURRENT, "stale", "unattributable", "no_producer", "never_measured",
-             "never_landed"}
+             "never_landed", glr.SUPPORT_CHANGED, glr.SUPPORT_UNGRADEABLE}
     # The REAL ledger, explicitly. This directory's conftest pins `glr.LEDGER_PATH` at an absent
     # file to keep the rest-ladder tests off live disk, so a bare `reconcile()` here graded an
     # empty dict and this test asserted nothing about any real row (it read as green throughout).
@@ -520,3 +527,157 @@ def test_a_non_list_declaration_is_ignored_rather_than_crashing_the_drain():
     for junk in (None, "population 200", 200, {"population": 200}):
         assert glr.safe_refresh_args(junk) == []
         assert glr.refresh_command([_WRITER], junk) == "python3 -m tools.couple_x_c1 --write-ledger"
+
+
+# --- SUPPORT: the row's population, not just the commit that measured it ----------------------
+# WORKER_FINDING_THE_REFRESH_COMMAND_CAN_CHANGE_THE_POPULATION_2026-08-10 (BLOCKING, H_harness).
+# The named defect: RUNG 4b's refresh command re-took `W2_11_payment_behaviour_source` against
+# the TOOL's CLI defaults rather than the row's own population -- gap 0.0859 -> 0.0131 with
+# `universe_size` 1557 -> 12000 -- and every status here called the replacement a refresh.
+# These pin the fix in both directions and, per R15, the ways it could fail to be a control:
+# always-red on rows with no descriptor, silent on the `current` branch, and a naming rule that
+# cannot tell a POPULATION from an OUTCOME.
+
+def _sized(universe, truth, **over):
+    """A detection-family row, the family the finding was found on."""
+    comps = {"universe_size": universe, "truth_size": truth, "caught": 3, "n_false_flags": 1}
+    comps.update(over.pop("components", {}))
+    return _row(metric="detection", components=comps, **over)
+
+
+def _both(head, disk, since=None):
+    return glr.reconcile(ledger={_ATOM: head}, unlanded={_ATOM: disk},
+                         writers=_writers(), declared=set(), family=[],
+                         since_fn=since or (lambda sha, paths: 0))
+
+
+def test_a_re_measurement_on_a_DIFFERENT_POPULATION_is_SUPPORT_CHANGED_not_a_refresh():
+    """THE FINDING, reproduced at the shape it was found in: same row name, same metric, a
+    population 7.7x larger. Provenance is perfect -- and the quantity has been replaced."""
+    results = _both(_sized(1557, 31), _sized(12000, 1215, run_git_commit="b" * 40))
+    assert _status(results, _ATOM) == glr.SUPPORT_CHANGED
+    detail = next(r["detail"] for r in results if r["item"] == _ATOM)
+    assert "universe_size 1557 -> 12000" in detail
+    assert "truth_size 31 -> 1215" in detail
+    assert glr.drift(results), "a replaced quantity must not read clean"
+
+
+def test_the_population_swap_is_caught_on_a_row_that_grades_CURRENT():
+    """THE FAIL-OPEN THIS PASS EXISTS FOR. The `measured_not_landed` overlay skips `current`
+    rows, and a re-run on unchanged code lands exactly there: both measurements are attributable
+    to code that has not moved, so freshness is satisfied and the population still swapped.
+    Grading this `current` is the silence the finding names."""
+    results = _both(_sized(1557, 31), _sized(12000, 1215))
+    assert _status(results, _ATOM) != glr.CURRENT
+    assert _status(results, _ATOM) == glr.SUPPORT_CHANGED
+
+
+def test_SUPPORT_CHANGED_IS_NOT_OFFERED_A_COMMAND_so_the_drain_cannot_publish_it():
+    """R11, THE RELEASE: the status has to DO something or it is a label. Same two rows, same
+    staleness -- the only difference is whether the population moved. With it unchanged the
+    drain hands over the `surgical_land` command; with it moved the drain offers nothing at all,
+    which is the automatic republish of a replaced figure not happening."""
+    stale_at_head = (lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    same_pop = _both(_sized(1557, 31), _sized(1557, 31, run_git_commit="b" * 40),
+                     since=stale_at_head)
+    assert _status(same_pop, _ATOM) == glr.MEASURED_NOT_LANDED
+    landed = glr.refresh_work(same_pop, writers=_writers())
+    assert "surgical_land" in next(w for w in landed if w["item"] == _ATOM)["command"]
+
+    moved_pop = _both(_sized(1557, 31), _sized(12000, 1215, run_git_commit="b" * 40),
+                      since=stale_at_head)
+    assert _status(moved_pop, _ATOM) == glr.SUPPORT_CHANGED
+    work = glr.refresh_work(moved_pop, writers=_writers())
+    assert not [w for w in work if w["item"] == _ATOM], (
+        "a row whose population moved must not be handed a command -- re-running reproduces "
+        "the replacement and landing it is the act that needs deciding")
+
+
+def test_a_re_measurement_on_the_SAME_population_is_NOT_support_changed():
+    """NOT ALWAYS RED. The ordinary honest re-measurement -- new numbers, same population --
+    must keep reading `measured_not_landed` and stay drainable."""
+    results = _both(_sized(1557, 31, gap=0.4),
+                    _sized(1557, 31, gap=0.31, run_git_commit="b" * 40),
+                    since=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.MEASURED_NOT_LANDED
+
+
+def test_a_moved_OUTCOME_is_not_a_moved_POPULATION():
+    """The register discriminates support from outcome, which a name-shaped rule cannot:
+    `caught` and `n_false_flags` are `n_*`/count-shaped and are results OF the measurement.
+    Reading them as support would cry population-moved on every real re-measurement."""
+    results = _both(_sized(1557, 31, components={"caught": 3, "n_false_flags": 1}),
+                    _sized(1557, 31, components={"caught": 99, "n_false_flags": 40},
+                           run_git_commit="b" * 40),
+                    since=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.MEASURED_NOT_LANDED
+
+
+def test_a_SECOND_measurement_of_a_row_with_no_support_descriptor_is_UNGRADEABLE():
+    """FAIL-SILENT, refused. `W1_5`, `W1_6`, `W2_4` and `W2_6` record no population size at all.
+    Their re-measurements must not be landed on the strength of a check that could not run."""
+    bare = _row(metric="prediction", components={"mae_model": 0.1})
+    results = _both(bare, _row(metric="prediction", components={"mae_model": 0.2},
+                               run_git_commit="b" * 40),
+                    since=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.SUPPORT_UNGRADEABLE
+    assert not [w for w in glr.refresh_work(results, writers=_writers()) if w["item"] == _ATOM]
+
+
+def test_an_UNDECLARED_metric_family_fails_CLOSED_rather_than_comparing_nothing():
+    """Two rows with no declared support keys compare EQUAL as empty dicts if the descriptor is
+    allowed to be empty -- the fail-open that would pass every unknown family silently."""
+    novel = _row(metric="a_metric_family_invented_after_this_register", components={"x": 1})
+    results = _both(novel, _row(metric="a_metric_family_invented_after_this_register",
+                                components={"x": 2}, run_git_commit="b" * 40),
+                    since=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.SUPPORT_UNGRADEABLE
+
+
+def test_a_support_key_that_VANISHES_between_measurements_is_a_change():
+    """Dropping the descriptor is not agreeing with it. Without this a writer could clear every
+    support verdict by recording less."""
+    results = _both(_sized(1557, 31),
+                    _row(metric="detection", components={"truth_size": 31},
+                         run_git_commit="b" * 40),
+                    since=lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    assert _status(results, _ATOM) == glr.SUPPORT_CHANGED
+    assert "universe_size 1557 -> absent" in next(
+        r["detail"] for r in results if r["item"] == _ATOM)
+
+
+def test_a_non_integer_size_is_not_read_as_support():
+    """A population size that arrived as a float or a flag is a descriptor this cannot compare;
+    reading it anyway would be the fail-open. Bools are ints in Python and are excluded by name."""
+    assert glr.row_support(_row(metric="detection",
+                                components={"universe_size": 1557.0}))[0] is None
+    assert glr.row_support(_row(metric="detection",
+                                components={"universe_size": True}))[0] is None
+    assert glr.row_support(_row(metric="detection",
+                                components={"universe_size": 1557}))[0] == {"universe_size": 1557}
+
+
+def test_a_row_with_ONE_measurement_gets_NO_support_verdict_even_with_no_descriptor():
+    """THE UNCLEARABLE-ALARM GUARD. Identical committed and disk rows are ONE measurement, so
+    there is no comparison to make. Without this condition the four descriptor-less rows would
+    report UNGRADEABLE on every clean reconcile forever -- an alarm no act can clear."""
+    bare = _row(metric="prediction", components={"mae_model": 0.1})
+    results = _both(bare, dict(bare))
+    assert _status(results, _ATOM) == glr.CURRENT
+    assert glr.drift(results) == []
+
+
+def test_the_live_ledger_says_which_rows_can_answer_the_support_question():
+    """Reads the REAL ledger. Not a pin on the four names -- a pin that the register still
+    resolves the live rows it claims to, so a writer that stops recording its population, or a
+    metric family added without a declaration, shows up here instead of going quiet."""
+    real = glr.PROJECT_DIR / "docs" / "observability" / "coupled_gap_ledger.json"
+    ledger = glr.load_ledger(real)
+    assert ledger, f"no live gap rows at {real} -- this test is vacuous, not passing"
+    graded = {k: glr.row_support(v)[0] for k, v in ledger.items()}
+    answerable = {k for k, v in graded.items() if v}
+    assert answerable, "no live row can answer the support question -- the register resolves none"
+    assert len(answerable) >= 10, (
+        "the live ledger's support coverage went backwards: only "
+        f"{sorted(set(ledger) - answerable)} cannot answer, expected the four known rows "
+        "(W1_5, W1_6, W2_4, W2_6) at most")
