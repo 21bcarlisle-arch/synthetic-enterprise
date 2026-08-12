@@ -3,7 +3,9 @@
     "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
     "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
     "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
-    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis"
+    "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
+    "arrears_ledger_available": true,
+    "arrears_ledger_note": "billing ledger loaded"
   },
   "overall_rag": "AMBER",
   "long_run_comparison": {
@@ -368,6 +370,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -382,6 +385,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -396,6 +400,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -410,6 +415,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -424,6 +430,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -438,6 +445,7 @@
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -452,6 +460,7 @@
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -466,6 +475,7 @@
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -480,6 +490,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     },
     {
@@ -494,6 +505,7 @@
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "AMBER",
+      "ledger_available": true,
       "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
     }
   ],
