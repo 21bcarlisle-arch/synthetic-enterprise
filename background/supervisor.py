@@ -2926,6 +2926,71 @@ def _current_head_hash() -> str | None:
         return None
 
 
+def _commit_is_ancestor(ancestor: str, descendant: str) -> bool | None:
+    """Is `ancestor` reachable from `descendant`? True/False, or None when UNKNOWABLE.
+
+    Three-valued on purpose: rc=0 is yes, rc=1 is no, and anything else (unknown object after a
+    prune, a git failure, a timeout) is None -- which every caller must treat as "check
+    unavailable" and therefore as a FAILED check (R15), never as a convenient False."""
+    if not ancestor or not descendant:
+        return None
+    if "unknown" in (ancestor, descendant):
+        return None
+    try:
+        r = subprocess.run(["git", "merge-base", "--is-ancestor", ancestor, descendant],
+                           cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=10)
+    except Exception:
+        return None
+    return {0: True, 1: False}.get(r.returncode)
+
+
+def _gate_pass_supersedes_failures(last_tested: str, head: str | None, failures: list) -> bool:
+    """Has the gate recorded a pass STRICTLY AFTER the newest recorded failure, on HEAD's history?
+
+    WHY THIS EXISTS (2026-08-12, observed): the independence cross-check above was exact HEAD
+    equality (`.last_tested_hash == HEAD`), and that check is unsatisfiable in the one situation
+    it most needs to answer. The gate's subject is a COMMIT; a green is stamped at the SHA the
+    suite ran against. But publishing that green result itself lands a commit, and every other
+    lane keeps landing too -- so by the time anyone reads the state, HEAD has moved past the SHA
+    that passed and equality can never hold again.
+
+    That made the detector SELF-PERPETUATING rather than merely stale: the phantom wedge fires a
+    priority-zero doorbell, the tick it wakes does real work and commits it, HEAD moves one
+    further from the recorded pass, and the next tick's draw is armed harder than the last. It
+    ran to 201 consecutive "failures" over ~75h while publishing was healthy throughout -- the
+    exact false-armed failure mode `record_publish_gate_outcome` had already fixed on its own
+    side of this contract by keying on the MARKER's hash instead of HEAD. This is that same
+    rule reaching the second consumer named in LAST_TESTED_HASH_CONTRACT.
+
+    INDEPENDENCE IS PRESERVED, NOT TRADED AWAY (R15 anti-tautology). The verdict still needs two
+    sources that cannot forge each other: the failure SHAs come from the publish-outcome state
+    file, `.last_tested_hash` is written by exactly one writer -- the gate's own rc=0 -- and git
+    ancestry supplies the ORDERING neither of them carries. A publisher that publishes nothing
+    still cannot manufacture a green here, which is the property the whole contract rests on.
+
+    FAIL-SAFE TOWARD DRAWING in every uncertain direction -- no usable failure SHA, a pass that
+    is NOT on HEAD's history (an abandoned branch proves nothing about what HEAD will publish),
+    a pass at the very same commit as the failure (ambiguous ordering), or ancestry unknowable.
+    The harmless error is drawing unwedge work one cycle too long; the harmful one is silencing
+    the RUNG-1 draw while publishing is genuinely frozen."""
+    if not last_tested or not head:
+        return False
+    newest_failure = None
+    for f in reversed(failures):
+        if isinstance(f, dict):
+            gh = str(f.get("git_hash") or "").strip()
+            if gh and gh != "unknown":
+                newest_failure = gh
+                break
+    if newest_failure is None or newest_failure == last_tested:
+        return False
+    # The pass must be real history for the tree we are about to publish FROM...
+    if _commit_is_ancestor(last_tested, head) is not True:
+        return False
+    # ...and must come strictly AFTER the failure it claims to supersede.
+    return _commit_is_ancestor(newest_failure, last_tested) is True
+
+
 def _publish_gate_wedge_active(
     now: float | None = None,
     head: str | None = None,
@@ -2950,9 +3015,12 @@ def _publish_gate_wedge_active(
     Two-part predicate:
       * WEDGED (precise, so no phantom draw): `failures` has >= PUBLISH_GATE_WEDGE_MIN_FAILURES
         entries (a sustained wedge fails every ~10min, never a lone flake), AND -- INDEPENDENCE
-        (R15, anti-tautology) -- an INDEPENDENT signal confirms it: the gate has recorded NO pass at
-        the current HEAD (.last_tested_hash != HEAD). If the gate passed at HEAD the failures are
-        stale and this returns None.
+        (R15, anti-tautology) -- an INDEPENDENT signal confirms it: the gate has recorded NO pass
+        that SUPERSEDES those failures. A pass counts as superseding when `.last_tested_hash` is
+        HEAD itself, or (2026-08-12) when it names a commit on HEAD's history that is strictly
+        newer than the newest recorded failure -- because publishing a green result is itself a
+        commit, so exact HEAD equality is unsatisfiable precisely when the gate is healthy and
+        busy. Either way the failures are stale and this returns None.
       * OLDER THAN 60 MIN (generous, fail-safe TOWARD drawing): age = now - the OLDEST available
         wedge timestamp (wedge_since if the writer stamped it, else alerted_at, else the earliest
         in-window failure ts). MIN() maximises measured age because the harmful failure mode is NOT
@@ -2982,6 +3050,11 @@ def _publish_gate_wedge_active(
     except OSError:
         last_tested = ""
     if head and last_tested and head == last_tested:
+        return None
+    # ...and the same question asked in the form the gate can actually answer: a green is stamped
+    # at the SHA the suite ran, but publishing it moves HEAD past that SHA, so equality alone
+    # leaves the detector armed forever on a healthy pipeline. See the helper's docstring.
+    if _gate_pass_supersedes_failures(last_tested, head, failures):
         return None
     # AGE: oldest available wedge signal. Fail-safe toward drawing.
     ts_candidates = [float(f["ts"]) for f in failures

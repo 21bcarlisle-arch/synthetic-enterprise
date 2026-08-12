@@ -153,6 +153,14 @@
       "verdict": "real",
       "guard": "guarded",
       "why": "`since_epoch` is a deafness-episode START and `consecutive_failures` is its LENGTH; both are written by ntfy_utils.record_delivery_outcome on the failure path and are the fields any deafness alarm (the finding's part 3, not yet built) would read for SEVERITY -- so an unearned reset would page a multi-hour silent-escalation outage as a fresh one, the class's own cardinal sin. CLOSE CONDITION: ntfy returned a server-assigned message id for this POST -- the strongest evidence this channel can produce, read off the SERVER's response body and never off this state file (R15 anti-tautology). `since_epoch` is NUMERIC deliberately: guard_episode's water-marks are numeric-only and skip a string silently (WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY, an open BLOCKING member of the controls-that-cannot-fail class), so an ISO `since` alone would be a guard that cannot fire; the readable `since` is kept alongside it, unguarded and not load-bearing. Guarded via episode_monotonic.guard_episode(since_fields=('since_epoch',), streak_fields=('consecutive_failures',), episode_closed=delivered). Replay proof: tests/background/test_ntfy_utils.py::test_an_open_deafness_episode_cannot_be_shortened (opposite direction: ::test_a_real_delivery_does_close_the_episode)."
+    },
+    "ntfy_digest_queue.jsonl": {
+      "verdict": "benign",
+      "why": "The append-only record of every DEFERRED notification (notification_digest G-N4). Flagged because _defer() runs inside the notification path and _read_queue() feeds the digest text an alarm is rendered from. It cannot self-clear: the file is opened in \"a\" mode and never rewritten, truncated or deleted anywhere in the module, so an entry's severity survives every subsequent write and a digested item stays greppable forever. Appending cannot shorten an episode -- same reasoning as run_history.json and live_decisions_log.jsonl."
+    },
+    ".ntfy_digest_state.json": {
+      "verdict": "benign",
+      "why": "The high-water mark of what a CONFIRMED digest flush has carried (notification_digest G-N5), held deliberately SEPARATE from the queue so the record of what was said and the record of what was sent cannot corrupt each other. Flagged because _write_state() full-rewrites it on the notification path. It is the INVERSE of this class rather than an instance of it: the write happens only inside `if _was_delivered(result)`, so the FAILURE path (429, curl failure, or any pytest/suppressed/test_fixture sentinel) writes NOTHING and leaves the mark exactly where it was -- the undelivered items ride the next digest instead of evaporating. Neither key is an episode clock an alarm reads for severity: `digested_through_seq` is a max() over the entries just delivered and therefore monotonic, and `last_digest_ts` stamps the last SUCCESSFUL flush, so neither can be reset by a failure to shorten a measured outage."
     }
   }
 }

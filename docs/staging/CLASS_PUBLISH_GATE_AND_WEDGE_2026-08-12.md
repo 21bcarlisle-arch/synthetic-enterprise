@@ -2,11 +2,11 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 21 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 24 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 21 instances
+## The 24 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_BRANCHS_GATE_AUDITED_THE_NEIGHBOURING_BRANCHS_PROMISE_2026-08-12.md` — BLOCKING
@@ -28,11 +28,14 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — BLOCKING
 - `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_WEDGE_CLEARS_ON_PROCESS_EXIT_NOT_ON_THE_RECORDED_PASS_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_WEDGE_DETECTOR_FED_ITSELF_2026-08-12.md` — BLOCKING
+- `WORKER_FINDING_THE_WEDGE_RECORD_CITED_A_TEST_THAT_NO_LONGER_EXISTS_2026-08-12.md` — LATENT
 - `WORKER_REPORT_THE_GATES_OWN_TESTS_WERE_WRITING_THE_ALARMS_EVIDENCE_2026-08-10.md` — LATENT
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**152.0 recorded episode-hours** across 9 of the 21 instances; largest single recorded episode **60h**; 2 instance(s) name a published figure in scope.
+**152.0 recorded episode-hours** across 9 of the 24 instances; largest single recorded episode **60h**; 2 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -48,7 +51,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-6 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+7 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_BRANCHS_GATE_AUDITED_THE_NEIGHBOURING_BRANCHS_PROMISE_2026-08-12.md`
 - `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`
@@ -56,6 +59,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_SEVEN_REDS_LIVE_AT_HEAD_BENEATH_A_SCOPED_GATE_2026-08-12.md`
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md`
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md`
+- `WORKER_FINDING_THE_WEDGE_DETECTOR_FED_ITSELF_2026-08-12.md`
 
 ---
 
