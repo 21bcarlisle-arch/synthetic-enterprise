@@ -1292,7 +1292,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1552,
+      "stall_consecutive_unchanged": 1555,
       "forward_attachments": []
     },
     {
@@ -2448,7 +2448,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 348,
+      "stall_consecutive_unchanged": 349,
       "forward_attachments": []
     },
     {
@@ -2820,7 +2820,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34,
+      "stall_consecutive_unchanged": 41,
       "forward_attachments": []
     },
     {
@@ -3085,7 +3085,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 75,
+      "stall_consecutive_unchanged": 77,
       "forward_attachments": []
     },
     {
@@ -3111,7 +3111,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 69,
+      "stall_consecutive_unchanged": 71,
       "forward_attachments": []
     },
     {
@@ -3137,7 +3137,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 86,
+      "stall_consecutive_unchanged": 87,
       "forward_attachments": []
     },
     {
@@ -3163,7 +3163,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 77,
+      "stall_consecutive_unchanged": 79,
       "forward_attachments": []
     },
     {
@@ -3189,7 +3189,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 57,
+      "stall_consecutive_unchanged": 58,
       "forward_attachments": []
     },
     {
@@ -3241,7 +3241,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 45,
+      "stall_consecutive_unchanged": 47,
       "forward_attachments": []
     },
     {
@@ -3293,7 +3293,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63,
+      "stall_consecutive_unchanged": 64,
       "forward_attachments": []
     },
     {
@@ -3638,7 +3638,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2484,
+      "stall_consecutive_unchanged": 2489,
       "forward_attachments": []
     },
     {
@@ -4503,7 +4503,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 40,
+      "stall_consecutive_unchanged": 49,
       "forward_attachments": []
     },
     {
@@ -4749,7 +4749,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1554,
+      "stall_consecutive_unchanged": 1558,
       "forward_attachments": []
     },
     {
@@ -5046,7 +5046,7 @@
     },
     {
       "id": "KNIFE3_wall_crossing_paydown",
-      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
+      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (added by a 2026-08-12 draw that found this text unchanged since mint): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. This atom is PARTIALLY BUILT, 20 KNIFE3/A_composition_lift steps landed as of commit 048bc10f8 (2026-08-12) -- DO NOT REDRAW AS IF FROM ZERO or repeat the extraction. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 63 cut, 28 still owed (24 to design A_composition_lift, 4 to design B2_company_brain_decides_the_world), matching tools/knife_hotspot_measure.py's live count of 28 (26 direct + 2 indirect). level_current is DELIBERATELY still 0 at 28/91 remaining -- booking the target at two-thirds-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
@@ -5065,7 +5065,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1191,
+      "stall_consecutive_unchanged": 1198,
       "forward_attachments": []
     },
     {
@@ -5254,7 +5254,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 311,
+      "stall_consecutive_unchanged": 314,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -5283,7 +5283,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stall_consecutive_unchanged": 347,
       "forward_attachments": []
     },
     {
@@ -5303,7 +5303,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 299,
+      "stall_consecutive_unchanged": 300,
       "forward_attachments": []
     },
     {
@@ -5323,7 +5323,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 296,
+      "stall_consecutive_unchanged": 297,
       "forward_attachments": [
         {
           "source": "docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md",
@@ -5352,7 +5352,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 340,
+      "stall_consecutive_unchanged": 341,
       "forward_attachments": []
     },
     {
@@ -5396,7 +5396,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 43,
+      "stall_consecutive_unchanged": 44,
       "forward_attachments": []
     },
     {
@@ -5440,7 +5440,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 314,
+      "stall_consecutive_unchanged": 316,
       "forward_attachments": []
     },
     {
@@ -5506,7 +5506,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 325,
+      "stall_consecutive_unchanged": 326,
       "forward_attachments": []
     },
     {
@@ -5528,7 +5528,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 329,
+      "stall_consecutive_unchanged": 332,
       "forward_attachments": []
     },
     {
@@ -5574,7 +5574,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 345,
+      "stall_consecutive_unchanged": 346,
       "forward_attachments": []
     },
     {
@@ -5660,7 +5660,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 315,
+      "stall_consecutive_unchanged": 316,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5701,7 +5701,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 326,
+      "stall_consecutive_unchanged": 329,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -6012,7 +6012,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -6288,7 +6288,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 314,
+      "stall_consecutive_unchanged": 315,
       "forward_attachments": []
     },
     {
@@ -6358,7 +6358,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 181,
+      "stall_consecutive_unchanged": 183,
       "forward_attachments": []
     },
     {
@@ -6428,7 +6428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 27,
+      "stall_consecutive_unchanged": 28,
       "forward_attachments": []
     },
     {
@@ -6452,7 +6452,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 23,
+      "stall_consecutive_unchanged": 24,
       "forward_attachments": []
     },
     {
@@ -6474,7 +6474,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36,
+      "stall_consecutive_unchanged": 37,
       "forward_attachments": []
     },
     {
@@ -6533,7 +6533,7 @@
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "findings_open",
       "depends_on": [],
       "couples_with": [
         "D36_bill_render_footing_and_pence",
@@ -6542,7 +6542,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 174,
+      "stall_consecutive_unchanged": 194,
       "forward_attachments": []
     },
     {

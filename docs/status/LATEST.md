@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T12:03:35Z
+Last updated: 2026-08-12T12:45:15Z
 
 **H27 — A VALUE TEST DECIDED WHOSE RENDER THE DOOR WAS (this commit).** The TWENTY-FIRST Expert
 Hour on `H27_payment_belief_gap`; the level stays 2 for the twenty-first consecutive Hour.
@@ -2443,7 +2443,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (274s / 5 min):
+**Latest simulation results (2016–2025)** — auto-processed (266s / 4 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
