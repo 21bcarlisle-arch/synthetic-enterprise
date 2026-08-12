@@ -37,6 +37,15 @@ from background.child_diagnostics import (  # noqa: E402
     STDERR_TAIL_LINES, failure_detail, stderr_tail,
 )
 
+# The publisher's no-publish exit codes, mirrored as LITERALS for the same reason
+# background_worker mirrors them: this module must not take an import-time dependency on the
+# publish stack. A mirror without a drift pin is what wedged publishing for 4772 min on
+# 2026-08-12 -- a sibling test held the number 0 as a proxy for "a duplicate is not an error"
+# and nobody updated it when the duplicate path was given its own code. The number is not the
+# property; `test_the_runner_mirror_constants_cannot_drift` is what keeps this copy honest.
+EXIT_LOCK_SKIPPED = 75        # process_run_complete.EXIT_LOCK_SKIPPED
+EXIT_NOTHING_PUBLISHED = 76   # process_run_complete.EXIT_NOTHING_PUBLISHED
+
 
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -219,10 +228,10 @@ def auto_process_marker(marker):
             text=True,
         )
         rc = proc_result.returncode
-        if rc == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
+        if rc == EXIT_LOCK_SKIPPED:
             log('Auto-process lock-skipped the marker (another instance holds '
                 'the run lock) -- marker untouched, left for background_worker')
-        elif rc == 76:  # process_run_complete.EXIT_NOTHING_PUBLISHED
+        elif rc == EXIT_NOTHING_PUBLISHED:
             # Not a failure and not a publish. Before this code existed it fell into the else
             # branch below and this path logged "Auto-process failed (rc=76)" for a marker that
             # was already safely published by somebody else -- a false red in the first log a

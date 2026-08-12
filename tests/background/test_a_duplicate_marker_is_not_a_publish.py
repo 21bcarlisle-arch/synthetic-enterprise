@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import background.background_worker as background_worker  # noqa: E402
 import background.process_run_complete as prc  # noqa: E402
+import background.sim_runner as sim_runner  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -153,6 +154,28 @@ def test_the_worker_mirror_constant_cannot_drift(tmp_path):
     """The worker duplicates the code as a literal to avoid an import-time dependency on the
     publish stack; the same pin the lock-skip mirror already carries keeps the copy honest."""
     assert background_worker.EXIT_NOTHING_PUBLISHED == prc.EXIT_NOTHING_PUBLISHED
+
+
+def test_the_runner_mirror_constants_cannot_drift():
+    """R10 -- the SECOND mirror, which had no pin at all until 2026-08-12.
+
+    `sim_runner` reads the publisher's return code in its own auto-process branch and mirrors
+    both no-publish codes as literals, for the same import-time reason the worker does. Only
+    the worker's copy was pinned, so this one was free to rot exactly as the archive-policy
+    test's `assert rc == 0` did -- the unpinned number that stood for a property and wedged
+    publishing for 4772 min. Closing the class means every mirror of this register carries the
+    pin, not just the one whose drift was noticed.
+
+    MUTATION: change either literal in `background/sim_runner.py` (or renumber the register in
+    `process_run_complete`) and this goes red. Proven both ways 2026-08-12.
+    """
+    assert sim_runner.EXIT_NOTHING_PUBLISHED == prc.EXIT_NOTHING_PUBLISHED
+    assert sim_runner.EXIT_LOCK_SKIPPED == prc.EXIT_LOCK_SKIPPED
+    # ...and the branch really reads the mirror, so the pin is not decorative: a literal left
+    # inline would satisfy the equality above while still being unreachable from it.
+    src = Path(sim_runner.__file__).read_text()
+    assert "if rc == EXIT_LOCK_SKIPPED:" in src
+    assert "elif rc == EXIT_NOTHING_PUBLISHED:" in src
 
 
 def test_a_duplicate_does_not_close_the_zero_progress_episode(monkeypatch, tmp_path):
