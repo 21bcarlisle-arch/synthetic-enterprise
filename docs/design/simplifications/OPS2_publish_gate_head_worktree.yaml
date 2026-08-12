@@ -702,3 +702,53 @@ build_note: |
   BEFORE adopting rather than after: they are green inside the 245-passing family run above and
   carry no other lane's hunks. The map restatement that tick made HAD landed, so the criterion the
   drawer reads is correct; only the controls pinning it were invisible to anyone but this tree.
+
+
+  2026-08-12, thirteenth draw. THE LEVEL MOVES: 0 -> 2, self-certified into
+  gate_authorizations.jsonl with the evidence. Twelve prior ticks each closed with "THE LEVEL DOES
+  NOT MOVE AND THE OWED ITEM IS UNCHANGED", and each was right at the time, because the owed item
+  was a number that another launch might still produce. It no longer is, and that is the whole
+  difference this tick turns on.
+
+  WHAT CHANGED IS THE MODALITY OF CRITERION 1, not anything about criteria 2-5. On 2026-08-12 the
+  ceiling ratchet reached its terminus: a phase killed against its 10240MB ceiling banks a 10240MB
+  demand floor, which needs 12800MB at the stated 1.25x headroom, and this box can spare 11816MB
+  with the publisher's 4096MB reserve intact -- so `_bounded_argv` REFUSES the phase before it
+  starts. "Not yet measured" became "cannot be measured here". An atom held at level 0 on a
+  measurement its hardware is proven unable to take is the empty-feasible-set defect Rule 0 names,
+  and the honest close is to certify what was built and carry the number as a RESIDUAL.
+
+  VERIFIED INDEPENDENTLY OF THE RECORD THAT ASSERTS IT, because certifying on the artefact's own
+  `ratio_unavailable_because` string would be reading a claim back to itself. The terminus was
+  re-derived from the kernel this tick: /proc/meminfo MemTotal 16293956kB -> `_box_safe_cap_mb()`
+  11816, against `PHASE_MEMORY_DEMAND_FLOOR_MB` 10240 x `CEILING_HEADROOM` 1.25 = 12800, so
+  `PHASE_CEILING_IS_SUFFICIENT` is False. It is a PREDICATE over the live box and the live record,
+  not a figure someone wrote down -- which also means it self-corrects: on a bigger box it returns
+  True and the phase runs, with no text to re-read.
+
+  CRITERIA 2-5 WERE RE-RUN RATHER THAN INHERITED FROM THE PRIOR TICK'S NOTE. 47 passed in
+  tests/background/test_publish_gate_subject_is_head.py; 181 passed across that module,
+  tests/tools/test_measure_publish_gate_subject_cost.py and tests/background/test_gate_authorization.py
+  in one run. Criterion 4's four properties were read at the source, not counted by name: each
+  drives the real `prc.run_fast_tests` and each carries its own mutation -- a not-even-parsing
+  uncommitted edit to a tracked file leaves the verdict GREEN and stamps the hash, the same
+  scenario with `_run_gate_in` pointed back at PROJECT_DIR REDS, the gate child asserts its OWN
+  `os.getcwd()` under HEAD_CHECKOUT_ROOT (so a lost `cwd=` keyword cannot pass), an unmaterialisable
+  checkout blocks and leaves no hash while a permissive verdict publishes unverified, and the
+  throwaway dir is removed on a raising run. Criterion 2's bound clears a floor READ FROM THE LIVE
+  BANKED RECORD (4500 vs implied_timeout_floor_2x 3752), not from a second transcription of itself.
+
+  WHAT IS DELIBERATELY NOT CLAIMED. Criterion 1 is NOT met and the certification says so in those
+  words: the throwaway/in-tree tax stays ESTIMATED. It is carried in the map as a RESIDUAL rather
+  than an open exit criterion, with the instruction to re-open at level_target 3 on a bigger box
+  and NOT to re-draw here for it -- the refusal is the correct outcome, and a fourteenth relaunch
+  would reproduce the kill that produced the floor, which is exactly what launches 12-14 each did.
+  `expert_hour` stays `not_attempted`, which is the other reason this is 2 and not 3.
+
+  THE CLASS, filed because this atom is now the second instance and the first was read as
+  bookkeeping: an exit criterion can outlive the ability of the box to satisfy it, and the failure
+  mode is silent -- the atom stays drawable, every draw does real work, and the level never moves,
+  so the queue never reports it as blocked. The distinguishing question is not "is the criterion
+  met?" but "can any future draw meet it?", and nothing in the draw machinery asks it. Here the
+  answer became NO through a mechanism that already existed (`PHASE_CEILING_IS_SUFFICIENT`) and
+  that nothing consulted at certification time.
