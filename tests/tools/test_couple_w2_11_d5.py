@@ -5513,15 +5513,17 @@ def test_the_epsilon_is_the_readers_own_precision_not_a_tolerance():
         "detection_latency": (2,),
     }
     assert pair.published_reading_epsilon("belief") == 5e-05
-    # 5e-04 UNTIL HOUR #17 (atom D35). The AST row above still reads 3dp,
-    # because 3dp is what `format_ageing_summary` renders -- but the same
-    # headline is rendered at 6dp into the published component
-    # `ordinal_direction_caveat` by a SECOND function, and the epsilon is half
-    # a step of the FINEST site the reader is given, not of the one this
-    # register happened to name.
-    assert pair.published_reading_epsilon("ageing") == 5e-07
-    assert pair.published_reading_decimals("ageing") == 6
-    assert pair.PUBLISHED_GAP_CONSUMERS["ageing"]["also_rendered_at"] == (3,)
+    # 5e-07 BETWEEN HOURS #17 AND #20, AND THAT READER DID NOT EXIST (atom D36).
+    # Hour #17 moved this figure to 6dp on `ageing.ordinal_direction_caveat`,
+    # which `_ageing_direction_note` really does render at `.6f` -- into a
+    # component of the AGEING result, which nothing publishes: the ledger entry
+    # carries `to_ledger_entry(result["detection"])`, the HEADLINE's components
+    # and no others. Hour #20 walked the artefact a reader is handed and found
+    # this figure rendered once, at 3dp, in the composed note. The AST row above
+    # read 3dp throughout and was right throughout.
+    assert pair.published_reading_epsilon("ageing") == 5e-04
+    assert pair.published_reading_decimals("ageing") == 3
+    assert "also_rendered_at" not in pair.PUBLISHED_GAP_CONSUMERS["ageing"]
     assert pair.published_reading_epsilon("detection_latency") == 5e-03
     # And it is HALF a step of that precision -- a difference of one full step
     # is readable, half of one is the boundary.
@@ -5553,10 +5555,14 @@ def test_the_gap_reaches_two_readers_through_a_component_not_a_gap_attribute():
     for dim in ("ageing", "detection_latency"):
         assert measured[dim]["carrier_is_the_gap"] is True
         assert measured[dim]["carrier_gap_delta"] < pair.published_reading_epsilon(dim)
-    # AND THE MARGIN IS NOW THIN, which the 3dp epsilon hid (atom D35): the
-    # ageing component is `round(gap, 6)`, so its distance from the gap is
-    # bounded by 5e-7 -- exactly the reader's step at the finest render.
+    # AND THE MARGIN IS WIDE, not thin (atom D36). Hour #17 read this as a
+    # claim holding "within a hair of its own epsilon" because it had just set
+    # that epsilon to 5e-7 off a render nobody is handed. The ageing component
+    # is `round(gap, 6)`, so its distance from the gap is bounded by 5e-7 --
+    # three orders INSIDE the 5e-4 step this figure's reader is actually given.
     assert 1e-7 < measured["ageing"]["carrier_gap_delta"] <= 5e-07
+    assert measured["ageing"]["carrier_gap_delta"] < (
+        pair.published_reading_epsilon("ageing") / 100)
     # The latency figure arrives at its render through a LOCAL ALIAS
     # (`mean = c.get("mean_lag_days")`), which is the second way a render site
     # hides from a walker that only matches the carrier expression itself.
@@ -5702,7 +5708,7 @@ def test_a_gap_render_moving_off_its_declared_precision_fires(tmp_path):
     assert any("belief: declares [4]dp" in v and "[6] is a reader precision "
                "nobody declared" in v for v in got), got
     # And on BOTH figures the global constant was wrong about, by name.
-    assert any("ageing: declares [3, 6]dp" in v for v in _precision_violations(
+    assert any("ageing: declares [3]dp" in v for v in _precision_violations(
         tmp_path, [("background/gap_metric.py", _AGEING_GAP_RENDER,
                     '_num("balanced_bucket_displacement", ".4f")')]))
     assert any("detection_latency: declares [2]dp" in v
@@ -5806,8 +5812,8 @@ def test_the_declared_precisions_are_not_a_blanket_claim(tmp_path):
     declared = {d: pair.published_reading_decimals(d)
                 for d in pair.PUBLISHED_GAP_CONSUMERS}
     assert len(set(declared.values())) >= 3, declared
-    # 2..4 UNTIL HOUR #17; the ageing figure's finest render is 6dp (D35).
-    assert min(declared.values()) == 2 and max(declared.values()) == 6
+    # 2..6 BETWEEN HOURS #17 AND #20, on a 6dp site nobody is handed (D36).
+    assert min(declared.values()) == 2 and max(declared.values()) == 4
     assert _precision_violations(tmp_path) == []
 
 
@@ -5830,30 +5836,40 @@ _SITE_REGISTER = {"solo": {"module": "background/gap_metric.py",
                            "carrier": ("gap", None), "decimals": 4}}
 
 
-def test_the_shipped_two_site_render_is_found_from_the_artefact_alone():
-    """THE DEFECT ITSELF (atom D35). `_ageing_direction_note` renders the ageing
-    headline at 6dp into `ordinal_direction_caveat` -- a COMPONENT, which is
-    what Hour #15 established consumers read -- and D34's walk, anchored to
-    `format_ageing_summary`, could not see it. The sweep finds it with no source
-    at all, and the pre-Hour register FAILS on it."""
+def _fake_book(values, entry, n_customers=1):
+    """A published book: the scoring, and the ARTEFACT it published.
+
+    The two are separate arguments on purpose (atom D36). Until Hour #20 the
+    sweep took only the scoring and derived its own population of "published"
+    strings from it, which is precisely how a component of a result nobody
+    publishes came to set a figure's epsilon.
+    """
+    return {"result": _fake_result(values, {}), "entry": entry,
+            "spec": {"n_customers": n_customers, "months": 6}}
+
+
+def test_the_shipped_render_sites_are_found_in_the_published_artefact():
+    """THE DEFECT ITSELF (atom D36). Hour #17 moved the ageing figure's declared
+    precision 3dp -> 6dp on `ageing.ordinal_direction_caveat`, a component of
+    the AGEING result -- and `measure_and_write` publishes
+    `to_ledger_entry(result["detection"])`, the HEADLINE's components and no
+    others. The sweep now walks the entry the composer wrote, so the 6dp site
+    is simply not in the population, and the Hour-#17 register FAILS on it."""
     measured = pair.measure_component_render_sites()
-    assert measured["ageing"]["sites"] == (
-        ("ageing.ordinal_direction_caveat", 6),)
-    # AND A SECOND SITE THE SAME SWEEP FOUND: the mix figure renders itself
-    # into its OWN note, which is the string the ledger writer puts in front of
-    # the Proof door. Same precision, so no epsilon moved -- but it was as
-    # invisible to a function-anchored walk as the ageing one.
-    assert measured["belief_population_mix"]["sites"] == (
-        ("belief_population_mix.note", 4),)
+    # ONE published string renders this figure, at the 3dp its own renderer
+    # produces -- not the 6dp of a caveat nobody is handed.
+    assert measured["ageing"]["sites"] == (("note", 3),)
+    # And the mix figure, whose only reader site is the composer's own inline
+    # render in that same note -- the surface no sweep could see before,
+    # because the composer is a method.
+    assert measured["belief_population_mix"]["sites"] == (("note", 4),)
     assert pair.check_component_render_sites(measured) == []
-    pre_hour = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
-    pre_hour["ageing"] = dict(pre_hour["ageing"], decimals=3,
-                              also_rendered_at=(), component_renders=())
-    got = pair.check_component_render_sites(measured, register=pre_hour)
-    assert any("rendered at 6dp into the published component" in v
-               and "ordinal_direction_caveat" in v for v in got), got
-    assert any("sets its epsilon from 3dp while a published component renders "
-               "it at 6dp" in v for v in got), got
+    hour_17 = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    hour_17["ageing"] = dict(hour_17["ageing"], decimals=6, also_rendered_at=(3,),
+                             component_renders=(("ageing.ordinal_direction_caveat", 6),))
+    got = pair.check_component_render_sites(measured, register=hour_17)
+    assert any("declares a 6dp render into `ageing.ordinal_direction_caveat` "
+               "that this scoring does not produce" in v for v in got), got
 
 
 def test_a_declared_render_site_the_sweep_cannot_find_fires():
@@ -5862,35 +5878,50 @@ def test_a_declared_render_site_the_sweep_cannot_find_fires():
     measured = pair.measure_component_render_sites()
     ghost = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
     ghost["detection"] = dict(ghost["detection"],
-                              component_renders=(("detection.note", 4),))
+                              component_renders=(("components.nowhere", 4),))
     got = pair.check_component_render_sites(measured, register=ghost)
-    assert any("declares a 4dp render into `detection.note` that this scoring "
-               "does not produce" in v for v in got), got
+    assert any("declares a 4dp render into `components.nowhere` that this "
+               "scoring does not produce" in v for v in got), got
+
+
+def test_a_string_the_scorer_builds_but_nobody_publishes_is_not_a_site():
+    """THE POPULATION IS THE ARTEFACT (atom D36). A component of a result the
+    ledger writer never carries is exactly the string Hour #17's 6dp came off,
+    so the sweep must not find a figure in one -- proven by handing it a book
+    whose SCORING renders the figure at 6dp and whose published ENTRY does
+    not."""
+    books = [_fake_book({"a": 0.12}, {"note": "headline 0.1200"}, 1),
+             _fake_book({"a": 0.23}, {"note": "headline 0.2300"}, 2)]
+    for b, v in zip(books, (0.12, 0.23)):
+        b["result"]["a"].components["unpublished_caveat"] = f"headline {v:.6f}"
+    got = pair.measure_component_render_sites(
+        books=books, register={"a": dict(_SITE_REGISTER["solo"])})
+    assert got["a"]["sites"] == (("note", 4),)
 
 
 def test_a_literal_that_does_not_move_with_the_figure_is_not_a_render_site():
     """THE DISCRIMINATION RULE, and the false positive it exists to refuse.
     `0.0` is in half the strings this module publishes and is a render of
-    nothing; a one-seed sweep would report it as this figure's reader
+    nothing; a one-book sweep would report it as this figure's reader
     precision and hand every band a 0.05 epsilon."""
-    strings = {"a": {"prose": "miss_rate 0.0 over 1408 negatives"}}
-    results = [_fake_result({"a": 0.0145}, strings),
-               _fake_result({"a": 0.0218}, strings)]
+    entry = {"note": "miss_rate 0.0 over 1408 negatives"}
+    books = [_fake_book({"a": 0.0145}, entry, 1),
+             _fake_book({"a": 0.0218}, entry, 2)]
     with pytest.raises(AssertionError, match="found NO figure rendered"):
         pair.measure_component_render_sites(
-            results=results, register={"a": dict(_SITE_REGISTER["solo"])})
+            books=books, register={"a": dict(_SITE_REGISTER["solo"])})
     # ... and the SAME sweep does find a site once the literal moves with it.
-    moving = [_fake_result({"a": 0.0145}, {"a": {"prose": "headline 0.0145"}}),
-              _fake_result({"a": 0.0218}, {"a": {"prose": "headline 0.0218"}})]
+    moving = [_fake_book({"a": 0.0145}, {"note": "headline 0.0145"}, 1),
+              _fake_book({"a": 0.0218}, {"note": "headline 0.0218"}, 2)]
     got = pair.measure_component_render_sites(
-        results=moving, register={"a": dict(_SITE_REGISTER["solo"])})
-    assert got["a"]["sites"] == (("a.prose", 4),)
+        books=moving, register={"a": dict(_SITE_REGISTER["solo"])})
+    assert got["a"]["sites"] == (("note", 4),)
 
 
 def test_one_scoring_cannot_tell_a_render_from_a_constant():
-    with pytest.raises(AssertionError, match="needs TWO scorings"):
+    with pytest.raises(AssertionError, match="needs TWO published books"):
         pair.measure_component_render_sites(
-            results=[_fake_result({"a": 0.5}, {})],
+            books=[_fake_book({"a": 0.5}, {"note": ""})],
             register={"a": dict(_SITE_REGISTER["solo"])})
 
 
@@ -5899,11 +5930,11 @@ def test_a_carrier_quantised_coarser_than_its_render_fires():
     the reader and D34 measured only the outer one. Measured on the shipped
     figures the inner one is never the coarser (ageing 6dp/6dp, latency 6dp/2dp,
     the rest unquantised) -- so the control is proven on a book where it is."""
-    results = [_fake_result({"a": 0.12}, {"a": {"prose": "headline 0.120000"}}),
-               _fake_result({"a": 0.23}, {"a": {"prose": "headline 0.230000"}})]
+    books = [_fake_book({"a": 0.12}, {"note": "headline 0.120000"}, 1),
+             _fake_book({"a": 0.23}, {"note": "headline 0.230000"}, 2)]
     reg = {"a": dict(_SITE_REGISTER["solo"], decimals=6,
-                     component_renders=(("a.prose", 6),))}
-    measured = pair.measure_component_render_sites(results=results, register=reg)
+                     component_renders=(("note", 6),))}
+    measured = pair.measure_component_render_sites(books=books, register=reg)
     assert measured["a"]["carrier_quantum_decimals"] == 2
     got = pair.check_component_render_sites(measured, register=reg)
     assert any("already quantised at 2dp before any render" in v
@@ -6146,13 +6177,19 @@ def component_walk():
     return pair.measure_component_render_sites()
 
 
-def test_three_of_the_five_figures_had_no_artefact_side_site_at_all(component_walk):
-    """THE DEFECT, AS FOUND. Recorded as a fact about the shipped component
-    sweep, so that a future surface which DOES render one of these three into a
-    component moves this list rather than passing silently."""
-    assert [d for d in sorted(component_walk) if not component_walk[d]["sites"]] == [
-        "belief", "detection", "detection_latency"]
-    # ...and the shipped control was silent on every one of them.
+def test_all_five_figures_are_rendered_in_the_published_note(component_walk):
+    """WHERE THE FIGURES ACTUALLY MEET A READER (atom D36). Hour #19 recorded
+    that three of the five had no component site at all; that was a fact about
+    a population -- every string the SCORER builds -- in which the one artefact
+    a reader is handed did not appear. Walking the published entry instead, all
+    five are rendered in its note, each at its own declared precision."""
+    assert {d: component_walk[d]["sites"] for d in sorted(component_walk)} == {
+        "ageing": (("note", 3),),
+        "belief": (("note", 4),),
+        "belief_population_mix": (("note", 4),),
+        "detection": (("note", 4),),
+        "detection_latency": (("note", 2),),
+    }
     assert pair.check_component_render_sites(component_walk) == []
 
 
@@ -6177,10 +6214,31 @@ def test_every_published_figure_now_meets_an_artefact_and_no_epsilon_moved(
     """R12: this Hour changed what is MEASURED, never what is computed."""
     assert pair.check_reader_render_sites(reader_walk, component_walk) == []
     assert pair.check_component_render_sites(component_walk) == []
+    # ageing was 6 between Hours #17 and #20, on a site nobody is handed (D36).
     assert {d: pair.published_reading_decimals(d)
             for d in pair.PUBLISHED_GAP_CONSUMERS} == {
-        "ageing": 6, "belief": 4, "belief_population_mix": 4,
+        "ageing": 3, "belief": 4, "belief_population_mix": 4,
         "detection": 4, "detection_latency": 2}
+
+
+@needs_node
+def test_an_epsilon_finer_than_every_surface_fires(reader_walk, component_walk):
+    """R15, THE GUARD THIS HOUR ADDS. Both checks asked only whether some site
+    is FINER than the declaration. Neither asked the other direction, so a
+    figure whose epsilon had been moved onto a string nobody publishes passed
+    both in silence -- which is exactly what `ageing` did for three Hours.
+    Mutated to Hour #17's shipped state, the guard names it and the factor."""
+    hour_17 = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    hour_17["ageing"] = dict(hour_17["ageing"], decimals=6,
+                             component_renders=(("note", 3),))
+    got = pair.check_reader_render_sites(reader_walk, component_walk,
+                                         register=hour_17)
+    assert any("ageing: sets its epsilon from 6dp while the FINEST site either "
+               "sweep can find renders it at 3dp" in v and "1000x too fine" in v
+               for v in got), got
+    # ...and it does NOT fire on the shipped register, where every declaration
+    # equals its own finest measured surface.
+    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
 
 
 # --- R15: the reader walk fires on each defect it names ---------------------
@@ -6255,6 +6313,30 @@ def test_a_door_that_stops_printing_the_note_verbatim_fires(tmp_path, monkeypatc
     assert measured["_walk"]["note_verbatim"] is False
     got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
     assert any("no longer prints the carried note verbatim" in v for v in got), got
+
+
+@needs_node
+def test_a_composer_that_stops_carrying_a_renderers_string_fires(monkeypatch):
+    """THE OTHER HALF OF THAT SEAM, AND IT WAS THE UNASSERTED ONE (atom D36).
+
+    A `renderer:` site is a READER site only because the composer concatenates
+    that exact string into the published note. Hour #19 asserted note -> door
+    every run and left renderer -> note resting on a hand check. `measure_and_
+    write` holds its own reference to each renderer from import time, so
+    patching the module attribute moves what the WALK calls and not what the
+    composer already wrote -- which is precisely the divergence a reformat, a
+    re-round or a dropped companion render would produce."""
+    import background.gap_metric as gap_metric
+    original = gap_metric.format_ageing_summary
+    monkeypatch.setattr(
+        gap_metric, "format_ageing_summary",
+        lambda r: original(r).replace("ageing displacement", "ageing gap"))
+    measured = pair.measure_reader_render_sites()
+    assert measured["ageing"]["renderer_in_note"] is False
+    got = pair.check_reader_render_sites(measured,
+                                         pair.measure_component_render_sites())
+    assert any("its declared renderer's output is NOT in the composed note" in v
+               for v in got), got
 
 
 def test_an_unreachable_door_is_a_failed_check_never_a_clean_one():

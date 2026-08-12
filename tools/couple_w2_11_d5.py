@@ -141,6 +141,7 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
+import html as html_lib
 import importlib
 import inspect
 import json
@@ -5956,13 +5957,17 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "renderer": "format_belief_summary",
         "carrier": ("gap", None),
         "decimals": 4,
-        # MEASURED, not read off the format spec (Expert Hour #19). Until this
+        # MEASURED, not read off the format spec (Expert Hour #19). Until that
         # Hour this figure had NO artefact-side site at all: the component sweep
         # found none, and its control was silent about that, so the 4dp came
         # from D34's AST read of this renderer and nothing else.
         "reader_renders": (
             ("renderer:background/gap_metric.py::format_belief_summary", 4),
         ),
+        # AND IN THE PUBLISHED NOTE (atom D36, Hour #20) -- the same string, now
+        # measured where the reader actually gets it rather than on the
+        # renderer's own return value.
+        "component_renders": (("note", 4),),
     },
     "belief_population_mix": {
         # NOT a formatter of its own: the mix figure is rendered inline by the
@@ -5972,12 +5977,17 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "renderer": "measure_and_write",
         "carrier": ("gap", None),
         "decimals": 4,
-        # AND IT RENDERS ITSELF INTO ITS OWN NOTE (atom D35), which is the
-        # string the ledger writer puts in front of the Proof door. Same
-        # precision, so no epsilon moves -- but an undeclared site is an
-        # undeclared site, and this one was invisible to a control anchored to
-        # a named function in a named module.
-        "component_renders": (("belief_population_mix.note", 4),),
+        # ITS ONE REAL READER SITE, AND IT TOOK THREE HOURS TO FIND (atom D36,
+        # Hour #20). Hour #17 declared `belief_population_mix.note` -- a
+        # component of the MIX's own GapResult, which the ledger writer never
+        # carries: `to_ledger_entry` publishes the DETECTION headline's
+        # components and no others. Where this figure actually meets a reader
+        # is the composer's own inline `{...gap:.4f}` in the published note.
+        # Same precision, so no epsilon moves -- but its coverage had been
+        # supplied by a string nobody is handed, and the per-dimension vacuity
+        # guard Hour #19 built to catch exactly "this figure has never met an
+        # artefact" was passing on it.
+        "component_renders": (("note", 4),),
         # ITS RENDERER IS A METHOD, so no call on a bare result reproduces the
         # string its reader is handed; its coverage comes from the component
         # site above. Expert Hour #19 recorded that explicitly rather than
@@ -6010,10 +6020,18 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # at 3dp, via `fmtGap`. Coarser than the declared 4dp, so no epsilon
         # moves -- but it is now measured on the rendered pixel every run
         # instead of having been looked at once by hand.
+        # AND AT 4dp ON THE SAME DOOR (atom D36, Hour #20): the door prints the
+        # composed note, and this figure's own renderer renders it at 4dp
+        # inside that note, so the panel shows this reader both precisions.
+        # Invisible until the walk started carrying the composed note -- the
+        # scorer's note, which the walk used to write itself, does not contain
+        # `format_detection_summary`'s output.
         "reader_renders": (
             ("door:coupled-gaps", 3),
+            ("door:coupled-gaps", 4),
             ("renderer:background/gap_metric.py::format_detection_summary", 4),
         ),
+        "component_renders": (("note", 4),),
     },
     "detection_latency": {
         # A HUNDRED TIMES COARSER THAN THE GLOBAL CONSTANT CLAIMED. The reader
@@ -6030,34 +6048,40 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "reader_renders": (
             ("renderer:tools/couple_w2_11_d5.py::format_detection_latency_summary", 2),
         ),
+        "component_renders": (("note", 2),),
     },
     "ageing": {
         # `format_ageing_summary` never renders `.gap` at all -- the headline
         # reaches the reader as the component, at 3dp.
         #
-        # AND IT REACHES THE SAME READER AGAIN, AT 6dp, THROUGH A SECOND
-        # FUNCTION (atom D35, Expert Hour #17). `_ageing_direction_note` renders
-        # this very component at `.6f` into `ordinal_direction_caveat` -- a
-        # COMPONENT, which is what Hour #15 established consumers actually read
-        # ("the ledger writer, the live wiring and the dashboard read
-        # `components` and never the prose"). D34 declared 3 because its
-        # measurement is anchored to ONE named function per figure. The reader
-        # who reads the caveat can tell two companies apart at 1e-6, so the
-        # epsilon is HALF A STEP OF THE FINEST RENDER, not of the one the
-        # register happened to name: 6dp here, with 3dp declared beside it.
+        # THE 6dp READER DOES NOT EXIST (atom D36, H27 Expert Hour #20; this
+        # entry said 6 from Hour #17 until Hour #20 measured it). Hour #17 moved
+        # this figure's declared precision 3 -> 6 -- a THOUSANDFOLD, epsilon
+        # 5e-4 -> 5e-7 -- on `ageing.ordinal_direction_caveat`, which
+        # `_ageing_direction_note` really does render at `.6f`. What was never
+        # checked is whether anybody is handed that string. It is a component of
+        # the AGEING GapResult, and `measure_and_write` publishes
+        # `to_ledger_entry(result["detection"])`: the HEADLINE's components and
+        # nothing else. Measured on the live `coupled_gap_ledger.json` the Proof
+        # door reads -- 19 published component keys, all detection's; this
+        # figure rendered once, at 3dp (`ageing displacement 0.887`); every
+        # 6dp-or-finer literal in the entry accounted for as a
+        # `remittance_attribution` measure or the `measured_at` timestamp, and
+        # `balanced_bucket_displacement` not among them. Hour #17 read Hour
+        # #15's "consumers read `components`" -- true of the ONE result that
+        # becomes the entry -- as true of all five dimensions' components.
         "module": "background/gap_metric.py",
         "renderer": "format_ageing_summary",
         "carrier": ("component", "balanced_bucket_displacement"),
-        "decimals": 6,
-        "also_rendered_at": (3,),
-        # FULLY QUALIFIED: `<owner dimension>.<component key>`, because a
-        # component key alone does not say whose components carry it, and the
-        # figure a string renders need not be the figure whose result holds it.
-        "component_renders": (("ageing.ordinal_direction_caveat", 6),),
+        "decimals": 3,
+        # WHERE IT IS ACTUALLY RENDERED: the published note, at the same 3dp its
+        # own renderer produces -- the two methods agreeing, which is what the
+        # 6dp declaration had been sitting on top of.
+        "component_renders": (("note", 3),),
         # The renderer's own output shows the carrier at 3dp -- the artefact-side
         # confirmation of the number D34 read off this function's format spec by
-        # AST. Two independent methods, agreeing; the 6dp above still governs the
-        # epsilon, because it is the FINEST site and this one is coarser.
+        # AST. Two independent methods, agreeing, and now agreeing with the
+        # published note as well.
         "reader_renders": (
             ("renderer:background/gap_metric.py::format_ageing_summary", 3),
         ),
@@ -6471,33 +6495,142 @@ def _rendered_at(value: float, decimals: int, text: str) -> bool:
     return False
 
 
+# ---------------------------------------------------------------------------
+# THE PUBLISHED ARTEFACT, NOT THE SCORER'S RESULT DICT
+# (atom D36, H27 Expert Hour #20)
+# ---------------------------------------------------------------------------
+# THE DEFECT THIS CLOSES, MEASURED ON THE LIVE FILE. The component sweep's
+# population was `for owner in sorted(res)` -- every string EVERY dimension's
+# `GapResult` carries -- and it called them "published strings" on the strength
+# of Hour #15's finding that "the ledger writer, the live wiring and the
+# dashboard read `components` and never the prose". That finding is about the
+# ONE result that becomes the ledger entry. `measure_and_write` writes
+# `to_ledger_entry(result["detection"])`: the HEADLINE's components and nothing
+# else. The companion four dimensions ride into the entry as renderer STRINGS
+# inside the note, and their components never leave this process.
+#
+# So the sweep's sites were a SUPERSET of the reader's, and "the epsilon is
+# half a step of the FINEST render" was being fed strings nobody is handed.
+# Hour #17 moved `ageing`'s declared precision 3dp -> 6dp -- a THOUSANDFOLD --
+# on `ageing.ordinal_direction_caveat`, a component of the AGEING result.
+# Measured on `docs/observability/coupled_gap_ledger.json`, the file the Proof
+# door reads: its 19 published component keys are all `detection`'s, the note
+# renders this figure once, at 3dp (`ageing displacement 0.887`), and the only
+# 6dp-or-finer literals in the whole entry are three `remittance_attribution`
+# measures and the `measured_at` timestamp. `balanced_bucket_displacement` --
+# the ageing CARRIER -- is not among them. The 6dp reader did not exist.
+#
+# THE FIX IS THE POPULATION, NOT THE ENTRY (R10). The sweep now walks the
+# PUBLISHED LEDGER ENTRY, produced by driving the shipped composer end to end,
+# so a string is in the population because a reader is handed it and for no
+# other reason. A register entry declaring a site the reader cannot reach now
+# fails as loudly as an undeclared one the reader can.
+_PUBLISHED_BOOK_SPECS: Tuple[Dict[str, int], ...] = (
+    {"n_customers": 150, "months": 6},
+    {"n_customers": 170, "months": 6},
+)
+_PUBLISHED_BOOKS: Dict[tuple, List[Dict[str, object]]] = {}
+
+
+def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
+    """Drive the SHIPPED composer once and return what it published.
+
+    `LivePaymentTriad.measure_and_write` is the only thing in this repo that
+    produces the artefact a reader is handed: it composes the note (four
+    renderer calls plus its own inline renders), attaches the attribution
+    structure and writes `coupled_gap_ledger.json`. It is a METHOD, which is
+    exactly why every sweep until this Hour stopped short of it and measured
+    the scorer's result dict instead. Only the BOOK is substituted here; every
+    step from the book to the file is the shipped code.
+    """
+    from background.live_payment_triad import LivePaymentTriad
+
+    triad = LivePaymentTriad()
+    for i in range(int(spec["n_customers"])):
+        for m in range(1, int(spec["months"]) + 1):
+            triad.record_period(
+                customer_id=f"RESI{i:05d}", due_date=date(2020, m, 28),
+                amount_gbp=120.0, income_stress_value="high", segment="resi",
+            )
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "coupled_gap_ledger.json"
+        result = triad.measure_and_write(ledger_path=path)
+        if result is None:                                  # pragma: no cover
+            raise AssertionError(
+                f"the composer measured nothing on book {spec} -- a book with "
+                "no true payment failure publishes no entry, and a sweep with "
+                "no artefact is an unavailable check (R15)"
+            )
+        entry = json.loads(path.read_text(encoding="utf-8"))[WORLD_ATOM_ID]
+    return {"result": result, "entry": entry, "spec": dict(spec)}
+
+
+def published_books(
+    specs: Sequence[Dict[str, int]] = _PUBLISHED_BOOK_SPECS,
+) -> List[Dict[str, object]]:
+    """TWO published books -- the artefact, and the scoring behind it.
+
+    Two, for the same reason both sweeps have always needed two: with one book
+    a constant that spells the figure's digits is indistinguishable from a
+    render of it. Cached per spec because driving the composer runs
+    `score_triad` twice per book (the D8 shadow company is scored through the
+    same scorer).
+    """
+    key = tuple(sorted((int(s["n_customers"]), int(s["months"])) for s in specs))
+    if key not in _PUBLISHED_BOOKS:
+        _PUBLISHED_BOOKS[key] = [_publish_one_book(s) for s in specs]
+    return _PUBLISHED_BOOKS[key]
+
+
+def _published_strings(entry: Dict[str, object]) -> Dict[str, str]:
+    """Every string the published entry carries, path-qualified.
+
+    RECURSIVE and with NO length floor: `remittance_attribution` nests its
+    measure meanings two levels down and the door renders them, so a top-level
+    sweep would have the shape of the defect it exists to catch -- some of the
+    places the figure meets its reader, taken for all of them.
+    """
+    out: Dict[str, str] = {}
+
+    def walk(node: object, path: str) -> None:
+        if isinstance(node, str):
+            out[path] = node
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                walk(v, f"{path}.{k}" if path else str(k))
+        elif isinstance(node, (list, tuple)):
+            for i, v in enumerate(node):
+                walk(v, f"{path}.{i}" if path else str(i))
+
+    walk(entry, "")
+    return out
+
+
 def measure_component_render_sites(
     *,
-    results: Optional[Sequence[Dict[str, object]]] = None,
+    books: Optional[Sequence[Dict[str, object]]] = None,
     register: Optional[Dict[str, Dict[str, object]]] = None,
-    n_customers: int = 300,
-    seeds: Sequence[int] = _RENDER_SITE_SEEDS,
 ) -> Dict[str, Dict[str, object]]:
-    """Every COMPONENT string in which each published figure is rendered, and at
-    what precision -- read off the artefact, never off the source (atom D35).
+    """Every PUBLISHED string in which each figure is rendered, and at what
+    precision -- read off the artefact a reader is handed (atoms D35, D36).
 
-    Returns {dimension: {"sites": ((component_key, decimals), ...),
-    "carrier_by_seed": {...}}}. Two scorings are required: one cannot tell a
+    Returns {dimension: {"sites": ((entry path, decimals), ...),
+    "carrier_by_seed": {...}}}. Two books are required: one cannot tell a
     render of the figure from a constant that happens to spell the same digits.
     """
     register = PUBLISHED_GAP_CONSUMERS if register is None else register
-    if results is None:
-        results = []
-        for seed in seeds:
-            recs, cons, _ledger, as_of = _resolution_population(n_customers, seed)
-            results.append(score_triad(recs, cons, as_of))
-    if len(results) < 2:
+    if books is None:
+        books = published_books()
+    if len(books) < 2:
         raise AssertionError(
-            "measure_component_render_sites needs TWO scorings: with one, a "
-            "literal that never moves with the figure -- a constant, a "
+            "measure_component_render_sites needs TWO published books: with "
+            "one, a literal that never moves with the figure -- a constant, a "
             "sibling's rate, a bare 0.0 -- is indistinguishable from a render "
             "of it, and the sweep would report sites that are not there"
         )
+    results = [b["result"] for b in books]
+    seeds = [f"{b['spec']['n_customers']}x{b['spec']['months']}"    # type: ignore[index]
+             for b in books]
 
     def carrier_of(res: Dict[str, object], dim: str) -> Optional[float]:
         kind, key = tuple(register[dim]["carrier"])        # type: ignore[misc]
@@ -6505,29 +6638,7 @@ def measure_component_render_sites(
         v = g.gap if kind == "gap" else g.components.get(str(key))
         return None if v is None else float(v)
 
-    def strings_of(res: Dict[str, object]) -> Dict[str, str]:
-        out: Dict[str, str] = {}
-        for owner in sorted(res):
-            # THE NOTE IS A READER SURFACE TOO, and the biggest one: it is what
-            # `measure_and_write` puts in `coupled_gap_ledger.json` for the
-            # Proof door. A sweep over `components` alone would have the same
-            # shape as the defect it exists to catch -- one of the places the
-            # figure meets its reader, taken for all of them.
-            note = getattr(res[owner], "note", None)        # type: ignore[index]
-            if isinstance(note, str):
-                out[f"{owner}.note"] = note
-            comps = getattr(res[owner], "components", None)  # type: ignore[index]
-            if not isinstance(comps, dict):
-                continue
-            for key, val in comps.items():
-                # NO LENGTH FLOOR. A short published string is still a string
-                # the reader is handed, and skipping it would be a fail-open
-                # keyed to how chatty a caveat happens to be.
-                if isinstance(val, str):
-                    out[f"{owner}.{key}"] = val
-        return out
-
-    texts = [strings_of(r) for r in results]
+    texts = [_published_strings(b["entry"]) for b in books]   # type: ignore[arg-type]
     shared_keys = sorted(set.intersection(*[set(t) for t in texts]))
     out: Dict[str, Dict[str, object]] = {}
     for dim in sorted(register):
@@ -6744,27 +6855,28 @@ def _door_render(payload: Dict[str, object]) -> str:
     return str(json.loads(proc.stdout)["coupled-gaps"]["innerHTML"])
 
 
-def _walk_to_the_door(result: Dict[str, object]) -> Dict[str, object]:
-    """Carry ONE scoring down the real chain to the door and return what the
-    reader is shown, plus what each hand-off carried it as.
+def _walk_to_the_door(book: Dict[str, object]) -> Dict[str, object]:
+    """Carry ONE published book down the real chain to the door and return what
+    the reader is shown, plus what each hand-off carried it as.
 
-    The chain is walked by calling the shipped code at every step --
-    `to_ledger_entry` -> `coupled_gap_ledger.json` -> `_coupled_gaps` -> the
-    page's inline script -- because a hand-built row is the harness supplying
-    the very call list it is meant to be auditing.
+    The chain is walked by calling the shipped code at every step -- the
+    composer -> `coupled_gap_ledger.json` -> `_coupled_gaps` -> the page's
+    inline script -- because a hand-built row is the harness supplying the very
+    call list it is meant to be auditing.
+
+    THE ENTRY IS THE COMPOSER'S (atom D36, Hour #20). Until this Hour the walk
+    re-wrote the ledger itself from `result["detection"]`, so the note it
+    carried to the door was the SCORER's, not the composed one no reader is
+    ever handed anything but. `note_verbatim` was therefore asserting a real
+    seam about the wrong string.
     """
     import background.coupled_triad as coupled_triad
     from tools.generate_proof_data import _coupled_gaps, _load_atoms
 
-    headline = result["detection"]
+    raw = dict(book["entry"])                               # type: ignore[arg-type]
     with tempfile.TemporaryDirectory() as td:
         ledger_path = Path(td) / "coupled_gap_ledger.json"
-        write_gap_entry(
-            WORLD_ATOM_ID, TWIN_ATOM_ID, headline,          # type: ignore[arg-type]
-            measured_at="1970-01-01T00:00:00+00:00", run_git_commit=None,
-            ledger_path=ledger_path,
-        )
-        raw = json.loads(ledger_path.read_text(encoding="utf-8"))[WORLD_ATOM_ID]
+        ledger_path.write_text(json.dumps({WORLD_ATOM_ID: raw}), encoding="utf-8")
         previous = coupled_triad.GAP_LEDGER_PATH
         try:
             # The generator reads the ledger off a module global and takes no
@@ -6797,16 +6909,23 @@ def _walk_to_the_door(result: Dict[str, object]) -> Dict[str, object]:
         # prints the carried note VERBATIM, which is what makes the renderer
         # stage below a measurement of a READER surface rather than of an
         # internal string. Nothing asserted it would stay true; this does.
-        "note_verbatim": bool(probe) and probe in html,
+        # UNESCAPED, because the door escapes what it prints (atom D36, Hour
+        # #20). The raw probe was compared against the door's HTML, so this
+        # assertion passed or failed on whether the note's first
+        # `_NOTE_VERBATIM_PROBE_CHARS` characters happened to contain a `<`,
+        # `>` or `&` -- the scorer's note did not, the composed note the reader
+        # is actually handed does (`W2_11 payment TRUTH -> W4_4 seam`), so the
+        # seam read as BROKEN the moment the walk started carrying the real
+        # artefact. Unescaping is the door's own transform inverted, never a
+        # second escaper of ours to drift from it.
+        "note_verbatim": bool(probe) and probe in html_lib.unescape(html),
     }
 
 
 def measure_reader_render_sites(
     *,
-    results: Optional[Sequence[Dict[str, object]]] = None,
+    books: Optional[Sequence[Dict[str, object]]] = None,
     register: Optional[Dict[str, Dict[str, object]]] = None,
-    n_customers: int = 300,
-    seeds: Sequence[int] = _RENDER_SITE_SEEDS,
     door: bool = True,
 ) -> Dict[str, Dict[str, object]]:
     """Every site PAST the component strings at which each published figure
@@ -6829,17 +6948,22 @@ def measure_reader_render_sites(
     literal only counts as a render of THIS figure if it moves with the figure.
     """
     register = PUBLISHED_GAP_CONSUMERS if register is None else register
-    if results is None:
-        results = []
-        for seed in seeds:
-            recs, cons, _ledger, as_of = _resolution_population(n_customers, seed)
-            results.append(score_triad(recs, cons, as_of))
-    if len(results) < 2:
+    if books is None:
+        books = published_books()
+    if len(books) < 2:
         raise AssertionError(
-            "measure_reader_render_sites needs TWO scorings, for the same "
-            "reason the component sweep does: with one, a constant that spells "
-            "the figure's digits is indistinguishable from a render of it"
+            "measure_reader_render_sites needs TWO published books, for the "
+            "same reason the component sweep does: with one, a constant that "
+            "spells the figure's digits is indistinguishable from a render of it"
         )
+    results = [b["result"] for b in books]
+    seeds = [f"{b['spec']['n_customers']}x{b['spec']['months']}"    # type: ignore[index]
+             for b in books]
+    # THE COMPOSED NOTE, which is what every `renderer:` site below is credited
+    # against. Hour #19 asserted note -> door verbatim; the seam the renderer
+    # stage actually rests on is renderer -> note, and nothing asserted it.
+    composed_notes = [str((b["entry"] or {}).get("note") or "")   # type: ignore[union-attr]
+                      for b in books]
 
     def carrier_of(res: Dict[str, object], dim: str) -> Optional[float]:
         kind, key = tuple(register[dim]["carrier"])            # type: ignore[misc]
@@ -6855,6 +6979,7 @@ def measure_reader_render_sites(
     renderer_texts: List[Dict[str, str]] = [{} for _ in results]
     surface_owner: Dict[str, str] = {}
     renderer_status: Dict[str, str] = {}
+    renderer_in_note: Dict[str, bool] = {}
     for dim in sorted(register):
         fn, why = _declared_renderer(register[dim])
         if fn is None:
@@ -6865,6 +6990,17 @@ def measure_reader_render_sites(
         surface_owner.setdefault(key, dim)
         for texts, res in zip(renderer_texts, results):
             texts[key] = str(fn(res[dim]))                     # type: ignore[index]
+        # THE SEAM THIS WHOLE SURFACE RESTS ON, ASSERTED (atom D36, Hour #20).
+        # A `renderer:` site counts as a READER site only because the composer
+        # concatenates that exact string into the published note. Hour #19
+        # asserted the note -> door half every run and left this half -- the
+        # one that turns four of the five figures' precisions from a claim
+        # about an internal string into a measurement -- resting on a hand
+        # check done once. A composer that reformatted, rounded or dropped a
+        # companion render would leave every site below reading unchanged.
+        renderer_in_note[dim] = all(
+            texts[key] in note for texts, note in zip(renderer_texts, composed_notes)
+        )
 
     # --- the door surface -----------------------------------------------------
     door_state: Dict[str, object] = {"attempted": bool(door)}
@@ -6872,7 +7008,7 @@ def measure_reader_render_sites(
     door_carriers: List[Optional[float]] = [None for _ in results]
     if door:
         try:
-            walks = [_walk_to_the_door(res) for res in results]
+            walks = [_walk_to_the_door(b) for b in books]
         except Exception as exc:
             # R15: an unavailable check is a FAILED check. The walk records the
             # unavailability as state so `check_reader_render_sites` can fire on
@@ -6932,6 +7068,7 @@ def measure_reader_render_sites(
             "sites": tuple(sorted(sites)),
             "cross_attributed": tuple(sorted(cross)),
             "renderer_status": renderer_status.get(dim, "not attempted"),
+            "renderer_in_note": renderer_in_note.get(dim),
             "reaches_the_door": bool(has_door_carrier),
             "carrier_by_seed": {s: v for s, v in zip(seeds, values)},
             "seeds": tuple(seeds),
@@ -6980,6 +7117,18 @@ def check_reader_render_sites(
         if entry is None:                                       # pragma: no cover
             out.append(f"{dim}: walked with no PUBLISHED_GAP_CONSUMERS entry at all")
             continue
+        # THE RENDERER -> NOTE SEAM (atom D36, Hour #20). `renderer_in_note` is
+        # None where no module-level renderer could be called at all, which is a
+        # recorded state the vacuity guard below handles; False means the
+        # composer was called and did NOT carry this renderer's string, so every
+        # `renderer:` site for this figure is a claim about an internal string.
+        if measured[dim].get("renderer_in_note") is False:
+            out.append(
+                f"{dim}: its declared renderer's output is NOT in the composed "
+                "note the reader is handed -- the composer reformatted, rounded "
+                "or dropped it, so this figure's `renderer:` sites are no "
+                "longer measurements of a reader surface at all"
+            )
         found = set(measured[dim]["sites"])                     # type: ignore[arg-type]
         declared = {(str(k), int(d))
                     for k, d in (entry.get("reader_renders") or ())}
@@ -7034,6 +7183,27 @@ def check_reader_render_sites(
         union = set(found)
         if component_measured:
             union |= set(component_measured.get(dim, {}).get("sites") or ())
+        # AN EPSILON FINER THAN EVERY SURFACE (atom D36, Hour #20). Both checks
+        # asked only whether some site is FINER than the declaration; neither
+        # asked whether the declaration is finer than every site, so a figure
+        # whose epsilon had been moved onto a string nobody is handed passed
+        # both of them in silence -- and `ageing` did, at 6dp against a 3dp
+        # reader, for three Hours. The guard is on the UNION because the two
+        # sweeps' surfaces are complementary, and it is stated as the register's
+        # own rule read the other way: half a step of the FINEST render means
+        # the finest render must EXIST.
+        if union:
+            finest = max(d for _k, d in union)
+            if int(entry["decimals"]) > finest:
+                out.append(
+                    f"{dim}: sets its epsilon from {entry['decimals']}dp while "
+                    f"the FINEST site either sweep can find renders it at "
+                    f"{finest}dp -- so half a step of the declared precision is "
+                    "a difference no reader of this figure is ever shown, and "
+                    "every band, floor and collapse certified at it was "
+                    f"certified {10 ** (int(entry['decimals']) - finest)}x too "
+                    "fine"
+                )
         if not union:
             out.append(
                 f"{dim}: is rendered at NO site either sweep can find, so the "
