@@ -49,6 +49,7 @@ import json
 import math
 import random
 import statistics
+import types
 
 import pytest
 
@@ -4972,6 +4973,237 @@ def test_the_FALLBACK_BRANCH_KEEPS_THE_MEAN_because_the_WORST_would_be_ALWAYS_RE
     assert gentle_verdict.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
     assert gentle_verdict.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
     assert gentle_verdict.panel_mirror_register_channel == "attributable"
+
+
+def _partial_fallback(monkeypatch, *, every=4):
+    """THE TWO-INSTRUMENT CONFOUND the whole-panel fallback rule exists to forbid:
+    a panel that fell back to the log form with some premises reflected by the LEVEL
+    rule anyway.
+
+    Injected AT THE REFLECTION CALL inside `panel_mirror`, never hand-built, and
+    keyed on `name="truth"` so the revision mirror — whose only rule is `_reflect` —
+    is left alone and cannot smuggle the defect in through a second channel.
+    """
+    real = fgl._reflect
+    seen = {"n": 0}
+
+    def patched(value, through, *, premise_id, name):
+        if name != "truth":
+            return real(value, through, premise_id=premise_id, name=name)
+        seen["n"] += 1
+        if seen["n"] % every == 1 and fgl._level_reflection_is_feasible(value, through):
+            return fgl._reflect_level(
+                value, through, premise_id=premise_id, name=name
+            )
+        return real(value, through, premise_id=premise_id, name=name)
+
+    monkeypatch.setattr(fgl, "_reflect", patched)
+
+
+def test_a_PARTIAL_FALLBACK_cannot_CERTIFY_BY_BEING_MORE_WRONG(monkeypatch):
+    """THE NAMED DEFECT OF THE ELEVENTH HOUR (2026-08-12): the fallback branch's gate
+    read a statistic the reflection's fidelity barely enters, so the two-instrument
+    confound certified — and certified with a BETTER number than a faithful mirror.
+
+    The panel is the suite's own `epc_bias=0.99` stock, which is the only one the
+    retired mean could ever pass on (see the not-always-red test below for why).
+    """
+    gentle = _infeasible_reflection_population(
+        n=80, epc_bias=0.99, rogue=0.40, spread=0.05
+    )
+    clean = fgl.composition_verdict(gentle, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert clean.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+    assert clean.panel_mirror_register_channel == "attributable"
+
+    _partial_fallback(monkeypatch)
+    broken = fgl.composition_verdict(gentle, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+
+    # THE DEFECT, STATED AS A MEASUREMENT: the retired mean reads LOWER under the
+    # confound than under a faithful mirror, so the old gate did not merely miss it
+    # — the confound bought a better reading. Certifying on a number a defect can
+    # IMPROVE is the fail-open shape, not a threshold that wanted widening.
+    assert (
+        broken.panel_mirror_register_infidelity
+        < clean.panel_mirror_register_infidelity
+    )
+    assert broken.panel_mirror_register_infidelity <= fgl.MIRROR_FIDELITY_BAND
+
+    # ...and the branch's own promise catches it, at every home it was broken at.
+    assert broken.panel_mirror_register_channel == "unattributable"
+    assert broken.panel_mirror_register_refusal == "fault"
+    assert broken.panel_mirror_register_ratio_breaching_premises >= 1
+    assert (
+        broken.panel_mirror_register_ratio_worst_breach
+        > fgl.REGISTER_PRESERVATION_TOLERANCE
+    )
+
+
+def test_the_FALLBACK_FAULT_TEST_IS_NOT_ALWAYS_RED_on_a_BADLY_OUT_register():
+    """THE NINTH HOUR'S DILEMMA WAS AN ARTEFACT OF THE UNIT, and this is the proof.
+
+    That Hour looked for a per-premise shape on this branch, measured the ABSOLUTE
+    error's worst breach, found it always-red — correctly, every premise's absolute
+    error moves here by construction — and concluded the branch had to keep a mean.
+    Both horns came from auditing the LEVEL branch's promise on the LOG branch.
+
+    Here the register is 17% out, so the bluntness mean is far above its band and the
+    absolute worst-case shape would refuse the panel. The promise this branch DOES
+    make is kept to float noise on the same panel — so the fault test passes exactly
+    where the shape the ninth Hour rejected would have been fatal.
+    """
+    rows = _infeasible_reflection_population(n=40, epc_bias=0.83, rogue=0.40)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+
+    # The absolute shape IS always-red here — the ninth Hour's reading, preserved.
+    assert v.panel_mirror_register_worst_breach > fgl.MIRROR_FIDELITY_BAND
+    assert v.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND
+
+    # ...and the branch's own promise is kept, on the same rows, to the bit.
+    assert (
+        v.panel_mirror_register_ratio_worst_breach
+        <= fgl.REGISTER_PRESERVATION_TOLERANCE
+    )
+    assert v.panel_mirror_register_ratio_breaching_premises == 0
+
+    # So the refusal is BLUNTNESS, which is a statement about this stock, and the
+    # instrument is not accused of anything.
+    assert v.panel_mirror_register_refusal == "blunt"
+    assert v.panel_mirror_register_channel == "unattributable"
+
+
+def test_the_FALLBACK_MEAN_IS_A_READING_OF_THE_STOCK_not_of_the_MIRROR():
+    """WHY THE MEAN COULD NOT CARRY THIS BRANCH ALONE, as an identity rather than an
+    argument (2026-08-12, eleventh Hour).
+
+    Under a correct log reflection each premise's absolute error moves by exactly
+    `e**2 / actual`, so every per-premise breach is `e / actual` — THE REGISTER'S OWN
+    RELATIVE ERROR AT THAT HOME — and the gate's reading is a size-biased mean of
+    those. Both are reproduced here FROM THE UNMIRRORED PANEL ALONE: a fidelity term
+    computable with no mirror in the loop is reading the stock, not the instrument.
+    """
+    rows = _infeasible_reflection_population(n=40, epc_bias=0.83, rogue=0.40)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_reflection == fgl.LOG_PRESERVING_FALLBACK
+
+    errors = [
+        abs(o.epc_hlc_kw_per_k - o.actual_hlc_kw_per_k) for o in rows
+    ]
+    # PER PREMISE — the breach is the register's own relative error.
+    for breach, err, o in zip(v.panel_mirror_register_breaches, errors, rows):
+        assert breach == pytest.approx(err / o.actual_hlc_kw_per_k, rel=1e-9)
+
+    # ...AND THE GATE'S WHOLE READING, with no mirrored row anywhere in it.
+    predicted = sum(
+        e * e / o.actual_hlc_kw_per_k for e, o in zip(errors, rows)
+    ) / sum(errors)
+    assert v.panel_mirror_register_infidelity == pytest.approx(predicted, rel=1e-12)
+
+
+def test_the_BLUNT_SENTENCE_SAYS_THE_PROMISE_WAS_KEPT_and_names_the_STOCK():
+    """A refusal for a design limit must not read as a fault report.
+
+    Before this the fallback sentence quoted the mean as the thing that was wrong.
+    The mean is a reading of how far out this stock's register already is, so a
+    reader was being told the instrument had broken when it had done exactly what it
+    says on the tin.
+    """
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.80, rogue=0.40)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_register_refusal == "blunt"
+    text = " ".join(fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE))
+    assert "KEPT its promise" in text, text
+    assert "BLUNTNESS" in text, text
+    # ...and it does NOT accuse the reflection of breaking anything.
+    assert "did not" not in text.split("BLUNTNESS")[0].split("KEPT its promise")[-1]
+
+
+def test_an_UNREADABLE_RATIO_PROMISE_IS_A_FAILED_READ_not_a_faithful_one():
+    """R15 fail-closed: a promise that cannot be READ is a FAILED check, never a 0.0.
+
+    A ratio needs four positive finite numbers. Where one is missing the honest
+    answer is not "the reflection preserved it".
+
+    UNREACHABLE THROUGH `FabricObservation` TODAY, AND SAID SO RATHER THAN DRESSED
+    UP: its `__post_init__` already refuses a non-positive or non-finite HLC, so this
+    branch cannot be reached from any real row and is defence in depth against a
+    future caller that is not one. The stand-in below is the only way to enter it,
+    and a guard whose test has to bypass the type is a guard whose reachability is
+    part of the record — not a control this atom may count as evidence for anything.
+    """
+    rows = _infeasible_reflection_population(n=6)
+    mirror = fgl.panel_mirror(rows)
+
+    def stand_in(row, **changes):
+        fields = {
+            "premise_id": row.premise_id,
+            "epc_hlc_kw_per_k": row.epc_hlc_kw_per_k,
+            "actual_hlc_kw_per_k": row.actual_hlc_kw_per_k,
+        }
+        fields.update(changes)
+        return types.SimpleNamespace(**fields)
+
+    for field, value in (
+        ("actual_hlc_kw_per_k", 0.0),
+        ("epc_hlc_kw_per_k", -1.0),
+        ("actual_hlc_kw_per_k", math.nan),
+    ):
+        damaged = [stand_in(mirror.rows[0], **{field: value})]
+        damaged += list(mirror.rows[1:])
+        breaches = fgl._register_ratio_breaches(rows, damaged)
+        assert breaches[0] == math.inf, (field, value)
+        assert all(b < math.inf for b in breaches[1:]), (field, value)
+
+
+def test_the_RATIO_PROMISE_cannot_be_measured_across_a_REORDERING_or_a_RESIZE():
+    """The same two guards `_register_breaches` carries, for the same reason: a
+    per-premise promise compared across a reordering is a different panel's promise.
+    """
+    rows = _infeasible_reflection_population(n=6)
+    mirror = list(fgl.panel_mirror(rows).rows)
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_ratio_breaches(rows, mirror[:-1])
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_ratio_breaches([], [])
+    swapped = [mirror[1], mirror[0]] + mirror[2:]
+    with pytest.raises(fgl.InsufficientEvidence):
+        fgl._register_ratio_breaches(rows, swapped)
+
+
+def test_the_LEVEL_BRANCH_KEEPS_ITS_OWN_PROMISE_and_is_not_moved_onto_the_ratio():
+    """The repair is BRANCH-KEYED, and this is the half that must not have changed.
+
+    The level reflection promises the ABSOLUTE error back, not the ratio — the ratio
+    moves there by construction — so reading the ratio on that branch would be this
+    Hour's own defect with the branches swapped.
+    """
+    rows = _observations(n=200, epc_bias=0.85, inferred_bias=0.95)
+    v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert v.panel_mirror_reflection == fgl.LEVEL_PRESERVING
+    # The ratio genuinely does move on this branch...
+    assert (
+        v.panel_mirror_register_ratio_worst_breach
+        > fgl.REGISTER_PRESERVATION_TOLERANCE
+    )
+    # ...and it decides nothing here.
+    assert v.panel_mirror_register_refusal == ""
+    assert v.panel_mirror_register_channel == "attributable"
+
+    # ...AND IT IS NOT PUBLISHED HERE EITHER. A row whose refusal field is empty
+    # while a "breaching premises" count reads 200 invites exactly the misreading
+    # this Hour found in the gate. On the branch that makes the promise, both are
+    # published as numbers.
+    level_row = fgl.composition_verdict_components(v)
+    assert level_row["panel_mirror_register_ratio_worst_breach"] is None
+    assert level_row["panel_mirror_register_ratio_breaching_premises"] is None
+
+    fallback = fgl.composition_verdict(
+        _infeasible_reflection_population(n=40, epc_bias=0.83, rogue=0.40),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    fallback_row = fgl.composition_verdict_components(fallback)
+    assert fallback_row["panel_mirror_register_ratio_worst_breach"] is not None
+    assert fallback_row["panel_mirror_register_ratio_breaching_premises"] == 0
 
 
 def test_the_REFUSAL_SENTENCE_NAMES_THE_PROMISE_THE_BRANCH_ACTUALLY_MAKES(monkeypatch):

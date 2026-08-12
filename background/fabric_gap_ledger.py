@@ -3877,6 +3877,67 @@ def _register_breaches(
     return tuple(breaches)
 
 
+def _register_ratio_breaches(
+    before: Sequence[FabricObservation], after: Sequence[FabricObservation]
+) -> tuple[float, ...]:
+    """THE PROMISE THE LOG BRANCH ACTUALLY MAKES, premise by premise: the register's
+    RATIO error, exactly inverted.
+
+    `_reflect` is `through**2 / value` and its own docstring says what that buys —
+    "same RATIO error, opposite sign". So on the fallback branch the honest reading
+    is that `(epc/actual) * (epc/actual')` is exactly 1 at EVERY premise, and this
+    returns how far each home departs from it. An EXACT, UNIVERSAL, PER-PREMISE
+    claim, on the branch the ninth Hour left with no per-premise audit at all.
+
+    WHY IT WAS MISSED FOR TWO HOURS (2026-08-12, eleventh Expert Hour on this atom).
+    The ninth Hour asked whether the fallback branch could take a worst-case shape,
+    measured the ABSOLUTE error's worst breach there, correctly found it always-red —
+    every premise's absolute error moves by construction on this branch — and
+    concluded the branch must keep a mean. Both horns of that dilemma came from
+    auditing the LEVEL branch's promise on the LOG branch. The refusal sentence it
+    wrote even names the right one ("this reflection preserves the RATIO error"), one
+    line from the gate that never read it.
+
+    MEASURED, NOT ARGUED (fifteenth time this atom surfaced something by running a
+    thing rather than reading it, sixteenth here). Under a correct log reflection the
+    worst breach is 2.220e-16 on this atom's own drawn 200 forced onto the branch —
+    a register 13-20% out — and 2.220e-16 on the suite's `epc_bias=0.99` panel. It
+    does not grow with how wrong the register is, which is exactly what the absolute
+    shape could not manage and why this one is not always-red.
+
+    THE ZERO/NON-FINITE CORNER, fail-closed on the same rule as everywhere else in
+    this file: a ratio that cannot be formed is a promise that cannot be READ, and an
+    unreadable check is a FAILED check (R15), so it reads `inf` rather than 0.0.
+    """
+    if len(before) != len(after):
+        raise InsufficientEvidence(
+            f"a mirrored panel of {len(after)} cannot be compared premise-by-premise "
+            f"with an original of {len(before)}"
+        )
+    if not before:
+        raise InsufficientEvidence(
+            "a per-premise ratio promise cannot be audited over zero premises"
+        )
+    breaches = []
+    for o, m in zip(before, after):
+        if o.premise_id != m.premise_id:
+            raise InsufficientEvidence(
+                f"mirrored rows are out of order ({o.premise_id!r} vs {m.premise_id!r})"
+                " — a per-premise ratio promise cannot be measured across a reordering"
+            )
+        parts = (
+            o.epc_hlc_kw_per_k, o.actual_hlc_kw_per_k,
+            m.epc_hlc_kw_per_k, m.actual_hlc_kw_per_k,
+        )
+        if any(not math.isfinite(p) or p <= 0.0 for p in parts):
+            breaches.append(math.inf)
+            continue
+        r_before = o.epc_hlc_kw_per_k / o.actual_hlc_kw_per_k
+        r_after = m.epc_hlc_kw_per_k / m.actual_hlc_kw_per_k
+        breaches.append(abs(r_before * r_after - 1.0))
+    return tuple(breaches)
+
+
 def weight_null_panel(
     observations: Sequence[FabricObservation],
 ) -> list[FabricObservation]:
@@ -4267,6 +4328,16 @@ class CompositionVerdict:
     # be reflected by the wrong rule, or 65 of 200 through the wrong pivot, with the
     # mean under its band. One entry per premise, in panel order.
     panel_mirror_register_breaches: tuple[float, ...]
+    # ...and the LOG branch's OWN promise, which nothing audited until the eleventh
+    # Hour (2026-08-12). The line above is the LEVEL branch's promise (absolute error
+    # preserved); on the fallback branch every premise's absolute error moves by
+    # construction, which is why the ninth Hour could find no per-premise shape there
+    # and kept a mean. The promise that branch does make is `_reflect`'s own — the
+    # RATIO error, exactly inverted — and it is exact, universal and per premise.
+    # Measured on the drawn 200 forced onto the branch: a PARTIAL FALLBACK certified
+    # at a mean of 0.0283 against a faithful mirror's 0.0306, and this reads 1.02e-04
+    # against 2.22e-16. One entry per premise, in panel order.
+    panel_mirror_register_ratio_breaches: tuple[float, ...]
     panel_mirror_reflection: str
     panel_mirror_infeasible_premises: int
     # THE WEIGHT-ONLY NULL — the mirror's re-composition channel with the mirror's
@@ -4440,6 +4511,26 @@ class CompositionVerdict:
         MONEY channel this term is blind to now has its own gate in
         `panel_mirror_weight_artefact`, because a term denominated in kW/K was never
         going to certify a verdict denominated in GBP.
+
+        WHAT THIS NUMBER IS ON THE FALLBACK BRANCH, MEASURED (2026-08-12, eleventh
+        Hour) — and it is not the mirror's fidelity. Under a correct log reflection
+        each premise's absolute error moves by exactly `e_i**2 / actual_i`, so every
+        per-premise breach equals `e_i / actual_i`, THE REGISTER'S OWN RELATIVE ERROR
+        AT THAT HOME, and this ratio is a size-biased mean of those. Both identities
+        were checked against the running code on the drawn 200 forced onto the
+        branch: per-premise agreement to 9.9e-15, and the whole gate reading
+        reproduced FROM THE UNMIRRORED PANEL ALONE to 1.3e-16 relative. So on that
+        branch this term is a reading of the STOCK, computable with no mirror in the
+        loop — which is why it refuses this atom's own population (0.8423 against a
+        0.05 band) no matter how faithful the reflection is, and why the only panel
+        the suite could find for it to pass on has a register accurate to 1%.
+
+        IT IS THEREFORE THE BLUNTNESS TERM AND NOT THE FAULT TERM. That is a real
+        question — an instrument whose by-design disturbance swamps the band cannot
+        attribute a null (the second Hour's MIRROR INCONCLUSIVE, and it still fires
+        exactly as it did) — but it is a property of the stock the mirror was pointed
+        at, not of the mirror. The fault question is
+        `panel_mirror_register_ratio_worst_breach`.
         """
         if self.epc_register_mae == 0.0:
             return 0.0 if self.panel_mirror_register_mad == 0.0 else math.inf
@@ -4474,8 +4565,18 @@ class CompositionVerdict:
         one wildly-moved home is a bug in one premise's reflection, forty mildly-moved
         ones is the wrong reflection applied to a subset, and a share would render
         both as the same small percentage — which is the shape this Hour is here
-        about. Counted against the SAME tolerance the branch's gate reads, so the
-        number in the sentence is the number that decided it.
+        about.
+
+        WHICH TOLERANCE, AND THE CLAIM THAT USED TO BE HERE (2026-08-12, eleventh
+        Hour). This said it was "counted against the SAME tolerance the branch's gate
+        reads, so the number in the sentence is the number that decided it" — true on
+        the level branch, where the gate IS this population's worst member, and false
+        on the fallback branch, where the gate is a size-biased mean and this is a
+        per-premise count. Both branches keep their tolerance; what changed is that
+        the fallback branch's FAULT count is now its own number,
+        `panel_mirror_register_ratio_breaching_premises`, and this one is read there
+        as what it always was — how many homes the by-design disturbance moved,
+        i.e. bluntness, which on that branch is normally all of them.
         """
         tolerance = (
             REGISTER_PRESERVATION_TOLERANCE
@@ -4483,6 +4584,86 @@ class CompositionVerdict:
             else MIRROR_FIDELITY_BAND
         )
         return sum(1 for b in self.panel_mirror_register_breaches if b > tolerance)
+
+    @property
+    def panel_mirror_register_ratio_worst_breach(self) -> float:
+        """THE LOG BRANCH'S PROMISE AUDITED AT ITS WORST VIOLATION — the largest
+        departure from `(epc/actual) * (epc/actual') == 1` at any single home.
+
+        THE ELEVENTH HOUR'S WHOLE FINDING (2026-08-12). The ninth Hour audited this
+        branch with a MEAN because the worst-case shape on the ABSOLUTE error is
+        always-red here — true, and a consequence of auditing the level branch's
+        promise on the log branch. On the promise this branch actually makes the
+        worst-case shape is available and NOT always-red: 2.220e-16 under a correct
+        reflection on a register 13-20% out, and on one 1% out.
+
+        Its reading does not depend on how wrong the register is, which is the whole
+        difference. `panel_mirror_register_infidelity` does — it is that, and almost
+        nothing else (see its own docstring).
+        """
+        return max(self.panel_mirror_register_ratio_breaches)
+
+    @property
+    def panel_mirror_register_ratio_breaching_premises(self) -> int:
+        """HOW MANY HOMES the log reflection did not invert — counted against the SAME
+        tolerance the fallback branch's fault gate reads, so the number in the
+        sentence is the number that decided it.
+
+        The sibling of `panel_mirror_register_breaching_premises`, and the two are
+        kept apart deliberately: that one counts the ABSOLUTE-error movement, which
+        on this branch is every premise by construction and is a statement about the
+        instrument's bluntness; this one counts BROKEN PROMISES. Reporting bluntness
+        as a breach count is what made the fallback branch's disclosure read like a
+        fault report for two Hours.
+        """
+        return sum(
+            1
+            for b in self.panel_mirror_register_ratio_breaches
+            if b > REGISTER_PRESERVATION_TOLERANCE
+        )
+
+    @property
+    def panel_mirror_register_refusal(self) -> str:
+        """WHY the register channel refused, in three states — `""`, `"fault"`,
+        `"blunt"` — worst-first.
+
+        TWO SUBJECTS, OPPOSITE IN POLARITY, WERE RIDING ON ONE WORD (2026-08-12,
+        eleventh Hour; the sixth Hour's `MIRROR_FIDELITY_BAND` class one level down,
+        and the eighth Hour's three-states repair applied to the other channel).
+
+        * `fault` — the reflection BROKE ITS OWN PROMISE. The instrument is wrong and
+          the reading is not evidence of anything.
+        * `blunt` — the reflection kept its promise and the disturbance it makes BY
+          DESIGN is larger than the band that decides verdicts. The instrument is
+          working; this stock is too coarse for it, and a null it returns is its own
+          (the second Hour's MIRROR INCONCLUSIVE, preserved exactly).
+
+        A reader acts differently on these — fix the mirror, versus get a better-
+        surveyed stock — and both read `unattributable` before this.
+
+        FAULT IS TESTED FIRST because a broken instrument's bluntness reading is not
+        a measurement of anything. On the LEVEL branch the fault test is the ninth
+        Hour's absolute-error worst breach and there is no bluntness test, because
+        that reflection promises no disturbance at all: any movement there is a
+        broken promise, never a design limit.
+        """
+        if self.panel_mirror_reflection == LEVEL_PRESERVING:
+            return (
+                ""
+                if self.panel_mirror_register_worst_breach
+                <= REGISTER_PRESERVATION_TOLERANCE
+                else "fault"
+            )
+        if (
+            self.panel_mirror_register_ratio_worst_breach
+            > REGISTER_PRESERVATION_TOLERANCE
+        ):
+            return "fault"
+        return (
+            ""
+            if self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
+            else "blunt"
+        )
 
     @property
     def panel_mirror_register_channel(self) -> str:
@@ -4494,35 +4675,41 @@ class CompositionVerdict:
         * `level_preserving` — the promise is EXACT and PER PREMISE, so the worst
           breach decides it against `REGISTER_PRESERVATION_TOLERANCE`, which is the
           float-noise floor rather than a tolerance for real disturbance.
-        * `log_preserving_fallback` — no such promise is made; every premise's
-          absolute error moves by construction. The question there is how blunt the
-          instrument is, which is a mean, and it keeps `MIRROR_FIDELITY_BAND`
-          unchanged. Putting the worst-case shape on this branch would make an
-          always-red control out of the instrument behaving exactly as designed.
+        * `log_preserving_fallback` — TWO TESTS, because two different things can be
+          wrong with it (2026-08-12, eleventh Hour). The reflection's own promise
+          here is the RATIO error exactly inverted, which is just as exact and just
+          as universal as the level branch's, and it is audited at its WORST
+          violation against the same noise floor. Only then does the bluntness
+          question — how far the disturbance it makes BY DESIGN swamps the band —
+          get asked, and that one is a mean against `MIRROR_FIDELITY_BAND`, exactly
+          as before. See `panel_mirror_register_refusal` for why the two are named
+          separately rather than lumped into one word.
 
-        NO INTERVAL, AND THIS TIME THE REASON IS NOT AN ALGEBRAIC IDENTITY. The
-        eighth Hour left this channel on a bare point comparison because "under the
-        level-preserving reflection it is exact by algebra" — true on one branch, and
-        the justification for the exemption was written on the branch where the term
-        was not a control. This Hour measured the other branch and the exemption
-        holds for a different reason: the fallback-branch statistic is a weighted mean
-        of per-premise relative errors to which EVERY premise contributes, so it
-        concentrates fast — over 150 random subpanels of a fallback population it was
-        unresolved on 3 of 22 at n=20 and 0 of 46 by n=50, where the money channel's
-        share (carried by the 18 of 200 homes that move at all) was unresolved
-        routinely at n=100. Same repair, different diagnosis, and the diagnosis is
-        why this channel does not get the eighth Hour's mechanism copied onto it.
+        THE NINTH HOUR'S DILEMMA WAS AN ARTEFACT OF THE UNIT. It looked for a
+        per-premise shape on this branch, measured the ABSOLUTE error's worst breach,
+        found it always-red, and kept a mean — all correct, and all about the LEVEL
+        branch's promise. Measured on the promise this branch does make, the
+        worst-case shape reads 2.220e-16 under a correct reflection on a register
+        13-20% out, so it is not always-red and never was.
+
+        WHY THE MEAN COULD NOT CARRY THIS BRANCH ALONE, measured: on this atom's own
+        drawn 200 forced onto the fallback, the mean reads 0.8423 under a correct
+        reflection, 0.8398 under the wrong pivot and 0.5804 under a partial fallback
+        — all three `unattributable`, a control returning the same verdict with and
+        without its own named defects. And on the suite's `epc_bias=0.99` panel, the
+        only stock accurate enough for the mean to pass at all, a PARTIAL FALLBACK —
+        the two-instrument confound the whole-panel rule exists to forbid — certified
+        at 0.0283 while a faithful mirror read 0.0306. It passed by being MORE wrong.
+
+        NO INTERVAL ON EITHER TEST. The fault test is a worst case over premises and
+        needs no resample (the ninth Hour's own reason, and the reason the tenth
+        Hour's resample finding did not reach this channel). The bluntness test is a
+        weighted mean of per-premise relative errors to which every premise
+        contributes, so it concentrates fast — unresolved on 3 of 22 subpanels at
+        n=20 and 0 of 46 by n=50.
         """
-        if self.panel_mirror_reflection == LEVEL_PRESERVING:
-            return (
-                "attributable"
-                if self.panel_mirror_register_worst_breach
-                <= REGISTER_PRESERVATION_TOLERANCE
-                else "unattributable"
-            )
         return (
-            "attributable"
-            if self.panel_mirror_register_infidelity <= MIRROR_FIDELITY_BAND
+            "attributable" if not self.panel_mirror_register_refusal
             else "unattributable"
         )
 
@@ -5667,6 +5854,9 @@ def composition_verdict(
         panel_mirror_register_mae=_register_mae(panel),
         panel_mirror_register_mad=_register_mad(observations, panel),
         panel_mirror_register_breaches=_register_breaches(observations, panel),
+        panel_mirror_register_ratio_breaches=_register_ratio_breaches(
+            observations, panel
+        ),
         panel_mirror_reflection=mirror.reflection,
         panel_mirror_infeasible_premises=mirror.infeasible_premises,
         revision_mirror_money=_money_verdict(revision, "revision_mirror"),
@@ -5863,6 +6053,24 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
                 f"{verdict.panel_mirror_register_infidelity:.2%}, which is the "
                 f"breach divided by the panel and is why it is not the gate)"
             )
+        elif verdict.panel_mirror_register_refusal == "fault":
+            # THE FAULT SENTENCE, WHICH DID NOT EXIST BEFORE (2026-08-12, eleventh
+            # Hour). The branch's own promise is the RATIO error inverted, and until
+            # now nothing read it — so a reflection that had genuinely broken was
+            # refused, when it was refused at all, with the bluntness sentence below,
+            # naming a design limit as the ground for a broken instrument.
+            reasons.append(
+                f"this reflection inverts every home's register RATIO error and it "
+                f"did not: "
+                f"{verdict.panel_mirror_register_ratio_breaching_premises} of "
+                f"{verdict.premises} premises broke that promise, the worst by "
+                f"{verdict.panel_mirror_register_ratio_worst_breach:.2e} of the "
+                f"product it holds at 1 — this is a FAULT in the instrument, not "
+                f"its bluntness, and the panel mean "
+                f"({verdict.panel_mirror_register_infidelity:.1%}) is a reading of "
+                f"how far out this stock's register already is, so it is not the "
+                f"ground for this refusal"
+            )
         else:
             reasons.append(
                 f"reflecting the truth moved the register arm's OWN error by "
@@ -5873,9 +6081,11 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
                 f"{verdict.panel_mirror_register_mad:.6f}, worst home "
                 f"{verdict.panel_mirror_register_worst_breach:.1%}, "
                 f"{verdict.panel_mirror_reflection}), above the "
-                f"{MIRROR_FIDELITY_BAND:.0%} band — this reflection preserves the "
-                f"RATIO error, so the mean is the instrument's bluntness rather "
-                f"than a broken promise"
+                f"{MIRROR_FIDELITY_BAND:.0%} band — this reflection KEPT its promise "
+                f"(worst ratio breach "
+                f"{verdict.panel_mirror_register_ratio_worst_breach:.2e}); the mean "
+                f"is the instrument's BLUNTNESS on a stock whose register is already "
+                f"this far out, so the null it returns is its own"
             )
     money = verdict.panel_mirror_weight_artefact_resolution
     if money != "attributable":
@@ -6279,6 +6489,31 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_attribution": v.panel_mirror_attribution,
         "panel_mirror_weight_artefact_resolution": (
             v.panel_mirror_weight_artefact_resolution
+        ),
+        # ...AND WHICH OF THE TWO THINGS WENT WRONG (2026-08-12, eleventh Hour). A
+        # broken reflection and a blunt-but-honest one both read `unattributable`,
+        # and a reader acts differently on them — fix the instrument, versus get a
+        # better-surveyed stock. The ratio breach rides in the row because the fault
+        # was invisible for two Hours precisely because nothing printed it.
+        "panel_mirror_register_refusal": v.panel_mirror_register_refusal,
+        # PUBLISHED ONLY ON THE BRANCH THAT MAKES THE PROMISE, which is the point of
+        # the whole Hour applied to its own output. The level reflection does not
+        # preserve the ratio — it moves it by construction, 200 of 200 premises and a
+        # worst breach of 1.91 on this atom's own published row — and a reader seeing
+        # "200 premises breached" in a row whose refusal field is empty would be
+        # reading a fault count that decided nothing. This atom already carries four
+        # retained-but-superseded statistics defended only by their docstrings; a
+        # fifth, published on the branch where it is meaningless, is the defect this
+        # Hour is here about wearing the ledger's clothes.
+        "panel_mirror_register_ratio_worst_breach": (
+            None
+            if v.panel_mirror_reflection == LEVEL_PRESERVING
+            else v.panel_mirror_register_ratio_worst_breach
+        ),
+        "panel_mirror_register_ratio_breaching_premises": (
+            None
+            if v.panel_mirror_reflection == LEVEL_PRESERVING
+            else v.panel_mirror_register_ratio_breaching_premises
         ),
         "panel_mirror_reflection": v.panel_mirror_reflection,
         "panel_mirror_infeasible_premises": v.panel_mirror_infeasible_premises,

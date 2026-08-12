@@ -3444,7 +3444,7 @@
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 36
+  simplifications_count: 37
   expert_hour: {last: '2026-08-12', status: attempted_finding_open}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   records_rehomed: [evidence, expert_hour_findings]
