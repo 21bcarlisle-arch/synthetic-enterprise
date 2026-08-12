@@ -932,12 +932,66 @@ def _repair_derived_artefacts_in(head_dir):
         log("Derived-artefact repair skipped (non-fatal): {}".format(exc))
         return
     if res["repaired"]:
-        log("Derived-artefact repair: re-rendered {} stale projection(s) from HEAD -- {}. "
-            "Committed with this run.".format(len(res["repaired"]), ", ".join(res["repaired"])))
+        log("Derived-artefact repair: re-rendered {} stale projection(s) from HEAD -- {}.".format(
+            len(res["repaired"]), ", ".join(res["repaired"])))
+        _land_repaired_artefacts(res["repaired"])
     if not res["converged"]:
         log("Derived-artefact repair did NOT converge after {} pass(es): {} still stale. Two "
             "projections may be invalidating each other -- this is a real defect, not slow "
             "convergence.".format(res["passes"], ", ".join(res["still_stale"])))
+
+
+# THE REPAIR LANDS BEFORE THE GATE, NOT AFTER IT (2026-08-12, closing the last BLOCKING member of
+# CLASS_PUBLISH_GATE_AND_WEDGE: WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND).
+#
+# THE DEADLOCK. The repair above wrote correct bytes into the working tree on every cycle and
+# logged "Committed with this run" 81 times running -- and was committed by none of them. The
+# publish path commits only after a GREEN gate, and the staleness IS what reds the gate. So a
+# repair built to end this wedge class sat one step downstream of the thing it repairs: the
+# eighth, tenth and eleventh wedges were all closed by a human-equivalent tick hand-landing the
+# same bytes the daemon had already written. The finding named the fix -- commit the repair
+# pre-gate by pathspec -- and it stayed unbuilt for two days while the class kept recurring.
+#
+# WHY surgical_land AND NOT `git commit`. Two reasons, both walls. (1) HOOK-BYPASS IS A WALL
+# (DIRECTOR_RULING 2026-08-09): this commit must face the same gate as any other, and it does --
+# `land()` runs the repo's own pre-commit hook against the tree the commit WOULD create, and
+# REFUSES on red. It is not a bypass; it is the gate run one step earlier, on a smaller subject.
+# (2) The shared tree always holds other lanes' uncommitted work, and a `git commit` from a
+# daemon would sweep it; `land()` names its paths and touches nothing else.
+#
+# WHAT IT CANNOT DO, stated because a repair that could force its own landing would be worse than
+# the deadlock: it cannot turn a red HEAD green. If the resulting tree fails for ANY other reason
+# the landing is refused, the bytes stay in the working tree exactly as before, and the gate then
+# reds on the true state. The only thing it changes is that a staleness which is a pure function
+# of committed sources stops being un-landable.
+#
+# FAIL-OPEN, same direction as its caller: any failure here logs and returns. A publish cycle must
+# never die because a repair could not be committed.
+def _land_repaired_artefacts(repaired):
+    """Land the re-rendered projections by pathspec, gated, BEFORE the publish gate runs."""
+    try:
+        from tools import surgical_land
+    except Exception as exc:  # noqa: BLE001 -- see FAIL-OPEN note above
+        log("Derived-artefact repair not landed (surgical_land unavailable): {}".format(exc))
+        return
+    message = (
+        "chore(derived): land {} re-rendered projection(s) pre-gate -- {}\n\n"
+        "A derived artefact went stale against its committed sources, which reds the gate; the "
+        "repair that fixes it used to be committed only AFTER a green gate, so it could never "
+        "land (WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10). "
+        "Pure re-derivation from committed truth: no source changed.".format(
+            len(repaired), ", ".join(repaired))
+    )
+    try:
+        sha = surgical_land.land(PROJECT_DIR, list(repaired), message)
+    except surgical_land.LandingRefused as exc:
+        log("Derived-artefact repair NOT landed -- the gate refused the repaired tree, so the "
+            "staleness is not the only thing red: {}".format(str(exc)[:1500]))
+        return
+    except Exception as exc:  # noqa: BLE001
+        log("Derived-artefact repair landing skipped (non-fatal): {}".format(exc))
+        return
+    log("Derived-artefact repair LANDED pre-gate as {} -- {}".format(sha[:9], ", ".join(repaired)))
 
 
 # A FULL DISK MUST SAY SO (2026-08-09, third publish wedge).

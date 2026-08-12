@@ -1468,3 +1468,101 @@ def test_every_subprocess_stub_here_models_the_return_contract():
         "these subprocess stubs build a bare MagicMock instead of using fake_completed, "
         "so their .stdout is not the str/bytes subprocess.run promises: " + ", ".join(offenders)
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# THE REPAIR LANDS BEFORE THE GATE (2026-08-12)
+#
+# WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10: the self-healing
+# repair wrote correct bytes every cycle and logged "Committed with this run" 81 times running,
+# and was committed by none of them -- the publish path commits only after a GREEN gate, and the
+# staleness is what reds the gate. ORDER is the whole finding, so order is what these pin.
+# ---------------------------------------------------------------------------------------------
+
+def _repair_harness(monkeypatch, tmp_path, repaired, land):
+    """Drive run_fast_tests with the repair, the landing and the gate all recording their turn."""
+    import background.derived_artefact_register as dar
+    from tools import surgical_land
+
+    events = []
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / "no-such-stamp")
+
+    @contextlib.contextmanager
+    def fake_checkout():
+        yield tmp_path
+
+    def fake_repair_from(source_root, write_root=None):
+        events.append("repair")
+        return {"repaired": list(repaired), "converged": True, "passes": 1, "still_stale": []}
+
+    def fake_land(root, paths, message, *a, **kw):
+        events.append(("land", list(paths)))
+        return land(root, paths, message)
+
+    monkeypatch.setattr(prc, "_head_checkout", fake_checkout)
+    monkeypatch.setattr(dar, "repair_from", fake_repair_from)
+    monkeypatch.setattr(surgical_land, "land", fake_land)
+    monkeypatch.setattr(prc, "_run_gate_in", lambda *a, **kw: (events.append("gate"), (True, False))[1])
+    return events
+
+
+def test_a_repaired_projection_is_LANDED_and_it_lands_BEFORE_the_gate(monkeypatch, tmp_path):
+    """THE NAMED DEFECT, in the only dimension it lived in: WHEN the repair is committed.
+
+    MUTATION: delete the `_land_repaired_artefacts(res["repaired"])` call in
+    `_repair_derived_artefacts_in` and this fails -- no "land" event, and the gate runs on the
+    unrepaired tree exactly as it did for 81 cycles.
+    """
+    events = _repair_harness(
+        monkeypatch, tmp_path,
+        repaired=["docs/design/FORWARD_ATTACHMENT_LEDGER.md"],
+        land=lambda root, paths, message: "abc123def456",
+    )
+    assert prc.run_fast_tests("deadbeef") == (True, False)
+    assert events == ["repair", ("land", ["docs/design/FORWARD_ATTACHMENT_LEDGER.md"]), "gate"], (
+        "the repair must be COMMITTED before the gate whose red it fixes is run; a landing that "
+        "happens after the gate is the deadlock this closes")
+
+
+def test_nothing_repaired_lands_NOTHING(monkeypatch, tmp_path):
+    """Vacuity guard in the other direction: a quiet cycle must not manufacture a commit."""
+    events = _repair_harness(
+        monkeypatch, tmp_path, repaired=[],
+        land=lambda root, paths, message: pytest.fail("landed with nothing repaired"),
+    )
+    assert prc.run_fast_tests("deadbeef") == (True, False)
+    assert events == ["repair", "gate"]
+
+
+def test_a_REFUSED_landing_leaves_the_cycle_alive_and_says_which_kind_of_red_it_is(
+        monkeypatch, tmp_path, caplog):
+    """The landing is GATED, so it can refuse -- and a refusal must not be able to stop publishing.
+
+    It also must not read as "the repair worked": a refusal means something OTHER than the
+    staleness is red, and the log line has to say so or the next reader repeats the diagnosis.
+    """
+    from tools import surgical_land
+
+    def refuse(root, paths, message):
+        raise surgical_land.LandingRefused("GATE RED on the resulting tree (rc=1)")
+
+    events = _repair_harness(monkeypatch, tmp_path,
+                             repaired=["docs/design/FORWARD_ATTACHMENT_LEDGER.md"], land=refuse)
+    logged = []
+    monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: logged.append(str(msg)))
+
+    assert prc.run_fast_tests("deadbeef") == (True, False)
+    assert events[-1] == "gate", "a refused landing must not skip the gate"
+    assert any("NOT landed" in m and "not the only thing red" in m for m in logged), logged
+
+
+def test_an_UNEXPECTED_landing_failure_is_non_fatal(monkeypatch, tmp_path):
+    """FAIL-OPEN, same direction as the repair itself: a publish cycle never dies over a commit."""
+    def explode(root, paths, message):
+        raise RuntimeError("git went missing")
+
+    events = _repair_harness(monkeypatch, tmp_path,
+                             repaired=["docs/design/FORWARD_ATTACHMENT_LEDGER.md"], land=explode)
+    monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: None)
+    assert prc.run_fast_tests("deadbeef") == (True, False)
+    assert events[-1] == "gate"

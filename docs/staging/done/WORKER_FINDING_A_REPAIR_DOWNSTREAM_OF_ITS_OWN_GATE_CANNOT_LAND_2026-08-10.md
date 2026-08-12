@@ -6,6 +6,8 @@
 **Closed at:** `818b3212a` (pushed; `origin/main` verified equal)
 **Class:** derived-artefact staleness — the class `WORKER_REPORT_FOURTH_WEDGE_CLOSED_THE_DERIVED_ARTEFACT_CLASS_2026-08-10` claimed closed. **It recurred.** R3 two-strike applies to the repair mechanism.
 
+**Discharged:** `tests/background/test_process_run_complete.py::test_a_repaired_projection_is_LANDED_and_it_lands_BEFORE_the_gate`, `tests/background/test_process_run_complete.py::test_a_REFUSED_landing_leaves_the_cycle_alive_and_says_which_kind_of_red_it_is`, `tests/background/test_process_run_complete.py::test_nothing_repaired_lands_NOTHING` — recommendation (1) is built: the re-rendered projections now land by pathspec through the gated surgical-land path BEFORE the publish gate runs, so a staleness that reds the gate is no longer downstream of it, and the archive-amplifier this document names becomes harmless with it. Mutation: delete the landing call and two of the four fire. 122 green, 2026-08-12.
+
 ## The wedge, in one line
 
 `tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations` red at HEAD:
