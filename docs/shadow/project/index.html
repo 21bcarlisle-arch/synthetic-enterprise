@@ -1,35 +1,35 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow"><title>Project Status - Synthetic Enterprise</title><style>:root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;--blue:#2a78d6;--teal:#1baf7a}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;background:var(--bg);color:var(--text);margin:0;padding:0;font-size:14px;line-height:1.5}.site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border)}.nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px}.nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px}.nav-link:hover{color:var(--text)}.nav-link.active{color:var(--blue);font-weight:600}.container{max-width:1100px;margin:0 auto;padding:32px 24px}h1,h2{color:var(--text)}h1{font-size:1.5rem;font-weight:700;margin-bottom:4px}h2{font-size:1rem;font-weight:600;margin:32px 0 14px}table{border-collapse:collapse;width:100%;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}th{background:var(--surface2);color:var(--muted);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:none}tr:hover td{background:var(--surface2)}.pos{color:var(--green)}.neg{color:var(--red)}.meta{color:var(--muted);font-size:0.85em;margin-bottom:16px}pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;color:var(--text);white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:var(--muted)}dd{margin:0}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}.kpi-card .kpi-value{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;color:var(--text)}.kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:6px}.rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;border:1px solid currentColor}.rag-green{background:rgba(12,163,12,0.12);color:var(--green)}.rag-amber{background:rgba(250,178,25,0.18);color:#95720f}.rag-red{background:rgba(208,59,59,0.12);color:var(--red)}.btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--text)}.btn:hover{background:var(--surface2)}</style></head><body><nav class="site-nav"><a href="/shadow/" class="nav-logo">&#9889; Poesys</a><a href="/shadow/" class="nav-link">Overview</a><a href="/shadow/customers/" class="nav-link">Customers</a><a href="/shadow/supplier/" class="nav-link">Supplier</a><a href="/shadow/sim/" class="nav-link">Sim</a><a href="/shadow/project/" class="nav-link active">Project</a><a href="/" class="nav-link" style="margin-left:auto">Live site</a></nav><div class="container"><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>RX</dd><dt>Test Count</dt><dd>24845</dd><dt>Company Modules</dt><dd>485</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre>## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T07:06:16Z
+Last updated: 2026-08-12T07:38:58Z
 
-**OPS2 — THE CEILING IS DERIVED FROM MEASURED DEMAND, NOT CHOSEN (`dfd74dff7`, pushed).** Owed
-item 1 of `OPS2_publish_gate_head_worktree`. The prior finding's own recommendation was to re-derive
-`PHASE_MEMORY_MAX_MB` from `sample_gate_rss_premium.py`'s reported **5.34G** — and obeying it
-literally would have set the bound **below a demand already observed**: 5.34G is a **per-PROCESS**
-high-water mark, `MemoryMax` bounds the **CGROUP**, and the kernel killed this phase's scope at its
-8192MiB limit with one child at 6.13G inside it. A fourth truncation was one obedient re-derivation
-away. Now: measured demand (a sampled scope peak, or the `memory_max_mb` of any phase the cgroup
-killer took, because that proves demand reached it) **× 1.25 headroom, capped by what the box can
-spare with the start reserve intact** — 8192 → **10240MB**, cap 11816 on a 15912MB box; not chosen,
-computed. `_ScopePeakSampler` measures the subject the ceiling bounds (`memory.peak` on the phase's
-own scope, read from the parent while it runs) and banks **whether each peak is exact or a lower
-bound** — a killed phase never used more than its limit however much it wanted. When the derivation
-outgrows the box the phase is **REFUSED**, never clamped to the cap and re-run: clamp-and-rerun is
-what funded launches 12, 13 and 14. **R15 both ways: 8 mutations, all red** — and two SURVIVED the
-first pass, recorded because the surviving shape is the lesson (a zero-peak mutation unreachable
-past the `cgdir is None` guard; a loose match only reachable when the glob is built on the unit
-stem). **115 passed, ruff clean.** Caught on the way: both basis helpers quoted the module constant,
-so the first ratchet re-described a phase banked at 8192 as *"killed against its own 10240MB
-ceiling"* and would have **wedged publishing on every ceiling move** — they now quote the ceiling
-that phase actually ran under. The in-tree baseline is **relaunched under the derived ceiling**: it
-either completes (banking a true peak, from which the ceiling can come back DOWN) or dies alone and
-the next derivation exceeds the box and is refused. Both are terminal; no blind fourth relaunch
-remains possible.
+**D36 — THE PRINTED BILL FOOTS ON ITS FACE, IN PENCE, WITH ITS CATCH-UP LINE SHOWN (this commit).**
+Part 1 of `DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12`, render-layer only. Bill
+**C1g-INV141** printed four charge lines totalling ~£26 above a total of **-£2**, with nothing on
+the page explaining the sign — and **every control was right to pass it**: the record carries a
+fifth component (`catchup_adjustment_gbp = -28.40`), `BILL_FOOTS` sums it, `PRINTED_BILL_FOOTS_
+EXACTLY` checks the ledger. The **renderer** kept its own line-up — usage, standing, network, VAT —
+which was the invariant's footing set **minus the component that decides the sign**, and printed
+every figure through `gbp()`, the **portfolio** formatter that rounds to whole pounds. So the class
+is not "the bill does not foot" but *"the bill does not foot AS PRINTED, and every check reads the
+record"*. Now `billEquationHtml()` **and** `downloadBillPdf()` drive their column off
+`BILL_COMPONENTS` — `_FOOTING_COMPONENT_KEYS` itself, pinned both directions — the catch-up line
+names the period and direction it corrects and **carries** the ledger's applied figure, and money
+on the bill path prints through `billGbp()` in pounds and pence. C1g-INV141 now renders
+£11.86 + £7.80 + £5.07 + £1.24 + (**-£28.40**) = **-£2.43**, on screen and in the PDF.
+**20/20 new tests, asserted on the RENDERED surfaces** (a new Node/vm harness drives the page's own
+code over **all 1682 real bills**, both surfaces; 141 catch-up bills each print a period-named
+line). **R15 both ways, three mutations** — drop the catch-up component (kills 4 named tests),
+revert to whole pounds, print the **pre-cap raw delta** (the two fields agree on 139 of 141 bills
+and diverge only where the back-billing cap bites). **Level 0→2 = target**; R11 live-pixel lands
+with the next publish cycle and Expert Hour is open. **Found, queued not fixed:** the page renders
+`site/data/customers/*.json` (21 accounts, 1682 bills, **30 not footing**) while the printed-footing
+control reads `site/state/billing_ledger.json` (18 accounts, 1557, **0 not footing**) — the control's
+population excludes exactly the accounts where the defect lives (staged as a worker finding).
 
-**G12 v1 LANDED — the query store is built, and the artefact its control reads was untracked
-(`400414f02`, level 0→2, pushed).** Step 2 of `DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10`.
-`tools/build_projections.py` rebuilds `docs/observability/projections.sqlite` (gitignored) from four
-COMMITTED artefacts — read with `git cat-file blob HEAD:<path>`, never off disk. MEASURED, not
-asserted: **403 rows from 4 sources in 0.32s, 380,928 bytes**; cross-source joins verified by query
-(coupled gaps joined to atoms; build-lane shortfall by lane — questions the repo could not answer in
-one command before). 26 passed, ruff clean. Three properties, each **R15 both ways with the mutations
-RUN**: COMMI</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-12T07:17:04Z | Run e0325b8d3b69edce1cd616f4ee6add62e5532c45 | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
+**SITE2 — THE HOUSEHOLD PAGE IS THE WALL'S OWN EXHIBIT (`09f65f694`, pushed).** Part 2 of
+`DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12`. `site/customers/index.html` stopped
+calling itself a Customer Portal and became a side-by-side comparison of the two sides of the
+epistemic wall for one household. The ruling's non-negotiable was that the side-declaration be
+**structural, not prose** — "if a new panel can be added without declaring which side it sits on,
+nothing has been built, only written down" — so no tab renderer emits panel markup any more: each
+returns a list of `panel(side, title, body)` and `layoutPanels()` is the **sole writer**, throwing
+</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-08-12T07:41:26Z | Run 53448302f23782977b8a2649c47aafc660be3d0d | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>

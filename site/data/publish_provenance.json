@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T07:00:22Z",
+    "checked_at": "2026-08-12T07:32:44Z",
     "nonblocking_reds": [
       "FAILED tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned",
       "FAILED tests/design/test_maturity_map_facets.py::test_live_map_value_stream_hygiene"
@@ -9,20 +9,20 @@
     "open_findings": 97
   },
   "last_verified": {
-    "generated_at": "2026-08-12T07:32:02Z",
-    "git_commit": "d14736452",
-    "run_id": "run_output_d14736452_20260812T070122Z.json",
-    "verified_at": "2026-08-12T07:32:02Z"
+    "generated_at": "2026-08-12T08:03:20Z",
+    "git_commit": "53448302f",
+    "run_id": "run_output_53448302f_20260812T073345Z.json",
+    "verified_at": "2026-08-12T08:03:20Z"
   },
   "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-12T07:32:02Z",
-    "git_commit": "d14736452",
-    "run_id": "run_output_d14736452_20260812T070122Z.json",
-    "verified_at": "2026-08-12T07:32:02Z"
+    "generated_at": "2026-08-12T08:03:20Z",
+    "git_commit": "53448302f",
+    "run_id": "run_output_53448302f_20260812T073345Z.json",
+    "verified_at": "2026-08-12T08:03:20Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-12T07:32:02Z"
+  "written_at": "2026-08-12T08:03:20Z"
 }
