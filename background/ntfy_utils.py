@@ -47,6 +47,23 @@ WAKE_HMAC_KEY: str | None = os.environ.get("SE_WAKE_HMAC_KEY")
 SENT_IDS_FILE = Path("/home/rich/synthetic-enterprise/docs/observability/.sent_ntfy_ids.json")
 MAX_SENT_IDS = 500
 
+# Delivery observability (2026-08-12, WORKER_FINDING_THE_ESCALATION_CHANNEL_IS_
+# FAILING_SILENTLY_2026-08-10 + WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_
+# SILENTLY_2026-08-10, part 1 "say so"). ESCALATION IS NTFY, NEVER THE WINDOW is a
+# P0 wall, so this is the only path from this machine to the director -- and it was
+# failing OPEN to silence: an HTTP 429 body parses as valid JSON with no `id`, so
+# send_ntfy returned a bare None, wrote nothing anywhere, and both the ops mirror and
+# the director-input log appended an "out" entry regardless. The record said sent.
+# These two files make a non-delivery observable: the log keeps the response body
+# VERBATIM (the diagnostic was sitting in result.stdout the whole time, R5), the
+# state file carries the transition so a persistent deafness is testable by any
+# daemon that does not depend on the failing channel.
+DELIVERY_LOG_FILE = Path("/home/rich/synthetic-enterprise/docs/observability/ntfy-delivery-log.md")
+DELIVERY_STATE_FILE = Path("/home/rich/synthetic-enterprise/docs/observability/.ntfy_delivery_state.json")
+MAX_DELIVERY_LOG_ENTRIES = 200
+_DEFAULT_DELIVERY_LOG_FILE = DELIVERY_LOG_FILE
+_DEFAULT_DELIVERY_STATE_FILE = DELIVERY_STATE_FILE
+
 
 def sign_wake_message(text: str, timestamp: int | None = None) -> str:
     """Build a 'text|timestamp|hexhmac' payload for a tmux-relayed wake
@@ -133,12 +150,142 @@ def was_sent_by_us(msg_id: str | None) -> bool:
     return msg_id in ids
 
 
+def _split_trailing_status(stdout: str) -> tuple[str, str | None]:
+    """Split curl's `-w '\\n%{http_code}'` suffix off the response body.
+
+    The status of the POST TO THE TOPIC is the only honest health signal here.
+    `curl -I https://ntfy.sh/` returns 200 while the topic is rate-limited, and a
+    HEAD on the topic URL returns 404 whether it is healthy or limited (ntfy
+    publishes by POST) -- so the obvious reachability probe EXONERATES the failing
+    channel. Recorded in the finding; do not replace this with a host probe.
+
+    Tolerates a body with no status suffix (a fake `subprocess.run` in an older
+    test, or a curl that never ran) rather than mangling it."""
+    body, sep, tail = stdout.rpartition("\n")
+    candidate = tail.strip()
+    if sep and len(candidate) == 3 and candidate.isdigit():
+        return body, candidate
+    return stdout, None
+
+
+def delivery_state() -> dict:
+    """The last recorded delivery outcome: {'delivered', 'reason', 'since',
+    'consecutive_failures'}. Empty dict if nothing has been recorded yet.
+
+    Exists so 'am I deaf?' is answerable WITHOUT sending on the channel under
+    test -- the finding established that the channel cannot be probed cheaply,
+    so the only honest design is to make every real send observable."""
+    try:
+        return json.loads(DELIVERY_STATE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def record_delivery_outcome(delivered: bool, detail: str) -> None:
+    """Record whether a POST actually landed, and log the failure text verbatim.
+
+    Test isolation without making the writes untestable: a pytest run that has NOT
+    redirected both paths is a silent no-op (the same class of structural guard as
+    ntfy_mirror.append_mirror_entry), but a test that monkeypatches them exercises
+    the real body. Blanket-guarding on PYTEST_CURRENT_TEST alone would make this
+    mechanism unfalsifiable, which is the very defect it was written to fix (R15)."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and (
+        DELIVERY_LOG_FILE == _DEFAULT_DELIVERY_LOG_FILE
+        or DELIVERY_STATE_FILE == _DEFAULT_DELIVERY_STATE_FILE
+    ):
+        return
+
+    previous = delivery_state()
+    was_delivered = previous.get("delivered")
+    failures = 0 if delivered else int(previous.get("consecutive_failures") or 0) + 1
+    transition = was_delivered is not None and bool(was_delivered) != delivered
+    now = time.time()
+    ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
+
+    try:
+        from background.ntfy_mirror import scrub_secrets
+        safe_detail = scrub_secrets(detail, topic=NTFY_TOPIC).replace("\n", " ")
+    except Exception:
+        safe_detail = detail.replace(NTFY_TOPIC or "\0", "[topic-scrubbed]").replace("\n", " ")
+
+    # EPISODE-SCOPED FIELDS, guarded (self-clearing-alarm census, PW2/PW4). A deafness
+    # episode's start and length are exactly the fields an alarm would read for
+    # SEVERITY, so a write that has not DEMONSTRATED the episode ended must not be able
+    # to shorten them -- that is the 25-hour outage that paged as "paused 30 seconds ago".
+    # `since_epoch` is NUMERIC deliberately: guard_episode's low/high-water comparisons
+    # are numeric-only and skip a string field silently (an open BLOCKING member of this
+    # very class, WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY), so a human-readable
+    # ISO `since` alone would be a guard that cannot fire. `since` is kept for readers.
+    # CLOSE CONDITION: `delivered`, i.e. ntfy returned a server-assigned message id for
+    # this POST. It is the strongest evidence this channel can produce and it comes from
+    # the SERVER's response body, never from this state file (R15 anti-tautology).
+    from background.episode_monotonic import guard_episode
+    state = guard_episode(
+        previous,
+        {
+            "delivered": delivered,
+            "reason": None if delivered else safe_detail[:500],
+            "since": ts if transition or was_delivered is None else previous.get("since", ts),
+            "since_epoch": (
+                now if transition or was_delivered is None
+                else previous.get("since_epoch", now)
+            ),
+            "last_checked": ts,
+            "consecutive_failures": failures,
+        },
+        since_fields=("since_epoch",),
+        streak_fields=("consecutive_failures",),
+        episode_closed=delivered,
+    )
+    try:
+        DELIVERY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        DELIVERY_STATE_FILE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
+    # R5: a healthy send stays quiet unless it is the RECOVERY transition. A drop is
+    # logged every time -- each one is a director message that did not arrive, not a
+    # repeated unchanged status.
+    if delivered and not transition:
+        return
+    label = "DELIVERED" if delivered else "NOT DELIVERED"
+    line = f"- [{ts}] [{label}] {safe_detail[:500]}"
+    if not delivered:
+        line += f" (consecutive failures: {failures})"
+    try:
+        DELIVERY_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        existing = (
+            DELIVERY_LOG_FILE.read_text(encoding="utf-8").splitlines()
+            if DELIVERY_LOG_FILE.is_file() else []
+        )
+        header = "# NTFY Delivery Log"
+        entries = [ln for ln in existing if ln.startswith("- [")]
+        entries.append(line)
+        entries = entries[-MAX_DELIVERY_LOG_ENTRIES:]
+        DELIVERY_LOG_FILE.write_text(
+            header + "\n\nEvery POST to the director topic that did not land, verbatim.\n"
+            "Written by background/ntfy_utils.send_ntfy.\n\n" + "\n".join(entries) + "\n",
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+
+
 def send_ntfy(message: str, headers: dict[str, str] | None = None,
               *, _allow_real_send: bool = False) -> str | None:
     """POST `message` to the shared ntfy topic, record its id (so the
     inbound-command poller can recognise and skip it), mirror it
     (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
-    the id (or None if the request or id-parsing failed)."""
+    the id (or None if the request or id-parsing failed).
+
+    A None return is no longer silent: the outcome is recorded to
+    DELIVERY_STATE_FILE and, on a non-delivery, the curl rc / HTTP status / response
+    body are logged VERBATIM to DELIVERY_LOG_FILE, and both audit trails record
+    `out-undelivered` rather than `out`. Callers that must know may still test the
+    return value, but nothing now depends on their remembering to
+    (MAKE_IT_STICK: mechanism, not discipline). What this does NOT do is retry or
+    queue -- an undelivered message still evaporates with the process (part 2, the
+    durable outbox) and nothing yet alarms on sustained deafness (part 3)."""
     # HARD PYTEST GUARD (2026-07-16, director: "my phone is spamming with test
     # messages"). NEVER POST a real NTFY from inside a test run. A test that
     # exercises any notification path WITHOUT mocking send_ntfy would otherwise
@@ -169,26 +316,46 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None,
         cmd += ["-H", f"Authorization: Bearer {NTFY_AUTH_TOKEN}"]
     for key, value in (headers or {}).items():
         cmd += ["-H", f"{key}: {value}"]
-    cmd += ["-d", message, NTFY_PUBLISH_URL]
+    cmd += ["-w", "\n%{http_code}", "-d", message, NTFY_PUBLISH_URL]
 
     result = subprocess.run(cmd, capture_output=True, text=True)
+    body, status = _split_trailing_status(getattr(result, "stdout", "") or "")
+    returncode = getattr(result, "returncode", 0) or 0
     try:
-        msg_id = json.loads(result.stdout).get("id")
+        msg_id = json.loads(body).get("id")
     except json.JSONDecodeError:
         msg_id = None
 
     if msg_id:
         record_sent_id(msg_id)
+        record_delivery_outcome(True, f"id={msg_id} http={status or 'unknown'}")
+    else:
+        # The whole defect was here: an id-less response used to return a bare None.
+        # curl rc, HTTP status and the response body are all diagnostics that existed
+        # and were thrown away -- a 429 body says "limit reached: daily message quota
+        # reached" in plain English.
+        stderr = (getattr(result, "stderr", "") or "").strip()
+        record_delivery_outcome(
+            False,
+            f"curl rc={returncode} http={status or 'unknown'} "
+            f"body={body.strip()[:300] or '(empty)'}"
+            + (f" stderr={stderr[:200]}" if stderr else ""),
+        )
+
+    # The record states the OUTCOME, not the attempt. An "out" entry for a message
+    # that never left the box is a record that lies -- both audit trails used to
+    # append one unconditionally.
+    direction = "out" if msg_id else "out-undelivered"
 
     try:
         from background.ntfy_mirror import append_mirror_entry
-        append_mirror_entry("out", message, topic=NTFY_TOPIC)
+        append_mirror_entry(direction, message, topic=NTFY_TOPIC)
     except Exception:
         pass  # mirroring must never block or break a real send
 
     try:
         from background.director_input_log import append_entry
-        append_entry("ntfy", message, direction="out", hmac_verified=None)
+        append_entry("ntfy", message, direction=direction, hmac_verified=None)
     except Exception:
         pass  # logging must never block or break a real send
 

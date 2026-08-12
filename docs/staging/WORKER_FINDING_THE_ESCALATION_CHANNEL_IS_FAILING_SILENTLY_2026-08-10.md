@@ -1,6 +1,32 @@
 # [WORKER-FINDING] The P0 escalation channel is over quota and drops silently — `send_ntfy` returns None and every caller ignores it
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
+
+## UPDATE 2026-08-12 — recommendation 1 is BUILT; this stays open for the rest
+
+**"Make the failure loud" landed** in `background/ntfy_utils.py`, exactly as this document
+scoped it and with nobody's authority needed. `send_ntfy` now reads curl's rc, the HTTP status
+of the POST *to the topic*, and the response body; a non-delivery logs that body verbatim to
+`docs/observability/ntfy-delivery-log.md`, updates `.ntfy_delivery_state.json`
+(`delivered` / `reason` / `since` / `consecutive_failures`, exposed as `delivery_state()`), and
+BOTH audit trails record `out-undelivered` — closing this document's point 2, "the record says
+sent". R15 both ways in `tests/background/test_ntfy_utils.py`: the real 429 quota body is the
+fixture, reverting the fix reds four tests, and a healthy send writes no log line. The pytest
+guard is preserved and strengthened — the recorder no-ops until a test redirects BOTH paths, so
+it is isolated without being unfalsifiable.
+
+**Severity BLOCKING → LATENT:** the defect this document named is the SILENCE, and the silence
+is gone. What remains is loss that is now visible, and one item that is not mine:
+
+- **Point 3, callers cannot tell** — partly closed. Callers may still ignore the return value,
+  but `delivery_state()` answers "am I deaf?" without sending on the channel under test. No
+  caller is wired to it yet.
+- **Recommendation 1's tail** — retry/backoff and a durable outbox (part 2), and an alarm on
+  sustained deafness (part 3). Both are now tractable on `consecutive_failures`. Still owed.
+- **Recommendation 2, the transport** — RESERVED (spending real money). Unchanged and the
+  director's: recommended a paid ntfy.sh plan; cadence remains the lever we control meanwhile.
+
+Full receipt: `WORKER_REPORT_THE_P0_CHANNEL_NOW_SAYS_WHEN_IT_DROPS_2026-08-12.md`.
 
 **Found:** 2026-08-10 ~20:10Z, while sending the RUNG-1 unwedge NTFY for this tick.
 **Disposition:** FILED, NOT FIXED — the only real remedy is in the reserved classes.

@@ -21,7 +21,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md` — BLOCKING
 - `WORKER_FINDING_THE_DOORS_DEPTH_LIMIT_SWALLOWED_FIFTY_THREE_FIGURES_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — BLOCKING
-- `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — BLOCKING
+- `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md` — BLOCKING
 - `WORKER_FINDING_WRITE_TIME_GATE_FIELD_SWALLOW_2026-08-08.md` — LATENT
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md` — BLOCKING
@@ -36,7 +36,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-9 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+8 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_BULK_PASS_BLINDS_THE_AGED_STAGING_DIGEST_2026-08-12.md`
 - `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md`
@@ -44,7 +44,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md`
 - `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md`
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md`
-- `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md`
 - `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md`
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md`
 
@@ -52,7 +51,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
-- `WORKER_FINDING_ARREARS_RAG_IS_FAIL_OPEN_ON_A_MISSING_LEDGER_2026-08-09.md` — lane `C_customer_ops`
+- `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — lane `None`
 
 ---
 

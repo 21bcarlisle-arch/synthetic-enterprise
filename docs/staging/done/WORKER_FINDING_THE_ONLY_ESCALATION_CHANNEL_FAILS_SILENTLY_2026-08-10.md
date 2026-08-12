@@ -1,6 +1,29 @@
 # [WORKER-FINDING] The only escalation channel fails SILENTLY — a rate-limited NTFY returns None and nothing anywhere says the director was not told (2026-08-10)
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
+
+## DISCHARGED 2026-08-12 — part 1 repaired, parts 2–3 recorded and still owed
+
+Drawn as a BLOCKING member of `CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12`. **Part 1 ("say so")
+is built and R15-proven in `background/ntfy_utils.py`:** the POST's curl rc, HTTP status and
+response body are now captured (`-w '\n%{http_code}'`, split by `_split_trailing_status`); a
+non-delivery writes the body VERBATIM to `docs/observability/ntfy-delivery-log.md`, records
+`{delivered, reason, since, consecutive_failures}` to `.ntfy_delivery_state.json` (readable
+without sending on the channel under test — `delivery_state()`), and both audit trails now
+record `out-undelivered` instead of the `out` that used to claim a delivery that never
+happened. Mutation-tested BOTH ways: reverting the failure branch and the unconditional-`out`
+line reds 4 of 5 new tests in `tests/background/test_ntfy_utils.py`; a healthy send stays
+silent, so the control is not noise. This finding's own §1 diagnostic warning is honoured —
+the recorded status is the POST to the TOPIC, never a reachability probe of the host, which
+returns 200 while the topic is limited.
+
+**Not done, and deliberately:** part 2 (retry/backoff + a durable outbox — an undelivered
+message still evaporates with the process) and part 3 (an alarm on sustained deafness) are
+still owed and now tractable, because `consecutive_failures` is the counter they need. The
+transport itself stays the director's: lifting the quota means a paid plan, i.e. **spending
+real money**, one of the four reserved classes. Severity moves BLOCKING → RECORDED because
+the class's own defect — the silence — is repaired; the remaining loss is visible, which is
+what the class is about. Live continuation: `WORKER_FINDING_THE_ESCALATION_CHANNEL_IS_FAILING_SILENTLY_2026-08-10.md`.
 
 **Found:** sending a watch update at 22:13Z. `send_ntfy` returned `None` where earlier sends that
 evening returned real ids (`TFc8F7njXCgA`, `4YyNCElIn9WN`). I checked instead of assuming.
