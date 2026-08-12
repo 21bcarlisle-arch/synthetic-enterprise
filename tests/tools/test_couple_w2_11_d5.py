@@ -6200,10 +6200,13 @@ def test_the_walk_reaches_the_door_and_measures_its_undeclared_precision(reader_
     its own process. Coarser than the declared 4dp, so no epsilon moves."""
     walk = reader_walk["_walk"]
     assert walk["available"] is True, walk
-    assert ("door:coupled-gaps", 3) in reader_walk["detection"]["sites"]
+    assert ("door:coupled-gaps#gap-val", 3) in reader_walk["detection"]["sites"]
     assert reader_walk["detection"]["reaches_the_door"] is True
-    # ONLY the headline reaches it: the other four ride inside the note as
-    # digits already chosen, so the door renders none of them itself.
+    # ONE figure is CARRIED to the door as a number and re-rendered there by
+    # `fmtGap`; the other four ride inside the printed note as digits already
+    # chosen. Since Hour #21 that answer comes from the identity of the object
+    # the composer handed the ledger writer, not from a float comparison.
+    assert walk["headline_dimension"] == "detection"
     assert [d for d in sorted(reader_walk) if d != "_walk"
             and reader_walk[d]["reaches_the_door"]] == ["detection"]
 
@@ -6291,7 +6294,7 @@ def test_a_door_rendering_finer_than_the_declared_epsilon_fires(tmp_path, monkey
         encoding="utf-8")
     monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
     measured = pair.measure_reader_render_sites()
-    assert ("door:coupled-gaps", 6) in measured["detection"]["sites"]
+    assert ("door:coupled-gaps#gap-val", 6) in measured["detection"]["sites"]
     got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
     assert any("sets its epsilon from 4dp while a reader surface renders it at "
                "6dp" in v for v in got), got
@@ -6375,12 +6378,20 @@ def test_a_figure_rendered_at_no_site_anywhere_fires(reader_walk, component_walk
     for dim in ("belief", "detection", "detection_latency"):
         assert any(v.startswith(f"{dim}: is rendered at NO site either sweep "
                                 "can find") for v in got), (dim, got)
-    # AND THE UNION IS REAL: the mix figure has no reader-walk site of its own
-    # and passes only on the component sweep's, so dropping that half fires.
-    assert reader_walk["belief_population_mix"]["sites"] == ()
-    lone = pair.check_reader_render_sites(reader_walk)
-    assert any(v.startswith("belief_population_mix: is rendered at NO site")
-               for v in lone), lone
+    # AND THE UNION IS REAL, in both directions. A figure the reader walk finds
+    # nowhere still passes on the component sweep's site (and the reverse), so
+    # the guard is over the union and not over either sweep alone.
+    reader_only_blank = {k: (dict(v) if k != "_walk" else v)
+                         for k, v in reader_walk.items()}
+    reader_only_blank["ageing"]["sites"] = ()
+    ok = pair.check_reader_render_sites(reader_only_blank, component_walk)
+    assert not any(v.startswith("ageing: is rendered at NO site") for v in ok), ok
+    # ...and with BOTH halves gone, it fires.
+    both_blank = {k: dict(v) for k, v in component_walk.items()}
+    both_blank["ageing"]["sites"] = ()
+    gone = pair.check_reader_render_sites(reader_only_blank, both_blank)
+    assert any(v.startswith("ageing: is rendered at NO site either sweep can find")
+               for v in gone), gone
 
 
 @needs_node
@@ -6399,6 +6410,9 @@ def test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it(
     site = "renderer:background/gap_metric.py::format_belief_summary"
     assert (site, 4) in reader_walk["belief_population_mix"]["cross_attributed"]
     assert (site, 4) not in reader_walk["belief_population_mix"]["sites"]
+    # Its own door site -- the printed note, where the composer's inline `.4f`
+    # renders it -- is not affected by the collision (atom D37, Hour #21).
+    assert ("door:coupled-gaps#note", 4) in reader_walk["belief_population_mix"]["sites"]
     # THE COINCIDENCE IS REAL, on more books than the walk itself uses.
     for seed in (23, 101, 999):
         records, consumer, _b, as_of = pair._resolution_population(300, seed)
@@ -6432,3 +6446,192 @@ def test_the_reader_walk_runs_in_the_cli_not_only_in_tests():
     src = inspect.getsource(pair.main)
     assert "measure_reader_render_sites" in src
     assert "check_reader_render_sites" in src
+
+
+# ---------------------------------------------------------------------------
+# THE DOOR IS FOUR SURFACES, AND WHOSE THEY ARE IS A PROVENANCE QUESTION
+# (atom D37, H27 Expert Hour #21 -- Hour #20's leads 1 and 2, one repair)
+# ---------------------------------------------------------------------------
+# THE DEFECT. `has_door_carrier` admitted a dimension to the door surface only
+# where its carrier EQUALLED the panel row's value -- a VALUE test doing
+# PROVENANCE work, the exact shape Hour #19 named for `cross_attributed` and
+# then left standing in the gate one level up. Two consequences, and they point
+# opposite ways: it EXCLUDED the four companion figures from a surface that
+# demonstrably renders them (the panel prints the composed note, and every
+# companion's own renderer's digits are in it), and it would have handed the
+# WHOLE panel -- `fmtGap`'s 3dp and every 4dp numeric component -- to any
+# companion that happened to equal the headline.
+
+@needs_node
+def test_every_figure_reaches_the_door_and_the_headline_is_known_by_identity(
+        reader_walk, component_walk):
+    """WHAT THE VALUE GATE WAS HIDING. All five figures are rendered on the
+    door, inside the note it prints verbatim, each at its own declared
+    precision; ONE of them is additionally carried there as a number and
+    re-rendered by `fmtGap`, and which one is now answered by the identity of
+    the object the composer handed the ledger writer."""
+    assert reader_walk["_walk"]["headline_dimension"] == "detection"
+    assert {d: sorted(s for s in reader_walk[d]["sites"]
+                      if s[0].startswith("door:"))
+            for d in sorted(d for d in reader_walk if d != "_walk")} == {
+        "ageing": [("door:coupled-gaps#note", 3)],
+        "belief": [("door:coupled-gaps#note", 4)],
+        "belief_population_mix": [("door:coupled-gaps#note", 4)],
+        "detection": [("door:coupled-gaps#gap-val", 3),
+                      ("door:coupled-gaps#note", 4)],
+        "detection_latency": [("door:coupled-gaps#note", 2)],
+    }
+    # R12: this Hour changed what is MEASURED, never what is computed. Every
+    # door site is at a precision the figure already had, so no epsilon moves.
+    assert {d: pair.published_reading_decimals(d)
+            for d in pair.PUBLISHED_GAP_CONSUMERS} == {
+        "ageing": 3, "belief": 4, "belief_population_mix": 4,
+        "detection": 4, "detection_latency": 2}
+    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+
+
+@needs_node
+def test_the_headline_is_not_decided_by_comparing_floats(reader_walk):
+    """R15, THE MUTATION THIS HOUR EXISTS FOR. Restore the value gate and point
+    it at a companion whose carrier has been made equal to the headline's: the
+    value test hands that companion the door's `gap-val` and `components`
+    regions, and the provenance test does not."""
+    books = pair.published_books()
+    values = [float(b["result"]["detection"].gap) for b in books]
+    row_values = list(reader_walk["_walk"]["carrier_by_book"])
+    # The gate that shipped until this Hour, restated.
+    def value_gate(carriers):
+        return all(a is not None and float(a) == float(b)
+                   for a, b in zip(carriers, row_values))
+    assert value_gate(values)                      # the headline passes it
+    mix = list(reader_walk["belief_population_mix"]["carrier_by_seed"].values())
+    assert not value_gate(mix)                     # today, so does nothing else
+    # BUT IT IS A COINCIDENCE THAT NOTHING ELSE DOES. A companion equal to the
+    # headline on both books is admitted by the value gate to the whole panel.
+    assert value_gate(row_values)
+    # The provenance answer does not move with the digits at all: it is the
+    # object the composer passed, and every book agrees on it.
+    assert {b["headline_dimension"] for b in books} == {"detection"}
+    # ...and the regions it owns cross-attribute everyone else, rather than
+    # silently crediting them with `fmtGap`'s precision.
+    for dim in ("ageing", "belief", "belief_population_mix", "detection_latency"):
+        assert not any(k.endswith(("#gap-val", "#components", "#basis"))
+                       for k, _dp in reader_walk[dim]["sites"]), dim
+
+
+def test_a_composer_that_routes_around_the_ledger_seam_fails_the_walk(monkeypatch):
+    """R15: an unmeasured provenance is an unmeasured reader step. With nothing
+    captured at the seam, the walk must refuse -- never fall back to the digits.
+
+    THE MUTATION IS THE CALL SITE, NOT THE ATTRIBUTE, and the difference is the
+    whole test. `write_gap_entry` is a module GLOBAL of the composer's module,
+    so `_publish_one_book`'s spy wraps whatever that name currently holds --
+    including a neutralising stand-in. Replacing the attribute therefore
+    suppresses the WRITE while the spy still counts one crossing, and the run
+    dies on the absent ledger file rather than on this refusal: a mutation that
+    proves nothing about the provenance capture. What the check actually defends
+    is a refactor that moves the write OFF the name the walk spies on -- the
+    ledger still written, the seam no longer crossed -- so that is what is
+    mutated here, and the ledger is written through the function object directly.
+    """
+    import background.live_payment_triad as lpt
+    original = lpt.LivePaymentTriad.measure_and_write
+
+    def routed_around_the_seam(self, *a, **k):
+        # `write_gap_entry` here is this test module's OWN binding to the real
+        # function, taken at import time -- the same object, reached by a name
+        # the spy does not own.
+        spied, lpt.write_gap_entry = lpt.write_gap_entry, write_gap_entry
+        try:
+            return original(self, *a, **k)
+        finally:
+            lpt.write_gap_entry = spied
+
+    monkeypatch.setattr(lpt.LivePaymentTriad, "measure_and_write",
+                        routed_around_the_seam)
+    monkeypatch.setattr(pair, "_PUBLISHED_BOOKS", {})
+    with pytest.raises(AssertionError) as exc:
+        pair.published_books(specs=({"n_customers": 60, "months": 4},
+                                    {"n_customers": 70, "months": 4}))
+    assert "handed 0 result(s) to the ledger writer" in str(exc.value)
+    assert "an unavailable check is a failed check" in str(exc.value)
+
+
+@needs_node
+def test_a_door_region_the_walk_cannot_name_fails_closed(tmp_path, monkeypatch):
+    """R15. The whole subject of this instrument is reader surfaces nobody
+    searched. A door that grows a fifth region must fail the walk rather than
+    render a figure into a region no sweep looks at."""
+    mutated = tmp_path / "index.html"
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    assert "'<div class=\"gap-basis\">baseline g0 '" in original
+    mutated.write_text(
+        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+                         "'<div class=\"gap-audit\">audit '+esc(fmtGap(p.value))+"
+                         "'</div><div class=\"gap-basis\">baseline g0 '"),
+        encoding="utf-8")
+    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
+    measured = pair.measure_reader_render_sites()
+    assert measured["_walk"]["available"] is False
+    assert "gap-audit" in str(measured["_walk"]["reason"])
+    got = pair.check_reader_render_sites(measured,
+                                         pair.measure_component_render_sites())
+    assert any("never reached the Proof door" in v for v in got), got
+
+
+@needs_node
+def test_a_door_region_that_vanishes_is_not_a_region_that_renders_nothing(
+        tmp_path, monkeypatch):
+    """R15's fail-silent pattern, on the region split itself. A region the door
+    stopped rendering reads to a value sweep exactly like a region in which the
+    figure does not appear."""
+    mutated = tmp_path / "index.html"
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    assert "+fmtGap(p.value)+'</div>'" in original
+    mutated.write_text(original.replace("+fmtGap(p.value)+'</div>'",
+                                        "+''+'</div>'"), encoding="utf-8")
+    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
+    measured = pair.measure_reader_render_sites()
+    assert measured["_walk"]["available"] is False
+    assert "rendered no ['gap-val'] region" in str(measured["_walk"]["reason"])
+
+
+@needs_node
+def test_a_door_note_that_diverges_from_the_entrys_note_fires(
+        reader_walk, component_walk):
+    """THE VERBATIM SEAM IN THIS INSTRUMENT'S OWN UNITS. Four of the five
+    figures' door coverage rests entirely on the panel printing the entry's note
+    unchanged. `note_verbatim` tests that on the note's first 60 characters;
+    this tests it where it is load-bearing -- at every precision the note
+    renders each figure."""
+    diverged = {k: (dict(v) if k != "_walk" else v)
+                for k, v in reader_walk.items()}
+    diverged["detection_latency"]["sites"] = tuple(
+        s for s in diverged["detection_latency"]["sites"]
+        if s[0] != "door:coupled-gaps#note")
+    got = pair.check_reader_render_sites(diverged, component_walk)
+    assert any("detection_latency: the door's printed note renders it at no "
+               "precision while the entry's own note renders it at [2]" in v
+               for v in got), got
+    # ...and it is SILENT on the shipped walk, where the two agree everywhere.
+    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+
+
+@needs_node
+def test_the_doors_numeric_component_render_is_now_a_searched_surface(reader_walk):
+    """HOUR #20's LEAD 2. `fmtComponent`/`flattenNumbers` re-render every finite
+    numeric leaf of the HEADLINE's components at 4dp -- a surface the component
+    sweep structurally cannot see (it searches the entry's STRINGS) and the old
+    door search could not reach (it was open to one dimension, as one string).
+    It is now a named region with an owner. Measured: it renders none of the
+    five published figures today, so no epsilon rests on it -- and that is a
+    measurement rather than an absence of one."""
+    assert "door:coupled-gaps#components" in reader_walk["_walk"]["regions"]
+    assert not any(k == "door:coupled-gaps#components"
+                   for d in reader_walk if d != "_walk"
+                   for k, _dp in (tuple(reader_walk[d]["sites"])
+                                  + tuple(reader_walk[d]["cross_attributed"])))
+    # The region is REAL and does render numbers at 4dp -- an empty region would
+    # produce the same "no sites" answer, which is why the walk refuses one.
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    assert "Number(v).toFixed(4)" in original

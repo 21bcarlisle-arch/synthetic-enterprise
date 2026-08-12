@@ -5962,6 +5962,11 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # found none, and its control was silent about that, so the 4dp came
         # from D34's AST read of this renderer and nothing else.
         "reader_renders": (
+            # ON THE DOOR TOO (atom D37, Hour #21) -- inside the note the panel
+            # prints verbatim, at the same 4dp, which is where this figure's
+            # reader actually stands. Excluded from the door surface until this
+            # Hour by a value gate that admitted only the headline.
+            ("door:coupled-gaps#note", 4),
             ("renderer:background/gap_metric.py::format_belief_summary", 4),
         ),
         # AND IN THE PUBLISHED NOTE (atom D36, Hour #20) -- the same string, now
@@ -5990,9 +5995,9 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "component_renders": (("note", 4),),
         # ITS RENDERER IS A METHOD, so no call on a bare result reproduces the
         # string its reader is handed; its coverage comes from the component
-        # site above. Expert Hour #19 recorded that explicitly rather than
-        # letting an uncallable renderer read as a clean one.
-        "reader_renders": (),
+        # site above -- and, since Hour #21, from the SAME string one hand-off
+        # further on, printed verbatim on the door at the same 4dp.
+        "reader_renders": (("door:coupled-gaps#note", 4),),
         # THE SIBLING COINCIDENCE (Expert Hour #19). This figure's value turns
         # up at 4dp inside `format_belief_summary`, which does not render it:
         # what that renderer prints there is belief's PER-CASE DISAGREEMENT
@@ -6026,9 +6031,14 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # Invisible until the walk started carrying the composed note -- the
         # scorer's note, which the walk used to write itself, does not contain
         # `format_detection_summary`'s output.
+        # SPLIT BY DOOR REGION (atom D37, Hour #21). The 3dp and the 4dp are two
+        # DIFFERENT surfaces with two different provenances -- `fmtGap` on the
+        # carrier this figure alone is handed as a number, and the composed note
+        # the panel prints verbatim for all five -- and while the door was one
+        # search string that distinction could not be written down.
         "reader_renders": (
-            ("door:coupled-gaps", 3),
-            ("door:coupled-gaps", 4),
+            ("door:coupled-gaps#gap-val", 3),
+            ("door:coupled-gaps#note", 4),
             ("renderer:background/gap_metric.py::format_detection_summary", 4),
         ),
         "component_renders": (("note", 4),),
@@ -6046,6 +6056,7 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # for a number its reader gets two decimals of, and nothing on the
         # artefact side had ever confirmed the 2 either.
         "reader_renders": (
+            ("door:coupled-gaps#note", 2),
             ("renderer:tools/couple_w2_11_d5.py::format_detection_latency_summary", 2),
         ),
         "component_renders": (("note", 2),),
@@ -6083,6 +6094,7 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # AST. Two independent methods, agreeing, and now agreeing with the
         # published note as well.
         "reader_renders": (
+            ("door:coupled-gaps#note", 3),
             ("renderer:background/gap_metric.py::format_ageing_summary", 3),
         ),
     },
@@ -6543,6 +6555,7 @@ def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
     the scorer's result dict instead. Only the BOOK is substituted here; every
     step from the book to the file is the shipped code.
     """
+    import background.live_payment_triad as lpt
     from background.live_payment_triad import LivePaymentTriad
 
     triad = LivePaymentTriad()
@@ -6552,9 +6565,29 @@ def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
                 customer_id=f"RESI{i:05d}", due_date=date(2020, m, 28),
                 amount_gbp=120.0, income_stress_value="high", segment="resi",
             )
+    # WHICH FIGURE THE COMPOSER HANDS DOWNSTREAM AS A NUMBER, BY IDENTITY
+    # (atom D37, H27 Expert Hour #21). The door renders one figure at a
+    # precision of its own -- the one whose `GapResult` reaches the ledger
+    # writer -- and until this Hour the walk worked out which by comparing the
+    # panel row's float to each dimension's carrier. That is a VALUE test doing
+    # PROVENANCE work, which is the exact shape Hour #19 named for
+    # `cross_attributed` and then left standing in the gate one level up. The
+    # composer is spied at the seam it actually crosses, so the answer is the
+    # object it passed and not the digits that object happens to carry.
+    captured: List[object] = []
+    real_writer = lpt.write_gap_entry
+
+    def _spy(world_atom, twin_atom, headline, **kw):
+        captured.append(headline)
+        return real_writer(world_atom, twin_atom, headline, **kw)
+
     with tempfile.TemporaryDirectory() as td:
         path = Path(td) / "coupled_gap_ledger.json"
-        result = triad.measure_and_write(ledger_path=path)
+        lpt.write_gap_entry = _spy                             # type: ignore[assignment]
+        try:
+            result = triad.measure_and_write(ledger_path=path)
+        finally:
+            lpt.write_gap_entry = real_writer                  # type: ignore[assignment]
         if result is None:                                  # pragma: no cover
             raise AssertionError(
                 f"the composer measured nothing on book {spec} -- a book with "
@@ -6562,7 +6595,21 @@ def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
                 "no artefact is an unavailable check (R15)"
             )
         entry = json.loads(path.read_text(encoding="utf-8"))[WORLD_ATOM_ID]
-    return {"result": result, "entry": entry, "spec": dict(spec)}
+    # FAIL CLOSED, both ways. No capture means the composer stopped going
+    # through the ledger writer, and an unmeasured provenance is an unmeasured
+    # reader step; more than one match would mean the identity test cannot
+    # separate the dimensions and has quietly become a value test again.
+    owners = [d for d in result if result[d] is (captured[0] if captured else None)]
+    if len(captured) != 1 or len(owners) != 1:
+        raise AssertionError(
+            f"the composer handed {len(captured)} result(s) to the ledger "
+            f"writer, matching {owners} of its own dimensions -- the door's "
+            "headline surface is attributed by the identity of the object that "
+            "crossed this seam, so an unresolved seam is an unmeasured reader "
+            "step, and an unavailable check is a failed check (R15)"
+        )
+    return {"result": result, "entry": entry, "spec": dict(spec),
+            "headline_dimension": owners[0]}
 
 
 def published_books(
@@ -6805,6 +6852,40 @@ _DOOR_INDEX = Path(__file__).resolve().parent.parent / "site" / "proof" / "index
 # `WORLD_ATOM_ID`/`TWIN_ATOM_ID` above -- re-typing those two strings here would
 # make a walk that still passed after a rename, against a door showing nothing.
 _DOOR_SITE_KEY = "door:coupled-gaps"
+# THE DOOR IS NOT ONE SURFACE (atom D37, H27 Expert Hour #21). Its row is four
+# regions with four DIFFERENT provenances, and searching them as one string
+# made the whole panel attributable to whichever figure passed the value gate:
+#   * `gap-val`  -- `fmtGap(p.value)`, the ledger CARRIER re-rendered at 3dp by
+#                   the page. Owned by the dimension the composer handed to the
+#                   ledger writer, and by no other.
+#   * `note`     -- the composed note, printed VERBATIM (asserted every run),
+#                   so it carries every figure's own renderer's digits. Owned
+#                   by each figure in turn, exactly as the entry's `note` is.
+#   * `components` -- the HEADLINE's components, every finite numeric leaf of
+#                   them re-rendered at 4dp by `fmtComponent`/`flattenNumbers`.
+#                   A surface neither sweep could express: the component sweep
+#                   searches only the entry's STRINGS, and the old door search
+#                   was open to one dimension. Owned by the headline.
+#   * `basis`    -- `baseline_g0`/`raw_gap`, also `fmtGap` at 3dp, also the
+#                   headline's.
+# Keyed by the door's OWN class attributes rather than by position, and the row
+# is required to contain no class this walk cannot name -- a door that grows a
+# fifth region fails the walk instead of rendering a figure nobody searches.
+# The four region names, in the site-key form the register declares.
+_DOOR_REGIONS: Tuple[str, ...] = ("gap-val", "note", "components", "basis")
+# Every class the H27 row is known to carry. The structural wrappers hold no
+# figures; the region-bearing ones are extracted above. A class outside this
+# set is a region this walk cannot name (R15 fail-closed).
+_DOOR_ROW_KNOWN_CLASSES: Tuple[str, ...] = (
+    "gap-row", "gap-head", "gap-pair", "wc", "arr2", "gap-metric", "gap-val",
+    # `classifyGap`'s four severities, read off the page: blue/amber/red only,
+    # plus the `blocks L3` chip. Hand-listing them is deliberate -- the census
+    # fires on any class the door grows, and a class that turns out to be a
+    # severity is a one-line correction, while a class that turns out to be a
+    # new render region is the defect this Hour exists for.
+    "chip blue", "chip amber", "chip red", "chip block", "gap-bar",
+    "gap-bar untested", "gap-note", "gap-basis",
+)
 # Enough of the carried note to prove the door printed it rather than
 # re-rendering it -- taken from the note itself at walk time, never a literal
 # typed here (a fixture value in a control is the D30 defect).
@@ -6855,6 +6936,63 @@ def _door_render(payload: Dict[str, object]) -> str:
     return str(json.loads(proc.stdout)["coupled-gaps"]["innerHTML"])
 
 
+def _door_row_regions(html: str) -> Dict[str, str]:
+    """This pair's row on the rendered door, split into its four regions and
+    UNESCAPED (atom D37, H27 Expert Hour #21).
+
+    Split by the door's OWN class attributes, off the html the page produced --
+    never by re-rendering, and never by position. Fails closed three ways: on a
+    row that is not there, on a class this walk cannot name (a region the door
+    grew and nobody searches), and on a named region that came back empty (a
+    region the door stopped rendering, which would otherwise read as a figure
+    that is simply not shown there).
+    """
+    rows = re.findall(r'<div class="gap-row">.*?(?=<div class="gap-row">|$)',
+                      html, re.S)
+    mine = [r for r in rows if WORLD_ATOM_ID in r]
+    if len(mine) != 1:
+        raise RuntimeError(
+            f"the door shows {len(mine)} rows for {WORLD_ATOM_ID} in {len(rows)} "
+            "-- the walk cannot measure a door that is not showing this figure "
+            "exactly once"
+        )
+    row = mine[0]
+    unknown = sorted({c for c in re.findall(r'class="([^"]*)"', row)
+                      if c not in _DOOR_ROW_KNOWN_CLASSES})
+    if unknown:
+        raise RuntimeError(
+            f"the door's row carries region class(es) {unknown} this walk "
+            "cannot name -- an unclassified region is a reader surface nobody "
+            "searches, and this instrument's whole subject is surfaces nobody "
+            "searched (R15: an unavailable check is a failed check)"
+        )
+    # The components block reuses the `gap-note` class inside `<details>`, so it
+    # is taken out FIRST and the note is what remains -- reading them the other
+    # way round would silently make the note the components.
+    detail = re.search(r"<details>.*?</details>", row, re.S)
+    rest = row.replace(detail.group(0), "") if detail else row
+
+    def one(pattern: str, text: str) -> str:
+        m = re.search(pattern, text, re.S)
+        return m.group(1) if m else ""
+
+    regions = {
+        "gap-val": one(r'<div class="gap-val"[^>]*>(.*?)</div>', rest),
+        "note": one(r'<div class="gap-note">(.*?)</div>', rest),
+        "components": detail.group(0) if detail else "",
+        "basis": one(r'<div class="gap-basis">(.*?)</div>', rest),
+    }
+    empty = sorted(k for k, v in regions.items() if not v.strip())
+    if empty:
+        raise RuntimeError(
+            f"the door rendered no {empty} region for this pair -- a region "
+            "that vanished reads to a value sweep exactly like a region that "
+            "renders nothing, so it fails the walk instead"
+        )
+    return {f"{_DOOR_SITE_KEY}#{k}": html_lib.unescape(v)
+            for k, v in regions.items()}
+
+
 def _walk_to_the_door(book: Dict[str, object]) -> Dict[str, object]:
     """Carry ONE published book down the real chain to the door and return what
     the reader is shown, plus what each hand-off carried it as.
@@ -6898,6 +7036,8 @@ def _walk_to_the_door(book: Dict[str, object]) -> Dict[str, object]:
     probe = note[:_NOTE_VERBATIM_PROBE_CHARS]
     return {
         "html": html,
+        # THE ROW, SPLIT BY PROVENANCE (atom D37, Hour #21).
+        "regions": _door_row_regions(html),
         # THE HAND-OFFS, classified by what they are holding rather than by
         # what anyone declared them to be.
         "carriers": {
@@ -7018,12 +7158,32 @@ def measure_reader_render_sites(
                               reason=f"{exc.__class__.__name__}: {exc}"[:300])
         else:
             for texts, walk in zip(door_texts, walks):
-                texts[_DOOR_SITE_KEY] = str(walk["html"])
+                texts.update(walk["regions"])                   # type: ignore[arg-type]
             door_carriers = [w["carrier_value"] for w in walks]
+            # THE HEADLINE, BY IDENTITY AT THE COMPOSER'S SEAM -- never by
+            # comparing the panel row's float to each dimension's carrier
+            # (atom D37, Hour #21). The headline-owned regions are the ones
+            # rendering the number the composer handed downstream; the note
+            # region is every figure's, because the door prints the composed
+            # note verbatim and each figure's own renderer's digits are in it.
+            headlines = {str(b.get("headline_dimension")) for b in books}
+            # A headline that differs between books is an unresolved provenance,
+            # which owns nothing: `<ambiguous>` matches no dimension, so every
+            # region below cross-attributes and the register cannot resolve it
+            # into silence.
+            headline_dim = headlines.pop() if len(headlines) == 1 else "<ambiguous>"
+            for region in ("gap-val", "components", "basis"):
+                surface_owner[f"{_DOOR_SITE_KEY}#{region}"] = headline_dim
             door_state.update(
                 available=True,
                 carriers=walks[0]["carriers"],
                 note_verbatim=all(bool(w["note_verbatim"]) for w in walks),
+                headline_dimension=headline_dim,
+                regions=tuple(sorted(walks[0]["regions"])),     # type: ignore[arg-type]
+                # KEPT AS EVIDENCE, NOT AS THE TEST. The number the door was
+                # handed used to BE the admission rule; it is now a recorded
+                # observation the identity answer can be read against.
+                carrier_by_book=tuple(door_carriers),
             )
     else:
         door_state.update(available=False,
@@ -7033,19 +7193,19 @@ def measure_reader_render_sites(
     for dim in sorted(register):
         values = [carrier_of(r, dim) for r in results]
         sites: List[Tuple[str, int]] = []
-        # The door only ever shows the figure it was handed as a number. Asking
-        # it about the other four would find their digits inside the printed
-        # note and report the note's precision as the door's own.
-        has_door_carrier = (
-            door_state.get("available") is True
-            and all(v is not None for v in door_carriers)
-            and all(a is not None and b is not None and float(a) == float(b)
-                    for a, b in zip(values, door_carriers))
-        )
+        # EVERY FIGURE IS ON THE DOOR, AND OWNERSHIP DECIDES WHOSE RENDER IT IS
+        # (atom D37, Hour #21). The old gate admitted a dimension to the whole
+        # panel only where its carrier EQUALLED the row's value, which both
+        # excluded the four figures the door demonstrably renders inside the
+        # printed note and would have handed the entire panel to any companion
+        # that happened to equal the headline. Provenance now decides: the
+        # headline-owned regions cross-attribute anyone else's digits, and the
+        # note region belongs to whichever figure is rendered in it, exactly as
+        # the entry's own `note` does one hand-off upstream.
+        is_headline = door_state.get("headline_dimension") == dim
         surfaces = [dict(t) for t in renderer_texts]
-        if has_door_carrier:
-            for s, t in zip(surfaces, door_texts):
-                s.update(t)
+        for s, t in zip(surfaces, door_texts):
+            s.update(t)
         keys = sorted(set.intersection(*[set(s) for s in surfaces])) if surfaces else []
         cross: List[Tuple[str, int]] = []
         if all(v is not None for v in values):
@@ -7057,11 +7217,12 @@ def measure_reader_render_sites(
                     if all(_rendered_at(v, dp, s[key])                # type: ignore[arg-type]
                            for v, s in zip(values, surfaces)):
                         # PROVENANCE, NOT VALUE. A site in this figure's own
-                        # declared renderer -- or on the door, which is reached
-                        # only by the figure whose carrier the ledger holds --
+                        # declared renderer -- or in a door region rendering
+                        # the number the composer handed the ledger writer --
                         # is a render OF this figure. A match inside ANOTHER
-                        # figure's renderer is a value coincidence until
-                        # something other than the digits says otherwise.
+                        # figure's renderer, or in a region belonging to the
+                        # headline, is a value coincidence until something
+                        # other than the digits says otherwise.
                         owner = surface_owner.get(key, dim)
                         (sites if owner == dim else cross).append((key, dp))
         out[dim] = {
@@ -7069,7 +7230,10 @@ def measure_reader_render_sites(
             "cross_attributed": tuple(sorted(cross)),
             "renderer_status": renderer_status.get(dim, "not attempted"),
             "renderer_in_note": renderer_in_note.get(dim),
-            "reaches_the_door": bool(has_door_carrier),
+            # NOW A PROVENANCE FACT: is this the figure the composer handed
+            # downstream as a NUMBER, so the door re-renders it at a precision
+            # of its own? Every figure reaches the door; one is carried there.
+            "reaches_the_door": bool(is_headline),
             "carrier_by_seed": {s: v for s, v in zip(seeds, values)},
             "seeds": tuple(seeds),
         }
@@ -7110,6 +7274,17 @@ def check_reader_render_sites(
             "the door concatenates that string unchanged, so this failing turns "
             "four of the five figures' measured precisions back into claims "
             "about an internal string"
+        )
+    if walk.get("available") is True and walk.get("headline_dimension") not in register:
+        # THE PROVENANCE THE DOOR'S OWN REGIONS ARE ATTRIBUTED BY (atom D37,
+        # Hour #21). Unresolved, `<ambiguous>` owns those regions and every
+        # figure cross-attributes there -- loud, never silent.
+        out.append(
+            f"the composer's headline resolved to `{walk.get('headline_dimension')}`, "
+            "which is no dimension of this register -- the door's `gap-val`, "
+            "`components` and `basis` regions render the number IT was handed, "
+            "so an unresolved headline leaves those three surfaces attributed "
+            "to nobody"
         )
 
     for dim in sorted(d for d in measured if d != "_walk"):
@@ -7212,6 +7387,30 @@ def check_reader_render_sites(
                 f"`{entry['renderer']}` and nothing else, which is the shape of "
                 "the defect D34 and D35 were both minted to close"
             )
+        # THE VERBATIM SEAM, STATED IN THIS INSTRUMENT'S OWN UNITS (atom D37,
+        # Hour #21). The door's note region is a reader surface for the four
+        # companions ONLY because the panel prints the entry's note unchanged.
+        # `note_verbatim` above tests that on the note's first 60 characters;
+        # this tests it where it is load-bearing -- every precision at which the
+        # door's note renders this figure must be a precision at which the
+        # ENTRY's note renders it, and vice versa. Without it the companions'
+        # door coverage is coverage by coincidence one hand-off down, which is
+        # the shape Hour #20 named and this Hour found still standing.
+        if component_measured and walk.get("available") is True:
+            door_note = {d for k, d in (measured[dim].get("sites") or ())
+                         if k == f"{_DOOR_SITE_KEY}#note"}
+            entry_note = {d for k, d in
+                          (component_measured.get(dim, {}).get("sites") or ())
+                          if k == "note"}
+            if door_note != entry_note:
+                out.append(
+                    f"{dim}: the door's printed note renders it at "
+                    f"{sorted(door_note) or 'no precision'} while the entry's "
+                    f"own note renders it at {sorted(entry_note) or 'no precision'}"
+                    " -- the panel is supposed to print that string "
+                    "unchanged, so a divergence means this figure's door "
+                    "coverage is a coincidence and not the seam it is claimed on"
+                )
     return out
 
 

@@ -1,7 +1,44 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T09:50:58Z
+Last updated: 2026-08-12T10:37:39Z
 
-**H_GAP_fabric — THE ARMS HALF OF A GATE WAS READING THE MOVER COUNT (this commit).** The
+**H27 — A VALUE TEST DECIDED WHOSE RENDER THE DOOR WAS (this commit).** The TWENTY-FIRST Expert
+Hour on `H27_payment_belief_gap`; the level stays 2 for the twenty-first consecutive Hour.
+`has_door_carrier` admitted a dimension to the Proof door's surface only where its carrier
+**EQUALLED the panel row's value** — a VALUE test doing PROVENANCE work, the exact shape Hour #19
+named for `cross_attributed` and then left standing in the gate one level up. **The two
+consequences point opposite ways**, which is why neither read as a wrong number: it EXCLUDED the
+four companion figures from a surface that demonstrably renders them (the panel prints the composed
+note verbatim, and every companion's own renderer's digits are in it), and it would have handed the
+**whole panel** — `fmtGap`'s 3dp and every 4dp numeric component — to any companion that happened to
+equal the headline. Measured: the headline passes the restored value gate and `belief_population_mix`
+does not, while **the row's own value passes it**, so a companion made equal on both books is
+admitted to `gap-val` and `components` outright — clean today on a coincidence. **The door is not
+one surface**: its row is now four regions with four provenances (`gap-val` = the ledger CARRIER at
+3dp, owned by the dimension the composer handed the ledger writer; `note` = the verbatim composed
+note, owned by each figure in turn; `components` = `fmtComponent`/`flattenNumbers` at 4dp;
+`basis`), split off the html the page produced and keyed by the door's OWN class attributes — a
+door that grows a fifth region **fails the walk** rather than rendering a figure into a surface
+nobody searches. **The headline is now answered by IDENTITY at the composer's seam** (the
+`GapResult` object matched with `is`), never by comparing floats; an unresolved provenance owns
+nothing and cross-attributes everywhere. All five figures now declared where they are in fact
+rendered (ageing `note`@3, belief @4, mix @4, detection `gap-val`@3 **and** `note`@4, latency @2),
+and the renderer→note→door verbatim seam is asserted at **every precision**, not just the note's
+first 60 characters. `components` is now a searched surface that renders none of the five today —
+a measurement rather than an absence of one. **R12: no published figure moved** —
+`published_reading_decimals` unchanged, no epsilon touched, `check_reader_render_sites` empty on the
+shipped walk. **R15: five source mutations, each firing its own named test.** 440 passed on the atom
+(was 433); 332 passed across the 16 other gate-selected suites; ruff 5→4 pre-existing findings on
+these two files, none added. **Two findings filed, not fixed on sight** (SELF_INTERRUPT_DISCIPLINE):
+this Hour's own seam mutation was patching the module attribute its spy also wraps, so it proved
+nothing and died on an absent ledger file — repaired to mutate the call site, and the sibling
+control it shares a class with is **vacuous in isolation** (proven pre-existing at HEAD `43a456cba`
+in a detached worktree, so not this Hour's regression). Separately, **today's OPS9 by-construction
+gate is FAIL-OPEN**: any of nine ordinary words (`landed`, `cleared`, `accepted`, …) appearing
+anywhere in a header block silences a whole document, demonstrated on a doc carrying two matching
+phrases; it also fires on the phrase inside its own denial. **The `0` that sentence below claims is
+therefore not yet evidence** — filed BLOCKING.
+
+**H_GAP_fabric — THE ARMS HALF OF A GATE WAS READING THE MOVER COUNT (previous commit).** The
 FOURTEENTH Expert Hour on `H_GAP_fabric_belief_truth_gap`; the level stays 2 for the fourteenth
 consecutive Hour. `InstrumentSwitch.resolution`'s direction half claimed it *"needs no threshold to
 read"* — and the threshold it read is the **mover count**. `favours` is `neither` iff the 95%
@@ -2406,7 +2443,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (257s / 4 min):
+**Latest simulation results (2016–2025)** — auto-processed (270s / 4 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
