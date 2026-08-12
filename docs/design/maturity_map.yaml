@@ -4002,14 +4002,14 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: advisor_review
   depends_on: []
   couples_with: []
-  file_scope: ['tools/scale_probe_10k.py', 'tests/tools/test_scale_probe_10k.py', 'docs/design/SCALE_PROBE_10K.md']
+  file_scope: ['tools/scale_probe_10k.py', 'tests/tools/test_scale_probe_10k.py', 'docs/design/SCALE_PROBE_10K.md', 'docs/observability/scale_probe_10k/report.json', 'docs/observability/scale_probe_10k/prediction_register.json']
 
 # ===========================================================================
 # THE FUTURES GO ON THE MAP -- E2..E5 commitment sets
