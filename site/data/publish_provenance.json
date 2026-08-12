@@ -20,8 +20,8 @@
     "run_id": "run_output_0bf88bf86_20260811T215802Z.json",
     "verified_at": "2026-08-11T22:35:32Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=c49fec2e6; blocking tests: see sim-runner-log",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel",
+  "paused_since": "2026-08-12T00:30:56Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-11T22:35:32Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_0bf88bf86_20260811T215802Z.json",
     "verified_at": "2026-08-11T22:35:32Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-11T22:35:32Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-12T00:30:56Z"
 }
