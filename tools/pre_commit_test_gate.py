@@ -193,6 +193,11 @@ CANON_SURFACE_FILES = (
 )
 CANON_SURFACE_TESTS = [
     "tests/tools/test_interim_bypass_retirement.py",
+    # THE SIZE CEILING (2026-08-12 decay audit §6). OPS5 added the TRIGGER (CLAUDE.md, above) and
+    # never wired it to the control that measures the file, so 52693115b sat 504 chars over the
+    # limit for four days, red at HEAD, found only by the publish suite. Rationale and the mutation
+    # proving this selection BITES: tests/tools/test_pre_commit_gate_canon_surface.py. ~0.4s.
+    "tests/tools/test_claude_md_integrity.py",
 ]
 
 

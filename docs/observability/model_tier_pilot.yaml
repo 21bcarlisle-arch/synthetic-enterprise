@@ -1,0 +1,83 @@
+# MODEL TIERING PILOT — the live declaration (2026-08-12, director-asked)
+#
+# Read by background/model_tier.py on every tick. This file, not the code, decides which drawn work
+# classes may run on Sonnet. IaC rule: no behaviour-determining state outside the readable repo.
+#
+# REVERTING
+#   one class      -> set its `enabled: false`. Takes effect on the next tick, no restart.
+#   the whole pilot-> set every class false, or delete this file. Both restore pre-pilot behaviour
+#                     exactly (everything on Opus); `_load_enabled_classes` fails closed toward Opus
+#                     on a missing, malformed or expired config.
+#   automatically  -> past `ends`, every class is off with no edit. The window is a mechanism, not
+#                     a promise; a pilot nobody remembers to stop is how a trial becomes a default.
+#
+# WHAT IS NEVER HERE. Diagnosis, science, level moves and wall decisions are director-reserved and
+# are enumerated as RESERVED markers in background/model_tier.py — they cannot be enabled from this
+# file at all. Adding a class name here that is not in PILOT does nothing.
+
+version: 1
+starts: "2026-08-12"
+ends: "2026-08-19"          # 7 days. Past this date every class below is off, enforced in code.
+baseline_commit: "1943e0128"  # HEAD when the pilot opened; the Opus-only period is everything before
+
+# The comparison being run: for each class below, quality on Sonnet against the Opus baseline drawn
+# from the same class's history. Metrics (tools/model_tier_report.py):
+#   rework_rate            — share of tier-attributed commits followed by a fix to the same paths
+#   gate_failures_caused   — publish-gate wedges and red-at-HEAD events opened by a tier's commits
+#   findings_quality       — findings raised per draw, and how many survive to a staged disposition
+#
+# REVERT CONDITION (director, verbatim): "If quality drops on anything, revert that class and say
+# so — I'd rather spend the tokens than get shallower work." Not a threshold to argue about: any
+# measured drop against the Opus baseline on any metric reverts that class.
+
+classes:
+
+  stale_gap_row:
+    enabled: true
+    rung: "RUNG 4b — _stale_gap_row_draw"
+    why: >-
+      Re-run a named tool against inputs that have not changed, commit the row, and show it reading
+      CURRENT. The acceptance test is stated in the doorbell itself ("ACCEPTANCE is not that the
+      command ran: re-run gap_ledger_reconciler and show the row reading CURRENT"), so correctness
+      is checkable without judgment. The lowest-risk class in the draw ladder.
+    reverts_if: >-
+      A re-measured row lands wrong, or a row is committed without the reconciler evidence the
+      doorbell demands.
+
+  site_surface:
+    enabled: true
+    rung: "LANE 2 SITE — _site_lane_draw_concurrent"
+    why: >-
+      site/** build to a settled design, disjoint from sim/company by construction (THREE_LANES.md)
+      and pixel-verified against R11 before it counts. MODEL_SELECTION_POLICY.md (2026-07-12)
+      already files exactly this as SONNET-tier volume work; the tick simply never honoured it.
+    reverts_if: >-
+      An R11 pixel-verify claim is made without the live fetch, or a surface lands needing rework
+      that the Opus baseline did not need. Note the standing risk: SITE2's coldwalk and Expert-Hour
+      findings this week were subtle (a filtered view that did not filter). If subtlety of that
+      class starts being missed, this is the first class to go.
+
+  receipt_archival:
+    enabled: true
+    rung: "find_work `primary` — unprocessed staging, receipts only"
+    why: >-
+      A staging draw whose every item is a WORKER_REPORT_/WORKER_RECEIPT_/run_complete_/run_pending_
+      marker is archive-only work. Judged by parsing the whole list, never by substring: one
+      WORKER_FINDING_ in the set makes the entire draw judgment work and forces Opus.
+    reverts_if: >-
+      Anything is archived that needed disposition, or a receipt is archived without its underlying
+      work being confirmed landed.
+
+# CONSIDERED AND DECLINED — recorded so the next reader knows these were judged, not missed.
+declined:
+  harden_reverify:
+    rung: "RULE 0 floor — _rule0_harden_draw"
+    why_not: >-
+      Looks mechanical, is not. The doorbell asks the turn to "mutation-re-test a control, red-team
+      its invariants, or widen its real-world fidelity" — that is findings-quality work, precisely
+      what the director said he would rather pay for than get shallower.
+  open_campaign:
+    rung: "SEVENTH CLASS — _open_campaign_draw"
+    why_not: >-
+      Campaign surfaces land Expert-Hour-reviewed and presented as scored rubric rows. The scoring
+      is the judgment.

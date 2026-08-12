@@ -71,6 +71,11 @@ _VERDICT_CLASS = {
     "NOT_SCHEDULED": "paused",
 }
 
+# The tier DEFAULT and the fallback for everything the classifier does not recognise. Before
+# 2026-08-12 this constant was the whole model policy: every tick paid Opus rates whether it was
+# diagnosing a wedged publish gate or re-running a measurement tool and committing the row. The
+# model was a property of the transport, not of the work. `background/model_tier.py` now picks per
+# drawn doorbell; this stays as the floor it falls back to, and every fallback path lands here.
 MODEL = "claude-opus-5"
 
 # Worker preamble prepended to the drawn doorbell. R7: the reason is a DOORBELL — act on real
@@ -277,10 +282,32 @@ def _worker_env() -> dict:
     return scrub_model_facing_env(env)
 
 
+def choose_model(reason: str) -> "tuple[str, object | None]":
+    """Pick the model for this doorbell, and return the decision alongside it for logging.
+
+    NEVER RAISES, AND NEVER FAILS CHEAP. Any error importing or running the classifier falls back to
+    MODEL (Opus) with no decision object. A tiering bug must be able to cost tokens and must not be
+    able to cost quality — the same asymmetry the classifier itself is built around."""
+    try:
+        from background.model_tier import classify
+        decision = classify(reason)
+        return decision.model, decision
+    except Exception as e:  # pragma: no cover - defensive
+        _log(f"model_tier unavailable, falling back to {MODEL}: {e!r}")
+        return MODEL, None
+
+
 def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     """Spawn ONE headless bounded `claude -p` worker invocation. Returns the Popen (still running),
     or None if it could not be launched. The invocation is marked SE_SBI_WORKER=1 (the Stop hook's
     worker discriminator, inherited by the hook subprocess) and DISABLE_AUTOUPDATER=1.
+
+    The MODEL is chosen per drawn doorbell (2026-08-12 tiering pilot, see background/model_tier.py),
+    not pinned to the process. The choice and its reasoning are appended to
+    docs/observability/model_tier_log.jsonl before the spawn, so a turn's tier is attributable
+    afterwards even if the invocation dies — measuring quality by tier is the whole point of the
+    pilot, and a tier that is only recorded on success would bias the measurement toward the tier
+    that crashes less.
 
     The caller WAITS for it (run_tick): worker-tick.service is Type=oneshot, so ExecStart must not
     return until the invocation finishes -- otherwise systemd tears down the cgroup and kills the
@@ -292,10 +319,19 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
         _log("claude binary not found — cannot spawn invocation")
         return None
     env = _worker_env()
+    model, decision = choose_model(reason)
+    if decision is not None:
+        _log(f"model={model} tier={decision.tier} classes={','.join(decision.classes)} "
+             f"-- {decision.why}")
+        try:
+            from background.model_tier import log_decision
+            log_decision(decision, reason)
+        except Exception:  # pragma: no cover - measurement must never wedge the tick
+            pass
     prompt = WORKER_PREAMBLE + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason
     try:
         return subprocess.Popen(
-            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL, prompt],
+            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", model, prompt],
             cwd=str(PROJECT_DIR),
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             stdin=subprocess.DEVNULL, env=env, start_new_session=True,

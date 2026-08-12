@@ -381,6 +381,17 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated all-clear
         lines.append(f"- {_red(f'stall-set coverage unavailable: {e}')}")
 
+    # MODEL TIERING PILOT (2026-08-12, director console). A time-boxed experiment reports itself
+    # every morning or it is not an experiment: the window closes 2026-08-19 and a pilot nobody
+    # looked at is how a trial quietly becomes a default. Read-only (§2 HARD LAW), fail-closed like
+    # every other diagnostic here. The line disappears on its own once the window has closed.
+    lines += ["", "**Model tiering pilot** _(is the cheaper tier firing, and is its rework worse?)_"]
+    try:
+        from tools.model_tier_report import pilot_line as _tier_pilot_line
+        lines.append(f"- {_tier_pilot_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated all-clear
+        lines.append(f"- {_red(f'model tiering pilot status unavailable: {e}')}")
+
     lines += ["", "**R17 — THE TICK NEVER RESTS (status, standing morning report)**"]
     lines.append(f"- {r17 if r17 else _red(r17_err)}")
     # LAW C item 2 (2026-07-27): the note must report EFFECT, not just the WIRED status above, and
