@@ -213,20 +213,38 @@ def _staging_root_documents() -> list[Path]:
     )
 
 
-def _last_touched_epoch(path: Path) -> float | None:
-    """'Touched' means a real disposition event, not filesystem mtime.
-    Concurrent daemons rewrite files across this shared working tree
-    continuously (the 2026-08-12 mint note recorded 107 modified paths at one
-    tick's start, almost all daemon exhaust) -- an mtime-based clock would
-    report a document nobody has opened as freshly touched the moment any
-    daemon happened to write near it. Uses the last commit that touched this
-    exact path: the commit that originally staged it, or a later commit that
-    edited or moved it. Returns None only when the path has no commit history
-    at all (staged but never committed) -- the one case an mtime fallback is
-    safe, since git has never seen the file for a daemon to perturb."""
+def _staged_since_epoch(path: Path) -> float | None:
+    """When this document ARRIVED in the staging root -- its add commit.
+
+    NOT filesystem mtime: concurrent daemons rewrite files across this shared working tree
+    continuously, so an mtime clock reports a document nobody has opened as freshly touched the
+    moment any daemon writes near it.
+
+    NOT the last commit to touch the path either, which is what this function used to be and
+    which went blind on 2026-08-12. OPS9 (390e8f1f2) inserted a severity header into every
+    finding in the staging root -- 128 files in ONE commit -- so `git log -1 -- <path>` returned
+    that commit for all of them and the digest reported ZERO aged documents across the whole
+    root. Moving from mtime to git bought nothing against a bulk pass, because a bulk pass is a
+    real commit: it moves the git clock exactly as it moves mtime. That is the trap worth
+    naming, since 'use git, not mtime' sounds like the fix and is not.
+
+    THE CLOCK HAS TO MATCH THE QUESTION. The question clause 5 asks is "how long has this sat in
+    the staging root undispositioned", and the ruling defines the exit as LEAVING the root
+    (`docs/staging/done/`), not as being edited. So the clock starts when the document arrived
+    and stops when it leaves. A mechanical header insert disposes of nothing and must not reset
+    it; neither does someone editing a finding's wording. Both are still sitting there.
+
+    `--diff-filter=A` without `--follow` is deliberate: the event of interest is arrival AT THIS
+    PATH, so a document moved back into the root from `done/` correctly reads as newly arrived
+    rather than inheriting its original creation date.
+
+    Returns None only when the path has no add commit at all (staged but never committed) -- the
+    one case an mtime fallback is safe, since git has never seen the file for a daemon to
+    perturb.
+    """
     try:
         result = subprocess.run(
-            ["git", "log", "-1", "--format=%ct", "--", str(path)],
+            ["git", "log", "--diff-filter=A", "-1", "--format=%ct", "--", str(path)],
             cwd=PROJECT_DIR, capture_output=True, text=True, timeout=10,
         )
     except (OSError, subprocess.SubprocessError):
@@ -269,7 +287,7 @@ def _aged_staging_entries(
     now_epoch = time.time() if now is None else now
     entries = []
     for path in _staging_root_documents():
-        touched = _last_touched_epoch(path)
+        touched = _staged_since_epoch(path)
         if touched is None:
             try:
                 touched = path.stat().st_mtime

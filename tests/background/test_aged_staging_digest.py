@@ -41,7 +41,7 @@ def test_aged_document_appears_on_day_three_with_correct_age_and_keeps_appearing
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
 
     t0 = 1_000_000.0
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: t0)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: t0)
 
     # Day 3: 73 hours later, past the 72h threshold.
     day3 = t0 + 73 * 3600
@@ -64,7 +64,7 @@ def test_threshold_boundary_just_under_72h_excluded_at_72h_included(tmp_path, mo
     _write_doc(staging, "DOC.md")
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
     t0 = 1_000_000.0
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: t0)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: t0)
 
     just_under = t0 + 71 * 3600
     assert sanity_daemon._aged_staging_entries(now=just_under) == []
@@ -78,7 +78,7 @@ def test_a_fresh_document_is_never_flagged(tmp_path, monkeypatch):
     staging = tmp_path / "staging"
     _write_doc(staging, "JUST_STAGED.md")
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: time.time())
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: time.time())
     assert sanity_daemon._aged_staging_entries() == []
 
 
@@ -93,7 +93,7 @@ def test_subdirectories_of_staging_root_are_excluded(tmp_path, monkeypatch):
     (staging / "in_progress").mkdir()
     _write_doc(staging / "in_progress", "OLD_BUT_IN_PROGRESS.md")
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: time.time() - 10 * 24 * 3600)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: time.time() - 10 * 24 * 3600)
     assert sanity_daemon._aged_staging_entries() == []
 
 
@@ -109,7 +109,7 @@ def test_digest_carries_aged_staging_even_when_a_fresh_finding_fired_this_cycle(
     staging = tmp_path / "staging"
     _write_doc(staging, "OLD_DOC.md", "# stale finding\nplease look\n")
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: time.time() - 10 * 24 * 3600)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: time.time() - 10 * 24 * 3600)
     monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", tmp_path / ".last_digest_date")
 
     calls = []
@@ -131,7 +131,7 @@ def test_digest_still_dedupes_to_once_per_day_with_aged_docs_present(tmp_path, m
     staging = tmp_path / "staging"
     _write_doc(staging, "OLD_DOC.md")
     monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
-    monkeypatch.setattr(sanity_daemon, "_last_touched_epoch", lambda p: time.time() - 10 * 24 * 3600)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: time.time() - 10 * 24 * 3600)
     monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", tmp_path / ".last_digest_date")
     monkeypatch.setattr(sanity_daemon, "LOG_FILE", tmp_path / "log.md")
     calls = []
@@ -166,7 +166,7 @@ def test_no_digest_at_all_when_nothing_is_aged_and_nothing_is_open(tmp_path, mon
 
 # --- Criterion 3: the clock is commit time, not mtime ---
 
-def test_last_touched_epoch_uses_commit_time_not_a_perturbed_mtime(tmp_path, monkeypatch):
+def test_staged_since_epoch_uses_commit_time_not_a_perturbed_mtime(tmp_path, monkeypatch):
     """Builds a tiny real git repo, commits a document with an explicit old
     commit date, then rewrites its mtime to right now -- simulating a
     concurrent daemon touching the file without anyone opening it. The
@@ -193,13 +193,13 @@ def test_last_touched_epoch_uses_commit_time_not_a_perturbed_mtime(tmp_path, mon
     os.utime(doc, (now, now))
 
     monkeypatch.setattr(sanity_daemon, "PROJECT_DIR", repo)
-    touched = sanity_daemon._last_touched_epoch(doc)
+    touched = sanity_daemon._staged_since_epoch(doc)
     assert touched is not None
     assert abs(touched - old_commit_epoch) < 5  # the commit time, to the second
     assert now - touched > 9 * 24 * 3600  # decisively NOT the fresh mtime
 
 
-def test_last_touched_epoch_falls_back_to_mtime_for_a_never_committed_file(tmp_path, monkeypatch):
+def test_staged_since_epoch_falls_back_to_mtime_for_a_never_committed_file(tmp_path, monkeypatch):
     """The one case mtime is a safe signal: a file with no commit history at
     all (staged but never committed) -- git has never seen it, so no daemon
     rewrite can have perturbed a 'touched' time that does not yet exist."""
@@ -209,7 +209,7 @@ def test_last_touched_epoch_falls_back_to_mtime_for_a_never_committed_file(tmp_p
     doc = repo / "NEVER_COMMITTED.md"
     doc.write_text("# never committed\n")
     monkeypatch.setattr(sanity_daemon, "PROJECT_DIR", repo)
-    assert sanity_daemon._last_touched_epoch(doc) is None  # caller applies the mtime fallback
+    assert sanity_daemon._staged_since_epoch(doc) is None  # caller applies the mtime fallback
 
 
 # --- Criterion 5: the four motivating documents are flagged, against the REAL root ---
@@ -238,3 +238,78 @@ def test_the_four_documents_that_motivated_clause_5_are_flagged_aged():
             f"{f} should be flagged aged (>=72h untouched) but was not -- "
             f"the mechanism may be looking at the wrong population"
         )
+
+
+def test_a_bulk_header_commit_does_not_reset_the_ageing_clock(tmp_path, monkeypatch):
+    """THE 2026-08-12 DEFECT, as an executable case.
+
+    OPS9 (390e8f1f2) inserted a severity header into every finding in the staging root -- 128
+    files in ONE commit. Under the old `git log -1 -- <path>` clock that commit became every
+    document's 'last touched' time, so the digest reported ZERO aged docs across the whole root
+    and OPS14's mechanism went silently inert.
+
+    The lesson the mutation below pins: moving from mtime to git is NOT what fixes this. A bulk
+    pass is a real commit and moves the git clock exactly as it moves mtime. What fixes it is
+    asking the right question -- when did this document ARRIVE in the staging root -- because
+    the ruling's exit is leaving the root, and a mechanical header edit disposes of nothing.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "t@example.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=repo, check=True)
+
+    doc = repo / "AGED_DOC.md"
+    doc.write_text("# a finding nobody has opened\n")
+    old = time.time() - 9 * 24 * 3600
+    env = dict(os.environ)
+    env["GIT_AUTHOR_DATE"] = env["GIT_COMMITTER_DATE"] = f"{int(old)} +0000"
+    subprocess.run(["git", "add", "AGED_DOC.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "stage it"], cwd=repo, check=True, env=env)
+
+    # ...and now the bulk severity pass rewrites it, and COMMITS, nine days later.
+    doc.write_text("# a finding nobody has opened\n\n**Severity:** LATENT · **Lane:** H_harness\n")
+    subprocess.run(["git", "add", "AGED_DOC.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "OPS9: severity header across the root"],
+                   cwd=repo, check=True)
+
+    monkeypatch.setattr(sanity_daemon, "PROJECT_DIR", repo)
+    staged_since = sanity_daemon._staged_since_epoch(doc)
+
+    assert staged_since is not None
+    assert abs(staged_since - old) < 5, (
+        "the ageing clock followed the bulk header commit -- this is exactly the defect that "
+        "blinded the digest on 2026-08-12"
+    )
+    assert (time.time() - staged_since) > 8 * 24 * 3600, "the document is still nine days old"
+
+
+def test_the_last_commit_clock_would_still_be_blinded__mutation(tmp_path, monkeypatch):
+    """MUTATION: the previous implementation, `git log -1 -- <path>` with no --diff-filter=A.
+
+    Run against the same bulk-pass history it reports the document as touched moments ago, so
+    the >=72h threshold never fires. Proves the repair is the DIFF-FILTER, not the move to git.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "t@example.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=repo, check=True)
+    doc = repo / "D.md"
+    doc.write_text("# x\n")
+    old = time.time() - 9 * 24 * 3600
+    env = dict(os.environ)
+    env["GIT_AUTHOR_DATE"] = env["GIT_COMMITTER_DATE"] = f"{int(old)} +0000"
+    subprocess.run(["git", "add", "D.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "stage"], cwd=repo, check=True, env=env)
+    doc.write_text("# x\n\n**Severity:** LATENT\n")
+    subprocess.run(["git", "add", "D.md"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "bulk"], cwd=repo, check=True)
+
+    mutant = subprocess.run(["git", "log", "-1", "--format=%ct", "--", "D.md"],
+                            cwd=repo, capture_output=True, text=True).stdout.strip()
+    assert (time.time() - float(mutant)) < 3600, "the mutant reads the doc as touched just now"
+
+    monkeypatch.setattr(sanity_daemon, "PROJECT_DIR", repo)
+    real = sanity_daemon._staged_since_epoch(doc)
+    assert (time.time() - real) > 8 * 24 * 3600, "the real implementation is not fooled"
