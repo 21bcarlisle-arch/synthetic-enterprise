@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T01:57:10Z
+Last updated: 2026-08-12T04:17:35Z
 
 **OPS2 — THE CEILING IS DERIVED FROM MEASURED DEMAND, NOT CHOSEN (`dfd74dff7`, pushed).** Owed
 item 1 of `OPS2_publish_gate_head_worktree`. The prior finding's own recommendation was to re-derive
@@ -2314,7 +2314,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (273s / 5 min):
+**Latest simulation results (2016–2025)** — auto-processed (283s / 5 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2430,6 +2430,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2181.9h across 92 sized atom(s) (14 of 106 below-target atoms still unsized).
+- Remaining effort: ~2136.2h across 91 sized atom(s) (14 of 105 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

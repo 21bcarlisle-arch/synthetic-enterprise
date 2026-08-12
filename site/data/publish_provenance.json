@@ -15,20 +15,20 @@
     "open_findings": 78
   },
   "last_verified": {
-    "generated_at": "2026-08-12T01:57:09Z",
-    "git_commit": "7d4d7fcad",
-    "run_id": "run_output_7d4d7fcad_20260811T231022Z.json",
-    "verified_at": "2026-08-12T01:57:09Z"
+    "generated_at": "2026-08-12T04:17:35Z",
+    "git_commit": "7237c67a9",
+    "run_id": "run_output_7237c67a9_20260811T235415Z.json",
+    "verified_at": "2026-08-12T04:17:35Z"
   },
   "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel",
-  "paused_since": "2026-08-12T02:31:22Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-12T01:57:09Z",
-    "git_commit": "7d4d7fcad",
-    "run_id": "run_output_7d4d7fcad_20260811T231022Z.json",
-    "verified_at": "2026-08-12T01:57:09Z"
+    "generated_at": "2026-08-12T04:17:35Z",
+    "git_commit": "7237c67a9",
+    "run_id": "run_output_7237c67a9_20260811T235415Z.json",
+    "verified_at": "2026-08-12T04:17:35Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-12T03:44:58Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-12T04:17:35Z"
 }
