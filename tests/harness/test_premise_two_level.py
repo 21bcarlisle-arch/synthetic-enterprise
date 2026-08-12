@@ -7924,8 +7924,17 @@ def test_the_switch_cost_is_DISCLOSED_on_a_row_the_mirror_CERTIFIED():
     # ...AND HOW MANY OF THOSE CARRY EACH READING (2026-08-12, fourteenth Hour). The
     # borne count alone invited exactly the reading the guard now forbids — 59 homes
     # behind a number 11 and 7 of them move.
-    assert "carried by 11 and 7 homes respectively" in sentence
+    #
+    # AS A RATIO OF THE HOMES THE FIGURE IS DIVIDED BY (2026-08-12, FIFTEENTH Hour):
+    # nine movers of nine and nine of fifty-nine are different objects and only the
+    # second dilutes a per-premise figure. The bare pair invited the first reading.
+    assert "carried by 11 and 7 of the 59 homes respectively (19% and 12%)" in sentence
     assert "the rest forgo the same money either way" in sentence
+    assert "divided by all 59 and carried by those few" in sentence
+    # ...AND WHERE THE THINNER READING SAT RELATIVE TO THE FLOOR THAT GATED IT.
+    assert "The thinner reading sat 2 homes above the floor of 5 movers" in sentence
+    # ...AND THE GATE'S OWN READING, WHICH IS THE RATIO AND NOT EITHER GBP FIGURE.
+    assert "a ratio of 0.45x, which is the number this gate reads" in sentence
 
 
 def test_no_switch_no_statistic_and_no_sentence_on_the_LEVEL_branch():
@@ -7939,6 +7948,8 @@ def test_no_switch_no_statistic_and_no_sentence_on_the_LEVEL_branch():
     assert verdict.panel_mirror_switch is None
     assert verdict.panel_mirror_switch_cost_gbp is None
     assert verdict.panel_mirror_switch_borne_by is None
+    assert verdict.panel_mirror_switch_carriage_margin is None
+    assert verdict.panel_mirror_switch_cost_ratio is None
     assert verdict.panel_mirror_instrument_channel == "attributable"
     assert not any(
         c.startswith("INSTRUMENT SWITCHED")
@@ -7947,3 +7958,355 @@ def test_no_switch_no_statistic_and_no_sentence_on_the_LEVEL_branch():
     assert fgl.composition_verdict_components(verdict)[
         "panel_mirror_instrument_channel"
     ] == "attributable"
+
+
+# ---------------------------------------------------------------------------
+# THE FIFTEENTH EXPERT HOUR (2026-08-12): the carriage guard's floor was borrowed
+# from a panel-diversity constant, and the figure a reader sees beside it is not
+# the figure the gate reads. `background.fabric_gap_ledger`.
+# ---------------------------------------------------------------------------
+
+
+def _switch_with_carriage(carried_by, *, cost=100.0, bar=400.0, borne=79,
+                          favours=("epc", "epc")):
+    """An `InstrumentSwitch` built directly, so carriage is the ONLY thing varying.
+
+    The money, the error bar and both arms are held identical across every call in
+    this section: a comparison of two rows that differ in their money as well as
+    their carriage could not say which of the two the gate answered."""
+    return fgl.InstrumentSwitch(
+        forced_by=1,
+        borne_by=borne,
+        carried_by=carried_by,
+        cost_gbp=cost,
+        published_reading_gbp=-1_000.0,
+        counterfactual_reading_gbp=-1_000.0 + cost,
+        own_error_bar_gbp=bar,
+        counterfactual_interval_gbp=(-1_400.0, -600.0),
+        published_favours=favours[0],
+        counterfactual_favours=favours[1],
+    )
+
+
+def test_the_MOVER_FLOOR_is_DERIVED_from_the_TAIL_LEVEL_and_not_CHOSEN():
+    """THE FIFTEENTH HOUR'S FIRST HALF. The number the carriage guard rests on is a
+    property of `MONEY_VERDICT_ALPHA`, and until this Hour it was a constant defined
+    for a different subject that happened to be adjacent to it.
+
+    `MIN_HOMES_FOR_DIVERSITY` is an INPUT SUFFICIENCY FLOOR ON A PANEL — the number of
+    homes `between_home_correlation` and `timing_diversity` refuse to judge below —
+    and it is five. The number of MOVERS a paired bootstrap needs before it can name
+    an arm is the smallest m with e**-m under the 2.5% tail, and it is four. Two
+    subjects, one constant, adjacent by coincidence: this atom's sixth-Hour class."""
+    assert fgl.MOVER_FLOOR_FOR_A_NAMED_ARM == 4
+    # DERIVED: the floor is the tightest m the tail level admits, both directions.
+    m = fgl.MOVER_FLOOR_FOR_A_NAMED_ARM
+    assert math.exp(-m) < fgl.MONEY_VERDICT_ALPHA / 2.0, "the floor must clear the tail"
+    assert math.exp(-(m - 1)) >= fgl.MONEY_VERDICT_ALPHA / 2.0, (
+        "...and one home below it must NOT — a floor with slack in it is a choice"
+    )
+    # ...AND IT MOVES WITH THE TAIL LEVEL, which is the whole point of deriving it.
+    assert fgl._mover_floor_for_a_named_arm(0.5) == 2
+    assert fgl._mover_floor_for_a_named_arm(0.01) == 6
+    assert fgl._mover_floor_for_a_named_arm(0.001) == 8
+    # The shipped guard is that floor plus a stated margin, and the margin is stated
+    # rather than folded in — an off-by-one inside a derivation is invisible.
+    assert fgl.CARRIAGE_FLOOR == fgl.MOVER_FLOOR_FOR_A_NAMED_ARM + fgl.CARRIAGE_MARGIN_HOMES
+    assert fgl.CARRIAGE_MARGIN_HOMES == 1
+
+
+def test_the_CARRIAGE_GUARD_no_longer_MOVES_WITH_THE_PANEL_DIVERSITY_FLOOR():
+    """THE DECOUPLING, PROVEN BY MOVING THE OTHER CONSTANT (2026-08-12, fifteenth
+    Hour). Before this the money guard was `MIN_HOMES_FOR_DIVERSITY`, so re-tuning a
+    panel input floor for its OWN subject would have silently re-admitted or refused
+    money verdicts — including, at four, exactly the rows the fourteenth Hour removed.
+
+    The guard is unchanged in VALUE (five, then and now), so this Hour moved no
+    verdict anywhere; it is changed in SUBJECT, and only a mutation of the constant
+    it used to read can show that."""
+    at_the_floor = _switch_with_carriage((fgl.CARRIAGE_FLOOR, fgl.CARRIAGE_FLOOR))
+    assert at_the_floor.resolution == "attributable"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(fgl, "MIN_HOMES_FOR_DIVERSITY", 40)
+        assert at_the_floor.resolution == "attributable", (
+            "a panel-diversity floor moved for its own reasons must not reach the "
+            "money guard — under the fourteenth Hour's wiring this row unresolved"
+        )
+        mp.setattr(fgl, "MIN_HOMES_FOR_DIVERSITY", 2)
+        assert _switch_with_carriage((3, 9)).resolution == "unresolved", (
+            "...and lowering it must not re-admit a reading below the algebraic floor"
+        )
+    # The two constants are still equal in value; that is a coincidence and the test
+    # says so, so a future reader does not read agreement as evidence of one subject.
+    assert fgl.CARRIAGE_FLOOR == fgl.MIN_HOMES_FOR_DIVERSITY
+
+
+def test_a_CERTIFIED_ROW_AT_THE_FLOOR_is_ONE_HOME_from_UNRESOLVED_and_SAYS_SO():
+    """THE DIRECTED QUESTION THE FOURTEENTH HOUR LEFT, ANSWERED: nothing measured how
+    close to the floor a certified reading sat, and on a searched family most of them
+    sit on it.
+
+    MEASURED, 1,200 randomised fallback draws: of 164 rows the channel certified, 23
+    are carried by exactly five movers and 37 by six — 14% ON the floor and 37% within
+    one home of it. A row on the floor is certified and one home becoming a tie moves
+    it to `unresolved` with NO MONEY MOVING AT ALL, which is the thirteenth Hour's own
+    class (a threshold makes its verdict discontinuous in the selecting variable)
+    recurring in the guard the fourteenth built. The repair is not to move the
+    threshold — every threshold has an edge — but to publish which side of it, how
+    far, and in words that cannot be skimmed."""
+    on_floor = _switch_with_carriage((fgl.CARRIAGE_FLOOR, 9))
+    one_below = _switch_with_carriage((fgl.CARRIAGE_FLOOR - 1, 9))
+    # IDENTICAL MONEY. The only difference between these two rows is one home's tie.
+    assert on_floor.cost_gbp == one_below.cost_gbp
+    assert on_floor.own_error_bar_gbp == one_below.own_error_bar_gbp
+    assert on_floor.cost_ratio == one_below.cost_ratio
+    assert on_floor.resolution == "attributable"
+    assert one_below.resolution == "unresolved"
+    assert on_floor.carriage_margin == 0
+    assert one_below.carriage_margin == -1
+    # The atom's own certifying fixture is NOT on the floor, and the number says so.
+    rows = _certifying_forced_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_switch.carriage_margin == 2
+    assert verdict.panel_mirror_switch_carriage_margin == 2
+    assert fgl.composition_verdict_components(verdict)[
+        "panel_mirror_switch_carriage_margin"
+    ] == 2
+
+
+def test_a_MARGIN_OF_ZERO_is_printed_IN_WORDS_and_not_as_a_BARE_INTEGER():
+    """A zero in a list of counts is the easiest thing in a row to skim past, and it
+    is the one reading that changes what the certification means. The sentence says
+    what the zero IS."""
+    said = fgl._carriage_margin_text(_switch_with_carriage((fgl.CARRIAGE_FLOOR, 9)))
+    assert "AT" in said
+    assert "one home of these becoming a tie unresolves this comparison" in said
+    assert "without any money moving" in said
+    # ...and a comfortable row reads as a plain distance, singular and plural.
+    assert fgl._carriage_margin_text(
+        _switch_with_carriage((fgl.CARRIAGE_FLOOR + 1, 9))
+    ) == "1 home above"
+    assert fgl._carriage_margin_text(
+        _switch_with_carriage((fgl.CARRIAGE_FLOOR + 3, 9))
+    ) == "3 homes above"
+
+
+def test_the_PUBLISHED_COST_MOVES_WITH_DILUTION_and_the_GATES_OWN_READING_DOES_NOT():
+    """THE SECOND HALF OF THE DIRECTED QUESTION, AND IT IS THE MEASURED ONE: should
+    `borne_by` be published as a RATIO? YES, because the GBP-per-premise figure is
+    divided by it while the money in it is carried by `carried_by`.
+
+    Appending homes BOTH ARMS TREAT IDENTICALLY — the inferred belief equal to the
+    register, same interval, same basis, so the paired advantage is exactly 0.0 and
+    they carry neither reading — changes nothing about the instrument comparison.
+    The published per-premise cost falls by a factor of four anyway. The ratio the
+    gate reads does not move, and the row now carries both so a reader can see which
+    number the verdict rests on."""
+    rows = _certifying_forced_population()
+    template = rows[1]
+    readings = []
+    for k in (0, 20, 200):
+        panel = list(rows) + [
+            dataclasses.replace(
+                template,
+                premise_id=f"TIE{i}",
+                actual_hlc_kw_per_k=0.25,
+                epc_hlc_kw_per_k=0.24,
+                inferred_hlc_kw_per_k=0.24,
+                inferred_relative_sd=template.epc_relative_sd,
+                inferred_basis=template.epc_basis,
+            )
+            for i in range(k)
+        ]
+        switch = fgl.instrument_switch(panel, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        # The added homes are ties: they are BORNE and they carry NOTHING.
+        assert switch.borne_by == 59 + k
+        assert switch.carried_by == (11, 7), "no added home moves either reading"
+        readings.append((switch.cost_gbp, switch.cost_ratio, switch.carriage_share))
+    (cost0, ratio0, share0), _, (cost2, ratio2, share2) = readings
+    assert cost0 / cost2 > 4.0, (
+        f"the published per-premise cost fell from GBP {cost0:,.0f} to "
+        f"GBP {cost2:,.0f} on homes where nothing happened"
+    )
+    # THE COMPARISON IS BETWEEN THE TWO MOVES, not against a tolerance somebody
+    # picked: the published figure moves 77% and the gate's reading 5.1% on exactly
+    # the same dilution, and a fixed epsilon here would be a threshold with no
+    # subject. Measured 0.4523 -> 0.4291.
+    # BOTH DENOMINATORS ABSOLUTE. A relative move divided by a signed base is
+    # negative whenever the base is, and every comparison against it then passes —
+    # which is how the "publish a DIFFERENCE instead of a ratio" mutation survived
+    # this test's first draft.
+    cost_move = abs(cost2 - cost0) / abs(cost0)
+    ratio_move = abs(ratio2 - ratio0) / abs(ratio0)
+    assert cost_move > 10.0 * ratio_move, (
+        f"the published cost moved {cost_move:.1%} and the gate's own reading "
+        f"{ratio_move:.1%} ({ratio0:.4f} -> {ratio2:.4f}) on the same added ties"
+    )
+    # AND THE SHARE IS WHAT MAKES THE FALL LEGIBLE: same movers, different denominator.
+    assert share0[0] == pytest.approx(11 / 59)
+    assert share2[0] == pytest.approx(11 / 259)
+
+
+def test_the_COST_RATIO_is_UNFORMABLE_rather_than_SMALL_where_the_BAR_IS_ZERO():
+    """FAIL-CLOSED, and in the sentence too. A ratio against nothing is not a small
+    ratio, and `0.0/0.0` printed as `0.00x` would read as the most comfortable
+    certification in the file."""
+    zero_bar = _switch_with_carriage((9, 9), cost=0.0, bar=0.0)
+    assert zero_bar.cost_ratio is None
+    assert "unformable" in fgl._switch_ratio_text(zero_bar)
+    assert "error bar being zero" in fgl._switch_ratio_text(zero_bar)
+    assert "0.00x" not in fgl._switch_ratio_text(zero_bar)
+
+
+def test_the_MARGIN_and_the_RATIO_are_NONE_where_NO_READING_WAS_TAKEN():
+    """An unavailable margin is not a wide one (R15 FAIL-SILENT). A subpanel too small
+    to price the switch has no carriage to report, and the row must say `None` rather
+    than a number that could be read as ample."""
+    rows = _forced_population(_flipping_population(n=5))
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch.cost_gbp is None and switch.carried_by is None
+    assert switch.carriage_margin is None
+    assert switch.cost_ratio is None
+    assert switch.carriage_share is None
+    assert switch.resolution == "unresolved"
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_switch_carriage_margin is None
+    assert verdict.panel_mirror_switch_cost_ratio is None
+
+
+def _concentrated_forced_population():
+    """A CERTIFIED fallback row whose money is CONCENTRATED — searched for.
+
+    500 randomised draws; this is the one whose effective carriage is lowest. Its
+    published reading is carried by EIGHT movers and its counterfactual by FIVE, so
+    it clears the fourteenth Hour's guard, and the Kish effective sample size of the
+    counterfactual's advantages is 3.11 — BELOW the algebraic floor of four at which
+    a paired verdict cannot name an arm at all. It also sits at `carriage_margin` 0,
+    so the same fixture carries both of this Hour's halves.
+    """
+    return _forced_population(
+        _flipping_population(
+            n=20, base=0.1518, step=0.0043, register=0.7513,
+            inferred_bias=0.9167, heat=7515.6492, heat_step=631.2679,
+        ),
+        index=0,
+    )
+
+
+def _drop_heaviest_mover(rows, reflect):
+    """The panel again without the single home carrying most of `reflect`'s reading.
+
+    The forcing homes are put back, so the BRANCH is unchanged and the comparison is
+    one home's presence and nothing else — the thirteenth Hour's discipline."""
+    feasible = [
+        o for o in rows
+        if fgl._level_reflection_is_feasible(o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)
+    ]
+    mirrored = fgl._mirrored_rows(feasible, reflect)
+    epc = fgl._premise_forgone(
+        mirrored, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc", fuel="gas"
+    )
+    inferred = fgl._premise_forgone(
+        mirrored, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="inferred", fuel="gas"
+    )
+    advantages = [e.forgone_gbp - i.forgone_gbp for e, i in zip(epc, inferred)]
+    heaviest = max(range(len(feasible)), key=lambda i: abs(advantages[i]))
+    forcing = [o for o in rows if o not in feasible]
+    return [o for j, o in enumerate(feasible) if j != heaviest] + forcing
+
+
+def test_the_EFFECTIVE_CARRIAGE_FALLS_BELOW_THE_FLOOR_AND_THE_MONEY_DOES_NOT_FOLLOW():
+    """THE GUARD THIS HOUR DECLINED TO BUILD, AND WHY — REFUTED IN GBP, NOT ASSUMED.
+
+    `carried_by` is a COUNT and the reading it guards is a weighted MEAN, so the
+    obvious next move was the eleventh Hour's own instrument: a Kish effective sample
+    size, refusing a row whose movers are concentrated. The concern is REAL — over 500
+    randomised draws, 24% of certified rows have an effective carriage under the
+    guard's own number and 1.5% under the algebraic floor of four, this fixture at
+    3.11 on a reading the count calls five.
+
+    It does not reach the money. Removing the single home carrying most of the
+    counterfactual leaves BOTH arms unchanged and moves the cost by GBP 51 against
+    that reading's own error bar of GBP 544 — nine percent of it. Across the family,
+    one home's removal renames an arm or moves the cost past its own bar on 1 of 16
+    low-carriage rows and 1 of 50 others: no signal. A concentration guard would have
+    been a threshold with no defect under it."""
+    rows = _concentrated_forced_population()
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch.carried_by == (8, 5)
+    assert switch.carriage_margin == 0, "on the floor, which is the other half"
+    assert switch.resolution == "attributable"
+
+    def _kish(reflect):
+        mirrored = fgl._mirrored_rows(
+            [o for o in rows
+             if fgl._level_reflection_is_feasible(
+                 o.actual_hlc_kw_per_k, o.epc_hlc_kw_per_k)],
+            reflect,
+        )
+        epc = fgl._premise_forgone(
+            mirrored, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="epc", fuel="gas"
+        )
+        inferred = fgl._premise_forgone(
+            mirrored, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE, belief="inferred",
+            fuel="gas",
+        )
+        weights = [
+            abs(e.forgone_gbp - i.forgone_gbp) for e, i in zip(epc, inferred)
+        ]
+        weights = [w for w in weights if w > 0.0]
+        return sum(weights) ** 2 / sum(w * w for w in weights)
+
+    assert _kish(fgl._reflect_level) < fgl.MOVER_FLOOR_FOR_A_NAMED_ARM, (
+        "the concern is real: a reading the count calls five is effectively carried "
+        "by three"
+    )
+    # AND THE MONEY DOES NOT FOLLOW IT.
+    thinner = fgl.instrument_switch(
+        _drop_heaviest_mover(rows, fgl._reflect_level),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    assert thinner.published_favours == switch.published_favours
+    assert thinner.counterfactual_favours == switch.counterfactual_favours, (
+        "neither arm is this home's"
+    )
+    moved = abs(thinner.cost_gbp - switch.cost_gbp)
+    assert moved < 0.25 * switch.own_error_bar_gbp, (
+        f"the heaviest carrying home is worth GBP {moved:,.0f} of a reading whose "
+        f"own 95% error bar is GBP {switch.own_error_bar_gbp:,.0f}"
+    )
+
+
+def test_a_LEAVE_ONE_OUT_JUDGED_BY_THE_GATES_OWN_VERDICT_MEASURES_THE_GUARD():
+    """THE TRAP THE TEST ABOVE ALMOST FELL INTO, PINNED (2026-08-12, fifteenth Hour).
+
+    "Does one home decide this row?" has two readings and they disagree by an order
+    of magnitude on the SAME rows and the SAME removals. Asked as *does the CHANNEL's
+    resolution change*, it is 94% of low-carriage certified rows against 14% of the
+    rest — a number that would have justified building a concentration guard on the
+    spot. Asked in GBP — *does either arm change, or the cost move past its own error
+    bar* — it is 6% against 2%.
+
+    The 94% is the raw-count guard tripping on the row it is already gating: any row
+    at `carriage_margin` 0 unresolves when a mover is removed, whatever the money
+    does. R15's first killer pattern with the guard as its own evidence, and this
+    atom's third-Hour law — a verdict must be judged in the unit it is published in —
+    read in a new place."""
+    rows = _concentrated_forced_population()
+    before = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    after = fgl.instrument_switch(
+        _drop_heaviest_mover(rows, fgl._reflect_level),
+        unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
+    )
+    # THE GATE'S OWN VERDICT SAYS THE HOME DECIDED THE ROW...
+    assert before.resolution == "attributable"
+    assert after.resolution == "unresolved"
+    assert after.carried_by == (7, 4), "and the reason is the COUNT, 5 -> 4"
+    # ...AND THE MONEY SAYS NOTHING HAPPENED.
+    assert (after.published_favours, after.counterfactual_favours) == (
+        before.published_favours, before.counterfactual_favours
+    )
+    assert abs(after.cost_gbp - before.cost_gbp) < 0.1 * before.own_error_bar_gbp
+    # The two criteria must not be allowed to look alike: the first is a function of
+    # `CARRIAGE_FLOOR`, which is what is under test, and the second is not.
+    assert before.carriage_margin == 0 and after.carriage_margin == -1

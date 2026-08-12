@@ -4239,6 +4239,59 @@ class InstrumentSwitch:
     counterfactual_favours: str | None
 
     @property
+    def carriage_margin(self) -> int | None:
+        """HOW MANY HOMES ABOVE THE ALGEBRAIC FLOOR THE THINNER READING SAT.
+
+        Zero means the thinner of the two readings is at `CARRIAGE_FLOOR` exactly and
+        ONE home becoming a tie moves this row to `unresolved` with no money moving
+        at all. Published because a count without its threshold is a label, not a
+        disclosure (the thirteenth Hour's class, applied to the fourteenth's guard):
+        `carried_by` alone cannot tell a reader whether a certified row was
+        comfortable or one home from unmeasurable, and on 1,200 searched draws 14% of
+        certified rows sat at the floor exactly and 37% within one home of it.
+
+        `None` where no reading was taken — an unavailable margin is not a wide one.
+        """
+        if self.carried_by is None:
+            return None
+        return min(self.carried_by) - CARRIAGE_FLOOR
+
+    @property
+    def cost_ratio(self) -> float | None:
+        """THE GATE'S OWN READING: the cost as a multiple of the published reading's
+        own 95% error bar, which is the quantity `resolution` actually compares.
+
+        PUBLISHED BECAUSE THE GBP FIGURE BESIDE IT IS NOT THE NUMBER THE GATE READS
+        (2026-08-12, FIFTEENTH Hour, and it is the measured half of that Hour). Both
+        readings are means over `borne_by` premises, most of which may be ties, so the
+        per-premise GBP figure is a function of how many homes both arms treat
+        identically: appending 200 pure ties to this atom's own certifying fixture —
+        homes on which nothing happens under either instrument, carrying neither
+        reading — moves the published cost from GBP 292 to GBP 66 per premise, a
+        factor of 4.4, while this ratio moves from 0.4523 to 0.4291. The control is
+        dilution-invariant and the figure a reader sees is not, so the row now carries
+        both and says which one decided it.
+
+        `None` where the error bar is zero — a ratio against nothing is not a small
+        one, and `resolution` handles that case in GBP.
+        """
+        if self.cost_gbp is None or not self.own_error_bar_gbp:
+            return None
+        return self.cost_gbp / self.own_error_bar_gbp
+
+    @property
+    def carriage_share(self) -> tuple[float, float] | None:
+        """`carried_by` AS A FRACTION OF `borne_by` — nine movers of nine homes and
+        nine of fifty-nine are different objects, and only the second dilutes the
+        per-premise figure this row publishes. `None` where no reading was taken."""
+        if self.carried_by is None or not self.borne_by:
+            return None
+        return (
+            self.carried_by[0] / self.borne_by,
+            self.carried_by[1] / self.borne_by,
+        )
+
+    @property
     def resolution(self) -> str:
         """`attributable` / `unattributable` / `unresolved` — the instrument channel.
 
@@ -4296,10 +4349,19 @@ class InstrumentSwitch:
 
         ONE-DIRECTIONAL: a thin panel resolves to `unresolved`, which is not a pass,
         so this can only ever TAKE certification away.
+
+        AND THE FLOOR IT READS IS NOW ITS OWN (2026-08-12, FIFTEENTH Hour). The
+        fourteenth Hour guarded that algebra with `MIN_HOMES_FOR_DIVERSITY`, a panel
+        input-sufficiency floor with no bearing on a bootstrap tail; `CARRIAGE_FLOOR`
+        is `_mover_floor_for_a_named_arm` — derived from `MONEY_VERDICT_ALPHA` — plus
+        `CARRIAGE_MARGIN_HOMES`. Same number, so no verdict moved; different subject,
+        so it can no longer be moved by an edit made for a different reason. How far
+        above the floor a given row sat is `carriage_margin`, published, because 37%
+        of certified rows in 1,200 searched draws sat within one home of it.
         """
         if self.cost_gbp is None:
             return "unresolved"
-        if self.carried_by is None or min(self.carried_by) < MIN_HOMES_FOR_DIVERSITY:
+        if self.carried_by is None or min(self.carried_by) < CARRIAGE_FLOOR:
             return "unresolved"
         if self.published_favours != self.counterfactual_favours:
             return "unattributable"
@@ -5071,6 +5133,24 @@ class CompositionVerdict:
             None if self.panel_mirror_switch is None
             or self.panel_mirror_switch.carried_by is None
             else list(self.panel_mirror_switch.carried_by)
+        )
+
+    @property
+    def panel_mirror_switch_carriage_margin(self) -> int | None:
+        """HOW MANY HOMES ABOVE THE FLOOR the thinner of the two readings sat. Zero
+        means one home becoming a tie unresolves this row with no money moving."""
+        return (
+            None if self.panel_mirror_switch is None
+            else self.panel_mirror_switch.carriage_margin
+        )
+
+    @property
+    def panel_mirror_switch_cost_ratio(self) -> float | None:
+        """THE COST AS A MULTIPLE OF THE READING'S OWN ERROR BAR — the dilution-
+        invariant quantity the gate reads, beside the GBP figure that is not."""
+        return (
+            None if self.panel_mirror_switch is None
+            else self.panel_mirror_switch.cost_ratio
         )
 
     @property
@@ -5928,6 +6008,39 @@ MONEY_VERDICT_SEED = 20260812
 MONEY_VERDICT_ALPHA = 0.05
 
 
+def _mover_floor_for_a_named_arm(alpha: float = MONEY_VERDICT_ALPHA) -> int:
+    """THE SMALLEST NUMBER OF MOVERS A PAIRED MONEY VERDICT CAN NAME AN ARM WITH.
+
+    DERIVED, NOT CHOSEN (2026-08-12, FIFTEENTH Expert Hour). A paired advantage is
+    exactly 0.0 on every premise both arms treat alike, so a percentile bootstrap of
+    the mean puts probability (1-m/n)**n on a resample that draws no mover at all and
+    therefore has mean exactly 0. That rises with n toward its limit e**-m, so the
+    limit is the conservative case, and `favours` can exclude zero only where
+    e**-m < alpha/2 — i.e. m > ln(2/alpha), which is 3.689 at alpha 0.05 and
+    therefore FOUR.
+
+    WHY IT IS A FUNCTION AND NOT A LITERAL. The fourteenth Hour established this
+    algebra and then guarded it with `MIN_HOMES_FOR_DIVERSITY`, which is an INPUT
+    SUFFICIENCY FLOOR ON A PANEL — how many homes `between_home_correlation` and
+    `timing_diversity` need before they will judge anything — and has no connection
+    to a bootstrap tail level. That the two numbers are adjacent (four and five) is a
+    coincidence of two subjects sharing one constant: this atom's sixth-Hour class.
+    Tied to `MONEY_VERDICT_ALPHA` here, the floor MOVES IF THE TAIL LEVEL MOVES and
+    stops moving if a panel-diversity floor is ever re-tuned for its own reasons.
+    """
+    return math.floor(math.log(2.0 / alpha)) + 1
+
+
+#: How many movers a reading must carry ABOVE the algebraic floor before this file
+#: will compare it to anything. One home — kept at the shipped strictness so that
+#: naming the floor changes no verdict anywhere (R12: the statistic was wrong, not
+#: the threshold), and named so a reader can see the margin is one home rather than
+#: inferring it from a constant borrowed for a different subject.
+CARRIAGE_MARGIN_HOMES = 1
+MOVER_FLOOR_FOR_A_NAMED_ARM = _mover_floor_for_a_named_arm()
+CARRIAGE_FLOOR = MOVER_FLOOR_FOR_A_NAMED_ARM + CARRIAGE_MARGIN_HOMES
+
+
 def _bootstrap_statistic_ci(
     values: Sequence[Any],
     statistic: Callable[[Sequence[Any]], float],
@@ -6411,6 +6524,31 @@ def _bluntness_caveat(verdict: CompositionVerdict) -> list[str]:
     ]
 
 
+def _carriage_margin_text(switch: InstrumentSwitch) -> str:
+    """"AT" the floor or "N homes above" it — and "at" is the one that matters,
+    because it means one home becoming a tie unresolves the row with no money
+    moving. A margin printed as a bare integer would let a reader skim past the
+    zero; the word says what the zero is."""
+    margin = switch.carriage_margin
+    if margin is None:
+        return "at an unknown distance above"
+    if margin == 0:
+        return (
+            "AT — one home of these becoming a tie unresolves this comparison "
+            "without any money moving, and that is"
+        )
+    return f"{margin} home{'' if margin == 1 else 's'} above"
+
+
+def _switch_ratio_text(switch: InstrumentSwitch) -> str:
+    """The gate's own reading, or why it could not be formed. Never a bare number
+    where the denominator is zero — a ratio against nothing is not a small one."""
+    ratio = switch.cost_ratio
+    if ratio is None:
+        return "unformable, the reading's own error bar being zero"
+    return f"{ratio:.2f}x"
+
+
 def _switch_cost_caveat(verdict: CompositionVerdict) -> list[str]:
     """WHAT THE INSTRUMENT SWITCH COST, PRINTED WHENEVER ONE HAPPENED (2026-08-12,
     thirteenth Hour) — refused or certified, exactly like `_bluntness_caveat` and for
@@ -6443,10 +6581,19 @@ def _switch_cost_caveat(verdict: CompositionVerdict) -> list[str]:
         f"{switch.counterfactual_reading_gbp:+,.0f} "
         f"({switch.counterfactual_favours}) — a difference of GBP "
         f"{switch.cost_gbp:,.0f}, against this reading's own 95% error bar of GBP "
-        f"{switch.own_error_bar_gbp:,.0f}. Those two readings are carried by "
-        f"{switch.carried_by[0]} and {switch.carried_by[1]} homes respectively — the "
-        f"rest forgo the same money either way and cannot move either number. The "
-        f"instrument is a STEP FUNCTION of the "
+        f"{switch.own_error_bar_gbp:,.0f} — a ratio of "
+        f"{_switch_ratio_text(switch)}, which is the number this gate reads and the "
+        f"only one of the three that does not move when homes both arms treat "
+        f"identically are added to the panel. Those two readings are carried by "
+        f"{switch.carried_by[0]} and {switch.carried_by[1]} of the "
+        f"{switch.borne_by} homes respectively "
+        f"({switch.carriage_share[0]:.0%} and {switch.carriage_share[1]:.0%}) — the "
+        f"rest forgo the same money either way and cannot move either number, so the "
+        f"GBP-per-premise figures above are divided by all {switch.borne_by} and "
+        f"carried by those few. The thinner reading sat "
+        f"{_carriage_margin_text(switch)} the floor of {CARRIAGE_FLOOR} movers this "
+        f"file will compare two readings at all above. The instrument is a STEP "
+        f"FUNCTION of the "
         f"forcing home's certificate — it changes at 2*epc == actual and the homes "
         f"either side did not move — so read the reflection label above as a "
         f"statement about this panel's worst certificate, not about these homes."
@@ -6553,7 +6700,7 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
             )
         elif switch.carried_by is not None and min(
             switch.carried_by
-        ) < MIN_HOMES_FOR_DIVERSITY:
+        ) < CARRIAGE_FLOOR:
             # THE CARRIAGE CLAUSE (2026-08-12, fourteenth Hour). It comes BEFORE the
             # arms clause because it says the two readings cannot be compared at all,
             # and the arms clause read off a thin panel is a reading of the mover
@@ -6567,10 +6714,12 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
                 f"{switch.borne_by} premises that did not force the fallback, "
                 f"{switch.carried_by[0]} move any money under the reflection this row "
                 f"used and {switch.carried_by[1]} under the one they could have had — "
-                f"under {MIN_HOMES_FOR_DIVERSITY}, and a paired money verdict carried "
-                f"by three homes or fewer names 'neither' whatever the money on them "
-                f"is, because a resample that draws none of them is likelier than the "
-                f"2.5% tail (an unavailable check is a failed one, not a clean one)"
+                f"under {CARRIAGE_FLOOR}, and a paired money verdict carried by "
+                f"{MOVER_FLOOR_FOR_A_NAMED_ARM - 1} homes or fewer names 'neither' "
+                f"whatever the money on them is, because a resample that draws none "
+                f"of them is likelier than the "
+                f"{MONEY_VERDICT_ALPHA / 2:.1%} tail (an unavailable check is a "
+                f"failed one, not a clean one)"
             )
         elif switch.published_favours != switch.counterfactual_favours:
             # TWO DIRECTIONS, ONE FINDING, TWO CLAIMS (2026-08-12, fourteenth Hour,
@@ -6980,7 +7129,9 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_instrument_channel": v.panel_mirror_instrument_channel,
         "panel_mirror_switch_borne_by": v.panel_mirror_switch_borne_by,
         "panel_mirror_switch_carried_by": v.panel_mirror_switch_carried_by,
+        "panel_mirror_switch_carriage_margin": v.panel_mirror_switch_carriage_margin,
         "panel_mirror_switch_cost_gbp": v.panel_mirror_switch_cost_gbp,
+        "panel_mirror_switch_cost_ratio": v.panel_mirror_switch_cost_ratio,
         "panel_mirror_switch_published_gbp": (
             None if v.panel_mirror_switch is None
             else v.panel_mirror_switch.published_reading_gbp
