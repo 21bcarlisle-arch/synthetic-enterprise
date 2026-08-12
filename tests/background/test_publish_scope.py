@@ -13,6 +13,8 @@ tests below are written to make it fail, in each of the ways it could:
 """
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from background import publish_scope
@@ -318,3 +320,107 @@ def test_the_remainder_argv_enumerates_a_STACK_where_the_gates_argv_reports_one(
     assert len(remainder) == 3, (
         "the remainder must report the WHOLE red set; got {}".format(remainder))
     assert set(blocking) < set(remainder), "the fail-fast red must be one OF the enumerated set"
+
+
+# ── AN ABSENT ROOT MUST NOT BE REPORTED AS A ROTTED DECLARATION (2026-08-12) ─────────────────
+#
+# The sixteenth publish wedge. The HEAD checkout failed to materialise (`git init` -> rc=128,
+# `fatal: cannot mkdir`), the scope was resolved against the directory that was never created,
+# and `resolve_scope` answered "the declaration has rotted; blocking on the FULL suite until it
+# is repaired" -- naming the one subject that was provably healthy. All six declared sources
+# existed at that SHA, in HEAD and in the working tree.
+#
+# The direction was never wrong (full suite is right for an unresolvable scope). The SUBJECT
+# was, and the subject is what reaches the wedge alarm's payload and the public
+# `paused_reason`, so six ticks were sent to repair a declaration that needed no repair.
+#
+# These are the two arms that make the distinction falsifiable: the first fails on the old
+# code (it returned the rot message), the second guards the fix from over-firing and turning
+# every genuine rot into a root complaint.
+
+
+def test_an_absent_root_is_reported_as_an_absent_root_not_a_rotted_declaration(tmp_path):
+    """MUTATION (the 02:04Z wedge, reproduced): point the scope at a directory that is not a
+    checkout of this repo. The old code said the declaration had rotted; the declaration was
+    intact and the ROOT was missing."""
+    scope = publish_scope.resolve_scope(root=tmp_path / "checkout-that-never-materialised")
+
+    assert scope["full_suite"] is True, "an unresolvable scope must still never narrow"
+    assert scope.get("root_unavailable") is True, scope["reason"]
+    assert "ROOT UNAVAILABLE" in scope["reason"]
+    assert "has rotted" not in scope["reason"], (
+        "this is the defect: the 02:04Z log blamed the declaration, which was intact -- all "
+        "six sources existed in HEAD and in the working tree at that SHA")
+
+    # The declaration really was intact, which is what makes the old message false rather
+    # than merely unhelpful. Asserted here so this test carries its own premise.
+    for source in publish_scope.PUBLISH_PATH_SOURCES:
+        assert (publish_scope.PROJECT_DIR / source).exists(), source
+
+
+def test_a_genuinely_rotted_declaration_still_says_so(tmp_path):
+    """The OVER-FIRE arm. A rot loses entries one at a time against a root that IS the repo,
+    and must keep naming the declaration -- otherwise the fix above has merely moved the
+    wrong-subject defect to the other branch."""
+    scope = publish_scope.resolve_scope(
+        sources=["tools/generate_dashboard_data.py", "tools/this_module_does_not_exist.py"])
+
+    assert scope["full_suite"] is True
+    assert scope.get("root_unavailable") is False, scope["reason"]
+    assert "has rotted" in scope["reason"]
+    assert "ROOT UNAVAILABLE" not in scope["reason"]
+
+
+def test_the_root_marker_is_independent_of_the_declaration_it_adjudicates():
+    """R15 anti-tautology: the marker that decides "is this root the repo?" must not be drawn
+    from the list whose absence it is explaining. If it were, a root missing every source
+    would be missing the marker BECAUSE it was missing the sources, and the check would be
+    restating its own input."""
+    assert publish_scope.ROOT_REPO_MARKER not in publish_scope.PUBLISH_PATH_SOURCES
+    assert not any(s.startswith(publish_scope.ROOT_REPO_MARKER + "/")
+                   for s in publish_scope.PUBLISH_PATH_SOURCES)
+    assert publish_scope._root_holds_the_repo(publish_scope.PROJECT_DIR) is True
+
+
+def test_a_root_unavailable_scope_stops_the_gate_instead_of_running_it(monkeypatch, tmp_path):
+    """MUTATION on the WIRING, not the flag. `root_unavailable` is only a control if somebody
+    acts on it -- a reported state is not a control
+    (`feedback_reported_state_is_not_a_control`).
+
+    Delete the `if gate_scope.get("root_unavailable")` branch in `_run_gate_in` and this fails:
+    the gate runs a full suite against a tree that holds none of the repo, and answers with a
+    red that names whatever pytest happened to trip over. That is the 02:04Z behaviour."""
+    from background import process_run_complete as prc
+
+    ran = []
+    monkeypatch.setattr(prc.subprocess, "run",
+                        lambda *a, **k: ran.append(a) or pytest.fail("gate ran on a dead root"))
+
+    empty_root = tmp_path / "checkout-that-never-materialised"
+    empty_root.mkdir()
+    passed, _ = prc._run_gate_in(empty_root, dict(os.environ), "deadbeef")
+
+    assert ran == [], "the gate must not run against a root it has been told is unavailable"
+    assert passed is False, (
+        "R15: an unavailable check is a FAILED check -- 'has not run' must never read as "
+        "'passed', or the publish path proceeds unverified")
+
+
+def test_the_unavailable_root_verdict_does_not_stamp_the_tested_hash(monkeypatch, tmp_path):
+    """The other half of the same wedge: a gate that did not run must not leave behind the
+    evidence that it passed. `LAST_TESTED_HASH_FILE` is written by exactly one writer and only
+    on rc=0; this pins that a dead root never reaches it."""
+    from background import process_run_complete as prc
+
+    stamp = tmp_path / "last_tested_hash"
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", stamp)
+    monkeypatch.setattr(prc.subprocess, "run",
+                        lambda *a, **k: pytest.fail("gate ran on a dead root"))
+
+    empty_root = tmp_path / "nope"
+    empty_root.mkdir()
+    prc._run_gate_in(empty_root, dict(os.environ), "deadbeef")
+
+    assert not stamp.exists(), (
+        "a gate with no subject must not stamp a passing hash; found {!r}".format(
+            stamp.read_text() if stamp.exists() else None))

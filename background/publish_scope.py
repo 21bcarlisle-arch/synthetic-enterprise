@@ -123,6 +123,26 @@ class ScopeUnavailable(Exception):
     """Raised internally when the scope cannot be computed; always caught into full-suite."""
 
 
+# The full-suite fallback's OWN subject. Deliberately not one of PUBLISH_PATH_SOURCES: a check
+# that asked the declared list whether the declared list was trustworthy would be the tautology
+# shape R15 names first (`feedback_tautology_reappears_inside_r15_tests`). `tests/` is the
+# positional every fallback argv carries, so its absence answers the operative question exactly
+# -- "can the full suite this is about to fall back to even run against this root?"
+ROOT_REPO_MARKER = "tests"
+
+
+def _root_holds_the_repo(root) -> bool:
+    """Is `root` a tree this gate could actually run against?
+
+    Independent of the declaration on purpose (see ROOT_REPO_MARKER). Never raises: an
+    unreadable root is not a repo, which is the fail-CLOSED direction -- it widens to the full
+    suite and says the root is the problem, rather than narrowing on a tree it cannot read."""
+    try:
+        return (Path(root) / ROOT_REPO_MARKER).is_dir()
+    except OSError:
+        return False
+
+
 def resolve_scope(sources=None, root: Path = PROJECT_DIR) -> dict:
     """Resolve the blocking scope. Returns:
 
@@ -131,15 +151,61 @@ def resolve_scope(sources=None, root: Path = PROJECT_DIR) -> dict:
     `full_suite=True` means "could not narrow safely — block on everything, exactly as
     before". Never raises: every failure path degrades to the full suite (see module
     docstring, R15).
+
+    `root_unavailable=True` additionally means "the tree I was asked to resolve against is
+    not this repo" — see `_root_holds_the_repo` below for why that is a separate answer.
     """
     declared = list(PUBLISH_PATH_SOURCES if sources is None else sources)
 
     missing = [s for s in declared if not (root / s).exists()]
+
+    # AN ABSENT ROOT IS NOT A ROTTED DECLARATION (2026-08-12, the sixteenth wedge).
+    #
+    # Observed-with-evidence, sim-runner-log.md 02:04Z: the HEAD checkout failed to
+    # materialise (`git init` -> rc=128 `fatal: cannot mkdir`), and the scope was then
+    # resolved against the directory that was never created. All six declared sources were
+    # absent from it, so this returned "the declaration has rotted; blocking on the FULL
+    # suite until it is repaired" -- and the gate widened to the full suite and stayed red.
+    #
+    # The declaration had not rotted. Measured at that same SHA: all six exist in HEAD and in
+    # the working tree. The message named the one subject that was healthy, and sent the next
+    # six ticks after a declaration that needed no repair -- the identical failure shape this
+    # file's sibling already records for `git is not installed`, where an environment fault
+    # was printed as a code fault (process_run_complete.py:935-996).
+    #
+    # The two conditions are trivially distinguishable and the distinction was simply never
+    # drawn: a declaration rots one entry at a time (somebody moves ONE module), so SOME
+    # sources resolve and some do not. A root that is not this repo resolves NONE of them.
+    # Unanimous absence is therefore evidence about the ROOT, not about the declaration.
+    #
+    # The control's DIRECTION is unchanged -- still full-suite, still the module's standing
+    # safe answer -- because an unresolvable scope must never narrow. What changes is the
+    # subject the reason names, which is the half that costs wall-clock: this reason reaches
+    # the wedge alarm's payload and `publish_provenance.py`'s `paused_reason`, i.e. the
+    # public surface (WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN).
+    if missing and not _root_holds_the_repo(root):
+        return {
+            "full_suite": True,
+            "tests": [],
+            "sources": declared,
+            "root_unavailable": True,
+            "reason": "ROOT UNAVAILABLE: {} of {} declared publish-path source(s) are absent "
+                      "under {}, and so is `{}/` -- {}. This is a failure of the TREE the gate "
+                      "was pointed at (a checkout that did not materialise, an empty or wrong "
+                      "directory), NOT a rotted declaration, and the full suite it is about to "
+                      "fall back to cannot run here either. Repair the ROOT, not the "
+                      "declaration.".format(
+                          len(missing), len(declared), root, ROOT_REPO_MARKER,
+                          "the root does not exist" if not Path(root).exists()
+                          else "the root exists but is not a checkout of this repo"),
+        }
+
     if missing:
         return {
             "full_suite": True,
             "tests": [],
             "sources": declared,
+            "root_unavailable": False,
             "reason": "{} declared publish-path source(s) do not exist ({}) -- the declaration "
                       "has rotted; blocking on the FULL suite until it is repaired.".format(
                           len(missing), ", ".join(sorted(missing))),

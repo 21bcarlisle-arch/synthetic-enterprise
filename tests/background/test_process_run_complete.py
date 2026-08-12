@@ -292,11 +292,34 @@ def test_main_success_flow(tmp_path, monkeypatch):
         return fake_completed(cmd, **kwargs)
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    _stub_head_checkout(monkeypatch, tmp_path)
 
     rc = prc.main(str(marker))
     assert rc == 0
     assert not marker.exists()
     assert (tmp_path / "staging" / "done" / marker.name).exists()
+
+
+def _stub_head_checkout(monkeypatch, tmp_path, name="head-stub"):
+    """Yield a MATERIALISED stand-in for `prc._head_checkout()`.
+
+    These tests stub `prc.subprocess.run` wholesale, so the real `_head_checkout` mkdir's a
+    directory and then `git archive`/`tar` never populate it -- which is precisely the broken
+    state the 2026-08-12 wedge produced for real (`git init` -> `fatal: cannot mkdir`, empty
+    directory, gate runs the full suite against a tree holding none of the repo, 28 cycles).
+    `_run_gate_in` now refuses that root, so these tests must supply a checkout that looks
+    EXTRACTED or they test the refusal instead of their own subject."""
+    from background.publish_scope import ROOT_REPO_MARKER
+
+    checkout = tmp_path / name
+    (checkout / ROOT_REPO_MARKER).mkdir(parents=True, exist_ok=True)
+
+    @contextlib.contextmanager
+    def _fake_checkout():
+        yield checkout
+
+    monkeypatch.setattr(prc, "_head_checkout", _fake_checkout)
+    return checkout
 
 
 def _full_isolation_setup(tmp_path, monkeypatch):
@@ -325,6 +348,7 @@ def _full_isolation_setup(tmp_path, monkeypatch):
     def fake_run(cmd, **kwargs):
         return fake_completed(cmd, **kwargs)
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    _stub_head_checkout(monkeypatch, tmp_path)
 
 
 # --- FORCE_REPUBLISH_FLAG -- no-orphan-transitions fix (2026-07-10,
@@ -1111,6 +1135,14 @@ def _gate_log_text(monkeypatch, tmp_path, result):
     # covered separately (test_publish_gate_subject_is_head.py).
     checkout = tmp_path / "head"
     checkout.mkdir(exist_ok=True)
+    # ...and make it look EXTRACTED, not merely mkdir'd. A bare directory is the state the
+    # real harness produces only when the checkout has FAILED (2026-08-12: `git init` died with
+    # `fatal: cannot mkdir`, the directory existed and held nothing, and the gate ran the full
+    # suite against it on 28 cycles). `_run_gate_in` now refuses that root, so a stub that keeps
+    # supplying it would test the refusal instead of these tests' actual subject -- what the
+    # gate does with a pytest RESULT.
+    from background.publish_scope import ROOT_REPO_MARKER
+    (checkout / ROOT_REPO_MARKER).mkdir(parents=True, exist_ok=True)
 
     @contextlib.contextmanager
     def fake_checkout():

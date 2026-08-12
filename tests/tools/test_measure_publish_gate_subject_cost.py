@@ -525,6 +525,24 @@ def _stub_phases(monkeypatch, timed):
     monkeypatch.setattr(measure.prc, "_head_sha", lambda: "deadbeef")
 
 
+def _materialised(path):
+    """Make `path` look like a checkout that actually EXTRACTED, not just one that was mkdir'd.
+
+    A bare `mkdir` stands in for a state the harness produces only when it has FAILED: on
+    2026-08-12 `git init` died with `fatal: cannot mkdir`, the directory existed and held
+    nothing, and the gate ran the full suite against it (see publish_scope.ROOT_REPO_MARKER --
+    28 cycles in 32 hours). The gate now refuses that root, so a fixture that keeps supplying
+    it is supplying the defect rather than the subject
+    (`feedback_a_render_harness_that_hand_types_its_call_list_supplies_the_defect`).
+
+    Built from the marker constant rather than a literal for the same reason the prefix is:
+    a rename must not leave these fixtures standing in for a shape nothing produces."""
+    from background import publish_scope
+
+    (path / publish_scope.ROOT_REPO_MARKER).mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def _a_throwaway(tmp_path):
     """A directory named the way `prc._head_checkout()` names one since the R3 elimination.
 
@@ -532,7 +550,7 @@ def _a_throwaway(tmp_path):
     cannot leave these tests standing in for a shape the harness no longer produces."""
     path = tmp_path / (measure.prc.HEAD_CHECKOUT_PREFIX + "kf3p1x")
     path.mkdir()
-    return path
+    return _materialised(path)
 
 
 class _FakeCheckout:
@@ -679,6 +697,7 @@ def test_a_reused_checkout_is_refused_rather_than_timed_as_a_throwaway(monkeypat
     record banks a warm runtime under the throwaway phase's name."""
     reused = tmp_path / measure.prc.REUSED_HEAD_CHECKOUT_NAME
     reused.mkdir()
+    _materialised(reused)
     monkeypatch.setattr(measure.prc, "_head_checkout", _FakeCheckout(reused))
     timed = []
     _stub_phases(monkeypatch, timed)

@@ -1532,6 +1532,33 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     started = time.monotonic()
     gate_argv, gate_scope = _scoped_gate_argv(run_root=cwd)
     log("Publish gate scope: {}".format(gate_scope["reason"]))
+
+    # A BROKEN CHECKOUT IS AN ABSENT ONE (2026-08-12, the sixteenth wedge).
+    #
+    # `run_fast_tests` already refuses to run when `_head_checkout()` yields None, and that
+    # refusal is the right one -- `_checkout_unavailable_verdict` is reused verbatim here
+    # rather than restated, so there stays ONE answer to "the gate has no subject".
+    #
+    # What it could not see is a checkout that was CREATED and then not populated: `git init`
+    # failed with rc=128 `fatal: cannot mkdir` at 02:04Z, the directory existed, `head_dir`
+    # was therefore not None, and the gate ran the full suite against a tree holding none of
+    # the repo. Measured over 2026-08-10 18:15Z -> 2026-08-12 02:11Z: 28 cycles resolved their
+    # scope against such a root, against 64 that resolved normally -- 30% of every gate cycle,
+    # each one silently widened from 134 scoped files to the whole tree, which is precisely
+    # the "publish iff everything is green, i.e. publish never" condition the decoupling was
+    # built to end. Each was logged as a rotted declaration; the declaration was intact.
+    #
+    # The scope resolver is the only party that reads the root's contents, so it is the only
+    # one that can tell a materialised checkout from an empty directory -- hence the flag
+    # rather than a second existence check here (which would drift from the first).
+    #
+    # R15: an unavailable check is a FAILED check, and it must not be recorded as a red TEST.
+    # Returning here skips `_log_gate_failure_payload` deliberately: there are no failing
+    # tests to name, and naming some anyway is the defect this whole episode is made of
+    # (WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN).
+    if gate_scope.get("root_unavailable"):
+        return _checkout_unavailable_verdict()
+
     try:
         result = subprocess.run(
             gate_argv,
