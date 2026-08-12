@@ -1,5 +1,29 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T09:13:29Z
+Last updated: 2026-08-12T09:50:58Z
+
+**H_GAP_fabric — THE ARMS HALF OF A GATE WAS READING THE MOVER COUNT (this commit).** The
+FOURTEENTH Expert Hour on `H_GAP_fabric_belief_truth_gap`; the level stays 2 for the fourteenth
+consecutive Hour. `InstrumentSwitch.resolution`'s direction half claimed it *"needs no threshold to
+read"* — and the threshold it read is the **mover count**. `favours` is `neither` iff the 95%
+bootstrap interval contains zero, and a paired money advantage is **exactly 0.0** on every premise
+both arms forgo the same money on, so `P(a resample draws no mover) = (1-m/n)**n → e**-m`: **4.7% at
+three movers against a 2.5% tail**, 1.65% at four. Measured with **GBP 1,000,000 on every mover**,
+three movers read GBP -37,975 per premise and still name `neither` — and a **bigger** panel makes it
+worse (0.0388 at n=20, 0.0496 at n=1,000), so a guard sized on the panel has the sign of its own
+protection backwards. **The gate's own searched fixture for that half was four movers against
+three.** Across 5,000 fresh fallback draws: 1,003 crossings, **zero** two-resolved-arms (reconfirming
+the thirteenth Hour independently), **fifteen** carriable — **98.5% of what that half fired on was
+the mover count**. The **fail-open twin is larger**: 1,930 of 2,373 thin rows CERTIFIED, 1,682 off
+one home or none, at its purest by evaluating **`0.0 > 0.0`** — which reaches the twelfth Hour's five
+released stocks, all `carried_by == (0,0)`. **The directed question inverts under carriability**: the
+reading the row USED names the arm 935:68 raw and **1:14** among the carriable, so the refusal
+sentence now names its direction. Mechanised as `carried_by` off the two verdicts already computed
+(no new bootstrap, no new constant) and an `unresolved` checked **before** both existing halves;
+one-directional by construction, proven over a searched family. **No published figure moved**,
+measured end-to-end against committed HEAD on both published populations — one added key (null on the
+level branch) and **zero** moved values; gaps 0.4269/0.4042 and 0.2184/0.2624 unchanged. **R15: nine
+source mutations, each firing its own named test, all red, md5 byte-clean.** 284 passed / 2 xfailed
+on the atom (was 274/2), 397 across it and its four sibling suites; ruff clean; epistemic PASS 557.
 
 **OPS9 — EVERY FINDING IN THE STAGING ROOT NOW CARRIES A MACHINE-READABLE SEVERITY (this commit).**
 Deliverable 1 of `DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`. `background/
@@ -2382,7 +2406,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (272s / 5 min):
+**Latest simulation results (2016–2025)** — auto-processed (257s / 4 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093
@@ -2498,6 +2522,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~2456.2h across 98 sized atom(s) (14 of 112 below-target atoms still unsized).
+- Remaining effort: ~2410.5h across 97 sized atom(s) (14 of 111 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); H_harness: est 9.2h vs actual 45.7h (+36.5h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
