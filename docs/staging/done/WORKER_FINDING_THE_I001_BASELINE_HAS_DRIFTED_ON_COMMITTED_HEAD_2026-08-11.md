@@ -72,3 +72,31 @@ next drift, and it is the same repair the wall already received for the same rea
 alone treats an instance of a class R10 says may not be closed with an instance fix.
 
 **Reversible:** both are single-line/config changes; `git revert` undoes either.
+
+---
+
+## DISPOSITION — FIXED AND LANDED, 2026-08-12 (`4bee2bd47`)
+
+The promotion condition this finding named for itself — *"promote the moment a publish wedge is
+attributed to lint"* — fired. The 18th publish wedge WAS this. Measured on a clean
+`git archive HEAD` extract of `d32ae058b`:
+
+```
+E402: baseline 193, now 194
+I001: baseline 1384, now 1388     (this finding recorded 1390 on 2026-08-11; it moved)
+ruff total 2415 vs RUFF_BASELINE_TOTAL 2410
+```
+
+Repaired at the violations, not at the baseline: E402 back AT its floor (193, unmoved), I001
+SHRUNK 1384 -> 1380. Clean extract of the new HEAD: **13 passed**. Pushed; `origin/main` ==
+`4bee2bd47`.
+
+Two things this finding did not anticipate, both now filed as
+`WORKER_FINDING_A_REPO_WIDE_CENSUS_IS_NOT_DECOMPOSABLE_BY_PATHSPEC_2026-08-12.md`:
+
+1. The repair was **already complete in the working tree and had never been committed** — so
+   every control on this box was green while every clean checkout was red. The finding's own
+   "not blocked today" reasoning was correct about the pre-commit gate and wrong about the
+   publish gate's HEAD subject.
+2. A **pathspec commit of the seven obvious files was REFUSED** at I001 1381 vs 1380. The
+   eighth file sat in the SITE lane.
