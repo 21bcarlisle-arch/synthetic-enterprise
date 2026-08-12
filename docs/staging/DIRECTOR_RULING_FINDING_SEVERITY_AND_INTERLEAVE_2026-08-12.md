@@ -26,3 +26,13 @@ Unclassified findings default to LATENT only if the finding's own text supports 
 1. The severity field, applied across the existing staging root — one pass, every finding classified. 2. Class consolidation for the five named families, with instance lists and cumulative cost. 3. The lane-level refusal mechanism for BLOCKING findings, provably failable. 4. Blockers wired ahead of the disposition queue. 5. The interleave armed and its draws visible in the tick digest.
 
 — Ruled 2026-08-12; staged by the advisor; the count-based trigger is withdrawn by the same hand that proposed it.
+
+## Clause 5 (appended same day, on the director's word) — age is named, never silent
+
+Measured this morning: four advisor documents had sat in the staging root **untouched since the day they were staged** — the oldest a week old — including the money-core characterisation, the CLAUDE.md decay audit, and the seat cutover/DR proposal. Not deprioritised: never opened. Cause is structural, and it is this project's own no-caller class wearing governance clothes — the draw is fed by dials, alarms and the machine's own findings, and a quiet document from the director or advisor generates none of the three. Nothing surfaces it, so nothing draws it.
+
+**Ruling:** any document in the staging root untouched for **72 hours** is named in the daily digest — filename, age in days, and one line of what it asks for — every day, until it is dispositioned. This is a visibility mechanism, not a blocker: it stops nothing, refuses nothing, and grants no priority by itself. Its only job is to make silent ageing impossible. The existing 48-hour auto-archive backstop stays as-is and is complementary: it moves *completed* records out; this names *unopened* ones.
+
+**Exit test:** a document staged and then deliberately ignored appears in the digest on day three with its correct age, and keeps appearing. A digest that can go quiet while old documents remain is the failure this clause exists to forbid.
+
+— Appended 2026-08-12 by the advisor, who authored three of the four aged documents and is therefore the party this clause most inconveniences.
