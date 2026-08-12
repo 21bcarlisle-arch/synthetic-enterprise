@@ -245,7 +245,9 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 // but-not-yet-instrumented -- never a fabricated number.
 (function(){
   function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
-  function el(id){return document.getElementById(id);}
+  // Falls back to the wall view's detached blocks (see opStateFind): a panel filtered
+  // out of the document by the view selector must still be fillable when its data lands.
+  function el(id){return document.getElementById(id)||(window.opStateFind&&window.opStateFind(id))||null;}
   function gbp(n){if(n==null||n==="")return "--";var v=Number(n);return (v<0?"-£":"£")+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});}
   function pct(n){return n==null?"--":(Number(n)*100).toFixed(0)+"%";}
   function yn(b){return (b===true||String(b)==="True")?"yes":"no";}
@@ -303,8 +305,20 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns", (Number(h.failed_payment_count)>0?"amber":""))
     ].join("");
     el("cust-value").innerHTML=[
-      tile("Lifetime net", gbp(h.lifetime_net_gbp), "settled clock · after cost-to-serve", (Number(h.lifetime_net_gbp)<0?"red":"green")),
+      // Cold-eyes 2026-08-12: this tile was captioned "after cost-to-serve" and
+      // was not -- lifetime_net_gbp (492.96) is the commodity net BEFORE the
+      // cost to serve (329.93) shown in the very next tile, and the record's own
+      // lifetime_net_after_cts_gbp is their difference to the penny (163.03).
+      // Two adjacent tiles that visibly failed to reconcile are what made the
+      // exhibit read at ~26% household net margin instead of ~12%. The caption
+      // now says which side of cost-to-serve the figure is on, and the after-CTS
+      // number is DERIVED here from the two figures already on screen -- no new
+      // data plumbing, per this atom's own constraint.
+      tile("Lifetime net (commodity)", gbp(h.lifetime_net_gbp), "settled clock · before cost-to-serve", (Number(h.lifetime_net_gbp)<0?"red":"green")),
       tile("Cost to serve", gbp(h.cost_to_serve_gbp), "settled clock", ""),
+      tile("Net after cost to serve", gbp(Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp)),
+        "settled clock · derived: lifetime net − cost to serve",
+        ((Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp))<0?"red":"green")),
       tile("Churn risk", pct(h.latest_churn_probability), "settled clock · company estimate, not a fact", "")
     ].join("");
     el("cust-sim").innerHTML=[
@@ -454,7 +468,56 @@ var WALL_SIDES={
 };
 var WALL_VIEWS=[["both","Both sides"],["customer","The customer's side"],["behind","Behind the wall"]];
 var WALL_VIEW="both";
-function setWallView(v){WALL_VIEW=v;renderHousehold();}
+/* The view selector governs the WHOLE page, not just the drill-down.
+   Cold-eyes 2026-08-12 caught the original: WALL_VIEW filtering lived only
+   inside layoutPanels(), so the static #op-state exhibit above kept rendering
+   company-only and SIM-only panels while the customer view's own note said
+   "if one appears, the page is broken". The panels there are declared in the
+   markup, so filtering them is the same rule applied to the same attribute --
+   and, as in layoutPanels, by REMOVING them from the document rather than
+   hiding them with CSS, so "the customer cannot see this" is true of the
+   rendered DOM. Blocks are cached on first call and re-appended in their
+   original order, so switching back restores content already filled in. */
+var OP_STATE_BLOCKS=null;
+function opStateBlocks(){
+  if(OP_STATE_BLOCKS===null){
+    OP_STATE_BLOCKS=[];
+    var host=document.getElementById("op-state");
+    var kids=(host&&host.children)||[];
+    for(var i=0;i<kids.length;i++)OP_STATE_BLOCKS.push(kids[i]);
+  }
+  return OP_STATE_BLOCKS;
+}
+function applyWallViewToOpState(){
+  var host=document.getElementById("op-state");
+  if(!host)return;
+  opStateBlocks().forEach(function(el){
+    var side=el.getAttribute?el.getAttribute("data-wall-side"):null;
+    // Fail closed, exactly as panel() does: a block that declares a side the
+    // wall does not know cannot be filtered, so it must not ship at all.
+    if(side&&!WALL_SIDES[side])throw new Error(
+      "an op-state block declares an unknown wall-side ("+String(side)+") -- "+
+      "the view selector cannot filter it");
+    if(!side||wallViewShows(side))host.appendChild(el);
+    else if(el.parentNode===host)host.removeChild(el);
+  });
+}
+/* A detached node is unreachable via document.getElementById, and the exhibit's own
+   script fills its placeholders asynchronously (company.json arrives after the page
+   boots). Without this, switching view before that fetch resolved would throw inside
+   renderCustomerState and leave the WHOLE exhibit blank -- so the op-state script
+   resolves ids through here as a fallback. Removed from the document, still fillable. */
+window.opStateFind=function(id){
+  var blocks=OP_STATE_BLOCKS||[];
+  for(var i=0;i<blocks.length;i++){
+    var b=blocks[i];
+    if(b.id===id)return b;
+    var hit=b.querySelector&&b.querySelector("#"+id);
+    if(hit)return hit;
+  }
+  return null;
+};
+function setWallView(v){WALL_VIEW=v;applyWallViewToOpState();renderHousehold();}
 function panel(side,title,body){
   if(!WALL_SIDES[side])throw new Error(
     "wall-side undeclared or unknown ("+String(side)+"): every panel on this page must declare "+

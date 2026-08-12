@@ -84,8 +84,13 @@ INJECTION_POINTS = {
 # legitimately discusses these figures in the exhibit's explanatory header).
 COMPANY_ONLY_FIGURES = {
     "lifetime revenue": (r'class="rl">Lifetime Revenue<', r'>Combined Revenue<'),
-    "lifetime net": (r'class="rl">Lifetime Net Margin<', r'class="kpi-label">Lifetime net<',
-                     r'>Combined Net Margin<'),
+    # Anchored on the label PREFIX, not the closing '<'. This atom's own 2026-08-12
+    # caption fix renamed the tile to "Lifetime net (commodity)" and added "Net after
+    # cost to serve"; a '<'-anchored pattern went silently blind to both, which is the
+    # narrowed-parser class. test_the_named_figures_are_visible_to_the_checker below
+    # now fails if any of these ever stops matching the page.
+    "lifetime net": (r'class="rl">Lifetime Net Margin<', r'class="kpi-label">Lifetime net',
+                     r'class="kpi-label">Net after cost to serve', r'>Combined Net Margin<'),
     "cost-to-serve": (r'class="rl">Cost to Serve<', r'class="kpi-label">Cost to serve<',
                       r'>Cost to Serve \(lifetime\)<'),
     "churn probability": (r'class="kpi-label">Churn Probability<', r'class="kpi-label">Churn risk<'),
@@ -209,28 +214,132 @@ def _dual_fuel_pair() -> tuple[Path, Path]:
     return elec, gas
 
 
-@pytest.fixture(scope="module")
-def rendered() -> dict:
-    elec, gas = _dual_fuel_pair()
+class _TopLevelSplit(HTMLParser):
+    """Splits a fragment into its TOP-LEVEL element children, keeping each child's raw
+    html and its declared wall side. Used to hand the #op-state region to the node
+    harness as real DOM children, so the page's own view filter can act on them."""
+
+    VOID = {"br", "hr", "img", "input", "meta", "link", "source", "col"}
+
+    def __init__(self, raw: str) -> None:
+        super().__init__(convert_charrefs=False)
+        self.raw = raw
+        self.lines = raw.splitlines(keepends=True)
+        self.depth = 0
+        self.start: int | None = None
+        self.side: str | None = None
+        self.children: list[dict] = []
+
+    def _off(self) -> int:
+        line, col = self.getpos()
+        return sum(len(x) for x in self.lines[: line - 1]) + col
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        if self.depth == 0:
+            self.start = self._off()
+            self.side = dict(attrs).get("data-wall-side")
+        self.depth += 1
+
+    def handle_endtag(self, tag):
+        if tag in self.VOID:
+            return
+        self.depth -= 1
+        if self.depth == 0 and self.start is not None:
+            end = self.raw.index(">", self._off()) + 1
+            self.children.append({"side": self.side, "html": self.raw[self.start:end]})
+            self.start = None
+
+
+RENDER_HARNESS = HERE / "_render_harness.mjs"
+COMPANY_DATA = HERE.parent / "data" / "company.json"
+
+
+def _op_state_injected() -> dict[str, str]:
+    """The op-state region's FIGURES, as its own script renders them.
+
+    The exhibit panels ship as empty placeholders (`<div id="cust-value">`); the first
+    inline script fills them from company.json at runtime. A union subject built from the
+    static shell alone would contain no `Lifetime net`, `Cost to serve`, `Churn risk` or
+    `Satisfaction` label at all -- i.e. it would be blind to the exact figures cold-eyes
+    found on screen in the customer view. So the shell is filled here first, from the same
+    published data the live page reads.
+    """
     proc = subprocess.run(
-        [NODE, str(HARNESS), str(INDEX), str(elec), str(gas)],
+        [NODE, str(RENDER_HARNESS), str(INDEX)],
+        input=COMPANY_DATA.read_text(encoding="utf-8"),
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, f"op-state render harness failed: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    filled = {k: v["innerHTML"] for k, v in out.items() if v and v["innerHTML"]}
+    assert filled, "the op-state script rendered nothing -- the union subject would be a shell"
+    return filled
+
+
+def _op_state_children(frag: str) -> list[dict]:
+    # Drop the wrapper <div id="op-state" ...> so we split its CHILDREN, not itself.
+    inner = frag[frag.index(">", frag.index('<div id="op-state"')) + 1:]
+    inner = inner[: inner.rindex("</div>")]
+    for el_id, html in _op_state_injected().items():
+        inner = re.sub(rf'(id="{re.escape(el_id)}"[^>]*>)', lambda m: m.group(1) + html, inner, count=1)
+    p = _TopLevelSplit(inner)
+    p.feed(inner)
+    p.close()
+    assert p.children, "op-state region split into no children -- the view test would be vacuous"
+    return p.children
+
+
+@pytest.fixture(scope="module")
+def rendered(tmp_path_factory) -> dict:
+    elec, gas = _dual_fuel_pair()
+    spec = tmp_path_factory.mktemp("opstate") / "children.json"
+    spec.write_text(json.dumps(_op_state_children(_op_state_fragment())), encoding="utf-8")
+    proc = subprocess.run(
+        [NODE, str(HARNESS), str(INDEX), str(elec), str(gas), str(spec)],
         capture_output=True, text=True, timeout=60,
     )
     assert proc.returncode == 0, f"wall harness failed: {proc.stderr}"
     out = json.loads(proc.stdout)
     assert out["views"]["both"], "harness rendered no tabs -- guard would be vacuous"
+    assert out["opState"]["both"], "harness rendered no op-state -- union guard would be vacuous"
     return out
 
 
-@pytest.fixture(scope="module")
-def op_state_html() -> str:
-    """The server-rendered top-of-page region, extracted from the file itself."""
+def _op_state_fragment() -> str:
     html = INDEX.read_text(encoding="utf-8")
     start = html.index('<div id="op-state"')
     end = html.index("<script>", start)
     frag = html[start:end]
     assert "wall-panel" in frag, "op-state region declares no panels at all"
     return frag
+
+
+@pytest.fixture(scope="module")
+def op_state_html() -> str:
+    """The server-rendered top-of-page region, extracted from the file itself."""
+    return _op_state_fragment()
+
+
+def whole_document(rendered: dict, view: str) -> str:
+    """THE SUBJECT THAT WAS MISSING.
+
+    Every view-filtering assertion in this module used to run against `rendered["views"]`
+    alone -- the drill-down. The static exhibit above it was a separate fixture that only
+    ever checked side DECLARATION. So "the customer view shows only customer panels" was
+    green while the live page rendered churn risk, cost-to-serve, lifetime net and a SIM
+    satisfaction score in that very view (cold-eyes, 2026-08-12). This function returns
+    what a reader of the page in `view` actually has in front of them: the surviving
+    op-state region PLUS every drill-down tab. Any check whose subject is this cannot be
+    passed by a region the view switch does not reach.
+    """
+    return rendered["opState"][view] + "".join(rendered["views"][view].values())
+
+
+def sides_in(html: str) -> set[str]:
+    """The distinct wall sides a rendered fragment actually declares."""
+    return {p["side"] for p in scan(html).panels}
 
 
 # ===========================================================================
@@ -517,3 +626,155 @@ def test_the_scanner_itself_fails_closed_on_empty_input():
     # and the door test that uses saw_panel must therefore fail on it
     with pytest.raises(AssertionError):
         assert s.saw_panel, "op-state declares no wall panels"
+
+
+# ===========================================================================
+# (9) THE VIEW SELECTOR GOVERNS THE WHOLE PAGE
+#
+# Added 2026-08-12 after the Expert-Hour cold-eyes walk. Everything above this
+# point had one of two subjects -- the drill-down panels, or the op-state region's
+# side DECLARATIONS -- and neither is the document a reader sees. The live page
+# was rendering `Lifetime net`, `Cost to serve`, `Churn risk` and `Satisfaction`
+# inside "The customer's side" while all 24 tests were green. These tests take
+# the union as their subject, so no region can sit outside the control again.
+# ===========================================================================
+def test_the_customer_view_of_the_whole_page_contains_no_company_or_sim_panel(rendered):
+    doc = whole_document(rendered, "customer")
+    assert scan(doc).saw_panel, "no panels at all in the customer view -- check would be vacuous"
+    leaked = sorted(x for x in sides_in(doc) if x != "customer")
+    assert not leaked, (
+        f"the customer view of the WHOLE page renders {leaked} panels. The page's own note "
+        f"in this view says 'if one appears, the page is broken'."
+    )
+
+
+def test_the_behind_view_of_the_whole_page_contains_no_customer_panel(rendered):
+    doc = whole_document(rendered, "behind")
+    assert scan(doc).saw_panel, "no panels at all in the behind view -- check would be vacuous"
+    assert "customer" not in sides_in(doc), (
+        "the behind-the-wall view of the WHOLE page renders customer-observable panels, "
+        "under a note claiming everything on this side is invisible to the account holder"
+    )
+
+
+def test_no_named_company_only_figure_survives_anywhere_in_the_customer_view(rendered):
+    leaked = figure_violations(whole_document(rendered, "customer"), COMPANY_ONLY_FIGURES)
+    assert not leaked, (
+        f"company-only figures {leaked} render in the customer-eye view of the whole page"
+    )
+
+
+def test_no_named_sim_only_figure_survives_anywhere_in_the_customer_view(rendered):
+    leaked = figure_violations(whole_document(rendered, "customer"), SIM_ONLY_FIGURES)
+    assert not leaked, (
+        f"SIM-only figures {leaked} render in the customer-eye view of the whole page"
+    )
+
+
+def test_the_op_state_region_is_actually_filtered_not_merely_reordered(rendered):
+    """ANTI-VACUITY, both directions. The union tests above would also pass if the
+    harness simply returned an empty op-state for the filtered views, or if every view
+    returned the same html (which is exactly the defect)."""
+    both, cust, behind = (rendered["opState"][v] for v in ("both", "customer", "behind"))
+    assert cust and behind, "a filtered view rendered an EMPTY op-state -- that is not a view"
+    assert cust != both and behind != both, (
+        "the op-state region is identical across views -- the view switch does not reach it"
+    )
+    # and the two filtered views must partition it, not overlap
+    assert "customer" in sides_in(cust)
+    assert sides_in(behind) and "customer" not in sides_in(behind)
+
+
+def test_the_customer_view_still_carries_the_customers_own_exhibit_panels(rendered):
+    """The cheapest way to pass the tests above is to delete the exhibit from the
+    customer view entirely. It must still render the household's own money."""
+    cust = rendered["opState"]["customer"]
+    assert 'id="cust-money"' in cust and 'id="cust-who"' in cust, (
+        "the customer view dropped the household's own account and money panels"
+    )
+    assert 'id="cust-value"' not in cust and 'id="cust-sim"' not in cust, (
+        "the customer view kept the company-value or SIM panel placeholders"
+    )
+
+
+def test_mutation_a_view_switch_that_skips_the_op_state_region_kills_a_named_test(tmp_path):
+    """R15, the defect this section exists for: restore the pre-fix setWallView (drill-down
+    only) and the union guard must fail. Proven on the FILE, driven through the real harness."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "function setWallView(v){WALL_VIEW=v;applyWallViewToOpState();renderHousehold();}"
+    assert marker in src, "setWallView no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker, "function setWallView(v){WALL_VIEW=v;renderHousehold();}"),
+        encoding="utf-8",
+    )
+    elec, gas = _dual_fuel_pair()
+    spec = tmp_path / "children.json"
+    spec.write_text(json.dumps(_op_state_children(_op_state_fragment())), encoding="utf-8")
+    proc = subprocess.run(
+        [NODE, str(HARNESS), str(mutant), str(elec), str(gas), str(spec)],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, f"mutant harness failed: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    leaked = figure_violations(whole_document(out, "customer"), COMPANY_ONLY_FIGURES)
+    assert leaked, (
+        "MUTATION SURVIVED: setWallView stopped filtering the exhibit and no company-only "
+        "figure was reported in the customer view -- the union guard is not doing the work"
+    )
+    assert "customer" in sides_in(out["opState"]["behind"]), (
+        "MUTATION SURVIVED: the unfiltered behind view showed no customer panels"
+    )
+
+
+def test_mutation_an_op_state_block_with_an_unknown_side_is_refused(rendered):
+    """R15, fail-closed: a block declaring a side the wall does not know cannot be
+    filtered, so the page must REFUSE it rather than render it in every view."""
+    msg = rendered["opStateProbes"]["unknown_side_block"]
+    assert msg and "unknown wall-side" in msg, (
+        "an op-state block declaring side='marketing' was accepted -- it would then render "
+        f"in the customer view unfiltered (got {msg!r})"
+    )
+
+
+def test_the_named_figures_are_visible_to_the_checker_in_the_op_state_exhibit(rendered):
+    """ANTI-BLINDNESS. The union checks above are only worth anything if the checker can
+    actually SEE the figures cold-eyes found on screen. This atom's own caption fix proved
+    the risk: renaming a tile to "Lifetime net (commodity)" made a '<'-anchored pattern stop
+    matching, and every leak test went quietly green. If a rename blinds the checker again,
+    this fails first."""
+    both = rendered["opState"]["both"]
+    found_co = set(figure_violations(both, COMPANY_ONLY_FIGURES))
+    found_sim = set(figure_violations(both, SIM_ONLY_FIGURES))
+    for name in ("lifetime net", "cost-to-serve", "churn probability"):
+        assert name in found_co, (
+            f"the checker can no longer see {name!r} in the op-state exhibit -- either the "
+            f"page stopped rendering it or its pattern was blinded by a rename"
+        )
+    assert "satisfaction score" in found_sim, (
+        "the checker can no longer see the SIM satisfaction score in the op-state exhibit"
+    )
+
+
+def test_a_view_filtered_panel_is_still_fillable_when_its_data_lands():
+    """The op-state script fills its placeholders from an async fetch. Once the view
+    selector REMOVES a panel from the document, document.getElementById can no longer
+    reach it, so a view switch racing that fetch would throw inside renderCustomerState
+    and blank the whole exhibit. This pins the fallback path that prevents it.
+
+    LIMIT, stated: this is a source-level wiring pin, not a rendered assertion -- the
+    harness's document stub resolves every id, so it cannot reproduce a detached node.
+    The rendered proof is the live-surface check recorded against this atom.
+    """
+    src = INDEX.read_text(encoding="utf-8")
+    assert "window.opStateFind=function(id){" in src, (
+        "the detached-block lookup is gone -- a filtered panel can no longer be filled"
+    )
+    assert "document.getElementById(id)||(window.opStateFind&&window.opStateFind(id))" in src, (
+        "the op-state script's el() no longer falls back to the detached blocks"
+    )
+    # and the lookup must search the SAME cache the filter detaches into
+    lookup = src[src.index("window.opStateFind=function(id){"):]
+    assert "OP_STATE_BLOCKS" in lookup[:400], (
+        "opStateFind does not search OP_STATE_BLOCKS -- it cannot find a detached panel"
+    )
