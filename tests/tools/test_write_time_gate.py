@@ -153,6 +153,66 @@ def test_g6_does_not_fire_when_the_record_is_honest() -> None:
     assert g.evaluate([NEW_MODULE], msg, idx)["status"] == "OK"
 
 
+# ── G6 is about DISCLOSURE, not phrasing (2026-08-09 finding, part 2) ───────────────────────
+# Two honest records were really refused for a bare quantifier: one naming three neighbours and
+# saying "each considered, none extended", one naming its three matches and saying "nothing else
+# composes this". Both are the MOST informative form of the record. The wall to keep while fixing
+# it: G6 is the only guard with an INDEPENDENT source (R15), so it must still fire on a record
+# that discloses nothing -- `test_g6_contradicted_by_the_live_index` above is that direction, and
+# the mutation table below re-proves it after every edit.
+
+def test_g6_accepts_a_record_that_names_its_matches_then_says_none_extended() -> None:
+    """Instance 1: neighbours named by dotted module, a nothing-word about the REMAINDER."""
+    msg = record(CLASS="CUSTOM",
+                 INDEX='searched "late payment", "arrears" -- company.billing.dunning and '
+                       "company.billing.arrears_ageing both looked, each considered, none "
+                       "extended: neither prices a charge")
+    idx = rows(("company.billing.dunning", "late payment chasing and dunning ladder"),
+               ("company.billing.arrears_ageing", "arrears ageing buckets"))
+    assert g.evaluate([NEW_MODULE], msg, idx)["status"] == "OK"
+
+
+def test_g6_accepts_a_record_naming_matches_by_bare_module_name() -> None:
+    """Instance 2's shape: the matches named, then 'nothing else composes this'."""
+    msg = record(CLASS="CUSTOM",
+                 INDEX='searched "late payment", "charge" -- the only rows returned are dunning '
+                       "and arrears_ageing themselves; nothing else in the index composes "
+                       "a per-account late charge")
+    idx = rows(("company.billing.dunning", "late payment chasing"),
+               ("company.billing.arrears_ageing", "arrears ageing charge buckets"))
+    assert g.evaluate([NEW_MODULE], msg, idx)["status"] == "OK"
+
+
+def test_g6_still_fires_when_only_the_searched_term_resembles_the_match() -> None:
+    """The false-negative this fix could have bought: searching "dunning" is not disclosing
+    `company.billing.dunning`. The quoted terms are subtracted before looking for names."""
+    msg = record(CLASS="CUSTOM", INDEX='searched "dunning" -- no existing row covers this')
+    idx = rows(("company.billing.dunning", "late payment chasing and dunning ladder"))
+    out = g.evaluate([NEW_MODULE], msg, idx)
+    assert out["status"] == "REJECT" and "G6" in " ".join(out["findings"])
+
+
+def test_g6_does_not_count_the_records_own_subject_as_a_contradiction() -> None:
+    """A row for the module being added is the file in the commit, not prior art. This is what
+    really refused the three composition roots: they were on disk, so the index returned them."""
+    msg = record(CLASS="CUSTOM",
+                 INDEX='searched "late payment charge" -- no other row covers this')
+    idx = rows((NEW_MODULE[:-3].replace("/", "."), "late payment charge calculator"))
+    assert idx[0]["path"] == NEW_MODULE, "fixture must model the subject's OWN row"
+    assert g.evaluate([NEW_MODULE], msg, idx)["status"] == "OK"
+    # ...and a sibling row that is NOT the subject still contradicts
+    idx.append(rows(("company.billing.dunning", "late payment charge chasing"))[0])
+    assert g.evaluate([NEW_MODULE], msg, idx)["status"] == "REJECT"
+
+
+def test_names_a_match_is_not_satisfied_by_a_short_or_glued_token() -> None:
+    """Unit-level guard on the naming test itself: no 3-letter tails, no substring hits."""
+    assert not g.names_a_match({"INDEX": "vat handling elsewhere"}, ["company.tax.vat"])
+    assert not g.names_a_match({"INDEX": "see redunningx notes"}, ["company.billing.dunning"])
+    assert g.names_a_match({"INDEX": "nearest is dunning, which chases"},
+                           ["company.billing.dunning"])
+
+
 def test_the_wall_holds() -> None:
     """THE WALL (director): the gate compels the look and the record, NEVER the reuse decision.
 

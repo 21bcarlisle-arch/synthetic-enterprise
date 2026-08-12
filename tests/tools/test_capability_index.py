@@ -252,6 +252,105 @@ def test_untracked_new_top_level_package_is_not_silently_unindexed(tree):
 
 
 # ---------------------------------------------------------------------------
+# R15 — trackedness: "in this working tree" is not "in the repo"
+#
+# The named defect (WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09):
+# three composition roots read `wired` with five callers each while `git
+# ls-files` carried none of them. The rows come from a filesystem walk, so an
+# untracked file was indistinguishable from a committed one, and the index —
+# whose whole job is answering "do we already have this?" — said yes about a
+# module a fresh checkout does not have.
+#
+# VACUITY DIRECTION, flagged by the finding itself: a clean tree has ZERO
+# untracked capability modules, so a guard asserted against the live repo would
+# pass without ever running. Every test here SEEDS one.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def untracked_module(tree):
+    """A module on disk that git does not carry — and something that imports it.
+
+    The caller matters: without it the row would be an `orphan` anyway and the
+    test would not distinguish the new status from the old one. With it, the
+    pre-fix index called this `wired`, which is the exact false claim.
+    """
+    (tree / "company" / "billing" / "composition_root.py").write_text(
+        '"""Composition root — assemble the billing run."""\ndef main():\n    pass\n',
+        encoding="utf-8",
+    )
+    # runner.py is already tracked; editing it does not untrack it, so the ONLY
+    # untracked file in the tree is the capability module itself.
+    (tree / "tools" / "runner.py").write_text(
+        '"""Command that runs the billing engine."""\n'
+        "import company.billing.engine\n"
+        "import company.billing.composition_root\n"
+        'if __name__ == "__main__":\n    pass\n',
+        encoding="utf-8",
+    )
+    return tree
+
+
+def test_a_module_git_does_not_track_is_stated_untracked_not_wired(untracked_module):
+    row = rows_by_module(ci.build_rows(untracked_module))["company.billing.composition_root"]
+    assert row["callers"], "fixture is inert unless something really imports it"
+    assert row["tracked"] is False
+    assert row["status"] == "untracked", (
+        "a file a fresh checkout does not have cannot be reported `wired` — "
+        "local callers do not put it in the repo"
+    )
+
+
+def test_the_untracked_row_fails_the_check(untracked_module, monkeypatch):
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    findings = ci.integrity_findings(ci.build_rows(untracked_module), untracked_module)
+    assert any("UNTRACKED ROW" in f and "composition_root.py" in f for f in findings)
+
+
+def test_committing_the_same_module_clears_it_and_it_reads_wired(untracked_module, monkeypatch):
+    """The other direction: a guard that cannot pass is a wedge, not a control."""
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    subprocess.run(["git", "add", "-A"], cwd=untracked_module, check=True)
+    rows = ci.build_rows(untracked_module)
+    row = rows_by_module(rows)["company.billing.composition_root"]
+    assert row["tracked"] is True and row["status"] == "wired"
+    assert ci.integrity_findings(rows, untracked_module) == []
+
+
+def test_an_untracked_unparseable_file_raises_both_findings_not_one(tree, monkeypatch):
+    """The two checks must not mask each other — hence check 5 keys off the
+    `tracked` FIELD, not off the status the file would otherwise carry."""
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    (tree / "company" / "billing" / "broken.py").write_text("def oops(:\n", encoding="utf-8")
+    rows = ci.build_rows(tree)
+    assert rows_by_module(rows)["company.billing.broken"]["status"] == "unparsed"
+    findings = ci.integrity_findings(rows, tree)
+    assert any("UNPARSED" in f for f in findings)
+    assert any("UNTRACKED ROW" in f and "broken.py" in f for f in findings)
+
+
+def test_trackedness_unresolved_is_a_finding_never_a_quiet_pass(tree, monkeypatch):
+    """FAIL-SILENT killer: when git stops answering, check 5 stops firing —
+    so the unresolved verdict itself has to fail."""
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    monkeypatch.setattr(ci, "tracked_paths", lambda *a, **k: None)
+    rows = ci.build_rows(tree)
+    assert all(r["tracked"] is None for r in rows)
+    findings = ci.integrity_findings(rows, tree)
+    assert any("TRACKEDNESS UNRESOLVED" in f for f in findings)
+
+
+def test_a_tree_that_is_not_a_git_repo_still_derives_an_index(tmp_path):
+    """`build_rows` runs against scratch trees (tools/orphan_ratchet.py builds
+    an index of one). Refusing to derive there would break a live consumer —
+    the verdict is `null`, and check 6 is what stops that reading as clean."""
+    (tmp_path / "company").mkdir()
+    (tmp_path / "company" / "thing.py").write_text('"""A thing."""\n', encoding="utf-8")
+    rows = ci.build_rows(tmp_path)
+    assert [r["module"] for r in rows] == ["company.thing"]
+    assert rows[0]["tracked"] is None
+
+
+# ---------------------------------------------------------------------------
 # R15 — fail-silent
 # ---------------------------------------------------------------------------
 
@@ -438,6 +537,9 @@ def test_a_no_consumer_claim_holds_when_the_package_really_has_no_door(tree):
     (tree / "company" / "carbon" / "__init__.py").write_text("", encoding="utf-8")
     (tree / "company" / "carbon" / "ledger.py").write_text(
         '"""Carbon ledger nothing drives."""\nVALUE = 1\n', encoding="utf-8")
+    # tracked, or the subject is `untracked` rather than an orphan and the
+    # register row is stale — the register rules on what the REPO carries
+    subprocess.run(["git", "add", "-A"], cwd=tree, check=True)
     write_register(tree, HEALTHY_ROW + "\ncompany.carbon.ledger | unhooked | "
                                        "none:company.carbon | no consumer exists")
     assert ci.disposition_findings(ci.build_rows(tree), tree) == []

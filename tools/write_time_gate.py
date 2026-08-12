@@ -161,6 +161,38 @@ def claims_nothing_exists(record: dict[str, str]) -> bool:
     return bool(_NOTHING_CLAIMED.search(record.get("INDEX", "")))
 
 
+def disclosure_text(record: dict[str, str]) -> str:
+    """The INDEX line MINUS its quoted search terms -- what the record says it FOUND.
+
+    The subtraction is the point. The terms are what you typed INTO the index; only the prose
+    around them is what came back out. Leaving them in would let a search for "dunning" count
+    as having disclosed `company.billing.dunning`, which is the false negative that would gut
+    G6 while looking like a fix for its false positive."""
+    return _QUOTED_TERM.sub(" ", record.get("INDEX", ""))
+
+
+def names_a_match(record: dict[str, str], hits: list[str]) -> bool:
+    """Does the record NAME at least one of the modules the index returned? Pure.
+
+    G6's real subject is a record that discloses NOTHING while the index answers. Keying it to
+    a negation word instead made it a phrasing check, and it refused two honest records for it
+    (WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09, finding 2): both named their
+    matches and then said "none extended" / "nothing else composes this" about the remainder,
+    which is the MOST informative form of the record and the one most likely to trip.
+
+    A dotted name, a repo path, or a distinctive final segment all count as naming -- the
+    disclosure is what G6 wants, and the only way to satisfy this is to have made it."""
+    text = disclosure_text(record).lower()
+    for mod in hits:
+        tail = mod.rsplit(".", 1)[-1]
+        for token in (mod.lower(), mod.replace(".", "/").lower(), tail.lower()):
+            if len(token) < 4:
+                continue
+            if re.search(rf"(?<![\w.]){re.escape(token)}(?![\w])", text):
+                return True
+    return False
+
+
 # ── the guards ──────────────────────────────────────────────────────────────────────────────
 def _guard_shape(path: str, record: dict[str, str]) -> list[str]:
     """G1-G5: the record exists and is internally complete for the class it declares."""
@@ -196,15 +228,25 @@ def _guard_index_contradiction(path: str, record: dict[str, str], rows: list[dic
     the record against itself, so a record could be internally perfect and factually false. Here the
     filesystem-derived index gets to contradict the claim. It fires on the FALSE-NEGATIVE direction
     only -- claiming emptiness that is not there -- never on a builder who looked, found something,
-    and chose to write fresh anyway. That choice is the director's to leave open, not this gate's."""
+    and chose to write fresh anyway. That choice is the director's to leave open, not this gate's.
+
+    TWO EXCLUSIONS, each from a real false refusal (2026-08-09 finding, part 2):
+      * the record's OWN subject. A row for the module being added is not evidence the capability
+        already existed -- it is the file in the commit. `_index_matches` already drops it in
+        `explain`; G6 was the half that did not.
+      * a record that NAMES what it found. G6 asks "did you disclose?", and a record listing its
+        matches has, whatever quantifier it then uses about the remainder."""
     if not claims_nothing_exists(record):
         return []
     hits = []
     for term in index_terms(record):
         for row in find(rows, term):
-            if row.get("module") and row["module"] not in hits:
-                hits.append(row["module"])
+            mod, rel = row.get("module"), (row.get("path") or "").replace("\\", "/")
+            if mod and mod not in hits and rel != path:
+                hits.append(mod)
     if not hits:
+        return []
+    if names_a_match(record, hits):
         return []
     return [f"{path}: G6 the record says the index found nothing, but "
             f'"{index_terms(record)[0]}" and its siblings return {len(hits)} row(s): '

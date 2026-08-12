@@ -52,6 +52,8 @@ Per row, matching the proposal's four questions:
   status       -- `wired` (some production module imports it), `entrypoint`
                   (nothing imports it but it runs as a command), or `orphan`
                   (neither). Derived from real import edges, never asserted.
+                  `untracked` OVERRIDES all three: a file git does not track is
+                  not something the repo has, whoever it imports (see check 5).
   evidence     -- the test files that import it. Nothing can be claimed here
                   that does not exist, because the list IS the grep.
   demo         -- how you would see it work: a site surface it writes, a test
@@ -86,6 +88,23 @@ So the integrity checks are the substance of this file, not its trim:
                          `unparsed`) AND raises an integrity finding. It is
                          never dropped: a capability the index cannot read is
                          not a capability that does not exist.
+  5. UNTRACKED IS NOT  -- the rows come from a filesystem WALK, so until this
+     `wired`             check existed an untracked file was indistinguishable
+                         from a committed one. Three composition roots really
+                         did read `wired`, five callers each, while `git
+                         ls-files` carried none of them
+                         (WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE
+                         2026-08-09): the index was answering "do we already
+                         have this?" about ONE WORKING TREE, and on the fresh
+                         checkout the honest answer was no. Such a row is now
+                         stated `untracked` and FAILS `--check`. The
+                         trackedness verdict itself is fail-silent-proofed by
+                         check 6: unresolved is a finding, never a pass.
+  6. TRACKEDNESS RESOLVED -- rows built while the git oracle was unavailable
+                         carry `tracked: null`, and that FAILS too. An
+                         unavailable check is a FAILED check; without this,
+                         check 5 would silently stop firing exactly when git
+                         stopped answering.
 
 Exit codes: 0 = index built and trustworthy, 1 = built but integrity findings
 (do not stand behind it), 2 = could not run at all. rc 2 is distinct from rc 0
@@ -215,6 +234,24 @@ def tracked_python_files(root: Path | None = None) -> list[str]:
         raise RuntimeError("capability_index: git ls-files listed 0 Python files -- an empty "
                            "oracle cannot witness an empty index")
     return files
+
+
+def tracked_paths(root: Path | None = None) -> set[str] | None:
+    """The oracle as a SET for row-level lookup, or None when it cannot answer.
+
+    Deliberately non-raising, unlike `tracked_python_files`: `build_rows` runs
+    against trees that are not git repositories at all (the orphan ratchet
+    builds an index of a scratch tree), and an index that refuses to derive
+    there would be a worse failure than one that says "I could not tell".
+
+    "Could not tell" is NOT allowed to read as "tracked", though — that is the
+    fail-silent shape this whole check exists to close. None propagates to
+    `tracked: null` on every row, and `integrity_findings` fails on it.
+    """
+    try:
+        return set(tracked_python_files(root))
+    except RuntimeError:
+        return None
 
 
 def source_files(root: Path | None = None) -> list[str]:
@@ -373,6 +410,7 @@ def _seed_rows(rels: list[str]) -> tuple[dict[str, dict], dict[str, str], list[s
         by_module[mod] = {
             "module": mod, "path": rel, "plain_words": None, "status": "orphan",
             "callers": [], "evidence": [], "demo": [], "search_blob": "", "note": None,
+            "tracked": None,
         }
         by_path[rel] = mod
         order.append(mod)
@@ -455,6 +493,27 @@ def _finalise(by_module: dict[str, dict], order: list[str], texts: dict) -> None
         row["demo"] = _demo_channels(texts.get(mod, ""), row)
 
 
+def _mark_trackedness(by_module: dict[str, dict], order: list[str],
+                      tracked: set[str] | None) -> None:
+    """Stamp each row with git's verdict on its path, and restate the status.
+
+    Runs AFTER `_finalise`, because it overrides what the import edges said:
+    callers make a file `wired` in this working tree, but a file the repo does
+    not carry is not a capability the repo has, however many local modules
+    import it. `unparsed` is left standing (its own finding is about a file
+    that cannot be read, which is still true) — check 5 keys off the `tracked`
+    field rather than the status precisely so the two never mask each other.
+    """
+    for mod in order:
+        row = by_module[mod]
+        if tracked is None:
+            row["tracked"] = None
+            continue
+        row["tracked"] = row["path"] in tracked
+        if not row["tracked"] and row["status"] != "unparsed":
+            row["status"] = "untracked"
+
+
 def build_rows(root: Path | None = None) -> list[dict]:
     """The index: one row per production module, every field derived from source."""
     base = root or ROOT
@@ -462,6 +521,7 @@ def build_rows(root: Path | None = None) -> list[dict]:
     trees, texts = _read_sources(base, by_module, order)
     _wire_edges(base, by_module, by_path, order, trees, texts)
     _finalise(by_module, order, texts)
+    _mark_trackedness(by_module, order, tracked_paths(base))
     return [by_module[m] for m in order]
 
 
@@ -565,6 +625,27 @@ def integrity_findings(rows: list[dict], root: Path | None = None) -> list[str]:
         findings.append(
             "UNPARSED: %d file(s) could not be read, so their capability is unknown: %s"
             % (len(unparsed), ", ".join(r["path"] for r in unparsed[:10]))
+        )
+
+    # 5. a row git does not track is a claim the index cannot support
+    untracked = [r for r in rows if r.get("tracked") is False]
+    if untracked:
+        findings.append(
+            "UNTRACKED ROW: %d row(s) have no committed file behind them, so a fresh "
+            "checkout does not have them and the index is answering for one working "
+            "tree: %s" % (len(untracked), ", ".join(sorted(r["path"] for r in untracked)[:10])
+                          + (" ..." if len(untracked) > 10 else ""))
+        )
+
+    # 6. and a trackedness verdict that never resolved is not a clean one
+    unresolved = [r for r in rows if r.get("tracked") is None]
+    if unresolved:
+        findings.append(
+            "TRACKEDNESS UNRESOLVED: %d row(s) were built while the git oracle could not "
+            "answer, so `untracked` could not be told from `wired` -- an unavailable check "
+            "is a FAILED check, not a quiet pass: %s"
+            % (len(unresolved), ", ".join(sorted(r["path"] for r in unresolved)[:10])
+               + (" ..." if len(unresolved) > 10 else ""))
         )
     return findings
 
@@ -910,9 +991,10 @@ def main(argv: list[str] | None = None) -> int:
     elif not args.check:
         wired = sum(1 for r in rows if r["status"] == "wired")
         entry = sum(1 for r in rows if r["status"] == "entrypoint")
-        print("CAPABILITY INDEX: %d rows -- %d wired, %d entrypoint, %d orphan, %d unnamed, "
-              "%d with no test evidence"
-              % (len(rows), wired, entry, len(orphans(rows)), len(unnamed(rows)),
+        untracked = sum(1 for r in rows if r.get("tracked") is False)
+        print("CAPABILITY INDEX: %d rows -- %d wired, %d entrypoint, %d orphan, %d untracked, "
+              "%d unnamed, %d with no test evidence"
+              % (len(rows), wired, entry, len(orphans(rows)), untracked, len(unnamed(rows)),
                  sum(1 for r in rows if not r["evidence"])))
         print("query it: --find TERM | --orphans | --unnamed | --json")
 
