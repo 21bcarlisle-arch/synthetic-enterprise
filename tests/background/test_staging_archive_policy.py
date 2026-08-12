@@ -305,8 +305,21 @@ def test_background_worker_finds_the_supersession_frontier_in_exhaust(staging):
 
 
 def test_process_run_complete_still_sees_a_duplicate_after_the_sweep(staging, monkeypatch):
+    """After the sweep empties done/, a marker already published by another
+    process must still be RECOGNISED -- located in the exhaust tree, not read
+    as fresh work and republished over current figures.
+
+    The property is `locate()` reaching into exhaust, not the numeric code.
+    Asserted against the named register so it survives an exit-code rename:
+    the two ways to fail are rc=0 (republished the stale snapshot -- the AO10
+    regression this test exists for) and rc=1 (marker not found, which alarms
+    the wedge for nothing). Both are excluded by membership below.
+    """
     from background import process_run_complete
     monkeypatch.setattr(process_run_complete, "DONE_DIR", staging)
     _sweep(staging)
     rc = process_run_complete._process(str(staging.parent / "run_complete_20260808T235122Z.md"))
-    assert rc == 0  # recognised as an already-processed duplicate, not an error
+    # A duplicate publishes NOTHING (2026-08-12): it is neither a success (0)
+    # nor an error (1), and says so in its own exit code.
+    assert rc == process_run_complete.EXIT_NOTHING_PUBLISHED
+    assert rc in process_run_complete.NO_PUBLISH_EXIT_CODES
