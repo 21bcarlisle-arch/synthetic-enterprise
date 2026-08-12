@@ -5110,3 +5110,39 @@
   file_scope: ['background/sanity_daemon.py', 'tests/background/test_aged_staging_digest.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a ticket queue that reports its oldest untouched item every morning, so age is never invisible"
+
+- id: D36_bill_render_footing_and_pence
+  title: "The printed bill foots on its face, in pence, with its catch-up line shown"
+  gain: "A bill can pass every ledger invariant and still be unreadable to the person holding it -- BILL_FOOTS already passes this exact record while the rendered page hides the one line that explains a negative total."
+  name: "MINTED FROM Part 1 of DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 (advisor-staged, director-ruled in session 2026-08-12) -- the ruling carries NO formal 'WORK THIS CREATES' block (a defect per DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27 section 4), so this atom is derived directly from Part 1's own Requirements/Non-negotiables sections rather than a named deliverable list; the author was asked to supply the missing block, not silently absorbed. Bill C1g-INV141 (gas, Sep 2021) renders four charge lines totalling ~26 pounds and a total of minus 2 pounds, with nothing on the page explaining the sign -- the record is correct (catchup_adjustment_gbp=-28.40, BILL_FOOTS already passes it) but the rendered page hides the fifth component that decides the sign, and every money figure on the bill path resolves to a zero-decimal gbp() built for portfolio totals, not the pence-precision one. EXIT: (1) the catch-up adjustment prints as its own labelled line in both billEquationHtml() (on-screen) and downloadBillPdf() (PDF) whenever catchup_adjustment_gbp is non-zero, naming the correcting period from catchup_period_start/catchup_period_end; (2) the rendered lines sum to the rendered total to the penny, reusing BILL_FOOTS's own component set rather than a second hand-kept list in the renderer; (3) money on the bill path renders in pounds and pence -- checked against a genuinely non-integer value (e.g. minus 2.43 pounds), never rounded to whole pounds; (4) the printed catch-up figure is carried through from the ledger's catchup_adjustment_gbp, never re-derived in the render layer (generate_invoice_data.py already documents 86.1% of invoices failing their own multiplication when a printed figure was re-derived instead of carried); (5) R15 both ways -- a mutation dropping the fifth line, and one reverting the bill path to the zero-decimal formatter, each kill a NAMED test; (6) the ruling's own motivating record, C1g-INV141, renders its four charge lines plus the catch-up line summing to minus 2.43 pounds exactly, in pence, checked live. No ledger, generator or invariant change -- BILL_FOOTS and the underlying record are already correct; this is render-layer only."
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 1
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [D_printed_figure_rederivation, D_money_boundary_reconciliation]
+  file_scope: ['site/customers/index.html', 'tests/company/compliance/test_printed_bill_foots_render.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a bank statement that shows a chargeback reversal as its own line rather than folding it silently into a total the customer cannot reconstruct"
+
+- id: SITE2_two_sided_wall_exhibit
+  title: "The household page stops calling itself a customer portal and becomes the wall's own exhibit"
+  gain: "A page that shows a visitor a customer's own churn probability under a banner inviting them to 'view your household' misrepresents, on a public surface, the exact separation this project exists to demonstrate -- and every existing label protecting that separation today is prose, which a new panel can bypass just by omitting it."
+  name: "MINTED FROM Part 2 of DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 (advisor-staged, director-ruled in session 2026-08-12) -- the same missing-'WORK THIS CREATES'-block defect as D36 applies; derived from Part 2's own Requirements/Non-negotiables, author asked to supply the formal block rather than this being silently absorbed. site/customers/index.html titles itself 'Customer Portal' and invites login 'to view your household' while rendering three layers at once: customer-observable (bills, usage, payments, meter details), company-only (lifetime revenue/net, cost-to-serve, churn probability, CLV, pricing action, forecast profit), and SIM-only (satisfaction score, causal reaction chain, wholesale trading margin -- already noted 'SIM-internal' on-page). No real supplier shows a customer their churn probability; nothing outside the simulation can see a satisfaction score at all. Director ruling: keep all three layers, rename and re-home the page as a deliberate side-by-side comparison of the two sides of the epistemic wall -- the layering becomes the exhibit, not a leak to apologise for. EXIT: (1) every panel on the page structurally declares which side it is on (customer-observable / company-only / SIM-only) via a mechanism that FAILS when a new panel is added without declaring a side -- the ruling's own non-negotiable is 'a control that cannot fail is not a control', and the existing honesty-wall notes are exactly the prose version of this gap; (2) the customer-eye view renders as its own coherent subset -- what a real account holder would see, isolated, not assembled by a visitor reading labels across the whole page; (3) no SIM-only figure (satisfaction score, causal reaction chain, wholesale trading margin) renders under a company-attributed panel, and no company-only figure (lifetime revenue/net, cost-to-serve, churn probability, CLV, pricing action, forecast profit) renders under the customer-eye subset -- tested against these named instances specifically; (4) name, title, entry copy and URL stop claiming to be a customer's portal, and the old URL redirects per SITE_CONSTITUTION.md's own pixel/redirect rule (site/_redirects, site/test_no_links_to_redirected_urls.py), fetched live; (5) the relationship to the real customer portal at company/portal/ is stated on the page, not left to be inferred; (6) the existing honesty-wall notes (incl. the SIM-internal trading-margin note) are preserved, diffed against the pre-change page, not merely re-typed; (7) D36 (Part 1's bill-footing fix) still passes its own exit tests after this atom's redesign touches the same file -- the ruling's own 'Part 1 lands intact through this work'; (8) R15 both ways -- a mutation removing a panel's side-attribute, and one moving a company-only figure into the customer-eye subset, each kill a NAMED test. No new data plumbing -- everything named is already in the per-customer JSON."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [D36_bill_render_footing_and_pence]
+  file_scope: ['site/customers/index.html', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"

@@ -148,3 +148,15 @@ wall comparison; the bill must show its catch-up line and print in pence.
 **Open to the builder:** the page's new name and URL; how the two sides are laid out; the
 mechanism that makes a panel declare its side; the customer-facing wording for a back-billing
 correction; whether Part 1 ships ahead of Part 2 or inside it.
+
+---
+
+**[PROCESSED 2026-08-12, worker tick]** This ruling carries no formal `WORK THIS CREATES` block
+(§4 of `DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27`) — flagged as a defect, not
+silently absorbed: `docs/staging/PLANNER_MINTED_portal_wall_exhibit_2026-08-12.md` requests the
+block from the author. Both Parts minted as atoms from the ruling's own Requirements/
+Non-negotiables sections: Part 1 → `D36_bill_render_footing_and_pence` (lane D_billing_metering,
+level 0→2); Part 2 → `SITE2_two_sided_wall_exhibit` (lane H_harness, level 0→3, since a public wall
+exhibit's trustworthiness is an Expert-Hour-verdict claim, not a mechanically-real one). Neither
+Part is built yet — minting registers the work in `docs/design/maturity_map.yaml` so it can be
+drawn and built as its own atom; see the PLANNER_MINTED doc for the full disposition.

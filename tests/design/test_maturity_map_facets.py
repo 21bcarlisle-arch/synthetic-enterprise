@@ -484,6 +484,18 @@ REVIEWED_CLOSE_TO_LEARN = {
     "OPS12_blockers_ahead_of_disposition",
     "OPS13_product_interleave_armed",
     "OPS14_aged_staging_named_daily",
+    # 2026-08-12 reviewed (worker tick, minting Part 2 of
+    # DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT -- the ruling itself carries no formal "WORK
+    # THIS CREATES" block, so this is derived from its own Requirements/Non-negotiables rather than
+    # a named deliverable list, and the author was asked to supply the missing block). SITE2 renames
+    # site/customers/index.html off its "Customer Portal" claim and makes each panel structurally
+    # declare which side of the SIM/company/customer wall it sits on. It does not change what any
+    # figure IS, what a customer pays, or what the company charges -- meter_to_cash/price_to_bill
+    # would claim a revenue flow this atom does not touch. What it measures and enforces is whether
+    # the site's own account of the wall can be trusted not to leak a SIM-only or company-only
+    # figure onto the customer-eye view -- the same close_to_learn class as G12/G13's queryable
+    # projections and A9's market-at-the-seams design law: architectural honesty, not commerce.
+    "SITE2_two_sided_wall_exhibit",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as
