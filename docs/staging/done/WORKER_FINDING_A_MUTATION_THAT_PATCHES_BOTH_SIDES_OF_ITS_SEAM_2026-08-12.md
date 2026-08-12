@@ -84,3 +84,23 @@ No published gap value, epsilon or declared precision depends on either control,
 instruments measure what they say when run as a file. The claim is narrower than either of those:
 it is about two mutations' **reachability**, which is the only evidence R15 accepts that a control
 can fail at all.
+
+---
+
+## CORRECTION — 2026-08-12, H27 Expert Hour #22 (the draw that took instance 2)
+
+**The cause named for instance 2 above is wrong, and the repair it recommends would not have
+worked.** Instance 2's failure is real; the mechanism is the **import graph**, not the book cache.
+
+The composer binds its renderers with `from background.gap_metric import ...` at ITS import time.
+With an empty `_PUBLISHED_BOOKS` and the composer module already imported, the mutation IS
+one-sided and the control fires; with the composer's first import happening inside
+`_publish_one_book` — after the patch — it binds the patched object and no divergence can arise.
+Re-derived in fresh interpreters with the cache empty in both arms. Seeding the cache (step 1 of
+the recommendation) fixes the control only because it forces that import, and leaves any future
+control patching a shared upstream exposed.
+
+What landed instead: the walk now records whose renderer object it executed, refuses every state
+but the composer's own, and the seam control mutates the **composer** side (the note it hands the
+reader) with the renderer identity held fixed and asserted. Full write-up and the queued
+generalisation: `docs/staging/WORKER_FINDING_A_SEAM_CONTROL_MUTATED_THE_SIDE_IT_WAS_NOT_ABOUT_2026-08-12.md`.

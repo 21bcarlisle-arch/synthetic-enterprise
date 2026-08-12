@@ -51,19 +51,19 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 **The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severit**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
 
 ## D20_belief_truth_rule_is_an_unmeasured_mirror
 **The W2_11<->D5 triad's BELIEF dimension publishes its two sides as 'same threshold shape, different-**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` (finding) — minted here, built here)
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` (finding) — minted here, built here)
 
 ## D21_ageing_truth_side_is_the_organs_own_rule
 **The W2_11<->D5 triad's AGEING dimension -- the one whose whole subject is debt DATING -- computed it**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` (finding) — minted here, built here)
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` (finding) — minted here, built here)
 
 ## D22_ageing_ordinal_is_one_directional
 **The W2_11<->D5 triad's AGEING dimension publishes an ORDINAL headline -- `mean_bucket_displacement`,**  
@@ -114,4 +114,4 @@ _epoch 2 · lane C_customer_ops · L0→L3 · idle_
 **The HEAD-checkout publish gate gets a real lifecycle**  
 _epoch 3 · lane H_harness · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` (finding) — the gate's subject is now HEAD, so the only
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` (finding) — the gate's subject is now HEAD, so the only
