@@ -74,11 +74,21 @@ def test_money_kpis_render_live_billed_banked_balance():
 
 def test_money_kpis_carry_r14_clocks():
     # R14: billed/banked/settled clocks must appear on the money surface.
+    #
+    # SITE2 (2026-08-12) split the single money grid into two panels on opposite
+    # sides of the epistemic wall -- billed/banked/balance on the customer side,
+    # settled-clock lifetime net and cost-to-serve on the company side. R14 is
+    # unchanged and, if anything, tightened: EVERY money panel must carry its
+    # clocks, and no clock may have gone missing in the split.
     d = _live()
     out = _render(d)
-    money = out["cust-money"]["innerHTML"].lower()
-    for clock in ("billed", "banked", "settled"):
-        assert clock in money, f"R14: missing {clock} clock in {money}"
+    customer = out["cust-money"]["innerHTML"].lower()
+    company = out["cust-value"]["innerHTML"].lower()
+    for clock in ("billed", "banked"):
+        assert clock in customer, f"R14: missing {clock} clock in {customer}"
+    assert "settled" in company, f"R14: missing settled clock in {company}"
+    for panel_html in (customer, company):
+        assert "clock" in panel_html, f"R14: a money panel carries no clock at all: {panel_html}"
 
 
 def test_balance_is_independent_of_render():

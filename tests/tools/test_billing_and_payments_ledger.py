@@ -45,7 +45,12 @@ def test_tab_renamed_billing_and_payments():
 
 def test_sub_view_functions_present():
     body = _script_body()
-    for fn in ["renderStatementView", "renderCashflowShell", "renderCashflow",
+    # SITE2 (2026-08-12): the cashflow sub-view stopped returning one blended html
+    # shell and now returns a LIST of side-declared panels, so `renderCashflowShell`
+    # is `cashflowPanels`. Same sub-view, same contents -- the split is the customer's
+    # billed/collected cash on one side of the wall and the supplier's cost-to-serve /
+    # net-contribution / forecast on the other.
+    for fn in ["renderStatementView", "cashflowPanels", "renderCashflow",
                "combinedLedgerTotals", "reconciliationLine", "monthlyLedgerSeries",
                "scopeCtsAndCollected", "setBillView", "setCashScope"]:
         assert "function " + fn in body or "var " + fn in body, fn + " missing"

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys - Customer Portal</title>
+<title>Poesys - Two Sides of the Wall</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -125,6 +125,33 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 .cs-cat { font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
 .cs-acc { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 .cs-headline { font-size: 12px; color: var(--muted); line-height: 1.4; }
+/* ---- The wall exhibit (SITE2) -------------------------------------------
+   Every content block on this page is a `.wall-panel` carrying a
+   `data-wall-side` of customer | company | sim. The attribute is written by
+   ONE function (layoutPanels) which throws on an undeclared side, and the
+   structural guard in test_customers_door.py fails on any top-level block
+   that is neither a declared panel nor explicitly-marked chrome. */
+.wall-head { max-width: 900px; margin: 0 auto; padding: 26px 20px 0; }
+.wall-head h1 { font-size: 26px; letter-spacing: -0.5px; margin-bottom: 8px; }
+.wall-head p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 8px; }
+.wall-panel { margin-bottom: 4px; }
+.wall-side-chip { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-left: 8px; vertical-align: middle; }
+.ws-customer { background: #dbe9f9; color: var(--blue); }
+.ws-company { background: #fef0d1; color: #a66a00; }
+.ws-sim { background: #f3e3fb; color: #7a2ea6; }
+.wall-panel[data-wall-side="customer"] { border-left: 3px solid var(--blue); padding-left: 12px; }
+.wall-panel[data-wall-side="company"] { border-left: 3px solid var(--amber); padding-left: 12px; }
+.wall-panel[data-wall-side="sim"] { border-left: 3px solid #7a2ea6; padding-left: 12px; }
+.wall-view-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 14px 0 6px; }
+.wall-view-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+  padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.wall-view-btn.vactive { background: var(--text); color: var(--surface); border-color: var(--text); }
+.wall-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; }
+.wall-col-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 10px; }
+.wall-note { font-size: 12px; color: var(--muted); line-height: 1.5; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 8px 0 12px; }
 </style>
 </head>
 <body>
@@ -139,24 +166,76 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
   <a href="../proof/#project-anchor" class="nav-link">Journey</a>
   <a href="../proof/#simplified-anchor" class="nav-link">Simplified</a>
 </nav>
-<!-- 0. OPERATIONAL STATE (the director's window: what it is like for ONE real household, end to end) -->
-<div id="op-state" style="max-width:900px;margin:0 auto;padding:24px 20px 0">
-  <div class="sec-title" style="margin-top:0">One customer &mdash; end to end <span id="cust-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
-  <div class="card">
-    <p class="muted" id="cust-intro">Loading the household's running state...</p>
-    <div id="cust-who" style="margin-top:14px"></div>
-  </div>
-  <div class="sec-title">The money &mdash; bill, payments, arrears (each figure on its own clock)</div>
-  <div class="card">
-    <div class="kpi-grid" id="cust-money"></div>
-    <div id="cust-arrears" style="margin-top:6px"></div>
-    <p class="kpi-sub" id="cust-money-basis" style="margin-top:10px"></p>
-  </div>
-  <div class="sec-title">Direct Debit &mdash; the seasonal credit cycle</div>
-  <div class="card" id="cust-dd-cycle"><div class="muted">Loading...</div></div>
-  <div class="sec-title">Carbon &mdash; the mission's unit of account</div>
-  <div class="card" id="cust-carbon"><div class="muted">Loading...</div></div>
-  <div style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1" id="cust-drill" class="blue" style="font-size:12px;text-decoration:none">Open the full drill-down for this household (bills, statements, timeline, risk) &rarr;</a></div>
+<!-- THE WALL EXHIBIT (SITE2, DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 Part 2).
+     This page is NOT a customer portal. It is a side-by-side comparison of the two sides of
+     the epistemic wall for ONE real household: what the account holder can see, what the
+     company knows, and what only the simulation knows. Every block declares its side. -->
+<header class="wall-head">
+  <h1>Two sides of the wall &mdash; one household</h1>
+  <p><strong>This is an exhibit, not a customer portal.</strong> It puts one household's own view
+  side by side with what the supplier knows about them and what only the simulation knows &mdash;
+  three layers that a real supplier's systems keep permanently apart. Nothing here is a login and
+  no real person's data is shown; every account is a modelled household from the run.</p>
+  <p><strong>Why the sides differ, and why that is the point.</strong> A real UK supplier discovers
+  its customers through observable interfaces &mdash; meter reads, payments, contacts &mdash; and
+  builds estimates on top: cost-to-serve, churn probability, lifetime value. The customer never sees
+  those estimates, and the supplier never sees the simulation's ground truth (a household's actual
+  satisfaction, its causal reaction chain, the wholesale trading margin its consumption produced).
+  That asymmetry is the architectural law this whole project is built on. Showing all three layers
+  at once, each labelled with the side it sits on, is the only way to make it visible.</p>
+  <p><strong>Relationship to the real portal.</strong> Poesys's actual account-holder portal &mdash;
+  the customer-facing product surface, with only customer-observable data in it &mdash; is a separate
+  system at <code>company/portal/</code> inside the repository. This page reproduces that portal's
+  view faithfully in the <em>customer's side</em> column and then shows, deliberately, what sits
+  behind it. Choosing &ldquo;The customer's side&rdquo; below renders that view on its own.</p>
+</header>
+<div id="op-state" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
+  <div class="sec-title" style="margin-top:0">One household &mdash; end to end <span id="cust-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+  <section class="wall-panel" data-wall-side="customer">
+    <div class="sec-title">Who they are, in their own account <span class="wall-side-chip ws-customer">Customer-observable</span></div>
+    <div class="card">
+      <p class="muted" id="cust-intro">Loading the household's running state...</p>
+      <div id="cust-who" style="margin-top:14px"></div>
+    </div>
+  </section>
+  <section class="wall-panel" data-wall-side="company">
+    <div class="sec-title">How the company classifies them <span class="wall-side-chip ws-company">Company-only</span></div>
+    <div class="card"><div id="cust-classify"></div></div>
+  </section>
+  <section class="wall-panel" data-wall-side="customer">
+    <div class="sec-title">The money the customer can see &mdash; bill, payments, arrears (each figure on its own clock) <span class="wall-side-chip ws-customer">Customer-observable</span></div>
+    <div class="card">
+      <div class="kpi-grid" id="cust-money"></div>
+      <div id="cust-arrears" style="margin-top:6px"></div>
+      <p class="kpi-sub" id="cust-money-basis" style="margin-top:10px"></p>
+    </div>
+  </section>
+  <section class="wall-panel" data-wall-side="company">
+    <div class="sec-title">What this household is worth to the company <span class="wall-side-chip ws-company">Company-only</span></div>
+    <div class="card">
+      <div class="kpi-grid" id="cust-value"></div>
+      <p class="kpi-sub" style="margin-top:8px">The account holder never sees any of these. They are the
+      supplier's own estimates, built from what it can observe &mdash; not readings of the truth.</p>
+    </div>
+  </section>
+  <section class="wall-panel" data-wall-side="sim">
+    <div class="sec-title">What only the simulation knows <span class="wall-side-chip ws-sim">SIM-only</span></div>
+    <div class="card">
+      <div class="kpi-grid" id="cust-sim"></div>
+      <p class="kpi-sub" style="margin-top:8px">Ground truth. Nothing outside the simulation can read a
+      household's satisfaction score &mdash; the company only ever sees its consequences (a complaint, a
+      failed payment, a switch away).</p>
+    </div>
+  </section>
+  <section class="wall-panel" data-wall-side="customer">
+    <div class="sec-title">Direct Debit &mdash; the seasonal credit cycle <span class="wall-side-chip ws-customer">Customer-observable</span></div>
+    <div class="card" id="cust-dd-cycle"><div class="muted">Loading...</div></div>
+  </section>
+  <section class="wall-panel" data-wall-side="company">
+    <div class="sec-title">Carbon &mdash; the mission's unit of account <span class="wall-side-chip ws-company">Company-only</span></div>
+    <div class="card" id="cust-carbon"><div class="muted">Loading...</div></div>
+  </section>
+  <div style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1" id="cust-drill" class="blue" style="font-size:12px;text-decoration:none">Open the full two-sided drill-down for this household (bills, statements, timeline, risk) &rarr;</a></div>
 </div>
 <script>
 // The director's operational window: what it is like for ONE real household, end to end.
@@ -186,35 +265,50 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 
     el("cust-intro").innerHTML=
       "This is <strong>"+esc(h.id)+"</strong>, one real household in the book &mdash; not a persona, an actual "+
-      "modelled account carried since "+esc(h.acquisition_date||"acquisition")+". Below is what the last run says its "+
-      "life with the supplier is like: who they are, what they buy, what they have been billed and have actually paid, "+
-      "any arrears, and how they feel about it. Each money figure carries its clock (billed, settled or banked).";
+      "modelled account carried since "+esc(h.acquisition_date||"acquisition")+". This panel is the account "+
+      "holder's OWN view: what they buy, what they have been billed and have actually paid, and any arrears. "+
+      "Each money figure carries its clock (billed or banked). What the company additionally believes about "+
+      "them, and what only the simulation knows, are the separately-labelled panels below &mdash; never mixed "+
+      "into this one.";
 
-    // Who + products
+    // CUSTOMER SIDE -- products and account facts an account holder can see on their own bill.
     var prods=[];
     prods.push(esc(h.commodity||"electricity")+(String(h.dual_fuel)==="true"||h.dual_fuel===true?" + gas (dual fuel)":" only"));
     prods.push((h.smart_meter?"smart meter":"traditional meter"));
     prods.push("pays by "+esc((h.payment_channel||"").replace("_"," ")));
-    prods.push(esc(h.engagement_level||"")+" engagement");
     el("cust-who").innerHTML=
+      '<div class="kpi-grid">'+
+        tile("Products", esc((String(h.dual_fuel)==="true"||h.dual_fuel===true)?"dual fuel":"single fuel"), prods.join(" · "))+
+        tile("Meter", (h.smart_meter?"smart":"traditional"), "as recorded on the bill")+
+        tile("Pays by", esc((h.payment_channel||"--").replace(/_/g," ")), "payment method")+
+        tile("Customer since", esc(h.acquisition_date||"--"), "supply start date")+
+      '</div>';
+
+    // COMPANY SIDE -- the supplier's own classification of this household. A real account
+    // holder is never shown their segment, their vulnerability flag or their engagement score.
+    el("cust-classify").innerHTML=
       '<div class="kpi-grid">'+
         tile("Segment", esc(h.segment||"--"), esc((h.tenure||"").replace(/_/g," ")))+
         tile("Household", esc((h.occupancy||"").replace(/_/g," ")), esc((h.home_type||"").replace(/_/g," ")))+
         tile("Fuel poverty", yn(h.fuel_poverty), "vulnerability flag")+
-        tile("Products", esc((String(h.dual_fuel)==="true"||h.dual_fuel===true)?"dual fuel":"single fuel"), prods.slice(1).join(" · "))+
+        tile("Engagement", esc(h.engagement_level||"--"), "company estimate")+
       '</div>';
 
-    // The money -- each on its clock (R14)
+    // The money -- each on its clock (R14), split by which side of the wall the figure sits on.
     var bal=Number(h.balance_gbp);
     el("cust-money").innerHTML=[
       tile("Billed (lifetime)", gbp(h.billed_gbp), "billed clock · "+(h.invoice_count!=null?h.invoice_count+" invoices":""), ""),
       tile("Collected", gbp(h.banked_gbp), "banked clock", ""),
       tile("Balance", gbp(h.balance_gbp), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked", (bal<0?"green":(bal>0?"amber":""))),
+      tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns", (Number(h.failed_payment_count)>0?"amber":""))
+    ].join("");
+    el("cust-value").innerHTML=[
       tile("Lifetime net", gbp(h.lifetime_net_gbp), "settled clock · after cost-to-serve", (Number(h.lifetime_net_gbp)<0?"red":"green")),
       tile("Cost to serve", gbp(h.cost_to_serve_gbp), "settled clock", ""),
-      tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns", (Number(h.failed_payment_count)>0?"amber":"")),
-      tile("Churn risk", pct(h.latest_churn_probability), "company estimate", ""),
-      tile("Satisfaction", (h.latest_satisfaction&&h.latest_satisfaction.satisfaction_score!=null?(Number(h.latest_satisfaction.satisfaction_score)*100).toFixed(0)+"%":"--"), (h.latest_satisfaction&&h.latest_satisfaction.year?"as of "+h.latest_satisfaction.year:""), "")
+      tile("Churn risk", pct(h.latest_churn_probability), "settled clock · company estimate, not a fact", "")
+    ].join("");
+    el("cust-sim").innerHTML=[
+      tile("Satisfaction", (h.latest_satisfaction&&h.latest_satisfaction.satisfaction_score!=null?(Number(h.latest_satisfaction.satisfaction_score)*100).toFixed(0)+"%":"--"), "SIM-internal ground truth"+(h.latest_satisfaction&&h.latest_satisfaction.year?" · as of "+h.latest_satisfaction.year:""), "")
     ].join("");
 
     // Direct Debit -- the seasonal credit cycle (DD_seasonal_cashflow_physics, SITE slice;
@@ -336,16 +430,102 @@ function nc(v){return v>=0?"green":"red";}
 function churnColour(p){return p>=0.5?"red":p>=0.3?"amber":"green";}
 function churnLabel(p){return p>=0.5?"High risk":p>=0.3?"Medium risk":"Low risk";}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+/* =======================================================================
+   THE SIDE-DECLARATION MECHANISM (SITE2, ruling Part 2)
+   -----------------------------------------------------------------------
+   The ruling's non-negotiable: "The side-declaration must be structural, not
+   prose. A control that cannot fail is not a control. If a new panel can be
+   added to this page without declaring which side of the wall it sits on,
+   nothing has been built -- only written down."
+
+   So no tab renderer emits panel markup. Each returns a LIST of panel()
+   objects, and layoutPanels() is the sole writer of `.wall-panel` markup.
+   panel() THROWS on a missing or unknown side, and layoutPanels() throws
+   again on anything reaching it that is not a declared panel or explicitly
+   marked chrome. The structural guard in test_customers_door.py then asserts
+   on the RENDERED html that no card sits outside a declared panel -- which
+   is what catches a panel bolted on around the helper rather than through it.
+   ======================================================================= */
+var WALL_SIDES={
+  customer:["Customer-observable","ws-customer"],
+  company:["Company-only","ws-company"],
+  sim:["SIM-only","ws-sim"]
+};
+var WALL_VIEWS=[["both","Both sides"],["customer","The customer's side"],["behind","Behind the wall"]];
+var WALL_VIEW="both";
+function setWallView(v){WALL_VIEW=v;renderHousehold();}
+function panel(side,title,body){
+  if(!WALL_SIDES[side])throw new Error(
+    "wall-side undeclared or unknown ("+String(side)+"): every panel on this page must declare "+
+    "customer | company | sim");
+  return {kind:"panel",side:side,title:title,body:body};
+}
+function chrome(html){return {kind:"chrome",html:html};}
+function panelHtml(p){
+  var meta=WALL_SIDES[p.side];
+  return "<section class=\"wall-panel\" data-wall-side=\""+p.side+"\">"+
+    "<div class=\"sec-title\">"+p.title+"<span class=\"wall-side-chip "+meta[1]+"\">"+meta[0]+"</span></div>"+
+    p.body+"</section>";
+}
+function wallViewShows(side){
+  if(WALL_VIEW==="customer")return side==="customer";
+  if(WALL_VIEW==="behind")return side!=="customer";
+  return true;
+}
+var WALL_VIEW_NOTE={
+  customer:"<strong>The customer's side, on its own.</strong> This is the whole of what a real account "+
+    "holder sees &mdash; the same set of figures Poesys's actual portal at <code>company/portal/</code> "+
+    "renders, isolated here rather than left to be assembled by reading labels across the page. No "+
+    "company estimate and no simulation ground truth is in this view; if one appears, the page is broken.",
+  behind:"<strong>Behind the wall.</strong> Everything on this side is invisible to the account holder. "+
+    "Company-only figures are the supplier's own estimates built from what it can observe; SIM-only "+
+    "figures are ground truth no real supplier could ever read.",
+  both:"<strong>Both sides, side by side.</strong> Left is exactly what the account holder sees. Right is "+
+    "what the supplier believes and what the simulation knows. The gap between the columns is the "+
+    "epistemic wall this project is built on."
+};
+function layoutPanels(items){
+  var chromeHtml="",cust=[],behind=[];
+  (items||[]).forEach(function(it){
+    if(!it)return;
+    if(it.kind==="chrome"){chromeHtml+="<div class=\"wall-chrome\">"+it.html+"</div>";return;}
+    if(it.kind!=="panel"||!WALL_SIDES[it.side])throw new Error(
+      "an undeclared block reached the wall layout ("+String(it&&it.side)+") -- add it via panel(side,...)");
+    if(!wallViewShows(it.side))return;
+    (it.side==="customer"?cust:behind).push(panelHtml(it));
+  });
+  var note="<div class=\"wall-note\">"+WALL_VIEW_NOTE[WALL_VIEW]+"</div>";
+  if(WALL_VIEW!=="both")return note+chromeHtml+cust.join("")+behind.join("");
+  var empty="<div class=\"no-account-note\">Nothing on this side of the wall for this view.</div>";
+  return note+chromeHtml+
+    "<div class=\"wall-cols\">"+
+      "<div class=\"wall-col\"><div class=\"wall-col-head\">The customer's side &mdash; what the account holder sees</div>"+
+        (cust.length?cust.join(""):empty)+"</div>"+
+      "<div class=\"wall-col\"><div class=\"wall-col-head\">Behind the wall &mdash; what the company and the simulation know</div>"+
+        (behind.length?behind.join(""):empty)+"</div>"+
+    "</div>";
+}
+function wallViewNav(){
+  return "<div class=\"wall-view-row\"><span class=\"muted\" style=\"font-size:11px;text-transform:uppercase;letter-spacing:.06em\">Show</span>"+
+    WALL_VIEWS.map(function(v){
+      return "<button class=\"wall-view-btn"+(WALL_VIEW===v[0]?" vactive":"")+"\" onclick=\"setWallView('"+v[0]+"')\">"+v[1]+"</button>";
+    }).join("")+"</div>";
+}
+
 function showLogin(err){
   document.getElementById("app").innerHTML=
     "<div class=\"login-wrap\"><div class=\"login-card\">"+
-    "<h1>Customer Portal</h1>"+
-    "<p>Log in with your Poesys account number to view your household: electricity and gas accounts, usage, bills, and value metrics.</p>"+
+    "<h1>Open a household</h1>"+
+    "<p>This is not a customer login and no account is being authenticated. Enter a modelled account "+
+    "number to open that household's exhibit: its own view on one side, what the company and the "+
+    "simulation know on the other. Poesys's real account-holder portal is a separate surface "+
+    "(<code>company/portal/</code>).</p>"+
     "<label for=\"acc\">Account number</label>"+
     "<input type=\"text\" id=\"acc\" placeholder=\"e.g. C1, C_IC1, C1g\" autocomplete=\"off\" />"+
     "<div class=\"hint\">Electricity: C1–C9, C_IC1–C_IC4<br>Gas: C1g–C4g, C_IC3g<br>Enter either fuel's number — we'll load the whole household.</div>"+
     (err?"<div class=\"error-msg\">"+esc(err)+"</div>":"")+
-    "<button class=\"btn\" onclick=\"doLogin()\">Sign in</button>"+
+    "<button class=\"btn\" onclick=\"doLogin()\">Open household</button>"+
     "</div></div>";
   var inp=document.getElementById("acc");
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
@@ -506,141 +686,173 @@ function renderHousehold(){
     "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">"+(segmentInfo()[1]==="Residential"?"Household":"Business")+"</span></div>"+
     "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
     "</div></div>"+
-    "<button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
+    "<button class=\"logout-btn\" onclick=\"doLogout()\">Close household</button></div>"+
+    wallViewNav()+
     "<div class=\"tab-nav\">"+tabsHtml+"</div>"+
     "<div id=\"tab-body\"></div>"+
     "</div>";
   renderTab();
 }
 function switchTab(name){ACTIVE_TAB=name;renderHousehold();}
+/* Every tab returns a LIST of declared panels; layoutPanels is the sole writer
+   of panel markup, so a tab cannot ship a block that never named its side. */
+function tabPanels(){
+  if(ACTIVE_TAB==="overview")return overviewPanels();
+  if(ACTIVE_TAB==="accounts")return accountsPanels();
+  if(ACTIVE_TAB==="consumption")return consumptionPanels();
+  if(ACTIVE_TAB==="billing")return billingPanels();
+  if(ACTIVE_TAB==="timeline")return timelinePanels();
+  if(ACTIVE_TAB==="risk")return riskPanels();
+  return [];
+}
 function renderTab(){
   var body=document.getElementById("tab-body");
   if(!body)return;
-  if(ACTIVE_TAB==="overview")body.innerHTML=renderOverviewTab();
-  else if(ACTIVE_TAB==="accounts")body.innerHTML=renderAccountsTab();
-  else if(ACTIVE_TAB==="consumption"){body.innerHTML=renderConsumptionTab();renderUsage(CONS_FUEL==="elec"?HH.elec:HH.gas);}
+  body.innerHTML=layoutPanels(tabPanels());
+  if(ACTIVE_TAB==="consumption")renderUsage(CONS_FUEL==="elec"?HH.elec:HH.gas);
   else if(ACTIVE_TAB==="billing"){
-    body.innerHTML=renderBillingTab();
     if(BILL_VIEW==="bills")renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);
     else if(BILL_VIEW==="cashflow"){renderCashflow();renderForecastCashflow();}
   }
-  else if(ACTIVE_TAB==="timeline")body.innerHTML=renderTimelineTab();
-  else if(ACTIVE_TAB==="risk")body.innerHTML=renderRiskTab();
 }
 
-function renderOverviewTab(){
-  var html="";
+/* Per-fuel account cards, split by side. `rows(d)` decides what goes on the card;
+   the "no account on this fuel" placeholder is shared so a missing leg reads the
+   same on both sides. */
+function fuelCards(rows){
   var accts=[["elec",HH.elec,"Electricity","be"],["gas",HH.gas,"Gas","bg"]];
-  html+="<div class=\"sec-title\">Household Accounts</div><div class=\"accounts-grid\">";
-  accts.forEach(function(a){
+  return "<div class=\"accounts-grid\">"+accts.map(function(a){
     var d=a[1],label=a[2],badgeCls=a[3];
-    if(!d){html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span></div><div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";return;}
-    html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
-      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
-      "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
-      "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
-      (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">Forecast Annual Profit</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"")+
-      "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
-      "</div>";
-  });
-  html+="</div>";
-  html+=rollupHtml();
-  return html;
+    var title="<div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+(d?esc(d.account_id):"")+"</div>";
+    if(!d)return "<div class=\"card\">"+title+"<div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";
+    return "<div class=\"card\">"+title+rows(d)+"</div>";
+  }).join("")+"</div>";
+}
+function overviewPanels(){
+  return [
+    panel("customer","Your accounts",fuelCards(function(d){
+      return "<div class=\"row\"><span class=\"rl\">Account ID</span><span>"+esc(d.account_id)+"</span></div>"+
+        "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
+        "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+esc(d.acquisition_date)+"</span></div>";
+    })),
+    panel("company","What these accounts are worth to the supplier",
+      fuelCards(function(d){
+        return "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+          "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
+          "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
+          (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">Forecast Annual Profit</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"");
+      })+rollupHtml())
+  ];
 }
 
-function renderAccountsTab(){
-  var html="<div class=\"sec-title\">Accounts — Per Fuel</div><div class=\"accounts-grid\">";
-  var accts=[["elec",HH.elec,"Electricity","be"],["gas",HH.gas,"Gas","bg"]];
-  accts.forEach(function(a){
-    var d=a[1],label=a[2],badgeCls=a[3];
-    if(!d){html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span></div><div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";return;}
-    var idLine=d.commodity==="gas"
-      ?"<div class=\"row\"><span class=\"rl\">MPRN</span><span>"+esc(d.mprn||"—")+"</span></div>"
-      :"<div class=\"row\"><span class=\"rl\">MPAN (top / bottom line)</span><span>"+esc(d.mpan?d.mpan.top_line:"—")+" / "+esc(d.mpan?d.mpan.bottom_line:"")+"</span></div>";
-    var annRows=(d.annual_pnl||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
-      var crisis=r.year===2021||r.year===2022;
-      var deep=r.year===DEEPLINK_YEAR;
-      var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
-      return "<tr id=\"dl-year-"+r.year+"\""+(deep?" class=\"deeplink-row\"":crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
-        "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
-        "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
-        "<td style=\"color:var(--muted);font-size:11px\">"+tariff+"</td></tr>";
-    }).join("");
-    html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
-      "<div class=\"row\"><span class=\"rl\">Account ID</span><span>"+esc(d.account_id)+"</span></div>"+
-      idLine+
-      "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
-      "<div class=\"row\"><span class=\"rl\">Meter</span><span>"+esc(d.meter_type)+"</span></div>"+
-      "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+esc(d.acquisition_date)+"</span></div>"+
-      "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
-      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
-      "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
-      "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
-      (d.avg_hedge_fraction!=null?"<div class=\"row\"><span class=\"rl\">Avg. Hedge Coverage</span><span class=\"muted\">"+Math.round(d.avg_hedge_fraction*100)+"%</span></div>":"")+
-      (annRows?"<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>"+
-        "<div class=\"usage-hint\">Gross/Net here are the SIM's internal commodity trading margin per year (wholesale-cost accounting) -- not the customer's all-in billed total. That figure, which includes standing charge, network/environmental pass-through and VAT on top of commodity, is always larger and lives on the Billing &amp; Payments tab.</div>":"")+
-      "</div>";
-  });
-  html+="</div>";
-  html+=rollupHtml();
-  return html;
+function annualTradingRows(d){
+  return (d.annual_pnl||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
+    var crisis=r.year===2021||r.year===2022;
+    var deep=r.year===DEEPLINK_YEAR;
+    var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
+    return "<tr id=\"dl-year-"+r.year+"\""+(deep?" class=\"deeplink-row\"":crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
+      "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
+      "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
+      "<td style=\"color:var(--muted);font-size:11px\">"+tariff+"</td></tr>";
+  }).join("");
 }
-function renderConsumptionTab(){
-  var html="";
+function accountsPanels(){
+  return [
+    panel("customer","Accounts &mdash; per fuel, as they appear on the bill",fuelCards(function(d){
+      var idLine=d.commodity==="gas"
+        ?"<div class=\"row\"><span class=\"rl\">MPRN</span><span>"+esc(d.mprn||"—")+"</span></div>"
+        :"<div class=\"row\"><span class=\"rl\">MPAN (top / bottom line)</span><span>"+esc(d.mpan?d.mpan.top_line:"—")+" / "+esc(d.mpan?d.mpan.bottom_line:"")+"</span></div>";
+      return "<div class=\"row\"><span class=\"rl\">Account ID</span><span>"+esc(d.account_id)+"</span></div>"+
+        idLine+
+        "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
+        "<div class=\"row\"><span class=\"rl\">Meter</span><span>"+esc(d.meter_type)+"</span></div>"+
+        "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+esc(d.acquisition_date)+"</span></div>";
+    })),
+    panel("company","The supplier's own P&amp;L on these accounts",
+      fuelCards(function(d){
+        return "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
+          "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+          "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
+          "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
+          (d.avg_hedge_fraction!=null?"<div class=\"row\"><span class=\"rl\">Avg. Hedge Coverage</span><span class=\"muted\">"+Math.round(d.avg_hedge_fraction*100)+"%</span></div>":"");
+      })+rollupHtml()),
+    panel("sim","Wholesale trading margin, year by year",fuelCards(function(d){
+      var annRows=annualTradingRows(d);
+      if(!annRows)return "<div class=\"no-account-note\">No annual commodity result for this account.</div>";
+      return "<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>"+
+        "<div class=\"usage-hint\">Gross/Net here are the SIM's internal commodity trading margin per year (wholesale-cost accounting) -- not the customer's all-in billed total. That figure, which includes standing charge, network/environmental pass-through and VAT on top of commodity, is always larger and lives on the Billing &amp; Payments tab.</div>";
+    }))
+  ];
+}
+function consumptionPanels(){
+  var out=[];
   if(HH.elec&&HH.gas){
-    html+="<div class=\"fuel-select-row\">"+
+    out.push(chrome("<div class=\"fuel-select-row\">"+
       "<button class=\"fuel-btn fbe"+(CONS_FUEL==="elec"?" factive":"")+"\" onclick=\"setConsFuel('elec')\">Electricity</button>"+
       "<button class=\"fuel-btn fbg"+(CONS_FUEL==="gas"?" factive":"")+"\" onclick=\"setConsFuel('gas')\">Gas</button>"+
-      "</div>";
+      "</div>"));
   }
-  html+="<div class=\"sec-title\">Usage</div><div id=\"usage-section\"></div>";
-  return html;
+  out.push(panel("customer","Usage","<div id=\"usage-section\"></div>"));
+  return out;
 }
 function setConsFuel(f){CONS_FUEL=f;renderTab();}
 
 var BILL_VIEWS=[["bills","Bills"],["statement","Statement"],["cashflow","Cashflow"]];
-function renderBillingTab(){
-  var html="";
-  var viewNav="<div class=\"tab-nav\" style=\"margin-bottom:14px\">"+BILL_VIEWS.map(function(v){
+function billingPanels(){
+  var out=[chrome("<div class=\"tab-nav\" style=\"margin-bottom:14px\">"+BILL_VIEWS.map(function(v){
     return "<button class=\"tab-btn"+(BILL_VIEW===v[0]?" active":"")+"\" onclick=\"setBillView('"+v[0]+"')\">"+v[1]+"</button>";
-  }).join("")+"</div>";
-  html+=viewNav;
-  if(BILL_VIEW==="bills"||BILL_VIEW==="statement"){
-    if(HH.elec&&HH.gas){
-      html+="<div class=\"fuel-select-row\">"+
-        "<button class=\"fuel-btn fbe"+(BILL_FUEL==="elec"?" factive":"")+"\" onclick=\"setBillFuel('elec')\">Electricity</button>"+
-        "<button class=\"fuel-btn fbg"+(BILL_FUEL==="gas"?" factive":"")+"\" onclick=\"setBillFuel('gas')\">Gas</button>"+
-        "</div>";
-    }
+  }).join("")+"</div>")];
+  if((BILL_VIEW==="bills"||BILL_VIEW==="statement")&&HH.elec&&HH.gas){
+    out.push(chrome("<div class=\"fuel-select-row\">"+
+      "<button class=\"fuel-btn fbe"+(BILL_FUEL==="elec"?" factive":"")+"\" onclick=\"setBillFuel('elec')\">Electricity</button>"+
+      "<button class=\"fuel-btn fbg"+(BILL_FUEL==="gas"?" factive":"")+"\" onclick=\"setBillFuel('gas')\">Gas</button>"+
+      "</div>"));
   }
   if(BILL_VIEW==="bills"){
-    html+="<div class=\"sec-title\">Billing History</div><div id=\"bills-section\"></div>";
+    out.push(panel("customer","Billing History","<div id=\"bills-section\"></div>"));
   }else if(BILL_VIEW==="statement"){
-    html+=renderStatementView(BILL_FUEL==="elec"?HH.elec:HH.gas);
+    var sd=BILL_FUEL==="elec"?HH.elec:HH.gas;
+    out.push(panel("customer","Statement"+(sd?" &mdash; "+esc(sd.account_id):""),renderStatementView(sd)));
   }else if(BILL_VIEW==="cashflow"){
-    html+=renderCashflowShell();
+    out=out.concat(cashflowPanels());
   }
-  return html;
+  return out;
 }
 function setBillFuel(f){BILL_FUEL=f;BILL_YEAR=null;renderTab();}
 function setBillView(v){BILL_VIEW=v;renderTab();}
 function setCashScope(s){CASH_SCOPE=s;renderTab();}
 
 var _EVENT_ICON_CLASS={renewed:"",churned:"churned",life_event:"life"};
-function renderTimelineTab(){
-  var tl=(HH.elec&&HH.elec.timeline&&HH.elec.timeline.length)?HH.elec.timeline:((HH.gas&&HH.gas.timeline)||[]);
-  if(!tl.length)return "<div class=\"sec-title\">Timeline</div><div class=\"card\"><div class=\"no-inv\">No recorded events for this household yet.</div></div>";
-  var items=tl.map(function(e){
+function householdTimeline(){
+  return (HH.elec&&HH.elec.timeline&&HH.elec.timeline.length)?HH.elec.timeline:((HH.gas&&HH.gas.timeline)||[]);
+}
+/* The events themselves are things the household lived through and the supplier
+   recorded -- customer-observable. The CAUSAL EFFECT attached to each event is
+   the simulation's own account of what that event drove, which no supplier and
+   no customer could read; it renders on the SIM side, never beside the event. */
+function timelineItemsHtml(withEffects){
+  return householdTimeline().map(function(e){
     var cls=_EVENT_ICON_CLASS[e.type]||"";
     var commTag=e.commodity?" <span class=\"muted\">("+e.commodity+")</span>":"";
-    var effectHtml=e.effect?"<div class=\"timeline-effect\">&rarr; "+esc(e.effect)+"</div>":"";
+    if(withEffects&&!e.effect)return "";
+    var effectHtml=(withEffects&&e.effect)?"<div class=\"timeline-effect\">&rarr; "+esc(e.effect)+"</div>":"";
     return "<div class=\"timeline-item "+cls+"\">"+
       "<div class=\"timeline-date\">"+esc(e.date)+"</div>"+
       "<div class=\"timeline-detail\">"+esc(e.detail)+commTag+"</div>"+effectHtml+"</div>";
   }).join("");
-  return "<div class=\"sec-title\">Timeline</div><div class=\"card\"><div class=\"timeline-list\">"+items+"</div></div>"+
-    "<div class=\"usage-hint\">Each event's downstream effect (usage change, income-stress/payment drift, or unit-rate step) is computed from this household's own recorded data — no effect shown means the sim has no wired mechanism for that event type yet.</div>"+
-    renderReactionChain();
+}
+function timelinePanels(){
+  var tl=householdTimeline();
+  if(!tl.length)return [panel("customer","Timeline","<div class=\"card\"><div class=\"no-inv\">No recorded events for this household yet.</div></div>")];
+  var effects=timelineItemsHtml(true);
+  var chain=renderReactionChain();
+  return [
+    panel("customer","Timeline","<div class=\"card\"><div class=\"timeline-list\">"+timelineItemsHtml(false)+"</div></div>"),
+    panel("sim","Cause and effect &mdash; what the simulation knows this drove",
+      (effects?"<div class=\"card\"><div class=\"timeline-list\">"+effects+"</div></div>":"<div class=\"card\"><div class=\"no-inv\">No wired causal effect for any of this household's events yet.</div></div>")+
+      "<div class=\"usage-hint\">Each event's downstream effect (usage change, income-stress/payment drift, or unit-rate step) is computed from this household's own recorded data — no effect shown means the sim has no wired mechanism for that event type yet.</div>"+
+      chain)
+  ];
 }
 
 var _CHAIN_LABEL={
@@ -685,7 +897,7 @@ function renderReactionChain(){
     "<div class=\"usage-hint\">The company's own behavioural signal, retention decisions (with expected value), renewal outcomes, and arrears cascade for this household, in chronological order — cause-linked back to the events above.</div>";
 }
 
-function renderRiskTab(){
+function riskPanels(){
   var d=HH.elec||HH.gas;
   var churnP=d.churn_probability||0,cc=churnColour(churnP);
   var lt=combinedLedgerTotals();
@@ -708,19 +920,25 @@ function renderRiskTab(){
       (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
       "</div>";
   }).join("");
-  return "<div class=\"sec-title\">Retention &amp; Risk</div>"+
-    "<div class=\"kpi-grid\">"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
-    "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
-    "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
-    "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
-    paCards+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Outstanding Balance</div>"+
-    "<div class=\"kpi-value "+balColor+"\">"+gbp(lt.balance)+"</div>"+
-    (lt.written_off>0.005?"<div class=\"kpi-sub\">"+gbp(lt.written_off)+" written off lifetime"+(lt.recovered>0.005?", "+gbp(lt.recovered)+" recovered":"")+"</div>":"")+
-    "</div></div>"+
-    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div>";
+  return [
+    panel("customer","Your balance",
+      "<div class=\"card\"><div class=\"kpi-grid\">"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">Outstanding Balance</div>"+
+      "<div class=\"kpi-value "+balColor+"\">"+gbp(lt.balance)+"</div>"+
+      (lt.written_off>0.005?"<div class=\"kpi-sub\">"+gbp(lt.written_off)+" written off lifetime"+(lt.recovered>0.005?", "+gbp(lt.recovered)+" recovered":"")+"</div>":"")+
+      "</div></div>"+
+      "<div class=\"usage-hint\">Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div></div>"),
+    panel("company","Retention &amp; Risk &mdash; the supplier's estimates",
+      "<div class=\"card\"><div class=\"kpi-grid\">"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
+      "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
+      "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
+      "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
+      paCards+
+      "</div>"+
+      "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Every figure here is the supplier's own estimate from observable behaviour -- the account holder is never shown any of it.</div></div>")
+  ];
 }
 var _LEDGER_LABEL={
   invoice_raised:"Invoice raised",payment_received:"Payment received",
@@ -749,8 +967,7 @@ function renderStatementView(d){
       "<span>"+amtCell+"</span>"+
       "<span class=\"muted\" style=\"min-width:90px;text-align:right\">"+gbp(e.running_balance_gbp)+"</span></div>";
   }).join("");
-  return "<div class=\"sec-title\">Statement &mdash; "+esc(d.account_id)+"</div>"+
-    "<div class=\"bill-sum\">"+
+  return "<div class=\"bill-sum\">"+
     "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Current Balance</div><div class=\"bill-kv "+(ledger.current_balance_gbp>0.005?"red":"green")+"\">"+gbp(ledger.current_balance_gbp)+"</div></div>"+
     "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Total Billed</div><div class=\"bill-kv\">"+gbp(ledger.total_billed_gbp)+"</div></div>"+
     "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Collected</div><div class=\"bill-kv green\">"+gbp(ledger.total_collected_gbp)+"</div></div>"+
@@ -788,25 +1005,29 @@ function scopeCtsAndCollected(scope){
   if(scope!=="elec"&&g){cts+=g.cost_to_serve_gbp||0;collected+=(g.ledger?g.ledger.total_collected_gbp:0);billed+=(g.ledger?g.ledger.total_billed_gbp:0);}
   return {cts:cts,collected:collected,billed:billed,net:collected-cts};
 }
-function renderCashflowShell(){
-  var html="<div class=\"sec-title\">Cashflow &mdash; the CLV Actuals Base</div>";
+function cashflowPanels(){
+  var out=[];
   var opts=[["elec","Electricity"],["gas","Gas"],["combined","Combined"]].filter(function(o){
     if(o[0]==="elec")return !!HH.elec;
     if(o[0]==="gas")return !!HH.gas;
     return HH.elec&&HH.gas;
   });
   if(opts.length>1){
-    html+="<div class=\"fuel-select-row\">"+opts.map(function(o){
+    out.push(chrome("<div class=\"fuel-select-row\">"+opts.map(function(o){
       return "<button class=\"fuel-btn fbe"+(CASH_SCOPE===o[0]?" factive":"")+"\" onclick=\"setCashScope('"+o[0]+"')\">"+o[1]+"</button>";
-    }).join("")+"</div>";
+    }).join("")+"</div>"));
   }
-  html+="<div class=\"chart-wrap\"><canvas id=\"cashflow-chart\" height=\"220\"></canvas></div>"+
+  out.push(panel("customer","Cashflow &mdash; what was billed and what was actually paid",
+    "<div class=\"chart-wrap\"><canvas id=\"cashflow-chart\" height=\"220\"></canvas></div>"+
     "<div id=\"cashflow-kpis\"></div>"+
-    "<div class=\"usage-hint\">Monthly billed vs collected, and cumulative collected over the household's lifetime. Cost to Serve is only available as a lifetime total (no monthly series exists in the sim), so the net cash contribution figure below is a lifetime figure, not a monthly one.</div>"+
-    reconciliationLine()+
+    "<div class=\"usage-hint\">Monthly billed vs collected, and cumulative collected over the household's lifetime.</div>"+
+    reconciliationLine()));
+  out.push(panel("company","The CLV actuals base and the forward projection",
+    "<div id=\"cashflow-kpis-company\"></div>"+
+    "<div class=\"usage-hint\">Cost to Serve is only available as a lifetime total (no monthly series exists in the sim), so the net cash contribution figure here is a lifetime figure, not a monthly one.</div>"+
     "<div class=\"sec-title\" style=\"margin-top:20px\">Forecast Cashflow &mdash; Forward-Looking Projection</div>"+
-    "<div id=\"forecast-cashflow-body\"></div>";
-  return html;
+    "<div id=\"forecast-cashflow-body\"></div>"));
+  return out;
 }
 function renderForecastCashflow(){
   var body=document.getElementById("forecast-cashflow-body");
@@ -853,10 +1074,19 @@ function renderCashflow(){
     });
   }
   var t=scopeCtsAndCollected(CASH_SCOPE);
+  // The two halves land in two SEPARATE panels: what the account holder can
+  // reconcile from their own statements, and the supplier's cost/margin view of
+  // the same cash. Cost to Serve and net contribution are company-only.
   var kpis=document.getElementById("cashflow-kpis");
   if(kpis){
     kpis.innerHTML="<div class=\"bill-sum\">"+
       "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Lifetime Collected</div><div class=\"bill-kv green\">"+gbp(t.collected)+"</div></div>"+
+      "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Lifetime Billed</div><div class=\"bill-kv\">"+gbp(t.billed)+"</div></div>"+
+      "</div>";
+  }
+  var ckpis=document.getElementById("cashflow-kpis-company");
+  if(ckpis){
+    ckpis.innerHTML="<div class=\"bill-sum\">"+
       "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Cost to Serve (lifetime)</div><div class=\"bill-kv muted\">"+gbp(t.cts)+"</div></div>"+
       "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Net Cash Contribution (H2-realized value)</div><div class=\"bill-kv "+nc(t.net)+"\">"+gbp(t.net)+"</div></div>"+
       "</div>";

@@ -496,6 +496,12 @@ REVIEWED_CLOSE_TO_LEARN = {
     # figure onto the customer-eye view -- the same close_to_learn class as G12/G13's queryable
     # projections and A9's market-at-the-seams design law: architectural honesty, not commerce.
     "SITE2_two_sided_wall_exhibit",
+    # 2026-08-12 reviewed (worker tick, SITE2's single named residual split out). SITE3 moves
+    # that same exhibit off its /customers/ URL and repoints every link to it. It is pure IA
+    # plumbing -- a sitemap entry, a 301, five door navs and a set of hard-coded file paths.
+    # It prices nothing, bills nothing and settles nothing; what it protects is whether the
+    # site's own published links land where they claim, the same close_to_learn class as SITE2.
+    "SITE3_wall_exhibit_url_rename",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as
