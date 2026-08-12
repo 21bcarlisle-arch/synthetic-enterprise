@@ -7,6 +7,7 @@
 **Verdict:** **HELD AT L2.** L3 means "no major flaws". A fourth was measured, in the claim that makes the
 belief headline a measure of the wall at all.
 **R12:** nothing was tuned. The belief gap is unchanged — `0.145933` (n=800, seed 7) before and after this tick.
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_coverage_only_claim_is_measured_not_asserted`, `tests/tools/test_couple_w2_11_d5.py::test_a_dimension_whose_published_text_makes_the_claim_must_declare_it`, `tests/tools/test_couple_w2_11_d5.py::test_R15_an_organ_only_rule_drift_breaks_the_coverage_only_residual`, `tools/couple_w2_11_d5.py` — the defect was the claim being UNMEASURED, not the mirror itself, and the measurement landed in this same document: the coverage-only residual is scored against a declared counterfactual with four vacuity witnesses, and the class sweep over published text fires on any dimension that makes the claim without declaring it. Verified by RUNNING all three falsifiers at this HEAD, not by reading the commit. The mirror in _severity_label is explicitly recorded and accepted, not repaired — deleting it would delete the independence it exists to provide — which is clause 2's second release and is stated in the What was NOT done section below.
 
 ## Why the Hour ran now
 

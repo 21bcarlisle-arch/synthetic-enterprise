@@ -9,6 +9,7 @@ belief saturation edge of -308 is an artefact of where D27 happened to sweep, no
 boundary"* — which on measurement also discharged lead 3 (*"the census of harness constants chosen to
 remove a confounder has not been made"*) at its second member.
 **Reshape minted as:** `D29_the_as_of_buffer_floors_the_memory_grid` (L0)
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_memory_grid_is_derived_from_the_book_not_the_register`, `tests/tools/test_couple_w2_11_d5.py::test_a_knob_with_no_book_grid_raises_rather_than_asking_the_register`, `tools/couple_w2_11_d5.py` — the own-drift grid this Hour found was still the register's own claims is now derived from the book's event dates, and a knob with no book-derived grid RAISES rather than falling back to the register, which is the fail-open the finding was about. Verified by RUNNING both falsifiers at this HEAD rather than by reading the commit. The reshape the Hour declined (giving the book events beside the short end of a plausible memory) is minted as D29 and recorded here as the accepted limitation, not repaired.
 **Class:** `ORGAN_QUERY_GRID`'s **seventh escape** — a reading taken on a grid of the harness's own
 making is quantised to that grid.
 

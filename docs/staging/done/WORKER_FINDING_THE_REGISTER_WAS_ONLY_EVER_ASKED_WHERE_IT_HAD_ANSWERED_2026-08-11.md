@@ -7,6 +7,7 @@
 **Lead taken:** Hour #9's lead 2 — *"the on-path entries have never been checked for saturation the
 way this one now is"* — which on measurement turned out to have a cause one level up, and that cause
 is lead 3's *"each such choice is a resolution decision taken silently"*.
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_resolution_grid_is_derived_from_the_book_not_the_register`, `tests/tools/test_couple_w2_11_d5.py::test_the_saturation_rule_is_not_keyed_to_a_register_state`, `tools/couple_w2_11_d5.py` — the grid this Hour found was the register's own claims is now derived from the scenario calendar, asserted against its own AST never to reach the register's resolution constant, and the saturation rule is ONE function called from both the on-path and off-path checkers so it cannot exist on one side of the keying and not the other. Verified by RUNNING both falsifiers at this HEAD rather than by reading the commit. The declared residual (no population-side predictor of detection's edges) is recorded and accepted in the document, and carried as the minted atom's own debt.
 
 ---
 

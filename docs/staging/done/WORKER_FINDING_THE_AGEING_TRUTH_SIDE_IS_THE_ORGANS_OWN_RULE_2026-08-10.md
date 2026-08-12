@@ -9,6 +9,7 @@ instrument makes *about itself*.
 **R12:** nothing was tuned. Every published figure is byte-identical before and after —
 `mean_bucket_displacement` 0.127451 / 0.287958 / 0.166667 at seeds 7 / 11 / 23, both directional rates
 unchanged to six places.
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_truth_side_of_every_published_dimension_is_harness_owned`, `tests/tools/test_couple_w2_11_d5.py::test_R15_an_organ_only_dating_drift_breaks_the_ageing_residual`, `tools/couple_w2_11_d5.py` — the defect this Hour FOUND (the truth side importing the organ's own bucket rule) was repaired inside this same document: the rule is harness-owned, and TRUTH_SIDE_RULE_OWNERSHIP checks the module of the callable that actually ran, so pointing the ageing entry back at the organ fires by name. Verified by RUNNING both falsifiers at this HEAD rather than by reading the commit: 15 selected nodes across this class, all green. The two honest limits (a uniform boundary drift is invisible on a three-age book; the ordinal side reaches 2 of 4 buckets) are recorded and accepted here, not repaired — clause 2's other release — and are themselves pinned by test_the_ageing_headline_is_entirely_miss_driven_here.
 
 ## Why the Hour ran on `ageing`
 

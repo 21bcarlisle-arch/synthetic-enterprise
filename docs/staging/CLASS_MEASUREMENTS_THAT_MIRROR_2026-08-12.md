@@ -1,6 +1,6 @@
 # [CLASS] Measurements that mirror the thing they measure: the instrument reads its own subject back
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 6 · **Class:** `measurements_that_mirror` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
 
@@ -8,25 +8,16 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## The 6 instances
 
-- `WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` — BLOCKING
-- `WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` — BLOCKING
+- `WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` — RECORDED
+- `WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_FIDELITY_GATE_WAS_DENOMINATED_IN_THE_WRONG_UNIT_2026-08-11.md` — LATENT
-- `WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md` — BLOCKING
+- `WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md` — RECORDED
 - `WORKER_FINDING_THE_NAMER_READS_A_CLAUSE_BOUNDARY_AND_A_QUOTATION_AS_A_CLAIM_2026-08-12.md` — LATENT
-- `WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md` — BLOCKING
+- `WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md` — RECORDED
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
 **0 hours traced** across 6 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
-
-## What is owed
-
-4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md`
-- `WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md`
-- `WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md`
-- `WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md`
 
 ## Refused consolidation — out of lane, still live
 
