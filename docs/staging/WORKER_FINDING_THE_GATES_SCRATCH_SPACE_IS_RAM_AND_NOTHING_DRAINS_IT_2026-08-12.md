@@ -59,8 +59,25 @@ green is exactly right. The defect is that a resource failure is laundered into 
 
 ## Two defects, ranked
 
-**1. Nothing drains the scratch space.** The gate creates ~139M per cycle and deletes it only
-on a clean exit it frequently does not get. Recommend a drain the gate owns: at cycle START,
+**1. The drain that exists covers one class out of several.** Correction to this finding's own
+title, observed after filing — the publisher DOES sweep:
+
+```
+[2026-08-12 03:51 UTC] [process_run] Publish gate: swept 1 abandoned HEAD checkout(s) from
+/tmp/pytest-of-rich/pytest-130/... -- these are the debris of runs that were killed before
+their cleanup could run.
+```
+
+So the mechanism is not absent; its SUBJECT is too narrow. It reclaims abandoned *HEAD
+checkouts* and had swept exactly one, while the 1,428 dirs actually holding the space were
+`h24_*`, `sitelane_*`, `site_lane_r15_*`, `pymp-*` — pytest fixture dirs from other suites,
+which no sweeper claims. This is the familiar shape (`feedback_control_set_hole_not_control
+_defect`): not a broken control, a **hole in the control set**, and the narrow sweeper's log
+line reads like the space is being managed.
+
+The gate creates ~139M per cycle and deletes it only
+on a clean exit it frequently does not get. Recommend widening that existing sweeper rather
+than adding a second one: at cycle START,
 remove `/tmp` gate/fixture dirs older than a threshold and not held by a live pid — start-time,
 not exit-time, because the exit is the path that is missing. Guard it with a floor check that
 FAILS LOUD when free space is below one checkout's worth, rather than proceeding into a
