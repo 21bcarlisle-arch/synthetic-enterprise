@@ -75,6 +75,8 @@ CONTROL_TESTS = [
 # A staged path under any of these = a code/config change that could break a control or its own
 # tests -> run the gate. Anything else (docs/status, docs/reports, site/data, observability) is
 # pure data and cannot break a control -> skip (keep the loop's commit cadence fast).
+# NOT `site/**/*.html`, though it once counted as "pure data" here: a PAGE can break a control
+# (the reachability one), so it gets its own surface trigger -- see SITE_SURFACE_PREFIX below.
 CODE_PREFIXES = (
     "background/", ".claude/", "tests/", "tools/",
     "saas/", "company/", "sim/", "simulation/", "interface/",
@@ -129,6 +131,26 @@ LEVEL_SENSITIVE_TESTS = [
 # renaming one silently falsifies a declaration that lives in a file this commit never touched.
 # Both directions of `check_declarations_match` therefore need both sides of the surface.
 STORE_SURFACE_PREFIX = "docs/design/simplifications/"
+
+# THE PUBLISHED SURFACE (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS
+# item 1). Fifth sibling of LEVEL_SURFACE / MINT_MARKER / CANON_SURFACE / STORE_SURFACE, and
+# the clearest case of the shape yet: `site/` is deliberately NOT in CODE_PREFIXES ("site/data
+# ... is pure data and cannot break a control"), which was true when the only thing under it
+# was rendered data. It is not true of the pages. A new `site/**/*.html` with no route in is a
+# page published to nobody, and the commit that adds it touches no `.py` at all -- so the gate
+# skipped it as a pure docs commit, `tests_for()` mapped an `.html` to zero tests, and the
+# defect was found by the DIRECTOR reading the live site, which is the failure mode his
+# observation asks to end ("rather than be found by the director looking at the site").
+#
+# WHOLE-TREE, hence a surface trigger rather than per-file selection -- the same reasoning
+# CONTROL_TESTS records for test_segment_case_guard: the control scans every page for one with
+# no route in, so it must run when a page is ADDED, not only when the checker itself is edited.
+# Per-file selection would fire on tools/site_reachability.py and stay silent on the exact
+# commit that strands a section. ~0.15s (no subprocess, no network; it reads 35 files).
+SITE_SURFACE_PREFIX = "site/"
+SITE_SURFACE_TESTS = [
+    "tests/tools/test_site_reachability.py",
+]
 
 
 def staged_files() -> list[str]:
@@ -213,8 +235,11 @@ def select_targets(files: list[str]) -> list[str]:
     store_surface_changed = any(
         f.startswith(STORE_SURFACE_PREFIX) and f.endswith(".yaml") for f in files
     )
+    site_surface_changed = any(
+        f.startswith(SITE_SURFACE_PREFIX) and f.endswith(".html") for f in files
+    )
     if not (code_changed or level_surface_changed or mint_marker_changed
-            or canon_surface_changed or store_surface_changed):
+            or canon_surface_changed or store_surface_changed or site_surface_changed):
         return []  # pure docs/data commit touching no control, level surface, mint marker,
         # canon or per-atom store
     targets: set[str] = set()
@@ -228,6 +253,8 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in CANON_SURFACE_TESTS if (ROOT / t).exists())
     if store_surface_changed:
         targets.update(t for t in STORE_CONTRACT_TESTS if (ROOT / t).exists())
+    if site_surface_changed:
+        targets.update(t for t in SITE_SURFACE_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
     return sorted(targets)

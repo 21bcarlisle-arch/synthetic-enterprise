@@ -1,6 +1,7 @@
 # The accuracy verdict had no error bar, and its band sat at the median of its own subject
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_accuracy_verdict_is_deterministic_and_seeded_from_its_own_substream`, `tests/harness/test_premise_two_level.py::test_the_paired_verdict_resolves_more_often_as_the_panel_grows`, `background/fabric_gap_ledger.py` — the statistic this Hour named was repaired INSIDE this document: _paired_accuracy_verdict (fabric_gap_ledger.py line 6214) replaced the point-estimate-against-a-fixed-band with a per-premise paired advantage and a seeded percentile bootstrap CI, "neither" only when the interval straddles zero. Verified 2026-08-12 by a later tick, not taken on the document's word: the mechanism is live at that line and the 8 falsifiers in its family pass. The residual this Hour explicitly did NOT do — the MONEY half of _favours, and panel_mirror_normaliser_drift — is recorded in its own "What this Hour did NOT do" section and carried by its named successor, WORKER_FINDING_THE_MONEY_VERDICT_WAS_A_SUM_AND_A_SUM_HAS_NO_ERROR_BAR_2026-08-11.md, which is live in staging and blocking on its own account. Clause 2's first release: repaired.
 
 **Atom:** `H_GAP_fabric_belief_truth_gap` · **Expert Hour #4** · 2026-08-11
 **Outcome: the Hour found something NEW, so the level stays 2.**

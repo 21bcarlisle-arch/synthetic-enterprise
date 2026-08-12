@@ -7,9 +7,9 @@
     "wall_placement": "Public-reality commons only. Every figure below is a published external fact or an already-published gap statement. No simulation-internal generator value appears on this page.",
     "rate_of_change_class": "slow",
     "data_freshness": {
-      "as_of": "2026-07",
-      "cadence": "monthly",
-      "note": "Data re-renders monthly; the underlying claims are reviewed on their rate-of-change class."
+      "as_of": "2025-06",
+      "cadence": "on refresh of the Elexon SSP extract",
+      "note": "Every chart on this page is the real Elexon SSP extract captured 2025-06-07, covering 2015-11 to 2025-05; the header stamp is that vintage and not the date of the last review. Corrected 2026-08-12: this said 2026-07 with a cadence of 'monthly' while the series beneath it ended 2025-05, so the header claimed data thirteen months newer than any datum on the page. The claims are reviewed separately -- see claim_freshness."
     },
     "claim_freshness": {
       "last_verified": "2026-07-25",

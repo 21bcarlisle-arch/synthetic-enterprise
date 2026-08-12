@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Knowledge</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+/* Nav sits on the RIGHT on every section (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 3: "The nav sits on different sides depending on which section
+   you are in. The director's preference is consistent right-hand alignment."). The doors
+   here are loose flex children rather than the front door's grouped nav.doors, so the group
+   is pushed right by giving the first link the free space -- no markup change, and the
+   wordmark stays left as it does on every other surface. Shared cause with item 1: these are
+   the pages built from the older left-aligned template. */
+.site-nav .nav-link:first-of-type { margin-left: auto; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 28px; }
+.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 36px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 12px; display: block; text-decoration: none; color: inherit; }
+a.card:hover { border-color: var(--teal); }
+.card-h { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.card-p { font-size: 13px; color: var(--muted); }
+.muted { color: var(--muted); font-size: 12px; }
+.inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.inline-link:hover { border-bottom-color: var(--blue); }
+.stub-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em;
+  border-radius: 4px; padding: 2px 6px; vertical-align: middle; margin-left: 6px;
+  color: var(--amber); border: 1px solid var(--amber); }
+footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-logo" href="../">Poesys</a>
+  <a class="nav-link" href="../company/">Company</a>
+  <a class="nav-link" href="../world/">World</a>
+  <a class="nav-link active" href="./">Knowledge</a>
+  <a class="nav-link" href="../proof/">Proof</a>
+  <a class="nav-link" href="../glossary/">Glossary</a>
+</nav>
+<div class="wrap">
+  <h1 class="hero-h">Knowledge</h1>
+  <p class="hero-sub">
+    Background on how the GB energy market actually works — the mechanisms the
+    simulation models, explained from published sources. These pages are
+    reference material, not company results; the results live on
+    <a class="inline-link" href="../proof/">Proof</a>.
+  </p>
+
+  <div class="sec">Published</div>
+  <a class="card" href="./electricity-wholesale/">
+    <div class="card-h">How GB wholesale electricity prices are formed</div>
+    <div class="card-p">
+      Merit order, marginal pricing and the half-hourly settlement cycle — how a
+      price emerges from the stack, and what moves it.
+    </div>
+  </a>
+
+  <div class="sec">Stubs — not yet written</div>
+  <p class="muted" style="margin-bottom:12px;">
+    These nodes hold their place in the GB wholesale-energy domain graph. Each
+    states what a complete treatment will cover and how it connects to the
+    topics around it, and says plainly that the full explanation is not yet
+    written. They are linked rather than hidden because that is what they were
+    built to be — an honest stub is a published page; a page nobody can reach is
+    not.
+  </p>
+  <a class="card" href="./gas-wholesale/"><div class="card-h">Gas wholesale <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./gb-electricity-market/"><div class="card-h">The GB electricity market <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./merit-order-residual-demand/"><div class="card-h">Merit order and residual demand <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./hedging-forward-market/"><div class="card-h">Hedging and the forward market <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./imbalance-cashout-settlement/"><div class="card-h">Imbalance, cash-out and settlement <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./price-cap/"><div class="card-h">The price cap <span class="stub-badge">Stub</span></div></a>
+  <a class="card" href="./carbon-price/"><div class="card-h">Carbon price <span class="stub-badge">Stub</span></div></a>
+</div>
+<footer>
+  Reference material. Figures on linked pages carry their own source and vintage.
+</footer>
+</body>
+</html>

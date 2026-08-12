@@ -1,6 +1,7 @@
 # WORKER FINDING — the latency dimension reads its own grace parameter back, and calls it the company's latency
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_latency_arm_resolves_the_company_to_the_day`, `tests/tools/test_couple_w2_11_d5.py::test_the_grid_is_daily_from_the_issue_date_to_as_of`, `tests/tools/test_couple_w2_11_d5.py::test_the_grid_control_fires_when_the_grid_goes_coarse_again`, `tools/couple_w2_11_d5.py` — this document released on clause 2's SECOND path (limitation recorded and accepted: it stamped the grid's resolution into the dimension's own components and minted D23 rather than fixing on sight). It is now released on the FIRST path as well, because D23 LANDED: the maturity map records the 2026-08-10 reshape — the grid is daily from the invoice issue date to as_of, so the reading tracks the organ day for day in both directions (baseline 5.0, minus-1d to 4.0, plus-1d to 6.0, plus-7d to 12.0 at seeds 7/11/23, and no case leaves the population undated). The instrument that "cannot resolve its own latency" now can. Verified 2026-08-12 by a later tick against the live tree, not from the map's prose: 26 passed on the grid/latency family. The successor defect this reshape localised to the organ is D24, minted and tracked separately.
 
 **Date:** 2026-08-10 · **Found by:** worker tick running Expert Hour #7 on `H27_payment_belief_gap` (2→3)
 **Advances:** `D23_organ_query_grid_cannot_resolve_latency` (minted here, **not** built here)

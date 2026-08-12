@@ -1,6 +1,7 @@
 # WORKER FINDING — a control's fidelity term was 100% its own normaliser, so it refused a perfect instrument and passed a broken one
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_a_MIRROR_THAT_REALLY_MOVES_THE_REGISTER_ARM_is_caught_though_the_RATIO_is_not`, `tests/harness/test_premise_two_level.py::test_an_EXACTLY_FAITHFUL_MIRROR_is_not_called_INCONCLUSIVE_by_its_own_normaliser`, `tools/couple_fabric.py` — repaired inside this document, under its own "Mechanised here (not exhortation)" heading: the gate moved off the ratio onto panel_mirror_register_infidelity, an artefact measured on the un-normalised register arm, with panel_mirror_normaliser_drift disclosed separately as the intended move. The named falsifier is the fail-open direction the Hour found (a mirror that really moves the register arm while the ratio reads under band); its partner covers the false-positive direction (a perfect instrument must not be refused by its own normaliser). Verified 2026-08-12 by a later tick against the live tree, not on the document's claim of 5 mutations: 30 passed on the mirror/yardstick/infidelity family. Clause 2's first release: repaired.
 
 Filed 2026-08-11 by the worker tick that drew `H_GAP_fabric_belief_truth_gap` (L2->L3).
 This is the **second** Expert Hour on this atom's caveat machinery, run under the

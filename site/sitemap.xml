@@ -10,6 +10,17 @@
   (docs/design/SITE_CONSTITUTION.md, site/_redirects):
     INCLUDED: the live, canonical door set, the front door plus every
     surface reachable from it that is not itself a 301 redirect target.
+    /knowledge/ joined that set on 2026-08-12: the section's nine pages had
+    existed for weeks with no index and no route in from anywhere a reader
+    could start (DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 1),
+    so it satisfied neither half of the rule above. It now has a section index
+    linked from the front door's secondary line, which is what makes it
+    advertisable here. The inclusion rule quoted above is, from the same date,
+    enforced rather than described: tools/site_reachability.py fails a build
+    carrying a page with no route in, and the pre-commit gate runs it on any
+    site/**/*.html change. Individual topic pages under /knowledge/ are not
+    listed for the same reason no other door's sub-pages are: the sitemap
+    advertises the door set, and each topic page carries noindex of its own.
     EXCLUDED: /director/ (explicitly off-nav and noindex by design, an
     auth-adjacent surface, not a public door; see site/director/index.html
     and the SITE1 Expert-Hour credited-strong note); /shadow/ (the internal
@@ -29,5 +40,6 @@
   <url><loc>https://poesys.net/now/</loc></url>
   <url><loc>https://poesys.net/glossary/</loc></url>
   <url><loc>https://poesys.net/evidence/</loc></url>
+  <url><loc>https://poesys.net/knowledge/</loc></url>
   <url><loc>https://poesys.net/privacy/</loc></url>
 </urlset>

@@ -311,7 +311,14 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   </a>
 </div>
 
-<div class="also">Operator? <a href="./now/">The business right now &gt;</a> &middot; <a href="./proof/#method-anchor">The Method &gt;</a> &middot; <a href="./glossary/">Glossary &gt;</a></div>
+<!-- Knowledge joins the secondary line rather than the canonical door set (2026-08-12,
+     DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 1: "The Knowledge section
+     has no route in from the main nav"). It routes beside Glossary because that is the
+     same kind of surface -- reference material, not a door of the five-surface IA -- and
+     the canonical list above is a director ruling (SITE_V5, 2026-07-23) mirrored in
+     site/test_home_door.py; widening it is his call, not a side effect of closing an
+     orphan. Enforced from now on by tools/site_reachability.py. -->
+<div class="also">Operator? <a href="./now/">The business right now &gt;</a> &middot; <a href="./proof/#method-anchor">The Method &gt;</a> &middot; <a href="./glossary/">Glossary &gt;</a> &middot; <a href="./knowledge/">Knowledge &gt;</a></div>
 
 <footer class="foot">
   <span>poesys. -- built and run by AI, directed by a human.</span>

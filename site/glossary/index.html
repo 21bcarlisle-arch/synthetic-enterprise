@@ -19,6 +19,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-house)
 .nav-logo { margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+/* Nav sits on the RIGHT on every section (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 3: "The nav sits on different sides depending on which section
+   you are in. The director's preference is consistent right-hand alignment."). The doors
+   here are loose flex children rather than the front door's grouped nav.doors, so the group
+   is pushed right by giving the first link the free space -- no markup change, and the
+   wordmark stays left as it does on every other surface. Shared cause with item 1: these are
+   the pages built from the older left-aligned template. */
+.site-nav .nav-link:first-of-type { margin-left: auto; }
 .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 .hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
 .hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
