@@ -1,0 +1,16 @@
+[Unit]
+Description=Synthetic Enterprise HEAD-green census — the UNSCOPED suite, once nightly
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# The per-commit gate is scoped BY NAME STEM and the operational check runs the complementary
+# marker set, so nothing routine has ever measured whether HEAD as a whole is green. This does,
+# on a cadence, with NO -x -- fail-fast is right for a commit gate and wrong for a health
+# measurement. Report-only: it pages on a DELTA against the committed baseline and changes
+# nothing (G-R4).
+ExecStart=/usr/bin/python3 -m tools.head_green_census --notify
+# ~25 min at 24k tests; give it room without letting a hang run to the next firing.
+TimeoutStartSec=3600

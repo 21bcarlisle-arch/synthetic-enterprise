@@ -1,0 +1,13 @@
+[Unit]
+Description=Synthetic Enterprise HEAD-green census timer — nightly unscoped suite
+
+[Timer]
+# Nightly, off-peak. Deliberately NOT per-commit: a 25-minute gate gets bypassed, and
+# hook-bypass is a wall. The scoped commit gate stays as it is; this covers its blind spot.
+# Persistent so a box that was off overnight still measures once when it comes back.
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

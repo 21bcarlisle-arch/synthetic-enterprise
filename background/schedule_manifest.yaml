@@ -121,3 +121,25 @@ systemd_units:
       Fires SM1 once each morning (07:00 local) so the status arrives UNPROMPTED — the last open
       thread of the self-measurement steer. Idempotent per day + Persistent, so a catch-up replay
       after downtime still yields exactly one note.
+  - name: head-green-census.service
+    unit_file: background/head-green-census.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — runs one unscoped pass and EXITS
+    reason: >-
+      Answers the question no routine control was shaped to ask: is HEAD as a whole green? The
+      per-commit gate selects tests by NAME STEM from the changed paths, and the operational
+      check runs the complementary marker set, so on 2026-08-12 eight tests were failing at HEAD
+      with every control green. Runs the publish gate's OWN marker expression and ignores, with
+      NO -x — fail-fast is right for a commit gate and wrong for a health measurement, and that
+      day it turned six findings into one. Report-only: pages on a DELTA against the committed
+      baseline and changes nothing (G-R4). Not enabled/active itself (the .timer drives it).
+
+  - name: head-green-census.timer
+    unit_file: background/head-green-census.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — an unscheduled health census is fail-silent (R15)
+    reason: >-
+      Nightly at 03:30, Persistent so a box that was off overnight still measures once when it
+      returns. Deliberately NOT per-commit: a 25-minute gate gets bypassed and hook-bypass is a
+      wall, so the scoped commit gate stays exactly as it is and this covers its blind spot on a
+      cadence instead.

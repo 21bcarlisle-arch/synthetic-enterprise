@@ -1,0 +1,5 @@
+{
+  "_doc": "Tests known to be failing at HEAD. tools/head_green_census.py alarms on the DELTA against this list, never on the absolute count, because a standing red set nobody has dispositioned becomes wallpaper and then the control is decoration. NOTHING WRITES THIS FILE AUTOMATICALLY: a control that absorbs its own new failures into its own baseline cannot fail. Adding a row is a human act with a commit message attached, and removing one is owed the moment the census reports it FIXED.",
+  "_updated": "2026-08-12",
+  "known_red": []
+}
