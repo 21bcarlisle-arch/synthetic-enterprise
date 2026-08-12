@@ -118,6 +118,36 @@ def test_reping_boundary_is_at_the_threshold_not_above_it(register, monkeypatch)
 # 2. deadmans_switch stall cadence + RE_ESCALATE cooldown
 # =========================================================================
 
+# The checks `dms_isolated` below neutralises, and the ones it deliberately lets run for real.
+# Named constants rather than a literal inside the fixture so the CLASS GUARD at the end of this
+# section can pin them against what `run_cycle` actually calls -- see that test for why.
+NEUTRALISED_BY_DMS_ISOLATED = (
+    "_check_pull_loop_transport",
+    "_check_fork_lifecycle",
+    "_check_worktree_reconcile",
+    "_check_status_honesty",
+    "_check_operational_layer_signal",
+    # The two below were found by the class guard on its FIRST run -- neither was in the original
+    # list and neither is targeted by any test in this file. Both scan REAL primary state
+    # (`_open_blocked_mints()` / `_self_drawable_undrawn()` read the live maturity map and
+    # docs/staging/in_progress/) and both `notify(kind="real_alarm")`, which _capture_ntfy records
+    # -- so a fire appends to `calls` and breaks the `assert len(calls) == 1` these tests are built
+    # on. They stayed quiet only by accident of arithmetic: they need since_commit >= 2h and the
+    # stall tests pin their gap at BLOCKED_THRESHOLD + 60s (~46min). Any test here that used a
+    # longer gap would have paged the director from a unit test. That is latent, not isolated.
+    "_check_open_mint_escalation",
+    "_check_drawable_undrawn_escalation",
+)
+
+# Allowed to run for real, each for a stated reason. A check earns a place here only if it is
+# cheap, read-only, spawns NO subprocess, and cannot page -- i.e. it cannot perturb the
+# `assert len(calls) == 1` assertions these mutation tests are made of.
+RUN_FOR_REAL_BY_DMS_ISOLATED = {
+    # Reads `git rev-parse --is-bare-repository` and logs. No subprocess suite, no notify path.
+    "_check_repo_not_bare": "cheap read-only git query; logs only, never notifies",
+}
+
+
 @pytest.fixture(autouse=False)
 def dms_isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(dms, "LOG_FILE", tmp_path / "log.md")
@@ -138,14 +168,86 @@ def dms_isolated(tmp_path, monkeypatch):
     # director-console authorization -- an alarm on the machine doing what THE_STANDARD requires).
     # raising=False is deliberately NOT used: if a name here stops existing, that should fail loudly
     # rather than silently no-op a check this fixture believes it is neutralising.
-    for _chk in ("_check_pull_loop_transport", "_check_fork_lifecycle",
-                 "_check_worktree_reconcile", "_check_status_honesty"):
+    #
+    # `_check_operational_layer_signal` ADDED 2026-08-12 -- it was the one check `run_cycle` gained
+    # after this list was written, and the list did not move with it. OBSERVED, not inferred: at
+    # 04:26Z the live publish gate's own content suite (pid 855448, `-m 'not operational'`) had
+    # `pytest tests/ -m 'operational or join_report_only or scale_report_only'` as a CHILD process,
+    # with PYTEST_CURRENT_TEST=tests/controls/test_daemon_loop_mutation.py::test_stall_alarm_fires_
+    # when_commit_stale_and_work_queued. The signal throttles on
+    # process_run_complete.OPERATIONAL_LAYER_STATE_FILE -- an absolute path into the REAL
+    # docs/observability/, which this fixture's OBSERVABILITY_DIR patch does not reach -- so the
+    # first of these 12 run_cycle() calls after each hour boundary read the live throttle, found
+    # itself due, and launched the ENTIRE operational suite nested inside the content gate. That is
+    # what made a gate cycle take 40+ minutes against a 5-9 minute commit interval, and it wrote
+    # the live .operational_layer_signal.json from inside a test.
+    for _chk in NEUTRALISED_BY_DMS_ISOLATED:
         monkeypatch.setattr(dms, _chk, lambda *a, **k: None)
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     dms._last_escalation_ts = None
     yield tmp_path
     dms._last_escalation_ts = None
+
+
+def test_dms_isolated_accounts_for_every_check_run_cycle_calls():
+    """R10 CLASS GUARD: the fixture's neutralise-list is a hand-maintained enumeration, and a
+    hand-maintained enumeration of someone else's call set rots silently. This makes it rot LOUDLY.
+
+    THE CLASS, not the instance. The instance was `_check_operational_layer_signal`: added to
+    `run_cycle`, never added to `dms_isolated`, and therefore executed for real inside 12 mutation
+    tests -- where it spawned the entire `-m operational` pytest suite as a child of the publish
+    gate's own content suite and wrote the live docs/observability/ throttle file. Adding that one
+    name back is an instance fix and R10 forbids closing here on one. The defect that PRODUCED it is
+    that nothing related the fixture's list to `run_cycle`'s body, so the next check added to
+    `run_cycle` would land in exactly the same hole. This test is that relation.
+
+    NOT A TAUTOLOGY (R15): the two sides come from independent sources. The expected side is read
+    from `run_cycle`'s own SOURCE -- the actual call set, which changes when a developer edits the
+    daemon. The actual side is the fixture's declared constants. Neither is derived from the other,
+    so this fails when they diverge in either direction:
+      * a check added to `run_cycle` and not classified here -> UNACCOUNTED (the observed defect);
+      * a name classified here that `run_cycle` no longer calls -> STALE (the list keeps
+        neutralising a ghost, which is how `_check_gate_wall` lingered after it was deleted).
+    """
+    import inspect
+    import re
+
+    src = inspect.getsource(dms.run_cycle)
+    called = set(re.findall(r"\b(_check_[A-Za-z0-9_]+)\s*\(", src))
+
+    # FAIL-CLOSED on a lost subject (R15 fail-silent doctrine): if `run_cycle` is refactored so no
+    # `_check_*` call is textually visible, this guard would pass over an empty set and prove
+    # nothing. An unavailable check is a FAILED check -- say so instead of going green.
+    assert called, (
+        "run_cycle() no longer shows any _check_*() call in its source -- this guard has lost its "
+        "subject and is green over nothing. Re-point it at however run_cycle now dispatches its "
+        "checks before trusting it again."
+    )
+
+    classified = set(NEUTRALISED_BY_DMS_ISOLATED) | set(RUN_FOR_REAL_BY_DMS_ISOLATED)
+
+    unaccounted = called - classified
+    assert not unaccounted, (
+        "run_cycle() calls {} which dms_isolated neither neutralises nor deliberately allows.\n"
+        "Every one of the 12 run_cycle() calls in this file will therefore execute it FOR REAL, "
+        "against live repo/process/observability state.\n"
+        "Decide which it is:\n"
+        "  * it scans real state, pages, writes outside tmp_path, or spawns a subprocess\n"
+        "      -> add it to NEUTRALISED_BY_DMS_ISOLATED;\n"
+        "  * it is cheap, read-only and cannot notify\n"
+        "      -> add it to RUN_FOR_REAL_BY_DMS_ISOLATED with the reason.\n"
+        "This is the hole _check_operational_layer_signal fell through on 2026-08-12: it launched "
+        "the whole operational suite inside the publish gate.".format(sorted(unaccounted))
+    )
+
+    stale = classified - called
+    assert not stale, (
+        "dms_isolated classifies {} but run_cycle() no longer calls it. A neutralise-list entry "
+        "for a function that is gone is dead weight that hides the next real addition (and "
+        "monkeypatch.setattr will raise once the attribute itself disappears). Drop it.".format(
+            sorted(stale))
+    )
 
 
 def _capture_ntfy(monkeypatch):
