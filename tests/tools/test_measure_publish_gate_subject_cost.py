@@ -53,6 +53,26 @@ def out(tmp_path):
     return str(tmp_path / "publish_gate_subject_cost.json")
 
 
+@pytest.fixture
+def runnable_ceiling(monkeypatch):
+    """Pin the phase as RUNNABLE, so these tests' subject is the bounded path.
+
+    WHY (2026-08-12, the nineteenth wedge). `PHASE_CEILING_IS_SUFFICIENT` is derived at IMPORT
+    from two things neither of which is a test input: the LIVE banked record
+    (`docs/observability/publish_gate_subject_cost.json`) and this box's MemTotal. When a
+    banked peak of 10240MB landed, `10240 * 1.25 = 12800MB` exceeded the 11816MB this box can
+    spare with the publisher's reserve intact -- so `_bounded_argv` began raising `_Unbounded`
+    before any of these tests reached its own subject, and nine of them reddened HEAD at once.
+
+    That refusal is CORRECT and stays untouched: it is asserted, un-pinned, by
+    `test_the_ratchet_terminates_rather_than_clamping` (the live-state check) and by the
+    mutation that removes it. What is wrong is a test of the bounded path whose verdict is
+    decided by how much RAM the machine happens to have -- the same shape as a stub root that
+    is not repo-shaped (tests/background/publish_gate_root_shape.py).
+    """
+    monkeypatch.setattr(measure, "PHASE_CEILING_IS_SUFFICIENT", True)
+
+
 # ── THIS MODULE RUNS INSIDE THE THING IT LOCKS, SO IT MUST NEVER TOUCH THE REAL LOCK ─────────
 #
 # OBSERVED, 2026-08-10, before the exclusion was committed. The phases now take
@@ -1099,7 +1119,7 @@ def test_repeated_deferrals_accumulate_a_visible_count(monkeypatch, out):
         holder.close()
 
 
-def test_a_banked_phase_was_always_admitted_quiet(monkeypatch, out):
+def test_a_banked_phase_was_always_admitted_quiet(monkeypatch, out, runnable_ceiling):
     """The invariant the deferral buys, asserted on the ARTEFACT rather than argued in a
     comment: no phase can be banked with `box_was_quiet: false`, so the ratio can never be
     computed from a contended number.
@@ -1165,7 +1185,7 @@ def _lock_is_free() -> bool:
         return bool(acquired)
 
 
-def test_a_phase_holds_the_publishers_run_lock_while_it_times(monkeypatch, tmp_path):
+def test_a_phase_holds_the_publishers_run_lock_while_it_times(monkeypatch, tmp_path, runnable_ceiling):
     """MUTATION: drop the `with _publisher_exclusion(...)` from `_time_suite` and this reds --
     the publisher's lock stays free, so a real cycle starts inside the timed window.
 
@@ -1460,7 +1480,7 @@ def _live_marker(out_path):
     return results, heartbeat
 
 
-def test_a_launch_killed_in_the_suite_leaves_a_record_that_says_so(monkeypatch, out, tmp_path):
+def test_a_launch_killed_in_the_suite_leaves_a_record_that_says_so(monkeypatch, out, tmp_path, runnable_ceiling):
     """THE property the misread finding needed and did not have. The record is read from DISK
     at the moment the suite child is running -- which is exactly what an OOM kill leaves behind,
     because a kill gives the process no chance to write anything afterwards.
@@ -1519,7 +1539,7 @@ def test_a_launch_killed_waiting_for_the_lock_leaves_a_different_record(monkeypa
     )
 
 
-def test_the_two_deaths_are_told_apart_by_the_record_alone(monkeypatch, out, tmp_path):
+def test_the_two_deaths_are_told_apart_by_the_record_alone(monkeypatch, out, tmp_path, runnable_ceiling):
     """The pair, as one assertion, because the pair is the property.
 
     MUTATION that reds this and not much else: give every `_mark_stage` call the same literal
@@ -1640,7 +1660,7 @@ def test_a_record_with_no_prior_kill_says_so_explicitly(monkeypatch, out, tmp_pa
     assert rec["previous_launch_died_in_flight"] is None
 
 
-def test_the_marker_records_the_memory_a_killed_phase_never_banks(monkeypatch, out, tmp_path):
+def test_the_marker_records_the_memory_a_killed_phase_never_banks(monkeypatch, out, tmp_path, runnable_ceiling):
     """A phase that is OOM-killed banks no phase record, so `mem_available_before_mb` -- the one
     field that would explain the kill -- is never written. The marker carries it instead, and
     re-stamps it at every stage, so the artefact holds the conditions AT the moment of death
@@ -1773,7 +1793,7 @@ def test_the_bound_actually_kills_an_over_large_child_and_the_unbounded_one_surv
     assert "allocated 300MB" not in bounded.stdout
 
 
-def test_every_phase_runs_inside_a_memory_bound(monkeypatch, tmp_path):
+def test_every_phase_runs_inside_a_memory_bound(monkeypatch, tmp_path, runnable_ceiling):
     """The argv the phase actually executes carries the ceiling.
 
     Mutation: return `_argv_without_x()` from `_bounded_argv` and this reds -- which is the
@@ -1988,7 +2008,7 @@ def test_the_phase_the_kernel_answered_says_observed_not_inferred():
     )
 
 
-def test_the_phase_record_states_its_ceiling_and_its_x_premium(monkeypatch, tmp_path):
+def test_the_phase_record_states_its_ceiling_and_its_x_premium(monkeypatch, tmp_path, runnable_ceiling):
     """Two things a future reader re-deriving GATE_SUITE_TIMEOUT_SECONDS needs and cannot infer:
     the ceiling the phase ran under, and that this suite is STRICTLY LARGER than the gate's own
     (`-x` is stripped here, kept there, and the suite is red at HEAD)."""
@@ -2376,7 +2396,7 @@ def test_the_banked_record_agrees_with_the_basis_written_beside_it():
     print("[basis-consistency] graded {} banked phase(s) of {}".format(checked, len(phases)))
 
 
-def test_the_writer_still_emits_a_basis_beside_every_verdict(out, monkeypatch, tmp_path):
+def test_the_writer_still_emits_a_basis_beside_every_verdict(out, monkeypatch, tmp_path, runnable_ceiling):
     """THE ANTI-VACUITY CONTROL, moved off the banked population and onto the WRITER.
 
     The record can legitimately hold no basis at all (a re-timing drops the ratio phases), so
@@ -2872,29 +2892,52 @@ def test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel():
     A 400MB allocation inside a 1024MB scope must read back as ~400MB -- not as the ceiling, not
     as zero, and labelled `observed` rather than a lower bound because the run ended on its own
     and a read landed after the child exited."""
-    unit = "ops2-peak-selftest-{}".format(os.getpid())
+    ATTEMPTS = 3   # see the note below: the exact branch is a RACE, not a certainty
     alloc = ("import time\n"
              "b = bytearray(400*1024*1024)\n"
              "b[::4096] = b'x' * (len(b)//4096)\n"
              "time.sleep(3)\n")
-    sampler = measure._ScopePeakSampler(unit, poll_seconds=0.5).start()
-    res = subprocess.run(measure._scope_argv(unit, memory_max_mb=1024)
-                         + [sys.executable, "-c", alloc],
-                         capture_output=True, text=True, timeout=180)
-    sampler.stop()
 
-    assert res.returncode == 0, "the allocation never ran: {}".format(res.stderr[-300:])
-    assert sampler.peak_mb is not None, (
-        "the sampler read nothing from a scope that demonstrably ran, so the ceiling has no "
-        "measured subject and falls back to a chosen number for ever"
+    # THE EXACT BRANCH IS A RACE WITH SYSTEMD'S TEARDOWN, so asserting it ONCE asserts that
+    # this box was not busy (2026-08-12: red inside the module, green run alone -- a verdict
+    # decided by ambient load is not a control). `stop()` takes one final read and records
+    # whether it LANDED; when the scope is already gone the sampler correctly downgrades to a
+    # lower bound. Both branches are honest, so the loop takes the exact one when it can get
+    # it and the assertions below still fail a sampler that can NEVER read after exit --
+    # which is the defect this test exists to catch.
+    landed = None
+    for attempt in range(ATTEMPTS):
+        unit = "ops2-peak-selftest-{}-{}".format(os.getpid(), attempt)
+        sampler = measure._ScopePeakSampler(unit, poll_seconds=0.5).start()
+        res = subprocess.run(measure._scope_argv(unit, memory_max_mb=1024)
+                             + [sys.executable, "-c", alloc],
+                             capture_output=True, text=True, timeout=180)
+        sampler.stop()
+
+        assert res.returncode == 0, "the allocation never ran: {}".format(res.stderr[-300:])
+        assert sampler.peak_mb is not None, (
+            "the sampler read nothing from a scope that demonstrably ran, so the ceiling has "
+            "no measured subject and falls back to a chosen number for ever"
+        )
+        assert 350 < sampler.peak_mb < 700, (
+            "the sampler did not measure this scope's own demand: {}MB for a 400MB allocation "
+            "under a 1024MB ceiling".format(sampler.peak_mb)
+        )
+        assert sampler.source == "memory.peak"
+        # The qualifier must AGREE with what the sampler says it got, on every attempt --
+        # this is the half that holds even when the race is lost.
+        assert sampler.is_lower_bound_on_demand(False) is not sampler.read_after_exit
+        if sampler.read_after_exit:
+            landed = sampler
+            break
+
+    assert landed is not None, (
+        "no read landed after the child exited in {} attempts -- every peak this instrument "
+        "produces would be a lower bound, so the ratchet can never measure an exact "
+        "demand".format(ATTEMPTS)
     )
-    assert 350 < sampler.peak_mb < 700, (
-        "the sampler did not measure this scope's own demand: {}MB for a 400MB allocation "
-        "under a 1024MB ceiling".format(sampler.peak_mb)
-    )
-    assert sampler.source == "memory.peak"
-    assert sampler.is_lower_bound_on_demand(False) is False
-    assert "observed:" in sampler.basis(False)
+    assert landed.is_lower_bound_on_demand(False) is False
+    assert "observed:" in landed.basis(False)
 
 
 @pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
@@ -2988,7 +3031,7 @@ def test_an_unreadable_cgroup_reads_as_unknown_rather_than_as_zero(tmp_path):
 
 
 def test_the_banked_phase_carries_its_peak_and_the_provenance_of_its_ceiling(monkeypatch,
-                                                                            tmp_path):
+                                                                            tmp_path, runnable_ceiling):
     """The record is where the next reader meets these numbers, and a bound whose provenance is
     absent from the record is a round number to them -- which is what 8192 became.
 

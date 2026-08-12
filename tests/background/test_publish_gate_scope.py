@@ -149,19 +149,15 @@ def test_run_fast_tests_emits_the_marker_deselection(tmp_path, monkeypatch):
     #
     # Materialised FROM the declaration rather than hand-typed, so a source added to or moved
     # within PUBLISH_PATH_SOURCES cannot silently return this test to the absent-root branch.
-    # The marker directory (`tests/`) is created too, and deliberately named from the module's
-    # own constant for the same reason.
+    # The shape moved to `tests/background/publish_gate_root_shape.py` on 2026-08-12, after
+    # the fix that first landed here inline turned out to be an instance fix: the identical
+    # defect reddened HEAD again hours later from `test_publish_gate_subject_is_head.py`'s
+    # own stand-in tree (R10 -- close the class, not the instance).
     import contextlib as _ctx
 
-    from background.publish_scope import PUBLISH_PATH_SOURCES, ROOT_REPO_MARKER
+    from tests.background.publish_gate_root_shape import materialise_repo_shaped_root
 
-    head = tmp_path / "head"
-    head.mkdir(exist_ok=True)
-    (head / ROOT_REPO_MARKER).mkdir(exist_ok=True)
-    for source in PUBLISH_PATH_SOURCES:
-        target = head / source
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text("# stub of a declared publish-path source\n")
+    head = materialise_repo_shaped_root(tmp_path / "head")
 
     @_ctx.contextmanager
     def _fake_checkout():

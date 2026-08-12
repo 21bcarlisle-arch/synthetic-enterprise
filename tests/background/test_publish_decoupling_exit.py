@@ -156,8 +156,16 @@ def test_the_annotation_pass_cannot_block_a_publish(monkeypatch, tmp_path):
     assert prc.run_remainder_annotation_step("abc", force=True, runner=_boom) is None
 
     class Red:
+        # A REAL pytest transcript, header included (2026-08-12). `_parse_failed_node_ids` was
+        # scoped to the last short-summary section so a NESTED run's replayed FAILED lines
+        # could not become the blocking payload -- which means a hand-typed transcript with no
+        # summary header of its own now parses as empty, and this assertion was left standing
+        # behind the new refusal. pytest never emits a bare `FAILED` line outside that section,
+        # so the fixture was the unrealistic half.
         returncode = 1
-        stdout = "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff\n"
+        stdout = ("=========================== short test summary info "
+                  "============================\n"
+                  "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff\n")
         stderr = ""
 
     state = prc.run_remainder_annotation_step("abc", force=True, runner=lambda _a: Red())
@@ -181,3 +189,51 @@ class _NullCtx:
 
     def __exit__(self, *a):
         return False
+
+
+def test_an_unreadable_remainder_transcript_is_a_red_not_an_all_clear(monkeypatch, tmp_path):
+    """R15 fail-silent, on the SECOND consumer of the scoped parser (2026-08-12).
+
+    `_parse_failed_node_ids` answers "" for a transcript with no summary section, and for the
+    blocking gate that is right -- its consumer renders UNRECORDED. Here an empty list would
+    reach the live page as "0 non-blocking reds" beside a run that plainly failed. A truncated
+    transcript is the known shape of an OOM kill on this box, so this is reachable.
+
+    Mutation: with the guard removed the annotation records zero reds and the page says
+    all-clear, which is the exact defect."""
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", tmp_path / "rem.json")
+
+    class Truncated:
+        returncode = 1
+        stdout = ("----------------------------- Captured stdout call "
+                  "-----------------------------\n"
+                  "FAILED tests/background/test_supervisor.py::test_something_nested\n"
+                  "Killed\n")
+        stderr = ""
+
+    state = prc.run_remainder_annotation_step("abc", force=True, runner=lambda _a: Truncated())
+
+    reds = state["annotation"]["nonblocking_reds"]
+    assert reds, "a failed remainder run must never publish an empty red list"
+    assert "UNREADABLE" in reds[0], reds
+    assert not any("test_supervisor" in r for r in reds), (
+        "the nested run's replayed failures must not be named as this run's reds -- that is "
+        "the defect the parser scoping removed and this guard must not reintroduce")
+
+
+def test_a_green_remainder_run_still_publishes_no_reds(monkeypatch, tmp_path):
+    """The other direction: the guard is keyed on the RETURN CODE, so a clean run is still
+    clean. Without this, "never empty" would degrade into "always red", which is as ignored as
+    a blind detector."""
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", tmp_path / "rem.json")
+
+    class Green:
+        returncode = 0
+        stdout = "142 passed in 12.00s\n"
+        stderr = ""
+
+    state = prc.run_remainder_annotation_step("abc", force=True, runner=lambda _a: Green())
+
+    assert state["annotation"]["nonblocking_reds"] == []

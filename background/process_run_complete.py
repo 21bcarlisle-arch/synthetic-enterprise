@@ -2919,6 +2919,12 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
 REMAINDER_ANNOTATION_INTERVAL_SECONDS = 60 * 60
 REMAINDER_ANNOTATION_STATE_FILE = (
     PROJECT_DIR / "docs" / "observability" / ".remainder_annotation.json")
+# What the page says when the remainder run failed but its transcript could not be read (see
+# run_remainder_annotation_step). It is a red, not an absence: the visitor is told the check
+# broke rather than being shown a clean count that nothing measured.
+REMAINDER_UNREADABLE_MARKER = (
+    "UNREADABLE: the remainder run exited rc={rc} but emitted no pytest summary section "
+    "(truncated transcript -- an OOM kill has this shape); no red could be named")
 
 
 def _open_findings_count():
@@ -2971,6 +2977,16 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
 
         result = (runner or _default_remainder_runner)(_remainder_argv())
         reds = _parse_failed_node_ids(getattr(result, "stdout", "") or "")
+        # A NON-ZERO RC WITH NOTHING TO SHOW IS "UNREADABLE", NEVER "CLEAN" (2026-08-12).
+        #
+        # `_parse_failed_node_ids` answers "" for a transcript carrying no summary section of
+        # its own, and that is the right answer for the BLOCKING gate: its consumer renders
+        # UNRECORDED. This consumer is different -- an empty list here reaches the live page as
+        # "0 non-blocking reds", i.e. an all-clear, next to a run that plainly failed. A
+        # truncated transcript is the known shape of an OOM kill on this box, so the fail-silent
+        # is reachable, not theoretical.
+        if result.returncode != 0 and not reds:
+            reds = [REMAINDER_UNREADABLE_MARKER.format(rc=result.returncode)]
         REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
             {"last_run_ts": time.time(), "rc": result.returncode, "reds": reds[:32],

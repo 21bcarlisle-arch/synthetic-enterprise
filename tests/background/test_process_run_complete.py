@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import background.process_run_complete as prc
+from tests.background.publish_gate_root_shape import materialise_repo_shaped_root
 
 # Files the publish pipeline writes through modules OTHER than prc, each resolving its own
 # output path from its own __file__ or cwd -- so re-rooting prc.PROJECT_DIR does not reach
@@ -308,11 +309,12 @@ def _stub_head_checkout(monkeypatch, tmp_path, name="head-stub"):
     state the 2026-08-12 wedge produced for real (`git init` -> `fatal: cannot mkdir`, empty
     directory, gate runs the full suite against a tree holding none of the repo, 28 cycles).
     `_run_gate_in` now refuses that root, so these tests must supply a checkout that looks
-    EXTRACTED or they test the refusal instead of their own subject."""
-    from background.publish_scope import ROOT_REPO_MARKER
+    EXTRACTED or they test the refusal instead of their own subject.
 
-    checkout = tmp_path / name
-    (checkout / ROOT_REPO_MARKER).mkdir(parents=True, exist_ok=True)
+    The SHAPE it must have is not restated here (2026-08-12, R10 class closure after the same
+    hand-typed shape wedged publishing twice): `publish_gate_root_shape` owns it, so a change
+    to `PUBLISH_PATH_SOURCES` or `ROOT_REPO_MARKER` reaches this stub too."""
+    checkout = materialise_repo_shaped_root(tmp_path / name)
 
     @contextlib.contextmanager
     def _fake_checkout():

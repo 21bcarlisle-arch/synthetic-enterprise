@@ -42,6 +42,9 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from background import process_run_complete as prc  # noqa: E402
+from tests.background.publish_gate_root_shape import (  # noqa: E402
+    materialise_repo_shaped_root,
+)
 
 
 def _git(args, cwd):
@@ -133,6 +136,13 @@ def sandbox(tmp_path, monkeypatch, logged):
     repo = tmp_path / "tree"
     (repo / "pkg").mkdir(parents=True)
     (repo / "pkg" / "thing.py").write_text("VALUE = 'committed'\n")
+    # REPO-SHAPED, AND COMMITTED (2026-08-12, the eighteenth wedge -- this fixture WAS it).
+    # `resolve_scope` refuses a root that is not a checkout of this repo, and `_run_gate_in`
+    # turns that refusal into (False, False) before argv exists -- so a stand-in tree holding
+    # only `pkg/thing.py` made every assertion below unreachable by any behaviour of the code
+    # they are about. Called before `git add`, because the gate's subject here is produced by
+    # `git archive HEAD` and an uncommitted shape would not survive the trip.
+    materialise_repo_shaped_root(repo)
     _git(["init", "-q", "-b", "main"], repo)
     _git(["config", "user.email", "t@example.com"], repo)
     _git(["config", "user.name", "T"], repo)
