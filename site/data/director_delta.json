@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12T15:18:44.394433+00:00",
+  "generated_at": "2026-08-12T17:13:42.703473+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -10,8 +10,8 @@
   "changed": true,
   "counts": {
     "new_decisions": 0,
-    "reserved_changed": 1,
-    "reserved_added": 1,
+    "reserved_changed": 0,
+    "reserved_added": 0,
     "reserved_cleared": 0,
     "daemons_flipped": 1,
     "daemons_newly_stale": 1,
@@ -21,15 +21,12 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
     "1 daemon(s) went stale: discovery-daemon",
-    "total_open_atoms: 55 -> 109"
+    "total_open_atoms: 55 -> 108"
   ],
   "detail": {
     "new_decisions": [],
-    "reserved_added": [
-      "executor-wall_escalated-f13e76f1"
-    ],
+    "reserved_added": [],
     "reserved_cleared": [],
     "daemons_newly_stale": [
       "discovery-daemon"
@@ -42,16 +39,14 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 109
+        "to": 108
       }
     ]
   },
   "current_state": {
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
-    "reserved_ids": [
-      "executor-wall_escalated-f13e76f1"
-    ],
+    "reserved_ids": [],
     "daemon_status": {
       "session-watchdog": "stale",
       "staging-watcher": "live",
@@ -74,11 +69,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 109
+    "open_atoms": 108
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-12T15:17:15.291588+00:00",
-    "health_last_updated": "2026-08-12T15:18:24.793764+00:00",
+    "reserved_generated_at": "2026-08-12T17:10:46.672423+00:00",
+    "health_last_updated": "2026-08-12T17:13:28.116839+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
