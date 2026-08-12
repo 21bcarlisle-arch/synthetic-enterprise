@@ -20,7 +20,7 @@
     "run_id": "run_output_7d4d7fcad_20260811T231022Z.json",
     "verified_at": "2026-08-12T01:57:09Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/background/test_publish_gate_scope.py::test_run_fast_tests_emits_the_marker_deselection",
+  "paused_reason": "scoped publish-path suite red at git=7237c67a9; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_a_dirty_working_tree_does_not_change_the_verdict",
   "paused_since": "2026-08-12T02:31:22Z",
   "schema": 1,
   "showing_run": {
@@ -30,5 +30,5 @@
     "verified_at": "2026-08-12T01:57:09Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-12T02:47:37Z"
+  "written_at": "2026-08-12T02:55:35Z"
 }
