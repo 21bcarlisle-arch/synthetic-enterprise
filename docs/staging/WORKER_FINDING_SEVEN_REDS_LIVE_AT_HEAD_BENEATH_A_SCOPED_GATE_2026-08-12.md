@@ -3,7 +3,8 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
 **Date:** 2026-08-12 · **Atom:** `OPS4_surgical_landing` / gate scope · **Class:** control blind spot
-**Status:** NOT repaired. Filed for disposition. The seven are enumerated so the next tick starts from a list, not a sweep.
+**Status:** ALL SEVEN REPAIRED 2026-08-12. **One claim below was wrong** — see the correction.
+The gate blind spot itself is now covered by `tools/head_green_census.py` + a nightly timer.
 
 ## Observed, with evidence
 
@@ -80,3 +81,48 @@ defect is that nothing else is unscoped.
 
 Queued per self-interrupt discipline. Item 7 arguably deserves promotion out of this list on its
 own, since it names a corruption route through the sanctioned landing path.
+
+
+---
+
+## CORRECTION (2026-08-12, same day) — item 7 was NOT a live hazard
+
+The section above calls item 7 *"a live hazard"* and *"a corruption route through the one
+mechanism every lane is required to use"*. **That is wrong, and it was wrong when written.** I
+took the assertion message at face value instead of reading the file it accused.
+
+`tools/orphan_ratchet.py` does not spawn pytest. Its only occurrence of the token is
+`_RUNNERS = frozenset({"uvicorn", ..., "pytest"})` at line 90 — a data literal of runner names
+it looks for when deciding whether a module has a caller. The one subprocess it spawns is a
+read-only `git ls-files`, which the guard's own docstring says is correctly out of scope.
+
+The defect was in the **guard**: its detector was `'"pytest"' in src`, a substring match over
+the whole file, which cannot tell a data literal from an argv. **There was no corruption route.**
+Replaced with a structural AST detector (`bbe45c1ac`), R15-proven both ways with this false
+positive pinned as a named case.
+
+**Why this correction matters more than the fix:** a control that fires on mentions rather than
+uses had been telling everyone to repair a file that was never broken, and I amplified it into a
+security-shaped claim about the landing path. A red test's message is a hypothesis, not evidence.
+
+## Disposition of all seven
+
+| # | Test | Outcome |
+|---|---|---|
+| 1 | `test_the_four_documents_that_motivated_clause_5_are_flagged_aged` | fixed `2318b4b84` — clock now `--diff-filter=A` |
+| 2 | `test_every_live_hit_is_dispositioned` | fixed `54b8579dd` — `.lock` dispositioned benign (a mutex, no episode field) |
+| 3 | `test_counts_match_file_contents` | fixed `3ea01a213` — two atoms' `simplifications_count` added |
+| 4–6 | `test_measure_publish_gate_subject_cost` (×3) | fixed `ae8cf2807` — user D-Bus located; no product defect existed |
+| 7 | `test_every_hook_gate_that_spawns_pytest_scrubs_GIT_star__class_guard` | fixed `bbe45c1ac` — detector read mentions, not uses |
+
+An **eighth** red appeared mid-repair (`test_the_live_store_has_roll_headroom`, another lane's
+commit at 10:48 pushed a store file past the watermark). Instance cleared in `3ea01a213`; the
+class remains open under `WORKER_FINDING_A_ROLL_INSIDE_THE_SOLE_WRITE_PATH_DID_NOT_FIRE`, now on
+its **second manual drain in twelve hours**.
+
+## The blind spot itself is now covered
+
+`tools/head_green_census.py` runs the publish gate's own marker expression **unscoped and
+without `-x`**, nightly via `head-green-census.timer`, and alarms on the **delta** against a
+committed baseline rather than the absolute count. It cannot pass on a run that selected
+nothing, and it cannot write its own baseline — both pinned by mutation tests.

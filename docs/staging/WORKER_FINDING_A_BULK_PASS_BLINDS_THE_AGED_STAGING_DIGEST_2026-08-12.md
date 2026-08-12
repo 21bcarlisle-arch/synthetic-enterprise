@@ -3,7 +3,8 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
 **Date:** 2026-08-12 · **Atom:** `OPS14_aged_staging_named_daily` · **Class:** instrument blinded by a sibling mechanism
-**Status:** NOT repaired. Filed for disposition.
+**Status:** REPAIRED 2026-08-12 (`2318b4b84`). **This finding's original remedy was WRONG** —
+see the correction below, which is the part worth reading.
 
 ## Observed, with evidence
 
@@ -61,3 +62,34 @@ implementation cannot satisfy.
 
 Queued per self-interrupt discipline, not fixed on sight. Note the interaction is bidirectional:
 whoever repairs this should check that the severity pass's own re-runs do not re-blind it.
+
+
+---
+
+## CORRECTION (2026-08-12, same day) — the recommended remedy was already implemented, and was the thing that failed
+
+The section above diagnoses this as mtime-based ageing and recommends *"age from git history,
+not the filesystem"*. **The mechanism was already ageing from git**, and had been since it was
+written — `_last_touched_epoch` ran `git log -1 --format=%ct -- <path>` with a docstring
+explicitly rejecting mtime because concurrent daemons perturb it. I did not read the
+implementation before writing the remedy; I inferred it from the symptom.
+
+Going from mtime to git buys **nothing** against this defect. A bulk pass is a real commit, and
+it moves the git clock exactly as it moves mtime. OPS9 did not `touch` those 128 files, it
+*committed* them, so `git log -1` returned the sweep for every one.
+
+**What actually fixed it** was matching the clock to the question. Clause 5 asks how long a
+document has sat in the staging root *undispositioned*, and the ruling defines the exit as
+leaving the root — not as being edited. So the clock starts on arrival and stops on departure:
+`git log --diff-filter=A -1`. A mechanical header insert disposes of nothing; neither does
+rewording a finding. Both are still sitting there. Renamed to `_staged_since_epoch`, because the
+old name described something the function deliberately no longer computes.
+
+Live effect: **0 → 14** aged documents, the four the ruling names leading at 7.0d, 5.8d, 4.8d,
+4.7d.
+
+**The generalisable lesson, which is why this correction is kept rather than edited away:** the
+plausible fix and the real fix pointed in the same *direction* (away from mtime) and only the
+real one crossed the actual failure. "Use git, not mtime" sounds like a repair and is not one.
+A remedy written from a symptom without reading the implementation is a guess wearing a
+recommendation's clothes.
