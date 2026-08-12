@@ -105,8 +105,19 @@ def test_beyond_the_schedule_carries_forward_rather_than_uncapping():
     assert get_cap_unit_rate_for_date("gas", date(2031, 6, 1)) == pytest.approx(last["gas"])
 
 
-def test_unknown_fuel_returns_none():
-    assert get_cap_unit_rate_for_date("oil", date(2022, 2, 15)) is None
+def test_unknown_fuel_raises_rather_than_reading_as_no_cap():
+    # Was: asserted None. This function's own docstring already refuses to return
+    # None past the schedule end because "a None there would silently un-cap every
+    # resi customer" — the fuel argument had exactly that hole.
+    with pytest.raises(ValueError, match="electricity"):
+        get_cap_unit_rate_for_date("oil", date(2022, 2, 15))
+
+
+def test_a_capitalised_fuel_gets_the_same_ceiling_as_the_lowercase_contract():
+    assert (get_cap_unit_rate_for_date("Electricity", date(2022, 2, 15))
+            == get_cap_unit_rate_for_date("electricity", date(2022, 2, 15)))
+    assert (get_cap_unit_rate_for_date("  GAS ", date(2022, 2, 15))
+            == get_cap_unit_rate_for_date("gas", date(2022, 2, 15)))
 
 
 # --- Schedule integrity (independent of the lookup that reads it) ---

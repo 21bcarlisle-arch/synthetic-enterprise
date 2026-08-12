@@ -1,3 +1,25 @@
+> **[WORKER DISPOSITION 2026-08-12] — PARTLY ACTIONED. Severity downgraded BLOCKING → OPEN.**
+>
+> **What was blocking is closed.** The BLOCKING severity rested on R15 walls — controls
+> that structurally cannot fail. All six are fixed, each with a mutation proof that the
+> control now fires on its own named defect: the two advisor-verified defects
+> (`double_entry.trial_balance` tautology, `ofgem_price_cap` silent un-cap on fuel case)
+> plus F47, F48, F49, F57 and F61. 5,001 tests green across the affected directories.
+>
+> **What is still open:** the other 40 findings (F30–F46, F50–F56, F58–F60, F62–F75).
+> None is a control that cannot fail; all are value, unit, sign, omission or dead-path
+> defects. They are itemised by module, with the sequencing rule and the two cross-cutting
+> signals, in **`docs/observability/money_core_findings_disposition.md`** — that register,
+> not this note, is the live queue. This file stays in `in_progress/` because those 40
+> findings are unbuilt work, not staging noise.
+>
+> **Recommended next draw in this lane:** F63 — `build_reconciliation_series`'s RAG has one
+> reachable output at the default HH fraction (3.79% of monthly revenue whatever the
+> revenue), so AMBER/RED are unreachable. That is the same "cannot fail" class as F61 but
+> sited in the THRESHOLD rather than the guard, so it is a WALL item this pass did not
+> reach. After it: F51, two modules claiming the same regulated ceiling and disagreeing in
+> both directions.
+
 # [ADVISOR-FINDINGS] — Money-core characterization: verified defects and signals (2026-08-06)
 
 **Severity:** BLOCKING · **Lane:** E_finance_treasury

@@ -86,8 +86,20 @@ def _outstanding_months_at_year_end() -> float:
 
 
 def _rag(max_adverse_gbp: float, monthly_revenue_gbp: float) -> Literal["GREEN", "AMBER", "RED"]:
+    """Rate settlement exposure against the revenue available to absorb it.
+
+    The zero-revenue guard exists to avoid a divide-by-zero, but returning GREEN
+    answered "is this exposure safe?" with "yes" when it should decline to
+    reassure: open settlement exposure with NO revenue behind it is the worst
+    state a supplier can be in -- the SoLR shape exactly -- and it was the one
+    input on which this control could not fail (R15). A negative max-adverse is
+    corrupt input, not a gain, and is likewise not evidence of safety.
+    """
+    if max_adverse_gbp < 0:
+        return "RED"
     if monthly_revenue_gbp <= 0:
-        return "GREEN"
+        # Nothing at risk is genuinely green; exposure with no revenue is not.
+        return "GREEN" if max_adverse_gbp == 0 else "RED"
     pct = max_adverse_gbp / monthly_revenue_gbp * 100
     if pct < _GREEN_THRESHOLD:
         return "GREEN"

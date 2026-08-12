@@ -131,15 +131,39 @@ def test_the_two_lookups_diverge_sharply_past_the_published_schedule():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("fuel", ["elec", "Electricity", "ELECTRICITY", "Gas", "", "dual"])
-def test_an_unrecognised_fuel_string_returns_none_which_reads_as_no_cap(fuel):
-    """SURPRISE (R15 FAIL-OPEN class, money-relevant): the fuel name is matched
-    exactly and case-sensitively, and anything else returns None. Callers are
-    documented to apply `min(unit_rate, cap) when cap is not None`, so None means
-    NO CEILING. A caller passing "elec" or "Electricity" — neither obviously wrong
-    — silently un-caps the customer rather than raising."""
-    assert get_cap_unit_rate_for_date(fuel, date(2023, 1, 15)) is None
-    assert get_cap_unit_rate_gbp_per_mwh(fuel, 2023) is None
+@pytest.mark.parametrize("fuel,canonical", [
+    ("Electricity", "electricity"), ("ELECTRICITY", "electricity"),
+    ("  electricity ", "electricity"), ("Gas", "gas"), ("GAS", "gas"),
+])
+def test_a_case_or_whitespace_variant_gets_the_real_ceiling(fuel, canonical):
+    """R15 MUTATION PROOF (was the frozen defect, fail-open class, money-relevant).
+    The fuel name was matched exactly and case-sensitively and anything else
+    returned None — and callers are documented to apply `min(unit_rate, cap) when
+    cap is not None`, so None means NO CEILING. "Electricity" silently un-capped
+    the customer. Case and whitespace now normalise to the real ceiling."""
+    assert (get_cap_unit_rate_for_date(fuel, date(2023, 1, 15))
+            == get_cap_unit_rate_for_date(canonical, date(2023, 1, 15)))
+    assert (get_cap_unit_rate_gbp_per_mwh(fuel, 2023)
+            == get_cap_unit_rate_gbp_per_mwh(canonical, 2023))
+
+
+@pytest.mark.parametrize("fuel", ["elec", "", "dual", "oil"])
+def test_a_genuinely_unrecognised_fuel_raises_instead_of_reading_as_no_cap(fuel):
+    """R15 MUTATION PROOF: a fuel that is not electricity or gas is a contract
+    violation, and must not be indistinguishable from "no ceiling in force".
+    Restore `return None` in `_normalise_fuel` and both legs go green again.
+    Note "elec" raises rather than resolving: guessing at an abbreviation would
+    re-introduce the same silent-wrong-answer class this fix exists to close."""
+    with pytest.raises(ValueError, match="electricity"):
+        get_cap_unit_rate_for_date(fuel, date(2023, 1, 15))
+    with pytest.raises(ValueError, match="electricity"):
+        get_cap_unit_rate_gbp_per_mwh(fuel, 2023)
+
+
+def test_the_fuel_check_runs_before_the_no_cap_era_shortcut():
+    """A pre-2019 year must not hide a bad fuel behind its own None."""
+    with pytest.raises(ValueError):
+        get_cap_unit_rate_gbp_per_mwh("dual", 2015)
 
 
 def test_the_two_recognised_fuel_names_are_exactly_these():

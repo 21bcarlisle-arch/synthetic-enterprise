@@ -36,11 +36,32 @@ _PRICE_CAP_QUARTERLY: dict[str, dict] = {
 }
 
 
+_CAP_LAUNCH_QUARTER = (2019, 1)  # Ofgem Default Tariff Cap launched 1 Jan 2019
+
+
+def _parse_quarter(quarter: str) -> Optional[tuple]:
+    """('2024-Q1') -> (2024, 1); None if the key is not a well-formed quarter."""
+    if not isinstance(quarter, str):
+        return None
+    parts = quarter.split("-Q")
+    if len(parts) != 2:
+        return None
+    try:
+        year, q = int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+    return (year, q) if 1 <= q <= 4 else None
+
+
+_COMMODITY_RATE_KEY = {"electricity": "elec_p_kwh", "elec": "elec_p_kwh", "gas": "gas_p_kwh"}
+
+
 class CapStatus(str, Enum):
     BELOW_CAP = "below_cap"
     AT_CAP = "at_cap"
     EXCEEDS_CAP = "exceeds_cap"
-    PRE_CAP = "pre_cap"  # before Q1 2019
+    PRE_CAP = "pre_cap"  # genuinely before the cap launched (Q1 2019)
+    UNKNOWN = "unknown"  # no ceiling could be established — NOT compliance
 
 
 @dataclass(frozen=True)
@@ -48,19 +69,50 @@ class CapComplianceCheck:
     quarter: str
     commodity: str
     supplier_rate_p_kwh: float
-    cap_rate_p_kwh: float
+    cap_rate_p_kwh: float = 0.0  # DECLARED by the caller; not the authority — see effective_cap_p_kwh
 
     @property
-    def headroom_p_kwh(self) -> float:
-        return round(self.cap_rate_p_kwh - self.supplier_rate_p_kwh, 4)
+    def effective_cap_p_kwh(self) -> Optional[float]:
+        """The PUBLISHED ceiling for this quarter and commodity, or None.
+
+        The caller's `cap_rate_p_kwh` is not consulted. It used to be the only
+        thing consulted: this class held a quarter key, the module held the full
+        published table keyed by exactly that string, and the check never looked
+        the rate up -- so a supplier charging 99p in a 24.5p quarter declared
+        itself compliant by passing its own cap number (R15 tautology: the
+        checked value was supplied by the party being checked). The ceiling now
+        comes from the table, keyed on BOTH quarter and commodity, which also
+        closes the separate hole where `commodity` was recorded and read by
+        nothing, so a gas rate could be cleared against the electricity cap.
+        """
+        row = _PRICE_CAP_QUARTERLY.get(self.quarter)
+        if row is None:
+            return None
+        key = _COMMODITY_RATE_KEY.get(str(self.commodity).strip().lower())
+        return None if key is None else row[key]
+
+    @property
+    def headroom_p_kwh(self) -> Optional[float]:
+        cap = self.effective_cap_p_kwh
+        return None if cap is None else round(cap - self.supplier_rate_p_kwh, 4)
 
     @property
     def status(self) -> CapStatus:
-        if self.quarter not in _PRICE_CAP_QUARTERLY:
-            return CapStatus.PRE_CAP
-        if self.supplier_rate_p_kwh > self.cap_rate_p_kwh:
+        cap = self.effective_cap_p_kwh
+        if cap is None:
+            # No published ceiling. PRE_CAP -- which is compliant -- is correct
+            # ONLY for a quarter genuinely before the cap launched. It used to be
+            # the answer for every unrecognised key, so every quarter past the
+            # table's end (2025-Q1), every case typo and every empty string made
+            # any breach compliant (R15 fail-open). Those are now UNKNOWN, which
+            # is not compliance: the ceiling could not be established.
+            parsed = _parse_quarter(self.quarter)
+            if parsed is not None and parsed < _CAP_LAUNCH_QUARTER:
+                return CapStatus.PRE_CAP
+            return CapStatus.UNKNOWN
+        if self.supplier_rate_p_kwh > cap:
             return CapStatus.EXCEEDS_CAP
-        if abs(self.headroom_p_kwh) < 0.01:
+        if abs(cap - self.supplier_rate_p_kwh) < 0.01:
             return CapStatus.AT_CAP
         return CapStatus.BELOW_CAP
 

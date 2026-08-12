@@ -14,6 +14,7 @@ Account code ranges:
   7xxx  Taxation       (normal balance: debit)
 """
 
+import math
 from typing import Any
 
 ACCOUNTS: dict[str, dict[str, str]] = {
@@ -192,20 +193,79 @@ def account_balances(journal: list[dict[str, Any]]) -> dict[str, dict[str, float
     return balances
 
 
+def entry_violations(entry: dict[str, Any], entry_ref: str) -> list[str]:
+    """Integrity breaches in ONE journal entry, or [] if it is well-formed.
+
+    A well-formed entry names two DISTINCT accounts, both known to ACCOUNTS, and
+    carries a finite, non-negative amount. The unknown-account rule matters
+    because `account_balances` resolves an unknown code to the empty type and so
+    silently books it as credit-normal -- a wrong sign with no signal.
+    """
+    v: list[str] = []
+    dr = entry.get("debit_account")
+    cr = entry.get("credit_account")
+
+    for side, acct in (("debit", dr), ("credit", cr)):
+        if acct is None:
+            v.append(f"{entry_ref}: missing {side}_account")
+        elif acct not in ACCOUNTS:
+            v.append(f"{entry_ref}: unknown {side} account {acct!r}")
+    if dr is not None and dr == cr:
+        v.append(f"{entry_ref}: debit and credit are the same account {dr!r}")
+
+    if "amount_gbp" not in entry:
+        v.append(f"{entry_ref}: missing amount_gbp")
+    else:
+        amt = entry["amount_gbp"]
+        if isinstance(amt, bool) or not isinstance(amt, (int, float)):
+            v.append(f"{entry_ref}: non-numeric amount_gbp {amt!r}")
+        elif not math.isfinite(amt):
+            v.append(f"{entry_ref}: non-finite amount_gbp {amt!r}")
+        elif amt < 0:
+            v.append(f"{entry_ref}: negative amount_gbp {amt!r}")
+    return v
+
+
+def journal_violations(journal: list[dict[str, Any]]) -> list[str]:
+    """Every integrity breach in `journal`, in entry order."""
+    out: list[str] = []
+    for i, je in enumerate(journal):
+        out.extend(entry_violations(je, str(je.get("entry_id", f"index:{i}"))))
+    return out
+
+
 def trial_balance(journal: list[dict[str, Any]]) -> dict[str, Any]:
-    """Sum all debits and credits. A correct journal always balances."""
-    total_dr = sum(je["amount_gbp"] for je in journal)
-    total_cr = sum(je["amount_gbp"] for je in journal)  # always equal by construction
-    # Verify via account_balances sum (catches bugs in to_journal_entry)
-    balances = account_balances(journal)
+    """Check the journal's integrity and total it.
+
+    An entry here carries a SINGLE `amount_gbp` posted to one debit and one
+    credit account, so the debit and credit totals are equal BY CONSTRUCTION.
+    Summing the two and comparing them -- which this function used to do, on its
+    own admission ("always equal by construction") -- is a tautology: it cannot
+    fail on any journal, corrupt or not, because the checked value is derived
+    from the same source it checks (R15 independence).
+
+    So `balanced` reports the integrity that CAN fail on a record of this shape:
+    every entry well-formed per `entry_violations`, AND the totals tying. The
+    arithmetic tie is kept because it still catches a future data model that
+    records the two sides separately; it is no longer the only thing asserted.
+    `violations` names each breach, so a caller sees WHY a journal is unbalanced
+    rather than only that it is. Malformed entries are excluded from the totals
+    so that one bad row cannot take the whole balance down with a KeyError.
+    """
+    violations = journal_violations(journal)
+    wellformed = [
+        je for i, je in enumerate(journal)
+        if not entry_violations(je, str(je.get("entry_id", f"index:{i}")))
+    ]
+    balances = account_balances(wellformed)
     dr_check = sum(b["dr"] for b in balances.values())
     cr_check = sum(b["cr"] for b in balances.values())
-    balanced = abs(dr_check - cr_check) < 0.01
     return {
         "total_debit_gbp": dr_check,
         "total_credit_gbp": cr_check,
-        "balanced": balanced,
+        "balanced": not violations and abs(dr_check - cr_check) < 0.01,
         "discrepancy_gbp": dr_check - cr_check,
+        "violations": violations,
     }
 
 

@@ -11,7 +11,18 @@ from company.market.settlement_reconciler import (
 )
 
 
-def _stmt(customer_id="C1", volume_kwh=500.0, ssp=50.0, net_cost=25.0, hedge_pnl=0.0):
+def _stmt(customer_id="C1", volume_kwh=None, ssp=50.0, net_cost=25.0, hedge_pnl=0.0):
+    """A settlement statement that ties out internally.
+
+    `volume_kwh` defaults to the volume IMPLIED by net_cost/ssp/hedge rather than
+    a fixed 500.0. It used to be fixed, so every call that overrode `net_cost`
+    produced a statement whose volume x price contradicted its own stated cost --
+    harmless while nothing read those fields, and exactly the corruption
+    `reconcile_against_bill` now detects. Pass `volume_kwh` explicitly to build a
+    deliberately inconsistent statement.
+    """
+    if volume_kwh is None:
+        volume_kwh = (net_cost + hedge_pnl) / ssp * 1000.0
     return receive_settlement(
         period="2016-01-01T00:00:00",
         customer_id=customer_id,
@@ -67,7 +78,8 @@ def test_reconcile_result_structure():
     s = _stmt()
     result = reconcile_against_bill(s, billed_revenue_gbp=25.0)
     required = {"period", "customer_id", "billed_revenue_gbp",
-                "net_settlement_cost_gbp", "imbalance_gbp", "imbalance_pct", "flagged"}
+                "net_settlement_cost_gbp", "imbalance_gbp", "imbalance_pct", "flagged",
+                "statement_checked", "statement_consistent", "implied_cost_gbp"}
     assert set(result.keys()) == required
 
 

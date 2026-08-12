@@ -84,20 +84,26 @@ def test_rag_bands_and_their_strict_boundaries(adverse, monthly, rag):
     assert _rag(adverse, monthly) == rag
 
 
-def test_rag_returns_green_when_monthly_revenue_is_zero():
-    # DELIBERATELY CORRUPT INPUT. SURPRISE (R15 fail-open): a company with no
-    # revenue and a £1,000,000 worst-case adverse settlement adjustment is rated
-    # GREEN. The guard exists to avoid dividing by zero, but it answers the
-    # question "is this exposure safe?" with "yes" rather than declining to
-    # answer. Zero revenue with open settlement exposure is the *worst* case a
-    # supplier can be in — it is exactly the SoLR shape.
-    assert _rag(1_000_000.0, 0.0) == "GREEN"
-    assert _rag(1_000_000.0, -50.0) == "GREEN"
+def test_rag_fires_on_exposure_with_no_revenue_behind_it():
+    # R15 MUTATION PROOF (was the frozen defect, fail-open class). A company with
+    # no revenue and a £1,000,000 worst-case adverse settlement adjustment was
+    # rated GREEN: the divide-by-zero guard answered "is this exposure safe?"
+    # with "yes" rather than declining to answer. Zero revenue with open
+    # settlement exposure is the WORST case a supplier can be in — the SoLR shape
+    # exactly. Restore `return "GREEN"` under the guard and both lines go green.
+    assert _rag(1_000_000.0, 0.0) == "RED"
+    assert _rag(1_000_000.0, -50.0) == "RED"
 
 
-def test_rag_rates_a_negative_adverse_amount_green():
-    # A negative "max adverse" is nonsense, and it passes as GREEN.
-    assert _rag(-1_000_000.0, 100.0) == "GREEN"
+def test_rag_still_rates_no_exposure_at_all_green():
+    # The other half of the mutation: nothing at risk is genuinely GREEN, so the
+    # fix must not turn a dormant book into a red flag.
+    assert _rag(0.0, 0.0) == "GREEN"
+
+
+def test_rag_does_not_read_a_negative_adverse_amount_as_safety():
+    # A negative "max adverse" is nonsense input, not a gain to be reassured by.
+    assert _rag(-1_000_000.0, 100.0) == "RED"
 
 
 # ---------------------------------------------------------------------------
@@ -156,16 +162,17 @@ def test_amber_is_reachable_only_by_moving_the_hh_fraction_toward_non_hh():
 
 def test_a_corrupt_hh_fraction_produces_a_negative_exposure_rated_green():
     # DELIBERATELY CORRUPT INPUT: hh_revenue_fraction = 2.0 (a fraction > 1).
-    # SURPRISE: the exposure comes out NEGATIVE — the company is told its
-    # worst-case adverse settlement adjustment is a £133k *gain* — and the RAG
-    # control rates it GREEN. Neither the fraction nor the sign of the result is
-    # ever checked.
+    # STILL CHARACTERIZED, PARTLY FIXED. The exposure still comes out NEGATIVE —
+    # the fraction is not bounded, and that remains open (finding F62) — but the
+    # RAG control no longer rates the nonsense GREEN, so the corruption is now
+    # visible at the surface the board reads instead of being laundered into a
+    # reassuring rating. Bounding the fraction itself is queued, not done here.
     (e,) = build_reconciliation_series(
         accounts(**{"2023": 12_000_000.0}), hh_revenue_fraction=2.0
     )
     assert e.max_adverse_gbp == -133_800.0
     assert e.expected_adjustment_gbp == -66_900.0
-    assert e.rag == "GREEN"
+    assert e.rag == "RED"                        # was GREEN — the control fires
     assert e.hh_fraction == 2.0  # echoed back verbatim into the published record
 
 

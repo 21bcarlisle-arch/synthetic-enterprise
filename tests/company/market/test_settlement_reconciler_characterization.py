@@ -28,7 +28,17 @@ P1 = "2024-01-15T00:00:00"
 P2 = "2024-01-15T00:30:00"
 
 
-def stmt(cost, customer_id="C1", period=P1, volume_kwh=1000.0, ssp=100.0, hedge=0.0):
+def stmt(cost, customer_id="C1", period=P1, volume_kwh=None, ssp=100.0, hedge=0.0):
+    """A statement that ties out internally unless `volume_kwh` says otherwise.
+
+    `volume_kwh` was a fixed 1000.0, so every call overriding `cost` built a
+    statement whose volume x price contradicted its own cost line — invisible
+    while nothing read those fields. It now defaults to the volume IMPLIED by
+    cost/ssp/hedge; the tests below that WANT a corrupt statement pass an
+    explicit volume, which is what makes them corrupt.
+    """
+    if volume_kwh is None:
+        volume_kwh = (cost + hedge) / ssp * 1000.0
     return receive_settlement(
         period=period,
         customer_id=customer_id,
@@ -84,6 +94,9 @@ def test_a_clean_reconciliation_is_not_flagged():
         "imbalance_gbp": 5.0,
         "imbalance_pct": 5.0,
         "flagged": False,
+        "statement_checked": True,
+        "statement_consistent": True,
+        "implied_cost_gbp": 100.0,
     }
 
 
@@ -93,29 +106,49 @@ def test_the_pct_test_is_strictly_greater_than_so_exactly_five_pct_passes():
     assert reconcile_against_bill(stmt(100.0), 105.01)["flagged"] is True
 
 
-def test_the_control_cannot_fire_on_a_corrupt_statement_only_on_a_revenue_gap():
-    # DELIBERATELY CORRUPT INPUT. The statement claims 1,000 kWh settled at
-    # £100/MWh — £100 of energy — but bills the company £3. The company billed
-    # its customer £3.05. SURPRISE: the reconciliation reports a 1.7% imbalance
-    # and does NOT flag. `reconcile_against_bill` only ever compares billed
-    # revenue against the cost line; volume_kwh and ssp_gbp_per_mwh are carried
-    # on the statement and never read. The one input that makes the statement
-    # provably wrong is invisible to the control that exists to catch it.
+def test_the_control_now_fires_on_a_corrupt_statement_not_only_on_a_revenue_gap():
+    # R15 MUTATION PROOF (was the frozen defect, tautology class). The statement
+    # claims 1,000 kWh settled at £100/MWh — £100 of energy — but bills the
+    # company £3, and the company billed its customer £3.05. The reconciliation
+    # used to report a 1.7% imbalance and NOT flag: it only ever compared billed
+    # revenue against the cost line, while volume_kwh and ssp_gbp_per_mwh were
+    # carried on the statement and read by nothing. The one input that makes a
+    # statement provably wrong was invisible to the control that exists to catch
+    # it. Delete the `_statement_integrity` leg and this goes green again.
     corrupt = stmt(cost=3.0, volume_kwh=1000.0, ssp=100.0)
     r = reconcile_against_bill(corrupt, billed_revenue_gbp=3.05)
-    assert r["flagged"] is False
+    assert r["statement_checked"] is True
+    assert r["statement_consistent"] is False
+    assert r["implied_cost_gbp"] == 100.0   # what the statement's own fields say
+    assert r["flagged"] is True
+    # The revenue-gap legs are unchanged — the new leg is additive, not a rewrite.
     assert r["imbalance_gbp"] == 0.05
     assert r["imbalance_pct"] == 1.7
 
 
-def test_hedge_pnl_is_recorded_on_the_statement_and_never_reconciled():
-    # SURPRISE: hedge_pnl_gbp is a documented field of a settlement statement
-    # ("hedge gain/loss recorded against this period") but no function in the
-    # module reads it. A period whose entire economics are a £5,000 hedge loss
-    # reconciles identically to one with no hedge at all.
-    no_hedge = reconcile_against_bill(stmt(100.0, hedge=0.0), 105.0)
-    big_loss = reconcile_against_bill(stmt(100.0, hedge=-5000.0), 105.0)
-    assert no_hedge == big_loss
+def test_hedge_pnl_is_now_read_when_the_statement_is_checked_against_itself():
+    # R15 MUTATION PROOF: hedge_pnl_gbp is a documented field ("hedge gain/loss
+    # recorded against this period") that no function in the module read, so a
+    # period whose entire economics were a £5,000 hedge loss reconciled
+    # identically to one with no hedge at all. Holding volume and price fixed,
+    # the hedge now moves the implied cost and the statement stops tying out.
+    no_hedge = reconcile_against_bill(stmt(100.0, volume_kwh=1000.0, hedge=0.0), 105.0)
+    big_loss = reconcile_against_bill(stmt(100.0, volume_kwh=1000.0, hedge=-5000.0), 105.0)
+    assert no_hedge != big_loss
+    assert no_hedge["statement_consistent"] is True
+    assert big_loss["statement_consistent"] is False
+    assert big_loss["implied_cost_gbp"] == 5100.0
+    assert big_loss["flagged"] is True
+
+
+def test_a_statement_carrying_no_internals_is_reported_unchecked_not_passed():
+    # An unavailable check is not a passed check (R15 fail-silent). A statement
+    # with neither volume nor price has nothing to tie out, and says so rather
+    # than reporting a reassuring True.
+    r = reconcile_against_bill(stmt(100.0, volume_kwh=0.0, ssp=0.0), 105.0)
+    assert r["statement_checked"] is False
+    assert r["statement_consistent"] is None
+    assert r["implied_cost_gbp"] is None
 
 
 def test_the_ten_pound_absolute_floor_overrides_any_caller_supplied_threshold():

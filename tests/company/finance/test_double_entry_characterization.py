@@ -170,7 +170,8 @@ def test_account_balances_treats_an_unknown_code_as_credit_normal():
 
 
 # ---------------------------------------------------------------------------
-# trial_balance — an R15 TAUTOLOGY: `balanced` cannot be False
+# trial_balance — WAS an R15 TAUTOLOGY (`balanced` could not be False); FIXED.
+# The cases below are now the MUTATION PROOF that the control fires.
 # ---------------------------------------------------------------------------
 
 
@@ -178,31 +179,49 @@ def test_trial_balance_of_a_correct_journal_balances():
     tb = trial_balance(build_journal(FIVE_EVENTS, opening_treasury=5000.0))
     assert tb["balanced"] is True
     assert tb["discrepancy_gbp"] == 0.0
+    assert tb["violations"] == []
+
+
+def test_an_empty_journal_balances_and_is_not_a_violation():
+    tb = trial_balance([])
+    assert tb["balanced"] is True
+    assert tb["violations"] == []
 
 
 @pytest.mark.parametrize(
-    "journal,label",
+    "journal,label,expected_fragment",
     [
-        ([je("9999", "NOT_A_CODE", 123.45)], "fabricated account codes"),
-        ([je("1001", "1001", 50.0)], "same account on both sides"),
-        ([je("1001", "4001", -999.0)], "negative amount"),
-        ([], "empty journal"),
+        ([je("9999", "NOT_A_CODE", 123.45)], "fabricated account codes", "unknown debit account"),
+        ([je("1001", "1001", 50.0)], "same account on both sides", "same account"),
+        ([je("1001", "4001", -999.0)], "negative amount", "negative amount_gbp"),
+        ([je("1001", "4001", float("nan"))], "non-finite amount", "non-finite amount_gbp"),
+        ([{"entry_id": "e", "debit_account": "1001", "amount_gbp": 5.0}],
+         "missing credit account", "missing credit_account"),
+        ([{"entry_id": "e", "debit_account": "1001", "credit_account": "4001"}],
+         "missing amount", "missing amount_gbp"),
     ],
 )
-def test_trial_balance_balanced_flag_is_true_for_every_malformed_journal(journal, label):
-    """SURPRISE (R15 TAUTOLOGY class): `balanced` is computed by summing the same
-    `amount_gbp` into a debit bucket and a credit bucket for EVERY entry, so the
-    two totals are equal by construction no matter what the entry says. It reports
-    True for fabricated account codes, for an entry debiting and crediting the same
-    account, for a negative amount, and for an empty journal. The flag checks the
-    shape of the data structure, not the correctness of the bookkeeping — it can
-    never fire, which is the project's own named "control that cannot fail" pattern.
-    Note also that the local `total_dr`/`total_cr` computed at the top of the
-    function are dead: both are `sum(je["amount_gbp"])` and neither is returned."""
+def test_trial_balance_fires_on_each_malformed_journal(journal, label, expected_fragment):
+    """R15 MUTATION PROOF (was the frozen defect). `balanced` used to be computed
+    by summing the same `amount_gbp` into a debit bucket AND a credit bucket for
+    every entry, so the two totals were equal by construction whatever the entry
+    said, and the flag reported True for every case below — a control that could
+    not fail. It now reports each of them as a violation and refuses to balance.
+
+    Each parameter IS the mutation: revert `trial_balance` to comparing the two
+    derived totals and every case here goes green again."""
     tb = trial_balance(journal)
-    assert tb["balanced"] is True
-    assert tb["discrepancy_gbp"] == 0.0
-    assert tb["total_debit_gbp"] == tb["total_credit_gbp"]
+    assert tb["balanced"] is False, f"{label}: control did not fire"
+    assert any(expected_fragment in v for v in tb["violations"]), tb["violations"]
+
+
+def test_a_malformed_entry_does_not_take_down_the_whole_balance():
+    """One bad row is excluded from the totals and named, rather than raising —
+    the whole-run-outage shape this codebase has been bitten by before."""
+    tb = trial_balance([je("1001", "4001", 100.0), je("1001", "1001", 50.0)])
+    assert tb["balanced"] is False
+    assert tb["total_debit_gbp"] == 100.0  # the well-formed entry still totals
+    assert len(tb["violations"]) == 1
 
 
 # ---------------------------------------------------------------------------

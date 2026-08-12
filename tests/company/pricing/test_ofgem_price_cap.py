@@ -29,9 +29,12 @@ class TestGetCapUnitRateGbpPerMwh:
         elec_20 = get_cap_unit_rate_gbp_per_mwh("electricity", 2020)
         assert elec_22 > elec_20
 
-    def test_unknown_fuel_returns_none(self):
-        result = get_cap_unit_rate_gbp_per_mwh("oil", 2022)
-        assert result is None
+    def test_unknown_fuel_raises_rather_than_reading_as_no_cap(self):
+        # Was: asserted None. None means "no cap applies" to every caller, so an
+        # unrecognised fuel silently un-capped the customer. A contract violation
+        # must not be indistinguishable from "no ceiling in force" (R15).
+        with pytest.raises(ValueError, match="electricity"):
+            get_cap_unit_rate_gbp_per_mwh("oil", 2022)
 
     def test_fallback_for_future_year(self):
         cap = get_cap_unit_rate_gbp_per_mwh("electricity", 2030)

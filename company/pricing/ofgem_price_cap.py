@@ -90,6 +90,27 @@ _ELEC_CAP_FALLBACK = 190.0
 _GAS_CAP_FALLBACK = 52.0
 
 
+def _normalise_fuel(fuel: str) -> str:
+    """Resolve `fuel` to 'electricity' or 'gas', or RAISE.
+
+    The contract is lowercase, but a capitalised `"Electricity"` used to fall
+    through every branch and return None -- and None here means "no cap applies",
+    so a customer was charged UNCAPPED by a spelling. A contract violation must
+    never be indistinguishable from "no ceiling in force" (R15 fail-open), so
+    case and surrounding whitespace are normalised and anything still
+    unrecognised raises instead of silently un-capping.
+    """
+    if not isinstance(fuel, str):
+        raise TypeError(f"fuel must be a str, got {type(fuel).__name__}: {fuel!r}")
+    normalised = fuel.strip().lower()
+    if normalised not in ("electricity", "gas"):
+        raise ValueError(
+            f"fuel must be 'electricity' or 'gas', got {fuel!r}. Returning None "
+            "for an unrecognised fuel would read downstream as 'no price cap'."
+        )
+    return normalised
+
+
 def get_cap_unit_rate_gbp_per_mwh(fuel: str, year: int) -> float | None:
     """Return Ofgem cap unit rate ceiling (£/MWh) for domestic customers.
 
@@ -102,13 +123,12 @@ def get_cap_unit_rate_gbp_per_mwh(fuel: str, year: int) -> float | None:
     Only applies to domestic (resi) customers — callers must filter by segment.
     Not applicable to I&C or SME customers.
     """
+    fuel = _normalise_fuel(fuel)
     if year < 2019:
         return None
     if fuel == "electricity":
         return _ELEC_CAP_GBP_PER_MWH.get(year, _ELEC_CAP_FALLBACK)
-    if fuel == "gas":
-        return _GAS_CAP_GBP_PER_MWH.get(year, _GAS_CAP_FALLBACK)
-    return None
+    return _GAS_CAP_GBP_PER_MWH.get(year, _GAS_CAP_FALLBACK)
 
 
 # --- Sub-annual cap-window schedule (W3_1b_intra_year_price_cap_granularity) ---
@@ -192,8 +212,7 @@ def get_cap_unit_rate_for_date(fuel: str, on_date: date) -> float | None:
 
     Only applies to domestic (resi) customers — callers must filter by segment.
     """
-    if fuel not in ("electricity", "gas"):
-        return None
+    fuel = _normalise_fuel(fuel)
     if on_date < _CAP_FIRST_DAY:
         return None
 

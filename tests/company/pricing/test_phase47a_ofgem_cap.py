@@ -30,8 +30,10 @@ class TestGetCapUnitRate:
         # 2024 cap should be lower than 2022 crisis cap
         assert get_cap_unit_rate_gbp_per_mwh("electricity", 2024) < get_cap_unit_rate_gbp_per_mwh("electricity", 2022)
 
-    def test_unknown_fuel_returns_none(self):
-        assert get_cap_unit_rate_gbp_per_mwh("oil", 2022) is None
+    def test_unknown_fuel_raises_rather_than_reading_as_no_cap(self):
+        # Was: asserted None, which every caller reads as "no cap applies".
+        with pytest.raises(ValueError, match="electricity"):
+            get_cap_unit_rate_gbp_per_mwh("oil", 2022)
 
     def test_future_year_returns_fallback(self):
         cap = get_cap_unit_rate_gbp_per_mwh("electricity", 2030)

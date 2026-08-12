@@ -44,6 +44,39 @@ def receive_settlement(
     )
 
 
+STATEMENT_INTEGRITY_TOLERANCE_PCT = 1.0   # volume x price vs stated cost
+STATEMENT_INTEGRITY_TOLERANCE_GBP = 1.00  # absolute floor, for small periods
+
+
+def _statement_integrity(statement: "SettlementStatement") -> tuple:
+    """Check a statement against ITSELF: does volume x SSP tie to the stated cost?
+
+    Returns (checked, consistent, implied_cost_gbp).
+
+    `volume_kwh`, `ssp_gbp_per_mwh` and `hedge_pnl_gbp` were carried on every
+    statement and read by NOTHING -- no function compared volume x price against
+    `net_settlement_cost_gbp`. So the one input that makes a settlement statement
+    PROVABLY wrong was invisible to the reconciliation that exists to catch it: a
+    statement claiming 1,000 kWh at GBP 100/MWh while billing GBP 3 reconciled
+    clean, and a period whose entire economics were a GBP 5,000 hedge loss looked
+    identical to one with no hedge. Only a revenue gap could ever flag, which is
+    a control that cannot fire on the corruption it is named for (R15).
+
+    When the statement carries no internals (zero volume AND zero price -- the
+    shape of a statement whose detail was never populated) there is nothing to
+    tie out, so this returns checked=False rather than a passing verdict.
+    """
+    if statement.volume_kwh == 0 and statement.ssp_gbp_per_mwh == 0:
+        return (False, None, None)
+    implied = (statement.volume_kwh / 1000.0) * statement.ssp_gbp_per_mwh - statement.hedge_pnl_gbp
+    gap = abs(implied - statement.net_settlement_cost_gbp)
+    tolerance = max(
+        STATEMENT_INTEGRITY_TOLERANCE_GBP,
+        abs(implied) * STATEMENT_INTEGRITY_TOLERANCE_PCT / 100.0,
+    )
+    return (True, gap <= tolerance, implied)
+
+
 def reconcile_against_bill(
     statement: SettlementStatement,
     billed_revenue_gbp: float,
@@ -57,7 +90,10 @@ def reconcile_against_bill(
     imbalance = billed_revenue_gbp - statement.net_settlement_cost_gbp
     pct = (abs(imbalance) / abs(statement.net_settlement_cost_gbp) * 100.0
            if abs(statement.net_settlement_cost_gbp) >= 0.01 else 0.0)
-    flagged = pct > threshold_pct or abs(imbalance) > IMBALANCE_FLAG_THRESHOLD_GBP
+    checked, consistent, implied = _statement_integrity(statement)
+    flagged = (pct > threshold_pct
+               or abs(imbalance) > IMBALANCE_FLAG_THRESHOLD_GBP
+               or consistent is False)
     return {
         "period": statement.period,
         "customer_id": statement.customer_id,
@@ -66,6 +102,12 @@ def reconcile_against_bill(
         "imbalance_gbp": round(imbalance, 2),
         "imbalance_pct": round(pct, 1),
         "flagged": flagged,
+        # Whether the statement was checked against ITSELF, and the result. An
+        # unchecked statement reports checked=False / consistent=None rather than
+        # a reassuring True: an unavailable check is not a passed check (R15).
+        "statement_checked": checked,
+        "statement_consistent": consistent,
+        "implied_cost_gbp": None if implied is None else round(implied, 2),
     }
 
 

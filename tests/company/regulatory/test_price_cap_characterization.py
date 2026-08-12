@@ -112,60 +112,81 @@ def test_at_cap_is_a_one_hundredth_of_a_penny_band_below_the_cap_only():
     assert check(supplier=24.48, cap=24.5).status is CapStatus.BELOW_CAP
 
 
-def test_the_check_never_consults_the_cap_table_for_the_cap_it_checks_against():
-    # DELIBERATELY CORRUPT INPUT — and the highest-value finding in this module.
-    # SURPRISE (R15 tautology / independence failure): `cap_rate_p_kwh` is
-    # supplied by the CALLER. The class holds a quarter key and a full published
-    # table keyed by exactly that string, and never looks the rate up. A supplier
-    # charging 99p/kWh in a quarter whose real cap is 24.5p declares itself
-    # BELOW_CAP and compliant simply by passing its own cap number. The check
-    # cannot fail unless the caller supplies the truth it is meant to verify.
+def test_a_fabricated_cap_from_the_caller_no_longer_clears_a_breach():
+    # R15 MUTATION PROOF (was the frozen defect, and the highest-value finding in
+    # this module). `cap_rate_p_kwh` is supplied by the CALLER — the party being
+    # checked. The class held a quarter key and a full published table keyed by
+    # exactly that string and never looked the rate up, so a supplier charging
+    # 99p/kWh in a 24.5p quarter declared itself BELOW_CAP by passing its own cap
+    # number. The ceiling now comes from the table; the caller's number is inert.
     fabricated = check(quarter="2024-Q1", supplier=99.0, cap=150.0)
     assert PriceCapBook.elec_cap_p_kwh("2024-Q1") == 24.5   # the real ceiling
-    assert fabricated.status is CapStatus.BELOW_CAP
-    assert fabricated.is_compliant is True
+    assert fabricated.effective_cap_p_kwh == 24.5
+    assert fabricated.status is CapStatus.EXCEEDS_CAP
+    assert fabricated.is_compliant is False
 
 
-def test_the_commodity_field_is_never_used_so_a_gas_rate_can_be_checked_against_an_elec_cap():
-    # SURPRISE: `commodity` is recorded and read by nothing. A gas rate of
-    # 6.3p/kWh checked against the ELECTRICITY cap of 24.5 is "compliant with
-    # 18.2p of headroom" — the mismatch is structurally invisible.
+def test_the_declared_cap_cannot_move_the_verdict_in_either_direction():
+    # Independence, stated as a property: for a quarter in the table the verdict
+    # is identical whatever the caller declares.
+    verdicts = {check(quarter="2024-Q1", supplier=99.0, cap=c).status
+                for c in (0.0, 24.5, 150.0, -1.0)}
+    assert verdicts == {CapStatus.EXCEEDS_CAP}
+
+
+def test_a_gas_rate_is_checked_against_the_gas_cap_not_the_electricity_one():
+    # R15 MUTATION PROOF: `commodity` was recorded and read by nothing, so a gas
+    # rate of 6.3p was cleared against the 24.5p ELECTRICITY cap with "18.2p of
+    # headroom". The lookup is now keyed on commodity as well as quarter.
     c = check(commodity="gas", supplier=6.3, cap=24.5)
-    assert c.status is CapStatus.BELOW_CAP
-    assert c.headroom_p_kwh == 18.2
+    assert PriceCapBook.gas_cap_p_kwh("2024-Q1") == 6.04
+    assert c.effective_cap_p_kwh == 6.04
+    assert c.status is CapStatus.EXCEEDS_CAP   # 6.3p IS over the 6.04p gas cap
+    assert c.is_compliant is False
 
 
-def test_an_unrecognised_quarter_makes_any_breach_compliant():
-    # SURPRISE (R15 fail-open): the quarter key is used for exactly one thing —
-    # if it is not in the table the status is PRE_CAP, which `is_compliant`
-    # treats as compliant. A 500p/kWh rate against a 24.5p cap is reported
-    # compliant if the quarter is "2026-Q1" (past the table), "2024-q1" (a case
-    # typo), or "" (missing). The check returns "compliant" for every state of
-    # the world it does not recognise, including every future quarter.
+def test_an_unrecognised_commodity_is_not_compliance():
+    c = check(commodity="oil", supplier=1.0)
+    assert c.effective_cap_p_kwh is None
+    assert c.status is CapStatus.UNKNOWN
+    assert c.is_compliant is False
+
+
+def test_an_unrecognised_quarter_is_no_longer_compliance():
+    # R15 MUTATION PROOF (was the frozen defect, fail-open class). The quarter key
+    # did exactly one thing: if it was not in the table the status was PRE_CAP,
+    # which `is_compliant` treats as compliant. So a 500p/kWh rate was reported
+    # compliant for "2026-Q1" (past the table's 2025-Q1 end), "2024-q1" (a case
+    # typo) and "" (missing) — every future quarter and every typo cleared any
+    # breach. Those are UNKNOWN now: the ceiling could not be established, which
+    # is not the same as the rate being lawful.
     for quarter in ("2026-Q1", "2024-q1", "", "unknown"):
         c = check(quarter=quarter, supplier=500.0, cap=24.5)
-        assert c.status is CapStatus.PRE_CAP
-        assert c.is_compliant is True
+        assert c.status is CapStatus.UNKNOWN, quarter
+        assert c.is_compliant is False, quarter
 
 
-def test_pre_cap_is_correct_for_genuinely_pre_cap_quarters():
-    # The behaviour is right for the case it was designed for — 2018 predates the
-    # Default Tariff Cap — which is why the fail-open above is easy to miss.
+def test_pre_cap_is_still_correct_for_genuinely_pre_cap_quarters():
+    # The narrow case the PRE_CAP branch was designed for still holds — 2018
+    # predates the Default Tariff Cap — which is why the fail-open was easy to
+    # miss. This is the other half of the mutation: the fix must not turn a
+    # genuinely pre-cap quarter into a breach.
     assert check(quarter="2018-Q4", supplier=500.0).status is CapStatus.PRE_CAP
+    assert check(quarter="2018-Q4", supplier=500.0).is_compliant is True
 
 
-def test_headroom_is_reported_even_when_the_quarter_is_unknown():
-    # The headroom number is computed unconditionally from the caller's own cap,
-    # so an unrecognised quarter still publishes a confident -475.5p headroom
-    # alongside its "compliant" verdict.
+def test_headroom_is_withheld_when_no_ceiling_could_be_established():
+    # The headroom number used to be computed unconditionally from the CALLER's
+    # own cap, so an unrecognised quarter still published a confident -475.5p
+    # headroom next to its "compliant" verdict. No ceiling now means no headroom.
     c = check(quarter="2026-Q1", supplier=500.0, cap=24.5)
-    assert c.headroom_p_kwh == -475.5
-    assert c.is_compliant is True
+    assert c.headroom_p_kwh is None
+    assert c.is_compliant is False
 
 
 def test_headroom_rounds_to_four_decimal_places():
-    assert check(supplier=20.000004, cap=24.5).headroom_p_kwh == 4.5
-    assert check(supplier=20.12345, cap=24.5).headroom_p_kwh == 4.3766
+    assert check(supplier=20.000004).headroom_p_kwh == 4.5
+    assert check(supplier=20.12345).headroom_p_kwh == 4.3766
 
 
 def test_a_compliance_check_is_frozen():
