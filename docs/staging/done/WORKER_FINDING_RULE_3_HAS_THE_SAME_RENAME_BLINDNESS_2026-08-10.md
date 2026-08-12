@@ -4,7 +4,9 @@
 
 **Class:** fail-open (R15 killer pattern 2 — passes on missing state)
 **Found:** 2026-08-10, KNIFE3 step 10, while fixing the *rule 2b* half of the same defect
-**Disposition:** QUEUED (SELF_INTERRUPT_DISCIPLINE — the machine is not blocked)
+**Disposition:** QUEUED (SELF_INTERRUPT_DISCIPLINE — the machine is not blocked) → DRAWN and repaired 2026-08-12
+
+**Discharged:** `tests/tools/test_size_ratchet_gate.py::test_a_renamed_file_that_also_grew_still_fires_rule_3`, `tests/tools/test_size_ratchet_gate.py::test_a_pure_rename_is_not_growth`, `tools/size_ratchet.py` — rule 3 now resolves its prior count through the same rename map rule 2b uses, exactly as the fix section below specified. R15 both ways, and the fires-half was RUN before the fix as well as after: pre-fix it failed with the rule reporting no finding at all on a rename-plus-one-line, which is the defect this document names; post-fix it names the moved path and reads its ceiling as the OLD path's count at HEAD. The clears-half — a pure move with zero content change — was green before and after, so the repair added no false-positive. Whole suite 32 passed.
 
 ## The defect
 

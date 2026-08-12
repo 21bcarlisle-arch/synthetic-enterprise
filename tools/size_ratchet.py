@@ -346,12 +346,16 @@ def evaluate(
     codes -- so the same detection logic runs identically under both rollout states (R15 test 7).
 
     `renames` maps a staged path to the path the SAME content had at HEAD (git's own -M detection,
-    resolved by the caller so this stays pure). Rule 2b reads its prior state BY PATH, so without
-    the map a `git mv` presents every function in the moved file as brand new -- see
-    `docs/staging/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md`.
+    resolved by the caller so this stays pure). Rules 2b and 3 both read prior state BY PATH, so
+    without the map a `git mv` is invisible to them in OPPOSITE directions: 2b presents every
+    function in the moved file as brand new (too strict -- see
+    `docs/staging/done/WORKER_FINDING_A_PURE_RENAME_READS_AS_A_NEW_OVERSIZED_FUNCTION_2026-08-10.md`)
+    and 3 waves its growth through (too lax -- see
+    `docs/staging/done/WORKER_FINDING_RULE_3_HAS_THE_SAME_RENAME_BLINDNESS_2026-08-10.md`).
     """
     findings: list[Finding] = []
     base_files: dict[str, int] = baseline["files"]
+    rename_map: dict[str, str] = renames or {}
 
     for path, count in sorted(index.lines.items()):
         # Rule 1 (s3.1): no file already in the baseline may exceed its own frozen count.
@@ -370,9 +374,13 @@ def evaluate(
         # Rule 3 (s3.3): a file this commit TOUCHES comes out no larger than it went in. Stricter
         # than rule 1 and the reason the ratchet DRAINS debt instead of merely freezing it: the 91
         # registers shrink when someone touches one for an unrelated reason, never by a sprint.
-        if path in touched and path in head_lines and count > head_lines[path]:
+        # A file that arrived via `git mv` has no entry under its NEW path, so its prior count is
+        # resolved through the rename map -- otherwise the drain rule is switched off for exactly
+        # the commits that move code around, and a rename-plus-growth is invisible to it.
+        prior = path if path in head_lines else rename_map.get(path, path)
+        if path in touched and prior in head_lines and count > head_lines[prior]:
             findings.append(
-                Finding(RULE_TOUCHED_FILE_GREW, path, head_lines[path], count,
+                Finding(RULE_TOUCHED_FILE_GREW, path, head_lines[prior], count,
                         "touched by this commit -- must come out no larger than it went in")
             )
 

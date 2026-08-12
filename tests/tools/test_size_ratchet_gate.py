@@ -282,6 +282,47 @@ def test_an_untouched_oversized_file_is_fine_indefinitely(repo: Path) -> None:
     assert not [f for f in _findings(repo) if f.path == "tools/alpha.py"]
 
 
+def test_a_renamed_file_that_also_grew_still_fires_rule_3(repo: Path) -> None:
+    """Rule 3 reads its prior count BY PATH out of `head_lines`, so a file arriving via `git mv`
+    was not in it and the rule -- the one whose whole purpose is that the ratchet DRAINS debt --
+    was silently switched off for exactly the commits that move code around. The identical
+    blindness rule 2b lost on 2026-08-10, in the opposite direction: 2b was too STRICT on a
+    rename, 3 was too LAX. Landed from
+    `WORKER_FINDING_RULE_3_HAS_THE_SAME_RENAME_BLINDNESS_2026-08-10.md`.
+
+    Rule 1 cannot cover this: the new path has no frozen baseline entry, so if rule 3 were merely
+    rule 1 reused the growth would go through unremarked -- which is what KNIFE3 step 10's own
+    rename-plus-28-lines did.
+    """
+    _run(repo, "mv", "tools/alpha.py", "background/moved_alpha.py")
+    grown = (repo / "background" / "moved_alpha.py").read_text() + "    x = 1\n"
+    _stage(repo, "background/moved_alpha.py", grown)
+
+    assert gate.staged_renames(repo) == {"background/moved_alpha.py": "tools/alpha.py"}, (
+        "precondition: git's own -M detection must see the move -- a filename heuristic must "
+        "never be what makes this safe"
+    )
+    hits = [f for f in _findings(repo) if f.rule == size_ratchet.RULE_TOUCHED_FILE_GREW]
+    assert [h.path for h in hits] == ["background/moved_alpha.py"]
+    assert hits[0].ceiling == 41, "the prior count must be resolved through the OLD path at HEAD"
+    assert hits[0].actual == 42
+
+
+def test_a_pure_rename_is_not_growth(repo: Path) -> None:
+    """The vacuity guard on the test above, and the half that makes the fix a fix rather than a
+    new false-positive generator: a move with zero content change must stay green. A rename is
+    not growth, and resolving the prior count through the rename map is what makes both readings
+    -- fires on +1 line, clears on +0 -- come from the same rule.
+    """
+    _run(repo, "mv", "tools/alpha.py", "background/moved_alpha.py")
+    _run(repo, "add", "-A", "tools", "background")
+
+    assert gate.staged_renames(repo) == {"background/moved_alpha.py": "tools/alpha.py"}
+    assert not [f for f in _findings(repo) if f.rule == size_ratchet.RULE_TOUCHED_FILE_GREW], (
+        "a pure rename changed no code and must not read as growth"
+    )
+
+
 # ------------------------------------------------------------------------------ 6. the override
 def test_override_clears_its_own_growth_and_nothing_else(repo: Path, monkeypatch) -> None:
     original = (repo / "tools" / "alpha.py").read_text()
