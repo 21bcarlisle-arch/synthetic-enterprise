@@ -190,3 +190,90 @@ def test_a_red_gate_that_printed_no_summary_line_records_an_empty_list_not_nothi
     node_ids, gh = prc.last_blocking_tests()
     assert node_ids == []
     assert gh == "abc1234"
+
+
+# ── THE PAYLOAD MUST NAME A TEST THE GATE ACTUALLY RAN (2026-08-12, eighteenth wedge) ────────
+#
+# WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN. The mechanism above closed
+# "the alarm cites documents linked to the failure by nothing at all" and replaced it with a
+# list parsed from the gate's own output -- but the parser scanned the WHOLE combined stream
+# for any line starting "FAILED "/"ERROR ". Tests in the blocking scope run nested pytest
+# invocations, and pytest replays their stdout inside a `--- Captured stdout call ---` block
+# where a `startswith` check cannot tell them from the outer run's own summary.
+#
+# Measured, 2026-08-12 01:24Z: the payload named five `test_supervisor.py` tests carrying a
+# module-level `pytest.mark.operational` -- DESELECTED by the gate's own `-m` expression (186
+# deselected, 0 collected) and absent from the resolved 134-file scope, i.e. tests the gate is
+# structurally incapable of running. The real blocker, an ENOSPC from a full tmpfs, was not in
+# the list. The wrong names then reached `paused_reason` on the PUBLIC provenance endpoint.
+#
+# The fix is ordering, not heuristics: captured-output blocks live in the FAILURES section,
+# which always precedes the outer run's "short test summary info" header, so the LAST such
+# header in the stream begins the only summary that is the gate's own.
+NESTED_CONTAMINATED_OUTPUT = (
+    "........F\n"
+    "=================================== FAILURES ===================================\n"
+    "____________ test_stall_alarm_fires_when_commit_stale_and_work_queued ____________\n"
+    "----------------------------- Captured stdout call -----------------------------\n"
+    "Operational-layer signal: running the complement marker set\n"
+    "=========================== short test summary info ============================\n"
+    "FAILED tests/background/test_supervisor.py::test_harden_suppression_is_content_driven_not_only_filename\n"
+    "FAILED tests/background/test_supervisor.py::test_harden_suppression_ignores_parked_and_archived_rulings\n"
+    "FAILED tests/background/test_supervisor.py::test_harden_suppression_ignores_daemon_markers\n"
+    "FAILED tests/background/test_supervisor.py::test_ruling_mint_instruction_mints_from_block_and_flags_missing_block\n"
+    "FAILED tests/background/test_supervisor.py::test_ruling_steer_missing_work_block_lists_only_blockless_rulings\n"
+    "5 failed, 181 deselected in 5.00s\n"
+    "E   OSError: [Errno 28] No space left on device\n"
+    "=========================== short test summary info ============================\n"
+    "FAILED tests/controls/test_daemon_loop_mutation.py::test_stall_alarm_fires_when_commit_stale_and_work_queued\n"
+    "1 failed, 945 passed, 192 deselected, 1 xfailed in 624.44s\n"
+)
+
+THE_REAL_BLOCKER = (
+    "FAILED tests/controls/test_daemon_loop_mutation.py"
+    "::test_stall_alarm_fires_when_commit_stale_and_work_queued")
+
+
+def test_a_nested_runs_failures_never_reach_the_payload():
+    """R15 MUTATION arm: the whole-stream parser returns SIX here, five of them tests the gate
+    cannot run. The summary-scoped parser returns exactly the one the gate itself reported.
+
+    This is the assertion that fails before the fix and passes after -- the property R15
+    requires of any control offered as evidence."""
+    node_ids = prc._parse_failed_node_ids(NESTED_CONTAMINATED_OUTPUT)
+
+    assert node_ids == [THE_REAL_BLOCKER], (
+        "the payload must contain the gate's own blocker and nothing from a nested run; got "
+        "{}".format(node_ids))
+    assert not any("test_supervisor.py" in n for n in node_ids), (
+        "test_supervisor.py is module-level `operational` -- deselected by the gate's own -m "
+        "expression, so it can never be a blocker and must never be named as one")
+
+
+def test_the_contaminated_names_do_not_reach_the_state_file_or_the_alarm():
+    """The parser is not the surface that hurt: the wrong names reached `.publish_gate_state.
+    json`, the RUNG-1 doorbell, and `paused_reason` on the public provenance endpoint. Assert at
+    the surface, not just at the function (a control must grade the artefact its consumer reads).
+    """
+    prc._log_gate_failure_payload(_gate_result(1, NESTED_CONTAMINATED_OUTPUT),
+                                  git_hash="deadbee")
+
+    node_ids, gh = prc.last_blocking_tests()
+    assert gh == "deadbee"
+    assert node_ids == [THE_REAL_BLOCKER]
+
+    recorded = json.loads(prc.GATE_BLOCKING_TESTS_FILE.read_text())
+    assert not any("test_supervisor" in n for n in recorded["node_ids"])
+
+
+def test_no_summary_section_reads_as_absent_rather_than_falling_back_to_the_stream():
+    """FAIL-SILENT is the trap in this shape (R15). A crash/OOM transcript has FAILED lines from
+    nested output but NO summary of its own -- the honest answer is "I don't know", which the
+    caller already renders as UNRECORDED. Degrading to the old whole-stream scan would put the
+    wrong names back on the public surface by a different route."""
+    crashed = (
+        "----------------------------- Captured stdout call -----------------------------\n"
+        "FAILED tests/background/test_supervisor.py::test_harden_suppression_ignores_daemon_markers\n"
+        "Killed\n")
+
+    assert prc._parse_failed_node_ids(crashed) == []

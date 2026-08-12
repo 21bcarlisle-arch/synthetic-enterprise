@@ -1,7 +1,11 @@
 # WORKER FINDING — the wedge alarm named five tests the gate never ran
 
 **Filed:** 2026-08-12 · **Lane:** H_harness · **Class:** R15 fail-silent / R5 payload
-**Status:** DIAGNOSED with evidence, mechanism named, fix proposed (not built this tick)
+**Status:** FIXED — parser scoped to the last short-summary section; R15-proven both ways
+(3 new tests fail on the pre-fix parser in a clean HEAD checkout, pass after; the 11
+pre-existing payload tests pass in both arms). Change 1 of the proposed fix is built;
+change 2 (the R15 mutation test) is built. The free scope cross-check is NOT built — filed
+as the remaining half below.
 
 ## The claim
 

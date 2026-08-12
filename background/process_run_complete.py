@@ -1861,15 +1861,66 @@ PUBLISH_PATH_TIMEOUT_SECONDS = GATE_SUITE_TIMEOUT_SECONDS + PUBLISH_PATH_ALLOWAN
 # Bound on how much of a red gate's output reaches the log (chars).
 GATE_FAILURE_TAIL_CHARS = 4000
 
+# ── THE PAYLOAD MUST NAME A TEST THE GATE ACTUALLY RAN (2026-08-12, the eighteenth wedge;
+# WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN) ──────────────────────────
+#
+# WHY. The previous parser scanned the gate subprocess's ENTIRE combined stdout+stderr for
+# any line beginning "FAILED "/"ERROR ". Tests inside the blocking scope run NESTED pytest
+# invocations and print their output; pytest replays that inside a `--- Captured stdout call
+# ---` block, where a `startswith` check cannot tell it from the gate's own summary. The
+# operational-layer signal is one such nested run, and it reports the COMPLEMENT marker set
+# -- so the payload named `test_supervisor.py` tests that are module-level `@pytest.mark.
+# operational`, i.e. tests the gate is STRUCTURALLY INCAPABLE of running (186 deselected,
+# 0 collected, under the gate's own `-m` expression), while the real blocker -- an ENOSPC
+# out of a tmpfs at 67% -- appeared nowhere in the list.
+#
+# That list is not merely internal. It reaches the PUBLIC surface: `paused_reason` in
+# https://poesys.net/data/publish_provenance.json (HTTP 200, 2026-08-12 02:0xZ) served the
+# wrong five test names under the company's own name. It also feeds the RUNG-1 priority-zero
+# doorbell, so every tick after a red was sent to the wrong suspects -- the same
+# "0/8, 0/8, 0/8, and this one's cause was not on the list either" shape the block below
+# records for the `filed_findings()` mechanism this one replaced. The cure had replaced one
+# wrong list with another wrong list.
+#
+# WHAT. Parse ONLY pytest's own short-summary section, and take the LAST one in the stream.
+# Ordering makes this exact rather than heuristic: pytest emits captured-output blocks in the
+# FAILURES section, which is always ABOVE its own "short test summary info" header, so a
+# nested run's summary can never be the final one. Everything before that last header is
+# somebody else's output by construction.
+#
+# FAIL-SILENT IS THE TRAP HERE (R15), so note what this deliberately does NOT do: when there
+# is no summary section at all -- a hard crash, an OOM, a killed subprocess -- it returns []
+# rather than falling back to the old whole-stream scan. The caller already distinguishes
+# that case in its own words ("no FAILED/ERROR summary line found", with the rc), and an
+# ABSENT answer read as absent is the discipline GATE_BLOCKING_TESTS_FILE below already
+# commits to: "fabricating a plausible suspect is the defect being closed".
+_PYTEST_SUMMARY_HEADER = re.compile(r"^=+\s*short test summary info\s*=+\s*$")
+
 
 def _parse_failed_node_ids(out):
     """pytest's own ``FAILED <nodeid>`` / ``ERROR <nodeid>`` short-summary lines.
 
     Factored out of `_log_gate_failure_payload` so the BLOCKING gate and the non-blocking
     remainder pass read a red the same way -- two parsers would eventually disagree about what
-    counts as a failure, and the annotation would quietly stop matching the block."""
-    return [ln.strip() for ln in (out or "").splitlines()
-            if ln.startswith(("FAILED ", "ERROR "))]
+    counts as a failure, and the annotation would quietly stop matching the block.
+
+    Scoped to the LAST short-summary section (see the block above): a nested pytest run's
+    output is replayed inside the FAILURES section, which always precedes the outer run's own
+    summary header, so anything above that final header belongs to somebody else."""
+    lines = (out or "").splitlines()
+    start = None
+    for i, ln in enumerate(lines):
+        if _PYTEST_SUMMARY_HEADER.match(ln):
+            start = i + 1
+    if start is None:
+        return []
+    node_ids = []
+    for ln in lines[start:]:
+        if ln.startswith(("FAILED ", "ERROR ")):
+            node_ids.append(ln.strip())
+        elif _PYTEST_SUMMARY_HEADER.match(ln):
+            break
+    return node_ids
 
 
 def _log_gate_failure_payload(result, git_hash="unknown"):
