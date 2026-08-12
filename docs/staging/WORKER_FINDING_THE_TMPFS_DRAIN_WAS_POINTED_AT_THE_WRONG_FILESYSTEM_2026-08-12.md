@@ -81,7 +81,62 @@ a missing one — a control whose *subject* was relocated by a change about some
   → the assertion fails. On the fix: passes.
 - Whole module at the production default: **43 passed**.
 
-## Defect 2 — QUEUED: the drain's time constant is longer than the exhaustion's
+## Defect 2 — FIXED 2026-08-12 04:2xZ. Liveness is proved from pytest's own lock, not from a clock
+
+> **The design question this finding held open is answered, and the answer it PROPOSED was
+> wrong.** Recorded in full because the proposed design would have been fail-open in the one
+> direction that matters.
+>
+> **The proposal — `/proc`-verified holder by reference scan — is REFUTED BY MEASUREMENT.** At
+> 05:12Z, with the gate suite demonstrably running inside `pytest-128`, no live process on the
+> box referenced any pytest root through its `cwd`, its open fds, or its memory maps — pid
+> 836345 included. pytest closes the lock fd the instant it has written it. A reference scan
+> would have read the live suite's own root as unheld and deleted it: exactly the outcome the
+> age bound exists to prevent, arrived at through a different inference.
+>
+> **What IS provable:** pytest's `create_cleanup_lock` writes the session PID into
+> `<root>/.lock` and unlinks it from an atexit hook. Three states, and the ambiguous one is gone:
+> lock+live pid = HELD (at any age); lock+dead pid = a SIGKILLed session, debris; no lock = the
+> atexit ran, the session finished, debris. Verified against `/proc`, with a pid-reuse guard
+> (a process that started after its lock was written cannot be the process that wrote it).
+>
+> **The keep-newest-3 window was backwards, measured.** `pytest-128`, the one LIVE root on the
+> box, sat FOURTH by mtime — outside the window. The window was instead protecting
+> `pytest-139/140/141`, three finished sessions holding 12M. Rank was never liveness. It now
+> applies only on the UNPROVEN path.
+>
+> **`STALE_HEAD_CHECKOUT_AGE_SECONDS` is untouched, so the collision this finding named never
+> happens:** `test_the_age_bound_cannot_delete_a_running_suites_checkout` still holds, and the
+> 3h bound survives as the fallback for a root whose holder cannot be established. R15
+> fail-silent: an unavailable check is a FAILED check, never permission to delete.
+>
+> **R15, four mutations, all KILLED:** no liveness proof → the live-holder tests fire; pre-fix
+> age-only shape → the dead-lock-PID test fires; unproven treated as debris (fail-open) → the
+> fallback test fires; pid-reuse guard removed → the recycled-pid test fires. Module: 47 passed.
+>
+> **Measured effect on the real filesystem**, running the landed mechanism at 04:22Z:
+> `/tmp` 57% → 32% (3.4G → 5.4G available, ~1.9G reclaimed), `free available` 7G → 8G because
+> the tmpfs is RAM. Four roots swept, all with dead lock PIDs; **every one of them was INSIDE
+> the 3h bound** (68, 50, 43 and 24 minutes old), so the pre-fix drain would have reclaimed
+> **nothing**. Both live suites' roots (`pytest-143`, `pytest-144`) proved HELD and untouched.
+>
+> **Caught while doing this, and fixed in the same commit:**
+> `test_the_two_sweeps_do_not_share_one_root_constant` takes `tmp_path`, not `sandbox`, so
+> `prc.LOG_FILE` was never redirected and the sweep's success line was landing in the LIVE
+> `docs/observability/sim-runner-log.md` — a test manufacturing the evidence an operator reads
+> to judge the live system. Same class as
+> `WORKER_REPORT_THE_GATES_OWN_TESTS_WERE_WRITING_THE_ALARMS_EVIDENCE_2026-08-10`. The ~33
+> already-written lines are LEFT IN PLACE deliberately: a live publisher was appending to that
+> file at the time and rewriting it under a concurrent writer trades a cosmetic defect for a
+> real one. **The wider class is NOT closed** — other tests in this module take `tmp_path`
+> without `sandbox` (`git=abc1234` / `git=unknown` lines in the same log are the same shape,
+> and are the already-filed
+> `WORKER_FINDING_TEST_FIXTURE_VALUES_REACHED_THE_LIVE_PUBLISH_STATE_2026-08-11`). Queued, per
+> SELF_INTERRUPT_DISCIPLINE.
+
+### The original entry, as filed
+
+
 
 `observed-with-evidence`, and **the fix above does not touch it**. Restoring reach is not the
 same as reclaiming: at the moment of the fix, 8 roots were reachable and **0** were older than

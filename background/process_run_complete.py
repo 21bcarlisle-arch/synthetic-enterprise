@@ -1087,6 +1087,53 @@ def _sweep_stale_head_checkouts(now=None):
 PYTEST_TEMP_ROOT_GLOB = "pytest-of-*"
 PYTEST_TEMP_KEEP_NEWEST = 3
 
+# ── LIVENESS IS PROVED, NOT INFERRED FROM A CLOCK (2026-08-12, the nineteenth wedge, defect 2)
+#
+# The age bound below could not close the exhaustion loop and was not editable on its own terms.
+# `STALE_HEAD_CHECKOUT_AGE_SECONDS` is 3h because a shorter clock can delete a RUNNING suite's
+# root -- worse than the leak -- and `test_the_age_bound_cannot_delete_a_running_suites_checkout`
+# pins it above GATE_SUITE_TIMEOUT_SECONDS * 1.5. But the tmpfs fills in ~80 minutes, so a 3h
+# drain reclaims nothing. Both constraints are real; the way out is to stop asking the clock.
+#
+# MEASURED on this box at 05:12Z, with the gate live and publishing wedged ~19h:
+#
+#   pytest-104  lock pid 667899  DEAD   567M      pytest-139  no lock  clean exit    4.6M
+#   pytest-114  lock pid 691903  DEAD   156M      pytest-140  no lock  clean exit    7.2M
+#   pytest-116  lock pid 695508  DEAD   724M      pytest-141  no lock  clean exit    600K
+#   pytest-128  lock pid 836345  LIVE   567M  <-- the gate's own running suite
+#   pytest-134  lock pid 840851  DEAD   559M
+#
+# Two things that decide this design, neither of them a guess:
+#
+#   1. 2.0G of PROVABLE debris (four dead-lock roots) was entirely invisible to the 3h clock --
+#      the oldest was 1h old, the newest 16 minutes. The clock cannot see what it is for.
+#   2. The LIVE root, `pytest-128`, was the FOURTH-newest by mtime. `PYTEST_TEMP_KEEP_NEWEST = 3`
+#      was therefore protecting `pytest-139/140/141` -- three finished sessions holding 12M --
+#      and NOT protecting the one running suite on the box. The keep-newest window is a proxy
+#      for liveness that, measured against the real population, had it exactly backwards.
+#
+# THE HOLDER IS PROVABLE HERE, so it is proved. pytest's own `create_cleanup_lock` writes the
+# session's PID into `<numbered root>/.lock` and unlinks it from an atexit hook. That gives three
+# distinguishable states, and the ambiguous one is the whole reason the clock was being used:
+#
+#   lock present, pid live   -> HELD    -- never swept, at ANY age (strictly safer than the 3h
+#                                          bound, which deletes a suite still running at 3h01)
+#   lock present, pid gone   -> DEBRIS  -- a SIGKILLed session; atexit never ran. rc=-9 is the
+#                                          gate's known outcome, so this is the common case.
+#   lock absent              -> DEBRIS  -- atexit DID run: the session finished and let go.
+#
+# NOT `/proc`-reference scanning, which the finding proposed and which MEASUREMENT REFUTED: at
+# 05:12Z no live process referenced any pytest root through its cwd, its open fds, or its memory
+# maps -- including pid 836345, the suite that was demonstrably running inside `pytest-128`.
+# pytest closes the lock fd immediately after writing it. A reference scan would have read the
+# live suite's own root as unheld and deleted it: fail-open, in the one direction that matters.
+PYTEST_TEMP_LOCK_NAME = ".lock"
+# The create race, and nothing else: pytest makes the numbered directory a moment before it makes
+# the lock, so a root observed in that window is lockless and NOT yet debris. Also absorbs any
+# pytest that numbers a root without locking it. Deliberately minutes, not hours -- it guards an
+# interval measured in milliseconds and is not doing the work the age bound was doing.
+PYTEST_TEMP_MIN_AGE_SECONDS = 600
+
 # THIS SWEEP'S SUBJECT IS PYTEST'S FILESYSTEM, NOT THE CHECKOUTS' (2026-08-12, the nineteenth
 # wedge). It was rooted at HEAD_CHECKOUT_ROOT and was CORRECT on arrival (21467f98d, 2026-08-10)
 # because that constant was then "/tmp". The next day, 53e82b105 moved the CHECKOUTS off tmpfs
@@ -1108,12 +1155,81 @@ PYTEST_TEMP_KEEP_NEWEST = 3
 PYTEST_TEMP_ROOT_PARENT = Path(os.environ.get("SE_GATE_PYTEST_TEMP_ROOT", tempfile.gettempdir()))
 
 
+HOLDER_HELD = "held"
+HOLDER_DEBRIS = "debris"
+HOLDER_UNPROVEN = "unproven"
+# Clock skew between the lock's mtime and /proc's boot-time arithmetic. A PID that started more
+# than this AFTER its lock was written cannot be the process that wrote it -- the number was
+# recycled and the real holder is gone.
+PID_REUSE_SLACK_SECONDS = 60
+
+
+def _process_start_epoch(pid):
+    """Wall-clock start time of `pid`, or None if it cannot be established.
+
+    The pid-reuse guard. Without it, "there is a process numbered 836345" is not evidence that
+    the session which wrote 836345 into the lock is still running -- Linux recycles PIDs, and a
+    sweep that skips a root on a recycled number leaks forever rather than for one cycle."""
+    try:
+        stat = Path("/proc/{}/stat".format(int(pid))).read_text()
+        # `comm` is parenthesised and may itself contain spaces and ')': split after the LAST
+        # one, so field 3 is tail[0] and `starttime` (field 22) is tail[19].
+        tail = stat[stat.rindex(")") + 2:].split()
+        ticks = float(tail[19])
+        btime = next(float(line.split()[1])
+                     for line in Path("/proc/stat").read_text().splitlines()
+                     if line.startswith("btime "))
+        return btime + ticks / os.sysconf("SC_CLK_TCK")
+    except (OSError, ValueError, IndexError, StopIteration, TypeError):
+        return None
+
+
+def _pytest_root_holder(path):
+    """Who holds this numbered pytest root: (verdict, pid). See the block comment above.
+
+    HOLDER_UNPROVEN is returned whenever the evidence is unreadable or self-inconsistent, and
+    the caller then falls back to the age bound. An unavailable check is a FAILED check (R15):
+    it must never become permission to delete."""
+    lock = path / PYTEST_TEMP_LOCK_NAME
+    try:
+        raw = lock.read_text().strip()
+    except FileNotFoundError:
+        # pytest's atexit hook unlinked it: the session finished and let this root go.
+        return HOLDER_DEBRIS, None
+    except OSError:
+        return HOLDER_UNPROVEN, None
+    if not raw.isdigit():
+        # Not the lock shape this reasoning is built on -- say so rather than guess.
+        return HOLDER_UNPROVEN, None
+    pid = int(raw)
+    if not Path("/proc/{}".format(pid)).exists():
+        if not Path("/proc/self").exists():
+            # No procfs at all: every pid would read as dead and the sweep would delete the box.
+            return HOLDER_UNPROVEN, pid
+        return HOLDER_DEBRIS, pid          # SIGKILLed session; its atexit never ran.
+    started = _process_start_epoch(pid)
+    if started is None:
+        return HOLDER_UNPROVEN, pid
+    try:
+        written = lock.stat().st_mtime
+    except OSError:
+        return HOLDER_UNPROVEN, pid
+    if started > written + PID_REUSE_SLACK_SECONDS:
+        return HOLDER_DEBRIS, pid          # A recycled number, not the session that locked this.
+    return HOLDER_HELD, pid
+
+
 def _sweep_stale_pytest_temp_roots(now=None):
     """Delete abandoned pytest temp roots on PYTEST'S filesystem. Returns the number removed.
+
+    A root is swept when its HOLDER is proved gone, not when a clock says it is old -- see the
+    block comment above for the measurement that decided this. The age bound survives only as
+    the fallback for a root whose holder cannot be established.
 
     Never raises: like the checkout sweep, a sweep that fails must cost space, never a publish."""
     now = time.time() if now is None else now
     removed = 0
+    held = unproven = 0
     try:
         parents = sorted(PYTEST_TEMP_ROOT_PARENT.glob(PYTEST_TEMP_ROOT_GLOB))
     except OSError:
@@ -1129,17 +1245,32 @@ def _sweep_stale_pytest_temp_roots(now=None):
             continue
         # Newest-first, so the keep-window is the most recent roots regardless of the age bound.
         numbered.sort(key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
-        for path in numbered[PYTEST_TEMP_KEEP_NEWEST:]:
+        for rank, path in enumerate(numbered):
             try:
-                if now - path.stat().st_mtime < STALE_HEAD_CHECKOUT_AGE_SECONDS:
+                verdict, _pid = _pytest_root_holder(path)
+                age = now - path.stat().st_mtime
+                if verdict == HOLDER_HELD:
+                    # At ANY age. The 3h bound used to delete this root out from under a suite
+                    # still running at 3h01; proof does not expire.
+                    held += 1
                     continue
+                if verdict == HOLDER_UNPROVEN:
+                    # Exactly the pre-2026-08-12 rule, unchanged: keep-newest window, then age.
+                    unproven += 1
+                    if rank < PYTEST_TEMP_KEEP_NEWEST or age < STALE_HEAD_CHECKOUT_AGE_SECONDS:
+                        continue
+                elif age < PYTEST_TEMP_MIN_AGE_SECONDS:
+                    continue                          # inside the create race; not yet debris
                 shutil.rmtree(path, ignore_errors=True)
                 removed += 1
             except OSError:
                 continue
     if removed:
-        log("Publish gate: swept {} abandoned pytest temp root(s) from {} -- suites killed "
-            "mid-run never prune their own.".format(removed, PYTEST_TEMP_ROOT_PARENT))
+        log("Publish gate: swept {} abandoned pytest temp root(s) from {} -- holder proved gone "
+            "(dead lock PID, or no lock at all). Spared: {} PROVED HELD by a live session, {} "
+            "unproven and left to the {}h age bound.".format(
+                removed, PYTEST_TEMP_ROOT_PARENT, held, unproven,
+                STALE_HEAD_CHECKOUT_AGE_SECONDS // 3600))
     elif not parents:
         # A SILENT ZERO WAS THE NINETEENTH WEDGE. "Removed nothing" and "there is nothing here
         # to remove, and there never could be" are the same silence, and the second one is a

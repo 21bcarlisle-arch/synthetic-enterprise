@@ -666,26 +666,39 @@ def test_the_stale_bound_clears_the_gate_timeout(sandbox):
     assert prc.STALE_HEAD_CHECKOUT_AGE_SECONDS > prc.GATE_SUITE_TIMEOUT_SECONDS * 1.5
 
 
-def _pytest_root(parent, n, age_s=None):
+def _pytest_root(parent, n, age_s=None, lock_pid=None):
+    """A numbered pytest root. `lock_pid` writes pytest's own `.lock` the way pytest does.
+
+    NO lock is the CLEAN-EXIT state (pytest's atexit hook unlinks it), which since 2026-08-12 is
+    provable debris rather than a root of unknown standing -- so tests that mean "a live suite
+    owns this" must now say so with a live PID, not with a recent mtime."""
     d = parent / "pytest-{}".format(n)
     d.mkdir(parents=True)
     (d / "f").write_text("x")
+    if lock_pid is not None:
+        (d / prc.PYTEST_TEMP_LOCK_NAME).write_text(str(lock_pid))
     if age_s is not None:
         os.utime(d, (age_s, age_s))
     return d
 
 
-def test_stale_pytest_temp_roots_are_swept_and_the_newest_are_kept(sandbox):
+def test_stale_pytest_temp_roots_are_swept_and_a_live_holder_is_kept(sandbox):
     """The fifteenth wedge. pytest prunes its own numbered roots, but a suite SIGKILLed mid-run
     (rc=-9, the known gate outcome) never gets to -- so they pile up exactly when the gate is
     already in trouble, and on a tmpfs those bytes are RAM.
 
-    Both directions in one test: a sweep that took the newest roots could delete a RUNNING
-    suite's tmp_path out from under it, which is worse than the leak it fixes."""
+    Both directions in one test: a sweep that took a RUNNING suite's tmp_path out from under it
+    would be worse than the leak it fixes. Since 2026-08-12 that direction is held by PROOF of
+    the holder (pytest's `.lock` PID) rather than by the newest-three window, which measurement
+    showed was protecting three finished sessions while the one live suite sat fourth."""
     parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
     ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
-    # Six roots, ALL old enough to be swept on age alone; mtimes ascend with the number.
+    # Six roots, ALL ancient; mtimes ascend with the number. None carries a lock, so each is a
+    # session that exited cleanly -- provable debris whatever its rank.
     old = [_pytest_root(parent, n, ancient + n) for n in range(6)]
+    # Ancient AND held by a live PID -- this process. The old rule would have deleted it.
+    live = _pytest_root(parent, 7, ancient, lock_pid=os.getpid())
+    # Lockless but inside the create race: pytest makes the directory just before the lock.
     fresh = _pytest_root(parent, 99)
     unrelated = prc.PYTEST_TEMP_ROOT_PARENT / "someone-elses-tmpdir"
     unrelated.mkdir()
@@ -693,11 +706,138 @@ def test_stale_pytest_temp_roots_are_swept_and_the_newest_are_kept(sandbox):
 
     removed = prc._sweep_stale_pytest_temp_roots()
 
-    kept = [p for p in old + [fresh] if p.exists()]
-    assert removed == 4, "the four oldest go; the keep-window is not age-gated"
-    assert [p.name for p in kept] == ["pytest-4", "pytest-5", "pytest-99"], kept
-    assert fresh.exists(), "a root inside the keep-window may belong to a LIVE suite"
+    kept = sorted((p.name for p in old + [live, fresh] if p.exists()))
+    assert removed == 6, "every root whose holder is proved gone, regardless of rank or age"
+    assert kept == ["pytest-7", "pytest-99"], kept
+    assert live.exists(), (
+        "a root whose `.lock` names a LIVE pid is held at any age -- the 3h bound used to "
+        "delete it out from under a suite still running at 3h01")
+    assert fresh.exists(), "inside PYTEST_TEMP_MIN_AGE_SECONDS: not yet debris"
     assert unrelated.exists(), "this sweep owns pytest roots and nothing else"
+
+
+def test_a_dead_lock_pid_is_debris_the_age_bound_cannot_see(sandbox):
+    """R15, against defect 2's own named defect -- the reason the drain reclaimed nothing.
+
+    MEASURED 2026-08-12 05:12Z, gate wedged ~19h: four roots holding 2.0G named PIDs that were
+    gone (SIGKILLed sessions, atexit never ran), and every one of them was YOUNGER than the 3h
+    bound -- the oldest 1h, the newest 16 minutes. This reconstructs that population. It fails
+    on the pre-fix rule, which reclaims nothing from it."""
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-rich"
+    now = time.time()
+    dead_pid = _a_pid_that_is_not_running()
+    # Ages as measured: all well inside the 3h bound, all well outside the create race.
+    killed = [_pytest_root(parent, n, now - age, lock_pid=dead_pid)
+              for n, age in ((104, 3600), (114, 2700), (116, 2100), (134, 960))]
+
+    assert all(now - p.stat().st_mtime < prc.STALE_HEAD_CHECKOUT_AGE_SECONDS for p in killed), (
+        "vacuity guard: this population must be INSIDE the age bound, or it is not the one "
+        "that wedged publishing and this test proves nothing about the clock's blindness")
+
+    removed = prc._sweep_stale_pytest_temp_roots()
+
+    assert removed == len(killed), (
+        "a root whose lock names a dead PID is debris at any age -- the clock could not see "
+        "2.0G of it while the tmpfs filled")
+    assert not any(p.exists() for p in killed)
+
+
+def test_liveness_that_cannot_be_established_falls_back_to_the_age_bound(sandbox, monkeypatch):
+    """R15 fail-silent: an unavailable check is a FAILED check, never permission to delete.
+
+    If the holder cannot be proved -- an unreadable lock, no procfs, a lock that is not a PID --
+    the sweep must behave exactly as it did before this mechanism existed, because the direction
+    that matters is deleting a live suite's root."""
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
+    now = time.time()
+    ancient = now - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    # One root inside the age bound (rank 0), then five ancient ones, mtimes ascending. Under the
+    # old rule the keep-window takes ranks 0-2, so two ANCIENT roots are spared by rank alone --
+    # which is what makes this test see the window rather than only the clock.
+    recent = _pytest_root(parent, 0, now - 3600)
+    old = [_pytest_root(parent, n, ancient + n) for n in range(10, 15)]
+
+    monkeypatch.setattr(prc, "_pytest_root_holder",
+                        lambda path: (prc.HOLDER_UNPROVEN, None))
+
+    removed = prc._sweep_stale_pytest_temp_roots()
+
+    assert recent.exists(), "unproven and inside the age bound: spared, exactly as before"
+    assert [p.name for p in old if p.exists()] == ["pytest-14", "pytest-13"][::-1], (
+        "the two ancient roots inside the keep-window are spared by RANK -- the old rule's "
+        "other half, and it must still be live on the unproven path")
+    assert removed == 3, (
+        "unproven falls back to the OLD rule whole -- keep-newest window, then the 3h bound")
+
+
+def test_a_recycled_pid_does_not_hold_a_root_forever(sandbox):
+    """The pid-reuse guard. "There is a process numbered N" is not evidence that the session
+    which wrote N into the lock still runs; Linux recycles PIDs. Without this, one collision
+    strands a root permanently -- a leak that no clock and no proof would ever clear."""
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    root = _pytest_root(parent, 1, ancient, lock_pid=os.getpid())
+    # The lock predates this process, so THIS pid cannot be the session that wrote it.
+    lock = root / prc.PYTEST_TEMP_LOCK_NAME
+    stranded = prc._process_start_epoch(os.getpid()) - prc.PID_REUSE_SLACK_SECONDS - 60
+    os.utime(lock, (stranded, stranded))
+
+    assert prc._pytest_root_holder(root)[0] == prc.HOLDER_DEBRIS
+    assert prc._sweep_stale_pytest_temp_roots() == 1
+
+
+def test_the_holder_is_proved_from_the_lock_not_from_a_proc_reference_scan(sandbox):
+    """R15 against the design that MEASUREMENT REFUTED, so it cannot be re-adopted quietly.
+
+    The filed finding proposed proving liveness by scanning /proc for a process referencing the
+    root. Measured at 05:12Z: NO live process referenced any pytest root by cwd, open fd or
+    memory map -- including pid 836345, the suite demonstrably running inside `pytest-128`.
+    pytest closes the lock fd the moment it has written it. A reference scan reads a live suite's
+    own root as unheld, which is fail-open in the only direction that matters.
+
+    So: a root that no process references in any way, but whose lock names a live PID, is HELD."""
+    parent = prc.PYTEST_TEMP_ROOT_PARENT / "pytest-of-someone"
+    ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
+    root = _pytest_root(parent, 1, ancient, lock_pid=os.getpid())
+
+    referenced = [readlink for readlink in (_paths_this_process_references())
+                  if str(root) in str(readlink)]
+    assert not referenced, (
+        "vacuity guard: this test only says something if the live holder really does NOT "
+        "reference its own root -- it does here: {}".format(referenced))
+
+    assert prc._pytest_root_holder(root)[0] == prc.HOLDER_HELD
+    assert prc._sweep_stale_pytest_temp_roots() == 0
+    assert root.exists()
+
+
+def _a_pid_that_is_not_running():
+    """A PID with no live process. Reaped children are the only honest way to get one."""
+    proc = subprocess.Popen([sys.executable, "-c", ""])
+    proc.wait()
+    assert not Path("/proc/{}".format(proc.pid)).exists(), (
+        "PID {} was recycled between wait() and the check -- rerun".format(proc.pid))
+    return proc.pid
+
+
+def _paths_this_process_references():
+    """Everything this process points at through /proc: cwd, open fds, mapped files."""
+    me = Path("/proc/self")
+    out = []
+    try:
+        out.append(os.readlink(str(me / "cwd")))
+    except OSError:
+        pass
+    for fd in (me / "fd").iterdir():
+        try:
+            out.append(os.readlink(str(fd)))
+        except OSError:
+            continue
+    for line in (me / "maps").read_text().splitlines():
+        parts = line.split(None, 5)
+        if len(parts) == 6 and parts[5].startswith("/"):
+            out.append(parts[5])
+    return out
 
 
 def test_the_pytest_sweep_is_rooted_where_pytest_actually_builds_its_roots(tmp_path):
@@ -748,6 +888,13 @@ def test_the_two_sweeps_do_not_share_one_root_constant(tmp_path, monkeypatch):
     moved.mkdir(), own.mkdir()
     monkeypatch.setattr(prc, "HEAD_CHECKOUT_ROOT", moved)
     monkeypatch.setattr(prc, "PYTEST_TEMP_ROOT_PARENT", own)
+    # THIS TEST WAS WRITING INTO THE LIVE OBSERVABILITY LOG (caught 2026-08-12). It takes
+    # `tmp_path`, not `sandbox`, so `prc.LOG_FILE` stayed pointed at the real
+    # docs/observability/sim-runner-log.md and the sweep's own success line landed there --
+    # 33 lines naming a `pytest-temps` path inside a test basetemp. Same class as
+    # WORKER_REPORT_THE_GATES_OWN_TESTS_WERE_WRITING_THE_ALARMS_EVIDENCE_2026-08-10: a test
+    # that manufactures the evidence an operator reads to judge the live system.
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     ancient = time.time() - prc.STALE_HEAD_CHECKOUT_AGE_SECONDS - 60
 
     # Four ancient roots in each place. Only the ones on PYTEST'S root are this sweep's business.
@@ -759,7 +906,10 @@ def test_the_two_sweeps_do_not_share_one_root_constant(tmp_path, monkeypatch):
     assert all(p.exists() for p in at_checkouts), (
         "the sweep followed HEAD_CHECKOUT_ROOT -- that coupling is the nineteenth wedge, where "
         "moving the checkouts off tmpfs carried the tmpfs drain away with them")
-    assert removed == len(at_own) - prc.PYTEST_TEMP_KEEP_NEWEST
+    # All four are lockless, i.e. cleanly-exited sessions, so all four are proved debris. Before
+    # 2026-08-12 this read `- PYTEST_TEMP_KEEP_NEWEST`: the keep-window now applies only where
+    # the holder cannot be proved. The subject of THIS test is the root constant, not the count.
+    assert removed == len(at_own)
     assert not at_own[0].exists(), "and it must still drain its own root"
 
 
@@ -812,7 +962,9 @@ def test_the_checkout_sweep_alone_could_not_reclaim_what_wedged_it(sandbox):
         "the pre-fix control reclaims nothing from the population that exhausted the tmpfs -- "
         "this is the false self-healing claim, pinned")
 
-    assert prc._sweep_stale_pytest_temp_roots() == len(pytest_roots) - prc.PYTEST_TEMP_KEEP_NEWEST
+    # Lockless: thirteen cleanly-exited sessions, all proved debris. Was `- KEEP_NEWEST` before
+    # 2026-08-12, when rank stood in for liveness; the holder is proved now.
+    assert prc._sweep_stale_pytest_temp_roots() == len(pytest_roots)
     assert matching.exists(), "a 20-minute-old checkout is a live publisher's, not debris"
     assert all(d.exists() for d in diagnostics), (
         "ad-hoc diagnostic names are closed by CONVENTION, not by a glob that would have this "
