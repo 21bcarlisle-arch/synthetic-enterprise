@@ -2,11 +2,11 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 18 · **Class:** `controls_that_cannot_fail` · **Ruling's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 19 · **Class:** `controls_that_cannot_fail` · **Ruling's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 18 instances
+## The 19 instances
 
 - `WORKER_FINDING_A_BULK_PASS_BLINDS_THE_AGED_STAGING_DIGEST_2026-08-12.md` — BLOCKING
 - `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — BLOCKING
@@ -23,13 +23,14 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_DOORS_DEPTH_LIMIT_SWALLOWED_FIFTY_THREE_FIGURES_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — RECORDED
+- `WORKER_FINDING_THE_RESURRECTION_GUARD_IS_BLIND_TO_A_RESURRECTION_THAT_ONLY_EXISTS_IN_HEAD_2026-08-12.md` — LATENT
 - `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md` — BLOCKING
 - `WORKER_FINDING_WRITE_TIME_GATE_FIELD_SWALLOW_2026-08-08.md` — LATENT
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md` — BLOCKING
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**25.0 recorded episode-hours** across 1 of the 18 instances; largest single recorded episode **25h**; 4 instance(s) name a published figure in scope.
+**25.0 recorded episode-hours** across 1 of the 19 instances; largest single recorded episode **25h**; 4 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
