@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12T18:40:59.976292+00:00",
+  "generated_at": "2026-08-12T20:07:35.581805+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,15 +13,15 @@
     "reserved_changed": 0,
     "reserved_added": 0,
     "reserved_cleared": 0,
-    "daemons_flipped": 1,
-    "daemons_newly_stale": 1,
+    "daemons_flipped": 2,
+    "daemons_newly_stale": 2,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
     "headline_moves": 1
   },
   "changes": [
-    "1 daemon(s) went stale: discovery-daemon",
+    "2 daemon(s) went stale: discovery-daemon, epistemic-verifier",
     "total_open_atoms: 55 -> 108"
   ],
   "detail": {
@@ -29,7 +29,8 @@
     "reserved_added": [],
     "reserved_cleared": [],
     "daemons_newly_stale": [
-      "discovery-daemon"
+      "discovery-daemon",
+      "epistemic-verifier"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
@@ -56,7 +57,7 @@
       "ntfy-responder": "live",
       "autonomous-runner": "retired",
       "background-worker": "live",
-      "epistemic-verifier": "live",
+      "epistemic-verifier": "stale",
       "discovery-agent": "stale",
       "supervisor": "live",
       "sanity-daemon": "live",
@@ -72,8 +73,8 @@
     "open_atoms": 108
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-12T18:40:39.808809+00:00",
-    "health_last_updated": "2026-08-12T18:40:43.450322+00:00",
+    "reserved_generated_at": "2026-08-12T20:05:49.291590+00:00",
+    "health_last_updated": "2026-08-12T20:07:30.391314+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
