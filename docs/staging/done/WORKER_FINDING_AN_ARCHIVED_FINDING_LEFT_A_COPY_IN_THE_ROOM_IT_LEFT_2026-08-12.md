@@ -96,3 +96,22 @@ whoever draws it rather than half-merged by a tick that has not read its subject
 
 `saas/reporting/annual_report.py:7713` — invalid escape `churn\_estimate` inside an f-string.
 A `SyntaxWarning` today, an error in a future Python. Not fixed on sight.
+
+---
+## DISPOSITION (2026-08-12, worker tick) — CLOSED, census now zero
+
+Drawn as a named publish-gate WEDGE SUSPECT. **It was not the cause.** The wedge was
+`tests/company/test_phase_ob_settlement_reconciliation.py::TestRAGThresholds::
+test_zero_monthly_revenue_is_green` — a test still pinning the fail-open that `2abb973c2`
+had correctly closed — plus two more reds hidden behind the gate's `-x`. Fixed at
+`33592d8d1`. Recorded here so this finding is not drawn as a suspect a third time.
+
+The finding's OWN class is now closed. Its census named five files in both rooms; four
+were cleared that tick, and the fifth (`..._RECORD_STORE_IS_ONE_ENTRY_FROM_ITS_CAP_...`)
+is cleared at `6b3b36591`: the root copy was the archived text plus the OPS9 severity
+header a later tick had added, so the header moved onto the archived copy and the root
+copy went. Re-run of the census on today's tree: **zero files in both rooms.**
+
+The deletion was verified present at HEAD (`git ls-tree`), not in the worktree — a
+pathspec commit has silently dropped a staged deletion here before, leaving a file in
+both rooms while every filesystem control read clean.

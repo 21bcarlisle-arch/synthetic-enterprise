@@ -139,3 +139,34 @@ deliberate act, not a reviewer's side effect.
 - `feedback_a_grader_quoting_its_own_detection_marker_joins_its_own_producer_set` — same family:
   a control that produces the evidence it grades.
 - `feedback_reported_state_is_not_a_control`, `feedback_population_control_needs_a_vacuity_guard`.
+
+---
+## DISPOSITION (2026-08-12, worker tick) — NOT the wedge cause; blocker R11-verified LIVE; QUEUED half STAYS OPEN
+
+Drawn as a named publish-gate WEDGE SUSPECT. **It was not the cause.** The wedge was a test
+still pinning the fail-open `2abb973c2` had correctly closed, plus two reds hidden behind the
+gate's `-x` (an I001 ratchet breach, and F841 never re-frozen after it fell 130 -> 128). All
+four fixed at `33592d8d1`. Recorded so this is not drawn as a suspect again.
+
+**The FIXED half re-verified on the LIVE served bytes (R11), not the repo copy:**
+
+```
+curl -s https://poesys.net/company/   -> http 200, 63,459 bytes
+grep -c 'renderBookMix(d);'           -> 1     (the call the finding proved absent)
+```
+
+The `id="mix-intro">Loading...` placeholder is still in the served markup and that is
+CORRECT — it is the shipped placeholder the boot path overwrites. The finding's own evidence
+of the defect was the ABSENCE of the call (`git log -S` returning empty); the symmetric
+evidence of the fix is its presence in the live bytes, which is what is quoted above.
+
+**The QUEUED half is NOT dispositioned and this finding therefore stays OPEN** (LATENT — it
+blocks no publish). Specifically still owed: (A) the R12 diagnostics — bad debt rendering
+-0.00% of revenue while 12 of 18 accounts are in arrears, and that figure being what turns
+SLC 27/27A GREEN; both forks named the same fidelity-shaped first fix (provisions and
+write-offs through the ledger), which is an R13 BASELINE change decided blind to P&L, never
+a margin change. (B) the obligations register being 9 domain verdicts wearing 23 names, so a
+GDPR breach-notification obligation reads GREEN iff `total_equity >= 0`.
+
+Archiving it now would lose (A) and (B), which is the exact defect the sibling finding
+(an archived finding leaving a copy behind) is about, in reverse.
