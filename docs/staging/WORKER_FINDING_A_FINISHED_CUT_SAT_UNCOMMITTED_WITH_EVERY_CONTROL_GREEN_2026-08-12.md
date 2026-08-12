@@ -60,29 +60,95 @@ own store gets the wrong number — and the previous step already filed a versio
 now **three consecutive steps** in which this atom's record was wrong about the tree, which
 under R3 (two-strike redesign) means the mechanism, not the instance, is the thing to change.
 
+## I then committed the same defect myself, which found the real mechanism
+
+Landing the six paths above, I left behind **two more files belonging to the same step** —
+`tests/company/risk/test_collateral_death_test_wiring.py` and
+`test_mtm_sample_reveal_wiring.py`, mtimes 00:35/00:36, the two guards that follow the moved
+code. `f3de95f94` was therefore **half a change set, and HEAD was RED**, observed:
+
+- HEAD's `test_collateral_death_test_wiring.py` line 17 reads
+  `from simulation.run_phase2b import _mc2_collateral_death_test`; HEAD's `run_phase2b.py`
+  contains **zero** occurrences of that name — a collection error.
+- HEAD's `test_mtm_sample_reveal_wiring.py` parses `run_phase2b.py` for the
+  `for <var> in _sample_dates:` MtM loop, which moved to the desk. (The four surviving
+  `_sample_dates` hits in `run_phase2b.py` are an unrelated fabric-series local, not a loop
+  iterator, so `loop_found` is False and the guard's own vacuity assertion fires — it fails
+  loud rather than passing on an empty set, which is the property its header claims.)
+
+Fixed in `59fc53903`; `tests/company/risk` + the seam + the ratchet now 395 passed.
+
+**`python3 -m tools.surgical_land` ran the pre-commit gate and returned rc 0 on that red
+tree.** That is the finding, and it is measured, not inferred — `tools.pre_commit_test_gate.tests_for`:
+
+```
+company/risk/counterparty_collateral_desk.py -> []
+company/interfaces/counterparty_collateral.py -> ['tests/company/interfaces/test_counterparty_collateral_seam.py']
+simulation/run_phase2b.py -> ['tests/simulation/test_run_phase2b.py',
+                              'tests/simulation/test_run_phase2b_event_log.py',
+                              'tests/simulation/test_run_phase2b_reveal_source_wiring.py']
+```
+
+The map is by **name stem**. A test is reachable only if it is *named after* its subject. Both
+missing guards reach `run_phase2b.py` the other two ways a test can — one **imports a symbol
+from it**, the other **AST-parses its source text** — and neither is named after it, so neither
+is selectable. A brand-new 19k module maps to **no tests at all**, since nothing is named after
+a file that did not exist a moment ago.
+
+This is the same class as
+`WORKER_FINDING_A_POPULATION_TEST_IS_UNREACHABLE_BY_ANY_STEM_SELECTOR_2026-08-10`, now shown to
+have let a red HEAD through a gate that is the last thing standing between a working tree and
+`origin/main`. A stem map cannot see the two strongest kinds of guard this project writes —
+source-wiring guards and seam guards — precisely because they are deliberately filed next to
+the *behaviour* they protect rather than next to the file they read.
+
 ## Recommendation — and what I did
 
 The prose remedy ("a KNIFE step is not done at green, it is done at LANDED-AND-RECORDED")
-is an exhortation, and MAKE_IT_STICK says exhortations evaporate. The mechanised version:
+is an exhortation, and MAKE_IT_STICK says exhortations evaporate. Two mechanisms, ranked —
+the second is the one that matters, and I only found it by repeating the defect:
 
-**A tick-boundary orphan check.** At the end of a bounded invocation, `git status --porcelain`
-restricted to the drawn atom's `file_scope` must be empty, or the tick names what it left
-behind. This is cheap, it reads real git state, and it fails on exactly the shape found
-here — a green, complete, uncommitted change set. A weaker variant that only checks for
-*untracked* paths would miss the two modified files that carried half of this cut.
+**1 (RECOMMENDED, and the one I will take). Close the gate's blind spot: reach tests by
+REFERENCE, not by name stem.** For each changed source path, also select tests that
+*mention* it — its module dotted-path in an import, or its filesystem path in a string
+literal. A grep-grade reverse index over `tests/` is enough; it needs no test-name
+convention and it is exactly what finds a guard that AST-parses its subject. Both missing
+guards name `run_phase2b` in their source and would have been selected. This turns a gate
+that returned rc 0 on a red tree into one that fails — which is the R15 property the gate
+is supposed to have and, as of today, demonstrably does not.
 
-**Recommendation: mint this as a harness atom** (`H_harness`, small) rather than build it
-inside a KNIFE step — a wall pass must not land a scheduler change in the same commit as an
-import move, which is B7's rule and the reason step 17's naming residual was also left
-alone. I have not minted it in this tick: minting is a code change to the map and this tick's
-`file_scope` is the wall pass. **Unless objected to, the next harness draw takes it.**
+The honest caveat: this widens the gate's subject and therefore its runtime, and a
+reverse-index that is itself derived is a staleness surface. That is a smaller cost than a
+gate whose rc 0 means nothing, and it is measurable — the size of the widening should be
+reported when it is built, not assumed.
 
-I did the reversible parts: landed step 19 with its receipt verified
-(`tree d3c964b46, 6 paths, gate-rc 0`), then brought the record up to step 19 with the
-divergence stated in the record itself rather than quietly corrected.
+**2 (weaker, keep as a backstop). A tick-boundary orphan check.** At the end of a bounded
+invocation, `git status --porcelain` restricted to the drawn atom's `file_scope` must be
+empty or the tick names what it left behind. Cheap, reads real git state. But note it would
+NOT have caught my own half-landing: the two stranded guards live under
+`tests/company/risk/`, which is not in this atom's declared `file_scope` — a scope declared
+in advance cannot enumerate the files a cut turns out to touch. It catches the overnight
+orphan; it does not catch the partial landing. Recording that limit rather than selling the
+check as a fix for both.
+
+**Both are harness atoms** (`H_harness`, small), not work for a KNIFE step: a wall pass must
+not land gate machinery in the same commit as an import move, which is B7's rule and the
+reason step 17's naming residual was also left alone. Minting is itself a code change to the
+map and this tick's `file_scope` is the wall pass, so I have not minted them here.
+**Unless objected to, the next harness draw takes mechanism 1.**
+
+I did the reversible parts: landed step 19 (`f3de95f94`), found and fixed my own half-landing
+(`59fc53903`), and brought the atom's record up to step 19 with the divergence stated in the
+record rather than quietly corrected.
 
 ## Not claimed
 
 Nothing here identifies *why* the previous tick exited without committing — no evidence was
 found either way, and per R9 that stays `inferred`-at-best and therefore unstated. The
 finding is about what the controls could and could not see, which is observable.
+
+Nor is it claimed that the gate has *never* worked: it has caught real reds, and the stem map
+selects correctly whenever a test is named after its subject, which is the common case. The
+claim is narrower and is the one demonstrated above — a test that reaches its subject by
+import or by parsing its source is unreachable, and a newly created module is unreachable
+outright.
