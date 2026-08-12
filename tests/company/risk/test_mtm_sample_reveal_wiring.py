@@ -1,6 +1,14 @@
 """Source-wiring guard for W1_reveal_over_time -- the point-in-time blindfold
 AT THE SOURCE for the SECOND reveal surface: the semi-annual mark-to-market
-(MtM) credit-exposure sampling loop in simulation/run_phase2b.py.
+(MtM) credit-exposure sampling loop, which KNIFE pass 3 step 19 moved out of
+simulation/run_phase2b.py into company/risk/counterparty_collateral_desk.py.
+
+THIS GUARD FOLLOWED ITS SUBJECT, and it did not have to be told to: when the
+loop left run_phase2b.py, `test_mtm_sample_loop_is_present` and
+`test_all_three_asof_reads_present_in_loop` both FAILED. The fail-silent guards
+below are the reason the move could not quietly blind the reveal-boundary check
+-- which is what would have happened had they been written as "assert every read
+found uses the loop date" over an empty set.
 
 Companion to test_run_phase2b_reveal_source_wiring.py, which guards the two
 hedge-decision `PointInTimeView(decision_time=...)` constructions. This file
@@ -25,19 +33,19 @@ not `effective_end`, not any later date.
 Today that guarantee is asserted only by a PROSE COMMENT ("get_forward_price
 reads only spot history before each mark date -> point-in-time discipline
 holds"). A prose-only point-in-time claim is an R15 fail-open: a regression
-swapping `_sd` for `effective_end` (a str Name in scope 25 lines below, a
-plausible copy-paste) would mark every mid-run sample at END-OF-RUN forward
+swapping `_sd` for `mark_date` (the end-of-run date, a str Name in scope
+throughout the same function -- a plausible copy-paste) would mark every mid-run sample at END-OF-RUN forward
 prices -- gross look-ahead into the board-headline PEAK credit exposure -- and
 NO test would fail. The existing mechanism test
 (tests/company/trading/test_multi_period_exposure_sampling.py) RE-IMPLEMENTS its
-own sample loop, so it cannot catch a regression in run_phase2b.py's actual
+own sample loop, so it cannot catch a regression in the desk's actual
 wiring -- exactly the "at the source, not just company/ code" boundary the atom
 names.
 
-This guard parses run_phase2b.py's AST, locates the sample loop by its iterator
+This guard parses the desk module's AST, locates the sample loop by its iterator
 (`_sample_dates`), and asserts each of the three as-of reads inside it is passed
 the loop's own sample-date variable. R15: proven to FIRE on the `_sd ->
-effective_end` swap for each read by re-running the same analyzer over a mutated
+mark_date` swap for each read by re-running the same analyzer over a mutated
 copy of the live source. Independent of the mechanism under test: it reads the
 SOURCE's own wiring, never the reads' behaviour (R15 tautology guard).
 """
@@ -48,7 +56,10 @@ from pathlib import Path
 
 import pytest
 
-_SOURCE_PATH = Path(__file__).resolve().parents[2] / "simulation" / "run_phase2b.py"
+_SOURCE_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "company" / "risk" / "counterparty_collateral_desk.py"
+)
 
 # The three as-of reads whose reveal boundary is wired at the source. Each must
 # receive the per-sample loop date as its as-of/delivery argument.
@@ -115,7 +126,8 @@ def test_mtm_sample_loop_is_present(live):
     every downstream assertion passes vacuously."""
     assert live["loop_found"], (
         "could not locate the `for <var> in _sample_dates:` MtM sampling loop in "
-        "run_phase2b.py -- the reveal-boundary guard is blind; re-check the wiring"
+        "company/risk/counterparty_collateral_desk.py -- the reveal-boundary guard "
+        "is blind; re-check the wiring (and see this file's header: it MOVED once)"
     )
 
 
@@ -145,36 +157,36 @@ def test_every_asof_read_uses_the_per_sample_date(live):
 
 # --- R15: the guard must FIRE on the named defect (mutation both ways) ---
 
-def _mutant_swaps_sd_for_effective_end(needle: str) -> dict:
+def _mutant_swaps_sd_for_mark_date(needle: str) -> dict:
     live_src = _SOURCE_PATH.read_text()
-    mutant = live_src.replace(needle, needle.replace("_sd", "effective_end"))
+    mutant = live_src.replace(needle, needle.replace("_sd", "mark_date"))
     assert mutant != live_src, (
         f"mutation was a no-op -- the exact call `{needle}` is no longer present "
-        "verbatim in run_phase2b.py; update this mutation string"
+        "verbatim in the desk module; update this mutation string"
     )
     return _analyze(mutant)
 
 
-def test_MUTATION_forward_mark_dated_at_effective_end_is_caught():
-    """`get_forward_price(_fuel, _sd, _recs)` -> `(_fuel, effective_end, _recs)`
+def test_MUTATION_forward_mark_dated_at_the_end_of_run_is_caught():
+    """`get_forward_price(_fuel, _sd, _recs)` -> `(_fuel, mark_date, _recs)`
     marks every sample at end-of-run forward prices; the guard must flag it."""
-    res = _mutant_swaps_sd_for_effective_end(
+    res = _mutant_swaps_sd_for_mark_date(
         "_mark_engine.get_forward_price(_fuel, _sd, _recs)"
     )
     assert res["loop_found"], "mutant lost the sampling loop -- guard blind"
     assert not all(res["reads"]["get_forward_price"]), (
-        "the effective_end-dated forward mark slipped past "
+        "the end-of-run-dated forward mark slipped past "
         "test_every_asof_read_uses_the_per_sample_date -- the boundary control "
         "does not actually fire"
     )
 
 
-def test_MUTATION_live_contracts_dated_at_effective_end_is_caught():
-    """`live_contracts_as_of(_sd)` -> `live_contracts_as_of(effective_end)`
+def test_MUTATION_live_contracts_dated_at_the_end_of_run_is_caught():
+    """`live_contracts_as_of(_sd)` -> `live_contracts_as_of(mark_date)`
     reconstructs the end-of-run book at every sample; the guard must flag it."""
-    res = _mutant_swaps_sd_for_effective_end("live_contracts_as_of(_sd)")
+    res = _mutant_swaps_sd_for_mark_date("live_contracts_as_of(_sd)")
     assert res["loop_found"], "mutant lost the sampling loop -- guard blind"
     assert not all(res["reads"]["live_contracts_as_of"]), (
-        "the effective_end-dated live-book reconstruction slipped past the "
+        "the end-of-run-dated live-book reconstruction slipped past the "
         "per-sample-date control -- it does not actually fire"
     )

@@ -1,6 +1,6 @@
 """MC-2 collateral death-test — the run_phase2b WIRING (2026-07-27).
 
-Tests `simulation.run_phase2b._mc2_collateral_death_test`, the helper that runs the MC-2
+Tests `company.risk.counterparty_collateral_desk.collateral_death_test_summary`, the helper that runs the MC-2
 breaking-strain sweep against a real 2021-22 replay in the live run loop
 (DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY §2). The sweep MECHANISM itself is tested in
 tests/company/risk/test_collateral_death_test.py; this file proves the WIRING — stressed-date
@@ -13,8 +13,10 @@ price MOVE that produces the death). R12 guard is respected — the stressed dat
 never chosen to force a death; a pure long book that cannot die is reported as the §4 diagnosis,
 not tuned into a death.
 """
+from company.risk.counterparty_collateral_desk import (
+    collateral_death_test_summary as _mc2_collateral_death_test,
+)
 from company.trading.forward_book import ForwardContract, TradingBook
-from simulation.run_phase2b import _mc2_collateral_death_test
 
 
 def _book(*contracts):
