@@ -7,6 +7,7 @@ impossible. These test the SELECTION logic (which tests run for which changeset)
 """
 from __future__ import annotations
 
+import ast
 import importlib.util
 import os
 import subprocess
@@ -628,6 +629,96 @@ def _hook_gate_modules() -> list[Path]:
     return [ROOT / r for r in dict.fromkeys(rels)]  # dedupe, preserve order
 
 
+_SPAWN_FUNCS = frozenset({"run", "Popen", "call", "check_call", "check_output"})
+
+
+def _argv_mentions_pytest(node) -> bool:
+    """True if this AST node is an argv literal containing the element "pytest"."""
+    if isinstance(node, ast.BinOp):  # ["git", "ls-files"] + [...]
+        return _argv_mentions_pytest(node.left) or _argv_mentions_pytest(node.right)
+    if isinstance(node, (ast.List, ast.Tuple)):
+        return any(isinstance(el, ast.Constant) and el.value == "pytest" for el in node.elts)
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return "pytest" in node.value.split()  # shell-string form: "... -m pytest ..."
+    return False
+
+
+def _spawns_pytest_subprocess(src: str) -> bool:
+    """Does this module actually SPAWN pytest, as opposed to merely mentioning the word?
+
+    WHY THIS IS NOT `'"pytest"' in src` (the previous detector, 2026-08-12):
+    that substring matched any occurrence of the quoted token anywhere in the file, including a
+    DATA literal. `tools/orphan_ratchet.py` carries
+    `_RUNNERS = frozenset({"uvicorn", ..., "pytest"})` -- a set of runner NAMES it looks for when
+    deciding whether a module has a caller -- and spawns nothing but a read-only `git ls-files`.
+    The guard reported it as an unscrubbed pytest spawner and had been RED at HEAD, telling
+    everyone to fix a file that was never broken. A control that fires on mentions rather than
+    uses spends the credibility it needs for the day it is right.
+
+    So the detector is now structural: an argv literal containing the element "pytest", passed to
+    a subprocess spawn call -- either inline, or through a simple local name bound to such a
+    literal.
+
+    FAIL DIRECTION IS TOWARDS FLAGGING. An unparseable gate returns True: we cannot show it is
+    safe, and "could not tell" must not read as "does not spawn pytest" (R15).
+
+    RESIDUAL, stated rather than left to be discovered: an argv assembled fully dynamically
+    (appended in a loop, read from config) is not statically decidable and would slip past. The
+    vacuity assertion at the end of the test -- both known spawners must actually be detected --
+    is the backstop that catches the detector silently matching nothing at all.
+    """
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return True
+
+    pytest_names = {
+        target.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign) and _argv_mentions_pytest(node.value)
+        for target in node.targets
+        if isinstance(target, ast.Name)
+    }
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
+        if name not in _SPAWN_FUNCS:
+            continue
+        candidates = list(node.args[:1]) + [kw.value for kw in node.keywords if kw.arg == "args"]
+        for arg in candidates:
+            if _argv_mentions_pytest(arg):
+                return True
+            if isinstance(arg, ast.Name) and arg.id in pytest_names:
+                return True
+    return False
+
+
+def test_the_spawn_detector_reads_uses_not_mentions():
+    """R15 for the detector itself, both directions.
+
+    The 2026-08-12 false positive is pinned as a named case: a data literal of runner names must
+    NOT read as a spawn, and a real spawn must still read as one.
+    """
+    mention_only = 'RUNNERS = frozenset({"uvicorn", "pytest"})\nsubprocess.run(["git", "ls-files"])\n'
+    assert not _spawns_pytest_subprocess(mention_only), "a data literal is not a spawn"
+
+    inline = 'subprocess.run([sys.executable, "-m", "pytest", "-q"], env=e)\n'
+    assert _spawns_pytest_subprocess(inline), "an inline pytest argv is a spawn"
+
+    via_name = 'argv = [sys.executable, "-m", "pytest"]\nsubprocess.run(argv, env=e)\n'
+    assert _spawns_pytest_subprocess(via_name), "a name bound to a pytest argv is a spawn"
+
+    assert _spawns_pytest_subprocess("def broken(:\n"), "unparseable must fail CLOSED (flagged)"
+
+    # And the real files, which is what the class guard actually runs against.
+    assert _spawns_pytest_subprocess((ROOT / "tools" / "pre_commit_test_gate.py").read_text())
+    assert _spawns_pytest_subprocess((ROOT / "tools" / "site_lane_gate.py").read_text())
+    assert not _spawns_pytest_subprocess((ROOT / "tools" / "orphan_ratchet.py").read_text())
+
+
 def test_every_hook_gate_that_spawns_pytest_scrubs_GIT_star__class_guard():
     """R10/H24 CLASS closure (audit-the-sibling-half): the H24 root cause was a commit-time hook
     step spawning a git-touching pytest subprocess under the inherited GIT_INDEX_FILE/GIT_DIR/
@@ -650,7 +741,7 @@ def test_every_hook_gate_that_spawns_pytest_scrubs_GIT_star__class_guard():
     for path in gates:
         assert path.exists(), f"hook references a non-existent gate: {path}"
         src = path.read_text()
-        spawns_pytest = '"pytest"' in src        # pytest as a subprocess argv literal (not a docstring)
+        spawns_pytest = _spawns_pytest_subprocess(src)
         if not spawns_pytest:
             continue
         checked_spawners.append(path.name)
