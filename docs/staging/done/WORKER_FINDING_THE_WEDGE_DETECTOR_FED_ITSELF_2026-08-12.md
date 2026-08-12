@@ -3,6 +3,7 @@
 **Date:** 2026-08-12
 **Severity:** BLOCKING · **Lane:** H_harness
 **Status:** FIXED + mutation-proven. Second, genuine red found and fixed in the same pass.
+**Discharged:** `tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned`, `background/self_clearing_alarm_census.py`, `docs/staging/done/WORKER_FINDING_THE_WEDGE_CLEARS_ON_PROCESS_EXIT_NOT_ON_THE_RECORDED_PASS_2026-08-12.md` — the draw no longer reads the field the detector was feeding itself through, so a green publish moving HEAD past the recorded green can no longer manufacture a wedge. Named falsifier RUN at this HEAD and green. Scope stated because the document states it: the RESIDUE — the wedge record still reading RED in the daemon-owned working-tree file because record_publish_gate_success is routed only from outside the publisher — is NOT discharged here. It is separately filed as the third artefact named above, LATENT in this same class, and it costs a future episode's age, not publishing.
 **Class:** R15 — a control whose independence check is unsatisfiable in the state it exists to judge.
 
 ## What the doorbell said

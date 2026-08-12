@@ -5,6 +5,7 @@
 **Date:** 2026-08-12 · **Atom:** `OPS14_aged_staging_named_daily` · **Class:** instrument blinded by a sibling mechanism
 **Status:** REPAIRED 2026-08-12 (`2318b4b84`). **This finding's original remedy was WRONG** —
 see the correction below, which is the part worth reading.
+**Discharged:** `tests/background/test_aged_staging_digest.py::test_the_four_documents_that_motivated_clause_5_are_flagged_aged`, `background/sanity_daemon.py` — the clock now asks when a document ARRIVED in the staging root (git log --diff-filter=A -1, the renamed _staged_since_epoch) rather than when it was last written, so a bulk header pass no longer resets it. Verified by RUNNING the named falsifier at this HEAD, not by reading commit 2318b4b84: it passes, and it is the test that was red before that commit. The discharge covers the defect as CORRECTED, not as originally diagnosed — the mtime-to-git remedy this document first proposed would not have crossed the failure, and that correction is retained below deliberately.
 
 ## Observed, with evidence
 
