@@ -5925,6 +5925,159 @@ def test_the_ARTEFACT_SHARE_AND_ITS_INTERVAL_ARE_READINGS_OF_ONE_STATISTIC():
     )
 
 
+def test_the_RESAMPLE_GUARD_COUNTS_THE_PREMISES_THAT_CARRY_THE_SHARE_NOT_THE_PANEL():
+    """THE TENTH HOUR'S DEFECT, REINSTATED AS A MUTATION: the guard read
+    `len(margin_moves)` — the panel's ROW COUNT — while the share is built from two
+    sums to which a premise neither channel moved contributes exactly zero.
+
+    So a twenty-home panel in which the mirror moved FOUR homes was, to that guard, a
+    twenty-home panel, and it published a bootstrap of four. On this atom's own
+    authored population that is not hypothetical: fifteen rows, four movers, a
+    published interval of [73%, 122%], and `MIN_HOMES_FOR_DIVERSITY` is five.
+    """
+    thin = _verdict_with_moves([(100.0, 10.0)] * 4 + [(0.0, 0.0)] * 16)
+    assert len(thin.margin_moves) == 20, "the ROW count must clear the old guard"
+    assert thin.panel_mirror_artefact_evidence_premises == 4
+    assert thin.panel_mirror_artefact_evidence_premises < fgl.MIN_HOMES_FOR_DIVERSITY
+    assert thin.panel_mirror_weight_artefact_interval is None, (
+        "sixteen premises that moved in neither channel are rows, not evidence"
+    )
+    # ...and the point estimate is comfortably INSIDE the band, so the old guard's
+    # answer was not merely thin — it certified.
+    assert thin.panel_mirror_weight_artefact <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND
+    assert thin.panel_mirror_attribution == "unresolved"
+    assert not thin.panel_mirror_is_attributable
+
+    # The same panel with enough carriers keeps its interval: the guard must bite on
+    # the evidence count and on nothing else.
+    thick = _verdict_with_moves(
+        [(100.0, 10.0)] * fgl.MIN_HOMES_FOR_DIVERSITY + [(0.0, 0.0)] * 15
+    )
+    assert thick.panel_mirror_weight_artefact_interval is not None
+
+
+def test_a_SINGLE_MOVED_HOME_CANNOT_CERTIFY_THE_MIRROR_ON_A_ZERO_WIDTH_INTERVAL():
+    """WHY THE ROW COUNT WAS THE WRONG POPULATION, AT ITS WORST REACHABLE POINT.
+
+    Where one premise carries the whole statistic, every resample containing it reads
+    the same ratio and every resample missing it reads the 0/0 corner — so the
+    percentile interval collapses to a WIDTH OF ZERO around the point estimate. The
+    eighth Hour made this gate read the interval precisely so an unresolvable panel
+    could not certify; a degenerate interval is the one shape that defeats it, and it
+    arrives wearing maximum confidence.
+
+    Measured on 1,200 real subpanels of this atom's published population — whose own
+    share is 0.7307, so every certification on a subpanel of it is wrong — 93
+    certified, 59 of them off a SINGLE moved home and 92 of the 93 off fewer than
+    `MIN_HOMES_FOR_DIVERSITY`. Above five movers, across 373 panels, none did.
+    """
+    one_house = _verdict_with_moves([(100.0, 10.0)] + [(0.0, 0.0)] * 19)
+    assert one_house.panel_mirror_artefact_evidence_premises == 1
+    # The interval the OLD guard would have published, taken through the same
+    # statistic the gate reads — degenerate, and under the band at both ends.
+    _, lo, hi = fgl._bootstrap_statistic_ci(
+        list(one_house.margin_moves),
+        fgl._artefact_share,
+        seed=fgl.WEIGHT_ARTEFACT_SEED,
+        resamples=fgl.WEIGHT_ARTEFACT_RESAMPLES,
+        alpha=fgl.WEIGHT_ARTEFACT_ALPHA,
+    )
+    assert hi <= fgl.MIRROR_WEIGHT_ARTEFACT_BAND, (
+        "this fixture must CERTIFY under the old guard, or the fail-open is not on "
+        "trial"
+    )
+    assert one_house.panel_mirror_weight_artefact_interval is None
+    assert not one_house.panel_mirror_is_attributable
+
+
+def test_the_ARTEFACT_EVIDENCE_COUNT_COUNTS_EITHER_CHANNEL_NOT_JUST_THE_MIRRORS():
+    """A premise the NULL moved and the mirror did not carries NUMERATOR with no
+    denominator — it is evidence about the share, and it is not a mirror mover.
+
+    `panel_mirror_moved_premises` already existed and counts the mirror's movers
+    only; reusing it as the resample guard would have been the nearest thing to hand
+    and would have undercounted exactly the premises that make the ratio explode.
+    """
+    split = _verdict_with_moves(
+        [(100.0, 10.0)] * 2 + [(0.0, 7.0)] * 4 + [(0.0, 0.0)] * 14
+    )
+    assert split.panel_mirror_moved_premises == 2
+    assert split.panel_mirror_artefact_evidence_premises == 6
+    assert split.panel_mirror_weight_artefact_interval is not None, (
+        "six premises move a channel; counting only the mirror's two would withhold "
+        "an interval the panel can support"
+    )
+
+
+def test_the_WITHHELD_INTERVAL_SENTENCE_NAMES_THE_POPULATION_THAT_WAS_COUNTED():
+    """THE EIGHTH HOUR'S CLASS APPLIED BEFORE IT COULD HAPPEN: when a gate moves onto
+    a new population, its DISCLOSURE inherits the old one unless someone re-asks what
+    the sentence is keyed to.
+
+    The withheld-interval clause said "too few premises to resample (under 5)" while
+    the guard was counting panel ROWS — a fifteen-home panel with four movers would
+    have read as ample, and a reader had no way to see which number had been tested.
+    """
+    thin = _verdict_with_moves([(100.0, 400.0)] * 3 + [(0.0, 0.0)] * 17)
+    assert thin.panel_mirror_weight_artefact_interval is None
+    said = fgl._why_unattributable(thin)
+    assert "3 moved either channel" in said, said
+    assert f"under {fgl.MIN_HOMES_FOR_DIVERSITY}" in said
+    # ...and it must not read as a claim about the panel's size, which is 20.
+    assert "20 moved either channel" not in said
+
+
+def test_an_ARTEFACT_SHARE_OVER_ONE_IS_EXPLAINED_RATHER_THAN_PRINTED_AS_A_SHARE():
+    """THE EIGHTH HOUR'S OTHER NAMED ITEM, CLOSED AS A SENTENCE AND NOT AS A
+    STATISTIC (2026-08-11, tenth Hour).
+
+    The term is called a share and is not bounded by one: the authored row reads 80%
+    on [73%, 122%], because the sign flip can OPPOSE the re-weighting per premise
+    rather than adding to it. Measured, the unboundedness is not a defect in the
+    number — a per-premise bounded shape is identical on the drawn population across
+    800 subpanels and differs by 0.037 on the authored one, crossing the band on
+    neither — so the statistic is left alone. What was wrong is the word
+    "reproduced", which does not admit 122%.
+    """
+    over = _verdict_with_moves([(100.0, 130.0)] * 8)
+    assert over.panel_mirror_weight_artefact > 1.0
+    said = fgl._why_unattributable(over)
+    assert "over 100%" in said, said
+    assert "sign flip partly cancels the re-weighting" in said
+    # ...and a reading UNDER one must not carry the explanation, or the clause is
+    # decoration rather than a caveat.
+    under = _verdict_with_moves([(100.0, 70.0)] * 8)
+    assert under.panel_mirror_weight_artefact < 1.0
+    assert "over 100%" not in fgl._why_unattributable(under)
+
+
+def test_the_RESAMPLE_GUARD_REPAIR_CAN_ONLY_WITHDRAW_CERTIFICATION():
+    """ONE-DIRECTIONAL BY CONSTRUCTION, AND NOT ALWAYS-RED — the two halves this
+    file has learned to prove together.
+
+    A withheld interval resolves to `unresolved`, never to a pass, so no verdict this
+    gate released before is newly released now. And the eighth Hour's searched
+    not-always-red population must survive the repair, or the demonstration that this
+    control can pass would have been deleted by the control that replaced it.
+    """
+    flipping = fgl.composition_verdict(
+        _flipping_population(), unit_rate_p_per_kwh=FIXTURE_UNIT_RATE
+    )
+    assert flipping.panel_mirror_artefact_evidence_premises >= (
+        fgl.MIN_HOMES_FOR_DIVERSITY
+    )
+    assert flipping.panel_mirror_weight_artefact_interval is not None
+    assert flipping.panel_mirror_attribution == "attributable", (
+        "the searched population that proves this gate can pass must still pass"
+    )
+    # The only reachable transition is toward refusal: on every panel where the
+    # evidence count is short, the resolution is `unresolved` and never a pass.
+    for k in range(1, fgl.MIN_HOMES_FOR_DIVERSITY):
+        short = _verdict_with_moves([(100.0, 10.0)] * k + [(0.0, 0.0)] * (20 - k))
+        assert short.panel_mirror_weight_artefact_resolution == "unresolved"
+        assert not short.panel_mirror_is_attributable
+
+
 def test_the_INCONCLUSIVE_SENTENCE_QUOTES_THE_PER_PREMISE_MOVEMENT_NOT_TWO_TOTALS():
     """THE SEVENTH HOUR'S OTHER HALF, and it is the same defect from the other end:
     the sentence that justifies refusing the money verdict quoted the weight null's
@@ -5943,7 +6096,14 @@ def test_the_INCONCLUSIVE_SENTENCE_QUOTES_THE_PER_PREMISE_MOVEMENT_NOT_TWO_TOTAL
     assert v.panel_mirror_weight_artefact > fgl.MIRROR_WEIGHT_ARTEFACT_BAND
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     sentence = next(c for c in caveats if c.startswith("MIRROR INCONCLUSIVE"))
-    assert "per premise" in sentence
+    # "per PANEL premise", and saying so: both means are taken over every row, and
+    # the sentence names the movers in the same breath (2026-08-11, tenth Hour). On
+    # the drawn row those two denominators differ by 11.1x — GBP 314 per panel
+    # premise against GBP 3,494 per premise the mirror actually moved — so a reader
+    # who multiplied the quoted figure by the quoted count was out by an order of
+    # magnitude.
+    assert "per PANEL premise" in sentence
+    assert f"both means are over all {v.premises}, not over the movers" in sentence
     assert "95% interval" in sentence
     assert f"{v.panel_mirror_moved_premises} of {v.premises} premises" in sentence
     assert "totals-based rule would have said" in sentence

@@ -85,6 +85,7 @@
         "money_mean_advantage_gbp": 485.43714210597324,
         "money_tied_premises": 184,
         "panel_mirror_accuracy_drift": 0.08856516109344098,
+        "panel_mirror_artefact_evidence_premises": 18,
         "panel_mirror_attribution": "unresolved",
         "panel_mirror_epc_gap": 0.43505490526108265,
         "panel_mirror_epc_gap_drift": 0.008146263684907284,
@@ -140,7 +141,7 @@
         "DILUTED: the inference ran on 34 of 200 premises (83% carry no information about it). Improvement over the register is +0.0227 as published and +0.1233 where the inference ran; the published figure moves with EPC lodgement coverage even when the estimator does not.",
         "ONE-SIGNED (epc): the belief is under-stated in 126 of 200 decided premises (sign-test p=0.0003, signed mean +19.6%). The company is wrong about the STOCK in a fixed direction, not merely imprecise about houses; the |gap| headline cannot see this.",
         "SKEWED (epc): that count and that average point OPPOSITE ways \u2014 under-stated on 126 of 200 premises, yet a signed mean of +19.6%. A minority of large errors outweighs the majority of small ones, so a supplier reading the mean would target different houses from one reading the median. Read the line above as a majority, not an average.",
-        "MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict off inferred, and that null carries no weight here \u2014 73% of the mirror's movement in the deciding margin is reproduced by a null panel carrying the same re-weighting with NO sign flip in it (GBP 230 of 314 per premise, 95% interval [36%, 90%], across the 18 of 200 premises the mirror moved; the totals-based rule would have said 90%, with 40% of the mirror's and 25% of the null's movement cancelling inside its two sums), and this panel cannot resolve which side of the 50% band that share sits on, so 'the instrument is clean' is not something it measured, so 'no composition effect' is not a finding on this population.",
+        "MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict off inferred, and that null carries no weight here \u2014 73% of the mirror's movement in the deciding margin is reproduced by a null panel carrying the same re-weighting with NO sign flip in it (GBP 230 of 314 per PANEL premise \u2014 both means are over all 200, not over the movers, 95% interval [36%, 90%], across the 18 of 200 premises the mirror moved; the totals-based rule would have said 90%, with 40% of the mirror's and 25% of the null's movement cancelling inside its two sums), and this panel cannot resolve which side of the 50% band that share sits on, so 'the instrument is clean' is not something it measured, so 'no composition effect' is not a finding on this population.",
         "CONFIDENCE-BOUGHT: swapping the two arms' ERROR BARS and bases \u2014 every point estimate untouched, so both accuracy gaps are unchanged by construction \u2014 moves the money verdict from inferred to epc. The arm that forgoes less is the arm ALLOWED TO ACT more often (declined-where-value-existed 89 on the register vs 73 on the posterior), which is a claim about the company's confidence, not about its accuracy. This is the sense in which the two headlines disagree: they are not two views of one quantity."
       ],
       "inference_improvement": 0.02269926440394976,
@@ -296,11 +297,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.42690864157617536,
-    "measured_at": "2026-08-11T23:06:04.329726+00:00",
+    "measured_at": "2026-08-12T00:58:09.456117+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.04477390004,
-    "run_git_commit": "7d4d7fcad85f55a75effc99cf03886bdabacf851",
+    "run_git_commit": "2b80066ac3012cef7818ff2360fb0238d2bab951",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -389,6 +390,7 @@
         "money_mean_advantage_gbp": 485.43714210597324,
         "money_tied_premises": 184,
         "panel_mirror_accuracy_drift": 0.08856516109344098,
+        "panel_mirror_artefact_evidence_premises": 18,
         "panel_mirror_attribution": "unresolved",
         "panel_mirror_epc_gap": 0.43505490526108265,
         "panel_mirror_epc_gap_drift": 0.008146263684907284,
@@ -444,7 +446,7 @@
         "DILUTED: the inference ran on 34 of 200 premises (83% carry no information about it). Improvement over the register is +0.0227 as published and +0.1233 where the inference ran; the published figure moves with EPC lodgement coverage even when the estimator does not.",
         "ONE-SIGNED (epc): the belief is under-stated in 126 of 200 decided premises (sign-test p=0.0003, signed mean +19.6%). The company is wrong about the STOCK in a fixed direction, not merely imprecise about houses; the |gap| headline cannot see this.",
         "SKEWED (epc): that count and that average point OPPOSITE ways \u2014 under-stated on 126 of 200 premises, yet a signed mean of +19.6%. A minority of large errors outweighs the majority of small ones, so a supplier reading the mean would target different houses from one reading the median. Read the line above as a majority, not an average.",
-        "MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict off inferred, and that null carries no weight here \u2014 73% of the mirror's movement in the deciding margin is reproduced by a null panel carrying the same re-weighting with NO sign flip in it (GBP 230 of 314 per premise, 95% interval [36%, 90%], across the 18 of 200 premises the mirror moved; the totals-based rule would have said 90%, with 40% of the mirror's and 25% of the null's movement cancelling inside its two sums), and this panel cannot resolve which side of the 50% band that share sits on, so 'the instrument is clean' is not something it measured, so 'no composition effect' is not a finding on this population.",
+        "MIRROR INCONCLUSIVE: the panel mirror did NOT move the money verdict off inferred, and that null carries no weight here \u2014 73% of the mirror's movement in the deciding margin is reproduced by a null panel carrying the same re-weighting with NO sign flip in it (GBP 230 of 314 per PANEL premise \u2014 both means are over all 200, not over the movers, 95% interval [36%, 90%], across the 18 of 200 premises the mirror moved; the totals-based rule would have said 90%, with 40% of the mirror's and 25% of the null's movement cancelling inside its two sums), and this panel cannot resolve which side of the 50% band that share sits on, so 'the instrument is clean' is not something it measured, so 'no composition effect' is not a finding on this population.",
         "CONFIDENCE-BOUGHT: swapping the two arms' ERROR BARS and bases \u2014 every point estimate untouched, so both accuracy gaps are unchanged by construction \u2014 moves the money verdict from inferred to epc. The arm that forgoes less is the arm ALLOWED TO ACT more often (declined-where-value-existed 89 on the register vs 73 on the posterior), which is a claim about the company's confidence, not about its accuracy. This is the sense in which the two headlines disagree: they are not two views of one quantity."
       ],
       "inference_improvement": 0.02269926440394976,
@@ -600,11 +602,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.4042093771722256,
-    "measured_at": "2026-08-11T23:06:04.329726+00:00",
+    "measured_at": "2026-08-12T00:58:09.456117+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
     "raw_gap": 0.042393215986260536,
-    "run_git_commit": "7d4d7fcad85f55a75effc99cf03886bdabacf851",
+    "run_git_commit": "2b80066ac3012cef7818ff2360fb0238d2bab951",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {
@@ -915,11 +917,11 @@
     },
     "g0": 0.5,
     "gap": 0.0859375,
-    "measured_at": "2026-08-11T23:08:19.812840+00:00",
+    "measured_at": "2026-08-12T01:03:23.957371+00:00",
     "metric": "detection",
     "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company does not BELIEVE unresolved as at the measurement date -- NOT, as this note said until 2026-08-09, failures it never observes: D10 measured every truly-failed case being flagged on time at due+grace, and the residual is cases the company detected and then UN-flagged when a later ambiguous non-DD payment was allocated oldest-first onto the failed invoice, Clayton's Case, atom D8. The no-remittance blind spot is real but is not what this number counts). READ THE HEADLINE AS RECONCILIATION-DETERMINED ALONE (D10): `flagged_set` is a UNION and deleting the DD-observation channel leaves it bit-identical -- what that channel buys is EARLIER detection, reported in days beside it. RESHAPED 2026-08-09 (atom D11) -- THIS HEADLINE IS NOT COMPARABLE WITH ANY LEDGER ENTRY WRITTEN BEFORE THAT DATE, and the discontinuity is a fix, not a drift. The H27 Expert Hour measured two defects in the old figure and both are now closed at the measure rather than caveated in prose. (1) It was an as_of ARTEFACT: the truth (`result == 'failed'`) does not move with the clock but the belief was held AT the measurement date, so holding company and world fixed and moving only that date walked the figure ~+70% over 60 days. The population is now EVER-FLAGGED -- a detection is a fact about the day it happened, whatever a later oldest-first allocation did to the invoice -- and the as_of sweep is flat. (2) It counted ONE ERROR DIRECTION: a company flagging EVERY invoice scored a perfect 0.0. The headline is now the BALANCED error of both directions on their own denominators, so both degenerate strategies score g0 = 0.5. detection balanced error 0.0859 [0.5 = every prevalence-blind rule, incl. flagging everything] (missed_failure_rate 0.0000 over 31 truly-failed, false_flag_rate 0.1719 = 242 of 1408 never-flaggable cases wrongly flagged = the wrongful-dunning exposure; 118 case(s) in neither population: cases in NEITHER direction's population: a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really was unpaid past grace, so flagging it was correct and counting it as a false flag would score the company down for being right; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.). The retired recall-only figure is NOT restated: it was scored over a different flagged population, so no arithmetic on these sets reproduces it. Companion per-dimension gaps: belief balanced error 0.1818 [0.5 = every severity-blind rule, incl. right mix / wrong accounts]; under-called severity 0.3636 (4 of 11, mean 2.50 steps); over-called severity 0.0000 (0 of 11); per-case disagreement 0.2222 (4 of 18) [RESHAPED 2026-08-10, atom D19, and NOT comparable with the belief figure any earlier ledger entry carries: that was a population TV distance, which permuting which account holds which severity belief left bit-identical (0.0713 -> 0.0713 while per-case agreement fell 0.9287 -> 0.6432), so the degenerate 'right mix, every individual wrong' scored exactly what the real company scored. The TV figure is not deleted -- it is published as belief_population_mix 0.2222, the question it was always answering]; detection latency 3.45 days mean (without the DD-observation channel 5.00 days -- the channel buys 1.55 days EARLIER detection on 13 of 31 dated cases, while moving the set-membership detection gap by exactly zero); 0 of 31 true failures never detected at all; ageing displacement 0.887 buckets, BALANCED over both directions [no baseline; not a 0-1 ratio] (understated_arrears_rate 0.5806 over 31 truly-overdue, overstated_arrears_rate 0.0114 over 1408 truly-current = the ageing-report overstatement at as_of, NOT the wrongful-dunning exposure (atom D16); the headline's two halves: mean_bucket_displacement 1.742 buckets of UNDER-dating over the truly-overdue and mean_overstatement_displacement 0.033 buckets of OVER-ageing over the truly-current -- the headline is their mean and cannot say which direction it came from (atom D22); 118 case(s) in neither population: cases in NEITHER ageing population (atom D16, carrying D11's rule across from the detection dimension of this same instrument): a payment that eventually succeeded but arrived more than 5 days (the reconciliation grace) after its due date really WAS unpaid past grace, so the company carrying it as owed was CORRECT even though the truth bucket at `as_of` reads `current`; an unresolved dispute is not a settled success either; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time. Until this band existed, 94 of this dimension's 101 false ageings were cases its sibling dimension holds the company was RIGHT about.) [D7 RESHAPE 2026-08-08: the single prevalence-normalised ageing scalar that used to sit here (live 1.1538) was refuted in docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md and is RETIRED, not re-labelled. The three measures above each carry the denominator they are about; the displacement carries none at all]; allocation honestly dropped (metric-shape mismatch). AMBIGUOUS-REMITTANCE ATTRIBUTION (D8, counterfactual): 384 credit(s) landed with no invoice reference out of 402 unreferenced record(s); the company's MONEY is unaffected by every penny (portfolio balance GBP 500.89 both ways, delta +0.00) while its DATES are not: ageing.mean_bucket_displacement 1.741935 vs 0.0 remittance-complete -> +1.7419 buckets attributable; ageing.overstated_arrears_rate 0.011364 vs 0.0 remittance-complete -> +0.0114 ageing-overstatement rate attributable; ageing.understated_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 debt-believed-settled rate attributable; arrears_view.unpursued_arrears_rate 0.580645 vs 0.0 remittance-complete -> +0.5806 wrongful-non-pursuit rate attributable. Read as: what the no-remittance channel COSTS this company, holding the world literally fixed. R12: a diagnostic, never a target. DISCRIMINATION (D17): ALL 5 measure(s) with a non-zero error (ageing.mean_bucket_displacement, ageing.overstated_arrears_rate, ageing.understated_arrears_rate, arrears_view.unpursued_arrears_rate, detection.false_flag_rate) read attributed == actual, which is a property of a COMPLETE observation channel and NOT evidence that the counterfactual discriminates -- a rubber stamp looks identical from here. The discrimination is proven by injection instead: tests/background/test_live_payment_triad.py::test_R15_the_counterfactual_does_not_attribute_an_injected_non_allocation_error. R12: diagnostic, not a target.",
     "raw_gap": 0.0,
-    "run_git_commit": "7d4d7fcad85f55a75effc99cf03886bdabacf851",
+    "run_git_commit": "2b80066ac3012cef7818ff2360fb0238d2bab951",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_2_population_draw": {

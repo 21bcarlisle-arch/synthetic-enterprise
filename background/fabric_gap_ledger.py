@@ -4613,6 +4613,24 @@ class CompositionVerdict:
         return sum(1 for m, _ in self.margin_moves if m != 0.0)
 
     @property
+    def panel_mirror_artefact_evidence_premises(self) -> int:
+        """HOW MANY PREMISES ACTUALLY CARRY THE ARTEFACT SHARE — the count of homes
+        where EITHER channel moved the deciding margin (2026-08-11, tenth Hour).
+
+        Distinct from `panel_mirror_moved_premises`, which counts the MIRROR's movers
+        only. The share is `mean|null| / mean|mirror|` over the panel, and a premise
+        both channels left alone contributes exactly zero to both sums: it is a row
+        in the panel and it is not evidence about this instrument. A premise the NULL
+        moved and the mirror did not is the other way round — it carries numerator
+        with no denominator, and it is why this count is not simply the mirror's.
+
+        The distinction is the whole of the tenth Hour's finding: the resample guard
+        was `len(margin_moves)`, so a 200-home panel in which the mirror moved ONE
+        home was, to that guard, a 200-home panel.
+        """
+        return sum(1 for m, n in self.margin_moves if m != 0.0 or n != 0.0)
+
+    @property
     def panel_mirror_weight_artefact_interval(self) -> tuple[float, float] | None:
         """The artefact share's own 95% interval — percentile bootstrap over the
         premises, on its own named C-S2 substream.
@@ -4634,11 +4652,40 @@ class CompositionVerdict:
         verdict fails is not an error bar.
 
         `None` where the mirror moved nothing (the ratio is a corner case, not an
-        estimate) or where the panel is too small to resample honestly.
+        estimate) or where too few premises CARRY the statistic to resample honestly.
+
+        AND THAT SECOND CLAUSE COUNTED THE WRONG POPULATION UNTIL THE TENTH HOUR
+        (2026-08-11). It read `len(self.margin_moves)` — the panel's ROW COUNT — while
+        every premise neither channel moved contributes exactly zero to both sums the
+        share is built from. The bootstrap resamples 200 rows; only the movers can
+        change the answer. On this atom's own published populations that is 18 of 200
+        and FOUR of 15, so the AUTHORED ROW PUBLISHES AN INTERVAL ([73%, 122%])
+        BOOTSTRAPPED OFF FOUR HOMES while the guard written to forbid exactly that
+        counted fifteen and passed.
+
+        MEASURED ON 1,200 REAL SUBPANELS of the drawn population, whose own share is
+        0.7307 — above the band, so every certification granted on a subpanel of it is
+        wrong by construction. 93 certified. 92 of the 93 came from panels with fewer
+        than `MIN_HOMES_FOR_DIVERSITY` movers, 83 from fewer than three, and 59 from a
+        SINGLE moved home — where the resample cannot vary the ratio at all and the
+        interval collapses to zero width ([0.000, 0.000]), i.e. total confidence off
+        one house. The guard fired on none of the 1,200, because every panel had
+        20-100 rows. At six movers and above, across 373 panels, it certified nothing.
+
+        THE CONSTANT IS UNTOUCHED (R12, and the ninth Hour's rule: repair the
+        statistic, not the band). `MIN_HOMES_FOR_DIVERSITY` was already the right
+        number for the right question — "how many homes stand behind this statistic" —
+        and it is the SAME subject the file's other uses give it, so this is not the
+        sixth Hour's one-constant-two-subjects class. Only the counting was wrong.
+
+        ONE-DIRECTIONAL BY CONSTRUCTION: a withheld interval resolves to `unresolved`
+        (`panel_mirror_weight_artefact_resolution`, fail-closed since the eighth
+        Hour), never to a pass, so no verdict this gate released before is newly
+        released now.
         """
         if self.panel_mirror_margin_move_gbp == 0.0:
             return None
-        if len(self.margin_moves) < MIN_HOMES_FOR_DIVERSITY:
+        if self.panel_mirror_artefact_evidence_premises < MIN_HOMES_FOR_DIVERSITY:
             return None
         _, lo, hi = _bootstrap_statistic_ci(
             self.margin_moves,
@@ -5851,15 +5898,41 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
         span = (
             f", 95% interval [{interval[0]:.0%}, {interval[1]:.0%}]"
             if interval is not None
-            else f", too few premises to resample (under {MIN_HOMES_FOR_DIVERSITY})"
+            # NAMING THE POPULATION THE GUARD ACTUALLY COUNTS (2026-08-11, tenth
+            # Hour). This said "too few premises" while the guard was counting panel
+            # rows, so a fifteen-home panel carrying four movers read as ample and a
+            # reader had no way to see which number had been tested.
+            else (
+                f", too few premises carry it to resample "
+                f"({verdict.panel_mirror_artefact_evidence_premises} moved either "
+                f"channel, under {MIN_HOMES_FOR_DIVERSITY})"
+            )
+        )
+        # OVER 100% IS A REAL READING AND "reproduced" DOES NOT ADMIT IT (2026-08-11,
+        # tenth Hour, closing the eighth Hour's named item). The ratio exceeds one
+        # where the null moves the margin FURTHER than the mirror does — the sign flip
+        # opposing its own re-weighting rather than adding to it. Measured, that is not
+        # a defect in the statistic (a bounded per-premise shape is identical on the
+        # drawn population and differs by 0.037 on the authored one, crossing the band
+        # on neither), so the term is left alone and the SENTENCE is made able to say
+        # what the number means.
+        overshoot = (
+            ""
+            if verdict.panel_mirror_weight_artefact <= 1.0
+            else (
+                " — over 100% because the null moves the margin FURTHER than the "
+                "mirror does, i.e. the sign flip partly cancels the re-weighting "
+                "rather than adding to it"
+            )
         )
         evidence = (
             f"{verdict.panel_mirror_weight_artefact:.0%} of the mirror's movement in "
             f"the deciding margin is reproduced by a null panel carrying the same "
-            f"re-weighting with NO sign flip in it (GBP "
+            f"re-weighting with NO sign flip in it{overshoot} (GBP "
             f"{verdict.weight_null_margin_move_gbp:,.0f} of "
-            f"{verdict.panel_mirror_margin_move_gbp:,.0f} per premise{span}, across "
-            f"the {verdict.panel_mirror_moved_premises} of {verdict.premises} "
+            f"{verdict.panel_mirror_margin_move_gbp:,.0f} per PANEL premise — both "
+            f"means are over all {verdict.premises}, not over the movers{span}, "
+            f"across the {verdict.panel_mirror_moved_premises} of {verdict.premises} "
             f"premises the mirror moved; the totals-based rule would have said "
             f"{verdict.panel_mirror_weight_artefact_aggregate:.0%}, with "
             f"{verdict.panel_mirror_margin_cancellation:.0%} of the mirror's and "
@@ -6168,6 +6241,15 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         "panel_mirror_margin_move_gbp": v.panel_mirror_margin_move_gbp,
         "weight_null_margin_move_gbp": v.weight_null_margin_move_gbp,
         "panel_mirror_moved_premises": v.panel_mirror_moved_premises,
+        # ...AND HOW MANY PREMISES THE INTERVAL IS ACTUALLY RESAMPLING (2026-08-11,
+        # tenth Hour). The two means above are taken over every row; only these homes
+        # can change either of them, and it is the number the resample guard tests.
+        # On the row rather than derivable, because the guard that used the wrong
+        # population was invisible for three Hours precisely because nothing printed
+        # the right one.
+        "panel_mirror_artefact_evidence_premises": (
+            v.panel_mirror_artefact_evidence_premises
+        ),
         "panel_mirror_weight_artefact_interval": (
             list(v.panel_mirror_weight_artefact_interval)
             if v.panel_mirror_weight_artefact_interval is not None
