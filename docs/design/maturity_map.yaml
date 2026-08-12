@@ -2266,7 +2266,7 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 26
+  simplifications_count: 27
   notes_rehomed: [harden_note, level_hold_note]
   expert_hour: {last: '2026-08-12', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
@@ -5127,6 +5127,7 @@
   depends_on: []
   couples_with: [D_printed_figure_rederivation, D_money_boundary_reconciliation]
   file_scope: ['site/customers/index.html', 'site/customers/_bill_render_harness.mjs', 'tests/company/compliance/test_printed_bill_foots_render.py', 'tools/verify_printed_bill_render.mjs']
+  simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   records_rehomed: [evidence]
   real_world_twin: "a bank statement that shows a chargeback reversal as its own line rather than folding it silently into a total the customer cannot reconstruct"
@@ -5146,6 +5147,7 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
+  simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   records_rehomed: [evidence]
   real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"
