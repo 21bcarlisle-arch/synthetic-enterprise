@@ -35,6 +35,7 @@ unactionably trains me to ignore all alarms, which kills the immune system."
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -60,6 +61,15 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
 BILLING_LEDGER_PATH = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
 LAST_DIGEST_DATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sanity_daemon_last_digest_date"
+# Clause 5, OPS14_aged_staging_named_daily (DIRECTOR_RULING_FINDING_SEVERITY_
+# AND_INTERLEAVE_2026-08-12): the staging ROOT only -- direct files in
+# docs/staging/, never its subdirectories. done/ holds dispositioned records
+# (the complementary 48h auto-archive already covers those); in_progress/,
+# drafts/, exhaust/, fyi/ and assets/ are each scanned or owned by a
+# different mechanism. This clause is about documents nobody has opened at
+# all, which by definition still sit at the root.
+STAGING_ROOT = PROJECT_DIR / "docs" / "staging"
+AGED_STAGING_THRESHOLD_HOURS = 72
 # The LIVE coupled-triad belief-vs-truth gap ledger -- the SAME source the
 # Proof-door panel renders (tools/generate_proof_data.py::_coupled_gaps). The
 # daily digest surfaces one line off this file per coupled pair (COUPLED_TRIAD
@@ -192,19 +202,124 @@ def _coupled_gap_digest_line() -> str:
     return header + " -- " + "; ".join(pairs)
 
 
+def _staging_root_documents() -> list[Path]:
+    """Direct files in the staging root -- see STAGING_ROOT's own comment for
+    why subdirectories are excluded."""
+    if not STAGING_ROOT.is_dir():
+        return []
+    return sorted(
+        p for p in STAGING_ROOT.iterdir()
+        if p.is_file() and p.suffix == ".md" and not p.name.startswith(".")
+    )
+
+
+def _last_touched_epoch(path: Path) -> float | None:
+    """'Touched' means a real disposition event, not filesystem mtime.
+    Concurrent daemons rewrite files across this shared working tree
+    continuously (the 2026-08-12 mint note recorded 107 modified paths at one
+    tick's start, almost all daemon exhaust) -- an mtime-based clock would
+    report a document nobody has opened as freshly touched the moment any
+    daemon happened to write near it. Uses the last commit that touched this
+    exact path: the commit that originally staged it, or a later commit that
+    edited or moved it. Returns None only when the path has no commit history
+    at all (staged but never committed) -- the one case an mtime fallback is
+    safe, since git has never seen the file for a daemon to perturb."""
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%ct", "--", str(path)],
+            cwd=PROJECT_DIR, capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    out = result.stdout.strip()
+    if result.returncode != 0 or not out:
+        return None
+    try:
+        return float(out)
+    except ValueError:
+        return None
+
+
+def _staging_doc_summary(path: Path) -> str:
+    """One line of 'what it asks for' -- this project's staged documents
+    consistently title themselves with the ask (e.g. '# [ADVISOR-FINDINGS]
+    ...'), so the first non-blank line, with markdown heading markers
+    stripped, is a faithful summary without parsing free-form prose."""
+    try:
+        text = path.read_text(errors="replace")
+    except OSError:
+        return "(unreadable)"
+    for line in text.splitlines():
+        stripped = line.strip().lstrip("#").strip()
+        if stripped:
+            return stripped[:160]
+    return "(empty)"
+
+
+def _aged_staging_entries(
+    now: float | None = None,
+    threshold_hours: float = AGED_STAGING_THRESHOLD_HOURS,
+) -> list[dict]:
+    """Clause 5, OPS14 (DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-
+    08-12): every staging-root document untouched for >= threshold_hours,
+    with its age in days and a one-line summary. VISIBILITY ONLY -- this
+    never filters, refuses or reprioritises anything; it is a read that a
+    caller decides what to do with. Sorted oldest-first so the longest-
+    ignored document always leads the digest line."""
+    now_epoch = time.time() if now is None else now
+    entries = []
+    for path in _staging_root_documents():
+        touched = _last_touched_epoch(path)
+        if touched is None:
+            try:
+                touched = path.stat().st_mtime
+            except OSError:
+                continue
+        age_hours = (now_epoch - touched) / 3600.0
+        if age_hours >= threshold_hours:
+            entries.append({
+                "filename": path.name,
+                "age_days": age_hours / 24.0,
+                "summary": _staging_doc_summary(path),
+            })
+    entries.sort(key=lambda e: (-e["age_days"], e["filename"]))
+    return entries
+
+
+def _format_aged_staging_line(entry: dict) -> str:
+    return f"{entry['filename']} ({entry['age_days']:.1f}d): {entry['summary']}"
+
+
 def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     """Standing open findings get ONE line in a daily digest, not a 30-min
     repeat (director's own framing, 2026-07-11: "an alarm that repeats
     unactionably trains me to ignore all alarms, which kills the immune
-    system."). Fires at most once per UTC calendar date. If a genuinely new
-    finding already triggered its own fresh NTFY this cycle, that satisfies
-    today's notification budget -- skip the digest today rather than
-    immediately following a fresh alert with a redundant summary of the
-    same information."""
+    system."). Fires at most once per UTC calendar date.
+
+    Clause 5 / OPS14 (2026-08-12): the aged-staging block below is
+    UNCONDITIONAL -- computed and appended regardless of any_new_this_cycle.
+    Before this atom, a genuinely new finding firing its own fresh NTFY this
+    cycle skipped the ENTIRE digest body for the day, which is precisely the
+    fail-silent branch clause 5 was written to close: an aged, unopened
+    document must never be dropped for the day just because something newer
+    also happened to fire. The pre-existing "skip if something fresh already
+    fired" behaviour is preserved ONLY for the standing-open-findings summary,
+    which is the part that motivated it in the first place."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     last_sent = LAST_DIGEST_DATE_FILE.read_text().strip() if LAST_DIGEST_DATE_FILE.exists() else None
     if last_sent == today:
         return
+
+    parts = []
+
+    aged_entries = _aged_staging_entries()
+    if aged_entries:
+        lines = " | ".join(_format_aged_staging_line(e) for e in aged_entries[:10])
+        parts.append(
+            f"AGED STAGING -- {len(aged_entries)} doc(s) untouched >={AGED_STAGING_THRESHOLD_HOURS:g}h: {lines}"
+            + (" (+ more)" if len(aged_entries) > 10 else "")
+        )
+
     if not any_new_this_cycle:
         open_entries = adjudication.open_findings()
         if open_entries:
@@ -213,13 +328,17 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
             # rule: "the gap is reported per coupled pair each digest + Proof
             # door") -- read live off the ledger, never recomputed here (R11).
             gap_line = _coupled_gap_digest_line()
-            _digest(
-                f"Sanity daemon daily digest: {len(open_entries)} standing open finding(s) -- {lines}"
+            parts.append(
+                f"{len(open_entries)} standing open finding(s) -- {lines}"
                 + (" (+ more, see sanity_adjudication_ledger.json)" if len(open_entries) > 8 else "")
                 + " || " + gap_line
             )
-            log(f"Daily digest sent -- {len(open_entries)} standing open finding(s); "
-                f"coupled-triad gap line attached")
+
+    if parts:
+        _digest("Sanity daemon daily digest: " + " || ".join(parts))
+        log(f"Daily digest sent -- {len(aged_entries)} aged staging doc(s); "
+            + ("standing open finding(s) attached" if not any_new_this_cycle else "fresh finding fired this cycle, standing summary skipped"))
+
     LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     LAST_DIGEST_DATE_FILE.write_text(today)
 

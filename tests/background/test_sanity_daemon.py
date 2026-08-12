@@ -22,6 +22,14 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(sanity_adjudication, "LEDGER_PATH", tmp_path / "sanity_adjudication_ledger.json")
     # Isolated from the real daily-digest date marker.
     monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", tmp_path / ".last_digest_date")
+    # Isolated from the real docs/staging/ root -- clause 5 (OPS14) scans it
+    # unconditionally on every digest, and the real root genuinely holds
+    # documents untouched for >72h. Point at a nonexistent tmp dir so these
+    # pre-existing tests' digest-content assertions are not perturbed by
+    # real, unrelated staging backlog; tests/background/test_aged_staging_
+    # digest.py exercises the aged-staging block itself, including one
+    # integration test against the real root by design.
+    monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", tmp_path / "staging")
     # Isolated from the real, committed coupled_gap_ledger.json -- a test that
     # exercises the daily digest's coupled-triad gap line controls the ledger
     # content itself (defaults to a nonexistent tmp file, so the digest line
