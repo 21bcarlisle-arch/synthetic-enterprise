@@ -119,6 +119,7 @@
         "panel_mirror_register_worst_breach": 1.7878678477512092e-15,
         "panel_mirror_relative_infidelity": 0.01908198357107678,
         "panel_mirror_switch_borne_by": null,
+        "panel_mirror_switch_carried_by": null,
         "panel_mirror_switch_cost_gbp": null,
         "panel_mirror_switch_counterfactual_gbp": null,
         "panel_mirror_switch_counterfactual_interval_gbp": null,
@@ -309,11 +310,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.42690864157617536,
-    "measured_at": "2026-08-12T06:33:00.860438+00:00",
+    "measured_at": "2026-08-12T09:44:12.754238+00:00",
     "metric": "prediction",
     "note": "EPC-vs-actual fabric gap: register HLC against SIM truth",
     "raw_gap": 0.04477390004,
-    "run_git_commit": "2e9ecf710369c3543882994fd9cab30bfde23ba8",
+    "run_git_commit": "c959f3ac7c25c29aeeba574c1b23875973c31a1b",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_12_premise_trace_generator": {
@@ -436,6 +437,7 @@
         "panel_mirror_register_worst_breach": 1.7878678477512092e-15,
         "panel_mirror_relative_infidelity": 0.01908198357107678,
         "panel_mirror_switch_borne_by": null,
+        "panel_mirror_switch_carried_by": null,
         "panel_mirror_switch_cost_gbp": null,
         "panel_mirror_switch_counterfactual_gbp": null,
         "panel_mirror_switch_counterfactual_interval_gbp": null,
@@ -626,11 +628,11 @@
     },
     "g0": 0.10487934813100001,
     "gap": 0.4042093771722256,
-    "measured_at": "2026-08-12T06:33:00.860438+00:00",
+    "measured_at": "2026-08-12T09:44:12.754238+00:00",
     "metric": "prediction",
     "note": "inferred-vs-actual fabric gap: C14 posterior against SIM truth",
     "raw_gap": 0.042393215986260536,
-    "run_git_commit": "2e9ecf710369c3543882994fd9cab30bfde23ba8",
+    "run_git_commit": "c959f3ac7c25c29aeeba574c1b23875973c31a1b",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
   "W1_5_premise_demand_shape": {

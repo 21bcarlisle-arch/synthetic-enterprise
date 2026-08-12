@@ -5268,22 +5268,35 @@ def test_the_BLUNTNESS_READING_MOVES_WITH_THE_PANEL_AROUND_THAT_HOME():
 
 
 def test_a_MONEY_VERDICT_IS_NO_LONGER_REFUSED_BY_A_kW_PER_K_READING_OF_THE_STOCK():
-    """WHAT THE REMOVAL RELEASES, NAMED AND COUNTED — because every Hour before this
-    one could only take certification away and this one grants it.
+    """THE TWELFTH HOUR'S REMOVAL, NAMED AND COUNTED, AND WHAT THE FOURTEENTH FOUND
+    UNDERNEATH THE FIVE IT RELEASED.
 
     Twelve stocks on the fallback branch, a register 30% under to 30% over, each with
     one rogue certificate. On every one the branch's own promise is kept to float
-    noise, and on every one the retired rule refused. FIVE are now certified, and
-    they are exactly the five whose MONEY channel — the one denominated in the unit
-    the verdict is published in — resolved on its own evidence with an artefact share
-    of 0.0000. The other SEVEN are still refused, in GBP, four `unresolved` and three
-    `unattributable`: this removal takes one refusal away, not the gate.
+    noise, and on every one the retired kW/K rule refused. The twelfth Hour released
+    FIVE — the five whose weight-artefact channel resolved with a share of 0.0000 —
+    and that release is what this test was written to count.
 
-    The third Hour established that a term denominated in kW/K cannot CERTIFY a
-    verdict denominated in GBP. It cannot REFUSE one either.
+    IT COUNTED A VACUUM (2026-08-12, fourteenth Hour). TEN of the twelve — and all
+    FIVE it released — carry ZERO homes on both instrument readings: each arm forgoes
+    identically the same money on every premise, so the mirror's money reading is
+    exactly GBP 0.00 either way, the artefact share is 0.0000 because there is no
+    margin to re-weight, and the instrument channel certified by evaluating
+    `0.0 > 0.0`. Those five were released into a channel that could not see them, and
+    now stop at `unresolved` — an unavailable check is a failed check, not a clean
+    one. The two that DO carry money (the register over-stating by 5% and 10%, six
+    homes each) still certify at that channel, which is what keeps this the guard's
+    subject and not the family's.
+
+    THE TWELFTH HOUR'S OWN CLAIM IS UNTOUCHED AND IS WHAT THIS TEST NOW PINS: no row
+    here is refused by a kW/K reading of the stock. Every refusal is in GBP, and the
+    GBP channels say two different words across the twelve. The third Hour
+    established that a term denominated in kW/K cannot CERTIFY a verdict denominated
+    in GBP; it cannot REFUSE one either; and a GBP channel with no GBP in it cannot
+    certify one.
     """
     biases = (0.99, 0.97, 0.95, 0.93, 0.90, 0.85, 0.80, 0.70, 1.05, 1.10, 1.20, 1.30)
-    certified = []
+    released_by_the_twelfth, empty = [], []
     for eb in biases:
         rows = _infeasible_reflection_population(n=10, epc_bias=eb, rogue=0.40)
         v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
@@ -5296,29 +5309,68 @@ def test_a_MONEY_VERDICT_IS_NO_LONGER_REFUSED_BY_A_kW_PER_K_READING_OF_THE_STOCK
         # ...and the retired rule refused every one of them anyway.
         assert v.panel_mirror_register_infidelity > fgl.MIRROR_FIDELITY_BAND, eb
         assert v.panel_mirror_register_bluntness == "blunt", eb
-        # The register channel now certifies all twelve; what decides them is money.
+        # THE TWELFTH HOUR'S CLAIM, WHICH STANDS: no kW/K reading refuses here.
         assert v.panel_mirror_register_channel == "attributable", eb
-        if v.panel_mirror_is_attributable:
-            certified.append(eb)
-            assert v.panel_mirror_weight_artefact_resolution == "attributable", eb
-            assert v.panel_mirror_weight_artefact == pytest.approx(0.0, abs=1e-9), eb
+        # THE FOURTEENTH HOUR'S, keyed to whether there is any money to read.
+        if v.panel_mirror_switch_carried_by == [0, 0]:
+            empty.append(eb)
+            assert v.panel_mirror_switch_cost_gbp == 0.0, eb
+            assert v.panel_mirror_instrument_channel == "unresolved", eb
         else:
-            assert v.panel_mirror_weight_artefact_resolution != "attributable", eb
+            assert v.panel_mirror_instrument_channel == "attributable", eb
+        assert not v.panel_mirror_is_attributable, eb
+        if v.panel_mirror_weight_artefact_resolution == "attributable":
+            released_by_the_twelfth.append(eb)
+            assert v.panel_mirror_weight_artefact == pytest.approx(0.0, abs=1e-9), eb
+            assert v.panel_mirror_switch_carried_by == [0, 0], (
+                f"{eb}: every row the twelfth Hour released has no money in the "
+                f"channel that then called it clean"
+            )
 
-    assert len(certified) == 5, certified
-    assert len(biases) - len(certified) == 7
-    # ...and the seven that are still refused are refused in GBP, by both money
-    # states, so what is left is a channel that can still say either word.
+    # The five the twelfth Hour released are still exactly five, and they are still
+    # released BY THAT CHANNEL — this Hour did not undo the removal, it found a
+    # second channel underneath that had nothing to say and was saying "clean".
+    assert len(released_by_the_twelfth) == 5, released_by_the_twelfth
+    # Ten of the twelve have no money in them at all; the two that do are read.
+    assert len(empty) == 10, empty
+    assert [eb for eb in biases if eb not in empty] == [1.05, 1.10]
+    # ...and the other seven are refused in GBP by that channel too, in both its
+    # states, so what the twelfth Hour left is still a channel that can say either
+    # word.
     still = [
         fgl.composition_verdict(
             _infeasible_reflection_population(n=10, epc_bias=eb, rogue=0.40),
             unit_rate_p_per_kwh=FIXTURE_UNIT_RATE,
         ).panel_mirror_weight_artefact_resolution
         for eb in biases
-        if eb not in certified
+        if eb not in released_by_the_twelfth
     ]
     assert still.count("unresolved") == 4, still
     assert still.count("unattributable") == 3, still
+
+
+def test_the_instrument_channel_CERTIFIED_A_COMPARISON_OF_TWO_ZEROES():
+    """THE FAIL-OPEN IN ITS PUREST FORM, and it was live on this file's own fixtures
+    (2026-08-12, fourteenth Hour). R15's second killer pattern by name: a control that
+    PASSES on empty.
+
+    Where both arms forgo identical money on every premise, both instrument readings
+    are exactly GBP 0.00 with a zero-width interval, and the magnitude half of the
+    gate asked `0.0 > 0.0` and said `attributable` — a clean bill for a comparison
+    with nothing in it. Held out separately from the sweep above because it is the
+    pattern and not the panel: it fires on any fallback panel whose arms agree
+    everywhere, whatever the stock."""
+    rows = _infeasible_reflection_population(n=10, epc_bias=0.90, rogue=0.40)
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch.borne_by == 9, "the PANEL passes the old guard comfortably"
+    assert switch.carried_by == (0, 0)
+    assert switch.published_reading_gbp == switch.counterfactual_reading_gbp == 0.0
+    assert switch.cost_gbp == 0.0 and switch.own_error_bar_gbp == 0.0
+    # The old gate: arms agree (`neither` == `neither`) and `0 > 0` is False.
+    assert switch.published_favours == switch.counterfactual_favours == "neither"
+    assert not switch.cost_gbp > switch.own_error_bar_gbp
+    # The new one refuses to read a comparison it did not make.
+    assert switch.resolution == "unresolved"
 
 
 def test_the_STOCK_COARSENESS_DISCLOSURE_PRINTS_ON_A_ROW_THE_MIRROR_CERTIFIED():
@@ -5330,10 +5382,22 @@ def test_the_STOCK_COARSENESS_DISCLOSURE_PRINTS_ON_A_ROW_THE_MIRROR_CERTIFIED():
     COMPOSITION-DECIDED caveat, one level down and in this atom's own machinery. This
     row is CERTIFIED and still contains a home the register is more than half wrong
     about, and the reader is told so.
+
+    REPOINTED AT A ROW CERTIFIED ON REAL MONEY (2026-08-12, fourteenth Hour). It ran
+    on `_infeasible_reflection_population(n=10, epc_bias=0.90)`, whose two instrument
+    readings are carried by ZERO homes each — both identically GBP 0.00, so the
+    instrument channel certified that row by evaluating `0 > 0`. A disclosure
+    demonstrated on a vacuously certified row demonstrates nothing.
+    `_certifying_forced_population` is a fallback-branch row with 11 and 7 carrying
+    homes, certified on its own evidence, holding the same more-than-half-wrong
+    certificate.
     """
-    rows = _infeasible_reflection_population(n=10, epc_bias=0.90, rogue=0.40)
+    rows = _certifying_forced_population()
     v = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     assert v.panel_mirror_is_attributable, "this test needs a CERTIFIED row"
+    assert min(v.panel_mirror_switch_carried_by) >= fgl.MIN_HOMES_FOR_DIVERSITY, (
+        "...and one certified on evidence, not on a comparison of two zeroes"
+    )
     caveats = fgl.headline_caveats(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     disclosure = [c for c in caveats if c.startswith("STOCK COARSE FOR THIS MIRROR")]
     assert len(disclosure) == 1, caveats
@@ -7403,16 +7467,17 @@ def _certifying_forced_population():
     )
 
 
-def _disagreeing_forced_population():
-    """A fallback-branch panel where the two instruments name DIFFERENT ARMS.
+def _thin_disagreeing_forced_population():
+    """THE FIXTURE THAT USED TO PIN THE ARMS HALF, AND IT WAS A MOVER-COUNT CROSSING.
 
-    Searched the same way. Of 1,500 draws from this family carrying one forcing home,
-    130 disagree — every one of them a RESOLUTION crossing (`epc` under one
-    reflection, `neither` under the other, in both directions), and NOT ONCE two
-    different resolved arms. That is worth pinning as the shape the disagreement
-    actually takes: the switch moves how decisive the mirror is, and on no panel
-    measured — 1,500 synthetic, 4,600 real subpanels — did it reverse which arm the
-    mirror names.
+    Kept, renamed, and now pinned as the DEFECT (2026-08-12, fourteenth Hour). It was
+    searched as a panel where the two instruments name different arms, and they do —
+    but of its 79 borne homes, FOUR carry the published reading and THREE carry the
+    counterfactual, and a paired money verdict carried by three homes names `neither`
+    by algebra whatever the money on them is. The counterfactual's interval ends at
+    exactly 0.0. So the "different arms" this fixture certified the gate with is the
+    mover count crossing 3 -> 4, not the instrument moving any money: the cost is GBP
+    38 against the reading's own error bar of GBP 171.
     """
     return _forced_population(
         _flipping_population(
@@ -7420,6 +7485,40 @@ def _disagreeing_forced_population():
             inferred_bias=0.9711, heat=5207.4501, heat_step=560.5152,
         ),
         index=41,
+    )
+
+
+def _disagreeing_forced_population():
+    """A fallback-branch panel where the two instruments name DIFFERENT ARMS AND BOTH
+    READINGS ARE CARRIED BY ENOUGH HOMES TO SAY SO.
+
+    RE-SEARCHED UNDER THE FOURTEENTH HOUR'S GUARD (2026-08-12), and the re-search is
+    the finding. Of 5,000 fresh draws from this family carrying one forcing home,
+    1,003 disagree — every one a RESOLUTION crossing and NOT ONCE two different
+    resolved arms, which reconfirms the thirteenth Hour on an independent sample —
+    but only FIFTEEN of the 1,003 have both readings carried by
+    `MIN_HOMES_FOR_DIVERSITY` premises or more. The cell the old fixture claimed to
+    occupy is real, and it is 1.5% of what the gate was firing on.
+
+    AND THE SURVIVORS RUN THE OTHER WAY, WHICH INVERTS THE ANSWER. Among all 1,003
+    crossings the reading this row USED is the one that names an arm, 935 to 68.
+    Among the fifteen carriable ones it is 1 to 14: the instrument the row actually
+    used made it LESS decisive, not more. The thirteenth Hour flagged that minority
+    direction as unexamined and it is, once the mover-count artefact is removed,
+    almost the whole population — which is why the refusal sentence names its
+    direction rather than asserting the majority one.
+
+    This one, from the first 2,500: 80 homes, 79 borne, 8 and 9 movers, `neither` at GBP -101
+    against a counterfactual `epc` at GBP -149, cost GBP 48 inside an error bar of
+    GBP 123 — so it still fires the arms half WITHOUT the magnitude half, which is
+    the property the old fixture was chosen for and is why there are two halves.
+    """
+    return _forced_population(
+        _flipping_population(
+            n=80, base=0.1666, step=0.0041, register=0.8457,
+            inferred_bias=0.9703, heat=8355.4637, heat_step=812.7747,
+        ),
+        index=31,
     )
 
 
@@ -7570,18 +7669,212 @@ def test_the_instrument_channel_FIRES_when_the_switch_outruns_the_error_bar():
 
 
 def test_the_instrument_channel_FIRES_when_the_two_instruments_name_different_arms():
-    """THE DIRECTION HALF OF THE GATE, which needs no threshold to read."""
+    """THE DIRECTION HALF OF THE GATE, on a panel whose two readings are CARRIED by
+    enough homes for "different arms" to be a statement about money.
+
+    It read `which needs no threshold to read` until the fourteenth Hour, and its
+    fixture was a mover-count crossing (`_thin_disagreeing_forced_population`). This
+    one is one of the four carriable crossings in 2,500 draws."""
     rows = _disagreeing_forced_population()
     verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
     switch = verdict.panel_mirror_switch
     assert switch.published_favours != switch.counterfactual_favours
+    assert min(switch.carried_by) >= fgl.MIN_HOMES_FOR_DIVERSITY, (
+        "the arms are read off money here, not off the mover count — without this "
+        "the fixture is the defect this Hour found"
+    )
     assert switch.cost_gbp < switch.own_error_bar_gbp, (
         "and it fires WITHOUT the magnitude half, which is why there are two"
     )
     assert verdict.panel_mirror_instrument_channel == "unattributable"
-    assert "the INSTRUMENT decided this mirror's answer" in fgl._why_unattributable(
-        verdict
+    why = fgl._why_unattributable(verdict)
+    assert "the INSTRUMENT decided how decisive this mirror is" in why
+    # THE DIRECTION IS NAMED, and on this panel it is the one the thirteenth Hour
+    # left unexamined: the reflection this row USED names nothing, the one it could
+    # have had names an arm. A sentence that only knew the other direction would tell
+    # this reader the row claims something it does not claim.
+    assert switch.published_favours == "neither"
+    assert "an arm is named under the one they could have had and not under this " \
+        "row's reflection" in why
+
+
+def test_the_ARMS_HALF_was_pinned_by_a_MOVER_COUNT_CROSSING_and_is_now_UNRESOLVED():
+    """THE DEFECT, REPRODUCED ON THE GATE'S OWN FIXTURE (2026-08-12, fourteenth Hour).
+
+    `_thin_disagreeing_forced_population` was searched for and shipped as evidence
+    that the direction half of the instrument channel fires. Its two readings are
+    carried by FOUR and THREE of 79 borne homes, and at three movers the upper
+    percentile of the paired bootstrap is exactly 0.0 — so `neither` there is a
+    reading of the mover count and not of the money. The gate now says so."""
+    rows = _thin_disagreeing_forced_population()
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    switch = verdict.panel_mirror_switch
+    assert switch.borne_by == 79
+    assert switch.carried_by == (4, 3), (
+        "the panel that pinned the arms half is carried by four homes and three"
     )
+    # The arms DO differ — the old assertion still holds — and that is exactly why
+    # the count had to be read: the difference is the count crossing, not the money.
+    assert switch.published_favours != switch.counterfactual_favours
+    assert switch.cost_gbp < switch.own_error_bar_gbp
+    assert verdict.panel_mirror_instrument_channel == "unresolved"
+    assert not verdict.panel_mirror_is_attributable, (
+        "one-directional: a row that was refused is still refused, never certified"
+    )
+    why = fgl._why_unattributable(verdict)
+    assert "the two readings cannot be compared on this panel" in why
+    assert "4 move any money under the reflection this row used and 3" in why
+    assert "the INSTRUMENT decided how decisive" not in why, (
+        "naming a real mechanism as the ground for a sampling artefact is this "
+        "atom's oldest class"
+    )
+
+
+@pytest.mark.parametrize("movers,resolves", [(1, False), (2, False), (3, False),
+                                             (4, True), (6, True)])
+def test_a_money_verdict_carried_by_THREE_HOMES_names_neither_WHATEVER_THE_MONEY(
+    movers, resolves
+):
+    """THE IDENTITY UNDER THE FINDING, AND IT IS ALGEBRA, NOT AN ARGUMENT.
+
+    A paired money advantage is exactly 0.0 on every premise both arms treat alike,
+    so a percentile bootstrap of the mean puts probability (1-m/n)**n -> e**-m on a
+    resample that draws NO mover and therefore has mean exactly 0. That is 36.6% /
+    13.2% / 4.7% at m = 1 / 2 / 3 — all above the 2.5% tail — and 1.65% at m = 4. So
+    a verdict carried by three homes or fewer cannot name an arm however much money
+    sits on those homes, and one carried by four can."""
+    n = 79
+    values = [-1_000_000.0] * movers + [0.0] * (n - movers)
+    point, lo, hi = fgl._bootstrap_mean_ci(
+        values, seed=fgl.MONEY_VERDICT_SEED,
+        resamples=fgl.MONEY_VERDICT_RESAMPLES, alpha=fgl.MONEY_VERDICT_ALPHA,
+    )
+    assert point < -12_000, "there is a million pounds a home on the table"
+    named = not (lo <= 0.0 <= hi)
+    assert named is resolves, (
+        f"{movers} movers of GBP 1,000,000 read "
+        f"{'an arm' if named else 'neither'} on a 95% interval of [{lo}, {hi}]"
+    )
+    if not resolves:
+        assert hi == 0.0, "the near end is the no-mover resample, exactly"
+
+
+def test_the_mover_identity_does_NOT_IMPROVE_WITH_PANEL_SIZE():
+    """AND THAT IS WHY A GUARD SIZED ON THE PANEL CANNOT PROTECT IT — the tenth
+    Hour's class, in a channel built three Hours after it closed that one.
+
+    (1-m/n)**n RISES toward e**-m as the panel grows, so more homes make a three-mover
+    verdict LESS resolvable, never more. A guard reading `borne_by` therefore gets the
+    sign of its own protection backwards."""
+    previous = None
+    for n in (20, 40, 79, 200, 1000):
+        values = [-1_000_000.0] * 3 + [0.0] * (n - 3)
+        _, lo, hi = fgl._bootstrap_mean_ci(
+            values, seed=fgl.MONEY_VERDICT_SEED,
+            resamples=fgl.MONEY_VERDICT_RESAMPLES, alpha=fgl.MONEY_VERDICT_ALPHA,
+        )
+        assert lo <= 0.0 <= hi, f"three movers still name nothing at n={n}"
+        miss = (1.0 - 3.0 / n) ** n
+        assert miss > fgl.MONEY_VERDICT_ALPHA / 2.0
+        if previous is not None:
+            assert miss > previous, "and the bigger panel is the harder one"
+        previous = miss
+
+
+def _thinly_carried_forced_population():
+    """A fallback panel with REAL money in it, ONE of whose two readings is thin.
+
+    Searched (100 of 700 draws qualify, this is the one whose thin side is largest).
+    59 borne homes, the published reading carried by NINE and the counterfactual by
+    FOUR — cost GBP 439 inside an error bar of GBP 584, arms agreeing, so under the
+    old gate it certified on both halves. It is the case that decides whether the
+    guard reads the MIN of the two readings or just the one the row published: a
+    counterfactual carried by four homes cannot be compared to anything, and the
+    comparison is the whole quantity."""
+    return _forced_population(
+        _flipping_population(
+            n=60, base=0.2558, step=0.0062, register=0.7717,
+            inferred_bias=0.9738, heat=6102.3094, heat_step=637.1233,
+        ),
+        index=21,
+    )
+
+
+def test_a_THIN_READING_is_UNRESOLVED_never_clean_even_when_the_arms_AGREE():
+    """THE FAIL-OPEN HALF, which is the larger one: 1,930 of the 2,373 thin rows in
+    3,000 draws CERTIFIED, 1,682 of them off a reading carried by one home or none.
+
+    Here both halves of the old gate pass on real money — the arms agree, the cost is
+    inside the error bar — and one of the two readings is carried by four homes, one
+    short of what this file requires of any resampled statistic. That was a clean
+    bill for a comparison the panel could not make."""
+    rows = _thinly_carried_forced_population()
+    switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert switch.borne_by >= fgl.MIN_HOMES_FOR_DIVERSITY, (
+        "the PANEL is ample — which is precisely what the old guard counted"
+    )
+    assert switch.carried_by == (9, 4), (
+        "and the reading this row PUBLISHED is ample too — only the one it is being "
+        "compared against is thin, which is why the guard reads the minimum"
+    )
+    assert switch.cost_gbp > 1.0, "there is real money in this comparison"
+    assert switch.published_favours == switch.counterfactual_favours, (
+        "the arms half is silent, so this row's fate is the carriage guard's alone"
+    )
+    assert switch.cost_gbp <= switch.own_error_bar_gbp, (
+        "and so is the magnitude half — without the guard this row certifies"
+    )
+    assert switch.resolution == "unresolved"
+    verdict = fgl.composition_verdict(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+    assert verdict.panel_mirror_instrument_channel == "unresolved"
+    assert not verdict.panel_mirror_is_attributable
+    assert "4 move any money under the reflection this row used" not in (
+        fgl._why_unattributable(verdict)
+    ), "the sentence reports each reading's own carriage, in order"
+    assert "9 move any money under the reflection this row used and 4 under the one" \
+        " they could have had" in fgl._why_unattributable(verdict)
+
+
+def test_the_carriage_guard_is_ONE_DIRECTIONAL_across_a_searched_family():
+    """IT MAY ONLY EVER TAKE CERTIFICATION AWAY. Every row whose resolution the guard
+    changes moves to `unresolved`, which is not a pass — so no verdict this channel
+    refused before is released now, and the published populations (both on the level
+    branch, no switch at all) cannot move either."""
+    rng = random.Random(20260812)
+    changed = certified_after = 0
+    for _ in range(40):
+        n = rng.choice([20, 40, 60])
+        rows = _forced_population(
+            _flipping_population(
+                n=n, base=rng.uniform(0.15, 0.30), step=rng.uniform(0.004, 0.008),
+                register=rng.uniform(0.60, 0.92),
+                inferred_bias=rng.uniform(0.90, 0.99),
+                heat=rng.uniform(4000.0, 9000.0),
+                heat_step=rng.uniform(400.0, 900.0),
+            ),
+            index=rng.randrange(n),
+        )
+        switch = fgl.instrument_switch(rows, unit_rate_p_per_kwh=FIXTURE_UNIT_RATE)
+        if switch is None or switch.cost_gbp is None:
+            continue
+        # What the gate would have said with the carriage clause removed.
+        without = (
+            "unattributable"
+            if switch.published_favours != switch.counterfactual_favours
+            or switch.cost_gbp > switch.own_error_bar_gbp
+            else "attributable"
+        )
+        after = switch.resolution
+        if after == "attributable":
+            certified_after += 1
+            assert without == "attributable", (
+                "the guard released a row the old gate refused"
+            )
+        if after != without:
+            changed += 1
+            assert after == "unresolved"
+    assert changed > 0, "a guard that changes nothing on this family is not tested"
+    assert certified_after > 0, "...and one that changes everything is not a control"
 
 
 def test_the_instrument_channel_is_NOT_ALWAYS_RED():
@@ -7628,6 +7921,11 @@ def test_the_switch_cost_is_DISCLOSED_on_a_row_the_mirror_CERTIFIED():
     assert f"{verdict.panel_mirror_switch.borne_by} premises it could have measured" in (
         sentence
     )
+    # ...AND HOW MANY OF THOSE CARRY EACH READING (2026-08-12, fourteenth Hour). The
+    # borne count alone invited exactly the reading the guard now forbids — 59 homes
+    # behind a number 11 and 7 of them move.
+    assert "carried by 11 and 7 homes respectively" in sentence
+    assert "the rest forgo the same money either way" in sentence
 
 
 def test_no_switch_no_statistic_and_no_sentence_on_the_LEVEL_branch():

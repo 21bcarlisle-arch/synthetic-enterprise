@@ -4212,6 +4212,12 @@ class InstrumentSwitch:
 
     forced_by: int
     borne_by: int
+    #: How many of `borne_by` actually CARRY each reading — the premises whose paired
+    #: money advantage is non-zero — as (published, counterfactual). `None` where no
+    #: reading was taken. NOT the same number as `borne_by`, and the gap is the
+    #: fourteenth Hour's finding: a premise both arms treat identically contributes
+    #: exactly zero to the mean and cannot move the resample either.
+    carried_by: tuple[int, int] | None
     #: `None` where the subpanel is too small to carry a money verdict at all.
     cost_gbp: float | None
     published_reading_gbp: float | None
@@ -4263,8 +4269,37 @@ class InstrumentSwitch:
 
         `unresolved` where the cost could not be measured at all: an unavailable
         check is a FAILED check (R15 FAIL-SILENT), and it may never read as clean.
+
+        AND THE ARMS HALF DID NEED A THRESHOLD — IT NEEDED THE MOVER COUNT
+        (2026-08-12, FOURTEENTH Hour, and it is the TENTH Hour's class recurring in a
+        channel built three Hours after that one closed it on a different statistic).
+        `favours` is `neither` iff the reading's 95% interval contains zero, and a
+        paired money verdict is a mean over advantages of which the untouched
+        premises are exactly 0.0. So for m movers in n rows, P(a resample draws none
+        of them) is (1-m/n)**n -> e**-m, which is 36.6% / 13.2% / 4.7% at m = 1 / 2 /
+        3 and 1.65% at m = 4: BELOW FOUR MOVERS THE UPPER PERCENTILE IS EXACTLY ZERO
+        AND THE READING NAMES `neither` WHATEVER THE MONEY ON THEM IS — GBP 38,000
+        per premise, measured — and no panel size repairs it, because the limit does
+        not depend on n (0.0388 at n=20, 0.0496 at n=1,000, both above alpha/2).
+        `favours` below four movers is therefore a reading of the MOVER COUNT, not of
+        the money, and the two instruments naming different arms is that count
+        crossing 3->4.
+
+        MEASURED, on 3,000 fresh fallback-branch draws: 432 disagreements, every one
+        a resolution crossing (never two resolved arms, reconfirming the thirteenth
+        Hour), and 421 of the 432 with the `neither` side carried by three premises
+        or fewer. The atom's OWN fixture for this half of the gate was one of them —
+        four movers against three, of 79 borne homes, the counterfactual's interval
+        ending at exactly 0.0. The other direction is worse: 1,930 of the 2,373 rows
+        with a thin reading CERTIFIED, 1,682 of them off a reading carried by one
+        home or none.
+
+        ONE-DIRECTIONAL: a thin panel resolves to `unresolved`, which is not a pass,
+        so this can only ever TAKE certification away.
         """
         if self.cost_gbp is None:
+            return "unresolved"
+        if self.carried_by is None or min(self.carried_by) < MIN_HOMES_FOR_DIVERSITY:
             return "unresolved"
         if self.published_favours != self.counterfactual_favours:
             return "unattributable"
@@ -4336,6 +4371,7 @@ def instrument_switch(
     blank = InstrumentSwitch(
         forced_by=forced_by,
         borne_by=len(feasible),
+        carried_by=None,
         cost_gbp=None,
         published_reading_gbp=None,
         counterfactual_reading_gbp=None,
@@ -4371,6 +4407,16 @@ def instrument_switch(
     return InstrumentSwitch(
         forced_by=forced_by,
         borne_by=len(feasible),
+        # THE HOMES BEHIND EACH READING, WHICH IS NOT `borne_by` (2026-08-12,
+        # fourteenth Hour). Both readings are means over paired advantages, and a
+        # premise neither instrument moved contributes exactly 0.0 to the mean and
+        # cannot move the resample — so a 79-home subpanel whose money is carried by
+        # three homes is, to `MIN_HOMES_FOR_DIVERSITY` read off `borne_by`, a 79-home
+        # subpanel. `InstrumentSwitch.resolution` says what that bought.
+        carried_by=(
+            published.premises - published.tied_premises,
+            counterfactual.premises - counterfactual.tied_premises,
+        ),
         cost_gbp=abs(
             published.mean_advantage_gbp - counterfactual.mean_advantage_gbp
         ),
@@ -5010,6 +5056,22 @@ class CompositionVerdict:
     def panel_mirror_switch_borne_by(self) -> int | None:
         """HOW MANY premises were measured by an instrument they did not need."""
         return None if self.panel_mirror_switch is None else self.panel_mirror_switch.borne_by
+
+    @property
+    def panel_mirror_switch_carried_by(self) -> list[int] | None:
+        """HOW MANY OF THOSE PREMISES ACTUALLY CARRY EACH READING (published,
+        counterfactual) — the number `MIN_HOMES_FOR_DIVERSITY` is read off since the
+        fourteenth Hour, and never `borne_by` again.
+
+        A premise both arms forgo the same money on contributes exactly 0.0 to the
+        paired mean and cannot move the resample, so it is in `borne_by` and not in
+        this. `None` off the fallback branch or where no reading was taken.
+        """
+        return (
+            None if self.panel_mirror_switch is None
+            or self.panel_mirror_switch.carried_by is None
+            else list(self.panel_mirror_switch.carried_by)
+        )
 
     @property
     def panel_mirror_weight_artefact(self) -> float:
@@ -6381,7 +6443,10 @@ def _switch_cost_caveat(verdict: CompositionVerdict) -> list[str]:
         f"{switch.counterfactual_reading_gbp:+,.0f} "
         f"({switch.counterfactual_favours}) — a difference of GBP "
         f"{switch.cost_gbp:,.0f}, against this reading's own 95% error bar of GBP "
-        f"{switch.own_error_bar_gbp:,.0f}. The instrument is a STEP FUNCTION of the "
+        f"{switch.own_error_bar_gbp:,.0f}. Those two readings are carried by "
+        f"{switch.carried_by[0]} and {switch.carried_by[1]} homes respectively — the "
+        f"rest forgo the same money either way and cannot move either number. The "
+        f"instrument is a STEP FUNCTION of the "
         f"forcing home's certificate — it changes at 2*epc == actual and the homes "
         f"either side did not move — so read the reflection label above as a "
         f"statement about this panel's worst certificate, not about these homes."
@@ -6486,15 +6551,53 @@ def _why_unattributable(verdict: CompositionVerdict) -> str:
                 f"them cannot be measured at all on this panel (an unavailable "
                 f"check is a failed one, not a clean one)"
             )
-        elif switch.published_favours != switch.counterfactual_favours:
+        elif switch.carried_by is not None and min(
+            switch.carried_by
+        ) < MIN_HOMES_FOR_DIVERSITY:
+            # THE CARRIAGE CLAUSE (2026-08-12, fourteenth Hour). It comes BEFORE the
+            # arms clause because it says the two readings cannot be compared at all,
+            # and the arms clause read off a thin panel is a reading of the mover
+            # count: under four movers the interval's near end is EXACTLY 0.0 and
+            # `favours` is `neither` whatever the money is. Saying "the instrument
+            # decided this mirror's answer" there would name a real mechanism as the
+            # ground for a sampling artefact — this atom's oldest class, a disclosure
+            # inheriting a statistic that could not carry it.
             reasons.append(
-                f"the INSTRUMENT decided this mirror's answer: the "
+                f"the two readings cannot be compared on this panel: of the "
+                f"{switch.borne_by} premises that did not force the fallback, "
+                f"{switch.carried_by[0]} move any money under the reflection this row "
+                f"used and {switch.carried_by[1]} under the one they could have had — "
+                f"under {MIN_HOMES_FOR_DIVERSITY}, and a paired money verdict carried "
+                f"by three homes or fewer names 'neither' whatever the money on them "
+                f"is, because a resample that draws none of them is likelier than the "
+                f"2.5% tail (an unavailable check is a failed one, not a clean one)"
+            )
+        elif switch.published_favours != switch.counterfactual_favours:
+            # TWO DIRECTIONS, ONE FINDING, TWO CLAIMS (2026-08-12, fourteenth Hour,
+            # answering the question the thirteenth left open). The finding is the
+            # same both ways — how decisive this mirror is was set by an instrument
+            # chosen by homes outside the comparison — but "it named an arm it would
+            # not otherwise have named" and "it named nothing where it otherwise
+            # would have" are opposite claims about the published row, and a reader
+            # told only the first would misread the second. Measured on carriable
+            # panels the SECOND is the one that survives (4 of 4 in 2,500 draws);
+            # the first direction dominates the raw count 485:34 and is almost
+            # entirely the mover-count artefact above.
+            named, silent = (
+                ("this row's reflection", "the one they could have had")
+                if switch.published_favours != "neither"
+                else ("the one they could have had", "this row's reflection")
+            )
+            reasons.append(
+                f"the INSTRUMENT decided how decisive this mirror is: the "
                 f"{switch.borne_by} premises that did not force the fallback name "
                 f"{switch.published_favours} under the reflection this row used and "
                 f"{switch.counterfactual_favours} under the one they could have had "
                 f"(GBP {switch.published_reading_gbp:+,.0f} against "
-                f"GBP {switch.counterfactual_reading_gbp:+,.0f} per premise), so the "
-                f"verdict is a statement about a rule triggered by "
+                f"GBP {switch.counterfactual_reading_gbp:+,.0f} per premise, carried "
+                f"by {switch.carried_by[0]} and {switch.carried_by[1]} homes), so an "
+                f"arm is named under {named} and not under {silent} — the verdict's "
+                f"decisiveness is a statement about a rule triggered by "
                 f"{switch.forced_by} other home(s)"
             )
         else:
@@ -6876,6 +6979,7 @@ def composition_verdict_components(v: CompositionVerdict) -> dict:
         # branch, where no switch happened and the quantity does not exist.
         "panel_mirror_instrument_channel": v.panel_mirror_instrument_channel,
         "panel_mirror_switch_borne_by": v.panel_mirror_switch_borne_by,
+        "panel_mirror_switch_carried_by": v.panel_mirror_switch_carried_by,
         "panel_mirror_switch_cost_gbp": v.panel_mirror_switch_cost_gbp,
         "panel_mirror_switch_published_gbp": (
             None if v.panel_mirror_switch is None
