@@ -178,10 +178,38 @@ contents of a file that is not there.
 | `ntfy_responder.py` writes inbound messages **(>25 chars)** | The length gate was **removed**; `ntfy_responder.py:377` records "what used to be here: a `len(message) < 25` gate". The claim also contradicted *"no PIN, no minimum length"* three paragraphs later, in the same file. | threshold dropped |
 | `supervisor.py:326-355` (the in_progress re-surface scanners) | `:326` is `_is_daemon_marker`. The scanners are at `:362-366`. Line numbers rot; symbols do not. | repointed to symbol names |
 | "88 atoms and a website" | `maturity_map.yaml` holds **296** atoms | count removed — it is live state, and CLAUDE.md's own DON'T-ACCRETE rule says live status goes to `LATEST.md`, never here |
-| "24,845 tests collected" | **26,285** collected this turn | same; removed |
+| "24,845 tests collected" | **26,285** collected this turn | **corrected in place — see §4b** |
 
-The last two are the same defect twice: CLAUDE.md instructs that live status lives in
-`docs/status/LATEST.md` and then carries two live counts itself. Both were wrong.
+The last two looked like the same defect twice: CLAUDE.md instructs that live status lives in
+`docs/status/LATEST.md` and then carries two live counts itself. Both were wrong. Only one of them
+should have been deleted.
+
+### 4b. A correction to this audit, found by the wider suite an hour later
+
+**Deleting the test-count line was wrong, and the audit's own reasoning is what got it wrong.**
+
+`tools/generate_dashboard_data._derive_build_from_claude_md` **parses that line** — it is where the
+live site's test count comes from, deliberately, because a hand-maintained `build_info.json` had
+drifted stale twice and the fix was to derive the number from "the one doc that is always current".
+Removing the line returned `None` and `tests/tools/test_website_integrity_fix.py::
+test_derive_build_from_claude_md_parses_current_state` went red.
+
+The commit gate did not catch it: that test is not in its selection, and CLAUDE.md is not a `.py`
+file so `tests_for()` maps it to nothing. It surfaced only in a full `tests/background/ tests/tools/`
+sweep — the same blind spot `head-green-census` was built for on 2026-08-12.
+
+The line is restored with the correct figure (26,285) and now says on its face that it is parsed,
+so the next reader does not repeat this. **The general lesson, which belongs in the method:** a
+stale fact with a live consumer is a fact to CORRECT, not to delete. This audit checked whether each
+rule had a mechanism *enforcing* it and never asked whether any statement had a mechanism *reading*
+it. Those are different questions, and only the first was asked. The atom-count line beside it was
+genuinely unread and its deletion stands; the two were not the same case, and treating them as one
+is what produced the error.
+
+Two other things the same sweep caught, recorded for completeness: `background/model_tier.py`
+shipped a `__main__` block without the `refuse_if_foreign` seat guard every background entrypoint
+owes, and the new staged report used `INFO` as a severity where OPS9's register admits only
+BLOCKING/LATENT/RECORDED. Both fixed. Neither was reachable from the commit gate either.
 
 ---
 
@@ -257,14 +285,14 @@ this project names). `tests/tools/test_pre_commit_gate_canon_surface.py`:
 
 | | Before | After |
 |---|---|---|
-| CLAUDE.md | 34,734 chars / 128 lines | **32,684 chars / 119 lines** |
-| Headroom under the 35,000 ceiling | 266 chars (0.8%) | **2,316 chars (6.6%)** — 8.7× |
+| CLAUDE.md | 34,734 chars / 128 lines | **33,023 chars / 119 lines** |
+| Headroom under the 35,000 ceiling | 266 chars (0.8%) | **1,977 chars (5.6%)** — 7.4× |
 | Prose-only rules with an empty code point | 10 | **0** |
 | Stale facts | 5 | **0** |
 | Tests run on a CLAUDE.md-only commit | 1, and not the integrity control | **2, including it** |
 
-Net −2,050 chars, which understates the trim: **−3,750 chars deleted or compressed**, against
-**+1,700 added** — the tiering rule, the note recording that the ceiling is now gated, and the
+Net −1,711 chars, which understates the trim: **−3,750 chars deleted or compressed**, against
+**+2,039 added** — the tiering rule, the note recording that the ceiling is now gated, and the
 pointer to this audit. The file is smaller *and* says more that is true.
 
 Verified this turn:

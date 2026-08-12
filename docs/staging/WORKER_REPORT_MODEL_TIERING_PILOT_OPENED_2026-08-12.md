@@ -1,6 +1,6 @@
 # WORKER REPORT — the tick's model is now a property of the work, and a 7-day pilot is open
 
-**Severity:** INFO · **Lane:** H_harness · **Answers:** director console 2026-08-12
+**Severity:** RECORDED · **Lane:** H_harness · **Answers:** director console 2026-08-12
 ("every scheduled tick runs Opus, including mechanical work… pilot a tier rather than switching
 wholesale")
 

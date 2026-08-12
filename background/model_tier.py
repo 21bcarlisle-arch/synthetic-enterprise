@@ -288,6 +288,11 @@ def log_decision(decision: TierDecision, reason: str, *, outcome: str = "SPAWNED
 
 
 if __name__ == "__main__":  # pragma: no cover - operator convenience
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/model_tier.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("model_tier")
     import sys
     d = classify(sys.stdin.read() if len(sys.argv) < 2 else " ".join(sys.argv[1:]))
     print(f"{d.tier}\t{d.model}\t{','.join(d.classes)}\t{d.why}")
