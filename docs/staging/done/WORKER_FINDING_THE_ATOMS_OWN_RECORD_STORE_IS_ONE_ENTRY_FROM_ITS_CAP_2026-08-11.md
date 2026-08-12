@@ -1,5 +1,7 @@
 # WORKER FINDING — the atom's own record store is one entry from its cap
 
+**Severity:** LATENT · **Lane:** H_harness
+
 **Found:** 2026-08-11, during the sixth Expert Hour on `H_GAP_fabric_belief_truth_gap`
 **Class:** a ratchet about to wedge a lane · **Disposition:** QUEUED, not fixed on sight
 **Gate:** `tests/design/test_simplifications_store.py::test_every_file_within_size_bound`
