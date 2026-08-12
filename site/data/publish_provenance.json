@@ -20,8 +20,8 @@
     "run_id": "run_output_7d4d7fcad_20260811T231022Z.json",
     "verified_at": "2026-08-12T01:57:09Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=7d4d7fcad; blocking tests: FAILED tests/background/test_supervisor.py::test_harden_suppression_is_content_driven_not_only_filename, FAILED tests/background/test_supervisor.py::test_harden_suppression_ignores_parked_and_archived_rulings, FAILED tests/background/test_supervisor.py::test_harden_suppression_ignores_daemon_markers, FAILED tests/background/test_super",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=ecbbc083a; blocking tests: FAILED tests/background/test_publish_gate_scope.py::test_run_fast_tests_emits_the_marker_deselection",
+  "paused_since": "2026-08-12T02:31:22Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-12T01:57:09Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_7d4d7fcad_20260811T231022Z.json",
     "verified_at": "2026-08-12T01:57:09Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-12T01:57:09Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-12T02:31:22Z"
 }
