@@ -66,8 +66,37 @@ def _mark_announced() -> None:
         pass
 
 
+def _autostart_line(autostart: dict | None = None) -> str:
+    """One line on WHO started this boot -- the machine, or a human.
+
+    Added 2026-08-12. A Windows Update restart left this box down until somebody logged in,
+    because the Windows tasks that start WSL were logon-triggered. `SkynetBootStart` (boot
+    trigger, S4U) was added to close that, and THIS is where the fix is checked: the question
+    "did WSL come up with nobody logged in" is answered once per boot, on the boot it is about,
+    rather than by a human remembering to run a tool. A verdict nobody reads is not a control.
+
+    Report-only, like everything else here (G-R4). Never raises: an unavailable verdict
+    degrades to an UNPROVEN line, because a boot announce that dies on a diagnostic extra is
+    worse than the diagnostic being absent.
+    """
+    if autostart is None:
+        try:
+            from tools import verify_host_autostart as _vha
+            autostart = _vha.evaluate()
+        except Exception as exc:  # noqa: BLE001 -- a diagnostic must not break the announce
+            return f"  Autostart: UNPROVEN (verdict unavailable: {type(exc).__name__})"
+    status = autostart.get("status", "UNPROVEN")
+    reason = autostart.get("reason", "no reason given")
+    if status == "PASS":
+        return f"  Autostart: SELF-STARTED — {reason}"
+    if status == "FAIL":
+        return f"  Autostart: HUMAN-STARTED — {reason}"
+    return f"  Autostart: UNPROVEN — {reason}"
+
+
 def build_summary(proc_results: list[dict] | None = None,
-                  sched_results: list[dict] | None = None) -> tuple[str, bool]:
+                  sched_results: list[dict] | None = None,
+                  autostart: dict | None = None) -> tuple[str, bool]:
     """Format the one-shot reconcile summary. Returns (text, has_alarm). Results are
     injectable for tests; production reads live systemd/tmux state."""
     if proc_results is None:
@@ -94,6 +123,11 @@ def build_summary(proc_results: list[dict] | None = None,
     held = [r["session"] for r in proc_results if r["status"] in ("HELD", "DARK")]
     if held:
         lines.append("  Declared-down (held/dark, expected): " + ", ".join(sorted(held)))
+    # Who started this boot. Deliberately does NOT feed has_alarm: a human-started boot is the
+    # normal case whenever the director reboots and signs straight in, so alarming on it would
+    # fire on most boots and become wallpaper -- the fail-always shape. It is a stated fact per
+    # boot, which is what makes the autostart fix checkable over time rather than at one moment.
+    lines.append(_autostart_line(autostart))
     return "\n".join(lines), has_alarm
 
 
