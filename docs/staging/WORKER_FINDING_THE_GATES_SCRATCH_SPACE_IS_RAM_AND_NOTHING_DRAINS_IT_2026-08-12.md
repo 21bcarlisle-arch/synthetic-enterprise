@@ -59,6 +59,20 @@ green is exactly right. The defect is that a resource failure is laundered into 
 
 ## Two defects, ranked
 
+> **DISPOSITION 2026-08-12 04:2xZ (landed `3e745e2a5`, pushed, receipt gate-rc 0).** Defect 1
+> below is **narrower and worse than stated**, and is now FIXED. It is not that the sweeper's
+> subject was "too narrow": for the pytest half the subject was **empty**. The sweep globbed
+> `HEAD_CHECKOUT_ROOT/pytest-of-*` = `/var/tmp/pytest-of-*`, which cannot match — pytest builds
+> its roots under `tempfile.gettempdir()` = `/tmp`. `53e82b105` moved the CHECKOUTS off the
+> tmpfs (right for checkouts) and carried the tmpfs drain off with them, because one constant
+> answered two questions. The sweep root is now derived from pytest's own rule; R15 both arms,
+> oracle is `tmp_path`. Reach 0 → 8 live roots.
+> Defect 2 below (the misleading `git is not installed`) is **still open**. A THIRD defect,
+> measured while fixing this one, is filed separately and is why the exhaustion loop still
+> closes: the drain's 3h age bound is longer than the ~80-minute fill, so restored reach
+> reclaims nothing yet. Both in
+> `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md`.
+
 **1. The drain that exists covers one class out of several.** Correction to this finding's own
 title, observed after filing — the publisher DOES sweep:
 
