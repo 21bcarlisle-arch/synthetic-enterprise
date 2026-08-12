@@ -8585,35 +8585,31 @@ def _load_old_model_data() -> dict | None:
 
 
 
-def _section_population_anchoring(data: dict) -> str:
+def _section_population_anchoring(data: dict, ledger_path=None) -> str:
     """Phase PS: Population anchoring -- complaints and arrears vs published benchmarks.
 
     Completes P3 (Population Anchoring): switching rates already anchored (NS/PQ/PR).
     This section anchors the remaining two required benchmarks:
     - Complaint rate vs Ofgem QoS survey (I&C adjusted: GREEN 2-6%, crisis 2-8%)
     - Arrears rate vs DESNZ business energy debt (I&C: GREEN <8%, crisis <12%)
+
+    `ledger_path` defaults to the repo's billing ledger. It is an argument so this
+    renderer can be pointed at a tree without one and be SEEN not to go green --
+    the mutation the R15 proof needs (see `saas.reporting.arrears_ledger`).
     """
-    import json as _json
+    from saas.reporting.arrears_ledger import UNAVAILABLE_NOTE
+    from saas.reporting.arrears_ledger import load as _load_arrears
+
     years = data.get("years", {})
     if not years:
         return ""
 
-    # Load billing ledger arrears data if available
-    _arrears_by_year: dict = {}
-    _ledger_path = _PROJECT / "site" / "state" / "billing_ledger.json"
-    try:
-        _ledger = _json.loads(_ledger_path.read_text())
-        for _cid, _cd in _ledger.get("customers", {}).items():
-            for _case in _cd.get("arrears_history", []):
-                _od = _case.get("opened_date", "")
-                if _od:
-                    try:
-                        _yr = int(_od[:4])
-                        _arrears_by_year.setdefault(_yr, set()).add(_cid)
-                    except ValueError:
-                        pass
-    except (FileNotFoundError, _json.JSONDecodeError):
-        pass
+    # The arrears numerator's only source. `available` is checked explicitly: an
+    # empty by-year map means "no arrears" OR "no ledger", and rendering the second
+    # as the first is what printed 10-of-10 GREEN over absent data (2026-08-12).
+    if ledger_path is None:
+        ledger_path = _PROJECT / "site" / "state" / "billing_ledger.json"
+    _arrears = _load_arrears(ledger_path)
 
     rows = []
     for yr in sorted(years.keys()):
@@ -8632,8 +8628,12 @@ def _section_population_anchoring(data: dict) -> str:
 
         active = yd.get("active_customer_ids", [])
         n_active = len(active)
-        arrears_count = len(_arrears_by_year.get(yr_int, set()))
-        if n_active > 0:
+        arrears_count = _arrears.count_for(yr_int)
+        if not _arrears.available:
+            # An unavailable check is a FAILED check, never a green one (R15).
+            arrears_rate = None
+            a_rag = ""
+        elif n_active > 0:
             arrears_rate = arrears_count / n_active * 100
             a_green_hi = 12.0 if is_crisis else 8.0
             a_amber_hi = 18.0 if is_crisis else 15.0
@@ -8689,10 +8689,21 @@ def _section_population_anchoring(data: dict) -> str:
             a_green += 1
 
     total = len(rows)
+    if _arrears.available:
+        arrears_verdict = (
+            "**Arrears:** {} of {} years GREEN (DESNZ I&C baseline <8% normal, <12% crisis)."
+            .format(a_green, total)
+        )
+    else:
+        # NOT "0 of N years GREEN" -- that reads as a measured bad result. The
+        # reader must be told the measurement did not happen, and why.
+        arrears_verdict = "**Arrears:** {} ({}).".format(
+            UNAVAILABLE_NOTE, _arrears.unavailable_reason
+        )
     lines += [
         "",
         "**Complaints:** {} of {} years GREEN (I&C baseline 2-6% normal, 2-8% crisis).".format(c_green, total),
-        "**Arrears:** {} of {} years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).".format(a_green, total),
+        arrears_verdict,
         "",
     ]
     return "\n".join(lines)

@@ -6,6 +6,7 @@ from tools.population_anchor import (
     _complaints_check, _arrears_check_by_year, generate,
     COMPLAINT_BENCHMARK_NORMAL_HI, COMPLAINT_BENCHMARK_CRISIS_HI,
     ARREARS_BENCHMARK_NORMAL_HI, ARREARS_BENCHMARK_CRISIS_HI,
+    ARREARS_RAG_UNAVAILABLE,
 )
 
 
@@ -157,6 +158,12 @@ def test_generate_includes_arrears_vs_benchmark(tmp_path):
 
 
 def test_generate_handles_missing_billing_ledger(tmp_path):
+    """A missing ledger must not crash the gate -- AND must not be reported as a
+    clean bill of health. This test asserted `rag == "GREEN"` until 2026-08-12,
+    pinning the fail-open the arrears finding named: the numerator's source was
+    absent, so the rate was 0, so every year read GREEN. An unavailable check is a
+    FAILED check (R15). Full class proof:
+    tests/saas/test_arrears_ledger_unavailable_is_not_green.py."""
     run = {"customer_events": [], "years": {
         "2020": {"avg_complaint_probability": 0.05, "bad_debt_gbp": 0,
                  "revenue_gbp": 100000, "active_customer_ids": ["C1"]},
@@ -168,7 +175,8 @@ def test_generate_handles_missing_billing_ledger(tmp_path):
     result = generate(rj, out, billing_ledger_path=nonexistent)
     assert "arrears_vs_benchmark" in result
     assert result["arrears_vs_benchmark"][0]["new_arrears_count"] == 0
-    assert result["arrears_vs_benchmark"][0]["rag"] == "GREEN"
+    assert result["arrears_vs_benchmark"][0]["rag"] == ARREARS_RAG_UNAVAILABLE
+    assert result["meta"]["arrears_ledger_available"] is False
 
 
 def test_section_population_anchoring_renders_table():

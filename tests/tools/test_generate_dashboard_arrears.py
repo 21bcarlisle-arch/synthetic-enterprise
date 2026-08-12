@@ -22,13 +22,18 @@ def _write_ledger(tmp_path, customers):
     (ledger_dir / "billing_ledger.json").write_text(json.dumps({"customers": customers}))
 
 
-def test_no_ledger_file_returns_zero_cases(tmp_path, monkeypatch):
+def test_no_ledger_file_reports_unavailable_not_green(tmp_path, monkeypatch):
+    """This asserted `status == "green"` until 2026-08-12 -- it pinned the
+    fail-open. With no ledger the numerator has no source, so the row reports
+    `unavailable`; an unavailable check is a FAILED check (R15). Class proof:
+    tests/saas/test_arrears_ledger_unavailable_is_not_green.py."""
     import tools.generate_dashboard_data as gdd
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
     result = gdd.extract_arrears_case_load(_data())
+    assert result["ledger_available"] is False
     for row in result["annual"]:
         assert row["case_count"] == 0
-        assert row["status"] == "green"
+        assert row["status"] == "unavailable"
 
 
 def test_counts_distinct_customers_with_arrears_that_year(tmp_path, monkeypatch):
@@ -86,7 +91,12 @@ def test_case_outside_year_range_not_counted(tmp_path, monkeypatch):
 
 
 def test_zero_active_customers_gives_unknown_status(tmp_path, monkeypatch):
+    """`unknown` is the DENOMINATOR branch (no active customers). It needs a
+    ledger present to reach it -- before 2026-08-12 this test wrote none, so it
+    was actually travelling the missing-ledger path and only appeared to pin the
+    branch it names. `unavailable` is now the numerator branch, separately tested."""
     import tools.generate_dashboard_data as gdd
+    _write_ledger(tmp_path, {"C1": {"arrears_history": []}})
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
     data = {"years": {"2020": {"active_customer_ids": []}}}
     result = gdd.extract_arrears_case_load(data)
@@ -103,3 +113,6 @@ def test_malformed_ledger_json_does_not_crash(tmp_path, monkeypatch):
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
     result = gdd.extract_arrears_case_load(_data())
     assert result["annual"][0]["case_count"] == 0
+    # ...and does not present the unparsed file as a clean record
+    assert result["ledger_available"] is False
+    assert result["annual"][0]["status"] == "unavailable"

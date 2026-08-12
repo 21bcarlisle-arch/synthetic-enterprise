@@ -1335,22 +1335,14 @@ def extract_arrears_case_load(data):
     _section_population_anchoring()) -- GREEN <8% (non-crisis)/<12% (crisis
     2021-23) active customers with an open arrears case that year, AMBER
     <15%/<18%, RED above. Reads the real billing ledger's arrears_history,
-    same as that section, rather than duplicating a different definition."""
-    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
-    arrears_by_year: dict[int, set[str]] = defaultdict(set)
-    if ledger_path.is_file():
-        try:
-            ledger = json.loads(ledger_path.read_text())
-            for cid, cdata in ledger.get("customers", {}).items():
-                for case in cdata.get("arrears_history", []):
-                    opened = case.get("opened_date", "")
-                    if opened:
-                        try:
-                            arrears_by_year[int(opened[:4])].add(cid)
-                        except ValueError:
-                            continue
-        except (json.JSONDecodeError, OSError):
-            arrears_by_year = defaultdict(set)
+    same as that section, rather than duplicating a different definition.
+
+    Availability is reported, not swallowed (2026-08-12): the shared reader in
+    saas.reporting.arrears_ledger distinguishes an absent/unparseable ledger from a
+    genuine zero, because this function used to render the first as a `green` row."""
+    from saas.reporting.arrears_ledger import load as _load_arrears
+
+    arrears = _load_arrears(PROJECT / "site" / "state" / "billing_ledger.json")
 
     rows = []
     for yr, yd in sorted(data.get("years", {}).items()):
@@ -1358,8 +1350,13 @@ def extract_arrears_case_load(data):
         is_crisis = yr_int in (2021, 2022, 2023)
         active = yd.get("active_customer_ids", [])
         n_active = len(active)
-        case_count = len(arrears_by_year.get(yr_int, set()))
-        if n_active > 0:
+        case_count = arrears.count_for(yr_int)
+        if not arrears.available:
+            # Distinct from "unknown" (which means zero active customers): here the
+            # denominator is fine and the NUMERATOR's source never loaded.
+            rate = None
+            status = "unavailable"
+        elif n_active > 0:
             rate = round(case_count / n_active * 100, 1)
             green_hi = 12.0 if is_crisis else 8.0
             amber_hi = 18.0 if is_crisis else 15.0
@@ -1375,7 +1372,11 @@ def extract_arrears_case_load(data):
             "status": status,
             "is_crisis": is_crisis,
         })
-    return {"annual": rows}
+    return {
+        "annual": rows,
+        "ledger_available": arrears.available,
+        "ledger_unavailable_reason": arrears.unavailable_reason,
+    }
 
 
 def extract_dd_rails(data):

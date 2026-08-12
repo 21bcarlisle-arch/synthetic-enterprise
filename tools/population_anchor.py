@@ -19,6 +19,16 @@ import json
 from pathlib import Path
 from typing import Optional
 
+from saas.reporting.arrears_ledger import UNAVAILABLE_NOTE as ARREARS_UNAVAILABLE_NOTE
+from saas.reporting.arrears_ledger import ArrearsLedgerView
+from saas.reporting.arrears_ledger import from_payload as arrears_ledger_from_payload
+from saas.reporting.arrears_ledger import load as load_arrears_ledger
+
+# The rag a year carries when the arrears numerator's source never loaded. NOT
+# "GREEN": an unavailable check is a failed check (R15), and this gate spent its
+# whole life reporting absent data as a clean bill of health.
+ARREARS_RAG_UNAVAILABLE = "UNAVAILABLE"
+
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "population_anchoring.json"
@@ -160,30 +170,27 @@ def _bad_debt_check(years_data: dict) -> list:
 
 
 
-def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
+def _arrears_check_by_year(billing_ledger, years_data: dict) -> list:
     """Check new arrears rate per year vs DESNZ business energy debt benchmarks.
 
     Phase PW: separates I&C and residential customers.
     I&C rate is benchmarked against DESNZ commercial energy debt (<8% normal).
     Residential arrears driven by income_stress; reported separately for context.
     RAG uses 10-year aggregate IC rate when IC customers present; else overall rate.
+
+    `billing_ledger` is an `ArrearsLedgerView` (a raw payload dict is coerced through
+    the same availability question). When the ledger did NOT load, every row's rag is
+    UNAVAILABLE -- this check used to return GREEN over a zero numerator it could not
+    source, which is the R15 fail-open shape (2026-08-12).
     """
-    customers = billing_ledger_data.get("customers", {})
+    if not isinstance(billing_ledger, ArrearsLedgerView):
+        billing_ledger = arrears_ledger_from_payload(billing_ledger)
+    customers = billing_ledger.customers
     ic_customers = {
         cid for cid, cdata in customers.items()
         if cdata.get("segment") in ("ic", "I&C")
     }
-    arrears_by_year: dict = {}
-    for cid, cdata in customers.items():
-        for case in cdata.get("arrears_history", []):
-            opened = case.get("opened_date", "")
-            if not opened:
-                continue
-            try:
-                yr = int(opened[:4])
-            except ValueError:
-                continue
-            arrears_by_year.setdefault(yr, set()).add(cid)
+    arrears_by_year = billing_ledger.arrears_by_year
 
     total_ic_arr = 0
     total_ic_cust_years = 0
@@ -195,9 +202,9 @@ def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
         n_active = len(active) if active else 0
         active_ic = [c for c in active if c in ic_customers or "_IC" in c.upper()]
         n_ic = len(active_ic)
-        n_arrears = len(arrears_by_year.get(yr, set()))
+        n_arrears = len(arrears_by_year.get(yr, frozenset()))
         rate = (n_arrears / n_active * 100) if n_active > 0 else 0.0
-        ic_arr = len(arrears_by_year.get(yr, set()) & set(active_ic))
+        ic_arr = len(arrears_by_year.get(yr, frozenset()) & frozenset(active_ic))
         ic_rate = (ic_arr / n_ic * 100) if n_ic > 0 else 0.0
         total_ic_arr += ic_arr
         total_ic_cust_years += n_ic
@@ -222,7 +229,9 @@ def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
         green_hi = ARREARS_BENCHMARK_CRISIS_HI if is_crisis else ARREARS_BENCHMARK_NORMAL_HI
         amber_hi = ARREARS_AMBER_CRISIS_HI if is_crisis else ARREARS_AMBER_HI
         rate_for_rag = agg_ic_rate if use_ic else row["new_arrears_rate_pct"]
-        if rate_for_rag > amber_hi:
+        if not billing_ledger.available:
+            rag = ARREARS_RAG_UNAVAILABLE
+        elif rate_for_rag > amber_hi:
             rag = "RED"
         elif rate_for_rag > green_hi:
             rag = "AMBER"
@@ -240,7 +249,12 @@ def _arrears_check_by_year(billing_ledger_data: dict, years_data: dict) -> list:
             "benchmark_green_hi": green_hi,
             "is_crisis_year": is_crisis,
             "rag": rag,
-            "portfolio_type_note": "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG",
+            "ledger_available": billing_ledger.available,
+            "portfolio_type_note": (
+                "DESNZ commercial benchmark; 10yr aggregate IC rate used for RAG"
+                if billing_ledger.available
+                else f"{ARREARS_UNAVAILABLE_NOTE} ({billing_ledger.unavailable_reason})"
+            ),
         })
     return findings
 def _acquisition_funnel_check(log: list | None) -> list:
@@ -418,11 +432,8 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
     complaints_findings = _complaints_check(years_data)
     if billing_ledger_path is None:
         billing_ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
-    try:
-        ledger_data: dict = json.loads(Path(billing_ledger_path).read_text())
-    except (FileNotFoundError, json.JSONDecodeError):
-        ledger_data = {}
-    arrears_findings = _arrears_check_by_year(ledger_data, years_data)
+    arrears_ledger = load_arrears_ledger(billing_ledger_path)
+    arrears_findings = _arrears_check_by_year(arrears_ledger, years_data)
     acquisition_funnel_findings = _acquisition_funnel_check(data.get("acquisition_funnel_log"))
 
     amber_count = sum(1 for f in bad_debt_findings if f["rag"] == "AMBER")
@@ -446,6 +457,8 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
             "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
             "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
             "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
+            "arrears_ledger_available": arrears_ledger.available,
+            "arrears_ledger_note": arrears_ledger.unavailable_reason or "billing ledger loaded",
         },
         "overall_rag": overall_rag,
         "long_run_comparison": long_run,
