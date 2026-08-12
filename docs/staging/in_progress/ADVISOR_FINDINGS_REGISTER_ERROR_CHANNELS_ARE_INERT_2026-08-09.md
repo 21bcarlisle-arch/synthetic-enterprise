@@ -2,6 +2,29 @@
 
 **Severity:** BLOCKING · **Lane:** W2_customer_generator
 
+> **Status 2026-08-12 — PARTIALLY BUILT; parked in `in_progress/` with one genuinely open half.**
+>
+> * **§1d / §2c — the wall item — is BUILT and landed.** `tools/couple_fabric.py::observe`
+>   no longer passes `property_type_hint` (nor `main_heating_fuel`) computed from the
+>   truth household; the "no fabric prior at all" refusal now fires, on 74 of 200 drawn
+>   premises and on S6 of the authored panel. R15-proven both ways. Report, numbers and
+>   the two things deliberately left undone: `WORKER_REPORT_THE_COMPANY_WAS_HANDED_THE_
+>   PROPERTY_TYPE_OFF_THE_TRUTH_OBJECT_2026-08-12.md`.
+> * **STILL OPEN: §2a (older certificate = more wrong, as a mean shift) and §2b (absence
+>   correlated with the home, sharing one cause with staleness).**
+>   **Blocked on:** the published anchor each needs. This document marks both
+>   `domain-knowledge, to be verified by an agent with network access, NOT to be built on
+>   as stated`, and autonomous runs on this seat have no network. Building a magnitude
+>   without its anchor is this finding's own probable failure mode 1.
+>   **Unblocked by:** one discovery pass with network access answering §3 open items 1, 3
+>   and 5 (GB drift direction over a certificate's life; lodgement coverage by tenure or
+>   transaction recency; whether SERL published statistics reach far enough to judge the
+>   result). Direction first, magnitude second — §2a's own rule.
+> * §3 open item 4 ("what a real supplier actually holds at premise level, and through
+>   which interface") is now partly answered by construction: in the coupling run it
+>   holds the certificate or nothing. A declared non-EPC premise interface remains
+>   unbuilt and is not needed until §2b lands.
+
 **Staged 2026-08-09 at the Director's instruction, from a lab session that ran the committed premise generator directly (repo cloned to the advisor seat; `simulation/premise_population.draw_premise_population`, n=2,000 and n=2,000 x 5 seeds, `as_of=2022-06-30`). Nothing was written to the tree by that session.**
 
 **Proportionality, per item.** §2a (certificate wrongness) is contract-touching — implement with the mitigations named in §5. §2b (absence correlation) is narrow and reversible — just do it. §2c (the property-type side door) is a **wall** item and takes `[ACT]` first: it is truth crossing to the company side without an interface.

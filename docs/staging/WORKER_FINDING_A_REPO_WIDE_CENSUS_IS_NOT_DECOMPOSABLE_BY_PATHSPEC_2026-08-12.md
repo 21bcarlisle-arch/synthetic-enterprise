@@ -1,6 +1,7 @@
 # [WORKER-FINDING] A repo-wide census cannot be satisfied by a pathspec commit, and the file it needs may be in another lane
 
 **Severity:** LATENT · **Lane:** H_harness
+**Not-a-suspect-for:** `tests/background/test_staging_archive_policy.py` — §"Re-frozen 2026-08-12" below: that red was a sibling test's stale exit-code pin, not a census refusal. Severity and rank UNCHANGED; this releases the citation only.
 
 **Found:** 2026-08-12, unwedging the 18th publish wedge (landed `4bee2bd47`).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE. The instance is fixed and pushed; the

@@ -1,6 +1,8 @@
 # [WORKER-FINDING] Re-freezing a finding as "not the cause" makes it a better-scoring suspect
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Not-a-suspect-for:** `tests/background/test_staging_archive_policy.py` — §"Not the cause of this episode" below: that test passes at HEAD and every recorded red predates its own repair. This document analyses the citation instrument, so it names the whole trail and scored as its own best suspect.
+**Discharged:** `tests/background/test_publish_gate_alert.py::test_an_exonerated_finding_is_dropped_from_the_citation_for_that_red`, `tests/background/test_publish_gate_alert.py::test_an_exoneration_for_another_red_still_leaves_the_finding_cited`, `background/finding_severity.py` — the recommended field is built as parse_exoneration, both named mutations run, and the live citation for the 20th wedge's own suspects is now empty while a different red still cites the same two documents.
 
 **Found:** 2026-08-12 22:10 UTC, drawing the 20th publish wedge (RUNG 1, priority zero).
 **Disposition:** QUEUED per SELF_INTERRUPT_DISCIPLINE — the machine is not blocked, the repair for

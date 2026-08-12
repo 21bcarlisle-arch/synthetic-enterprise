@@ -538,3 +538,160 @@ def test_the_staging_root_has_no_false_discharges():
     assert not refused, "discharge claims the filesystem refuses:\n" + "\n".join(
         f"  {p.name}: {d.reason}" for p, d in refused
     )
+
+
+# ── THE EXONERATION FIELD (2026-08-12, RUNG-1c BLOCKING draw on lane H_harness) ──
+#
+# WHY: `process_run_complete.linked_findings` links a staged finding to a publish wedge by
+# LEXICAL CO-OCCURRENCE with the red's blame trail. An accusation and a REFUTATION are the
+# same tokens, so answering a RUNG-1 draw as instructed ("re-freeze with provenance" — which
+# must NAME the cause in order to deny it) raised one document's suspect score from 2 to 7
+# and got it re-cited to the next priority-zero draw. Of the two dispositions the draw offers,
+# the citation could observe exactly one: fix-and-archive clears it, re-freeze never can.
+# That is R11's orphan transition — a release whose effect is nothing.
+#
+# The field gives the citation the one thing it could not read: the finding's OWN ANSWER.
+# Two properties keep it from becoming a blanket opt-out of ever being cited:
+#   * it must name a TEST FILE, and it must name EVERY blocking test file of the current
+#     red — exonerating yourself for test A does nothing when the red is test B;
+#   * it lives in the parsed HEADER BLOCK and every path it names must EXIST, so a claim
+#     buried in prose, or a typo, does not silently suppress a real suspect.
+
+EXONERATED = """# [WORKER-FINDING] Something else entirely
+
+**Severity:** LATENT · **Lane:** H_harness
+**Not-a-suspect-for:** `tests/background/test_thing.py` — checked against the 19th wedge, not its cause
+
+## The claim
+Body text naming tests/background/test_thing.py all over the place.
+"""
+
+
+def _repo_with_test_file(root: Path, rel: str = "tests/background/test_thing.py") -> Path:
+    target = root / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("def test_thing():\n    pass\n", encoding="utf-8")
+    return root
+
+
+# --- the properties, factored so the mutations below can attack them by name ---
+
+def _assert_a_named_test_exonerates(module, root: Path) -> None:
+    _repo_with_test_file(root)
+    ex = module.parse_exoneration(EXONERATED, root)
+    assert ex is not None and ex.valid, ex.reason if ex else "no exoneration parsed"
+    assert ex.covers(["tests/background/test_thing.py"]) is True
+
+
+def _assert_a_different_red_is_not_covered(module, root: Path) -> None:
+    _repo_with_test_file(root)
+    ex = module.parse_exoneration(EXONERATED, root)
+    assert ex is not None and ex.valid
+    assert ex.covers(["tests/background/test_other.py"]) is False, (
+        "exonerating for test A must not exonerate for test B"
+    )
+
+
+def _assert_a_missing_path_does_not_exonerate(module, root: Path) -> None:
+    root.mkdir(parents=True, exist_ok=True)  # the named test file is deliberately absent
+    ex = module.parse_exoneration(EXONERATED, root)
+    assert ex is not None
+    assert ex.valid is False, "an exoneration naming a path that does not exist must be REFUSED"
+    assert ex.covers(["tests/background/test_thing.py"]) is False
+
+
+def _assert_a_non_test_artefact_does_not_exonerate(module, root: Path) -> None:
+    (root / "background").mkdir(parents=True, exist_ok=True)
+    (root / "background" / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    text = EXONERATED.replace("`tests/background/test_thing.py`", "`background/thing.py`")
+    ex = module.parse_exoneration(text, root)
+    assert ex is not None and ex.valid is False, (
+        "the field exonerates against the RED's blocking TEST; a module path is a wider claim"
+    )
+
+
+def test_a_named_test_exonerates_the_document_for_that_red(tmp_path):
+    _assert_a_named_test_exonerates(fs, tmp_path / "ok")
+
+
+def test_exonerating_for_one_test_does_not_exonerate_for_another(tmp_path):
+    """The blanket-opt-out guard. Without this the field is 'never cite me again'."""
+    _assert_a_different_red_is_not_covered(fs, tmp_path / "other")
+
+
+def test_an_exoneration_naming_a_path_that_does_not_exist_is_refused(tmp_path):
+    """FAIL-CLOSED: an unverifiable release leaves the document a suspect (R15 pattern 2)."""
+    _assert_a_missing_path_does_not_exonerate(fs, tmp_path / "missing")
+
+
+def test_an_exoneration_must_name_a_test_file_not_a_module(tmp_path):
+    _assert_a_non_test_artefact_does_not_exonerate(fs, tmp_path / "module")
+
+
+def test_a_document_with_no_field_makes_no_claim(tmp_path):
+    assert fs.parse_exoneration(CLEAN, tmp_path) is None
+
+
+def test_the_claim_must_sit_in_the_header_block_not_in_prose(tmp_path):
+    """A `**Not-a-suspect-for:**` line written down in §4 is prose, not a header — the same
+    rule the severity and discharge fields already hold to."""
+    _repo_with_test_file(tmp_path)
+    buried = CLEAN + "\n" * 45 + "**Not-a-suspect-for:** `tests/background/test_thing.py`\n"
+    assert fs.parse_exoneration(buried, tmp_path) is None
+
+
+def test_an_exoneration_covers_nothing_when_the_red_names_no_test(tmp_path):
+    """A red with no recorded blocking TEST cannot be answered by this field — covering an
+    empty set would exonerate every document against every trail."""
+    _repo_with_test_file(tmp_path)
+    ex = fs.parse_exoneration(EXONERATED, tmp_path)
+    assert ex.covers([]) is False
+    assert ex.covers(None) is False
+
+
+def test_mutation_f_covering_the_empty_trail_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "        if not wanted:\n            return False",
+        "        if not wanted:\n            return True",
+        "finding_severity_mutant_empty_trail_covers",
+    )
+    _assert_a_named_test_exonerates(mutant, tmp_path / "f_ok")  # the valid path still works
+    _repo_with_test_file(tmp_path / "f_mut")
+    assert mutant.parse_exoneration(EXONERATED, tmp_path / "f_mut").covers([]) is True  # defect
+
+
+def test_mutation_g_subset_becomes_intersection_kills_a_named_test(tmp_path):
+    """The mutation that turns 'names EVERY blocking test' into 'names ANY of them'."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        return wanted <= named",
+        "        return bool(wanted & named)",
+        "finding_severity_mutant_any_not_all",
+    )
+    _assert_a_named_test_exonerates(mutant, tmp_path / "g_ok")
+    _repo_with_test_file(tmp_path / "g_mut")
+    ex = mutant.parse_exoneration(EXONERATED, tmp_path / "g_mut")
+    assert ex.covers(["tests/background/test_thing.py", "tests/background/test_other.py"]) is True
+
+
+def test_mutation_h_dropping_the_existence_check_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "    missing = [a for a in artefacts if not (root / a.partition('::')[0]).is_file()]",
+        "    missing = []",
+        "finding_severity_mutant_exoneration_no_existence",
+    )
+    with pytest.raises(AssertionError):
+        _assert_a_missing_path_does_not_exonerate(mutant, tmp_path / "h_mut")
+
+
+def test_mutation_i_accepting_a_module_path_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "    non_tests = [a for a in artefacts if not _is_test_file(a)]",
+        "    non_tests = []",
+        "finding_severity_mutant_exoneration_any_path",
+    )
+    with pytest.raises(AssertionError):
+        _assert_a_non_test_artefact_does_not_exonerate(mutant, tmp_path / "i_mut")

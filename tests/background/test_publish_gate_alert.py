@@ -354,3 +354,87 @@ def test_citation_is_bounded(tmp_path, monkeypatch):
     assert len(cited) == prc.PUBLISH_GATE_MAX_CITED_FINDINGS, (
         "an unbounded citation list turns the page back into noise"
     )
+
+
+# ── THE EXONERATION THE CITATION CAN READ (2026-08-12, RUNG-1c BLOCKING, lane H_harness) ──
+#
+# `linked_findings` links by LEXICAL CO-OCCURRENCE, and an accusation and a refutation are the
+# same tokens. Re-freezing a cited finding as "checked, NOT the cause" — the disposition the
+# RUNG-1 draw itself asks for — took one document from 2 needle hits to 7 and got it re-cited,
+# verbatim, to the next priority-zero draw. Fix-and-archive was the only disposition the
+# citation could observe; "re-freeze with provenance" is by construction a document that STAYS
+# in the root, so it could never clear the citation. The pair below is the R15 proof the
+# finding itself specified: exonerate for test A and be red on test B → STILL CITED;
+# exonerate for test A and be red on test A → GONE.
+
+def _exoneration_repo(tmp_path):
+    """A repo root holding the real test file an exoneration must name, and a staging root
+    holding one finding that names the blame trail all over its text."""
+    repo = tmp_path / "repo"
+    (repo / "tests" / "background").mkdir(parents=True)
+    (repo / "tests" / "background" / "test_thing.py").write_text("def test_thing():\n    pass\n")
+    staging = tmp_path / "staging2"
+    staging.mkdir()
+    return repo, staging
+
+
+def _write_finding(staging, name, exonerated_for=None):
+    header = "**Severity:** LATENT · **Lane:** H_harness\n"
+    if exonerated_for:
+        header += f"**Not-a-suspect-for:** `{exonerated_for}` — checked, not this red's cause\n"
+    (staging / name).write_text(
+        f"# [WORKER-FINDING] x\n\n{header}\n## Body\n"
+        "background/staging_archive_policy.py tests/background/test_thing.py test_thing\n"
+    )
+
+
+def test_an_exonerated_finding_is_dropped_from_the_citation_for_that_red(tmp_path):
+    """R15 direction 1: exonerate for test A, red on test A → the citation is EMPTY."""
+    repo, staging = _exoneration_repo(tmp_path)
+    _write_finding(staging, "WORKER_FINDING_CENSUS_2026-08-12.md",
+                   exonerated_for="tests/background/test_thing.py")
+    cited = prc.linked_findings(
+        {"test_files": ["tests/background/test_thing.py"],
+         "modules": ["background/staging_archive_policy.py"]},
+        staging_dir=staging, repo_root=repo)
+    assert cited == [], (
+        "a document whose header answers THIS red must not be re-cited to the next draw"
+    )
+
+
+def test_an_exoneration_for_another_red_still_leaves_the_finding_cited(tmp_path):
+    """R15 direction 2 — the blanket-opt-out guard. Without it the field is a mute button."""
+    repo, staging = _exoneration_repo(tmp_path)
+    _write_finding(staging, "WORKER_FINDING_CENSUS_2026-08-12.md",
+                   exonerated_for="tests/background/test_thing.py")
+    cited = prc.linked_findings(
+        {"test_files": ["tests/background/test_elsewhere.py"],
+         "modules": ["background/staging_archive_policy.py"]},
+        staging_dir=staging, repo_root=repo)
+    assert cited == ["WORKER_FINDING_CENSUS_2026-08-12.md"], (
+        "an exoneration is scoped to the test it names; a different red must still cite it"
+    )
+
+
+def test_an_unexonerated_finding_is_cited_exactly_as_before(tmp_path):
+    """The control must still do its job — the drop is the new behaviour, not the only one."""
+    repo, staging = _exoneration_repo(tmp_path)
+    _write_finding(staging, "WORKER_FINDING_CENSUS_2026-08-12.md")
+    cited = prc.linked_findings(
+        {"test_files": ["tests/background/test_thing.py"],
+         "modules": ["background/staging_archive_policy.py"]},
+        staging_dir=staging, repo_root=repo)
+    assert cited == ["WORKER_FINDING_CENSUS_2026-08-12.md"]
+
+
+def test_an_exoneration_naming_a_path_that_does_not_exist_does_not_suppress(tmp_path):
+    """FAIL-CLOSED (R15 pattern 2): a typo, or a test since deleted, leaves the suspect CITED.
+    A release that silently released on unverifiable evidence is worse than no release."""
+    repo, staging = _exoneration_repo(tmp_path)
+    _write_finding(staging, "WORKER_FINDING_CENSUS_2026-08-12.md",
+                   exonerated_for="tests/background/test_typo.py")
+    cited = prc.linked_findings(
+        {"test_files": ["tests/background/test_typo.py"],
+         "modules": ["background/staging_archive_policy.py"]},
+        staging_dir=staging, repo_root=repo)
+    assert cited == ["WORKER_FINDING_CENSUS_2026-08-12.md"]

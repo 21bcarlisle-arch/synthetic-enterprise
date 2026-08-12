@@ -591,6 +591,7 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
 
 sys.path.insert(0, str(PROJECT_DIR))
 
+from background import finding_severity  # noqa: E402  (OPS9 header parser; exoneration field)
 from background.child_diagnostics import (  # noqa: E402  (H30)
     STDERR_TAIL_LINES,
     failure_detail,
@@ -3682,14 +3683,37 @@ def wedge_suspects(blocking, project_dir=None):
             "commits": blame_commits(files + modules, project_dir=project_dir)}
 
 
-def linked_findings(suspects, staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FINDINGS):
+def _exonerated_for(text, test_files, repo_root):
+    """True when this document's PARSED HEADER declares it not a suspect for every blocking
+    test of the red in hand.
+
+    The link below is lexical, and an accusation and a refutation are the same tokens — so a
+    document that answers the draw correctly (which it can only do by naming the cause) scores
+    as a BETTER suspect than one that says nothing. `**Not-a-suspect-for:**` is the finding's
+    own answer, made readable by the instrument it answers. Fail-closed and never raises: an
+    absent, malformed, unverifiable or out-of-scope claim leaves the document CITED."""
+    if not test_files:
+        return False
+    try:
+        exoneration = finding_severity.parse_exoneration(text, repo_root)
+    except Exception:  # an unavailable check is a FAILED check: keep the suspect
+        return False
+    return bool(exoneration and exoneration.covers(test_files))
+
+
+def linked_findings(suspects, staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FINDINGS,
+                    repo_root=None):
     """Staged findings whose TEXT names something on the red's blame trail.
 
     The link is the point: a finding filed five minutes ago about an unrelated subsystem is
     not evidence, and citing it is the defect this replaces. Ranked by how much of the trail
     a finding names (ties by filename, so the list is deterministic), bounded, and EMPTY when
     the trail is empty. Only the scanned staging ROOT counts — a finding in done/ has been
-    dispositioned. Never raises."""
+    dispositioned. Never raises.
+
+    A document whose header EXONERATES it for this red's blocking tests is DROPPED, not
+    down-ranked (see `_exonerated_for`): down-ranking would still surface it once the eight
+    slots were not full, which is the state every real wedge has been in."""
     trail = list(suspects.get("test_files") or []) + list(suspects.get("modules") or []) if suspects else []
     if not trail:
         return []
@@ -3703,6 +3727,8 @@ def linked_findings(suspects, staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FIN
         docs = [p for p in sd.glob(PUBLISH_GATE_FINDING_GLOB) if p.is_file()]
     except OSError:
         return []
+    test_files = [str(t) for t in (suspects.get("test_files") or [])] if suspects else []
+    root = repo_root if repo_root is not None else PROJECT_DIR
     scored = []
     for p in docs:
         try:
@@ -3710,7 +3736,7 @@ def linked_findings(suspects, staging_dir=None, limit=PUBLISH_GATE_MAX_CITED_FIN
         except OSError:
             continue
         hits = sum(1 for n in needles if n in text)
-        if hits:
+        if hits and not _exonerated_for(text, test_files, root):
             scored.append((-hits, p.name))
     scored.sort()
     return [name for _, name in scored[:limit]]

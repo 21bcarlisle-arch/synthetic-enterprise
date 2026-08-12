@@ -168,6 +168,14 @@ _DENIAL_RE = re.compile(
 _DISCHARGED_RE = re.compile(r"\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
 _ARTEFACT_RE = re.compile(r"`([^`]+)`")
 
+#: THE EXONERATION FIELD, 2026-08-12. Full rationale on `parse_exoneration` below. Note it is
+#: NOT a second discharge: a discharge releases a SEVERITY (the defect can no longer recur);
+#: this releases a CITATION (this document is not the cause of THIS red) and leaves the
+#: severity exactly where the author put it. The census finding that provoked it is a live,
+#: open, LATENT backlog item and stays one — the defect was that answering the draw made the
+#: next draw worse, not that the answer was wrong.
+_NOT_A_SUSPECT_RE = re.compile(r"\*\*Not-a-suspect-for:?\*\*:?\s*(?P<value>[^\n]+)")
+
 
 @dataclass(frozen=True)
 class Discharge:
@@ -290,6 +298,97 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
             "discharge names no test node (`file::name`) — a release needs a named falsifier",
         )
     return Discharge(artefacts, True, f"discharged by {', '.join(nodes_ok)}")
+
+
+def _is_test_file(artefact: str) -> bool:
+    """A path this project would recognise as a pytest module. The exoneration below is a
+    claim about ONE RED, and a red is identified by its blocking TEST — accepting a module
+    path would let a document exonerate itself against a whole subsystem in one line."""
+    name = Path(artefact.partition("::")[0]).name
+    return name.startswith("test_") and name.endswith(".py")
+
+
+@dataclass(frozen=True)
+class Exoneration:
+    """One document's `**Not-a-suspect-for:**` claim, already checked against the filesystem.
+
+    `valid` is True only when the claim is well-formed AND every path it names is an
+    existing TEST file. `covers()` is the second half: valid alone suppresses nothing.
+    """
+
+    artefacts: tuple[str, ...]
+    valid: bool
+    reason: str
+
+    def covers(self, test_files) -> bool:
+        """True only when this claim answers EVERY blocking test of the red in hand.
+
+        Both halves are the blanket-opt-out guard. Naming ANY of the red's tests rather
+        than ALL of them would let a one-line field mute a document across reds it never
+        examined; covering the EMPTY trail would exonerate every document against every
+        red at once, which is the same mute button reached from the other side."""
+        if not self.valid:
+            return False
+        wanted = {str(t).strip() for t in (test_files or []) if str(t).strip()}
+        if not wanted:
+            return False
+        named = {a.partition("::")[0].strip() for a in self.artefacts}
+        return wanted <= named
+
+
+def parse_exoneration(text: str, repo_root: Path | str = REPO_ROOT) -> Exoneration | None:
+    """The document's `**Not-a-suspect-for:**` claim, CHECKED — or None when it makes none.
+
+    WHY THIS FIELD EXISTS (2026-08-12, RUNG-1c BLOCKING draw, lane `H_harness`):
+    `process_run_complete.linked_findings` links a staged finding to a publish wedge by
+    LEXICAL CO-OCCURRENCE with the red's blame trail. An accusation and a refutation are
+    the same tokens, so a document that correctly denies being the cause — which it can
+    only do by NAMING the cause — scores as a BETTER suspect than one that says nothing.
+    Observed: re-freezing one finding with provenance took it from 2 needle hits to 7, and
+    it was re-cited verbatim to the next priority-zero draw. The RUNG-1 draw offers two
+    dispositions and the citation could observe exactly one: fix-and-archive clears it;
+    "re-freeze with provenance" is by construction a document that STAYS in the scanned
+    root, so it could never clear it. R11's orphan transition — a release whose effect is
+    nothing, on a channel with no other release. This field is that release.
+
+    THE FORM, one line in the header block:
+
+        **Not-a-suspect-for:** `tests/background/test_x.py` — one line saying why
+
+    THE RULE, fail-closed at every step (R15 killer pattern 2, FAIL-OPEN):
+      * every named path must be a TEST file (`test_*.py`) that EXISTS. A missing path —
+        a typo, or a test since deleted — voids the whole claim and the document stays a
+        suspect. A release that fired on unverifiable evidence would be strictly worse
+        than no release, because it would hide a real cause behind a plausible sentence.
+      * the claim must sit in the HEADER BLOCK, so a sentence buried in §4 prose cannot
+        suppress a citation the reader never sees.
+      * suppression additionally requires `covers()` — the claim must name EVERY blocking
+        test of the red in hand. Exonerating for test A does nothing when the red is B.
+
+    WHAT IT DOES NOT PROVE, stated because an overclaimed control is a filed class here: it
+    proves the author named a specific, existing test and staked the document's citation on
+    it. It does not prove the denial is correct. Reviewing that is still a human act — the
+    field's contribution is that the denial is now READABLE by the instrument it answers.
+    """
+    match = _NOT_A_SUSPECT_RE.search(header_block(text))
+    if match is None:
+        return None
+
+    root = Path(repo_root)
+    artefacts = tuple(a.strip() for a in _ARTEFACT_RE.findall(match.group("value")) if a.strip())
+    if not artefacts:
+        return Exoneration((), False, "exoneration names no artefact in backticks")
+
+    non_tests = [a for a in artefacts if not _is_test_file(a)]
+    if non_tests:
+        return Exoneration(
+            artefacts, False,
+            "exoneration must name a blocking TEST (`test_*.py`), not: " + ", ".join(non_tests),
+        )
+    missing = [a for a in artefacts if not (root / a.partition('::')[0]).is_file()]
+    if missing:
+        return Exoneration(artefacts, False, f"artefact does not exist: {', '.join(missing)}")
+    return Exoneration(artefacts, True, f"not a suspect for {', '.join(artefacts)}")
 
 
 def parse_severity_file(path: Path, repo_root: Path | str = REPO_ROOT) -> FindingSeverity:
