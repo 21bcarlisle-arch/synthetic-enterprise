@@ -19,6 +19,8 @@ named cause of one of the 2026-08-09/10 wedges.
 """
 from __future__ import annotations
 
+import subprocess as _sp
+
 from background import process_run_complete as prc
 from background import publish_provenance as prov
 from background import publish_scope
@@ -31,7 +33,6 @@ UNRELATED_RED = "tests/architecture/test_static_quality_ratchet.py"
 # The publisher's real output shape. `VERIFIED_SHA` is resolved from the repo at import
 # time rather than hardcoded, so it is a commit that genuinely exists -- the provenance
 # guard checks existence, and pinning a literal sha here would rot into a false red.
-import subprocess as _sp
 VERIFIED_SHA = _sp.run(["git", "rev-parse", "--short=9", "HEAD"], cwd=str(prc.PROJECT_DIR),
                        capture_output=True, text=True).stdout.strip() or "0" * 9
 VERIFIED_RUN_ID = "run_output_{}_20260809T171913Z.json".format(VERIFIED_SHA)

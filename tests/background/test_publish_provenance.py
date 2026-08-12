@@ -12,7 +12,6 @@ from datetime import datetime, timedelta, timezone
 
 from background import publish_provenance as prov
 
-
 # PUBLISHER-SHAPED, NOT FIXTURE-SHAPED (2026-08-11). The recorders now REFUSE a run id or
 # sha that no run could have produced, because the literal "run_verified.json" reached the
 # live banner and was pushed to origin. These stand-ins keep the a/b contrast these tests

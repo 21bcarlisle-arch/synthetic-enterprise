@@ -204,9 +204,28 @@ BASELINE_DATE = "2026-08-06"
 #     behaviour), so the floor is unmoved and HEAD now meets it. A red-at-HEAD
 #     ratchet wedges every lane's commit, so this is repaired here rather than
 #     queued: it is a blocker, not a self-interrupt.
+#   2026-08-12  I001 1384 -> 1380, E402 repaired to its floor (the 18th publish wedge)
+#     The gate was red at COMMITTED HEAD — measured on a `git archive HEAD`
+#     extraction, not the working tree, precisely because the 08-09 episode-3 entry
+#     above records that a dirty tree cannot tell a regression from a concurrent
+#     writer's unsaved fix. At d32ae058b: I001 1388 (baseline 1384) and E402 194
+#     (baseline 193). Bisected by extracting every 20th commit: the last tree
+#     meeting the floor was cff7a31a4 (2026-08-10 20:47Z); the excess ACCRETED
+#     across ~25 commits over two days rather than arriving in one — no single
+#     commit to blame, which is why it survived each individual pre-commit run.
+#     Set-differenced the violation census green-vs-HEAD (not just the totals) to
+#     name the seven files that newly offend, and fixed those only — a repo-wide
+#     `--fix` would have rewritten hundreds of files on a tree with concurrent
+#     writers. The one new E402 was `import subprocess as _sp` sitting mid-file in
+#     tests/background/test_publish_decoupling_exit.py; hoisting it to the import
+#     block cleared that file's E402 AND its I001 together. E402 is therefore back
+#     AT its floor (193, unmoved — a repair, not a shrink). I001 lands at 1380,
+#     four BELOW the frozen 1384, because the seven files fixed were more than the
+#     four needed: the floor SHRINKS to 1380 rather than being left stale, per the
+#     shrink-only rule this log exists to enforce.
 #
 # Top-10 offenders on the freeze date (also in the PR body):
-#   I001 unsorted-imports .............. 1392  (now 1384)
+#   I001 unsorted-imports .............. 1392  (now 1380)
 #   F401 unused-import .................  280  (now  279)
 #   E402 module-import-not-at-top ......  194  (now  193)
 #   F841 unused-variable ...............  130
@@ -220,7 +239,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1384,
+    "I001": 1380,
     "F401": 279,
     "E402": 193,
     "F841": 130,
@@ -240,7 +259,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2410  # was 2421 at the 08-06 freeze; -11 per the shrink log above
+RUFF_BASELINE_TOTAL = 2406  # was 2421 at the 08-06 freeze; -15 per the shrink log above
 
 
 # --------------------------------------------------------------------------

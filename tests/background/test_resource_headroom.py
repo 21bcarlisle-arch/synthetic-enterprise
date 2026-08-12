@@ -14,7 +14,6 @@ import pytest
 
 from background import resource_headroom as rh
 
-
 # --------------------------------------------------------------------------------------
 # Fixtures: synthetic /proc surfaces, so a machine state can be CONSTRUCTED rather than
 # waited for. The real /proc is exercised separately by test_the_real_proc_is_readable.

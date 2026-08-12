@@ -111,7 +111,8 @@ import hashlib
 import math
 import random
 import statistics
-from dataclasses import dataclass, replace as _dc_replace
+from dataclasses import dataclass
+from dataclasses import replace as _dc_replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence

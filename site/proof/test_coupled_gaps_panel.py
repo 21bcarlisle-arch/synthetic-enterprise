@@ -16,8 +16,8 @@ never a silently empty panel.
 import json
 import shutil
 import subprocess
-import tempfile
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest

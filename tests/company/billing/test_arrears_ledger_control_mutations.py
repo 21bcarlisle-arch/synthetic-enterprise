@@ -15,6 +15,7 @@ import datetime as dt
 
 import pytest
 
+from company.billing import arrears_engine
 from company.billing.account_ledger import (
     AccountLedger,
     AllocationInvariantError,
@@ -24,7 +25,6 @@ from company.billing.account_ledger import (
     LedgerEventType,
     LedgerReconciliationError,
 )
-from company.billing import arrears_engine
 from company.billing.arrears_engine import (
     AGE_BUCKETS,
     AgedItem,
@@ -45,9 +45,9 @@ from company.billing.arrears_engine import (
     assert_dunning_path_scope_valid,
     assert_dunning_path_valid,
     assert_dunning_requires_an_item,
-    assert_overdue_clock_resolves_before_due,
     assert_fixed_compensation_once,
     assert_interest_is_b2b_only,
+    assert_overdue_clock_resolves_before_due,
     assert_write_off_audited,
     build_interest_event,
     build_write_off_event,

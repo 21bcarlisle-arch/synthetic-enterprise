@@ -16,14 +16,13 @@ from datetime import date, timedelta
 import pytest
 
 from company.billing.direct_debit import (
-    DirectDebitBook,
     _MAX_PAYMENT_DAY,
     _MIN_PAYMENT_DAY,
+    DirectDebitBook,
     next_collection_on_day,
 )
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_payment_day import staggered_payment_day
-
 
 # --------------------------------------------------------------------------
 # staggered_payment_day: deterministic, in-range, and actually staggering
@@ -169,8 +168,8 @@ class TestLiveStaggeringBothWays:
         # longer has would have made it fail-silent, catching nothing while looking
         # green (`a test isolates the paths it thought of`). The property under test
         # is unchanged: with the snap mutated out, staggering must collapse.
-        import simulation.dd_collection_book as mod
         import company.billing.dd_collections_desk as desk_mod
+        import simulation.dd_collection_book as mod
         monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
         monkeypatch.setattr(desk_mod, "next_collection_on_day", lambda due_iso, day: due_iso)
         book = build_dd_collection_book(self._bills(), {})
