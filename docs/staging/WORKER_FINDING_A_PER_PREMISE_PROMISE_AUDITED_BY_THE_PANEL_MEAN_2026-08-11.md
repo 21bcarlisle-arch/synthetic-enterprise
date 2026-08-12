@@ -1,6 +1,12 @@
 # WORKER FINDING — a per-premise promise was audited by the panel mean, so a breach on nine of two hundred homes read as faithful
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_a_PER_PREMISE_PROMISE_IS_NOT_AUDITED_BY_THE_PANEL_MEAN` — the per-premise promise is audited per premise; reinstating the mean fires this by name
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick)
 **Date:** 2026-08-11 · **NINTH EXPERT HOUR** · disposition **QUEUE** (recorded, mechanised, no interrupt)

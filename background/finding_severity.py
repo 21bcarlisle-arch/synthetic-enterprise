@@ -120,6 +120,60 @@ _REPAIRED_RE = re.compile(
     r"|DISCHARGED|discharged|accepted)\b"
 )
 
+#: THE DISCHARGE FIELD, 2026-08-12 (rung-1c draw on lane `H_harness`, 14 live blockers).
+#:
+#: WHY IT EXISTS: a severity header states the state the author FOUND, and nothing ever
+#: re-read it. Eight of those fourteen blockers were Expert-Hour reports that repaired
+#: their own defect inside the same document ("Mechanised", "R15 both ways", "no published
+#: figure moved") — the instrument named as untrustworthy was trustworthy again before the
+#: document was saved. Clause 2's release ("until it is repaired, or until the limitation
+#: is explicitly recorded and accepted") had no machine-readable form, so a lane's blocker
+#: set could only ever GROW: the more honestly an atom audited itself, the more completely
+#: it froze twelve other atoms' lane.
+#:
+#: WHY IT IS NOT `_REPAIRED_RE`: that pattern releases on the word "landed" appearing
+#: anywhere in a forty-line header — and "the by-construction gate is silenced by an
+#: ordinary word" is already a filed finding of this project against exactly that shape.
+#: A release read by the same loose pattern would be the same defect with higher stakes.
+#: So the discharge is STRUCTURED and its evidence is CHECKED against the filesystem.
+#:
+#: THE FORM, one line in the header block:
+#:
+#:     **Discharged:** `tests/x/test_y.py::test_z`, `tools/y.py` — one line saying why
+#:
+#: THE RULE, fail-closed at every step (R15 killer pattern 2):
+#:   * at least one artefact must be a TEST NODE (`<file>::<name>`) whose file exists AND
+#:     whose text contains that node name. A discharge is a claim that a defect can no
+#:     longer recur; the only evidence of that shape this project accepts is a named,
+#:     runnable falsifier. A discharge naming only prose or only a source file proves the
+#:     author typed a path, which is what a vacuous control looks like.
+#:   * EVERY named artefact must exist. Any missing one voids the whole discharge.
+#:   * a field that is present and does not satisfy this does NOT release the finding: the
+#:     severity stands, and the document is surfaced by `false_discharges()`. A malformed
+#:     release that silently released would be strictly worse than no release at all.
+#:
+#: WHAT IT DOES NOT PROVE, stated because an overclaimed control is the class above: it
+#: proves a named falsifier EXISTS and is addressable, never that the falsifier is a good
+#: one or that running it passes. Reviewing the cited test is still a human act.
+_DISCHARGED_RE = re.compile(r"\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
+_ARTEFACT_RE = re.compile(r"`([^`]+)`")
+
+
+@dataclass(frozen=True)
+class Discharge:
+    """One document's discharge claim, already checked against the filesystem.
+
+    `released` is True only when the claim is well-formed AND every artefact it names
+    exists AND at least one of them is a test node that its file actually defines.
+    """
+
+    artefacts: tuple[str, ...]
+    released: bool
+    reason: str
+
+    def describe(self) -> str:
+        return f"{'RELEASED' if self.released else 'REFUSED '} {self.reason}"
+
 
 @dataclass(frozen=True)
 class FindingSeverity:
@@ -180,14 +234,74 @@ def parse_severity_text(text: str, path: Path | None = None) -> FindingSeverity:
     return FindingSeverity(where, value, lane)
 
 
-def parse_severity_file(path: Path) -> FindingSeverity:
+def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge | None:
+    """The document's `**Discharged:**` claim, CHECKED — or None when it makes no claim.
+
+    Never raises and never guesses: an unreadable artefact, a node name its file does not
+    define, or a claim with no test node at all all return `released=False` WITH the reason,
+    so the refusal is reportable rather than a silent non-event.
+    """
+    match = _DISCHARGED_RE.search(header_block(text))
+    if match is None:
+        return None
+
+    root = Path(repo_root)
+    artefacts = tuple(a.strip() for a in _ARTEFACT_RE.findall(match.group("value")) if a.strip())
+    if not artefacts:
+        return Discharge((), False, "discharge names no artefact in backticks")
+
+    missing: list[str] = []
+    nodes_ok: list[str] = []
+    nodes_bad: list[str] = []
+    for artefact in artefacts:
+        file_part, _, node = artefact.partition("::")
+        target = root / file_part
+        if not target.is_file():
+            missing.append(artefact)
+            continue
+        if not node:
+            continue
+        try:
+            defines = node in target.read_text(encoding="utf-8", errors="replace")
+        except OSError:  # readable-as-a-file but not as text: an unavailable check FAILS
+            defines = False
+        (nodes_ok if defines else nodes_bad).append(artefact)
+
+    if missing:
+        return Discharge(artefacts, False, f"artefact does not exist: {', '.join(missing)}")
+    if nodes_bad:
+        return Discharge(
+            artefacts, False, f"file exists but does not define the node: {', '.join(nodes_bad)}"
+        )
+    if not nodes_ok:
+        return Discharge(
+            artefacts,
+            False,
+            "discharge names no test node (`file::name`) — a release needs a named falsifier",
+        )
+    return Discharge(artefacts, True, f"discharged by {', '.join(nodes_ok)}")
+
+
+def parse_severity_file(path: Path, repo_root: Path | str = REPO_ROOT) -> FindingSeverity:
     """Parse one file. An unreadable file is UNCLASSIFIED — an unavailable check is a
-    FAILED check (R15 killer pattern 3), not a pass."""
+    FAILED check (R15 killer pattern 3), not a pass.
+
+    A VALID discharge (see `_DISCHARGED_RE`) reads the document down to RECORDED — clause
+    2's own release, made machine-readable. An INVALID one leaves the severity exactly
+    where the header put it and is surfaced by `false_discharges()`.
+    """
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError as exc:
         return FindingSeverity(path, UNCLASSIFIED, None, f"unreadable: {exc.__class__.__name__}")
-    return parse_severity_text(text, path)
+
+    parsed = parse_severity_text(text, path)
+    if not parsed.is_classified or parsed.severity == RECORDED:
+        return parsed
+    discharge = parse_discharge(text, repo_root)
+    if discharge is None or not discharge.released:
+        return parsed
+    return FindingSeverity(path, RECORDED, parsed.lane, discharge.reason)
 
 
 def scan_staging_root(root: Path | str = DEFAULT_STAGING_ROOT) -> list[FindingSeverity]:
@@ -219,6 +333,27 @@ def blocking_by_lane(results: list[FindingSeverity]) -> dict[str, list[FindingSe
     for r in results:
         if r.is_blocking and r.lane:
             out.setdefault(r.lane, []).append(r)
+    return out
+
+
+def false_discharges(
+    root: Path | str = DEFAULT_STAGING_ROOT, repo_root: Path | str = REPO_ROOT
+) -> list[tuple[Path, Discharge]]:
+    """Documents that CLAIM a discharge the filesystem refuses.
+
+    This is the half that stops the field being a loophole: a release that does not
+    release must be LOUD, because the author who wrote it believes the finding is closed
+    and will not look again. Silence here would turn every typo into a clean lane.
+    """
+    out: list[tuple[Path, Discharge]] = []
+    for path in classifiable_documents(root):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        discharge = parse_discharge(text, repo_root)
+        if discharge is not None and not discharge.released:
+            out.append((path, discharge))
     return out
 
 
@@ -283,9 +418,13 @@ def main(argv: list[str] | None = None) -> int:
         for result, evidence in by_construction_violations(args.root):
             print(f"BY-CONSTRUCTION {result.severity} {result.path.name}: {evidence[:110]}")
 
+    refused = false_discharges(args.root)
+    for path, discharge in refused:
+        print(f"FALSE-DISCHARGE {path.name}: {discharge.reason}")
+
     for r in open_:
         print(f"UNCLASSIFIED {r.path.name}: {r.reason}")
-    return 1 if open_ else 0
+    return 1 if (open_ or refused) else 0
 
 
 if __name__ == "__main__":

@@ -256,3 +256,47 @@ def test_blocking_lane_draw_itself_is_silent_so_this_mirror_adds_nothing_on_a_cl
     reason, blocked = supervisor._blocking_lane_draw(staging_dir=tmp_path / "staging_empty")
     assert reason is None
     assert blocked == frozenset()
+
+
+# ───────────── the DISCHARGE, end to end (2026-08-12, the rung's own draw) ─────────────
+#
+# R11's no-orphan-transitions clause: a release must have a TESTED effect. The severity
+# module proves a valid discharge reads a document down to RECORDED; these two prove that
+# the reading reaches RUNG 1c, which is the only place the release means anything. The
+# defect they exist to catch is the one that made this draw: fourteen blockers in one lane,
+# eight of them Expert-Hour reports that had repaired their own defect before they were
+# saved, refusing level-raises for as long as nobody re-read a header.
+
+_DISCHARGED_DOC = """# [WORKER-FINDING] An instrument in H_harness cannot be trusted
+
+**Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `{node}` — repaired in the same tick that found it
+
+## The claim
+Body text naming the control, which was repaired before this document was saved.
+"""
+
+
+def test_a_validly_discharged_blocker_stops_blocking_its_lane(tmp_path):
+    """The release reaches the rung, not just the parser."""
+    node = "tests/background/test_supervisor_blocker_precedence.py::" \
+           "test_a_validly_discharged_blocker_stops_blocking_its_lane"
+    root = _staging_with(tmp_path, ("WORKER_FINDING_REPAIRED.md", _DISCHARGED_DOC.format(node=node)))
+    reason, blocked = supervisor._blocking_lane_draw(staging_dir=root)
+    assert blocked == frozenset()
+    assert reason is None
+
+
+def test_a_discharge_the_filesystem_refuses_keeps_blocking_its_lane(tmp_path):
+    """The other direction, and the one that matters more: a release naming an artefact
+    that does not exist must NOT release. A typo that cleared a lane would be the
+    fail-open shape this whole module refuses."""
+    root = _staging_with(
+        tmp_path,
+        ("WORKER_FINDING_CLAIMS_A_GHOST.md", _DISCHARGED_DOC.format(node="tests/ghost.py::test_x")),
+    )
+    reason, blocked = supervisor._blocking_lane_draw(staging_dir=root)
+    assert blocked == frozenset({"H_harness"})
+    assert reason is not None and "WORKER_FINDING_CLAIMS_A_GHOST.md" in reason
+    refused = fs.false_discharges(root)
+    assert [p.name for p, _ in refused] == ["WORKER_FINDING_CLAIMS_A_GHOST.md"]

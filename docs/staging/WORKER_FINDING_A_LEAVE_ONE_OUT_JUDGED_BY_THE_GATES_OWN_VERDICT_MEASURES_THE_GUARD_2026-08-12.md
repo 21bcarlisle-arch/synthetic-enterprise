@@ -1,6 +1,12 @@
 # FINDING — a leave-one-out judged by the gate's own verdict measures the guard, not the reading
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_SWITCH_COST_is_measured_on_the_homes_that_DID_NOT_force_it` — the leave-one-out is judged on the homes that did not force the switch, not by the gate's own verdict
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 <!-- Severity normalised 2026-08-12 by a worker tick: `MEDIUM` is not one of the three tokens
      OPS9 defines, so this was UNCLASSIFIED. BLOCKING on the document's own evidence -- the
      carriage guard measures the guard rather than the reading, and 'the number the reader

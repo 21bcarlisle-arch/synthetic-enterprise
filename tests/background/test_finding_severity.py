@@ -257,3 +257,184 @@ def test_the_staging_root_has_zero_unclassified_documents():
     assert not open_, "unclassified staging documents:\n" + "\n".join(
         f"  {r.path.name}: {r.reason}" for r in open_
     )
+
+
+# --- THE DISCHARGE FIELD (2026-08-12, the rung-1c draw on 14 live H_harness blockers) ---
+#
+# R15 governs this block the same way it governs the two mutations above. This field is a
+# RELEASE — the only thing in the module that turns a BLOCKING document into a
+# non-blocking one — so the property worth proving is that it REFUSES. Three more
+# mutations, each killing a named test:
+#
+#   MUTATION C (release without a falsifier) — the "no test node" branch releases anyway.
+#       Kills `test_a_discharge_naming_no_test_node_does_not_release`. This is the vacuity
+#       shape: typing a source path would close a blocker.
+#   MUTATION D (release on a missing artefact) — the existence check is dropped.
+#       Kills `test_a_discharge_naming_an_artefact_that_does_not_exist_does_not_release`.
+#       Fail-open on a typo, which is how a lane goes clean by accident.
+#   MUTATION E (invalid claim releases silently) — an unreleased discharge still reads the
+#       severity down. Kills `test_an_invalid_discharge_leaves_the_severity_where_it_was`.
+
+_DISCHARGE_DOC = """# A finding whose repair landed
+
+**Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `{artefacts}` — the instrument was repaired in the same tick
+
+## Body
+Text.
+"""
+
+
+def _repo_with(
+    tmp_path: Path, artefacts: str, files: dict[str, str] | None = None
+) -> tuple[Path, Path]:
+    """A tmp repo root + staging root holding one document that claims `artefacts`."""
+    staging = tmp_path / "docs" / "staging"
+    staging.mkdir(parents=True)
+    for relative, content in (files or {}).items():
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+    doc = staging / "WORKER_FINDING_X.md"
+    doc.write_text(_DISCHARGE_DOC.format(artefacts=artefacts), encoding="utf-8")
+    return tmp_path, doc
+
+
+def _assert_no_test_node_does_not_release(module, tmp_path: Path) -> None:
+    repo, doc = _repo_with(tmp_path, "tools/real.py", {"tools/real.py": "x = 1\n"})
+    discharge = module.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "falsifier" in discharge.reason
+
+
+def _assert_missing_artefact_does_not_release(module, tmp_path: Path) -> None:
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    doc.write_text(
+        doc.read_text().replace("tests/test_real.py::test_it", "tests/test_ghost.py::test_it"),
+        encoding="utf-8",
+    )
+    discharge = module.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "does not exist" in discharge.reason
+
+
+def _assert_a_real_falsifier_does_release(module, tmp_path: Path) -> None:
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    discharge = module.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is True
+    assert module.parse_severity_file(doc, repo).severity == module.RECORDED
+
+
+def test_a_valid_discharge_reads_a_blocking_document_down_to_recorded(tmp_path):
+    """Clause 2's own release ("until it is repaired"), made machine-readable — the thing
+    whose absence let a lane's blocker set only ever grow."""
+    _assert_a_real_falsifier_does_release(fs, tmp_path)
+
+
+def test_a_discharge_naming_no_test_node_does_not_release(tmp_path):
+    """A release needs a NAMED FALSIFIER. A source path proves the author typed a path."""
+    _assert_no_test_node_does_not_release(fs, tmp_path)
+
+
+def test_a_discharge_naming_an_artefact_that_does_not_exist_does_not_release(tmp_path):
+    _assert_missing_artefact_does_not_release(fs, tmp_path)
+
+
+def test_a_discharge_whose_file_does_not_define_the_node_does_not_release(tmp_path):
+    """The file existing is not the claim; the file DEFINING the falsifier is."""
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_something_else",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "does not define the node" in discharge.reason
+
+
+def test_an_invalid_discharge_leaves_the_severity_where_it_was(tmp_path):
+    """The anti-loophole: a malformed release that released would be worse than none."""
+    repo, doc = _repo_with(tmp_path, "tools/real.py", {"tools/real.py": "x = 1\n"})
+    assert fs.parse_severity_file(doc, repo).severity == fs.BLOCKING
+
+
+def test_an_invalid_discharge_is_surfaced_not_silent(tmp_path):
+    """The author believes the finding is closed and will not look again, so the refusal
+    has to be LOUD."""
+    repo, doc = _repo_with(tmp_path, "tools/real.py", {"tools/real.py": "x = 1\n"})
+    refused = fs.false_discharges(doc.parent, repo)
+    assert [p.name for p, _ in refused] == ["WORKER_FINDING_X.md"]
+
+
+def test_a_document_with_no_discharge_field_is_untouched(tmp_path):
+    assert fs.parse_discharge(CLEAN) is None
+    assert fs.parse_severity_text(CLEAN).severity == fs.LATENT
+
+
+def test_a_discharge_below_the_header_block_does_not_release(tmp_path):
+    """Same scope rule as every other field here: a release the next reader never meets
+    is not a release."""
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    text = doc.read_text()
+    header, _, body = text.partition("## Body")
+    doc.write_text(
+        header.replace("**Discharged:**", "Once said, in prose:") + "## Body" + body
+        + "\n**Discharged:** `tests/test_real.py::test_it` — too late to count\n",
+        encoding="utf-8",
+    )
+    assert fs.parse_severity_file(doc, repo).severity == fs.BLOCKING
+
+
+def test_mutation_c_releasing_without_a_falsifier_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "    if not nodes_ok:\n        return Discharge(",
+        "    if False:\n        return Discharge(",
+        "finding_severity_mutant_no_falsifier",
+    )
+    _assert_missing_artefact_does_not_release(mutant, tmp_path / "d_ok")  # untouched property
+    with pytest.raises(AssertionError):
+        _assert_no_test_node_does_not_release(mutant, tmp_path / "c_mut")
+
+
+def test_mutation_d_dropping_the_existence_check_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "        if not target.is_file():\n            missing.append(artefact)\n            continue",
+        "        if not target.is_file():\n            continue",
+        "finding_severity_mutant_no_existence",
+    )
+    with pytest.raises(AssertionError):
+        _assert_missing_artefact_does_not_release(mutant, tmp_path / "d_mut")
+
+
+def test_mutation_e_letting_an_invalid_discharge_release_kills_a_named_test(tmp_path):
+    mutant = _load_mutant(
+        tmp_path,
+        "    if discharge is None or not discharge.released:\n        return parsed",
+        "    if discharge is None:\n        return parsed",
+        "finding_severity_mutant_invalid_releases",
+    )
+    _assert_a_real_falsifier_does_release(mutant, tmp_path / "e_ok")  # the valid path still works
+    repo, doc = _repo_with(tmp_path / "e_mut", "tools/real.py", {"tools/real.py": "x = 1\n"})
+    assert mutant.parse_severity_file(doc, repo).severity == mutant.RECORDED  # the defect
+
+
+def test_the_staging_root_has_no_false_discharges():
+    """A discharge the filesystem refuses is a blocker its author has stopped watching."""
+    refused = fs.false_discharges()
+    assert not refused, "discharge claims the filesystem refuses:\n" + "\n".join(
+        f"  {p.name}: {d.reason}" for p, d in refused
+    )

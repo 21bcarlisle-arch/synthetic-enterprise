@@ -1,6 +1,12 @@
 # A gate compared a point estimate to its band, and certified 14 of 120 real subpanels it could not resolve
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_GATE_REFUSES_A_POINT_ESTIMATE_WHOSE_INTERVAL_STRADDLES_ITS_BAND` — the gate now compares the interval, not the point estimate, and the falsifier fails if it stops
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 
 **Atom:** `H_GAP_fabric_belief_truth_gap` (L2→L3 draw, worker tick, 2026-08-11)
 **Eighth Expert Hour.** Directed question set verbatim by the seventh.

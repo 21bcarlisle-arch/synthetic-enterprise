@@ -1,6 +1,12 @@
 # WORKER FINDING — the money verdict was a difference of two sums, and a sum has no error bar
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_a_MONEY_VERDICT_BOUGHT_BY_THE_ERROR_BAR_is_named_as_such` — a money verdict that rests on its error bar now says so, and the falsifier fails if it goes quiet
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 
 **Atom** `H_GAP_fabric_belief_truth_gap` (H_harness, level 2, `loop_stage: build`)
 **Date** 2026-08-11 · **FIFTH Expert Hour** on this machinery, run under the termination

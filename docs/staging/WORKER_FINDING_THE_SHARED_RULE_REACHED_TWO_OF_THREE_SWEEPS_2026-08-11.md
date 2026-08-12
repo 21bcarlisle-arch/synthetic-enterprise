@@ -1,6 +1,12 @@
 # H27 Expert Hour #13 — the shared saturation rule reached two of three sweeps, and the third is the register that started the line
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_every_counterfactual_knob_reaches_the_one_saturation_rule` — all three counterfactual knobs now route through the one saturation rule, AST-verified; a knob with no route raises
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 
 **Date:** 2026-08-11 · **Atom:** `H27_payment_belief_gap` (HARDEN, self-refill draw 2→3)
 **Subject:** `tools/couple_w2_11_d5.py` · **Reshape minted as:** `D31_the_recon_grid_saturates_beyond_this_books_window` (L0)

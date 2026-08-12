@@ -1,6 +1,12 @@
 # WORKER FINDING — the resample guard counted the panel, not the evidence
 
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/harness/test_premise_two_level.py::test_the_ARTEFACT_EVIDENCE_COUNT_COUNTS_EITHER_CHANNEL_NOT_JUST_THE_MIRRORS` — the guard counts the evidence rather than the panel; counting panel rows again fires this
+<!-- DISCHARGED 2026-08-12 by a worker tick drawn at RUNG 1c. This document reported a
+     defect AND its repair in the same breath; its severity header stated the state the
+     Hour FOUND, and nothing re-read it afterwards, so it went on refusing level-raises in
+     H_harness after the instrument it named was trustworthy again. The falsifier below was
+     RUN GREEN before this line was written. -->
 
 **Atom:** `H_GAP_fabric_belief_truth_gap` (H_harness, L2→L3 draw, worker tick)
 **Date:** 2026-08-12 · **TENTH EXPERT HOUR** on this machinery
