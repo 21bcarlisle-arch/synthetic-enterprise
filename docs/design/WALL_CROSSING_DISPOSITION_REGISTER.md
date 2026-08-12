@@ -1181,6 +1181,111 @@ build, which that design block explicitly forbids attempting as a mechanical mov
 
 ---
 
+## 3n. The credit and collateral desk is the supplier's own treasury — added 2026-08-12 (step 19)
+
+`simulation/run_phase2b.py::main()` ran the whole of it: it marked the company's own trading book
+at an end-of-run observable forward snapshot, built the wholesale credit register, sampled the
+retained book semi-annually to find the peak exposure a single end-of-run mark misses, derived the
+variation margin the company owes where it is out-of-the-money, and then ran the MC-2
+breaking-strain sweep against the real 2021-22 replay. Three of that module's wall crossings —
+`company.trading.wholesale_credit_exposure`, `company.finance.margin_call_book`,
+`company.risk.collateral_death_test`.
+
+Now `company/risk/counterparty_collateral_desk.py` behind
+`company/interfaces/counterparty_collateral.py`, returning a `CounterpartyCollateral`. The world
+hands over the book it holds, its customer register's commodity column and the two PUBLIC spot
+histories, as DATA through one signature.
+
+**Why it is the supplier's.** Marking your own open positions, sizing a counterparty's line,
+working out the variation margin you owe under a CSA and asking at what price move your facility
+breaks are the treasury and credit-risk functions of a licensed supplier. They are not physics. The
+world's job was to supply the energy and publish the prices; what the supplier concludes about its
+own credit exposure from those prices is its own reading, and it is allowed to be wrong — which is
+the point, because a supplier that misjudges exactly this is a supplier that fails in a spike.
+
+### The import count understates what moved, again
+
+The three edges are the visible part. The larger thing is that `main()` was carrying a company
+intermediate between two company computations: `peak_sample_date` is produced INSIDE the credit
+block's semi-annual sampling loop, threaded out into a local, and passed back into the death test
+to choose its stressed date. The world was the courier for a value neither end of which was its
+own. That thread is now internal, and the courier is gone.
+
+### Why it is a group and not three items
+
+All three read ONE shared intermediate — `exposure_by_counterparty`, the ISDA-netted
+per-counterparty MtM at the mark. The credit register is its long side (the company is owed), the
+margin book is its exact sign-complement (the company posts), and the death test re-marks the same
+live book at a second date. Cut separately, the world would have been left holding both `_exposure`
+and `peak_sample_date` and threading them into three doors: a seam that publishes a pull, which is
+half a cut. **This group argument is genuine**, and that is worth saying because §3k's was not and
+said so.
+
+### Behaviour is unchanged by construction, and the identity is measured anyway
+
+Both blocks are transcribed statement-for-statement off the same inputs, in their original order,
+with the same rounding at the same places and the same keys on the same summary dicts. Two
+`CompanyTariffEngine` instances are constructed inside the desk, not one, because the pre-cut code
+constructed two and collapsing them would be a behaviour change smuggled in under a move. Control 2
+(`tests/company/interfaces/test_counterparty_collateral_seam.py`) replicates the pre-cut sequence
+transcribed from `run_phase2b.py` as it stood at `7237c67a9` — not from the module under test,
+which would be a mirror — and asserts the credit and margin summaries are identical. Its mutation
+drops the June marks from the sampling loop and shows the identity comparison failing.
+
+### THE DEFECT THIS CUT COULD HAVE INTRODUCED, and the control on it
+
+Before the cut, fuel was paired to record list in an inline tuple at the point of use
+(`(("electricity", elec_records), ("gas", gas_records))`), so `elec_records` could not arrive where
+`gas_records` belonged. That pairing now spans a signature, and a swap moves every forward mark and
+therefore every credit and margin figure in the run — while every test exercising the impl module
+directly stays green, because the impl is given exactly what the caller chose to give it. Two
+things answer it: the parameters are keyword-only and separately named (`elec_spot_records` /
+`gas_spot_records`), so the swap has to be written out in full; and control 3 is an AST check over
+the REAL call site in `run_phase2b.py` with a vacuity guard on the number of calls examined (zero
+calls → the finding list is empty for free), a mutation that performs the swap, and a second
+mutation proving the swap is a real defect rather than a cosmetic one (the peak exposure moves).
+
+### THE DEFECT THE DOOR ITSELF INVITES — two failure domains, one `try/except`
+
+The pre-cut code was two independent `try/except` blocks with a stated property: a failure in the
+credit feed must not kill the death test, and a partially-built credit summary is not discarded
+when the margin half fails. One door invites one `try/except`, and **nothing would ever notice**,
+because on a healthy run both succeed — the collapse is invisible until the day something breaks,
+which is the day it matters. So the isolation lives inside the desk and the two exceptions are
+returned ON the result (`credit_feed_error`, `death_test_error`) for `main()` to print exactly the
+two warnings it printed before. Control 4 injects a book that raises on the credit path only and
+asserts the death test still produced its summary, then the mirror, then a mutation that builds the
+collapsed single-`try` shape and shows control 4's assertion failing on it.
+
+### Vacuity, and why the fixture is what it is
+
+Three properties of the fixture are asserted rather than left to the reader. **Daily** spot history
+rather than sampled, because `CompanyTariffEngine.get_forward_price` refuses a mark on fewer than
+30 records in its lookback window and a refused mark empties the credit register — every control
+below would then pass on nothing. **Four different counterparties**, because the obvious customer
+ids all hash to `ICE_CLEAR_EUROPE`, where ISDA netting collapses the in- and out-of-the-money legs
+into one net position: zero credit exposure, zero margin, both sides of the book invisible. **Two
+fuels marked at levels far apart** (~£95 and ~£28/MWh), because on equal spot histories control 3's
+swap produces identical marks and cannot fail.
+
+### What did NOT fall
+
+`run_phase2b` keeps **24 direct + 2 indirect** — measured, not carried forward. The remaining
+groups are the trading desk that OPENS the positions (`forward_book`, `hedge_decision`,
+`hedge_policy` — a different cut, living in the per-customer term loop rather than the close), the
+CRM builders (`churn_model`, `complaints`, `customer_profitability`, `enriched_churn_estimate`,
+`nps_tracker`, `payment_behaviour_analytics`, `satisfaction_accumulator`, `tpi_book`,
+`churn_accuracy_report`), the pricing/regulatory group (`tariff_engine`, `margin_feedback`,
+`ofgem_price_cap`, `decision_policy`) and the `saas.*` set (`cost_to_serve`, `customer_reaction`,
+`demand_response`, `growth_mandate`, `ledger`, `property_model`, `smart_meter_rollout`,
+`tariff_pricing`) — 3 + 9 + 4 + 8 = 24, arithmetic written out. Beyond this module:
+`simulation.customer_events`' four edges (a coupled-triad build, which that design block explicitly
+forbids attempting as a mechanical move) and `run_phase4c_on_phase2b`'s `dd_review_runner` routing
+residual, §3h. The two indirect edges are untouched for the FIFTH consecutive step, which is again
+the proof that a bridge route was not silently taken instead.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1687,7 +1792,7 @@ edge: simulation.run_phase2b -> company.crm.nps_tracker | disposition=owed | des
 edge: simulation.run_phase2b -> company.crm.payment_behaviour_analytics | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.satisfaction_accumulator | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.tpi_book | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.finance.margin_call_book | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.finance.margin_call_book | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the variation margin the company must POST is the sign-complement of the same netted MtM the credit register reads, off the same `exposure_by_counterparty` call. Cutting it separately would have left the world holding that intermediate: half a cut.
 edge: simulation.run_phase2b -> company.market.flexibility_revenue_book | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the domestic DSR/Capacity Market book moved to `company/market/flexibility_revenue.py` behind `company.interfaces.flexibility_revenue`. The world no longer hands its `HouseholdDemandRegister` across for the book to pull asset flags out of; it resolves a per-year-end snapshot on its own side and only the answers cross.
 edge: simulation.run_phase2b -> company.market.ic_flexibility_revenue | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the I&C demand-response book moved with the domestic one it shares its `total_flexibility_revenue` accumulator with. The CM clearing prices, DFS rates, aggregator fee and 200 MWh eligibility floor are read company-side; the world hands over its own I&C electricity roster as (customer_id, eac_kwh) pairs.
 edge: simulation.run_phase2b -> company.policy.decision_policy | disposition=owed | design=A_composition_lift
@@ -1697,11 +1802,11 @@ edge: simulation.run_phase2b -> company.pricing.tariff_engine | disposition=owed
 edge: simulation.run_phase2b -> company.regulatory.ccl_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the CCL pass-through moved to `company/regulatory/statutory_obligations.py` behind `company.interfaces.statutory_obligations`. The world hands over its settled records and its own I&C book; which customers are CCL-liable and at what rate is read company-side.
 edge: simulation.run_phase2b -> company.regulatory.fit_book | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the FiT levelisation levy moved with the RO block it shares its annual-volume accumulator with. The world no longer reads `_FIT_LEVELISATION_RATE_PER_MWH` across the wall.
 edge: simulation.run_phase2b -> company.regulatory.roc_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the Renewables Obligation moved behind the same door. The world no longer reads `_ROC_OBLIGATION_LEVEL` / `_ROC_BUY_OUT_PRICE_GBP`, two of a sibling layer's PRIVATE tables.
-edge: simulation.run_phase2b -> company.risk.collateral_death_test | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.risk.collateral_death_test | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the MC-2 breaking-strain sweep moved behind the same door, and with it the `peak_sample_date` the world was carrying out of the credit block and back into the death test. That thread is now internal to the desk that owns both ends of it.
 edge: simulation.run_phase2b -> company.risk.hedge_policy | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.trading.forward_book | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.trading.hedge_decision | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the wholesale credit register, and the semi-annual point-in-time sampling that finds its peak, moved to `company/risk/counterparty_collateral_desk.py` behind `company.interfaces.counterparty_collateral`. The world hands over the book it holds, its customer register's commodity column and the two PUBLIC spot histories; counterparty lines, rating bands and the peak are read company-side.
 edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.customer_reaction | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.demand_response | disposition=owed | design=A_composition_lift
