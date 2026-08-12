@@ -147,8 +147,19 @@ def test_a_store_file_change_alone_runs_the_store_contract_tests():
 def test_a_non_store_design_doc_is_still_pure_data():
     # Non-vacuity: the prefix must not swallow docs/design at large, or every design-doc commit
     # pays the contract suite and the fast path is gone.
-    assert gate.select_targets(["docs/design/THE_STANDARD.md"]) == []
-    assert gate.select_targets(["docs/design/simplifications/README.md"]) == []
+    # The two paths are ASSEMBLED, not written as literals: since the data surface landed
+    # (2026-08-12) a path spelled out here would appear in THIS file's source, `git grep` would
+    # find it, and the selector would correctly select this very test -- a fixture refuting itself
+    # rather than a defect in the selection.
+    assert gate.select_targets(["docs/design/" + "THE_STANDARD" + ".md"]) == []
+    # The store README is no longer "pure data", and that is the data surface being RIGHT rather
+    # than this test being weakened: tests/design/test_simplifications_store.py opens by naming
+    # this file as the source of the invariants it enforces, so its content can red that test.
+    # The intent this test exists for is unchanged and still asserted -- the STORE prefix must not
+    # swallow docs/design at large, i.e. no contract SUITE, only what actually reads the file.
+    readme = gate.select_targets(["docs/design/simplifications/" + "README" + ".md"])
+    assert readme == ["tests/design/test_simplifications_store.py"]
+    assert not set(gate.STORE_CONTRACT_TESTS) & set(readme)
 
 
 def test_store_contract_test_files_all_exist():
@@ -169,8 +180,9 @@ def test_staged_mint_marker_runs_the_hygiene_set():
 
 def test_non_mint_staging_doc_is_still_pure_data():
     # a director/advisor SOURCE doc or a from_rich note in staging is NOT a mint marker -> stays fast
-    assert gate.select_targets(["docs/staging/in_progress/DIRECTOR_RULING_FOO.md"]) == []
-    assert gate.select_targets(["docs/staging/from_rich_123.md"]) == []
+    # assembled, not literal -- see test_a_non_store_design_doc_is_still_pure_data
+    assert gate.select_targets(["docs/staging/in_progress/" + "DIRECTOR_RULING_FOO" + ".md"]) == []
+    assert gate.select_targets(["docs/staging/" + "from_rich_123" + ".md"]) == []
 
 
 def test_mint_hygiene_test_files_all_exist():
@@ -760,3 +772,100 @@ def test_every_hook_gate_that_spawns_pytest_scrubs_GIT_star__class_guard():
         f"expected both known pytest-spawning gates to be checked; saw {checked_spawners}. The "
         f"detector or the hook chain drifted -- the class guard is not covering what it claims."
     )
+
+
+# ---------------------------------------------------------------------------
+# THE DATA SURFACE (2026-08-12) -- discharging
+# WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md
+# ---------------------------------------------------------------------------
+
+def test_a_data_file_selects_the_tests_of_the_modules_that_READ_it__mutation_proof():
+    """R15 / CONTROLS_THAT_CANNOT_FAIL. `tests_for()` returned [] for every non-`.py` path, so a
+    behaviour-determining data file selected ZERO tests even when tests with tight coverage of it
+    existed. The named instance is the one that caused it: a `background/process_manifest.yaml`
+    edit passed this gate and wedged the publish gate on the next cycle, while
+    `tests/background/test_process_reconciler.py` -- which asserts exact sets computed from that
+    very file -- was never selected.
+
+    Part A is the WIRING (does the selection reach the test), Part B is the NON-VACUITY (can that
+    test actually fail on a bad manifest). Both are needed: a selection that reaches a test which
+    cannot fail on this file's content would be the same defect wearing the fix's coat.
+    """
+    # Part A -- WIRING. (Non-vacuous: delete the data-surface branch from select_targets and this reds.)
+    targets = gate.select_targets(["background/process_manifest.yaml"])
+    assert "tests/background/test_process_reconciler.py" in targets, (
+        "a change to the manifest that everything else DERIVES from must run the tests of the "
+        f"modules that read it; got {targets}"
+    )
+
+    # Part B -- NON-VACUITY: the selected test's own loader must REFUSE a manifest that breaks its
+    # schema and ACCEPT a valid one. Points the loader at throwaway temp files; never the real
+    # manifest.
+    from background import process_reconciler as R
+
+    bad = Path(tempfile.mkdtemp(prefix="datasurface_bad_")) / "process_manifest.yaml"
+    bad.write_text("version: 2\nprocesses:\n  - {session: x}\n")
+    raised = False
+    try:
+        R.load_manifest(bad)
+    except Exception:
+        raised = True
+    assert raised, (
+        "the selected test's loader must reject a schema-breaking manifest -- if it swallows it, "
+        "selecting the test buys nothing and the gate still cannot fail on its own named defect"
+    )
+    assert R.load_manifest(), "a valid live manifest must still load -- else the guard is a tautology"
+
+
+def test_the_data_surface_reaches_the_wider_class_not_just_the_named_instance():
+    """R10: the finding says the gap is wider than one YAML -- every `.json` config and every
+    `docs/design/*.yaml` the code loads sits in the same blind spot. Closing only the instance
+    would be the instance-fix R10 forbids."""
+    targets = gate.select_targets(["docs/design/maturity_map.yaml"])
+    assert "tests/design/test_maturity_map_facets.py" in targets
+    # A data file read by a named module selects that module's tests, whatever its suffix.
+    assert gate.data_surface_tests("background/process_manifest.yaml"), "yaml under a code root"
+    assert gate.data_surface_tests("docs/design/maturity_map.yaml"), "design yaml"
+
+
+def test_the_data_surface_does_NOT_narrow_to_a_hand_kept_list():
+    """The five existing surfaces (level, mint, canon, store, site) are hand-kept lists, each added
+    after its own incident. This selection is DERIVED from what the repo actually reads, so a data
+    file nobody has had an incident about is still covered."""
+    src = GATE_PATH.read_text()
+    assert "def data_surface_tests" in src
+    # derived by asking the repo what references the path, not by a literal membership test
+    assert "git" in src and "grep" in src
+
+
+def test_a_genuinely_inert_data_file_still_selects_NOTHING():
+    """The other direction, and the one that keeps the loop's cadence: a staging document or a
+    published report that no module names must not drag tests into a docs commit. Without this the
+    fix would trade a fail-open control for a gate nobody can afford to run."""
+    # The path is ASSEMBLED at runtime on purpose. Written as a literal it would appear in this
+    # file's own source, `git grep` would find it, and the test would then be asserting that the
+    # selector is blind to a reference it can genuinely see -- a fixture refuting itself.
+    absent = "docs/" + "staging/" + "NO_SUCH_FINDING_" + "ZZZ" + ".md"
+    assert gate.data_surface_tests(absent) == []
+    assert gate.select_targets(["docs/reports/ANNUAL_REPORT.md"]) == []
+
+
+def test_the_published_output_exclusion_is_bounded_by_another_gate():
+    """The data surface excludes the publisher's own output roots because deriving them costs 111s
+    on the loop's most frequent commit. That is a RECORDED LIMITATION, and a recorded limitation
+    has to state what still covers the ground -- otherwise "accepted" is indistinguishable from
+    "forgotten". This reds if either named gate stops covering its root, so the exclusion can never
+    quietly become an uncovered hole.
+    """
+    # site/ -- its own lane gate, plus the whole-tree SITE_SURFACE trigger in this gate.
+    assert (ROOT / "tools" / "site_lane_gate.py").exists()
+    assert gate.SITE_SURFACE_PREFIX == "site/"
+    assert gate.select_targets(["site/proof/some_new_page.html"]) != []
+
+    # docs/reports, docs/status -- the publish gate's subject at HEAD. Named where it is decided.
+    assert "site/" in gate.PUBLISHED_OUTPUT_ROOTS
+    for root in gate.PUBLISHED_OUTPUT_ROOTS:
+        assert gate.data_surface_tests(root + "anything.json") == []
+
+    # And the exclusion is EXACTLY those roots: a data file elsewhere is still derived.
+    assert gate.data_surface_tests("background/process_manifest.yaml") != []

@@ -25,7 +25,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md` — BLOCKING
 - `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md` — LATENT
 - `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md` — LATENT
-- `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — BLOCKING
+- `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — RECORDED
 - `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_WEDGE_ALARM_NAMED_TESTS_THE_GATE_NEVER_RAN_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_WEDGE_CLEARS_ON_PROCESS_EXIT_NOT_ON_THE_RECORDED_PASS_2026-08-12.md` — LATENT
@@ -51,13 +51,12 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-5 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_BRANCHS_GATE_AUDITED_THE_NEIGHBOURING_BRANCHS_PROMISE_2026-08-12.md`
 - `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`
 - `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10.md`
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md`
-- `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md`
 
 ---
 

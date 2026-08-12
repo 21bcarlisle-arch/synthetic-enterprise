@@ -152,6 +152,57 @@ SITE_SURFACE_TESTS = [
     "tests/tools/test_site_reachability.py",
 ]
 
+# THE DATA SURFACE (2026-08-12), discharging
+# WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md.
+#
+# The five surfaces above are HAND-KEPT LISTS, and every one of them was written after its own
+# incident: a level claim, a mint marker, the canon, the per-atom store, a stranded page. That is
+# the accretion pattern OPERATIONAL_COHERENCE_DESIGN_PASS names, and it only ever covers the data
+# files something has already gone wrong about. The general defect underneath them is one line in
+# `tests_for()`: a changed non-`.py` file selected NO tests at all, because coverage was derived
+# from a FILENAME SUFFIX rather than from "what does this file actually affect".
+#
+# The instance that filed it: `background/process_manifest.yaml` calls itself "the SINGLE
+# authoritative manifest of what SHOULD be running" and `tests/background/test_process_reconciler.py`
+# asserts exact sets computed from it -- yet a manifest edit selected that test zero times, passed
+# this gate, and wedged the publish gate on the very next cycle (2026-08-09, 12:22 UTC).
+#
+# WHAT IS DERIVED, NOT LISTED: the repo is asked which of its own `.py` files NAME the staged path
+# (by repo-relative path, or by basename for the `_HERE / "x.yaml"` construction that is how such a
+# path is usually written). A test that names it is selected directly; a module that names it
+# selects that module's tests through the same convention map every other `.py` change uses. So a
+# data file NOBODY has yet had an incident about is covered on the same footing as the five above.
+#
+# NOT `select_impacted_tests` outright, though the finding proposes it and its policy is the right
+# one: its answer for an unmappable path is the FULL SUITE, and its import-graph answer for one
+# module here is 53 test files / 2.6s to build. Both are correct for a fork's inner loop and
+# unaffordable on every commit -- a gate too expensive to run gets bypassed, which is the fail-open
+# it was meant to close. This takes that tool's DOCTRINE (cannot prove impact -> do not stay silent)
+# at the cost the commit path can actually pay: ~0.1s of `git grep`, and zero when the staged data
+# file is one no module reads.
+DATA_SURFACE_SUFFIXES = (
+    ".yaml", ".yml", ".json", ".jsonl", ".toml", ".ini", ".cfg", ".csv", ".txt", ".md", ".sh",
+)
+
+# THE PUBLISHER'S OWN OUTPUTS -- the one narrowing, stated with the number that forced it rather
+# than glossed as "for speed". These roots hold artefacts the repo REGENERATES: their content is
+# an effect of running the publisher, not a declaration the publisher reads. They are also read
+# very widely, so the derivation above answers them with 14-30 test files: measured, a staged
+# `site/data/dashboard.json` selects 29 files / 583 tests / **111 seconds**, on the single most
+# frequent commit in the loop (every auto-process publish). This gate's whole premise is that it
+# is cheap enough to never be worth bypassing -- a two-minute pre-commit gate is a gate someone
+# reaches for `--no-verify` against, which CLAUDE.md classes as a WALL, so the expensive-and-
+# correct version would buy a fail-open worse than the one it closes.
+#
+# ACCEPTED AS A RECORDED LIMITATION (clause 2), not as a repair, and it is bounded rather than
+# open: each excluded root is the SUBJECT of a different named gate that does run on it --
+# `site/**` has `tools/site_lane_gate.py` plus the SITE_SURFACE trigger above, and the published
+# report/status artefacts are the publish gate's own subject at HEAD. What is genuinely NOT
+# covered is a commit that lands a bad published artefact and is caught minutes later by the
+# publish gate instead of instantly at commit time. `test_the_published_output_exclusion_is_
+# bounded_by_another_gate` pins that claim so it reds if one of those gates stops covering it.
+PUBLISHED_OUTPUT_ROOTS = ("site/", "docs/reports/", "docs/status/")
+
 
 def staged_files() -> list[str]:
     out = subprocess.run(
@@ -176,8 +227,9 @@ def tests_for(path: str) -> list[str]:
 
     Same shape as the non-`.py` blind spot filed alongside it (a control whose SCOPE was derived
     from a convenient filename proxy rather than "what does this file actually affect"); this
-    closes the `.py` half. The unmappable-non-`.py` half is still open and still fails toward
-    silence -- see WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md.
+    closes the `.py` half. The non-`.py` half is closed by `data_surface_tests()` below (2026-08-12)
+    -- keep the two separate: this one answers "which tests are NAMED FOR this module", that one
+    answers "which modules READ this file", and fusing them would make each unfalsifiable.
     """
     p = Path(path)
     if p.suffix != ".py":
@@ -223,6 +275,76 @@ CANON_SURFACE_TESTS = [
 ]
 
 
+def _py_files_naming(needle: str) -> set[str]:
+    """Tracked `.py` files whose SOURCE contains `needle` as a literal. `git grep` over the index,
+    not a walk of the working tree: the gate's subject is what is being committed, and a fork
+    worktree's stale copies must never enter the answer."""
+    r = subprocess.run(
+        ["git", "grep", "-l", "--fixed-strings", "-I", needle, "--", "*.py"],
+        cwd=str(ROOT), capture_output=True, text=True,
+    )
+    # rc 1 = no match (not an error); rc >1 = git itself failed -> no claim, empty set.
+    if r.returncode > 1:
+        return set()
+    return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
+
+def _basename_identifies_one_file(name: str) -> bool:
+    """Is this basename a NAME for one file, or a word the repo reuses? `process_manifest.yaml`
+    names exactly one tracked file, so a module writing `_HERE / "process_manifest.yaml"` is
+    talking about that file. `README.md` names dozens, so the same match means nothing -- and
+    unconditional basename matching duly pulled 13 unrelated test files into a design-doc commit
+    (caught by test_a_non_store_design_doc_is_still_pure_data). Ambiguity is resolved by dropping
+    the ambiguous route, never the precise one: the repo-relative path is still asked."""
+    r = subprocess.run(
+        ["git", "ls-files", "--", f"*/{name}", name],
+        cwd=str(ROOT), capture_output=True, text=True,
+    )
+    if r.returncode != 0:
+        return False
+    return len([ln for ln in r.stdout.splitlines() if ln.strip()]) == 1
+
+
+def data_surface_tests(path: str) -> list[str]:
+    """Tests to run for a staged NON-`.py` file: the tests that name it, plus the convention tests
+    of the modules that name it. See THE DATA SURFACE above for why this is derived rather than a
+    sixth hand-kept list.
+
+    FAILS TOWARD RUNNING, never toward silence, in the two places it can be wrong:
+      * the basename fallback OVER-matches (two files sharing a name both answer) -- that costs a
+        few seconds of tests, where under-matching costs a wedge;
+      * a `git grep` that errors returns nothing, which is the one fail-open here and is bounded:
+        the staged file is still subject to CODE_PREFIXES and the five surfaces above.
+
+    `site/` references are excluded: that lane has its own gate (`tools/site_lane_gate.py`) and
+    must never couple to the `tests/` selection.
+    """
+    p = Path(path)
+    if p.suffix == ".py" or p.suffix.lower() not in DATA_SURFACE_SUFFIXES:
+        return []
+    if path.startswith(PUBLISHED_OUTPUT_ROOTS):
+        return []  # regenerated output, gated elsewhere -- see PUBLISHED_OUTPUT_ROOTS
+    # BOTH routes, unioned -- not basename-as-fallback. They answer DIFFERENT questions and the
+    # first one is not the stronger: a doc-string or a test may cite the full repo path while the
+    # module that actually LOADS the file writes `_HERE / "process_manifest.yaml"` and so is only
+    # ever found by basename. Making basename a fallback selected the citers and dropped the
+    # reader -- the finding's own instance, missed by its own fix (caught by the fires-test).
+    referencing = _py_files_naming(path)
+    if _basename_identifies_one_file(p.name):
+        referencing |= _py_files_naming(p.name)
+    targets: set[str] = set()
+    for ref in referencing:
+        if ref.startswith("site/"):
+            continue
+        if ref.startswith("tests/"):
+            # a fixture/conftest that names the path is not itself a runnable guard
+            if Path(ref).name.startswith("test_"):
+                targets.add(ref)
+        elif ref.startswith(CODE_PREFIXES):
+            targets.update(tests_for(ref))
+    return sorted(t for t in targets if (ROOT / t).exists())
+
+
 def select_targets(files: list[str]) -> list[str]:
     """The set of test files to run for this commit, or [] to skip (no code/config/level-surface/
     mint-marker/canon-surface staged)."""
@@ -238,11 +360,18 @@ def select_targets(files: list[str]) -> list[str]:
     site_surface_changed = any(
         f.startswith(SITE_SURFACE_PREFIX) and f.endswith(".html") for f in files
     )
+    # THE DATA SURFACE: derived, so it is computed BEFORE the skip decision -- a data file that
+    # some module reads is not a "pure docs/data commit", and deciding that from the prefix list
+    # alone is the exact fail-open this closes.
+    data_targets: set[str] = set()
+    for f in files:
+        data_targets.update(data_surface_tests(f))
     if not (code_changed or level_surface_changed or mint_marker_changed
-            or canon_surface_changed or store_surface_changed or site_surface_changed):
+            or canon_surface_changed or store_surface_changed or site_surface_changed
+            or data_targets):
         return []  # pure docs/data commit touching no control, level surface, mint marker,
-        # canon or per-atom store
-    targets: set[str] = set()
+        # canon, per-atom store, page, or file any module reads
+    targets: set[str] = set(data_targets)
     if code_changed:
         targets.update(t for t in CONTROL_TESTS if (ROOT / t).exists())
     if level_surface_changed:
