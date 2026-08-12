@@ -50,7 +50,6 @@ import json
 import re
 import shutil
 import subprocess
-import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 

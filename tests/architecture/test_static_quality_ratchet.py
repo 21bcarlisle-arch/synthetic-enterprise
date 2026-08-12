@@ -116,6 +116,17 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-12  I001 1380 -> 1379  (KNIFE3 step 20, the churn-estimation cut)
+#     `simulation/run_phase2b.py` lost one un-sorted import block when the three
+#     churn crossings were replaced by one sorted `company.interfaces.*` +
+#     `simulation.*` pair. A shrink that arrived as a side effect of a cut, not
+#     as a lint pass — recorded here anyway, because a stale entry left unlowered
+#     is how the floor stops holding.
+#     The same step found F401 red at PRISTINE HEAD (281 vs the frozen 279), the
+#     class this file's line ~197 already records: `tools/orphan_ratchet.py`
+#     (unused `ast`) and `site/customers/test_wall_exhibit.py` (unused
+#     `tempfile`), both landed in the preceding six commits by other lanes. Fixed
+#     rather than baselined, which is this ratchet's own stated remedy.
 #   2026-08-09  I001 1388 -> 1387, F541 28 -> 27  (SECOND publish wedge, ~10h)
 #     The same disease as the 7h episode below, the same day, and the reason it
 #     read as "stale" rather than "regression" is that the gate was red in BOTH
@@ -239,7 +250,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1380,
+    "I001": 1379,
     "F401": 279,
     "E402": 193,
     "F841": 130,
@@ -259,7 +270,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2406  # was 2421 at the 08-06 freeze; -15 per the shrink log above
+RUFF_BASELINE_TOTAL = 2405  # was 2421 at the 08-06 freeze; -16 per the shrink log above
 
 
 # --------------------------------------------------------------------------

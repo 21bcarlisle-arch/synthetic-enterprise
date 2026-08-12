@@ -279,11 +279,8 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # its own reading of the published commons artefact
     # (`simulation/price_cap_enforcement.py`); the company keeps its reading and
     # the two are free to differ.
-    ("simulation.run_phase2b", "company.analytics.churn_accuracy_report"),
-    ("simulation.run_phase2b", "company.crm.churn_model"),
     ("simulation.run_phase2b", "company.crm.complaints"),
     ("simulation.run_phase2b", "company.crm.customer_profitability"),
-    ("simulation.run_phase2b", "company.crm.enriched_churn_estimate"),
     ("simulation.run_phase2b", "company.crm.nps_tracker"),
     ("simulation.run_phase2b", "company.crm.payment_behaviour_analytics"),
     ("simulation.run_phase2b", "company.crm.satisfaction_accumulator"),

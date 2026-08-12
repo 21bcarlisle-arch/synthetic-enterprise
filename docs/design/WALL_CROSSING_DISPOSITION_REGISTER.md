@@ -235,6 +235,18 @@ builders (`churn_model`, `complaints`, `customer_profitability`, `enriched_churn
 `demand_response`, `growth_mandate`, `ledger`, `property_model`, `smart_meter_rollout`,
 `tariff_pricing`), plus the two indirect edges on `account_ledger` /
 `payment_observation_consumer`. Take them as groups, one step each, per the same rule §3j set.
+
+STEPS 18 and 19 (§3m/§3n) took the flexibility books and the credit/collateral desk. STEP 20,
+2026-08-12 (§3o) opened the CRM builders with the company's churn belief — 3 of the 9 — and found
+that **the CRM nine are not one group but THREE PROCESSES**: the churn belief (taken), the
+customer-experience record (`satisfaction_accumulator`, `nps_tracker`, `complaints`,
+`payment_behaviour_analytics`) and the commercial pair (`customer_profitability`, `tpi_book`). The
+paragraph above grouped them by PACKAGE; the step template's rule is a group that shares one
+INTERMEDIATE, which is a process, and `company.crm` is not one. **21 direct + 2 indirect remain on
+this module.** Step 20 also found this design's third instance of `B3`'s shape — two symbols
+(`is_active_renewal`, `PASSIVE_CHURN_CAP`) that were world physics filed on the company side and
+imported back — so a step under this design may need to cut in the OTHER direction before its door
+is honest. Check for that before assuming the remaining groups are pure composition lifts.
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
@@ -1286,6 +1298,119 @@ the proof that a bridge route was not silently taken instead.
 
 ---
 
+## 3o. The churn belief is the supplier's, and the dice roll never was — added 2026-08-12 (step 20)
+
+**3 edges cut, 31 → 28 live (29 → 26 direct; the 2 indirect untouched for the SIXTH consecutive
+step, which is again the proof that a bridge route was not silently taken instead).**
+
+`simulation/run_phase2b.py::main()` chose between the company's two churn estimators itself,
+assembled their keyword arguments itself, knew the industry base rate to fall back on when an
+account had no rate history, knew how many renewals the company thinks a post-crisis hangover
+lasts, computed the gas leg's monitoring estimate, and ran the company's own calibration report at
+the end of the run — `company.crm.churn_model`, `company.crm.enriched_churn_estimate` and
+`company.analytics.churn_accuracy_report`.
+
+Forming a view on who is about to leave is a supplier's own commercial judgement, and it is
+ALLOWED TO BE WRONG — that wrongness is the quantity the COUPLED TRIAD scores. The world's job is
+that renewals happen and customers do or do not leave. Now `company/crm/churn_desk.py` takes one
+`RenewalObservation` behind `company.interfaces.churn_estimation` and returns a probability.
+
+### The half that makes this a cut rather than a re-export, and it goes the OTHER way
+
+Two of the symbols `run_phase2b` imported from `company/crm/churn_model.py` were never the
+company's, and a door carrying them would have moved the crossing instead of cutting it.
+
+  * **`is_active_renewal`** ROLLS THE DICE on whether a household actually shops at renewal —
+    `_rnd.Random(f"active_renewal_{seed}").random() < threshold`. A supplier does not roll that
+    dice. It OBSERVES the outcome afterwards, off its own books: did this account take a new fixed
+    deal, or roll onto SVT. `event["is_active_renewal"]` is how the observation reaches the
+    company, and that ordering is what this step restores.
+  * **`PASSIVE_CHURN_CAP`** is labelled `# SIM ground-truth cap for passive churn rolls` **in the
+    company module's own source**, and `run_phase2b` passed it straight into
+    `roll_lifecycle_event(passive_churn_cap=…)` to clamp what the customer's REAL churn
+    probability may reach.
+
+Both now live in `simulation/renewal_engagement.py`, on the world's side. This is
+`B3_world_needs_its_own_cap_physics`' shape for the **third** time — §3a for the price-cap
+schedule, §3g for the churn ceiling, here for the renewal roll — and the recurrence is the point
+worth recording: **the misfiling is systematic, not incidental.** World physics keeps ending up in
+`company/crm/` because that is where the churn *vocabulary* lives, and a name is not a wall.
+
+### The company keeps its own cap, and nothing pins the two equal
+
+`company.crm.churn_model.PASSIVE_CHURN_CAP` stays exactly where it is as the company's ESTIMATE of
+the cap. It is not a donated residual — `estimate_passive_churn_probability` reads it — and
+`test_the_same_mutation_does_move_the_companys_own_answer` proves that liveness rather than
+assuming it, which is the vacuity guard §3g's independence test would otherwise be missing. No test
+asserts the two constants are equal: that would restore in the suite precisely the coupling this
+cut removes from the code, the refusal recorded for `B3`, `B7` and §3g, for the fourth time here.
+The readings MAY drift; drift is a finding for the harness to report, never something the suite
+pins shut (R12).
+
+### No number moves, and that is measured rather than asserted
+
+`rolls_active_renewal` reproduces `is_active_renewal`'s draw exactly — same seed string, same
+comparison, same crisis-year short-circuit — checked against the sequence **transcribed from
+`7a199defe`**, not imported from the company module, over 400 seeds × 4 years and again with
+threaded per-customer probabilities. Both caps are 0.10, both estimators are called with the same
+arguments in the same order at the same rounding. What changed is who depends on whom.
+
+### The defect this cut invites, and the control that performs it
+
+**THE BRANCH BECAME A FIELD.** Before the cut, active-versus-passive was a BRANCH at the point of
+use — `if not active_renewal and segment_for_churn != "I&C"` — so the caller could not estimate a
+passive roller as an active shopper without deleting a visible `if`. Now it is one boolean on a
+dataclass with a default of `True`. A caller that hardcodes it, or drops the field, silently
+switches ~65% of resi renewals onto the wrong estimator, and **every test that exercises the desk
+directly stays green**, because the desk gets exactly what the caller chose to give it. Control 3
+is therefore an AST check over the REAL call site in `run_phase2b.py`, with a vacuity guard on the
+number of constructions examined, and two mutations that perform the defect (the hardcoded flag,
+and the old/new rate swap). Control 4 covers the mirror-image defect inside the desk — the two
+estimators collapsing into one — by asserting the passive arm is genuinely inert relative to the
+active arm, with a mutation that builds the collapsed shape and shows the assertion failing on it.
+
+### A finding the control surfaced, kept rather than tuned away
+
+Control 2's teeth are a per-keyword sensitivity sweep, and its first run **failed**: on the ACTIVE
+arm, `bill_shock_count`, `behaviour_score` and `satisfaction_score` move the estimate by exactly
+nothing. That is not a defect in the cut — both estimators combine as
+`max(rate_estimate, payment_estimate)`, and at a +33% rate rise the rate arm dominates, so the
+entire payment/experience signal is MASKED. It is live on the PASSIVE arm, whose rate sensitivity
+is deliberately near-inert, which is the whole reason Phase QK extended the enriched estimate to
+passive rollers in the first place. The control was split per-arm and the reason written into it,
+rather than the fixture being reshaped until the assertion passed — a fixture chosen to make an
+assertion pass is not evidence. **The masking itself is a fidelity question the company's model
+owns, and it is NOT repaired here:** B7's rule is that a wall pass never moves a number in the same
+commit as an import.
+
+### What did NOT fall
+
+`run_phase2b` keeps **21 direct + 2 indirect** — measured, not carried forward. The CRM group is
+**not one group but three processes**, and this step takes the first: the churn belief. What
+remains of it is the customer-experience record (`satisfaction_accumulator`, `nps_tracker`,
+`complaints`, `payment_behaviour_analytics` — four stateful books opened at setup, fed through the
+loop and read at the end) and the commercial pair (`customer_profitability`, `tpi_book`). §3l
+named the nine as one group because they share a PACKAGE; the step template's rule is a group that
+shares one INTERMEDIATE, which is a process. Deviation from the design block's own sequencing,
+logged here with its reason (LAW A). Beyond the CRM builders: the trading desk (`forward_book`,
+`hedge_decision`, `hedge_policy`), the pricing/regulatory group (`tariff_engine`,
+`margin_feedback`, `ofgem_price_cap`, `decision_policy`) and the `saas.*` set (8) — 6 + 3 + 4 + 8 =
+21, arithmetic written out. Beyond this module: `simulation.customer_events`' four edges (a
+coupled-triad build, which B2 explicitly forbids attempting as a mechanical move) and
+`run_phase4c_on_phase2b`'s `dd_review_runner` routing residual, §3h.
+
+### The controls
+
+`tests/company/interfaces/test_churn_estimation_seam.py` (26 tests) and
+`tests/simulation/test_renewal_engagement.py` (12 tests) — 38 in total, of which 6 are mutations
+that PERFORM the named defect: the lazy world import (on a COPY of the source, never a repo file
+edited mid-pytest), the dropped keyword, the hardcoded active flag, the swapped rates, the
+collapsed branch, and the company's cap moved while the world's stays put. The pre-cut commit
+`7a199defe` is checked to EXIST and to CONTAIN the transcribed block before control 2 is trusted —
+a citation to a commit that lacks the block is a mirror wearing a citation.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1783,11 +1908,11 @@ edge: simulation.run_phase1c_full_window -> saas.customer_reaction | disposition
 edge: simulation.run_phase1c_full_window -> saas.tariff_pricing | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_full_window` is 100% composition (`136` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (a forward price off the published curve). It moved to `tools/run_phase1c_full_window.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase1c_renewals -> saas.clv_seed | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_renewals` is 100% composition (`153` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_renewals.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase1c_renewals -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_renewals` is 100% composition (`153` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_renewals.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
-edge: simulation.run_phase2b -> company.analytics.churn_accuracy_report | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.churn_model | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.analytics.churn_accuracy_report | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — the company marking its own churn homework moved behind `company.interfaces.churn_estimation` with the estimates it scores. Scoring the estimate somewhere other than where the estimate is made is how a calibration report drifts from the model it calibrates; the desk owns both ends.
+edge: simulation.run_phase2b -> company.crm.churn_model | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — SPLIT IN TWO DIRECTIONS, which is why this row is not a plain door. The company's belief (`estimate_churn_probability` for the gas leg, `CRISIS_HANGOVER_WINDOW_PERIODS`) went behind `company.interfaces.churn_estimation`. The two symbols that were never the company's — `is_active_renewal`, which ROLLS whether a household shops, and `PASSIVE_CHURN_CAP`, labelled `# SIM ground-truth cap` in the company module's own source and clamping the customer's REAL churn — went the OTHER way, to `simulation/renewal_engagement.py`. §3g's finding for the third time. A door carrying those would have moved the crossing, not cut it.
 edge: simulation.run_phase2b -> company.crm.complaints | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.customer_profitability | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.enriched_churn_estimate | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.crm.enriched_churn_estimate | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — the world no longer chooses between the passive and active estimators, assembles their keyword arguments, or knows the industry base rate to fall back on when an account has no rate history. It hands one `RenewalObservation` of things the supplier can see and takes back a probability.
 edge: simulation.run_phase2b -> company.crm.nps_tracker | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.payment_behaviour_analytics | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> company.crm.satisfaction_accumulator | disposition=owed | design=A_composition_lift

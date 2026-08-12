@@ -104,7 +104,15 @@ from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_as
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
 from company.crm.customer_profitability import compute_profitability_uplift
-from company.crm.enriched_churn_estimate import enriched_churn_estimate as _enriched_churn_estimate, enriched_passive_churn_estimate as _enriched_passive_churn_estimate, INDUSTRY_BASE_CHURN_RATE as _INDUSTRY_BASE_CHURN_RATE
+from company.interfaces.churn_estimation import (
+    RenewalObservation,
+    crisis_hangover_periods,
+    estimate_churn_without_rate_history,
+    estimate_renewal_churn,
+    estimate_secondary_fuel_churn,
+    score_churn_estimates,
+)
+from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
@@ -119,7 +127,6 @@ from simulation.reputation_index import ReputationEventType
 from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.crm.tpi_book import TPIBook, TPITier, TPICommissionBasis
-from company.analytics.churn_accuracy_report import compute_churn_model_performance as _compute_churn_model_performance
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -1222,10 +1229,6 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             passive_cap = None
             _engagement_level_str = None
             if old_elec_rate is not None:
-                from company.crm.churn_model import (
-                    is_active_renewal as _is_active_renewal,
-                    PASSIVE_CHURN_CAP as _PASSIVE_CHURN_CAP,
-                )
                 # Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): each household's
                 # engagement archetype is a persistent trait (keyed on the
                 # stable billing_account, not per-term_index), not a fresh
@@ -1237,11 +1240,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 )
                 _engagement_level = engagement_level_for_customer(billing_account)
                 _engagement_level_str = _engagement_level.value
-                active_renewal = _is_active_renewal(
+                active_renewal = rolls_active_renewal(
                     term_start_str, f"{billing_account}_{term_index}",
                     active_renewal_probability(_engagement_level),
                 )
-                passive_cap = None if active_renewal else _PASSIVE_CHURN_CAP
+                passive_cap = passive_churn_cap_for(active_renewal)
                 acq_date_for_est = next(
                     (c["acquisition_date"] for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
                     term_start_str,
@@ -1303,27 +1306,24 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # scalar was retained -- SIM_TAB_OVERHAUL.md's dead Satisfaction
                 # column).
                 _company_sat_acc.record_year_snapshot(cid, _renewal_year)
-                if not active_renewal and segment_for_churn != "I&C":
-                    company_est_pre = round(_enriched_passive_churn_estimate(
-                        old_elec_rate, unit_rate, tenure_for_est,
-                        bill_shock_count=_nd_shock_count,
-                        behaviour_score=_nh_behaviour_score,
-                        satisfaction_score=_ng_satisfaction,
-                        renewal_year=_renewal_year,
-                    ), 4)
-                else:
-                    # Phase ND: use enriched estimate with bill_shock_count from prior terms
-                    company_est_pre = round(_enriched_churn_estimate(
-                        old_elec_rate, unit_rate, tenure_for_est,
-                        company_eac,
-                        bill_shock_count=_nd_shock_count,
-                        behaviour_score=_nh_behaviour_score,
-                        satisfaction_score=_ng_satisfaction,
-                        hedge_fraction=prev_hf,
-                        hangover_periods_remaining=hangover_periods,
-                        segment=segment_for_churn,
-                        renewal_year=_renewal_year,
-                    ), 4)
+                # KNIFE step 20 (§3o): the world hands over what it can see and
+                # takes back the company's belief. Which estimator applies to a
+                # passive roller versus an active/I&C renewal is the company's
+                # own segmentation judgement, behind this door.
+                company_est_pre = estimate_renewal_churn(RenewalObservation(
+                    old_rate_gbp_per_mwh=old_elec_rate,
+                    new_rate_gbp_per_mwh=unit_rate,
+                    tenure_years=tenure_for_est,
+                    annual_consumption_kwh=company_eac,
+                    bill_shock_count=_nd_shock_count,
+                    behaviour_score=_nh_behaviour_score,
+                    satisfaction_score=_ng_satisfaction,
+                    hedge_fraction=prev_hf,
+                    hangover_periods_remaining=hangover_periods,
+                    segment=segment_for_churn,
+                    renewal_year=_renewal_year,
+                    active_renewal=active_renewal,
+                ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
@@ -1372,7 +1372,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         _no_offer_reason = "uneconomical"
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
-                company_est_pre = _INDUSTRY_BASE_CHURN_RATE
+                company_est_pre = estimate_churn_without_rate_history()
             # Phase MZ: SIM-side income stress -> actual switching propensity
             _churn_income_stress = None
             if household_demand_register is not None:
@@ -1682,7 +1682,6 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # level), but the company tracks gas renewal rate changes separately to spot
         # early-warning pressure on dual-fuel portfolios.
         if term_index >= 1 and commodity == "gas" and old_gas_rate is not None:
-            from company.crm.churn_model import estimate_churn_probability as _est_churn
             gas_customer_data = next(
                 (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account),
                 None,
@@ -1690,7 +1689,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             if gas_customer_data is not None:
                 acq_date_gas = gas_customer_data.get("acquisition_date", term_start_str)
                 tenure_gas = (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_gas)).days / 365.25
-                gas_company_est = round(_est_churn(old_gas_rate, unit_rate, tenure_gas, fuel="gas"), 4)
+                gas_company_est = estimate_secondary_fuel_churn(old_gas_rate, unit_rate, tenure_gas)
                 company_gas_churn_log.append({
                     "customer_id": cid,
                     "billing_account": billing_account,
@@ -2141,8 +2140,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # Company observes this from its own P&L — customers scarred by crisis prices stay anxious
         # even when rates improve, so churn stays elevated for 2 renewal periods.
         if commodity == "electricity" and term_revenue > 0 and actual_net / term_revenue < -CRISIS_HANGOVER_LOSS_THRESHOLD:
-            from company.crm.churn_model import CRISIS_HANGOVER_WINDOW_PERIODS
-            hangover_remaining[cid] = CRISIS_HANGOVER_WINDOW_PERIODS
+            hangover_remaining[cid] = crisis_hangover_periods()
         if term_revenue > 0:
             if commodity == "electricity":
                 portfolio_elec_margin_rates.append(actual_net / term_revenue)
@@ -2642,7 +2640,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             _bill_shock_dates,
         ),
         # Phase NJ: company churn model calibration report
-        "churn_model_performance": _compute_churn_model_performance(
+        "churn_model_performance": score_churn_estimates(
             customer_events_log, retention_log, no_offer_churn_log
         ),
         # Phase QL Part 2: hidden churn-journey state trajectory (SIM-side shadow
