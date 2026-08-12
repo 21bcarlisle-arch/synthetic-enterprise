@@ -26,6 +26,8 @@ guard on the live path, so "pre-deferral-pricing" is not a real fork in the
 current code (see FROZEN_POLICY_BASELINE_DESIGN.md's honest-gap note).
 """
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 import hashlib
 
@@ -106,6 +108,70 @@ NAIVE_POLICY = DecisionPolicy(
     use_var_hedge_decision=False,
     framing_mode="gain_framed",
 )
+
+
+# ---- THE RUN'S POLICY, for consumers that are not handed one ----------------
+#
+# WHY THIS EXISTS (2026-08-12, WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10)
+#
+# Most consumers of a policy field receive the policy as an argument, so a
+# counterfactual replay under NAIVE_POLICY gets the naive answer for free:
+# `run_phase2b.main(policy=...)` reads `policy.retention_discount_for_risk`,
+# `policy.include_acq_cost_saved_in_guard`, `policy.use_var_hedge_decision` and
+# calls `framing_type_for(policy, ...)`.
+#
+# `tone_mode` was the exception, and it was a real defect rather than a rounding
+# error. The dunning tone is resolved per bill from deep inside the settlement
+# path (`simulation/arrears_engine.py::_tone_for_bill` ->
+# `company/interfaces/collections_communication.py::collections_tone_for`), which
+# has no policy argument and — by the B5 wall cut — must never be given one: the
+# world may learn the TONE of the letter that arrived, never the policy object
+# that chose it. So the seam pinned `CURRENT_POLICY`, and the frozen baseline's
+# NAIVE arm ran naive retention, naive guard and naive hedging with the CURRENT
+# A/B-split collections tone. It was not the naive company, and the resulting
+# delta attributed one uncontrolled variable to the policy changes.
+#
+# Threading the policy down to that call site was the other option and was
+# rejected: it would push a company decision object through four SIM consumers
+# (`compute_emergent_bad_debt`, `compute_debt_recovery`, `dd_collection_book`,
+# `tools/generate_billing_ledger`) — exactly the plumbing the wall pass removed.
+#
+# A run-scoped ACTIVE POLICY, read only on the company side of the seam, gets the
+# identity right without moving a single byte across the wall: the SIM still asks
+# for a string and cannot see, set or name the policy. `policy_scope` is a
+# context manager rather than a bare setter so an arm cannot leak into whatever
+# runs next, which is the failure mode a module-level global would have.
+_ACTIVE_POLICY: ContextVar[DecisionPolicy] = ContextVar(
+    "active_decision_policy", default=CURRENT_POLICY
+)
+
+
+def active_policy() -> DecisionPolicy:
+    """The policy the CURRENT RUN is executing under.
+
+    Defaults to CURRENT_POLICY, so every caller that never enters a
+    `policy_scope` sees exactly today's behaviour. Consumers that cannot be
+    handed a policy (the collections-communication seam) resolve their field
+    here; consumers that ARE handed one keep using their argument, because an
+    explicit argument is the stronger contract.
+    """
+    return _ACTIVE_POLICY.get()
+
+
+@contextmanager
+def policy_scope(policy: DecisionPolicy):
+    """Run a block as though `policy` were the company's live policy.
+
+    The counterfactual replay in `tools/run_frozen_baseline.py` wraps each arm
+    in this, so the naive arm's collections tone is the naive tone. Resets on
+    exit — including on exception — so a failed arm cannot contaminate the next
+    one, or the test that runs after it.
+    """
+    token = _ACTIVE_POLICY.set(policy)
+    try:
+        yield policy
+    finally:
+        _ACTIVE_POLICY.reset(token)
 
 
 def framing_type_for(policy: DecisionPolicy, customer_id: str, event_date: str) -> str:

@@ -89,10 +89,16 @@ def test_the_sample_exercises_both_cohort_arms():
 def test_mutation_a_seam_resolving_the_wrong_policy_reds_the_identity_check(monkeypatch):
     """R15 both-ways proof for the identity check. NAIVE_POLICY carries tone_mode
     'firm_toned' (not 'ab_test'), so a seam that resolved the wrong policy would return a
-    constant. Perform that defect and prove the check above fires."""
+    constant. Perform that defect and prove the check above fires.
+
+    The mutation now goes through `active_policy` rather than a module-level
+    `CURRENT_POLICY` attribute, because 2026-08-12 replaced the pin with the run's
+    policy (WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). The defect
+    being performed is the same one: the seam resolving a policy other than the
+    caller's."""
     from company.policy.decision_policy import NAIVE_POLICY
 
-    monkeypatch.setattr(seam, "CURRENT_POLICY", NAIVE_POLICY)
+    monkeypatch.setattr(seam, "active_policy", lambda: NAIVE_POLICY)
     mismatches = [
         (cid, pe)
         for cid, pe in SAMPLE

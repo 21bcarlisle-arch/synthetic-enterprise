@@ -75,7 +75,7 @@ is legible at one reviewable chokepoint, and the remaining dependency is a singl
 
 from __future__ import annotations
 
-from company.policy.decision_policy import CURRENT_POLICY, tone_for
+from company.policy.decision_policy import active_policy, tone_for
 
 __all__ = ["collections_tone_for"]
 
@@ -90,12 +90,16 @@ def collections_tone_for(customer_id: str, period_end: str) -> str:
     private responsiveness, and the company discovers it only statistically, via
     `company/analytics/nudge_discovery.py`.
 
-    Resolved against the LIVE policy (`CURRENT_POLICY`). That is the pre-existing
-    behaviour of the call site this replaced, preserved deliberately and byte for byte so
-    this cut changes no payment outcome. It is also a known limit worth naming: a run that
-    swaps the policy (`tools/run_frozen_baseline.py`'s NAIVE arm) does NOT swap the tone
-    here, because this resolves the live policy rather than the run's. Filed as a finding
-    rather than fixed inside a wall pass — see
+    Resolved against **the run's** policy (`active_policy()`), not a pinned
+    `CURRENT_POLICY` — 2026-08-12, closing
     `docs/staging/WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10.md`.
+    Outside any `policy_scope` that resolves to `CURRENT_POLICY`, so every ordinary run
+    is byte-for-byte what the B5 cut preserved; inside the frozen baseline's NAIVE arm it
+    now resolves the naive tone, which is what makes that arm the naive COMPANY rather
+    than a naive company writing current letters.
+
+    Note what still does not cross: no policy argument is accepted, and the policy object
+    is not re-exported. The run's identity is read on THIS side of the seam. The world
+    asks for a tone and receives a string, exactly as before.
     """
-    return tone_for(CURRENT_POLICY, customer_id, period_end)
+    return tone_for(active_policy(), customer_id, period_end)

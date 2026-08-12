@@ -101,7 +101,7 @@ from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hed
 from company.trading.forward_book import ForwardContract, TradingBook, assign_default_counterparty
 from company.interfaces.counterparty_collateral import build_counterparty_collateral
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
-from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
+from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, active_policy, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
 from company.crm.customer_profitability import compute_profitability_uplift
 from company.interfaces.churn_estimation import (
@@ -754,6 +754,25 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     """
     effective_end = report_end or REPORT_END
     policy = policy or CURRENT_POLICY
+    # A run's policy identity must be ONE thing (2026-08-12, closing
+    # WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). Fields this
+    # function is handed come from `policy`; the collections letter tone is
+    # resolved without an argument, from the active scope, deep in the arrears
+    # path. If those two disagree the run is a chimera -- naive retention with
+    # current dunning letters -- and the frozen baseline's delta silently
+    # attributes an uncontrolled variable to the policy change. Refusing here is
+    # fail-CLOSED: the default scope IS CURRENT_POLICY, so every caller that
+    # passes nothing, or passes CURRENT_POLICY, is unaffected; only a caller
+    # that swaps the policy without swapping the scope is stopped, and it is
+    # stopped loudly rather than producing a plausible wrong number.
+    if policy is not active_policy():
+        raise ValueError(
+            "run_phase2b was given policy=%r but the active policy scope is %r. "
+            "Wrap the run in company.policy.decision_policy.policy_scope(policy) "
+            "so argument-less consumers (the collections-communication seam) "
+            "resolve the same policy this run claims to be executing."
+            % (policy.name, active_policy().name)
+        )
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")

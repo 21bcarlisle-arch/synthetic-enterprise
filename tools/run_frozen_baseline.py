@@ -25,7 +25,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY
+from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, policy_scope
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -75,9 +75,22 @@ def run_frozen_baseline(report_end: str | None = None) -> dict:
     seed -- see simulation/customer_events.py and run_phase2b.py's
     acquisition roll), so any divergence between the two runs is
     attributable to the policy change alone.
+
+    Each arm runs inside `policy_scope(...)` as well as passing `policy=`
+    (2026-08-12, WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10).
+    The argument covers every field a consumer is handed; the scope covers the
+    one field resolved without an argument -- the collections letter tone,
+    which the arrears path reads per bill through the company's published
+    seam and which therefore used to come out CURRENT in both arms. The
+    sentence above ("attributable to the policy change alone") was false for
+    `tone_mode` until the scope existed, and `run_phase2b.main` now refuses a
+    policy argument that disagrees with the active scope, so a future arm
+    cannot silently reacquire the defect.
     """
-    current_result = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
-    naive_result = run_phase4c(report_end=report_end, policy=NAIVE_POLICY)
+    with policy_scope(CURRENT_POLICY):
+        current_result = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
+    with policy_scope(NAIVE_POLICY):
+        naive_result = run_phase4c(report_end=report_end, policy=NAIVE_POLICY)
 
     current = _portfolio_metrics(current_result)
     naive = _portfolio_metrics(naive_result)
@@ -91,6 +104,20 @@ def run_frozen_baseline(report_end: str | None = None) -> dict:
         "naive_policy": naive,
         "delta_ev_gbp": delta_ev_gbp,
         "delta_net_margin_gbp": current["total_net_gbp"] - naive["total_net_gbp"],
+        # Which fields the two arms actually differed on. Present from 2026-08-12;
+        # an artefact WITHOUT this key was generated before
+        # WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 was fixed, and
+        # its naive arm ran the LIVE collections-letter tone, so its delta carries an
+        # uncontrolled variable. That is a provenance fact about the artefact, so it
+        # belongs in the artefact rather than only in a commit message.
+        "arm_identity": {
+            "differing_fields": sorted(
+                f
+                for f in CURRENT_POLICY.__dataclass_fields__
+                if getattr(CURRENT_POLICY, f) != getattr(NAIVE_POLICY, f)
+            ),
+            "tone_resolved_from": "the run's policy scope (fixed 2026-08-12)",
+        },
         "narrative": (
             "Replaying the same decade under the naive pre-learning policy "
             "(flat 5% retention discount, margin-only offer guard, no VaR-constrained "
