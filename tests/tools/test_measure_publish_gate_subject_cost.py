@@ -36,6 +36,7 @@ import datetime
 import fcntl
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -2890,23 +2891,37 @@ def test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel():
     repo can build a path, and would pass on a kernel with no `memory.peak` at all.
 
     A 400MB allocation inside a 1024MB scope must read back as ~400MB -- not as the ceiling, not
-    as zero, and labelled `observed` rather than a lower bound because the run ended on its own
-    and a read landed after the child exited."""
-    ATTEMPTS = 3   # see the note below: the exact branch is a RACE, not a certainty
+    as zero -- and the sampler's `lower bound` qualifier must AGREE with whether its read
+    actually landed after the child exited.
+
+    NARROWED 2026-08-12 (18th publish wedge, this test was the blocking red). Every assertion
+    that survives HERE is load-independent: it holds whether or not the final read wins its race
+    with systemd's teardown. The assertion that REQUIRED winning that race is gone -- see
+    `test_a_read_that_lands_after_exit_is_exact_and_one_that_does_not_is_a_lower_bound`, which
+    tests the same qualifier property in both directions without a race. The comment this file
+    already carried named the defect exactly ("a verdict decided by ambient load is not a
+    control") and then left the load-dependent assertion in the blocking gate anyway, where it
+    reddened under the gate's own full-suite fallback and wedged publishing.
+
+    This half keeps the expensive, irreplaceable part: a REAL systemd scope and a REAL kernel
+    `memory.peak`. Asserting that a sampler builds a path proves only that this repo can build a
+    path, and would pass on a kernel with no `memory.peak` at all."""
+    for sampler in _peak_selftest_rounds(attempts=1):
+        pass
+
+
+def _peak_selftest_rounds(attempts):
+    """Run the real 400MB-in-a-1024MB-scope self-test, yielding each round's sampler.
+
+    Shared by the blocking test above and the operational one below so BOTH judge the same
+    instrument on the same evidence -- a second hand-written copy would be free to drift into
+    asserting something the blocking half never checks."""
     alloc = ("import time\n"
              "b = bytearray(400*1024*1024)\n"
              "b[::4096] = b'x' * (len(b)//4096)\n"
              "time.sleep(3)\n")
 
-    # THE EXACT BRANCH IS A RACE WITH SYSTEMD'S TEARDOWN, so asserting it ONCE asserts that
-    # this box was not busy (2026-08-12: red inside the module, green run alone -- a verdict
-    # decided by ambient load is not a control). `stop()` takes one final read and records
-    # whether it LANDED; when the scope is already gone the sampler correctly downgrades to a
-    # lower bound. Both branches are honest, so the loop takes the exact one when it can get
-    # it and the assertions below still fail a sampler that can NEVER read after exit --
-    # which is the defect this test exists to catch.
-    landed = None
-    for attempt in range(ATTEMPTS):
+    for attempt in range(attempts):
         unit = "ops2-peak-selftest-{}-{}".format(os.getpid(), attempt)
         sampler = measure._ScopePeakSampler(unit, poll_seconds=0.5).start()
         res = subprocess.run(measure._scope_argv(unit, memory_max_mb=1024)
@@ -2925,19 +2940,106 @@ def test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel():
         )
         assert sampler.source == "memory.peak"
         # The qualifier must AGREE with what the sampler says it got, on every attempt --
-        # this is the half that holds even when the race is lost.
+        # this is the half that holds even when the race is lost, and it is what stops the
+        # sampler from calling a lower bound an exact read.
         assert sampler.is_lower_bound_on_demand(False) is not sampler.read_after_exit
-        if sampler.read_after_exit:
-            landed = sampler
-            break
+        yield sampler
 
-    assert landed is not None, (
-        "no read landed after the child exited in {} attempts -- every peak this instrument "
-        "produces would be a lower bound, so the ratchet can never measure an exact "
-        "demand".format(ATTEMPTS)
+
+def _constructed_scope_cgroup(root, unit, peak_bytes):
+    """A cgroup directory shaped exactly as `_scope_cgroup_dir` looks for one, under `root`.
+
+    The sampler already takes `root` for this reason, so this is the mechanism's own seam and
+    not a hole cut for a test. Whether the directory still EXISTS at `stop()` is under this
+    test's control rather than systemd's -- which is the entire point."""
+    uid = os.getuid()
+    cgdir = (Path(root) / "user.slice" / "user-{}.slice".format(uid)
+             / "user@{}.service".format(uid) / "app.slice" / (unit + ".scope"))
+    cgdir.mkdir(parents=True)
+    (cgdir / "memory.peak").write_text("{}\n".format(peak_bytes))
+    return cgdir
+
+
+def test_a_read_that_lands_after_exit_is_exact_and_one_that_does_not_is_a_lower_bound(tmp_path):
+    """The exact/lower-bound QUALIFIER, both directions, with the race taken out.
+
+    ELIMINATION, 2026-08-12 (18th publish wedge). This replaces
+    `test_the_sampler_reads_this_scopes_own_high_water_mark_from_the_kernel`'s final assertion,
+    which required WINNING A RACE with systemd's asynchronous teardown to observe the exact
+    branch. That assertion wedged the publish gate: it is green run alone and red inside its own
+    module, so its verdict was decided by ambient load rather than by the instrument -- a
+    property the file's own comment had already named and then answered with a retry loop, which
+    only lowers the odds. Retrying harder cannot fix a control whose subject is the weather.
+
+    WHERE THE PINNED PROPERTY WENT (an elimination must move the controls that pin it): the
+    defect the old assertion guarded is "a sampler that can NEVER read after exit yields only
+    lower bounds, so the ratchet can never measure an exact demand". That is tested here
+    directly and in BOTH directions, against a cgroup whose existence at `stop()` is controlled
+    rather than raced.
+
+    PRECISELY WHAT THIS DOES AND DOES NOT COVER, so it is not read as more than it is: it drives
+    `stop()` with no sampling thread, so it proves `stop()` TAKES a final read and qualifies it
+    honestly. It does NOT exercise the read-before-join ORDERING that `stop()`'s own comment
+    records as measured ("`read_after_exit` was False on every run until this order was
+    swapped") -- with no thread there is nothing to join. That ordering remains covered only by
+    the real-systemd sibling above, where it is observed rather than asserted.
+    What is deliberately NOT asserted any more is that systemd's teardown is sometimes slow
+    enough to lose: that is a property of systemd's timing, not of this instrument, and nothing
+    the ratchet publishes should hang on it.
+
+    The REAL-cgroup half of the contract is untouched and still blocking in the sibling above,
+    which spends real seconds proving `memory.peak` on a genuine 400MB scope reads back as
+    ~400MB -- so this constructed fixture cannot become the only evidence that the instrument
+    measures anything real."""
+    # DIRECTION 1 -- the scope is still there when stop() takes its final read.
+    live = _ScopePeakSamplerHarness(tmp_path, "exact", peak_bytes=400 * 1024 * 1024)
+    live.sample_once()
+    live.stop(remove_cgroup=False)
+    assert live.sampler.read_after_exit is True, (
+        "the final read did not land on a cgroup that was demonstrably still present -- "
+        "`stop()` must read BEFORE it joins, or the exact branch is unreachable by construction"
     )
-    assert landed.is_lower_bound_on_demand(False) is False
-    assert "observed:" in landed.basis(False)
+    assert live.sampler.peak_mb == 400
+    assert live.sampler.source == "memory.peak"
+    assert live.sampler.is_lower_bound_on_demand(False) is False
+    assert "observed:" in live.sampler.basis(False)
+
+    # DIRECTION 2 -- the scope is gone by then, exactly as a lost race leaves it.
+    gone = _ScopePeakSamplerHarness(tmp_path, "torn-down", peak_bytes=400 * 1024 * 1024)
+    gone.sample_once()
+    gone.stop(remove_cgroup=True)
+    assert gone.sampler.read_after_exit is False
+    assert gone.sampler.peak_mb == 400, (
+        "a peak already observed must SURVIVE the teardown -- dropping it would make a torn-down "
+        "scope indistinguishable from one that used no memory"
+    )
+    assert gone.sampler.is_lower_bound_on_demand(False) is True, (
+        "a peak with no post-exit read is a LOWER BOUND; labelling it exact is the one error "
+        "`_derive_phase_ceiling_mb` must never be fed"
+    )
+    assert "observed:" not in gone.sampler.basis(False)
+
+
+class _ScopePeakSamplerHarness:
+    """Drives a real `_ScopePeakSampler` against a constructed cgroup, with no sampling thread.
+
+    The thread is what makes the real test slow and racy; the ordering property under test lives
+    entirely in `stop()`, so this calls `_sample()`/`stop()` directly."""
+
+    def __init__(self, tmp_path, name, peak_bytes):
+        self.root = tmp_path / name
+        self.unit = "ops2-constructed-{}".format(name)
+        self.cgdir = _constructed_scope_cgroup(self.root, self.unit, peak_bytes)
+        self.sampler = measure._ScopePeakSampler(self.unit, root=self.root, poll_seconds=0.01)
+
+    def sample_once(self):
+        """One reading while the 'phase' is live, as the polling thread would take."""
+        assert self.sampler._sample() is True, "the constructed cgroup was not readable at all"
+
+    def stop(self, remove_cgroup):
+        if remove_cgroup:
+            shutil.rmtree(self.cgdir)
+        self.sampler.stop()
 
 
 @pytest.mark.skipif(_systemd_run_missing(), reason="systemd-run is the mechanism under test")
