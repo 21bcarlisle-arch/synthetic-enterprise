@@ -928,6 +928,40 @@ def _scope_argv(unit: str, memory_max_mb: int = PHASE_MEMORY_MAX_MB) -> list:
             "--property=MemoryMax={}M".format(memory_max_mb)]
 
 
+def _user_bus_ready(log=None) -> bool:
+    """Make `systemd-run --user` reachable, or say plainly that it is not.
+
+    `systemd-run --user` talks to the per-user systemd manager over its D-Bus socket, and finds
+    it through XDG_RUNTIME_DIR / DBUS_SESSION_BUS_ADDRESS. A login shell has both; a process
+    started from a git hook, a scheduled task, a gate subprocess or a bare `python3 -m pytest`
+    frequently has neither, and then every bound phase dies with
+
+        Failed to connect to user scope bus via local transport:
+        $DBUS_SESSION_BUS_ADDRESS and $XDG_RUNTIME_DIR not defined
+
+    which reads like a broken measurement rather than a missing environment variable. Three
+    tests in this module's suite were RED at HEAD for exactly that reason and for no other: with
+    the two variables exported, the same 121 tests pass unchanged.
+
+    The socket is at a known path (`/run/user/<uid>/bus`), so when it EXISTS we point at it
+    rather than refusing over a value we can derive. We never invent one: if the socket is not
+    there, this box genuinely has no user manager to bound anything with, and the caller must
+    treat that exactly like a missing `systemd-run` -- fail CLOSED, never measure unbounded.
+    That is the same rule `_bounded_argv` already applies, extended to the half of the
+    requirement that was unchecked.
+    """
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR") or "/run/user/{}".format(os.getuid())
+    bus_path = Path(runtime_dir) / "bus"
+    if not bus_path.exists():
+        if log:
+            log("  ! no user D-Bus socket at {} -- the user systemd manager is unreachable, "
+                "so no phase can be bounded here".format(bus_path))
+        return False
+    os.environ.setdefault("XDG_RUNTIME_DIR", runtime_dir)
+    os.environ.setdefault("DBUS_SESSION_BUS_ADDRESS", "unix:path={}".format(bus_path))
+    return True
+
+
 def _phase_scope_unit(cwd: Path) -> str:
     """A distinct scope name per phase run, so two never collide on a retry."""
     return "publish-gate-phase-{}-{}".format(os.getpid(), abs(hash(str(cwd))) % 100000)
@@ -948,6 +982,10 @@ def _bounded_argv(cwd: Path, log, unit: str = None) -> list:
         log("  ! systemd-run unavailable -- REFUSING to time an unbounded suite; the "
             "unbounded path is what global-OOM-killed this box three times")
         raise _Unbounded("systemd-run unavailable")
+    # The binary existing is only half the requirement: it has to be able to REACH the user
+    # manager. Unchecked, that half fails as a DBus error mid-phase instead of a refusal here.
+    if not _user_bus_ready(log):
+        raise _Unbounded("user D-Bus unreachable")
     # THE TERMINUS OF THE RATCHET, and the reason it is not a clamp. Measured demand of
     # `PHASE_MEMORY_DEMAND_FLOOR_MB` needs a ceiling this box cannot spare, so this phase is
     # unrunnable HERE -- running it at the cap would reproduce the kill that produced the floor,

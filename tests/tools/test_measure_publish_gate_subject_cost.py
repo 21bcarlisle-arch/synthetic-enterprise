@@ -3238,3 +3238,66 @@ def test_the_banked_phase_carries_its_peak_and_the_provenance_of_its_ceiling(mon
         "qualify a number it never took"
     )
     assert "unavailable:" in rec["scope_peak_basis"]
+
+
+# ---------------------------------------------------------------------------------------
+# THE USER-BUS PRECONDITION -- the unchecked half of "can this phase be bounded at all".
+#
+# Three tests in this module were RED at HEAD purely because XDG_RUNTIME_DIR and
+# DBUS_SESSION_BUS_ADDRESS were absent from the pytest environment, so `systemd-run --user`
+# could not reach the user manager. Nothing was wrong with the measurement; the tool checked
+# that the systemd-run BINARY existed and never that it could reach anything.
+# ---------------------------------------------------------------------------------------
+
+def test_the_user_bus_is_located_from_the_uid_when_the_env_is_bare(monkeypatch):
+    """A hook, a scheduled task or a bare pytest has no XDG_RUNTIME_DIR. The socket lives at the
+    known path /run/user/<uid>/bus, so deriving it beats refusing over a value we can compute."""
+    import tools.measure_publish_gate_subject_cost as m
+
+    expected_dir = "/run/user/1234"
+    expected_bus = expected_dir + "/bus"
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    monkeypatch.setattr(m.os, "getuid", lambda: 1234)
+    monkeypatch.setattr(m.Path, "exists", lambda self: str(self) == expected_bus)
+
+    assert m._user_bus_ready() is True
+    assert m.os.environ["XDG_RUNTIME_DIR"] == expected_dir
+    assert m.os.environ["DBUS_SESSION_BUS_ADDRESS"] == "unix:path=" + expected_bus
+
+
+def test_a_missing_bus_socket_is_refused_not_invented(monkeypatch):
+    """FAIL CLOSED. No socket means no user manager, which means nothing can bound the phase --
+    the same verdict as a missing systemd-run. Inventing an address would produce an unbounded
+    run, and the unbounded path is what OOM-killed this box three times."""
+    import tools.measure_publish_gate_subject_cost as m
+
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/nonexistent-runtime-dir")
+    monkeypatch.setattr(m.Path, "exists", lambda self: False)
+    lines = []
+    assert m._user_bus_ready(log=lines.append) is False
+    assert any("unreachable" in ln for ln in lines), "the refusal must say why"
+
+
+def test_an_explicitly_set_bus_address_is_never_overwritten(tmp_path, monkeypatch):
+    """setdefault, not assignment: a caller that already knows its bus -- a different uid, a
+    container, a test harness -- keeps it."""
+    import tools.measure_publish_gate_subject_cost as m
+
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path))
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/somewhere/else/bus")
+    monkeypatch.setattr(m.Path, "exists", lambda self: True)
+
+    assert m._user_bus_ready() is True
+    assert m.os.environ["DBUS_SESSION_BUS_ADDRESS"] == "unix:path=/somewhere/else/bus"
+
+
+def test_an_unreachable_bus_blocks_the_phase_like_a_missing_systemd_run(monkeypatch):
+    """The whole point of locating it here: the refusal happens at the gate, as an _Unbounded,
+    not later as a DBus error inside a phase that looks like a broken measurement."""
+    import tools.measure_publish_gate_subject_cost as m
+
+    monkeypatch.setattr(m.shutil, "which", lambda _n: "/usr/bin/systemd-run")
+    monkeypatch.setattr(m, "_user_bus_ready", lambda log=None: False)
+    with pytest.raises(m._Unbounded):
+        m._bounded_argv(Path("."), log=lambda _m: None, unit="u")
