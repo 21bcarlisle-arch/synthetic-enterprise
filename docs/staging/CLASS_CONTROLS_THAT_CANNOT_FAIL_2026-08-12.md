@@ -24,7 +24,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_RESURRECTION_GUARD_IS_BLIND_TO_A_RESURRECTION_THAT_ONLY_EXISTS_IN_HEAD_2026-08-12.md` — LATENT
-- `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md` — BLOCKING
+- `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_WRITE_TIME_GATE_FIELD_SWALLOW_2026-08-08.md` — LATENT
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md` — BLOCKING
 
@@ -38,12 +38,11 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-5 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md`
 - `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md`
 - `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md`
-- `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md`
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md`
 
 ---

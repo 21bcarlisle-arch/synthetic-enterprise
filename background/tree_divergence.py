@@ -78,15 +78,37 @@ def _is_generated(rel: str) -> bool:
     return rel.startswith(GENERATED_PREFIXES) or _is_runtime_state(rel)
 
 
-def changed_paths(project_dir: Path | None = None) -> list[str]:
+def changed_paths(project_dir: Path | None = None) -> list[str] | None:
     """Repo-relative paths differing from HEAD (tracked modifications AND untracked files),
     generated artefacts excluded. Untracked counts: KNIFE2's new seam module was untracked, and
-    an untracked file is the most invisible squat of all."""
+    an untracked file is the most invisible squat of all.
+
+    RETURNS None WHEN GIT COULD NOT ANSWER -- never `[]`. This used to return the empty list on a
+    non-zero `git status`, which every downstream reader then rendered as a genuinely clean tree:
+    `measure()` reported `total_files: 0`, `breaches()` returned `[]`, and the daily naming said
+    nothing. The artefact at HEAD proved it fired that way (`tree_divergence.json` at measured_at
+    1786333430 recorded 0 files; the same tree measured 346 by hand six minutes later). Since this
+    module is the whole accountability half of DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09,
+    that silence made the ruling's cost side inert -- R15's third killer pattern exactly: an
+    unavailable check is a FAILED check, not a pass.
+    `None` is deliberately not falsy-equivalent to `[]` for a caller that checks `is None`, and
+    the callers below all do. See WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE."""
+    return _changed_paths_or_reason(project_dir)[0]
+
+
+def _changed_paths_or_reason(project_dir: Path | None = None) -> tuple[list[str] | None, str]:
+    """`changed_paths` plus WHY it could not answer. The reason travels with the failure rather
+    than being re-derived downstream: a breach sentence that says only "unavailable" sends the
+    reader back to re-run the thing that just failed."""
     root = project_dir or PROJECT_DIR
-    out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"],
-                         cwd=str(root), capture_output=True, text=True, timeout=60)
+    try:
+        out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"],
+                             cwd=str(root), capture_output=True, text=True, timeout=60)
+    except Exception as exc:  # noqa: BLE001 -- TimeoutExpired/OSError are "git could not answer"
+        return None, "{}: {}".format(type(exc).__name__, exc)  # timeout is reachable here
     if out.returncode != 0:
-        return []
+        return None, "git status rc={} ({})".format(
+            out.returncode, (out.stderr or "").strip().splitlines()[0] if out.stderr else "no stderr")
     paths = []
     for line in out.stdout.splitlines():
         if not line.strip():
@@ -97,7 +119,7 @@ def changed_paths(project_dir: Path | None = None) -> list[str]:
         rel = rel.strip('"')
         if not _is_generated(rel):
             paths.append(rel)
-    return sorted(set(paths))
+    return sorted(set(paths)), ""
 
 
 def _file_scope_index(map_path: Path | None = None) -> dict[str, str]:
@@ -139,7 +161,17 @@ def measure(project_dir: Path | None = None, now: float | None = None,
     by_lane: dict[str, dict] = {}
     oldest_age = 0.0
     oldest_path = None
-    paths = changed_paths(root)
+    paths, why = _changed_paths_or_reason(root)
+    if paths is None:
+        # THE COUNTS ARE OMITTED, NOT ZEROED. A reader that has never heard of `unavailable`
+        # gets a loud KeyError; it can no longer receive a quiet 0 and publish a clean bill of
+        # health for a tree it never managed to look at. That asymmetry is the whole repair.
+        return {
+            "measured_at": now,
+            "unavailable": True,
+            "unavailable_reason": why,
+            "thresholds": {"files": FILE_COUNT_THRESHOLD, "age_hours": AGE_HOURS_THRESHOLD},
+        }
     for rel in paths:
         try:
             age = max(0.0, now - (root / rel).stat().st_mtime)
@@ -167,8 +199,15 @@ def measure(project_dir: Path | None = None, now: float | None = None,
 
 
 def breaches(m: dict) -> list[str]:
-    """Threshold breaches, as sentences. PURE (mutation-testable). Empty == nothing to name."""
+    """Threshold breaches, as sentences. PURE (mutation-testable). Empty == nothing to name.
+
+    AN UNMEASURABLE TREE IS ITS OWN BREACH, and it is checked FIRST -- the daily naming has to
+    keep firing when the measure fails, saying the true thing, or the ruling's accountability
+    half goes quiet exactly when something is wrong with the machine."""
     out = []
+    if m.get("unavailable"):
+        return ["tree divergence could not be measured ({}); this is a FAILED check, "
+                "not a clean tree".format(m.get("unavailable_reason") or "reason unrecorded")]
     if m["total_files"] > FILE_COUNT_THRESHOLD:
         out.append(
             "{} source files diverge from HEAD (threshold {})".format(
@@ -181,6 +220,8 @@ def breaches(m: dict) -> list[str]:
 
 
 def top_squatters(m: dict, n: int = 3) -> str:
+    if m.get("unavailable"):   # called in the same log line as the counts; must not raise into
+        return "unknown (measure unavailable)"   # the publish path this module observes
     rows = [(k, v) for k, v in m["by_lane"].items()][:n]
     return "; ".join("{} ({} files, oldest {}h)".format(k, v["count"], v["oldest_age_hours"])
                      for k, v in rows) or "none"
@@ -209,13 +250,15 @@ def main(argv: list[str] | None = None) -> int:
         write_artifact(m)
     if args.json:
         print(json.dumps(m, indent=2, sort_keys=True))
+    elif m.get("unavailable"):
+        print("tree divergence: UNAVAILABLE — " + (m.get("unavailable_reason") or "unrecorded"))
     else:
         print("tree divergence: {} source file(s) vs HEAD, oldest {}h ({} attributed, "
               "{} unattributed)".format(m["total_files"], m["oldest_age_hours"],
                                         m["attributed_files"], m["unattributed_files"]))
         print("  top: " + top_squatters(m))
-        for b in breaches(m):
-            print("  BREACH: " + b)
+    for b in breaches(m):
+        print("  BREACH: " + b)
     return 1 if (args.check and breaches(m)) else 0
 
 

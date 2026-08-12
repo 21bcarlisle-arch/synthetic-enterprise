@@ -107,3 +107,121 @@ def test_write_artifact_never_raises_on_an_unwritable_path(tmp_path):
     defect. MUTATION: remove the try/except and this fails."""
     bad = tmp_path / "nope" / "\x00" / "x.json"
     td.write_artifact({"total_files": 0}, bad)   # must not raise
+
+
+# ── AN UNAVAILABLE CHECK IS A FAILED CHECK, NEVER A CLEAN TREE ───────────────────────────────
+# WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10 (BLOCKING, R15 FAIL-OPEN).
+# `changed_paths` returned [] when `git status` exited non-zero, so `measure()` reported
+# total_files 0, `breaches()` returned [] and the daily naming said nothing. The artefact at
+# HEAD proves it fired that way: docs/observability/tree_divergence.json at measured_at
+# 1786333430 recorded a clean tree that a hand re-run six minutes later measured at 346 files.
+# This module is the ENTIRE accountability half of DIRECTOR_RULING_PUBLISH_GATE_SUBJECT
+# 2026-08-09 ("squatting gets named daily"), so a silent clean bill of health makes the ruling's
+# cost side inert. R15's third killer pattern, verbatim: an unavailable check is a FAILED check.
+
+def test_changed_paths_says_unknown_not_nothing_when_git_cannot_answer(tmp_path):
+    """UN-MOCKED, because both sides of a seam mocked is how this class hides: a real directory
+    that is genuinely not a git repo, with the real subprocess call.
+
+    MUTATION: restore `return []` in the rc!=0 branch and this fails."""
+    assert not (tmp_path / ".git").exists(), "precondition: not a repo"
+    assert td.changed_paths(tmp_path) is None, \
+        "a git read that FAILED must not be indistinguishable from a clean tree"
+
+
+def test_measure_marks_itself_unavailable_rather_than_reporting_a_clean_tree(tmp_path):
+    """The observed artefact's exact shape is what must become impossible."""
+    m = td.measure(project_dir=tmp_path)
+    assert m["unavailable"] is True
+    assert m.get("total_files") != 0, "reporting 0 IS the defect"
+
+
+def test_an_unavailable_measure_omits_the_counts_so_no_reader_can_read_it_as_zero(tmp_path):
+    """Omitted, not zeroed. A reader that has never heard of `unavailable` must get a loud
+    KeyError, never a quiet 0 -- that asymmetry is the whole repair.
+
+    MUTATION: emit `total_files: 0` alongside the flag and this fails."""
+    m = td.measure(project_dir=tmp_path)
+    for absent in ("total_files", "attributed_files", "unattributed_files", "oldest_age_hours"):
+        assert absent not in m, "{} must be omitted, not zeroed".format(absent)
+
+
+def test_breaches_names_the_unavailability_as_its_own_breach():
+    """The daily naming still fires, saying the TRUE thing.
+
+    MUTATION: drop the unavailable branch from breaches() and this fails."""
+    found = td.breaches({"unavailable": True, "unavailable_reason": "git status rc=128"})
+    assert found, "an unmeasurable tree must still be named"
+    assert any("could not be measured" in b for b in found), found
+    assert any("rc=128" in b for b in found), "name WHY, so the reader can act: {}".format(found)
+
+
+def test_an_unavailable_measure_is_not_confusable_with_a_quiet_clean_tree():
+    """Independence: the silent case and the failed case must produce different verdicts, or
+    the caller cannot tell them apart -- which is the finding, restated as a test."""
+    clean = td.breaches({"total_files": 0, "oldest_age_hours": 0.0, "oldest_path": None})
+    failed = td.breaches({"unavailable": True, "unavailable_reason": "git status rc=128"})
+    assert clean == [] and failed != []
+
+
+def test_a_git_timeout_is_unavailable_too_not_clean(monkeypatch):
+    """The finding's named live failure mode: `git status` contends with a shared index and a
+    live tree lock several times an hour, so the 60s timeout is reachable. An exception escaping
+    into the publish path's blanket `except` is the same silence wearing a different coat.
+
+    MUTATION: narrow the except to CalledProcessError and this fails."""
+    import subprocess as _sp
+
+    def _timeout(*a, **kw):
+        raise _sp.TimeoutExpired(cmd="git status", timeout=60)
+
+    monkeypatch.setattr(td.subprocess, "run", _timeout)
+    assert td.changed_paths(td.PROJECT_DIR) is None
+    assert td.measure(project_dir=td.PROJECT_DIR)["unavailable"] is True
+
+
+def test_top_squatters_survives_an_unavailable_measure():
+    """It is called in the same log line as the counts; an observer that raises into the publish
+    path it observes is itself a defect (this module's own docstring)."""
+    assert td.top_squatters({"unavailable": True, "unavailable_reason": "x"})
+
+
+def test_the_publish_path_NAMES_an_unavailable_measure_instead_of_swallowing_it(monkeypatch):
+    """THE DEFECT ONE LAYER UP. `_publish_tree_divergence` logs the counts before it calls
+    `breaches()`, and wraps its whole body in `except Exception` so it can never raise into the
+    publish path. So a measure that omits the counts would KeyError into that blanket except and
+    the naming would go silent again -- the fail-open repaired in the module and reinstated in
+    its only caller. This is the consumer-verified half (R1): the notify must actually fire.
+
+    MUTATION: restore the unconditional `m["total_files"]` log line and this fails."""
+    from background import process_run_complete as prc
+    from background import notify as notify_mod
+
+    sent = []
+    monkeypatch.setattr(td, "measure",
+                        lambda *a, **kw: {"unavailable": True,
+                                          "unavailable_reason": "git status rc=128"})
+    monkeypatch.setattr(td, "write_artifact", lambda *a, **kw: None)
+    monkeypatch.setattr(prc, "log", lambda *a, **kw: None)
+    monkeypatch.setattr(notify_mod, "notify", lambda msg, **kw: sent.append(msg))
+
+    prc._publish_tree_divergence()
+
+    assert sent, "an unmeasurable tree must be NAMED, not swallowed by the observer's own except"
+    assert "could not be measured" in sent[0], sent
+    assert "rc=128" in sent[0], sent
+
+
+def test_the_check_exit_code_fires_on_an_unmeasurable_tree(tmp_path, capsys):
+    """--check is the cron/human caller. An unavailable measure must exit non-zero, or the
+    failure is invisible at the only place a person looks.
+
+    MUTATION: make main() treat unavailable as success and this fails."""
+    import background.tree_divergence as mod
+    monkey = mod.measure
+    try:
+        mod.measure = lambda *a, **kw: {"unavailable": True, "unavailable_reason": "git rc=128"}
+        assert mod.main(["--check"]) == 1
+        assert "could not be measured" in capsys.readouterr().out
+    finally:
+        mod.measure = monkey

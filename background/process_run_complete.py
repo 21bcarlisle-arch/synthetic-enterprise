@@ -1814,8 +1814,16 @@ def _publish_tree_divergence():
         from background import tree_divergence as _td
         m = _td.measure()
         _td.write_artifact(m)
-        log("Tree divergence: {} source file(s) vs HEAD, oldest {}h — top: {}".format(
-            m["total_files"], m["oldest_age_hours"], _td.top_squatters(m)))
+        if m.get("unavailable"):
+            # An unavailable measure must reach the SAME naming path as a squat, not this
+            # function's blanket `except`. Reading the counts here would raise, get swallowed
+            # below, and restore the exact silence the fail-open repair just removed -- the
+            # defect climbing one layer up (WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A
+            # _CLEAN_TREE_2026-08-10). `breaches()` names it; the notify below sends it.
+            log("Tree divergence: UNAVAILABLE — {}".format(m.get("unavailable_reason")))
+        else:
+            log("Tree divergence: {} source file(s) vs HEAD, oldest {}h — top: {}".format(
+                m["total_files"], m["oldest_age_hours"], _td.top_squatters(m)))
         found = _td.breaches(m)
         if found:
             # "NAMED DAILY" is exactly notify's transition_key + re_escalate_after contract:
