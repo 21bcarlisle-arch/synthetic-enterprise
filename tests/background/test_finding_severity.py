@@ -219,18 +219,118 @@ def test_an_unclassified_document_saying_an_instrument_is_wrong_is_named(tmp_pat
     assert [r.path.name for r, _ in fs.by_construction_violations(tmp_path)] == ["bare.md"]
 
 
-def test_a_repaired_document_stands_the_namer_down_only_from_its_header_block(tmp_path):
-    header_says_fixed = (
-        "# T\n\n**Severity:** LATENT · **Lane:** H_harness · **Status:** FIXED\n\n"
-        "## The claim\nThe gate that certifies this lane is lying about its own subject.\n"
-    )
-    (tmp_path / "fixed.md").write_text(header_says_fixed, encoding="utf-8")
-    assert fs.by_construction_violations(tmp_path) == []
+# --- the escape hatch names its subject, or it is not an escape hatch
+# (WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12,
+#  defect 1: a bare word match anywhere in the header took a whole document off the
+#  census, so the census measured authorship convention rather than the corpus) ---
 
-    body_says_fixed = _SAYS_AN_INSTRUMENT_IS_WRONG.format(value="LATENT") + (
-        "\n## Retro\nA similar defect was FIXED last week.\n")
-    (tmp_path / "body.md").write_text(body_says_fixed, encoding="utf-8")
+@pytest.mark.parametrize(
+    "word", ["FIXED", "CLOSED", "REPAIRED", "repaired", "landed", "relieved",
+             "CLEARED", "cleared", "DISCHARGED", "discharged", "accepted"])
+def test_an_ordinary_word_in_the_header_does_not_stand_the_namer_down(tmp_path, word):
+    """Each of the eleven words the old free-text escape released on. `landed`, `cleared`
+    and `accepted` are ordinary finding prose ("the cut landed", "the queue cleared"), and
+    none of them says THIS defect was repaired."""
+    doc = tmp_path / f"{word.lower()}.md"
+    doc.write_text(
+        _SAYS_AN_INSTRUMENT_IS_WRONG.format(value="LATENT").replace(
+            "**Lane:** H_harness", f"**Lane:** H_harness\n\nPrior work {word} separately."),
+        encoding="utf-8")
+    assert [r.path.name for r, _ in fs.by_construction_violations(tmp_path)] == [doc.name]
+
+
+def test_only_a_valid_discharge_stands_the_namer_down(tmp_path):
+    """The structured field, checked against the filesystem — the one release shape that
+    names its own subject and carries a runnable falsifier."""
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    doc.write_text(
+        doc.read_text().replace("**Severity:** BLOCKING", "**Severity:** LATENT")
+        + "\nThe gate that certifies this lane is lying about its own subject.\n",
+        encoding="utf-8")
+    assert fs.by_construction_violations(doc.parent, repo) == []
+
+
+def test_a_discharge_the_filesystem_refuses_does_not_stand_the_namer_down(tmp_path):
+    """A release that does not release must not silence the namer either — otherwise the
+    typo that voids the discharge also hides the finding it failed to close."""
+    repo, doc = _repo_with(tmp_path, "tools/ghost.py")
+    doc.write_text(
+        doc.read_text().replace("**Severity:** BLOCKING", "**Severity:** LATENT")
+        + "\nThe gate that certifies this lane is lying about its own subject.\n",
+        encoding="utf-8")
+    assert [r.path.name for r, _ in fs.by_construction_violations(doc.parent, repo)] == [doc.name]
+
+
+def test_the_body_of_a_document_never_releases_it(tmp_path):
+    """Scope rule, unchanged: a retrospective paragraph forty lines down saying a similar
+    thing was fixed once is not this document's release."""
+    (tmp_path / "body.md").write_text(
+        _SAYS_AN_INSTRUMENT_IS_WRONG.format(value="LATENT")
+        + "\n## Retro\nA similar defect was FIXED last week.\n", encoding="utf-8")
     assert [r.path.name for r, _ in fs.by_construction_violations(tmp_path)] == ["body.md"]
+
+
+# --- defect 2: the phrase matched inside its own denial ---
+
+def test_a_phrase_inside_its_own_denial_is_not_evidence():
+    """The sentence that found this defect, verbatim from
+    `WORKER_FINDING_A_MUTATION_THAT_PATCHES_BOTH_SIDES_OF_ITS_SEAM_2026-08-12.md`."""
+    denial = ("Not a claim that any published figure is wrong: no gap value on the live "
+              "record depends on either control.")
+    assert fs.by_construction_evidence(denial) == []
+
+
+def test_the_denial_releases_only_its_own_sentence():
+    """A denial is not a blanket. The next sentence is read on its own terms — erring
+    toward NAMING, because a missed name is the fail-open direction here."""
+    text = ("This does not claim the gate is broken. But the published figure is wrong, "
+            "and the door still serves it.\n")
+    assert fs.by_construction_evidence(text) == ["published figure is wrong"]
+
+
+def test_an_ordinary_negation_does_not_read_as_a_denial_of_the_claim():
+    """The guard is scoped to the explicit denial-of-a-claim shape. A sentence merely
+    containing "not" still names — widening this is how a negation guard becomes the
+    fail-open hole it was built to close."""
+    text = "This is not a small thing: the report says the published figure is wrong.\n"
+    assert fs.by_construction_evidence(text) == ["published figure is wrong"]
+
+
+def test_mutation_f_restoring_the_free_text_escape_kills_a_named_test(tmp_path):
+    """MUTATION F — the escape hatch goes back to matching a bare word in the header."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        discharge = parse_discharge(text, repo_root)\n"
+        "        if discharge is not None and discharge.released:\n            continue",
+        "        if re.search(r'\\b(?:landed|cleared|accepted|FIXED)\\b', header_block(text)):\n"
+        "            continue",
+        "finding_severity_mutant_free_text_escape",
+    )
+    doc = tmp_path / "f_mut"
+    doc.mkdir()
+    (doc / "mis.md").write_text(
+        _SAYS_AN_INSTRUMENT_IS_WRONG.format(value="LATENT").replace(
+            "**Lane:** H_harness", "**Lane:** H_harness\n\nPrior work landed separately."),
+        encoding="utf-8")
+    assert [r.path.name for r, _ in fs.by_construction_violations(doc)] == ["mis.md"]
+    assert mutant.by_construction_violations(doc) == []  # the defect, reproduced
+
+
+def test_mutation_g_dropping_the_denial_guard_kills_a_named_test(tmp_path):
+    """MUTATION G — evidence is collected without asking whether the phrase was denied."""
+    mutant = _load_mutant(
+        tmp_path,
+        "            if not _is_denied(text, m.start())",
+        "            if True",
+        "finding_severity_mutant_no_denial_guard",
+    )
+    denial = "Not a claim that any published figure is wrong: no gap value depends on it."
+    assert fs.by_construction_evidence(denial) == []
+    assert mutant.by_construction_evidence(denial) != []  # the defect, reproduced
 
 
 # --- the live population, and the vocabulary it is classified against ---

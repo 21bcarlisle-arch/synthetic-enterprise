@@ -110,14 +110,24 @@ _BY_CONSTRUCTION_PATTERNS = (
     re.compile(r"\bcannot be trusted\b", re.I),
 )
 
-#: The namer stands down on a document whose header block says the defect is discharged.
-#: These are not a loophole — they are clause 2's OWN two releases ("until it is repaired,
-#: or until the limitation is explicitly recorded and accepted"). The anti-loophole is the
-#: SCOPE: the word must appear in the HEADER BLOCK, where the next reader meets it, never
-#: in a retrospective paragraph forty lines down that says a similar thing was fixed once.
-_REPAIRED_RE = re.compile(
-    r"\b(?:FIXED|CLOSED|REPAIRED|repaired|landed|relieved|CLEARED|cleared"
-    r"|DISCHARGED|discharged|accepted)\b"
+#: A DENIAL is not a claim. The patterns above are substring regexes with no grammar, so a
+#: document stating that it does NOT say a figure is wrong was named as saying it —
+#: observed on `WORKER_FINDING_A_MUTATION_THAT_PATCHES_BOTH_SIDES_OF_ITS_SEAM_2026-08-12`
+#: ("Not a claim that any published figure is wrong: no gap value ... depends on either
+#: control"). Two things keep this guard from becoming the fail-open hole it closes:
+#:   * the SHAPE is tight — an explicit denial OF A CLAIM, not the word "not". A sentence
+#:     that merely contains a negation still gets named.
+#:   * the SCOPE is one sentence, and only the part of it BEFORE the phrase. A denial does
+#:     not cover the sentence after it.
+#: HONEST LIMIT: a denial expressed any other way (across two sentences, rhetorically,
+#: "far from claiming …") is still named. That is the deliberate direction — a false name
+#: is answerable in one line, a missed one is the defect this instrument exists to catch.
+_DENIAL_RE = re.compile(
+    r"\b(?:not|never)\s+(?:a\s+|an\s+|the\s+)?(?:claim|assertion|statement)\b"
+    r"|\bno\s+claim\b"
+    r"|\b(?:do|does|did|is|are|was|were|am)\s+not\s+(?:claim|assert|say|state|argue)\w*\b"
+    r"|\b(?:doesn't|don't|isn't|aren't|didn't)\s+(?:claim|assert|say|state|argue)\w*\b",
+    re.I,
 )
 
 #: THE DISCHARGE FIELD, 2026-08-12 (rung-1c draw on lane `H_harness`, 14 live blockers).
@@ -357,30 +367,55 @@ def false_discharges(
     return out
 
 
+def _is_denied(text: str, start: int) -> bool:
+    """True when the phrase at `start` sits inside an explicit denial of the claim.
+
+    The sentence is the run back to the previous `.` or newline — the same boundary the
+    patterns themselves respect (`[^.\\n]{0,90}`), so evidence and denial are read at one
+    scale rather than two.
+    """
+    cut = max(text.rfind(".", 0, start), text.rfind("\n", 0, start))
+    return _DENIAL_RE.search(text[cut + 1:start]) is not None
+
+
 def by_construction_evidence(text: str) -> list[str]:
-    """The phrases in `text` that say an instrument/control/published figure is wrong."""
-    return [m.group(0).strip() for pattern in _BY_CONSTRUCTION_PATTERNS
-            for m in pattern.finditer(text)]
+    """The phrases in `text` that say an instrument/control/published figure is wrong.
+
+    A phrase inside its own denial is not one of them (see `_DENIAL_RE`).
+    """
+    return [m.group(0).strip()
+            for pattern in _BY_CONSTRUCTION_PATTERNS
+            for m in pattern.finditer(text)
+            if not _is_denied(text, m.start())]
 
 
 def by_construction_violations(
-    root: Path | str = DEFAULT_STAGING_ROOT,
+    root: Path | str = DEFAULT_STAGING_ROOT, repo_root: Path | str = REPO_ROOT
 ) -> list[tuple[FindingSeverity, str]]:
     """Documents whose own text says an instrument is wrong, classified anything but
     BLOCKING (exit criterion 4). Returns (classification, first matched phrase).
 
-    This NAMES; it does not classify. A named document is either mis-headered or its
-    header block should say what repaired it — both are answerable, and both are the
-    point: the rule is checkable rather than merely written down.
+    This NAMES; it does not classify. A named document is either mis-headered or owes a
+    `**Discharged:**` field saying what repaired it — both are answerable, and both are
+    the point: the rule is checkable rather than merely written down.
+
+    THE ONLY RELEASE IS THE STRUCTURED DISCHARGE, checked against the filesystem. It used
+    to be a bare word match (`FIXED|landed|cleared|accepted|…`) anywhere in the header
+    block, which meant one incidental clause — "prior work landed separately" — took a
+    document carrying two matching phrases off the census entirely
+    (`WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12`,
+    defect 1: the fail-open shape in its purest form, the checker passing because it never
+    looked). A discharge the filesystem REFUSES does not release either — otherwise the
+    typo that voids the release also hides the finding it failed to close.
     """
     violations: list[tuple[FindingSeverity, str]] = []
     for path in classifiable_documents(root):
-        result = parse_severity_file(path)
+        result = parse_severity_file(path, repo_root)
         if result.severity == BLOCKING:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        block = header_block(text)
-        if _REPAIRED_RE.search(block):
+        discharge = parse_discharge(text, repo_root)
+        if discharge is not None and discharge.released:
             continue
         evidence = by_construction_evidence(text)
         if evidence:

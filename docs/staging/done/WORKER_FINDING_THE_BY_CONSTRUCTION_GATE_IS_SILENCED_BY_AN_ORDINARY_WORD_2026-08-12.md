@@ -8,6 +8,30 @@ the other direction. Subject is `background/finding_severity.py::by_construction
 landed **today** as OPS9 deliverable 1 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`).
 **Rank requested** top of H_harness — the figure it produces is on the live record.
 
+**Discharged:** `tests/background/test_finding_severity.py::test_an_ordinary_word_in_the_header_does_not_stand_the_namer_down`, `tests/background/test_finding_severity.py::test_a_phrase_inside_its_own_denial_is_not_evidence`, `tests/background/test_finding_severity.py::test_mutation_f_restoring_the_free_text_escape_kills_a_named_test`, `tests/background/test_finding_severity.py::test_mutation_g_dropping_the_denial_guard_kills_a_named_test`, `background/finding_severity.py` — both defects repaired at the source, each falsifier proven by a mutation that reproduces the old behaviour on a copy of the module; the census was re-run and the published zero corrected on the live record.
+
+## What landed, 2026-08-12 (rung-1c draw, worker tick)
+
+Recommendation 1 is done in the shape the module had already argued for elsewhere: the escape is
+now the STRUCTURED `**Discharged:**` field (`parse_discharge`), which must name a test node whose
+file defines it and every artefact of which must exist — so a release names its own subject and
+carries a runnable falsifier. `_REPAIRED_RE` is DELETED, not narrowed: a loose pattern left in the
+module is a loose pattern the next author reaches for. A discharge the filesystem REFUSES does not
+stand the namer down either.
+
+Recommendation 2 is done, both directions, and it is where the interesting part is: eleven
+parametrized cases prove each of the old escape words no longer silences a document that says a
+figure is wrong, and two mutations (F: restore the free-text escape; G: drop the denial guard) each
+reproduce the old defect on a copy of the module while the real one refuses. Recommendation 4 was
+followed — no finding prose was edited to suit the patterns.
+
+Recommendation 3, the honest number: **the census was `0` and is `4`**, three of them hidden by one
+incidental word. Its precision on that population is 2-of-4, and both false shapes are NEW and
+uncovered by the denial guard — a subject and predicate meeting across a clause boundary, and a
+document quoting the rule itself. Filed as `WORKER_FINDING_THE_NAMER_READS_A_CLAUSE_BOUNDARY_AND_A_QUOTATION_AS_A_CLAIM_2026-08-12.md`
+rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE), because widening the patterns to fit four
+observed documents is the inverted-fit defect this project has already filed.
+
 ## Why this is BLOCKING and not LATENT
 
 `docs/status/LATEST.md` cites this instrument's output as evidence: *"the by-construction rule is

@@ -1,7 +1,35 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-12T20:28:57Z
+Last updated: 2026-08-12T21:03:07Z
 
-**H27 — A VALUE TEST DECIDED WHOSE RENDER THE DOOR WAS (this commit).** The TWENTY-FIRST Expert
+**H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
+PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
+`CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12` (lane `H_harness`, 6 owed blockers → 5). The
+by-construction namer skipped any document whose header block contained one of eleven ordinary
+words — `landed`, `cleared`, `accepted`, `FIXED` … — with no requirement that the word refer to
+*this* finding or to a repair at all, in a project whose finding prose says "the cut landed" and
+"the queue cleared" routinely. **The only release now is the structured `**Discharged:**` field,
+already checked against the filesystem** (it must name a test node whose file defines it), so a
+release names its own subject and carries a runnable falsifier; a discharge the filesystem REFUSES
+does not silence the namer either, or the typo that voids a release would also hide the finding it
+failed to close. The second defect — the phrase matched **inside its own denial** ("Not a claim
+that any published figure is wrong: …") — is guarded by a tight denial-of-a-claim shape scoped to
+the text *before* the phrase *in its own sentence*; an ordinary negation still names, because a
+false name costs one line and a missed one is the whole point of the instrument.
+**THE NUMBER: the census was `0` and is `4`** — 3 of the 4 were hidden by one incidental word.
+Reported honestly rather than as a clean sweep: of the 4, one is a real mis-header (a document
+whose own header block says "SEVERITY: BLOCKING, DISCHARGED ON LANDING" while its machine-readable
+severity says `LATENT`, with no structured discharge), one is a self-repaired report that owes a
+`**Discharged:**` line, and **two are false positives of two grammar shapes the denial guard does
+not cover** — a subject and a predicate meeting across a clause boundary ("the control was right
+and my shortcut was wrong") and a document quoting the rule itself. Both filed as their own finding,
+not fixed on sight (SELF_INTERRUPT_DISCIPLINE), and named here because a precision of 2-of-4 that
+went unstated would be the same defect one level up. **R15 both ways, two new source mutations**
+loaded from a copy of the module: restoring the free-text escape kills
+`test_an_ordinary_word_in_the_header_does_not_stand_the_namer_down`; dropping the denial guard kills
+`test_a_phrase_inside_its_own_denial_is_not_evidence`. 49 passed (was 38). No simulation output,
+gap value or financial figure passes through this instrument — it reads staged markdown only.
+
+**H27 — A VALUE TEST DECIDED WHOSE RENDER THE DOOR WAS (previous commit).** The TWENTY-FIRST Expert
 Hour on `H27_payment_belief_gap`; the level stays 2 for the twenty-first consecutive Hour.
 `has_door_carrier` admitted a dimension to the Proof door's surface only where its carrier
 **EQUALLED the panel row's value** — a VALUE test doing PROVENANCE work, the exact shape Hour #19
@@ -76,6 +104,9 @@ lane-less, unknown-lane and unreadable all read `UNCLASSIFIED` and are surfaced,
 rule is **checkable, not merely written**: `--by-construction` names any non-BLOCKING doc whose own
 text says an instrument, a control or a published figure is wrong; **0** after this pass, and it
 stands down only on clause 2's own discharges appearing in the header block a reader actually meets.
+**[CORRECTED 2026-08-12, see the entry at the top of this file]** that `0` was measured with a
+fail-open hole in the escape hatch and is NOT evidence; the first census taken with the hole closed
+names **4**.
 **R15 both ways**, each mutation loaded from a *copy* of the module: missing-header→`LATENT` kills
 `test_a_missing_header_reads_unclassified_never_latent`; lane-dropped kills
 `test_the_parse_returns_the_lane_beside_the_severity`; clean input passes under both. 19 named tests.
@@ -2443,7 +2474,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (271s / 5 min):
+**Latest simulation results (2016–2025)** — auto-processed (264s / 4 min):
 - Net margin: £1,526,252.39 | Gross: £6,467,808.27 | Capital: £51,393
 - Treasury: £2,466,636 → £3,901,941 | 0 committee interventions | 1557 bills issued
 - Enterprise value: £7,260,048.49 | Net after CTS: £1,503,093

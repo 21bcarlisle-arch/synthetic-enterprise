@@ -19,7 +19,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_G6_FIRES_ON_THE_WORD_NOTHING_ANYWHERE_IN_A_WRAPPED_INDEX_NOTE_2026-08-11.md` — LATENT
 - `WORKER_FINDING_RULE_3_HAS_THE_SAME_RENAME_BLINDNESS_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` — BLOCKING
-- `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md` — BLOCKING
+- `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_DOORS_DEPTH_LIMIT_SWALLOWED_FIFTY_THREE_FIGURES_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — RECORDED
@@ -38,12 +38,11 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-6 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+5 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md`
 - `WORKER_FINDING_A_MIRRORS_FIDELITY_CANNOT_BE_ITS_COMPOUND_EFFECT_2026-08-11.md`
 - `WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md`
-- `WORKER_FINDING_THE_BY_CONSTRUCTION_GATE_IS_SILENCED_BY_AN_ORDINARY_WORD_2026-08-12.md`
 - `WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE_2026-08-10.md`
 - `WORKER_REPORT_THE_ORACLE_WAS_BLIND_IN_THE_DIMENSION_THAT_DRIFTED_2026-08-10.md`
 
