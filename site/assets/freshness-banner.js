@@ -44,6 +44,10 @@
     return new URL("/data/publish_provenance.json", window.location.origin).href;
   }
 
+  function heartbeatUrl() {
+    return new URL("/data/tick_heartbeat.json", window.location.origin).href;
+  }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -67,6 +71,49 @@
            " (last verified " + esc(lastVerified.verified_at || "never") + ")";
   }
 
+  /* ------------------------------------------------------------------------
+   * ALIVE-BUT-UNCHANGED IS NOT ALIVE-AND-PUBLISHING (director, 2026-08-13).
+   *
+   * The three states above -- verified / paused / unknown -- are all about the
+   * GATE, and on 2026-08-13 the gate was GREEN while the publish path had not
+   * landed for 21.7 hours: the commit was dying on the pre-commit hook deadline.
+   * The banner therefore read "Verified 2026-08-13T17:17:05Z" over figures from
+   * the previous day, which is the fake-fresh sin the provenance module names as
+   * cardinal -- reached not through a bug in that module but through a deadline
+   * the liveness commit could meet and the content commit could not.
+   *
+   * WHY THE HEARTBEAT AND NOT THE PROVENANCE FILE. The publish-freshness block
+   * lives on the LIVENESS surface, which is the surface that keeps publishing
+   * precisely when content does not (that is what Fault #1's decoupling bought).
+   * A staleness statement carried by the file that freezes with the content
+   * could only ever be as current as the freeze it is trying to report.
+   *
+   * FAIL-SILENT, NOT FAIL-LOUD, on THIS fetch specifically, and the asymmetry is
+   * deliberate: a missing provenance file renders UNKNOWN because the page then
+   * has no freshness claim at all, whereas a missing heartbeat leaves the
+   * verified/paused sentence intact and standing on its own. Escalating a
+   * heartbeat 404 to a page-wide alarm would let one absent file blank out a
+   * banner that is still telling the truth about verification.
+   * --------------------------------------------------------------------------*/
+  function stalenessSentence(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    if (!cp || !cp.state) { return ""; }
+    if (cp.state === "publishing") { return ""; }
+    if (cp.state === "unknown") {
+      return "Publishing status unknown — the age of these figures could not be measured.";
+    }
+    if (cp.state === "unpublished") {
+      return "No verified publish is on record — the age of these figures is unestablished.";
+    }
+    var hours = (cp.published_age_seconds || 0) / 3600;
+    return "PUBLISHING IS DOWN — the figures on this page last reached the site " +
+           hours.toFixed(1) + "h ago. Anything above this line is that old, whatever the " +
+           "verification line says." +
+           (cp.committed_but_unpublished
+             ? " (Content is still being committed; the publish path is what stopped.)"
+             : "");
+  }
+
   function annotationSentence(d) {
     var a = (d && d.annotation) || {};
     var findings = a.open_findings || 0;
@@ -84,11 +131,15 @@
            "the suite that produces and renders them is green.";
   }
 
-  function render(d, unknown) {
+  function render(d, unknown, hb) {
+    var stale = unknown ? "" : stalenessSentence(hb);
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
+    /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks
+       it for the reader: "verified" describes the run these figures came from, and "stale"
+       describes whether the page is showing that run at all. */
     bar.setAttribute("data-freshness-state",
-      unknown ? "unknown" : ((d && d.verification_state) || "paused"));
+      unknown ? "unknown" : (stale ? "stale" : ((d && d.verification_state) || "paused")));
     bar.setAttribute("role", "status");
 
     var line = unknown
@@ -98,6 +149,7 @@
 
     bar.innerHTML =
       '<span class="pf-line">' + line + "</span>" +
+      (stale ? '<span class="pf-stale">' + esc(stale) + "</span>" : "") +
       (note ? '<span class="pf-note">' + esc(note) + "</span>" : "");
 
     var style = document.createElement("style");
@@ -106,23 +158,43 @@
       "padding:8px 22px;border-bottom:1px solid var(--border,#ddd);color:var(--muted,#666);" +
       "background:var(--surface,#fff);display:block}" +
       ".poesys-freshness .pf-note{display:block;margin-top:3px}" +
+      ".poesys-freshness .pf-stale{display:block;margin-top:3px;font-weight:700}" +
       '.poesys-freshness[data-freshness-state="paused"],' +
       '.poesys-freshness[data-freshness-state="unknown"]' +
-      "{background:var(--amber-soft,#fdf3e0);color:var(--text,#111);font-weight:600}";
+      "{background:var(--amber-soft,#fdf3e0);color:var(--text,#111);font-weight:600}" +
+      /* Louder than paused. A paused site is serving its last verified figures on purpose; a
+         stale one is serving figures it believes it has already replaced. */
+      '.poesys-freshness[data-freshness-state="stale"]' +
+      "{background:var(--red-soft,#fdecea);color:var(--text,#111);font-weight:600;" +
+      "border-bottom:2px solid var(--red,#c0392b)}";
 
     document.head.appendChild(style);
     document.body.insertBefore(bar, document.body.firstChild);
     STATE.rendered = true;
   }
 
+  function heartbeat() {
+    /* Resolves to null on any failure -- see stalenessSentence for why this one fetch is allowed
+       to be quiet where the provenance fetch is not. */
+    return fetch(heartbeatUrl(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+  }
+
   function boot() {
-    fetch(dataUrl(), { cache: "no-store" })
-      .then(function (r) {
+    Promise.all([
+      fetch(dataUrl(), { cache: "no-store" }).then(function (r) {
         if (!r.ok) { throw new Error("HTTP " + r.status); }
         return r.json();
+      }),
+      heartbeat(),
+    ])
+      .then(function (both) {
+        STATE.data = both[0];
+        STATE.heartbeat = both[1];
+        render(both[0], false, both[1]);
       })
-      .then(function (d) { STATE.data = d; render(d, false); })
-      .catch(function (e) { STATE.error = String(e); render(null, true); });
+      .catch(function (e) { STATE.error = String(e); render(null, true, null); });
   }
 
   if (document.readyState === "loading") {

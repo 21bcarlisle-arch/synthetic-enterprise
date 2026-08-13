@@ -316,6 +316,23 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None,
     from background.recommendation_guard import check_message
     check_message(message)
 
+    # INTERNAL WORK-ORDER TEXT NEVER REACHES THE DIRECTOR CHANNEL (2026-08-13 director; see
+    # background/doorbell_redaction.py). Placed AFTER the recommendation guard so the ask/
+    # recommend rule is judged on what the caller actually wrote, and BEFORE the pytest guard so
+    # the redaction is real on every path and testable on this one. REDACTS rather than raising:
+    # the alarm is legitimate and only its payload is internal, and deleting an alert to punish
+    # its formatting would be the worse defect. Logged, never silent.
+    from background.doorbell_redaction import redact, was_redacted
+    _original, message = message, redact(message)
+    if was_redacted(_original, message):
+        # The full text stays recoverable in the ops mirror under its own direction, so the
+        # redaction removes it from his PHONE and from nowhere else.
+        try:
+            from background.ntfy_mirror import append_mirror_entry
+            append_mirror_entry("out-redacted", _original, topic=NTFY_TOPIC)
+        except Exception:
+            pass  # a guard must never block or break a real send
+
     import os
     if os.environ.get("PYTEST_CURRENT_TEST") and not _allow_real_send:
         # A test that genuinely exercises the POST/parse internals (with curl mocked)

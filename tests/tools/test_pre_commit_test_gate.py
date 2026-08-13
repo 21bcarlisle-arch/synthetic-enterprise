@@ -833,7 +833,11 @@ def test_the_data_surface_reaches_the_wider_class_not_just_the_named_instance():
     assert "tests/design/test_maturity_map_facets.py" in targets
     # A data file read by a named module selects that module's tests, whatever its suffix.
     assert gate.data_surface_tests("background/process_manifest.yaml"), "yaml under a code root"
-    assert gate.data_surface_tests("docs/design/maturity_map.yaml"), "design yaml"
+    # A design yaml with NO hand-kept surface of its own -- which is the case this test is about.
+    # It used to read `maturity_map.yaml` here, and that path acquired a curated list and a
+    # narrowing on 2026-08-13 (see CURATED_SURFACE_PATHS), so asserting on it would now be
+    # asserting the opposite of the narrowing rather than the breadth of the derivation.
+    assert gate.data_surface_tests("docs/design/CAMPAIGN_REGISTER.yaml"), "uncurated design yaml"
 
 
 def test_the_data_surface_does_NOT_narrow_to_a_hand_kept_list():
@@ -876,4 +880,41 @@ def test_the_published_output_exclusion_is_bounded_by_another_gate():
         assert gate.data_surface_tests(root + "anything.json") == []
 
     # And the exclusion is EXACTLY those roots: a data file elsewhere is still derived.
+    assert gate.data_surface_tests("background/process_manifest.yaml") != []
+
+
+def test_a_curated_surface_path_keeps_its_curated_tests():
+    """The narrowing drops the DERIVED tail and never the hand-kept list (2026-08-13).
+
+    `docs/design/maturity_map.yaml` is staged by every auto-process publish, and deriving it
+    selected 50 test files -- including a full simulation run the publish gate itself `--ignore`s
+    -- which is what put the commit past its 300s hook deadline for eighteen hours. Narrowing it
+    is only honest if the tests somebody deliberately chose for it still fire. Each of these was
+    added to LEVEL_SENSITIVE_TESTS after its own incident, so this is the list that must survive.
+    """
+    selected = gate.select_targets(["docs/design/maturity_map.yaml"])
+
+    # The derived tail is gone ...
+    assert gate.data_surface_tests("docs/design/maturity_map.yaml") == []
+    # ... and every curated test still runs.
+    for curated in gate.LEVEL_SENSITIVE_TESTS:
+        if (ROOT / curated).exists():
+            assert curated in selected, f"{curated} was dropped by the narrowing"
+
+    # The specific cost that forced this: a full sim run is no longer selected by a publish commit.
+    assert "tests/simulation/test_run_phase4c_on_phase2b.py" not in selected
+
+
+def test_every_curated_surface_narrowing_has_a_surface_list():
+    """R15 / no-orphan-transitions: the narrowing is justified ONLY by the curated list that
+    replaces it, so a path narrowed here whose surface list was later emptied or deleted is an
+    uncovered hole wearing an accepted-limitation label. This reds on exactly that."""
+    assert gate.CURATED_SURFACE_PATHS, "a narrowing set that is empty narrows nothing"
+    for path in gate.CURATED_SURFACE_PATHS:
+        assert path in gate.LEVEL_SURFACE_FILES, (
+            f"{path} is narrowed but is not on a hand-kept surface -- name the list that covers it"
+        )
+        assert gate.select_targets([path]), f"{path} is narrowed to NOTHING -- that is a hole"
+
+    # And the narrowing is EXACTLY those paths: another data file is still derived.
     assert gate.data_surface_tests("background/process_manifest.yaml") != []

@@ -154,8 +154,18 @@ def ntfy(msg: str):
     """Returns notify()'s result (a truthy send id on success) so callers can tell
     whether the send actually landed -- 2026-07-18 class fix, action_needed's send-
     clock must only advance on a CONFIRMED send, never merely because this was
-    called."""
-    return notify(msg, kind="director_echo")
+    called.
+
+    BATCHED (2026-08-13, G-N3). These are announcements that a document appeared -- twelve of
+    them on 2026-08-13, each 'New staged instruction: X — pending review'. Staging is already
+    approval, so nothing here is waiting on the director; he is being told his own inbox took
+    delivery. That is FINDING_ANNOUNCEMENT, the fourth category he named for the digest. Note
+    what does NOT change: a staged item that genuinely needs him still reaches him, because
+    `action_needed.register_item` pages it on its own instant path.
+    """
+    from background import notification_digest
+    return notify(msg, kind="director_echo",
+                  topic_class=notification_digest.FINDING_ANNOUNCEMENT)
 
 
 _ARTIFACT_SUFFIXES = (".bak", ".orig", ".tmp", ".swp", "~")

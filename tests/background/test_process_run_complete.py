@@ -6,7 +6,9 @@ import importlib
 import inspect
 import json
 import os
+import subprocess
 import sys
+import types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -1633,3 +1635,138 @@ def test_an_UNEXPECTED_landing_failure_is_non_fatal(monkeypatch, tmp_path):
     monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: None)
     assert prc.run_fast_tests("deadbeef") == (True, False)
     assert events[-1] == "gate"
+
+
+# ── THE EIGHTEEN-HOUR PUBLISH FREEZE (2026-08-13) ────────────────────────────────────────────
+#
+# Content last reached origin at 2026-08-12 21:28Z. Every publish from 22:29Z on died with
+# `git commit` exceeding its hook deadline -- twenty-one consecutive times -- while a
+# `chore(liveness)` heartbeat kept landing on origin every thirty minutes, so from outside the
+# machine looked healthy and the figures were a day old. Three defects, one test each below.
+
+def _outcome_of(monkeypatch, tmp_path, *, commit):
+    """Drive git_commit_push with a stubbed git and return the recorded outcome reason."""
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+    monkeypatch.setattr(prc, "_push_due", lambda: False)  # stop after the commit
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:2] == ["git", "commit"]:
+            return commit()
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    outcome = {}
+    prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
+    return outcome.get("reason")
+
+
+def test_a_commit_timeout_is_not_recorded_as_nothing_to_commit(tmp_path, monkeypatch):
+    """The distinction the whole freeze turned on. `git_commit_push` returns False for six
+    different things; two mean 'nothing to publish' and four mean 'the publish FAILED'."""
+    def timeout():
+        raise subprocess.TimeoutExpired(cmd=["git", "commit"], timeout=1)
+
+    def empty_index():
+        return types.SimpleNamespace(
+            returncode=1, stdout="nothing to commit, working tree clean", stderr="")
+
+    def hook_refusal():
+        return types.SimpleNamespace(
+            returncode=1, stdout="", stderr="[status-honesty] COMMIT REFUSED.")
+
+    assert _outcome_of(monkeypatch, tmp_path, commit=timeout) == prc.COMMIT_TIMEOUT
+    assert _outcome_of(monkeypatch, tmp_path, commit=empty_index) == prc.NOTHING_TO_COMMIT
+    assert _outcome_of(monkeypatch, tmp_path, commit=hook_refusal) == prc.COMMIT_REFUSED
+
+    # And only the no-op ones let the next identical cycle be skipped.
+    assert prc.NOTHING_TO_COMMIT in prc.RETRYABLE_PUBLISH_OUTCOMES
+    assert prc.COMMIT_TIMEOUT not in prc.RETRYABLE_PUBLISH_OUTCOMES
+    assert prc.COMMIT_REFUSED not in prc.RETRYABLE_PUBLISH_OUTCOMES
+    assert prc.PUSH_DID_NOT_REACH_ORIGIN not in prc.RETRYABLE_PUBLISH_OUTCOMES
+    assert prc.PROVENANCE_REFUSED not in prc.RETRYABLE_PUBLISH_OUTCOMES
+
+
+def test_a_failed_publish_does_not_write_the_fingerprint(tmp_path, monkeypatch):
+    """MUTATION: make `_write_last_fingerprint` unconditional again and this fails.
+
+    That is the exact line that turned one commit timeout into an eighteen-hour freeze -- the
+    timeout branch logs 'Nothing committed; retrying next cycle', and the fingerprint then made
+    the change-detection gate skip every identical cycle so the retry never came.
+    """
+    _full_isolation_setup(tmp_path, monkeypatch)
+    marker, _ = make_marker(tmp_path)
+
+    def failed_publish(git_hash, net_margin, outcome=None):
+        if outcome is not None:
+            outcome["reason"] = prc.COMMIT_TIMEOUT
+        return False
+    monkeypatch.setattr(prc, "git_commit_push", failed_publish)
+
+    assert prc.main(str(marker)) == 0
+    assert not prc.LAST_FINGERPRINT_FILE.exists(), (
+        "a publish that FAILED recorded the run as processed -- the next identical cycle will "
+        "be skipped by the change-detection gate and the promised retry never happens"
+    )
+
+
+def test_a_successful_publish_still_writes_the_fingerprint(tmp_path, monkeypatch):
+    """The other direction, and the reason the fingerprint exists: an identical deterministic
+    run must still short-circuit. Narrowing the write must not disable the dedup."""
+    _full_isolation_setup(tmp_path, monkeypatch)
+    marker, _ = make_marker(tmp_path)
+
+    def ok(git_hash, net_margin, outcome=None):
+        if outcome is not None:
+            outcome["reason"] = prc.PUBLISHED
+        return True
+    monkeypatch.setattr(prc, "git_commit_push", ok)
+
+    assert prc.main(str(marker)) == 0
+    assert prc.LAST_FINGERPRINT_FILE.exists()
+
+
+def test_liveness_is_never_easier_to_publish_than_content():
+    """The asymmetry that made the freeze INVISIBLE (2026-08-13, director).
+
+    Both paths run the same pre-commit hook chain. While the liveness commit had a larger
+    deadline than the content commit, there was a band of hook-chain cost in which the site's
+    'I am alive' signal published on schedule and its figures could not publish at all -- which
+    is precisely the state the director found by eye after eighteen hours.
+
+    MUTATION: give `_commit_and_push_paths` its own larger timeout again and this fails.
+    """
+    import ast
+    import inspect
+
+    def commit_timeouts(fn):
+        """The `timeout=` on every `git commit` subprocess call in fn's source."""
+        tree = ast.parse(inspect.getsource(fn).lstrip())
+        found = []
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            argv = node.args[0] if node.args else None
+            # The liveness path writes `["git", "commit", ...] + list(paths)`, so unwrap a
+            # concatenation before looking for the literal.
+            while isinstance(argv, ast.BinOp) and isinstance(argv.op, ast.Add):
+                argv = argv.left
+            is_commit = isinstance(argv, ast.List) and any(
+                isinstance(e, ast.Constant) and e.value == "commit" for e in argv.elts)
+            if not is_commit:
+                continue
+            for kw in node.keywords:
+                if kw.arg == "timeout":
+                    found.append(ast.unparse(kw.value))
+        return found
+
+    content = commit_timeouts(prc.git_commit_push)
+    liveness = commit_timeouts(prc._commit_and_push_paths)
+    assert content and liveness, "expected a git commit call with a timeout on both paths"
+    assert set(content) == set(liveness) == {"GIT_COMMIT_HOOK_TIMEOUT_SECONDS"}, (
+        "the content commit and the liveness commit must take their deadline from ONE constant; "
+        f"content={content} liveness={liveness}. A liveness path that survives a hook-chain "
+        "slowdown the content path dies on is the mechanism that hides a publish freeze."
+    )

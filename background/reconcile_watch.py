@@ -110,6 +110,13 @@ def _log(msg: str) -> None:
         pass
 
 
+def _digest_class():
+    """The G-N3 class this daemon's pages carry. Imported lazily so a test injecting `notify`
+    never has to have the digest module wired, and so this file stays importable on its own."""
+    from background import notification_digest
+    return notification_digest.DIVERGENCE
+
+
 def run(proc_results: list[dict] | None = None,
         sched_results: list[dict] | None = None,
         notify=None,
@@ -132,14 +139,18 @@ def run(proc_results: list[dict] | None = None,
 
     if changed:
         if notify is None:
-            from background.ntfy_utils import send_ntfy
-            notify = send_ntfy
-        # cleared back to clean vs appeared/changed -> typed by source (G-N2)
+            # THE CONTRACT, not the raw POST (2026-08-13). This called `send_ntfy` directly, so it
+            # sat OUTSIDE `background.notify` and therefore outside G-N3 routing entirely -- which
+            # is why a drift report the director cannot act on within the hour reached his phone
+            # roughly twelve times on 2026-08-13, most of them the same five gap-ledger rows. Its
+            # own name is the classification: manifest DIVERGENCE is the first category he listed
+            # for batching.
+            from background.notify import notify as notify
         cleared = not sig and last
         notify(summary, headers={
             "X-Tags": "white_check_mark" if cleared else "rotating_light",
             "X-Priority": "default" if cleared else "high",
-        })
+        }, kind="real_alarm", topic_class=_digest_class())
         _save(sig)
     return changed
 

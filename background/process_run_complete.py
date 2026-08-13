@@ -137,7 +137,25 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # background_worker.py::process_leftover_run_markers puts on this whole process -- the
 # fast-test gate already spends ~420s of that. A cap larger than the caller's budget
 # would just move the kill one level up and lose the log line that explains it.
-GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 5 * 60
+#
+# LIVENESS MUST NEVER BE EASIER TO PUBLISH THAN CONTENT (2026-08-13, director; the eighteen-hour
+# freeze). This constant was 300s and `_commit_and_push_paths` -- the heartbeat and the banner --
+# hard-coded 600s for the SAME hook chain. Nobody chose that asymmetry; the two numbers were
+# written months apart. But it is the precise shape that manufactures a masked freeze: as the
+# chain slows, it crosses the CONTENT threshold first and the LIVENESS one second, so there is a
+# whole band of hook-chain cost in which the site's "I am alive" signal publishes on schedule and
+# its figures cannot publish at all. On 2026-08-12 the chain entered that band and stayed there:
+# twenty-one consecutive content commits killed at 300s, and a `chore(liveness)` heartbeat landing
+# on origin every thirty minutes throughout.
+#
+# So the two paths now share ONE number, and the invariant is stated as a test rather than as a
+# comment (`test_liveness_is_never_easier_to_publish_than_content`): whatever budget the liveness
+# commit gets, the content commit gets at least as much. Set to the larger of the two former
+# values -- widening content, never narrowing liveness, because the failure being closed is
+# content dying early and the correct direction of a fix that could be wrong is "publish the
+# figures too". It still fits inside the 900s cap `background_worker.py::process_leftover_run_
+# markers` puts on this whole process.
+GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 10 * 60
 
 
 # THE KILL'S OWN DIAGNOSTIC WAS BLOCK-BUFFERED AWAY (2026-08-13, R15 fail-silent).
@@ -2799,7 +2817,54 @@ def generate_site(data, elapsed_s, git_hash, finished_ts):
     pass
 
 
-def git_commit_push(git_hash, net_margin):
+# ── WHY A FAILED PUBLISH AND AN EMPTY ONE MUST NOT BE THE SAME ANSWER ────────────────────────
+#
+# `git_commit_push` returns a bare False for six different things, and `_process` used to treat
+# all six identically: log one line and write the run's fingerprint anyway. Two of the six mean
+# "there was nothing to publish" and four mean "the publish FAILED". Writing the fingerprint is
+# correct for the first pair and catastrophic for the second, because the change-detection gate
+# then SKIPS every subsequent identical cycle -- so the commit-timeout branch's own promise,
+# "Nothing committed; retrying next cycle", was false the moment it was made. That is the second
+# half of the 2026-08-13 freeze: the first commit died on the hook deadline at 22:29, the
+# fingerprint recorded the run as processed, and the retry the log promised never ran again for
+# that output. Only a CHANGE in the sim's figures could break the loop.
+#
+# So the outcome is now NAMED, not inferred from a boolean, and `_process` fingerprints on
+# exactly the two no-op reasons. New failure paths added here default to NOT fingerprinting:
+# `RETRYABLE_PUBLISH_OUTCOMES` is the small closed set, and everything unlisted is treated as a
+# failure worth retrying, so forgetting to classify a future branch fails toward re-publishing.
+PUBLISHED = "published"                       # the commit reached origin
+NOTHING_TO_COMMIT = "nothing_to_commit"       # the index was empty -- a real no-op
+COMMITTED_PUSH_THROTTLED = "committed_push_throttled"   # landed locally, push deferred by design
+COMMIT_TIMEOUT = "commit_timeout"             # the hook chain outran the deadline
+COMMIT_REFUSED = "commit_refused"             # a gate said no, or git failed
+PUSH_DID_NOT_REACH_ORIGIN = "push_did_not_reach_origin"
+PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have published a false stamp
+#: Outcomes after which re-running this identical cycle would genuinely find nothing to do. Every
+#: other outcome leaves the fingerprint alone so the next cycle really does retry.
+RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
+
+
+def _git_said_nothing_to_commit(tail) -> bool:
+    """Did git refuse because the index was EMPTY, rather than because a hook said no?
+
+    ONE predicate, shared with `_commit_and_push_paths`, which needs the same distinction to
+    decide whether to log loudly. Two copies of this test drifting apart would let a hook refusal
+    read as a clean no-op on one path and an alarm on the other."""
+    return bool(tail) and "nothing to commit" in tail.lower()
+
+
+def git_commit_push(git_hash, net_margin, outcome=None):
+    """Commit and push the publish surface. Returns True iff the content is committed.
+
+    `outcome`, when given, is a dict this fills with {"reason": <one of the constants above>} so
+    the caller can tell a no-op from a failure. Optional and keyword-safe on purpose: every
+    existing caller and test passes two positional args and is unaffected."""
+    def _outcome(reason, value):
+        if outcome is not None:
+            outcome["reason"] = reason
+        return value
+
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
     site_index = PROJECT_DIR / "site" / "index.html"
     site_data = PROJECT_DIR / "site" / "data" / "dashboard.json"
@@ -2969,7 +3034,7 @@ def git_commit_push(git_hash, net_margin):
     # cycle, loudly, and the site keeps serving its last honest state. An unverified page is an
     # availability cost; a page stamped with a run that never happened is a public lie.
     if not _provenance_is_publishable(files, label="Auto-process publish"):
-        return False
+        return _outcome(PROVENANCE_REFUSED, False)
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
@@ -3027,7 +3092,7 @@ def git_commit_push(git_hash, net_margin):
                     GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__,
                     "\n  hook output before the kill (names the SLOW hook):\n{}".format(_tail)
                     if _tail else "\n  hook output: nothing captured before the kill"))
-            return False
+            return _outcome(COMMIT_TIMEOUT, False)
         if result.returncode != 0:
             # H30: which of the two it was is now IN the log, not inferred.
             _tail = (stderr_tail(getattr(result, "stderr", None))
@@ -3036,13 +3101,19 @@ def git_commit_push(git_hash, net_margin):
                 result.returncode,
                 "\n  git/hook output (last {} lines):\n{}".format(STDERR_TAIL_LINES, _tail)
                 if _tail else "\n  git said nothing -- consistent with an empty index"))
-            return False
+            # H30 named the two in the LOG; this makes the caller able to act on the difference.
+            # An empty index is a no-op; a hook refusal is a publish that FAILED and must retry.
+            # Note the direction: an unreadable tail reads as REFUSED, never as a clean no-op --
+            # the same fail-toward-retrying rule as RETRYABLE_PUBLISH_OUTCOMES.
+            return _outcome(
+                NOTHING_TO_COMMIT if _git_said_nothing_to_commit(_tail) else COMMIT_REFUSED,
+                False)
 
         if not _push_due():
             log("Committed locally, push deferred (throttled to every {}min)".format(
                 PUSH_THROTTLE_SECONDS // 60
             ))
-            return True
+            return _outcome(COMMITTED_PUSH_THROTTLED, True)
 
         # SELF-VERIFYING PUSH (2026-07-24, 3.5h origin-freeze incident): a bare
         # `git push` that returns rc=0 WITHOUT advancing origin (a phantom
@@ -3072,7 +3143,8 @@ def git_commit_push(git_hash, net_margin):
             log("Push verify: ls-remote failed ({}) -- cannot confirm origin advanced".format(exc))
         if _push_reached_origin(push.returncode, remote_head, local_head):
             _record_push_time()
-            return True
+            _record_content_published()
+            return _outcome(PUBLISHED, True)
         from background.notify import notify
         notify(
             "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}) -- {} -- publish pipeline "
@@ -3088,7 +3160,7 @@ def git_commit_push(git_hash, net_margin):
                 push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
                 "\n  git push stderr:\n{}".format(_tail) if _tail
                 else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
-        return False
+        return _outcome(PUSH_DID_NOT_REACH_ORIGIN, False)
 
 
 def _push_reached_origin(push_rc: int, remote_head: str, local_head: str) -> bool:
@@ -3103,6 +3175,17 @@ def _push_reached_origin(push_rc: int, remote_head: str, local_head: str) -> boo
     with a stale/behind remote head returns False -> no throttle reset -> retry.
     """
     return push_rc == 0 and bool(remote_head) and remote_head == local_head
+
+
+def _record_content_published() -> None:
+    """Stamp the content-publish clock (background/publish_freshness.py). Called from the ONE
+    place that has proved origin advanced, alongside `_record_push_time`, and never from a path
+    that has not. Non-fatal: freshness bookkeeping must not fail a publish that just succeeded."""
+    try:
+        from background import publish_freshness
+        publish_freshness.record_published()
+    except Exception as exc:  # noqa: BLE001
+        log("Content-publish stamp skipped (non-fatal): {}".format(exc))
 
 
 def _push_due() -> bool:
@@ -3424,8 +3507,12 @@ def _commit_and_push_paths(paths, msg, *, label):
     with tree_lock():
         subprocess.run(["git", "add"] + list(paths), cwd=str(PROJECT_DIR), timeout=30,
                        stderr=subprocess.PIPE, text=True)
+    # The SAME budget the content commit gets, from the SAME constant -- see
+    # GIT_COMMIT_HOOK_TIMEOUT_SECONDS for why a liveness path with its own, larger number is the
+    # mechanism that hides a content freeze rather than a harmless duplication.
     result = subprocess.run(["git", "commit", "-m", msg, "--"] + list(paths),
-                            cwd=str(PROJECT_DIR), timeout=600, capture_output=True, text=True)
+                            cwd=str(PROJECT_DIR), timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                            env=_commit_hook_env(), capture_output=True, text=True)
     if result.returncode != 0:
         _tail = (stderr_tail(getattr(result, "stderr", None))
                  or stderr_tail(getattr(result, "stdout", None)))
@@ -4504,14 +4591,32 @@ def _process(marker_path_str):
         log("Provenance stamp skipped (non-fatal): {}".format(exc))
 
     log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
-    if not git_commit_push(git_hash, net_margin):
-        log("Commit/push failed (possibly nothing changed)")
+    publish_outcome = {}
+    if not git_commit_push(git_hash, net_margin, outcome=publish_outcome):
+        log("Commit/push failed ({})".format(
+            publish_outcome.get("reason", "reason not recorded")))
 
-    # Record this run's fingerprint AFTER a full process so the next identical
-    # cycle is skipped by the change-detection gate above. Written even if the
-    # commit was a no-op (nothing changed) -- that is exactly the state we want
-    # future identical cycles to short-circuit on.
-    _write_last_fingerprint(fingerprint)
+    # Record this run's fingerprint AFTER a full process so the next identical cycle is skipped
+    # by the change-detection gate above -- but ONLY when re-running it would genuinely find
+    # nothing to do (RETRYABLE_PUBLISH_OUTCOMES: it published, the index was empty, or it is
+    # committed and waiting on the push throttle).
+    #
+    # THE EIGHTEEN-HOUR FREEZE WAS THE OTHER BRANCH (2026-08-13). This was unconditional, and
+    # the comment defending it -- "written even if the commit was a no-op (nothing changed)" --
+    # was reasoning about ONE of the ways `git_commit_push` returns False while the code applied
+    # to all six. A commit killed by the hook deadline therefore recorded the run as fully
+    # processed, and the change-detection gate then skipped every identical cycle after it. The
+    # timeout branch logs "Nothing committed; retrying next cycle"; this line is what made that
+    # promise false, and the retry it named could only ever happen if the sim's own figures
+    # changed. Twenty-one consecutive timeouts, and the fingerprint kept every one of them from
+    # being retried.
+    reason = publish_outcome.get("reason")
+    if reason in RETRYABLE_PUBLISH_OUTCOMES:
+        _write_last_fingerprint(fingerprint)
+    else:
+        log("Fingerprint NOT recorded (publish outcome: {}) -- this cycle is unfinished, so the "
+            "next identical run must re-attempt it rather than be skipped as already "
+            "processed.".format(reason or "unknown"))
 
     # The complement of the scoped gate: run it AFTER the publish (it may not add latency to
     # what it may not block) and put its reds on the page as an annotation. See the function's

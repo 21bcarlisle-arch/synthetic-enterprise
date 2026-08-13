@@ -49,9 +49,19 @@ from background.notify import notify  # noqa: E402
 
 
 def _digest(msg: str) -> None:
-    """Sanity-daemon pages are all digest-class (informational, self-deduped upstream via
-    _register_if_new / the daily-digest date guard)."""
-    notify(msg, kind="digest")
+    """Sanity-daemon pages are all informational (self-deduped upstream via _register_if_new /
+    the daily-digest date guard).
+
+    `kind="digest"` was doing the OPPOSITE of what this function's name promised (2026-08-13).
+    In the notify contract `kind` and `topic_class` are different axes: kind="digest" means *this
+    message IS a batch*, and such a message is INSTANT by construction -- routing the digest back
+    into the digest queue would never terminate. So every sanity finding went straight to the
+    director's phone under a name that read like batching. The class is declared on the axis that
+    actually routes: these are FINDING_ANNOUNCEMENTs, verbatim one of the four he named.
+    """
+    from background import notification_digest
+    notify(msg, kind="real_alarm",
+           topic_class=notification_digest.FINDING_ANNOUNCEMENT)
 from background import coupled_triad  # noqa: E402
 from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
 from company.compliance.internal_audit import run_internal_audit  # noqa: E402

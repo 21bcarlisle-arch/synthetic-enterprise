@@ -206,6 +206,38 @@ DATA_SURFACE_SUFFIXES = (
 # bounded_by_another_gate` pins that claim so it reds if one of those gates stops covering it.
 PUBLISHED_OUTPUT_ROOTS = ("site/", "docs/reports/", "docs/status/")
 
+# THE SECOND NARROWING, and it is the same one (2026-08-13, the eighteen-hour publish freeze).
+#
+# WHAT HAPPENED. The derivation above landed at 21:40 on 2026-08-12. The last content publish
+# reached origin at 21:28. Every auto-process publish from 22:29 onward died on `git commit`
+# exceeding its 300s hook deadline, twenty-one consecutive times across eighteen hours, and the
+# site served 08-12 figures while a `chore(liveness)` heartbeat kept landing on origin every
+# thirty minutes. Nothing was red. The commit simply never finished.
+#
+# WHY THIS FILE. `background/process_run_complete.py::git_commit_push` stages
+# `docs/design/maturity_map.yaml` on EVERY publish (the pre-gate atom_status inbox fold, `git
+# add -A`). Measured on the real staged index: the map's derived answer alone is **50 test
+# files**, taking the commit's selection to 58 files and **over twenty minutes** -- and it pulls
+# in `tests/simulation/test_run_phase4c_on_phase2b.py`, a full simulation run that the publish
+# gate's own argv explicitly `--ignore`s as too slow to gate on. The same commit narrowed to the
+# map's CURATED list runs **13 files in 40 seconds**.
+#
+# So this is not a new policy. It is PUBLISHED_OUTPUT_ROOTS' own reasoning -- "a gate too
+# expensive to run gets bypassed, which is the fail-open it was meant to close" -- applied to the
+# second path that is staged on the single most frequent commit in the loop. The failure it
+# actually bought was worse than a bypass, because nobody bypassed anything: the gate was never
+# reached for a verdict, and an unfinished gate is indistinguishable in the log from a quiet one.
+#
+# BOUNDED THE SAME WAY, and this bound is stronger than the published-output one. Each path here
+# is the SUBJECT of a hand-kept surface list above that fires on exactly this file and is not
+# narrowed at all -- `docs/design/maturity_map.yaml` keeps every one of LEVEL_SENSITIVE_TESTS
+# (the reconciler, the level gate, the coupled triad, the proof panel, the map facets, both store
+# contracts), each of which was added after its own incident. What is dropped is the derived
+# tail: the tests of the ~37 modules that merely READ the map. `test_a_curated_surface_path_
+# keeps_its_curated_tests` and `test_every_curated_surface_narrowing_has_a_surface_list` pin both
+# halves, so narrowing a path whose curated list was later deleted reds instead of going silent.
+CURATED_SURFACE_PATHS = LEVEL_SURFACE_FILES
+
 
 def staged_files() -> list[str]:
     out = subprocess.run(
@@ -327,6 +359,8 @@ def data_surface_tests(path: str) -> list[str]:
         return []
     if path.startswith(PUBLISHED_OUTPUT_ROOTS):
         return []  # regenerated output, gated elsewhere -- see PUBLISHED_OUTPUT_ROOTS
+    if path in CURATED_SURFACE_PATHS:
+        return []  # already covered by its own surface list -- see CURATED_SURFACE_PATHS
     # BOTH routes, unioned -- not basename-as-fallback. They answer DIFFERENT questions and the
     # first one is not the stronger: a doc-string or a test may cite the full repo path while the
     # module that actually LOADS the file writes `_HERE / "process_manifest.yaml"` and so is only

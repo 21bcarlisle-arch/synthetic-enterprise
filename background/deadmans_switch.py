@@ -67,7 +67,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background.notify import notify, clear_transition  # noqa: E402
+from background.notify import notify, clear_transition, current_state  # noqa: E402
 from background import action_needed  # noqa: E402
 from background.harden_commit import is_harden_commit  # noqa: E402
 from background.primary_state_scan import drawable_undrawn_mints  # noqa: E402  (LAW C independent read)
@@ -340,6 +340,7 @@ def _check_open_mint_escalation(since_commit: float) -> None:
             kind="real_alarm", transition_key=_OPEN_MINT_KEY,
             state="mints:" + ",".join(sorted(n for n, _ in blockers)),
             re_escalate_after=RE_ESCALATE_SECONDS,
+            topic_class=_digest_classes().ACTION_NEEDED,
         )
         log(f"OPEN-MINT escalation checked (notify-gated) -- {len(blockers)} blocked, "
             f"{since_commit / 3600:.1f}h since a work commit")
@@ -355,6 +356,7 @@ def _check_open_mint_escalation(since_commit: float) -> None:
             f"gate / mint batch deadlocked (EIGHTH CLASS 2026-07-27)?",
             kind="real_alarm", transition_key=_HARD_REST_CAP_KEY, state="CAP",
             re_escalate_after=RE_ESCALATE_SECONDS,
+            topic_class=_digest_classes().ACTION_NEEDED,
         )
         log(f"HARD REST CAP escalation checked (notify-gated) -- {since_commit / 3600:.1f}h since a work commit")
     else:
@@ -399,6 +401,7 @@ def _check_drawable_undrawn_escalation(since_commit: float) -> None:
             kind="real_alarm", transition_key=_DRAWABLE_UNDRAWN_KEY,
             state="undrawn:" + ",".join(sorted(n for n, _ in undrawn)),
             re_escalate_after=RE_ESCALATE_SECONDS,
+            topic_class=_digest_classes().ACTION_NEEDED,
         )
         log(f"DRAWABLE-UNDRAWN escalation checked (notify-gated) -- {len(undrawn)} self-drawable "
             f"mint(s) undrawn, {since_commit / 3600:.1f}h since a work commit")
@@ -439,7 +442,7 @@ def _reping_open_action_needed_items() -> None:
     for entry in action_needed.due_for_reping():
         sent_id = notify(action_needed.format_action_needed(
             entry["item_id"], entry["what"], entry["how"], entry["why"],
-        ), kind="real_alarm")
+        ), kind="real_alarm", topic_class=_digest_classes().ACTION_NEEDED)
         if sent_id:
             action_needed.mark_sent(entry["item_id"])
             log(f"Re-pinged open action-needed item: {entry['item_id']}")
@@ -476,6 +479,7 @@ def _check_pull_loop_transport() -> None:
         f".claude/hooks/pull_next_work.py (find_work / worker_seat import) and .pull_loop_health.json.",
         kind="real_alarm", transition_key=_LOOP_BROKEN_KEY, state="BROKEN",
         re_escalate_after=RE_ESCALATE_SECONDS,
+        topic_class=_digest_classes().BLOCKED_WORK,
     )
     log(f"LOOP BROKEN checked (notify-gated): {st['detail']}")
 
@@ -511,6 +515,7 @@ def _check_fork_lifecycle() -> None:
         f"re-runnable, never auto-landed unreviewed. Triage: docs/observability/ + salvage/* tags.",
         kind="real_alarm", transition_key=_FORK_ORPHAN_KEY, state=f"orphans:{len(st['orphans'])}",
         re_escalate_after=RE_ESCALATE_SECONDS,
+        topic_class=_digest_classes().DRIFT,
     )
     log(f"FORK ORPHANS checked (notify-gated): {st['detail']}")
 
@@ -538,6 +543,10 @@ def _check_worktree_reconcile() -> None:
         f"(never pruned by inference). Declare it or clean it up through the reconciler.",
         kind="real_alarm", transition_key=_WORKTREE_UNDECLARED_KEY,
         state=f"undeclared:{len(st['undeclared'])}", re_escalate_after=RE_ESCALATE_SECONDS,
+        # The message calls itself REPORT-ONLY and names accretion, which is the definition of
+        # DRIFT: nothing here is due within the hour. It paged five times on 2026-08-13, each
+        # about a different transient temp worktree.
+        topic_class=_digest_classes().DRIFT,
     )
     log(f"WORKTREE UNDECLARED checked (notify-gated): {st['detail']}")
 
@@ -644,6 +653,86 @@ def _flush_notification_digest() -> None:
         log(f"Notification digest flush failed (queue intact): {type(exc).__name__}: {exc}")
 
 
+#: The transition key for the publishing-down page. One key, so a freeze pages once when it
+#: starts and once when it clears, with an hourly re-escalate while it persists.
+_PUBLISHING_KEY = "content_publishing_state"
+
+
+def _digest_classes():
+    """The G-N3 class vocabulary, imported lazily so a notification module problem can never stop
+    this daemon from starting -- it is the watchdog, and it has to outlive what it watches."""
+    from background import notification_digest
+    return notification_digest
+
+
+def _check_content_publishing() -> None:
+    """Page the director when the FIGURES stop reaching origin (2026-08-13).
+
+    THE CLASS THIS CLOSES, and it is not a missing threshold -- it is a missing SENDER.
+    `notification_digest` defines four INSTANT classes, taken verbatim from the director's own
+    message: action_needed, blocked_work, decision_waiting, publishing_down. A grep of the tree
+    on 2026-08-13 found ZERO callers of any of them, and `publishing_down` in particular had
+    never been emitted by anything. So the one event he named as "tell me immediately" was the
+    one event nothing could tell him about, and he found eighteen hours of frozen content by
+    looking at the site.
+
+    WHY HERE. This daemon is deliberately outside the tmux/supervisor stack and already owns the
+    periodic cycle the digest flush rides. It is also INDEPENDENT of the publisher in the way
+    that matters: it reads the freshness clock off disk rather than asking the publish pipeline
+    how the publish pipeline is doing. A publisher that pages about its own health is the
+    tautology R15 names -- the wedged component reporting on itself was how the previous freeze
+    stayed quiet too.
+
+    NOT the same alarm as the commit clock below. That one fires on "no git commit at all", and
+    it stayed SILENT through the whole freeze for a perfectly good reason: commits were landing
+    the entire time -- worker commits, and a `chore(liveness)` heartbeat every thirty minutes.
+    Liveness is exactly what made the content freeze invisible, so a liveness-shaped alarm could
+    never have caught it. This one asks the different question: did the FIGURES move.
+    """
+    try:
+        from background import notification_digest, publish_freshness
+        snap = publish_freshness.snapshot()
+    except Exception as exc:  # noqa: BLE001 -- a check that cannot run must not crash the cycle
+        log(f"content-publishing check error: {type(exc).__name__}: {exc}")
+        return
+
+    state = snap.get("state")
+    if state == "publishing":
+        # Recovery pages ONCE, and only if we actually paged a fault -- `current_state` is asked
+        # rather than assumed, because an unconditional send here announces a recovery from a
+        # fault that never happened on the first cycle after every restart.
+        if current_state(_PUBLISHING_KEY) in ("stale", "unpublished"):
+            notify(f"[PUBLISHING] Recovered -- {publish_freshness.describe(snap)}.",
+                   kind="real_alarm", transition_key=_PUBLISHING_KEY, state=state,
+                   topic_class=notification_digest.PUBLISHING_DOWN)
+        else:
+            clear_transition(_PUBLISHING_KEY)
+        return
+    if state == "unknown":
+        return  # no measurement is not evidence of a fault -- see is_publishing_down()
+
+    hours = (snap.get("published_age_seconds") or 0) / 3600.0
+    detail = (" Content IS still being committed -- so the figures may look like they move, but "
+              "only when another writer happens to sweep the regenerated files along. The "
+              "PUBLISH PATH itself is what stopped."
+              if snap.get("committed_but_unpublished") else
+              " The tick may look healthy and the heartbeat may still be landing on origin: "
+              "those are the LIVENESS surface and they do not move with the figures.")
+    msg = (
+        f"[PUBLISHING DOWN] The published figures have not reached origin for {hours:.1f}h "
+        f"(state={state}).{detail} Check sim-runner-log.md for the publish outcome -- a commit "
+        f"killed by the pre-commit hook deadline is the 2026-08-13 shape."
+        if state == "stale" else
+        "[PUBLISHING DOWN] No verified content publish has EVER been recorded. Either this is a "
+        "fresh install, or the publish clock's state file was lost -- until one publish is "
+        "recorded, nothing here can tell a frozen site from a live one."
+    )
+    notify(msg, kind="real_alarm", transition_key=_PUBLISHING_KEY, state=state,
+           re_escalate_after=RE_ESCALATE_SECONDS,
+           topic_class=notification_digest.PUBLISHING_DOWN)
+    log(f"content-publishing alarm checked (notify-gated) -- {publish_freshness.describe(snap)}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
@@ -652,6 +741,7 @@ def run_cycle() -> None:
     _check_status_honesty()
     _check_repo_not_bare()
     _check_operational_layer_signal()
+    _check_content_publishing()
     _flush_notification_digest()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
@@ -751,7 +841,8 @@ def run_cycle() -> None:
     # window does not re-page -- exactly the prior shared-_last_escalation_ts behaviour, now in the
     # contract. notify() owns transition-only + hourly re-escalate.
     notify(msg, kind="real_alarm", transition_key=_COMMIT_KEY, state="STUCK",
-           re_escalate_after=RE_ESCALATE_SECONDS)
+           re_escalate_after=RE_ESCALATE_SECONDS,
+           topic_class=_digest_classes().BLOCKED_WORK)
     log(f"commit-clock alarm checked (notify-gated) -- {since_commit / 60:.0f}min since commit")
 
 

@@ -121,11 +121,35 @@ def _enumeration_line() -> str:
         return f"(enumeration unavailable: {e!r})"
 
 
+def _content_publish_block() -> dict:
+    """The publish-freshness block for the heartbeat. Never raises, and an error is REPORTED
+    rather than swallowed into an empty dict -- an absent freshness block reads to every consumer
+    as 'nothing to say', which is indistinguishable from 'everything is fine' and is the exact
+    fail-silent shape that let a day of frozen content look healthy."""
+    try:
+        from background import publish_freshness
+        return publish_freshness.snapshot()
+    except Exception as exc:  # noqa: BLE001
+        return {"state": "unknown", "error": f"{exc.__class__.__name__}: {exc}"[:200]}
+
+
 def _write_heartbeat(decision: "TickDecision", enumeration: str) -> None:
     """Write the origin-verifiable tick heartbeat (see HEARTBEAT_FILE). One line per tick:
     timestamp · verdict(drew/rested/exception) · whole-set enumeration, plus a rolling `recent`
     window so 'is it actually ticking' is answerable from advancing timestamps alone. No inference,
-    never raises -- liveness reporting must not itself be able to wedge the tick."""
+    never raises -- liveness reporting must not itself be able to wedge the tick.
+
+    ALIVE-BUT-UNCHANGED IS NOT ALIVE-AND-PUBLISHING (2026-08-13, director). Everything above this
+    line is a true statement about the TICK, and on 2026-08-13 it was true all day -- `drew` every
+    sixty seconds, published to origin every thirty minutes -- while the site served the previous
+    day's figures because every content commit was dying on the pre-commit hook deadline. The
+    verdict was never wrong; it was about the wrong subject, and this file is the surface both the
+    site and the advisor fetch to decide whether the system is healthy. So it now also carries how
+    long it has been since CONTENT reached origin (background/publish_freshness.py). The two
+    questions have separate answers here, and a reader who wants "is it alive AND publishing" has
+    to look at both -- which is the whole point, because for eighteen hours they had different
+    answers and only one of them was on the page.
+    """
     ts = time.time()
     iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
     verdict = _VERDICT_CLASS.get(decision.outcome, decision.outcome.lower())
@@ -138,6 +162,10 @@ def _write_heartbeat(decision: "TickDecision", enumeration: str) -> None:
         "detail": decision.detail[:300],
         "enumeration": enumeration,       # the whole-set enumeration line (every level, Y/.)
         "line": line,                     # the single human-readable line the ruling asks for
+        # publishing | stale | unpublished | unknown -- see publish_freshness.snapshot().
+        # UNAVAILABLE is reported as such and never as healthy: a freshness block that silently
+        # became {} would restore exactly the all-clear this exists to remove.
+        "content_publish": _content_publish_block(),
     }
     try:
         HEARTBEAT_FILE.parent.mkdir(parents=True, exist_ok=True)

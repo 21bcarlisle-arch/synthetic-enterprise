@@ -73,6 +73,13 @@ def _isolate(tmp_path, monkeypatch):
     # touch the real .operational_layer_signal.json.
     monkeypatch.setattr("background.process_run_complete.run_operational_layer_signal",
                         lambda **k: {"ran": False, "reason": "isolated"})
+    # Content-publishing freshness reads the REAL publish clock off disk, so a genuinely stale
+    # live repo would fire a [PUBLISHING DOWN] into every send_ntfy assertion in this file. Same
+    # treatment as the four checks above: healthy by default, overridden by its own tests below.
+    monkeypatch.setattr("background.publish_freshness.snapshot",
+                        lambda *a, **k: {"state": "publishing", "published_age_seconds": 60.0,
+                                         "committed_age_seconds": 60.0,
+                                         "committed_but_unpublished": False})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()
@@ -866,3 +873,128 @@ def test_self_drawable_mint_vetoes_proven_rest_stall(monkeypatch):
     stall = [c for c in calls if "[STALL]" in c]
     assert len(stall) == 1
     assert "failure_bias_law_c" in stall[0] and "LAW C" in stall[0]
+
+
+# ── [PUBLISHING DOWN]: the instant class that had no sender (2026-08-13) ──────────────────────
+#
+# `notification_digest` names four INSTANT classes from the director's own words -- action_needed,
+# blocked_work, decision_waiting, publishing_down. On 2026-08-13 a grep found ZERO callers of any
+# of them, and publishing_down had never been emitted by anything. The site served day-old figures
+# for eighteen hours and the director found it by looking.
+
+def _stale(hours, **over):
+    snap = {"state": "stale", "published_age_seconds": hours * 3600,
+            "committed_age_seconds": hours * 3600, "committed_but_unpublished": False}
+    snap.update(over)
+    return snap
+
+
+def test_a_content_freeze_pages_the_director(monkeypatch):
+    """The incident. Eighteen hours since the figures reached origin -> an instant page."""
+    monkeypatch.setattr("background.publish_freshness.snapshot", lambda *a, **k: _stale(18))
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+
+    dms.run_cycle()
+
+    down = [c for c in calls if "PUBLISHING DOWN" in c]
+    assert len(down) == 1, "a content freeze must page -- this is the class with no sender"
+    assert "18.0h" in down[0]
+
+
+def test_a_healthy_publish_does_NOT_page(monkeypatch):
+    """MUTATION both ways: the threshold is real state, not a constant-fire."""
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert [c for c in calls if "PUBLISHING" in c] == []
+
+
+def test_a_landing_heartbeat_cannot_silence_the_publishing_alarm(monkeypatch):
+    """THE MASKING, as a test (director, 2026-08-13).
+
+    Through the whole freeze, commits kept landing -- worker commits and a `chore(liveness)`
+    heartbeat every thirty minutes -- so the commit-clock alarm was correctly silent and the tick
+    verdict was `drew`. An alarm that consulted either of those could never have caught this. This
+    fires on a fresh commit clock and a proven-legitimate rest, because its subject is the FIGURES.
+    """
+    monkeypatch.setattr("background.publish_freshness.snapshot", lambda *a, **k: _stale(18))
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # just committed
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+
+    dms.run_cycle()
+
+    assert [c for c in calls if "PUBLISHING DOWN" in c], (
+        "the publishing alarm was suppressed by a healthy commit clock -- liveness is precisely "
+        "what masked this freeze, so an alarm that liveness can silence is the wrong alarm"
+    )
+    assert [c for c in calls if "[STALL]" in c or "[BLOCKED]" in c] == []
+
+
+def test_the_page_is_routed_INSTANT_not_batched(monkeypatch):
+    """G-N3: publishing_down is one of the four the director reserved for immediate sending, so
+    it must reach the wire rather than the digest queue. MUTATION: classify it as a deferrable
+    category and this fails."""
+    from background import notification_digest
+
+    assert notification_digest.is_instant(notification_digest.PUBLISHING_DOWN)
+    monkeypatch.setattr("background.publish_freshness.snapshot", lambda *a, **k: _stale(18))
+    deferred = []
+    monkeypatch.setattr(notification_digest, "defer",
+                        lambda m, **k: deferred.append(m) or "deferred:0")
+    sent = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: sent.append(msg))
+
+    dms.run_cycle()
+
+    assert [s for s in sent if "PUBLISHING DOWN" in s]
+    assert [d for d in deferred if "PUBLISHING DOWN" in d] == []
+
+
+def test_recovery_is_its_own_transition(monkeypatch):
+    """R5. The director is told publishing came back, rather than having to notice an alarm
+    stopped repeating -- and the recovery page does not then repeat either."""
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    monkeypatch.setattr("background.publish_freshness.snapshot", lambda *a, **k: _stale(18))
+    dms.run_cycle()
+    assert len([c for c in calls if "PUBLISHING DOWN" in c]) == 1
+
+    calls.clear()
+    dms.run_cycle()          # still stale, same state -> silent (transition-only)
+    assert [c for c in calls if "PUBLISHING" in c] == []
+
+    calls.clear()
+    monkeypatch.setattr("background.publish_freshness.snapshot",
+                        lambda *a, **k: {"state": "publishing", "published_age_seconds": 30.0,
+                                         "committed_age_seconds": 30.0,
+                                         "committed_but_unpublished": False})
+    dms.run_cycle()
+    assert len([c for c in calls if "PUBLISHING] Recovered" in c]) == 1
+
+    calls.clear()
+    dms.run_cycle()          # still healthy -> silent again
+    assert [c for c in calls if "PUBLISHING" in c] == []
+
+
+def test_committed_but_unpublished_names_its_own_cause(monkeypatch):
+    """Two faults, two fixes -- and this is the one that hides best.
+
+    On 2026-08-13 the publish path had not landed for 21.7h, and `site/data/dashboard.json` still
+    reached origin twice in that window because unrelated worker commits happened to sweep the
+    regenerated file along. Figures that move by luck look like figures that move, so the page has
+    to say that the PUBLISH PATH is what stopped rather than implying the content is frozen.
+    """
+    monkeypatch.setattr("background.publish_freshness.snapshot",
+                        lambda *a, **k: _stale(20, committed_age_seconds=60.0,
+                                               committed_but_unpublished=True))
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+
+    dms.run_cycle()
+
+    down = [c for c in calls if "PUBLISHING DOWN" in c][0]
+    assert "PUBLISH PATH itself is what stopped" in down
+    assert "still being committed" in down

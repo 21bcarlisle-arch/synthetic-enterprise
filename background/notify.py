@@ -112,6 +112,21 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     return ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send)
 
 
+def current_state(transition_key: str) -> str | None:
+    """The last state SENT for this key, or None if the key has never fired.
+
+    Added for the recovery half of an alarm (2026-08-13). A caller that pages on a bad state and
+    wants to page once when it clears has to know whether it was ever bad -- and without this it
+    has only two options, both wrong: keep a second copy of the state beside the contract's own
+    (two records of one fact, which is how they drift), or fire the recovery unconditionally,
+    which announces a recovery from a fault that never happened on the very first cycle after a
+    restart. Read-only; it cannot send, suppress, or re-arm anything."""
+    prev = _read_transitions().get(transition_key)
+    if isinstance(prev, dict):
+        return prev.get("state")
+    return prev if isinstance(prev, str) else None  # legacy bare-string entries
+
+
 def clear_transition(transition_key: str) -> None:
     """Forget a key's last state, so the next send for it always fires (e.g. after a resolved
     alarm, to re-arm)."""
