@@ -578,3 +578,277 @@ def test_the_CLI_refuses_rather_than_passing_when_the_hold_check_is_unavailable(
     monkeypatch.setattr(mp, "hold_record_atoms", _boom)
     assert mp.main(["--check"]) == 2
     assert "COULD NOT RUN" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# THE LANDING ITSELF (H27 Expert Hour #25, atom D42)
+#
+# The defect these guard is a landing that exists ONLY in the working tree, so
+# every fixture below is a real repo with a real HEAD and a real dirty tree.
+# A mocked git would prove the mock returns what the test told it to, which is
+# the same objection AO11's own first tests recorded.
+#
+# NOTE ON THIS FILE'S OWN LABELS: the label examples here are deliberately
+# written with the ordinal split out of the string (`_label`), because a check
+# keyed on a string in code cannot tell its own documentation from its subject.
+# Spelling a live label in a comment made this check report a phantom landing on
+# its first run.
+# ---------------------------------------------------------------------------
+
+def _label(qualifier: str, n: int) -> str:
+    return "%s Expert %s #%d" % (qualifier, "Hour", n)
+
+
+def _code_rows(*entries) -> dict:
+    return {"code": [{"path": p, "head": h, "worktree": w} for p, h, w in entries],
+            "records": []}
+
+
+def _record_rows(*entries) -> dict:
+    return {"code": [], "records": [{"atom": a, "path": p, "head_entries": h,
+                                     "worktree_entries": w} for a, p, h, w in entries]}
+
+
+def test_hour_work_written_and_not_committed_FIRES():
+    """The witnessed shape: 162 lines self-labelled with an Hour, uncommitted."""
+    findings = mp.unlanded_hour_findings(
+        _code_rows(("tools/x.py", "def f(): pass  # %s" % _label("H27", 21),
+                    "def f(): pass  # %s\ndef g(): pass  # %s"
+                    % (_label("H27", 21), _label("H27", 22)))),
+        ["H27_payment_belief_gap"])
+    assert len(findings) == 1
+    assert mp.UNLANDED_WORK in findings[0]
+    assert "#22" in findings[0] and "#21" not in findings[0]
+    assert "H27_payment_belief_gap" in findings[0]
+
+
+def test_hour_work_that_is_committed_is_silent():
+    """Not always-red: the same label on both sides is a landing, not a finding."""
+    text = "def f(): pass  # %s" % _label("H27", 22)
+    assert mp.unlanded_hour_findings(_code_rows(("tools/x.py", text, text)),
+                                     ["H27_payment_belief_gap"]) == []
+
+
+def test_MUTATION_reading_the_working_tree_on_BOTH_sides_goes_blind():
+    """TAUTOLOGY (R15): the two sides must come from two trees. Hand the check the
+    working-tree text as its own HEAD -- the state it exists to detect reads clean,
+    every time, which is what an independence failure looks like from inside."""
+    tree = "def f(): pass  # %s" % _label("H27", 22)
+    assert mp.unlanded_hour_findings(_code_rows(("tools/x.py", None, tree)),
+                                     ["H27_payment_belief_gap"]) != []
+    assert mp.unlanded_hour_findings(_code_rows(("tools/x.py", tree, tree)),
+                                     ["H27_payment_belief_gap"]) == []
+
+
+def test_MUTATION_an_unqualified_label_is_not_attributed_to_anybody():
+    """WRONG SUBJECT (R15): three atoms run Hours. A bare ordinal belongs to none
+    of them, and counting it would hand one atom's work to another."""
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.unlanded_hour_findings(
+            _code_rows(("tools/x.py", "", "# Expert Hour #22 landed here")),
+            ["H27_payment_belief_gap"])
+
+
+def test_an_ambiguous_qualifier_still_FIRES_and_names_every_cell_it_could_be():
+    """This check's own first-run defect, pinned both ways. Two live cells begin
+    `H27`, so resolving a qualifier to one atom invented work for a second -- and
+    dropping the ambiguous label instead would have gone inert on the very atom
+    the check was built for. It fires, and says which cells it could mean."""
+    findings = mp.unlanded_hour_findings(
+        _code_rows(("tools/x.py", "", "# %s" % _label("H27", 22))),
+        ["H27_payment_belief_gap", "H27_phone_act_channel", "H_GAP_fabric"])
+    assert len(findings) == 1
+    assert "AMBIGUOUS" in findings[0]
+    assert "H27_payment_belief_gap" in findings[0]
+    assert "H27_phone_act_channel" in findings[0]
+    assert "H_GAP_fabric" not in findings[0]
+
+
+def test_a_label_naming_no_map_cell_is_reported_rather_than_dropped():
+    findings = mp.unlanded_hour_findings(
+        _code_rows(("tools/x.py", "", "# %s" % _label("ZZ9", 3))), ["H27_payment_belief_gap"])
+    assert len(findings) == 1 and "no map cell" in findings[0]
+
+
+def test_a_file_that_does_not_exist_at_HEAD_is_reported_not_skipped():
+    """FAIL-OPEN ON MISSING (R15): a brand-new uncommitted file is the strongest
+    form of unlanded, and an absent HEAD side must never read as agreement."""
+    findings = mp.unlanded_hour_findings(
+        _code_rows(("tools/new.py", None, "# %s" % _label("H27", 25))),
+        ["H27_payment_belief_gap"])
+    assert len(findings) == 1
+    assert "does not exist at HEAD" in findings[0]
+
+
+def test_an_hour_entry_written_but_not_committed_FIRES():
+    """The second half of the witnessed near miss: the VERDICT itself unlanded."""
+    head = ["TWENTY-SECOND HOUR (2026-08-12), on leads. Level stays 2."]
+    tree = head + ["TWENTY-THIRD HOUR (2026-08-13), verified and landed. Level stays 2."]
+    findings = mp.unlanded_hour_findings(
+        _record_rows(("H27_payment_belief_gap", "docs/design/simplifications/H27.yaml",
+                      head, tree)))
+    assert len(findings) == 1
+    assert mp.UNLANDED_RECORD in findings[0] and "#23" in findings[0]
+
+
+def test_a_record_whose_entries_are_all_committed_is_silent():
+    head = ["TWENTY-SECOND HOUR (2026-08-12), on leads. Level stays 2."]
+    assert mp.unlanded_hour_findings(
+        _record_rows(("A1", "docs/design/simplifications/A1.yaml", head, list(head)))) == []
+
+
+def test_MUTATION_nothing_parsing_anywhere_RAISES_rather_than_passing():
+    """FAIL-SILENT (R15): an unparseable convention is an unavailable check, and
+    an unavailable check is a FAILED check -- never a clean repo."""
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.unlanded_hour_findings(_code_rows(("tools/x.py", "def f(): pass", "def f(): x")))
+
+
+def test_the_record_store_and_its_renderings_are_never_a_landing(repo: Path):
+    """A record repeating the claim is record-against-record one level down: at the
+    real near miss the register named the Hour while the code did not exist."""
+    for path in ("docs/design/simplifications/A1.yaml", "site/data/proof.json",
+                 "tools/real.py"):
+        p = repo / path
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x = 1  # %s\n" % _label("H27", 22), encoding="utf-8")
+    _commit(repo, EARLY)
+    paths = mp._labelled_code_paths(repo)
+    assert paths == ["tools/real.py"]
+
+
+def test_the_population_is_derived_from_both_trees_not_from_one(repo: Path):
+    """A file only HEAD carries and a file only the tree carries are both asked
+    about -- the tree-only direction is the whole point, and the HEAD-only one
+    keeps a deletion from reading as a clean sweep."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "committed.py").write_text("# %s\n" % _label("H27", 21), encoding="utf-8")
+    _commit(repo, EARLY)
+    (repo / "tools" / "uncommitted.py").write_text("# %s\n" % _label("H27", 22), encoding="utf-8")
+    _git(repo, "add", "-A")
+    assert mp._labelled_code_paths(repo) == ["tools/committed.py", "tools/uncommitted.py"]
+
+
+def test_the_end_to_end_check_fires_on_a_real_repo_with_real_uncommitted_work(repo: Path):
+    """The whole path -- git show, disk read, label parse, finding -- on a repo
+    whose HEAD and working tree really do differ."""
+    (repo / "tools").mkdir()
+    src = repo / "tools" / "couple.py"
+    src.write_text("# %s\n" % _label("H27", 21), encoding="utf-8")
+    _write_map(repo, [_atom("H27_payment_belief_gap", 2, ["tools/couple.py"])])
+    _commit(repo, EARLY)
+    src.write_text("# %s\n# %s\n" % (_label("H27", 21), _label("H27", 22)), encoding="utf-8")
+
+    atoms = mp._map_atoms(repo)
+    rows = mp.unlanded_hour_atoms(atoms, repo=repo)
+    findings = mp.unlanded_hour_findings(rows, [a["id"] for a in atoms])
+    assert len(findings) == 1
+    assert "#22" in findings[0] and "tools/couple.py" in findings[0]
+
+    src.write_text("# %s\n" % _label("H27", 21), encoding="utf-8")
+    assert mp.unlanded_hour_findings(mp.unlanded_hour_atoms(atoms, repo=repo),
+                                     [a["id"] for a in atoms]) == []
+
+
+def test_git_that_cannot_answer_RAISES_rather_than_reporting_nothing_unlanded(tmp_path: Path):
+    """FAIL-SILENT (R15): "the tree is clean" and "I could not look at the tree"
+    are the same silence and opposite facts."""
+    with pytest.raises(Exception):
+        mp._labelled_code_paths(tmp_path)
+    with pytest.raises(RuntimeError):
+        mp._head_text("tools/x.py", tmp_path)
+
+
+def test_a_malformed_record_loses_its_own_entries_not_the_whole_check():
+    assert mp._register_entries("{{ not: yaml: [") == []
+    assert mp._register_entries("- a plain list, not the store's shape") == []
+    assert mp._register_entries(None) == []
+
+
+def test_unlanded_work_reaches_the_CLI_under_its_OWN_exit_code(monkeypatch, capsys):
+    """D34's lesson (wired into the CLI, not only the suite) and the reason it is
+    NOT in the shared findings list: 2 stays COULD-NOT-RUN, 3 is the finding, so a
+    caller can tell an unavailable check from an unlanded landing."""
+    monkeypatch.setattr(mp, "unlanded_hour_atoms",
+                        lambda atoms, repo=None, store_dir=None:
+                        _code_rows(("tools/x.py", "", "# %s" % _label("H27", 22))))
+    assert mp.main(["--unlanded"]) == 3
+    assert mp.UNLANDED_WORK in capsys.readouterr().err
+
+    monkeypatch.setattr(mp, "unlanded_hour_atoms",
+                        lambda atoms, repo=None, store_dir=None: _code_rows(
+                            ("tools/x.py", "# %s" % _label("H27", 22),
+                             "# %s" % _label("H27", 22))))
+    assert mp.main(["--unlanded"]) == 0
+
+
+def test_the_CLI_refuses_rather_than_passing_when_the_landing_check_is_unavailable(
+        monkeypatch, capsys):
+    def _boom(atoms, repo=None, store_dir=None):
+        raise RuntimeError("git show failed")
+
+    monkeypatch.setattr(mp, "unlanded_hour_atoms", _boom)
+    assert mp.main(["--unlanded"]) == 2
+    assert "COULD NOT RUN" in capsys.readouterr().err
+
+
+def test_the_live_repo_parses_above_the_label_floor():
+    """Vacuity on the REAL trees: this check must be able to see the convention
+    the repo is actually written in. It asserts the check RUNS and parses -- not
+    that it is empty, because unlanded work is a legitimate live state (an Hour
+    mid-flight is exactly that) and a test that demanded zero would make every
+    Hour's own tick red."""
+    atoms = mp._map_atoms()
+    findings = mp.unlanded_hour_findings(mp.unlanded_hour_atoms(atoms),
+                                         [a.get("id") for a in atoms if a.get("id")])
+    assert all(f.startswith((mp.UNLANDED_WORK, mp.UNLANDED_RECORD)) for f in findings)
+
+
+# --- D41's parser, repaired by Hour #25 -------------------------------------
+
+def test_a_verdict_naming_its_own_hour_through_an_adjective_IS_READ():
+    """The live register's only self-answering sentence, verbatim in shape. This
+    was invisible and it reddened D41's own live test on a current register."""
+    entry = ("TWENTY-FOURTH HOUR (2026-08-13), on Hour #23's finding. It found a red. "
+             "THE LEVEL STAYS 2 FOR THE TWENTY-FOURTH CONSECUTIVE HOUR.")
+    assert mp.entry_hour(entry) == 24
+    assert 24 in mp.answered_hours(entry)
+    assert mp.hold_record_findings([_held_atom([entry])]) == []
+
+
+def test_MUTATION_a_wildcard_ordinal_would_swallow_the_real_one():
+    """The alternation is load-bearing, not tidiness: with `[A-Z]+` as the first
+    group, "AND THE TWENTIETH HOUR" matches on AND, the scan resumes past it, and
+    the ordinal inside the match is LOST -- a parse that drops Hours silently."""
+    import re as _re
+    wildcard = _re.compile(r"\b([A-Z]+(?:-[A-Z]+)?)\b(?:\s+[A-Z]+){0,2}\s+HOUR\b")
+    text = "AND THE TWENTIETH HOUR ran."
+    assert [m.group(1) for m in wildcard.finditer(text)] == ["AND"]
+    assert mp.hour_ordinals(text) == {20}
+
+
+def test_the_intervening_run_is_bounded_so_a_far_off_ordinal_is_not_claimed():
+    """Not always-green: an ordinal five words from HOUR is a different sentence,
+    and reading it would let an unrelated mention answer the draw."""
+    assert mp.hour_ordinals("THE TWENTIETH ATOM WAS DRAWN AND THEN SOMEBODY RAN AN HOUR") == set()
+
+
+def test_a_brand_new_uncommitted_file_is_reported_as_absent_at_HEAD_end_to_end(repo: Path):
+    """FAIL-OPEN ON MISSING through the BUILDER, not just the pure function. The
+    fixture-level version of this survived its own mutation: `_head_text` handing
+    back "" for an absent file left every assertion green, because only the
+    end-to-end path can tell an empty file from a file that is not there."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "old.py").write_text("# nothing\n", encoding="utf-8")
+    _write_map(repo, [_atom("H27_payment_belief_gap", 2, ["tools/old.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools" / "brand_new.py").write_text("# %s\n" % _label("H27", 25), encoding="utf-8")
+    _git(repo, "add", "-A")
+
+    atoms = mp._map_atoms(repo)
+    findings = mp.unlanded_hour_findings(mp.unlanded_hour_atoms(atoms, repo=repo),
+                                         [a["id"] for a in atoms])
+    assert len(findings) == 1
+    assert "tools/brand_new.py" in findings[0]
+    assert "does not exist at HEAD at all" in findings[0]
+    assert mp._head_text("tools/brand_new.py", repo) is None

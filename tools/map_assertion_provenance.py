@@ -463,7 +463,25 @@ for _tens, _base in (("TWENTY", 20), ("THIRTY", 30)):
 
 # The register writes "TWENTY-FIRST HOUR" / "THE FIFTEENTH EXPERT HOUR"; the
 # notes write "EXPERT HOUR #16". Both forms, one population.
-_ORDINAL_BEFORE_HOUR = re.compile(r"\b([A-Z]+(?:-[A-Z]+)?)\s+(?:EXPERT\s+)?HOUR\b")
+#
+# AN ADJECTIVE BETWEEN THE ORDINAL AND THE NOUN MADE THE VERDICT UNREADABLE
+# (H27 Expert Hour #25). The only sentence in which an Hour states its own
+# outcome is "THE LEVEL STAYS 2 FOR THE TWENTY-FOURTH CONSECUTIVE HOUR", and
+# `<ORDINAL> <WORD> HOUR` matched nothing, so the entry parsed as recording an
+# Hour it never answered and `test_the_live_store_carries_no_stale_hold_record`
+# went red at HEAD on a register that was in fact current. A short run of
+# intervening words is allowed rather than the one word observed: closing this
+# with `(?:CONSECUTIVE\s+)?` is the instance fix that returns the first time an
+# Hour writes STRAIGHT or RUNNING.
+#
+# The ordinal is an ALTERNATION OF THE KNOWN WORDS, not `[A-Z]+`, and that is
+# load-bearing now that words may sit in between: a wildcard first group lets
+# "AND THE TWENTIETH HOUR" match with "AND" as the ordinal, and because the scan
+# resumes past a discarded match, the real ordinal inside it is LOST. A parse
+# that silently drops ordinals is the fail-open this check is built against.
+_ORDINAL_ALTERNATION = "|".join(sorted(_ORDINAL_WORDS, key=len, reverse=True))
+_ORDINAL_BEFORE_HOUR = re.compile(
+    r"\b(" + _ORDINAL_ALTERNATION + r")\b(?:\s+[A-Z]+){0,2}\s+HOUR\b")
 _HOUR_HASH = re.compile(r"\bHOUR\s*#\s*(\d+)", re.IGNORECASE)
 
 # A HOLD VERDICT is a sentence saying the level did not move. Deliberately
@@ -631,6 +649,252 @@ def hold_record_atoms(atoms: list[dict], store=None) -> list[dict]:
     return rows
 
 
+# ---------------------------------------------------------------------------
+# THE LANDING ITSELF  (H27 Expert Hour #25, atom D42)
+# ---------------------------------------------------------------------------
+# D41 above asks whether the LATEST RECORDED HOUR IS ANSWERED in a record the
+# draw reads. That is record against record. Two Hours running then hit the
+# defect it cannot see: H27's Hour #22 wrote atom D38 -- 162 lines, every added
+# docstring self-labelled "atom D38, H27 Expert Hour #22" -- and never committed
+# it, and Hour #23 verified that work and did not commit either. Both times the
+# committed tree was INTERNALLY CONSISTENT: register and note were current with
+# each other, and both were silent about the code sitting in the working tree.
+#
+# THE QUEUED WORDING WOULD NOT HAVE CAUGHT EITHER INSTANCE, and this was measured
+# before it was built rather than argued afterwards. Hours #23 and #24 both filed
+# the lead as "a register claim of LANDED checked against what is COMMITTED".
+# Run against the real history, a HEAD-only check reads clean at both moments:
+# at `dfc233094` the register's newest entry (#22) claims a landing -- D41, in
+# this file -- that IS committed, and says nothing at all about D38. Nothing in
+# the committed tree carries the defect, so no reading of the committed tree can
+# find it. THE ONLY WITNESS IS THE DIFFERENCE BETWEEN THE WORKING TREE AND HEAD.
+#
+# So the subject is the pair of trees, and the signal is the one thing this
+# convention already puts in the work itself: an Hour labels its code with its
+# own atom and ordinal. Two questions, both derived, neither hand-typed:
+#
+#   UNLANDED_HOUR_WORK    a tracked code file carries `<atom> Expert Hour #N` in
+#                         the working tree and its HEAD version does not -- that
+#                         Hour's landing is not landed.
+#   UNLANDED_HOUR_RECORD  the atom's record file holds an Hour ENTRY the HEAD
+#                         version does not -- the verdict itself is unlanded.
+#
+# WHY NOT "IS THE file_scope DIRTY", which the finding doc proposed: this tree
+# carries 200+ dirty paths across concurrent lanes as its NORMAL state, so plain
+# dirtiness is noise with no owner. A self-labelled Hour is not: it names the
+# atom and the ordinal that claimed it, so the finding can say WHOSE work is
+# unlanded and WHICH Hour to verify rather than rebuild.
+#
+# WHY A RECORD IS NOT A LANDING: `docs/` is the record store and the staged
+# prose, and `site/data/` is their generated rendering. Every one of them repeats
+# these labels verbatim, so counting them would report Hour #22 as landed at
+# `dfc233094` on the strength of the register that was wrong about it -- record
+# against record again, one level down. A landing is CODE.
+#
+# WHY THIS IS NOT IN THE SHARED `findings` LIST: its subject is the working
+# tree, and the CLI's findings list is what a caller refuses to stand behind. A
+# working-tree predicate wired into a repo-wide refusal wedges every lane the
+# moment any Hour is mid-flight -- which is the state this check exists to
+# REPORT, not to punish. It has its own flag and its own exit code.
+
+UNLANDED_WORK = "UNLANDED_HOUR_WORK"      # self-labelled code in the tree, not at HEAD
+UNLANDED_RECORD = "UNLANDED_HOUR_RECORD"  # an Hour entry in the tree, not at HEAD
+
+# Path prefixes whose content is a RECORD of a landing rather than the landing.
+RECORD_PREFIXES = ("docs/", "site/data/")
+
+# Vacuity floor: below this many Hour labels parsed across both trees, the
+# labelling convention has moved and this check is unavailable -- which is a
+# FAILED check, never a clean one (R15).
+HOUR_LABEL_FLOOR = 1
+
+# The atom-qualified label the convention writes into the work itself. The
+# qualifier is CAPTURED, never assumed, and the finding is keyed on the LABEL
+# rather than on an atom guessed from it.
+#
+# WHY, and this was a defect in this check's own first run: two map cells begin
+# `H27` (`H27_payment_belief_gap` and `H27_phone_act_channel`), so resolving a
+# qualifier to "the atom whose id it prefixes" attributed one atom's unlanded
+# work to a second atom that had never touched the file. Silently dropping an
+# ambiguous qualifier instead would have been worse -- it would go inert on the
+# exact atom the check was built for. So an ambiguous qualifier still FIRES, and
+# names every candidate; the label is the subject, and attribution is a courtesy
+# the finding offers rather than a fact it needs.
+_QUALIFIED_HOUR_LABEL = re.compile(r"([A-Za-z0-9_]{2,})\s+EXPERT\s+HOUR\s*#\s*(\d+)",
+                                   re.IGNORECASE)
+
+
+def qualified_hour_labels(text: str) -> set[tuple[str, int]]:
+    """{(QUALIFIER, ordinal)} for every atom-qualified Expert-Hour label.
+
+    A bare "Expert Hour #3" belongs to nobody and is not collected: three atoms
+    have run Hours in this repo, and an unqualified label would hand one atom's
+    ordinals to another -- the wrong-subject shape R15 names.
+    """
+    return {(m.group(1).upper(), int(m.group(2)))
+            for m in _QUALIFIED_HOUR_LABEL.finditer(text or "")}
+
+
+def _candidates(qualifier: str, atom_ids) -> list[str]:
+    """Map cells whose id this qualifier could name. May be 0, 1 or several."""
+    return sorted(a for a in atom_ids if a.upper().startswith(qualifier))
+
+
+def unlanded_hour_findings(rows: list[dict], atom_ids=()) -> list[str]:
+    """Findings for Hour work that is in the working tree and not in HEAD.
+
+    `rows` is a dict: `code` ([{path, head, worktree}] -- the file text on each
+    side, `None` where that side does not carry the file) and `records`
+    ([{path, atom, head_entries, worktree_entries}]). `atom_ids` is the map's own
+    cell ids, used only to name who a label points at.
+
+    RAISES rather than returning clean when no Hour label parses anywhere: an
+    unparseable convention is an unavailable check, and an unavailable check is a
+    FAILED check.
+    """
+    parsed_any = 0
+    findings: list[str] = []
+    for entry in rows.get("code") or []:
+        head = qualified_hour_labels(entry.get("head") or "")
+        tree = qualified_hour_labels(entry.get("worktree") or "")
+        parsed_any += len(head | tree)
+        unlanded = tree - head
+        if not unlanded:
+            continue
+        for qualifier in sorted({q for q, _ in unlanded}):
+            hours = sorted(n for q, n in unlanded if q == qualifier)
+            owners = _candidates(qualifier, atom_ids)
+            findings.append(
+                "%s: %s Hour(s) %s -- %s carries them in the working tree and not at HEAD%s. "
+                "That work is written and NOT landed: verify and land it, never rebuild it. "
+                "(%s)"
+                % (UNLANDED_WORK, qualifier, ", ".join("#%d" % h for h in hours),
+                   entry.get("path"),
+                   " (the file does not exist at HEAD at all)"
+                   if entry.get("head") is None else "",
+                   "map cell: %s" % owners[0] if len(owners) == 1
+                   else ("AMBIGUOUS -- this qualifier names %d cells: %s"
+                         % (len(owners), ", ".join(owners))) if owners
+                   else "no map cell carries this id"))
+    for record in rows.get("records") or []:
+        head_hours = {h for h in (entry_hour(str(e)) for e in record.get("head_entries") or [])
+                      if h is not None}
+        tree_hours = {h for h in (entry_hour(str(e))
+                                  for e in record.get("worktree_entries") or []) if h is not None}
+        parsed_any += len(head_hours | tree_hours)
+        unlanded_hours = tree_hours - head_hours
+        if unlanded_hours:
+            findings.append(
+                "%s: %s -- %s records Hour(s) %s in the working tree and not at HEAD. The "
+                "verdict for that Hour is written and NOT landed."
+                % (UNLANDED_RECORD, record.get("atom"), record.get("path"),
+                   ", ".join("#%d" % h for h in sorted(unlanded_hours))))
+    if parsed_any < HOUR_LABEL_FLOOR:
+        raise ValueError(
+            "VACUITY: not one Expert-Hour label or entry parsed across %d code file(s) and %d "
+            "record(s) on either tree -- the convention has moved and this check is unavailable, "
+            "which is a FAILED check, not a clean one"
+            % (len(rows.get("code") or []), len(rows.get("records") or [])))
+    return findings
+
+
+def _head_text(path: str, repo: Path) -> str | None:
+    """The file's committed content, or None where HEAD does not carry it.
+
+    A path git refuses to resolve for any OTHER reason propagates: "HEAD does not
+    have this file" and "git could not answer" are opposite facts and only one of
+    them is a None.
+    """
+    proc = subprocess.run(["git", "-C", str(repo), "show", "HEAD:%s" % path],
+                          capture_output=True, text=True)
+    if proc.returncode == 0:
+        return proc.stdout
+    stderr = proc.stderr.lower()
+    if "does not exist" in stderr or "exists on disk, but not in" in stderr:
+        return None
+    raise RuntimeError("git show HEAD:%s failed: %s" % (path, proc.stderr.strip()[:200]))
+
+
+def _register_entries(text: str | None) -> list[str]:
+    """The Hour entries in one side's record file. Both sides parse identically:
+    a head side read one way and a tree side read another would be measuring the
+    parser, not the landing."""
+    import yaml  # local: the tool is importable for tests without a yaml at import time
+
+    if not text:
+        return []
+    try:
+        doc = yaml.safe_load(text) or {}
+    except Exception:
+        return []
+    if not isinstance(doc, dict):
+        return []
+    entries = [str(e) for e in (doc.get("simplifications") or [])]
+    records = doc.get("map_records") or {}
+    if isinstance(records, dict):
+        entries += [str(e) for e in (records.get("expert_hour_findings") or [])]
+    return entries
+
+
+def _labelled_code_paths(repo: Path) -> list[str]:
+    """Every tracked CODE file carrying an Expert-Hour label, in either tree.
+
+    Derived from the repo both ways -- the working tree's tracked files and
+    HEAD's -- so a file that only one side carries is still asked about, which is
+    the whole direction the check is built for.
+    """
+    paths: set[str] = set()
+    for args in (["grep", "-l", "-I", "-i", "-E", "Expert Hour #[0-9]"],
+                 ["grep", "-l", "-I", "-i", "-E", "Expert Hour #[0-9]", "HEAD"]):
+        proc = subprocess.run(["git", "-C", str(repo)] + args, capture_output=True, text=True)
+        if proc.returncode not in (0, 1):  # 1 is "no matches", not a failure
+            raise RuntimeError("git grep failed: %s" % proc.stderr.strip()[:200])
+        for line in proc.stdout.splitlines():
+            path = line.split(":", 1)[1] if line.startswith("HEAD:") else line
+            if path and not path.startswith(RECORD_PREFIXES):
+                paths.add(path)
+    return sorted(paths)
+
+
+def unlanded_hour_atoms(atoms: list[dict], repo: Path | None = None,
+                        store_dir: Path | None = None) -> dict:
+    """Build `unlanded_hour_findings` input from the two trees.
+
+    The HEAD side comes from `git show` and the tree side from the filesystem:
+    two independent readers, because one reader asked twice cannot see a
+    difference between them.
+
+    Both populations are DERIVED -- the code files are whatever carries a label
+    in either tree, the records are whatever the map's own cells have a store
+    file for -- so nothing here is a hand-typed list of the atoms running Hours.
+    """
+    repo = repo or REPO
+    store = (store_dir if store_dir is not None
+             else repo / "docs" / "design" / "simplifications")
+    code = []
+    for path in _labelled_code_paths(repo):
+        disk = repo / path
+        code.append({"path": path, "head": _head_text(path, repo),
+                     "worktree": (disk.read_text(encoding="utf-8", errors="replace")
+                                  if disk.exists() else None)})
+    records = []
+    for atom in atoms:
+        aid = atom.get("id")
+        if not aid:
+            continue
+        record_path = store / ("%s.yaml" % aid)
+        rel = (record_path.relative_to(repo).as_posix()
+               if record_path.is_relative_to(repo) else record_path.as_posix())
+        head_text = _head_text(rel, repo)
+        tree_text = record_path.read_text(encoding="utf-8") if record_path.exists() else None
+        if head_text is None and tree_text is None:
+            continue
+        records.append({"atom": aid, "path": rel,
+                        "head_entries": _register_entries(head_text),
+                        "worktree_entries": _register_entries(tree_text)})
+    return {"code": code, "records": records}
+
+
 def record_verification(atom_id: str, note: str, repo: Path | None = None,
                         now: float | None = None) -> dict:
     """Append one verification to the ledger. Append-only, never rewritten."""
@@ -683,6 +947,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--note", default="", help="what was checked (with --record)")
     ap.add_argument("--json", action="store_true", help="emit every row as JSON")
     ap.add_argument("--check", action="store_true", help="integrity only, no rows")
+    ap.add_argument("--unlanded", action="store_true",
+                    help="Hour work written in the working tree and not committed (D42)")
     ap.add_argument("--limit", type=int, default=40)
     args = ap.parse_args(argv)
 
@@ -694,6 +960,28 @@ def main(argv: list[str] | None = None) -> int:
         rec = record_verification(args.record, args.note)
         print("recorded %s verified at %s" % (rec["atom"], _fmt(rec["ts"])))
         return 0
+
+    if args.unlanded:
+        # Its OWN exit code, deliberately: unlanded Hour work is a REPORT to the
+        # next draw, not a repo-wide refusal. Folding a working-tree predicate
+        # into the shared findings list would wedge every lane whenever any Hour
+        # is mid-flight. 2 stays "could not run" -- an unavailable check is a
+        # failed check, and it must not be mistaken for the finding itself.
+        try:
+            cells = _map_atoms()
+            findings = unlanded_hour_findings(
+                unlanded_hour_atoms(cells), [c.get("id") for c in cells if c.get("id")])
+        except Exception as exc:
+            print("UNLANDED HOUR WORK: COULD NOT RUN -- %s" % exc, file=sys.stderr)
+            return 2
+        if not findings:
+            print("UNLANDED HOUR WORK: none -- every self-labelled Hour is committed")
+            return 0
+        print("UNLANDED HOUR WORK: %d finding(s) -- work exists that HEAD does not carry:"
+              % len(findings), file=sys.stderr)
+        for f in findings:
+            print("  " + f, file=sys.stderr)
+        return 3
 
     try:
         rows = build_rows()
