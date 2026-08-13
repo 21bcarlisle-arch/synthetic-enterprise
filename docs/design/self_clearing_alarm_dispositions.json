@@ -161,6 +161,10 @@
     ".ntfy_digest_state.json": {
       "verdict": "benign",
       "why": "The high-water mark of what a CONFIRMED digest flush has carried (notification_digest G-N5), held deliberately SEPARATE from the queue so the record of what was said and the record of what was sent cannot corrupt each other. Flagged because _write_state() full-rewrites it on the notification path. It is the INVERSE of this class rather than an instance of it: the write happens only inside `if _was_delivered(result)`, so the FAILURE path (429, curl failure, or any pytest/suppressed/test_fixture sentinel) writes NOTHING and leaves the mark exactly where it was -- the undelivered items ride the next digest instead of evaporating. Neither key is an episode clock an alarm reads for severity: `digested_through_seq` is a max() over the entries just delivered and therefore monotonic, and `last_digest_ts` stamps the last SUCCESSFUL flush, so neither can be reset by a failure to shorten a measured outage."
+    },
+    ".product_interleave_state.json": {
+      "verdict": "benign",
+      "why": "OPS13's pairing-debt ledger: {\"owed\": [harness atom ids], \"last_harness\", \"last_product\", \"updated\"}. No field is episode-scoped -- there is no episode-start timestamp and no consecutive-failure counter, so no write can shorten an episode. `owed` is a WORK debt, not a fault clock: it is capped at _INTERLEAVE_OWED_CAP = 3 and is paid DOWN by the machine doing the right thing, so a lost entry costs at most one forced PRODUCT draw -- and supervisor.py's own comment picks that as the direction to err in. `updated` is a latest-write watermark. Nothing reads any field for alarm SEVERITY; the consumer is product_interleave_digest_line(), which is required to emit a non-empty line on every path (the atom's own exit 4, SILENCE IS THE FAILURE). The reset paths are the opposite of self-clearing: _load_interleave_state() returns a NAMED error on an unreadable or malformed ledger and the digest line carries it, rather than resetting quietly to a state that always reads paid."
     }
   }
 }

@@ -96,7 +96,7 @@
   },
   {
    "id": "self_verifying_push_throttle",
-   "code_markers": ["PUSH_THROTTLE_SECONDS"],
+   "code_markers": ["PUSH_THROTTLE_SECONDS", "COMMITTED_PUSH_THROTTLED"],
    "mechanism": "Self-verifying push throttle (only mark the publish throttle satisfied on a VERIFIED origin advance)",
    "commit": "de8e5fa2d",
    "purpose": "Prevent a bare `git push` rc=0 that did not advance origin from satisfying the publish throttle.",
@@ -104,7 +104,7 @@
    "named_failure": "none (compliant example -- a throttle that fails TOWARD action)",
    "remediation": "none",
    "status": "compliant",
-   "what_still_pages": "the throttle releases (re-pushes) unless ls-remote confirms origin==HEAD -- it fails toward re-attempt, never toward a silent 'pushed' claim. Model example of a noise-biased throttle."
+   "what_still_pages": "the throttle releases (re-pushes) unless ls-remote confirms origin==HEAD -- it fails toward re-attempt, never toward a silent 'pushed' claim. Model example of a noise-biased throttle. COMMITTED_PUSH_THROTTLED (2026-08-13) is the SAME mechanism's outcome label on the deferred-push branch, and it sits in RETRYABLE_PUBLISH_OUTCOMES deliberately: the content IS committed locally, so re-running that identical cycle would correctly find nothing to commit, and the next due cycle pushes it. What still pages if that reasoning is wrong: deadmans_switch._check_content_publishing reads publish_freshness off disk INDEPENDENTLY of this pipeline and pages [PUBLISHING DOWN] once the figures have not reached origin for STALE_AFTER_SECONDS -- so a throttle that stopped releasing surfaces as a publishing outage, not as silence."
   },
   {
    "id": "publish_gate_surgical_scope",

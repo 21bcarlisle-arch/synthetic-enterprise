@@ -2445,6 +2445,7 @@
   depends_on: [D26_detection_grace_line_has_no_book_beside_it]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose 'did we spot it' number is quoted as though it tracked how wrong the team's payment terms are, when in fact every terms error past a week reads the same -- so a team a week early on its dunning letters and one three weeks early are one figure on the board pack"
+  simplifications_count: 2
 
 - id: D29_the_as_of_buffer_floors_the_memory_grid
   name: "SPUN OUT OF H27 EXPERT HOUR #11 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). D28 gave the TERMS sweep a book-derived grid and left its own lead standing: `measure_own_drift_resolution` still built the MEMORY sweep from `own_invisible_drifts | own_visible_drifts`, so D27's belief saturation edge was a property of where D27 happened to sweep rather than a measured boundary -- the seventh escape of a register's own keying, this time named in the previous Hour's leads (a lead is not a control). MEASURED 2026-08-11 on a grid derived from the BOOK instead -- the window values either side of every observed failure age plus total amnesia, 70 counterfactual companies, n=300, seeds 7/11/23, every run identical on all three, and COMPLETE rather than merely dense (an event at age `a` is counted iff `a <= window`, so the reading can only change as the window crosses an event age): the two BELIEF dimensions saturate BELOW as well as above. The book's youngest observed failure is 30 days old -- AS_OF_BUFFER_DAYS, the second harness constant chosen to REMOVE a confounder, whose comment says 'comfortably past' in the same voice DD_FAILURE_WINDOW_DAYS=400 says 'generous on purpose' -- so every company memory of 29 days or less counts NOTHING and publishes one figure. A supplier that forgets a failed collection after three weeks and one that never remembers it are the same number here, and -380d, which D27 declared VISIBLE evidence of resolution, sits inside that tail. Four further interior collapses show the sighted region is quantised at exactly the window values where this book has no event, and the register had put `belief_population_mix`'s ceiling at its SIBLING's -308d because -309d was never scored (it is one day blinder: dropping the oldest events moves an account's tier without moving the population MIX). THIS ATOM IS THE RESHAPE -- a scored population with observed failures sitting BESIDE the short end of the memory the company plausibly holds (an `as_of` closer to the last event, several `as_of` readings, and/or a book whose events run right up to it), which moves every published belief figure on this pair and is therefore a mint rather than a fix on sight. It also owes the census Hour #10 asked for and this Hour has now found the second member of: the harness constants chosen to remove a confounder are each a silent resolution decision, and AS_OF_BUFFER_DAYS is the one that floors this grid. ALREADY LANDED UNDER H27's HOUR: `book_memory_grid` (asserted against its own AST never to reach the register) and `OWN_DRIFT_BOOK_GRIDS`, which RAISES for a knob nobody derived a grid for rather than falling back to the declarations; both saturation edges predicted from the population (`predicted_saturates_below_drift` / `_above`) and cross-checked one-directionally against the sweep, so an unmeasured edge can no longer read like an absent one; the rule that a drift declared VISIBLE may not sit inside a collapsed run (D28 observed that in prose and built no rule); a saturation OWNER PER EDGE, because these two tails stop for two different reasons and one field named the one that had been looked at; and the amnesia floor stamped into both belief dimensions' caveat, note and components."
@@ -2490,7 +2491,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D30_the_belief_band_is_this_books_length]
-  simplifications_count: 1
+  simplifications_count: 2
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose 'how late do we spot a failed collection' number is drawn from a book only three months long: every supplier reconciling more than about twelve weeks late scores the same figure, one reconciling a week early and one three weeks early score the same figure, and the pack reports the mean over an empty set as though it were a fast month"
 - id: D35_the_render_site_sweep_stops_at_this_processs_edge
@@ -3450,7 +3451,7 @@
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 41
+  simplifications_count: 43
   expert_hour: {last: '2026-08-12', status: attempted_finding_open}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   records_rehomed: [evidence, expert_hour_findings]
@@ -4242,6 +4243,7 @@
   records_rehomed: [evidence]
   notes_rehomed: [origin_note]
   file_scope: []
+  simplifications_count: 1
 - id: EP7_adapter_elexon_insights
   title: "Elexon Insights and IRIS, for real"
   gain: "The settlement and market data the SIM already fakes arrives from the actual platform, on the actual cadence."
@@ -4386,6 +4388,7 @@
   records_rehomed: [evidence]
   notes_rehomed: [origin_note]
   file_scope: []
+  simplifications_count: 1
 - id: EP15_forecast_feed
   title: "A forward view the company is allowed to have"
   gain: "Hedging and pricing get a legitimate forecast to be wrong with, instead of a blindfold or a leak."
@@ -5160,7 +5163,7 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
-  simplifications_count: 2
+  simplifications_count: 3
   expert_hour:
     status: findings_open
     last: '2026-08-12'
