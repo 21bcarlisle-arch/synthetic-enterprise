@@ -141,8 +141,9 @@ REVIEW_GATE.
     method-of-moments alpha/beta as a fixed "posterior" (`model.idata`,
     `n_draws` repeated point-estimate draws) — see "Key Decisions" below for
     why this bypasses `.fit()`.
-  - `expected_lifetime_periods()` calls
-    `distribution_customer_churn_time()` against that idata and takes the
+  - `expected_lifetime_periods()` — **superseded 2026-08-13**, see the
+    amendment at the end of this section. It called
+    `distribution_customer_churn_time()` against that idata and took the
     mean over draws, capped at `MAX_PROJECTION_PERIODS` (50 renewal
     periods).
   - `build_clv()` combines `expected_lifetime_periods` with each billing
@@ -215,6 +216,45 @@ REVIEW_GATE.
   `idata` shape) to find a stable approach for this all-censored portfolio —
   the highest-investigation-cost sub-phase of 4b so far, reflected in the
   "Open Questions" above rather than a clean calibrated result.
+
+### AMENDMENT 2026-08-13 — the per-account estimate now follows the belief
+
+`WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES`
+(BLOCKING) measured what the design above actually produced: because
+`build_clv_model()` installed ONE pooled Beta(alpha, beta) as the posterior for
+every account alike, and the per-account figure was then read out of
+`distribution_customer_churn_time()`, the surviving per-account spread was the
+sampler's noise. Swapping two accounts' churn beliefs left both projections
+identical to three decimal places, and across the live book the correlation
+between believed churn and projected lifetime was **+0.093** — near zero and
+the wrong sign.
+
+What changed:
+- `fit_theta_posterior_per_account()` (new) updates the pooled prior with each
+  account's OWN renewal history by conjugate Beta-Bernoulli with soft counts
+  (`alpha += sum p_i`, `beta += sum (1 - p_i)`) — the company holds
+  probabilities, not realised churn flags. The prior is still fitted over the
+  whole book including departed accounts.
+- `expected_lifetime_periods()` (rewritten) evaluates the sBG expected lifetime
+  in closed form, truncated at `MAX_PROJECTION_PERIODS`, instead of sampling.
+  Bounded by construction, and it removes the seed / roster-position dependence
+  the finding flagged as a C-S2 RNG-substream defect.
+- `build_clv_model()` is retained as the portfolio-level view and is explicitly
+  no longer on the CLV path.
+
+Measured effect on the live book (`docs/reports/run_output_latest.json`):
+corr(believed churn, lifetime) moves from **+0.093 to -0.987** against each
+account's own churn history. Mean projected lifetime falls from ~13.5 years to
+~5.2. **That is a fidelity correction, not a tuning:** a 13.5-year mean life
+implies ~7.4% annual churn, while this book's own believed churn probabilities
+run 0.140–0.410 with a portfolio mean of 0.240. The old estimator was biased
+long, not merely noisy. Recomputed enterprise value over the same 8 accounts
+falls ~49.7% (£7.01M → £3.53M). Under R12 that number is a diagnostic and was
+not tuned toward anything; published artefacts carry the old figures until the
+next simulation run regenerates them.
+
+`DISCOUNT_RATE_ANNUAL` and `MAX_PROJECTION_PERIODS` remain uncalibrated seed
+estimates — unchanged by this work.
 
 ---
 

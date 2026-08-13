@@ -1,3 +1,38 @@
+> **DISPOSITION 2026-08-13 (worker tick, RUNG 1c blocking draw) — DISCHARGED, ARCHIVED.**
+>
+> Recommendation (a) taken: the estimate is now per-account. `fit_theta_posterior_per_account`
+> updates the pooled prior with each account's OWN renewal history (conjugate Beta-Bernoulli,
+> soft counts — the company holds probabilities, not realised churn flags), and
+> `expected_lifetime_periods` evaluates the sBG expected lifetime in CLOSED FORM truncated at
+> `MAX_PROJECTION_PERIODS` instead of sampling, which also removes the seed/roster-position
+> dependence this finding called a C-S2 defect. `build_clv_model` is retained as the
+> portfolio-level view and explicitly off the CLV path.
+>
+> **The named control is live, and R15 both ways.** The belief-swap mutation is
+> `test_mutation_swapping_two_accounts_churn_beliefs_swaps_their_lifetimes`, written as an
+> exchange between the two accounts rather than an equality against a recorded number — the
+> failure mode this finding named. Four source mutations were each shown to kill named tests:
+> reinstating the pooled posterior (4 tests, incl. the headline), inverting the survival term
+> (4, incl. an independent Monte-Carlo check of the closed form), re-admitting the seed (1),
+> and letting the valued population contaminate a retained account (4).
+>
+> **Measured effect.** corr(believed churn, projected lifetime) moves from +0.093 to **-0.987**
+> against each account's own churn history. Mean projected lifetime ~13.5y -> ~5.2y; recomputed
+> enterprise value over the same 8 accounts falls 49.7% (£7.01M -> £3.53M). A fidelity
+> correction, not a tuning (R12/R13): 13.5y implies ~7.4% annual churn while this book's own
+> believed probabilities run 0.140-0.410, mean 0.240.
+>
+> **It also discharged item 4 of the sibling finding**
+> (`docs/staging/in_progress/WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md`),
+> whose exact-additivity control was blocked by this defect: its tripwire fired, was deleted as
+> it instructed, and the exact-equality assertion is written.
+>
+> **STILL OPEN — item 1, the R11 live fetch.** Not attempted: autonomous runs have no network.
+> Nothing here is claimed against the live origin. Published artefacts still carry the old
+> figures until a full simulation run regenerates them; the render expressions
+> (`site/customers/index.html` Expected Lifetime, `site/company/index.html` CLV tile) read the
+> field and are unchanged, so they inherit the corrected value at the next run.
+
 # WORKER FINDING — the per-customer lifetime estimate does not move when the belief about that customer moves
 
 **Severity:** BLOCKING · **Lane:** B_commercial

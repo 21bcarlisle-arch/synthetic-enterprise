@@ -11,6 +11,16 @@
 > through the two generators, replacing the hardcoded `DRILLDOWN_ID` with a
 > prefer-a-supplied-account rule, and rendering the status beside the CLV tile.
 >
+> **ITEM 4 DISCHARGED 2026-08-13 (later tick, sibling BLOCKING draw).** This finding asked
+> for "the total must fall by exactly that account's CLV". That control could not be written
+> at the time: the sibling finding
+> (`docs/staging/done/WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES_2026-08-13.md`)
+> meant removing one account also moved every other account's projection, so the coupling was
+> pinned by a tripwire test instead. The estimator is now per-account and deterministic, the
+> tripwire fired and has been deleted as it instructed, and
+> `test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_total` now asserts
+> the exact equality. Items 1 and 3 below remain open and this doc stays parked.
+>
 > **ALSO STILL OPEN — item 1, the R11 live fetch.** Not attempted: autonomous runs have
 > no network. Nothing here is claimed against the live origin.
 >

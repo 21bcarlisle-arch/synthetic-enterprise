@@ -222,16 +222,19 @@ def test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_tota
     """R15, the mutation the finding named: mark one valued account as ceased and
     the book must lose its value.
 
-    NOTE WHAT THIS ASSERTS AND WHAT IT DELIBERATELY DOES NOT. The finding asked
-    for "the total must fall by EXACTLY that account's CLV". Measured, it does
-    not, and the reason is the sibling BLOCKING finding
-    (WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES):
-    the per-account lifetime is a function of the account's position in the
-    posterior-predictive draw, so removing C1 also moves C2's projection. Writing
-    the exact-equality assertion anyway would have meant tuning this control until
-    it went green against a defect it is not about. The strict-decrease and
-    absence properties below are true regardless of that coupling; the coupling
-    itself is pinned by the next test so it cannot be forgotten."""
+    EXACT ADDITIVITY, restored 2026-08-13. The book-value finding originally
+    asked for "the total must fall by EXACTLY that account's CLV" and this test
+    could not assert it: the sibling BLOCKING finding
+    (WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES)
+    meant the per-account lifetime came out of a posterior-predictive draw, so
+    removing C1 also moved C2's projection. Rather than tune this control green
+    against a defect it is not about, the coupling was pinned by a tripwire test
+    (`test_removing_one_account_still_moves_another_accounts_projection`) that
+    would go red the day the estimator was fixed. It did. The estimator is now
+    per-account and deterministic (`clv_model.fit_theta_posterior_per_account`),
+    a retained account's projection no longer depends on who else is in the
+    valued draw, the tripwire has been deleted as it instructed, and the
+    exact-equality assertion the finding asked for is written below."""
     full = build_enterprise_value(
         CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
         ceased_accounts=set(), n_draws=50,
@@ -248,14 +251,21 @@ def test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_tota
     assert full["by_customer"]["C1"]["clv_gbp"] not in [
         e["clv_gbp"] for e in mutated["by_customer"].values()
     ]
+    # The exact-additivity assertion the book-value finding asked for: the book
+    # loses C1's value and NOTHING ELSE.
+    assert mutated["portfolio"]["enterprise_value_gbp"] == pytest.approx(
+        full["portfolio"]["enterprise_value_gbp"] - full["by_customer"]["C1"]["clv_gbp"]
+    ), "excluding one account moved the value of the accounts that remain"
 
 
-def test_removing_one_account_still_moves_another_accounts_projection():
-    """A TRIPWIRE, not an endorsement. This pins the cross-contamination measured
-    above so that the day the estimator is made per-account (the sibling finding's
-    fix), this test goes RED and forces the exact-additivity control the book-value
-    finding originally asked for to be written. A defect that is merely known
-    decays; a defect with a red test attached does not."""
+def test_a_retained_accounts_projection_does_not_depend_on_who_else_is_valued():
+    """The property that made exact additivity possible, asserted on the per-account
+    entry rather than only on the total -- a total can net two offsetting errors.
+    Successor to the deleted cross-contamination tripwire.
+
+    Assert the premise first: if the exclusion itself has broken, C1 is still in
+    the draw and C2 being unchanged is trivially true rather than the estimator
+    being independent."""
     full = build_enterprise_value(
         CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
         ceased_accounts=set(), n_draws=50,
@@ -264,21 +274,13 @@ def test_removing_one_account_still_moves_another_accounts_projection():
         CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
         ceased_accounts={"C1"}, n_draws=50,
     )
-    # Distinguish the two ways this can go red. If the exclusion itself has been
-    # removed, C1 is still in the draw and C2's projection is trivially
-    # unchanged -- that is the exclusion breaking, not the estimator being fixed,
-    # and the message below would be wrong. Assert the premise first.
     assert "C1" not in mutated["by_customer"], (
         "the ceased-account exclusion is not being applied -- fix that first; "
-        "this test's subject is the estimator coupling, not the exclusion"
+        "this test's subject is estimator independence, not the exclusion"
     )
-    assert full["by_customer"]["C2"]["expected_lifetime_periods"] != pytest.approx(
-        mutated["by_customer"]["C2"]["expected_lifetime_periods"]
-    ), (
-        "C2's projection no longer depends on whether C1 is in the draw -- the "
-        "sibling estimator finding appears to be fixed. Tighten "
-        "test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_total "
-        "to assert the total falls by exactly the removed account's CLV, then delete this test."
+    assert full["by_customer"]["C2"] == mutated["by_customer"]["C2"], (
+        "C2's whole valuation entry moved because a DIFFERENT account left the "
+        "valued book -- the per-account estimator is reading something global again"
     )
 
 

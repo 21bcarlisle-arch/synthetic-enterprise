@@ -177,7 +177,9 @@ def build_enterprise_value(
     "every account with renewal history", so five accounts that had already left
     kept a forward value in every artefact after their exit — 51.8% of the
     residential book's published CLV
-    (`docs/staging/done/WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md`).
+    (`docs/staging/in_progress/WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md`
+    — still parked, its render/selection half is SITE-lane; the path said
+    `done/` while the doc was in `in_progress/`, corrected 2026-08-13).
     A default of `set()` would have restored that defect silently at every call
     site that forgot to think about it, which is the fail-open shape R15 names;
     a caller that genuinely values a whole book must pass `set()` and say so.

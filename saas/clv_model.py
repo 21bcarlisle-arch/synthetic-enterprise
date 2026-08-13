@@ -21,9 +21,16 @@ Instead, this module derives the Beta(alpha, beta) hyperparameters for theta
 — which already encode the bill-shock-driven churn signal — and installs
 those as a fixed "posterior" on the model. This still uses
 `ShiftedBetaGeoModelIndividual`'s data-shaping convention
-(customer_id/t_churn/T) and its `distribution_customer_churn_time` machinery
-for projecting expected remaining lifetime, just without the unstable fit
-step.
+(customer_id/t_churn/T), just without the unstable fit step.
+
+That pooled Beta is the PORTFOLIO prior. Each account's own projection comes
+from its own posterior — the prior updated by that account's renewal history
+(`fit_theta_posterior_per_account`) — evaluated in the sBG closed form
+(`expected_lifetime_periods`). Reading the per-account figure out of
+`distribution_customer_churn_time` instead, as this module did until
+2026-08-13, made it a function of the account's position in the sampled draw:
+swapping two accounts' churn beliefs changed neither account's projected
+lifetime.
 
 This module is pure: it takes the plain-dict outputs of `churn_model` and
 `cost_to_serve` and returns a plain dict. No imports from `sim/`.
@@ -101,7 +108,7 @@ def build_clv_model(
     churn_risk: dict, n_draws: int = 500, random_seed: int = 42
 ) -> ShiftedBetaGeoModelIndividual:
     """Construct a `ShiftedBetaGeoModelIndividual` for this portfolio, with
-    an informative "posterior" for alpha/beta installed directly (method of
+    the PORTFOLIO-level Beta(alpha, beta) installed directly (method of
     moments, see `fit_theta_prior_from_churn_probabilities`) rather than via
     `.fit()`.
 
@@ -109,6 +116,16 @@ def build_clv_model(
     in for a posterior, so that PyMC-Marketing's `distribution_*` helpers
     (which sample `pm.sample_posterior_predictive` over `self.idata`) have a
     posterior to draw from.
+
+    NOT on the CLV path any more, and deliberately kept. `build_clv` used to
+    read each account's expected lifetime out of this model's churn-time
+    posterior predictive, which made the per-account number a function of the
+    account's position in the sampled draw rather than of what the company
+    believed about that account (see
+    `fit_theta_posterior_per_account`). This constructor remains the
+    portfolio-level view of theta and the reference for the data-shaping
+    convention; it must not be reintroduced as the source of a per-account
+    figure.
     """
     data = build_shifted_beta_geo_data(churn_risk)
     alpha, beta = fit_theta_prior_from_churn_probabilities(churn_risk)
@@ -124,22 +141,95 @@ def build_clv_model(
     return model
 
 
-def expected_lifetime_periods(
-    model: ShiftedBetaGeoModelIndividual, customer_ids: list[str], random_seed: int = 42
-) -> dict[str, float]:
-    """Expected number of future renewal periods until churn, per billing
-    account, from `model`'s churn-time posterior predictive — the mean of
-    `distribution_customer_churn_time` over all draws, capped at
-    `MAX_PROJECTION_PERIODS`.
+def fit_theta_posterior_per_account(churn_risk: dict) -> dict[str, tuple[float, float]]:
+    """Per-account Beta(alpha, beta) for theta: the portfolio prior updated by
+    THIS account's own renewal history.
+
+    `fit_theta_prior_from_churn_probabilities` pools every renewal in the book
+    into one Beta and says what the company believes about a customer it knows
+    nothing else about. That is the right PRIOR and the wrong POSTERIOR: while
+    it was installed as the posterior for every account alike, swapping two
+    accounts' churn beliefs left both their projected lifetimes unchanged to
+    three decimal places
+    (`docs/staging/done/WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES_2026-08-13.md`).
+
+    Each of the account's renewal points is one Bernoulli trial on theta whose
+    outcome the company knows only in expectation — it holds
+    `churn_probability`, not a realised churn flag — so the conjugate update
+    takes SOFT counts:
+
+        alpha = alpha_prior + sum(p_i)
+        beta  = beta_prior  + sum(1 - p_i)
+
+    over that account's own renewal points. Standard Beta-Bernoulli conjugacy
+    with expected sufficient statistics. Two consequences are the point of it:
+    an account with a long high-churn history moves further from the portfolio
+    mean than one with two quiet renewals (evidence, not noise, sets the
+    distance), and an account with no history of its own falls back exactly to
+    the portfolio prior rather than to a draw's accident.
+
+    The prior is fitted over the WHOLE of `churn_risk`, including accounts the
+    caller will go on to exclude from the valued book: a supplier learns most
+    from the customers who left.
+
+    Accounts with no renewal points are omitted — they have no history to
+    condition on, and `build_clv` excludes them anyway.
     """
-    draws = model.distribution_customer_churn_time(
-        customer_id=customer_ids, random_seed=random_seed
-    )
-    means = draws.mean(dim=[d for d in draws.dims if d != "customer_id"])
-    return {
-        customer_id: min(float(means.sel(customer_id=customer_id)), MAX_PROJECTION_PERIODS)
-        for customer_id in customer_ids
-    }
+    alpha_prior, beta_prior = fit_theta_prior_from_churn_probabilities(churn_risk)
+
+    posteriors = {}
+    for account_id, renewals in churn_risk.items():
+        if not renewals:
+            continue
+        observed_churn = sum(renewal["churn_probability"] for renewal in renewals)
+        observed_survival = sum(1.0 - renewal["churn_probability"] for renewal in renewals)
+        posteriors[account_id] = (
+            alpha_prior + observed_churn,
+            beta_prior + observed_survival,
+        )
+    return posteriors
+
+
+def expected_lifetime_periods(
+    theta_posterior_by_account: dict[str, tuple[float, float]],
+    max_periods: int = MAX_PROJECTION_PERIODS,
+) -> dict[str, float]:
+    """Expected number of renewal periods until churn, per billing account,
+    under that account's own Beta(alpha, beta) posterior for theta.
+
+    This is the shifted-beta-geometric expected lifetime in closed form,
+    truncated at `max_periods`. Lifetime T is geometric on {1, 2, ...} given
+    theta, so
+
+        E[min(T, M)] = sum over t in 0..M-1 of P(T > t)
+                     = sum over t in 0..M-1 of E[(1 - theta)^t]
+
+    and for theta ~ Beta(alpha, beta) the survival term is a ratio of Beta
+    functions with a product form that needs no special functions:
+
+        E[(1 - theta)^t] = B(alpha, beta + t) / B(alpha, beta)
+                         = product over k in 0..t-1 of (beta + k)/(alpha + beta + k)
+
+    Computed rather than sampled, for two reasons beyond speed. The truncated
+    sum is bounded by construction, where the untruncated mean E[1/theta] =
+    (alpha + beta - 1)/(alpha - 1) diverges as alpha approaches 1 and then gets
+    clipped by a cap doing load-bearing work. And it is exact, so an account's
+    projected lifetime no longer depends on the seed, on `n_draws`, or on where
+    the account sits in the roster — the identifier-dependence the finding
+    called a C-S2 RNG-substream defect as well as a valuation one.
+
+    Monotone decreasing in the posterior mean of theta: believe a customer is
+    likelier to leave and their projected lifetime falls.
+    """
+    lifetimes = {}
+    for account_id, (alpha, beta) in theta_posterior_by_account.items():
+        survival = 1.0  # P(T > 0) == 1: the account is alive now
+        total = 0.0
+        for t in range(max_periods):
+            total += survival
+            survival *= (beta + t) / (alpha + beta + t)
+        lifetimes[account_id] = total
+    return lifetimes
 
 
 def _annuity_factor(periods: float, rate: float) -> float:
@@ -218,9 +308,14 @@ def build_clv(
     if not accounts:
         return {}
 
-    alpha, beta = fit_theta_prior_from_churn_probabilities(churn_risk)
-    model = build_clv_model(churn_risk, n_draws=n_draws, random_seed=random_seed)
-    lifetimes = expected_lifetime_periods(model, accounts, random_seed=random_seed)
+    # Per-account posterior, not the pooled prior installed for everyone alike:
+    # `alpha`/`beta` below now differ between accounts because the company's
+    # belief about each account differs. Fitted over the WHOLE of `churn_risk`
+    # (departed accounts included) and then subsetted, so which accounts the
+    # caller excludes from the valued book cannot move a retained account's
+    # projection.
+    theta_posteriors = fit_theta_posterior_per_account(churn_risk)
+    lifetimes = expected_lifetime_periods(theta_posteriors)
 
     result = {}
     for account_id in accounts:
@@ -230,6 +325,7 @@ def build_clv(
         else:
             avg_annual_net_margin = net_margin_by_account[account_id] / periods
         lifetime = lifetimes[account_id]
+        alpha, beta = theta_posteriors[account_id]
         result[account_id] = {
             "alpha": alpha,
             "beta": beta,
