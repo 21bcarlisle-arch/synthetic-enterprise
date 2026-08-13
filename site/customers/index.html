@@ -189,6 +189,14 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
   view faithfully in the <em>customer's side</em> column and then shows, deliberately, what sits
   behind it. Choosing &ldquo;The customer's side&rdquo; below renders that view on its own.</p>
 </header>
+<!-- Cold-eyes 2026-08-12 (coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page):
+     the sentence above told a reader at the canonical door to use a control that was only
+     emitted by renderHousehold() -- i.e. only once a drill-down was open. The view selector
+     governs the WHOLE page including the #op-state exhibit immediately below, which IS on the
+     landing page, so the control belongs at the door. It is CHROME, not content: it carries no
+     figure and therefore no side, which is why it sits outside #op-state (a block inside would
+     have to declare one, and would then be filtered by the very selector it operates). -->
+<div id="door-wall-view" style="max-width:900px;margin:0 auto;padding:14px 20px 0"></div>
 <div id="op-state" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
   <div class="sec-title" style="margin-top:0">One household &mdash; end to end <span id="cust-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
   <section class="wall-panel" data-wall-side="customer">
@@ -319,7 +327,13 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       tile("Net after cost to serve", gbp(Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp)),
         "settled clock · derived: lifetime net − cost to serve",
         ((Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp))<0?"red":"green")),
-      tile("Churn risk", pct(h.latest_churn_probability), "settled clock · company estimate, not a fact", "")
+      // Cold-eyes 2026-08-12 (coldwalk:site2_churn_probability_carries_a_settlement_clock):
+      // R14's clock discipline is about FINANCIAL figures -- which cash/settlement basis a
+      // number is on. A probability has no settled/billed/banked basis, so stamping one on
+      // it was slot-filling, and slot-filled labelling devalues the labelling the page is
+      // advertising. The honest caption for a probability is what it is (a belief) and when
+      // it was formed. Enforced by test_no_non_monetary_tile_carries_a_settlement_clock.
+      tile("Churn risk", pct(h.latest_churn_probability), "company estimate, not a fact · belief at last renewal decision", "")
     ].join("");
     el("cust-sim").innerHTML=[
       tile("Satisfaction", (h.latest_satisfaction&&h.latest_satisfaction.satisfaction_score!=null?(Number(h.latest_satisfaction.satisfaction_score)*100).toFixed(0)+"%":"--"), "SIM-internal ground truth"+(h.latest_satisfaction&&h.latest_satisfaction.year?" · as of "+h.latest_satisfaction.year:""), "")
@@ -360,7 +374,15 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
           '</div>';
         }).join("");
     } else {
-      el("cust-arrears").innerHTML='<div class="kpi-sub" style="margin-top:8px">No arrears cases on record &mdash; clean payment history.</div>';
+      // Cold-eyes 2026-08-12 (coldwalk:site2_arrears_history_visible_only_behind_the_wall):
+      // this said "No arrears cases on record -- clean payment history", a HOUSEHOLD-wide
+      // claim made from a SINGLE-LEG record. company.json's household block is the
+      // electricity leg only (commodity='electricity'), and the same page's Timeline tab
+      // carries two full arrears cascades on the gas leg. The claim now states the scope of
+      // the record it is actually derived from; the household-wide fix is the dual-fuel
+      // money atom, not a wording change here.
+      el("cust-arrears").innerHTML='<div class="kpi-sub" style="margin-top:8px">No arrears cases on this account&rsquo;s '+esc(h.commodity||"")+' record.'+
+        (h.dual_fuel?' <span class="amber">This figure covers the '+esc(h.commodity||"")+' leg only</span> &mdash; the household&rsquo;s other fuel has its own payment record, shown on the Timeline tab of the drill-down.':' Clean payment history.')+'</div>';
     }
 
     var p=h.passport||{};
@@ -517,7 +539,13 @@ window.opStateFind=function(id){
   }
   return null;
 };
-function setWallView(v){WALL_VIEW=v;applyWallViewToOpState();renderHousehold();}
+/* The door's own copy of the selector. The one inside renderHousehold() only exists once a
+   household is open; this one operates the #op-state exhibit, which is on the landing page. */
+function renderDoorWallView(){
+  var host=document.getElementById("door-wall-view");
+  if(host)host.innerHTML=wallViewNav();
+}
+function setWallView(v){WALL_VIEW=v;renderDoorWallView();applyWallViewToOpState();renderHousehold();}
 function panel(side,title,body){
   if(!WALL_SIDES[side])throw new Error(
     "wall-side undeclared or unknown ("+String(side)+"): every panel on this page must declare "+
@@ -812,7 +840,13 @@ function annualTradingRows(d){
   return (d.annual_pnl||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
     var crisis=r.year===2021||r.year===2022;
     var deep=r.year===DEEPLINK_YEAR;
-    var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" p/MWh":"—";
+    /* Cold-eyes 2026-08-12 (coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh):
+       these fields are generate_customer_data.py's copy of tariff_min_gbp_per_mwh /
+       tariff_max_gbp_per_mwh -- POUNDS per MWh. The column labelled them "p/MWh", a 100x
+       mislabel on a public surface, while the very same quantity renders correctly as
+       "Tariff renewed at 128.0 £/MWh" in the timeline. The unit now comes from the field
+       name, not from a typed-in string. */
+    var tariff=(r.tariff_min&&r.tariff_max)?r.tariff_min.toFixed(0)+"–"+r.tariff_max.toFixed(0)+" &pound;/MWh":"—";
     return "<tr id=\"dl-year-"+r.year+"\""+(deep?" class=\"deeplink-row\"":crisis?" class=\"crisis-row\"":"")+"><td>"+r.year+(crisis?" ⚠":"")+"</td>"+
       "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
       "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
@@ -842,8 +876,9 @@ function accountsPanels(){
     panel("sim","Wholesale trading margin, year by year",fuelCards(function(d){
       var annRows=annualTradingRows(d);
       if(!annRows)return "<div class=\"no-account-note\">No annual commodity result for this account.</div>";
-      return "<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>"+
-        "<div class=\"usage-hint\">Gross/Net here are the SIM's internal commodity trading margin per year (wholesale-cost accounting) -- not the customer's all-in billed total. That figure, which includes standing charge, network/environmental pass-through and VAT on top of commodity, is always larger and lives on the Billing &amp; Payments tab.</div>";
+      return "<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Retail tariff range (&pound;/MWh)</th></tr>"+annRows+"</table>"+
+        "<div class=\"usage-hint\">Gross/Net here are the SIM's internal commodity trading margin per year (wholesale-cost accounting) -- not the customer's all-in billed total. That figure, which includes standing charge, network/environmental pass-through and VAT on top of commodity, is always larger and lives on the Billing &amp; Payments tab.</div>"+
+        "<div class=\"usage-hint\">The <strong>retail tariff range</strong> column is the customer's own contracted unit rate over the year, in <strong>&pound; per MWh</strong> (divide by 10 for p/kWh) &mdash; a customer-observable price shown here for comparison against the wholesale cost beside it. It is not part of the SIM's trading-margin arithmetic.</div>";
     }))
   ];
 }
@@ -908,22 +943,62 @@ function timelinePanels(){
   var tl=householdTimeline();
   if(!tl.length)return [panel("customer","Timeline","<div class=\"card\"><div class=\"no-inv\">No recorded events for this household yet.</div></div>")];
   var effects=timelineItemsHtml(true);
-  var chain=renderReactionChain();
-  return [
-    panel("customer","Timeline","<div class=\"card\"><div class=\"timeline-list\">"+timelineItemsHtml(false)+"</div></div>"),
+  var chain=mergedReactionChain();
+  var custChain=chain.filter(function(e){return chainSide(e)==="customer";});
+  var compChain=chain.filter(function(e){return chainSide(e)==="company";});
+  var simChain=chain.filter(function(e){return chainSide(e)==="sim";});
+  var out=[
+    panel("customer","Timeline","<div class=\"card\"><div class=\"timeline-list\">"+timelineItemsHtml(false)+"</div></div>")
+  ];
+  if(custChain.length)out.push(panel("customer","Arrears &mdash; the notices and payment plans this household received",
+    "<div class=\"card\">"+chainRowsHtml(custChain)+"</div>"+
+    "<div class=\"usage-hint\">A missed payment, an overdue notice and an offered payment plan are <strong>letters this household actually received</strong>, so they sit on the customer's side of the wall. They used to render only inside the simulation's reaction chain &mdash; which put a customer's own collections history behind the wall while the money panel called the account clean, the exact inversion this exhibit exists to make visible.</div>"));
+  if(compChain.length)out.push(panel("company","The supplier's own collections decisions",
+    "<div class=\"card\">"+chainRowsHtml(compChain)+"</div>"+
+    "<div class=\"usage-hint\">Write-off, debt sale and recovery are internal accounting decisions, and a retention decision carries the company's own expected value. The household sees their consequences, never these records.</div>"));
+  out.push(
     panel("sim","Cause and effect &mdash; what the simulation knows this drove",
       (effects?"<div class=\"card\"><div class=\"timeline-list\">"+effects+"</div></div>":"<div class=\"card\"><div class=\"no-inv\">No wired causal effect for any of this household's events yet.</div></div>")+
       "<div class=\"usage-hint\">Each event's downstream effect (usage change, income-stress/payment drift, or unit-rate step) is computed from this household's own recorded data — no effect shown means the sim has no wired mechanism for that event type yet.</div>"+
-      chain)
-  ];
+      renderReactionChain(simChain)));
+  return out;
 }
 
 var _CHAIN_LABEL={
   journey_state:"Behavioural signal",retention_decision:"Retention decision",
+  arrears_payment_missed:"Payment missed",
   arrears_dd_failed:"Payment failed",arrears_first_notice:"Arrears notice",
-  arrears_second_notice:"Arrears notice",arrears_written_off:"Debt written off",
+  arrears_second_notice:"Arrears notice",arrears_resolved:"Arrears cleared",
+  arrears_written_off:"Debt written off",
   arrears_placed_with_dca:"Placed with DCA",arrears_recovered:"Debt recovered"
 };
+/* WHICH SIDE OF THE WALL EACH REACTION-CHAIN EVENT SITS ON.
+   Cold-eyes 2026-08-12 (coldwalk:site2_arrears_history_visible_only_behind_the_wall):
+   the WHOLE chain rendered inside one SIM panel, so this household's two arrears
+   cascades -- a missed payment, a first overdue notice, a second notice offering a
+   payment plan, and its clearance -- sat BEHIND the wall. Every one of those is a
+   letter the account holder received. An exhibit whose subject IS the wall must not
+   itself mis-side customer-observable events, so the chain now splits three ways.
+   Fail closed, exactly as panel() and applyWallViewToOpState() do: an event type
+   nobody has classified cannot be placed, and placing it by default would be a silent
+   claim about which side of the wall it belongs on -- the claim this page exists to
+   make explicit. */
+var _CHAIN_SIDE={
+  arrears_payment_missed:"customer",arrears_dd_failed:"customer",
+  arrears_first_notice:"customer",arrears_second_notice:"customer",
+  arrears_resolved:"customer",arrears_placed_with_dca:"customer",
+  arrears_written_off:"company",arrears_recovered:"company",
+  retention_decision:"company",
+  journey_state:"sim"
+};
+function chainSide(e){
+  var t=(e&&e.event_type)||"";
+  if(_CHAIN_SIDE[t])return _CHAIN_SIDE[t];
+  if(t.indexOf("outcome_")===0)return "sim";   // description carries sim_truth
+  throw new Error(
+    "reaction-chain event type declares no wall side ("+String(t)+"): every event on "+
+    "this page must be attributable to customer | company | sim before it can render");
+}
 function chainLabel(e){
   if(_CHAIN_LABEL[e.event_type])return _CHAIN_LABEL[e.event_type];
   if(e.event_type&&e.event_type.indexOf("outcome_")===0)return "Renewal outcome: "+e.event_type.slice(8);
@@ -947,17 +1022,20 @@ function mergedReactionChain(){
   out.sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:0;});
   return out;
 }
-function renderReactionChain(){
-  var chain=mergedReactionChain();
-  if(!chain.length)return "";
-  var items=chain.map(function(e){
+/* The row renderer, shared by all three sides so a side's rows cannot drift in shape
+   from another's -- the only thing that differs between them is WHICH panel they land in. */
+function chainRowsHtml(events){
+  return events.map(function(e){
     var amt=(e.amount_gbp!=null)?" <span class=\""+(e.amount_gbp<0?"red":"muted")+"\">"+gbp(e.amount_gbp)+"</span>":"";
     return "<div class=\"row\"><span class=\"rl\">"+esc(e.date)+" &mdash; <span class=\""+chainColour(e)+"\">"+esc(chainLabel(e))+"</span></span>"+
       "<span style=\"text-align:left;flex:1;margin-left:10px;font-size:12px\">"+esc(e.description)+amt+"</span></div>";
   }).join("");
+}
+function renderReactionChain(chain){
+  if(!chain||!chain.length)return "";
   return "<div class=\"sec-title\">Reaction Chain &mdash; Bill Shock to Outcome</div>"+
-    "<div class=\"card\">"+items+"</div>"+
-    "<div class=\"usage-hint\">The company's own behavioural signal, retention decisions (with expected value), renewal outcomes, and arrears cascade for this household, in chronological order — cause-linked back to the events above.</div>";
+    "<div class=\"card\">"+chainRowsHtml(chain)+"</div>"+
+    "<div class=\"usage-hint\">The hidden churn-journey state and the renewal outcomes it produced, each carrying what the company BELIEVED against what the simulation realized. The household's own arrears letters, and the supplier's collections decisions, are no longer in this chain &mdash; they are on their own sides of the wall above.</div>";
 }
 
 function riskPanels(){
@@ -1621,6 +1699,7 @@ function renderUsage(d){
   buildUsageMonthlyChart("none",cons);
   if(hasHH)buildLoadShapeCharts(cons.load_shape);
 }
+renderDoorWallView();
 initFromUrl();
 </script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>

@@ -256,7 +256,7 @@ RENDER_HARNESS = HERE / "_render_harness.mjs"
 COMPANY_DATA = HERE.parent / "data" / "company.json"
 
 
-def _op_state_injected() -> dict[str, str]:
+def _op_state_injected(index: Path = INDEX) -> dict[str, str]:
     """The op-state region's FIGURES, as its own script renders them.
 
     The exhibit panels ship as empty placeholders (`<div id="cust-value">`); the first
@@ -267,7 +267,7 @@ def _op_state_injected() -> dict[str, str]:
     published data the live page reads.
     """
     proc = subprocess.run(
-        [NODE, str(RENDER_HARNESS), str(INDEX)],
+        [NODE, str(RENDER_HARNESS), str(index)],
         input=COMPANY_DATA.read_text(encoding="utf-8"),
         capture_output=True, text=True, timeout=60,
     )
@@ -278,17 +278,39 @@ def _op_state_injected() -> dict[str, str]:
     return filled
 
 
-def _op_state_children(frag: str) -> list[dict]:
+def _op_state_children(frag: str, index: Path = INDEX) -> list[dict]:
     # Drop the wrapper <div id="op-state" ...> so we split its CHILDREN, not itself.
     inner = frag[frag.index(">", frag.index('<div id="op-state"')) + 1:]
     inner = inner[: inner.rindex("</div>")]
-    for el_id, html in _op_state_injected().items():
+    for el_id, html in _op_state_injected(index).items():
         inner = re.sub(rf'(id="{re.escape(el_id)}"[^>]*>)', lambda m: m.group(1) + html, inner, count=1)
     p = _TopLevelSplit(inner)
     p.feed(inner)
     p.close()
     assert p.children, "op-state region split into no children -- the view test would be vacuous"
     return p.children
+
+
+def _run(index: Path, elec: Path, gas: Path, tmp: Path) -> subprocess.CompletedProcess:
+    """Drive the page's own code, returning the raw process so a caller can assert on a
+    REFUSAL as well as on output. Shared by the real fixture and every mutation below, so
+    a mutation cannot pass by taking a different route to the markup than the real check."""
+    # The op-state region is built from the SAME file the harness drives. Building it from
+    # the real INDEX while driving a mutant would make every op-state mutation invisible --
+    # the wrong-subject class this module already paid for once (section 9).
+    spec = tmp / "children.json"
+    spec.write_text(json.dumps(_op_state_children(_op_state_fragment(index), index)), encoding="utf-8")
+    return subprocess.run(
+        [NODE, str(HARNESS), str(index), str(elec), str(gas), str(spec)],
+        capture_output=True, text=True, timeout=60,
+    )
+
+
+def _drive(index: Path, tmp: Path) -> dict:
+    elec, gas = _dual_fuel_pair()
+    proc = _run(index, elec, gas, tmp)
+    assert proc.returncode == 0, f"harness failed on {index.name}: {proc.stderr}"
+    return json.loads(proc.stdout)
 
 
 @pytest.fixture(scope="module")
@@ -307,8 +329,8 @@ def rendered(tmp_path_factory) -> dict:
     return out
 
 
-def _op_state_fragment() -> str:
-    html = INDEX.read_text(encoding="utf-8")
+def _op_state_fragment(index: Path = INDEX) -> str:
+    html = index.read_text(encoding="utf-8")
     start = html.index('<div id="op-state"')
     end = html.index("<script>", start)
     frag = html[start:end]
@@ -701,11 +723,22 @@ def test_mutation_a_view_switch_that_skips_the_op_state_region_kills_a_named_tes
     """R15, the defect this section exists for: restore the pre-fix setWallView (drill-down
     only) and the union guard must fail. Proven on the FILE, driven through the real harness."""
     src = INDEX.read_text(encoding="utf-8")
-    marker = "function setWallView(v){WALL_VIEW=v;applyWallViewToOpState();renderHousehold();}"
-    assert marker in src, "setWallView no longer has the shape this mutation reverts"
+    # The mutation is "setWallView stops reaching the op-state region", so it is expressed as
+    # the REMOVAL OF THAT CALL, not as a pin on the whole function body. The original pinned
+    # the exact one-line body and went red the moment a second statement was added to the
+    # function -- a fixture that rots on any unrelated edit ("a fixture's neutralise list rots
+    # when the callee gains a check"). Anchored on the call, it survives that and still
+    # reverts exactly the pre-fix behaviour: drill-down filtered, exhibit not.
+    m = re.search(r"function setWallView\(v\)\{([^}]*)\}", src)
+    assert m, "setWallView no longer has a flat body this mutation can operate on"
+    body = m.group(1)
+    assert "applyWallViewToOpState();" in body, (
+        "setWallView no longer calls applyWallViewToOpState -- either the fix was reverted "
+        f"(a real defect, not a fixture problem) or it was renamed. Body: {body!r}"
+    )
     mutant = tmp_path / "index.html"
     mutant.write_text(
-        src.replace(marker, "function setWallView(v){WALL_VIEW=v;renderHousehold();}"),
+        src.replace(m.group(0), m.group(0).replace("applyWallViewToOpState();", "")),
         encoding="utf-8",
     )
     elec, gas = _dual_fuel_pair()
@@ -777,4 +810,297 @@ def test_a_view_filtered_panel_is_still_fillable_when_its_data_lands():
     lookup = src[src.index("window.opStateFind=function(id){"):]
     assert "OP_STATE_BLOCKS" in lookup[:400], (
         "opStateFind does not search OP_STATE_BLOCKS -- it cannot find a detached panel"
+    )
+
+
+# ===========================================================================
+# (10) The 2026-08-12 cold-eyes walk's remaining render findings
+#
+# Four findings from the same walk that produced section (9). Each is a defect in
+# what this page RENDERS -- not in the sim or the company's beliefs -- so each is
+# this atom's own scope, and each gets a control that can fail on its own defect.
+# ===========================================================================
+
+# The arrears cascade this household actually lived through. Cold-eyes found these
+# rendering ONLY inside the SIM reaction chain -- a customer's own overdue notices
+# and payment plan filed behind the wall, while the money panel above called the
+# account clean. Every one of them is a letter the account holder received.
+CUSTOMER_OBSERVABLE_ARREARS = (
+    "Payment missed", "First overdue notice", "Second notice", "Arrears cleared",
+)
+
+
+def _timeline(rendered: dict, view: str) -> str:
+    return rendered["views"][view]["timeline"]
+
+
+def _arrears_events_on_disk() -> list[dict]:
+    """ANTI-VACUITY SOURCE. Every assertion below is worthless if the household has no
+    arrears events at all, so the checks read them from the JSON the page is driven with."""
+    events: list[dict] = []
+    for path in _dual_fuel_pair():
+        data = json.loads(path.read_text(encoding="utf-8"))
+        events += [e for e in data.get("reaction_chain", [])
+                   if str(e.get("event_type", "")).startswith("arrears")]
+    return events
+
+
+def test_the_household_actually_has_an_arrears_history_to_side():
+    """The anti-vacuity gate for this whole section. If the fixture household stops
+    carrying arrears events, the siding checks below silently prove nothing -- so they
+    fail HERE, loudly, rather than passing empty."""
+    events = _arrears_events_on_disk()
+    assert events, (
+        "the fixture household carries no arrears events, so every arrears-siding "
+        "assertion below would be vacuously true -- pick a household that has some"
+    )
+    kinds = {e["event_type"] for e in events}
+    assert kinds & {"arrears_payment_missed", "arrears_first_notice", "arrears_dd_failed"}, (
+        f"no customer-observable arrears event in the fixture (got {sorted(kinds)})"
+    )
+
+
+def test_a_customers_own_arrears_notices_render_on_the_customer_side(rendered):
+    """coldwalk:site2_arrears_history_visible_only_behind_the_wall.
+
+    An overdue notice and an offered payment plan were SENT TO THIS HOUSEHOLD. On an
+    exhibit whose whole subject is the wall, filing them behind it is the exhibit
+    making the exact error it exists to expose."""
+    customer = _timeline(rendered, "customer")
+    missing = [lbl for lbl in CUSTOMER_OBSERVABLE_ARREARS if lbl not in customer]
+    assert not missing, (
+        f"customer-observable arrears events missing from the customer's own view: {missing} "
+        "-- the household cannot see its own overdue notices on a page that shows them"
+    )
+
+
+def test_the_customers_arrears_notices_are_not_filed_behind_the_wall(rendered):
+    """The other half: they must be OUT of the behind-the-wall view, not merely also in
+    the customer one. Sided means sided."""
+    behind = _timeline(rendered, "behind")
+    leaked = [lbl for lbl in CUSTOMER_OBSERVABLE_ARREARS if lbl in behind]
+    assert not leaked, (
+        f"customer-observable arrears events still render behind the wall: {leaked}"
+    )
+
+
+def test_the_reaction_chain_stays_sim_only_after_the_split(rendered):
+    """ANTI-OVERCORRECTION. The split must not drag the causal chain -- the hidden
+    churn-journey state and the sim's realized probabilities -- onto the customer side.
+    Exit criterion (3) names the causal reaction chain as SIM-only."""
+    assert "Reaction Chain" in _timeline(rendered, "behind"), (
+        "the SIM reaction chain vanished from the behind-the-wall view -- the split "
+        "removed it instead of re-siding the arrears half"
+    )
+    assert "Reaction Chain" not in _timeline(rendered, "customer"), (
+        "the SIM reaction chain leaked into the customer's view"
+    )
+
+
+def test_no_raw_event_type_enum_reaches_the_page(rendered):
+    """The walk read 'arrears_payment_missed' off the live surface: an unlabelled event
+    type falls through chainLabel() and prints its own enum on a public page."""
+    both = _timeline(rendered, "both")
+    raw = sorted({m for m in re.findall(r"arrears_[a-z_]+|outcome_[a-z_]+|journey_state", both)})
+    assert not raw, f"raw event-type enums rendered on the page: {raw}"
+
+
+def test_mutation_arrears_events_filed_behind_the_wall_kill_a_named_test(tmp_path):
+    """R15 for the siding. Re-file the arrears cascade on the SIM side in the FILE, drive
+    the real harness, and the named check above must report it."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = 'arrears_first_notice:"customer",arrears_second_notice:"customer",'
+    assert marker in src, "_CHAIN_SIDE no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker, 'arrears_first_notice:"sim",arrears_second_notice:"sim",'),
+        encoding="utf-8",
+    )
+    out = _drive(mutant, tmp_path)
+    behind = out["views"]["behind"]["timeline"]
+    assert "First overdue notice" in behind, (
+        "MUTATION SURVIVED: arrears re-sided to sim and the behind-the-wall view still "
+        "did not carry them -- the siding is not driving the render"
+    )
+    assert "First overdue notice" not in out["views"]["customer"]["timeline"], (
+        "MUTATION SURVIVED: the customer view still showed the notice"
+    )
+
+
+def test_mutation_an_unclassified_chain_event_is_refused_not_silently_placed(tmp_path):
+    """R15 fail-closed, proven on real DATA rather than on the file. An event type nobody
+    has sided cannot be placed, and placing it by default would be a silent claim about
+    which side of the wall it belongs on -- the claim this page exists to make explicit."""
+    elec, gas = _dual_fuel_pair()
+    data = json.loads(gas.read_text(encoding="utf-8"))
+    chain = data.get("reaction_chain") or []
+    assert chain, "fixture has no reaction chain -- this proof would be vacuous"
+    chain.append({**chain[0], "event_type": "arrears_third_notice_2029"})
+    mutant_gas = tmp_path / "gas.json"
+    mutant_gas.write_text(json.dumps(data), encoding="utf-8")
+    proc = _run(INDEX, elec, mutant_gas, tmp_path)
+    assert proc.returncode != 0, (
+        "MUTATION SURVIVED: an event type with no declared wall side rendered anyway -- "
+        f"the page placed it silently. stdout head: {proc.stdout[:300]!r}"
+    )
+    assert "declares no wall side" in proc.stderr, (
+        f"refused, but not for the stated reason: {proc.stderr[-400:]!r}"
+    )
+
+
+# --- the retail tariff unit -------------------------------------------------
+def test_the_retail_tariff_range_is_labelled_in_the_unit_it_is_actually_in(rendered):
+    """coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh -- a 100x unit
+    mislabel on a public surface.
+
+    INDEPENDENCE (R15 anti-tautology): the check does not compare the label to itself. It
+    compares the number the page renders in this column against the SAME quantity rendered
+    by a DIFFERENT code path elsewhere on the page -- the timeline's "Tariff renewed at
+    128.0 GBP/MWh" -- and requires them to be the same order of magnitude. A column in
+    pence and a line in pounds cannot both be right."""
+    accounts = rendered["views"]["behind"]["accounts"]
+    cells = re.findall(r'<td style="color:var\(--muted\);font-size:11px">([^<]*)</td>', accounts)
+    ranged = [c for c in cells if "–" in c]
+    assert ranged, "no tariff-range cell rendered -- this check would be vacuous"
+    assert not [c for c in ranged if "p/MWh" in c], (
+        f"the retail tariff range is labelled in pence per MWh: {ranged[:3]} -- the fields "
+        "behind it are tariff_min_gbp_per_mwh / tariff_max_gbp_per_mwh"
+    )
+    assert all("&pound;/MWh" in c for c in ranged), (
+        f"tariff-range cells carry no unit at all: {ranged[:3]}"
+    )
+
+    renewals = re.findall(r"Tariff renewed at ([\d.]+) £/MWh", _timeline(rendered, "customer"))
+    assert renewals, "no renewal line to cross-check the unit against"
+    rendered_range = [float(n) for c in ranged
+                      for n in re.findall(r"\d+", c.replace("&pound;", ""))]
+    assert rendered_range, f"no numbers parsed out of {ranged[:3]}"
+    lo, hi = min(rendered_range), max(rendered_range)
+    ref = float(renewals[0])
+    assert lo <= ref * 4 and hi >= ref / 4, (
+        f"the tariff-range column ({lo}-{hi}) and the renewal line ({ref} GBP/MWh) render "
+        "the same quantity two orders of magnitude apart -- one of them has the wrong unit"
+    )
+
+
+def test_mutation_relabelling_the_tariff_range_as_pence_kills_a_named_test(tmp_path):
+    """R15 for the unit. Put the pence label back and the named check must fire."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = '+" &pound;/MWh"'
+    assert marker in src, "the tariff-range unit no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, '+" p/MWh"'), encoding="utf-8")
+    out = _drive(mutant, tmp_path)
+    cells = re.findall(r'<td style="color:var\(--muted\);font-size:11px">([^<]*)</td>',
+                       out["views"]["behind"]["accounts"])
+    assert [c for c in cells if "p/MWh" in c], (
+        "MUTATION SURVIVED: the pence label was restored and the checker's own subject "
+        "did not carry it -- the check is looking at the wrong markup"
+    )
+
+
+# --- R14 clocks belong to money, and only to money --------------------------
+_TILE = re.compile(
+    r'<div class="kpi-label">(?P<label>[^<]*)</div>'
+    r'<div class="kpi-value[^"]*">(?P<value>.*?)</div>'
+    r'(?:<div class="kpi-sub">(?P<sub>[^<]*)</div>)?',
+    re.S,
+)
+
+
+def _clocked_tiles(html: str) -> list[tuple[str, str, str]]:
+    return [(m.group("label"), m.group("value"), m.group("sub") or "")
+            for m in _TILE.finditer(html) if "clock" in (m.group("sub") or "")]
+
+
+def test_no_non_monetary_tile_carries_a_settlement_clock(op_state_html, rendered):
+    """coldwalk:site2_churn_probability_carries_a_settlement_clock, closed as a CLASS
+    (R10), not as an instance.
+
+    R14's clock discipline exists so a financial figure states which basis it is on --
+    settled, billed or banked. A probability, a count or a score has no such basis, so
+    stamping one on it is slot-filling, and slot-filled labelling is exactly what makes
+    a labelling discipline stop meaning anything. The rule is therefore: a tile may
+    carry a clock only if its VALUE is money."""
+    html = op_state_html + rendered["opState"]["both"]
+    clocked = _clocked_tiles(html)
+    assert clocked, (
+        "no tile on the page carries a clock at all -- either R14 labelling is gone or "
+        "this checker's pattern no longer matches the page's tile markup"
+    )
+    offenders = [(label, value, sub) for label, value, sub in clocked
+                 if not re.match(r"^-?&pound;|^-?£", value.strip())]
+    assert not offenders, (
+        "non-monetary figures carrying an R14 settlement clock (a probability, count or "
+        f"score has no settled/billed/banked basis): {offenders}"
+    )
+
+
+def test_mutation_a_clock_put_back_on_the_churn_probability_kills_a_named_test(tmp_path):
+    """R15 for the class control above, proven through the page's own render."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = '"company estimate, not a fact · belief at last renewal decision"'
+    assert marker in src, "the churn caption no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, '"settled clock · company estimate"'), encoding="utf-8")
+    out = _drive(mutant, tmp_path)
+    offenders = [t for t in _clocked_tiles(_op_state_fragment(mutant) + out["opState"]["both"])
+                 if not re.match(r"^-?&pound;|^-?£", t[1].strip())]
+    assert offenders, (
+        "MUTATION SURVIVED: a settlement clock was restored on the churn PROBABILITY and "
+        "the class control did not flag it"
+    )
+
+
+# --- the door's own view selector -------------------------------------------
+def test_the_door_carries_the_view_switch_its_own_copy_promises(rendered):
+    """coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page.
+
+    The header says: choosing "The customer's side" BELOW renders that view on its own.
+    The control used to be emitted only by renderHousehold(), so a reader arriving at the
+    canonical door was told to use something that was not there. Subject is the RENDERED
+    control coming out of the page's own setWallView(), not a grep of the file."""
+    promise = INDEX.read_text(encoding="utf-8")
+    assert "renders that view on its own" in promise, (
+        "the header no longer makes this promise -- delete this test or restore the copy"
+    )
+    door = rendered["doorWallView"]
+    assert door.get("both"), (
+        "the canonical door renders no view selector, while the page's own header tells "
+        "a reader to use one below"
+    )
+    for view, _label in [("both", None), ("customer", None), ("behind", None)]:
+        assert f"setWallView('{view}')" in door[view], (
+            f"the door's selector offers no way back to the {view!r} view"
+        )
+    assert 'class="wall-view-btn vactive"' in door["customer"], (
+        "the door's selector does not show which view is active, so a reader cannot tell "
+        "the page is filtered"
+    )
+
+
+def test_mutation_a_door_selector_that_never_refreshes_kills_a_named_test(tmp_path):
+    """R15: drop the door selector's refresh out of setWallView and the active-state
+    assertion above must fail -- a selector that never repaints tells the reader the
+    wrong view is on."""
+    src = INDEX.read_text(encoding="utf-8")
+    assert "renderDoorWallView();applyWallViewToOpState()" in src, (
+        "setWallView no longer refreshes the door selector before filtering"
+    )
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace("renderDoorWallView();applyWallViewToOpState()", "applyWallViewToOpState()"),
+        encoding="utf-8",
+    )
+    out = _drive(mutant, tmp_path)
+    door = out["doorWallView"]
+    # The distinction that matters: the selector is still THERE (rendered once at boot),
+    # it is just frozen on the wrong view. A missing selector would prove nothing about
+    # the refresh, so assert the mutant is the stale case and not the absent one.
+    assert door["customer"] and "wall-view-btn" in door["customer"], (
+        "the mutant rendered no selector at all -- this proves nothing about the refresh"
+    )
+    assert 'class="wall-view-btn vactive" onclick="setWallView(\'customer\')"' not in door["customer"], (
+        "MUTATION SURVIVED: the refresh was removed and the selector still reported the "
+        "customer view as active -- the assertion is not reading the repaint"
     )

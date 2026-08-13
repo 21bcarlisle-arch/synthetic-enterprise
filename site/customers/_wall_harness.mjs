@@ -163,10 +163,17 @@ probe("declared_panel_is_accepted", () => sandbox.panel("customer", "T", "<div c
 // this region, every view returns the same html and the union tests below fail.
 const opState = {};
 const opStateProbes = {};
+// The DOOR's own copy of the view selector. The page header tells a reader at the canonical
+// door that choosing "The customer's side" below renders that view on its own; cold-eyes
+// 2026-08-12 found the control only existed inside renderHousehold(), i.e. only after a
+// household was opened. Captured here so the test's subject is the RENDERED control coming
+// out of the page's own setWallView(), not a string grep of the file.
+const doorWallView = {};
 if (opStateHost) {
   for (const view of ["both", "customer", "behind"]) {
     sandbox.setWallView(view);
     opState[view] = opStateHost.children.map((c) => c._html).join("");
+    doorWallView[view] = elements["door-wall-view"] ? elements["door-wall-view"]._inner : null;
   }
   sandbox.setWallView("both");
   // R15: a block declaring a side the wall does not know cannot be filtered, so
@@ -186,4 +193,4 @@ if (opStateHost) {
   sandbox.setWallView("both");
 }
 
-process.stdout.write(JSON.stringify({ views, injected, probes, opState, opStateProbes }));
+process.stdout.write(JSON.stringify({ views, injected, probes, opState, opStateProbes, doorWallView }));

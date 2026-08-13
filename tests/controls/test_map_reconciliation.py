@@ -13,6 +13,7 @@ The unwatched executor loop (background/executor_governor.run_loop) consults the
 primitive (`unfolded_inbox_ids`) as a per-cycle STOP condition, so the divergence class is a
 loop halt, not a silent drift discovered hours later.
 """
+import json
 from pathlib import Path
 
 import yaml
@@ -117,3 +118,119 @@ def test_duplicate_key_guard_is_SILENT_on_a_clean_map():
     worse than none (it trains you to ignore it)."""
     clean = "- id: A\n  depends_on: [x]\n- id: B\n  depends_on: [y]\n"
     assert _duplicate_keys_by_atom(clean) == {}
+
+
+# ─────── the map's OPEN findings vs the adjudication ledger's own verdict ───────
+# 2026-08-13: SITE2_two_sided_wall_exhibit's disposition tick fixed four cold-eyes
+# findings, wrote the fix evidence into docs/observability/sanity_adjudication_ledger.json
+# (state -> "fixed") and into the atom's simplifications record -- and left all four sitting
+# in the map's `expert_hour.findings` list under the comment "open; each needs its own atom
+# -- most are SIM/COMPANY fidelity, not render". Two records, one subject, opposite claims,
+# and nothing anywhere compared them. Same family as the unfolded inbox and the duplicate
+# key above: a self-report that never met the external truth it is a report OF. The map is
+# the drawn-from record, so a finding that stays "open" there re-draws work already done and
+# holds a level move that may no longer be held.
+#
+# THE LEDGER IS THE TRUTH here, deliberately: it carries the adjudication timestamp, the
+# adjudicator and the fix evidence per key; the map carries a bare list. So the direction of
+# the check is one-way -- ledger says CLOSED while the map says OPEN is a defect.
+REAL_LEDGER = REPO_ROOT / "docs" / "observability" / "sanity_adjudication_ledger.json"
+
+# States that CONTRADICT membership of an open-findings list. `adjudicated-false-positive`
+# is deliberately NOT here: a refuted finding is part of the Hour's narrative record and the
+# map annotates those in place (`# adjudicated REFUTED`), which is a disclosure, not a
+# divergence. Only "the defect is gone" states contradict "still open".
+CLOSED_LEDGER_STATES = {"fixed", "superseded"}
+
+
+def _map_findings_vs_ledger(atoms, ledger):
+    """Returns (contradictions, resolvable_count).
+
+    `contradictions` — (atom_id, finding_key, ledger_state) for every key listed under an
+    atom's `expert_hour.findings` whose ledger state says the defect is closed.
+    `resolvable_count` — how many listed findings resolve into the ledger AT ALL. That
+    second number is what stops this being a fail-open control: most atoms' findings are
+    prose narrative, so an empty contradiction set is only meaningful if SOMETHING was
+    actually compared.
+    """
+    contradictions, resolvable = [], 0
+    for atom in atoms:
+        if not isinstance(atom, dict):
+            continue
+        for key in (atom.get("expert_hour") or {}).get("findings") or []:
+            if not isinstance(key, str) or key not in ledger:
+                continue
+            resolvable += 1
+            state = (ledger[key] or {}).get("state")
+            if state in CLOSED_LEDGER_STATES:
+                contradictions.append((atom.get("id", "<no-id>"), key, state))
+    return contradictions, resolvable
+
+
+def _real_map_and_ledger():
+    return (
+        yaml.safe_load(REAL_MAP_YAML.read_text(encoding="utf-8")),
+        json.loads(REAL_LEDGER.read_text(encoding="utf-8")),
+    )
+
+
+def test_no_map_finding_is_listed_open_while_the_ledger_records_it_fixed():
+    """THE control: no atom advertises as an open Expert-Hour finding something the
+    adjudication ledger records as fixed or superseded."""
+    contradictions, _ = _map_findings_vs_ledger(*_real_map_and_ledger())
+    assert contradictions == [], (
+        "map lists finding(s) as OPEN that the adjudication ledger records as closed -- "
+        "the fix landed and the map never heard. Move them out of `expert_hour.findings` "
+        "(a dated `fixed_<date>` list keeps the history) or correct the ledger state: "
+        f"{contradictions}"
+    )
+
+
+def test_the_findings_ledger_comparison_is_not_vacuous():
+    """ANTI-BLINDNESS (R15 fail-open): the control above passes trivially if no listed
+    finding resolves into the ledger. A key-naming convention that drifts, or an atom
+    record rehomed out of the map, would empty the population silently and the guard
+    would read green forever. This fails the moment there is nothing left to compare."""
+    _, resolvable = _map_findings_vs_ledger(*_real_map_and_ledger())
+    assert resolvable > 0, (
+        "no `expert_hour.findings` entry in the real map resolves to a key in the real "
+        "adjudication ledger -- the reconciliation above is comparing nothing and would "
+        "pass whatever the ledger said"
+    )
+
+
+def test_findings_guard_FIRES_on_a_fixed_finding_left_in_the_open_list():
+    """R15 mutation proof, the real defect: SITE2's shape exactly -- a finding the ledger
+    calls `fixed` still sitting in `expert_hour.findings`."""
+    atoms = [{"id": "A1", "expert_hour": {"findings": ["coldwalk:x_repaired"]}}]
+    ledger = {"coldwalk:x_repaired": {"state": "fixed", "fix_evidence": "..."}}
+    contradictions, resolvable = _map_findings_vs_ledger(atoms, ledger)
+    assert contradictions == [("A1", "coldwalk:x_repaired", "fixed")]
+    assert resolvable == 1
+
+
+def test_findings_guard_is_SILENT_on_a_genuinely_open_finding():
+    """...and does not fire on healthy input. An `adjudicated-real` finding IS open work,
+    and an `adjudicated-false-positive` is a disclosed refutation -- neither is a
+    divergence, so a control that flagged them would be noise that trains you to ignore
+    it. The population is still counted, so this case is not silently vacuous."""
+    atoms = [
+        {"id": "A1", "expert_hour": {"findings": ["coldwalk:x_real", "coldwalk:x_refuted"]}}
+    ]
+    ledger = {
+        "coldwalk:x_real": {"state": "adjudicated-real"},
+        "coldwalk:x_refuted": {"state": "adjudicated-false-positive"},
+    }
+    contradictions, resolvable = _map_findings_vs_ledger(atoms, ledger)
+    assert contradictions == []
+    assert resolvable == 2, "healthy findings must still COUNT, or the anti-vacuity check lies"
+
+
+def test_findings_guard_counts_nothing_when_the_keys_do_not_resolve():
+    """R15 fail-open proof: prose findings and drifted key names resolve to nothing, and
+    the guard reports that honestly as a population of ZERO rather than as a clean pass --
+    which is the signal test_the_findings_ledger_comparison_is_not_vacuous acts on."""
+    atoms = [{"id": "A1", "expert_hour": {"findings": ["the panel read as a leak", None]}}]
+    contradictions, resolvable = _map_findings_vs_ledger(atoms, {"coldwalk:x_real": {"state": "fixed"}})
+    assert contradictions == []
+    assert resolvable == 0, "unresolvable findings must not be counted as compared"
