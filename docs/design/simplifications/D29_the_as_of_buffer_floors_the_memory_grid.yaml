@@ -94,3 +94,132 @@ simplifications:
   \ at 0, `loop_stage` unchanged at\n`idle`, `provenance` unchanged at `proposal`. Nothing in `file_scope`\
   \ was written and the\nmap is not touched at all this tick; `simplifications_count` re-syncs on the\
   \ next\n`tools.merge_atom_status` fold."
+- |
+  2026-08-13 DISCOVER/FRAME ONLY, SECOND PASS THIS DAY, level stays 0 (worker tick, LANE 3
+  idle draw). No BUILD code written and nothing in `file_scope` touched -- the atom is still
+  `loop_stage: idle`. This pass takes the ONE lead the first pass left explicitly
+  NOT-ESTABLISHED ("several `as_of` readings ... whether figures read once per `as_of` can be
+  combined into one that resolves better was not measured here"), and in taking it FALSIFIES
+  the first pass's own load-bearing universal. Everything below is `observed-with-evidence`
+  unless labelled otherwise (R9).
+
+  HYGIENE. Measured in a detached worktree at HEAD 274509d24 (`git worktree add --detach`).
+  Unlike the first pass, both `file_scope` paths are CLEAN at HEAD this tick (`git status
+  --porcelain tools/couple_w2_11_d5.py tests/tools/test_couple_w2_11_d5.py` empty), so the
+  worktree and the desk tree agree on the instrument; the worktree was used anyway. n=300,
+  seeds 7/11/23 throughout, shipped `build_scenario` / `measure_belief_window_resolution` /
+  `score_triad`, nothing monkeypatched: `as_of` is a PARAMETER of both the predictor and the
+  scorer, so a buffer is perturbed by shifting the read date and never by editing a constant.
+
+  FINDING 3 -- THE FIRST PASS'S UNIVERSAL IS FALSE, AND IT STOPPED ONE DAY SHORT OF ITS OWN
+  PREDICTED CROSSING. That pass sampled buffers 5 / 30 / 338 and wrote "NO value of this
+  constant de-saturates the company being graded", then made it exit criterion 2:
+  "`saturated == False` ... is the one statement no value of `AS_OF_BUFFER_DAYS` can buy".
+  Swept COMPLETE over b = 0..420 (421 values x 3 seeds), `saturated` goes False at
+  b = 340 (seed 7) and b = 339 (seeds 11 and 23):
+
+      seed 7    b=338 floor=337 oldest=399 headroom=  1 saturated=True
+                b=339 floor=338 oldest=400 headroom=  0 saturated=True
+                b=340 floor=339 oldest=401 headroom= -1 saturated=False
+      seed 11   b=338 floor=337 oldest=400 headroom=  0 saturated=True
+                b=339 floor=338 oldest=401 headroom= -1 saturated=False
+      seed 23   b=338 floor=338 oldest=400 headroom=  0 saturated=True
+                b=339 floor=339 oldest=401 headroom= -1 saturated=False
+
+  338 was the largest value sampled and the crossing is one to two days above it. The
+  crossing was DERIVABLE from the identity the same pass had just published -- headroom goes
+  negative exactly when floor exceeds the conserved sum -- so this is not a missing
+  measurement so much as a universal asserted from three points while its own arithmetic said
+  where to look. THE CONSEQUENCE IS THE DEFECT: exit criterion 2 as written is SATISFIABLE BY
+  THE MOVE THE RECORD WAS WRITTEN TO FORBID -- set the buffer to 340 and `saturated` is False
+  with nothing else changed, having bought it by making every supplier with less than eleven
+  months of memory publish the amnesia figure, which is D29's own named defect eleven times
+  over. A criterion a reshape can green by doing the wrong thing is a criterion that measures
+  nothing; criterion 2 is REPLACED below.
+
+  FINDING 4 -- THE IDENTITY IS NOW COMPLETE RATHER THAN SAMPLED, AND IT IS THE SOUND
+  CRITERION. Over the same 421 buffers, `amnesia_floor_window_days + headroom_days` takes
+  exactly ONE value per seed -- 338 / 337 / 338, i.e. `DD_FAILURE_WINDOW_DAYS - span - 1`
+  (spans 61 / 62 / 61). Not one buffer in 421 moves it on any seed. The first pass measured
+  this at three points and inferred it; it holds everywhere, which is what makes it, and not
+  the saturation flag, the acceptance test for this atom.
+
+  FINDING 5 -- THE UNMEASURED LEAD, ANSWERED, AND IT IS POSITIVE: SEVERAL READINGS BREAK THE
+  IDENTITY WITHOUT TOUCHING THE BOOK. A reading at buffer b sights company memories in
+  [newest(b), oldest(b)]; the two edges of a SET of readings come from different members, so
+  the sum is no longer conserved. Measured on the shipped predictor:
+
+      reading set B              floor  top   headroom   sum   holes   W=400 sighted
+      [30]  (shipped)               29   91        309   338       0   False
+      [5, 30]                        4   91        309   313       0   False
+      [5, 340]                       4  401         -1     3     273   True
+      [5,66,127,188,249,310,340]     4  401         -1     3       0   True
+
+  (seed 7; seeds 11 and 23 identical in shape -- sums 337 -> 2 and 338 -> 3, 0 holes at seven
+  readings.) Seven readings spaced one span apart cover 5..401 with NO hole, so the design
+  needs `ceil(range / span) + 1` reads and not a longer book. The floor stays where the
+  EARLIEST reading puts it while the top goes where the LATEST one does -- the decoupling the
+  first pass concluded was available only through `event_age_span`, which is D30's.
+
+  AND IT IS LIVE AT THE SCORED COMPANY, RE-SCORED RATHER THAN PREDICTED. `score_triad` at
+  drift k over W = 397..403, the scored company's own 400-day setting in the middle:
+
+      seed 7   b=30  : 1 distinct belief value, 1 distinct mix  (inert, as D30 states)
+               b=340 : 2 distinct belief, 2 distinct mix -- belief 0.170886075949 at W<=400,
+                       0.151898734177 at W>=401
+      seed 11  b=30  : 1 / 1        b=340 : 2 / 2  (0.203703703704 -> 0.191358024691 at 401)
+      seed 23  b=30  : 1 / 1        b=340 : 5 / 3  -- 0.164705882353 / 0.152941176471 /
+                       0.147058823529 / 0.141176470588 / 0.135294117647, i.e. a ONE-DAY
+                       memory error resolved at W=398, 399 and 402
+
+  This is the first measurement in this atom's line where either belief figure moves at the
+  memory the scored company actually holds. NOT ESTABLISHED and flagged (R9): that a set of
+  per-reading figures should be COMBINED into one published number, and how. What is measured
+  is that the readings differ where one reading cannot; the aggregation is a design choice
+  this pass does not make.
+
+  BLAST RADIUS, MEASURED, AND IT CORRECTS FINDING 2's. Across b = 30 -> 340 on all three
+  seeds, `detection` and `detection_latency` are BIT-IDENTICAL (seed 7: 0.0145051194539 and
+  2.343137 at both readings; seeds 11/23 likewise), while `ageing` moves hard
+  (0.11296259118 -> 0.235946597069 on seed 7, 0.191535364146 -> 0.355856092437 on seed 11,
+  0.119399648484 -> 0.206954765502 on seed 23). So a multi-reading reshape re-publishes the
+  BELIEF PAIR plus AGEING per reading and leaves the detection pair alone -- three of five,
+  where the atom's `name` claims the belief pair and the first pass found only `ageing`.
+  R13 NOTE, and it is the strongest thing about this candidate: several readings change NO
+  world state at all. The book, the draw and the seam are untouched; only the date the
+  instrument reads on moves. D30's reshape (more periods, longer spine) and the atom's own
+  third candidate both change the BOOK. The real-world twin favours it too -- a collections
+  pack is run monthly over the same book, so a single as-of read is the artefact and the
+  rolling series is the realistic instrument.
+
+  FRAME CONSEQUENCE -- THE FIRST PASS'S BUILD-ORDER INVERSION IS WITHDRAWN. It concluded
+  "only a change to `event_age_span` moves the conserved sum, and the span constants are
+  D30's", therefore D29 must wait behind D30. Finding 5 falsifies the premise: the sum moves
+  from 338 to 3 with the span unchanged at 61. D29 is buildable on its own, and its buildable
+  content is a MULTI-READING INSTRUMENT rather than a choice of `AS_OF_BUFFER_DAYS` value --
+  every value of which is a translation (first pass, Finding 1, re-confirmed complete here).
+  The map's `depends_on: [D29]` on D30 stays correct as history and is now also defensible as
+  build order, in the direction the map already has it.
+
+  WHAT AN EXIT TEST FOR THIS ATOM MUST NOW SHOW (replacing the first pass's three):
+
+    1. UNCHANGED and now complete: `amnesia_floor_window_days + headroom_days` has MOVED off
+       `DD_FAILURE_WINDOW_DAYS - span - 1`. Invariant over 421 buffers x 3 seeds, so a
+       reshape that leaves it alone has resolved nothing regardless of what else it moved.
+    2. REPLACING the old criterion 2, which a buffer of 340 greens by doing the wrong thing:
+       `saturated == False` for the scored company AND `amnesia_floor_window_days` no greater
+       than the shipped 29/30. Both edges, in one test, because this atom's whole content is
+       that they were welded together.
+    3. UNCHANGED: `ageing` re-certified alongside the belief pair -- and the detection pair
+       explicitly asserted bit-identical, which is measured above and is the cheap half.
+    4. NEW: at least one company memory error resolved AT the scored company's own W=400 --
+       the statement no single reading of this book has ever been able to make.
+
+  R12: no published number was tuned and none was written to any artefact. Every figure above
+  was scored inside a throwaway worktree to find out which of them this reshape reaches.
+
+  STATUS: DISCOVER/FRAME only. `level_current` unchanged at 0, `loop_stage` unchanged at
+  `idle`, `provenance` unchanged at `proposal`. The map is not touched this tick either --
+  its shared index still carries another lane's staged `level_current` hunks (14 insertions
+  at the time of writing), the same constraint the first pass and the D34 pass each recorded;
+  `simplifications_count` re-syncs on the next `tools.merge_atom_status` fold.
