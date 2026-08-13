@@ -1,0 +1,96 @@
+atom_id: D29_the_as_of_buffer_floors_the_memory_grid
+simplifications:
+- "2026-08-13 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\ncode written\
+  \ and nothing in `file_scope` touched -- this atom is `loop_stage: idle`, and\nEPOCH_GATING_AND_ATOM_AUTHORSHIP\
+  \ rule 7 makes DISCOVER/FRAME available on a parked atom\nwhile BUILD is not. Output is this record.\
+  \ Everything below is `observed-with-evidence`\nunless labelled otherwise (R9).\n\nMEASUREMENT HYGIENE\
+  \ FIRST, BECAUSE THIS MODULE IS DIRTY. `tools/couple_w2_11_d5.py` and\n`tests/tools/test_couple_w2_11_d5.py`\
+  \ are modified-uncommitted in the shared tree by\nanother lane (+596/-139; `dense_drift_grid` has gained\
+  \ `records`/`as_of` and\n`DRIFT_GRID_SPAN_DAYS` is deleted -- the BUILD that D28's own record already\
+  \ describes as\nCLOSED, in no commit). Every number below was measured in a DETACHED WORKTREE AT HEAD\n\
+  (`git worktree add --detach HEAD`), never on the desk tree. This is the same hygiene the\n2026-08-13\
+  \ D33 pass had to apply to the same file, one day earlier.\n\nWHAT IS ALREADY LANDED, READ OFF HEAD\
+  \ RATHER THAN OFF THE ATOM'S PROSE. Everything the\n`name` lists under \"ALREADY LANDED UNDER H27's\
+  \ HOUR\" is present at HEAD: `book_memory_grid`\n(l.2824), `OWN_DRIFT_BOOK_GRIDS` (l.2858) which RAISES\
+  \ for an unmapped knob (l.4622),\n`amnesia_floor_window_days` / `predicted_saturates_below_drift` /\
+  \ `_above` (l.5382-5384),\nthe per-edge owner fields `own_saturation_atom_below` / `_above` (l.4136-4137),\
+  \ and the\nfloor stamped into the belief caveat (l.7752) and into `components` (l.9491). SO THE\nRESIDUE\
+  \ IS THE RESHAPE ALONE -- and the atom's second owed item is DISCHARGED BY ITS\nSUCCESSOR: the census\
+  \ Hour #10 asked for is `SCENARIO_CONSTANT_CENSUS` (l.5514), which is\nD30's, is complete against `build_scenario`'s\
+  \ AST, and already carries an\n`AS_OF_BUFFER_DAYS` entry with `owning_atom: D29`. D29 owes no census.\n\
+  \nFINDING 1 -- THE KNOB THIS ATOM IS NAMED FOR CANNOT FIX THE DEFECT THIS ATOM IS NAMED FOR,\nAND THE\
+  \ REASON IS AN IDENTITY RATHER THAN A SENSITIVITY.\n\n`AS_OF_BUFFER_DAYS` is a pure TRANSLATION of the\
+  \ age band. Measured through\n`predict_event_age_span_from_constants` at HEAD over eleven values --\
+  \ 0, 1, 5, 10, 20, 30,\n60, 120, 338, 339, 400 -- both edges move one-for-one with the constant and\
+  \ the WIDTH is\ninvariant at 62 days at every one of them. The other three span constants are NOT\n\
+  translations: `N_PERIODS` 3 -> 20 moves the top alone (92 -> 449, width 62 -> 419),\n`PERIOD_SPACING_DAYS`\
+  \ 21 -> 90 gives width 200, `BILLING_CYCLE_SPREAD_DAYS` 21 -> 120 gives\nwidth 161. The census's `sets_edges`\
+  \ field already records the distinction (two edges vs\none) and no field NAMES it.\n\nSo the two quantities\
+  \ this atom cares about are conserved against each other:\n\n    amnesia_floor = newest_failure_age\
+  \ - 1\n    headroom      = DD_FAILURE_WINDOW_DAYS - oldest_failure_age\n    floor + headroom = DD_FAILURE_WINDOW_DAYS\
+  \ - event_age_span - 1\n\n-- free of `as_of` entirely, because every age moves together. MEASURED through\
+  \ the shipped\n`measure_belief_window_resolution` on drawn books (`build_scenario`, n=300, seeds 7/11/23)\n\
+  at buffers 5 / 30 / 338:\n\n    seed  buf    floor  headroom  sum   span  saturated\n    7       5 \
+  \       4       334  338     61  True\n    7      30       29       309  338     61  True\n    7   \
+  \  338      337         1  338     61  True\n    11      5        4       333  337     62  True\n  \
+  \  11     30       29       308  337     62  True\n    11    338      337         0  337     62  True\n\
+  \    23      5        5       333  338     61  True\n    23     30       30       308  338     61  True\n\
+  \    23    338      338         0  338     61  True\n\n(buf=30 reproduces the register's shipped `own_saturates_below:\
+  \ -371` on seeds 7/11 and\n-370 on seed 23, so the instrument being perturbed is the shipped one.)\n\
+  \nTHE CONSEQUENCE IS THE FINDING. D29's stated defect is the FLOOR -- \"every company memory\nof 29\
+  \ days or less counts NOTHING\". Every buffer that lowers the floor RAISES the headroom\nthe scored\
+  \ company already sits 308-309 days inside; every buffer that closes the headroom\nraises the floor\
+  \ by the same number of days. `buf = 338` is the only value that brings the\ntop of the band to the\
+  \ scored company's 400-day window, and it buys that by making a\nsupplier with ELEVEN MONTHS of memory\
+  \ count nothing -- D29's own named defect, eleven times\nworse. And `saturated` is STILL True at 338\
+  \ on all three seeds (`saturated = window >=\noldest`, headroom 1/0/0), so NO value of this constant\
+  \ de-saturates the company being\ngraded.\n\nTHE RESHAPE THEREFORE CANNOT BE `as_of`-ONLY, and the atom's\
+  \ own candidate list has to be\nre-read. Of the three it offers -- \"an `as_of` closer to the last event,\
+  \ several `as_of`\nreadings, and/or a book whose events run right up to it\" -- the first is exactly\
+  \ the\ntranslation measured above and is strictly the WRONG DIRECTION for the headroom, and the\nthird\
+  \ fills interior ages without lengthening the span, so it too leaves the sum alone.\nOnly a change to\
+  \ `event_age_span` moves the conserved sum, and the span constants are\n`N_PERIODS` and `PERIOD_SPACING_DAYS`,\
+  \ which the census assigns to D30. NOT ESTABLISHED and\nflagged as a lead rather than asserted (R9):\
+  \ the SECOND candidate -- several `as_of`\nreadings -- is the one that is not a translation, since the\
+  \ union of ages across readings\nat buffers b_min..b_max spans `span + (b_max - b_min)`; whether figures\
+  \ read once per\n`as_of` can be combined into one that resolves better was not measured here.\n\nWHICH\
+  \ INVERTS THE MAP'S BUILD ORDER WITHOUT INVERTING ITS DISCOVERY ORDER. The map has\n`D30 depends_on:\
+  \ [D29]`, which is correct as history (D29 found the floor; D30 found the\nband it sits in). As a BUILD\
+  \ order it is backwards: the executable content of D29 -- choose\nwhere the floor sits -- is a free\
+  \ choice made inside the edit that chooses the SPAN, and\nchoosing the span is D30's. Doing D29 first,\
+  \ alone, is measurably a step away from\nresolving the scored company.\n\nFINDING 2 -- THE ATOM'S OWN\
+  \ MINT JUSTIFICATION IS FALSE AS MEASURED, AND IT IS FALSE FOR\nD30'S REASON. The `name` says the reshape\
+  \ \"moves every published belief figure on this pair\nand is therefore a mint rather than a fix on sight\"\
+  . Scored through the shipped\n`score_triad` at HEAD, n=300, seeds 7/11/23, buffer 30 -> 5 (the atom's\
+  \ own first candidate\nreshape, at a real magnitude):\n\n    dimension              buf=30 (seed 7)\
+  \        buf=5 (seed 7)         moved?\n    ageing                 0.11296259117981663    0.08016507936507936\
+  \    MOVED\n    belief                 0.1518987341772152     0.1518987341772152     bit-identical\n\
+  \    belief_population_mix  0.07999999999999997    0.07999999999999997    bit-identical\n    detection\
+  \              0.014505119453924915   0.014505119453924915   bit-identical\n    detection_latency  \
+  \    2.343137               2.343137               bit-identical\n\nSeeds 11 and 23 agree in full: `ageing`\
+  \ moves on all three (0.191535 -> 0.162289,\n0.119400 -> 0.084138), the other four are bit-identical\
+  \ on all three. NEITHER BELIEF FIGURE\nMOVES -- at drift 0 the scored company holds 400 days and every\
+  \ failure age is under 400 at\nboth buffers, so the counted set is identical. That is D30's \"the scored\
+  \ company is inert\"\nseen from the other side, and it is the same fact Finding 1 states as an identity.\
+  \ What\nDOES move is `ageing`, a dimension this atom never mentions, and whose own upper edge the\n\
+  uncommitted D28 landing in this tree has just re-derived.\n\nThe atom is still correctly a MINT -- it\
+  \ moves a published figure and it moves every\ndeclared edge on the belief pair. But its recorded REASON\
+  \ names the wrong dimensions, and\nanyone sizing the blast radius off the `name` would protect the two\
+  \ figures that cannot\nmove and miss the one that does. QUEUED rather than corrected on sight (SELF-INTERRUPT\n\
+  DISCIPLINE) and staged as\n`docs/staging/WORKER_FINDING_THE_FLOOR_AND_THE_HEADROOM_ARE_ONE_CONSTANT_2026-08-13.md`\
+  \ so\nit is visible outside this record: the `name` lives in `docs/design/maturity_map.yaml`,\nwhose\
+  \ shared index ALREADY carries another lane's staged `level_current`/`loop_stage` move,\nso a pathspec\
+  \ commit of the map would land their level change under this message -- the\nsame constraint the D33\
+  \ pass and EP10's pass each hit on this file.\n\nWHAT AN EXIT TEST FOR THIS ATOM MUST NOW SHOW, from\
+  \ the two findings:\n\n  1. that the CONSERVED SUM has moved -- a reshape that only lowers the floor\
+  \ has raised the\n     headroom by exactly as many days and resolved nothing. `floor + headroom` before\
+  \ and\n     after is the one-line acceptance test, and it is computable from the book with no\n    \
+  \ re-scoring;\n  2. `saturated == False` for the scored company at drift 0, which is the one statement\
+  \ no\n     value of `AS_OF_BUFFER_DAYS` can buy;\n  3. and `ageing` re-certified alongside the belief\
+  \ pair, because `ageing` is the figure\n     that actually moves and it is not in this atom's stated\
+  \ radius.\n\nR12: no published number was tuned, and none was written to any artefact. The five figures\n\
+  were scored only as alternative BOOKS at a perturbed harness constant, inside a throwaway\nworktree,\
+  \ to measure which of them this reshape reaches.\n\nSTATUS: DISCOVER/FRAME only. `level_current` unchanged\
+  \ at 0, `loop_stage` unchanged at\n`idle`, `provenance` unchanged at `proposal`. Nothing in `file_scope`\
+  \ was written and the\nmap is not touched at all this tick; `simplifications_count` re-syncs on the\
+  \ next\n`tools.merge_atom_status` fold."
